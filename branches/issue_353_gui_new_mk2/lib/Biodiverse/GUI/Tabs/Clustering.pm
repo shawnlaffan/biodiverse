@@ -857,6 +857,15 @@ sub on_combo_map_list_changed {
         $widget->set_sensitive($sensitive);
     }
 
+    #  don't show the indices options if there is no list
+    my $combo_widget = $self->{xmlPage}->get_widget('comboMapShow');
+    if ($sensitive) {
+        $combo_widget->show;
+    }
+    else {
+        $combo_widget->hide;
+    }
+
     return;
 }
 

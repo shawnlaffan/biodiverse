@@ -909,13 +909,13 @@ sub write_table_csv {
                 list       => $line_ref,
                 csv_object => $csv_obj,
             );
-            print {$fh} $string . "\n";
+            say {$fh} $string;
         }
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     if ($fh -> close) {
-        print "[COMMON] Write to file $file successful\n";
+        say "[COMMON] Write to file $file successful";
     }
     else {
         croak "[COMMON] Unable to close $file\n";

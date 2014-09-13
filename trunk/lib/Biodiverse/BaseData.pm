@@ -1401,11 +1401,11 @@ sub import_data_raster {
                                 $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
                             }
 
+                            #  no need to dequote since these will always be numbers
                             my $grpstring = $self->list2csv (
                                 list        => [$grpe, $grpn],
                                 csv_object  => $out_csv,
                             );
-                            #say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
 
                             # set label if determined at cell level
                             my $count = 1;

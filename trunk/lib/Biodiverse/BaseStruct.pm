@@ -143,6 +143,7 @@ sub get_reordered_element_names {
     croak "incorrect or clashing axes\n"
       if scalar keys %tmp != scalar @reorder_cols;
 
+    my $quote_char = $self->get_param('QUOTES');
     foreach my $element ($self->get_element_list) {
         my $el_array = $self->get_element_name_as_array (element => $element);
         my @new_el_array = @$el_array[@reorder_cols];
@@ -151,6 +152,7 @@ sub get_reordered_element_names {
             list       => \@new_el_array,
             csv_object => $csv_object,
         );
+        $self->dequote_element(element => $new_element, quote_char => $quote_char);
 
         $reordered{$element} = $new_element;
     }

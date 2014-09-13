@@ -37,7 +37,6 @@ use Gtk2 qw/-init/;
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
 
-#use Data::Dumper;
 use Scalar::Util qw/blessed/;
 
 # Load filename specified in the arguments

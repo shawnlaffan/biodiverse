@@ -479,6 +479,8 @@ sub init_grid {
 
     $self->{initialising_grid} = 0;
 
+    $self->warn_if_basedata_has_gt2_axes;
+
     return;
 }
 

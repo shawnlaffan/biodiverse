@@ -198,9 +198,11 @@ sub init_grid {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
-    
+
     $self->{grid}->set_legend_mode('Sat');
-    
+
+    $self->warn_if_basedata_has_gt2_axes;
+
     return 1;
 }
 

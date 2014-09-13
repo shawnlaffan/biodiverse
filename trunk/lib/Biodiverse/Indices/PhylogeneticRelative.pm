@@ -105,7 +105,7 @@ sub get_metadata_calc_phylo_rpe1 {
 sub calc_phylo_rpe1 {
     my $self = shift;
     my %args = @_;
-    
+
     my $tree = $args{trimmed_tree};
     my $total_tree_length = $tree->get_total_tree_length;
 
@@ -464,20 +464,8 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 
     my $tree_ref = $args{trimmed_tree} // croak "missing trimmed_tree argument\n";
 
-    my $new_tree = $tree_ref->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
-
-    foreach my $node ($new_tree->get_node_refs) {
-        #  zero length nodes stay that way
-        my $len = $node->get_length ? 1 : 0;
-        $node->set_length (length => $len);
-        $node->delete_cached_values;
-    }
-    $new_tree->rename(new_name => $tree_ref->get_param ('NAME') . ' EQ');
+    #  lengths will be non-zero, but not 1
+    my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths;
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES_TRIMMED => $new_tree,

@@ -431,6 +431,18 @@
                             <property name="n_columns">2</property>
                             <property name="column_spacing">3</property>
                             <property name="row_spacing">3</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1093,6 +1105,18 @@ Shapefile
                     <property name="n_columns">2</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">3</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -6192,6 +6216,24 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                                     <property name="column_spacing">2</property>
                                                     <property name="row_spacing">4</property>
                                                     <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
                                                       <widget class="GtkFrame" id="frame2">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
@@ -8805,78 +8847,83 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkToolbar" id="toolbar_spatial_tab_bottom">
+                  <widget class="GtkHBox" id="hbox_spatial_tab_bottom">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="toolbar_style">both</property>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem15">
+                      <widget class="GtkLabel" id="label_spatial_combos">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboLists">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="add_tearoffs">True</property>
-                          </widget>
-                        </child>
+                        <property name="label" translatable="yes">Lists and indices:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorToolItem" id="separatortoolitem1">
+                      <widget class="GtkComboBox" id="comboLists">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="add_tearoffs">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem45">
+                      <widget class="GtkComboBox" id="comboIndices">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboIndices">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="add_tearoffs">True</property>
-                          </widget>
-                        </child>
+                        <property name="add_tearoffs">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorToolItem" id="separatortoolitem4">
+                      <widget class="GtkSeparatorToolItem" id="separatortoolitem4k">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem4">
+                      <widget class="GtkLabel" id="label3">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboTreeSelect">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip" translatable="yes">Select tree to display</property>
-                            <property name="active">0</property>
-                            <property name="add_tearoffs">True</property>
-                            <property name="items" translatable="yes">Plot analysis tree
-Plot project tree</property>
-                          </widget>
-                        </child>
+                        <property name="label" translatable="yes">Plot tree from:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkComboBox" id="comboTreeSelect">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Select tree to display</property>
+                        <property name="active">0</property>
+                        <property name="add_tearoffs">True</property>
+                        <property name="items" translatable="yes">analysis
+project</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">5</property>
                       </packing>
                     </child>
                   </widget>
@@ -9179,6 +9226,18 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

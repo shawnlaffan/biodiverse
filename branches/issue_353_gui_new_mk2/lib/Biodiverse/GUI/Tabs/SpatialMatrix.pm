@@ -190,6 +190,10 @@ sub new {
         next if !defined $w;
         $w->hide;
     }
+    
+    #  override a label
+    my $label_widget = $self->{xmlPage}->get_widget('label_spatial_combos');
+    $label_widget->set_text ('Index group:  ');
 
     $self->init_output_indices_combo();
     #$self->update_output_indices_menu();

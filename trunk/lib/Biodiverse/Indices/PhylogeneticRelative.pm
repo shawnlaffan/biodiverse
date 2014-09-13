@@ -187,6 +187,7 @@ sub calc_phylo_rpd2 {
 
     #  Allow for zero length nodes, as we keep them as zero.
     #  The grep in scalar context is a fast way of counting the number of non-zero branches.
+    #  %$included_nodes is for the original tree
     my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
 
     my %results;

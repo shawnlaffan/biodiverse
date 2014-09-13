@@ -1360,10 +1360,13 @@ sub on_grid_hover {
 
 #  #1F78B4 = blue
 #  #8DA0CB = mid-blue
+#  #2166ac = a brighter blue
+#  #4393c3 = a light brighter blue
+#  #33a02c = mid green
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#8DA0CB', '#E31A1C', '#000000');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#2166ac', '#E31A1C', '#33a02c');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;

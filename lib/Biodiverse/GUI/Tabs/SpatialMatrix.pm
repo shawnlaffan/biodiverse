@@ -291,6 +291,8 @@ sub init_grid {
 
     $self->{grid}->{page} = $self; # Hacky
 
+    $self->warn_if_basedata_has_gt2_axes;
+
     return;
 }
 

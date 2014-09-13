@@ -549,6 +549,8 @@ sub init_map {
 
     $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
+    $self->warn_if_basedata_has_gt2_axes;
+
     return;
 }
 

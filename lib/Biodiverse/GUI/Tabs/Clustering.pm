@@ -285,6 +285,7 @@ sub new {
         menu_cluster_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
         menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
+        menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
     for my $n (0..6) {
@@ -858,6 +859,15 @@ sub on_combo_map_list_changed {
         }
         
         $widget->set_sensitive($sensitive);
+    }
+
+    #  don't show the indices options if there is no list
+    my $combo_widget = $self->{xmlPage}->get_widget('comboMapShow');
+    if ($sensitive) {
+        $combo_widget->show;
+    }
+    else {
+        $combo_widget->hide;
     }
 
     return;

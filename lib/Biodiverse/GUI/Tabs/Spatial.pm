@@ -97,7 +97,7 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->hide;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->hide;
         $self->{xmlPage}->get_widget('toolbarSpatial')->hide;
     }
     else {
@@ -244,9 +244,10 @@ sub new {
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
-        menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
+        menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
+        menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
     for my $n (0..6) {
@@ -1248,7 +1249,7 @@ sub on_run {
         elsif (defined $output_ref) {
             $self->{grid}->set_base_struct($output_ref);
         }
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
         $self->update_lists_combo(); # will display first analysis as a side-effect...
         $self->on_selected_phylogeny_changed;  # update the tree plot
@@ -1434,7 +1435,7 @@ sub get_current_tree {
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
 
     # phylogenies
-    if ($tree_method eq 'Plot analysis tree') {
+    if ($tree_method eq 'analysis') {
         # get tree from spatial analysis, if possible
         return if !$self->{output_ref}->can('get_embedded_tree');
         return $self->{output_ref}->get_embedded_tree;

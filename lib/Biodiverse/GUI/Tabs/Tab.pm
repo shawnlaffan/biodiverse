@@ -671,6 +671,57 @@ sub on_set_cell_show_outline {
 }
 
 
+sub on_set_tree_line_widths {
+    my $self = shift;
+
+    return if !$self->{dendrogram};
+
+    my $props = {
+        name       => 'branch_width',
+        type       => 'integer',
+        default    => $self->{dendrogram}->{branch_line_width} // 0,
+        min        => 0,
+        max        => 15,
+        label_text => "Branch line thickness in pixels\n"
+                    . 'Does not affect the vertical connectors',
+        tooltip    => 'Set to zero to let the system calculate a default',
+    };
+
+    my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);
+
+    my $dlg = Gtk2::Dialog->new_with_buttons (
+        'Set branch width',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok',
+        'gtk-cancel' => 'cancel',
+    );
+
+    my $hbox  = Gtk2::HBox->new;
+    my $label = Gtk2::Label->new($props->{label_text});
+    $hbox->pack_start($label,   0, 0, 1);
+    $hbox->pack_start($spinner, 0, 0, 1);
+    $spinner->set_tooltip_text ($props->{tooltip});
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start($hbox, 0, 0, 10);
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+
+    my $val;
+    if ($response eq 'ok') {
+        $val = $extractor->();
+    }
+    
+    $dlg->destroy;
+
+    $self->{dendrogram}->set_branch_line_width ($val);
+
+    return $val;
+    
+}
+
 ########
 ##
 ##  Some cache methods which have been copied across from Biodiverse::Common

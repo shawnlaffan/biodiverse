@@ -651,12 +651,12 @@ sub on_set_tree_line_widths {
     my $props = {
         name       => 'branch_width',
         type       => 'integer',
-        default    => $self->{dendrogram}->get_branch_line_width,
-        min        => 1,
+        default    => $self->{dendrogram}->{branch_line_width} // 0,
+        min        => 0,
         max        => 15,
         label_text => "Branch line thickness in pixels\n"
-                    . "Does not affect the vertical connectors",
-        tooltip    => '',
+                    . 'Does not affect the vertical connectors',
+        tooltip    => 'Set to zero to let the system calculate a default',
     };
 
     my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);

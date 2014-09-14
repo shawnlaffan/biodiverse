@@ -4,12 +4,13 @@ use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
-use Data::Dumper;
+#use Data::Dumper;
 use Carp;
 
 use Time::HiRes qw /gettimeofday time/;
 
-use Scalar::Util qw /weaken/;
+use Scalar::Util qw /weaken blessed/;
+use List::Util qw /min/;
 use Tie::RefHash;
 
 use Gtk2;
@@ -17,8 +18,6 @@ use Gnome2::Canvas;
 use POSIX; # for ceil()
 
 our $VERSION = '0.99_002';
-
-use Scalar::Util qw /blessed/;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -765,7 +764,16 @@ sub map_elements_to_clusters {
 }
 
 sub get_branch_line_width {
-    return $_[0]->{branch_line_width} // 1;
+    my $self = shift;
+
+    my $width = $self->{branch_line_width};
+    if (!$width) {
+        $width ||= eval {int ($self->{height_px} / $self->{tree_node}->get_terminal_element_count / 3)};
+        $width ||= 1;
+        $width = min (2, $width);
+    }
+
+    return $width;
 }
 
 sub set_branch_line_width {

@@ -154,7 +154,7 @@ Note that there is one known issue with ER-Mapper files ([#My_ER-Mapper_BIL_file
 
 == How do I export as a raster? ==
 
-Use the ER-Mapper BIL file, !ArcInfo Asciigrid or !ArcInfo Floatgrid options.  
+Use the ER-Mapper BIL file, !ArcInfo Asciigrid or !ArcInfo Floatgrid options.  From version 1 you can also use GeoTIFF.
 
 These are currently not supported for the cluster analyses (see issue #161).  In that case, export to delimited text and then import this as a point data source and convert to raster.  It is probably best to use the grouped option for this, as it will not have overlapping node ranges.  Alternately, select each node in turn and create a separate raster using its terminal nodes (this will need a scripting approach).
 
@@ -180,7 +180,7 @@ RegistrationCellX  = 0.5
 RegistrationCellY  = 0.5
 }}}
 
-The system behaviour is set for !ArcMap 9 purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With !ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
+The system behaviour was set for !ArcMap 9 under the assumption that more people were using it for display.
 
 ==  Why do my exported raster files have strange characters like %3A in the names? ==
 
@@ -195,13 +195,13 @@ See also the Issues list http://code.google.com/p/biodiverse/issues/list
 
 == Biodiverse crashes and disappears without any message ==
 
-This is an [#I_get_an_Out_of_memory_error out of memory error].
+This is most likely an [#I_get_an_Out_of_memory_error out of memory error].
 
 == I get an Out of memory error ==
 
-In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while also displaying several outputs.
+In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5, fixed in version 0.19) and when one is using a 32 bit system to work with a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while also displaying several outputs.
 
-On most 32-bit operating systems the maximum memory allocated to a process is 2GB. On Linux it is 3GB, and server versions of Windows can be configured for 3GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not completely free all memory in case it might need it again later.  This particularly affects the randomisations.  Each iteration is assigned a chunk of memory that is not returned to the general pool, and eventually the system runs out of available memory and crashes.
+On most 32-bit operating systems the maximum memory allocated to a process is 2GB. On Linux it is 3GB, and server versions of Windows can be configured for 3GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and also does not free memory to the system under the assumption it will need it again later for a pience of code.  For large processes the system runs out of available memory and crashes.
 
 Closing Biodiverse and restarting it will clear any memory no longer needed, but does not solve all cases involving large data sets.  In this case one should close any open tabs in the GUI before exporting or saving, as the memory used for the GUI section is freed and returned properly.  One can also subdivide the analyses and run them separately (i.e. a small number of analyses per duplicate !BaseData).  Randomisations for these duplicates can be reproduced by specifying the same starting seed and parameters.  
 
@@ -209,7 +209,7 @@ If that does not not work then the next solution is to move to a 64 bit system w
 
 An alternate solution, if a 64 bit system is not available, is to subdivide the !BaseData object into tiles before analysis.  This works well for most moving window analyses, but cluster and randomisation analyses will not produce correct results as the groups and labels they use will be restricted to each tile.  One must also ensure the tiles have overlapping boundaries to ensure the moving window analyses have the correct neighbour sets (the degree of overlap depends on the neighbour set used).  Indices that use global statistics, such as the global range used in the endemism indices, also need some care.  Global ranges and global sample counts can be set using an Element Properties table when importing the !BaseData (see [DataStructures#Element_property_tables]).  This can be constructed from the whole data set by calculating the endemism and rarity lists with a spatial condition set to `sp_select_all()`, and then extracted by control clicking on the displayed results to see the lists, from which the values can be copied into a spreadsheet or other program.  (This assumes you can display the results without the crash.   If not then a script is the only way to extract the data).
 
-For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process (load_and_randomise_wrapper).  This was released in version 0.14, and documentation are at the LoadAndRandomise page.
+For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process (load_and_randomise_wrapper).  This was released in version 0.14, and documentation are at the LoadAndRandomise page.  Note that, since issue 5 was fixed, this has been superseded by the run_randomisation utility (see the RunRandomisation page).
 
 == Opening the help system on Linux does not return focus to Biodiverse ==
 

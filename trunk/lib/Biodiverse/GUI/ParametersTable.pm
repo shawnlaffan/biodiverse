@@ -220,7 +220,7 @@ sub generate_file {
 
 sub generate_comment {
     my $param  = shift;
-    my $dlgxml = shift;
+    #my $dlgxml = shift;
 
     #  just a placeholder
     my $label = Gtk2::Label->new;

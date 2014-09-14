@@ -4,12 +4,13 @@ use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
-use Data::Dumper;
+#use Data::Dumper;
 use Carp;
 
 use Time::HiRes qw /gettimeofday time/;
 
-use Scalar::Util qw /weaken/;
+use Scalar::Util qw /weaken blessed/;
+use List::Util qw /min/;
 use Tie::RefHash;
 
 use Gtk2;
@@ -17,8 +18,6 @@ use Gnome2::Canvas;
 use POSIX; # for ceil()
 
 our $VERSION = '0.99_004';
-
-use Scalar::Util qw /blessed/;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -44,8 +43,9 @@ use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
 use constant COLOUR_NOT_IN_TREE       => COLOUR_BLACK;
 use constant COLOUR_LIST_UNDEF        => COLOUR_BLACK;
 
-use constant DEFAULT_LINE_COLOUR     => COLOUR_BLACK;
-use constant DEFAULT_LINE_COLOUR_RGB => "#000000";
+use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
+use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
+use constant DEFAULT_LINE_COLOUR_VERT => Gtk2::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
 
@@ -761,6 +761,31 @@ sub map_elements_to_clusters {
     $self->{element_to_cluster} = \%map;
 
     return;
+}
+
+sub get_branch_line_width {
+    my $self = shift;
+
+    my $width = $self->{branch_line_width};
+    if (!$width) {
+        $width ||= eval {int ($self->{height_px} / $self->{tree_node}->get_terminal_element_count / 3)};
+        $width ||= 1;
+        $width = min (2, $width);
+    }
+
+    return $width;
+}
+
+sub set_branch_line_width {
+    my ($self, $val) = @_;
+    my $current = $self->get_branch_line_width;
+
+    $self->{branch_line_width} = $val;
+
+    if ($current != $val && $self->{tree_node}) {
+        $self->render_tree;
+    }
+    
 }
 
 # Colours the element map with colours for the established clusters
@@ -1616,7 +1641,8 @@ sub render_tree {
         $self->{unscaled_height},
         $self->{render_width},
         $self->{render_height},
-        $self->{length_func}
+        $self->{length_func},
+        $self->get_branch_line_width,
     );
 
     #  don't redraw needlessly
@@ -1822,9 +1848,11 @@ sub resize_background_rect {
 ##########################################################
 
 sub draw_node {
-    my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
+    my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale, $line_width) = @_;
 
     return if !$node;
+
+    $line_width //= $self->get_branch_line_width;
 
     my $node_name = $node->get_name;
 
@@ -1834,7 +1862,11 @@ sub draw_node {
     my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
-    my $line = $self->draw_line($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
+    my $line = $self->draw_line(
+        [$current_xpos, $y, $new_current_xpos, $y],
+        $colour_ref,
+        $line_width,
+    );
     $line->signal_connect_swapped (event => \&on_event, $self);
     $line->{node} =  $node; # Remember the node (for hovering, etc...)
 
@@ -1843,9 +1875,10 @@ sub draw_node {
 
     # Draw children
     my ($ymin, $ymax);
+    my @arg_arr = ($new_current_xpos, $length_func, $length_scale, $height_scale, $line_width);
 
     foreach my $child ($node->get_children) {
-        my $child_y = $self->draw_node($child, $new_current_xpos, $length_func, $length_scale, $height_scale);
+        my $child_y = $self->draw_node($child, @arg_arr);
 
         $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
         $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
@@ -1853,26 +1886,31 @@ sub draw_node {
 
     # Vertical line
     if (defined $ymin) { 
-        $self->draw_line($new_current_xpos, $ymin, $new_current_xpos, $ymax, DEFAULT_LINE_COLOUR);
+        $self->draw_line(
+            [$new_current_xpos, $ymin, $new_current_xpos, $ymax],
+            DEFAULT_LINE_COLOUR_VERT,
+            NORMAL_WIDTH,
+        );
     }
     return $y;
 }
 
 sub draw_line {
-    my ($self, $x1, $y1, $x2, $y2, $colour_ref) = @_;
-    #print "Line ($x1,$y1) - ($x2,$y2)\n";
+    my ($self, $vertices, $colour_ref, $line_width) = @_;
 
-    my $line_style = $x1 >= $x2
+    $line_width //= NORMAL_WIDTH;
+
+    my $line_style = ($vertices->[0] >= $vertices->[2])
       ? 'solid'
       : 'on-off-dash';
 
     return Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Line',
-        points => [$x1, $y1, $x2, $y2],
+        points => $vertices,
         fill_color_gdk => $colour_ref,
         line_style     => $line_style,
-        width_pixels   => NORMAL_WIDTH,
+        width_pixels   => $line_width,
     );
 }
 

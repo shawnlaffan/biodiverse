@@ -15,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -198,9 +198,11 @@ sub init_grid {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
-    
+
     $self->{grid}->set_legend_mode('Sat');
-    
+
+    $self->warn_if_basedata_has_gt2_axes;
+
     return 1;
 }
 
@@ -1173,7 +1175,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};

@@ -8,7 +8,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Exception;
 
@@ -135,16 +135,21 @@ sub load_data {
 
     my $element_properties = $args{element_properties};
 
-    my @label_columns = @{$self->get_param('ELEMENT_COLUMNS')};
-
+    my @label_columns      = @{$self->get_param('ELEMENT_COLUMNS')};
     my @orig_label_columns = @{$self->get_param('ELEMENT_COLUMNS')};
 
-    warn "[MATRICES] WARNING: Different numbers of matrix columns (".($#label_columns + 1).") and cell snaps (".($#orig_label_columns+1).")\n"
-            if $#label_columns != $#orig_label_columns;
+    my $label_col_count      = scalar @label_columns;
+    my $orig_label_col_count = scalar @orig_label_columns;
+
+    #  Does this really matter?
+    #  It can never be triggered given they are set to be the same above
+    warn '[MATRICES] WARNING: Different numbers of matrix columns '
+        . "($label_col_count ) and cell snaps ($orig_label_col_count)\n"
+      if $label_col_count != $orig_label_col_count;
 
     my $values_start_col = ($self->get_param('MATRIX_STARTCOL') || $label_columns[-1] + 1);
 
-    print "[MATRICES] INPUT MATRIX FILE: $file\n";
+    say "[MATRICES] INPUT MATRIX FILE: $file";
     open (my $fh1, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
     my $header = <$fh1>;  #  get header line
     $fh1->close;

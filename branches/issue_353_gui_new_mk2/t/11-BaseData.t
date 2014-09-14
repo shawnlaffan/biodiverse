@@ -96,6 +96,29 @@ sub main {
 }
 
 
+sub test_binarise_sample_counts {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+
+    $bd->binarise_sample_counts;
+    
+    foreach my $type (qw /label group/) {
+        my $list_method = 'get_' . $type . 's';
+        my $sc_method   = 'get_' . $type . '_sample_count';
+        my $v_method    = $type eq 'label' ? 'get_range' : 'get_richness';
+        #  successful binarise when richness or range equal sample count for a group or label
+        subtest "${type}s are binarised" => sub {
+            foreach my $element ($bd->$list_method) {
+                is (
+                    $bd->$sc_method(element => $element),
+                    $bd->$v_method(element => $element),
+                    $element,
+                );
+            }
+        };
+    }
+    
+}
+
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 
@@ -729,6 +752,7 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
+        ok (-e $fname . '.shp', "$fname.shp exists");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -747,6 +771,13 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions importing $fname");
         diag $e if $e;
+        if ($e) {
+            diag "$fname:";
+            foreach my $ext (qw /shp dbf shx/) {
+                diag 'size: ' . -s ($fname . $ext);
+            }
+        }
+        
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;

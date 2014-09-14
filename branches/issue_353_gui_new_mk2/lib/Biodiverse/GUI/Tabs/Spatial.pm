@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Gtk2;
 use Carp;
@@ -479,6 +479,8 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
+
+    $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
@@ -1060,7 +1062,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};
@@ -1211,10 +1213,10 @@ sub on_run {
         my $old_ref = $self->{output_ref};
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
+        #  rename the temp file in the basedata
+        $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
     }
 
-    #  fix the temp name before we add it to the basedata
-    $output_ref->rename (new_name => $self->{output_name});
     $self->{output_ref} = $output_ref;
     $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 
@@ -1361,6 +1363,9 @@ sub on_grid_hover {
 
 #  #1F78B4 = blue
 #  #8DA0CB = mid-blue
+#  #2166ac = a brighter blue
+#  #4393c3 = a light brighter blue
+#  #33a02c = mid green
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
@@ -1415,7 +1420,10 @@ sub highlight_paths_on_dendrogram {
 
 sub on_end_grid_hover {
     my $self = shift;
-    $self->{dendrogram}->clear_highlights;
+    my $dendrogram = $self->{dendrogram}
+      // return;
+
+    $dendrogram->clear_highlights;
 }
 
 sub get_current_tree {

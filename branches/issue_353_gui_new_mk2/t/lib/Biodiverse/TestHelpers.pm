@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_004';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -414,7 +414,7 @@ sub compare_arr_sorted {
 sub get_basedata_import_data_file {
     my %args = @_;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj $args{data} || get_basedata_test_data(@_);
     $tmp_obj->close;
@@ -621,7 +621,7 @@ sub get_matrix_object_from_sample_data {
 sub write_data_to_temp_file {
     my $data = shift;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $fname = $tmp_obj->filename;
     print $tmp_obj $data;
     $tmp_obj->close;
@@ -824,14 +824,22 @@ sub run_indices_test1 {
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
     if ($calc_topic_to_test) {
-        my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
+        if (!ref $calc_topic_to_test) {
+            $calc_topic_to_test = [$calc_topic_to_test];
+        }
+        my @expected_calcs_to_test;
+        foreach my $topic (@$calc_topic_to_test) {
+            my $calcs = $indices->get_calculations->{$topic};
+            push @expected_calcs_to_test, @$calcs;
+        }
 
-        subtest 'Right calculations are being tested' => sub {
+        subtest 'Correct calculations are being tested' => sub {
             compare_arr_vals (
                 arr_got => $calcs_to_test,
-                arr_exp => $expected_calcs_to_test
-            )
+                arr_exp => \@expected_calcs_to_test,
+            );
         };
+        
     }
 
     my %elements = (
@@ -1146,9 +1154,21 @@ sub run_sp_cond_tests {
 
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
-    my $index_text = q{};
+    my $index_text = ' (no spatial index)';
 
-    foreach my $i (1 .. 3) {
+    foreach my $i (0 .. 2) {
+
+        if ($i) {
+            my @index_res;
+            foreach my $r (@$res) {
+                push @index_res, $r * $i;
+            }
+            $index = $bd->build_spatial_index (
+                resolutions => [@index_res],
+                version     => $index_version,
+            );
+            $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
+        }
 
         foreach my $condition (sort keys %$conditions) {
             my $expected = $conditions->{$condition};
@@ -1190,15 +1210,6 @@ sub run_sp_cond_tests {
             is (keys %$nbrs, $expected, $cond . $index_text);
         }
 
-        my @index_res;
-        foreach my $r (@$res) {
-            push @index_res, $r * $i;
-        }
-        $index = $bd->build_spatial_index (
-            resolutions => [@index_res],
-            version     => $index_version,
-        );
-        $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 
     return;
@@ -1213,7 +1224,7 @@ sub test_sp_cond_res_pairs {
     {
         while (my $cond = shift @res_pairs) {
             my $res = $cond->{res};
-            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);  #  max is 29+min
             my @y   = @x;
             my $bd = get_basedata_object(
                 x_spacing  => $res->[0],
@@ -1310,7 +1321,7 @@ sub cluster_test_matrix_recycling {
         #: [RICHNESS_ALL => 'max', PD => 'max'];
         #: [random => 'max', PD => 'max'];
 
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
     my $tree_ref  = get_tree_object_from_sample_data();
 
     my %analysis_args = (
@@ -1376,7 +1387,7 @@ sub cluster_test_matrix_recycling {
     isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
     isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
     
-    #  now we try with a combinatoin of spatial condition and def query
+    #  now we try with a combination of spatial condition and def query
     $bd->delete_all_outputs;
 
     my $cl6 = $bd->add_output (name => 'cl6 mx recyc', type => $type);
@@ -1482,26 +1493,26 @@ sub get_cluster_linkages {
 
 sub cluster_test_linkages_and_check_replication {
     my %args = (delete_outputs => 1, @_);
-    
+
     my $type = $args{type} // 'Biodiverse::Cluster';
     my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
-    my $tie_breaker   = 'ENDW_WE';
+    my @tie_breaker   = (ENDW_WE => 'max', ABC3_SUM_ALL => 'max');
 
-    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
+    my $bd2 = $bd1->clone;
 
     foreach my $linkage (@$linkage_funcs) {
         my $cl1 = $bd1->add_output (name => $linkage, type => $type);
         $cl1->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
-            cluster_tie_breaker => [$tie_breaker => 'max'],
+            cluster_tie_breaker => [@tie_breaker],
         );
         my $cl2 = $bd2->add_output (name => $linkage, type => $type);
         $cl2->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
-            cluster_tie_breaker => [$tie_breaker => 'max'],
+            cluster_tie_breaker => [@tie_breaker],
         );
 
         my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';

@@ -12,7 +12,7 @@ use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -416,7 +416,7 @@ sub get_phylo_nri_nti_cache {
 my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
 NRI and NTI for the set of labels
 on the tree in the sample. This
-version is -1* the Phylocom implementation,
+version is -1 times the Phylocom implementation,
 so values >0 have longer branches than expected.
 END_NRI_NTI_EXPL_TEXT
   ;

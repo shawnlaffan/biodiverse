@@ -4,6 +4,7 @@ use warnings;
 use 5.010;
 
 use English qw( -no_match_vars );
+use Time::HiRes qw /time/;
 
 use Gtk2;
 use Carp;
@@ -20,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -548,6 +549,8 @@ sub init_map {
     $self->{grid}->{page} = $self;
 
     $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
+
+    $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
@@ -1331,16 +1334,13 @@ sub on_run_analysis {
     my $output_ref       = $self->{output_ref};
     my $pre_existing     = $self->{output_ref};
     my $new_analysis     = 1;
+    
+    my $bd      = $self->{basedata_ref};
+    my $project = $self->{project};
 
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
-    #my $no_cache_abc        = $self->get_no_cache_abc_value;
-    #my $build_matrices_only = $self->get_build_matrices_only;
     my $file_handles        = $self->get_output_file_handles;
-    #my $output_gdm_format   = $self->get_output_gdm_format;
-    #my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
-    #my $no_clone_matrices   = $self->get_no_clone_matrices;
-    #my $clear_singletons    = $self->get_clear_singletons;
     my $prng_seed           = $self->get_prng_seed;
 
     my %flag_values = $self->get_flag_widget_values;
@@ -1351,6 +1351,7 @@ sub on_run_analysis {
         $self->{calculations_model}
     );
 
+    my $overwrite;
     # Delete existing?
     if (defined $output_ref) {
         my $completed = $self->{output_ref}->get_param('COMPLETED') // 1;
@@ -1371,18 +1372,18 @@ sub on_run_analysis {
             $self->{project}->set_dirty;  
         }
 
-        if ($new_analysis) {
-            $self->{basedata_ref}->delete_output(output => $output_ref);
-            $self->{project}->delete_output($output_ref);
-            $self->{existing}   = 0;
-            $self->{output_ref} = undef;
+        if ($new_analysis) {  #  we can simply rename it for now
+            $overwrite = 1;
+            my $tmp_name = $pre_existing->get_name . ' (preexisting ' . time() . ')';
+            $bd->rename_output (output => $pre_existing, new_name => $tmp_name);
+            $project->update_output_name ($pre_existing);
         }
     }
 
     if ($new_analysis) {
         # Add cluster output
         $output_ref = eval {
-            $self->{basedata_ref}->add_cluster_output(
+            $bd->add_cluster_output(
                 name => $self->{output_name},
                 type => $self->get_output_type,
             );
@@ -1393,7 +1394,7 @@ sub on_run_analysis {
         }
 
         $self->{output_ref} = $output_ref;
-        $self->{project}->add_output($self->{basedata_ref}, $output_ref);
+        $project->add_output($self->{basedata_ref}, $output_ref);
     }
 
     my %analysis_args = (
@@ -1404,25 +1405,18 @@ sub on_run_analysis {
         definition_query     => $self->{definition_query1}->get_text(),
         index                => $selected_index,
         linkage_function     => $selected_linkage,
-        #no_cache_abc         => $no_cache_abc,
-        #build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
-        #output_gdm_format    => $output_gdm_format,
-        #keep_sp_nbrs_output  => $keep_sp_nbrs_output,
         spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
             $self->{spatialParams2}->get_text(),
         ],
-        #no_clone_matrices   => $no_clone_matrices,
-        #clear_singletons    => $clear_singletons,
         prng_seed           => $prng_seed,
     );
 
     if ($self->get_use_tie_breakers) {
         my $tie_breakers = $self->get_tie_breakers;
         $analysis_args{cluster_tie_breaker} = $tie_breakers;
-        #$output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
     }
 
     # Perform the clustering
@@ -1439,17 +1433,18 @@ sub on_run_analysis {
         my $name = $e->name;
         #  do some handling then try again?
         #  drop out if we don't want to overwrite
-        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?";
+        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?\n(It will still be part of its cluster output).";
         if (Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text}) ne 'yes') {
-            #  put back the pre-existing cluster output - not quite working yet
-            $self->{basedata_ref}->delete_output(output => $output_ref);
-            $self->{project}->delete_output($output_ref);
-            $self->{basedata_ref}->add_output (object => $pre_existing);
-            $self->{project}->add_output($self->{basedata_ref}, $pre_existing);
+            if ($overwrite) {  #  put back the pre-existing cluster output
+                $bd->delete_output(output => $output_ref);
+                $project->delete_output($output_ref);
+                $bd->rename_output (output => $pre_existing, new_name => $self->{output_name});
+                $project->update_output_name ($pre_existing);
+            }
             return 0;
         }
-        $self->{basedata_ref}->delete_output(output => $e->object);
-        $self->{project}->delete_output($e->object);
+        $bd->delete_output(output => $e->object);
+        $project->delete_output($e->object);
         goto RUN_CLUSTER;
     }
     elsif ($EVAL_ERROR) {
@@ -1458,14 +1453,25 @@ sub on_run_analysis {
 
     if (not $success) {  # dropped out for some reason, eg no valid analyses.
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
+        if ($overwrite) {  #  reinstate the old output
+            $bd->delete_output (output => $output_ref);
+            $project->delete_output($output_ref);
+            $bd->rename_output (output => $pre_existing, new_name => $self->{output_name});
+            $project->update_output_name ($output_ref);
+        }
+
         return;
+    }
+    elsif ($overwrite) {
+        $bd->delete_output (output => $pre_existing);
+        $project->delete_output($pre_existing);
     }
 
     if ($flag_values{keep_sp_nbrs_output}) {
         my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
         if (defined $sp_name) {
             my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
-            $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+            $project->add_output($self->{basedata_ref}, $sp_ref);
         }
         else {
             say '[CLUSTER] Unable to add spatial output, probably because a recycled '
@@ -1477,7 +1483,7 @@ sub on_run_analysis {
     if ($new_analysis) {
         foreach my $ref ($output_ref->get_orig_matrices) {
             next if not $ref->get_element_count;  #  don't add if empty
-            $self->{project}->add_output($self->{basedata_ref}, $ref);
+            $project->add_output($self->{basedata_ref}, $ref);
         }
     }
 
@@ -1495,15 +1501,16 @@ sub on_run_analysis {
         $self->{xmlPage}->get_widget('toolbar_clustering_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarClustering')->show;
 
+        if (defined $output_ref) {
+            $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
+        }
+
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {
             $self->set_pane(0.01, 'vpaneClustering');
             $self->set_pane(1,    'vpaneDendrogram');
         }
 
-        if (defined $output_ref) {
-            $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
-        }
     }
 
     return;

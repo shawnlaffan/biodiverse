@@ -25,7 +25,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -143,6 +143,7 @@ sub get_reordered_element_names {
     croak "incorrect or clashing axes\n"
       if scalar keys %tmp != scalar @reorder_cols;
 
+    my $quote_char = $self->get_param('QUOTES');
     foreach my $element ($self->get_element_list) {
         my $el_array = $self->get_element_name_as_array (element => $element);
         my @new_el_array = @$el_array[@reorder_cols];
@@ -151,6 +152,7 @@ sub get_reordered_element_names {
             list       => \@new_el_array,
             csv_object => $csv_object,
         );
+        $self->dequote_element(element => $new_element, quote_char => $quote_char);
 
         $reordered{$element} = $new_element;
     }
@@ -812,7 +814,7 @@ sub export_shapefile {
             );
 
             # write a separate shape for each label
-            foreach my $key (keys %list_data) {
+            foreach my $key (sort keys %list_data) {
                 $shp_writer->add_shape(
                     $shape,
                     {
@@ -2207,6 +2209,10 @@ sub to_tree {
                 csv_object  => $csv_obj,
                 list        => [@components[0..$i]],
             );
+            $node_name = $self->dequote_element (
+                element    => $node_name,
+                quote_char => $quotes,
+            );
 
             my $parent_name = $i ? $prev_names[$i-1] : undef;  #  no parent if at highest level
 
@@ -3283,6 +3289,22 @@ sub get_base_stats_all {
             BASE_STATS => $self->calc_base_stats(element => $element)
         );
     }
+
+    return;
+}
+
+sub binarise_subelement_sample_counts {
+    my $self = shift;
+
+    foreach my $element ($self->get_element_list) {
+        my $list_ref = $self->get_list_ref (element => $element, list => 'SUBELEMENTS');
+        foreach my $val (values %$list_ref) {
+            $val = 1;
+        }
+        $self->delete_lists(element => $element, lists => ['BASE_STATS']);
+    }
+
+    $self->delete_cached_values;
 
     return;
 }

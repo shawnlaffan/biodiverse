@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use List::Util qw/min max/;
 use Gtk2;
@@ -163,15 +163,41 @@ sub register_in_outputs_model {
 sub get_grid_text_pfx {
     my $self = shift;
 
+    return q{};
+}
+
+
+sub warn_if_basedata_has_gt2_axes {
+    my $self = shift;
+
     my $bd = $self->get_base_ref;
     my @cellsizes = $bd->get_cell_sizes;
     my $col_count = scalar @cellsizes;
-    my $pfx = $col_count > 2
-        ? "<i>Note: Basedata has more than two axes so some cells will be overplotted and thus not visible</i>\n"
-        : q{};
+    
+    return if $col_count <= 2;
+    
+    my $text = << "END_OF_GT2_AXIS_TEXT"
+Note: Basedata has more than two axes
+so some cells will be overplotted
+and thus not visible.
 
-    return $pfx;
+Only the first two axes are used for plotting.
+END_OF_GT2_AXIS_TEXT
+  ;
+
+    my $dialog = Gtk2::MessageDialog->new (
+        undef,
+        'destroy-with-parent',
+        'warning',
+        'ok',
+        $text,
+    );
+    $dialog->run;
+    $dialog->destroy;
+
+    return;
 }
+
 
 ##########################################################
 # Keyboard shortcuts
@@ -213,7 +239,7 @@ sub hotkey_handler {
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
-    return 1 if ($handler_entered == 1);
+    return 1 if $handler_entered == 1;
 
     $handler_entered = 1;
 
@@ -299,6 +325,8 @@ sub on_bare_key {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
     }
 }
+
+sub choose_tool {}
 
 sub get_removable { return 1; } # default - tabs removable
 

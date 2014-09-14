@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -920,7 +920,7 @@ sub recolour_cluster_lines {
         $line->set(fill_color_gdk => $colour_ref);
 
         # And also colour all nodes below
-        foreach my $child_ref (values %{$node_ref->get_all_descendents}) {
+        foreach my $child_ref (values %{$node_ref->get_all_descendants}) {
             $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
@@ -1277,7 +1277,7 @@ sub clear_highlights {
     return if !$self->{highlighted_lines};
 
     my @nodes_remaining
-      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
 
     foreach my $node (@nodes_remaining) {
         my $node_name = $node->get_name;
@@ -1297,7 +1297,7 @@ sub highlight_node {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
         foreach my $node (@nodes_remaining) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node->get_name};  
@@ -1324,7 +1324,7 @@ sub highlight_path {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
         foreach my $node (@nodes_remaining) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node->get_name};  
@@ -1849,6 +1849,8 @@ sub resize_background_rect {
 
 sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale, $line_width) = @_;
+
+    return if !$node;
 
     $line_width //= $self->get_branch_line_width;
 

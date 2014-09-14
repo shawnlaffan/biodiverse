@@ -12,12 +12,12 @@ use warnings;
 #use Scalar::Util;
 use Scalar::Util qw /looks_like_number/;
 #use Time::HiRes qw /tv_interval gettimeofday/;
-use List::MoreUtils qw /first_index/;
+#use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 our $AUTOLOAD;
 
@@ -151,7 +151,7 @@ sub delete_node {
     return if ! defined $node_ref;  #  node does not exist anyway
 
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents (cache => 0);
+    my %node_hash = $node_ref->get_all_descendants (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  Now we delete it from the treenode structure.
@@ -376,6 +376,31 @@ sub get_node_refs {
     my @refs = values %{$self->get_node_hash};
 
     return wantarray ? @refs : \@refs;
+}
+
+#  get a hash on the node lengths indexed by name
+sub get_node_length_hash {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value ('NODE_LENGTH_HASH');
+        return (wantarray ? %$cached_hash : $cached_hash) if $cached_hash;
+    }
+    
+    my %len_hash;
+    my $node_hash = $self->get_node_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        $len_hash{$node_name} = $node_ref->get_length;
+    }
+    
+    if ($use_cache) {
+        $self->set_cached_value (NODE_LENGTH_HASH => \%len_hash);
+    }
+    
+    return wantarray ? %len_hash : \%len_hash;
 }
 
 #  get a hash of node refs indexed by their total length
@@ -777,6 +802,14 @@ sub get_metadata_export_nexus {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'no_translate_block',
+                label_text  => 'Do not use a translate block',
+                tooltip     => 'read.nexus in the R ape package mishandles '
+                             . 'named internal nodes if there is a translate block',
+                type        => 'boolean',
+                default     => 0,
+            },
         ],
     );
 
@@ -788,7 +821,7 @@ sub export_nexus {
     my %args = @_;
 
     my $file = $args{file};
-    print "[TREE] WRITING TO TREE TO NEXUS FILE $file\n";
+    say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
     open (my $fh, '>', $file)
         || croak "Could not open file '$file' for writing\n";
 
@@ -1258,8 +1291,8 @@ sub get_total_tree_length { #  calculate the total length of the tree
     my $node_length;
 
     #check if length is already stored in tree object
-    $length = $self->get_param('TOTAL_LENGTH');
-    return $length if (defined $length);
+    $length = $self->get_cached_value ('TOTAL_LENGTH');
+    return $length if defined $length;
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
         $node_length = $node_ref->get_length;
@@ -1268,7 +1301,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #  cache the result
     if (defined $length) {
-        $self->set_param (TOTAL_LENGTH => $length);
+        $self->set_cached_value (TOTAL_LENGTH => $length);
     }
 
     return $length;
@@ -1286,16 +1319,16 @@ sub to_matrix {
 
     my $name = $self->get_param ('NAME');
 
-    print "[TREE] Converting tree $name to matrix\n";
+    say "[TREE] Converting tree $name to matrix";
 
     my $matrix = $class->new (NAME => ($args{name} || ($name . "_AS_MX")));
 
     my %nodes = $self->get_node_hash;  #  make sure we work on a copy
 
     if (! $use_internal) {  #  strip out the internal nodes
-        while (my ($name1, $node1) = each %nodes) {
-            if ($node1->is_internal_node) {
-                delete $nodes{$name1};
+        foreach my $node_name (keys %nodes) {
+            if ($nodes{$node_name}->is_internal_node) {
+                delete $nodes{$node_name};
             }
         }
     }
@@ -1526,6 +1559,8 @@ sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my @node_names = keys %{$args{node_names}};
     
     return if !scalar @node_names;
@@ -1537,41 +1572,56 @@ sub get_last_shared_ancestor_for_nodes {
     return $first_node if !scalar @node_names;
 
     my @reference_path = $first_node->get_path_to_root_node;
+    my %ref_path_hash;
+    @ref_path_hash{@reference_path} = (0 .. $#reference_path);
     
+    my $common_anc_idx = 0;
+
   PATH:
     while (my $node_name = shift @node_names) {
-        #  must be just the root node left, so drop out
-        last PATH if scalar @reference_path == 1;
+        #  Must be just the root node left, so drop out.
+        #  One day we will need to check for existence across all paths,
+        #  as undefined ancestors can occur if we have multiple root nodes.
+        last PATH if $common_anc_idx == $#reference_path;
 
         my $node_ref = $self->get_node_ref (node => $node_name);
         my @path = $node_ref->get_path_to_root_node;
 
         #  Start from an equivalent relative depth to avoid needless
-        #  comparisons near terminals.
-        #  Should see a pay-off for larger trees.
-        my $start_iter = max (0, scalar @path - scalar @reference_path);
+        #  comparisons near terminals which cannot be ancestral.
+        #  i.e. if the current common ancestor is at depth 3
+        #  then anything deeper cannot be an ancestor.
+        #  The pay-off is for larger trees.
+        my $min = max (0, $#path - $#reference_path + $common_anc_idx);
+        my $max = $#path;
+        my $found_idx;
 
-        # work up the tree until we find the lowest shared node
-        # should do a bisect search to speed up the search on densely branching trees?
-      PATH_NODE_REF:
-        foreach my $i ($start_iter .. $#path) {
-            my $path_node_ref = $path[$i];
-            #my $node_name_path = $path_node_ref->get_name; #  for debug
-            my $idx = first_index { $_ eq $path_node_ref } @reference_path;
+        # run a binary search to find the lowest shared node
+      PATH_NODE_REF_BISECT:
+        while ($max > $min) {
+            my $mid = int( ( $min + $max ) / 2 );
 
-            next PATH_NODE_REF if $idx < 0;  #  not in reference path, try the next node
+            my $idx = $ref_path_hash{$path[$mid]};
 
-            if ($idx) {
-                #  reduce length of reference_path to reduce comparisons in next iter
-                #  if $idx is 2 then it will remove items 0 and 1
-                splice @reference_path, 0, $idx;
+            if (defined $idx) {   #  we are in the path, try a node nearer the tips
+                $max = $mid;
+                $found_idx = $idx;  #  track the index
             }
-            next PATH;
+            else {               #  we are not in the path, try a node nearer the root
+                $min = $mid + 1;
+            }
+        }
+        #  Sometimes $max == $min and that's the one we want to use
+        if ($max == $min && !defined $found_idx) {
+            $found_idx = $ref_path_hash{$path[$min]};
+        }
+
+        if (defined $found_idx) {
+            $common_anc_idx = $found_idx;
         }
     }
 
-    my $node = $reference_path[0];
-    #my $ancestor_name = $node->get_name;
+    my $node = $reference_path[$common_anc_idx];
 
     return $node;
 }
@@ -1861,7 +1911,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendents;  #  make sure we use a copy
+            my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none were deleted then we can trim this node.
@@ -1933,7 +1983,7 @@ sub trim {
                 $i / $to_do,
             );
 
-            my $children = $node->get_all_descendents;
+            my $children = $node->get_all_descendants;
           DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
@@ -1954,7 +2004,7 @@ sub trim {
     #  now some cleanup
     if ($deleted_internal_count || $deleted_count) {
         $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
-        
+        $self->delete_cached_values;
         #  This avoids circular refs in the ones that were deleted
         foreach my $node (values %tree_node_hash) {
             $node->delete_cached_values;
@@ -2112,7 +2162,9 @@ sub collapse_tree {
 sub reset_total_length {
     my $self = shift;
 
+    #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
+    $self->delete_cached_value('TOTAL_LENGTH');
     $self->reset_total_length_below;
 
     return;
@@ -2190,9 +2242,48 @@ sub shuffle_terminal_names {
     #  and now we override the old with the new
     @{$node_hash}{keys %tmp} = values %tmp;
 
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
+
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
 }
+
+
+sub clone_tree_with_equalised_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' EQ');
+
+    my $non_zero_len = $args{node_length};
+
+    if (!defined $non_zero_len) {
+        my $non_zero_node_count = grep {$_->get_length} $self->get_node_refs;
+        $non_zero_len = $self->get_total_tree_length / $non_zero_node_count;
+    }
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length ? $non_zero_len : 0;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
+
 
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {

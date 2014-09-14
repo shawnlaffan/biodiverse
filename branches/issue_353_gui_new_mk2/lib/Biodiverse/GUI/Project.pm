@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -974,7 +974,8 @@ sub delete_output {
     return;
 }
 
-#  should probably be called set name, as we assume it is already renamed
+#  should probably be called set name or update name, as we assume it is already renamed
+#  actually, we already have update_output_name which is very similar code
 sub rename_output {
     my $self = shift;
     my $output_ref = shift;
@@ -991,6 +992,7 @@ sub rename_output {
     
     return;
 }
+
 
 #  go through and clean them all up.  
 sub delete_all_basedata_outputs {
@@ -1326,6 +1328,10 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
+                menu_equalise_tree_branches
+                menu_binarise_basedata_elements
+                menu_attach_ranges_as_properties
+                menu_attach_abundances_as_properties
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }

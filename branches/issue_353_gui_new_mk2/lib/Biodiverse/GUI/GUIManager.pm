@@ -6,18 +6,18 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
-use Data::Dumper;
-#use Data::DumpXML::Parser;
+#use Data::Dumper;
 use Carp;
 use Scalar::Util qw /blessed reftype/;
 
 use English ( -no_match_vars );
+use Readonly;
 
-#use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
+use Text::Wrapper;
 
 use Biodiverse::Config;
 
@@ -237,6 +237,9 @@ sub clear_progress_entry {
         ) {
         $self->{progress_bars}->{window}->hide;
     }
+    else {
+        $self->{progress_bars}->{window}->resize(1,1);
+    }
 }
 
 # called when window closed, try to stop active process?
@@ -271,6 +274,18 @@ sub show_progress {
 ##########################################################
 # Initialisation
 ##########################################################
+
+my $dev_version_warning = <<"END_OF_DEV_WARNING"
+This is a development version.
+
+Features are subject to change and it is not guaranteed
+to be backwards compatible with previous versions.
+
+To turn off this warning set an environment
+variable called BD_NO_GUI_DEV_WARN to a true value.
+END_OF_DEV_WARNING
+  ;
+
 sub init {
     my $self = shift;
 
@@ -309,13 +324,9 @@ sub init {
     # see Project.pm
     $self->{basedata_output_model}
       = Gtk2::TreeStore->new(
-        'Glib::String',
-        'Glib::String',
-        'Glib::String',
-        'Glib::Scalar',
-        'Glib::Scalar',
-        'Glib::Boolean',
-        'Glib::String',
+        'Glib::String',  'Glib::String', 'Glib::String',
+        'Glib::Scalar',  'Glib::Scalar',
+        'Glib::Boolean', 'Glib::String',
     );
 
     $self->do_new;
@@ -323,9 +334,27 @@ sub init {
     # Show outputs tab
     Biodiverse::GUI::Tabs::Outputs->new();
 
-    #$self->progress_test();
-    #$self->get_status_bar->hide();
-    
+    #  check if we had any errors when loading extensions
+    my @load_extension_errors = Biodiverse::Config::get_load_extension_errors();
+    if (@load_extension_errors) {
+        my $count = scalar @load_extension_errors;
+        my $text = "Failed to load $count extensions\n"
+                 . join "\n", @load_extension_errors;
+        $self->report_error($text);
+    }
+
+    #  warn if we are a dev version
+    if ($VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN}) {
+        my $dlg = Gtk2::MessageDialog->new (
+            undef,   'modal',
+            'error', 'ok',
+            $dev_version_warning,
+        );
+
+        $dlg->run;
+        $dlg->destroy;
+    }
+
     return;
 }
 
@@ -1256,6 +1285,7 @@ sub do_duplicate_basedata {
 
     $dlg->destroy();
     
+    $self->set_dirty;
     return;
 }
 
@@ -1279,7 +1309,19 @@ sub do_rename_basedata_labels {
         $bd->rename_labels (remap => $check_list);
     }
 
+    $self->set_dirty;
     return;
+}
+
+sub do_binarise_basedata_elements {
+    my $self = shift;
+
+    my $bd = $self->{project}->get_selected_base_data();
+    return if !$bd;
+
+    $bd->binarise_sample_counts;
+
+    $self->set_dirty;
 }
 
 sub do_add_basedata_label_properties {
@@ -1301,6 +1343,7 @@ sub do_add_basedata_label_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 
@@ -1323,6 +1366,7 @@ sub do_add_basedata_group_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 
@@ -1738,15 +1782,6 @@ sub do_range_weight_tree {
     );
 }
 
-sub do_tree_equalise_branch_lengths {
-    my $self = shift;
-
-    return $self->do_trim_tree_to_basedata (
-        do_equalise_branch_lengths => 1,
-        suffix  => 'EQ',
-        no_trim => 1,
-    );
-}
 
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.  
@@ -1805,25 +1840,78 @@ sub do_trim_tree_to_basedata {
             $node->set_length (length => $node->get_length / $range);
         }
     }
-    elsif ($args{do_equalise_branch_lengths}) {
-        foreach my $node ($new_tree->get_node_refs) {
-            my $len = $node->get_length == 0 ? 0 : 1;
-            $node->set_length (length => $len);
-        }
-    }
 
     $new_tree->set_param (NAME => $chosen_name);
 
     #  now we add it if it is not already in the list
     #  otherwise we select it
     my $phylogenies = $self->{project}->get_phylogeny_list;
-    my $in_list = 0;
-    foreach my $ph (@$phylogenies) {
-        if ($new_tree eq $phylogeny) {
-            $in_list = 1;
-            last;
-        }
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
+    if ($in_list) {
+        $self->{project}->select_phylogeny ($new_tree);
     }
+    else {
+        $self->{project}->add_phylogeny ($new_tree, 0);
+    }
+
+    return;
+}
+
+sub do_tree_equalise_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
+
+    if (! defined $phylogeny) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no tree selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    # Show the Get Name dialog
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $phylogeny->get_param('NAME');
+
+    my $suffix = $args{suffix} || 'EQ';
+    # If ends with _TRIMMED followed by a number then increment it
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
+        $name = $1 . ($2 + 1)
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response    = $dlg->run();
+    my $chosen_name = $txt_name->get_text;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_tree = $phylogeny->clone_tree_with_equalised_branch_lengths;
+
+    $new_tree->set_param (NAME => $chosen_name);
+
+    #  now we add it if it is not already in the list
+    #  otherwise we select it
+    my $phylogenies = $self->{project}->get_phylogeny_list;
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
     if ($in_list) {
         $self->{project}->select_phylogeny ($new_tree);
     }
@@ -2549,6 +2637,11 @@ sub report_error {
         ? $error
         : split ("\n", $error, 2);
 
+    if (@error_array > 1) {
+        my $text_wrapper = Text::Wrapper->new(columns => 80);
+        $error_array[1] = $text_wrapper->wrap($error_array[1]);
+    }
+
     my $show_details_value = -10;
 
     my $dlg = Gtk2::Dialog->new(
@@ -2559,17 +2652,20 @@ sub report_error {
         'gtk-ok' => 'ok',
     );
     my $text_widget = Gtk2::Label->new();
-    #$text_widget->set_use_markup(1);
-    $text_widget->set_alignment (0, 1);
+    my $extra_text_widget = Gtk2::Label->new();
+
+    foreach my $w ($text_widget, $extra_text_widget) {
+        #$w->set_use_markup(1);
+        $w->set_line_wrap (1);
+        $w->set_width_chars(90);
+        $w->set_alignment (0, 0);
+        $w->set_selectable (1);
+        $w->set_ellipsize('PANGO_ELLIPSIZE_END');
+    }
+
     $text_widget->set_text ($error_array[0]);
-    $text_widget->set_selectable (1);
-    
-    #  hbox and so forth for exra text
-    my $extra_text_widget = Gtk2::Label ->new();
-    $extra_text_widget->set_alignment (0, 1);
-    $extra_text_widget->set_text ($error_array[1] or 'There are no additional details');
-    $extra_text_widget->set_selectable (1);
-    
+    $extra_text_widget->set_text ($error_array[1] // 'There are no additional details');
+
     my $check_button = Gtk2::ToggleButton->new_with_label('show details');
     $check_button->signal_connect_swapped (
         clicked => \&on_report_error_show_hide,
@@ -2578,6 +2674,7 @@ sub report_error {
     $check_button->set_active (0);
 
     my $details_box = Gtk2::VBox->new(1, 6);
+    $details_box->set_homogeneous(0);
     $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
     #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start($extra_text_widget, 0, 0, 0);
@@ -2588,16 +2685,19 @@ sub report_error {
 
     $dlg->show_all;
     my $details_visible = 0;
-    $extra_text_widget->hide;
-    
+    #$extra_text_widget->hide;
+    $details_box->hide;
+    $dlg->resize(1,1);
+
     while (1) {
         my $response = $dlg->run;
         last if $response ne 'apply'; #  not sure whey we're being fed 'apply' as the value
         if ($details_visible) {  #  replace with set_visible when Gtk used is 2.18+
-            $extra_text_widget->hide;
+            $details_box->hide;
+            $dlg->resize(1,1);
         }
         else {
-            $extra_text_widget->show;
+            $details_box->show;
         }
         $details_visible = ! $details_visible;
     }

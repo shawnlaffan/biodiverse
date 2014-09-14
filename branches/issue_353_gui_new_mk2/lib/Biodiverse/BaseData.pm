@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use parent qw {Biodiverse::Common};
 
@@ -146,6 +146,20 @@ sub new {
 }
 
 
+sub binarise_sample_counts {
+    my $self = shift;
+    
+    die "Cannot binarise a basedata with existing outputs\n"
+      if $self->get_output_ref_count;
+    
+    my $gp = $self->get_groups_ref;
+    my $lb = $self->get_labels_ref;
+    
+    $gp->binarise_subelement_sample_counts;
+    $lb->binarise_subelement_sample_counts;
+    $self->delete_cached_values;
+}
+
 sub set_group_hash_key_count {
     my $self = shift;
     my %args = @_;
@@ -184,9 +198,9 @@ sub rename_output {
     my $self = shift;
     my %args = @_;
     
-    my $object = $args{output};
+    my $object   = $args{output};
     my $new_name = $args{new_name};
-    my $name = $object->get_param ('NAME');
+    my $name     = $object->get_param ('NAME');
     my $hash_ref;
     
     if ((blessed $object) =~ /Spatial/) {
@@ -225,7 +239,7 @@ sub rename_output {
     else {
         warn "[BASEDATA] Cannot locate object with name $name\n"
             . 'Currently have '
-            . join ' ', sort keys %$hash_ref
+            . join (' ', sort keys %$hash_ref)
             . "\n";
     }
     
@@ -1387,11 +1401,11 @@ sub import_data_raster {
                                 $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
                             }
 
+                            #  no need to dequote since these will always be numbers
                             my $grpstring = $self->list2csv (
                                 list        => [$grpe, $grpn],
                                 csv_object  => $out_csv,
                             );
-                            #say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
 
                             # set label if determined at cell level
                             my $count = 1;
@@ -1512,7 +1526,7 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file->stringify;
-        $fnamebase =~ s/\.[^.]*//;
+        #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
         my $shapefile = Geo::ShapeFile->new($fnamebase);
         #say "have $shapefile";
 
@@ -2750,7 +2764,7 @@ sub get_richness {
     return $self->get_groups_ref->get_variety(@_);
 }
 
-sub get_label_sample_count {  
+sub get_label_sample_count {
     my $self = shift;
 
     return $self->get_labels_ref->get_sample_count(@_);
@@ -2819,9 +2833,10 @@ sub get_range_intersection {
     my $elements = {};
     foreach my $label (@$labels) {
         next if not $self->exists_label (label => $label);  #  skip if it does not exist
-        my $res = $self->calc_abc (label_hash1 => $elements,
-                                     label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
-                                    );
+        my $res = $self->calc_abc (
+            label_hash1 => $elements,
+            label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
+        );
         #  delete those that are not shared (label_hash1 and label_hash2)
         my @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash1}}};
         @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash2}}};
@@ -2854,7 +2869,7 @@ sub get_range_union {
     my %shared_elements;
   LABEL:
     foreach my $label (@$labels) {
-        next if not $self->exists_label (label => $label);  #  skip if it does not exist
+        #next if not $self->exists_label (label => $label);  #  skip if it does not exist - get_groups_with_label_as_hash has same effect
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
         next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
@@ -3879,7 +3894,7 @@ sub get_neighbours_as_array {
 #  Modified version of get_spatial_outputs_with_same_nbrs.
 #  Useful for faster nbr searching for spatial analyses, and matrix building for cluster analyses
 #  It can eventually supplant that sub.
-sub get_outputs_with_same_conditions {
+sub get_outputs_with_same_spatial_conditions {
     my $self = shift;
     my %args = @_;
 
@@ -3896,9 +3911,9 @@ sub get_outputs_with_same_conditions {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
-
     my @outputs = $self->get_output_refs_of_class (class => $compare);
+
+    my @comparable_outputs;
 
     LOOP_OUTPUTS:
     foreach my $output (@outputs) {
@@ -3933,14 +3948,11 @@ sub get_outputs_with_same_conditions {
             $i++;
         }
 
-        #  if we are a cluster (or output with a cluster index, like a RegionGrower)
-        next LOOP_OUTPUTS if defined $cluster_index && $cluster_index ne $output->get_param ('CLUSTER_INDEX');
-
         #  if we get this far then we have a match
-        return $output;  #  we want to keep this one
+        push @comparable_outputs, $output;  #  we want to keep this one
     }
 
-    return;
+    return wantarray ? @comparable_outputs : \@comparable_outputs;
 }
 
 sub has_empty_groups {

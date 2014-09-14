@@ -14,7 +14,7 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Cwd;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -47,7 +47,7 @@ sub Run {
     #my $format_dlg = $dlgxml->get_widget('dlgExport');
     $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
     $format_dlg->set_title ('Export parameters');
-    
+
     # Build widgets for parameters
     my $format_table = $dlgxml->get_widget('tableImportParameters');
     
@@ -62,7 +62,7 @@ sub Run {
     # Show the dialog
     $format_dlg->show_all();
 
-    RUN_FORMAT_DIALOG:
+  RUN_FORMAT_DIALOG:
     my $format_response = $format_dlg->run();
     
     if ($format_response ne 'ok') {
@@ -102,7 +102,7 @@ sub Run {
     # Show the dialog
     $dlg->show_all();
 
-    RUN_DIALOG:
+  RUN_DIALOG:
     my $response = $dlg->run();
 
     if ($response ne 'ok') {
@@ -113,27 +113,23 @@ sub Run {
     # Export!
     $params = Biodiverse::GUI::ParametersTable::extract($extractors);
     my $filename = $chooser->get_filename();
+    $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
     if ( (not -e $filename)
         || Biodiverse::GUI::YesNoCancel->run({
             header => "Overwrite file $filename?"})
                 eq 'yes'
         ) {
-        #  progress bar for some processes
-        #my $progress = Biodiverse::GUI::ProgressDialog->new;
-        
+
         eval {
             $object->export(
                 format   => $selected_format,
                 file     => $filename,
                 @$params,
-                #progress => $progress
             )
         };
         if ($EVAL_ERROR) {
             $gui->report_error ($EVAL_ERROR);
         }
-        
-        #$progress->destroy;  #  clean up the progress bar
     }
     else {
         goto RUN_DIALOG; # my first ever goto!

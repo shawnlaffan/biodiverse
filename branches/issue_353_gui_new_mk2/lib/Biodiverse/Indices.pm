@@ -17,7 +17,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -127,11 +127,10 @@ sub get_calculations {
 
     my $list = Class::Inspector->methods (blessed $self);
 
-    foreach my $method (@$list) {
-        next if $method !~ /^calc_/;
-        next if $method =~ /calc_abc\d?$/;
-        my $ref = $self->get_metadata (sub => $method);
-        push @{$calculations{$ref->get_type}}, $method;
+    foreach my $method (grep {$_ =~ /^calc_/} @$list) {
+        next if $method =~ /calc_abc\d?$/;  #  skip calc_abc1,2&3
+        my $metadata = $self->get_metadata (sub => $method);
+        push @{$calculations{$metadata->get_type}}, $method;
     }
 
     return wantarray ? %calculations : \%calculations;
@@ -164,6 +163,8 @@ sub get_calculation_metadata_as_wiki {
     );
 
     foreach my $text (@header) {
+        $text =~ s/\*/`\*`/;  #  escape any highlight characters
+        $text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
         $text = "*$text*";
     }
 
@@ -201,19 +202,26 @@ sub get_calculation_metadata_as_wiki {
     #loop through the types
   BY_TYPE:
     foreach my $type (sort keys %calculation_hash) {
-        $html .= "==$type==";
+        my $type_text = $type;
+        $type_text =~ s/\*/`\*`/;  #  escape any highlight characters
+        $type_text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+        $html .= "==$type_text==";
 
         my $type_ref = $calculation_hash{$type};
 
       BY_NAME:  #  loop through the names
         foreach my $ref (sort {$a->get_name cmp $b->get_name} values %$type_ref) {
 
-            #my $starter = $ref->{name};
-            #print $starter . "\n";
+            my $name = $ref->{name};
+            my $description = $ref->get_description;
+            foreach ($name, $description) {
+                $_ =~ s/\*/`\*`/;  #  escape any highlight characters
+                $_ =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+            }
 
             $html .= "\n \n \n";
-            $html .= "\n \n  ===$ref->{name}===\n \n";
-            $html .= "*Description:*   " . $ref->get_description . "\n\n";
+            $html .= "\n \n  ===$name===\n \n";
+            $html .= "*Description:*   $description\n\n";
             $html .= "*Subroutine:*   $ref->{analysis}\n\n";
             #$html .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
             if (my $reference = $ref->get_reference) {
@@ -266,8 +274,6 @@ sub get_calculation_metadata_as_wiki {
             my $uses_formula = 0;
             foreach my $index (sort keys %{$ref->get_indices}) {
 
-                #my $index_hash = $ref->{indices}{$index};
-
                 #  repeated code from above - need to generalise to a sub
                 my $formula_url;
                 my $formula = $ref->get_index_formula ($index);
@@ -306,6 +312,7 @@ sub get_calculation_metadata_as_wiki {
 
                 my $description = $ref->get_index_description ($index) || $SPACE;
                 $description =~ s{\n}{ }gmo;  # purge any newlines
+                $description =~ s/\*/`\*`/;  #  avoid needless bolding
                 push @line, $description;
 
                 push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;

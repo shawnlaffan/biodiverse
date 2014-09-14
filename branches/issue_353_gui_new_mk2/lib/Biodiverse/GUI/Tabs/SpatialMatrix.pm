@@ -5,7 +5,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Gtk2;
 use Carp;
@@ -295,6 +295,8 @@ sub init_grid {
     }
 
     $self->{grid}->{page} = $self; # Hacky
+
+    $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }

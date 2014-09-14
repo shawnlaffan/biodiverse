@@ -33,7 +33,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -550,6 +550,12 @@ sub delete_cached_values {
     return;
 }
 
+sub delete_cached_value {
+    my ($self, $key) = @_;
+    no autovivification;
+    delete $self->{_cache}{$key};
+}
+
 sub clear_spatial_condition_caches {
     my $self = shift;
     my %args = @_;
@@ -903,13 +909,13 @@ sub write_table_csv {
                 list       => $line_ref,
                 csv_object => $csv_obj,
             );
-            print {$fh} $string . "\n";
+            say {$fh} $string;
         }
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     if ($fh -> close) {
-        print "[COMMON] Write to file $file successful\n";
+        say "[COMMON] Write to file $file successful";
     }
     else {
         croak "[COMMON] Unable to close $file\n";

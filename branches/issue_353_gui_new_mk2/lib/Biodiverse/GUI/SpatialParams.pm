@@ -20,7 +20,7 @@ use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Glib;
 use Gtk2;

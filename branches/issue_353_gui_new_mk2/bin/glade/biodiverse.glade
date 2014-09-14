@@ -4054,6 +4054,17 @@ This will create a new basedata with the corrected axis orders. </property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_binarise_basedata_elements">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Convert all sample counts to binary.
+All non-zero values will be set to 1</property>
+                        <property name="label" translatable="yes">Binarise sample counts</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_binarise_basedata_elements"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkMenuItem" id="menu_attach_basedata_properties">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -4435,6 +4446,17 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="label" translatable="yes">Convert to range weighted branches</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_range_weight_tree"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_equalise_tree_branches">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">All non-zero branches will be assigned the same length.
+The sum of all branches will be the same as in the original tree. </property>
+                        <property name="label" translatable="yes">Convert to equalised branch lengths</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_tree_equalise_branch_lengths"/>
                       </widget>
                     </child>
                     <child>
@@ -9239,12 +9261,6 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
                         <child>
                           <placeholder/>
                         </child>

@@ -157,11 +157,11 @@ sub new {
     $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
     $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
+    $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
     
     $self->{use_highlight_path} = 1;
     
-    print "[GUI] - Loaded tab - Labels\n";
-    
+    say "[GUI] - Loaded tab - Labels";
     
     return $self;
 }
@@ -463,6 +463,7 @@ sub set_phylogeny_options_sensitive {
             phylogeny_plot_depth
             highlight_groups_on_map_labels_tab
             use_highlight_path_changed1
+            menuitem_labels_set_tree_line_widths
         /) { #/
         $page->get_widget($widget)->set_sensitive($enabled);
     }

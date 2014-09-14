@@ -146,9 +146,10 @@ sub new {
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
-        menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
+        menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
+        menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
     for my $n (0..6) {
@@ -192,8 +193,8 @@ sub new {
     }
     
     #  override a label
-    my $label_widget = $self->{xmlPage}->get_widget('label_spatial_combos');
-    $label_widget->set_text ('Index group:  ');
+    my $combo_label_widget = $self->{xmlPage}->get_widget('label_spatial_combos');
+    $combo_label_widget->set_text ('Index group:  ');
 
     $self->init_output_indices_combo();
     #$self->update_output_indices_menu();

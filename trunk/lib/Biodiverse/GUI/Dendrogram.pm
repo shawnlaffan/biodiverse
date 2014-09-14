@@ -1064,9 +1064,11 @@ sub get_map_indices {
         return [];
     }
 
-    my @indices = keys $self->{tree_node}->get_list_ref(
-            list => $self->{analysis_list_name});
-    return [sort @indices];
+    my $list_ref = $self->{tree_node}->get_list_ref(
+        list => $self->{analysis_list_name},
+    );
+
+    return [keys %$list_ref];
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)

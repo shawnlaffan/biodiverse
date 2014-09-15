@@ -1178,10 +1178,10 @@ sub on_run {
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
         tree_ref           => $self->{project}->get_selected_phylogeny,
-        definition_query   => $self->{definition_query1}->get_text(),
+        definition_query   => $self->{definition_query1}->get_validated_conditions,
         spatial_conditions => [
-            $self->{spatial1}->get_text(),
-            $self->{spatial2}->get_text(),
+            $self->{spatial1}->get_validated_conditions,
+            $self->{spatial2}->get_validated_conditions,
         ],
     );
 

@@ -478,9 +478,10 @@ sub verify {
     }
 
     if ($valid) {
+        my $bd = $self->get_basedata_ref // $args{basedata};
 
-        my $basedata = $args{basedata};  #  should use this for the distances
-        my $bd = $args{basedata};
+        my $basedata = $bd;  #  should use this for the distances
+        #my $bd = $args{basedata};
 
         $self->set_param( VERIFYING => 1 );
 

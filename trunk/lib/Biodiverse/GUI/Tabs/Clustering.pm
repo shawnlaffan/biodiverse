@@ -1402,14 +1402,14 @@ sub on_run_analysis {
         %flag_values,
         matrix_ref           => $self->{project}->get_selected_matrix,
         tree_ref             => $self->{project}->get_selected_phylogeny,
-        definition_query     => $self->{definition_query1}->get_text(),
+        definition_query     => $self->{definition_query1}->get_validated_conditions,
         index                => $selected_index,
         linkage_function     => $selected_linkage,
         file_handles         => $file_handles,
         spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
-            $self->{spatialParams1}->get_text(),
-            $self->{spatialParams2}->get_text(),
+            $self->{spatialParams1}->get_validated_conditions,
+            $self->{spatialParams2}->get_validated_conditions,
         ],
         prng_seed           => $prng_seed,
     );

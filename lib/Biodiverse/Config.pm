@@ -110,7 +110,7 @@ sub add_lib_paths {
         push @lib_paths, split $sep, $ENV{$var};
     }
 
-    say "Adding $var paths ";
+    say "Adding $var paths to \@INC";
     say join q{ }, @lib_paths;
 
     #no warnings 'closure';
@@ -218,6 +218,13 @@ if ($ENV{BDV_PP_BUILDING}) {
     use feature 'unicode_strings';
     my $string = "sp_self_only () and \N{WHITE SMILING FACE}";
     $string =~ /\bsp_self_only\b/;
+    
+    #  load extra encode pages, except the extended ones (for now)
+    #  https://metacpan.org/pod/distribution/Encode/lib/Encode/Supported.pod#CJK:-Chinese-Japanese-Korean-Multibyte
+    use Encode::CN;
+    use Encode::JP;
+    use Encode::KR;
+    use Encode::TW;
 }
 
 

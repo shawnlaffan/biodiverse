@@ -214,6 +214,10 @@ sub generate_file {
 
     # The dialog already has a filechooser widget. We just return an extractor function
     my $chooser = $dlgxml->get_widget('filechooser');
+
+    use Cwd;
+    $chooser->set_current_folder_uri(getcwd());
+
     my $extract = sub { return ($param->{name}, $chooser->get_filename); };
     return (undef, $extract);
 }

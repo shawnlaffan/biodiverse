@@ -1150,17 +1150,6 @@ sub make_filename_dialog {
     my $dlg    = $dlgxml->get_widget($import_dlg_name);
     my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
-    
-#    # Get the Parameters metadata
-#    my $tmp = Biodiverse::BaseData->new;
-#        my %args = $tmp->get_args (sub => 'import_data');
-#    my $params = $args{parameters};
-#
-#    # Build widgets for parameters
-#    my $table = $dlgxml->get_widget($table_parameters);
-#    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-#    my $extractors = Biodiverse::GUI::ParametersTable::fill($params, $table, $dlgxml); 
-
 
     # Initialise the basedatas combo
     $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
@@ -1181,26 +1170,30 @@ sub make_filename_dialog {
 
 
     # Init the file chooser
+    my $filechooser = $dlgxml->get_widget($filechooser_input);
     
+    use Cwd;
+    $filechooser->set_current_folder_uri(getcwd());
+
     # define file selection filters (stored in txtcsv_filter etc)
     $txtcsv_filter = Gtk2::FileFilter->new();
     $txtcsv_filter->add_pattern('*.csv');
     $txtcsv_filter->add_pattern('*.txt');
     $txtcsv_filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($txtcsv_filter);
+    $filechooser->add_filter($txtcsv_filter);
 
     $allfiles_filter = Gtk2::FileFilter->new();
     $allfiles_filter->add_pattern('*');
     $allfiles_filter->set_name('all files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($allfiles_filter);
-    
+    $filechooser->add_filter($allfiles_filter);
+
     $shapefiles_filter = Gtk2::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->set_name('shapefiles');
-    $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
-    
-    $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
+    $filechooser->add_filter($shapefiles_filter);
+
+    $filechooser->set_select_multiple(1);
+    $filechooser->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);

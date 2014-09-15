@@ -107,6 +107,10 @@ sub show_dialog {
         my $widget = $dlgxml->get_widget($widget_name);
 
         $widget->set_sensitive(0);
+        if ($widget_name =~ /chooser/) {  #  kludge
+            use Cwd;
+            $widget->set_current_folder_uri(getcwd());
+        }
 
         my $callback = sub {
             my ($checkbox, $option_widget) = @_;

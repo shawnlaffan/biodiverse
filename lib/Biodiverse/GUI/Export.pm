@@ -78,13 +78,14 @@ sub Run {
 
     $format_dlg->destroy;
 
-    #####################    
+    #####################
     #  and now get the params for the selected format
     $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
 
     my $dlg = $dlgxml->get_widget('dlgExport');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title ("Export format: $selected_format");
+    $dlg->set_modal (1);
 
     my $chooser = $dlgxml->get_widget('filechooser');
     $chooser->set_current_folder_uri(getcwd());
@@ -97,10 +98,11 @@ sub Run {
             $params,
             $table,
             $dlgxml
-    ); 
+    );
 
     # Show the dialog
     $dlg->show_all();
+    
 
   RUN_DIALOG:
     my $response = $dlg->run();

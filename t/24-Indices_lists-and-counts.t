@@ -24,6 +24,8 @@ run_indices_test1 (
         calc_richness
         calc_local_sample_count_lists
         calc_local_sample_count_stats
+        calc_label_count_quantile_position
+        calc_local_sample_count_quantiles
     /],
     calc_topic_to_test => 'Lists and Counts',
     sort_array_lists   => 1,
@@ -129,7 +131,6 @@ __DATA__
   'ABC_B'          => 0,
   'ABC_C'          => 12,
   'ABC_D'          => 17,
-  #'COMPL'          => 14,
   'EL_COUNT_ALL'   => 5,
   'EL_COUNT_SET1'  => 1,
   'EL_COUNT_SET2'  => 4,
@@ -154,7 +155,80 @@ __DATA__
   'REDUNDANCY_SET2' => '0.818181818181818',
   'RICHNESS_ALL'    => 14,
   'RICHNESS_SET1'   => 2,
-  'RICHNESS_SET2'   => 14
+  'RICHNESS_SET2'   => 14,
+   ABC3_QUANTILES_ALL => {
+        Q000 => 1,
+        Q005 => 1,
+        Q010 => 1,
+        Q015 => 1,
+        Q020 => 1,
+        Q025 => 1,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 5,
+        Q050 => 6,
+        Q055 => 6,
+        Q060 => 8,
+        Q065 => 8,
+        Q070 => 8,
+        Q075 => 9,
+        Q080 => 9,
+        Q085 => 11,
+        Q090 => 12,
+        Q095 => 12,
+        Q100 => 16
+    },
+    ABC3_QUANTILES_SET1 => {
+        Q000 => 2,
+        Q005 => 2,
+        Q010 => 2,
+        Q015 => 2,
+        Q020 => 2,
+        Q025 => 2,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 2,
+        Q050 => 4,
+        Q055 => 4,
+        Q060 => 4,
+        Q065 => 4,
+        Q070 => 4,
+        Q075 => 4,
+        Q080 => 4,
+        Q085 => 4,
+        Q090 => 4,
+        Q095 => 4,
+        Q100 => 4
+    },
+    ABC3_QUANTILES_SET2 => {
+        Q000 => 1,
+        Q005 => 1,
+        Q010 => 1,
+        Q015 => 1,
+        Q020 => 1,
+        Q025 => 1,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 4,
+        Q050 => 5,
+        Q055 => 5,
+        Q060 => 8,
+        Q065 => 8,
+        Q070 => 8,
+        Q075 => 8,
+        Q080 => 8,
+        Q085 => 9,
+        Q090 => 11,
+        Q095 => 11,
+        Q100 => 16
+    },
+    LABEL_COUNT_RANK_PCT => {
+        'Genus:sp20' => '75',
+        'Genus:sp26' => '75'
+    }
 }
 
 @@ RESULTS_1_NBR_LISTS
@@ -181,5 +255,32 @@ __DATA__
   'REDUNDANCY_ALL'  => '0.666666666666667',
   'REDUNDANCY_SET1' => '0.666666666666667',
   'RICHNESS_ALL'    => 2,
-  'RICHNESS_SET1'   => 2
+  'RICHNESS_SET1'   => 2,
+   ABC3_QUANTILES_SET1 => {
+        Q000 => 2,
+        Q005 => 2,
+        Q010 => 2,
+        Q015 => 2,
+        Q020 => 2,
+        Q025 => 2,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 2,
+        Q050 => 4,
+        Q055 => 4,
+        Q060 => 4,
+        Q065 => 4,
+        Q070 => 4,
+        Q075 => 4,
+        Q080 => 4,
+        Q085 => 4,
+        Q090 => 4,
+        Q095 => 4,
+        Q100 => 4
+    },
+    LABEL_COUNT_RANK_PCT => {
+        'Genus:sp20' => undef,
+        'Genus:sp26' => undef
+    },
 }

@@ -754,6 +754,16 @@ sub run_indices_test1 {
             %bd_args,
         );
 
+    if ($args{nbr_set2_sp_select_all}) {
+        #  get all groups, but ensure no overlap with NS1
+        my $gps = $bd->get_groups;
+        my %el_hash;
+        @el_hash{@$element_list1} = (1) x @$element_list1;
+        say scalar @$gps;
+        $element_list2 = [grep {!$el_hash{$_}} @$gps];
+        say scalar @$element_list2;
+    }
+    
     my $tree = get_tree_object_from_sample_data();
 
     my $matrix = get_matrix_object_from_sample_data();

@@ -6,4 +6,4 @@
 
 = Older versions =
 
-[Older versions can be accessed via the original Downloads page https://code.google.com/p/biodiverse/downloads/list]
+[https://code.google.com/p/biodiverse/downloads/list Older versions can be accessed via the original Downloads page]

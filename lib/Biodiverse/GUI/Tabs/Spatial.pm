@@ -250,6 +250,7 @@ sub new {
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
+    #  bodge - should set the radio group
     for my $n (0..6) {
         my $widget_name = "radio_colour_stretch$n";
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
@@ -1500,8 +1501,8 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
-    return;
+
+    return 1;
 }
 
 

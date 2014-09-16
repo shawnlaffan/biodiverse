@@ -30,8 +30,8 @@ sub Run {
     
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    # Load the widgets from Glade's XML
-    #my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
+    #  stop keyboard events being applied to any open tabs
+    $gui->activate_keyboard_snooper (0);
 
     # Get the Parameters metadata
     my %args = $object->get_args (sub => 'export');
@@ -89,6 +89,8 @@ sub Run {
 
     my $chooser = $dlgxml->get_widget('filechooser');
     $chooser->set_current_folder_uri(getcwd());
+    # does not stop the keyboard events on open tabs
+    #$chooser->signal_connect ('button-press-event' => sub {1});  
 
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
@@ -130,6 +132,7 @@ sub Run {
             )
         };
         if ($EVAL_ERROR) {
+            $gui->activate_keyboard_snooper (1);
             $gui->report_error ($EVAL_ERROR);
         }
     }
@@ -139,6 +142,7 @@ sub Run {
 
 
     $dlg->destroy;
+    $gui->activate_keyboard_snooper (1);
     
     return;
 }

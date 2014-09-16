@@ -6,11 +6,27 @@
 
   == 0.99_004 ==
 
+  This is the current development version.
+
   [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_004 Release notes]
 
   * Windows (64 bit) 
 
   * Linux (64 bit)
+
+  == 0.19 ==
+
+  This is the current stable release.  
+
+  [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.19 Release notes]
+
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit)]  
+
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x32.7z Windows (32 bit)]
+
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x64.tar.gz Linux (64 bit)]
+
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x32.tar.gz Linux (32 bit)]
 
 
 = Site Pair Sampler =

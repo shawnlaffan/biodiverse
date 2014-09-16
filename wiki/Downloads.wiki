@@ -31,9 +31,7 @@
 
 = Site Pair Sampler =
 
-Site pair sampler for GDM analyses.
-
-[https://code.google.com/p/biodiverse/downloads/detail?name=site_pair_sample_64bit.7z Download file]
+[https://code.google.com/p/biodiverse/downloads/detail?name=site_pair_sample_64bit.7z Site pair sampler for GDM analyses].
 
 For further details, see:
 
@@ -42,9 +40,7 @@ Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (
 
 = Utility scripts = 
 
-  * Multidirectional Turnover Analyser Perl Script.  Requires a [Installation source code installation].
-
-  * [https://code.google.com/p/biodiverse/downloads/detail?name=multidirectional_turnover_analyser.pl Download file]
+  * [https://code.google.com/p/biodiverse/downloads/detail?name=multidirectional_turnover_analyser.pl Multidirectional Turnover Analyser Perl Script].  Requires a [Installation source code installation].
 
 
 = Older versions =

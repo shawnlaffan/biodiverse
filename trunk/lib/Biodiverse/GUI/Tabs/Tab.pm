@@ -243,7 +243,7 @@ sub hotkey_handler {
 
     $handler_entered = 1;
 
-    if ($event->type eq 'key-press') {
+    if ($event->type eq 'key-press' && Biodiverse::GUI::GUIManager::keyboard_snooper_active) {
         # if CTL- key is pressed
         if ($event->state >= ['control-mask']) {
             my $keyval = $event->keyval;

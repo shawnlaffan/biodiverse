@@ -1,4 +1,4 @@
-#summary Downloads
+#summary Download links
 
 <wiki:toc max_depth="4" />
 

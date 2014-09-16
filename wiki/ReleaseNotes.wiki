@@ -21,7 +21,8 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_002]) are belo
     *  Cell outlines can now be turned off.  This is useful when cells are small and any outlines obscure the cell contents.  Issue 311
     *  The legend can be hidden so it no longer overlaps with the grid.  Issue 59
     *  Display cursors now change to match the selected mode (e.g. zoom in, pan, select).  Issue 490
-    *  A warning is now shown at startup when extensions cannot be loaded.  this was previously only sent to the console window.  Issue 500
+    *  A warning is now shown at startup when extensions cannot be loaded.  This was previously only sent to the console window.  Issue 500
+    *  The width of tree branches can now be controlled.  The default value of zero will let the system choose a value based on the sparseness of the terminal branches.  Issue 505
 
   *  Analyses
     *  Analyses are now run as temporary objects and then copied across on success.  This means that many of the optimisations where neighbours and matrices are recycled can apply more often since the originals are not replaced until the analysis completes successfully.  Issue 444
@@ -48,6 +49,8 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
     *  The pan and zoom interface has been rewritten to be more like other tools and to present a cleaner interface.  Issue 353
     *  Tree plots now grey-out non-highlighted branches.  This makes it much easier to see which branches are selected.  Issue 464
     *  The Spatial and Matrix tabs now have a tree panel which plots the tree used in the analysis, or the tree selected at the project level.  This works similarly to the View Labels tab in that branches are highlighted as cells are hovered over, and cells are highlighted as branches are hovered over.  Issue 409
+    *  A popup message is now shown when a basedata has more than two axes, as this could cause overplotting of groups.  Issue 461
+    *  Trees can now be converted to their equal branch length form.  Issue 504 (see also Issue 482)
 
   *  Analyses
     *  The rand_structured randomisation is now considerably faster.  Issue 487
@@ -59,6 +62,7 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
   *  Trees
     *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI is unlikely to be able to plot it). Issue 483
     *  Tree trimming is now considerably faster.  Issue 470
+    *  Tree exports to nexus format can optionally not use the translate block.  This means internal nodes can be named and the read.nexus function in ape will still be able to read the file.  Issue 502
 
 
 = Version 0.99_001 = 

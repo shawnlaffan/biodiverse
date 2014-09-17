@@ -4,7 +4,7 @@
 
 = Biodiverse GUI =
 
-  == 0.99_004 ==
+  == 0.99_004 (development release)==
 
   _This is the current development version._
 
@@ -16,7 +16,7 @@
 
   * Linux (64 bit)
 
-  == 0.19 ==
+  == 0.19 (stable release) ==
 
   _This is the current stable release._
 

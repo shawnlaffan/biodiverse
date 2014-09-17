@@ -1,0 +1,144 @@
+#!/usr/bin/perl -w
+
+use strict;
+use warnings;
+
+local $| = 1;
+
+use rlib;
+use Test::Most;
+
+use Biodiverse::TestHelpers qw{
+    :runners
+};
+
+test_rank_abundances();
+
+sub test_rank_abundances {
+    
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_label_count_quantile_position
+            calc_local_sample_count_quantiles
+        /],
+        #calc_topic_to_test => 'Lists and Counts',
+        sort_array_lists   => 1,
+        nbr_set2_sp_select_all => 1,
+        #generate_result_sets => 1,
+    );
+}
+
+done_testing;
+
+1;
+
+__DATA__
+
+@@ RESULTS_2_NBR_LISTS
+{   ABC3_QUANTILES_ALL => {
+        Q000 => 5,
+        Q005 => 7,
+        Q010 => 7,
+        Q015 => 9,
+        Q020 => 10,
+        Q025 => 18,
+        Q030 => 18,
+        Q035 => 20,
+        Q040 => 23,
+        Q045 => 30,
+        Q050 => 31,
+        Q055 => 36,
+        Q060 => 38,
+        Q065 => 53,
+        Q070 => 54,
+        Q075 => 64,
+        Q080 => 79,
+        Q085 => 151,
+        Q090 => 153,
+        Q095 => 180,
+        Q100 => 328
+    },
+    ABC3_QUANTILES_SET1 => {
+        Q000 => 2,
+        Q005 => 2,
+        Q010 => 2,
+        Q015 => 2,
+        Q020 => 2,
+        Q025 => 2,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 2,
+        Q050 => 4,
+        Q055 => 4,
+        Q060 => 4,
+        Q065 => 4,
+        Q070 => 4,
+        Q075 => 4,
+        Q080 => 4,
+        Q085 => 4,
+        Q090 => 4,
+        Q095 => 4,
+        Q100 => 4
+    },
+    ABC3_QUANTILES_SET2 => {
+        Q000 => 5,
+        Q005 => 6,
+        Q010 => 7,
+        Q015 => 9,
+        Q020 => 10,
+        Q025 => 18,
+        Q030 => 18,
+        Q035 => 20,
+        Q040 => 23,
+        Q045 => 27,
+        Q050 => 30,
+        Q055 => 36,
+        Q060 => 38,
+        Q065 => 53,
+        Q070 => 54,
+        Q075 => 64,
+        Q080 => 79,
+        Q085 => 151,
+        Q090 => 153,
+        Q095 => 180,
+        Q100 => 328
+    },
+    LABEL_COUNT_RANK_PCT => {
+        'Genus:sp20' => '97.6190476190476',
+        'Genus:sp26' => '99.2063492063492'
+    }
+}
+
+
+@@ RESULTS_1_NBR_LISTS
+{   ABC3_QUANTILES_SET1 => {
+        Q000 => 2,
+        Q005 => 2,
+        Q010 => 2,
+        Q015 => 2,
+        Q020 => 2,
+        Q025 => 2,
+        Q030 => 2,
+        Q035 => 2,
+        Q040 => 2,
+        Q045 => 2,
+        Q050 => 4,
+        Q055 => 4,
+        Q060 => 4,
+        Q065 => 4,
+        Q070 => 4,
+        Q075 => 4,
+        Q080 => 4,
+        Q085 => 4,
+        Q090 => 4,
+        Q095 => 4,
+        Q100 => 4
+    },
+    LABEL_COUNT_RANK_PCT => {
+        'Genus:sp20' => undef,
+        'Genus:sp26' => undef
+    }
+}
+
+

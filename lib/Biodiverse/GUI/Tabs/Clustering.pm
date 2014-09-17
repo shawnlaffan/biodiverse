@@ -206,10 +206,6 @@ sub new {
     $self->queue_set_pane(0.5, 'hpaneClustering');
     $self->queue_set_pane(1  , 'vpaneDendrogram');
 
-    # Set up options menu
-    $self->{toolbar_menu}        = $xml_page->get_widget('menu_clustering_data');
-    $self->{toolbar_menu_button} = $xml_page->get_widget('menuitem_clustering_data');
-
     $self->make_indices_model($cluster_ref);
     $self->make_linkage_model($cluster_ref);
     $self->init_indices_combo();
@@ -590,7 +586,7 @@ sub init_dendrogram {
     );
 
     # TODO: Abstract this properly
-    $self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
+    #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
     $self->{dendrogram}->{page} = $self;
 
@@ -633,46 +629,6 @@ sub hide_legend {
     $self->{grid}->hide_legend;
 }
 
-# Called by Dendrogram when it has the map list.
-# We then update the toolbar menu so the user can select them.
-sub on_map_lists_ready {
-    my ($self, $lists) = @_;
-
-    my $menu = $self->{toolbar_menu};
-
-    my $first_pos = 2; # Beneath (Cluster)
-    my $pos = 2;
-
-    # Delete old menu items
-    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_lists_end');
-    my @menu_items = $menu->get_children();
-    while (defined $menu_items[$pos] and refaddr($menu_items[$pos]) != refaddr($ending)) {
-        my $menu_item = $menu_items[$pos++];
-        $menu->remove($menu_item);
-        $menu_item->destroy();
-    }
-
-    $pos = $first_pos;
-
-    # Establish radio group with first item.
-    my $first = Gtk2::RadioMenuItem->new(undef, '(Cluster)');
-    $first->set_tooltip_text('Uses contrasting colours to display classes');
-    $first->signal_connect_swapped(toggled => \&on_map_list_changed, $self);
-    $menu->insert($first, $pos++);
-    my $group = $first->get_group();
-
-    # Add to the toolbar menu
-    for my $item (@$lists) {
-        my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
-        $menu_item->set_tooltip_text('Uses a continuous colour scale to display classes');
-        $menu_item =~ s/_/__/g;
-        $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
-                $self);
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
-}
 
 sub on_map_list_changed {
     my ($self, $menu_item) = @_;
@@ -709,8 +665,6 @@ sub on_map_list_changed {
         $self->{dendrogram}->select_map_index($indices->[0]);
     }
 
-    $self->update_menu_map_indices($indices);
-
     # Desensitise some options if (Cluster) is selected.
     my @widgets = qw{
         menuitem_cluster_colour_mode_hue
@@ -721,60 +675,6 @@ sub on_map_list_changed {
     foreach my $widget (@widgets) {
         $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
     }
-}
-
-sub update_menu_map_indices {
-    my ($self, $indices) = @_;
-
-    # Clear out old entries from menu.
-    my $menu = $self->{toolbar_menu};
-
-    #  need to look for these in the menu children?
-    my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
-    my $ending  = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
-
-    #warn 'widget menuitem_cluster_map_indices not found' if !defined $heading;
-    #warn 'widget menuitem_cluster_map_indices_end not found' if !defined $ending;
-    #my $aa1 = $self->{xmlPage}->get_widget('menubar_clustering');
-    #my $aa2 = $self->{xmlPage}->get_widget('menuitem_clustering_data');
-    #my $aa3 = $self->{xmlPage}->get_widget('menu_clustering_data');
-
-    my @menu_items = $menu->get_children();
-    #foreach my $mi (@menu_items) {
-    #    my $text = $mi->get_label;
-    #    say $text;
-    #}
-
-    my $pos = 0;
-    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
-        $pos++;
-    }
-    $pos++;
-
-    my $first_pos = $pos;
-
-    # Remove everything until the end
-    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
-        my $menu_item = $menu_items[$pos++];
-        $menu->remove($menu_item);
-        $menu_item->destroy();
-    }
-
-    # Start inserting at $first_pos
-    $pos = $first_pos;
-    my $first_item = undef;
-    for my $index (@$indices) {
-        $index =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
-        $first_item //= $menu_item;
-        $menu_item->signal_connect_swapped(
-            toggled => \&on_map_index_changed,
-            $self,
-        );
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
 }
 
 

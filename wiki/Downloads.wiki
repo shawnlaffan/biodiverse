@@ -9,7 +9,7 @@
 
   === 0.99_004 (development release)===
 
-  _This is the current development version._
+  _This is the current development version, leading towards a version 1.0 release._
 
   Download, unzip and then run the Biodiverse executable file (the name changes depending on the operating system).
 
@@ -17,7 +17,13 @@
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)] 
 
-  * Linux (64 bit)
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Linux (64 bit)]
+
+  ==== Known issues ====
+
+  There are problems with the menu integration under the Ubuntu Unity desktop.  Basically, all the menus are sent to the top of the screen so any internal menus are not visible.  More details and a workaround are given under issue 509.
+
+  There is also the full [https://code.google.com/p/biodiverse/issues/list?can=2&q=Milestone%3DRelease1.0+&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&cells=tiles open issue list for the 1.0 development series].
 
   === 0.19 (stable release) ===
 

@@ -8,9 +8,11 @@
 
   This is the current development version.
 
+  Download, unzip and then run the Biodiverse executable file (the name changes depending on the operating system).
+
   [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_004 Release notes]
 
-  * Windows (64 bit) 
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)] 
 
   * Linux (64 bit)
 

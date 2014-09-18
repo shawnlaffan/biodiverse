@@ -42,7 +42,7 @@
 
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x32.tar.gz Linux (32 bit)]
 
-===Quick Start Guide===
+  ===Quick Start Guide===
 
   A [http://biodiverse.unsw.edu.au/downloads/Biodiverse_Quick_Start_Guide_0.19.pdf quick start guide] for version 0.19 is also available. 
 

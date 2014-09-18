@@ -33,7 +33,6 @@
 
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.19 release notes] summarise the changes in this version.
 
-  A [http://biodiverse.unsw.edu.au/downloads/Biodiverse_Quick_Start_Guide_0.19.pdf quick start guide] is also now available. 
 
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit)]  
 
@@ -42,6 +41,10 @@
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x64.tar.gz Linux (64 bit)]
 
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x32.tar.gz Linux (32 bit)]
+
+===Quick Start Guide===
+
+  A [http://biodiverse.unsw.edu.au/downloads/Biodiverse_Quick_Start_Guide_0.19.pdf quick start guide] for version 0.19 is also available. 
 
 
 == Site Pair Sampler ==

@@ -11,17 +11,19 @@
 
   _This is the current development version, leading towards a version 1.0 release._
 
-  Download, unzip and then run the Biodiverse executable file (the name changes depending on the operating system).
-
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_004 release notes] summarise the changes in this version.
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)] 
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)].  Download, unzip and then run the Biodiverse executable file.
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Linux (64 bit)]
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Linux (64 bit)].  Download, unzip, and then run the Biodiverse binary.  You might need to follow some of the [https://code.google.com/p/biodiverse/wiki/InstallationLinuxBinary installation instructions].
+
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_source.7z Source code].  For Mac users.  See the [https://code.google.com/p/biodiverse/wiki/InstallationMacSource installation instructions].
+
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_example_data.7z Example data]
 
   ==== Known issues ====
 
-  There are problems with the menu integration under the Ubuntu Unity desktop.  Basically, all the menus are sent to the top of the screen so any internal menus are not visible.  More details and a workaround are given under issue 509.
+  Ubuntu: There are problems with the menu integration under the Ubuntu Unity desktop.  Basically, all the menus are sent to the top of the screen so any internal menus are not visible.  More details and a workaround are given under issue 509.
 
   There is also the full [https://code.google.com/p/biodiverse/issues/list?can=2&q=Milestone%3DRelease1.0+&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&cells=tiles open issue list for the 1.0 development series].
 
@@ -42,11 +44,11 @@
 
 == Site Pair Sampler ==
 
-[https://code.google.com/p/biodiverse/downloads/detail?name=site_pair_sample_64bit.7z Site pair sampler for GDM analyses].
+  [https://code.google.com/p/biodiverse/downloads/detail?name=site_pair_sample_64bit.7z Site pair sampler for GDM analyses].
 
-For further details, see:
+  For further details, see:
 
-Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2014), Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities. Ecography.  http://dx.doi.org/10.1111/j.1600-0587.2013.00466.x
+  Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2014), Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities. Ecography.  http://dx.doi.org/10.1111/j.1600-0587.2013.00466.x
 
 
 == Utility scripts ==

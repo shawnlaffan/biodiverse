@@ -1,6 +1,11 @@
 #! /usr/bin/perl
 #!perl
 
+BEGIN {
+    $ENV{UBUNTU_MENUPROXY} = undef;
+}
+
+
 use strict;
 use warnings;
 use Carp;

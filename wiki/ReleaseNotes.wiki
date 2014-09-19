@@ -14,7 +14,7 @@ For the full list of issues and changes leading to the 1.0 release, see http://c
 
 To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
-Main changes since the preceding version ([#Version_0.99_001 0.99_002]) are below.  Issue numbers which are not crossed out are yet to be completed.  
+Main changes since the preceding version ([#Version_0.99_002 0.99_002]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
   *  GUI
     *  The phylogenetic endemism and related indices are now in their own category (Phyloegentic Endemism).  The Phylogenetic Indices category was getting too busy.  Issue 499

@@ -34,6 +34,9 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_002]) are belo
     *  Basedata imports now ignore records with a value of NA.  This makes it easier to work with data exported from R as no special processing is needed.  Issue 489
     *  Basedata imports now have an option to control the number of decimal places used in the group axis calculation.  The default is currently 7.  Issue 488
 
+  *  Exports
+    *  Tree exports to nexus format can optionally not use the translate block.  This means internal nodes can be named and the read.nexus function in ape will still be able to read the file.  Issue 502
+
 
 = Version 0.99_002 = 
 
@@ -65,7 +68,7 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
   *  Trees
     *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI is unlikely to be able to plot it). Issue 483
     *  Tree trimming is now considerably faster.  Issue 470
-    *  Tree exports to nexus format can optionally not use the translate block.  This means internal nodes can be named and the read.nexus function in ape will still be able to read the file.  Issue 502
+
 
 
 = Version 0.99_001 = 

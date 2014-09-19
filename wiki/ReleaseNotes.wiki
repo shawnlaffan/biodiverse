@@ -17,7 +17,7 @@ To see the full list of open issues or to report a bug or enhancement request, s
 Main changes since the preceding version ([#Version_0.99_002 0.99_002]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
   *  GUI
-    *  The phylogenetic endemism and related indices are now in their own category (Phyloegentic Endemism).  The Phylogenetic Indices category was getting too busy.  Issue 499
+    *  The phylogenetic endemism and related indices are now in their own category (Phylogentic Endemism).  The Phylogenetic Indices category was getting too busy.  Issue 499
     *  Cell outlines can now be turned off.  This is useful when cells are small and any outlines obscure the cell contents.  Issue 311
     *  The legend can be hidden so it no longer overlaps with the grid.  Issue 59
     *  Display cursors now change to match the selected mode (e.g. zoom in, pan, select).  Issue 490

@@ -27,6 +27,9 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_002]) are belo
   *  Analyses
     *  Analyses are now run as temporary objects and then copied across on success.  This means that many of the optimisations where neighbours and matrices are recycled can apply more often since the originals are not replaced until the analysis completes successfully.  Issue 444
 
+  *  Indices
+    *  New calculations are now available to calculate the label sample count percentiles across a sample, as well as the rank relative abundance of the labels in the processing group relative to all other groups in the neighbour sets.  Issue 507
+
   *  Imports
     *  Basedata imports now ignore records with a value of NA.  This makes it easier to work with data exported from R as no special processing is needed.  Issue 489
     *  Basedata imports now have an option to control the number of decimal places used in the group axis calculation.  The default is currently 7.  Issue 488

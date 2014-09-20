@@ -375,11 +375,11 @@ sub run {
             unshift @header, 'R_data_frame_col_0';
         }
 
-        # check for empty fields in header? replace with generic
-        ## SWL - needed?
+        # Check for empty fields in header.
+        # CSV files from excel can have dangling headers
         my $col_num = 0;
         while ($col_num <= $#header) {
-            if (length($header[$col_num]) == 0) {
+            if (!defined $header[$col_num] || !length $header[$col_num]) {
                 $header[$col_num] = "col_$col_num";
             }
             $col_num++;
@@ -450,18 +450,19 @@ sub run {
                 my $num_labels = 0;
                 if ($use_matrix) {
                     if (exists $column_settings->{Label_start_col}) {  #  not always present
-                        $num_labels = scalar @{$column_settings->{Label_start_col}};
+                        $num_labels = scalar @{$column_settings->{Label_start_col}}; #>=1
+                        #$num_labels = 1;  #  just binary flag it
                     }
                 }
                 else {
                     $num_labels = scalar @{$column_settings->{labels}};
                 }
     
-                last GET_COLUMN_TYPES if $num_groups;
+                last GET_COLUMN_TYPES if $num_groups && $num_labels;
     
                 my $text = $use_matrix
                      ? 'Please select at least one group and the label start column'
-                     : 'Please select at least one label and one group';
+                     : 'Please select at least one label and one group column';
                 
                 my $msg = Gtk2::MessageDialog->new (
                     undef,
@@ -656,7 +657,7 @@ sub run {
                     include_columns         => \@include_columns,
                     exclude_columns         => \@exclude_columns,
                     sample_count_columns    => \@sample_count_columns,
-                )
+                );
             };
         }
     }

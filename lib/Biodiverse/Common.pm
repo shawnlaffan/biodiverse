@@ -1433,7 +1433,7 @@ sub guess_field_separator {
         if (scalar @$flds > 1) {  #  need two or more fields to result
             $sep_count{scalar @$flds} = $sep;
         }
-        #$i++;
+
     }
     #  now we sort the keys, take the highest and use it as the
     #  index to use from sep_count, thus giving us the most common
@@ -1443,7 +1443,7 @@ sub guess_field_separator {
         ? $sep_count{$sorted[0]}
         : $separators[0];  # default to first checked
     my $septext = ($sep =~ /\t/) ? '\t' : $sep;  #  need a better way of handling special chars - ord & chr?
-    print "[COMMON] Guessed field separator as '$septext'\n";
+    say "[COMMON] Guessed field separator as '$septext'";
 
     return $sep;
 }

@@ -351,7 +351,7 @@ sub init {
     if (@load_extension_errors) {
         my $count = scalar @load_extension_errors;
         my $text = "Failed to load $count extensions\n"
-                 . join "\n", @load_extension_errors;
+                 . join "\n", $#load_extension_errors;  #  last item is @INC, so not an extension
         $self->report_error($text);
     }
 

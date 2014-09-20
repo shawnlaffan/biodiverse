@@ -1908,9 +1908,8 @@ sub rename_label {
 sub get_labels_from_line {
     my $self = shift;
     my %args = @_;
-    
-    #  these assignments look redundant, but this makes for cleaner code and
-    #  the compiler should optimise it all away
+
+    #  these assignments look redundant, but this makes for cleaner code
     my $fields_ref           = $args{fields_ref};
     my $csv_object           = $args{csv_object};
     my $label_columns        = $args{label_columns};

@@ -10,20 +10,42 @@ use rlib;
 use Test::More;
 use Test::Exception;
 
-use English qw(
-    -no_match_vars
-);
+use English qw/-no_match_vars/;
+
+use Text::CSV_XS;
+use File::Temp qw /tempfile/;
 
 #  just need something that inherits the csv handlers
 use Biodiverse::BaseStruct;
 
-
+test_r_data_frame();
+test_eol();
+test_guesswork();
 test_mixed_sep_chars();
 test_sep_char();
 
 
 done_testing();
 
+
+sub test_eol {
+    my $obj = Biodiverse::BaseStruct->new(name => 'x');
+
+    my $eol;
+
+    my $string = qq{a b,n m,k l\n"a b","n m","k l"};
+
+    $eol = $obj->guess_eol(string => $string);
+
+    is ($eol, "\n", 'got \n');
+    
+    $string = qq{a b,n m,k l\r\n"a b","n m","k l"\r\n};
+
+    $eol = $obj->guess_eol(string => $string);
+
+    is ($eol, "\r\n", 'got \r\n');
+
+}
 
 sub test_sep_char {
     my $obj = Biodiverse::BaseStruct->new(name => 'x');
@@ -55,4 +77,52 @@ sub test_mixed_sep_chars {
 
     is ($sep_char, ' ', "got a space when there are more spaces than commas");
 
+}
+
+sub test_guesswork {
+    my $obj = Biodiverse::BaseStruct->new(name => 'x');
+
+    my $csv_got;
+    my $csv_exp = $obj->get_csv_object(sep_char => ',', quote_char => '"', eol => "\n");
+
+    #  comma is sep, but we have spaces
+    my $string = qq{a b,n m,k l\n"a b","n m","k l"};
+
+    $csv_got = $obj->get_csv_object_using_guesswork(string => $string);
+    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string');
+
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+    my ($fh, $filename) = tempfile(DIR => $tmp_folder);
+    #  add some lines
+    say {$fh} $string;
+    say {$fh} $string;
+    say {$fh} $string;
+    $fh->close;
+
+    $csv_got = $obj->get_csv_object_using_guesswork(fname => $filename);
+    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using file');
+
+    $csv_exp = $obj->get_csv_object_using_guesswork(
+        sep_char   => 'guess',
+        quote_char => 'guess',
+        eol        => 'guess',
+        string     => $string,
+    );
+    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string and explicit guess args');
+
+}
+
+#  header has one less column than data
+sub test_r_data_frame {
+    my $obj = Biodiverse::BaseStruct->new(name => 'x');
+
+    my $csv_got;
+    my $csv_exp = $obj->get_csv_object(sep_char => ' ', quote_char => '"', eol => "\n");
+
+    #  space is sep, but we have some commas
+    my $string = qq{b,2 c,3 d,4\na,1 b2 c,3 d,4\na,1 b2 c,3 d,4\na1 b2 c3 d4\n};
+
+    $csv_got = $obj->get_csv_object_using_guesswork (string => $string);
+
+    is_deeply ($csv_got, $csv_exp, 'guesswork with r data frame style file');
 }

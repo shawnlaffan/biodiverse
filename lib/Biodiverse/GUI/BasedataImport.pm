@@ -345,42 +345,20 @@ sub run {
             croak $msg;
         }
 
-        #  read in a chunk of the file for guesswork
-        my $first_10000_chars;
-        my $fh2 = IO::File->new;
-        $fh2->open ($filename_utf8, '<:via(File::BOM)');
-        my $count_chars = $fh2->read ($first_10000_chars, 10000);
-        $fh2->close;
+        my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
+            fname => $filename_utf8,
+        );
 
         my $line = <$fh>;
-
-        my $eol     = $gui->get_project->guess_eol (string => $line);
-
-        my $quotes  = $import_params{input_quote_char} eq 'guess'
-                    ? $gui->get_project->guess_quote_char (string => $line)
-                    : $import_params{input_quote_char};
-
-        my $sep = $import_params{input_sep_char} eq 'guess'
-                ? $gui->get_project->guess_field_separator (
-                    string     => $first_10000_chars,
-                    quote_char => $quotes,
-                    eol        => $eol,
-                  )
-                : $import_params{input_sep_char};
-
-
         my @header  = $gui->get_project->csv2list(
             string      => $line,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
 
         #  R data frames are saved missing the first field in the header
         my $is_r_data_frame = check_if_r_data_frame (
-            file     => $filenames[0],
-            quotes   => $quotes,
-            sep_char => $sep,
+            file       => $filenames[0],
+            csv_object => $csv_obj,
         );
         #  add a field to the header if needed
         if ($is_r_data_frame) {
@@ -401,9 +379,7 @@ sub run {
         my $line2 = <$fh>;
         my @line2_cols  = $gui->get_project->csv2list(
             string      => $line2,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
         while($col_num <= $#line2_cols) {
             $header[$col_num] = "col_$col_num";
@@ -713,7 +689,7 @@ sub check_if_r_data_frame {
     my %args = @_;
     
     my $package = 'Biodiverse::Common';
-    my $csv = $package->get_csv_object (@_);
+    my $csv = $args{csv_object} // $package->get_csv_object (@_);
     
     my $fh;
     open ($fh, '<:via(File::BOM)', $args{file})
@@ -734,6 +710,7 @@ sub check_if_r_data_frame {
     foreach my $line (@lines) {
         if (scalar @$line == $header_count + 1) {
             $is_r_style = 1;
+            last;
         }
     }
     

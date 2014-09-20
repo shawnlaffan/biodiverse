@@ -826,17 +826,9 @@ sub import_data {
             )
             / $bytes_per_MB;
 
-        my $input_binary = $args{binary} // 1;  #  a boolean flag for Text::CSV_XS
-
         #  Get the header line, assumes no binary chars in it.
         #  If there are then there is something really wrong with the file.
         my $header = $file_handle->getline;
-        #  Could be futile - the read operator uses $/,
-        #  although \r\n will be captured.
-        #  Should really seek to end of file and then read back a few chars,
-        #  assuming that's faster.
-        my $eol = $self->guess_eol (string => $header);
-        my $eol_char_len = length ($eol);
 
         #  for progress bar stuff
         my $size_comment
@@ -845,44 +837,15 @@ sub import_data {
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
-        #  read in a chunk of the file for guesswork
-        my $first_10000_chars;
-
-        my $fh2 = IO::File->new;
-        $fh2->open ($file, '<:via(File::BOM)');
-        my $count_chars = $fh2->read ($first_10000_chars, 10000);
-        $fh2->close;
-
+        my $input_binary     = $args{binary} // 1;  #  a boolean flag for Text::CSV_XS
         my $input_quote_char = $args{input_quote_char};
-        #  guess the quotes character?
-        if (not defined $input_quote_char or $input_quote_char eq 'guess') {  
+        my $sep              = $args{input_sep_char};
 
-            #  Strip trailing chars until we get $eol at the end.
-            #  Not perfect for CSV if embedded newlines, but it's a start.
-            while (length $first_10000_chars) {
-                last if ($first_10000_chars =~ /$eol$/);
-                chop $first_10000_chars;
-            }
-
-            $input_quote_char = $self->guess_quote_char (string => \$first_10000_chars);
-            #  if all else fails...
-            if (! defined $input_quote_char) {
-                $input_quote_char = $self->get_param ('QUOTES');
-            }
-        }
-
-        my $sep = $args{input_sep_char};
-        if (not defined $sep or $sep eq 'guess') {
-            $sep = $self->guess_field_separator (
-                string     => $first_10000_chars,
-                quote_char => $input_quote_char,
-            );
-        }
-
-        my $in_csv = $self->get_csv_object (
+        my $in_csv = $self->get_csv_object_using_guesswork (
+            fname      => $file,
             sep_char   => $sep,
             quote_char => $input_quote_char,
-            binary     => $input_binary,  #  NEED TO ENABLE OTHER CSV ARGS TO BE PASSED
+            binary     => $input_binary,
         );
         my $out_csv = $self->get_csv_object (
             sep_char   => $el_sep,

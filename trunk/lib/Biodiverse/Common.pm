@@ -1144,6 +1144,7 @@ sub csv2list {
             $string = substr $string, 0, 50;
             $string .= '...';
         }
+        local $. //= '';
         my $error_string = join (
             $EMPTY_STRING,
             "csv2list parse() failed\n",
@@ -1405,6 +1406,7 @@ sub move_to_front_of_list {
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden
+
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
@@ -1414,7 +1416,7 @@ sub guess_field_separator {
     my $eol = $self->guess_eol(%args);
 
     my %sep_count;
-    #my $i = 0;
+
     foreach my $sep (@separators) {
         next if ! length $string;
         #  skip if does not contain the separator
@@ -1435,14 +1437,55 @@ sub guess_field_separator {
         }
 
     }
-    #  now we sort the keys, take the highest and use it as the
-    #  index to use from sep_count, thus giving us the most common
-    #  sep_char
-    my @sorted = reverse sort numerically keys %sep_count;
-    my $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
-        ? $sep_count{$sorted[0]}
-        : $separators[0];  # default to first checked
-    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  #  need a better way of handling special chars - ord & chr?
+
+    my @str_arr = split $eol, $string;
+    my $sep;
+
+    if (@str_arr > 1) {  #  check the sep char works using subsequent lines
+        %sep_count = reverse %sep_count;  #  should do it properly above
+        my %checked;
+
+        foreach my $sep (sort keys %sep_count) {
+            my $string = $str_arr[1];
+            my $flds = eval {
+                $self->csv2list (
+                    %args,
+                    sep_char => $sep,
+                    eol      => $eol,
+                    string   => $string,
+                );
+            };
+            next if $EVAL_ERROR;  #  any errors mean that separator won't work
+            $checked{$sep} = scalar @$flds;
+        }
+        my @poss_chars = reverse sort {$checked{$a} <=> $checked{$b}} keys %checked;
+        if (scalar @poss_chars == 1) {  #  only one option
+            $sep = $poss_chars[0];
+        }
+        else {  #  get the one that matches
+          CHAR:
+            foreach my $char (@poss_chars) {
+                if ($checked{$char} == $sep_count{$char}) {
+                    $sep = $char;
+                    last CHAR;
+                }
+            }
+        }
+    }
+    else {
+        #  now we sort the keys, take the highest and use it as the
+        #  index to use from sep_count, thus giving us the most common
+        #  sep_char
+        my @sorted = reverse sort numerically keys %sep_count;
+        $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
+            ? $sep_count{$sorted[0]}
+            : $separators[0];  # default to first checked
+    }
+
+    $sep //= ',';
+
+    #  need a better way of handling special chars - ord & chr?
+    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  
     say "[COMMON] Guessed field separator as '$septext'";
 
     return $sep;
@@ -1505,13 +1548,13 @@ sub guess_eol {
     my $string = $args{string};
     $string = $$string if ref ($string);
 
-    my $pattern = $args{pattern} || '[\n|\r]*';
+    my $pattern = $args{pattern} || qr/[\n|\r]+/;
 
     if ($string =~ /($pattern$)/) {
         return $1;
     }
 
-    return;
+    return "\n";
 }
 
 sub get_next_line_set {

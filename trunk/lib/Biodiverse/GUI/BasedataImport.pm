@@ -345,17 +345,29 @@ sub run {
             croak $msg;
         }
 
+        #  read in a chunk of the file for guesswork
+        my $first_10000_chars;
+        my $fh2 = IO::File->new;
+        $fh2->open ($filename_utf8, '<:via(File::BOM)');
+        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        $fh2->close;
+
         my $line = <$fh>;
 
-        my $sep = $import_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $import_params{input_sep_char};
+        my $eol     = $gui->get_project->guess_eol (string => $line);
 
         my $quotes  = $import_params{input_quote_char} eq 'guess'
                     ? $gui->get_project->guess_quote_char (string => $line)
                     : $import_params{input_quote_char};
 
-        my $eol     = $gui->get_project->guess_eol (string => $line);
+        my $sep = $import_params{input_sep_char} eq 'guess'
+                ? $gui->get_project->guess_field_separator (
+                    string     => $first_10000_chars,
+                    quote_char => $quotes,
+                    eol        => $eol,
+                  )
+                : $import_params{input_sep_char};
+
 
         my @header  = $gui->get_project->csv2list(
             string      => $line,

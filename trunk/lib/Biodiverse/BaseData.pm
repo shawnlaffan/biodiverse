@@ -845,16 +845,17 @@ sub import_data {
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
+        #  read in a chunk of the file for guesswork
+        my $first_10000_chars;
+
+        my $fh2 = IO::File->new;
+        $fh2->open ($file, '<:via(File::BOM)');
+        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        $fh2->close;
+
         my $input_quote_char = $args{input_quote_char};
         #  guess the quotes character?
         if (not defined $input_quote_char or $input_quote_char eq 'guess') {  
-            #  read in a chunk of the file
-            my $first_10000_chars;
-
-            my $fh2 = IO::File->new;
-            $fh2->open ($file, '<:via(File::BOM)');
-            my $count_chars = $fh2->read ($first_10000_chars, 10000);
-            $fh2->close;
 
             #  Strip trailing chars until we get $eol at the end.
             #  Not perfect for CSV if embedded newlines, but it's a start.
@@ -873,7 +874,7 @@ sub import_data {
         my $sep = $args{input_sep_char};
         if (not defined $sep or $sep eq 'guess') {
             $sep = $self->guess_field_separator (
-                string     => $header,
+                string     => $first_10000_chars,
                 quote_char => $input_quote_char,
             );
         }
@@ -942,7 +943,8 @@ sub import_data {
         
         #  destroy @lines as we go, saves a bit of memory for big files
         #  keep going if we have lines to process or haven't hit the end of file
-        BYLINE: while (scalar @$lines or not (eof $file_handle)) {
+      BYLINE:
+        while (scalar @$lines or not (eof $file_handle)) {
             $line_num ++;
 
             #  read next chunk if needed.
@@ -958,15 +960,14 @@ sub import_data {
                 );
 
                 $line_num_end_prev_chunk = $line_count;
-                
                 $line_count += scalar @$lines;
 
                 $chunk_count ++;
                 $total_chunk_text
                     = $file_handle->eof ? $chunk_count : ">$chunk_count";
             }
-            
-            
+
+
             if ($line_num % 1000 == 0) { # progress information
 
                 my $line_count_text

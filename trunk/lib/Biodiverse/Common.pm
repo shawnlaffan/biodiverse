@@ -1413,7 +1413,7 @@ sub guess_field_separator {
     my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}  #  these should be globals set by use_base
                     ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
                     : (',', "\t", ';', q{ });
-    my $eol = $self->guess_eol(%args);
+    my $eol = $args{eol} // $self->guess_eol(%args);
 
     my %sep_count;
 
@@ -1445,18 +1445,28 @@ sub guess_field_separator {
         %sep_count = reverse %sep_count;  #  should do it properly above
         my %checked;
 
+      SEP:
         foreach my $sep (sort keys %sep_count) {
-            my $string = $str_arr[1];
-            my $flds = eval {
-                $self->csv2list (
-                    %args,
-                    sep_char => $sep,
-                    eol      => $eol,
-                    string   => $string,
-                );
-            };
-            next if $EVAL_ERROR;  #  any errors mean that separator won't work
-            $checked{$sep} = scalar @$flds;
+            #  check up to the first ten lines
+            foreach my $string (@str_arr[1 .. min (10, $#str_arr)]) {
+                my $flds = eval {
+                    $self->csv2list (
+                        %args,
+                        sep_char => $sep,
+                        eol      => $eol,
+                        string   => $string,
+                    );
+                };
+                if ($EVAL_ERROR) {  #  any errors mean that separator won't work
+                    delete $checked{$sep};
+                    next SEP;
+                }
+                $checked{$sep} //= scalar @$flds;
+                if ($checked{$sep} != scalar @$flds) {
+                    delete $checked{$sep};  #  count mismatch - remove
+                    next SEP;
+                }
+            }
         }
         my @poss_chars = reverse sort {$checked{$a} <=> $checked{$b}} keys %checked;
         if (scalar @poss_chars == 1) {  #  only one option
@@ -1548,13 +1558,76 @@ sub guess_eol {
     my $string = $args{string};
     $string = $$string if ref ($string);
 
-    my $pattern = $args{pattern} || qr/[\n|\r]+/;
+    my $pattern = $args{pattern} || qr/[\r\n]+/;
 
-    if ($string =~ /($pattern$)/) {
+    if ($string =~ /($pattern).*\z/s) {
         return $1;
     }
 
     return "\n";
+}
+
+
+sub get_csv_object_using_guesswork {
+    my $self = shift;
+    my %args = @_;
+
+    my $string = $args{string};
+    my $fname  = $args{fname};
+    #my $fh     = $args{fh};  #  should handle these
+
+    my ($eol, $quote_char, $sep_char) = @args{qw/eol quote_char sep_char/};
+
+    foreach ($eol, $quote_char, $sep_char) {
+        if (($_ // '') eq 'guess') {
+            $_ = undef;  # aliased, so applies to original
+        }
+    }
+
+    if (defined $string && ref $string) {
+        $string = $$string;
+    }
+    elsif (!defined $string) {
+        croak "Both arguments 'string' and 'fname' not specified\n"
+          if !defined $fname;
+
+        my $first_10000_chars;
+
+        #  read in a chunk of the file for guesswork
+        my $fh2 = IO::File->new;
+        $fh2->open ($fname, '<:via(File::BOM)');
+        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        $fh2->close;
+
+        #  Strip trailing chars until we get a newline at the end.
+        #  Not perfect for CSV if embedded newlines, but it's a start.
+        while (length $first_10000_chars) {
+            last if $first_10000_chars =~ /\n$/;
+            chop $first_10000_chars;
+        }
+        $string = $first_10000_chars;
+    }
+
+    $eol //= $self->guess_eol (string => $string);
+
+    $quote_char //= $self->guess_quote_char (string => \$string);
+    #  if all else fails...
+    $quote_char //= $self->get_param ('QUOTES');
+
+    $sep_char //= $self->guess_field_separator (
+        string     => $string,
+        quote_char => $quote_char,
+        eol        => $eol,
+    );
+
+    my $csv_obj = $self->get_csv_object (
+        %args,
+        sep_char   => $sep_char,
+        quote_char => $quote_char,
+        eol        => $eol,
+    );
+
+    return $csv_obj;
 }
 
 sub get_next_line_set {

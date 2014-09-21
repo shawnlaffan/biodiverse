@@ -1571,14 +1571,14 @@ sub get_remap_info {
     my $response = $dlg->run;
     $dlg->destroy;
     
-    return wantarray ? () : {} if ($response ne 'ok');
-    
+    return wantarray ? () : {} if $response ne 'ok';
+
     my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     my %properties_params = @$properties_params;
-    
+
     # Get header columns
     say "[GUI] Discovering columns from $filename";
-    
+
     open (my $input_fh, '<:via(File::BOM)', $filename)
       or croak "Cannot open $filename\n";
 
@@ -1590,22 +1590,16 @@ sub get_remap_info {
         last if $line;
     }
     close ($input_fh);
-    
-    my $sep     = $properties_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $properties_params{input_sep_char};
-                
-    my $quotes  = $properties_params{input_quote_char} eq 'guess'
-                ? $gui->get_project->guess_quote_char (string => $line)
-                : $properties_params{input_quote_char};
-                
-    my $eol     = $gui->get_project->guess_eol (string => $line_unchomped);
-    
+
+    my $csv_obj = $gui->get_project->get_csv_object_using_guesswork (
+        fname      => $filename,
+        quote_char => $properties_params{input_quote_char},
+        sep_char   => $properties_params{input_sep_char},
+    );
+
     my @headers_full = $gui->get_project->csv2list(
         string     => $line_unchomped,
-        quote_char => $quotes,
-        sep_char   => $sep,
-        eol        => $eol
+        csv_object => $csv_obj,
     );
 
     my @headers = map
@@ -1618,7 +1612,7 @@ sub get_remap_info {
         $other_properties,
         $column_overrides,
     );
-    
+
     my $column_settings = {};
     $dlg->set_title(ucfirst "$type property column types");
 

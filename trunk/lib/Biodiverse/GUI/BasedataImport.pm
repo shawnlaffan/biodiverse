@@ -1681,7 +1681,7 @@ sub get_remap_info {
         exclude_cols            => \@exclude_cols,
     );
 
-    #foreach my $type (qw /Range Sample_count Property/) {
+
     foreach my $type (@$other_properties, 'Property') {
         my $ref = $column_settings->{$type};
         next if ! defined $ref;
@@ -1695,15 +1695,9 @@ sub get_remap_info {
         }
     }
 
-    if ($sep ne 'guess') {
-        $results{input_sep_char} = $sep;
-    }
-    if ($quotes ne 'guess') {
-        $results{input_quote_char} = $quotes;
-    }
-    #if ($eol ne 'guess') {
-    #    $results{eol} = $eol;
-    #}
+    #  just pass them onwards, even if it means guessing again
+    $results{input_sep_char}   = $properties_params{input_quote_char},
+    $results{input_quote_char} = $properties_params{input_sep_char};
 
     return wantarray ? %results : \%results;
 }

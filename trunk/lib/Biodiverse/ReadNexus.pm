@@ -510,38 +510,16 @@ sub get_csv_object_for_tabular_tree_import {
     my $self = shift;
     my %args = @_;
     
-    my $data = $args{data};
-    my @data = split ("\n", $data, 2);
-    my $header = $data[0];
-
     #  need to get the csv params
     my $input_quote_char = $args{input_quote_char};
-    my $sep              = $args{input_sep_char};    
+    my $sep_char         = $args{input_sep_char};    
 
-    #  boilerplate - refactor
-    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
-        #  guess the quotes character
-        $input_quote_char = $self->guess_quote_char (string => $data);
-        #  if all else fails...
-        if (not defined $input_quote_char) {
-            $input_quote_char = $self->get_param ('QUOTES');
-        }
-    }
-
-    if (not defined $sep or $sep eq 'guess') {
-        $sep = $self->guess_field_separator (
-            string     => $header,
-            quote_char => $input_quote_char,
-        );
-    }
-    my $eol = $self->guess_eol (string => $header);
-    
-    my $csv_in = $self->get_csv_object (
-        sep_char => $sep,
+    my $csv_in = $self->get_csv_object_using_guesswork (
+        sep_char   => $sep_char,
         quote_char => $input_quote_char,
-        eol => $eol,
+        string     => \$args{data},
     );
-    
+
     return $csv_in;
 }
 

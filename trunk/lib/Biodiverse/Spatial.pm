@@ -421,7 +421,6 @@ sub sp_calc {
 
     #  create all the elements and the SPATIAL_RESULTS list
     my $to_do = scalar @elements_to_calc;
-    #my $timer = [gettimeofday];
     
     #  check the elements against the definition query
     my $pass_def_query = $self->get_groups_that_pass_def_query (

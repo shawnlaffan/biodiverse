@@ -83,10 +83,11 @@ sub calc_local_sample_count_quantiles {
 }
 
 sub get_metadata_calc_label_count_quantile_position {
-    my $desc =
-        'Find the percentile rank of each label in the processing group '
-      . 'across the respective label counts across both neighbour sets.  '
-      . 'An absence is treated as a sample count of zero.';
+    #  needs to be clearer
+    my $desc =  
+        'Find the per-group percentile rank of all labels across both neighbour sets,  '
+        . 'relative to the processing group. '
+        . 'An absence is treated as a sample count of zero.';
 
     my %metadata = (
         name            => 'Rank relative sample counts per label',
@@ -98,7 +99,7 @@ sub get_metadata_calc_label_count_quantile_position {
             },
         },
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_element_lists_used',
+        pre_calc        => [qw /calc_element_lists_used calc_abc/],
         required_args   => ['processing_element'],
         uses_nbr_lists  => 1,
     );  
@@ -111,26 +112,29 @@ sub calc_label_count_quantile_position {
     my %args = @_;
 
     my $bd = $self->get_basedata_ref;
-    my $element = $args{processing_element};
+    my $processing_element = $args{processing_element};
 
-    my $proc_labels = $bd->get_labels_in_group_as_hash (group => $element);
+    my $proc_labels = $bd->get_labels_in_group_as_hash (group => $processing_element);
 
-    my %label_counts;
-    foreach my $label (keys %$proc_labels) {
-        $label_counts{$label} = [];
+    #  nbr sets might not include processing group, so make sure we get all labels
+    my %labels_to_check = (%{$args{label_hash_all}}, %$proc_labels);
+
+    my %label_count_arrays;
+    foreach my $label (keys %labels_to_check) {
+        $label_count_arrays{$label} = [];
     }
     my $el_array = $args{EL_LIST_ALL};
 
   ELEMENT:
     foreach my $el (@$el_array) {
-        next ELEMENT if $el eq $element;  #  don't include ourselves
+        next ELEMENT if $el eq $processing_element;  #  don't include ourselves
 
         my $label_hash = $bd->get_labels_in_group_as_hash (group => $el);
       LABEL:
-        foreach my $label (keys %label_counts) {
+        foreach my $label (keys %label_count_arrays) {
             no autovivification;
             my $count = $label_hash->{$label} // 0;  # absence means zero
-            my $array = $label_counts{$label};
+            my $array = $label_count_arrays{$label};
             push @$array, $count;
         }
     }
@@ -138,11 +142,15 @@ sub calc_label_count_quantile_position {
     my %positions;
 
   LABEL:
-    foreach my $label (keys %label_counts) {
-        my $val_array = $label_counts{$label};
+    foreach my $label (keys %label_count_arrays) {
+        no autovivification;
+
+        my $val_array = $label_count_arrays{$label};
         my $quant_pos;
-        if (scalar @$val_array) {  #  $label might not exist in the neighbours - can this happen since we assume zero?
-            my $target = $proc_labels->{$label};
+        #  $label might not exist in the neighbours,
+        #  or nbr set contains only the processing gp
+        if (scalar @$val_array) {  
+            my $target = $proc_labels->{$label} // 0;
             my $pos = grep { $_ < $target } @$val_array;
             $quant_pos = 100 * $pos / scalar @$val_array;
         }

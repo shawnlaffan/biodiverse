@@ -105,8 +105,37 @@ __DATA__
         Q100 => 328
     },
     LABEL_COUNT_RANK_PCT => {
+        'Genus:sp1'  => '0',
+        'Genus:sp10' => '0',
+        'Genus:sp11' => '0',
+        'Genus:sp12' => '0',
+        'Genus:sp13' => '0',
+        'Genus:sp14' => '0',
+        'Genus:sp15' => '0',
+        'Genus:sp16' => '0',
+        'Genus:sp17' => '0',
+        'Genus:sp18' => '0',
+        'Genus:sp19' => '0',
+        'Genus:sp2'  => '0',
         'Genus:sp20' => '97.6190476190476',
-        'Genus:sp26' => '99.2063492063492'
+        'Genus:sp21' => '0',
+        'Genus:sp22' => '0',
+        'Genus:sp23' => '0',
+        'Genus:sp24' => '0',
+        'Genus:sp25' => '0',
+        'Genus:sp26' => '99.2063492063492',
+        'Genus:sp27' => '0',
+        'Genus:sp28' => '0',
+        'Genus:sp29' => '0',
+        'Genus:sp3'  => '0',
+        'Genus:sp30' => '0',
+        'Genus:sp31' => '0',
+        'Genus:sp4'  => '0',
+        'Genus:sp5'  => '0',
+        'Genus:sp6'  => '0',
+        'Genus:sp7'  => '0',
+        'Genus:sp8'  => '0',
+        'Genus:sp9'  => '0'
     }
 }
 

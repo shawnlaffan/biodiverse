@@ -219,37 +219,31 @@ sub sp_calc {
     my $self = shift;
     my %args = @_;
 
-    print "[SPATIAL] Running analysis "
-          . $self->get_param('NAME')
-          . "\n";
+    say "[SPATIAL] Running analysis " . $self->get_param('NAME');
 
     #  don't store this arg if specified
     my $use_nbrs_from = $args{use_nbrs_from};
     delete $args{use_nbrs_from};  
-    
+
     #  flag for use if we drop out.  Set to 1 on completion.
     $self->set_param (COMPLETED => 0);
-    
+
     #  load any predefined args - overriding user specified ones
     #  need to change this to be ANALYSIS_ARGS
     my $ref = $self->get_param ('SP_CALC_ARGS');
     if (defined $ref) {
         %args = %$ref;
     }
-    
+
     # a little backwards compatibility since we've changed the nomenclature
     if (! exists $args{calculations} && exists $args{analyses}) {
         $args{calculations} = $args{analyses};
     }
-    
+
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
 
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
-    my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
-    my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
-
-    #  check the definition query
     my $definition_query
       = $self->get_definition_query (definition_query => $args{definition_query});
 
@@ -277,10 +271,29 @@ sub sp_calc {
         if (        $indices_object->get_valid_calculation_count == 0
             and not $args{override_valid_analysis_check});
 
+    my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
+    my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);
+
+    my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
+    my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
+    #  These need to be shifted into get_recyclable_nbrhoods:
+    #  If we are using neighbours from another spatial object
+    #  then we use its recycle setting, and store it for later
+    if ($use_nbrs_from) {
+        $results_are_recyclable =
+          $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
+        $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
+    }
+    #  override any recycling setting if we use the processing_element in the calcs
+    #  as many results will vary by location
+    if (scalar grep {$_ eq 'processing_element'} @$indices_reqd_args) {
+        $self->set_param(RESULTS_ARE_RECYCLABLE => 0);
+        $results_are_recyclable = 0;
+    }
+
     #  this is for the GUI
     $self->set_param (CALCULATIONS_REQUESTED => $args{calculations});
     #  save the args, but override the calcs so we only store the valid ones
-    my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
     $self->set_param (
         SP_CALC_ARGS => {
             %args,
@@ -343,9 +356,11 @@ sub sp_calc {
             }
 
             my $search_blocks = $search_blocks_ref->[$i];
-            
+
             if (defined $sp_index && ! defined $search_blocks) {
-                print "[SPATIAL] Using spatial index\n" if $i == 0;
+                if ($i == 0) {
+                    say '[SPATIAL] Using spatial index';
+                }
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
                 $search_blocks = $sp_index->predict_offsets (
                     spatial_conditions => $spatial_conditions_ref->[$i],
@@ -358,15 +373,6 @@ sub sp_calc {
     }
 
     $self->set_param (INDEX_SEARCH_BLOCKS => $search_blocks_ref);
-    
-    #  If we are using neighbours from another spatial object
-    #  then we use its recycle setting, and store it for later
-    if ($use_nbrs_from) {
-        $results_are_recyclable =
-          $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
-        $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
-    }
-    
     
     #  maybe we only have a few we need to calculate?
     my %elements_to_use;
@@ -426,7 +432,7 @@ sub sp_calc {
     #  get the global pre_calc results
     $indices_object->run_precalc_globals(%args);
 
-    print "[SPATIAL] Creating target groups\n";
+    say "[SPATIAL] Creating target groups";
     
     my $progress_text_create
         = $progress_text_base . "\nCreating target groups";

@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 our $NULL_STRING = q{};
 
@@ -478,9 +478,10 @@ sub verify {
     }
 
     if ($valid) {
+        my $bd = $self->get_basedata_ref // $args{basedata};
 
-        my $basedata = $args{basedata};  #  should use this for the distances
-        my $bd = $args{basedata};
+        my $basedata = $bd;  #  should use this for the distances
+        #my $bd = $args{basedata};
 
         $self->set_param( VERIFYING => 1 );
 

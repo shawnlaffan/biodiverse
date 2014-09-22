@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Gtk2;
 use Carp;
@@ -250,6 +250,7 @@ sub new {
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
+    #  bodge - should set the radio group
     for my $n (0..6) {
         my $widget_name = "radio_colour_stretch$n";
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
@@ -1178,10 +1179,10 @@ sub on_run {
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
         tree_ref           => $self->{project}->get_selected_phylogeny,
-        definition_query   => $self->{definition_query1}->get_text(),
+        definition_query   => $self->{definition_query1}->get_validated_conditions,
         spatial_conditions => [
-            $self->{spatial1}->get_text(),
-            $self->{spatial2}->get_text(),
+            $self->{spatial1}->get_validated_conditions,
+            $self->{spatial2}->get_validated_conditions,
         ],
     );
 
@@ -1500,8 +1501,8 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
-    return;
+
+    return 1;
 }
 
 

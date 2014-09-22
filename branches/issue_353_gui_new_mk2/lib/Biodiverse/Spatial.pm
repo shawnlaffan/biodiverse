@@ -12,7 +12,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -291,16 +291,14 @@ sub sp_calc {
     #  don't pass these onwards when we call the calcs
     delete @args{qw /calculations analyses/};  
 
-    print "[SPATIAL] running calculations "
-          . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
-          . "\n";
+    say '[SPATIAL] running calculations '
+          . join q{ }, sort keys %{$indices_object->get_valid_calculations_to_run};
 
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
     if (not $self->exists_param ('SPATIAL_INDEX')) {
         $self->set_param (
             SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX')
-                             || undef,
         );
     }
     my $sp_index = $self->get_param ('SPATIAL_INDEX');
@@ -944,18 +942,23 @@ sub get_definition_query {
     return if ! defined $definition_query;
 
     if (length ($definition_query) == 0) {
-        $definition_query = undef ;
+        $definition_query = undef;
     }
-
     #  now parse the query into an object if needed
     elsif (not blessed $definition_query) {
         $definition_query = Biodiverse::SpatialConditions::DefQuery->new (
-            conditions => $definition_query,
+            conditions   => $definition_query,
+            basedata_ref => $self->get_basedata_ref,
         );
+    }
+    else {
+        my $dq = $definition_query->get_conditions_unparsed;
+        if (length ($dq) == 0) {
+            $definition_query = undef;
+        }
     }
 
     $self->set_param (DEFINITION_QUERY => $definition_query);
-
     
     return $definition_query;
 }
@@ -977,8 +980,9 @@ sub get_spatial_conditions_ref {
     $spatial_conditions_ref = $args{spatial_conditions};
     my $check = 1;
 
-    while ($check) {  #  clean up undef params at the end
-        
+  CHECK:
+    while ($check) {  #  clean up undef or empty params at the end
+
         if (scalar @$spatial_conditions_ref == 0) {
             warn "[Spatial] No valid spatial conditions specified\n";
             #  put an empty string as the only entry,
@@ -986,19 +990,21 @@ sub get_spatial_conditions_ref {
             $spatial_conditions_ref->[0] = $EMPTY_STRING;
             return;
         }
-        
-        #my $param = $spatial_conditions_ref->[$#$spatial_conditions_ref];
-        my $param = $spatial_conditions_ref->[-1];
+
+        my $param = $spatial_conditions_ref->[-1] // $EMPTY_STRING;
+        if (blessed $param) {
+            $param = $param->get_conditions_unparsed;
+        }
+
         $param =~ s/^\s*//;  #  strip leading and trailing whitespace
         $param =~ s/\s*$//;
-        if (! defined $param || $param eq $EMPTY_STRING) {
-            print "[SPATIAL] Deleting undefined spatial condition\n";
-            pop @$spatial_conditions_ref;
-        }
-        else {
-            $check = 0;  #  stop checking
-        }
+
+        last CHECK if length $param;
+
+        say '[SPATIAL] Deleting undefined or empty spatial condition at end of conditions array';
+        pop @$spatial_conditions_ref;    
     }
+
     #  Now loop over them and parse the spatial params into objects if needed
     for my $i (0 .. $#$spatial_conditions_ref) {
         if (! blessed $spatial_conditions_ref->[$i]) {
@@ -1066,8 +1072,8 @@ sub get_recyclable_nbrhoods {
     }
 
     if (1 and $results_are_recyclable) {
-        print '[SPATIAL] Results are recyclable.  '
-              . "This will save some processing\n";
+        say '[SPATIAL] Results are recyclable.  '
+              . 'This will save some processing';
     }
 
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?

@@ -33,7 +33,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -1144,6 +1144,7 @@ sub csv2list {
             $string = substr $string, 0, 50;
             $string .= '...';
         }
+        local $. //= '';
         my $error_string = join (
             $EMPTY_STRING,
             "csv2list parse() failed\n",
@@ -1405,16 +1406,17 @@ sub move_to_front_of_list {
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden
+
     my $string = $args{string};
     $string = $$string if ref $string;
     #  try a sequence of separators, starting with the default parameter
     my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}  #  these should be globals set by use_base
                     ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
                     : (',', "\t", ';', q{ });
-    my $eol = $self->guess_eol(%args);
+    my $eol = $args{eol} // $self->guess_eol(%args);
 
     my %sep_count;
-    #my $i = 0;
+
     foreach my $sep (@separators) {
         next if ! length $string;
         #  skip if does not contain the separator
@@ -1433,17 +1435,68 @@ sub guess_field_separator {
         if (scalar @$flds > 1) {  #  need two or more fields to result
             $sep_count{scalar @$flds} = $sep;
         }
-        #$i++;
+
     }
-    #  now we sort the keys, take the highest and use it as the
-    #  index to use from sep_count, thus giving us the most common
-    #  sep_char
-    my @sorted = reverse sort numerically keys %sep_count;
-    my $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
-        ? $sep_count{$sorted[0]}
-        : $separators[0];  # default to first checked
-    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  #  need a better way of handling special chars - ord & chr?
-    print "[COMMON] Guessed field separator as '$septext'\n";
+
+    my @str_arr = split $eol, $string;
+    my $sep;
+
+    if (@str_arr > 1) {  #  check the sep char works using subsequent lines
+        %sep_count = reverse %sep_count;  #  should do it properly above
+        my %checked;
+
+      SEP:
+        foreach my $sep (sort keys %sep_count) {
+            #  check up to the first ten lines
+            foreach my $string (@str_arr[1 .. min (10, $#str_arr)]) {
+                my $flds = eval {
+                    $self->csv2list (
+                        %args,
+                        sep_char => $sep,
+                        eol      => $eol,
+                        string   => $string,
+                    );
+                };
+                if ($EVAL_ERROR) {  #  any errors mean that separator won't work
+                    delete $checked{$sep};
+                    next SEP;
+                }
+                $checked{$sep} //= scalar @$flds;
+                if ($checked{$sep} != scalar @$flds) {
+                    delete $checked{$sep};  #  count mismatch - remove
+                    next SEP;
+                }
+            }
+        }
+        my @poss_chars = reverse sort {$checked{$a} <=> $checked{$b}} keys %checked;
+        if (scalar @poss_chars == 1) {  #  only one option
+            $sep = $poss_chars[0];
+        }
+        else {  #  get the one that matches
+          CHAR:
+            foreach my $char (@poss_chars) {
+                if ($checked{$char} == $sep_count{$char}) {
+                    $sep = $char;
+                    last CHAR;
+                }
+            }
+        }
+    }
+    else {
+        #  now we sort the keys, take the highest and use it as the
+        #  index to use from sep_count, thus giving us the most common
+        #  sep_char
+        my @sorted = reverse sort numerically keys %sep_count;
+        $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
+            ? $sep_count{$sorted[0]}
+            : $separators[0];  # default to first checked
+    }
+
+    $sep //= ',';
+
+    #  need a better way of handling special chars - ord & chr?
+    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  
+    say "[COMMON] Guessed field separator as '$septext'";
 
     return $sep;
 }
@@ -1505,13 +1558,76 @@ sub guess_eol {
     my $string = $args{string};
     $string = $$string if ref ($string);
 
-    my $pattern = $args{pattern} || '[\n|\r]*';
+    my $pattern = $args{pattern} || qr/[\r\n]+/;
 
-    if ($string =~ /($pattern$)/) {
+    if ($string =~ /($pattern).*\z/s) {
         return $1;
     }
 
-    return;
+    return "\n";
+}
+
+
+sub get_csv_object_using_guesswork {
+    my $self = shift;
+    my %args = @_;
+
+    my $string = $args{string};
+    my $fname  = $args{fname};
+    #my $fh     = $args{fh};  #  should handle these
+
+    my ($eol, $quote_char, $sep_char) = @args{qw/eol quote_char sep_char/};
+
+    foreach ($eol, $quote_char, $sep_char) {
+        if (($_ // '') eq 'guess') {
+            $_ = undef;  # aliased, so applies to original
+        }
+    }
+
+    if (defined $string && ref $string) {
+        $string = $$string;
+    }
+    elsif (!defined $string) {
+        croak "Both arguments 'string' and 'fname' not specified\n"
+          if !defined $fname;
+
+        my $first_10000_chars;
+
+        #  read in a chunk of the file for guesswork
+        my $fh2 = IO::File->new;
+        $fh2->open ($fname, '<:via(File::BOM)');
+        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        $fh2->close;
+
+        #  Strip trailing chars until we get a newline at the end.
+        #  Not perfect for CSV if embedded newlines, but it's a start.
+        while (length $first_10000_chars) {
+            last if $first_10000_chars =~ /\n$/;
+            chop $first_10000_chars;
+        }
+        $string = $first_10000_chars;
+    }
+
+    $eol //= $self->guess_eol (string => $string);
+
+    $quote_char //= $self->guess_quote_char (string => \$string);
+    #  if all else fails...
+    $quote_char //= $self->get_param ('QUOTES');
+
+    $sep_char //= $self->guess_field_separator (
+        string     => $string,
+        quote_char => $quote_char,
+        eol        => $eol,
+    );
+
+    my $csv_obj = $self->get_csv_object (
+        %args,
+        sep_char   => $sep_char,
+        quote_char => $quote_char,
+        eol        => $eol,
+    );
+
+    return $csv_obj;
 }
 
 sub get_next_line_set {

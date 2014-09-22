@@ -14,7 +14,7 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Cwd;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -30,8 +30,8 @@ sub Run {
     
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    # Load the widgets from Glade's XML
-    #my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
+    #  stop keyboard events being applied to any open tabs
+    $gui->activate_keyboard_snooper (0);
 
     # Get the Parameters metadata
     my %args = $object->get_args (sub => 'export');
@@ -78,16 +78,19 @@ sub Run {
 
     $format_dlg->destroy;
 
-    #####################    
+    #####################
     #  and now get the params for the selected format
     $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
 
     my $dlg = $dlgxml->get_widget('dlgExport');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title ("Export format: $selected_format");
+    $dlg->set_modal (1);
 
     my $chooser = $dlgxml->get_widget('filechooser');
     $chooser->set_current_folder_uri(getcwd());
+    # does not stop the keyboard events on open tabs
+    #$chooser->signal_connect ('button-press-event' => sub {1});  
 
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
@@ -97,10 +100,11 @@ sub Run {
             $params,
             $table,
             $dlgxml
-    ); 
+    );
 
     # Show the dialog
     $dlg->show_all();
+    
 
   RUN_DIALOG:
     my $response = $dlg->run();
@@ -128,6 +132,7 @@ sub Run {
             )
         };
         if ($EVAL_ERROR) {
+            $gui->activate_keyboard_snooper (1);
             $gui->report_error ($EVAL_ERROR);
         }
     }
@@ -137,6 +142,7 @@ sub Run {
 
 
     $dlg->destroy;
+    $gui->activate_keyboard_snooper (1);
     
     return;
 }

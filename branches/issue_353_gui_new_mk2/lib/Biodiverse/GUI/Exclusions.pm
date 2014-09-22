@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -107,6 +107,10 @@ sub show_dialog {
         my $widget = $dlgxml->get_widget($widget_name);
 
         $widget->set_sensitive(0);
+        if ($widget_name =~ /chooser/) {  #  kludge
+            use Cwd;
+            $widget->set_current_folder_uri(getcwd());
+        }
 
         my $callback = sub {
             my ($checkbox, $option_widget) = @_;

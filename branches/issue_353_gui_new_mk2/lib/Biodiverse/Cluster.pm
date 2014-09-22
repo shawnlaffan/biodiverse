@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -150,6 +150,7 @@ sub export_matrices {
     return;
 }
 
+#  some of this can be refactored wth Spatial::get_spatial_conditions_ref
 sub process_spatial_conditions_and_def_query {
     my $self = shift;
     my %args = @_;
@@ -158,29 +159,38 @@ sub process_spatial_conditions_and_def_query {
     $args{spatial_conditions} //= ['sp_select_all ()'];
 
     my @spatial_conditions = @{$args{spatial_conditions}};
-    #  and we remove any undefined or empty conditions
+
+    #  remove any undefined or empty conditions at the end of the array
+  CHECK:
     for my $i (reverse 0 .. $#spatial_conditions) {
 
-        if (    defined $spatial_conditions[$i]
-            and length $spatial_conditions[$i] == 0) {
-            $spatial_conditions[$i] = undef;
+        my $condition = $spatial_conditions[$i];
+        if (blessed $condition) {
+            $condition = $condition->get_conditions_unparsed;
         }
-        if (not defined $spatial_conditions[$i]) {
-            splice (@spatial_conditions, $i);
-            next;
-        }
+
+        $condition =~ s/^\s*//;  #  strip leading and trailing whitespace
+        $condition =~ s/\s*$//;
+
+        last CHECK if length $condition;
+
+        say '[CLUSTER] Deleting undefined or empty spatial condition at end of conditions array';
+        pop @spatial_conditions;
     }
 
     #  now generate the spatial_conditions
     my $spatial_conditions_array = [];
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_conditions_array->[$i]) {
+        if (! blessed $spatial_conditions[$i]) {
             $spatial_conditions_array->[$i]
               = Biodiverse::SpatialConditions->new (
                     conditions   => $spatial_conditions[$i],
                     basedata_ref => $self->get_basedata_ref,
             );
+        }
+        else {
+            $spatial_conditions_array->[$i] = $spatial_conditions[$i];
         }
         $i++;
     }

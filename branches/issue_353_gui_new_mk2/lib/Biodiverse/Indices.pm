@@ -17,7 +17,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -36,6 +36,7 @@ use parent qw {
     Biodiverse::Indices::LabelProperties
     Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
+    Biodiverse::Indices::LabelCounts
     Biodiverse::Common
 };
 

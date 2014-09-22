@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 #use Data::Dumper;
 use Carp;
@@ -120,6 +120,22 @@ sub set_dirty {
     return;
 }
 
+
+#  A kludge to stop keyboard events triggering during exports
+#  when a display tab is open.
+#  Should look into trapping button-press-events
+my $activate_keyboard_snooper = 1;
+
+sub activate_keyboard_snooper {
+    my $class = shift;
+    my $val   = scalar @_ ? (shift @_) : 1;  #  true if no args passed, else take first value
+    $activate_keyboard_snooper = !!$val;  #  binarise
+}
+
+sub keyboard_snooper_active {
+    return $activate_keyboard_snooper;
+}
+
 # Progress bar handling.  
 # Lifecycle: nothing created on startup.  Subroutines will call add_progress_entry to
 # add entries for tracking progress, as many may be active at any time.  When the first progress entry is added,
@@ -165,10 +181,6 @@ sub add_progress_entry {
 
     # call init if not defined yet
     $self->init_progress_window if !$self->{progress_bars};
-
-    # possibly worth resetting next_id once it gets to a large number, however this is
-    # very unlikely to be a problem in practise
-    #my $new_id = $self->{progress_bars}->{next_id}++;
     
     # create new entry frame and widgets
     my $frame = Gtk2::Frame->new($title);
@@ -339,7 +351,7 @@ sub init {
     if (@load_extension_errors) {
         my $count = scalar @load_extension_errors;
         my $text = "Failed to load $count extensions\n"
-                 . join "\n", @load_extension_errors;
+                 . join "\n", $#load_extension_errors;  #  last item is @INC, so not an extension
         $self->report_error($text);
     }
 

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use List::Util qw/min max/;
 use Gtk2;

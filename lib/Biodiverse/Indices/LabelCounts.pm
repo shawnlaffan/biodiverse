@@ -119,18 +119,15 @@ sub calc_label_count_quantile_position {
     #  nbr sets might not include processing group, so make sure we get all labels
     my %labels_to_check = (%{$args{label_hash_all}}, %$proc_labels);
 
-    my %label_count_arrays;
-    foreach my $label (keys %labels_to_check) {
-        $label_count_arrays{$label} = [];
-    }
+    #  build a hash of empty arrays
+    my %label_count_arrays = map {$_ => []} keys %labels_to_check;
+
     my $el_array = $args{EL_LIST_ALL};
 
-  ELEMENT:
-    foreach my $el (@$el_array) {
-        next ELEMENT if $el eq $processing_element;  #  don't include ourselves
-
+  ELEMENT:  #  don't include the processing group
+    foreach my $el (grep {$_ ne $processing_element} @$el_array) {
         my $label_hash = $bd->get_labels_in_group_as_hash (group => $el);
-      LABEL:
+
         foreach my $label (keys %label_count_arrays) {
             no autovivification;
             my $count = $label_hash->{$label} // 0;  # absence means zero

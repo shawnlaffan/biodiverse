@@ -33,6 +33,9 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
   #  skip this if you already have cpanm installed
   cpan App::cpanminus
 
+  #  this was added is post 0.99_004 and is not in the task file yet
+  cpanm HTTP::Tiny
+
   # Now install the rest of the dependencies
   cpanm Task::Biodiverse::NoGUI
   cpanm Task::Biodiverse

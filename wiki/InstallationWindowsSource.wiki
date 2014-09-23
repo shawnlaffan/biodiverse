@@ -65,6 +65,9 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   :: YAML::Syck has installation failures at v1.27 so install a patched version via PPM 
   ppm install %BDV_PPM%/YAML-Syck.ppd
 
+  #  this was added is post 0.99_004 and is not in the task file yet
+  cpanm HTTP::Tiny
+
   :: Now install the rest of the dependencies
   cpanm Task::Biodiverse::NoGUI~0.19
   cpanm Task::Biodiverse~0.19

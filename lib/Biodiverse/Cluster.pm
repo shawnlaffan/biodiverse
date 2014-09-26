@@ -432,7 +432,7 @@ sub build_matrices {
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
     #print "[CLUSTER] Progress (% of $to_do elements):     ";
-    my @processed_elements;
+    my %processed_elements;
 
     my $no_progress;
     my $build_start_time = time();
@@ -485,7 +485,7 @@ sub build_matrices {
                 file_handle        => $file_handles->[$i],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
-                processed_elements => \@processed_elements,
+                processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
             );
 
@@ -501,7 +501,7 @@ sub build_matrices {
             $build_start_time= $build_end_time;
         }
 
-        push @processed_elements, $element1;
+        $processed_elements{$element1}++;
     }
 
     my $element_check = $self->get_param ('ELEMENT_CHECK');
@@ -757,7 +757,7 @@ sub infer_if_already_calculated {
     my %already_calculated;
     
     return wantarray ? %already_calculated : \%already_calculated
-      if scalar @$processed_elements == 0;
+      if not scalar keys %$processed_elements;
     
     my $nbr_list_name = '_NBR_SET1';  #  need to generalise this, or pass as an arg (and make a method)
     my $nbrs
@@ -768,13 +768,9 @@ sub infer_if_already_calculated {
           )
           || [];
 
-    my %processed;
-    @processed{@$processed_elements} = undef;
-
     NBR:
     foreach my $nbr (sort @$nbrs) {
-        next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
-        #next NBR if exists $processed{$nbr};
+        next NBR if !exists $processed_elements->{$nbr};
         $already_calculated{$nbr} = 1;
     }
 

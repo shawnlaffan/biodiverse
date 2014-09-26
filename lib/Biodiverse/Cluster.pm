@@ -298,7 +298,7 @@ sub build_matrices {
     my %args = @_;
 
     #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    my $file_handles = $args{file_handles} // [];
     delete $args{file_handles};
 
     #  override any args if we are a re-run
@@ -368,17 +368,17 @@ sub build_matrices {
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
 
-    print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
+    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
 
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
-        print {$fh} $output_gdm_format
-        ? "x1,y1,x2,y2,$index\n"
-        : "Element1,Element2,$index\n";
+        say {$fh} $output_gdm_format
+            ? "x1,y1,x2,y2,$index"
+            : "Element1,Element2,$index";
     }
 
     #  we use a spatial object as it handles all the spatial checks.
-    print "[CLUSTER] Generating neighbour lists\n";
+    say "[CLUSTER] Generating neighbour lists";
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
     my $sp_success = eval {
         $sp->run_analysis (
@@ -459,7 +459,6 @@ sub build_matrices {
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
-
         }
 
         #  loop over the neighbours and add them to the appropriate matrix
@@ -607,17 +606,18 @@ sub build_matrix_elements {
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
         $n++;
-        if ($progress) {
-            $progress->update ("processing column $n of $to_do", $n / $to_do);
-        }
 
-        next ELEMENT2 if $element1 eq $element2;
         next ELEMENT2 if $already_calculated{$element2};
+        next ELEMENT2 if $element1 eq $element2;
 
         if ($pass_def_query) {  #  poss redundant check now
             #my $null = undef;  #  debug
             next ELEMENT2
               if not exists $pass_def_query->{$element2};
+        }
+
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
         }
 
         #  If we already have this value then get it and assign it.
@@ -768,9 +768,13 @@ sub infer_if_already_calculated {
           )
           || [];
 
+    my %processed;
+    @processed{@$processed_elements} = undef;
+
     NBR:
     foreach my $nbr (sort @$nbrs) {
         next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
+        #next NBR if exists $processed{$nbr};
         $already_calculated{$nbr} = 1;
     }
 

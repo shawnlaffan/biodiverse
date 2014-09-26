@@ -137,7 +137,7 @@ sub help_show_check_for_updates {
     my $content = $http_response->{content};
 
     my ($release, $devel);
-    if (length $content) {
+    if (length $content and $http_response->{success}) {
         $content =~ s/[\r\n]//g;
         if ($content =~ m/\[release\](.+?)\[/xmso) {
             $release = $1;
@@ -147,7 +147,7 @@ sub help_show_check_for_updates {
         }
     }
     else {
-        die "Unable to connect to update server: $url\n";
+        die "Unable to connect to versions file URL: $url\n";
     }
     
     my $dev_numeric = $devel;

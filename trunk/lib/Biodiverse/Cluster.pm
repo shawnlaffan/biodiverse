@@ -471,7 +471,6 @@ sub build_matrices {
                                 ? [$matrix, $shadow_matrix]
                                 : [$matrix];
 
-
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
             my $x = $self->build_matrix_elements (
@@ -490,7 +489,7 @@ sub build_matrices {
             );
 
             $valid_count += $x;
-            
+
             #  do we need the progress dialogue?
             my $build_end_time = time();
             if (!$no_progress &&
@@ -628,31 +627,34 @@ sub build_matrix_elements {
         my $iter   = 0;
         my %not_exists_iter;
         my $value;
-      MX:
-        foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
-            #last MX if $ofh;
 
-            $value = $mx->get_defined_value_aa ($element1, $element2);
-            if (defined $value) {  #  don't redo them...
-                $exists ++;
-            }
-            else {
-                $not_exists_iter{$iter} = 1;
-            }
-            $iter ++;
-        }
+        if (!$ofh) {
+          MX:
+            foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
+                #last MX if $ofh;
 
-        next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
-
-        if ($exists) {  #  if it is in one then we use it
-            foreach my $iter (keys %not_exists_iter) {
-                $matrices->[$iter]->add_element (
-                    element1 => $element1,
-                    element2 => $element2,
-                    value    => $value,
-                )
+                $value = $mx->get_defined_value_aa ($element1, $element2);
+                if (defined $value) {  #  don't redo them...
+                    $exists ++;
+                }
+                else {
+                    $not_exists_iter{$iter} = 1;
+                }
+                $iter ++;
             }
-            next ELEMENT2;
+
+            next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
+
+            if ($exists) {  #  if it is in one then we use it
+                foreach my $iter (keys %not_exists_iter) {
+                    $matrices->[$iter]->add_element (
+                        element1 => $element1,
+                        element2 => $element2,
+                        value    => $value,
+                    )
+                }
+                next ELEMENT2;
+            }
         }
 
         #  use elements if no cached labels
@@ -679,12 +681,6 @@ sub build_matrix_elements {
         );
 
         my $values = $indices_object->run_calculations(%args, %elements);
-
-        # useful for debugging  (comment out otherwise?)
-        if (0 && $EVAL_ERROR && ! defined $values->{$index}) {
-            croak "PROBLEMS WITH $element1 $element2\n"
-                  . $EVAL_ERROR;
-        }
 
         #  caching - a bit dodgy
         #  what if we have calc_abc and calc_abc3 as deps?
@@ -738,7 +734,7 @@ sub build_matrix_elements {
         $valid_count ++;
     }
     
-    my $cache_size = scalar keys %$cache;
+    #my $cache_size = scalar keys %$cache;
 
     return $valid_count;
 }
@@ -769,7 +765,7 @@ sub infer_if_already_calculated {
           || [];
 
     NBR:
-    foreach my $nbr (sort @$nbrs) {
+    foreach my $nbr (@$nbrs) {
         next NBR if !exists $processed_elements->{$nbr};
         $already_calculated{$nbr} = 1;
     }

@@ -402,8 +402,7 @@ sub test_mx_direct_write_to_file {
     my $cl = $bd->add_cluster_output (name => 'write_mx_to_file');
     $cl->run_analysis (
         %analysis_args,
-        #build_matrices_only => 1,
-        file_handles        => [$fh],
+        file_handles => [$fh],
     );
     $fh->close;
 
@@ -414,7 +413,7 @@ sub test_mx_direct_write_to_file {
         local $/ = undef;
         $lines = <$fh>;
     }
-    
+
     my $expected = get_data_section ('test_mx_direct_write_to_file');
 
     #  avoid line ending problems

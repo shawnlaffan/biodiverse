@@ -460,12 +460,16 @@ sub build_matrices {
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
         }
+        my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
 
         #  loop over the neighbours and add them to the appropriate matrix
         foreach my $i (0 .. $#matrices) {
             my $matrix = $matrices[$i];
 
-            my %nbrs = %{$neighbours[$i]};  #  save a few calcs
+            my $nbr_hash = $neighbours[$i];  #  save a few calcs
+            if ($file_handles) {
+                @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
+            }
 
             my $matrices_array = defined $shadow_matrix
                                 ? [$matrix, $shadow_matrix]
@@ -477,7 +481,7 @@ sub build_matrices {
                 %args,  
                 matrices           => $matrices_array,
                 element            => $element1,
-                element_list       => [keys %nbrs],
+                element_list       => [keys %$nbr_hash],
                 index_function     => $index_function,
                 index              => $index,
                 cache_abc          => $cache_abc,
@@ -486,6 +490,7 @@ sub build_matrices {
                 indices_object     => $indices_object,
                 processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
+                nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
             $valid_count += $x;
@@ -510,9 +515,9 @@ sub build_matrices {
         $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $to_do groups\n";
+    say "[CLUSTER] Completed $count of $to_do groups";
 
-    print "[CLUSTER] Valid value count is $valid_count\n";
+    say "[CLUSTER] Valid value count is $valid_count";
     if (! $valid_count) {
         croak "No valid results - matrix is empty\n";
     }
@@ -585,9 +590,8 @@ sub build_matrix_elements {
         $csv_out = $self->get_csv_object;
 
         %already_calculated = $self->infer_if_already_calculated (
-            spatial_object => $sp,
-            element => $element1,
             processed_elements => $processed_elements,
+            nbrs_so_far_this_element => $args{nbrs_so_far_this_element},
         );
     }
 
@@ -742,32 +746,25 @@ sub build_matrix_elements {
 #  We have been calculated
 #  if el2 is a neighbour of el1,
 #  and el1 has been processed.
+#  Inefficient for multiple nbrs sets, as we iterate over all nbrs from inner sets
+#  i.e. for 2 nbr sets we check nbr set 1 twice
 sub infer_if_already_calculated {
     my $self = shift;
     my %args = @_;
 
-    my $sp = $args{spatial_object};
-    my $element = $args{element};
     my $processed_elements = $args{processed_elements};
 
-    my %already_calculated;
-    
-    return wantarray ? %already_calculated : \%already_calculated
+    return wantarray ? () : {} 
       if not scalar keys %$processed_elements;
-    
-    my $nbr_list_name = '_NBR_SET1';  #  need to generalise this, or pass as an arg (and make a method)
-    my $nbrs
-          = $sp->get_list_values (
-              element => $element,
-              list    => $nbr_list_name,
-              autovivify => 0,
-          )
-          || [];
 
-    NBR:
-    foreach my $nbr (@$nbrs) {
-        next NBR if !exists $processed_elements->{$nbr};
-        $already_calculated{$nbr} = 1;
+    my %already_calculated;
+
+    my $nbrs = $args{nbrs_so_far_this_element} // {};
+
+    foreach my $nbr (keys %$nbrs) {
+        if (exists $processed_elements->{$nbr}) {
+            $already_calculated{$nbr} = 1;
+        }
     }
 
     return wantarray ? %already_calculated : \%already_calculated;

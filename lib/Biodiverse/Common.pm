@@ -24,6 +24,10 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 
+#  need to avoid an OIO destroyed twice warning due
+#  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
+use threads;
+
 use Math::Random::MT::Auto;  
 
 #use Regexp::Common qw /number/;

@@ -376,6 +376,12 @@ sub build_matrices {
             ? "x1,y1,x2,y2,$index"
             : "Element1,Element2,$index";
     }
+    
+    my $csv_object;
+    if (scalar @$file_handles) {
+        $csv_object = $self->get_csv_object;
+    }
+
 
     #  we use a spatial object as it handles all the spatial checks.
     say "[CLUSTER] Generating neighbour lists";
@@ -467,7 +473,7 @@ sub build_matrices {
             my $matrix = $matrices[$i];
 
             my $nbr_hash = $neighbours[$i];  #  save a few calcs
-            if ($file_handles) {
+            if (scalar @$file_handles) {
                 @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
             }
 
@@ -490,6 +496,7 @@ sub build_matrices {
                 indices_object     => $indices_object,
                 processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
+                csv_object         => $csv_object,
                 nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
@@ -578,7 +585,7 @@ sub build_matrix_elements {
 
     my %already_calculated;
 
-    my $csv_out;
+    my $csv_out = $args{csv_object};
     #  take care of closed file handles
     if ( defined $ofh ) {
         if ( not defined fileno $ofh ) {
@@ -587,7 +594,7 @@ sub build_matrix_elements {
                 . " is unusable, setting it to undef";
             $ofh = undef;
         }
-        $csv_out = $self->get_csv_object;
+        $csv_out //= $self->get_csv_object;
 
         %already_calculated = $self->infer_if_already_calculated (
             processed_elements => $processed_elements,
@@ -610,13 +617,15 @@ sub build_matrix_elements {
     foreach my $element2 (sort @$element_list2) {
         $n++;
 
-        next ELEMENT2 if $already_calculated{$element2};
-        next ELEMENT2 if $element1 eq $element2;
+        {
+            no autovivification;  #  save a bit of memory
+            next ELEMENT2 if $already_calculated{$element2};
+            next ELEMENT2 if $element1 eq $element2;
 
-        if ($pass_def_query) {  #  poss redundant check now
-            #my $null = undef;  #  debug
-            next ELEMENT2
-              if not exists $pass_def_query->{$element2};
+            if ($pass_def_query) {  #  poss redundant check now
+                next ELEMENT2
+                  if not exists $pass_def_query->{$element2};
+            }
         }
 
         if ($progress) {

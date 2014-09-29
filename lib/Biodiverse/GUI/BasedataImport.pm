@@ -1450,6 +1450,8 @@ sub add_row {
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
+    $header = Glib::Markup::escape_text ($header);
+
     # Column header    
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_alignment(0.5, 1);

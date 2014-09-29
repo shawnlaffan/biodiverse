@@ -690,7 +690,7 @@ sub import_data {
     
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    croak "Input files array not provided\n"
+    croak "input_files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');

@@ -5,10 +5,6 @@ use strict;
 use warnings;
 use Carp;
 
-#  need to avoid an OIO destroyed twice warning due
-#  to HTTP::Tiny, which is used in the Help.pm
-use threads;  
-
 use 5.010;
 
 BEGIN {

@@ -1098,7 +1098,7 @@ sub sp_annulus {
         foreach my $axis (@$axes) {
 
             #  drop out clause to save some comparisons over large data sets
-            return if $dists->[$axis] > $args{radius};
+            return if $dists->[$axis] > $args{outer_radius};
 
             # increment
             $d_sqr += $dists->[$axis]**2;

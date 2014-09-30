@@ -39,7 +39,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 5.  Download the gtk_win64 and gdal_win64 components using an svn checkout. TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client).  _Remember to change `_win64` to `_win32` in the paths if you are using a 32 bit installation_.  
 
 {{{
-  svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk_win64 %GTK_PATH%
+  svn co http://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk2.22_win64 %GTK_PATH%
   svn co http://biodiverse.googlecode.com/svn/branches/gdal_win_builds/gdal_1.10.1/gdal_win64/ %GDAL_PATH%
 }}}
 

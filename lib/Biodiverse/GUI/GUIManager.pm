@@ -700,6 +700,7 @@ sub do_open_basedata {
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Open Object', 'bds');
     if (defined $filename && -f $filename) {
         my $object = Biodiverse::BaseData->new(file => $filename);
+        croak "Unable to load basedata object from $filename" if !defined $object;
         $object->set_param (NAME => $name);  #  override the name if the user says to
         $self->{project}->add_base_data($object);
     }

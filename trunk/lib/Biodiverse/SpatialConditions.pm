@@ -1724,8 +1724,7 @@ sub _sp_side {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #  PadWalker gives hashrefs of scalar refs,
-    #  so need to de-ref to get the value
+    #  Need to de-ref to get the values
     my @coord     = @{ $h->{coord_array} };
     my @nbr_coord = @{ $h->{nbrcoord_array} };
 

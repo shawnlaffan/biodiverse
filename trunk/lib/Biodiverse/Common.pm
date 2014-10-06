@@ -2065,7 +2065,7 @@ sub test_locale_numeric {
     return 1;
 }
 
-my $locale_uses_comma_radix = (sprintf ('%.6f', 0.5) =~ /,/) ? 1 : undef;
+use constant LOCALE_USES_COMMA_RADIX => (sprintf ('%.6f', 0.5) =~ /,/);
 
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {
@@ -2074,7 +2074,8 @@ sub set_precision {
     
     my $num = sprintf (($args{precision} // '%.10f'), $args{value});
 
-    if ($locale_uses_comma_radix) {
+    #  this is compiled away if false
+    if (LOCALE_USES_COMMA_RADIX) {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 
@@ -2086,7 +2087,7 @@ sub set_precision {
 sub set_precision_aa {
     my $num = sprintf (($_[2] // '%.10f'), $_[1]);
 
-    if ($locale_uses_comma_radix) {
+    if (LOCALE_USES_COMMA_RADIX) {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 

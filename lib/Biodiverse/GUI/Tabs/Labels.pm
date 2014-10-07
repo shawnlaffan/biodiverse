@@ -279,9 +279,11 @@ sub init_dendrogram {
 
 sub add_column {
     my $self = shift;
-    my $tree = shift;
-    my $title = shift;
-    my $model_id = shift;
+    my %args = @_;
+    
+    my $tree     = $args{tree};
+    my $title    = $args{title};
+    my $model_id = $args{model_id};
 
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
@@ -314,15 +316,15 @@ sub init_list {
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
     my @columns;
     my $i = 0;
-    $self->add_column ($tree, 'Label', $i);
+    $self->add_column (tree => $tree, title => 'Label', model_id => $i);
     foreach my $column (@$stats_metadata) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self->add_column ($tree, $column_name, $i);
+        $self->add_column (tree => $tree, title => $column_name, model_id => $i);
     }
-    $self->add_column ($tree, $selected_list1_name, ++$i);
-    $self->add_column ($tree, $selected_list2_name, ++$i);
+    $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
+    $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
 
 # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -837,10 +839,8 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_select {
-    my $self          = shift;
-    my $groups        = shift;
-    my $ignore_change = shift;
-    my $rect          = shift; # [x1, y1, x2, y2]
+    my ($self, $groups , $ignore_change, $rect) = @_;
+    # $rect = [x1, y1, x2, y2]
 
     #say 'Rect: ' . Dumper ($rect);
 

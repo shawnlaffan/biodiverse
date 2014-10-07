@@ -1546,13 +1546,19 @@ sub get_remap_info {
     my $filename         = shift;
     my $max_cols_to_show = shift || 100;
 
-    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
+    my ($_file, $data_dir, $_suffixes)
+        = $data_filename && length $data_filename
         ? fileparse($data_filename)
         : ();
 
     # Get filename for the name-translation file
-    $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
-    return wantarray ? () : {} if ! defined $filename;
+    $filename //= $gui->show_open_dialog(
+        title  => "Select $type properties file",
+        suffix => '*',
+        initial_dir => $data_dir,
+    );
+
+    return wantarray ? () : {} if !defined $filename;
 
     my $remap  = Biodiverse::ElementProperties->new;
     my %args   = $remap->get_args (sub => 'import_data');

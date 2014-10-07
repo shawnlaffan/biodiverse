@@ -301,13 +301,18 @@ sub get_remap_info {
     my ($_file, $data_dir, $_suffixes) = fileparse($tree_filename);
 
     # Get filename for the name-translation file
-    my $filename = $gui->show_open_dialog('Select Label remap file', q{*}, $data_dir);
+    my $filename = $gui->show_open_dialog(
+        title  => 'Select Label remap file',
+        suffix => q{*},
+        initial_dir => $data_dir,
+    );
+
     return (undef, undef, undef) if not $filename;
 
     # Get header columns
-    print "[GUI] Discovering columns from $filename\n";
+    say "[GUI] Discovering columns from $filename";
     my $line;
-    
+
     open (my $fh, '<:via(File::BOM)', $filename);
     while (<$fh>) { # get first non-blank line
         $line = $_;

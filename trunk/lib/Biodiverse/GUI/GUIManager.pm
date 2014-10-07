@@ -2571,11 +2571,19 @@ sub show_save_dialog {
 #FIXME merge with above
 sub show_open_dialog {
     my $self = shift;
-    my $title = shift;
-    my $suffix = shift;
-    my $initial_dir = shift;
+    my %args = @_;
+    
+    my $title       = $args{title};
+    my $suffix      = $args{suffix};
+    my $initial_dir = $args{initial_dir};
 
-    my $dlg = Gtk2::FileChooserDialog->new($title, undef, "open", "gtk-cancel", "cancel", "gtk-ok", 'ok');
+    my $dlg = Gtk2::FileChooserDialog->new(
+        $title,
+        undef,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
     $dlg->set_current_folder($initial_dir) if $initial_dir;
 
     my $filter = Gtk2::FileFilter->new();

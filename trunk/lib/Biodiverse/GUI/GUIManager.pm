@@ -2186,6 +2186,7 @@ sub show_index_dialog {
     #  get an array of the cellsizes
     my $bd = $self->{project}->get_selected_base_data;
     my @cellsize_array = $bd->get_cell_sizes;  #  get a copy
+    my %coord_bounds   = $bd->get_coord_bounds;
 
     #  get the current index
     my $used_index = $bd->get_param('SPATIAL_INDEX');
@@ -2269,9 +2270,9 @@ sub show_index_dialog {
         my $step_incr = $cellsize;
 
         if ($cellsize == 0) {   #  allow some change for points
-            $init_value = 1;
+            $init_value = ($coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i]) / 20;
             $min_val    = 0;      #  should allow non-zero somehow
-            $step_incr  = 1;
+            $step_incr  = $init_value;
         }
         elsif ($cellsize < 0) { #  allow no change for text
             $init_value   = 0;
@@ -2305,7 +2306,7 @@ sub show_index_dialog {
         my $widget = Gtk2::SpinButton->new(
             $adj,
             $init_value,
-            2,
+            6,
         );
 
         $table->attach($label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0);

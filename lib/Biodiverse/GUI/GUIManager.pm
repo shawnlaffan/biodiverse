@@ -850,11 +850,9 @@ sub do_basedata_attach_properties {
     my $type = $response eq 'yes' ? 'labels' : 'groups';
 
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info(
-        $self,
-        undef,
-        $type,
-        undef,
-        [qw /Input_element Property/],
+        gui  => $self,
+        type => $type,
+        column_overrides => [qw /Input_element Property/],
     );
     
     return if ! defined $options{file};
@@ -1307,11 +1305,8 @@ sub do_rename_basedata_labels {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
-        undef,
-        undef,
-        undef,
-        [qw /Input_element Remapped_element/],
+        gui => $self,
+        column_overrides => [qw /Input_element Remapped_element/],
     );
     
     ##  now do something with them...
@@ -1342,7 +1337,7 @@ sub do_add_basedata_label_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -1365,7 +1360,7 @@ sub do_add_basedata_group_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -2584,7 +2579,11 @@ sub show_open_dialog {
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
     );
-    $dlg->set_current_folder($initial_dir) if $initial_dir;
+    if (!defined $initial_dir) {
+        use Cwd;
+        $initial_dir = getcwd();
+    }
+    $dlg->set_current_folder($initial_dir);
 
     my $filter = Gtk2::FileFilter->new();
 

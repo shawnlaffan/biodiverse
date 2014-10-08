@@ -1261,6 +1261,9 @@ sub manage_empty_basedatas {
         menu_rename_basedata_labels
         menu_attach_basedata_properties
         menu_basedata_reorder_axes
+        menu_binarise_basedata_elements
+        menu_attach_ranges_as_properties
+        menu_attach_abundances_as_properties
     /];
     $self->manage_empty_model(
         model   => $model,
@@ -1341,9 +1344,6 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
                 menu_equalise_tree_branches
-                menu_binarise_basedata_elements
-                menu_attach_ranges_as_properties
-                menu_attach_abundances_as_properties
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }

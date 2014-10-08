@@ -178,12 +178,9 @@ sub show_dialog {
         #  This has the side-effect of prompting the user for a filename if one was not specified.
         my %options = eval {
             Biodiverse::GUI::BasedataImport::get_remap_info (
-                $gui,
-                undef,
-                undef,
-                undef,
-                ['Input_element'],
-                $filename,
+                gui      => $gui,
+                filename => $filename,
+                column_overrides => ['Input_element'],
             );
         };
         if (my $e = $EVAL_ERROR) {

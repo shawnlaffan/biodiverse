@@ -362,7 +362,7 @@ sub run {
         );
         #  add a field to the header if needed
         if ($is_r_data_frame) {
-            unshift @header, 'R_data_frame_col_0';
+            unshift @header, ':R_data_frame_col_0:';
         }
 
         # Check for empty fields in header.

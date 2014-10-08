@@ -1406,7 +1406,6 @@ sub move_to_front_of_list {
 }
 
 #  guess the field separator in a line
-#  the first separator that returns two or more columns is assumed
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden

@@ -2261,24 +2261,26 @@ sub show_index_dialog {
     foreach my $cellsize (@cellsize_array) {
         
         my $is_text_axis = 0;
-        
-        #my $resolution = $used_index ? $resolutions[$i] : $cellsize;
+
         my $init_value = $used_index ? $resolutions[$i] : $cellsize * 2;
 
         my $min_val = $cellsize;
         my $max_val = 10E10;
+        my $step_incr = $cellsize;
 
         if ($cellsize == 0) {   #  allow some change for points
             $init_value = 1;
             $min_val    = 0;      #  should allow non-zero somehow
+            $step_incr  = 1;
         }
         elsif ($cellsize < 0) { #  allow no change for text
             $init_value   = 0;
             $min_val      = 0;
             $max_val      = 0;
             $is_text_axis = 1;
+            $step_incr    = 0;
         }
-        
+
         my $page_incr = $cellsize * 10;
 
         my $label_text = "Axis $i";
@@ -2296,7 +2298,7 @@ sub show_index_dialog {
             $init_value,
             $min_val,
             $max_val,
-            $cellsize,
+            $step_incr,
             $page_incr,
             0,
         );

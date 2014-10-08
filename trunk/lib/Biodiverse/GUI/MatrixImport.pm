@@ -147,8 +147,11 @@ sub run {
     return if lc $remap_response eq 'cancel';
 
     if (lc $remap_response eq 'yes') {
-        my %remap_data
-            = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'remap');
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui => $gui,
+            type => 'remap',
+            get_dir_from => $filename,
+        );
 
         #  now do something with them...
         if ($remap_data{file}) {

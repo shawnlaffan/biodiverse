@@ -8,7 +8,7 @@ use Carp;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 local $| = 1;
 

@@ -7,10 +7,15 @@ use Carp;
 
 use 5.010;
 
+BEGIN {
+    #  make sure menubars are visible when running under Ubuntu Unity
+    $ENV{UBUNTU_MENUPROXY} = undef;  
+}
+
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -36,9 +41,6 @@ use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
-
-#use Data::Dumper;
-use Scalar::Util qw/blessed/;
 
 # Load filename specified in the arguments
 my $numargs = scalar @ARGV;

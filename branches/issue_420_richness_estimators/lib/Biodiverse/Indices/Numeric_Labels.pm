@@ -7,11 +7,11 @@ use warnings;
 use 5.010;
 
 use List::Util qw /sum min/;
-use List::MoreUtils qw /apply pairwise/;
+#use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Statistics;
 

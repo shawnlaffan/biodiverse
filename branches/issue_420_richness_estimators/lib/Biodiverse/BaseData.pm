@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use parent qw {Biodiverse::Common};
 
@@ -145,6 +145,20 @@ sub new {
     return $self;
 }
 
+
+sub binarise_sample_counts {
+    my $self = shift;
+    
+    die "Cannot binarise a basedata with existing outputs\n"
+      if $self->get_output_ref_count;
+    
+    my $gp = $self->get_groups_ref;
+    my $lb = $self->get_labels_ref;
+    
+    $gp->binarise_subelement_sample_counts;
+    $lb->binarise_subelement_sample_counts;
+    $self->delete_cached_values;
+}
 
 sub set_group_hash_key_count {
     my $self = shift;
@@ -557,7 +571,7 @@ sub get_metadata_import_data_common {
             },
             { name       => 'skip_lines_with_undef_groups',
               label_text => 'Skip lines with undef groups?',
-              tooltip    => 'Turn off if some records have undefined/blank/NA '
+              tooltip    => 'Turn on if some records have undefined/blank/NA '
                           . 'group values and should be skipped.  '
                           . 'Import will otherwise fail if they are found.',
               type       => 'boolean',
@@ -676,7 +690,7 @@ sub import_data {
     
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    croak "Input files array not provided\n"
+    croak "input_files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
@@ -812,17 +826,9 @@ sub import_data {
             )
             / $bytes_per_MB;
 
-        my $input_binary = $args{binary} // 1;  #  a boolean flag for Text::CSV_XS
-
         #  Get the header line, assumes no binary chars in it.
         #  If there are then there is something really wrong with the file.
         my $header = $file_handle->getline;
-        #  Could be futile - the read operator uses $/,
-        #  although \r\n will be captured.
-        #  Should really seek to end of file and then read back a few chars,
-        #  assuming that's faster.
-        my $eol = $self->guess_eol (string => $header);
-        my $eol_char_len = length ($eol);
 
         #  for progress bar stuff
         my $size_comment
@@ -831,43 +837,15 @@ sub import_data {
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
+        my $input_binary     = $args{binary} // 1;  #  a boolean flag for Text::CSV_XS
         my $input_quote_char = $args{input_quote_char};
-        #  guess the quotes character?
-        if (not defined $input_quote_char or $input_quote_char eq 'guess') {  
-            #  read in a chunk of the file
-            my $first_10000_chars;
+        my $sep              = $args{input_sep_char};
 
-            my $fh2 = IO::File->new;
-            $fh2->open ($file, '<:via(File::BOM)');
-            my $count_chars = $fh2->read ($first_10000_chars, 10000);
-            $fh2->close;
-
-            #  Strip trailing chars until we get $eol at the end.
-            #  Not perfect for CSV if embedded newlines, but it's a start.
-            while (length $first_10000_chars) {
-                last if ($first_10000_chars =~ /$eol$/);
-                chop $first_10000_chars;
-            }
-
-            $input_quote_char = $self->guess_quote_char (string => \$first_10000_chars);
-            #  if all else fails...
-            if (! defined $input_quote_char) {
-                $input_quote_char = $self->get_param ('QUOTES');
-            }
-        }
-
-        my $sep = $args{input_sep_char};
-        if (not defined $sep or $sep eq 'guess') {
-            $sep = $self->guess_field_separator (
-                string     => $header,
-                quote_char => $input_quote_char,
-            );
-        }
-
-        my $in_csv = $self->get_csv_object (
+        my $in_csv = $self->get_csv_object_using_guesswork (
+            fname      => $file,
             sep_char   => $sep,
             quote_char => $input_quote_char,
-            binary     => $input_binary,  #  NEED TO ENABLE OTHER CSV ARGS TO BE PASSED
+            binary     => $input_binary,
         );
         my $out_csv = $self->get_csv_object (
             sep_char   => $el_sep,
@@ -928,7 +906,8 @@ sub import_data {
         
         #  destroy @lines as we go, saves a bit of memory for big files
         #  keep going if we have lines to process or haven't hit the end of file
-        BYLINE: while (scalar @$lines or not (eof $file_handle)) {
+      BYLINE:
+        while (scalar @$lines or not (eof $file_handle)) {
             $line_num ++;
 
             #  read next chunk if needed.
@@ -944,15 +923,14 @@ sub import_data {
                 );
 
                 $line_num_end_prev_chunk = $line_count;
-                
                 $line_count += scalar @$lines;
 
                 $chunk_count ++;
                 $total_chunk_text
                     = $file_handle->eof ? $chunk_count : ">$chunk_count";
             }
-            
-            
+
+
             if ($line_num % 1000 == 0) { # progress information
 
                 my $line_count_text
@@ -1387,11 +1365,11 @@ sub import_data_raster {
                                 $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
                             }
 
+                            #  no need to dequote since these will always be numbers
                             my $grpstring = $self->list2csv (
                                 list        => [$grpe, $grpn],
                                 csv_object  => $out_csv,
                             );
-                            #say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
 
                             # set label if determined at cell level
                             my $count = 1;
@@ -1894,9 +1872,8 @@ sub rename_label {
 sub get_labels_from_line {
     my $self = shift;
     my %args = @_;
-    
-    #  these assignments look redundant, but this makes for cleaner code and
-    #  the compiler should optimise it all away
+
+    #  these assignments look redundant, but this makes for cleaner code
     my $fields_ref           = $args{fields_ref};
     my $csv_object           = $args{csv_object};
     my $label_columns        = $args{label_columns};
@@ -2750,7 +2727,7 @@ sub get_richness {
     return $self->get_groups_ref->get_variety(@_);
 }
 
-sub get_label_sample_count {  
+sub get_label_sample_count {
     my $self = shift;
 
     return $self->get_labels_ref->get_sample_count(@_);

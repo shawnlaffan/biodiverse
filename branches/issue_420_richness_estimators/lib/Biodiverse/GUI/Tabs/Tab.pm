@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use List::Util qw/min max/;
 use Gtk2;
@@ -163,15 +163,41 @@ sub register_in_outputs_model {
 sub get_grid_text_pfx {
     my $self = shift;
 
+    return q{};
+}
+
+
+sub warn_if_basedata_has_gt2_axes {
+    my $self = shift;
+
     my $bd = $self->get_base_ref;
     my @cellsizes = $bd->get_cell_sizes;
     my $col_count = scalar @cellsizes;
-    my $pfx = $col_count > 2
-        ? "<i>Note: Basedata has more than two axes so some cells will be overplotted and thus not visible</i>\n"
-        : q{};
+    
+    return if $col_count <= 2;
+    
+    my $text = << "END_OF_GT2_AXIS_TEXT"
+Note: Basedata has more than two axes
+so some cells will be overplotted
+and thus not visible.
 
-    return $pfx;
+Only the first two axes are used for plotting.
+END_OF_GT2_AXIS_TEXT
+  ;
+
+    my $dialog = Gtk2::MessageDialog->new (
+        undef,
+        'destroy-with-parent',
+        'warning',
+        'ok',
+        $text,
+    );
+    $dialog->run;
+    $dialog->destroy;
+
+    return;
 }
+
 
 ##########################################################
 # Keyboard shortcuts
@@ -217,7 +243,7 @@ sub hotkey_handler {
 
     $handler_entered = 1;
 
-    if ($event->type eq 'key-press') {
+    if ($event->type eq 'key-press' && Biodiverse::GUI::GUIManager::keyboard_snooper_active) {
         # if CTL- key is pressed
         if ($event->state >= ['control-mask']) {
             my $keyval = $event->keyval;
@@ -644,6 +670,57 @@ sub on_set_cell_show_outline {
     return;
 }
 
+
+sub on_set_tree_line_widths {
+    my $self = shift;
+
+    return if !$self->{dendrogram};
+
+    my $props = {
+        name       => 'branch_width',
+        type       => 'integer',
+        default    => $self->{dendrogram}->{branch_line_width} // 0,
+        min        => 0,
+        max        => 15,
+        label_text => "Branch line thickness in pixels\n"
+                    . 'Does not affect the vertical connectors',
+        tooltip    => 'Set to zero to let the system calculate a default',
+    };
+
+    my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);
+
+    my $dlg = Gtk2::Dialog->new_with_buttons (
+        'Set branch width',
+        undef,
+        'destroy-with-parent',
+        'gtk-ok' => 'ok',
+        'gtk-cancel' => 'cancel',
+    );
+
+    my $hbox  = Gtk2::HBox->new;
+    my $label = Gtk2::Label->new($props->{label_text});
+    $hbox->pack_start($label,   0, 0, 1);
+    $hbox->pack_start($spinner, 0, 0, 1);
+    $spinner->set_tooltip_text ($props->{tooltip});
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start($hbox, 0, 0, 10);
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+
+    my $val;
+    if ($response eq 'ok') {
+        $val = $extractor->();
+    }
+    
+    $dlg->destroy;
+
+    $self->{dendrogram}->set_branch_line_width ($val);
+
+    return $val;
+    
+}
 
 ########
 ##

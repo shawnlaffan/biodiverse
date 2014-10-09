@@ -10,7 +10,9 @@ use File::Basename;
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.99_004';
+use Cwd;
+
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 
@@ -22,7 +24,7 @@ use Biodiverse::GUI::GUIManager;
 sub Run {
     my $title = shift;
     my @suffixes = @_;
-    
+
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     # Load the widgets from Glade's XML
@@ -32,7 +34,10 @@ sub Run {
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename
-    $dlgxml->get_widget('filechooser')->signal_connect('selection-changed' => \&on_file_selection, $dlgxml);
+    my $chooser = $dlgxml->get_widget('filechooser');
+    $chooser->signal_connect('selection-changed' => \&on_file_selection, $dlgxml);
+    $chooser->set_current_folder_uri(getcwd());
+    $chooser->set_action('GTK_FILE_CHOOSER_ACTION_OPEN');
 
     # Add filters
     foreach my $suffix (@suffixes) {
@@ -49,8 +54,7 @@ sub Run {
             $filter->set_name("$suffix files");
         }
 
-        $dlgxml->get_widget('filechooser')->add_filter($filter);
-
+        $chooser->add_filter($filter);
     }
 
     # Show the dialog
@@ -61,7 +65,7 @@ sub Run {
     if ($response eq "ok") {
         # Save settings
         $name = $dlgxml->get_widget('txtName')->get_text();
-        $filename = $dlgxml->get_widget('filechooser')->get_filename();
+        $filename = $chooser->get_filename();
     }
 
     $dlg->destroy();

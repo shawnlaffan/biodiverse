@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -370,7 +370,7 @@ sub get_metadata_calc_pe {
                             . 'BaseData object.',
         name            => 'Phylogenetic Endemism',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',
+        type            => 'Phylogenetic Endemism',
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
@@ -403,7 +403,7 @@ sub get_metadata_calc_pe_lists {
         description     => 'Lists used in the Phylogenetic endemism (PE) calculations.',
         name            => 'Phylogenetic Endemism lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices', 
+        type            => 'Phylogenetic Endemism', 
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,
         indices         => {
@@ -450,7 +450,7 @@ END_PEC_DESC
         description     => $desc,
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',
+        type            => 'Phylogenetic Endemism',
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -505,7 +505,7 @@ END_PEC_DESC
         description     => $desc,
         name            => 'Phylogenetic Endemism central lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',
+        type            => 'Phylogenetic Endemism',
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
@@ -572,7 +572,7 @@ sub get_metadata_calc_pe_central_cwe {
         description     => 'What proportion of the PD in neighbour set 1 is '
                          . 'range-restricted to neighbour sets 1 and 2?',
         reference       => '',
-        type            => 'Phylogenetic Indices', 
+        type            => 'Phylogenetic Endemism', 
         pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_pd_node_list/],
         uses_nbr_lists  => 1,
         indices         => {
@@ -699,7 +699,7 @@ sub get_metadata_calc_pe_clade_contributions {
         description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
         name            => 'PE clade contributions',
         reference       => '',
-        type            => 'Phylogenetic Indices', 
+        type            => 'Phylogenetic Endemism', 
         pre_calc        => ['_calc_pe', 'get_sub_tree'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
@@ -786,7 +786,7 @@ sub get_metadata_calc_pe_clade_loss {
                          . 'neighbour set which would still be in the neighbour set.',
         name            => 'PE clade loss',
         reference       => '',
-        type            => 'Phylogenetic Indices', 
+        type            => 'Phylogenetic Endemism', 
         pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
@@ -920,7 +920,7 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
                          . 'The score is zero when there is no ancestral loss.',
         name            => 'PE clade loss (ancestral component)',
         reference       => '',
-        type            => 'Phylogenetic Indices', 
+        type            => 'Phylogenetic Endemism', 
         pre_calc        => [qw /calc_pe_clade_contributions calc_pe_clade_loss/],
         uses_nbr_lists  => 1,
         indices         => {
@@ -987,7 +987,7 @@ sub get_metadata_calc_pe_single {
         description     => 'PE scores, but not weighted by local ranges.',
         name            => 'Phylogenetic Endemism single',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',
+        type            => 'Phylogenetic Endemism',
         pre_calc        => ['_calc_pe'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
@@ -1045,7 +1045,7 @@ sub get_metadata_calc_pd_endemism {
                         .  'to the neighbour sets.',
         name            => 'PD-Endemism',
         reference       => 'See Faith (2004) Cons Biol.  http://dx.doi.org/10.1111/j.1523-1739.2004.00330.x',
-        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type            => 'Phylogenetic Endemism',
         pre_calc        => ['calc_pe_lists'],
         pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1108,7 +1108,7 @@ sub get_metadata__calc_pe {
         description     => 'Phylogenetic endemism (PE) base calcs.',
         name            => 'Phylogenetic Endemism base calcs',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type            => 'Phylogenetic Endemism',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_node_range_hash get_trimmed_tree get_pe_element_cache/],
         pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -2238,7 +2238,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
     my %metadata = (
         name            => 'Corrected weighted phylogenetic endemism',
         description     => q{What proportion of the PD is range-restricted to this neighbour set?},
-        type            => 'Phylogenetic Indices',
+        type            => 'Phylogenetic Endemism',
         pre_calc        => [qw /calc_pe calc_pd/],
         uses_nbr_lists  =>  1,
         reference       => '',
@@ -2278,7 +2278,7 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
     my %metadata = (
         name            =>  'Corrected weighted phylogenetic rarity',
         description     =>  q{What proportion of the PD is abundance-restricted to this neighbour set?},
-        type            =>  'Phylogenetic Indices',
+        type            =>  'Phylogenetic Endemism',
         pre_calc        => [qw /_calc_phylo_aed_t calc_pd/],
         uses_nbr_lists  =>  1,
         reference       => '',

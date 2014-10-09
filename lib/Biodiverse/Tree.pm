@@ -12,12 +12,12 @@ use warnings;
 #use Scalar::Util;
 use Scalar::Util qw /looks_like_number/;
 #use Time::HiRes qw /tv_interval gettimeofday/;
-use List::MoreUtils qw /first_index/;
+#use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 our $AUTOLOAD;
 
@@ -802,6 +802,14 @@ sub get_metadata_export_nexus {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'no_translate_block',
+                label_text  => 'Do not use a translate block',
+                tooltip     => 'read.nexus in the R ape package mishandles '
+                             . 'named internal nodes if there is a translate block',
+                type        => 'boolean',
+                default     => 0,
+            },
         ],
     );
 
@@ -813,7 +821,7 @@ sub export_nexus {
     my %args = @_;
 
     my $file = $args{file};
-    print "[TREE] WRITING TO TREE TO NEXUS FILE $file\n";
+    say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
     open (my $fh, '>', $file)
         || croak "Could not open file '$file' for writing\n";
 
@@ -1551,6 +1559,8 @@ sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my @node_names = keys %{$args{node_names}};
     
     return if !scalar @node_names;
@@ -1562,41 +1572,56 @@ sub get_last_shared_ancestor_for_nodes {
     return $first_node if !scalar @node_names;
 
     my @reference_path = $first_node->get_path_to_root_node;
+    my %ref_path_hash;
+    @ref_path_hash{@reference_path} = (0 .. $#reference_path);
     
+    my $common_anc_idx = 0;
+
   PATH:
     while (my $node_name = shift @node_names) {
-        #  must be just the root node left, so drop out
-        last PATH if scalar @reference_path == 1;
+        #  Must be just the root node left, so drop out.
+        #  One day we will need to check for existence across all paths,
+        #  as undefined ancestors can occur if we have multiple root nodes.
+        last PATH if $common_anc_idx == $#reference_path;
 
         my $node_ref = $self->get_node_ref (node => $node_name);
         my @path = $node_ref->get_path_to_root_node;
 
         #  Start from an equivalent relative depth to avoid needless
-        #  comparisons near terminals.
-        #  Should see a pay-off for larger trees.
-        my $start_iter = max (0, scalar @path - scalar @reference_path);
+        #  comparisons near terminals which cannot be ancestral.
+        #  i.e. if the current common ancestor is at depth 3
+        #  then anything deeper cannot be an ancestor.
+        #  The pay-off is for larger trees.
+        my $min = max (0, $#path - $#reference_path + $common_anc_idx);
+        my $max = $#path;
+        my $found_idx;
 
-        # work up the tree until we find the lowest shared node
-        # should do a bisect search to speed up the search on densely branching trees?
-      PATH_NODE_REF:
-        foreach my $i ($start_iter .. $#path) {
-            my $path_node_ref = $path[$i];
-            #my $node_name_path = $path_node_ref->get_name; #  for debug
-            my $idx = first_index { $_ eq $path_node_ref } @reference_path;
+        # run a binary search to find the lowest shared node
+      PATH_NODE_REF_BISECT:
+        while ($max > $min) {
+            my $mid = int( ( $min + $max ) / 2 );
 
-            next PATH_NODE_REF if $idx < 0;  #  not in reference path, try the next node
+            my $idx = $ref_path_hash{$path[$mid]};
 
-            if ($idx) {
-                #  reduce length of reference_path to reduce comparisons in next iter
-                #  if $idx is 2 then it will remove items 0 and 1
-                splice @reference_path, 0, $idx;
+            if (defined $idx) {   #  we are in the path, try a node nearer the tips
+                $max = $mid;
+                $found_idx = $idx;  #  track the index
             }
-            next PATH;
+            else {               #  we are not in the path, try a node nearer the root
+                $min = $mid + 1;
+            }
+        }
+        #  Sometimes $max == $min and that's the one we want to use
+        if ($max == $min && !defined $found_idx) {
+            $found_idx = $ref_path_hash{$path[$min]};
+        }
+
+        if (defined $found_idx) {
+            $common_anc_idx = $found_idx;
         }
     }
 
-    my $node = $reference_path[0];
-    #my $ancestor_name = $node->get_name;
+    my $node = $reference_path[$common_anc_idx];
 
     return $node;
 }
@@ -2223,6 +2248,42 @@ sub shuffle_terminal_names {
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
 }
+
+
+sub clone_tree_with_equalised_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' EQ');
+
+    my $non_zero_len = $args{node_length};
+
+    if (!defined $non_zero_len) {
+        my $non_zero_node_count = grep {$_->get_length} $self->get_node_refs;
+        $non_zero_len = $self->get_total_tree_length / $non_zero_node_count;
+    }
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length ? $non_zero_len : 0;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
+
 
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {

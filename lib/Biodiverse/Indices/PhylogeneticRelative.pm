@@ -30,7 +30,7 @@ sub get_metadata_calc_phylo_rpd1 {
             },
             PHYLO_RPD_DIFF1 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PD\_P - PHYLO\_RPD\_NULL1)'],
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)'],
             }
         },
     );
@@ -94,7 +94,7 @@ sub get_metadata_calc_phylo_rpe1 {
             },
             PHYLO_RPE_DIFF1 => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );
@@ -105,7 +105,7 @@ sub get_metadata_calc_phylo_rpe1 {
 sub calc_phylo_rpe1 {
     my $self = shift;
     my %args = @_;
-    
+
     my $tree = $args{trimmed_tree};
     my $total_tree_length = $tree->get_total_tree_length;
 
@@ -164,7 +164,7 @@ sub get_metadata_calc_phylo_rpd2 {
             },
             PHYLO_RPD_DIFF2 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PD\_P - PHYLO\_RPD\_NULL2)'],
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)'],
             }
         },
     );
@@ -187,6 +187,7 @@ sub calc_phylo_rpd2 {
 
     #  Allow for zero length nodes, as we keep them as zero.
     #  The grep in scalar context is a fast way of counting the number of non-zero branches.
+    #  %$included_nodes is for the original tree
     my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
 
     my %results;
@@ -229,7 +230,7 @@ sub get_metadata_calc_phylo_rpe2 {
             },
             PHYLO_RPE_DIFF2  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );
@@ -431,18 +432,8 @@ sub get_tree_with_equalised_branch_lengths {
     
     my $tree_ref = $args{tree_ref} // croak "missing tree_ref argument\n";
 
-    my $new_tree = $tree_ref->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
-
-    foreach my $node ($new_tree->get_node_refs) {
-        my $len = $node->get_length ? 1 : 0;
-        $node->set_length (length => $len);
-    }
-    $new_tree->rename(new_name => $tree_ref->get_param ('NAME') . ' EQ');
+    #  should let the sub calculate the length, but everything is set up for 1 or 0 lengths
+    my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths (node_length => 1);
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES => $new_tree,
@@ -474,20 +465,8 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 
     my $tree_ref = $args{trimmed_tree} // croak "missing trimmed_tree argument\n";
 
-    my $new_tree = $tree_ref->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
-
-    foreach my $node ($new_tree->get_node_refs) {
-        #  zero length nodes stay that way
-        my $len = $node->get_length ? 1 : 0;
-        $node->set_length (length => $len);
-        $node->delete_cached_values;
-    }
-    $new_tree->rename(new_name => $tree_ref->get_param ('NAME') . ' EQ');
+    #  lengths will be non-zero, but not 1
+    my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths;
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES_TRIMMED => $new_tree,

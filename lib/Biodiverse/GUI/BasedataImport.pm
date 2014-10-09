@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use File::Basename;
 use Gtk2;
@@ -345,41 +345,31 @@ sub run {
             croak $msg;
         }
 
+        my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
+            fname => $filename_utf8,
+        );
+
         my $line = <$fh>;
-
-        my $sep = $import_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $import_params{input_sep_char};
-
-        my $quotes  = $import_params{input_quote_char} eq 'guess'
-                    ? $gui->get_project->guess_quote_char (string => $line)
-                    : $import_params{input_quote_char};
-
-        my $eol     = $gui->get_project->guess_eol (string => $line);
-
         my @header  = $gui->get_project->csv2list(
             string      => $line,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
 
         #  R data frames are saved missing the first field in the header
         my $is_r_data_frame = check_if_r_data_frame (
-            file     => $filenames[0],
-            quotes   => $quotes,
-            sep_char => $sep,
+            file       => $filenames[0],
+            csv_object => $csv_obj,
         );
         #  add a field to the header if needed
         if ($is_r_data_frame) {
-            unshift @header, 'R_data_frame_col_0';
+            unshift @header, ':R_data_frame_col_0:';
         }
 
-        # check for empty fields in header? replace with generic
-        ## SWL - needed?
+        # Check for empty fields in header.
+        # CSV files from excel can have dangling headers
         my $col_num = 0;
         while ($col_num <= $#header) {
-            if (length($header[$col_num]) == 0) {
+            if (!defined $header[$col_num] || !length $header[$col_num]) {
                 $header[$col_num] = "col_$col_num";
             }
             $col_num++;
@@ -389,9 +379,7 @@ sub run {
         my $line2 = <$fh>;
         my @line2_cols  = $gui->get_project->csv2list(
             string      => $line2,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
         while($col_num <= $#line2_cols) {
             $header[$col_num] = "col_$col_num";
@@ -424,12 +412,12 @@ sub run {
     if ($read_format == $shapefile_idx || $read_format == $text_idx) {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
-            $col_names_for_dialog,
-            $gui->get_widget('wndMain'),
-            $col_options,
-            $file_list_as_text,
-            $import_params{max_opt_cols},
-            $import_params{gp_axis_precision},
+            header      => $col_names_for_dialog,
+            wnd_main    => $gui->get_widget('wndMain'),
+            row_options => $col_options,
+            file_list_text => $file_list_as_text,
+            max_opt_rows   => $import_params{max_opt_cols},
+            gp_axis_precision => $import_params{gp_axis_precision},
         );
         
         GET_COLUMN_TYPES:
@@ -450,18 +438,19 @@ sub run {
                 my $num_labels = 0;
                 if ($use_matrix) {
                     if (exists $column_settings->{Label_start_col}) {  #  not always present
-                        $num_labels = scalar @{$column_settings->{Label_start_col}};
+                        $num_labels = scalar @{$column_settings->{Label_start_col}}; #>=1
+                        #$num_labels = 1;  #  just binary flag it
                     }
                 }
                 else {
                     $num_labels = scalar @{$column_settings->{labels}};
                 }
     
-                last GET_COLUMN_TYPES if $num_groups;
+                last GET_COLUMN_TYPES if $num_groups && $num_labels;
     
                 my $text = $use_matrix
                      ? 'Please select at least one group and the label start column'
-                     : 'Please select at least one label and one group';
+                     : 'Please select at least one label and one group column';
                 
                 my $msg = Gtk2::MessageDialog->new (
                     undef,
@@ -526,13 +515,11 @@ sub run {
     foreach my $type (qw /label group/) {
         if ($import_params{"use_$type\_properties"}) {
             my %remap_data = get_remap_info (
-                $gui,
-                $filenames[0],
-                $type,
-                $other_properties{$type},
-                undef,
-                undef,
-                $import_params{max_opt_cols},
+                gui  => $gui,
+                type => $type,
+                get_dir_from     => $filenames[0],
+                other_properties => $other_properties{$type},
+                max_cols_to_show => $import_params{max_opt_cols},
             );
 
             #  now do something with them...
@@ -656,7 +643,7 @@ sub run {
                     include_columns         => \@include_columns,
                     exclude_columns         => \@exclude_columns,
                     sample_count_columns    => \@sample_count_columns,
-                )
+                );
             };
         }
     }
@@ -700,7 +687,7 @@ sub check_if_r_data_frame {
     my %args = @_;
     
     my $package = 'Biodiverse::Common';
-    my $csv = $package->get_csv_object (@_);
+    my $csv = $args{csv_object} // $package->get_csv_object (@_);
     
     my $fh;
     open ($fh, '<:via(File::BOM)', $args{file})
@@ -721,6 +708,7 @@ sub check_if_r_data_frame {
     foreach my $line (@lines) {
         if (scalar @$line == $header_count + 1) {
             $is_r_style = 1;
+            last;
         }
     }
     
@@ -1150,17 +1138,6 @@ sub make_filename_dialog {
     my $dlg    = $dlgxml->get_widget($import_dlg_name);
     my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
-    
-#    # Get the Parameters metadata
-#    my $tmp = Biodiverse::BaseData->new;
-#        my %args = $tmp->get_args (sub => 'import_data');
-#    my $params = $args{parameters};
-#
-#    # Build widgets for parameters
-#    my $table = $dlgxml->get_widget($table_parameters);
-#    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-#    my $extractors = Biodiverse::GUI::ParametersTable::fill($params, $table, $dlgxml); 
-
 
     # Initialise the basedatas combo
     $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
@@ -1181,26 +1158,30 @@ sub make_filename_dialog {
 
 
     # Init the file chooser
+    my $filechooser = $dlgxml->get_widget($filechooser_input);
     
+    use Cwd;
+    $filechooser->set_current_folder_uri(getcwd());
+
     # define file selection filters (stored in txtcsv_filter etc)
     $txtcsv_filter = Gtk2::FileFilter->new();
     $txtcsv_filter->add_pattern('*.csv');
     $txtcsv_filter->add_pattern('*.txt');
     $txtcsv_filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($txtcsv_filter);
+    $filechooser->add_filter($txtcsv_filter);
 
     $allfiles_filter = Gtk2::FileFilter->new();
     $allfiles_filter->add_pattern('*');
     $allfiles_filter->set_name('all files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($allfiles_filter);
-    
+    $filechooser->add_filter($allfiles_filter);
+
     $shapefiles_filter = Gtk2::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->set_name('shapefiles');
-    $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
-    
-    $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
+    $filechooser->add_filter($shapefiles_filter);
+
+    $filechooser->set_select_multiple(1);
+    $filechooser->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
@@ -1329,16 +1310,16 @@ sub on_separate_toggled {
 # Column selection dialog
 ##################################################
 
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub make_columns_dialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header       = shift; # ref to column header array
-    my $wnd_main     = shift;
-    my $row_options  = shift;
-    my $file_list    = shift;
-    my $max_opt_rows = shift || 100;
-    my $gp_axis_prec = shift;
+    my %args = @_;
+    my $header       = $args{header}; # ref to column header array
+    my $wnd_main     = $args{wnd_main};
+    my $row_options  = $args{row_options};
+    my $file_list    = $args{file_list_text};
+    my $max_opt_rows = $args{max_opt_rows} || 100;
+    my $gp_axis_prec = $args{gp_axis_precision};
 
     #  don't try to generate ludicrous number of rows...
     my $num_columns = min (scalar @$header, $max_opt_rows);
@@ -1467,6 +1448,8 @@ sub add_row {
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
+    $header = Glib::Markup::escape_text ($header);
+
     # Column header    
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_alignment(0.5, 1);
@@ -1553,25 +1536,32 @@ sub on_type_combo_changed {
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
 sub get_remap_info {
-    my $gui              = shift;
-    my $data_filename    = shift;
-    my $type             = shift // "";
-    my $other_properties = shift || [];
-    my $column_overrides = shift;
-    my $filename         = shift;
-    my $max_cols_to_show = shift || 100;
+    my %args = @_;
+    my $gui              = $args{gui};
+    my $get_dir_from     = $args{get_dir_from};
+    my $type             = $args{type} // "";
+    my $other_properties = $args{other_properties} || [];
+    my $column_overrides = $args{column_overrides};
+    my $filename         = $args{filename};
+    my $max_cols_to_show = $args{max_cols_to_show} || 100;
 
-    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
-        ? fileparse($data_filename)
+    my ($_file, $data_dir, $_suffixes)
+        = $get_dir_from && length $get_dir_from
+        ? fileparse($get_dir_from)
         : ();
 
     # Get filename for the name-translation file
-    $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
-    return wantarray ? () : {} if ! defined $filename;
+    $filename //= $gui->show_open_dialog(
+        title  => "Select $type properties file",
+        suffix => '*',
+        initial_dir => $data_dir,
+    );
+
+    return wantarray ? () : {} if !defined $filename;
 
     my $remap  = Biodiverse::ElementProperties->new;
-    my %args   = $remap->get_args (sub => 'import_data');
-    my $params = $args{parameters};
+    my $remap_args = $remap->get_args (sub => 'import_data');
+    my $params = $remap_args->{parameters};
 
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
@@ -1588,14 +1578,14 @@ sub get_remap_info {
     my $response = $dlg->run;
     $dlg->destroy;
     
-    return wantarray ? () : {} if ($response ne 'ok');
-    
+    return wantarray ? () : {} if $response ne 'ok';
+
     my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     my %properties_params = @$properties_params;
-    
+
     # Get header columns
     say "[GUI] Discovering columns from $filename";
-    
+
     open (my $input_fh, '<:via(File::BOM)', $filename)
       or croak "Cannot open $filename\n";
 
@@ -1607,22 +1597,16 @@ sub get_remap_info {
         last if $line;
     }
     close ($input_fh);
-    
-    my $sep     = $properties_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $properties_params{input_sep_char};
-                
-    my $quotes  = $properties_params{input_quote_char} eq 'guess'
-                ? $gui->get_project->guess_quote_char (string => $line)
-                : $properties_params{input_quote_char};
-                
-    my $eol     = $gui->get_project->guess_eol (string => $line_unchomped);
-    
+
+    my $csv_obj = $gui->get_project->get_csv_object_using_guesswork (
+        fname      => $filename,
+        quote_char => $properties_params{input_quote_char},
+        sep_char   => $properties_params{input_sep_char},
+    );
+
     my @headers_full = $gui->get_project->csv2list(
         string     => $line_unchomped,
-        quote_char => $quotes,
-        sep_char   => $sep,
-        eol        => $eol
+        csv_object => $csv_obj,
     );
 
     my @headers = map
@@ -1630,12 +1614,12 @@ sub get_remap_info {
         @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
-        \@headers,
-        $gui->get_widget('wndMain'),
-        $other_properties,
-        $column_overrides,
+        header      => \@headers,
+        wnd_main    => $gui->get_widget('wndMain'),
+        other_props => $other_properties,
+        column_overrides => $column_overrides,
     );
-    
+
     my $column_settings = {};
     $dlg->set_title(ucfirst "$type property column types");
 
@@ -1698,13 +1682,13 @@ sub get_remap_info {
         file                    => $filename,
         input_element_cols      => \@in_cols,
         remapped_element_cols   => \@out_cols,
-        input_sep_char          => $args{input_sep_char},  #  header might be sufficiently different to matter
-        input_quote_char        => $args{input_quote_char},
+        input_sep_char          => $remap_args->{input_sep_char},  #  header might be sufficiently different to matter
+        input_quote_char        => $remap_args->{input_quote_char},
         include_cols            => \@include_cols,
         exclude_cols            => \@exclude_cols,
     );
 
-    #foreach my $type (qw /Range Sample_count Property/) {
+
     foreach my $type (@$other_properties, 'Property') {
         my $ref = $column_settings->{$type};
         next if ! defined $ref;
@@ -1718,15 +1702,9 @@ sub get_remap_info {
         }
     }
 
-    if ($sep ne 'guess') {
-        $results{input_sep_char} = $sep;
-    }
-    if ($quotes ne 'guess') {
-        $results{input_quote_char} = $quotes;
-    }
-    #if ($eol ne 'guess') {
-    #    $results{eol} = $eol;
-    #}
+    #  just pass them onwards, even if it means guessing again
+    $results{input_sep_char}   = $properties_params{input_quote_char},
+    $results{input_quote_char} = $properties_params{input_sep_char};
 
     return wantarray ? %results : \%results;
 }
@@ -1734,10 +1712,11 @@ sub get_remap_info {
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
 sub make_remap_columns_dialog {
-    my $header           = shift; # ref to column header array
-    my $wnd_main         = shift;
-    my $other_props      = shift || [];
-    my $column_overrides = shift;
+    my %args = @_;
+    my $header           = $args{header}; # ref to column header array
+    my $wnd_main         = $args{wnd_main};
+    my $other_props      = $args{other_props} || [];
+    my $column_overrides = $args{column_overrides};
 
     my $num_columns = @$header;
     say "[GUI] Generating make columns dialog for $num_columns columns";

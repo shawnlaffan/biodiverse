@@ -80,7 +80,7 @@ sub main {
 sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
-        calc_topic_to_test => 'Phylogenetic Indices',
+        calc_topic_to_test => ['Phylogenetic Indices', 'Phylogenetic Endemism'],
         generate_result_sets => $generate_result_sets,
     );
 }

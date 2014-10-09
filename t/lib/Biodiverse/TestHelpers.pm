@@ -9,13 +9,15 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 
 use Data::Section::Simple qw(get_data_section);
 
 BEGIN {
-    $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+    if (!exists $ENV{BIODIVERSE_EXTENSIONS_IGNORE}) {
+        $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+    }
 }
 
 use Biodiverse::BaseData;
@@ -745,6 +747,7 @@ sub run_indices_test1 {
     my $sort_array_lists       = $args{sort_array_lists};
     my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
     my $descr_suffix           = $args{descr_suffix} // '';
+    my $processing_element     = $args{processing_element} // '3350000:850000';
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -775,6 +778,16 @@ sub run_indices_test1 {
                 %bd_args,
             );
 
+    if ($args{nbr_set2_sp_select_all}) {
+        #  get all groups, but ensure no overlap with NS1
+        my $gps = $bd->get_groups;
+        my %el_hash;
+        @el_hash{@$element_list1} = (1) x @$element_list1;
+        say scalar @$gps;
+        $element_list2 = [grep {!$el_hash{$_}} @$gps];
+        say scalar @$element_list2;
+    }
+    
     my $tree = get_tree_object_from_sample_data();
 
     my $matrix = get_matrix_object_from_sample_data();
@@ -848,14 +861,22 @@ sub run_indices_test1 {
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
     if ($calc_topic_to_test) {
-        my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
+        if (!ref $calc_topic_to_test) {
+            $calc_topic_to_test = [$calc_topic_to_test];
+        }
+        my @expected_calcs_to_test;
+        foreach my $topic (@$calc_topic_to_test) {
+            my $calcs = $indices->get_calculations->{$topic};
+            push @expected_calcs_to_test, @$calcs;
+        }
 
         subtest 'Correct calculations are being tested' => sub {
             compare_arr_vals (
                 arr_got => $calcs_to_test,
-                arr_exp => $expected_calcs_to_test
-            )
+                arr_exp => \@expected_calcs_to_test,
+            );
         };
+        
     }
 
     my %elements = (
@@ -869,6 +890,7 @@ sub run_indices_test1 {
         prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
         nri_nti_iterations => $args{nri_nti_iterations},
         mpd_mntd_use_binomial => $args{mpd_mntd_use_binomial},
+        processing_element    => $processing_element,
     };
 
     my %results_by_nbr_list;

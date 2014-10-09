@@ -16,7 +16,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -1638,46 +1638,55 @@ sub to_basestruct_group_nodes {
 #  basically builds a taxon block and then passes that through to to_newick
 sub to_nexus {
     my $self = shift;
-    my %args = (@_);
+    my %args = @_;
+
     my $string;
     my $tree_name = $args{tree_name} || $self->get_param ('NAME') || 'Biodiverse_tree';
-    
-    #  first, build a hash of the label names for the taxon block, unless told not to
-    my %remap;  #  create a remap table unless one is already specified in the args
-    if (! defined $args{remap} && ! $args{no_remap}) {
-        #  get a hash of all the nodes in the tree.
-        my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
 
-        my $i = 0;
-        foreach my $node (values %nodes) {
-            #  no remap for internals - TreeView does not like it
-            next if ! $args{use_internal_names} && $node->is_internal_node;  
-            $remap{$node->get_name} = $i;
-            $i++;
-        }
-    }
-    my %reverse_remap;
-    @reverse_remap{values %remap} = (keys %remap);
-
-    my $translate_table;
     my $quote_char = q{'};
     my $csv_obj = $self->get_csv_object (
         quote_char  => $quote_char,
         escape_char => $quote_char,
         quote_space => 1,
     );
-    my $j = 0;
-    foreach my $mapped_key (sort numerically keys %reverse_remap) {
-        my $remapped = $self->list2csv (
-            csv_object => $csv_obj,
-            list       => [$reverse_remap{$mapped_key}],
-        );
-        $translate_table .= "\t\t$mapped_key $remapped,\n";
-        $j++;
+
+    my $translate_table_block = '';
+    my %remap;
+
+    if (not $args{no_translate_block}) {
+        #  build a hash of the label names for the taxon block, unless told not to
+        #  SWL 20140911: There is no support for external remaps now, so do we need th checks?   
+        if (! defined $args{remap} && ! $args{no_remap}) {
+            #  get a hash of all the nodes in the tree.
+            my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
+    
+            my $i = 0;
+            foreach my $node (values %nodes) {
+                #  no remap for internals - TreeView does not like it
+                next if ! $args{use_internal_names} && $node->is_internal_node;  
+                $remap{$node->get_name} = $i;
+                $i++;
+            }
+        }
+
+        my %reverse_remap;
+        @reverse_remap{values %remap} = (keys %remap);
+
+        my $j = 0;
+        my $translate_table = '';
+        foreach my $mapped_key (sort numerically keys %reverse_remap) {
+            my $remapped = $self->list2csv (
+                csv_object => $csv_obj,
+                list       => [$reverse_remap{$mapped_key}],
+            );
+            $translate_table .= "\t\t$mapped_key $remapped,\n";
+            $j++;
+        }
+        chop $translate_table;  #  strip the last two characters - cheaper than checking for them in the loop
+        chop $translate_table;
+        $translate_table .= "\n\t\t;";
+        $translate_table_block = "\tTranslate \n$translate_table\n";
     }
-    chop $translate_table;  #  strip the last two characters - cheaper than checking for them in the loop
-    chop $translate_table;
-    $translate_table .= "\n\t\t;";
 
     my $type = blessed $self;
 
@@ -1695,11 +1704,9 @@ sub to_nexus {
     $string .= "[ID: $tree_name]\n";
     $string .= "begin trees;\n";
     $string .= "\t[Export of a $type tree using Biodiverse::TreeNode version $VERSION]\n";
-    $string .= "\tTranslate \n$translate_table\n";
+    $string .= $translate_table_block;
     $string .= "\tTree $tree_name = " . $self->to_newick (remap => \%remap, %args) . ";\n";
     $string .= "end;\n\n";
-
-    #print $EMPTY_STRING;
 
     return $string;
 }

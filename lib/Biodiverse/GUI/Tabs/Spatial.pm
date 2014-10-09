@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Gtk2;
 use Carp;
@@ -97,7 +97,7 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->hide;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->hide;
         $self->{xmlPage}->get_widget('toolbarSpatial')->hide;
     }
     else {
@@ -244,11 +244,13 @@ sub new {
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
-        menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
+        menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
+        menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
+    #  bodge - should set the radio group
     for my $n (0..6) {
         my $widget_name = "radio_colour_stretch$n";
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
@@ -478,6 +480,8 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
+
+    $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
@@ -1175,10 +1179,10 @@ sub on_run {
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
         tree_ref           => $self->{project}->get_selected_phylogeny,
-        definition_query   => $self->{definition_query1}->get_text(),
+        definition_query   => $self->{definition_query1}->get_validated_conditions,
         spatial_conditions => [
-            $self->{spatial1}->get_text(),
-            $self->{spatial2}->get_text(),
+            $self->{spatial1}->get_validated_conditions,
+            $self->{spatial2}->get_validated_conditions,
         ],
     );
 
@@ -1246,7 +1250,7 @@ sub on_run {
         elsif (defined $output_ref) {
             $self->{grid}->set_base_struct($output_ref);
         }
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
         $self->update_lists_combo(); # will display first analysis as a side-effect...
         $self->on_selected_phylogeny_changed;  # update the tree plot
@@ -1360,10 +1364,13 @@ sub on_grid_hover {
 
 #  #1F78B4 = blue
 #  #8DA0CB = mid-blue
+#  #2166ac = a brighter blue
+#  #4393c3 = a light brighter blue
+#  #33a02c = mid green
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#8DA0CB', '#E31A1C', '#000000');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#2166ac', '#E31A1C', '#33a02c');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;
@@ -1429,7 +1436,7 @@ sub get_current_tree {
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
 
     # phylogenies
-    if ($tree_method eq 'Plot analysis tree') {
+    if ($tree_method eq 'analysis') {
         # get tree from spatial analysis, if possible
         return if !$self->{output_ref}->can('get_embedded_tree');
         return $self->{output_ref}->get_embedded_tree;
@@ -1494,8 +1501,8 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
-    return;
+
+    return 1;
 }
 
 

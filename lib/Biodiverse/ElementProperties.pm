@@ -8,7 +8,7 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 
@@ -128,43 +128,15 @@ sub import_data {
             $prop_cols{uc $p} = $args{$p};  #  upper case them
         }
     }
-    
-    my $whole_file;
-    open (my $fh1, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
-    
-    my $header = <$fh1>;
-    
-    do {
-        local $/ = undef;  #  slurp whole file - not a good idea in the long term, but these tables hsould be small enough
-        $whole_file = <$fh1>;
-        #close $fh;
-    };
-    $fh1->close;
-    
+
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self->get_param ('JOIN_CHAR');
 
-    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
-        #  guess the quotes character
-        $input_quote_char = $self->guess_quote_char (string => \$whole_file);
-        #  if all else fails...
-        if (not defined $input_quote_char) {
-            $input_quote_char = $self->get_param ('QUOTES');
-        }
-    }
-
-    if (not defined $sep or $sep eq 'guess') {
-        $sep = $self->guess_field_separator (
-            string => $header,
-            quote_char => $input_quote_char,
-        );
-    }
-    my $eol = $self->guess_eol (string => $header);
-    
-    my $csv_in  = $self->get_csv_object (
-        sep_char => $sep,
+    my $csv_in  = $self->get_csv_object_using_guesswork (
+        fname      => $file,
+        sep_char   => $sep,
         quote_char => $input_quote_char,
-        eol => $eol,
+        %args,
     );
     my $csv_out = $self->get_csv_object (
         sep_char => $el_sep,

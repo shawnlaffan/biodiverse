@@ -15,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -157,11 +157,11 @@ sub new {
     $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
     $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
+    $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
     
     $self->{use_highlight_path} = 1;
     
-    print "[GUI] - Loaded tab - Labels\n";
-    
+    say "[GUI] - Loaded tab - Labels";
     
     return $self;
 }
@@ -198,9 +198,11 @@ sub init_grid {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
-    
+
     $self->{grid}->set_legend_mode('Sat');
-    
+
+    $self->warn_if_basedata_has_gt2_axes;
+
     return 1;
 }
 
@@ -277,9 +279,11 @@ sub init_dendrogram {
 
 sub add_column {
     my $self = shift;
-    my $tree = shift;
-    my $title = shift;
-    my $model_id = shift;
+    my %args = @_;
+    
+    my $tree     = $args{tree};
+    my $title    = $args{title};
+    my $model_id = $args{model_id};
 
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
@@ -312,15 +316,15 @@ sub init_list {
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
     my @columns;
     my $i = 0;
-    $self->add_column ($tree, 'Label', $i);
+    $self->add_column (tree => $tree, title => 'Label', model_id => $i);
     foreach my $column (@$stats_metadata) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self->add_column ($tree, $column_name, $i);
+        $self->add_column (tree => $tree, title => $column_name, model_id => $i);
     }
-    $self->add_column ($tree, $selected_list1_name, ++$i);
-    $self->add_column ($tree, $selected_list2_name, ++$i);
+    $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
+    $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
 
 # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -463,6 +467,7 @@ sub set_phylogeny_options_sensitive {
             phylogeny_plot_depth
             highlight_groups_on_map_labels_tab
             use_highlight_path_changed1
+            menuitem_labels_set_tree_line_widths
         /) { #/
         $page->get_widget($widget)->set_sensitive($enabled);
     }
@@ -834,10 +839,8 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_select {
-    my $self          = shift;
-    my $groups        = shift;
-    my $ignore_change = shift;
-    my $rect          = shift; # [x1, y1, x2, y2]
+    my ($self, $groups , $ignore_change, $rect) = @_;
+    # $rect = [x1, y1, x2, y2]
 
     #say 'Rect: ' . Dumper ($rect);
 

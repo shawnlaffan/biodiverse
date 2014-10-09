@@ -11,11 +11,12 @@ use Browser::Open qw( open_browser );
 #use Path::Class;
 
 use English qw { -no_match_vars };
-use LWP::Simple;
+#use LWP::Simple;
+use HTTP::Tiny;
 
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 ##############################################
 #  Web links.  
@@ -132,10 +133,11 @@ sub help_show_check_for_updates {
     my $download_url = 'http://code.google.com/p/biodiverse/downloads/list';
     
     my $url = 'http://biodiverse.googlecode.com/svn/trunk/etc/versions.txt';
-    my $content = get($url);
+    my $http_response = HTTP::Tiny->new->get($url);
+    my $content = $http_response->{content};
 
     my ($release, $devel);
-    if (defined $content) {
+    if (length $content and $http_response->{success}) {
         $content =~ s/[\r\n]//g;
         if ($content =~ m/\[release\](.+?)\[/xmso) {
             $release = $1;
@@ -145,8 +147,13 @@ sub help_show_check_for_updates {
         }
     }
     else {
-        die "Unable to connect to update server: $url\n";
+        die "Unable to connect to versions file URL: $url\n";
     }
+    
+    my $dev_numeric = $devel;
+    $dev_numeric =~ s/_//g;
+    my $VERSION_numeric = $VERSION;
+    $VERSION_numeric =~ s/_//g;
 
     my $dlg = Gtk2::Dialog->new(
         'Check for updates',
@@ -165,13 +172,13 @@ sub help_show_check_for_updates {
                   . "Development version is $devel.";
     my $text;
     
-    if ($VERSION == $release) {
+    if ($VERSION_numeric == $release) {
         $text = "\n\nYou are using the current release version.\n\n";
     }
-    elsif ($VERSION == $devel) {
+    elsif ($VERSION_numeric == $dev_numeric) {
         $text = "\n\nYou are using the current development version.\n\n";
     }
-    elsif ($VERSION < $release) {
+    elsif ($VERSION_numeric < $release) {
         $dlg->add_button ('Get Update' => '1',);
         $text = "\n\n"
                 . "A new release is available.  "
@@ -181,10 +188,10 @@ sub help_show_check_for_updates {
                 #. '</span>'
                 . " to download it.\n\n";
     }
-    elsif ($VERSION > $devel) {
+    elsif ($VERSION_numeric > $dev_numeric) {
         $text = "\n\nYou seem to be ahead of the development cycle (version is $VERSION).\n\n";
     }
-    elsif ($VERSION < $devel) {
+    elsif ($VERSION_numeric < $dev_numeric) {
         $text= "\n\nYou seem to be on a development version that is one version behind (version is $VERSION).\n\n";
     }
     else {

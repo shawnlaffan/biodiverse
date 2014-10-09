@@ -10,7 +10,7 @@ use File::BOM qw / :subs /;
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.99_004';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport;  #  needed for the ramp dialogue - should shift that to its own package
@@ -147,8 +147,11 @@ sub run {
     return if lc $remap_response eq 'cancel';
 
     if (lc $remap_response eq 'yes') {
-        my %remap_data
-            = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'remap');
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui => $gui,
+            type => 'remap',
+            get_dir_from => $filename,
+        );
 
         #  now do something with them...
         if ($remap_data{file}) {

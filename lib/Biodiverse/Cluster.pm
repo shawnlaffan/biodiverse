@@ -725,7 +725,7 @@ sub build_matrix_elements {
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
-                   $values->{$index}
+                   $values->{$index},
                    ]
                 : [$element1, $element2, $values->{$index}];
             my $text = $self->list2csv(

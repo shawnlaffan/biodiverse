@@ -385,7 +385,7 @@ sub setup_dendrogram {
     );
     $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
         changed => \&on_selected_phylogeny_changed, 
-        $self
+        $self,
     );
     $self->on_selected_phylogeny_changed();
 }
@@ -1435,6 +1435,8 @@ sub get_current_tree {
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
 
+    return if $tree_method eq 'none';
+
     # phylogenies
     if ($tree_method eq 'analysis') {
         # get tree from spatial analysis, if possible
@@ -1444,7 +1446,6 @@ sub get_current_tree {
 
     # get tree from project
     return $self->{project}->get_selected_phylogeny;
-
 }
 
 # Keep name in sync with the tab label

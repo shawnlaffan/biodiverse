@@ -2031,6 +2031,9 @@ sub on_background_event {
     if ($event->type eq 'enter-notify') {
         $self->{page}->set_active_pane('dendrogram');
     }
+    elsif ($event->type eq 'leave-notify') {
+        $self->{page}->set_active_pane('');
+    }
     elsif ( $event->type eq 'button-press') {
         if ($self->{drag_mode} eq 'click') {
             if (defined $self->{click_func}) {

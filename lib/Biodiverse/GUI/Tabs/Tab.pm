@@ -321,7 +321,7 @@ sub on_bare_key {
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
         $self->{$self->{active_pane}}->zoom_fit();
     }
-    else {
+    elsif ($self->{active_pane}) {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
     }
 }

@@ -34,7 +34,9 @@
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.19 release notes] summarise the changes in this version.
 
 
-  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit)]  
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit, 7zip format, ~22.5MB)]  
+
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.19_win_x64.zip Windows (64 bit, standard zip format, ~45MB)]  
 
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x32.7z Windows (32 bit)]
 

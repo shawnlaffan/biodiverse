@@ -143,10 +143,28 @@ sub get_gladefile {
             return $gladefile;
         }
         else {
-            say "Cannot locate $gladefile";
-            say 'This can happen if your temp directory is cleaned while '
-            . 'you are runing biodiverse.  Deleting the par temp directory '
-            . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
+            #  manually unpack the glade folder contents
+            if (!-d) {
+                mkdir Path::Class::dir ($ENV{PAR_TEMP}, 'inc', 'glade');
+            }
+            foreach my $file (qw /biodiverse.glade drag-resize.png selector.png/) {
+                my $gdata = PAR::read_file("glade/$file");
+                my $fname = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', $file)->stringify;
+                open(my $fh, '>', $fname) or die "Cannot open file to write data to: $fname";
+                $fh->binmode;
+                print {$fh} $gdata;
+                $fh->close;
+            }
+            if (-e $gladefile && -s $gladefile) {
+                say "Using PAR glade file $gladefile";
+                return $gladefile;
+            }
+            else {
+                say "Cannot locate $gladefile";
+                say 'This can happen if your temp directory is cleaned while '
+                    . 'you are runing biodiverse.  Deleting the par temp directory '
+                    . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
+            }
         }
     }
 
@@ -187,7 +205,7 @@ sub get_iconfile {
             return $icon;
         }
         else {
-            say "Cannot locate $icon";
+            say "Cannot locate $icon in the PAR archive";
         }
     }
 

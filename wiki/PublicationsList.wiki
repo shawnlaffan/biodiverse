@@ -14,6 +14,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Mishler, B.D., Knerr, N., González-Orozco, C.E., Thornhill, A.H., Laffan, S.W. & Miller, J.T. (2014) Phylogenetic measures of biodiversity and neo- and paleo-endemism in Australian _Acacia_. [http://dx.doi.org/10.1038/ncomms5473 Nature Communications, 5, 4473].
 
+  *  Costion, C.M., Edwards, W., Ford, A.J., Metcalfe, D.J., Cross, H.B., Harrington, M.G., Richardson, J.E., Hilbert, D.W., Lowe, A.J. and Crayn, D.M. (in press) Using phylogenetic diversity to identify ancient rain forest refugia and diversification zones in a biodiversity hotspot.  [http://dx.doi.org/10.1111/ddi.12266 Diversity and Distributions].
+
   *  Di Virgilio, G., Laffan, S.W., Ebach, M.C. & Chapple, D.G. (in press) Spatial variation in the climatic predictors of species compositional turnover and endemism.  [http://dx.doi.org/10.1002/ece3.1156 Ecology and Evolution].
 
   *  Fenker, J., Tedeschi, L.G., Pyron, R.A. and Nogueira, C. de C. (in press) Phylogenetic diversity, habitat loss and conservation in South American pitvipers (Crotalinae: _Bothrops_ and _Bothrocophias_).  [http://dx.doi.org/10.1111/ddi.12217 Diversity and Distributions].

@@ -144,6 +144,9 @@ sub get_gladefile {
         }
         else {
             say "Cannot locate $gladefile";
+            say 'This can happen if your temp directory is cleaned while '
+            . 'you are runing biodiverse.  Deleting the par temp directory '
+            . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
         }
     }
 
@@ -156,7 +159,7 @@ sub get_gladefile {
         $gladefile = Path::Class::file( $Bin, 'biodiverse.glade' )->stringify;
     }
 
-    croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+    die 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
 
     say "Using $gladefile";
 

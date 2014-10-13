@@ -13,7 +13,7 @@
 
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_004 release notes] summarise the changes in this version.
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)].  Download, unzip and then run the Biodiverse executable file.
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)].  Download, unzip and then run the Biodiverse executable file.  (The 7zip utility can be downloaded from http://www.7-zip.org).
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_linux64.tar.gz Linux (64 bit)].  Download, unzip, and then run the Biodiverse binary.  You might need to follow some of the [https://code.google.com/p/biodiverse/wiki/InstallationLinuxBinary installation instructions].
 
@@ -34,7 +34,7 @@
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.19 release notes] summarise the changes in this version.
 
 
-  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit, 7zip format, ~22.5MB)]  
+  * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_win_x64.7z Windows (64 bit, 7zip format, ~22.5MB)]  (The 7zip utility can be downloaded from http://www.7-zip.org).
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.19_win_x64.zip Windows (64 bit, standard zip format, ~45MB)]  
 

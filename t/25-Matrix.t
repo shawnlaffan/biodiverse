@@ -30,6 +30,12 @@ my @classes = qw /
     Biodiverse::Matrix::LowMem
 /;
 
+
+foreach my $class (@classes) {
+    test_to_table ($class);
+    last;  #  TEMP FOR DEBIG ONLY
+}
+
 foreach my $class (@classes) {
     run_main_tests($class);
 }
@@ -403,7 +409,36 @@ sub create_matrix_object {
     return $mx;
 }
 
+sub test_to_table {
+    my ($class, $expected) = @_;
 
+    my $mx = create_matrix_object($class);
+    $expected //= get_exported_matrix_data();
+
+    my @types = qw /normal sparse gdm/;
+    my %tables;
+
+    foreach my $type (@types) {
+        my $table = $mx->to_table (type => $type);
+        $tables{$type} = $table;
+        
+        is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
+    }
+
+
+    #
+    #use Data::Dumper;
+    #
+    #local $Data::Dumper::Purity    = 1;
+    #local $Data::Dumper::Terse     = 1;
+    #local $Data::Dumper::Sortkeys  = 1;
+    #local $Data::Dumper::Indent    = 1;
+    #local $Data::Dumper::Quotekeys = 0;
+    #
+    #say Dumper \%tables;
+    
+    say 'blorgensen';
+}
 
 
 ######################################
@@ -412,6 +447,11 @@ sub get_matrix_data {
     return get_data_section('MATRIX_DATA');
 }
 
+sub get_exported_matrix_data {
+    my $data = get_data_section('EXPORTED_MATRIX_DATA');
+    my $hash = eval $data;
+    return $hash;
+}
 
 1;
 
@@ -428,4 +468,354 @@ f 1
 
 @@ placeholder
 - a b c d e
+
+
+@@ EXPORTED_MATRIX_DATA
+{
+  gdm => [
+    [
+      'x1',
+      'y1',
+      'x2',
+      'y2',
+      'Value'
+    ],
+    [
+      'a',
+      undef,
+      'b',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'c',
+      undef,
+      '2'
+    ],
+    [
+      'a',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'a',
+      undef,
+      'e',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'f',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'b',
+      undef,
+      'd',
+      undef,
+      '5'
+    ],
+    [
+      'b',
+      undef,
+      'e',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'a',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'b',
+      undef,
+      '3'
+    ],
+    [
+      'c',
+      undef,
+      'd',
+      undef,
+      '6'
+    ],
+    [
+      'c',
+      undef,
+      'e',
+      undef,
+      '3'
+    ],
+    [
+      'd',
+      undef,
+      'a',
+      undef,
+      '4'
+    ],
+    [
+      'd',
+      undef,
+      'b',
+      undef,
+      '5'
+    ],
+    [
+      'd',
+      undef,
+      'c',
+      undef,
+      '6'
+    ],
+    [
+      'd',
+      undef,
+      'e',
+      undef,
+      '4'
+    ],
+    [
+      'e',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'e',
+      undef,
+      'b',
+      undef,
+      '2'
+    ],
+    [
+      'e',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'e',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'f',
+      undef,
+      'a',
+      undef,
+      '1'
+    ]
+  ],
+  normal => [
+    [
+      '',
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f'
+    ],
+    [
+      'a',
+      undef,
+      '1',
+      '2',
+      '4',
+      '1',
+      '1'
+    ],
+    [
+      'b',
+      '1',
+      undef,
+      '3',
+      '5',
+      '2',
+      undef
+    ],
+    [
+      'c',
+      '2',
+      '3',
+      undef,
+      '6',
+      '3',
+      undef
+    ],
+    [
+      'd',
+      '4',
+      '5',
+      '6',
+      undef,
+      '4',
+      undef
+    ],
+    [
+      'e',
+      '1',
+      '2',
+      '3',
+      '4',
+      undef,
+      undef
+    ],
+    [
+      'f',
+      '1',
+      undef,
+      undef,
+      undef,
+      undef,
+      undef
+    ]
+  ],
+  sparse => [
+    [
+      'Row',
+      'Column',
+      'Value'
+    ],
+    [
+      'a',
+      'b',
+      '1'
+    ],
+    [
+      'a',
+      'c',
+      '2'
+    ],
+    [
+      'a',
+      'd',
+      '4'
+    ],
+    [
+      'a',
+      'e',
+      '1'
+    ],
+    [
+      'a',
+      'f',
+      '1'
+    ],
+    [
+      'b',
+      'a',
+      '1'
+    ],
+    [
+      'b',
+      'c',
+      '3'
+    ],
+    [
+      'b',
+      'd',
+      '5'
+    ],
+    [
+      'b',
+      'e',
+      '2'
+    ],
+    [
+      'c',
+      'a',
+      '2'
+    ],
+    [
+      'c',
+      'b',
+      '3'
+    ],
+    [
+      'c',
+      'd',
+      '6'
+    ],
+    [
+      'c',
+      'e',
+      '3'
+    ],
+    [
+      'd',
+      'a',
+      '4'
+    ],
+    [
+      'd',
+      'b',
+      '5'
+    ],
+    [
+      'd',
+      'c',
+      '6'
+    ],
+    [
+      'd',
+      'e',
+      '4'
+    ],
+    [
+      'e',
+      'a',
+      '1'
+    ],
+    [
+      'e',
+      'b',
+      '2'
+    ],
+    [
+      'e',
+      'c',
+      '3'
+    ],
+    [
+      'e',
+      'd',
+      '4'
+    ],
+    [
+      'f',
+      'a',
+      '1'
+    ]
+  ]
+}
 

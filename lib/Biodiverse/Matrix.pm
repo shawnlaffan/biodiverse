@@ -325,6 +325,8 @@ sub to_table_normal {
         @_,
     );
     
+    my $symmetric = $args{symmetric};
+
     my @data;
     my @elements = sort $self->get_elements_as_array;
     
@@ -333,7 +335,10 @@ sub to_table_normal {
     
     #  allow for both UL and LL to be specified
     my $ll_only = $args{lower_left}  && ! $args{upper_right};
-    my $ur_only = $args{upper_right} && ! $args{lower_left}; 
+    my $ur_only = $args{upper_right} && ! $args{lower_left};
+    
+    my $progress = Biodiverse::Progress->new(text => 'Converting matrix to table');
+    my $to_do = scalar @elements;
 
     E1:
     foreach my $element1 (@elements) {
@@ -341,26 +346,33 @@ sub to_table_normal {
         $data[$i][0] = $element1;
         my $j = 0;
         
+        $progress->update (
+            "Converting matrix to table\n(row $i / $to_do)",
+            $i / $to_do,
+        );
+        
         E2:
         foreach my $element2 (@elements) {
             $j++;
+
             next E1 if $ll_only and $j > $i;
             next E2 if $ur_only and $j < $i;
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
-            if (! $args{symmetric} && $exists == 1) {
-                $data[$i][$j] = $self->get_value (
+
+            if (!$symmetric) {
+                my $exists = $self->element_pair_exists (
                     element1 => $element1,
                     element2 => $element2,
                 );
+                if ($exists == 1) {
+                    $data[$i][$j] = $self->get_value (
+                        element1    => $element1,
+                        element2    => $element2,
+                        pair_exists => 1,
+                    );
+                }
             }
             else {
-                $data[$i][$j] = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
+                $data[$i][$j] = $self->get_defined_value_aa ($element1, $element2);
             }
         }
     }
@@ -378,9 +390,13 @@ sub to_table_sparse {
     
     my @data;
     my @elements = sort $self->get_elements_as_array;
+    
+    my $progress_bar = Biodiverse::Progress->new();
+    my $to_do        = scalar @elements;
+    my $progress_pfx = "Converting matrix to GDM format table\n";
 
-    my $lower_left  = $args{lower_left};
-    my $upper_right = $args{upper_right};
+    my $ll_only   = $args{lower_left};
+    my $ur_only   = $args{upper_right};
     my $symmetric = $args{symmetric};
     
     push @data, [qw /Row Column Value/];  #  header line
@@ -390,23 +406,32 @@ sub to_table_sparse {
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        #$data[$i][0] = $element1;
         my $j = 0;
+
+        my $progress = $i / $to_do;
+        $progress_bar->update (
+            $progress_pfx . "(row $i / $to_do)",
+            $progress,
+        );
+
         E2:
         foreach my $element2 (@elements) {
             $j++;
-            next E1 if $lower_left  and $j > $i;
-            next E2 if $upper_right and $j < $i;
+
+            next E1 if $ll_only  and $j > $i;
+            next E2 if $ur_only and $j < $i;
+
             my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
-            
+
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if ($exists == 1 || ($symmetric && $exists)) {
                 my $value = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
+                    element1    => $element1,
+                    element2    => $element2,
+                    pair_exists => $exists,
                 );
                 my $list = [$element1, $element2, $value];
                 push @data, $list;
@@ -424,20 +449,29 @@ sub to_table_gdm {
         symmetric => 1,
         @_,
     );
-    
+
+    my $ll_only   = $args{lower_left};
+    my $ur_only   = $args{upper_right};
+    my $symmetric = $args{symmetric};
+
     my @data;
     my @elements = sort $self->get_elements_as_array;
-    
+
     #  Get csv object from the basedata to crack the elements.
     #  Could cause trouble later on for matrices without basedata.
-    my $bd = $self->get_param ('BASEDATA_REF');
-    my $csv_object = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
+    my $csv_object;
+    if (my $bd = $self->get_param ('BASEDATA_REF')) {
+        $csv_object = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
+    }
+    else {
+        $csv_object = $self->get_csv_object;
+    }
     
     push @data, [qw /x1 y1 x2 y2 Value/];  #  header line
     
     my $progress_bar = Biodiverse::Progress->new();
-    my $to_do = scalar @elements;
-    my $progress_pfx = "Converting matrix to table \n";
+    my $to_do        = scalar @elements;
+    my $progress_pfx = "Converting matrix to GDM format table\n";
     
     my $i = 0;
     
@@ -456,18 +490,20 @@ sub to_table_gdm {
         E2:
         foreach my $element2 (@elements) {
             $j++;
-            next E1 if $args{lower_left}  and $j > $i;
-            next E2 if $args{upper_right} and $j < $i;
+            next E1 if $ll_only and $j > $i;
+            next E2 if $ur_only and $j < $i;
+
             my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
 
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
-            if (($args{symmetric} and $exists) or $exists == 1) {
+            if (($symmetric and $exists) or $exists == 1) {
                 my $value = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
+                    element1    => $element1,
+                    element2    => $element2,
+                    pair_exists => $exists,
                 );
 
                 my @element2 = $self->csv2list (string => $element2, csv_object => $csv_object);

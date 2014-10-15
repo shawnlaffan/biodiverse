@@ -33,7 +33,6 @@ my @classes = qw /
 
 foreach my $class (@classes) {
     test_to_table ($class);
-    last;  #  TEMP FOR DEBIG ONLY
 }
 
 foreach my $class (@classes) {
@@ -425,19 +424,6 @@ sub test_to_table {
         is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
     }
 
-
-    #
-    #use Data::Dumper;
-    #
-    #local $Data::Dumper::Purity    = 1;
-    #local $Data::Dumper::Terse     = 1;
-    #local $Data::Dumper::Sortkeys  = 1;
-    #local $Data::Dumper::Indent    = 1;
-    #local $Data::Dumper::Quotekeys = 0;
-    #
-    #say Dumper \%tables;
-    
-    say 'blorgensen';
 }
 
 

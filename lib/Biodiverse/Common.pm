@@ -857,7 +857,7 @@ sub write_table {
     }
     else {
         print "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
-        $self -> write_table_csv (%args, data => $data);
+        $self->write_table_csv (%args, data => $data);
     }
 }
 

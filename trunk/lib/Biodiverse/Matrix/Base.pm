@@ -345,13 +345,13 @@ sub to_table {
     my %args = @_;
     
     if ($args{type} eq 'sparse') {
-        return $self->to_table_sparse (@_);
+        return $self->to_table_sparse (%args);
     }
     elsif ($args{type} eq 'gdm') {
-        return $self->to_table_gdm (@_);
+        return $self->to_table_gdm (%args);
     }
     else {
-        return $self->to_table_normal (@_);
+        return $self->to_table_normal (%args);
     }
 }
 
@@ -363,12 +363,14 @@ sub to_table_normal {
         @_,
     );
     
+    my $fh = $args{file_handle};
+
     my $symmetric = $args{symmetric};
 
     my @data;
     my @elements = sort $self->get_elements_as_array;
     
-    $data[0] = [q{}, @elements];  #  header line with blank leader
+    push @data, [q{}, @elements];  #  header line with blank leader
     my $i = 0;
     
     #  allow for both UL and LL to be specified
@@ -381,8 +383,16 @@ sub to_table_normal {
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        $data[$i][0] = $element1;
         my $j = 0;
+
+        my @row;
+        push @row, $element1;
+        $data[$i] = \@row;
+        
+        #if ($fh) {
+        #    say {$fh} shift @data;
+        #}
+        
         
         $progress->update (
             "Converting matrix to table\n(row $i / $to_do)",
@@ -402,7 +412,7 @@ sub to_table_normal {
                     element2 => $element2,
                 );
                 if ($exists == 1) {
-                    $data[$i][$j] = $self->get_value (
+                    push @row, $self->get_value (
                         element1    => $element1,
                         element2    => $element2,
                         pair_exists => 1,
@@ -410,7 +420,7 @@ sub to_table_normal {
                 }
             }
             else {
-                $data[$i][$j] = $self->get_defined_value_aa ($element1, $element2);
+                push @row, $self->get_defined_value_aa ($element1, $element2);
             }
         }
     }
@@ -488,6 +498,12 @@ sub to_table_gdm {
         @_,
     );
 
+    my $fh = $args{file_handle};
+    my $out_csv_obj = $args{csv_object};
+    if ($fh) {
+        $out_csv_obj //= $self->get_csv_object_for_export;
+    }
+
     my $ll_only   = $args{lower_left};
     my $ur_only   = $args{upper_right};
     my $symmetric = $args{symmetric};
@@ -497,12 +513,12 @@ sub to_table_gdm {
 
     #  Get csv object from the basedata to crack the elements.
     #  Could cause trouble later on for matrices without basedata.
-    my $csv_object;
+    my $el_csv_obj;
     if (my $bd = $self->get_param ('BASEDATA_REF')) {
-        $csv_object = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
+        $el_csv_obj = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
     }
     else {
-        $csv_object = $self->get_csv_object;
+        $el_csv_obj = $self->get_csv_object;
     }
     
     push @data, [qw /x1 y1 x2 y2 Value/];  #  header line
@@ -516,13 +532,20 @@ sub to_table_gdm {
     E1:
     foreach my $element1 (@elements) {
         $i++;
-        my @element1 = $self->csv2list (string => $element1, csv_object => $csv_object);
+        my @element1 = $self->csv2list (string => $element1, csv_object => $el_csv_obj);
         
         my $progress = $i / $to_do;
         $progress_bar->update (
             $progress_pfx . "(row $i / $to_do)",
             $progress,
         );
+        
+        if ($fh) {
+            while (my $line = shift @data) {
+                my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+                say {$fh} $string;
+            }
+        }
 
         my $j = 0;
         E2:
@@ -544,10 +567,17 @@ sub to_table_gdm {
                     pair_exists => $exists,
                 );
 
-                my @element2 = $self->csv2list (string => $element2, csv_object => $csv_object);
+                my @element2 = $self->csv2list (string => $element2, csv_object => $el_csv_obj);
                 my $list = [@element1[0,1], @element2[0,1], $value];
                 push @data, $list;
             }
+        }
+    }
+
+    if ($fh) {
+        while (my $line = shift @data) {
+            my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+            say {$fh} $string;
         }
     }
 
@@ -636,19 +666,31 @@ sub export_delimited_text {
     my $self = shift;
     my %args = @_;
     
-    # add a .csv suffix if none present
-    if (defined $args{file} and not $args{file} =~ /\.(.*)$/) {
-        $args{file} = $args{file} . '.csv';
-    }
+    my $filename = $args{filename} // $args{file};
 
-    my $table = $self->to_table (%args);
-    eval {
-        $self->write_table (
-            %args,
-            data => $table
-        )
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    # add a .csv suffix if no extension present
+    if (defined $filename and not $filename =~ /\.(.*)$/) {
+        $filename = $filename . '.csv';
+    }
+    
+    my $fh;
+    if (!$args{_no_fh}) {  #  allow control of $fh for test purposes
+        open $fh, '>', $filename or croak "Could not open $filename\n";
+    }
+    my $csv_obj = $self->get_csv_object_for_export (%args);
+
+    my $table = $self->to_table (%args, file_handle => $fh, csv_object => $csv_obj);
+
+    if (scalar @$table) {
+        eval {
+            $self->write_table (
+                %args,
+                file => $filename,
+                data => $table
+            )
+        };
+        croak $EVAL_ERROR if $EVAL_ERROR;
+    }
 
     return;
 }

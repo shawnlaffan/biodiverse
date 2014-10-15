@@ -364,18 +364,21 @@ sub to_table_normal {
     );
     
     my $fh = $args{file_handle};
+    my $out_csv_obj = $args{csv_object};
+    if ($fh) {
+        $out_csv_obj //= $self->get_csv_object_for_export (%args);
+    }
 
     my $symmetric = $args{symmetric};
+    #  allow for both UL and LL to be specified
+    my $ll_only = $args{lower_left}  && ! $args{upper_right};
+    my $ur_only = $args{upper_right} && ! $args{lower_left};
 
     my @data;
     my @elements = sort $self->get_elements_as_array;
     
     push @data, [q{}, @elements];  #  header line with blank leader
     my $i = 0;
-    
-    #  allow for both UL and LL to be specified
-    my $ll_only = $args{lower_left}  && ! $args{upper_right};
-    my $ur_only = $args{upper_right} && ! $args{lower_left};
     
     my $progress = Biodiverse::Progress->new(text => 'Converting matrix to table');
     my $to_do = scalar @elements;
@@ -385,15 +388,18 @@ sub to_table_normal {
         $i++;
         my $j = 0;
 
+        if ($fh) {
+            while (@data) {
+                my $line = shift @data;
+                my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+                say {$fh} $string;
+            }
+        }
+
         my @row;
         push @row, $element1;
-        $data[$i] = \@row;
-        
-        #if ($fh) {
-        #    say {$fh} shift @data;
-        #}
-        
-        
+        push @data, \@row;
+
         $progress->update (
             "Converting matrix to table\n(row $i / $to_do)",
             $i / $to_do,
@@ -425,6 +431,14 @@ sub to_table_normal {
         }
     }
 
+    if ($fh) {
+        while (@data) {
+            my $line = shift @data;
+            my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+            say {$fh} $string;
+        }
+    }
+
     return wantarray ? @data : \@data;
 }
 
@@ -436,6 +450,12 @@ sub to_table_sparse {
         @_,
     );
     
+    my $fh = $args{file_handle};
+    my $out_csv_obj = $args{csv_object};
+    if ($fh) {
+        $out_csv_obj //= $self->get_csv_object_for_export (%args);
+    }
+
     my @data;
     my @elements = sort $self->get_elements_as_array;
     
@@ -462,6 +482,14 @@ sub to_table_sparse {
             $progress,
         );
 
+        if ($fh) {
+            while (@data) {
+                my $line = shift @data;
+                my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+                say {$fh} $string;
+            }
+        }
+
         E2:
         foreach my $element2 (@elements) {
             $j++;
@@ -487,6 +515,14 @@ sub to_table_sparse {
         }
     }
     
+    if ($fh) {
+        while (@data) {
+            my $line = shift @data;
+            my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
+            say {$fh} $string;
+        }
+    }
+
     return wantarray ? @data : \@data;
 }
 
@@ -501,7 +537,7 @@ sub to_table_gdm {
     my $fh = $args{file_handle};
     my $out_csv_obj = $args{csv_object};
     if ($fh) {
-        $out_csv_obj //= $self->get_csv_object_for_export;
+        $out_csv_obj //= $self->get_csv_object_for_export (%args);
     }
 
     my $ll_only   = $args{lower_left};
@@ -541,7 +577,8 @@ sub to_table_gdm {
         );
         
         if ($fh) {
-            while (my $line = shift @data) {
+            while (@data) {
+                my $line = shift @data;
                 my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
                 say {$fh} $string;
             }
@@ -575,7 +612,8 @@ sub to_table_gdm {
     }
 
     if ($fh) {
-        while (my $line = shift @data) {
+        while (@data) {
+            my $line = shift @data;
             my $string = $self->list2csv(list => $line, csv_object => $out_csv_obj);
             say {$fh} $string;
         }

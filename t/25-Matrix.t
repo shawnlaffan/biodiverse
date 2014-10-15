@@ -8,6 +8,7 @@ use warnings;
 use FindBin qw/$Bin/;
 use rlib;
 use Scalar::Util qw /blessed/;
+use File::Compare;
 
 use Test::More;
 
@@ -423,6 +424,24 @@ sub test_to_table {
         
         is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
     }
+    
+    #  now check the exports are the same with and without file handles
+    foreach my $type (@types) {
+        my $f   = File::Temp->new (TEMPLATE => 'bd_XXXXXX', TMPDIR => 1);
+        my $pfx = $f->filename;
+
+        my $fname_use_fh = $pfx . '_use_fh.csv';
+        my $fname_no_fh  = $pfx . '_no_fh.csv';
+
+        $mx->export_delimited_text (type => $type, filename => $fname_use_fh);
+        $mx->export_delimited_text (type => $type, filename => $fname_no_fh, _no_fh => 1);
+
+        my $comp = File::Compare::compare ($fname_use_fh, $fname_no_fh);
+        ok (!$comp, "Exported files with and without file handles in to_table are identical for $type, " . blessed ($mx));
+
+        unlink $fname_use_fh, $fname_no_fh;
+    }
+    
 
 }
 

@@ -769,10 +769,9 @@ sub get_nbrs_for_element {
                             exclude_list => $exclude_list,
                         );
                     }
-
                 }
 
-                #  Add to the exclude list unless we are at the last spatial param,
+                #  Add to the exclude list unless we are at the last spatial condition,
                 #  in which case it is no longer needed.
                 #  Hopefully this will save meaningful memory for large neighbour sets
                 if ($i != $#$spatial_conditions_ref) {

@@ -1,8 +1,0 @@
-nrows 3
-ncols 1
-xllcenter 1.5
-yllcenter 1.5
-cellsize 1
-nodata_value -9999
-byteorder LSBFIRST
-NODATA         -9999

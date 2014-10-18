@@ -6,6 +6,8 @@ Needed for GTK modules to work properly.
 Also need to add the following lines before the open is attempted.
 This avoids duplicate DLL file names in modules ending in XS.  
 
+near line 153
+
 ### DIRTY HACK 
 if (-e $filename && not $filename =~ /Glib|Gtk2|Gnome|Pango|Cairo/) {
     $filename .= $member->crc32String; #  kludge workaround
@@ -23,7 +25,7 @@ Running each command in sequence did work, though (tweaking as appropriate).
 
 PERL_DIR = C:\strawberry_51613_x64\perl
 PAR_PACKER_SRC = C:\strawberry_51613_x64\cpan\build\PAR-Packer-1.018-XUXam8
- 
+
 all:
     copy /Y C:\shawn\svn\biodiverse_trunk\bin\Biodiverse_icon.ico $(PAR_PACKER_SRC)\myldr\winres\pp.ico
     #copy /Y medias\jambon.rc $(PAR_PACKER_SRC)\myldr\winres\pp.rc

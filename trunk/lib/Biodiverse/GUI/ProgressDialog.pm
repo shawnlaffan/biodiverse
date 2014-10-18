@@ -156,10 +156,8 @@ sub update {
     $bar->set_fraction($progress);
 
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    
-    Biodiverse::GUI::GUIManager->instance->show_progress;
 
-    #say "Update call, text $text progress $progress current prog dialog object: " . Dumper($self);
+    Biodiverse::GUI::GUIManager->instance->show_progress;
 
     return;
 }

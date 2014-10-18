@@ -60,7 +60,7 @@ use Text::Wrapper;
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
@@ -214,13 +214,17 @@ sub generate_file {
 
     # The dialog already has a filechooser widget. We just return an extractor function
     my $chooser = $dlgxml->get_widget('filechooser');
+
+    use Cwd;
+    $chooser->set_current_folder_uri(getcwd());
+
     my $extract = sub { return ($param->{name}, $chooser->get_filename); };
     return (undef, $extract);
 }
 
 sub generate_comment {
     my $param  = shift;
-    my $dlgxml = shift;
+    #my $dlgxml = shift;
 
     #  just a placeholder
     my $label = Gtk2::Label->new;
@@ -231,11 +235,13 @@ sub generate_comment {
 
 sub generate_integer {
     my $param = shift;
-    
+
     my $default = $param->{default} || 0;
     my $incr    = $param->{increment} || 1;
-    
-    my $adj = Gtk2::Adjustment->new($default, 0, 10000000, $incr, $incr * 10, 0);
+    my $min     = $param->{min} // 0;
+    my $max     = $param->{max} // 10000000;
+
+    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
 
     my $extract = sub { return ($param->{name}, $spin->get_value_as_int); };
@@ -296,3 +302,4 @@ sub generate_spatial_conditions {
 
 
 1;
+

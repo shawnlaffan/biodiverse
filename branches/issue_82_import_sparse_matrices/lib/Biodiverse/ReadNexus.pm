@@ -4,6 +4,7 @@ package Biodiverse::ReadNexus;
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
 use 5.010;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -15,8 +16,9 @@ use File::BOM qw / :subs /;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
+use Biodiverse::Progress;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use parent qw /Biodiverse::Common/;
 
@@ -381,6 +383,8 @@ sub import_tabular_tree {
         $data = $self->read_whole_file (file => $args{file});
         $args{data} = $data; # ?
     }
+    
+    my $column_map = $args{column_map} // {};
 
     # get column map from arguments 
     my %columns = %{$args{column_map} // {}};
@@ -422,6 +426,7 @@ sub import_tabular_tree {
     push @trees, $tree;
 
     #  process the data and generate the nodes
+  LINE:
     foreach my $line (@data) {
         $csv->parse ($line);
         my @line_array = $csv->fields;
@@ -429,7 +434,9 @@ sub import_tabular_tree {
 
         # check all necessary values are defined (?)
         foreach my $col_name (keys %columns) {
-            #    croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #  skip line if we don't have sufficient values - safe in all cases?
+            next LINE if $columns{$col_name} > $#line_array;
             $line_hash{$col_name} = $line_array[$columns{$col_name}]
         }
 
@@ -459,6 +466,7 @@ sub import_tabular_tree {
         );
 
         my $node_number = $line_hash{NODENUM_COL};
+        next if !defined $node_number;
         $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
     }
 
@@ -502,46 +510,25 @@ sub get_csv_object_for_tabular_tree_import {
     my $self = shift;
     my %args = @_;
     
-    my $data = $args{data};
-    my @data = split ("\n", $data, 2);
-    my $header = $data[0];
-
     #  need to get the csv params
     my $input_quote_char = $args{input_quote_char};
-    my $sep              = $args{input_sep_char};    
+    my $sep_char         = $args{input_sep_char};    
 
-    #  boilerplate - refactor
-    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
-        #  guess the quotes character
-        $input_quote_char = $self->guess_quote_char (string => $data);
-        #  if all else fails...
-        if (not defined $input_quote_char) {
-            $input_quote_char = $self->get_param ('QUOTES');
-        }
-    }
-
-    if (not defined $sep or $sep eq 'guess') {
-        $sep = $self->guess_field_separator (
-            string     => $header,
-            quote_char => $input_quote_char,
-        );
-    }
-    my $eol = $self->guess_eol (string => $header);
-    
-    my $csv_in = $self->get_csv_object (
-        sep_char => $sep,
+    my $csv_in = $self->get_csv_object_using_guesswork (
+        sep_char   => $sep_char,
         quote_char => $input_quote_char,
-        eol => $eol,
+        string     => \$args{data},
     );
-    
+
     return $csv_in;
 }
+
 
 sub process_unrooted_trees {
     my $self = shift;
     my @trees = $self->get_tree_array;
     
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
         $tree->root_unrooted_tree;
     }
@@ -555,22 +542,20 @@ sub process_zero_length_trees {
     my @trees = $self->get_tree_array;
     
     #  now we check if the tree has all zero-length nodes.  Change these to length 1.
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
-        my %nodes = $tree->get_node_hash;
+        my $nodes = $tree->get_node_hash;
         my $len_sum = 0;
 
-        LEN_SUM:
-        foreach my $node (values %nodes) {
-            $len_sum += $node->get_length;
-            last LEN_SUM if $len_sum;  #  drop out if we have a non-zero length
+      LEN_SUM:
+        foreach my $node (values %$nodes) {
+            #  skip this tree if we have a non-zero length
+            next BY_LOADED_TREE if $node->get_length;
         }
 
-        if ($len_sum == 0) {
-            print "[READNEXUS] All nodes are of length zero, converting all to length 1\n";
-            foreach my $node (values %nodes) {
-                $node->set_length (length => 1);
-            }
+        say '[READNEXUS] All nodes are of length zero, converting all to length 1';
+        foreach my $node (values %$nodes) {
+            $node->set_length (length => 1);
         }
     }
 
@@ -604,29 +589,46 @@ sub parse_newick {
     my $self = shift;
     my %args = @_;
 
-    my $string = $args{string};
-    my $str_len = length ($string);
-    my $tree = $args{tree};
+    my $string    = $args{string};
+    my $str_len   = length ($string);
+    my $tree      = $args{tree};
     my $tree_name = $tree->get_param ('NAME');
 
-    my $node_count             = $args{node_count};
-    my $translate_hash         = $args{translate_hash}
-                               || $self->get_param ('TRANSLATE_HASH');
-    my $element_properties     = $args{element_properties}
-                               || $self->get_param ('ELEMENT_PROPERTIES');
+    my $node_count      = $args{node_count} // croak 'node_count arg not passed (must be scalar ref)';
+    my $translate_hash  = $args{translate_hash}
+                        || $self->get_param ('TRANSLATE_HASH');
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
+    my $element_properties     = $use_element_properties
+      ? ($args{element_properties} || $self->get_param ('ELEMENT_PROPERTIES'))
+      : undef;
+    
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
-    my $csv_obj    = $self->get_csv_object (quote_char => $quote_char);
+    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
 
-    my $name;
+    my ($length, $default_length) = (0, 0);
+    my ($name, $boot_value, $est_node_count, @nodes_added);
+    my $children_of_current_node = [];
 
-    my $default_length = 0;
-    my $length = $default_length;
-    my $boot_value;
+    my $progress_bar = $args{progress_bar};
+    if (!$progress_bar) {
+        #$est_node_count = () = $string =~ /([(,])/g;
+        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
+        $est_node_count ||= 1;
+        #say "Estimated node count is $est_node_count";
+        $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
+        $tree->set_node_hash_key_count ($est_node_count);
+        $progress_bar = Biodiverse::Progress->new ();
+    }
+    else {
+        $est_node_count = $tree->get_cached_value ('ESTIMATED_NODE_COUNT');
+    }
 
-    my @nodes_added;
-    my @children_of_current_node;
+    my $nc = $tree->get_node_count;
+    $progress_bar->update (
+        "node $nc of an estimated $est_node_count",
+        $nc / $est_node_count,
+    );
 
     pos ($string) = 0;
 
@@ -650,11 +652,9 @@ sub parse_newick {
             #    #print "hit the end of line\n";
             #}
             #print "Position is " . (pos $string) . " of $str_len\n";
-            if (not defined $name) {
-                $name = $tree->get_free_internal_name (
-                    exclude => $translate_hash,
-                );
-            }
+
+            $name //= $tree->get_free_internal_name (exclude => $translate_hash);
+
             if (exists $translate_hash->{$name}) {
                 $name = $translate_hash->{$name} ;
             }
@@ -662,16 +662,18 @@ sub parse_newick {
             $name =~ s{$quote_char$} {};
             #  and now we need to make the name use the CSV rules used everywhere else
             $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-            if ($use_element_properties) {
-                my $element = $element_properties->get_element_remapped (
-                    element => $name,
-                );
+            if ($name =~ /^$quote_char(?:[$quote_char]*)$quote_char$/) {
+                $name = substr ($name, 1);
+                chop $name;
+            }
 
-                my $original_name = $name;
+            if ($use_element_properties) {
+                my $element = $element_properties->get_element_remapped (element => $name);
 
                 if (defined $element) {
+                    my $original_name = $name;
                     $name = $element;
-                    print "$tree_name: Remapped $original_name to $element\n";
+                    say "$tree_name: Remapped $original_name to $element";
                 }
             }
 
@@ -685,15 +687,15 @@ sub parse_newick {
             );
             push @nodes_added, $node;
             #  add any relevant children
-            if (scalar @children_of_current_node) {
-                $node->add_children (children => \@children_of_current_node);
+            if (scalar @$children_of_current_node) {
+                $node->add_children (children => $children_of_current_node);
             }
             #  reset name, length and children
             $$node_count ++;
-            $name = undef;
-            $length = undef;
-            @children_of_current_node = ();
-            $boot_value = undef;
+            $name        = undef;
+            $length      = undef;
+            $boot_value  = undef;
+            $children_of_current_node = [];
         }
 
         #  use positive look-ahead to find if we start with an opening bracket
@@ -706,11 +708,13 @@ sub parse_newick {
                 #print "Eating to closing bracket\n";
                 #print "Position is " . (pos $string) . " of $str_len\n";
                 
-                @children_of_current_node = $self->parse_newick (
-                    string => $sub_newick,
-                    tree => $tree,
-                    node_count => $node_count,
+                $children_of_current_node = $self->parse_newick (
+                    string         => $sub_newick,
+                    tree           => $tree,
+                    node_count     => $node_count,
                     translate_hash => $translate_hash,
+                    csv_object     => $csv_obj,
+                    progress_bar   => $progress_bar,
                 );
             }
             else {
@@ -763,17 +767,14 @@ sub parse_newick {
             #print "length value is $1\n";
             $length = $1;
             if (! looks_like_number $length) {
-                if (!defined $length) {
-                    $length = q{};
-                }
+                $length //= q{};
                 croak "Length '$length' does not look like a number\n";
             }
             $length += 0;  #  make it numeric
-            my $x = $length;
+            #my $x = $length;
         }
 
         #  next value is a name, but it can be empty
-        #elsif ($string =~ m/ \G ( [\w\d]* )  /xgcs) {
         #  anything except special chars is fair game
         elsif ($string =~ m/ \G ( [^(),:'\[\]]* )  /xgcs) {  
             #print "found a name value $1\n";
@@ -802,10 +803,10 @@ sub parse_newick {
     
     #  the following is a duplicate of code from above, but converting to a sub uses
     #  almost as many lines as the two blocks combined
-    if (not defined $name) {
-        #print "Tree is $tree";
-        $name = $tree->get_free_internal_name (exclude => $translate_hash);
-    }
+    
+    #print "Tree is $tree";
+    $name //= $tree->get_free_internal_name (exclude => $translate_hash);
+
     if (exists $translate_hash->{$name}) {
         $name = $translate_hash->{$name};
     }
@@ -814,16 +815,20 @@ sub parse_newick {
     if (my @components = $name =~ $RE_TEXT_IN_QUOTES) {
         $name = $components[1];
     }
-    
+
     #  and now we need to make the name use the CSV rules used everywhere else
     $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-    
+    $name = $self->dequote_element (
+        element    => $name,
+        quote_char => $quote_char,
+    );
+
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);
-        my $original_name = $name;
-        $name = $element if defined $element;
         if (defined $element) {
-            print "$tree_name: Remapped $original_name to $element\n";
+            my $original_name = $name;
+            $name = $element;
+            say "$tree_name: Remapped $original_name to $element";
         }
     }
 
@@ -836,9 +841,12 @@ sub parse_newick {
     );
     
     push @nodes_added, $node;
+
     #  add any relevant children
-    $node->add_children (children => \@children_of_current_node) if scalar @children_of_current_node;
-    
+    if (scalar @$children_of_current_node) {
+        $node->add_children (children => $children_of_current_node);
+    }
+
     return wantarray ? @nodes_added : \@nodes_added;
 }
 
@@ -854,6 +862,13 @@ sub add_node_to_tree {
     my $translate_hash = $args{translate_hash};
 
 
+    if (defined $name && $tree->exists_node (name => $name)) {
+        $name = $tree->get_unique_name(
+            prefix  => $name,
+            exclude => $translate_hash,
+        );
+    }
+
   ADD_NODE_TO_TREE:
     my $node = eval {
         $tree->add_node (
@@ -862,18 +877,7 @@ sub add_node_to_tree {
             boot   => $boot,
         )
     };
-    if (Biodiverse::Tree::NodeAlreadyExists->caught) {
-        my $e = $EVAL_ERROR;
-        my $prefix = $e->name;
-        $name = $tree->get_unique_name(
-            prefix  => $prefix,
-            exclude => $translate_hash,
-        );
-        goto ADD_NODE_TO_TREE;
-    }
-    elsif ($EVAL_ERROR) {
-        croak $EVAL_ERROR;
-    }
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $node;
 }

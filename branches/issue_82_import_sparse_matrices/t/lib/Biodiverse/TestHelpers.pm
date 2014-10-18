@@ -9,12 +9,15 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
+
 
 use Data::Section::Simple qw(get_data_section);
 
 BEGIN {
-    $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+    if (!exists $ENV{BIODIVERSE_EXTENSIONS_IGNORE}) {
+        $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+    }
 }
 
 use Biodiverse::BaseData;
@@ -28,6 +31,8 @@ use File::Temp;
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
 
+my $default_prng_seed = 2345;
+
 use Exporter::Easy (
     TAGS => [
         utils  => [
@@ -40,6 +45,7 @@ use Exporter::Easy (
                 get_all_calculations
                 transform_element
                 is_or_isnt
+                isnt_deeply
             ),
         ],
         basedata => [
@@ -82,6 +88,10 @@ use Exporter::Easy (
         cluster => [
             qw (
                 get_cluster_mini_data
+                cluster_test_matrix_recycling
+                check_cluster_order_is_same_given_same_prng
+                cluster_test_linkages_and_check_replication
+                cluster_test_linkages_and_check_mx_precision
                 :basedata
                 :utils
             ),
@@ -109,6 +119,45 @@ use Exporter::Easy (
         ],
     ],
 );
+
+=item isnt_deeply
+
+Same as is_deeply except it returns false if the two structurees are the same. 
+
+Stolen from https://github.com/coryb/perl-test-trivial/blob/master/lib/Test/Trivial.pm
+
+=cut
+
+# Test::More does not have an isnt_deeply
+# so hacking one in here.
+sub isnt_deeply {
+    my ($got, $expected, $name) = @_;
+    my $tb = Test::More->builder;
+
+    $tb->_unoverload_str(\$expected, \$got);
+
+    my $ok;
+    if ( !ref $got and !ref $expected ) {
+        # no references, simple comparison
+        $ok = $tb->isnt_eq($got, $expected, $name);
+    }
+    elsif ( !ref $got xor !ref $expected ) {
+        # not same type, so they are definitely different
+        $ok = $tb->ok(1, $name);
+    }
+    else { # both references
+        local @Test::More::Data_Stack = ();
+        if ( Test::More::_deep_check($got, $expected) ) {
+            # deep check passed, so they are the same
+            $ok = $tb->ok(0, $name);
+        }
+        else {
+            $ok = $tb->ok(1, $name);
+        }
+    }
+
+    return $ok;
+}
 
 =item transform_element
 
@@ -210,25 +259,25 @@ sub compare_hash_vals {
     my %targets = (%$hash_exp, %$hash_got);
 
     if (!$not_strict) {
-        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, "Hashes are same size $descr_suffix");
 
         my %h1 = %$hash_got;
         delete @h1{keys %$hash_exp};
-        is (scalar keys %h1, 0, 'No extra keys');
+        is (scalar keys %h1, 0, "No extra keys $descr_suffix");
         if (scalar keys %h1) {
             diag 'Extra keys: ', join q{ }, sort keys %h1;
         };
 
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
-        is (scalar keys %h2, 0, 'No missing keys');
+        is (scalar keys %h2, 0, "No missing keys $descr_suffix");
         if (scalar keys %h2) {
             diag 'Missing keys: ', join q{ }, sort keys %h2;
         }
     }
     elsif (scalar keys %$hash_got == scalar keys %$hash_exp && scalar keys %$hash_exp == 0) {
         #  but if both are zero then we need to run at least one test to get a pass
-        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, "Hashes are same size $descr_suffix");
     }
 
     BY_KEY:
@@ -331,7 +380,7 @@ sub compare_arr {
 
     is (scalar @$arr_got, scalar @$arr_exp, 'Arrays are same size');
 
-    for (my $i = 0; $i != @$arr_exp; ++$i) {
+    for my $i (0 .. $#$arr_exp) {
         my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
         my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
         is ($val_got, $val_exp, "Got expected value for [$i]");
@@ -367,10 +416,10 @@ sub compare_arr_sorted {
 sub get_basedata_import_data_file {
     my %args = @_;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj $args{data} || get_basedata_test_data(@_);
-    $tmp_obj -> close;
+    $tmp_obj->close;
 
     return $tmp_obj;
 }
@@ -390,6 +439,7 @@ sub get_basedata_test_data {
     my $count = $args{count} || 0;
     my $use_rand_counts = $args{use_rand_counts};
     my $numeric_labels  = $args{numeric_labels};
+    my $label_callback  = $args{label_generator} || sub {join '_', @_};
 
     my $data;
     $data .= "label,x,y,count\n";
@@ -400,7 +450,7 @@ sub get_basedata_test_data {
             if ($use_rand_counts) {
                 $count = int (rand() * 1000);
             }
-            my $label = $numeric_labels ? $i : join '_', $i, $j;
+            my $label = $numeric_labels ? $i : $label_callback->($i, $j);
             $data .= "$label,$ii,$jj,$count\n";
         }
     }
@@ -408,8 +458,33 @@ sub get_basedata_test_data {
     return $data;
 }
 
+
+sub get_stringified_args_hash {
+    my %args = @_;
+    use Data::Dumper;
+
+    local $Data::Dumper::Purity    = 1;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Sortkeys  = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+
+    return Dumper \%args;
+}
+
+my %bd_cache;
+
 sub get_basedata_object {
     my %args = @_;
+
+    my $args_str = get_stringified_args_hash (%args);
+
+    #  caching proved not to work well since all calls were different.  
+    #{
+    #    no autovivification;
+    #    return $bd_cache{$args_str}->clone
+    #      if $bd_cache{$args_str};
+    #}
 
     my $bd_f = get_basedata_import_data_file(@_);
 
@@ -425,6 +500,8 @@ sub get_basedata_object {
         label_columns => [0],
         sample_count_columns => [3],
     );
+
+    #$bd_cache{$args_str} = $bd->clone;
 
     return $bd;
 }
@@ -496,10 +573,12 @@ sub get_tree_object {
 
     my $tree = Biodiverse::Tree->new;
     my $newick = '(((a,b),c),d)';
+    my $node_count = 0;
     my $read_nex = Biodiverse::ReadNexus->new;
     my $nodes = $read_nex->parse_newick(
         string => $newick,
         tree   => $tree,
+        node_count => \$node_count,
     );
 
     return $tree;
@@ -544,7 +623,7 @@ sub get_matrix_object_from_sample_data {
 sub write_data_to_temp_file {
     my $data = shift;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $fname = $tmp_obj->filename;
     print $tmp_obj $data;
     $tmp_obj->close;
@@ -613,7 +692,9 @@ sub element_properties_from_string {
     # (LBPROP1 => 3, LBPROP2 => 4, ...)
     my $i = 3;
     $data =~ m/^(.*)$/m;
-    my @prop_names = split ',', $1;
+    my $tmp = $1;
+    $tmp =~ s/[\r\n]+$//;  #  clear any lurking \n or \r chars due to mixed line endings
+    my @prop_names = split ',', $tmp;
     my %prop_cols = map { $_ => $i++; } @prop_names[3..$#prop_names];
 
     my $success = eval { $props->import_data (
@@ -641,7 +722,9 @@ sub run_indices_test1 {
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
-    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.  
+    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
+    my $descr_suffix           = $args{descr_suffix} // '';
+    my $processing_element     = $args{processing_element} // '3350000:850000';
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -671,6 +754,16 @@ sub run_indices_test1 {
             %bd_args,
         );
 
+    if ($args{nbr_set2_sp_select_all}) {
+        #  get all groups, but ensure no overlap with NS1
+        my $gps = $bd->get_groups;
+        my %el_hash;
+        @el_hash{@$element_list1} = (1) x @$element_list1;
+        say scalar @$gps;
+        $element_list2 = [grep {!$el_hash{$_}} @$gps];
+        say scalar @$element_list2;
+    }
+    
     my $tree = get_tree_object_from_sample_data();
 
     my $matrix = get_matrix_object_from_sample_data();
@@ -744,14 +837,22 @@ sub run_indices_test1 {
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
     if ($calc_topic_to_test) {
-        my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
+        if (!ref $calc_topic_to_test) {
+            $calc_topic_to_test = [$calc_topic_to_test];
+        }
+        my @expected_calcs_to_test;
+        foreach my $topic (@$calc_topic_to_test) {
+            my $calcs = $indices->get_calculations->{$topic};
+            push @expected_calcs_to_test, @$calcs;
+        }
 
-        subtest 'Right calculations are being tested' => sub {
+        subtest 'Correct calculations are being tested' => sub {
             compare_arr_vals (
                 arr_got => $calcs_to_test,
-                arr_exp => $expected_calcs_to_test
-            )
+                arr_exp => \@expected_calcs_to_test,
+            );
         };
+        
     }
 
     my %elements = (
@@ -765,7 +866,10 @@ sub run_indices_test1 {
         prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
         nri_nti_iterations => $args{nri_nti_iterations},
         mpd_mntd_use_binomial => $args{mpd_mntd_use_binomial},
+        processing_element    => $processing_element,
     };
+
+    my %results_by_nbr_list;
 
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
@@ -802,7 +906,7 @@ sub run_indices_test1 {
                 hash_got => \%results,
                 hash_exp => \%{$expected},
                 no_strict_match  => $args{no_strict_match},
-                descr_suffix     => "$nbr_list_count nbr sets",
+                descr_suffix     => "$nbr_list_count nbr sets " . $descr_suffix,
                 sort_array_lists => $sort_array_lists,
                 precision        => $precision,
             );
@@ -810,7 +914,10 @@ sub run_indices_test1 {
 
         print_indices_result_set_to_fh ($generate_result_sets, \%results, $nbr_list_count);
 
+        $results_by_nbr_list{$nbr_list_count} = \%results;
     }
+    
+    return \%results_by_nbr_list;
 }
 
 #  put the results sets into a file
@@ -850,6 +957,7 @@ sub print_indices_result_set_to_fh {
     $argv .= " -pbp";     # Format according to perl best practices
     $argv .= " -nst";     # Must turn off -st in case -pbp is specified
     $argv .= " -se";      # -se appends the errorfile to stderr
+    $argv .= " -no-log";  # Don't write the log file
 
     my $error = Perl::Tidy::perltidy(
         argv        => $argv,
@@ -860,8 +968,8 @@ sub print_indices_result_set_to_fh {
         ##phasers   => 'stun',                # uncomment to trigger an error
     );
 
-    say {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
-    say {$fh} $dest_string;
+    say   {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
+    say   {$fh} $dest_string;
     print {$fh} "\n";
     #say '#' x 20;
 
@@ -934,17 +1042,16 @@ sub run_indices_test1_inner {
     %results = eval {
         $indices->run_calculations(%$calc_args, %elements);
     };
-
     $e = $EVAL_ERROR;
-    diag $e if $e;
-    ok (!$e, "Ran calculations without eval error");
+    note $e if $e;
+    ok (!$e, "Ran calculations without eval error, $nbr_list_count nbrs");
 
     eval {
         $indices->run_postcalc_globals(%$calc_args);
     };
     $e = $EVAL_ERROR;
     note $e if $e;
-    ok (!$e, "Ran global postcalcs without eval error");
+    ok (!$e, "Ran global postcalcs without eval error, $nbr_list_count nbrs");
 
 
     my $pass = is_deeply (
@@ -1061,9 +1168,21 @@ sub run_sp_cond_tests {
 
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
-    my $index_text = q{};
+    my $index_text = ' (no spatial index)';
 
-    foreach my $i (1 .. 3) {
+    foreach my $i (0 .. 2) {
+
+        if ($i) {
+            my @index_res;
+            foreach my $r (@$res) {
+                push @index_res, $r * $i;
+            }
+            $index = $bd->build_spatial_index (
+                resolutions => [@index_res],
+                version     => $index_version,
+            );
+            $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
+        }
 
         foreach my $condition (sort keys %$conditions) {
             my $expected = $conditions->{$condition};
@@ -1105,15 +1224,6 @@ sub run_sp_cond_tests {
             is (keys %$nbrs, $expected, $cond . $index_text);
         }
 
-        my @index_res;
-        foreach my $r (@$res) {
-            push @index_res, $r * $i;
-        }
-        $index = $bd->build_spatial_index (
-            resolutions => [@index_res],
-            version     => $index_version,
-        );
-        $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 
     return;
@@ -1128,7 +1238,7 @@ sub test_sp_cond_res_pairs {
     {
         while (my $cond = shift @res_pairs) {
             my $res = $cond->{res};
-            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);  #  max is 29+min
             my @y   = @x;
             my $bd = get_basedata_object(
                 x_spacing  => $res->[0],
@@ -1175,6 +1285,268 @@ sub get_sp_conditions_to_run {
     }
 
     return wantarray ? %$conditions_to_run : $conditions_to_run;
+}
+
+
+#  need to add tie breaker
+sub check_cluster_order_is_same_given_same_prng {
+    my %args = @_;
+    my $bd = $args{basedata_ref};
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $prng_seed = $args{prng_seed} || $default_prng_seed;
+    
+    my $cl1 = $bd->add_output (name => 'cl1 with prng seed', type => $type);
+    my $cl2 = $bd->add_output (name => 'cl2 with prng seed', type => $type);
+    my $cl3 = $bd->add_output (name => 'cl3 with prng seed+1', type => $type);
+    
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl3->run_analysis (
+        prng_seed => $prng_seed + 1,  #  different prng
+    );
+    
+    #my $newick1 = $cl1->to_newick;
+    #my $newick2 = $cl2->to_newick;
+    #my $newick3 = $cl3->to_newick;
+    #is   ($newick1, $newick2, 'trees are the same');
+    #isnt ($newick1, $newick3, 'trees are not the same');
+    
+    my $cmp2 = $cl1->trees_are_same (comparison => $cl2);
+    my $cmp3 = $cl1->trees_are_same (comparison => $cl3);
+
+    ok ($cmp2,  'trees are the same given same PRNG seed');
+    ok (!$cmp3, 'trees are not the same given different PRNG seed');
+}
+
+#  Need to use an index that needs arguments
+#  so we exercise the whole shebang.
+sub cluster_test_matrix_recycling {
+    my %args = @_;
+    my $type  = $args{type}  // 'Biodiverse::Cluster';
+    my $index = $args{index} // 'SORENSON';
+    my $tie_breaker = exists $args{tie_breaker}  #  use undef if the user passed the arg key
+        ? $args{tie_breaker}
+        : [ENDW_WE => 'maximise', PD => 'maximise', ABC3_SUM_ALL => 'maximise', none => 'maximise'];  #  we will fail if random tiebreaker is use
+        #: [ENDW_WE => 'max', PD => 'max'];
+        #: [RICHNESS_ALL => 'max', PD => 'max'];
+        #: [random => 'max', PD => 'max'];
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+    my $tree_ref  = get_tree_object_from_sample_data();
+
+    my %analysis_args = (
+        %args,
+        tree_ref    => $tree_ref,
+        index       => $index,
+        cluster_tie_breaker => $tie_breaker,
+        #prng_seed   => $default_prng_seed,  #  should not need this when using appropriate tie breakers
+    );
+    
+    my $cl1 = $bd->add_output (name => 'cl1 mx recyc', type => $type);
+    $cl1->run_analysis (%analysis_args);
+
+    my $cl2 = $bd->add_output (name => 'cl2 mx recyc', type => $type);
+    $cl2->run_analysis (%analysis_args);
+
+    if ($cl1->get_type eq 'RegionGrower') {
+        #  we should have no negative branch lengths
+        my %nodes = $cl1->get_node_hash;
+        my $neg_count = grep {$_->get_length < 0} values %nodes;
+        is ($neg_count, 0, 'No negative branch lengths');
+    }
+    
+    ok (
+        $cl1->trees_are_same (comparison => $cl2),
+        'Clustering using reycled matrices'
+    );
+
+    my $cl3 = $bd->add_output (name => 'cl3 mx recyc', type => $type);
+    $cl3->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl3),
+        'Clustering using reycled matrices, 2nd time round'
+    );
+
+#$bd->save (filename => 'check.bds');
+    
+    my $mx_ref1 = $cl1->get_orig_matrices;
+    my $mx_ref2 = $cl2->get_orig_matrices;
+    my $mx_ref3 = $cl3->get_orig_matrices;
+
+    is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
+    is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
+
+    #  now check what happens when we destroy the matrix in the clustering
+    $bd->delete_all_outputs;
+
+    my $cl4 = $bd->add_output (name => 'cl4 mx recyc', type => $type);
+    $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
+
+    my $cl5 = $bd->add_output (name => 'cl5 mx recyc', type => $type);
+    $cl5->run_analysis (%analysis_args);
+
+    ok (
+        $cl4->trees_are_same (comparison => $cl5),
+        'Clustering using reycled matrices when matrix is destroyed in clustering'
+    );
+
+    my $mx_ref4 = $cl4->get_orig_matrices;
+    my $mx_ref5 = $cl5->get_orig_matrices;
+    isnt ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
+    isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
+    isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
+    
+    #  now we try with a combination of spatial condition and def query
+    $bd->delete_all_outputs;
+
+    my $cl6 = $bd->add_output (name => 'cl6 mx recyc', type => $type);
+    $cl6->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+
+    my $cl7 = $bd->add_output (name => 'cl7 mx recyc', type => $type);
+    $cl7->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+
+    my $mx_ref6 = $cl6->get_orig_matrices;
+    my $mx_ref7 = $cl7->get_orig_matrices;
+    isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
+    
+    my $cl8 = $bd->add_output (name => 'cl8 mx recyc', type => $type);
+    $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+    my $mx_ref8 = $cl8->get_orig_matrices;
+    is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
+
+    my $cl9 = $bd->add_output (name => 'cl9 mx recyc', type => $type);
+    $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+    my $mx_ref9 = $cl9->get_orig_matrices;
+    is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');
+
+}
+
+sub cluster_test_linkages_and_check_mx_precision {
+    my %args = @_;
+    #  make sure we get the same cluster result using different matrix precisions
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = 'random';
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $prng_seed = 123456;
+        $bd->delete_all_outputs();
+
+        my $class1 = 'Biodiverse::Matrix';
+        my $cl1 = $bd->add_output (
+            name => "$class1 $linkage 1",
+            type => $type,
+            MATRIX_CLASS        => $class1,
+        );
+        $cl1->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk1 = $cl1->to_newick;
+
+        #  make sure we build a new matrix
+        $bd->delete_all_outputs();
+
+        my $cl2 = $bd->add_output (
+            name => "$class1 $linkage 2",
+            type => $type,
+            MATRIX_CLASS           => $class1,
+            MATRIX_INDEX_PRECISION => undef,
+        );
+        $cl2->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk2 = $cl2->to_newick;
+
+        #  getting cache deletion issues - need to look into them before using this test
+        ok (
+            $cl1->trees_are_same (
+                comparison => $cl2,
+            ),
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+
+        #  this test will likely have issues with v5.18 and hash randomisation
+        SKIP:
+        {
+            skip 'this test will likely have issues with v5.18 and hash randomisation', 1;
+            is (
+                $nwk1,
+                $nwk2,
+                "nwk: Clustering using matrices with differing index precisions, linkage $linkage"
+            );
+        }
+        #print join "\n", ('======') x 4;
+        #say "$linkage $nwk1";
+        #print join "\n", ('======') x 4;
+    }
+}
+
+
+sub get_cluster_linkages {
+    my @linkages = qw /
+        link_average
+        link_recalculate
+        link_minimum
+        link_maximum
+        link_average_unweighted
+    /;
+
+    return wantarray ? @linkages : \@linkages;
+}
+
+sub cluster_test_linkages_and_check_replication {
+    my %args = (delete_outputs => 1, @_);
+
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+    my @tie_breaker   = (ENDW_WE => 'max', ABC3_SUM_ALL => 'max');
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
+    my $bd2 = $bd1->clone;
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $cl1 = $bd1->add_output (name => $linkage, type => $type);
+        $cl1->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [@tie_breaker],
+        );
+        my $cl2 = $bd2->add_output (name => $linkage, type => $type);
+        $cl2->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [@tie_breaker],
+        );
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $are_same = $cl1->trees_are_same (comparison => $cl2);
+        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl1->trees_are_same (
+            comparison     => $cl2,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
+        );
+
+        if ($args{delete_outputs}) {
+            $bd1->delete_all_outputs;
+            $bd2->delete_all_outputs;
+        }
+    }
 }
 
 
@@ -5815,5 +6187,6 @@ LGPL
 =head1 SEE ALSO
 
 See http://www.purl.org/biodiverse for more details.
+
 
 

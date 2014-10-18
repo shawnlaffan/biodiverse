@@ -3,7 +3,7 @@ package Biodiverse::Statistics;
 use strict;
 use warnings;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Carp;
 

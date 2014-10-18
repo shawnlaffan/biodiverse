@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 #use Statistics::Descriptive;
 #my $stats_class = 'Statistics::Descriptive::Full';
@@ -15,6 +15,7 @@ our $VERSION = '0.19';
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 ######################################################
 #
@@ -23,7 +24,7 @@ my $stats_class = 'Biodiverse::Statistics';
 
 sub get_metadata_calc_matrix_stats {
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Matrix statistics',
         description     => 'Calculate summary statistics of matrix elements'
                             . ' in the selected matrix for labels found'
@@ -58,7 +59,7 @@ sub get_metadata_calc_matrix_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_matrix_stats {
@@ -134,7 +135,7 @@ sub calc_matrix_stats {
 sub get_metadata_calc_compare_dissim_matrix_values {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Compare dissimilarity matrix values',
         description     => q{Compare the set of labels in one neighbour set with those in another }
                            . q{using their matrix values. Labels not in the matrix are ignored. }
@@ -171,7 +172,7 @@ sub get_metadata_calc_compare_dissim_matrix_values {
         },
     );  #  add to if needed
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
     
 }
 

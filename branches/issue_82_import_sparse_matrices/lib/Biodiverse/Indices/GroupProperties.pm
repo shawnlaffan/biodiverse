@@ -8,19 +8,21 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
-use Data::Dumper;
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+
+#use Data::Dumper;
 
 sub get_metadata_get_gpp_stats_objects {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
+    my $desc = 'Get the stats object for the group property values'
              . " across both neighbour sets\n";
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property stats objects',
         type            => 'Element Properties',
@@ -33,7 +35,7 @@ sub get_metadata_get_gpp_stats_objects {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_gpp_stats_objects {
@@ -145,7 +147,7 @@ sub get_metadata_calc_gpprop_lists {
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property data',
         type            => 'Element Properties',
@@ -154,7 +156,7 @@ sub get_metadata_calc_gpprop_lists {
         indices         => \%indices,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_gpprop_lists {
@@ -191,7 +193,7 @@ sub get_metadata_calc_gpprop_hashes {
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property hashes',
         type            => 'Element Properties',
@@ -202,7 +204,7 @@ sub get_metadata_calc_gpprop_hashes {
     
     #print Data::Dumper::Dump \%arguments;
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -240,7 +242,7 @@ sub get_metadata_calc_gpprop_stats {
     my $desc = 'List of summary statistics for each group property across both neighbour sets';
     my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property summary stats',
         type            => 'Element Properties',
@@ -254,7 +256,7 @@ sub get_metadata_calc_gpprop_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_gpprop_stats {
@@ -291,7 +293,7 @@ sub get_metadata_calc_gpprop_quantiles {
     my $desc = 'Quantiles for each group property across both neighbour sets';
     my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property quantiles',
         type            => 'Element Properties',
@@ -305,7 +307,7 @@ sub get_metadata_calc_gpprop_quantiles {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_gpprop_quantiles {
@@ -336,7 +338,7 @@ sub get_metadata_calc_gpprop_gistar {
     my $desc = 'List of Getis-Ord Gi* statistics for each group property across both neighbour sets';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Group property Gi* statistics',
         type            => 'Element Properties',
@@ -352,7 +354,7 @@ sub get_metadata_calc_gpprop_gistar {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_gpprop_gistar {
@@ -418,7 +420,7 @@ sub get_metadata__get_gpprop_global_summary_stats {
     
     my $descr = 'Global summary stats for group properties';
 
-    my %arguments = (
+    my %metadata = (
         description     => $descr,
         name            => $descr,
         type            => 'Element Properties',
@@ -429,7 +431,7 @@ sub get_metadata__get_gpprop_global_summary_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _get_gpprop_global_summary_stats {

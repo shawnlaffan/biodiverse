@@ -12,7 +12,7 @@ use Biodiverse::GUI::Export;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
 
@@ -466,5 +466,8 @@ sub on_delete {
     return;
 }
 
+#  ignore keyboard events for now (was triggering when exporting outputs)
+sub on_bare_key {}
 
 1;
+

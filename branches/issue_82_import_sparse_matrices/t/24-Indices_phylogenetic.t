@@ -22,29 +22,31 @@ use Biodiverse::TestHelpers qw{
 };
 
 my @calcs = qw/
+    calc_pe_central_cwe
     calc_count_labels_on_tree
     calc_labels_not_on_tree
     calc_labels_on_tree
     calc_pd
+    calc_pd_clade_contributions
+    calc_pd_clade_loss
+    calc_pd_clade_loss_ancestral
     calc_pd_endemism
     calc_pd_node_list
     calc_pd_terminal_node_count
     calc_pd_terminal_node_list
     calc_pe
-    calc_pe_clade_loss
+    calc_pe_central
+    calc_pe_central_lists
     calc_pe_clade_contributions
+    calc_pe_clade_loss
     calc_pe_clade_loss_ancestral
     calc_pe_lists
     calc_pe_single
-    calc_phylo_abc
     calc_phylo_aed
     calc_phylo_aed_t
     calc_phylo_aed_t_wtlists
     calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
-    calc_phylo_jaccard
-    calc_phylo_s2
-    calc_phylo_sorenson
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
 /;
@@ -65,13 +67,11 @@ sub main {
         return 0;
     }
 
-
     test_indices();
-    #test_calc_phylo_aed();
     test_extra_labels_in_bd();
     test_sum_to_pd();
     test_pe_with_extra_nodes_in_tree();
-
+    test_pe_central_and_whole();
     
     done_testing;
     return 0;
@@ -80,10 +80,191 @@ sub main {
 sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
-        calc_topic_to_test => 'Phylogenetic Indices',
+        calc_topic_to_test => ['Phylogenetic Indices', 'Phylogenetic Endemism'],
         generate_result_sets => $generate_result_sets,
     );
 }
+
+
+
+sub test_pe_central_and_whole {
+    my @calcs = qw/
+        calc_pe
+        calc_pe_lists
+        calc_pe_central
+        calc_pe_central_lists
+        calc_phylo_corrected_weighted_endemism
+        calc_pe_central_cwe
+        calc_pd
+    /;
+
+    #  should derive from metadata
+    my %scalar_indices_to_check;
+    foreach my $whole (qw /PE_WE PE_WE_P PE_CWE/) {
+        my $central = $whole;
+        $central =~ s/^PE/PEC/;
+        $scalar_indices_to_check{$whole} = $central;
+    }
+    $scalar_indices_to_check{PD} = 'PEC_CWE_PD';
+    my %list_indices_to_check;
+    foreach my $whole (qw /PE_WTLIST PE_LOCAL_RANGELIST PE_RANGELIST/) {
+        my $central = $whole;
+        $central =~ s/^PE/PEC/;
+        $list_indices_to_check{$whole} = $central;
+    }
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    $bd->build_spatial_index(resolutions => [200000, 200000]);
+
+    #  should ad a def query since we don't need the full set of results
+    my $sp1 = $bd->add_spatial_output (name => 'PE should be the same');
+    $sp1->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_circle(radius => 200000)'],
+        tree_ref           => $tree,
+    );
+
+    my ($sp1_res_w, $sp1_res_c) = get_pe_check_hashes (
+        $sp1,
+        \%scalar_indices_to_check,
+        \%list_indices_to_check,
+    );
+
+    is_deeply (
+        $sp1_res_w,
+        $sp1_res_c,
+        'PE whole and central indices the same for one neighour set',
+    );
+
+    my $sp2 = $bd->add_spatial_output (name => 'PE should not be the same');
+    $sp2->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 400000)'],
+        tree_ref           => $tree,
+    );
+
+    #  no guarantees that the phylo CWE scores will be smaller for the central variant
+    delete @scalar_indices_to_check{qw/PEC_CWE PE_CWE PD/};
+
+    my ($sp2_res_w, $sp2_res_c) = get_pe_check_hashes (
+        $sp2,
+        \%scalar_indices_to_check,
+        \%list_indices_to_check,
+    );
+
+    isnt_deeply (
+        $sp2_res_w,
+        $sp2_res_c,
+        'PE whole and central indices are not the same for two neighour sets',
+    );
+
+    #  need to check the central results are <= the whole results and ranges are the same
+    subtest 'PE_C <= PE_W' => sub {
+        foreach my $elt (sort keys %$sp2_res_w) {
+            my $w_hash = $sp2_res_w->{$elt};
+            my $c_hash = $sp2_res_c->{$elt};
+            foreach my $index (sort keys %$w_hash) {
+                my $reftype = ref ($w_hash->{$index});
+                if (!$reftype) {
+                    ok (
+                        $c_hash->{$index} <= $w_hash->{$index},
+                        "$index: central <= whole",
+                    );
+                }
+                else {
+                    my $w_h_ref = $w_hash->{$index};
+                    my $c_h_ref = $c_hash->{$index};
+                    ok (
+                        scalar keys %$c_h_ref <= scalar keys %$w_h_ref,
+                        "$index key count: central <= whole",
+                    );
+                    #  ranges should be ==, weights <=
+                    if ($index =~ /RANGE/) {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} == $w_h_ref->{$key},
+                                "$index->\{$key}: central == whole",
+                            );
+                        }
+                    }
+                    else {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} <= $w_h_ref->{$key},
+                                "$index->\{$key}: central <= whole",
+                            );
+                        }
+                    }
+                }
+            }
+
+        }
+    };
+
+    #  now cross check that PEC_WE = sum (values PEC_WTLIST)
+    subtest 'PEC_WE = sum (values PEC_WTLIST)' => sub {
+        my $sp = $sp2;
+        my $elts = $sp->get_element_list;
+
+        foreach my $elt (@$elts) {
+            my $sp_results_list = $sp->get_list_ref (
+                list    => 'SPATIAL_RESULTS',
+                element => $elt,
+            );
+            my $wt_list = $sp->get_list_ref (
+                list    => 'PEC_WTLIST',
+                element => $elt,
+            );
+            my $v1 = sprintf '%14f', $sp_results_list->{PEC_WE};
+            my $v2 = sprintf '%14f', sum (values %$wt_list);
+            is ($v1, $v2, $elt);
+        }
+    };
+
+    return;
+}
+
+
+sub get_pe_check_hashes {
+    my ($sp, $scalar_indices_to_check, $list_indices_to_check) = @_;
+
+    my (%sp_res_w, %sp_res_c);
+
+    my $elts = $sp->get_element_list;
+
+    foreach my $elt (@$elts) {
+        my $results_list = $sp->get_list_ref (
+            list    => 'SPATIAL_RESULTS',
+            element => $elt,
+        );
+        foreach my $idx_whole (sort keys %$scalar_indices_to_check) {
+            my $idx_central = $scalar_indices_to_check->{$idx_whole};
+            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_whole};
+            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_central};
+        }
+
+        foreach my $idx_whole (sort keys %$list_indices_to_check) {
+            my $idx_central = $list_indices_to_check->{$idx_whole};
+            my $results_list_w = $sp->get_list_ref (
+                list    => $idx_whole,
+                element => $elt,
+            );
+            my $results_list_c = $sp->get_list_ref (
+                list    => $idx_central,
+                element => $elt,
+            );
+            #  don't sprintf these - they are lists
+            $sp_res_w{$elt}{$idx_whole} = $results_list_w;
+            $sp_res_c{$elt}{$idx_whole} = $results_list_c;
+        }
+    }
+
+    return \%sp_res_w, \%sp_res_c;
+}
+
 
 sub test_sum_to_pd {
     #  these indices should sum to PD when all groups are used in the analysis
@@ -141,7 +322,6 @@ sub test_sum_to_pd {
         my $sum  = sum values %$list;
         is ($sum, 1, "$list_name sums to 1, sp_select_all()");
     }
-    
 
     #  should also do an sp_self_only and then sum the values across all elements
     $sp = $bd->add_spatial_output (name => 'should sum to PD, self_only');
@@ -150,7 +330,7 @@ sub test_sum_to_pd {
         spatial_conditions => ['sp_self_only()'],
         tree_ref           => $tree,
     );
-    
+
     my %sums;
     foreach my $element (@$elts) {
         my $results_list = $sp->get_list_ref (
@@ -229,19 +409,33 @@ sub test_extra_labels_in_bd {
     
 }
 
+
 #  check we trim the tree properly
 sub test_pe_with_extra_nodes_in_tree {
     my $cb = sub {
         my %args = @_;
         my $tree = $args{tree_ref};
         my $root = $tree->get_root_node;
-        $root->add_children (children => [qw /node1 node2/]);
+        use Biodiverse::TreeNode;
+        my $node1 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 1',
+            length => 1,
+        );
+        my $node2 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 2',
+            length => 1,
+        );
+        $root->add_children (children => [$node1, $node2]);
+        #  add it to the Biodiverse::Tree object as well so the trimming works
+        $tree->add_node (node_ref => $node1);
+        $tree->add_node (node_ref => $node2);
     };
 
     my @calcs_to_test = qw/
         calc_pe_clade_contributions
         calc_pe_lists
         calc_pe_single
+        calc_pe
     /;
 
     run_indices_test1 (
@@ -259,8 +453,297 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{   PD                    => '9.55665348225732',
+{   PD             => '9.55665348225732',
+    PD_CLADE_CONTR => {
+        '30___'      => '0.07091000411',
+        '31___'      => '0.13149055874',
+        '32___'      => '0.21356560912',
+        '33___'      => '0.30160886872',
+        '34___'      => '0.14036282951',
+        '35___'      => '0.44542420069',
+        '36___'      => '0.09636040446',
+        '37___'      => '0.15899646641',
+        '38___'      => '0.22448270999',
+        '39___'      => '0.30803974509',
+        '41___'      => '0.31597847204',
+        '42___'      => '0.76741890888',
+        '44___'      => '0.09751199821',
+        '45___'      => '0.86769304169',
+        '49___'      => '0.86983053519',
+        '50___'      => '0.86995769669',
+        '51___'      => '0.12869857276',
+        '52___'      => '0.99896088712',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp1'  => '0.06058055464',
+        'Genus:sp10' => '0.08207505038',
+        'Genus:sp11' => '0.05086512627',
+        'Genus:sp12' => '0.06548624358',
+        'Genus:sp15' => '0.06058055464',
+        'Genus:sp20' => '0.05231956991',
+        'Genus:sp23' => '0.04549527819',
+        'Genus:sp24' => '0.02615978496',
+        'Genus:sp25' => '0.02615978496',
+        'Genus:sp26' => '0.05231956991',
+        'Genus:sp27' => '0.06975942655',
+        'Genus:sp29' => '0.06263606195',
+        'Genus:sp30' => '0.04549527819',
+        'Genus:sp5'  => '0.0627834839'
+    },
+    PD_CLADE_CONTR_P => {
+        '30___'      => '0.03199200244',
+        '31___'      => '0.05932373477',
+        '32___'      => '0.09635299805',
+        '33___'      => '0.13607489923',
+        '34___'      => '0.0633265791',
+        '35___'      => '0.20095912127',
+        '36___'      => '0.04347429299',
+        '37___'      => '0.0717333951',
+        '38___'      => '0.101278395',
+        '39___'      => '0.13897627564',
+        '41___'      => '0.14255793912',
+        '42___'      => '0.34623136627',
+        '44___'      => '0.04399385',
+        '45___'      => '0.39147139047',
+        '49___'      => '0.39243574942',
+        '50___'      => '0.39249312004',
+        '51___'      => '0.05806409273',
+        '52___'      => '0.45069464512',
+        '58___'      => '0.45116345488',
+        '59___'      => '0.45116345488',
+        'Genus:sp1'  => '0.02733173233',
+        'Genus:sp10' => '0.03702926329',
+        'Genus:sp11' => '0.0229484861',
+        'Genus:sp12' => '0.0295449999',
+        'Genus:sp15' => '0.02733173233',
+        'Genus:sp20' => '0.02360467792',
+        'Genus:sp23' => '0.02052580689',
+        'Genus:sp24' => '0.01180233896',
+        'Genus:sp25' => '0.01180233896',
+        'Genus:sp26' => '0.02360467792',
+        'Genus:sp27' => '0.03147290389',
+        'Genus:sp29' => '0.02825910211',
+        'Genus:sp30' => '0.02052580689',
+        'Genus:sp5'  => '0.0283256135'
+    },
+    PD_CLADE_LOSS_ANC => {
+        '30___'      => '0',
+        '31___'      => '0',
+        '32___'      => '0',
+        '33___'      => '0',
+        '34___'      => '0',
+        '35___'      => '0',
+        '36___'      => '0',
+        '37___'      => '0',
+        '38___'      => '0',
+        '39___'      => '0.0758676625937378',
+        '41___'      => '0',
+        '42___'      => '0',
+        '44___'      => '0',
+        '45___'      => '0.021642523058544',
+        '49___'      => '0.00121523842637217',
+        '50___'      => '0',
+        '51___'      => '0',
+        '52___'      => '0.00993044169650226',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp1'  => '0',
+        'Genus:sp10' => '0',
+        'Genus:sp11' => '0',
+        'Genus:sp12' => '0',
+        'Genus:sp15' => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp23' => '0',
+        'Genus:sp24' => '0',
+        'Genus:sp25' => '0',
+        'Genus:sp26' => '0',
+        'Genus:sp27' => '0.265221710543839',
+        'Genus:sp29' => '0',
+        'Genus:sp30' => '0',
+        'Genus:sp5'  => '0.077662337662338'
+    },
+    PD_CLADE_LOSS_ANC_P => {
+        '30___'      => '0',
+        '31___'      => '0',
+        '32___'      => '0',
+        '33___'      => '0',
+        '34___'      => '0',
+        '35___'      => '0',
+        '36___'      => '0',
+        '37___'      => '0',
+        '38___'      => '0',
+        '39___'      => '0.0251242652800147',
+        '41___'      => '0',
+        '42___'      => '0',
+        '44___'      => '0',
+        '45___'      => '0.00260317829835918',
+        '49___'      => '0.000146169755268683',
+        '50___'      => '0',
+        '51___'      => '0',
+        '52___'      => '0.00103911287721574',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp1'  => '0',
+        'Genus:sp10' => '0',
+        'Genus:sp11' => '0',
+        'Genus:sp12' => '0',
+        'Genus:sp15' => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp23' => '0',
+        'Genus:sp24' => '0',
+        'Genus:sp25' => '0',
+        'Genus:sp26' => '0',
+        'Genus:sp27' => '0.284606737276569',
+        'Genus:sp29' => '0',
+        'Genus:sp30' => '0',
+        'Genus:sp5'  => '0.114603296282101'
+    },
+    PD_CLADE_LOSS_CONTR => {
+        '30___'      => '0.07091000411',
+        '31___'      => '0.13149055874',
+        '32___'      => '0.21356560912',
+        '33___'      => '0.30160886872',
+        '34___'      => '0.14036282951',
+        '35___'      => '0.44542420069',
+        '36___'      => '0.09636040446',
+        '37___'      => '0.15899646641',
+        '38___'      => '0.22448270999',
+        '39___'      => '0.31597847204',
+        '41___'      => '0.31597847204',
+        '42___'      => '0.76741890888',
+        '44___'      => '0.09751199821',
+        '45___'      => '0.86995769669',
+        '49___'      => '0.86995769669',
+        '50___'      => '0.86995769669',
+        '51___'      => '0.12869857276',
+        '52___'      => '1',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp1'  => '0.06058055464',
+        'Genus:sp10' => '0.08207505038',
+        'Genus:sp11' => '0.05086512627',
+        'Genus:sp12' => '0.06548624358',
+        'Genus:sp15' => '0.06058055464',
+        'Genus:sp20' => '0.05231956991',
+        'Genus:sp23' => '0.04549527819',
+        'Genus:sp24' => '0.02615978496',
+        'Genus:sp25' => '0.02615978496',
+        'Genus:sp26' => '0.05231956991',
+        'Genus:sp27' => '0.09751199821',
+        'Genus:sp29' => '0.06263606195',
+        'Genus:sp30' => '0.04549527819',
+        'Genus:sp5'  => '0.07091000411'
+    },
+    PD_CLADE_LOSS_CONTR_P => {
+        '30___'      => '0.03199200244',
+        '31___'      => '0.05932373477',
+        '32___'      => '0.09635299805',
+        '33___'      => '0.13607489923',
+        '34___'      => '0.0633265791',
+        '35___'      => '0.20095912127',
+        '36___'      => '0.04347429299',
+        '37___'      => '0.0717333951',
+        '38___'      => '0.101278395',
+        '39___'      => '0.14255793912',
+        '41___'      => '0.14255793912',
+        '42___'      => '0.34623136627',
+        '44___'      => '0.04399385',
+        '45___'      => '0.39249312004',
+        '49___'      => '0.39249312004',
+        '50___'      => '0.39249312004',
+        '51___'      => '0.05806409273',
+        '52___'      => '0.45116345488',
+        '58___'      => '0.45116345488',
+        '59___'      => '0.45116345488',
+        'Genus:sp1'  => '0.02733173233',
+        'Genus:sp10' => '0.03702926329',
+        'Genus:sp11' => '0.0229484861',
+        'Genus:sp12' => '0.0295449999',
+        'Genus:sp15' => '0.02733173233',
+        'Genus:sp20' => '0.02360467792',
+        'Genus:sp23' => '0.02052580689',
+        'Genus:sp24' => '0.01180233896',
+        'Genus:sp25' => '0.01180233896',
+        'Genus:sp26' => '0.02360467792',
+        'Genus:sp27' => '0.04399385',
+        'Genus:sp29' => '0.02825910211',
+        'Genus:sp30' => '0.02052580689',
+        'Genus:sp5'  => '0.03199200244'
+    },
+    PD_CLADE_LOSS_SCORE => {
+        '30___'      => '0.677662337662338',
+        '31___'      => '1.25660970608339',
+        '32___'      => '2.04097252208995',
+        '33___'      => '2.88237144552411',
+        '34___'      => '1.34139892343415',
+        '35___'      => '4.25676473855887',
+        '36___'      => '0.920882994796038',
+        '37___'      => '1.51947413437078',
+        '38___'      => '2.14530347215134',
+        '39___'      => '3.0196967651861',
+        '41___'      => '3.0196967651861',
+        '42___'      => '7.33395658792072',
+        '44___'      => '0.931888377210506',
+        '45___'      => '8.31388425148809',
+        '49___'      => '8.31388425148809',
+        '50___'      => '8.31388425148809',
+        '51___'      => '1.22992766356737',
+        '52___'      => '9.55665348225732',
+        '58___'      => '9.55665348225732',
+        '59___'      => '9.55665348225732',
+        'Genus:sp1'  => '0.578947368421053',
+        'Genus:sp10' => '0.784362816006563',
+        'Genus:sp11' => '0.486100386100386',
+        'Genus:sp12' => '0.625829337780557',
+        'Genus:sp15' => '0.578947368421053',
+        'Genus:sp20' => '0.5',
+        'Genus:sp23' => '0.434782608695652',
+        'Genus:sp24' => '0.25',
+        'Genus:sp25' => '0.25',
+        'Genus:sp26' => '0.5',
+        'Genus:sp27' => '0.931888377210506',
+        'Genus:sp29' => '0.598591139574746',
+        'Genus:sp30' => '0.434782608695652',
+        'Genus:sp5'  => '0.677662337662338'
+    },
+    PD_CLADE_SCORE => {
+        '30___'      => '0.677662337662338',
+        '31___'      => '1.25660970608339',
+        '32___'      => '2.04097252208995',
+        '33___'      => '2.88237144552411',
+        '34___'      => '1.34139892343415',
+        '35___'      => '4.25676473855887',
+        '36___'      => '0.920882994796038',
+        '37___'      => '1.51947413437078',
+        '38___'      => '2.14530347215134',
+        '39___'      => '2.94382910259237',
+        '41___'      => '3.0196967651861',
+        '42___'      => '7.33395658792072',
+        '44___'      => '0.931888377210506',
+        '45___'      => '8.29224172842954',
+        '49___'      => '8.31266901306171',
+        '50___'      => '8.31388425148809',
+        '51___'      => '1.22992766356737',
+        '52___'      => '9.54672304056082',
+        '58___'      => '9.55665348225732',
+        '59___'      => '9.55665348225732',
+        'Genus:sp1'  => '0.578947368421053',
+        'Genus:sp10' => '0.784362816006563',
+        'Genus:sp11' => '0.486100386100386',
+        'Genus:sp12' => '0.625829337780557',
+        'Genus:sp15' => '0.578947368421053',
+        'Genus:sp20' => '0.5',
+        'Genus:sp23' => '0.434782608695652',
+        'Genus:sp24' => '0.25',
+        'Genus:sp25' => '0.25',
+        'Genus:sp26' => '0.5',
+        'Genus:sp27' => '0.666666666666667',
+        'Genus:sp29' => '0.598591139574746',
+        'Genus:sp30' => '0.434782608695652',
+        'Genus:sp5'  => '0.6'
+    },
     PD_ENDEMISM           => undef,
+    PD_ENDEMISM_P         => undef,
     PD_ENDEMISM_WTS       => {},
     PD_INCLUDED_NODE_LIST => {
         '30___'      => '0.077662337662338',
@@ -315,9 +798,52 @@ __DATA__
         'Genus:sp30' => '0.434782608695652',
         'Genus:sp5'  => '0.6'
     },
-    PD_P           => '0.451163454880594',
-    PD_P_per_taxon => '0.0322259610628996',
-    PD_per_taxon   => '0.682618105875523',
+    PD_P                => '0.451163454880594',
+    PD_P_per_taxon      => '0.0322259610628996',
+    PD_per_taxon        => '0.682618105875523',
+    PEC_CWE             => '0.478441635510817',
+    PEC_CWE_PD          => '1.49276923076923',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 4,
+        '35___'      => 4,
+        '42___'      => 4,
+        '45___'      => 4,
+        '49___'      => 4,
+        '50___'      => 4,
+        '52___'      => 5,
+        '58___'      => 5,
+        '59___'      => 5,
+        'Genus:sp20' => 4,
+        'Genus:sp26' => 2
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.714202952209456',
+    PEC_WE_P   => '0.0337170613126205',
+    PEC_WTLIST => {
+        '34___'      => '0.151732854859624',
+        '35___'      => '0.00249014110193283',
+        '42___'      => '0.00214934894114927',
+        '45___'      => '0.000986794889656748',
+        '49___'      => '0.000729545879720464',
+        '50___'      => '4.22691626564195e-005',
+        '52___'      => '0.000125479547644827',
+        '58___'      => '0.000390962271515824',
+        '59___'      => 0,
+        'Genus:sp20' => '0.222222222222222',
+        'Genus:sp26' => '0.333333333333333'
+    },
     PE_CLADE_CONTR => {
         '30___'      => '0.04198877081',
         '31___'      => '0.08471881937',
@@ -719,8 +1245,6 @@ __DATA__
         'Genus:sp30' => '0.020703933747412',
         'Genus:sp5'  => '0.06'
     },
-    PHYLO_A        => '1.4927692308',
-    PHYLO_ABC      => '9.5566534823',
     PHYLO_AED_LIST => {
         'Genus:sp1'  => '0.0107499482131097',
         'Genus:sp10' => '0.00545225560494617',
@@ -770,8 +1294,6 @@ __DATA__
         'Genus:sp30' => '0.00362010571355224',
         'Genus:sp5'  => '0.0127818802754979'
     },
-    PHYLO_B       => '0',
-    PHYLO_C       => '8.0638842515',
     PHYLO_ED_LIST => {
         'Genus:sp1'  => '0.678240495563069',
         'Genus:sp10' => '0.80762333894188',
@@ -804,7 +1326,6 @@ __DATA__
         'Genus:sp30' => '0.506327788030815',
         'Genus:sp5'  => '0.677086839428004'
     },
-    PHYLO_JACCARD              => '0.84379791173084',
     PHYLO_LABELS_NOT_ON_TREE   => {},
     PHYLO_LABELS_NOT_ON_TREE_N => 0,
     PHYLO_LABELS_NOT_ON_TREE_P => 0,
@@ -826,8 +1347,6 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 14,
     PHYLO_RARITY_CWR           => '0.144409172195734',
-    PHYLO_S2                   => 0,
-    PHYLO_SORENSON             => '0.729801407809261',
     TDB_DENOMINATOR            => 182,
     TDB_DISTINCTNESS           => '0.385156952955119',
     TDB_NUMERATOR              => '70.0985654378316',
@@ -840,8 +1359,113 @@ __DATA__
 
 
 @@ RESULTS_1_NBR_LISTS
-{   PD                    => '1.49276923076923',
+{   PD             => '1.49276923076923',
+    PD_CLADE_CONTR => {
+        '34___'      => '0.89859765045',
+        '35___'      => '0.92070044365',
+        '42___'      => '0.9592161653',
+        '45___'      => '0.97689924903',
+        '49___'      => '0.99058340342',
+        '50___'      => '0.99139748667',
+        '52___'      => '0.99334763774',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp20' => '0.33494795424',
+        'Genus:sp26' => '0.33494795424'
+    },
+    PD_CLADE_CONTR_P => {
+        '34___'      => '0.0633265791',
+        '35___'      => '0.06488422203',
+        '42___'      => '0.06759852792',
+        '45___'      => '0.06884470211',
+        '49___'      => '0.06980906106',
+        '50___'      => '0.06986643169',
+        '52___'      => '0.07000386405',
+        '58___'      => '0.0704726738',
+        '59___'      => '0.0704726738',
+        'Genus:sp20' => '0.02360467792',
+        'Genus:sp26' => '0.02360467792'
+    },
+    PD_CLADE_LOSS_ANC => {
+        '34___'      => '0.151370307335078',
+        '35___'      => '0.118375937734468',
+        '42___'      => '0.0608808535587249',
+        '45___'      => '0.0344840902604069',
+        '49___'      => '0.014056805628234',
+        '50___'      => '0.0128415672018618',
+        '52___'      => '0.00993044169650181',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp26' => '0'
+    },
+    PD_CLADE_LOSS_ANC_P => {
+        '34___'      => '0.101402349549418',
+        '35___'      => '0.0792995563510296',
+        '42___'      => '0.0407838347038763',
+        '45___'      => '0.0231007509731676',
+        '49___'      => '0.00941659657667946',
+        '50___'      => '0.00860251332702275',
+        '52___'      => '0.00665236226190475',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp26' => '0'
+    },
+    PD_CLADE_LOSS_CONTR => {
+        '34___'      => '1',
+        '35___'      => '1',
+        '42___'      => '1',
+        '45___'      => '1',
+        '49___'      => '1',
+        '50___'      => '1',
+        '52___'      => '1',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp20' => '0.33494795424',
+        'Genus:sp26' => '0.33494795424'
+    },
+    PD_CLADE_LOSS_CONTR_P => {
+        '34___'      => '0.0704726738',
+        '35___'      => '0.0704726738',
+        '42___'      => '0.0704726738',
+        '45___'      => '0.0704726738',
+        '49___'      => '0.0704726738',
+        '50___'      => '0.0704726738',
+        '52___'      => '0.0704726738',
+        '58___'      => '0.0704726738',
+        '59___'      => '0.0704726738',
+        'Genus:sp20' => '0.02360467792',
+        'Genus:sp26' => '0.02360467792'
+    },
+    PD_CLADE_LOSS_SCORE => {
+        '34___'      => '1.49276923076923',
+        '35___'      => '1.49276923076923',
+        '42___'      => '1.49276923076923',
+        '45___'      => '1.49276923076923',
+        '49___'      => '1.49276923076923',
+        '50___'      => '1.49276923076923',
+        '52___'      => '1.49276923076923',
+        '58___'      => '1.49276923076923',
+        '59___'      => '1.49276923076923',
+        'Genus:sp20' => '0.5',
+        'Genus:sp26' => '0.5'
+    },
+    PD_CLADE_SCORE => {
+        '34___'      => '1.34139892343415',
+        '35___'      => '1.37439329303476',
+        '42___'      => '1.43188837721051',
+        '45___'      => '1.45828514050882',
+        '49___'      => '1.478712425141',
+        '50___'      => '1.47992766356737',
+        '52___'      => '1.48283878907273',
+        '58___'      => '1.49276923076923',
+        '59___'      => '1.49276923076923',
+        'Genus:sp20' => '0.5',
+        'Genus:sp26' => '0.5'
+    },
     PD_ENDEMISM           => undef,
+    PD_ENDEMISM_P         => undef,
     PD_ENDEMISM_WTS       => {},
     PD_INCLUDED_NODE_LIST => {
         '34___'      => '0.341398923434153',
@@ -861,9 +1485,52 @@ __DATA__
         'Genus:sp20' => '0.5',
         'Genus:sp26' => '0.5'
     },
-    PD_P           => '0.0704726738019399',
-    PD_P_per_taxon => '0.0352363369009699',
-    PD_per_taxon   => '0.746384615384616',
+    PD_P                => '0.0704726738019399',
+    PD_P_per_taxon      => '0.0352363369009699',
+    PD_per_taxon        => '0.746384615384616',
+    PEC_CWE             => '0.175417769804783',
+    PEC_CWE_PD          => '1.49276923076923',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 1,
+        '35___'      => 1,
+        '42___'      => 1,
+        '45___'      => 1,
+        '49___'      => 1,
+        '50___'      => 1,
+        '52___'      => 1,
+        '58___'      => 1,
+        '59___'      => 1,
+        'Genus:sp20' => 1,
+        'Genus:sp26' => 1
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.261858249294739',
+    PEC_WE_P   => '0.0123621592705162',
+    PEC_WTLIST => {
+        '34___'      => '0.0379332137149059',
+        '35___'      => '0.000622535275483208',
+        '42___'      => '0.000537337235287318',
+        '45___'      => '0.000246698722414187',
+        '49___'      => '0.000182386469930116',
+        '50___'      => '1.05672906641049e-005',
+        '52___'      => '2.50959095289654e-005',
+        '58___'      => '7.81924543031647e-005',
+        '59___'      => 0,
+        'Genus:sp20' => '0.0555555555555556',
+        'Genus:sp26' => '0.166666666666667'
+    },
     PE_CLADE_CONTR => {
         '34___'      => '0.99349719414',
         '35___'      => '0.99587456922',

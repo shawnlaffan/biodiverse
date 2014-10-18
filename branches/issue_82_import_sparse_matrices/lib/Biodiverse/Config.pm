@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -23,7 +23,7 @@ use Path::Class;
 
 #  These global vars need to be converted to subroutines.
 #  update interval for progress bars  - need to check for tainting
-our $progress_update_interval     = $ENV{BIODIVERSE_PROGRESS_INTERVAL} || 0.3;
+our $progress_update_interval     = $ENV{BIODIVERSE_PROGRESS_INTERVAL}     || 0.3;
 our $progress_update_interval_pct = $ENV{BIODIVERSE_PROGRESS_INTERVAL_PCT} || 5;
 our $progress_no_use_gui          = $ENV{BIODIVERSE_PROGRESS_NO_USE_GUI} ? 1 : 0;
 
@@ -95,11 +95,7 @@ BEGIN {
 #  add biodiverse lib paths so we get all the extensions
 #  should be a sub not a begin block
 sub add_lib_paths {
-    my $var = shift;
-
-    if (! defined $var) {
-        $var = 'BIODIVERSE_LIB';
-    }
+    my $var = shift // 'BIODIVERSE_LIB';
 
     my @lib_paths;
 
@@ -114,14 +110,16 @@ sub add_lib_paths {
         push @lib_paths, split $sep, $ENV{$var};
     }
 
-    print "Adding $var paths\n";
-    print join q{ }, @lib_paths, "\n";
+    say "Adding $var paths to \@INC";
+    say join q{ }, @lib_paths;
 
     #no warnings 'closure';
     eval 'use lib @lib_paths';
 
     return;
 }
+
+my @use_base_errors;
 
 #  load all the relevant user defined libs into their respective packages
 sub use_base {
@@ -141,11 +139,11 @@ sub use_base {
     }
     my %check_packages;
 
-    print "[USE_BASE] Checking and loading user modules";
+    say "[USE_BASE] Checking and loading user modules";
 
     my $x;
     if (-e $file) {
-        print " from file $file\n";
+        say "...from file $file";
         local $/ = undef;
         my $success = open (my $fh, '<', $ENV{BIODIVERSE_EXTENSIONS});
         croak "Unable to open extensions file $ENV{BIODIVERSE_EXTENSIONS}\n"
@@ -180,15 +178,30 @@ sub use_base {
             my $cmd = "package $package;\n"
                     . "use parent qw/$pk/;";
             eval $cmd;
-            warn $EVAL_ERROR if $EVAL_ERROR;
+            if (my $e = $EVAL_ERROR) {
+                #warn $e if $e;
+                my $sep = 'in @INC';
+                my @parts = split $sep, $e;
+                push @use_base_errors, $parts[0] . $sep;
+            }
         }
     }
+    if (@use_base_errors) {
+        push @use_base_errors, '@INC contains: ' . join ' ', @INC;
+        warn join ("\n", @use_base_errors), "\n";
+    }
+    
 
     return;
 }
 
 add_lib_paths();
 use_base();
+
+#  should be extension load errors?
+sub get_load_extension_errors {
+    return wantarray ? @use_base_errors : [@use_base_errors];
+}
 
 #  need this for the pp build to work
 if ($ENV{BDV_PP_BUILDING}) {
@@ -200,11 +213,18 @@ if ($ENV{BDV_PP_BUILDING}) {
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
 
-    #  exercide the unicode regexp matching - needed for the spatial conditions
+    #  exercise the unicode regexp matching - needed for the spatial conditions
     use 5.016;
     use feature 'unicode_strings';
     my $string = "sp_self_only () and \N{WHITE SMILING FACE}";
     $string =~ /\bsp_self_only\b/;
+    
+    #  load extra encode pages, except the extended ones (for now)
+    #  https://metacpan.org/pod/distribution/Encode/lib/Encode/Supported.pod#CJK:-Chinese-Japanese-Korean-Multibyte
+    use Encode::CN;
+    use Encode::JP;
+    use Encode::KR;
+    use Encode::TW;
 }
 
 

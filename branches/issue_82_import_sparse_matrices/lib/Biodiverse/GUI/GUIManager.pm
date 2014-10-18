@@ -6,18 +6,18 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
-use Data::Dumper;
-#use Data::DumpXML::Parser;
+#use Data::Dumper;
 use Carp;
-use Scalar::Util qw /blessed/;
+use Scalar::Util qw /blessed reftype/;
 
 use English ( -no_match_vars );
+use Readonly;
 
-#use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
+use Text::Wrapper;
 
 use Biodiverse::Config;
 
@@ -120,6 +120,22 @@ sub set_dirty {
     return;
 }
 
+
+#  A kludge to stop keyboard events triggering during exports
+#  when a display tab is open.
+#  Should look into trapping button-press-events
+my $activate_keyboard_snooper = 1;
+
+sub activate_keyboard_snooper {
+    my $class = shift;
+    my $val   = scalar @_ ? (shift @_) : 1;  #  true if no args passed, else take first value
+    $activate_keyboard_snooper = !!$val;  #  binarise
+}
+
+sub keyboard_snooper_active {
+    return $activate_keyboard_snooper;
+}
+
 # Progress bar handling.  
 # Lifecycle: nothing created on startup.  Subroutines will call add_progress_entry to
 # add entries for tracking progress, as many may be active at any time.  When the first progress entry is added,
@@ -165,10 +181,6 @@ sub add_progress_entry {
 
     # call init if not defined yet
     $self->init_progress_window if !$self->{progress_bars};
-
-    # possibly worth resetting next_id once it gets to a large number, however this is
-    # very unlikely to be a problem in practise
-    #my $new_id = $self->{progress_bars}->{next_id}++;
     
     # create new entry frame and widgets
     my $frame = Gtk2::Frame->new($title);
@@ -190,9 +202,10 @@ sub add_progress_entry {
     
     my $progress_widget = Gtk2::ProgressBar->new;
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
-    
+
     # show the progress window
-    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
+    #  don't use present - it grabs the system focus and makes work in other windows impossible
+    #$self->{progress_bars}->{window}->present;
     $self->{progress_bars}->{window}->show_all;
     
     #say "Current progress bars: " . Dumper($self->{progress_bars});
@@ -215,6 +228,11 @@ sub clear_progress_entry {
         if !defined $dialog_obj;
 
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+
+    #  sometimes the progress is not initialised, possibly due to threads?
+    #  need a method for progress_bar attr
+    return if ! (defined $id && defined $dialog_obj->{progress_bar});
+
     croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
         if !defined $self->{progress_bars}->{dialog_objects}{$id};
 
@@ -232,6 +250,16 @@ sub clear_progress_entry {
         ) {
         $self->{progress_bars}->{window}->hide;
     }
+    #else {
+        #  The resize below triggers Gtk critical warnings when minimised.
+        #  We seem not to be able to detect when windows are minimised on Windows
+        #  as state is always normal.
+        #my $window = $self->{progress_bars}->{window};
+        #$window = $self->{gladexml}->get_widget('wndMain');
+        #my $state = $window->get_state;
+        #warn "State is $state\n";
+        #$self->{progress_bars}->{window}->resize(1,1);
+    #}
 }
 
 # called when window closed, try to stop active process?
@@ -242,7 +270,7 @@ sub progress_destroy_callback {
 
     say "progress_destroy_callback";
     # call destroy on each child object (?) (need to record each child obj)
-    foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
+    foreach my $dialog (values %{$self_gui->{progress_bars}->{dialog_objects}}) {
         $dialog->end_dialog();
     }
 
@@ -266,6 +294,18 @@ sub show_progress {
 ##########################################################
 # Initialisation
 ##########################################################
+
+my $dev_version_warning = <<"END_OF_DEV_WARNING"
+This is a development version.
+
+Features are subject to change and it is not guaranteed
+to be backwards compatible with previous versions.
+
+To turn off this warning set an environment
+variable called BD_NO_GUI_DEV_WARN to a true value.
+END_OF_DEV_WARNING
+  ;
+
 sub init {
     my $self = shift;
 
@@ -304,13 +344,9 @@ sub init {
     # see Project.pm
     $self->{basedata_output_model}
       = Gtk2::TreeStore->new(
-        'Glib::String',
-        'Glib::String',
-        'Glib::String',
-        'Glib::Scalar',
-        'Glib::Scalar',
-        'Glib::Boolean',
-        'Glib::String',
+        'Glib::String',  'Glib::String', 'Glib::String',
+        'Glib::Scalar',  'Glib::Scalar',
+        'Glib::Boolean', 'Glib::String',
     );
 
     $self->do_new;
@@ -318,9 +354,27 @@ sub init {
     # Show outputs tab
     Biodiverse::GUI::Tabs::Outputs->new();
 
-    #$self->progress_test();
-    #$self->get_status_bar->hide();
-    
+    #  check if we had any errors when loading extensions
+    my @load_extension_errors = Biodiverse::Config::get_load_extension_errors();
+    if (@load_extension_errors) {
+        my $count = scalar @load_extension_errors;
+        my $text = "Failed to load $count extensions\n"
+                 . join "\n", $#load_extension_errors;  #  last item is @INC, so not an extension
+        $self->report_error($text);
+    }
+
+    #  warn if we are a dev version
+    if ($VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN}) {
+        my $dlg = Gtk2::MessageDialog->new (
+            undef,   'modal',
+            'error', 'ok',
+            $dev_version_warning,
+        );
+
+        $dlg->run;
+        $dlg->destroy;
+    }
+
     return;
 }
 
@@ -654,6 +708,7 @@ sub do_open_basedata {
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Open Object', 'bds');
     if (defined $filename && -f $filename) {
         my $object = Biodiverse::BaseData->new(file => $filename);
+        croak "Unable to load basedata object from $filename" if !defined $object;
         $object->set_param (NAME => $name);  #  override the name if the user says to
         $self->{project}->add_base_data($object);
     }
@@ -803,11 +858,9 @@ sub do_basedata_attach_properties {
     my $type = $response eq 'yes' ? 'labels' : 'groups';
 
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info(
-        $self,
-        undef,
-        $type,
-        undef,
-        [qw /Input_element Property/],
+        gui  => $self,
+        type => $type,
+        column_overrides => [qw /Input_element Property/],
     );
     
     return if ! defined $options{file};
@@ -1045,12 +1098,11 @@ sub do_describe_basedata {
     my $self = shift;
 
     my $bd = $self->{project}->get_selected_base_data;
-    
-    $self->print_describe ($bd);
-    
-    my @description = $bd->describe;
 
-    $self->show_describe_dialog (\@description);
+    my $description = $bd->describe;
+
+    say $description;
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1059,12 +1111,13 @@ sub do_describe_matrix {
     my $self = shift;
 
     my $mx = $self->{project}->get_selected_matrix;
-    
-    $self->print_describe ($mx);
-    
-    my @description = $mx->describe;
 
-    $self->show_describe_dialog (\@description);
+    die "No matrix selected\n" if !defined $mx;
+
+    my $description = $mx->describe;
+
+    say $description;
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1074,11 +1127,11 @@ sub do_describe_phylogeny {
 
     my $tree = $self->{project}->get_selected_phylogeny;
     
-    $self->print_describe ($tree);
-    
-    my @description = $tree->describe;
+    die "No tree selected\n" if !defined $tree;
 
-    $self->show_describe_dialog (\@description);
+    my $description = $tree->describe;
+
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1087,15 +1140,25 @@ sub print_describe {
     my $self = shift;
     my $object = shift;
     
-    print "DESCRIBE OBJECT\n";
-    print scalar ($object->describe);
-    return;
+    say "DESCRIBE OBJECT\n";
+    return scalar $object->describe;
 }
 
 
 sub show_describe_dialog {
     my $self        = shift;
     my $description = shift;
+    
+    #  passed a string so disassemble it into an array
+    if (!reftype ($description)) {
+        my @desc = split "\n", $description;
+        $description = [];
+        foreach my $line (@desc) {
+            my @line = split /\b:\s+/, $line;
+            push @$description, \@line;
+        }
+    }
+    
     
     my $table_widget;
     if (ref $description) {
@@ -1241,6 +1304,7 @@ sub do_duplicate_basedata {
 
     $dlg->destroy();
     
+    $self->set_dirty;
     return;
 }
 
@@ -1249,11 +1313,8 @@ sub do_rename_basedata_labels {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
-        undef,
-        undef,
-        undef,
-        [qw /Input_element Remapped_element/],
+        gui => $self,
+        column_overrides => [qw /Input_element Remapped_element/],
     );
     
     ##  now do something with them...
@@ -1264,7 +1325,19 @@ sub do_rename_basedata_labels {
         $bd->rename_labels (remap => $check_list);
     }
 
+    $self->set_dirty;
     return;
+}
+
+sub do_binarise_basedata_elements {
+    my $self = shift;
+
+    my $bd = $self->{project}->get_selected_base_data();
+    return if !$bd;
+
+    $bd->binarise_sample_counts;
+
+    $self->set_dirty;
 }
 
 sub do_add_basedata_label_properties {
@@ -1272,7 +1345,7 @@ sub do_add_basedata_label_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -1286,6 +1359,7 @@ sub do_add_basedata_label_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 
@@ -1294,7 +1368,7 @@ sub do_add_basedata_group_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -1308,6 +1382,7 @@ sub do_add_basedata_group_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 
@@ -1723,15 +1798,6 @@ sub do_range_weight_tree {
     );
 }
 
-sub do_tree_equalise_branch_lengths {
-    my $self = shift;
-
-    return $self->do_trim_tree_to_basedata (
-        do_equalise_branch_lengths => 1,
-        suffix  => 'EQ',
-        no_trim => 1,
-    );
-}
 
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.  
@@ -1790,25 +1856,78 @@ sub do_trim_tree_to_basedata {
             $node->set_length (length => $node->get_length / $range);
         }
     }
-    elsif ($args{do_equalise_branch_lengths}) {
-        foreach my $node ($new_tree->get_node_refs) {
-            my $len = $node->get_length == 0 ? 0 : 1;
-            $node->set_length (length => $len);
-        }
-    }
 
     $new_tree->set_param (NAME => $chosen_name);
 
     #  now we add it if it is not already in the list
     #  otherwise we select it
     my $phylogenies = $self->{project}->get_phylogeny_list;
-    my $in_list = 0;
-    foreach my $ph (@$phylogenies) {
-        if ($new_tree eq $phylogeny) {
-            $in_list = 1;
-            last;
-        }
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
+    if ($in_list) {
+        $self->{project}->select_phylogeny ($new_tree);
     }
+    else {
+        $self->{project}->add_phylogeny ($new_tree, 0);
+    }
+
+    return;
+}
+
+sub do_tree_equalise_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
+
+    if (! defined $phylogeny) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no tree selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    # Show the Get Name dialog
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $phylogeny->get_param('NAME');
+
+    my $suffix = $args{suffix} || 'EQ';
+    # If ends with _TRIMMED followed by a number then increment it
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
+        $name = $1 . ($2 + 1)
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response    = $dlg->run();
+    my $chosen_name = $txt_name->get_text;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_tree = $phylogeny->clone_tree_with_equalised_branch_lengths;
+
+    $new_tree->set_param (NAME => $chosen_name);
+
+    #  now we add it if it is not already in the list
+    #  otherwise we select it
+    my $phylogenies = $self->{project}->get_phylogeny_list;
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
     if ($in_list) {
         $self->{project}->select_phylogeny ($new_tree);
     }
@@ -2075,6 +2194,7 @@ sub show_index_dialog {
     #  get an array of the cellsizes
     my $bd = $self->{project}->get_selected_base_data;
     my @cellsize_array = $bd->get_cell_sizes;  #  get a copy
+    my %coord_bounds   = $bd->get_coord_bounds;
 
     #  get the current index
     my $used_index = $bd->get_param('SPATIAL_INDEX');
@@ -2150,24 +2270,26 @@ sub show_index_dialog {
     foreach my $cellsize (@cellsize_array) {
         
         my $is_text_axis = 0;
-        
-        #my $resolution = $used_index ? $resolutions[$i] : $cellsize;
+
         my $init_value = $used_index ? $resolutions[$i] : $cellsize * 2;
 
         my $min_val = $cellsize;
         my $max_val = 10E10;
+        my $step_incr = $cellsize;
 
         if ($cellsize == 0) {   #  allow some change for points
-            $init_value = 1;
+            $init_value = ($coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i]) / 20;
             $min_val    = 0;      #  should allow non-zero somehow
+            $step_incr  = $init_value;
         }
         elsif ($cellsize < 0) { #  allow no change for text
             $init_value   = 0;
             $min_val      = 0;
             $max_val      = 0;
             $is_text_axis = 1;
+            $step_incr    = 0;
         }
-        
+
         my $page_incr = $cellsize * 10;
 
         my $label_text = "Axis $i";
@@ -2185,14 +2307,14 @@ sub show_index_dialog {
             $init_value,
             $min_val,
             $max_val,
-            $cellsize,
+            $step_incr,
             $page_incr,
             0,
         );
         my $widget = Gtk2::SpinButton->new(
             $adj,
             $init_value,
-            2,
+            6,
         );
 
         $table->attach($label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0);
@@ -2455,12 +2577,24 @@ sub show_save_dialog {
 #FIXME merge with above
 sub show_open_dialog {
     my $self = shift;
-    my $title = shift;
-    my $suffix = shift;
-    my $initial_dir = shift;
+    my %args = @_;
+    
+    my $title       = $args{title};
+    my $suffix      = $args{suffix};
+    my $initial_dir = $args{initial_dir};
 
-    my $dlg = Gtk2::FileChooserDialog->new($title, undef, "open", "gtk-cancel", "cancel", "gtk-ok", 'ok');
-    $dlg->set_current_folder($initial_dir) if $initial_dir;
+    my $dlg = Gtk2::FileChooserDialog->new(
+        $title,
+        undef,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    if (!defined $initial_dir) {
+        use Cwd;
+        $initial_dir = getcwd();
+    }
+    $dlg->set_current_folder($initial_dir);
 
     my $filter = Gtk2::FileFilter->new();
 
@@ -2534,6 +2668,11 @@ sub report_error {
         ? $error
         : split ("\n", $error, 2);
 
+    if (@error_array > 1) {
+        my $text_wrapper = Text::Wrapper->new(columns => 80);
+        $error_array[1] = $text_wrapper->wrap($error_array[1]);
+    }
+
     my $show_details_value = -10;
 
     my $dlg = Gtk2::Dialog->new(
@@ -2544,17 +2683,20 @@ sub report_error {
         'gtk-ok' => 'ok',
     );
     my $text_widget = Gtk2::Label->new();
-    #$text_widget->set_use_markup(1);
-    $text_widget->set_alignment (0, 1);
+    my $extra_text_widget = Gtk2::Label->new();
+
+    foreach my $w ($text_widget, $extra_text_widget) {
+        #$w->set_use_markup(1);
+        $w->set_line_wrap (1);
+        $w->set_width_chars(90);
+        $w->set_alignment (0, 0);
+        $w->set_selectable (1);
+        $w->set_ellipsize('PANGO_ELLIPSIZE_END');
+    }
+
     $text_widget->set_text ($error_array[0]);
-    $text_widget->set_selectable (1);
-    
-    #  hbox and so forth for exra text
-    my $extra_text_widget = Gtk2::Label ->new();
-    $extra_text_widget->set_alignment (0, 1);
-    $extra_text_widget->set_text ($error_array[1] or 'There are no additional details');
-    $extra_text_widget->set_selectable (1);
-    
+    $extra_text_widget->set_text ($error_array[1] // 'There are no additional details');
+
     my $check_button = Gtk2::ToggleButton->new_with_label('show details');
     $check_button->signal_connect_swapped (
         clicked => \&on_report_error_show_hide,
@@ -2563,6 +2705,7 @@ sub report_error {
     $check_button->set_active (0);
 
     my $details_box = Gtk2::VBox->new(1, 6);
+    $details_box->set_homogeneous(0);
     $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
     #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start($extra_text_widget, 0, 0, 0);
@@ -2573,16 +2716,19 @@ sub report_error {
 
     $dlg->show_all;
     my $details_visible = 0;
-    $extra_text_widget->hide;
-    
+    #$extra_text_widget->hide;
+    $details_box->hide;
+    $dlg->resize(1,1);
+
     while (1) {
         my $response = $dlg->run;
         last if $response ne 'apply'; #  not sure whey we're being fed 'apply' as the value
         if ($details_visible) {  #  replace with set_visible when Gtk used is 2.18+
-            $extra_text_widget->hide;
+            $details_box->hide;
+            $dlg->resize(1,1);
         }
         else {
-            $extra_text_widget->show;
+            $details_box->show;
         }
         $details_visible = ! $details_visible;
     }

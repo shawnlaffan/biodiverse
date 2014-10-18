@@ -15,11 +15,10 @@ use Carp;
 use Gtk2;
 use Gnome2::Canvas;
 use Tree::R;
-#use Algorithm::QuadTree;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -97,20 +96,29 @@ It can be changed by calling set_value_label
 Closures that will be invoked with the grid cell's element name
 whenever cell is hovered over or clicked
 
+=item select_func
+
+=item grid_click_func
+
+Closure that will be called whenever the grid has been right clicked, but not
+dragged
+
+=item end_hover_func
+
 =back
 
 =cut
 
 
-#  badly needs to use keyword args
 sub new {
     my $class   = shift;
-    my $frame   = shift;
-    my $hscroll = shift;
-    my $vscroll = shift;
+    my %args = @_;
+    my $frame   = $args{frame};
+    my $hscroll = $args{hscroll};
+    my $vscroll = $args{vscroll};
     
-    my $show_legend = shift || 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
-    my $show_value  = shift || 0;
+    my $show_legend = $args{show_legend} // 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
+    my $show_value  = $args{show_value}  // 0;
 
     my $self = {
         legend_mode => 'Hue',
@@ -118,10 +126,13 @@ sub new {
     }; 
     bless $self, $class;
 
-    $self->{hover_func}  = shift || undef; # Callback function for when users move mouse over a cell
-    #$self->{use_hover_func} = 1;          #  we should use the hover func by default
-    $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
-    $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
+    #  callback funcs
+    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
+    $self->{click_func}      = $args{click_func};      # click on a cell
+    $self->{select_func}     = $args{select_func};     # select a set of elements
+    $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
+    $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
+
     my $g = 0;
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
@@ -178,13 +189,18 @@ sub new {
         $self->show_legend;
     #}
 
+    $self->{drag_mode} = 'select';
+
+    # Labels::initGrid will set {page} (hacky)
+
     return $self;
 }
+
 
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
-    return if $self->{legend};
+    return if $self->get_legend;
 
     # Create legend
     my $pixbuf = $self->make_legend_pixbuf;
@@ -206,7 +222,7 @@ sub show_legend {
     $self->{marks}[1] = $self->make_mark( 'w'  );
     $self->{marks}[2] = $self->make_mark( 'w'  );
     $self->{marks}[3] = $self->make_mark( 'sw' );
-    
+
     eval {
         $self->reposition;  #  trigger a redisplay of the legend
     };
@@ -217,17 +233,23 @@ sub show_legend {
 sub hide_legend {
     my $self = shift;
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
+    return if !$self->get_legend;
 
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    $self->{legend}->destroy();
+    delete $self->{legend};
+
+    foreach my $i (0..3) {
+        $self->{marks}[$i]->destroy();
     }
+
     delete $self->{marks};
-    
+
     return;
+}
+
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
 }
 
 sub destroy {
@@ -260,6 +282,8 @@ sub destroy {
     delete $self->{hover_func};  #??? not sure if helps
     delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
+    delete $self->{grid_click_func};
+    delete $self->{end_hover_func};  #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it
@@ -467,11 +491,12 @@ sub set_base_struct {
     $self->{base_struct} = $data;
     $self->{cells} = {};
 
-    my @tmpcell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-    print "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
+    my @tmpcell_sizes = $data->get_cell_sizes;  #  work on a copy
+    say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
-    print join (q{ }, ($min_x, $max_x, $min_y, $max_y)) . "\n";
+
+    say join q{ }, $min_x, $max_x, $min_y // '', $max_y // '';
 
     my @res = $self->get_cell_sizes($data);  #  handles zero and text
     
@@ -491,12 +516,6 @@ sub set_base_struct {
         $width_pixels = 1
     }
 
-#    my ($cell_x, $cell_y, $width_pixels) = $self->get_cell_sizes($data);
-    #$cell_y = 1 if ! defined $cell_y; #  catcher for single axis data sets
-    
-    #print "[GRID] Cellsizes:  $cell_x, $cell_y, (width: $width_pixels)\n";
-    #print "[GRID] Basedata cell size is: ", join (" ", @{$data->get_param ('CELL_SIZES')}), "\n";
-
     # Configure cell heights and y-offsets for the marks (circles, lines,...)
     my $ratio = eval {$cell_y / $cell_x} || 1;  #  trap divide by zero
     my $cell_size_y = CELL_SIZE_X * $ratio;
@@ -504,21 +523,19 @@ sub set_base_struct {
     
     #  setup the index if needed
     if (defined $self->{select_func}) {
-        my $rtree = $self->get_rtree();
+        $self->get_rtree();
     }
     
     my $elts = $data->get_element_hash();
-    #print Data::Dumper::Dumper($elts);
 
     my $count = scalar keys %$elts;
     
     croak "No groups to display - BaseData is empty\n"
       if $count == 0;
-    
-    #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
+
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    print "[Grid] Grid loading $count elements (cells)\n";
+    say "[Grid] Grid loading $count elements (cells)";
     $progress_bar->update ("Grid loading $count elements (cells)", 0);
 
 
@@ -578,13 +595,9 @@ sub set_base_struct {
         my $x = eval {($x_bd - $min_x) / $cell_x};
         my $y = eval {($y_bd - $min_y) / $cell_y};
 
-        # We shift by half the cell size to make the coordinate hits cells center
+        # We shift by half the cell size to make the coordinate hit the cell center
         my $xcoord = $x * CELL_SIZE_X  - CELL_SIZE_X  / 2;
         my $ycoord = $y * $cell_size_y - $cell_size_y / 2;
-
-#my $testx = $x * CELL_SIZE_X;
-#my $testy = $y * $cell_size_y;
-#my @test = $self->units_canvas2basestruct ($testx, $testy);
 
         # Make container group ("cell") for the rectangle and any marks
         my $container = Gnome2::Canvas::Item->new (
@@ -625,6 +638,9 @@ sub set_base_struct {
             );
         }
     }
+
+
+    $self->store_cell_outline_colour (CELL_BLACK);
 
     $progress_bar = undef;
 
@@ -713,16 +729,8 @@ sub load_shapefile {
     #@shapes = $shapefile->shapes_in_area ($shapefile->bounds);
     
     my $num = @shapes;
-    print "[Grid] Shapes within plot area: $num\n";
+    say "[Grid] Shapes within plot area: $num";
 
-    # Work out how far away a point has to be from the previous point
-    # to not get clipped - REDUNDANT NOW
-    # This will massively reduce detail when we're zoomed out
-    #my $ppu = $self->{canvas}->get_pixels_per_unit();
-    #my $min_distance = 1 / $ppu * 3; # don't draw points within 3px of each other
-    #my $min_distance2 = $min_distance * $min_distance;
-    ##print "[Grid] minimum point distance - $min_distance\n";
-    #
     my $unit_multiplier_x = CELL_SIZE_X / $cell_x;
     my $unit_multiplier_y = $self->{cell_size_y} / $cell_y;
     my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
@@ -740,7 +748,6 @@ sub load_shapefile {
 
     # Add all shapes
     foreach my $shapeid (@shapes) {
-        #my $shape = $shapefile->get_shape($shapeid);
         my $shape = $shapefile->get_shp_record($shapeid);
 
         # Make polygon from each "part"
@@ -810,6 +817,19 @@ sub colour {
     return;
 }
 
+sub store_cell_outline_colour {
+    my $self = shift;
+    my $col  = shift;
+    
+    $self->{cell_outline_colour} = $col;
+}
+
+sub get_cell_outline_colour {
+    my $self = shift;
+    return $self->{cell_outline_colour};
+}
+
+
 sub set_cell_outline_colour {
     my $self = shift;
     my $colour = shift;
@@ -824,7 +844,28 @@ sub set_cell_outline_colour {
 
     foreach my $cell (values %{$self->{cells}}) {
         my $rect = $cell->[INDEX_RECT];
-        $rect->set('outline_color_gdk', $colour);
+        $rect->set(outline_color_gdk => $colour);
+    }
+
+    $self->store_cell_outline_colour ($colour);  #  store for later re-use
+
+    return;
+}
+
+sub set_cell_show_outline {
+    my $self   = shift;
+    my $active = shift;
+
+    if ($active) {
+        #  reinstate previous colouring
+        $self->set_cell_outline_colour ($self->get_cell_outline_colour);
+    }
+    else {
+        # clear outline settings
+        foreach my $cell (values %{$self->{cells}}) {
+            my $rect = $cell->[INDEX_RECT];
+            $rect->set(outline_color => undef);
+        }
     }
 
     return;
@@ -854,7 +895,13 @@ sub get_colour_from_chooser {
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    
+
+    $min //= $self->{last_min};
+    $max //= $self->{last_max};
+
+    $self->{last_min} = $min;
+    $self->{last_max} = $max;
+
     return if ! ($self->{marks}
                  && defined $min
                  && defined $max
@@ -875,7 +922,7 @@ sub set_legend_min_max {
         elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
             $text = '  ' . $text;
         }
-        
+
         my $mark = $self->{marks}[3 - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
@@ -888,6 +935,7 @@ sub set_legend_min_max {
         else {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
+        $mark->raise_to_top;
     }
     
     return;
@@ -976,9 +1024,10 @@ sub mark_if_exists {
         # sometimes we are called before the data are populated
         next CELL if !$cell || !$cell->[INDEX_RECT];
 
-        my $group = $cell->[INDEX_RECT]->parent;
-
         if (exists $hash->{$cell->[INDEX_ELEMENT]}) {
+
+            my $group = $cell->[INDEX_RECT]->parent;
+
             # Circle
             if ($shape eq 'circle' && not $cell->[INDEX_CIRCLE]) {
                 $cell->[INDEX_CIRCLE] = $self->draw_circle($group);
@@ -1316,60 +1365,57 @@ sub find_max_min {
         $max_y = $y if ( (not defined $max_y) || $y > $max_y);
     }
 
+    $max_x //= $min_x;
+    $max_y //= $min_y;
+
     return ($min_x, $max_x, $min_y, $max_y);
 }
 
 sub get_cell_sizes {
     my $data = $_[1];
-    #my ($cell_x, $cell_y) = @{$data->get_param("CELL_SIZES")};
-    my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-    #my $cellWidth = 0;
-    #print "cell sizes: ", join(/,/,@cell_sizes);
-    my $i = 0;
-    foreach my $axis (@cell_sizes) {
-        if ($axis == 0) {  
-            # If zero size, we want to display every point
-            # Fast dodgy method for computing cell size
-            #
-            # 1. Sort coordinates
-            # 2. Find successive differences
-            # 3. Sort differences
-            # 4. Make cells square with median distances
-    
-            print "[Grid] Calculating minimal cell size for axis $i\n";
-    
-            my $elts = $data->get_element_hash();
-            my %axis_coords;  #  want a list of all the unique coords on this axis
-            foreach my $element (keys %$elts) {
-                my @axes = $data->get_element_name_as_array(element => $element);
-                $axis_coords{$axes[$i]} = 1; 
-            }
-            
-            my $j = 0;
-            my @array = sort {$a <=> $b} keys %axis_coords;
-            #print "@array\n";
-            my @diffs;
-            foreach my $i (1 .. $#array) {
-                my $diff = abs( $array[$i] - $array[$i-1]);
-                push @diffs, $diff;
-            }
-            
-            @diffs = sort {$a <=> $b} @diffs;
-            $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 0);
-            $j++;
-    
-            #$cellWidth = 2; # If have zero cell size, make squares more visible  NOW HANDLED ELSEWHERE
-            
+
+    #  handle text groups here
+    my @cell_sizes = map {$_ < 0 ? 1 : $_} $data->get_cell_sizes;
+
+    my @zero_axes = List::MoreUtils::indexes { $_ == 0 } @cell_sizes;
+
+  AXIS:
+    foreach my $i (@zero_axes) {
+        my $axis = $cell_sizes[$i];
+
+        # If zero size, we want to display every point
+        # Fast dodgy method for computing cell size
+        #
+        # 1. Sort coordinates
+        # 2. Find successive differences
+        # 3. Sort differences
+        # 4. Make cells square with median distances
+
+        say "[Grid] Calculating median separation distance for axis $i cell size";
+
+        #  Store a list of all the unique coords on this axis
+        #  Should be able to cache by indexing via @zero_axes
+        my %axis_coords;
+        my $elts = $data->get_element_hash();
+        foreach my $element (keys %$elts) {
+            my @axes = $data->get_element_name_as_array(element => $element);
+            $axis_coords{$axes[$i]} = undef;
         }
-        elsif ($axis < 0) {  #  really should loop over each axis
-            $cell_sizes[$i] = 1;
-            #$cellWidth = 2;
+
+        my @array = sort {$a <=> $b} keys %axis_coords;
+
+        my %diffs;
+        foreach my $i (1 .. $#array) {
+            my $d = abs( $array[$i] - $array[$i-1]);
+            $diffs{$d} = undef;
         }
-        $i++;
+
+        my @diffs = sort {$a <=> $b} keys %diffs;
+        $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 1);
     }
-    print "[Grid]   using cellsizes ", join (", ", @cell_sizes) , "\n";
-    #my ($cell_x, $cell_y) = @cell_sizes;
-    #return ($cell_x, $cell_y, $cellWidth);
+
+    say '[Grid] Using cellsizes ', join (', ', @cell_sizes);
+
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 
@@ -1380,17 +1426,12 @@ sub get_cell_sizes {
 
 # Implements pop-ups and hover-markers
 # FIXME FIXME FIXME Horrible problems between windows / linux due to the markers being on top...
+# SWL 20140823. Is this still the case?
 sub on_event {
     my ($self, $event, $cell) = @_;
 
-#my $type = $event->type;
-#my $state = $event->state;
-#if ($state) {
-#    print "Event is $type, state is $state \n";
-#}
-
     if ($event->type eq '2button_press') {
-        print "Double click does nothing";
+        say "Double click does nothing";
     }
     elsif ($event->type eq 'enter-notify') {
 
@@ -1400,10 +1441,11 @@ sub on_event {
             $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
         }
 
-        # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        $self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
 
@@ -1414,9 +1456,14 @@ sub on_event {
         #    # the popups on win32 - we receive leave-notify on button click!
         #    #$f->(undef);
         #}
+        
+        # call to end hovering
+        if (defined $self->{end_hover_func} and not $self->{clicked_cell}) {
+            $self->{end_hover_func}->();
+        }
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
 
     }
     elsif ($event->type eq 'button-press') {
@@ -1437,13 +1484,12 @@ sub on_event {
             return 1;  #  Don't propagate the events
         }
         
-        elsif ($event->button == 1) { # left click and drag
+        elsif ($self->{drag_mode} eq 'select' and $event->button == 1) { # left click and drag
             
             if (defined $self->{select_func}
                 and not $self->{selecting}
                 and not ($event->state >= [ 'control-mask' ])
                 ) {
-                
                 ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
                 
                 # Grab mouse
@@ -1482,7 +1528,6 @@ sub on_event {
     }
     elsif ($event->type eq 'button-release') {
         $cell->ungrab ($event->time);
-
         if ($self->{selecting} and defined $self->{select_func}) {
 
             $cell->ungrab ($event->time);
@@ -1491,7 +1536,7 @@ sub on_event {
             
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
-            my ($x_end, $y_end)     = ($event->x, $event->y);
+            my ($x_end,   $y_end)   = ($event->x, $event->y);
 
             $self->end_selection($x_start, $y_start, $x_end, $y_end);
 
@@ -1539,20 +1584,22 @@ sub on_size_allocate {
 sub on_background_event {
     my ($self, $event, $cell) = @_;
 
-my $type = $event->type;
-my $state = $event->state;
-#print "BK Event is $type, state is $state \n";
+    # Do everything with left click now.
+    return if $event->type =~ m/^button-/ && $event->button != 1;
 
-
-    if ( $event->type eq 'button-press') {
-        
-        if ($event->button == 1 and defined $self->{select_func} and not $self->{selecting}) {
-#print "COMMENCING SELECTION  $self->{select_func}\n";
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->set_active_pane('grid');
+    }
+    elsif ($event->type eq 'leave-notify') {
+        $self->{page}->set_active_pane('');
+    }
+    elsif ($event->type eq 'button-press') {
+        if ($self->{drag_mode} eq 'select' and not $self->{selecting} and defined $self->{select_func}) {
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
 
             # Grab mouse
             $cell->grab (
-                [qw /pointer-motion-mask button-release-mask/ ],
+                [qw/pointer-motion-mask button-release-mask/],
                 Gtk2::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
@@ -1564,14 +1611,14 @@ my $state = $event->state;
                 'Gnome2::Canvas::Rect',
                 x1 => $event->x,
                 y1 => $event->y,
-                x2 => $event->x,
-                y2 => $event->y,
+                x2 => $event->x + 1,
+                y2 => $event->y + 1,
                 fill_color_gdk => undef,
                 outline_color_gdk => CELL_BLACK,
                 width_pixels => 0,
             );
         }
-        else {
+        elsif ($self->{drag_mode} eq 'pan') {
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -1582,11 +1629,14 @@ my $state = $event->state;
             );
             $self->{dragging} = 1;
         }
-
+        elsif ($self->{drag_mode} eq 'click') {
+            if (defined $self->{grid_click_func}) {
+                $self->{grid_click_func}->();
+            }
+        }
     }
-    elsif ( $event->type eq 'button-release') {
-
-        if ($self->{selecting} and $event->button == 1) {
+    elsif ($event->type eq 'button-release') {
+        if ($self->{selecting}) {
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
             my ($x_end, $y_end)     = ($event->x, $event->y);
@@ -1621,7 +1671,6 @@ my $state = $event->state;
 #        print "Background Event\tMotion\n";
         
         if ($self->{selecting}) {
-
             # Resize selection rectangle
             $self->{sel_rect}->set(x2 => $event->x, y2 => $event->y);
 
@@ -1638,7 +1687,7 @@ my $state = $event->state;
         }
     }
 
-    return 0;    
+    return 0;
 }
 
 # Called to complete selection. Finds selected elements and calls callback
@@ -1685,10 +1734,11 @@ sub end_selection {
         }
     }
 
-    # call callback
+    # call callback, using original event coords
+    # TODO: the call with rect info could be a separate callback.
     my $f = $self->{select_func};
-    $f->($elements);
-    
+    &$f($elements, undef, [$x_start, $y_start, $x_end, $y_end]);
+
     return;
 }
 
@@ -1893,7 +1943,9 @@ sub post_zoom {
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
-    
+
+    $mode = ucfirst lc $mode;
+
     croak "Invalid display mode '$mode'\n"
         if not $mode =~ /^Hue|Sat|Grey$/;
     

@@ -10,12 +10,13 @@ use Carp;
 use English qw { -no_match_vars };
 use Path::Class;
 use Scalar::Util qw /blessed/;
+use Time::HiRes qw /gettimeofday tv_interval time/;
 
 use rlib;
 
 local $| = 1;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Config;
 use Biodiverse::BaseData;
@@ -64,7 +65,7 @@ die "\nError: Basedata file not specified\n$usage\n"
 die "\nError: Randomisation name not specified\n$usage\n"
   if !defined $rand_name;
 
-my $tmp_bd     = Biodiverse::BaseData->new();
+my $tmp_bd     = Biodiverse::BaseData->new(CELL_SIZES => [100000, 100000]);
 my $extensions = join ('|', $tmp_bd->get_param('OUTSUFFIX'), $tmp_bd->get_param('OUTSUFFIX_YAML'));
 my $re_valid   = qr/($extensions)$/i;
 croak "$in_file does not have a valid BaseData extension ($extensions)\n" if not $in_file =~ $re_valid;
@@ -81,6 +82,8 @@ my $rand = $bd->get_randomisation_output_ref (name => $rand_name)
 
 $iterations //= 10;
 
+my $time = time();
+
 my $success = eval {
     $rand->run_analysis (
         save_checkpoint => 99,
@@ -92,6 +95,19 @@ if ($EVAL_ERROR) {
     report_error ($EVAL_ERROR);
     exit;
 }
+
+my $time_taken = time() - $time;
+my $units = 'seconds';
+if ($time_taken > 3600) {
+    $units = 'hours';
+    $time_taken /= 3600;
+}
+elsif ($time_taken > 60) {
+    $units = 'minutes';
+    $time_taken /= 60;
+}
+$time_taken = 0 + sprintf "%.3f", $time_taken;
+printf "Time taken: %s %s\n", $time_taken, $units;
 
 
 croak "Analysis not successful\n"

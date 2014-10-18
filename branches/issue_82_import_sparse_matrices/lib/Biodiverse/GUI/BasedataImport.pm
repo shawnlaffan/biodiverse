@@ -6,8 +6,9 @@ use warnings;
 use English ( -no_match_vars );
 
 use Carp;
+use List::Util qw /min/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use File::Basename;
 use Gtk2;
@@ -15,7 +16,7 @@ use Gtk2::GladeXML;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-use Scalar::Util qw /reftype/;
+use Scalar::Util qw /reftype looks_like_number/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -27,25 +28,45 @@ use Biodiverse::ElementProperties;
 use Biodiverse::Common;
 
 
-#  a few name setups for a change-over that never happened
-my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
-my $dlg_name = "dlgImport1";
-my $chk_new = "chkNew$import_n";
-my $btn_next = "btnNext$import_n";
-my $file_format = "format_box$import_n";
-my $combo_import_basedatas = "comboImportBasedatas$import_n";
-my $filechooser_input = "filechooserInput$import_n";
-my $txt_import_new = "txtImportNew$import_n";
-my $table_parameters = "tableParameters$import_n";
+#  A few name setups for a change-over that never happened,
+#  so the the $import_n part is actually redundant.
+#  The other import dialogue (#3) is no longer in the glade file.  
+my $import_n = ''; #  use "" for orig, 3 for the one with embedded params table
+my $import_dlg_name    = "dlgImport1";
+my $chk_new            = "chkNew$import_n";
+my $btn_next           = "btnNext$import_n";
+my $file_format        = "format_box$import_n";
+my $filechooser_input  = "filechooserInput$import_n";
+my $txt_import_new     = "txtImportNew$import_n";
+my $table_parameters   = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
+my $combo_import_basedatas     = "comboImportBasedatas$import_n";
+my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
 
 my $text_idx      = 0;  # index in combo box 
 my $raster_idx    = 1;  # index in combo box of raster format
 my $shapefile_idx = 2;  # index in combo box 
 
-my $txtcsv_filter; # maintain reference for these, to allow referring when import method changes
+# maintain reference for these, to allow referring when import method changes
+my $txtcsv_filter; 
 my $allfiles_filter;  
 my $shapefiles_filter;  
+
+my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
+Set to 'is_lat' if column contains latitude values,
+is_lon' if longitude values. Leave as blank if neither.
+END_LL_TOOLTIP_TEXT
+  ;
+
+my $max_row_spinner_tooltip_text = <<'END_MAX_ROW_TOOLTIP_TEXT'
+Too many columns will slow down the GUI.
+Set this to a small number to make it
+manageable when the input file has a large
+number of columns and the options can be set
+using the first few columns,
+e.g. a large matrix format file
+END_MAX_ROW_TOOLTIP_TEXT
+  ;
 
 ##################################################
 # High-level procedure
@@ -69,23 +90,6 @@ sub run {
 
     #if ($response eq 'ok') {
 
-    $use_new = $dlgxml->get_widget($chk_new)->get_active();
-    if ($use_new) {
-        # Add it
-        # FIXME: why am i adding it now?? better at the end?
-        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
-        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
-        $basedata_ref = Biodiverse::BaseData->new (
-            NAME       => $basedata_name,
-            CELL_SIZES => [100000,100000],  #  default, gets overridden later
-        );
-    }
-    else {
-        # Get selected basedata
-        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
-        $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
-    }
-
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
     my @file_names_tmp = @filenames;
@@ -94,10 +98,83 @@ sub run {
         push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';
     }
     my $file_list_as_text = join ("\n", @file_names_tmp);
+    my @def_cellsizes = (100000,100000);    
     
+    $use_new = $dlgxml->get_widget($chk_new)->get_active();
+
+    #  do we want to import each file into its own basedata?
+    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
+    my $one_basedata_per_file = $w->get_active();
+    my %multiple_brefs;  # mapping from basedata name (eg from shortened file) to basedata ref
+    my %multiple_file_lists;  # mapping from basedata name to array (ref) of files
+    my %multiple_is_new;  # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    
+    if ($one_basedata_per_file) {
+        # create a new basedata for each file
+        # get existing basedatas (in tree form), to check if given name exists
+        my $basedata_list = $gui->get_project->get_base_data_list();
+
+        my $count = 0;
+        foreach my $file (@filenames) {
+            # use basedata_ref locally, and then maintain a ref to the last created
+            # basedata for some of the subsequent 'get' calls
+            my $dispname = "unnamed_$count";
+            $count++;
+            my $existing = 0;
+            if ($file =~ /\.[^.]*/) {
+                my($name, $dir, $suffix) = fileparse($file, qr/\.[^.]*/);
+                $dispname = $name;
+
+                # if use_new flag is not set, check if basedata exists with given file 
+                # name, if so add to existing.  if not found, a new basedata will be created
+                if (! $use_new) {
+                    foreach my $existing_bdref (@$basedata_list) {
+                        if ($existing_bdref->get_param('NAME') eq $dispname) {
+                            $existing = 1;
+                            $basedata_ref = $existing_bdref; 
+                            last;
+                        }
+                    }
+                }
+            }
+
+            if (! $existing) {
+                $basedata_ref = Biodiverse::BaseData->new (
+                    NAME       => $dispname,
+                    CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
+                );
+            }
+
+            $multiple_brefs{$file}      = $basedata_ref;
+            $multiple_file_lists{$file} = [$file];
+            $multiple_is_new{$file}     = ! $existing;
+        }
+    } 
+    elsif ($use_new) {
+        # Add it
+        # FIXME: why am i adding it now?? better at the end?
+        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
+        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
+        $basedata_ref = Biodiverse::BaseData->new (
+            NAME       => $basedata_name,
+            CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
+        );
+        $multiple_brefs{$basedata_name} = $basedata_ref;
+        $multiple_file_lists{$basedata_name} = \@filenames;
+        $multiple_is_new{$basedata_name} = 1;
+    }
+    else {
+        # Get selected basedata
+        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
+        $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
+        my $basedata_name = $basedata_ref->get_param ('NAME');
+        $multiple_brefs{$basedata_name} = $basedata_ref;
+        $multiple_file_lists{$basedata_name} = \@filenames;
+    }
+
     # interpret if raster or text depending on format box
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
-
+    
     $dlg->destroy();
 
     #########
@@ -138,7 +215,31 @@ sub run {
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
     }
-    
+    my $max_col_spinner = {
+        name       => 'max_opt_cols',
+        type       => 'integer',
+        default    => 100,
+        label_text => 'Maximum number of header columns to show options for (includes remap dialogues)',
+        tooltip    => $max_row_spinner_tooltip_text,
+    };
+    push @{$args{parameters}}, $max_col_spinner;
+
+    my $gp_axis_dp = $ENV{BD_IMPORT_DP} || 7;
+    if (!looks_like_number $gp_axis_dp) {
+        $gp_axis_dp = 7;
+    }
+    my $gp_axis_precision_spinner = {
+        name       => 'gp_axis_precision',
+        type       => 'integer',
+        default    => $gp_axis_dp,
+        min        => 1,
+        max        => 15,
+        label_text => 'Number of decimal places used in cell sizes',
+        tooltip    => 'Number of decimal places in cell size specifiers (sizes and offsets)',
+    };
+    push @{$args{parameters}}, $gp_axis_precision_spinner;
+
+
     my %import_params;
     my $table_params;
     $table_params = $args{parameters};
@@ -167,15 +268,14 @@ sub run {
     $response = $dlg->run;
     $dlg->destroy;
 
-    if ($response ne 'ok') {  #  clean up and drop out
-        if ($use_new) {
-            $gui->get_project->delete_base_data($basedata_ref);
-        }
+    if ($response ne 'ok') {  
+        #  clean up and drop out
+        cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
+            if $use_new || $one_basedata_per_file;
         return;
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     %import_params = @$import_params;
-    
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
@@ -187,14 +287,14 @@ sub run {
 
     if ($read_format == $raster_idx) {
         # just set cell sizes etc values from dialog
-        @cell_origins = ($import_params{raster_origin_e}, $import_params{raster_origin_n});
-        @cell_sizes = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
+        @cell_origins = ($import_params{raster_origin_e},   $import_params{raster_origin_n});
+        @cell_sizes   = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
     }
     elsif ($read_format == $shapefile_idx) {
         # process as shapefile
 
         # find available columns from first file, assume all the same
-        croak ('no files given') if !scalar @filenames;
+        croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
         $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
@@ -225,7 +325,7 @@ sub run {
         # process as text input, get columns from file
 
         # Get header columns
-        print "[GUI] Discovering columns from $filenames[0]\n";
+        say "[GUI] Discovering columns from $filenames[0]";
         my $fh;
         my $filename_utf8 = Glib::filename_display_name $filenames[0];
 
@@ -245,41 +345,31 @@ sub run {
             croak $msg;
         }
 
+        my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
+            fname => $filename_utf8,
+        );
+
         my $line = <$fh>;
-
-        my $sep = $import_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $import_params{input_sep_char};
-
-        my $quotes  = $import_params{input_quote_char} eq 'guess'
-                    ? $gui->get_project->guess_quote_char (string => $line)
-                    : $import_params{input_quote_char};
-
-        my $eol     = $gui->get_project->guess_eol (string => $line);
-
         my @header  = $gui->get_project->csv2list(
             string      => $line,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
 
         #  R data frames are saved missing the first field in the header
         my $is_r_data_frame = check_if_r_data_frame (
-            file     => $filenames[0],
-            quotes   => $quotes,
-            sep_char => $sep,
+            file       => $filenames[0],
+            csv_object => $csv_obj,
         );
         #  add a field to the header if needed
         if ($is_r_data_frame) {
-            unshift @header, 'R_data_frame_col_0';
+            unshift @header, ':R_data_frame_col_0:';
         }
 
-        # check for empty fields in header? replace with generic
-        ## SWL - needed?
+        # Check for empty fields in header.
+        # CSV files from excel can have dangling headers
         my $col_num = 0;
         while ($col_num <= $#header) {
-            if (length($header[$col_num]) == 0) {
+            if (!defined $header[$col_num] || !length $header[$col_num]) {
                 $header[$col_num] = "col_$col_num";
             }
             $col_num++;
@@ -289,9 +379,7 @@ sub run {
         my $line2 = <$fh>;
         my @line2_cols  = $gui->get_project->csv2list(
             string      => $line2,
-            quote_char  => $quotes,
-            sep_char    => $sep,
-            eol         => $eol,
+            csv_object  => $csv_obj,
         );
         while($col_num <= $#line2_cols) {
             $header[$col_num] = "col_$col_num";
@@ -324,10 +412,12 @@ sub run {
     if ($read_format == $shapefile_idx || $read_format == $text_idx) {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
-            $col_names_for_dialog,
-            $gui->get_widget('wndMain'),
-            $col_options,
-            $file_list_as_text,
+            header      => $col_names_for_dialog,
+            wnd_main    => $gui->get_widget('wndMain'),
+            row_options => $col_options,
+            file_list_text => $file_list_as_text,
+            max_opt_rows   => $import_params{max_opt_cols},
+            gp_axis_precision => $import_params{gp_axis_precision},
         );
         
         GET_COLUMN_TYPES:
@@ -348,18 +438,19 @@ sub run {
                 my $num_labels = 0;
                 if ($use_matrix) {
                     if (exists $column_settings->{Label_start_col}) {  #  not always present
-                        $num_labels = scalar @{$column_settings->{Label_start_col}};
+                        $num_labels = scalar @{$column_settings->{Label_start_col}}; #>=1
+                        #$num_labels = 1;  #  just binary flag it
                     }
                 }
                 else {
                     $num_labels = scalar @{$column_settings->{labels}};
                 }
     
-                last GET_COLUMN_TYPES if $num_groups;
+                last GET_COLUMN_TYPES if $num_groups && $num_labels;
     
                 my $text = $use_matrix
                      ? 'Please select at least one group and the label start column'
-                     : 'Please select at least one label and one group';
+                     : 'Please select at least one label and one group column';
                 
                 my $msg = Gtk2::MessageDialog->new (
                     undef,
@@ -377,9 +468,8 @@ sub run {
         $dlg->destroy();
         
         if (not $column_settings) {  #  clean up and drop out
-            if ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref) ;
-            }
+            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
+                if ($use_new || $one_basedata_per_file);
             return;
         }
     }
@@ -402,9 +492,7 @@ sub run {
         $dlg->destroy();
     
         if ($response ne 'ok') {  #  clean up and drop out
-            if ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref);
-            }
+            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui) if ($use_new || $one_basedata_per_file);
             return;
         }
     
@@ -412,10 +500,10 @@ sub run {
             $column_settings->{labels} = $old_labels_array;
         }
 
-        @cell_sizes = $reorder_params->{CELL_SIZES};
-        @cell_origins = $reorder_params->{CELL_ORIGINS};
+        @cell_sizes   = @{$reorder_params->{CELL_SIZES}};
+        @cell_origins = @{$reorder_params->{CELL_ORIGINS}};
     }
-   
+
     #########
     # 3a. Load the label and group properties
     #########
@@ -427,10 +515,11 @@ sub run {
     foreach my $type (qw /label group/) {
         if ($import_params{"use_$type\_properties"}) {
             my %remap_data = get_remap_info (
-                $gui,
-                $filenames[0],
-                $type,
-                $other_properties{$type},
+                gui  => $gui,
+                type => $type,
+                get_dir_from     => $filenames[0],
+                other_properties => $other_properties{$type},
+                max_cols_to_show => $import_params{max_opt_cols},
             );
 
             #  now do something with them...
@@ -451,9 +540,13 @@ sub run {
     # 4. Load the data
     #########
     # Set the cellsize and origins parameters if we are new
-    if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
-        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
+    if ($use_new || $one_basedata_per_file) {
+        foreach my $file (keys %multiple_brefs) {
+            next if ! $multiple_is_new{$file};
+
+            $multiple_brefs{$file}->set_param(CELL_SIZES   => [@cell_sizes]);
+            $multiple_brefs{$file}->set_param(CELL_ORIGINS => [@cell_origins]);
+        }
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
@@ -497,56 +590,63 @@ sub run {
         $gp_lb_cols{lc $key} = $value;
     }
 
-    my $success = eval {
-        # run appropriate import routine
-        if ($read_format == $raster_idx) {
-            my $labels_as_bands = $import_params{raster_labels_as_bands};
-            my $success = eval {
-                $basedata_ref->import_data_raster(
+    my $success = 1;
+    # run appropriate import routine
+    if ($read_format == $raster_idx) {
+        my $labels_as_bands = $import_params{labels_as_bands};
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_raster(
                     %import_params,
                     #%rest_of_options,
                     #%gp_lb_cols,
                     labels_as_bands => $labels_as_bands,
-                    input_files     => \@filenames
+                    input_files     => $multiple_file_lists{$bdata}
                 )
             };
         }
-        elsif ($read_format == $shapefile_idx) {
-            #  shapefiles import based on names, so extract them
-            my (@group_col_names, @label_col_names);
-            foreach my $specs (@{$column_settings->{labels}}) {
-                push @label_col_names, $specs->{name};
-            }
-            foreach my $specs (@{$column_settings->{groups}}) {
-                push @group_col_names, $specs->{name};
-            }
-            my @sample_count_col_names;
-            foreach my $specs (@{$column_settings->{sample_counts}}) {
-                push @sample_count_col_names, $specs->{name};
-            }
-            # process data
-            my $success = eval {
-                $basedata_ref->import_data_shapefile(
+    }
+    elsif ($read_format == $shapefile_idx) {
+        #  shapefiles import based on names, so extract them
+        my (@group_col_names, @label_col_names);
+        foreach my $specs (@{$column_settings->{labels}}) {
+            push @label_col_names, $specs->{name};
+        }
+        foreach my $specs (@{$column_settings->{groups}}) {
+            push @group_col_names, $specs->{name};
+        }
+        my @sample_count_col_names;
+        foreach my $specs (@{$column_settings->{sample_counts}}) {
+            push @sample_count_col_names, $specs->{name};
+        }
+        # process data
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_shapefile(
                     %import_params,
-                    input_files             => \@filenames,
+                    input_files             => $multiple_file_lists{$bdata},
                     group_fields            => \@group_col_names,
                     label_fields            => \@label_col_names,
                     sample_count_col_names  => \@sample_count_col_names,
                 )
-            };            
-        } 
-        elsif ($read_format == $text_idx) {        
-            $basedata_ref->load_data(
-                %import_params,
-                %rest_of_options,
-                %gp_lb_cols,
-                input_files             => \@filenames,
-                include_columns         => \@include_columns,
-                exclude_columns         => \@exclude_columns,
-                sample_count_columns    => \@sample_count_columns,
-            )
+            };
         }
-    };
+    } 
+    elsif ($read_format == $text_idx) {        
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &&= eval {
+                $multiple_brefs{$bdata}->load_data(
+                    %import_params,
+                    %rest_of_options,
+                    %gp_lb_cols,
+                    input_files     => $multiple_file_lists{$bdata},
+                    include_columns         => \@include_columns,
+                    exclude_columns         => \@exclude_columns,
+                    sample_count_columns    => \@sample_count_columns,
+                );
+            };
+        }
+    }
     
     if ($EVAL_ERROR) {
         my $text = $EVAL_ERROR;
@@ -557,8 +657,11 @@ sub run {
     }
 
     if ($success) {
-        if ($use_new) {
-            $gui->get_project->add_base_data($basedata_ref);
+        if ($use_new || $one_basedata_per_file) {
+            foreach my $file (keys %multiple_brefs) {
+                next if (! $multiple_is_new{$file});
+                $gui->get_project->add_base_data($multiple_brefs{$file});
+            }
         }
         return $basedata_ref;
     }
@@ -566,12 +669,25 @@ sub run {
     return;
 }
 
+sub cleanup_new_basedatas {
+    my ($brefs, $bdata_is_new, $gui) = @_;
+
+    #  clean up and drop out
+    # note we have to check for new basedatas if one_basedata_per_file set
+    # and use_new not set, as a new one is created if not found
+    foreach my $file (keys %$brefs) {
+        # check if newly created
+        next if ! $bdata_is_new->{$file};
+        $gui->get_project->delete_base_data($brefs->{$file});
+    }
+    return;
+}
 
 sub check_if_r_data_frame {
     my %args = @_;
     
     my $package = 'Biodiverse::Common';
-    my $csv = $package->get_csv_object (@_);
+    my $csv = $args{csv_object} // $package->get_csv_object (@_);
     
     my $fh;
     open ($fh, '<:via(File::BOM)', $args{file})
@@ -592,6 +708,7 @@ sub check_if_r_data_frame {
     foreach my $line (@lines) {
         if (scalar @$line == $header_count + 1) {
             $is_r_style = 1;
+            last;
         }
     }
     
@@ -984,9 +1101,7 @@ sub on_up_down {
     if (not $iter) {
         # try other list
         ($model, $iter) = $list2->get_selection->get_selected();
-        if (not $iter) {
-            return;
-        }
+        return if not $iter;
     }
 
     if ($btn eq 'up') {
@@ -1018,22 +1133,11 @@ sub on_up_down {
 sub make_filename_dialog {
     my $gui = shift;
     #my $object = shift || return;
-    
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $dlg_name);
-    my $dlg = $dlgxml->get_widget($dlg_name);
+
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $import_dlg_name);
+    my $dlg    = $dlgxml->get_widget($import_dlg_name);
     my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
-    
-#    # Get the Parameters metadata
-#    my $tmp = Biodiverse::BaseData->new;
-#        my %args = $tmp->get_args (sub => 'import_data');
-#    my $params = $args{parameters};
-#
-#    # Build widgets for parameters
-#    my $table = $dlgxml->get_widget($table_parameters);
-#    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-#    my $extractors = Biodiverse::GUI::ParametersTable::fill($params, $table, $dlgxml); 
-
 
     # Initialise the basedatas combo
     $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
@@ -1054,41 +1158,49 @@ sub make_filename_dialog {
 
 
     # Init the file chooser
+    my $filechooser = $dlgxml->get_widget($filechooser_input);
     
+    use Cwd;
+    $filechooser->set_current_folder_uri(getcwd());
+
     # define file selection filters (stored in txtcsv_filter etc)
     $txtcsv_filter = Gtk2::FileFilter->new();
     $txtcsv_filter->add_pattern('*.csv');
     $txtcsv_filter->add_pattern('*.txt');
     $txtcsv_filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($txtcsv_filter);
+    $filechooser->add_filter($txtcsv_filter);
 
     $allfiles_filter = Gtk2::FileFilter->new();
     $allfiles_filter->add_pattern('*');
     $allfiles_filter->set_name('all files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($allfiles_filter);
-    
+    $filechooser->add_filter($allfiles_filter);
+
     $shapefiles_filter = Gtk2::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->set_name('shapefiles');
-    $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
-    
-    $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $filechooser->add_filter($shapefiles_filter);
+
+    $filechooser->set_select_multiple(1);
+    $filechooser->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
-    
+
+    $dlgxml->get_widget($chk_import_one_bd_per_file)->signal_connect(
+        toggled => \&on_separate_toggled, [$gui, $dlgxml],
+    );
+
     $dlgxml->get_widget($file_format)->set_active(0);
-    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
+    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&on_import_method_changed, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
 }
 
-sub onImportMethodChanged {
+sub on_import_method_changed {
     # change file filter used
     my $format_combo = shift;
-    my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my $args         = shift;
+    my ($gui, $dlgxml) = @$args;
     
     my $active_choice = $format_combo->get_active();
     my $f_widget      = $dlgxml->get_widget($filechooser_input);
@@ -1107,9 +1219,9 @@ sub onImportMethodChanged {
     return;
 }
 
-sub onFileChanged {
+sub on_file_changed {
     my $chooser = shift;
-    my $dlgxml = shift;
+    my $dlgxml  = shift;
 
     my $text = $dlgxml->get_widget("txtImportNew$import_n");
     my @filenames = $chooser->get_filenames();
@@ -1154,39 +1266,65 @@ sub on_new_changed {
 sub on_new_toggled {
     my $checkbox = shift;
     my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my ($gui, $dlgxml) = @$args;
 
-    if ($checkbox->get_active) {
-        # New basedata
-
-        $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
-    }
-    else {
-        # Must select existing - NOTE: checkbox is disabled if there aren't any
-
+    # if we are doing multiple files as separate, keep basedata selection and new filename
+    # fields as disabled 
+    if ($dlgxml->get_widget($chk_import_one_bd_per_file)->get_active) {
         $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    } 
+    else {
+        #  if true then new, else must select existing
+        my $sens_val = $checkbox->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
 }
 
+sub on_separate_toggled {
+    my $checkbox = shift;
+    my $args     = shift;
+    my ($gui, $dlgxml) = @$args;
+
+    if ($checkbox->get_active) {
+        # separate chosen
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    }
+    else {
+        # de-selected use of separate.  set sensitivity of import_new and import_basedata
+        # according to selection of new
+        my $sens_val = $dlgxml->get_widget($chk_new)->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
+    }
+
+    return;
+}
+
+
 ##################################################
 # Column selection dialog
 ##################################################
 
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub make_columns_dialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
+    my %args = @_;
+    my $header       = $args{header}; # ref to column header array
+    my $wnd_main     = $args{wnd_main};
+    my $row_options  = $args{row_options};
+    my $file_list    = $args{file_list_text};
+    my $max_opt_rows = $args{max_opt_rows} || 100;
+    my $gp_axis_prec = $args{gp_axis_precision};
 
-    my $header      = shift; # ref to column header array
-    my $wnd_main     = shift;
-    my $row_options = shift;
-    my $file_list   = shift;
-
-    my $num_columns = @$header;
-    print "[GUI] Generating make columns dialog for $num_columns columns\n";
+    #  don't try to generate ludicrous number of rows...
+    my $num_columns = min (scalar @$header, $max_opt_rows);
+    my $quant = $num_columns == scalar @$header ? q{} : 'first';
+    say "[GUI] Generating make columns dialog for $quant $num_columns columns";
 
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
@@ -1208,9 +1346,6 @@ sub make_columns_dialog {
         $file_list_label->set_alignment (0, 1);
         $dlg->vbox->pack_start ($file_list_label, 0, 0, 0);
     }
-
-    #my $sep = Gtk2::HSeparator->new();
-    #$dlg->vbox->pack_start ($sep, 0, 0, 0);
 
     my $label = Gtk2::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);
@@ -1273,7 +1408,8 @@ sub make_columns_dialog {
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
         my $row_label_text = $header->[$i] // q{};
-        add_row($row_widgets, $table, $i, $row_label_text, $row_options);
+        add_row($row_widgets, $table, $i, $row_label_text, $row_options, $gp_axis_prec);
+        #last if $i >= $max_opt_rows;  
     }
 
     $dlg->set_resizable(1);
@@ -1286,19 +1422,15 @@ sub make_columns_dialog {
         $row->[2]->hide;
         $row->[3]->hide;
     }
-    
-    #  now add the help text
 
     return ($dlg, $row_widgets);
 }
 
 sub add_row {
-    my ($row_widgets, $table, $col_id, $header, $row_options) = @_;
-    
-    if (!defined $header) {
-        $header = q{};
-    }
-    
+    my ($row_widgets, $table, $col_id, $header, $row_options, $gp_axis_prec) = @_;
+
+    $header //= q{};
+
     if ((ref $row_options) !~ /ARRAY/ or scalar @$row_options == 0) {
         $row_options = [qw /
             Ignore
@@ -1316,6 +1448,8 @@ sub add_row {
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
+    $header = Glib::Markup::escape_text ($header);
+
     # Column header    
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_alignment(0.5, 1);
@@ -1328,24 +1462,27 @@ sub add_row {
     }
     $combo->set_active(0);
 
+    my $dp = $gp_axis_prec || $ENV{BD_IMPORT_DP} || 7;
+    if (!looks_like_number $dp) {
+        $dp = 7;
+    }
+
     # Cell sizes/snaps
     my $adj1  = Gtk2::Adjustment->new (100000, 0, 10000000, 100, 10000, 0);
-    my $spin1 = Gtk2::SpinButton->new ($adj1, 100, 7);
+    my $spin1 = Gtk2::SpinButton->new ($adj1, 100, $dp);
 
     my $adj2  = Gtk2::Adjustment->new (0, -1000000, 1000000, 100, 10000, 0);
-    my $spin2 = Gtk2::SpinButton->new ($adj2, 100, 7);
+    my $spin2 = Gtk2::SpinButton->new ($adj2, 100, $dp);
 
-    $spin1->hide(); # By default, columns are "ignored" so cell sizes don't apply
-    $spin2->hide();
-    $spin1->set_numeric(1);
-    $spin2->set_numeric(1);
-    
+    foreach my $spin ($spin1, $spin2) {
+        $spin->hide(); # By default, columns are "ignored" so cell sizes don't apply
+        $spin->set_numeric(1);
+    }
+
     #  degrees minutes seconds
     my $combo_dms = Gtk2::ComboBox->new_text;
     $combo_dms->set_has_tooltip (1);
-    my $tooltip_text = q{Set to 'is_lat' if column contains latitude values, }
-                       . q{'is_lon' if longitude values. Leave as blank if neither.};
-    $combo_dms->set_tooltip_text ($tooltip_text);
+    $combo_dms->set_tooltip_text ($lat_lon_widget_tooltip_text);
     foreach my $choice ('', 'is_lat', 'is_lon') {
         $combo_dms->append_text($choice);
     }
@@ -1353,17 +1490,14 @@ sub add_row {
 
     # Attach to table
     my $i = 0;
+    my $c = $col_id;
     foreach my $option ($i_label, $label, $combo, $spin1, $spin2, $combo_dms) {
         $table->attach(
             $option,
-            $i,
-            $i + 1,
-            $col_id + 1,
-            $col_id + 2,
-            'shrink',
-            'shrink',
-            0,
-            0,
+            $i,       $i + 1,
+            $c + 1,   $c + 2,
+            'shrink', 'shrink',
+            0,        0,
         );
         $i++;
     }
@@ -1376,7 +1510,7 @@ sub add_row {
 
     # Store widgets
     $row_widgets->[$col_id] = [$combo, $spin1, $spin2, $combo_dms];
-    
+
     return;
 }
 
@@ -1402,27 +1536,33 @@ sub on_type_combo_changed {
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
 sub get_remap_info {
-    my $gui              = shift;
-    my $data_filename    = shift;
-    my $type             = shift // "";
-    my $other_properties = shift || [];
-    my $column_overrides = shift;
-    my $filename         = shift;
-    
-    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
-        ? fileparse($data_filename)
+    my %args = @_;
+    my $gui              = $args{gui};
+    my $get_dir_from     = $args{get_dir_from};
+    my $type             = $args{type} // "";
+    my $other_properties = $args{other_properties} || [];
+    my $column_overrides = $args{column_overrides};
+    my $filename         = $args{filename};
+    my $max_cols_to_show = $args{max_cols_to_show} || 100;
+
+    my ($_file, $data_dir, $_suffixes)
+        = $get_dir_from && length $get_dir_from
+        ? fileparse($get_dir_from)
         : ();
 
     # Get filename for the name-translation file
-    $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
-    if (! defined $filename) {
-        return wantarray ? () : {}
-    };
-    
-    my $remap = Biodiverse::ElementProperties->new;
-    my %args = $remap->get_args (sub => 'import_data');
-    my $params = $args{parameters};
-    
+    $filename //= $gui->show_open_dialog(
+        title  => "Select $type properties file",
+        suffix => '*',
+        initial_dir => $data_dir,
+    );
+
+    return wantarray ? () : {} if !defined $filename;
+
+    my $remap  = Biodiverse::ElementProperties->new;
+    my $remap_args = $remap->get_args (sub => 'import_data');
+    my $params = $remap_args->{parameters};
+
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
@@ -1438,16 +1578,14 @@ sub get_remap_info {
     my $response = $dlg->run;
     $dlg->destroy;
     
-    if ($response ne 'ok') {  #  drop out
-        return wantarray ? () : {};
-    }
-    
+    return wantarray ? () : {} if $response ne 'ok';
+
     my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     my %properties_params = @$properties_params;
-    
+
     # Get header columns
-    print "[GUI] Discovering columns from $filename\n";
-    
+    say "[GUI] Discovering columns from $filename";
+
     open (my $input_fh, '<:via(File::BOM)', $filename)
       or croak "Cannot open $filename\n";
 
@@ -1459,40 +1597,29 @@ sub get_remap_info {
         last if $line;
     }
     close ($input_fh);
-    
-    my $sep     = $properties_params{input_sep_char} eq 'guess' 
-                ? $gui->get_project->guess_field_separator (string => $line)
-                : $properties_params{input_sep_char};
-                
-    my $quotes  = $properties_params{input_quote_char} eq 'guess'
-                ? $gui->get_project->guess_quote_char (string => $line)
-                : $properties_params{input_quote_char};
-                
-    my $eol     = $gui->get_project->guess_eol (string => $line_unchomped);
-    
+
+    my $csv_obj = $gui->get_project->get_csv_object_using_guesswork (
+        fname      => $filename,
+        quote_char => $properties_params{input_quote_char},
+        sep_char   => $properties_params{input_sep_char},
+    );
+
     my @headers_full = $gui->get_project->csv2list(
         string     => $line_unchomped,
-        quote_char => $quotes,
-        sep_char   => $sep,
-        eol        => $eol
+        csv_object => $csv_obj,
     );
 
-    # add non-blank columns
-    # - SWL 20081201 - not sure this is a good idea, should just use all
-    my @headers;
-    foreach my $header (@headers_full) {
-        if ($header) {
-            push @headers, $header;
-        }
-    }
+    my @headers = map
+        {defined $_ ? $_ : '{null}'}
+        @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
-        \@headers,
-        $gui->get_widget('wndMain'),
-        $other_properties,
-        $column_overrides,
+        header      => \@headers,
+        wnd_main    => $gui->get_widget('wndMain'),
+        other_props => $other_properties,
+        column_overrides => $column_overrides,
     );
-    
+
     my $column_settings = {};
     $dlg->set_title(ucfirst "$type property column types");
 
@@ -1555,13 +1682,13 @@ sub get_remap_info {
         file                    => $filename,
         input_element_cols      => \@in_cols,
         remapped_element_cols   => \@out_cols,
-        input_sep_char          => $args{input_sep_char},  #  header might be sufficiently different to matter
-        input_quote_char        => $args{input_quote_char},
+        input_sep_char          => $remap_args->{input_sep_char},  #  header might be sufficiently different to matter
+        input_quote_char        => $remap_args->{input_quote_char},
         include_cols            => \@include_cols,
         exclude_cols            => \@exclude_cols,
     );
 
-    #foreach my $type (qw /Range Sample_count Property/) {
+
     foreach my $type (@$other_properties, 'Property') {
         my $ref = $column_settings->{$type};
         next if ! defined $ref;
@@ -1575,15 +1702,9 @@ sub get_remap_info {
         }
     }
 
-    if ($sep ne 'guess') {
-        $results{input_sep_char} = $sep;
-    }
-    if ($quotes ne 'guess') {
-        $results{input_quote_char} = $quotes;
-    }
-    #if ($eol ne 'guess') {
-    #    $results{eol} = $eol;
-    #}
+    #  just pass them onwards, even if it means guessing again
+    $results{input_sep_char}   = $properties_params{input_quote_char},
+    $results{input_quote_char} = $properties_params{input_sep_char};
 
     return wantarray ? %results : \%results;
 }
@@ -1591,10 +1712,11 @@ sub get_remap_info {
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
 sub make_remap_columns_dialog {
-    my $header           = shift; # ref to column header array
-    my $wnd_main         = shift;
-    my $other_props      = shift || [];
-    my $column_overrides = shift;
+    my %args = @_;
+    my $header           = $args{header}; # ref to column header array
+    my $wnd_main         = $args{wnd_main};
+    my $other_props      = $args{other_props} || [];
+    my $column_overrides = $args{column_overrides};
 
     my $num_columns = @$header;
     say "[GUI] Generating make columns dialog for $num_columns columns";
@@ -1719,3 +1841,4 @@ sub add_remap_row {
 
 
 1;
+

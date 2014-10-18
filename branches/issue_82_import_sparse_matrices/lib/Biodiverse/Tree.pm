@@ -7,17 +7,17 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 #use Devel::Symdump;
-use Scalar::Util;
-#use Scalar::Util qw /looks_like_number/;
-use Time::HiRes qw /tv_interval gettimeofday/;
-use List::MoreUtils qw /first_index/;
-use List::Util qw /sum/;
+#use Scalar::Util;
+use Scalar::Util qw /looks_like_number/;
+#use Time::HiRes qw /tv_interval gettimeofday/;
+#use List::MoreUtils qw /first_index/;
+use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 our $AUTOLOAD;
 
@@ -93,13 +93,11 @@ sub rename {
 }
 
 #  need to flesh this out - total length, summary stats of lengths etc
-sub describe {
+sub _describe {
     my $self = shift;
 
     my @description = (
-        ['TYPE: ',
-         blessed $self,
-         ],
+        'TYPE: ' . blessed $self,
     );
 
     my @keys = qw /
@@ -111,32 +109,16 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description, ["$key: ", $desc];
+        push @description, "$key: $desc";
     }
 
-    push @description, [
-        "Node count: ",
-        scalar @{$self->get_node_refs},
-    ];
-    push @description, [
-        "Terminal node count: ",
-        scalar @{$self->get_terminal_node_refs},
-    ];
-    push @description, [
-        "Root node count: ",
-        scalar @{$self->get_root_node_refs}
-    ];
+    push @description, "Node count: "          . scalar @{$self->get_node_refs};
+    push @description, "Terminal node count: " . scalar @{$self->get_terminal_node_refs};
+    push @description, "Root node count: "     . scalar @{$self->get_root_node_refs};
 
-    push @description, [
-        "Sum of branch lengths: ",
-        sprintf "%.4f", $self->get_total_tree_length
-    ];
+    push @description, "Sum of branch lengths: " . sprintf "%.6g", $self->get_total_tree_length;
 
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
 
     return wantarray ? @description : $description;
 }
@@ -158,6 +140,8 @@ sub set_parents_below {
     return;
 }
 
+#  If no_delete_cache is true then the caller promises to clean up later.
+#  This can be used to avoid multiple passes over the tree across multiple deletions.  
 sub delete_node {
     my $self = shift;
     my %args = @_;
@@ -166,23 +150,25 @@ sub delete_node {
     my $node_ref = $self->get_node_ref (node => $args{node});
     return if ! defined $node_ref;  #  node does not exist anyway
 
-    #  Clear any cached values.
-    #  We could just do the DESCENDENTS lists, but they are not the
-    #  only ones that point to now non-existent nodes.
-    #  This also circumvents circular refs from the caches.
-    $self->get_tree_ref->delete_cached_values_below;
-    
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents;
+    my %node_hash = $node_ref->get_all_descendants (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
-    #  now we delete it from the treenode structure.  This cleans up any children in the tree.
-    $node_ref->get_parent->delete_child (child => $node_ref);
+    #  Now we delete it from the treenode structure.
+    #  This cleans up any children in the tree.
+    $node_ref->get_parent->delete_child (child => $node_ref, no_delete_cache => 1);
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => \%node_hash);
-    
-    $self->delete_cached_values_below;
+
+    #  Now we clear the caches from those deleted nodes and those remaining
+    #  This circumvents circular refs from the caches.
+    if (!$args{no_delete_cache}) {
+        foreach my $n_ref (values %node_hash) {
+            $n_ref->delete_cached_values;
+        }
+        $self->delete_cached_values_below;
+    }
 
     #  return a list of the names of those deleted nodes
     return wantarray ? keys %node_hash : [keys %node_hash];
@@ -218,6 +204,7 @@ sub add_node {
     my %args = @_;
     my $node = $args{node_ref} || Biodiverse::TreeNode->new (@_);
     $self->add_to_node_hash (node_ref => $node);
+    
     return $node;
 }
 
@@ -227,7 +214,7 @@ sub add_to_node_hash {
     my $node_ref = $args{node_ref};
     my $name = $node_ref->get_name;
 
-    if ($self->exists_node (@_)) {
+    if ($self->exists_node (name => $name)) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
             message => "Node $name already exists in this tree\n",
             name    => $name,
@@ -248,7 +235,7 @@ sub exists_node {
             $name = $args{node_ref}->get_name;
         }
         else {
-            return;  #  should we croak instead?  
+            croak 'niether name nor node_ref argument passed';  
         }
     }
     return exists $self->{TREE_BY_NAME}{$name};
@@ -296,7 +283,8 @@ sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $node = $args{node} || croak "node not specified\n";
+    my $node = $args{node} || croak "node not specified in call to get_terminal_elements\n";
+
     my $node_ref = $self->get_node_ref(node => $node);
 
     return $node_ref->get_terminal_elements (cache => $args{cache})
@@ -316,7 +304,7 @@ sub get_terminal_element_count {
         $node_ref = $self->get_node_ref(node => $node);
     }
     else {
-        $node_ref = $self->get_root_node;
+        $node_ref = $self->get_tree_ref;
     }
 
     #  follow logic of get_terminal_elements, which returns a hash of
@@ -331,12 +319,14 @@ sub get_terminal_element_count {
 sub get_node_ref {
     my $self = shift;
     my %args = @_;
-    croak "node not specified\n" if ! defined $args{node};
 
-    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
-      if !exists $self->{TREE_BY_NAME}{$args{node}};
+    my $node = $args{node} //
+      croak "node not specified in call to get_node_ref\n";
 
-    return $self->{TREE_BY_NAME}{$args{node}};    
+    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
+      if !exists $self->{TREE_BY_NAME}{$node};
+
+    return $self->{TREE_BY_NAME}{$node};    
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -349,16 +339,34 @@ sub weaken_parent_refs {
     }
 }
 
+#  pre-allocate hash buckets for really large node hashes
+#  and thus gain a minor speed improvement in such cases
+sub set_node_hash_key_count {
+    my $self  = shift;
+    my $count = shift;
+
+    croak "Count $count is not numeric" if !looks_like_number $count;
+
+    my $node_hash = $self->get_node_hash;
+
+    #  has no effect if $count is negative or
+    #  smaller than current key count
+    keys %$node_hash = $count;
+
+    return;
+}
+
 sub get_node_count {
     my $self = shift;
-    return my $tmp = keys %{$self->get_node_hash};
+    my $hash_ref = $self->get_node_hash;
+    return scalar keys %$hash_ref;
 }
 
 sub get_node_hash {
     my $self = shift;
 
     #  create an empty hash if needed
-    $self->{TREE_BY_NAME} = {} if ! exists $self->{TREE_BY_NAME};
+    $self->{TREE_BY_NAME} //= {};
 
     return wantarray ? %{$self->{TREE_BY_NAME}} : $self->{TREE_BY_NAME};
 }
@@ -368,6 +376,31 @@ sub get_node_refs {
     my @refs = values %{$self->get_node_hash};
 
     return wantarray ? @refs : \@refs;
+}
+
+#  get a hash on the node lengths indexed by name
+sub get_node_length_hash {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value ('NODE_LENGTH_HASH');
+        return (wantarray ? %$cached_hash : $cached_hash) if $cached_hash;
+    }
+    
+    my %len_hash;
+    my $node_hash = $self->get_node_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        $len_hash{$node_name} = $node_ref->get_length;
+    }
+    
+    if ($use_cache) {
+        $self->set_cached_value (NODE_LENGTH_HASH => \%len_hash);
+    }
+    
+    return wantarray ? %len_hash : \%len_hash;
 }
 
 #  get a hash of node refs indexed by their total length
@@ -469,7 +502,7 @@ sub node_is_in_tree {
 
     #  node cannot exist if it has no name...
     croak "node name undefined\n"
-      if !defined $node_name;  
+      if !defined $node_name;
 
     my $node_hash = $self->get_node_hash;
     return exists $node_hash->{$node_name};
@@ -479,9 +512,9 @@ sub get_terminal_nodes {
     my $self = shift;
     my %node_list;
 
-    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+    foreach my $node_ref (values %{$self->get_node_hash}) {
         next if ! $node_ref->is_terminal_node;
-        $node_list{$node} = $node_ref;
+        $node_list{$node_ref->get_name} = $node_ref;
     }
 
     return wantarray ? %node_list : \%node_list;
@@ -491,7 +524,7 @@ sub get_terminal_node_refs {
     my $self = shift;
     my @node_list;
 
-    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+    foreach my $node_ref (values %{$self->get_node_hash}) {
         next if ! $node_ref->is_terminal_node;
         push @node_list, $node_ref;
     }
@@ -499,18 +532,21 @@ sub get_terminal_node_refs {
     return wantarray ? @node_list : \@node_list;
 }
 
+#  don't cache these results as they can change as clusters are built
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
+    my %args = @_;
+
     my %node_list;
     my $node_hash = $self->get_node_hash;
 
-    while ((my $node, my $node_ref) = each (%$node_hash)) {
-        next if (! defined $node_ref);
-        $node_list{$node} = $node_ref if $node_ref->is_root_node;
-        #my $check = $node_ref->is_root_node;
-        #print "";
+    foreach my $node_ref (values %$node_hash) {
+        next if ! defined $node_ref;
+        if ($node_ref->is_root_node) {
+            $node_list{$node_ref->get_name} = $node_ref ;
+        }
     }
-
+    
     return wantarray ? %node_list : \%node_list;
 }
 
@@ -531,6 +567,9 @@ sub get_root_node {
     my @refs = values %root_nodes;
     my $root_node_ref = $refs[0];
 
+    croak $root_node_ref->get_name . " is not a root node!\n"
+      if !$root_node_ref->is_root_node;
+
     return wantarray ? %root_nodes : $root_node_ref;
 }
 
@@ -539,21 +578,21 @@ sub get_named_nodes {
     my $self = shift;
     my %node_list;
     my $node_hash = $self->get_node_hash;
-    while (my ($node, $node_ref) = each (%$node_hash)) {
+    foreach my $node_ref (values %$node_hash) {
         next if $node_ref->is_internal_node;
-        $node_list{$node} = $node_ref;
+        $node_list{$node_ref->get_name} = $node_ref;
     }
     return wantarray ? %node_list : \%node_list;
 }
 
-#  get all the nodes that aren't named nodes
+#  get all the nodes that aren't terminals
 sub get_branch_nodes {
     my $self = shift;
     my %node_list;
     my $node_hash = $self->get_node_hash;
-    while (my ($node, $node_ref) = each (%$node_hash)) {
+    foreach my $node_ref (values %$node_hash) {
         next if $node_ref->is_terminal_node;
-        $node_list{$node} = $node_ref;
+        $node_list{$node_ref->get_name} = $node_ref;
     }
     return wantarray ? %node_list : \%node_list;
 }
@@ -561,7 +600,7 @@ sub get_branch_nodes {
 sub get_branch_node_refs {
     my $self = shift;
     my @node_list;
-    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+    foreach my $node_ref (values %{$self->get_node_hash}) {
         next if $node_ref->is_terminal_node;
         push @node_list, $node_ref;
     }
@@ -577,17 +616,32 @@ sub get_free_internal_name {
     #  iterate over the existing nodes and get the highest internal name that isn't used
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
-    my $highest = -1;
-    foreach my $name (keys %node_hash, %$skip) {  #  should be keys %$skip?
-        if ($name =~ /^(\d+)___$/) {
-            my $num = $1;
-            next if not defined $num;
-            $highest = $num if $num > $highest;
-        }
+    my $node_hash = $self->get_node_hash;
+    my %reverse_skip = reverse %$skip;
+    my $highest   = $self->get_cached_value ('HIGHEST_INTERNAL_NODE_NUMBER') // -1;
+    my $name;
+
+    while (1) {
+        $highest++;
+        $name = $highest . '___';
+        last if !exists $node_hash->{$name}
+             && !exists $skip->{$name}
+             && !exists $reverse_skip{$name};
     }
-    $highest ++;
-    return $highest . '___';
+
+    #foreach my $name (keys %$node_hash, %$skip) {
+    #    if ($name =~ /^(\d+)___$/) {
+    #        my $num = $1;
+    #        next if not defined $num;
+    #        $highest = $num if $num > $highest;
+    #    }
+    #}
+
+    #$highest ++;
+    $self->set_cached_value (HIGHEST_INTERNAL_NODE_NUMBER => $highest);
+
+    #return $highest . '___';
+    return $name;
 }
 
 sub get_unique_name {
@@ -600,14 +654,16 @@ sub get_unique_name {
     #  iterate over the existing nodes and see if we can geberate a unique name
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
+    my $node_hash = $self->get_node_hash;
 
     my $i = 1;
-    my $unique_name = $prefix . $suffix . $i;
-    my %exists = (%node_hash, %$skip);
-    while (exists $exists{$unique_name}) {
+    my $pfx = $prefix . $suffix;
+    my $unique_name = $pfx . $i;
+    #my $exists = $skip ? {%$node_hash, %$skip} : $node_hash;
+
+    while (exists $node_hash->{$unique_name} || exists $skip->{$unique_name}) {
         $i++;
-        $unique_name = $prefix . $suffix . $i;
+        $unique_name = $pfx . $i;
     }
 
     return $unique_name;
@@ -746,6 +802,14 @@ sub get_metadata_export_nexus {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'no_translate_block',
+                label_text  => 'Do not use a translate block',
+                tooltip     => 'read.nexus in the R ape package mishandles '
+                             . 'named internal nodes if there is a translate block',
+                type        => 'boolean',
+                default     => 0,
+            },
         ],
     );
 
@@ -757,7 +821,7 @@ sub export_nexus {
     my %args = @_;
 
     my $file = $args{file};
-    print "[TREE] WRITING TO TREE TO NEXUS FILE $file\n";
+    say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
     open (my $fh, '>', $file)
         || croak "Could not open file '$file' for writing\n";
 
@@ -769,7 +833,7 @@ sub export_nexus {
 
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_newick {
@@ -803,7 +867,7 @@ sub export_newick {
     print {$fh} $self->to_newick (%args);
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_shapefile {
@@ -919,7 +983,7 @@ sub export_shapefile {
 
     $shp_writer->finalize();
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_tabular_tree {
@@ -974,12 +1038,13 @@ sub export_tabular_tree {
     my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
+        use_internal_names => 1,
         %args,
     );
 
     $self->write_table_csv (%args, data => $table);
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_table_grouped {
@@ -1073,7 +1138,7 @@ sub export_table_grouped {
         data => $data
     );
 
-    return;
+    return 1;
 }
 
 #  Superseded by PE_RANGELIST index.
@@ -1119,7 +1184,7 @@ sub export_range_table {
         data => $data,
     );
 
-    return;
+    return 1;
 }
 
 #  Grab all the basestruct export methods and add them here.
@@ -1226,8 +1291,8 @@ sub get_total_tree_length { #  calculate the total length of the tree
     my $node_length;
 
     #check if length is already stored in tree object
-    $length = $self->get_param('TOTAL_LENGTH');
-    return $length if (defined $length);
+    $length = $self->get_cached_value ('TOTAL_LENGTH');
+    return $length if defined $length;
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
         $node_length = $node_ref->get_length;
@@ -1236,7 +1301,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #  cache the result
     if (defined $length) {
-        $self->set_param (TOTAL_LENGTH => $length);
+        $self->set_cached_value (TOTAL_LENGTH => $length);
     }
 
     return $length;
@@ -1254,16 +1319,16 @@ sub to_matrix {
 
     my $name = $self->get_param ('NAME');
 
-    print "[TREE] Converting tree $name to matrix\n";
+    say "[TREE] Converting tree $name to matrix";
 
     my $matrix = $class->new (NAME => ($args{name} || ($name . "_AS_MX")));
 
     my %nodes = $self->get_node_hash;  #  make sure we work on a copy
 
     if (! $use_internal) {  #  strip out the internal nodes
-        while (my ($name1, $node1) = each %nodes) {
-            if ($node1->is_internal_node) {
-                delete $nodes{$name1};
+        foreach my $node_name (keys %nodes) {
+            if ($nodes{$node_name}->is_internal_node) {
+                delete $nodes{$node_name};
             }
         }
     }
@@ -1489,12 +1554,12 @@ sub find_list_indices_across_nodes {
     return wantarray ? %index_hash : \%index_hash;    
 }
 
-#  run a section search from the top of the tree to find the highest node
-#  which contains all the terminals
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
+
+    no autovivification;
 
     my @node_names = keys %{$args{node_names}};
     
@@ -1507,31 +1572,56 @@ sub get_last_shared_ancestor_for_nodes {
     return $first_node if !scalar @node_names;
 
     my @reference_path = $first_node->get_path_to_root_node;
+    my %ref_path_hash;
+    @ref_path_hash{@reference_path} = (0 .. $#reference_path);
     
+    my $common_anc_idx = 0;
+
   PATH:
     while (my $node_name = shift @node_names) {
-        last PATH if scalar @reference_path == 1;   #  must be just the root node left, so drop out
+        #  Must be just the root node left, so drop out.
+        #  One day we will need to check for existence across all paths,
+        #  as undefined ancestors can occur if we have multiple root nodes.
+        last PATH if $common_anc_idx == $#reference_path;
 
         my $node_ref = $self->get_node_ref (node => $node_name);
         my @path = $node_ref->get_path_to_root_node;
 
-      PATH_NODE_REF:
-        foreach my $path_node_ref (@path) {
-            #my $node_name_path = $path_node_ref->get_name; #  for debug
-            my $idx = first_index { $_ eq $path_node_ref } @reference_path;
+        #  Start from an equivalent relative depth to avoid needless
+        #  comparisons near terminals which cannot be ancestral.
+        #  i.e. if the current common ancestor is at depth 3
+        #  then anything deeper cannot be an ancestor.
+        #  The pay-off is for larger trees.
+        my $min = max (0, $#path - $#reference_path + $common_anc_idx);
+        my $max = $#path;
+        my $found_idx;
 
-            next PATH_NODE_REF if $idx < 0;  #  not in path, try the next node
-            
-            if ($idx) {
-                #  reduce length of reference_path to reduce comparisons in next iter
-                splice @reference_path, 0, $idx;
+        # run a binary search to find the lowest shared node
+      PATH_NODE_REF_BISECT:
+        while ($max > $min) {
+            my $mid = int( ( $min + $max ) / 2 );
+
+            my $idx = $ref_path_hash{$path[$mid]};
+
+            if (defined $idx) {   #  we are in the path, try a node nearer the tips
+                $max = $mid;
+                $found_idx = $idx;  #  track the index
             }
-            next PATH;
+            else {               #  we are not in the path, try a node nearer the root
+                $min = $mid + 1;
+            }
+        }
+        #  Sometimes $max == $min and that's the one we want to use
+        if ($max == $min && !defined $found_idx) {
+            $found_idx = $ref_path_hash{$path[$min]};
+        }
+
+        if (defined $found_idx) {
+            $common_anc_idx = $found_idx;
         }
     }
 
-    my $node = $reference_path[0];
-    my $ancestor_name = $node->get_name;
+    my $node = $reference_path[$common_anc_idx];
 
     return $node;
 }
@@ -1610,7 +1700,7 @@ sub compare {
 
     my $to_do = max ($self->get_node_count, $comparison->get_node_count);
     my $i = 0;
-    my $last_update = [gettimeofday];
+    #my $last_update = [gettimeofday];
 
   BASE_NODE:
     foreach my $base_node ($self->get_node_refs) {
@@ -1656,13 +1746,13 @@ sub compare {
                     }
                     else {
                         #  If its length is same then we have perfect match
-                        my $len_comp = $self->set_precision (
-                            value     => $compare_nodes{$compare_node_name}->get_length,
-                            precision => $comp_precision,
+                        my $len_comp = $self->set_precision_aa (
+                            $compare_nodes{$compare_node_name}->get_length,
+                            $comp_precision,
                         );
-                        my $len_base = $self->set_precision (
-                            value     => $base_node->get_length,
-                            precision => $comp_precision,
+                        my $len_base = $self->set_precision_aa (
+                            $base_node->get_length,
+                            $comp_precision,
                         );
                         if ($len_comp eq $len_base) {
                             $found_perfect_match{$compare_node_name} = $len_base;
@@ -1797,97 +1887,138 @@ sub trim {
         @_,                      #  if they have no named children to keep
     );
 
-    my $delete_internals = $args{delete_internals};
+    say '[TREE] Trimming';
 
-    #  get keep and trim lists and convert to hashes as needs dictate
-    my $keep = $args{keep} || {};  #  those to keep
-    $keep = $self->array_to_hash_keys (list => $keep);
+    my $delete_internals = $args{delete_internals};
+    
+    my %tree_node_hash = $self->get_node_hash;
+
+    #  Get keep and trim lists and convert to hashes as needs dictate
+    #  those to keep
+    my $keep = $self->array_to_hash_keys (list => $args{keep} || {});
     my $trim = $args{trim}; #  those to delete
 
-    #  if the keep list is defined, and the trim list is not defined,
+    #  If the keep list is defined, and the trim list is not defined,
     #    then we work with all named nodes that don't have children we want to keep
     if (! defined $args{trim} && defined $args{keep}) {
-        $trim = {};
-        my %node_hash = $self->get_node_hash;
-        foreach my $name (keys %node_hash) {
-            my $node = $node_hash{$name};
-            next if exists $keep->{$name};
-            next if $node->is_internal_node;
-            next if $node->is_root_node;  #  never delete the root node
-            my %children = $node->get_all_descendents;  #  make sure we use a copy
+
+      NAME:
+        foreach my $name (keys %tree_node_hash) {
+            next NAME if exists $keep->{$name};
+
+            my $node = $tree_node_hash{$name};
+
+            next NAME if $node->is_internal_node;
+            next NAME if $node->is_root_node;  #  never delete the root node
+
+            my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
-            #  if any were deleted then we have some children to keep.  don't add this node
-            next if $child_count != scalar keys %children;  
-            $trim->{$name} = $node_hash{$name};
+            #  If none were deleted then we can trim this node.
+            #  Otherwise add this node and all of its ancestors to the keep list.
+            if ($child_count == scalar keys %children) {
+                $trim->{$name} = $node;
+            }
+            else {
+                my $ancestors = $node->get_path_to_root_node;
+                foreach my $ancestor (@$ancestors) {
+                    $keep->{$ancestor->get_name} ++;
+                }
+            }
         }
     }
-    else {
-        $trim = {};
-    }
+    $trim //= {};
     my %trim_hash = $self->array_to_hash_keys (list => $trim);  #  makes a copy
 
     #  we only want to consider those not being explicitly kept (included)
-    my %candidate_node_hash = $self->get_node_hash;
+    my %candidate_node_hash = %tree_node_hash;
     delete @candidate_node_hash{keys %$keep};
 
-    #my %all_nodes = $self->get_node_hash;
-    #delete @all_nodes{keys %candidate_node_hash};
-    #print "keeping \n", join ("\n", keys %$keep), "\n";
-    #print "trimming \n", join ("\n", keys %trim_hash), "\n";
-    #print "ignoring \n", join ("\n", keys %all_nodes), "\n";
+    my %deleted_h;
+    my $i = 0;
+    my $to_do = scalar keys %candidate_node_hash;
+    my $progress = Biodiverse::Progress->new (text => 'Deletions');
 
-    my %deleted;
+  DELETION:
     foreach my $name (keys %candidate_node_hash) {
-        next if $deleted{$name};  #  we might have deleted a named parent, so this node no longer exists in the tree
-        my $node = $candidate_node_hash{$name};
+        $i++;
+        #  we might have deleted a named parent,
+        #  so this node no longer exists in the tree
+        next DELETION if $deleted_h{$name} || !exists $trim_hash{$name};
+
+        $progress->update (
+            "Checking nodes ($i / $to_do)",
+            $i / $to_do,
+        );
+
         #  delete if it is in the list to exclude
-        if (exists $trim_hash{$name}) {
-            print "[Tree] Deleting node $name\n";
-            my @deleted_nodes = $self->delete_node (node => $name);
-            foreach my $del_name (@deleted_nodes) {
-                $deleted{$del_name} ++;
-            }
-        }
-        #else {
-        #    print "[TREE] NOT deleting node $name\n";
-        #}
+        my @deleted_nodes = $self->delete_node (node => $name, no_delete_cache => 1);
+        @deleted_h{@deleted_nodes} = (1) x scalar @deleted_nodes;
     }
 
-    if ($delete_internals and scalar keys %deleted) {
-        #  delete any internal nodes with no named children
-        my %node_hash = $self->get_node_hash;
-        foreach my $name (keys %node_hash) {
-            my $node = $node_hash{$name};
-            next if ! $node->is_internal_node;
-            next if $node->is_root_node;
+    $progress->close_off;
+    my $deleted_count = scalar keys %deleted_h;
+    say "[TREE] Deleted $deleted_count nodes ", join ' ', sort keys %deleted_h;
 
-            my $children = $node->get_all_descendents;
-            my %named_children;
+    #  delete any internal nodes with no named descendents
+    my $deleted_internal_count = 0;
+    if ($delete_internals and scalar keys %deleted_h) {
+        say '[TREE] Cleaning up internal nodes';
+
+        my %node_hash = $self->get_node_hash;
+        $to_do = scalar keys %node_hash;
+        my %deleted_hash;
+        my $i;
+
+      NODE:
+        foreach my $name (keys %node_hash) {
+            $i++;
+            my $node = $node_hash{$name};
+            next NODE if $deleted_hash{$node};  #  already deleted
+            next NODE if !$node->is_internal_node;
+            next NODE if  $node->is_root_node;
+
+            $progress->update (
+                "Checking nodes ($i / $to_do)",
+                $i / $to_do,
+            );
+
+            my $children = $node->get_all_descendants;
+          DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
-                $named_children{$child} = 1 if ! $child_node->is_internal_node;
+                next NODE if ! $child_node->is_internal_node;
             }
-            if (scalar keys %named_children == 0) {
-                #  might have already been deleted , so wrap in an eval
-                eval { $self->delete_node (node => $name) };
-                #print "[TREE] Deleting internal node $name\n";
-            }
-            #else {
-            #    print "[TREE] NOT Deleting internal node $name\n"
-            #}
+            #  might have already been deleted, so wrap in an eval
+            my @deleted_names = eval {
+                $self->delete_node (node => $name, no_delete_cache => 1)
+            };
+            @deleted_hash{@deleted_names} = (1) x @deleted_names;
         }
+        $progress->close_off;
+
+        $deleted_internal_count = scalar keys %deleted_hash;
+        say "[TREE] Deleted $deleted_internal_count internal nodes with no named descendents";
     }
 
-    $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
-    $self->get_tree_ref->delete_cached_values_below;
+    #  now some cleanup
+    if ($deleted_internal_count || $deleted_count) {
+        $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
+        $self->delete_cached_values;
+        #  This avoids circular refs in the ones that were deleted
+        foreach my $node (values %tree_node_hash) {
+            $node->delete_cached_values;
+        }
+    }
     $keep = undef;  #  was leaking - not sure it matters, though
+
+    say '[TREE] Trimming completed';
+
+    $progress = undef;
 
     return $self;
 }
 
-sub min {return $_[0] > $_[1] ? $_[1] : $_[0]};
-sub max {return $_[0] < $_[1] ? $_[1] : $_[0]};
 
 sub numerically {$a <=> $b};
 
@@ -2009,7 +2140,7 @@ sub collapse_tree {
     $self->delete_cached_values;
 
     #  reset all the total length values
-    $self->reset_total_length_below;
+    $self->reset_total_length;
     $self->get_total_tree_length;
 
     my @now_empty = $self->flatten_tree;
@@ -2026,6 +2157,17 @@ sub collapse_tree {
     }
 
     return $self;
+}
+
+sub reset_total_length {
+    my $self = shift;
+
+    #  older versions had this as a param
+    $self->delete_param('TOTAL_LENGTH');
+    $self->delete_cached_value('TOTAL_LENGTH');
+    $self->reset_total_length_below;
+
+    return;
 }
 
 #  collapse all nodes below a cutoff so they form a set of polytomies
@@ -2046,7 +2188,7 @@ sub collapse_tree_below {
             };
         }
         #  still need to ensure they are in the node hash
-        $node->add_children (children => [values %terminals]);  
+        $node->add_children (children => [sort values %terminals]);  
 
         #print "";
     }
@@ -2100,9 +2242,48 @@ sub shuffle_terminal_names {
     #  and now we override the old with the new
     @{$node_hash}{keys %tmp} = values %tmp;
 
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
+
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
 }
+
+
+sub clone_tree_with_equalised_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' EQ');
+
+    my $non_zero_len = $args{node_length};
+
+    if (!defined $non_zero_len) {
+        my $non_zero_node_count = grep {$_->get_length} $self->get_node_refs;
+        $non_zero_len = $self->get_total_tree_length / $non_zero_node_count;
+    }
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length ? $non_zero_len : 0;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
+
 
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {

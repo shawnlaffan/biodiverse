@@ -6,7 +6,7 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Data::Dumper;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -232,3 +232,4 @@ sub on_cancel {
 
 
 1;
+

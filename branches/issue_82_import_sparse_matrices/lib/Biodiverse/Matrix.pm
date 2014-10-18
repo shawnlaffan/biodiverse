@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use English ( -no_match_vars );
 
@@ -48,7 +48,7 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
-        VAL_INDEX_PRECISION  => '%.2g'
+        VAL_INDEX_PRECISION  => '%.2g',  #  %g keeps 0 as 0.  %f does not.
     );
 
     $self->set_params (%PARAMS, %args);  #  load the defaults, with the rest of the args as params
@@ -226,23 +226,21 @@ sub get_value_index_key {
     
     my $val = $args{value};
     
-    my $index_val = $val;  #  should make this a method
-    if (!defined $index_val) {
-        $index_val = q{undef};
+    return 'undef' if !defined $val;
+
+    if (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $val = sprintf $prec, $val;
     }
-    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
-        $index_val = sprintf $prec, $val;
-    }
-    
-    return $index_val;
+
+    return $val;
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
-sub describe {
+sub _describe {
     my $self = shift;
     
     my @description = (
-        ['TYPE: ', blessed $self],
+        'TYPE: ' . blessed $self,
     );
     
     my @keys = qw /
@@ -256,34 +254,16 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description,
-            ["$key:", $desc];
+        push @description, "$key: $desc";
     }
 
-    push @description, [
-        'Element count: ',
-        $self->get_element_count,
-    ];
+    push @description,  'Element count: ' . $self->get_element_count,;
 
-    push @description, [
-        'Max value: ',
-        $self->get_max_value,
-    ];
-    push @description, [
-        'Min value: ',
-        $self->get_min_value,
-    ];
-    push @description, [
-        'Symmetric: ',
-        ($self->is_symmetric ? 'yes' : 'no'),
-    ];
-
+    push @description, 'Max value: ' . $self->get_max_value;
+    push @description, 'Min value: ' . $self->get_min_value;
+    push @description, 'Symmetric: ' . ($self->is_symmetric ? 'yes' : 'no');
     
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
     
     return wantarray ? @description : $description;
 }
@@ -320,408 +300,35 @@ sub to_tree {
     return $tree;
 }
 
-#  wrapper for table conversions
-#  should implement metadata
-sub to_table {
-    my $self = shift;
-    my %args = @_;
-    
-    if ($args{type} eq 'sparse') {
-        return $self->to_table_sparse (@_);
-    }
-    elsif ($args{type} eq 'gdm') {
-        return $self->to_table_gdm (@_);
-    }
-    else {
-        return $self->to_table_normal (@_);
-    }
-}
 
-#  convert the matrix to a tabular array
-sub to_table_normal {
-    my $self = shift;
-    my %args = (
-        symmetric => 1,
-        @_,
-    );
-    
-    my @data;
-    my @elements = sort $self->get_elements_as_array;
-    
-    $data[0] = [q{}, @elements];  #  header line with blank leader
-    my $i = 0;
-    
-    #  allow for both UL and LL to be specified
-    my $ll_only = $args{lower_left}  && ! $args{upper_right};
-    my $ur_only = $args{upper_right} && ! $args{lower_left}; 
-
-    E1:
-    foreach my $element1 (@elements) {
-        $i++;
-        $data[$i][0] = $element1;
-        my $j = 0;
-        
-        E2:
-        foreach my $element2 (@elements) {
-            $j++;
-            next E1 if $ll_only and $j > $i;
-            next E2 if $ur_only and $j < $i;
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
-            if (! $args{symmetric} && $exists == 1) {
-                $data[$i][$j] = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
-            }
-            else {
-                $data[$i][$j] = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
-            }
-        }
-    }
-
-    return wantarray ? @data : \@data;
-}
-
-sub to_table_sparse {
-    my $self = shift;
-    
-    my %args = (
-        symmetric => 1,
-        @_,
-    );
-    
-    my @data;
-    my @elements = sort $self->get_elements_as_array;
-
-    my $lower_left  = $args{lower_left};
-    my $upper_right = $args{upper_right};
-    my $symmetric = $args{symmetric};
-    
-    push @data, [qw /Row Column Value/];  #  header line
-    
-    my $i = 0;
-    
-    E1:
-    foreach my $element1 (@elements) {
-        $i++;
-        #$data[$i][0] = $element1;
-        my $j = 0;
-        E2:
-        foreach my $element2 (@elements) {
-            $j++;
-            next E1 if $lower_left  and $j > $i;
-            next E2 if $upper_right and $j < $i;
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
-            
-            #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
-            if ($exists == 1 || ($symmetric && $exists)) {
-                my $value = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
-                my $list = [$element1, $element2, $value];
-                push @data, $list;
-            }
-        }
-    }
-    
-    return wantarray ? @data : \@data;
-}
-
-sub to_table_gdm {
-    my $self = shift;
-    
-    my %args = (
-        symmetric => 1,
-        @_,
-    );
-    
-    my @data;
-    my @elements = sort $self->get_elements_as_array;
-    
-    #  Get csv object from the basedata to crack the elements.
-    #  Could cause trouble later on for matrices without basedata.
-    my $bd = $self->get_param ('BASEDATA_REF');
-    my $csv_object = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
-    
-    push @data, [qw /x1 y1 x2 y2 Value/];  #  header line
-    
-    my $progress_bar = Biodiverse::Progress->new();
-    my $to_do = scalar @elements;
-    my $progress_pfx = "Converting matrix to table \n";
-    
-    my $i = 0;
-    
-    E1:
-    foreach my $element1 (@elements) {
-        $i++;
-        my @element1 = $self->csv2list (string => $element1, csv_object => $csv_object);
-        
-        my $progress = $i / $to_do;
-        $progress_bar->update (
-            $progress_pfx . "(row $i / $to_do)",
-            $progress,
-        );
-
-        my $j = 0;
-        E2:
-        foreach my $element2 (@elements) {
-            $j++;
-            next E1 if $args{lower_left}  and $j > $i;
-            next E2 if $args{upper_right} and $j < $i;
-            my $exists = $self->element_pair_exists (
-                element1 => $element1,
-                element2 => $element2,
-            );
-
-            #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
-            if (($args{symmetric} and $exists) or $exists == 1) {
-                my $value = $self->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
-                );
-
-                my @element2 = $self->csv2list (string => $element2, csv_object => $csv_object);
-                my $list = [@element1[0,1], @element2[0,1], $value];
-                push @data, $list;
-            }
-        }
-    }
-
-    return wantarray ? @data : \@data;
-}
-
-
-#  this is almost identical to that in BaseStruct - refactor needed
-sub get_metadata_export {
-    my $self = shift;
-
-    #  need a list of export subs
-    my %subs = $self->get_subs_with_prefix (prefix => 'export_');
-
-    #  hunt through the other export subs and collate their metadata
-    #  (not anymore)
-    my @formats;
-    my %format_labels;  #  track sub names by format label
-    
-    #  loop through subs and get their metadata
-    my %params_per_sub;
-    
-    LOOP_EXPORT_SUB:
-    foreach my $sub (sort keys %subs) {
-        my %sub_args = $self->get_args (sub => $sub);
-
-        my $format = $sub_args{format};
-
-        croak "Metadata item 'format' missing\n"
-            if not defined $format;
-
-        $format_labels{$format} = $sub;
-
-        next LOOP_EXPORT_SUB
-            if $sub_args{format} eq $EMPTY_STRING;
-
-        $params_per_sub{$format} = $sub_args{parameters};
-
-        my $params_array = $sub_args{parameters};
-
-        push @formats, $format;
-    }
-    
-    @formats = sort @formats;
-    $self->move_to_front_of_list (
-        list => \@formats,
-        item => 'Delimited text'
-    );
-
-    my %args = (
-        parameters     => \%params_per_sub,
-        format_choices => [{
-                name        => 'format',
-                label_text  => 'Format to use',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0
-            },
-        ],
-        format_labels  => \%format_labels,
-    ); 
-
-    return wantarray ? %args : \%args;
-}
-
-sub export {
-    my $self = shift;
-    my %args = @_;
-    
-    #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
-    
-    my $format = $args{format};
-    my $sub_to_use
-        = $metadata{format_labels}{$format}
-            || croak "Argument 'format => $format' not valid\n";
-    
-    eval {$self->$sub_to_use (%args)};
-    croak $EVAL_ERROR if $EVAL_ERROR;
-    
-    return;
-}
-
-#  probably needs to be subdivided into normal and sparse
-sub export_delimited_text {
-    my $self = shift;
-    my %args = @_;
-    
-    # add a .csv suffix if none present
-    if (defined $args{file} and not $args{file} =~ /\.(.*)$/) {
-        $args{file} = $args{file} . '.csv';
-    }
-
-    my $table = $self->to_table (%args);
-    eval {
-        $self->write_table (
-            %args,
-            data => $table
-        )
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
-
-    return;
-}
-
-
-sub get_metadata_export_delimited_text {
-    my $self = shift;
-    
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                    ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                    : (',', 'tab', ';', 'space', ":");
-    my @quote_chars = qw /" ' + $/;
-    
-    my @formats = qw /normal sparse gdm/;
-    
-
-    my %args = (
-        format => 'Delimited text',
-        parameters => [
-            {
-                name       => 'file',  # GUI supports just one of these
-                type       => 'file'
-            }, 
-            {
-                name       => 'type',
-                label_text => 'output format',
-                type       => 'choice',
-                tooltip    => $self->get_tooltip_sparse_normal,
-                choices    => \@formats,
-                default    => 0
-            },
-            {
-                name       => 'symmetric',
-                label_text => 'Force output to be symmetric',
-                type       => 'boolean',
-                default    => 1
-            },
-            {
-                name       => 'lower_left',
-                label_text => 'Print lower left only',
-                tooltip    => 'print lower left matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'upper_right',
-                label_text => 'Print upper right only',
-                tooltip    => 'print upper right matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'sep_char',
-                label_text => 'Field separator',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@sep_chars,
-                default    => 0,
-            },
-            {
-                name       => 'quote_char',
-                label_text => 'Quote character',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@quote_chars,
-                default    => 0,
-            },
-        ]
-    );
-    
-    return wantarray ? %args : \%args;
-}
-
-sub get_tooltip_sparse_normal {
-    my $self = shift;
-    
-    my $tool_tip =<<"END_MX_TOOLTIP"
-Normal format is a normal rectangular row by column matrix like:
-\t,col1,col2
-row1,value,value
-row2,value,value
-
-Sparse format is a list like:
-\trow1,col1,value
-\trow1,col2,value
-\trow2,col2,value
-
-GDM (Generalized Dissimilarity Modelling) format is
-a sparse matrix but with the row and column
-elements split into their component axes.  
-\tx1,y1,x2,y2,value
-\trow1_x1,row1_y1,row2_x2,row2_y2,value
-\trow2_x1,row2_y1,row3_x2,row3_y2,value
-
-Note that GDM supports only two axes (x and y) so only the
-first two axes are exported.  
-
-END_MX_TOOLTIP
-;
-
-    return $tool_tip;
-}
 
 my $ludicrously_extreme_pos_val = 10 ** 20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
-sub get_min_value {  #  get the minimum similarity value
+sub get_min_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
-    my $min      = $ludicrously_extreme_pos_val;
-    
+
+    #  Special case the zeroes - only valid for index precisions using %.g
+    #  Useful for cluster analyses with many zero values due to identical assemblages
+    return 0 if $min_key eq 0;
+
+    my $min = $ludicrously_extreme_pos_val;
+
     my $element_hash = $val_hash->{$min_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            #  we know the order in which these are stored
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_aa ($el1, $el2);
             $min = min ($min, $val);
         }
     }
-    
 
     return $min;
 }
 
-sub get_max_value {  #  get the minimum similarity value
+sub get_max_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};    
@@ -731,7 +338,8 @@ sub get_max_value {  #  get the minimum similarity value
     my $element_hash = $val_hash->{$max_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_aa ($el1, $el2);
             $max = max ($max, $val);
         }
     }
@@ -824,68 +432,61 @@ sub add_element {  #  add an element pair to the object
 sub delete_element {
     my $self = shift;
     my %args = @_;
+
+    my $exists = $self->element_pair_exists (@_)
+      || return 0;
+
     croak "element1 and/or element2 not defined\n"
         if ! (defined $args{element1} && defined $args{element2});
 
-    my $element1 = $args{element1};
-    my $element2 = $args{element2};
-    my $exists = $self->element_pair_exists (@_);
+    my ($element1, $element2) = $exists == 1
+        ? @args{'element1', 'element2'}
+        : @args{'element2', 'element1'};
 
-    if (! $exists) {
-        #print "WARNING: element combination does not exist\n";
-        return 0; #  combination does not exist - cannot delete it
-    }
-    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
-        #print "DELETE ELEMENTS SWITCHING $element1 $element2\n";
-        $element1 = $args{element2};
-        $element2 = $args{element1};
-    }
     my $value = $self->get_value (
         element1    => $element1,
         element2    => $element2,
         pair_exists => 1,
     );
 
-    #print "DELETING $element1 $element2\n";
-        
+    #  save some repeated dereferencing below
+    my $val_index   = $self->{BYVALUE};
+    my $el_ref      = $self->{ELEMENTS};
+    my $by_el_index = $self->{BYELEMENT};
+
     #  now we get to the cleanup, including the containing hashes if they are now empty
     #  all the undef - delete pairs are to ensure they get deleted properly
     #  the hash ref must be empty (undef) or it won't be deleted
     #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-    delete $self->{BYELEMENT}{$element1}{$element2}; # if exists $self->{BYELEMENT}{$element1}{$element2};
-    if (scalar keys %{$self->{BYELEMENT}{$element1}} == 0) {
-        #print "Deleting BYELEMENT{$element1}\n";
-        #undef $self->{BYELEMENT}{$element1};
-        defined (delete $self->{BYELEMENT}{$element1})
-            || warn "ISSUES BYELEMENT $element1 $element2\n";
+    delete $by_el_index->{$element1}{$element2};
+    if (scalar keys %{$by_el_index->{$element1}} == 0) {
+        delete $by_el_index->{$element1}
+            // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
     my $index_val = $self->get_value_index_key (value => $value);
 
-    delete $self->{BYVALUE}{$index_val}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
-    if (scalar keys %{$self->{BYVALUE}{$index_val}{$element1}} == 0) {
-        #undef $self->{BYVALUE}{$value}{$element1};
-        delete $self->{BYVALUE}{$index_val}{$element1};
-        if (scalar keys %{$self->{BYVALUE}{$index_val}} == 0) {
-            #undef $self->{BYVALUE}{$value};
-            defined (delete $self->{BYVALUE}{$index_val})
-                || warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
+    delete $val_index->{$index_val}{$element1}{$element2};
+    if (!scalar keys %{$val_index->{$index_val}{$element1}}) {
+        delete $val_index->{$index_val}{$element1};
+        if (!scalar keys %{$val_index->{$index_val}}) {
+            delete $val_index->{$index_val}
+                // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }
     }
-    #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element
-    $self->{ELEMENTS}{$element1}--;
-    if ($self->{ELEMENTS}{$element1} == 0) {
-        #undef $self->{ELEMENTS}{$element1};
-        defined (delete $self->{ELEMENTS}{$element1})
-            || warn "ISSUES $element1\n";
+    #  Decrement the ELEMENTS counts, deleting entry if now zero
+    #  as there are no more entries with this element
+    $el_ref->{$element1}--;
+    if (!$el_ref->{$element1}) {
+        delete $el_ref->{$element1}
+            // warn "ISSUES $element1\n";
     }
-    $self->{ELEMENTS}{$element2}--;
-    if ($self->{ELEMENTS}{$element2} == 0) {
-        #undef $self->{ELEMENTS}{$element2};
-        defined (delete $self->{ELEMENTS}{$element2})
-            || warn "ISSUES $element2\n";
+    $el_ref->{$element2}--;
+    if (!$el_ref->{$element2}) {
+        delete $el_ref->{$element2}
+            // warn "ISSUES $element2\n";
     }
-    
+
     #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
     return 1;  # return success if we get this far
 }
@@ -949,30 +550,16 @@ sub get_element_pair_count {
     return $count;
 }
 
-##  superceded by get_element_pairs_with_value - yes
-#sub get_elements_with_value {  #  returns a hash of the elements with $value
-#    my $self = shift;
-#    my %args = @_;
-#    
-#    croak "Value not specified in call to get_elements_with_value\n"
-#        if ! defined $args{value};
-#    
-#    my $value = $args{value};
-#
-#    return if ! exists $self->{BYVALUE}{$value};
-#    return $self->{BYVALUE}{$value} if ! wantarray;
-#    return %{$self->{BYVALUE}{$value}};
-#}
-
 sub get_element_pairs_with_value {
     my $self = shift;
     my %args = @_;
 
     my $val = $args{value};
-    my $val_key = $val;
-    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
-        $val_key = sprintf $prec, $val;
-    }
+    #my $val_key = $val;
+    #if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
+    #    $val_key = sprintf $prec, $val;
+    #}
+    my $val_key = $self->get_value_index_key (value => $val);
 
     my %results;
 
@@ -981,9 +568,9 @@ sub get_element_pairs_with_value {
 
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $value = $self->get_defined_value (element1 => $el1, element2 => $el2);
             next if $val ne $value;  #  stringification implicitly uses %.15f precision
-            $results{$el1}{$el2} ++;
+            $results{$el1}{$el2}++;
         }
     }
 
@@ -1008,6 +595,19 @@ sub get_element_values {  #  get all values associated with one element
     
     return wantarray ? %values : \%values;    
 }
+
+sub delete_all_elements {
+    my $self = shift;
+
+    no autovivification;
+
+    $self->{BYVALUE}   = undef;
+    $self->{BYELEMENT} = undef;
+    $self->{ELEMENTS}  = undef;
+
+    return;
+}
+
 
 #  clear all pairs containing this element.
 #  should properly be delete_element, but it's already used

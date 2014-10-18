@@ -66,6 +66,10 @@ my @setup = (
     },
 );
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 
 exit main( @ARGV );
 
@@ -81,23 +85,66 @@ sub main {
         done_testing;
         return 0;
     }
-    
-    test_import();
-    test_import_small();
-    test_bounds();
-    test_coords_near_zero();
-    test_rename_labels();
-    test_multidimensional_import();
-    test_reorder_axes();
-    test_attach_ranges_and_sample_counts();
-    test_roundtrip_delimited_text();
-    test_roundtrip_raster();
-    test_roundtrip_shapefile();
+
+    foreach my $sub (@test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
     
     done_testing;
     return 0;
 }
 
+
+sub test_binarise_sample_counts {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+
+    $bd->binarise_sample_counts;
+    
+    foreach my $type (qw /label group/) {
+        my $list_method = 'get_' . $type . 's';
+        my $sc_method   = 'get_' . $type . '_sample_count';
+        my $v_method    = $type eq 'label' ? 'get_range' : 'get_richness';
+        #  successful binarise when richness or range equal sample count for a group or label
+        subtest "${type}s are binarised" => sub {
+            foreach my $element ($bd->$list_method) {
+                is (
+                    $bd->$sc_method(element => $element),
+                    $bd->$v_method(element => $element),
+                    $element,
+                );
+            }
+        };
+    }
+    
+}
+
+sub test_labels_in_groups {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    subtest 'No overlap between groups_with_label and groups_without_label' => sub {
+        foreach my $label (sort $bd->get_labels) {
+            my $groups_with_label    = $bd->get_groups_with_label_as_hash (label => $label);
+            my $groups_without_label = $bd->get_groups_without_label_as_hash (label => $label);
+            my $overlap = grep {exists $groups_with_label->{$_}} sort keys %$groups_without_label;
+            is ($overlap, 0, "No overlap for $label");
+
+            my $check1 = grep 
+                {$bd->exists_label_in_group(label => $label, group => $_)}
+                keys %$groups_without_label;
+            is ($check1, 0, "No overlap for label using exists, $label");
+            my $check2 = grep 
+                {$bd->exists_label_in_group(label => $label, group => $_)}
+                keys %$groups_with_label;
+            is ($check2, scalar keys %$groups_with_label, "groups_with_label counts match using exists, $label");
+            #my @checkers = map
+            #    {$bd->exists_label_in_group(label => $label, group => $_)}
+            #    keys %$groups_with_label;
+            #say join ' ', sort @checkers;
+        }        
+    };
+    
+}
 
 sub test_import {
     foreach my $this_run (@setup ) {
@@ -185,7 +232,63 @@ sub test_import_small {
     };
     $e = $EVAL_ERROR;
     ok (!$e, 'cell_origins argument ignored for second import');
+    
+    #  now check we can import zeros
+    
+    my $bd_disallow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (disallow empty groups)});
 
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 0, "0 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    my $bd_allow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_allow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_allow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_allow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    #  now add zeroes to an existing basedata
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    
     #  using inclusions columns
     my @incl_cols_data = (
         [1, [6]],
@@ -304,6 +407,37 @@ sub test_import_small {
     
 }
 
+
+
+sub test_import_null_labels {
+
+    my %bd_args = (
+        NAME => 'test null axes',
+        CELL_SIZES => [1,1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_null_label());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4, 5],
+            label_columns => [1],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    ok ($bd->exists_label (element => q{}), q{Null label exists});
+
+}
+
+
 #  can we reimport delimited text files after exporting and get the same answer
 sub test_roundtrip_delimited_text {
     my %bd_args = (
@@ -348,16 +482,18 @@ sub test_roundtrip_delimited_text {
         #{label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
         {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
     );
+    
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
 
-        #  need to use a better approach for the name
-        my $fname = 'delimtxt' . $i
+        #  need to use a better approach for the name, but at least it goes into a temp folder
+        my $fname = $tmp_folder . '/' . 'delimtxt' . $i
                    . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
                    . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
                    . '.txt';  
@@ -438,16 +574,20 @@ sub test_roundtrip_raster {
 
     #  export should return file names?  Or should we cache them on the object?
 
-    my $format = 'export_asciigrid';
-    my @out_options = ( { data => $bd } ); # not sure what parameters are needed for export
-    
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
+
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
-    my @cell_sizes           = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
-    my @cell_origins         = @{$bd->get_cell_origins};    
+    my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
+    my @cell_origins    = $bd->get_cell_origins;    
     my %in_options_hash = (
-        labels_as_bands => 0,
+        labels_as_bands   => 0,
         raster_origin_e   => $cell_origins[0],
         raster_origin_n   => $cell_origins[1], 
         raster_cellsize_e => $cell_sizes[0],
@@ -456,26 +596,24 @@ sub test_roundtrip_raster {
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        my $format = $out_options_hash->{format};
+
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'asciigrid' . $i; 
-        my $suffix = '.txt';
-        my $fname = $fname_base 
-                   #. ($out_options_hash->{symmetric} ? '_symm' : '_asym')
-                   #. ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
-                   . $suffix;  
-        my @exported_files;
+        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $fname_base = $format; 
+        my $suffix = '';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
         my $success = eval {
             $gp->export (
                 format    => $format,
                 file      => $fname,
                 list      => 'SUBELEMENTS',
-                %$out_options_hash,
-                filelist  => \@exported_files
             );
         };
         $e = $EVAL_ERROR;
@@ -492,19 +630,26 @@ sub test_roundtrip_raster {
         use URI::Escape::XS qw/uri_unescape/;
 
         # each band was written to a separate file, load each in turn and add to
-        # the basedata object        
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
-            $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
-            $this_label =~ s/$suffix$//; 
+            $this_label =~ s/.*${fname_base}_//; 
+            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
-            say 'got label $this_label';
+            note "got label $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
                     input_files => [$this_file],
                     %in_options_hash,
+                    #labels_as_bands => 1,
                     given_label => $this_label,
                 );
             };
@@ -515,14 +660,14 @@ sub test_roundtrip_raster {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
-        
+
         my $new_lb = $new_bd->get_labels_ref;
-        subtest "sample counts match for $fname" => sub {
+        subtest "sample counts match for $format" => sub {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
 
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
             }
         };
 
@@ -582,15 +727,17 @@ sub test_roundtrip_shapefile {
         },
     );
 
+    my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'shapefile' . $i; 
+        my $fname_base = $tmp_dir . '/' . 'shapefile_' . $i; 
         my $suffix = ''; # leave off, .shp will be added (or similar)
         my $fname = $fname_base . $suffix;  
         my @exported_files;
@@ -605,6 +752,7 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
+        ok (-e $fname . '.shp', "$fname.shp exists");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -623,6 +771,13 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions importing $fname");
         diag $e if $e;
+        if ($e) {
+            diag "$fname:";
+            foreach my $ext (qw /shp dbf shx/) {
+                diag 'size: ' . -s ($fname . $ext);
+            }
+        }
+        
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
@@ -772,10 +927,12 @@ sub test_coords_near_zero {
                 push @groups, "$i:$j";
             }
         }
-        foreach my $group (@groups) {
-            ok ($bd->exists_group(group => $group), "Group $group exists");
-        }
-        
+        subtest 'Requisite groups exist' => sub {
+            foreach my $group (@groups) {
+                ok ($bd->exists_group(group => $group), "Group $group exists");
+            }
+        };
+
         #  should also text the extents of the data set, min & max on each axis
 
         my $bounds = $bd->get_coord_bounds;
@@ -879,6 +1036,16 @@ sub test_rename_labels {
             my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
             is_deeply ($hash, \%observed_hash, $label);
         }
+    };
+    
+    subtest 'Rename label element arrays are updated' => sub {
+        my $lb = $bd->get_labels_ref;
+        foreach my $label (reverse sort $bd->get_labels) {
+            my $el_array = $lb->get_element_name_as_array (element => $label);
+            foreach my $el (@$el_array) {
+                ok ($label =~ /$el/, "Label $label contains $el");
+            }
+        }
     }
     
 }
@@ -919,6 +1086,10 @@ sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');
 }
 
+sub get_import_data_null_label {
+    return get_data_section('BASEDATA_IMPORT_NULL_LABEL');
+}
+
 1;
 
 __DATA__
@@ -936,3 +1107,9 @@ id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
 2,g2,sp2,2,2,2,0,,1,1,1,0
 3,g2,sp3,1,3,3,,,1,1,1,0
 
+@@ BASEDATA_IMPORT_NULL_LABEL
+id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
+1,g1,sp1,1,1,1,1,1,,,1,0
+2,g2,sp2,2,2,2,0,,1,1,1,0
+3,g2,sp3,1,3,3,,,1,1,1,0
+4,,sp3,1,3,3,,,1,1,1,0

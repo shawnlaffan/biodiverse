@@ -1,5 +1,12 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+0.99002 2014-08-12
+    - Update for Biodiverse 0.99_002 development release.  Don't use a dev version number for the Task distro, though. 
+    - Add List::BinarySearch
+    - Add List::BinarySearch::XS
+    - Set minimum version for List::Util to 1.39
+    - Set minimum version for Text::CSV_XS to 1.04
+
 0.191 2014-03-06
     - Add minimum version for Geo::ShapeFile (2.58)
     - Set minimum version for List::Util to 1.38

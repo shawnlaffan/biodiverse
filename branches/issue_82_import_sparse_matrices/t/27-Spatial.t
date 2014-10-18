@@ -23,6 +23,12 @@ use Test::More;
 
 use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::Spatial;
+use Biodiverse::SpatialConditions;
+
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 
 exit main( @ARGV );
 
@@ -39,7 +45,10 @@ sub main {
         return 0;
     }
 
-    test_def_queries();
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
     
     done_testing;
     return 0;
@@ -92,7 +101,7 @@ sub test_def_queries {
             "Correct number of groups passed $def_query_text",
         );
         
-        my @got_element_list = sort keys $passed_defq;
+        my @got_element_list = sort keys %$passed_defq;
         
         is_deeply (
             \@expected_element_list,
@@ -134,8 +143,40 @@ sub test_empty_groups {
     );
     
     #  NEED TO TEST THAT NO ERRORS HAPPENED
+    TODO:
+    {
+        $TODO = 'Empty group test not implemented yet';
+        is (1, 1, 'placeholder');
+    }
 }
 
+
+sub test_pass_blessed_conditions {
+    my $cell_sizes = [10, 10];
+    my $bd1 = get_basedata_object (x_max => 10, y_max => 10, CELL_SIZES => $cell_sizes);
+    my $bd2 = $bd1->clone;  #  need separate bds to avoid optimisations where nbrs are copied
+
+    my @calculations = qw /calc_element_lists_used/;
+
+    my $sp1 = $bd1->add_spatial_output (name => 'sp1');
+    $sp1->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [@calculations],
+    );
+
+    my $blessed_condition = Biodiverse::SpatialConditions->new (conditions => 'sp_self_only()');    
+    my $sp2 = $bd2->add_spatial_output (name => 'sp2');
+    $sp2->run_analysis (
+        spatial_conditions => [$blessed_condition],
+        calculations => [@calculations],
+    );
+    
+    my %tbl_args = (symmetric => 1, list => 'EL_LIST_ALL');
+    my $t1 = $sp1->to_table (%tbl_args);
+    my $t2 = $sp2->to_table (%tbl_args);
+    
+    is_deeply ($t2, $t1, 'results match when a blessed spatial condition is passed');
+}
 
 done_testing;
 

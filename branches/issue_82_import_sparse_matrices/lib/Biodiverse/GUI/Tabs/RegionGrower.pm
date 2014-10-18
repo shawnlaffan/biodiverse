@@ -5,7 +5,7 @@ package Biodiverse::GUI::Tabs::RegionGrower;
 use strict;
 use warnings;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use parent qw /
     Biodiverse::GUI::Tabs::Clustering
@@ -31,7 +31,11 @@ sub new {
     $hbox->pack_end($combo_minmax, 1, 1, 0);
     $hbox->pack_end($label_widget, 1, 1, 0);
     $hbox->show_all;
-    
+
+    #  remove singletons by default 
+    my $singleton_widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+    $singleton_widget->set_active(1);
+
     $self->{combo_minmax} = $combo_minmax;
     
     return $self;

@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use English qw { -no_match_vars };
 
@@ -150,9 +150,9 @@ sub make_dialog {
 
 
 sub load_dialog {
-    my $dlgxml = shift;
+    my $dlgxml  = shift;
     my $element = shift;
-    my $sources_ref = shift;
+    my $sources_ref    = shift;
     my $default_source = shift;
 
     #print Data::Dumper::Dumper($neighbours);
@@ -162,7 +162,7 @@ sub load_dialog {
     my $popup = {};
     bless $popup, 'Biodiverse::GUI::PopupObject';
 
-    $popup->{list} = $dlgxml->get_widget('lstData');
+    $popup->{list}    = $dlgxml->get_widget('lstData');
     $popup->{element} = $element;
     $popup->{sources_ref} = $sources_ref;
 
@@ -174,9 +174,10 @@ sub load_dialog {
     my $combo = $dlgxml->get_widget('comboSources');
     $combo->set_model($sources_model);
 
-    my $selected_source =  find_selected_source($sources_model, $g_selected_source) # first use user-selected
-                        || find_selected_source($sources_model, $default_source) # then try default source
-                        || $sources_model->get_iter_first;    # use first one otherwise
+    my $selected_source =
+           find_selected_source($sources_model, $g_selected_source) # first use user-selected
+        || find_selected_source($sources_model, $default_source) # then try default source
+        || $sources_model->get_iter_first;    # use first one otherwise
     $combo->set_active_iter($selected_source);
 
     # Set title
@@ -184,7 +185,7 @@ sub load_dialog {
 
     # Load first thing
     on_source_changed($combo, $popup);
-    
+
     # Disconnect signals (dialog might be being reused)
     $dlgxml->get_widget('comboSources')->signal_handlers_disconnect_by_func(\&on_source_changed);
     $dlgxml->get_widget('btnClose')->signal_handlers_disconnect_by_func(\&close_dialog);
@@ -371,8 +372,8 @@ sub on_copy {
 sub clipboard_get_func {
     my $clipboard = shift;
     my $selection = shift;
-    my $datatype = shift;
-    my $popup = shift;
+    my $datatype  = shift;
+    my $popup     = shift;
 
     #print "[Popup] Clipboard data request (type $datatype)\n";
 
@@ -465,3 +466,4 @@ sub clipboard_clear_func {
 
 
 1;
+

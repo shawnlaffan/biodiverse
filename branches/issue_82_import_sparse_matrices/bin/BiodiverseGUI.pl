@@ -7,10 +7,15 @@ use Carp;
 
 use 5.010;
 
+BEGIN {
+    #  make sure menubars are visible when running under Ubuntu Unity
+    $ENV{UBUNTU_MENUPROXY} = undef;  
+}
+
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -36,7 +41,6 @@ use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
-
 
 # Load filename specified in the arguments
 my $numargs = scalar @ARGV;
@@ -94,13 +98,6 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
-#my $ic = Gtk2::IconTheme->new;
-#$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
-#print join "\n", $ic->get_search_path;
-
-# DEBUG
-#$Carp::Verbose = 1;
-#say "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui";
 
 # Go!
 Gtk2->main;
@@ -136,17 +133,36 @@ sub get_gladefile {
             $gladefile = PerlApp::extract_bound_file('biodiverse.glade')
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
-        print "Using perlapp glade file\n";
+        say 'Using perlapp glade file';
         return $gladefile;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
-        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade')->stringify;
-        if (-e $gladefile) {
-            print "Using PAR glade file $gladefile\n";
-            return $gladefile;
+        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade');
+        my $gladefile_str = $gladefile->stringify;
+        if (-e $gladefile_str) {
+            say "Using PAR glade file $gladefile";
+            return $gladefile_str;
         }
         else {
-            print "Cannot locate $gladefile\n";
+            #  manually unpack the glade folder contents
+            require Archive::Zip;
+
+            my $glade_folder = $gladefile->dir;
+            my $zip = Archive::Zip->new($ENV{PAR_PROGNAME}) or die "Unable to open $ENV{PAR_PROGNAME}";
+            my $glade_zipped = $zip->extractTree( 'glade', $glade_folder );
+
+            if (-e $gladefile && -s $gladefile_str) {
+                say "Using PAR glade file $gladefile";
+                return $gladefile_str;
+            }
+            else {
+                say '=============';
+                say "Cannot locate $gladefile";
+                say 'This can happen if your temp directory is cleaned while '
+                    . 'you are running Biodiverse.  Deleting the par temp directory '
+                    . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
+                say '=============';
+            }
         }
     }
 
@@ -159,7 +175,9 @@ sub get_gladefile {
         $gladefile = Path::Class::file( $Bin, 'biodiverse.glade' )->stringify;
     }
 
-    croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+    die 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+
+    say "Using $gladefile";
 
     return $gladefile;
 }
@@ -174,18 +192,35 @@ sub get_iconfile {
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
 
-        print "Using perlapp icon file\n";
+        say "Using perlapp icon file";
 
         return $icon;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
-        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico')->stringify;
-        if (-e $icon) {
-            print "Using PAR icon file $icon\n";
-            return $icon;
+        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico');
+        my $icon_str = $icon->stringify;
+        if (-e $icon_str) {
+            say "Using PAR icon file $icon";
+            return $icon_str;
         }
         else {
-            print "Cannot locate $icon\n";
+            #  manually unpack the icon file
+            require Archive::Zip;
+
+            my $folder = $icon->dir;
+            my $fname  = $icon->basename;
+            my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
+              or die "Unable to open $ENV{PAR_PROGNAME}";
+
+            my $glade_zipped = $zip->extractMember ( $fname, $icon_str );
+
+            if (-e $icon) {
+                say "Using PAR icon file $icon";
+                return $icon_str;
+            }
+            else {
+                say "Cannot locate $icon in the PAR archive";
+            }
         }
     }
 
@@ -198,6 +233,19 @@ sub get_iconfile {
     }
 
     return $icon;
+}
+
+
+#  keep the console open if we have a failure
+END {
+    if ($?) {
+        say "\n\n=====  Program terminated abnormally.  ====\n\n";
+        say 'Press any key to continue.';
+        <STDIN>;
+    }
+    #else {
+        #$gui->destroy;  #  need to close the gui if we stay open always
+    #}
 }
 
 

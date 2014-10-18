@@ -4,10 +4,11 @@ use warnings;
 use 5.010;
 
 use English qw( -no_match_vars );
+use Time::HiRes qw /time/;
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed isweak weaken/;
+use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
@@ -20,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -51,13 +52,13 @@ sub new {
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
-    my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'vpaneClustering');
+    my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringPage');
     my $xml_label = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringLabel');
 
     $self->{xmlPage}  = $xml_page;
     $self->{xmlLabel} = $xml_label;
 
-    my $page  = $xml_page->get_widget('vpaneClustering');
+    my $page  = $xml_page->get_widget('hboxClusteringPage');
     my $label = $xml_label->get_widget('hboxClusteringLabel');
 
 
@@ -114,6 +115,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneClustering');
         $self->{existing} = 0;
+        $xml_page->get_widget('toolbarClustering')->hide;
+        $xml_page->get_widget('toolbar_clustering_bottom')->hide;
     }
     else {  # We're being called to show an EXISTING output
 
@@ -122,11 +125,10 @@ sub new {
 
         $self->{output_name}  = $cluster_ref->get_param('NAME');
         $self->{basedata_ref} = $cluster_ref->get_param('BASEDATA_REF');
-        print "[Clustering tab] Existing spatial output - "
+        say "[Clustering tab] Existing spatial output - "
               . $self->{output_name}
               . " within Basedata set - "
-              . $self->{basedata_ref}->get_param ('NAME')
-              . "\n";
+              . $self->{basedata_ref}->get_param ('NAME');
 
         my $completed = $cluster_ref->get_param ('COMPLETED');
         $completed = 1 if not defined $completed;
@@ -170,6 +172,8 @@ sub new {
 
     $self->{title_widget} = $xml_page ->get_widget('txtClusterName');
     $self->{label_widget} = $xml_label->get_widget('lblClusteringName');
+    $self->set_label_widget_tooltip;
+
 
     $self->{spatialParams1}
         = Biodiverse::GUI::SpatialParams->new($sp_initial1);
@@ -218,6 +222,9 @@ sub new {
     $self->init_map_show_combo();
     $self->init_map_list_combo();
 
+    $self->{colour_mode} = 'Hue';
+    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
+
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model(
             $self->{basedata_ref}, $cluster_ref
@@ -228,12 +235,6 @@ sub new {
         $self->{calculations_model}
     );
 
-    # select hue colour mode, red
-    $xml_page->get_widget('comboClusterColours')->set_active(0);
-    $xml_page->get_widget('clusterColourButton')->set_color(
-        Gtk2::Gdk::Color->new(65535,0,0),  # red
-    );
-
     # Connect signals
     $xml_label->get_widget('btnClose')->signal_connect_swapped(
         clicked => \&on_close,
@@ -242,18 +243,18 @@ sub new {
     
     $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
 
-    $self->set_colour_stretch_widgets_and_signals;
+    #$self->set_colour_stretch_widgets_and_signals;
 
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&on_run},
-        btnMapOverlays      => {clicked => \&on_overlays},
-        btnMapZoomIn        => {clicked => \&on_map_zoom_in},
-        btnMapZoomOut       => {clicked => \&on_map_zoom_out},
-        btnMapZoomFit       => {clicked => \&on_map_zoom_fit},
-        btnClusterZoomIn    => {clicked => \&on_cluster_zoom_in},
-        btnClusterZoomOut   => {clicked => \&on_cluster_zoom_out},
-        btnClusterZoomFit   => {clicked => \&on_cluster_zoom_fit},
+        menuitem_cluster_overlays => {activate => \&on_overlays},
         spinClusters        => {'value-changed' => \&on_clusters_changed},
+
+        btnSelectToolCL     => {clicked => \&on_select_tool},
+        btnPanToolCL        => {clicked => \&on_pan_tool},
+        btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
+        btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
         plot_length         => {toggled => \&on_plot_mode_changed},
         group_length        => {toggled => \&on_group_mode_changed},
@@ -265,29 +266,57 @@ sub new {
         menu_use_slider_to_select_nodes =>
             {toggled => \&on_menu_use_slider_to_select_nodes},
 
-        clusterColourButton => {color_set => \&on_hue_set},
-    
-        comboClusterColours => {changed => \&on_colour_mode_changed},
-        comboMapList        => {changed => \&on_combo_map_list_changed},
+        menuitem_cluster_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
         txtClusterName      => {changed => \&on_name_changed},
-        
+
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
+        comboMapList        => {changed => \&on_combo_map_list_changed},
+
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
 
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
+        menu_cluster_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
+        menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
+        #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
+        menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
-    while (my ($widget, $args) = each %widgets_and_signals) {
-        $xml_page->get_widget($widget)->signal_connect_swapped(
-            %$args, 
+    for my $n (0..6) {
+        my $widget_name = "radio_dendro_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+    
+    foreach my $widget_name (sort keys %widgets_and_signals) {
+        my $args = $widgets_and_signals{$widget_name};
+        #say $widget_name;
+        my $widget = $xml_page->get_widget($widget_name);
+        if (!defined $widget) {
+            warn "$widget_name not found";
+            next;
+        };
+        $widget->signal_connect_swapped(
+            %$args,
             $self,
         );
     }
 
+    $self->choose_tool('Select');
+
     $self->set_frame_label_widget;
     
-    print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
+    #  hide this menu - should delete from glade
+    do {
+        my $wname = 'menuitem_clustering_data';
+        if (my $widget = $xml_page->get_widget ($wname)) {
+            $widget->hide;
+        }
+    };
+
+    say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;
 }
@@ -443,9 +472,9 @@ sub on_combo_metric_changed {
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
     
     my $source_sub = $indices_object->get_index_source (index => $metric);
-    my $metadata   = $indices_object->get_args (sub => $source_sub);
+    my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
-    my $explanation = 'Description: ' . $metadata->{indices}{$metric}{description};
+    my $explanation = 'Description: ' . $metadata->get_index_description ($metric);
 
     $widget->set_text($explanation);
 
@@ -497,18 +526,27 @@ sub init_map {
 
     my $click_closure = sub { $self->on_grid_popup(@_); };
     my $hover_closure = sub { $self->on_grid_hover(@_); };
+    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        1,
-        0,
-        $hover_closure,
-        $click_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func  => $hover_closure,
+        click_func  => $click_closure,
+        select_func => $select_closure,
+        grid_click_func => $grid_click_closure,
+        end_hover_func  => $end_hover_closure
     );
+    $self->{grid}->{page} = $self;
 
     $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
+
+    $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
@@ -517,7 +555,7 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       =  $self->{xmlPage}->get_widget('clusterFrame');
-    my $graph_frame  =  $self->{xmlPage}->get_widget('graphFrame');
+    my $graph_frame =  $self->{xmlPage}->get_widget('graphFrame');
     my $hscroll     =  $self->{xmlPage}->get_widget('clusterHScroll');
     my $vscroll     =  $self->{xmlPage}->get_widget('clusterVScroll');
     my $list_combo  =  $self->{xmlPage}->get_widget('comboMapList');
@@ -526,22 +564,31 @@ sub init_dendrogram {
 
     my $hover_closure       = sub { $self->on_dendrogram_hover(@_); };
     my $highlight_closure   = sub { $self->on_dendrogram_highlight(@_); };
-    my $click_closure       = sub { $self->on_dendrogram_popup(@_); };
+    my $popup_closure       = sub { $self->on_dendrogram_popup(@_); };
+    my $click_closure       = sub { $self->on_dendrogram_click(@_); };
+    my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        $self->{grid},
-        $list_combo,
-        $index_combo,
-        $hover_closure,
-        $highlight_closure,
-        $click_closure,
-        undef,
-        $self,
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => $self->{grid},
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => $hover_closure,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $popup_closure,
+        click_func      => $click_closure, # click_func
+        select_func     => $select_closure, # select_func
+        parent_tab      => $self,
+        basedata_ref    => undef, # basedata_ref
     );
+
+    # TODO: Abstract this properly
+    #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
+
+    $self->{dendrogram}->{page} = $self;
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
@@ -564,6 +611,92 @@ sub init_dendrogram {
 
     return;
 }
+
+#  only show the legend if the menuitem says we can
+sub show_legend {
+    my $self = shift;
+    my $widget = $self->{xmlPage}->get_widget('menuitem_cluster_show_legend');
+
+    if ($widget->get_active) {
+        $self->{grid}->show_legend;
+    }
+}
+
+#  for completeness with show_legend
+#  simple wrapper 
+sub hide_legend {
+    my $self = shift;
+    $self->{grid}->hide_legend;
+}
+
+
+sub on_map_list_changed {
+    my ($self, $menu_item) = @_;
+    #print "on_map_list_changed called\n";
+    #print "Widget: ", $menu_item->get_label(), "\n";
+    #print "Active: ", $menu_item->get_active(), "\n";
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $list = $menu_item->get_label();
+    $list =~ s/__/_/g;
+    if ($list eq '(Cluster)') {
+        undef $list;
+    }
+
+    if (not defined $list) {
+        $self->hide_legend;
+    }
+    else {
+        $self->show_legend;  #  more control via $self
+    }
+
+    $self->{dendrogram}->select_map_list($list);
+
+    my $indices = $self->{dendrogram}->get_map_indices();
+
+    # Default to the first in the list, if it exists
+    if (@$indices) {
+        $self->{dendrogram}->select_map_index($indices->[0]);
+    }
+
+    # Desensitise some options if (Cluster) is selected.
+    my @widgets = qw{
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
+    };
+    my $sensitive = defined $list;
+    foreach my $widget (@widgets) {
+        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+    }
+}
+
+
+sub on_map_index_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $index = $menu_item->get_label();
+    $index =~ s/__/_/g;
+
+    print "on_map_index_changed to $index\n";
+
+    # Pass it on to the dendrogram.
+    $self->{dendrogram}->select_map_index($index);
+}
+
 
 sub init_map_show_combo {
     my $self = shift;
@@ -606,23 +739,40 @@ sub on_combo_map_list_changed {
     my $sensitive = 1;
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
-        $self->{grid}->hide_legend;
+        $self->hide_legend;
     }
     else {
-        $self->{grid}->show_legend;
+        $self->show_legend;
     }
 
     my @widgets = qw {
         comboMapShow
-        comboClusterColours
-        clusterColourButton
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
     };
-    foreach my $widget (@widgets) {
-        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+    foreach my $widget_name (@widgets) {
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        if (!$widget) {
+            warn "$widget_name not found\n";
+            next;
+        }
+        
+        $widget->set_sensitive($sensitive);
+    }
+
+    #  don't show the indices options if there is no list
+    my $combo_widget = $self->{xmlPage}->get_widget('comboMapShow');
+    if ($sensitive) {
+        $combo_widget->show;
+    }
+    else {
+        $combo_widget->hide;
     }
 
     return;
 }
+
 
 ##################################################
 # Indices combo
@@ -844,54 +994,75 @@ sub remove {
 # Running the thing
 ##################################################
 
-sub get_no_cache_abc_value {
+#sub get_no_cache_abc_value {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_build_matrices_only {
+#    my $self = shift;
+#    
+#    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_output_gdm_format {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_keep_spatial_nbrs_output {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_no_clone_matrices {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_clear_singletons {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+#
+#    return $widget->get_active;
+#}
+
+my @chk_flags = qw /
+    no_cache_abc
+    build_matrices_only
+    output_gdm_format
+    keep_sp_nbrs_output
+    no_clone_matrices
+    clear_singletons
+/;
+
+sub get_flag_widget_values {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
+    my %flag_hash;
 
-sub get_build_matrices_only {
-    my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
+    foreach my $flag_name (@chk_flags) {
+        my $widget_name = 'chk_' . $flag_name;
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        $flag_hash{$flag_name} = $widget->get_active;
+    }
 
-sub get_output_gdm_format {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
-
-sub get_keep_spatial_nbrs_output {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
-
-sub get_no_clone_matrices {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
-
-    my $value = $widget->get_active;
-
-    return $value;
+    return wantarray ? %flag_hash : \%flag_hash;
 }
 
 sub get_prng_seed {
@@ -1063,16 +1234,16 @@ sub on_run_analysis {
     my $output_ref       = $self->{output_ref};
     my $pre_existing     = $self->{output_ref};
     my $new_analysis     = 1;
+    
+    my $bd      = $self->{basedata_ref};
+    my $project = $self->{project};
 
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
-    my $no_cache_abc        = $self->get_no_cache_abc_value;
-    my $build_matrices_only = $self->get_build_matrices_only;
     my $file_handles        = $self->get_output_file_handles;
-    my $output_gdm_format   = $self->get_output_gdm_format;
-    my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
-    my $no_clone_matrices   = $self->get_no_clone_matrices;
     my $prng_seed           = $self->get_prng_seed;
+
+    my %flag_values = $self->get_flag_widget_values;
 
     # Get spatial calculations to run
     my @calculations_to_run
@@ -1080,6 +1251,7 @@ sub on_run_analysis {
         $self->{calculations_model}
     );
 
+    my $overwrite;
     # Delete existing?
     if (defined $output_ref) {
         my $completed = $self->{output_ref}->get_param('COMPLETED') // 1;
@@ -1100,18 +1272,18 @@ sub on_run_analysis {
             $self->{project}->set_dirty;  
         }
 
-        if ($new_analysis) {
-            $self->{basedata_ref}->delete_output(output => $output_ref);
-            $self->{project}->delete_output($output_ref);
-            $self->{existing}   = 0;
-            $self->{output_ref} = undef;
+        if ($new_analysis) {  #  we can simply rename it for now
+            $overwrite = 1;
+            my $tmp_name = $pre_existing->get_name . ' (preexisting ' . time() . ')';
+            $bd->rename_output (output => $pre_existing, new_name => $tmp_name);
+            $project->update_output_name ($pre_existing);
         }
     }
 
     if ($new_analysis) {
         # Add cluster output
         $output_ref = eval {
-            $self->{basedata_ref}->add_cluster_output(
+            $bd->add_cluster_output(
                 name => $self->{output_name},
                 type => $self->get_output_type,
             );
@@ -1120,35 +1292,31 @@ sub on_run_analysis {
             $self->{gui}->report_error ($EVAL_ERROR);
             return;
         }
-    
+
         $self->{output_ref} = $output_ref;
-        $self->{project}->add_output($self->{basedata_ref}, $output_ref);
+        $project->add_output($self->{basedata_ref}, $output_ref);
     }
 
     my %analysis_args = (
         %args,
+        %flag_values,
         matrix_ref           => $self->{project}->get_selected_matrix,
         tree_ref             => $self->{project}->get_selected_phylogeny,
-        definition_query     => $self->{definition_query1}->get_text(),
+        definition_query     => $self->{definition_query1}->get_validated_conditions,
         index                => $selected_index,
         linkage_function     => $selected_linkage,
-        no_cache_abc         => $no_cache_abc,
-        build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
-        output_gdm_format    => $output_gdm_format,
-        keep_sp_nbrs_output  => $keep_sp_nbrs_output,
         spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
-            $self->{spatialParams1}->get_text(),
-            $self->{spatialParams2}->get_text(),
+            $self->{spatialParams1}->get_validated_conditions,
+            $self->{spatialParams2}->get_validated_conditions,
         ],
-        no_clone_matrices   => $no_clone_matrices,
         prng_seed           => $prng_seed,
     );
 
-    my $tie_breakers  = $self->get_tie_breakers;
     if ($self->get_use_tie_breakers) {
-        $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
+        my $tie_breakers = $self->get_tie_breakers;
+        $analysis_args{cluster_tie_breaker} = $tie_breakers;
     }
 
     # Perform the clustering
@@ -1157,6 +1325,7 @@ sub on_run_analysis {
         $output_ref->run_analysis (
             %analysis_args,
             flatten_tree => 1,
+            
         )
     };
     if (Biodiverse::Cluster::MatrixExists->caught) {
@@ -1164,17 +1333,18 @@ sub on_run_analysis {
         my $name = $e->name;
         #  do some handling then try again?
         #  drop out if we don't want to overwrite
-        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?";
+        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?\n(It will still be part of its cluster output).";
         if (Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text}) ne 'yes') {
-            #  put back the pre-existing cluster output - not quite working yet
-            $self->{basedata_ref}->delete_output(output => $output_ref);
-            $self->{project}->delete_output($output_ref);
-            $self->{basedata_ref}->add_output (object => $pre_existing);
-            $self->{project}->add_output($self->{basedata_ref}, $pre_existing);
+            if ($overwrite) {  #  put back the pre-existing cluster output
+                $bd->delete_output(output => $output_ref);
+                $project->delete_output($output_ref);
+                $bd->rename_output (output => $pre_existing, new_name => $self->{output_name});
+                $project->update_output_name ($pre_existing);
+            }
             return 0;
         }
-        $self->{basedata_ref}->delete_output(output => $e->object);
-        $self->{project}->delete_output($e->object);
+        $bd->delete_output(output => $e->object);
+        $project->delete_output($e->object);
         goto RUN_CLUSTER;
     }
     elsif ($EVAL_ERROR) {
@@ -1183,20 +1353,37 @@ sub on_run_analysis {
 
     if (not $success) {  # dropped out for some reason, eg no valid analyses.
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
+        if ($overwrite) {  #  reinstate the old output
+            $bd->delete_output (output => $output_ref);
+            $project->delete_output($output_ref);
+            $bd->rename_output (output => $pre_existing, new_name => $self->{output_name});
+            $project->update_output_name ($output_ref);
+        }
+
         return;
     }
+    elsif ($overwrite) {
+        $bd->delete_output (output => $pre_existing);
+        $project->delete_output($pre_existing);
+    }
 
-    if ($keep_sp_nbrs_output) {
+    if ($flag_values{keep_sp_nbrs_output}) {
         my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
-        my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
-        $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+        if (defined $sp_name) {
+            my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
+            $project->add_output($self->{basedata_ref}, $sp_ref);
+        }
+        else {
+            say '[CLUSTER] Unable to add spatial output, probably because a recycled '
+                . 'matrix was used so no spatial output was needed.'
+        }
     }
 
     #  add the matrices to the outputs tab
     if ($new_analysis) {
         foreach my $ref ($output_ref->get_orig_matrices) {
             next if not $ref->get_element_count;  #  don't add if empty
-            $self->{project}->add_output($self->{basedata_ref}, $ref);
+            $project->add_output($self->{basedata_ref}, $ref);
         }
     }
 
@@ -1211,15 +1398,19 @@ sub on_run_analysis {
     }
 
     if (Biodiverse::GUI::YesNoCancel->run({header => 'display results?'}) eq 'yes') {
+        $self->{xmlPage}->get_widget('toolbar_clustering_bottom')->show;
+        $self->{xmlPage}->get_widget('toolbarClustering')->show;
+
+        if (defined $output_ref) {
+            $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
+        }
+
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {
             $self->set_pane(0.01, 'vpaneClustering');
             $self->set_pane(1,    'vpaneDendrogram');
         }
 
-        if (defined $output_ref) {
-            $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
-        }
     }
 
     return;
@@ -1265,6 +1456,18 @@ sub on_dendrogram_highlight {
     return;
 }
 
+sub on_dendrogram_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{dendrogram};
+        $self->handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
 ##################################################
 # Popup dialogs
 ##################################################
@@ -1276,7 +1479,8 @@ sub on_grid_hover {
 
     no warnings 'uninitialized';  #  saves getting sprintf warnings we don't care about
 
-    my $string;
+    my $string = $self->get_grid_text_pfx;
+
     if ($element) {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
@@ -1292,15 +1496,15 @@ sub on_grid_hover {
             #  need to get the displayed node, not the terminal node
             my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
             my $value = $list_ref->{$analysis_name};
-            $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
+            $string .= sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
             $string .= ", <b>Element:</b> $element";
         }
         elsif (! defined $analysis_name && defined $coloured_node) {
-            $string = sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
+            $string .= sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
             $string .= ", <b>Element:</b> $element";
         }
         else {
-            $string = '<b>Not a coloured group:</b> ' . $element;
+            $string .= '<b>Not a coloured group:</b> ' . $element;
         }
 
     }
@@ -1311,6 +1515,11 @@ sub on_grid_hover {
     $self->{xmlPage}->get_widget('lblMap')->set_markup($string);
     
     return;
+}
+
+sub on_end_grid_hover {
+    my $self = shift;
+    $self->{dendrogram}->clear_highlights;
 }
 
 sub on_grid_popup {
@@ -1348,6 +1557,19 @@ sub on_dendrogram_popup {
     Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
     
     return;
+}
+
+sub on_dendrogram_click {
+    my ($self, $node) = @_;
+    if ($self->{tool} eq 'Select') {
+        $self->{dendrogram}->do_colour_nodes_below($node);
+    }
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoom_fit();
+    }
 }
 
 # Returns which coloured node the given element is under
@@ -1596,36 +1818,6 @@ sub on_name_changed {
     return;
 }
 
-sub on_map_zoom_in {
-    my $self = shift;
-    $self->{grid}->zoom_in();
-}
-
-sub on_map_zoom_out {
-    my $self = shift;
-    $self->{grid}->zoom_out();
-}
-
-sub on_map_zoom_fit {
-    my $self = shift;
-    $self->{grid}->zoom_fit();
-}
-
-sub on_cluster_zoom_in {
-    my $self = shift;
-    $self->{dendrogram}->zoom_in();
-}
-
-sub on_cluster_zoom_out {
-    my $self = shift;
-    $self->{dendrogram}->zoom_out();
-}
-
-sub on_cluster_zoom_fit {
-    my $self = shift;
-    $self->{dendrogram}->zoom_fit();
-}
-
 sub on_clusters_changed {
     my $self = shift;
     my $spinbutton = $self->{xmlPage}->get_widget('spinClusters');
@@ -1651,12 +1843,48 @@ sub on_plot_mode_changed {
     $self->{dendrogram}->set_plot_mode($mode) if defined $self->{output_ref};
 }
 
+####
+# TODO: This whole section needs to be deduplicated between Labels.pm
+####
+my %drag_modes = (
+    Select  => 'click',
+    Pan     => 'pan',
+    ZoomIn  => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolCL");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolCL");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    $self->{grid}->{drag_mode}       = $drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
+}
+
+
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
     $self->{dendrogram}->set_use_highlight_func;
 
     return;
 }
+
 
 sub on_use_highlight_path_changed {
     my $self = shift;
@@ -1682,12 +1910,12 @@ sub on_menu_use_slider_to_select_nodes {
     return;
 }
 
-sub on_set_cell_outline_colour {
-    my $self = shift;
-    my $menu_item = shift;
-    $self->{grid}->set_cell_outline_colour (@_);
-    return;
+
+sub set_cell_outline_menuitem_active {
+    my ($self, $active) = @_;
+    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active($active);
 }
+
 
 sub on_group_mode_changed {
     my $self = shift;
@@ -1708,17 +1936,11 @@ sub on_group_mode_changed {
     $self->{dendrogram}->set_group_mode($mode);
 }
 
-sub on_colour_mode_changed {
+sub recolour {
     my $self = shift;
-    
     $self->set_plot_min_max_values;
-
-    my $colours = $self->{xmlPage}->get_widget('comboClusterColours')->get_active_text();
-
-    $self->{grid}->set_legend_mode($colours);
     $self->{dendrogram}->recolour();
-
-    return;
+    $self->{grid}->set_legend_mode($self->{colour_mode});
 }
 
 sub set_plot_min_max_values {
@@ -1748,7 +1970,30 @@ sub set_plot_min_max_values {
     return;
 }
 
+#  Same as the version in Spatial.pm except it calls
+#  recolour instead of on_active_index_changed
+sub on_menu_stretch_changed {
+    my ($self, $menu_item) = @_;
 
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $sel = $menu_item->get_label();
+
+    my ($min, $max) = split (/-/, uc $sel);
+
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->recolour;
+    #  not properly redisplaying map
+    #  poss need to call on_map_index_changed, grabbing the current index
+
+    return;
+}
 
 sub on_stretch_changed {
     my $self = shift;
@@ -1768,26 +2013,7 @@ sub on_stretch_changed {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->on_colour_mode_changed;
-
-    return;
-}
-
-#  should be onSatSet?
-sub on_hue_set {
-    my $self = shift;
-    my $button = shift;
-
-    my $combo_colours_hue_choice = 1;
-
-    my $widget = $self->{xmlPage}->get_widget('comboClusterColours');
-
-    #  a bodge to set the active colour mode to Hue
-    my $active = $widget->get_active;
-
-    $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->set_legend_hue($button->get_color());
-    $self->{dendrogram}->recolour();
+    $self->recolour;
 
     return;
 }
@@ -1814,6 +2040,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
+    print 'Trying to call ', $method, "\n";
     return $self->$method(@_);
 }
 

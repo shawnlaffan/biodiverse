@@ -8,6 +8,7 @@ use warnings;
 use FindBin qw/$Bin/;
 use rlib;
 use Scalar::Util qw /blessed/;
+use File::Compare;
 
 use Test::More;
 
@@ -51,9 +52,16 @@ sub main {
     test_deletions();
     test_cluster_analysis();
     test_import_sparse_format();
+    test_to_table();
 
     done_testing;
     return 0;
+}
+
+sub test_to_table {
+    foreach my $class (@classes) {
+        _test_to_table ($class);
+    }
 }
 
 sub test_main_tests {
@@ -290,10 +298,15 @@ sub run_main_tests {
             my $exp_txt = $exp_val // 'undef';
             $val = $mx->get_value (element1 => $el1, element2 => $el2);
             is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2");
-            
+            $val = $mx->get_defined_value (element1 => $el1, element2 => $el2);
+            is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2 (get_defined_value)");
+
+
             #  now the reverse
             $val = $mx->get_value (element2 => $el1, element1 => $el2);
             is ($val, $exp_val, "got $exp_txt for pair $el2 => $el1");
+            $val = $mx->get_defined_value (element1 => $el2, element2 => $el1);
+            is ($val, $exp_val, "got $exp_txt for pair $el2 => $el1 (get_defined_value)");
         }
     }
     
@@ -333,6 +346,42 @@ sub run_main_tests {
     my @expected_element_array = qw /a b c d e f/;
     my @array = sort @{$mx->get_elements_as_array};
     is_deeply (\@array, \@expected_element_array, 'Got correct element array');
+    
+    $mx = $class->new (name => 'check get_defined_value');
+    
+    #  now run some extra checks on get_defined_value
+    foreach my $el1 (keys %expected) {
+        my $href = $expected{$el1};
+        foreach my $el2 (keys %$href) {
+            my $val = $href->{$el2};
+            next if !defined $val;  #  avoid some warnings
+            $mx->add_element (element1 => $el1, element2 => $el2, value => $val);
+            my $alt_val = defined $val ? $val + 100 : undef;
+            $mx->add_element (element1 => $el2, element2 => $el1, value => $alt_val);
+        }
+    }
+    subtest 'get_defined_value works' => sub {
+        foreach my $el1 (keys %expected) {
+            my $href = $expected{$el1};
+            foreach my $el2 (keys %$href) {
+                next if !defined $href->{$el2};
+
+                my $val = $mx->get_defined_value (
+                    element1 => $el1,
+                    element2 => $el2,
+                );
+                is ($val, $href->{$el2}, "$el1 => $el2");
+
+                my $val_alt = $mx->get_defined_value (
+                    element1 => $el2,
+                    element2 => $el1,
+                );
+                my $exp_alt = defined $href->{$el2} ? $href->{$el2} + 100 : undef;
+                is ($val_alt, $exp_alt, "$el2 => $el1");
+            }
+        }
+    };
+
 }
 
 
@@ -415,7 +464,41 @@ sub create_matrix_object {
     return $mx;
 }
 
+sub _test_to_table {
+    my ($class, $expected) = @_;
 
+    my $mx = create_matrix_object($class);
+    $expected //= get_exported_matrix_data();
+
+    my @types = qw /normal sparse gdm/;
+    my %tables;
+
+    foreach my $type (@types) {
+        my $table = $mx->to_table (type => $type);
+        $tables{$type} = $table;
+        
+        is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
+    }
+    
+    #  now check the exports are the same with and without file handles
+    foreach my $type (@types) {
+        my $f   = File::Temp->new (TEMPLATE => 'bd_XXXXXX', TMPDIR => 1);
+        my $pfx = $f->filename;
+
+        my $fname_use_fh = $pfx . '_use_fh.csv';
+        my $fname_no_fh  = $pfx . '_no_fh.csv';
+
+        $mx->export_delimited_text (type => $type, filename => $fname_use_fh);
+        $mx->export_delimited_text (type => $type, filename => $fname_no_fh, _no_fh => 1);
+
+        my $comp = File::Compare::compare ($fname_use_fh, $fname_no_fh);
+        ok (!$comp, "Exported files with and without file handles in to_table are identical for $type, " . blessed ($mx));
+
+        unlink $fname_use_fh, $fname_no_fh;
+    }
+    
+
+}
 
 
 ######################################
@@ -424,6 +507,11 @@ sub get_matrix_data {
     return get_data_section('MATRIX_DATA');
 }
 
+sub get_exported_matrix_data {
+    my $data = get_data_section('EXPORTED_MATRIX_DATA');
+    my $hash = eval $data;
+    return $hash;
+}
 
 1;
 
@@ -440,4 +528,354 @@ f 1
 
 @@ placeholder
 - a b c d e
+
+
+@@ EXPORTED_MATRIX_DATA
+{
+  gdm => [
+    [
+      'x1',
+      'y1',
+      'x2',
+      'y2',
+      'Value'
+    ],
+    [
+      'a',
+      undef,
+      'b',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'c',
+      undef,
+      '2'
+    ],
+    [
+      'a',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'a',
+      undef,
+      'e',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'f',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'b',
+      undef,
+      'd',
+      undef,
+      '5'
+    ],
+    [
+      'b',
+      undef,
+      'e',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'a',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'b',
+      undef,
+      '3'
+    ],
+    [
+      'c',
+      undef,
+      'd',
+      undef,
+      '6'
+    ],
+    [
+      'c',
+      undef,
+      'e',
+      undef,
+      '3'
+    ],
+    [
+      'd',
+      undef,
+      'a',
+      undef,
+      '4'
+    ],
+    [
+      'd',
+      undef,
+      'b',
+      undef,
+      '5'
+    ],
+    [
+      'd',
+      undef,
+      'c',
+      undef,
+      '6'
+    ],
+    [
+      'd',
+      undef,
+      'e',
+      undef,
+      '4'
+    ],
+    [
+      'e',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'e',
+      undef,
+      'b',
+      undef,
+      '2'
+    ],
+    [
+      'e',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'e',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'f',
+      undef,
+      'a',
+      undef,
+      '1'
+    ]
+  ],
+  normal => [
+    [
+      '',
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f'
+    ],
+    [
+      'a',
+      undef,
+      '1',
+      '2',
+      '4',
+      '1',
+      '1'
+    ],
+    [
+      'b',
+      '1',
+      undef,
+      '3',
+      '5',
+      '2',
+      undef
+    ],
+    [
+      'c',
+      '2',
+      '3',
+      undef,
+      '6',
+      '3',
+      undef
+    ],
+    [
+      'd',
+      '4',
+      '5',
+      '6',
+      undef,
+      '4',
+      undef
+    ],
+    [
+      'e',
+      '1',
+      '2',
+      '3',
+      '4',
+      undef,
+      undef
+    ],
+    [
+      'f',
+      '1',
+      undef,
+      undef,
+      undef,
+      undef,
+      undef
+    ]
+  ],
+  sparse => [
+    [
+      'Row',
+      'Column',
+      'Value'
+    ],
+    [
+      'a',
+      'b',
+      '1'
+    ],
+    [
+      'a',
+      'c',
+      '2'
+    ],
+    [
+      'a',
+      'd',
+      '4'
+    ],
+    [
+      'a',
+      'e',
+      '1'
+    ],
+    [
+      'a',
+      'f',
+      '1'
+    ],
+    [
+      'b',
+      'a',
+      '1'
+    ],
+    [
+      'b',
+      'c',
+      '3'
+    ],
+    [
+      'b',
+      'd',
+      '5'
+    ],
+    [
+      'b',
+      'e',
+      '2'
+    ],
+    [
+      'c',
+      'a',
+      '2'
+    ],
+    [
+      'c',
+      'b',
+      '3'
+    ],
+    [
+      'c',
+      'd',
+      '6'
+    ],
+    [
+      'c',
+      'e',
+      '3'
+    ],
+    [
+      'd',
+      'a',
+      '4'
+    ],
+    [
+      'd',
+      'b',
+      '5'
+    ],
+    [
+      'd',
+      'c',
+      '6'
+    ],
+    [
+      'd',
+      'e',
+      '4'
+    ],
+    [
+      'e',
+      'a',
+      '1'
+    ],
+    [
+      'e',
+      'b',
+      '2'
+    ],
+    [
+      'e',
+      'c',
+      '3'
+    ],
+    [
+      'e',
+      'd',
+      '4'
+    ],
+    [
+      'f',
+      'a',
+      '1'
+    ]
+  ]
+}
 

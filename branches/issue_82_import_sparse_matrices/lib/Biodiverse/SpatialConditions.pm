@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 our $NULL_STRING = q{};
 
@@ -478,16 +478,23 @@ sub verify {
     }
 
     if ($valid) {
+        my $bd = $self->get_basedata_ref // $args{basedata};
 
-        my $basedata = $args{basedata};  #  should use this for the distances
-        my $bd = $args{basedata};
+        my $basedata = $bd;  #  should use this for the distances
+        #my $bd = $args{basedata};
 
         $self->set_param( VERIFYING => 1 );
 
         #my $conditions = $self->get_conditions;  #  not used in this block
+        my $error;
 
         #  Get the first two elements
         my $elements = $bd->get_groups;
+        if (! scalar @$elements) {
+            $error = 'Basedata has no groups, cannot run spatial conditions';
+            goto IFERROR;
+        }
+        
         my $element1 = $elements->[0];
         my $element2 = scalar @$elements > 1 ? $elements->[1] : $elements->[0];
 
@@ -523,10 +530,11 @@ sub verify {
                 basedata      => $bd,
             );
         };
-        my $error  = $EVAL_ERROR;
+        $error  = $EVAL_ERROR;
 
+      IFERROR:
         if ($error) {
-            $msg = "Syntax error:\n\n$EVAL_ERROR";
+            $msg = "Syntax error:\n\n$error";
             $valid = 0;
         }
 
@@ -648,25 +656,12 @@ sub get_distances {
 
     #  use sprintf to avoid precision issues at 14 decimals or so
     #  - a bit of a kludge, but unavoidable if using storable's clone methods.
-    my $D =
-        $params->{use_euc_distance}
-        ? 0 + $self->set_precision(
-            precision => '%.10f',
-            value     => sqrt($sum_D_sqr),
-        )
+    my $D = $params->{use_euc_distance}
+        ? 0 + $self->set_precision_aa(sqrt($sum_D_sqr), '%.10f')
         : undef;
-    my $C =
-        $params->{use_cell_distance}
-        ? 0 + $self->set_precision(
-            precision => '%.10f',
-            value     => sqrt($sum_C_sqr),
-        )
+    my $C = $params->{use_cell_distance}
+        ? 0 + $self->set_precision_aa(sqrt($sum_C_sqr), '%.10f')
         : undef;
-
-    #  and now trim off any extraneous zeroes after the decimal point
-    #  ...now handled by the 0+ on conversion
-    #$D += 0 if defined $D;
-    #$C += 0 if defined $C;
 
     my %hash = (
         d_list => \@d,
@@ -692,7 +687,8 @@ sub evaluate {
 
     my $code_ref = $self->get_conditions_code_ref (%args);
 
-    return $self->$code_ref (%args);
+    #  no explicit return here for speed reasons
+    $self->$code_ref (%args);
 }
 
 #  get a subroutine reference based on the conditions
@@ -1053,7 +1049,7 @@ sub sp_rectangle {
         #  coarse filter
         return if $dists->[$axis] > $sizes->[$i];
         #  now check with precision adjusted
-        my $d = $self->set_precision (value => $dists->[$axis]);
+        my $d = $self->set_precision_aa ($dists->[$axis]);
         return if $d > $sizes->[$i] / 2;
     }
 
@@ -1102,7 +1098,7 @@ sub sp_annulus {
         foreach my $axis (@$axes) {
 
             #  drop out clause to save some comparisons over large data sets
-            return if $dists->[$axis] > $args{radius};
+            return if $dists->[$axis] > $args{outer_radius};
 
             # increment
             $d_sqr += $dists->[$axis]**2;
@@ -1235,13 +1231,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( ( ref $size ) !~ /ARRAY/ ) {
+    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( ( ref $origin ) !~ /ARRAY/ ) {
+    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 
@@ -1346,8 +1342,8 @@ sub sp_ellipse {
     my $a_dist = ( $r_y ** 2 ) / ( $major_radius**2 );
     my $b_dist = ( $r_x ** 2 ) / ( $minor_radius**2 );
     my $precision = '%.14f';
-    $a_dist = $self->set_precision(value => $a_dist, precision => $precision) + 0;
-    $b_dist = $self->set_precision(value => $b_dist, precision => $precision) + 0;
+    $a_dist = $self->set_precision_aa ($a_dist, $precision) + 0;
+    $b_dist = $self->set_precision_aa ($b_dist, $precision) + 0;
 
     my $test = eval { 1 >= ( $a_dist + $b_dist ) };
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -1628,9 +1624,10 @@ sub get_metadata_sp_is_left_of {
 
 sub sp_is_left_of {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) < 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) < 0; 
 }
 
 sub get_metadata_sp_is_right_of {
@@ -1664,9 +1661,10 @@ sub get_metadata_sp_is_right_of {
 
 sub sp_is_right_of {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) > 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) > 0; 
 }
 
 sub get_metadata_sp_in_line_with {
@@ -1700,9 +1698,10 @@ sub get_metadata_sp_in_line_with {
 
 sub sp_in_line_with {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) == 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) == 0; 
 }
 
 
@@ -1725,8 +1724,7 @@ sub _sp_side {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #  PadWalker gives hashrefs of scalar refs,
-    #  so need to de-ref to get the value
+    #  Need to de-ref to get the values
     my @coord     = @{ $h->{coord_array} };
     my @nbr_coord = @{ $h->{nbrcoord_array} };
 
@@ -1767,7 +1765,9 @@ sub _sp_side {
     elsif ($dir > pi && $dir < Math::Trig::pi2) {
         $test = 1;
     }
-    return $test;
+
+    #  no explicit return here for speed reasons
+    $test;
 }
 
 

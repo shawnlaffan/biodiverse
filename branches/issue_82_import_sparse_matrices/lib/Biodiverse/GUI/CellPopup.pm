@@ -1,5 +1,6 @@
 package Biodiverse::GUI::CellPopup;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -7,7 +8,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Gtk2;
 
@@ -43,7 +44,7 @@ sub cell_clicked {
 # Adds appropriate sources (to the data sources combobox)
 sub get_sources {
     my $element = shift;
-    my $data = shift;
+    my $data    = shift;
 
     my %sources;
 
@@ -75,12 +76,13 @@ sub get_sources {
         else {
             #print "[Cell popup] Adding all labels list\n";
             # All labels
-            $sources{'Labels'}     = sub { show_all_labels(@_, $element, $data); };
+            $sources{'Labels'}     = sub { show_all_labels (@_, $element, $data); };
             $sources{'Properties'} = sub { show_properties (@_, $element, $data); };
         }
     }
     else {
-        $sources{'Results'} = sub { showList (@_); };
+        #  do we ever get to this?  
+        $sources{'Results'} = sub { show_list (@_); };
     }
 
     return \%sources;
@@ -192,7 +194,7 @@ sub make_neighbours_model {
     );
     my $iter;
 
-    print "[Cell popup] Generating neighbours hashes for $element\n";
+    say "[Cell popup] Generating neighbours hashes for $element";
 
     my $neighbours = find_neighbours($element, $data);
 
@@ -252,16 +254,13 @@ sub show_all_labels {
     my $bd      = $data->get_param ('BASEDATA_REF') || $data;
 
     if (not $popup->{labels_model}) {
-        #print "[Cell popup] Making labels model using get_labels_in_group_as_hash()\n";
-        #!! Assuming that the correct basedata is selected
-        #my $project = Biodiverse::GUI::GUIManager->instance->get_project();
-        #my $basedata = $project->get_selected_base_data();
         my %labels = $bd->get_labels_in_group_as_hash (group => $element);
-        #my %labels = $data->get_lists (element => $element);
 
-        my $num_type = eval {$bd->sample_counts_are_floats}
+        my $smp_counts_are_floats = eval {$bd->sample_counts_are_floats};
+        my $num_type = $smp_counts_are_floats
             ? 'Glib::Double'
             : 'Glib::Int';
+        
 
         my $model = Gtk2::ListStore->new(
             'Glib::String',
@@ -388,7 +387,7 @@ sub show_output_list {
 
     $popup->set_value_column(1);
     $popup->set_list_model($model);
-}
+}  
 
 ##########################################################
 # Neighbours
@@ -416,16 +415,15 @@ sub find_neighbours {
     my $search_blocks_ref = $output_ref->get_param ('INDEX_SEARCH_BLOCKS');
 
     foreach my $i (0 .. $#$parsed_spatial_conditions) {
-        if ($output_ref->exists_list (
-                element => $element,
-                list    => '_NBR_SET' . ($i+1),
-            )
-        ) {
+        my $list_exists = $output_ref->exists_list (
+            element => $element,
+            list    => '_NBR_SET' . ($i+1),
+        );
+        if ($list_exists) {
             $nbr_list[$i] = $output_ref->get_list_values (
                 element => $element,
                 list    => '_NBR_SET' . ($i+1),
             );
-            
         }
         else {
             $nbr_list[$i] = $basedata_ref->get_neighbours_as_array (
@@ -439,7 +437,6 @@ sub find_neighbours {
         }
     }
 
-
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $basedata_ref);
     my %ABC = $indices_object->calc_abc2(
         element_list1 => $nbr_list[0],
@@ -452,3 +449,4 @@ sub find_neighbours {
 }
 
 1;
+

@@ -14,7 +14,10 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
+use List::Util qw /any all none minstr max/;
 use List::MoreUtils qw /first_index/;
+use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
+use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
 use Class::Inspector;
@@ -22,7 +25,7 @@ use Class::Inspector;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -560,7 +563,7 @@ sub run_randomisation {
     $self->store_rand_state (rand_object => $rand_object);
 
     #  return the rand_bd's if told to
-    return wantarray ? @rand_bd_array : \@rand_bd_array
+    return (wantarray ? @rand_bd_array : \@rand_bd_array)
       if $args{return_rand_bd_array};
     
     #  return 1 if successful and ran some iterations
@@ -724,7 +727,7 @@ sub rand_nochange {
     my $self = shift;
     my %args = @_;
 
-    print "[RANDOMISE] Running 'no change' randomisation\n";
+    say "[RANDOMISE] Running 'no change' randomisation";
 
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
@@ -752,7 +755,8 @@ sub get_metadata_rand_csr_by_group {
     return wantarray ? %args : \%args;
 }
 
-sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles the subelement lists between elements
+#  complete spatial randomness by group - just shuffles the subelement lists between elements
+sub rand_csr_by_group {
     my $self = shift;
     my %args = @_;
 
@@ -769,15 +773,24 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     $new_bd->get_groups_ref->set_param ($bd->get_groups_ref->get_params_hash);
     $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
 
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
     my @orig_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
     my $rand_order = $rand->shuffle ([@orig_groups]);
 
-    print "[RANDOMISE] CSR Shuffling ".(scalar @orig_groups)." groups\n";
+    say "[RANDOMISE] CSR Shuffling " . (scalar @orig_groups) . " groups";
 
     #print join ("\n", @candidates) . "\n";
 
     my $total_to_do = $#orig_groups;
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param('JOIN_CHAR'),
+        quote_char => $self->get_param('QUOTES'),
+    );
 
     foreach my $i (0 .. $#orig_groups) {
 
@@ -797,7 +810,10 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         );
 
         #  create the group (this allows for empty groups with no labels)
-        $new_bd->add_element(group => $rand_order->[$i]);
+        $new_bd->add_element(
+            group => $rand_order->[$i],
+            csv_object => $csv_object,
+        );
 
         #  get the labels from the original group and assign them to the random group
         my %tmp = $bd->get_labels_in_group_as_hash (group => $orig_groups[$i]);
@@ -807,6 +823,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
                 label => $label,
                 group => $rand_order->[$i],
                 count => $counts,
+                csv_object => $csv_object,
             );
         }
     }
@@ -901,7 +918,11 @@ END_PROGRESS_TEXT
     my $new_bd_name = $new_bd->get_param ('NAME');
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
-    print "[RANDOMISE] Creating clone for destructive sampling\n";
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
+    say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
         "$progress_text\n"
         . "Creating clone for destructive sampling\n",
@@ -959,7 +980,7 @@ END_PROGRESS_TEXT
     #  algorithm:
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
-    #  and that does not exceed the richness threshold factor
+    #  and which do not exceed the richness threshold factor
     #  (multiplied by the original richness)
 
     my @target_groups = $bd->get_groups;
@@ -967,10 +988,16 @@ END_PROGRESS_TEXT
         = $bd->array_to_hash_keys (list => \@target_groups);
     my %filled_groups;
     my %unfilled_groups = %target_richness;
-    my $last_filled = $EMPTY_STRING;
+    my %new_bd_richness;
+    my $last_filled     = $EMPTY_STRING;
     $i = 0;
     $total_to_do = scalar @$rand_label_order;
-    print "[RANDOMISE] Target is $total_to_do.  Running.\n";
+    say "[RANDOMISE] Target is $total_to_do.  Running.";
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
+    );
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1000,7 +1027,7 @@ END_PROGRESS_TEXT
             delete @target_groups{keys %$new_bd_has_label} ;
         }
 
-        my $check = scalar keys %target_groups;
+        my $check  = scalar keys %target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
             delete @target_groups{keys %filled_groups};
@@ -1037,6 +1064,7 @@ END_PROGRESS_TEXT
                 label => $label,
                 group => $to_group,
                 count => $count,
+                csv_object => $csv_object,
             );
 
             #  now delete it from the list of candidates
@@ -1046,20 +1074,21 @@ END_PROGRESS_TEXT
             );
             delete $tmp{$from_group};
 
-            #  check if we've filled this group.
-            my $richness = $new_bd->get_richness (element => $to_group);
+            #  increment richness and then check if we've filled this group.
+            my $richness = ++$new_bd_richness{$to_group};
 
             if ($richness >= $target_richness{$to_group}) {
 
                 warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
-                    if ($richness > $target_richness{$to_group});
+                  if ($richness > $target_richness{$to_group});
 
                 $filled_groups{$to_group} = $richness;
                 delete $unfilled_groups{$to_group};
                 $last_filled = $to_group;
             };
 
-            last BY_GROUP if scalar @target_groups == 0;  #  no more targets for this label, move to next label
+            #  move to next label if no more targets for this label
+            last BY_GROUP if !scalar @target_groups;  
         }
     }
 
@@ -1089,11 +1118,11 @@ END_PROGRESS_TEXT
               . "Creating $count empty groups in new basedata\n";
 
         foreach my $gp (keys %target_gps) {
-            $new_bd->add_element (group => $gp);
+            $new_bd->add_element (group => $gp, csv_object => $csv_object);
         }
     }
 
-    $self->swap_to_reach_targets (
+    $self->swap_to_reach_richness_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
         new_bd          => $new_bd,
@@ -1102,6 +1131,7 @@ END_PROGRESS_TEXT
         rand_object     => $rand,
         target_richness => \%target_richness,
         progress_text   => $progress_text,
+        progress_bar    => $progress_bar,
     );
 
     $bd->transfer_label_properties (
@@ -1118,7 +1148,7 @@ END_PROGRESS_TEXT
     return $new_bd;
 }
 
-sub swap_to_reach_targets {
+sub swap_to_reach_richness_targets {
     my $self = shift;
     my %args = @_;
 
@@ -1129,10 +1159,16 @@ sub swap_to_reach_targets {
     my %target_richness = %{$args{target_richness}};
     my $rand            = $args{rand_object};
     my $progress_text   = $args{progress_text};
+    my $progress_bar    = $args{progress_bar} // Biodiverse::Progress->new();
 
     my $bd = $self->get_param ('BASEDATA_REF')
              || $args{basedata_ref};
-    my $progress_bar = Biodiverse::Progress->new();
+    
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
+    );
 
     #  and now we do some amazing cell swapping work to
     #  shunt labels in and out of groups until we're happy
@@ -1152,22 +1188,63 @@ sub swap_to_reach_targets {
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
+    
+    #  Track the labels in the unfilled groups.
+    #  This avoids collating them every iteration.
+    my (%labels_in_unfilled_gps,
+        %unfilled_gps_without_label,
+        %unfilled_gps_without_label_by_gp,
+    );
+    foreach my $gp (keys %unfilled_groups) {
+        my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
+        foreach my $label ($bd->get_labels) {
+            if (exists $list->{$label}) {
+                $labels_in_unfilled_gps{$label}++;
+            }
+            else {
+                $unfilled_gps_without_label{$label} //= [];
+                $self->insert_into_sorted_list (
+                    item => $gp,
+                    list => $unfilled_gps_without_label{$label},
+                );
+                $unfilled_gps_without_label_by_gp{$gp}{$label}++;
+            }
+        }
+    }
+
+    #  Track which groups do and don't have labels to avoid repeated and
+    # expensive method calls to get_groups_with(out)_label_as_hash
+    my %groups_without_labels_a;       #  store sorted arrays
+    my %cloned_bd_groups_with_label_a;
 
     #  keep going until we've reached the fill threshold for each group
-    BY_UNFILLED_GP:
+  BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
+
+    
+#  debugging
+#my %xx;
+#foreach my $lb (keys %unfilled_gps_without_label) {
+#    my $lref = $unfilled_gps_without_label{$lb};
+#    foreach my $gp (@$lref) {
+#        $xx{$gp}{$lb}++;
+#    }
+#}
+#use Test::More;
+#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
+
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
-        my $precision = '%8d';
-        my $fmt = "Total gps:\t\t\t$precision\n"
-                    . "Unfilled groups:\t\t$precision\n"
-                    . "Filled groups:\t\t$precision\n"
-                    . "Labels to assign:\t\t$precision\n"
-                    . "Old gps to empty:\t$precision\n"
-                    . "Swap count:\t\t\t$precision\n"
-                    . "Last group filled: %s\n";
+        my $p = '%8d';
+        my $fmt = "Total gps:\t\t\t$p\n"
+                . "Unfilled groups:\t\t$p\n"
+                . "Filled groups:\t\t$p\n"
+                . "Labels to assign:\t\t$p\n"
+                . "Old gps to empty:\t$p\n"
+                . "Swap count:\t\t\t$p\n"
+                . "Last group filled: %s\n";
         my $check_text
             = sprintf $fmt,
                 $total_to_do,
@@ -1190,7 +1267,7 @@ sub swap_to_reach_targets {
         if ($target_label_count == 0) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
-            print "[Randomise structured] No more Labels to assign\n";
+            say "[Randomise structured] No more labels to assign";
             last BY_UNFILLED_GP;  
         }
 
@@ -1198,34 +1275,46 @@ sub swap_to_reach_targets {
         my @labels = sort $cloned_bd->get_labels;
         my $i = int $rand->rand (scalar @labels);
         my $add_label = $labels[$i];
-        my %from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
+        
+        
+        my $from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
             label => $add_label,
         );
-        my @from_groups_array = sort keys %from_groups_hash;
+        my $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label};
+        if (!$from_cloned_groups_tmp_a  || !scalar @$from_cloned_groups_tmp_a) {
+            my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash (label => $add_label);
+            $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label} = [sort keys %$gps_tmp];
+        };
 
-        $i = int ($rand->rand (scalar @from_groups_array));
-
-        my $from_group = $from_groups_array[$i];
-        my $add_count  = $from_groups_hash{$from_group};
+        $i = int ($rand->rand (scalar @$from_cloned_groups_tmp_a));
+        my $from_group = $from_cloned_groups_tmp_a->[$i];
+        my $add_count  = $from_groups_hash->{$from_group};
 
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element (
             group => $from_group,
             label => $add_label,
         );
+        $self->delete_from_sorted_list (item => $from_group, list => $from_cloned_groups_tmp_a);
 
         #  Now add this label to a group that does not already contain it.
         #  Ideally we want to find a group that has not yet
-        #  hit its richness target, but that is unlikely wo we don't look anymore.
+        #  hit its richness target, but that is unlikely so we don't look anymore.
         #  Instead we select one at random.
         #  This also avoids the overhead of sorting and
         #  shuffling lists many times.
-        my @target_groups
-            = sort $new_bd->get_groups_without_label (label => $add_label);
-        $i = int $rand->rand(scalar @target_groups);
-        my $target_group = $target_groups[$i];
+
+        my $target_groups_tmp_a = $groups_without_labels_a{$add_label};
+        if (!$target_groups_tmp_a || !scalar @$target_groups_tmp_a) {
+            my $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
+            $target_groups_tmp_a  = $groups_without_labels_a{$add_label} = [sort keys %$target_groups_tmp];
+        };
+        #  cache maintains a sorted list, so no need to re-sort.  
+        $i = int $rand->rand(scalar @$target_groups_tmp_a);
+        my $target_group = $target_groups_tmp_a->[$i];
+
         my $target_gp_richness
-            = $new_bd->get_richness (element => $target_group);
+          = $new_bd->get_richness (element => $target_group);
 
         #  If the target group is at its richness threshold then
         #  we must first remove one label.
@@ -1235,12 +1324,6 @@ sub swap_to_reach_targets {
         if ($target_gp_richness >= $target_richness{$target_group})  {
             #  candidates to swap out are ideally
             #  those not in the unfilled groups
-            #  (Do we want this?)
-            my %labels_in_unfilled;
-            foreach my $gp (keys %unfilled_groups) {
-                my @list = $new_bd->get_labels_in_group (group => $gp);
-                @labels_in_unfilled{@list} = undef;
-            }
 
             #  we will remove one of these labels
             my %loser_labels = $new_bd->get_labels_in_group_as_hash (
@@ -1248,12 +1331,12 @@ sub swap_to_reach_targets {
             );
             my %loser_labels2 = %loser_labels;  #  keep a copy
             #  get those not in the unfilled groups
-            delete @loser_labels{keys %labels_in_unfilled};
+            delete @loser_labels{keys %labels_in_unfilled_gps};
 
             #  use the lot if all labels are in the unfilled groups
-            my $loser_labels_hash_to_use = ! scalar keys %loser_labels
-                                            ? \%loser_labels2
-                                            : \%loser_labels;
+            my $loser_labels_hash_to_use = scalar keys %loser_labels
+                                            ? \%loser_labels
+                                            : \%loser_labels2;
 
             my $loser_labels_array
                 = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);
@@ -1265,32 +1348,42 @@ sub swap_to_reach_targets {
             #  set some defaults
             my $remove_label  = $loser_labels_array->[0];
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
-            my $swap_to_unfilled = undef;
+            my $swap_to_unfilled = 0;
 
-            BY_LOSER_LABEL:
+          BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
-                #  find those unfilled groups without this label
-                my %check_hash = $new_bd->get_groups_without_label_as_hash (
-                    label => $label,
-                );
+                #  Do we have any unfilled groups without this label?
+                my $x = $unfilled_gps_without_label{$label} // [];
 
-                delete @check_hash{keys %filled_groups};
+                next BY_LOSER_LABEL if !scalar @$x;
 
-                if (scalar keys %check_hash) {
-                    $remove_label  = $label;
-                    $removed_count = $loser_labels_hash_to_use->{$remove_label};
-                    $swap_to_unfilled = $label;
-                    last BY_LOSER_LABEL;
-                }
+                $remove_label  = $label;
+                $removed_count = $loser_labels_hash_to_use->{$remove_label};
+                $swap_to_unfilled = 1;
+                last BY_LOSER_LABEL;
             }
 
-            #  Remove it from new_bd and add it to an unfilled group
+            #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element (
                 label => $remove_label,
                 group => $target_group,
             );
+            #  track the removal only if the tracker hash includes $remove_label
+            #  else it will get it next time it needs it
+            if (exists $groups_without_labels_a{$remove_label}) {
+                #  need to insert into $groups_without_labels_a in sort order
+                $self->insert_into_sorted_list (
+                    item => $target_group,
+                    list => $groups_without_labels_a{$remove_label},
+                );
+            }
+            #   unfilled_groups condition will never trigger in this if-branch
+            if (exists $unfilled_groups{$target_group}) {  
+                $unfilled_gps_without_label{$remove_label}{$target_group}++;  #  breakage if ever it
+            }
 
             if (! $swap_to_unfilled) {
+                #say ":: Swap to unfilled $remove_label";
                 #  We can't swap it, so put it back into the
                 #  unallocated lists.
                 #  Use one of its old locations.
@@ -1306,39 +1399,40 @@ sub swap_to_reach_targets {
                     );
 
                 #  make sure it does not add to an existing case
-                delete @old_groups{@cloned_self_gps_with_label}; 
-                my @old_gps = sort keys %old_groups;
-                my $old_gp = shift @old_gps;
+                delete @old_groups{@cloned_self_gps_with_label};
+                my $old_gp = minstr keys %old_groups;
                 $cloned_bd->add_element   (
                     label => $remove_label,
                     group => $old_gp,
                     count => $removed_count,
+                    csv_object => $csv_object,
+                );
+                $self->insert_into_sorted_list ( #  update the tracker
+                    item => $old_gp,
+                    list => $cloned_bd_groups_with_label_a{$remove_label},
                 );
             }
             else {
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups
-                my $gps_with_label = $new_bd->get_groups_with_label (
-                    label => $remove_label,
-                )
-                || [];
-
-                my %unfilled_tmp = %unfilled_groups;
-                delete @unfilled_tmp{@$gps_with_label};
+                my $unfilled_tmp = $unfilled_gps_without_label{$remove_label} // [];
 
                 croak "ISSUES WITH RETURN GROUPS\n"
-                    if (scalar keys %unfilled_tmp == 0);
+                  if !scalar @$unfilled_tmp;
 
                 #  and get one of them at random
-                $i = int $rand->rand (scalar keys %unfilled_tmp);
-                my @tmp = sort keys %unfilled_tmp;
-                my $return_gp = $tmp[$i];
+                #$i = int $rand->rand (scalar keys %$unfilled_tmp);
+                #my @tmp = sort keys %$unfilled_tmp;
+                #my $return_gp = $tmp[$i];
+                $i = int $rand->rand (scalar @$unfilled_tmp);
+                my $return_gp = $unfilled_tmp->[$i];
 
                 $new_bd->add_element   (
                     label => $remove_label,
                     group => $return_gp,
-                    count => $removed_count
+                    count => $removed_count,
+                    csv_object => $csv_object,
                 );
 
                 my $new_richness = $new_bd->get_richness (
@@ -1346,46 +1440,96 @@ sub swap_to_reach_targets {
                 );
 
                 warn "ISSUES WITH RETURN $return_gp\n"
-                    if $new_richness > $target_richness{$return_gp};
+                  if $new_richness > $target_richness{$return_gp};
 
+                $labels_in_unfilled_gps{$remove_label}++;
+                $self->delete_from_sorted_list (
+                    item => $return_gp,
+                    list => $unfilled_gps_without_label{$remove_label},
+                );
+                delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
+                if (my $aref = $groups_without_labels_a{$remove_label}) {
+                    $self->delete_from_sorted_list (
+                        item => $return_gp,
+                        list => $aref,
+                    );
+                    if (!scalar @$aref) {
+                        delete $groups_without_labels_a{$remove_label};
+                    }
+                }
+
+                #  if we are now filled then update the tracking hashes
                 if ($new_richness >= $target_richness{$return_gp}) {
-                    $filled_groups{$return_gp} = $new_richness;
-                    delete $unfilled_groups{$return_gp};  #  no effect if it's not in the list
                     $last_filled = $return_gp;
+                    #  clean up the tracker hashes
+                    $filled_groups{$last_filled} = $new_richness;
+                    delete $unfilled_groups{$last_filled};
+                    foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
+                        my $list = $unfilled_gps_without_label{$label};
+                        $self->delete_from_sorted_list (item => $last_filled, list => $list);
+                    }
+                    delete $unfilled_gps_without_label_by_gp{$last_filled};
+                  LB:
+                    foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
+                        no autovivification;
+                        #  don't decrement empties
+                        next LB if !$labels_in_unfilled_gps{$label}; #  also empty
+                        $labels_in_unfilled_gps{$label}--;
+                        if (!$labels_in_unfilled_gps{$label}) {
+                            delete $labels_in_unfilled_gps{$label};
+                        }
+                    }
                 }
             }
 
             $swap_count ++;
 
-            if (($swap_count % 500) == 0) {
-                print "Swap count $swap_count\n";
+            if (!($swap_count % 1000)) {
+                say "Swap count $swap_count";
             }
         }
 
         #  add the new label to new_bd
-        #print "A: $add_label, $target_group, $add_count\n";
         $new_bd->add_element (
             label => $add_label,
             group => $target_group,
             count => $add_count,
+            csv_object => $csv_object,
         );
+        if (my $aref = $groups_without_labels_a{$add_label}) {
+            $self->delete_from_sorted_list (item => $target_group, list => $aref);
+            if (!scalar @$aref) {
+                delete $groups_without_labels_a{$add_label};
+            }
+        }
+        if (exists $unfilled_groups{$target_group}) {
+            my $list = $unfilled_gps_without_label{$add_label};
+            $self->delete_from_sorted_list (item => $target_group, list => $list);
+            delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
+        }
 
         #  check if we've filled this group, if nothing was swapped out
         my $new_richness = $new_bd->get_richness (element => $target_group);
 
         warn "ISSUES WITH TARGET $target_group\n"
-            if $new_richness > $target_richness{$target_group};
+          if $new_richness > $target_richness{$target_group};
 
-        if ($target_gp_richness != $new_richness
+        if (    $new_richness != $target_gp_richness 
             and $new_richness >= $target_richness{$target_group}) {
+
             $filled_groups{$target_group} = $new_richness;
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
+            LB:
+            foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
+                my $list = $unfilled_gps_without_label{$label};
+                $self->delete_from_sorted_list (item => $target_group, list => $list);
+            }
+            delete $unfilled_gps_without_label_by_gp{$target_group};
             $last_filled = $target_group;
         }
-
     }
 
-    print "[Randomise structured] Final swap count is $swap_count\n";
+    say "[Randomise structured] Final swap count is $swap_count";
 
     return;
 }
@@ -1616,6 +1760,34 @@ sub get_tree_shuffle_metadata {
 }
 
 
+#  handlers to factor out binsearch calls into subs
+sub insert_into_sorted_list {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{list};
+    my $item = $args{item};
+
+    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    splice @$list, $idx, 0, $item;
+
+    return $idx;
+}
+
+sub delete_from_sorted_list {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{list};
+    my $item = $args{item};
+    
+    my $idx  = binsearch { $a cmp $b } $item, @$list;
+    if (defined $idx) {
+        splice @$list, $idx, 1;
+    }
+    return $idx;
+}
+
+
+
 #  these appear redundant but might help with mem leaks
 #our $AUTOLOAD;
 #sub AUTOLOAD { my $method = shift;
@@ -1671,3 +1843,4 @@ GNU General Public License for more details.
 For a full copy of the license see <http://www.gnu.org/licenses/>.
 
 =cut
+

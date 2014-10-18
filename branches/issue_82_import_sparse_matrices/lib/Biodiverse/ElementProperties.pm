@@ -8,7 +8,7 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 
@@ -128,43 +128,15 @@ sub import_data {
             $prop_cols{uc $p} = $args{$p};  #  upper case them
         }
     }
-    
-    my $whole_file;
-    open (my $fh1, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
-    
-    my $header = <$fh1>;
-    
-    do {
-        local $/ = undef;  #  slurp whole file - not a good idea in the long term, but these tables hsould be small enough
-        $whole_file = <$fh1>;
-        #close $fh;
-    };
-    $fh1->close;
-    
+
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self->get_param ('JOIN_CHAR');
 
-    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
-        #  guess the quotes character
-        $input_quote_char = $self->guess_quote_char (string => \$whole_file);
-        #  if all else fails...
-        if (not defined $input_quote_char) {
-            $input_quote_char = $self->get_param ('QUOTES');
-        }
-    }
-
-    if (not defined $sep or $sep eq 'guess') {
-        $sep = $self->guess_field_separator (
-            string => $header,
-            quote_char => $input_quote_char,
-        );
-    }
-    my $eol = $self->guess_eol (string => $header);
-    
-    my $csv_in  = $self->get_csv_object (
-        sep_char => $sep,
+    my $csv_in  = $self->get_csv_object_using_guesswork (
+        fname      => $file,
+        sep_char   => $sep,
         quote_char => $input_quote_char,
-        eol => $eol,
+        %args,
     );
     my $csv_out = $self->get_csv_object (
         sep_char => $el_sep,
@@ -199,10 +171,17 @@ sub import_data {
             );
         }
 
+        my @in_cols = @$FldsRef[@$in_cols];
         my $element = $self->list2csv (
-            list       => [@$FldsRef[@$in_cols]],
+            list       => \@in_cols,
             csv_object => $csv_out,
         );
+        if (scalar @in_cols <= 1) {
+            $element = $self->dequote_element (
+                element    => $element,
+                quote_char => $quotes,
+            );
+        }
 
         my $hash;  #  list to store the properties
 
@@ -302,8 +281,8 @@ sub import_data {
         REMAP:
         while (exists $props->{REMAP} and defined $props->{REMAP}) {
             if (exists $r_hash{$element} or $element eq $props->{REMAP}) {
-                warn "Circular remap for $element_orig\n";
-                last;  #  avoid circular remaps
+                warn "Circular remap for $element_orig via path " . join (' ', @remap_history) . "\n";
+                last REMAP;  #  avoid circular remaps
             }
             $r_hash{$element}++;
 
@@ -346,55 +325,52 @@ sub get_element_properties {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    if (not $self->exists_element (element => $element)) {
-        return wantarray ? () : {};
-    }
+    return wantarray ? () : {}
+      if not $self->exists_element (element => $element);
 
     #  remap the element name if need be
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    my $remap = $self->get_element_remapped (@_);
+    my $remap = $self->get_element_remapped (%args);
     if (defined $remap) {
-        $props = $self->get_list_ref (element => $remap, list => 'PROPERTIES');
+        $props = $self->exists_element (element => $remap)
+            ? $self->get_list_ref (element => $remap, list => 'PROPERTIES')
+            : {};
     }
-    
+
     return wantarray ? %$props : $props;
 }
-
 
 
 sub get_element_remapped {
     my $self = shift;
     my %args = @_;
-    
+
+    no autovivification;
+
     my $element = $args{element};
-    
-    #my $x = $self->get_list_ref (element => $element, list => 'PROPERTIES');
+
     #  return an empty list if nothing there
     return if not $self->exists_element (element => $element);
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{REMAP} if exists $props->{REMAP} and defined $props->{REMAP};
-    
-    return;  #  get get this far then it must be undef
+    return $props->{REMAP};
 }
-
-
 
 sub get_element_exclude {
     my $self = shift;
     my %args = @_;
-    
+
+    no autovivification;
+
     my $element = $args{element};
-    
+
     #  return an empty list if nothing there
     return if not $self->exists_element (element => $element);
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{EXCLUDE} if exists $props->{EXCLUDE} and defined $props->{EXCLUDE};
-    
-    return;  #  get get this far then it must be undef
+    return $props->{EXCLUDE};
 }
 
 =head2 get_element_include
@@ -407,7 +383,9 @@ Returns C<undef> if none is set.
 sub get_element_include {
     my $self = shift;
     my %args = @_;
-    
+
+    no autovivification;
+
     my $element = $args{element};
     
     #  return an empty list if nothing there
@@ -415,9 +393,7 @@ sub get_element_include {
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{INCLUDE} if exists $props->{INCLUDE} and defined $props->{INCLUDE};
-    
-    return;  #  get this far then it must be undef
+    return $props->{INCLUDE};
 }
 
 
@@ -425,7 +401,9 @@ sub get_element_include {
 sub get_element_sample_count {
     my $self = shift;
     my %args = @_;
-    
+
+    no autovivification;
+
     my $element = $args{element};
     
     #  return an empty list if nothing there
@@ -433,15 +411,15 @@ sub get_element_sample_count {
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{SAMPLE_COUNT} if exists $props->{SAMPLE_COUNT} and defined $props->{SAMPLE_COUNT};
-    
-    return;  #  get get this far then it must be undef
+    return $props->{SAMPLE_COUNT};
 }
 
 sub get_element_range {
     my $self = shift;
     my %args = @_;
     
+    no autovivification;
+
     my $element = $args{element};
     
     #  return an empty list if nothing there
@@ -449,29 +427,25 @@ sub get_element_range {
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{RANGE} if exists $props->{RANGE} and defined $props->{RANGE};
-    
-    return;  #  get get this far then it must be undef
+    return $props->{RANGE};
 }
-
-
 
 sub get_element_property {
     my $self = shift;
     my %args = @_;
-    
-    my $element = $args{element};
+
+    no autovivification;
+
+    my $element  = $args{element};
     my $property = $args{property};
     croak "argument 'property' not defined\n" if not defined $property;
-    
+
     #  return an empty list if nothing there
     return if not $self->exists_element (element => $element);
 
     #  get the properties
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    return $props->{$property} if exists $props->{$property} and defined $props->{$property};
-    
-    return;  #  get this far then it must be undef
+    return $props->{$property};
 }
 
 

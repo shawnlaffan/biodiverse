@@ -20,7 +20,7 @@ use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_005';
 
 use Glib;
 use Gtk2;
@@ -150,15 +150,20 @@ sub on_syntax_check {
     my $class = $self->{is_def_query}
                 ? 'Biodiverse::SpatialConditions::DefQuery'
                 : 'Biodiverse::SpatialConditions';
+
+    #  Get the baedata associated with this output.  If none then use the selected.
+    my $bd = $self->get_param ('BASEDATA_REF') || $gui->get_project->get_selected_base_data;
+
     my $spatial_conditions = eval {
-        $class->new (conditions => $expr);
+        $class->new (
+            conditions   => $expr,
+            basedata_ref => $bd,
+        );
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;
     #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_conditions;
 
-    #  Get the baedata associated with this output.  If none then use the selected.
-    my $bd = $self->get_param ('BASEDATA_REF') || $gui->get_project->get_selected_base_data;
-    my $result_hash = $spatial_conditions->verify (basedata => $bd);
+    my $result_hash = $spatial_conditions->verify;
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(
@@ -172,7 +177,16 @@ sub on_syntax_check {
         $dlg->run();
         $dlg->destroy();
     }
+    elsif ($result_hash->{ret} eq 'ok') {
+        $self->{validated_conditions} = $spatial_conditions;
+    }
+
     return $result_hash->{ret};
+}
+
+sub get_validated_conditions {
+    my $self = shift;
+    return $self->{validated_conditions};
 }
 
 sub get_widget {
@@ -220,3 +234,4 @@ sub on_show {
 #}
 
 1;
+

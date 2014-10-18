@@ -31,6 +31,11 @@ my @classes = qw /
     Biodiverse::Matrix::LowMem
 /;
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
 exit main( @ARGV );
 
 sub main {
@@ -46,13 +51,10 @@ sub main {
         return 0;
     }
 
-    test_main_tests();
-    test_lower_precision();
-    test_class_substitution();
-    test_deletions();
-    test_cluster_analysis();
-    test_import_sparse_format();
-    test_to_table();
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
 
     done_testing;
     return 0;

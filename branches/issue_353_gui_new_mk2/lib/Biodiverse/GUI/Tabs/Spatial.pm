@@ -138,6 +138,7 @@ sub new {
 
     $self->set_label_widget_tooltip;
 
+    
     # Spatial parameters
     my ($initial_sp1, $initial_sp2);
     my $initial_def1 = $NULL_STRING;
@@ -374,7 +375,19 @@ sub on_show_hide_parameters {
 sub setup_dendrogram {
     my $self = shift;
 
-    $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
+    #my $xmlpage = $self->{xmlPage};
+    #my $combobox = $xmlpage->get_widget('comboTreeSelect');
+    
+    #foreach my $option (qw /project none/) {
+    #    $combobox->append_text($option);
+    #}
+    #if ($self->{output_ref} && $self->{output_ref}->get_embedded_tree) {
+    #    $combobox->prepend_text('analysis');
+    #}
+    #
+    #$combobox->set_active(0);
+
+    $self->update_dendrogram_combo;    
 
     $self->init_dendrogram();
     # Register callbacks when selected phylogeny is changed
@@ -385,9 +398,33 @@ sub setup_dendrogram {
     );
     $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
         changed => \&on_selected_phylogeny_changed, 
-        $self
+        $self,
     );
     $self->on_selected_phylogeny_changed();
+}
+
+sub update_dendrogram_combo {
+    my $self = shift;
+
+    my $xmlpage = $self->{xmlPage};
+    my $combobox = $xmlpage->get_widget('comboTreeSelect');
+    
+    #  clear the curent entries
+    my $model = $combobox->get_model;
+    $model->clear;
+    
+    foreach my $option (qw /project none/) {
+        $combobox->append_text($option);
+    }
+    
+    no autovivification;
+    
+    my $output_ref = $self->{output_ref};
+    if ($output_ref && $output_ref->can('get_embedded_tree') && $output_ref->get_embedded_tree) {
+        $combobox->prepend_text('analysis');
+    }
+
+    $combobox->set_active(0);
 }
 
 # For the phylogeny tree:
@@ -1252,7 +1289,8 @@ sub on_run {
         }
         $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
-        $self->update_lists_combo(); # will display first analysis as a side-effect...
+        $self->update_lists_combo; # will display first analysis as a side-effect...
+        $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
     }
 
@@ -1434,6 +1472,9 @@ sub get_current_tree {
 
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
+    $tree_method //= 'none';
+
+    return if $tree_method eq 'none';
 
     # phylogenies
     if ($tree_method eq 'analysis') {
@@ -1444,7 +1485,6 @@ sub get_current_tree {
 
     # get tree from project
     return $self->{project}->get_selected_phylogeny;
-
 }
 
 # Keep name in sync with the tab label
@@ -1518,6 +1558,7 @@ sub show_analysis {
     $self->{selected_index} = $name;
     $self->update_lists_combo();
     $self->update_output_indices_combo();
+    $self->update_dendrogram_combo();
     #$self->update_output_indices_menu();
     
     return;

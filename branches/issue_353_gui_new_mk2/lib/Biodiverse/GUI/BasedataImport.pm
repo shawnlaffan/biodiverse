@@ -362,7 +362,7 @@ sub run {
         );
         #  add a field to the header if needed
         if ($is_r_data_frame) {
-            unshift @header, 'R_data_frame_col_0';
+            unshift @header, ':R_data_frame_col_0:';
         }
 
         # Check for empty fields in header.
@@ -412,12 +412,12 @@ sub run {
     if ($read_format == $shapefile_idx || $read_format == $text_idx) {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
-            $col_names_for_dialog,
-            $gui->get_widget('wndMain'),
-            $col_options,
-            $file_list_as_text,
-            $import_params{max_opt_cols},
-            $import_params{gp_axis_precision},
+            header      => $col_names_for_dialog,
+            wnd_main    => $gui->get_widget('wndMain'),
+            row_options => $col_options,
+            file_list_text => $file_list_as_text,
+            max_opt_rows   => $import_params{max_opt_cols},
+            gp_axis_precision => $import_params{gp_axis_precision},
         );
         
         GET_COLUMN_TYPES:
@@ -515,13 +515,11 @@ sub run {
     foreach my $type (qw /label group/) {
         if ($import_params{"use_$type\_properties"}) {
             my %remap_data = get_remap_info (
-                $gui,
-                $filenames[0],
-                $type,
-                $other_properties{$type},
-                undef,
-                undef,
-                $import_params{max_opt_cols},
+                gui  => $gui,
+                type => $type,
+                get_dir_from     => $filenames[0],
+                other_properties => $other_properties{$type},
+                max_cols_to_show => $import_params{max_opt_cols},
             );
 
             #  now do something with them...
@@ -1312,16 +1310,16 @@ sub on_separate_toggled {
 # Column selection dialog
 ##################################################
 
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub make_columns_dialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header       = shift; # ref to column header array
-    my $wnd_main     = shift;
-    my $row_options  = shift;
-    my $file_list    = shift;
-    my $max_opt_rows = shift || 100;
-    my $gp_axis_prec = shift;
+    my %args = @_;
+    my $header       = $args{header}; # ref to column header array
+    my $wnd_main     = $args{wnd_main};
+    my $row_options  = $args{row_options};
+    my $file_list    = $args{file_list_text};
+    my $max_opt_rows = $args{max_opt_rows} || 100;
+    my $gp_axis_prec = $args{gp_axis_precision};
 
     #  don't try to generate ludicrous number of rows...
     my $num_columns = min (scalar @$header, $max_opt_rows);
@@ -1450,6 +1448,8 @@ sub add_row {
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
+    $header = Glib::Markup::escape_text ($header);
+
     # Column header    
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_alignment(0.5, 1);
@@ -1536,25 +1536,32 @@ sub on_type_combo_changed {
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
 sub get_remap_info {
-    my $gui              = shift;
-    my $data_filename    = shift;
-    my $type             = shift // "";
-    my $other_properties = shift || [];
-    my $column_overrides = shift;
-    my $filename         = shift;
-    my $max_cols_to_show = shift || 100;
+    my %args = @_;
+    my $gui              = $args{gui};
+    my $get_dir_from     = $args{get_dir_from};
+    my $type             = $args{type} // "";
+    my $other_properties = $args{other_properties} || [];
+    my $column_overrides = $args{column_overrides};
+    my $filename         = $args{filename};
+    my $max_cols_to_show = $args{max_cols_to_show} || 100;
 
-    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
-        ? fileparse($data_filename)
+    my ($_file, $data_dir, $_suffixes)
+        = $get_dir_from && length $get_dir_from
+        ? fileparse($get_dir_from)
         : ();
 
     # Get filename for the name-translation file
-    $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
-    return wantarray ? () : {} if ! defined $filename;
+    $filename //= $gui->show_open_dialog(
+        title  => "Select $type properties file",
+        suffix => '*',
+        initial_dir => $data_dir,
+    );
+
+    return wantarray ? () : {} if !defined $filename;
 
     my $remap  = Biodiverse::ElementProperties->new;
-    my %args   = $remap->get_args (sub => 'import_data');
-    my $params = $args{parameters};
+    my $remap_args = $remap->get_args (sub => 'import_data');
+    my $params = $remap_args->{parameters};
 
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
@@ -1607,10 +1614,10 @@ sub get_remap_info {
         @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
-        \@headers,
-        $gui->get_widget('wndMain'),
-        $other_properties,
-        $column_overrides,
+        header      => \@headers,
+        wnd_main    => $gui->get_widget('wndMain'),
+        other_props => $other_properties,
+        column_overrides => $column_overrides,
     );
 
     my $column_settings = {};
@@ -1675,8 +1682,8 @@ sub get_remap_info {
         file                    => $filename,
         input_element_cols      => \@in_cols,
         remapped_element_cols   => \@out_cols,
-        input_sep_char          => $args{input_sep_char},  #  header might be sufficiently different to matter
-        input_quote_char        => $args{input_quote_char},
+        input_sep_char          => $remap_args->{input_sep_char},  #  header might be sufficiently different to matter
+        input_quote_char        => $remap_args->{input_quote_char},
         include_cols            => \@include_cols,
         exclude_cols            => \@exclude_cols,
     );
@@ -1705,10 +1712,11 @@ sub get_remap_info {
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
 sub make_remap_columns_dialog {
-    my $header           = shift; # ref to column header array
-    my $wnd_main         = shift;
-    my $other_props      = shift || [];
-    my $column_overrides = shift;
+    my %args = @_;
+    my $header           = $args{header}; # ref to column header array
+    my $wnd_main         = $args{wnd_main};
+    my $other_props      = $args{other_props} || [];
+    my $column_overrides = $args{column_overrides};
 
     my $num_columns = @$header;
     say "[GUI] Generating make columns dialog for $num_columns columns";

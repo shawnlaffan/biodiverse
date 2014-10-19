@@ -3309,7 +3309,8 @@ sub binarise_subelement_sample_counts {
     return;
 }
 
-#  are the sample counts floats or ints?  
+#  are the sample counts floats or ints?
+#  Could use Scalar::Util::Numeric::isfloat here if speed becomes an issue
 sub sample_counts_are_floats {
     my $self = shift;
 

@@ -24,6 +24,10 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 
+#  need to avoid an OIO destroyed twice warning due
+#  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
+use threads;
+
 use Math::Random::MT::Auto;  
 
 #use Regexp::Common qw /number/;
@@ -853,7 +857,7 @@ sub write_table {
     }
     else {
         print "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
-        $self -> write_table_csv (%args, data => $data);
+        $self->write_table_csv (%args, data => $data);
     }
 }
 
@@ -1402,10 +1406,11 @@ sub move_to_front_of_list {
 }
 
 #  guess the field separator in a line
-#  the first separator that returns two or more columns is assumed
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden
+    
+    my $lines_to_use = $args{lines_to_use} // 10;
 
     my $string = $args{string};
     $string = $$string if ref $string;
@@ -1441,14 +1446,14 @@ sub guess_field_separator {
     my @str_arr = split $eol, $string;
     my $sep;
 
-    if (@str_arr > 1) {  #  check the sep char works using subsequent lines
+    if ($lines_to_use > 1 && @str_arr > 1) {  #  check the sep char works using subsequent lines
         %sep_count = reverse %sep_count;  #  should do it properly above
         my %checked;
 
       SEP:
         foreach my $sep (sort keys %sep_count) {
             #  check up to the first ten lines
-            foreach my $string (@str_arr[1 .. min (10, $#str_arr)]) {
+            foreach my $string (@str_arr[1 .. min ($lines_to_use, $#str_arr)]) {
                 my $flds = eval {
                     $self->csv2list (
                         %args,
@@ -1618,6 +1623,7 @@ sub get_csv_object_using_guesswork {
         string     => $string,
         quote_char => $quote_char,
         eol        => $eol,
+        lines_to_use => $args{lines_to_use},
     );
 
     my $csv_obj = $self->get_csv_object (
@@ -2061,7 +2067,7 @@ sub test_locale_numeric {
     return 1;
 }
 
-my $locale_uses_comma_radix = (sprintf ('%.6f', 0.5) =~ /,/) ? 1 : undef;
+use constant LOCALE_USES_COMMA_RADIX => (sprintf ('%.6f', 0.5) =~ /,/);
 
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {
@@ -2070,7 +2076,8 @@ sub set_precision {
     
     my $num = sprintf (($args{precision} // '%.10f'), $args{value});
 
-    if ($locale_uses_comma_radix) {
+    #  this is compiled away if false
+    if (LOCALE_USES_COMMA_RADIX) {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 
@@ -2082,7 +2089,7 @@ sub set_precision {
 sub set_precision_aa {
     my $num = sprintf (($_[2] // '%.10f'), $_[1]);
 
-    if ($locale_uses_comma_radix) {
+    if (LOCALE_USES_COMMA_RADIX) {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 

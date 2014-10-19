@@ -10,9 +10,13 @@ use Test::Most;
 
 use Biodiverse::TestHelpers qw{
     :runners
+    :basedata
 };
 
+
 test_rank_abundances();
+test_no_recycling();
+
 
 sub test_rank_abundances {
     
@@ -26,6 +30,38 @@ sub test_rank_abundances {
         nbr_set2_sp_select_all => 1,
         #generate_result_sets => 1,
     );
+}
+
+#  make sure we don't recycle 
+sub test_no_recycling {
+    my $bd = get_basedata_object_from_site_data (CELL_SIZES => [300000, 300000]);
+    
+    my $sp = $bd->add_spatial_output (name => 'test_no_recycling');
+    $sp->run_analysis (
+        calculations => ['calc_label_count_quantile_position'],
+        spatial_conditions => ['sp_select_all()'],
+    );
+
+    ok (!$sp->get_param ('RESULTS_ARE_RECYCLABLE'), 'recycling flag not set');
+    
+    no autovivification;
+
+    subtest 'results not recycled' => sub {
+        my @gp_list = $sp->get_element_list;
+        my $first = shift @gp_list;
+        my $sp_results1 = $sp->get_list_ref (
+            element => $first,
+            list    => 'LABEL_COUNT_RANK_PCT',
+        );
+
+        foreach my $gp (@gp_list) {
+            my $sp_results = $sp->get_list_ref (
+                element => $gp,
+                list    => 'LABEL_COUNT_RANK_PCT',
+            );
+            isnt_deeply ($sp_results, $sp_results1, "lists not the same $gp");
+        }
+    }
 }
 
 done_testing;

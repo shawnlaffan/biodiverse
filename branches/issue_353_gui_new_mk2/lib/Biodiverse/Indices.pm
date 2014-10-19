@@ -805,6 +805,26 @@ sub get_required_args {  #  return a hash of those methods that require a parame
     return wantarray ? %params : \%params;
 }
 
+#  Get the required args without all the other cruft leading to them
+#  These methods need a cleanout.  
+sub get_required_args_as_flat_array {
+    my $self = shift;
+    my %args = @_;
+
+    my $reqd = $self->get_required_args (%args);
+    
+    my %results;
+    foreach my $calc (keys %$reqd) {
+        my $href = $reqd->{$calc};
+        foreach my $arg_name (keys %$href) {
+            $results{$arg_name}++
+        }
+    }
+
+    my @a = sort keys %results;
+    return wantarray ? @a : \@a;
+}
+
 sub is_region_grower_index {
     my $self = shift;
     my %args = @_;

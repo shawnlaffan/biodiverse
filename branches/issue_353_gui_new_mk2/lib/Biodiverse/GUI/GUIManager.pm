@@ -202,9 +202,10 @@ sub add_progress_entry {
     
     my $progress_widget = Gtk2::ProgressBar->new;
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
-    
+
     # show the progress window
-    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
+    #  don't use present - it grabs the system focus and makes work in other windows impossible
+    #$self->{progress_bars}->{window}->present;
     $self->{progress_bars}->{window}->show_all;
     
     #say "Current progress bars: " . Dumper($self->{progress_bars});
@@ -249,9 +250,16 @@ sub clear_progress_entry {
         ) {
         $self->{progress_bars}->{window}->hide;
     }
-    else {
-        $self->{progress_bars}->{window}->resize(1,1);
-    }
+    #else {
+        #  The resize below triggers Gtk critical warnings when minimised.
+        #  We seem not to be able to detect when windows are minimised on Windows
+        #  as state is always normal.
+        #my $window = $self->{progress_bars}->{window};
+        #$window = $self->{gladexml}->get_widget('wndMain');
+        #my $state = $window->get_state;
+        #warn "State is $state\n";
+        #$self->{progress_bars}->{window}->resize(1,1);
+    #}
 }
 
 # called when window closed, try to stop active process?
@@ -700,6 +708,7 @@ sub do_open_basedata {
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Open Object', 'bds');
     if (defined $filename && -f $filename) {
         my $object = Biodiverse::BaseData->new(file => $filename);
+        croak "Unable to load basedata object from $filename" if !defined $object;
         $object->set_param (NAME => $name);  #  override the name if the user says to
         $self->{project}->add_base_data($object);
     }
@@ -849,11 +858,9 @@ sub do_basedata_attach_properties {
     my $type = $response eq 'yes' ? 'labels' : 'groups';
 
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info(
-        $self,
-        undef,
-        $type,
-        undef,
-        [qw /Input_element Property/],
+        gui  => $self,
+        type => $type,
+        column_overrides => [qw /Input_element Property/],
     );
     
     return if ! defined $options{file};
@@ -1306,11 +1313,8 @@ sub do_rename_basedata_labels {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
-        undef,
-        undef,
-        undef,
-        [qw /Input_element Remapped_element/],
+        gui => $self,
+        column_overrides => [qw /Input_element Remapped_element/],
     );
     
     ##  now do something with them...
@@ -1341,7 +1345,7 @@ sub do_add_basedata_label_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -1364,7 +1368,7 @@ sub do_add_basedata_group_properties {
     
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
-        $self,
+        gui => $self,
     );
 
     ##  now do something with them...
@@ -2190,6 +2194,7 @@ sub show_index_dialog {
     #  get an array of the cellsizes
     my $bd = $self->{project}->get_selected_base_data;
     my @cellsize_array = $bd->get_cell_sizes;  #  get a copy
+    my %coord_bounds   = $bd->get_coord_bounds;
 
     #  get the current index
     my $used_index = $bd->get_param('SPATIAL_INDEX');
@@ -2265,24 +2270,26 @@ sub show_index_dialog {
     foreach my $cellsize (@cellsize_array) {
         
         my $is_text_axis = 0;
-        
-        #my $resolution = $used_index ? $resolutions[$i] : $cellsize;
+
         my $init_value = $used_index ? $resolutions[$i] : $cellsize * 2;
 
         my $min_val = $cellsize;
         my $max_val = 10E10;
+        my $step_incr = $cellsize;
 
         if ($cellsize == 0) {   #  allow some change for points
-            $init_value = 1;
+            $init_value = ($coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i]) / 20;
             $min_val    = 0;      #  should allow non-zero somehow
+            $step_incr  = $init_value;
         }
         elsif ($cellsize < 0) { #  allow no change for text
             $init_value   = 0;
             $min_val      = 0;
             $max_val      = 0;
             $is_text_axis = 1;
+            $step_incr    = 0;
         }
-        
+
         my $page_incr = $cellsize * 10;
 
         my $label_text = "Axis $i";
@@ -2300,14 +2307,14 @@ sub show_index_dialog {
             $init_value,
             $min_val,
             $max_val,
-            $cellsize,
+            $step_incr,
             $page_incr,
             0,
         );
         my $widget = Gtk2::SpinButton->new(
             $adj,
             $init_value,
-            2,
+            6,
         );
 
         $table->attach($label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0);
@@ -2570,12 +2577,24 @@ sub show_save_dialog {
 #FIXME merge with above
 sub show_open_dialog {
     my $self = shift;
-    my $title = shift;
-    my $suffix = shift;
-    my $initial_dir = shift;
+    my %args = @_;
+    
+    my $title       = $args{title};
+    my $suffix      = $args{suffix};
+    my $initial_dir = $args{initial_dir};
 
-    my $dlg = Gtk2::FileChooserDialog->new($title, undef, "open", "gtk-cancel", "cancel", "gtk-ok", 'ok');
-    $dlg->set_current_folder($initial_dir) if $initial_dir;
+    my $dlg = Gtk2::FileChooserDialog->new(
+        $title,
+        undef,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    if (!defined $initial_dir) {
+        use Cwd;
+        $initial_dir = getcwd();
+    }
+    $dlg->set_current_folder($initial_dir);
 
     my $filter = Gtk2::FileFilter->new();
 

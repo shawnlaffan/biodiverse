@@ -66,10 +66,7 @@ sub destroy {
 }
 
 sub update {
-    my $self     = shift;
-    my $text     = shift;
-    my $progress = shift; # fraction 0 .. 1
-    my $no_update_text = shift;
+    my ($self, $text, $progress, $no_update_text) = @_;
 
     croak "No progress set\n" if not defined $progress;
 

@@ -105,7 +105,11 @@ sub run {
         hide_cancel => 1,
     });
     if ($remap_dlg_response eq 'yes') {
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'label');
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui  => $gui,
+            type => 'label',
+            get_dir_from => $filename,
+        );
 
         #  now do something with them...
         my $remap;
@@ -220,10 +224,10 @@ sub get_column_use {
     }
 
     my ($dlg, $col_widgets) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
-        \@headers,
-        $gui->get_widget('wndMain'),
-        [],
-        $col_usages,
+        header   => \@headers,
+        wnd_main => $gui->get_widget('wndMain'),
+        #other_props => [],
+        column_overrides => $col_usages,
     );
 
     my ($column_settings, $response);
@@ -253,7 +257,7 @@ sub get_column_use {
         foreach my $usage (@$col_usages) {
             say "checking $usage, " . $column_settings->{$usage};
             if (! $column_settings->{$usage}) {
-                my $msg = Gtk2::MessageDialog->new(undef, "modal", "error", "close", "Please select one of each column usage type");
+                my $msg = Gtk2::MessageDialog->new(undef, 'modal', 'error', 'close', 'Please select one of each column usage type');
                 $msg->run();
                 $msg->destroy();
                 $column_settings = undef;
@@ -301,13 +305,18 @@ sub get_remap_info {
     my ($_file, $data_dir, $_suffixes) = fileparse($tree_filename);
 
     # Get filename for the name-translation file
-    my $filename = $gui->show_open_dialog('Select Label remap file', q{*}, $data_dir);
+    my $filename = $gui->show_open_dialog(
+        title  => 'Select Label remap file',
+        suffix => q{*},
+        initial_dir => $data_dir,
+    );
+
     return (undef, undef, undef) if not $filename;
 
     # Get header columns
-    print "[GUI] Discovering columns from $filename\n";
+    say "[GUI] Discovering columns from $filename";
     my $line;
-    
+
     open (my $fh, '<:via(File::BOM)', $filename);
     while (<$fh>) { # get first non-blank line
         $line = $_;

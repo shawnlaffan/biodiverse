@@ -831,11 +831,8 @@ sub rename_base_data {
 }
 
 sub rename_matrix {
-    #return;  #  TEMP TEMP
-    
     my $self = shift;
     my $name = shift; #TEMP TEMP ARG
-    
     my $ref = shift || $self->get_selected_matrix() || return;  #  drop out if nothing here
 
     $ref->rename_object (name => $name);
@@ -1179,39 +1176,53 @@ sub get_selected_phylogeny_iter {
 #   disables/enables a list of buttons
 sub manage_empty_model {
     my $self = shift;
-    my $model = shift;
-    my $button_IDs = shift;
-    my $func = shift;
-
-    my $sensitive;
-    my $first = $model->get_iter_first();
-    my $iter;
+    my %args = @_;
     
+    my $model      = $args{model} // croak 'badness';
+    my $button_IDs = $args{widgets} // croak 'badness';
+    my $type       = $args{type} // croak 'badness';
+
+    my ($sensitive, $iter);
+    my $first = $model->get_iter_first();
+
     # If model is empty
     if (not defined $first) {
         # Make a dummy model with "(none)"
-        print "[Project] $func Model empty\n";
+        say "[Project] $type Model empty";
 
         $model = Gtk2::ListStore->new('Glib::String');
         $iter = $model->append;
         $model->set($iter, 0, '(none)');
 
         # Select it
-        eval 'Biodiverse::GUI::GUIManager->instance->set' . $func .'Model($model)';
-        eval 'Biodiverse::GUI::GUIManager->instance->set' . $func .'Iter($iter)';
+        my $method = 'set_' . $type . '_model';
+        eval {
+            Biodiverse::GUI::GUIManager->instance->$method($model);
+        };
+        warn $@ if $@;
+
+        $method = 'set_' . $type . '_iter';
+        eval {
+            Biodiverse::GUI::GUIManager->instance->$method ($iter);
+        };
+        warn $@ if $@;
 
         $sensitive = 0;
     }
     else {
         # Restore original model
-        eval 'Biodiverse::GUI::GUIManager->instance->set' . $func .'Model($model)';
+        my $method = 'set_' . $type . '_model';
+        eval {
+            Biodiverse::GUI::GUIManager->instance->$method ($model);
+        };
+        warn $@ if $@;
 
         $sensitive = 1;
     }
 
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
-    foreach (@{$button_IDs}) {
+    foreach (@$button_IDs) {
         warn "$_\n" if ! defined $instance->get_widget($_);
         $instance->get_widget($_)->set_sensitive($sensitive);
     }
@@ -1220,40 +1231,44 @@ sub manage_empty_model {
 sub manage_empty_basedatas {
     my $self = shift;
     my $model = $self->{models}{basedata_model};
+    my $list = [qw /
+        btnBasedataDelete
+        btnBasedataSave
+        menu_basedata_delete
+        menu_basedata_save
+        menu_basedata_duplicate
+        menu_basedata_duplicate_no_outputs
+        menu_basedata_transpose
+        menu_basedata_rename
+        menu_basedata_describe
+        menu_basedata_convert_labels_to_phylogeny
+        menu_basedata_export_groups
+        menu_basedata_export_labels
+        menu_run_exclusions
+        menu_view_labels 
+        menu_spatial
+        menu_cluster
+        menu_randomisation
+        menu_regiongrower
+        menu_index
+        menu_delete_index
+        menu_extract_embedded_trees
+        menu_extract_embedded_matrices
+        menu_trim_basedata_to_match_tree
+        menu_trim_basedata_to_match_matrix
+        menu_trim_basedata_using_tree
+        menu_trim_basedata_using_matrix
+        menu_rename_basedata_labels
+        menu_attach_basedata_properties
+        menu_basedata_reorder_axes
+        menu_binarise_basedata_elements
+        menu_attach_ranges_as_properties
+        menu_attach_abundances_as_properties
+    /];
     $self->manage_empty_model(
-        $model,
-        [qw /
-            btnBasedataDelete
-            btnBasedataSave
-            menu_basedata_delete
-            menu_basedata_save
-            menu_basedata_duplicate
-            menu_basedata_duplicate_no_outputs
-            menu_basedata_transpose
-            menu_basedata_rename
-            menu_basedata_describe
-            menu_basedata_convert_labels_to_phylogeny
-            menu_basedata_export_groups
-            menu_basedata_export_labels
-            menu_run_exclusions
-            menu_view_labels 
-            menu_spatial
-            menu_cluster
-            menu_randomisation
-            menu_regiongrower
-            menu_index
-            menu_delete_index
-            menu_extract_embedded_trees
-            menu_extract_embedded_matrices
-            menu_trim_basedata_to_match_tree
-            menu_trim_basedata_to_match_matrix
-            menu_trim_basedata_using_tree
-            menu_trim_basedata_using_matrix
-            menu_rename_basedata_labels
-            menu_attach_basedata_properties
-            menu_basedata_reorder_axes
-         /],
-        'Basedata'
+        model   => $model,
+        widgets => $list,
+        type    => 'basedata'
     );
     return;
 }
@@ -1329,9 +1344,6 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
                 menu_equalise_tree_branches
-                menu_binarise_basedata_elements
-                menu_attach_ranges_as_properties
-                menu_attach_abundances_as_properties
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }

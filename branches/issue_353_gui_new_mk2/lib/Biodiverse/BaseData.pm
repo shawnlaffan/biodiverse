@@ -571,7 +571,7 @@ sub get_metadata_import_data_common {
             },
             { name       => 'skip_lines_with_undef_groups',
               label_text => 'Skip lines with undef groups?',
-              tooltip    => 'Turn off if some records have undefined/blank/NA '
+              tooltip    => 'Turn on if some records have undefined/blank/NA '
                           . 'group values and should be skipped.  '
                           . 'Import will otherwise fail if they are found.',
               type       => 'boolean',
@@ -690,7 +690,7 @@ sub import_data {
     
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    croak "Input files array not provided\n"
+    croak "input_files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');

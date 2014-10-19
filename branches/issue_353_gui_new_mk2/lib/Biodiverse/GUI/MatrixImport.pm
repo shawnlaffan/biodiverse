@@ -32,6 +32,13 @@ sub run {
 
     return if ! ($filename && $name);
 
+    #####
+    #
+    #  Add option to use normal or sparse
+    #  - simpler than autodetection which is fraught with possible problems.
+    #  branch off into different sub if sparse format
+    
+    
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
@@ -147,8 +154,11 @@ sub run {
     return if lc $remap_response eq 'cancel';
 
     if (lc $remap_response eq 'yes') {
-        my %remap_data
-            = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'remap');
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui => $gui,
+            type => 'remap',
+            get_dir_from => $filename,
+        );
 
         #  now do something with them...
         if ($remap_data{file}) {

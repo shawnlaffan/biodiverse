@@ -298,7 +298,7 @@ sub build_matrices {
     my %args = @_;
 
     #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    my $file_handles = $args{file_handles} // [];
     delete $args{file_handles};
 
     #  override any args if we are a re-run
@@ -368,17 +368,23 @@ sub build_matrices {
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
 
-    print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
+    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
 
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
-        print {$fh} $output_gdm_format
-        ? "x1,y1,x2,y2,$index\n"
-        : "Element1,Element2,$index\n";
+        say {$fh} $output_gdm_format
+            ? "x1,y1,x2,y2,$index"
+            : "Element1,Element2,$index";
+    }
+    
+    my $csv_object;
+    if (scalar @$file_handles) {
+        $csv_object = $self->get_csv_object;
     }
 
+
     #  we use a spatial object as it handles all the spatial checks.
-    print "[CLUSTER] Generating neighbour lists\n";
+    say "[CLUSTER] Generating neighbour lists";
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
     my $sp_success = eval {
         $sp->run_analysis (
@@ -432,7 +438,7 @@ sub build_matrices {
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
     #print "[CLUSTER] Progress (% of $to_do elements):     ";
-    my @processed_elements;
+    my %processed_elements;
 
     my $no_progress;
     my $build_start_time = time();
@@ -459,19 +465,21 @@ sub build_matrices {
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
-
         }
+        my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
 
         #  loop over the neighbours and add them to the appropriate matrix
         foreach my $i (0 .. $#matrices) {
             my $matrix = $matrices[$i];
 
-            my %nbrs = %{$neighbours[$i]};  #  save a few calcs
+            my $nbr_hash = $neighbours[$i];  #  save a few calcs
+            if (scalar @$file_handles) {
+                @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
+            }
 
             my $matrices_array = defined $shadow_matrix
                                 ? [$matrix, $shadow_matrix]
                                 : [$matrix];
-
 
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
@@ -479,19 +487,21 @@ sub build_matrices {
                 %args,  
                 matrices           => $matrices_array,
                 element            => $element1,
-                element_list       => [keys %nbrs],
+                element_list       => [keys %$nbr_hash],
                 index_function     => $index_function,
                 index              => $index,
                 cache_abc          => $cache_abc,
                 file_handle        => $file_handles->[$i],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
-                processed_elements => \@processed_elements,
+                processed_elements => \%processed_elements,
                 no_progress        => $no_progress,
+                csv_object         => $csv_object,
+                nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
             $valid_count += $x;
-            
+
             #  do we need the progress dialogue?
             my $build_end_time = time();
             if (!$no_progress &&
@@ -502,7 +512,7 @@ sub build_matrices {
             $build_start_time= $build_end_time;
         }
 
-        push @processed_elements, $element1;
+        $processed_elements{$element1}++;
     }
 
     my $element_check = $self->get_param ('ELEMENT_CHECK');
@@ -512,9 +522,9 @@ sub build_matrices {
         $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $to_do groups\n";
+    say "[CLUSTER] Completed $count of $to_do groups";
 
-    print "[CLUSTER] Valid value count is $valid_count\n";
+    say "[CLUSTER] Valid value count is $valid_count";
     if (! $valid_count) {
         croak "No valid results - matrix is empty\n";
     }
@@ -575,7 +585,7 @@ sub build_matrix_elements {
 
     my %already_calculated;
 
-    my $csv_out;
+    my $csv_out = $args{csv_object};
     #  take care of closed file handles
     if ( defined $ofh ) {
         if ( not defined fileno $ofh ) {
@@ -584,12 +594,11 @@ sub build_matrix_elements {
                 . " is unusable, setting it to undef";
             $ofh = undef;
         }
-        $csv_out = $self->get_csv_object;
+        $csv_out //= $self->get_csv_object;
 
         %already_calculated = $self->infer_if_already_calculated (
-            spatial_object => $sp,
-            element => $element1,
             processed_elements => $processed_elements,
+            nbrs_so_far_this_element => $args{nbrs_so_far_this_element},
         );
     }
 
@@ -607,17 +616,20 @@ sub build_matrix_elements {
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
         $n++;
-        if ($progress) {
-            $progress->update ("processing column $n of $to_do", $n / $to_do);
+
+        {
+            no autovivification;  #  save a bit of memory
+            next ELEMENT2 if $already_calculated{$element2};
+            next ELEMENT2 if $element1 eq $element2;
+
+            if ($pass_def_query) {  #  poss redundant check now
+                next ELEMENT2
+                  if not exists $pass_def_query->{$element2};
+            }
         }
 
-        next ELEMENT2 if $element1 eq $element2;
-        next ELEMENT2 if $already_calculated{$element2};
-
-        if ($pass_def_query) {  #  poss redundant check now
-            #my $null = undef;  #  debug
-            next ELEMENT2
-              if not exists $pass_def_query->{$element2};
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
         }
 
         #  If we already have this value then get it and assign it.
@@ -628,31 +640,34 @@ sub build_matrix_elements {
         my $iter   = 0;
         my %not_exists_iter;
         my $value;
-      MX:
-        foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
-            #last MX if $ofh;
 
-            $value = $mx->get_defined_value_aa ($element1, $element2);
-            if (defined $value) {  #  don't redo them...
-                $exists ++;
-            }
-            else {
-                $not_exists_iter{$iter} = 1;
-            }
-            $iter ++;
-        }
+        if (!$ofh) {
+          MX:
+            foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
+                #last MX if $ofh;
 
-        next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
-
-        if ($exists) {  #  if it is in one then we use it
-            foreach my $iter (keys %not_exists_iter) {
-                $matrices->[$iter]->add_element (
-                    element1 => $element1,
-                    element2 => $element2,
-                    value    => $value,
-                )
+                $value = $mx->get_defined_value_aa ($element1, $element2);
+                if (defined $value) {  #  don't redo them...
+                    $exists ++;
+                }
+                else {
+                    $not_exists_iter{$iter} = 1;
+                }
+                $iter ++;
             }
-            next ELEMENT2;
+
+            next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
+
+            if ($exists) {  #  if it is in one then we use it
+                foreach my $iter (keys %not_exists_iter) {
+                    $matrices->[$iter]->add_element (
+                        element1 => $element1,
+                        element2 => $element2,
+                        value    => $value,
+                    )
+                }
+                next ELEMENT2;
+            }
         }
 
         #  use elements if no cached labels
@@ -679,12 +694,6 @@ sub build_matrix_elements {
         );
 
         my $values = $indices_object->run_calculations(%args, %elements);
-
-        # useful for debugging  (comment out otherwise?)
-        if (0 && $EVAL_ERROR && ! defined $values->{$index}) {
-            croak "PROBLEMS WITH $element1 $element2\n"
-                  . $EVAL_ERROR;
-        }
 
         #  caching - a bit dodgy
         #  what if we have calc_abc and calc_abc3 as deps?
@@ -716,7 +725,7 @@ sub build_matrix_elements {
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
-                   $values->{$index}
+                   $values->{$index},
                    ]
                 : [$element1, $element2, $values->{$index}];
             my $text = $self->list2csv(
@@ -738,7 +747,7 @@ sub build_matrix_elements {
         $valid_count ++;
     }
     
-    my $cache_size = scalar keys %$cache;
+    #my $cache_size = scalar keys %$cache;
 
     return $valid_count;
 }
@@ -746,32 +755,25 @@ sub build_matrix_elements {
 #  We have been calculated
 #  if el2 is a neighbour of el1,
 #  and el1 has been processed.
+#  Inefficient for multiple nbrs sets, as we iterate over all nbrs from inner sets
+#  i.e. for 2 nbr sets we check nbr set 1 twice
 sub infer_if_already_calculated {
     my $self = shift;
     my %args = @_;
 
-    my $sp = $args{spatial_object};
-    my $element = $args{element};
     my $processed_elements = $args{processed_elements};
 
-    my %already_calculated;
-    
-    return wantarray ? %already_calculated : \%already_calculated
-      if scalar @$processed_elements == 0;
-    
-    my $nbr_list_name = '_NBR_SET1';  #  need to generalise this, or pass as an arg (and make a method)
-    my $nbrs
-          = $sp->get_list_values (
-              element => $element,
-              list    => $nbr_list_name,
-              autovivify => 0,
-          )
-          || [];
+    return wantarray ? () : {} 
+      if not scalar keys %$processed_elements;
 
-    NBR:
-    foreach my $nbr (sort @$nbrs) {
-        next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
-        $already_calculated{$nbr} = 1;
+    my %already_calculated;
+
+    my $nbrs = $args{nbrs_so_far_this_element} // {};
+
+    foreach my $nbr (keys %$nbrs) {
+        if (exists $processed_elements->{$nbr}) {
+            $already_calculated{$nbr} = 1;
+        }
     }
 
     return wantarray ? %already_calculated : \%already_calculated;

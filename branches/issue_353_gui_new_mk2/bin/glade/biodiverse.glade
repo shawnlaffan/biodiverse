@@ -1176,8 +1176,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1194,8 +1194,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -8741,7 +8741,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkFrame" id="frame3">
+                          <widget class="GtkFrame" id="frame_spatial_tree_plot">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="border_width">2</property>
@@ -8918,7 +8918,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                       <widget class="GtkLabel" id="label3">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Plot tree from:  </property>
+                        <property name="label" translatable="yes">Tree plot:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>

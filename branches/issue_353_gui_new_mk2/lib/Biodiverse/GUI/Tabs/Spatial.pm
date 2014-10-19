@@ -413,7 +413,7 @@ sub update_dendrogram_combo {
     my $model = $combobox->get_model;
     $model->clear;
     
-    foreach my $option (qw /project none/) {
+    foreach my $option ('project', 'none', 'hide panel') {
         $combobox->append_text($option);
     }
     
@@ -1473,6 +1473,16 @@ sub get_current_tree {
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
     $tree_method //= 'none';
+
+    my $tree_frame = $self->{xmlPage}->get_widget ('frame_spatial_tree_plot');
+        
+    if ($tree_method eq 'hide panel') {
+        $tree_frame->hide;
+        return;
+    }
+    else {
+        $tree_frame->show;
+    }
 
     return if $tree_method eq 'none';
 

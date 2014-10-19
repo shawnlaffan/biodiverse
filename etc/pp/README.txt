@@ -6,7 +6,8 @@ Needed for GTK modules to work properly.
 Also need to add the following lines before the open is attempted.
 This avoids duplicate DLL file names in modules ending in XS.  
 
-near line 153
+near line 153, before the line:
+open $fh, '>', $filename or die $!
 
 ### DIRTY HACK 
 if (-e $filename && not $filename =~ /Glib|Gtk2|Gnome|Pango|Cairo/) {

@@ -1162,12 +1162,21 @@ sub get_selected_matrix_iter {
 
     return $self->{iters}{matrix_iters}{$ref};
 }
+
 sub get_selected_phylogeny_iter {
     my $self = shift;
     my $ref = $self->get_selected_phylogeny();
     return if not defined $ref;
 
     return $self->{iters}{phylogeny_iters}{$ref};
+}
+
+sub get_available_phylogeny_count {
+    my $self = shift;
+
+    my $phylogenies = $self->{PHYLOGENIES} // [];
+
+    return scalar @$phylogenies;    
 }
 
 # Handles the case of empty basedata/matrix models

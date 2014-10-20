@@ -375,18 +375,6 @@ sub on_show_hide_parameters {
 sub setup_dendrogram {
     my $self = shift;
 
-    #my $xmlpage = $self->{xmlPage};
-    #my $combobox = $xmlpage->get_widget('comboTreeSelect');
-    
-    #foreach my $option (qw /project none/) {
-    #    $combobox->append_text($option);
-    #}
-    #if ($self->{output_ref} && $self->{output_ref}->get_embedded_tree) {
-    #    $combobox->prepend_text('analysis');
-    #}
-    #
-    #$combobox->set_active(0);
-
     $self->update_dendrogram_combo;    
 
     $self->init_dendrogram();
@@ -413,8 +401,10 @@ sub update_dendrogram_combo {
     my $model = $combobox->get_model;
     $model->clear;
     
-    foreach my $option (qw /project none/) {
+    my $combo_items = 0;
+    foreach my $option ('project', 'none', 'hide panel') {
         $combobox->append_text($option);
+        $combo_items ++;
     }
     
     no autovivification;
@@ -422,9 +412,17 @@ sub update_dendrogram_combo {
     my $output_ref = $self->{output_ref};
     if ($output_ref && $output_ref->can('get_embedded_tree') && $output_ref->get_embedded_tree) {
         $combobox->prepend_text('analysis');
+        $combo_items++;
     }
 
-    $combobox->set_active(0);
+    if ($self->get_trees_are_available_to_plot) {
+        $combobox->set_active(0);
+    }
+    else {
+        #  Last one is 'hide panel'
+        #  It would be nice to extract from the model itself, if someone could work that out...
+        $combobox->set_active ($combo_items-1);  
+    }
 }
 
 # For the phylogeny tree:
@@ -844,17 +842,6 @@ sub set_phylogeny_options_sensitive {
     my $enabled = shift;
 
     my $page = $self->{xmlPage};
-
-    # this is to make phylogeny options in display menu visible (add to glade on spatial pane?)
-#    for my $widget (
-#        qw /
-#            phylogeny_plot_length
-#            phylogeny_plot_depth
-#            highlight_groups_on_map_labels_tab
-#            use_highlight_path_changed1
-#        /) { #/
-#        $page->get_widget($widget)->set_sensitive($enabled);
-#    }
 }
  
 ## START PASTE OF PHYLO METHODS FROM LABELS
@@ -915,6 +902,7 @@ sub on_phylogeny_highlight {
 
 sub on_phylogeny_click {
     my $self = shift;
+
     if ($self->{tool} eq 'Select') {
         my $node = shift;
         $self->{dendrogram}->do_colour_nodes_below($node);
@@ -922,7 +910,6 @@ sub on_phylogeny_click {
             $self->{grid}->mark_if_exists( {}, 'circle' );
             $self->{grid}->mark_if_exists( {}, 'minus');
         }
-        
     }
     elsif ($self->{tool} eq 'ZoomOut') {
         $self->{dendrogram}->zoom_out();
@@ -1408,7 +1395,7 @@ sub on_grid_hover {
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#2166ac', '#E31A1C', '#33a02c');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#8DA0CB', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;
@@ -1465,6 +1452,20 @@ sub on_end_grid_hover {
     $dendrogram->clear_highlights;
 }
 
+sub get_trees_are_available_to_plot {
+    my $self = shift;
+    
+    my $count = $self->{project}->get_available_phylogeny_count;
+
+    if ($self->{output_ref} && $self->{output_ref}->can('get_embedded_tree')) {
+        if ($self->{output_ref}->get_embedded_tree) {
+            $count++;
+        }
+    }
+
+    return !!$count;
+}
+
 sub get_current_tree {
     my $self = shift;
 
@@ -1473,6 +1474,16 @@ sub get_current_tree {
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
     $tree_method //= 'none';
+
+    my $tree_frame = $self->{xmlPage}->get_widget ('frame_spatial_tree_plot');
+        
+    if ($tree_method eq 'hide panel') {
+        $tree_frame->hide;
+        return;
+    }
+    else {
+        $tree_frame->show;
+    }
 
     return if $tree_method eq 'none';
 

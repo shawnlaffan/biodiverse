@@ -418,8 +418,8 @@ sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
     if ($menu_item) {
-        # Just got the signal for the deselected option. Wait for signal for
-        # selected one.
+        # Just got the signal for the deselected option.
+        # Wait for signal for selected one.
         return if !$menu_item->get_active();
 
         my $mode = $menu_item->get_label();
@@ -658,7 +658,6 @@ sub on_set_cell_outline_colour {
 
     # set menu item for show outline as active if not currently
     $self->set_cell_outline_menuitem_active (1);
-    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
 
     return;
 }

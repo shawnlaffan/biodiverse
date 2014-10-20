@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Carp;
+use Scalar::Util qw /blessed/;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -49,7 +50,7 @@ use constant INDEX_CROSS        => 3;
 use constant INDEX_CIRCLE       => 4;
 use constant INDEX_MINUS        => 5;
 
-use constant INDEX_VALUES       => undef; # DELETE DELETE FIXME
+#use constant INDEX_VALUES       => undef; # DELETE DELETE FIXME
 
 use constant HOVER_CURSOR       => 'hand2';
 
@@ -133,8 +134,7 @@ sub new {
     $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
     $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
 
-    my $g = 0;
-    $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
+    $self->set_colour_none;
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
@@ -974,20 +974,20 @@ sub set_legend_lt_flag {
 
 # Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
 # Is this ever called?
-sub set_calculation_list {
-    my $self = shift;
-    my $list_name = shift;
-    print "[Grid] Setting calculation list to $list_name\n";
-
-    my $elts = $self->{base_struct}->get_element_hash();
-
-    foreach my $element (sort keys %{$elts}) {
-        my $cell = $self->{element_group}{$element};
-        $cell->[INDEX_VALUES] = $elts->{$element}{$list_name};
-    }
-
-    return;
-}
+#sub set_calculation_list {
+#    my $self = shift;
+#    my $list_name = shift;
+#    print "[Grid] Setting calculation list to $list_name\n";
+#
+#    my $elts = $self->{base_struct}->get_element_hash();
+#
+#    foreach my $element (sort keys %{$elts}) {
+#        my $cell = $self->{element_group}{$element};
+#        $cell->[INDEX_VALUES] = $elts->{$element}{$list_name};
+#    }
+#
+#    return;
+#}
 
 
 ##########################################################
@@ -1092,25 +1092,32 @@ sub on_marker_event {
     return 1;
 }
 
-# sub draw_cross {
-#         my ($self, $group) = @_;
-#         # Use a group to hold the two lines
-#         my $cross_group = Gnome2::Canvas::Item->new ($group,
-#                                                                 "Gnome2::Canvas::Group",
-#                                                                 x => 0, y => 0);
+#sub draw_cross {
+#    my ($self, $group) = @_;
+#    # Use a group to hold the two lines
+#    my $cross_group = Gnome2::Canvas::Item->new (
+#        $group,
+#        "Gnome2::Canvas::Group",
+#        x => 0, y => 0,
+#    );
 #
-#         Gnome2::Canvas::Item->new ($cross_group,
-#                                                                 "Gnome2::Canvas::Line",
-#                                                                 points => [MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X, MARK_END_OFFSET_X],
-#                                                                 fill_color_gdk => CELL_BLACK,
-#                                                                 width_units => 1);
-#         Gnome2::Canvas::Item->new ($cross_group,
-#                                                                 "Gnome2::Canvas::Line",
-#                                                                 points => [MARK_END_OFFSET_X, MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X],
-#                                                                 fill_color_gdk => CELL_BLACK,
-#                                                                 width_units => 1);
-#         return $cross_group;
-# }
+#    Gnome2::Canvas::Item->new (
+#        $cross_group,
+#        "Gnome2::Canvas::Line",
+#        points => [MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X, MARK_END_OFFSET_X],
+#        fill_color_gdk => CELL_BLACK,
+#        width_units => 1,
+#    );
+#    Gnome2::Canvas::Item->new (
+#        $cross_group,
+#        "Gnome2::Canvas::Line",
+#        points => [MARK_END_OFFSET_X, MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X],
+#        fill_color_gdk => CELL_BLACK,
+#        width_units => 1,
+#    );
+#
+#    return $cross_group;
+#}
 
 sub draw_minus {
     my ($self, $group) = @_;
@@ -1138,18 +1145,15 @@ sub draw_minus {
 # Colouring based on an analysis value
 ##########################################################
 
+#  a mis-named sub - this merely sets the initial colours or clears existing colours
 sub colour_cells {
     my $self = shift;
-    
-    #  default to black if an analysis is specified, white otherwise
-    #my $colour_none = shift || (defined $self->{analysis} ? CELL_BLACK : CELL_WHITE);
+
     my $colour_none = $self->get_colour_none;
 
     foreach my $cell (values %{$self->{cells}}) {
-        my $val = defined $self->{analysis} ? $cell->[INDEX_VALUES]{$self->{analysis}} : undef;
         my $rect = $cell->[INDEX_RECT];
-        my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
-        $rect->set('fill-color-gdk' =>  $colour);
+        $rect->set('fill-color-gdk' => $colour_none);
     }
 
     return;
@@ -1166,6 +1170,18 @@ sub get_colour_none {
     $colour_none ||= $default;
 
     return $colour_none;    
+}
+
+sub set_colour_none {
+    my ($self, $colour) = @_;
+    
+    my $g = 0;
+    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+    
+    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+
+    $self->{colour_none} = $colour;
 }
 
 my %colour_methods = (
@@ -1935,8 +1951,6 @@ sub post_zoom {
     
     return;
 }
-
-
 
 
 # Set colouring mode - 'Hue' or 'Sat'

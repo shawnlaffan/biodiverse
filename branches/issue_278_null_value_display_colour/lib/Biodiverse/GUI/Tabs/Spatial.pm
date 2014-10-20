@@ -31,6 +31,15 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
+use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
+use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
+#use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
+use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+
+
+
 ##################################################
 # Initialisation
 ##################################################
@@ -1747,14 +1756,19 @@ sub recolour {
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
     
-    my $elements_hash = $self->{output_ref}->get_element_hash;
-    my $list = $self->{selected_list};
+    my $output_ref    = $self->{output_ref};
+    my $elements_hash = $output_ref->get_element_hash;
+    my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
 
     return if !defined $index;
 
     my $colour_func = sub {
         my $elt = shift // return;
+        if (!$output_ref->group_passed_def_query(group => $elt)) {
+            return COLOUR_FAILED_DEF_QUERY;
+        }
+
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)

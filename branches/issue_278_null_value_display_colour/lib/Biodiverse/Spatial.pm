@@ -1086,6 +1086,24 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
+sub group_passed_def_query {
+    my $self = shift;
+    my %args = @_;
+
+    my $group = $args{group};
+
+    croak "Argument 'group' not passed\n"
+      if !defined $group;
+
+    my $passed = $self->get_param('PASS_DEF_QUERY');
+
+    no autovivification;
+
+    #  return true if no def query was run
+    return $passed ? $passed->{$group} : 1;  
+}
+
+
 sub get_groups_that_pass_def_query {
     my $self = shift;
     my %args = @_;

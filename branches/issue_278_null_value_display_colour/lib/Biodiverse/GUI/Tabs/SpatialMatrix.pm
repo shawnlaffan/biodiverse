@@ -609,15 +609,17 @@ sub recolour {
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
 
-    #my $elements_hash = $self->{groups_ref}->get_element_hash;
-    my $matrix_ref    = $self->{output_ref};
-    my $sel_element   = $self->{selected_element};
+    my $matrix_ref  = $self->{output_ref};
+    my $sel_element = $self->{selected_element};
 
     my $colour_func = sub {
         my $elt = shift;
 
         return $self->get_index_cell_colour
           if $elt eq $sel_element; #  mid grey by default
+
+        return $self->get_colour_excluded_cell
+          if !$matrix_ref->element_is_in_matrix (element => $elt);
 
         my $val = $matrix_ref->get_value (
             element1 => $elt,

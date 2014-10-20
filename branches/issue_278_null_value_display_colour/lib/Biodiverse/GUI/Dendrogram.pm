@@ -228,6 +228,9 @@ sub destroy {
     delete $self->{canvas};
     delete $self->{graph};
 
+    #  get the rest
+    delete @$self{keys %$self};
+
     return;
 }
 
@@ -869,8 +872,8 @@ sub recolour_cluster_elements {
 sub get_colour_not_in_tree {
     my $self = shift;
     
-    my $colour = $self->{colour_not_in_tree} || COLOUR_NOT_IN_TREE;
-    
+    my $colour = eval {$self->{parent_tab}->get_colour_excluded_cell} || COLOUR_NOT_IN_TREE;
+
     return $colour;
 }
 

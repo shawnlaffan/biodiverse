@@ -1141,10 +1141,28 @@ sub get_groups_that_pass_def_query {
     return wantarray ? %$passed : $passed;
 }
 
-#sub numerically {$a <=> $b};
-#sub max {
-#    return $_[0] > $_[1] ? $_[0] : $_[1];
-#}
+#  assumes the def query has already been run
+sub get_groups_that_failed_def_query {
+    my $self = shift;
+    my %args = @_;
+
+    my $passed = $self->get_param('PASS_DEF_QUERY');
+
+    return wantarray ? %$passed : $passed
+      if !$passed;
+
+    my $groups = $self->get_element_list;
+
+    no autovivification;
+
+    my @failed = grep {$passed->{$_}} @$groups;
+    my %failed_hash;
+    @failed_hash{@failed} = (1) x @failed;
+
+    return wantarray ? %failed_hash : \%failed_hash;
+}
+
+
 
 1;
 

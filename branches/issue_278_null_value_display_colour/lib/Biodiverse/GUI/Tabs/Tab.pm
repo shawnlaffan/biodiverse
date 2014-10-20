@@ -6,6 +6,7 @@ use 5.010;
 our $VERSION = '0.99_005';
 
 use List::Util qw/min max/;
+use Scalar::Util qw /blessed/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -772,6 +773,29 @@ sub delete_cached_values {
 
     return;
 }
+
+
+
+
+sub get_colour_excluded_cell {
+    my $self   = shift;
+
+    return $self->{colour_excluded_cell} // $self->set_colour_excluded_cell;
+}
+
+
+sub set_colour_excluded_cell {
+    my ($self, $colour) = @_;
+    
+    my $g = my $grey = 0.9 * 255 * 257;;
+    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+
+    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+
+    $self->{colour_excluded_cell} = $colour;
+}
+
 
 
 1;

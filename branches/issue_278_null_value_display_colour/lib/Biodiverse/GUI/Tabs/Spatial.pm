@@ -1766,7 +1766,7 @@ sub recolour {
     my $colour_func = sub {
         my $elt = shift // return;
         if (!$output_ref->group_passed_def_query(group => $elt)) {
-            return COLOUR_FAILED_DEF_QUERY;
+            return $self->get_colour_excluded_cell;
         }
 
         my $val = $elements_hash->{$elt}{$list}{$index};

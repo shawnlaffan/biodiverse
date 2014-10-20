@@ -1177,7 +1177,8 @@ sub set_colour_none {
     
     my $g = 0;
     $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
-    
+    #$colour //= Gtk2::Gdk::Color->parse('blue');
+
     croak "Colour argument must be a Gtk2::Gdk::Color object\n"
       if not blessed ($colour) eq 'Gtk2::Gdk::Color';
 

@@ -255,6 +255,7 @@ sub new {
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
         menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
@@ -1766,7 +1767,7 @@ sub recolour {
     my $colour_func = sub {
         my $elt = shift // return;
         if (!$output_ref->group_passed_def_query(group => $elt)) {
-            return $self->get_colour_excluded_cell;
+            return $self->get_excluded_cell_colour;
         }
 
         my $val = $elements_hash->{$elt}{$list}{$index};

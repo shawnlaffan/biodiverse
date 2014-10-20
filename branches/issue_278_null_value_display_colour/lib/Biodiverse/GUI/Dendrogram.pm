@@ -872,7 +872,7 @@ sub recolour_cluster_elements {
 sub get_colour_not_in_tree {
     my $self = shift;
     
-    my $colour = eval {$self->{parent_tab}->get_colour_excluded_cell} || COLOUR_NOT_IN_TREE;
+    my $colour = eval {$self->{parent_tab}->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
 
     return $colour;
 }

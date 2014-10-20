@@ -880,15 +880,7 @@ sub get_colour_from_chooser {
         $c = $dialog->colorsel->get_current_color;
     }
     $dialog->destroy;
-    
-    #if ($c) {
-    #    my %colours = (
-    #        red => $c->red,
-    #        green => $c->green,
-    #        blue => $c->blue,
-    #    );
-    #    print %colours; 
-    #}
+
     return $c;
 }
 

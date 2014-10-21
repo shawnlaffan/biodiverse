@@ -711,13 +711,14 @@ sub get_colour_from_chooser {
     my $self = shift;
     
     my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
-    my $c;
-    if ('ok' eq $dialog->run) {
-        $c = $dialog->colorsel->get_current_color;
+
+    my $colour;
+    if ($dialog->run eq 'ok') {
+        $colour = $dialog->colorsel->get_current_color;
     }
     $dialog->destroy;
 
-    return $c;
+    return $colour;
 }
 
 sub on_set_tree_line_widths {

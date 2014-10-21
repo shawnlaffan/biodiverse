@@ -54,13 +54,13 @@ use constant INDEX_MINUS        => 5;
 
 use constant HOVER_CURSOR       => 'hand2';
 
-use constant HIGHLIGHT_COLOUR   => Gtk2::Gdk::Color->new(255*257,0,0); # red
-use constant CELL_BLACK         => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant CELL_WHITE         => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant CELL_OUTLINE       => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR     => Gtk2::Gdk::Color->parse('#001169');
-use constant DARKEST_GREY_FRAC  => 0.2;
-use constant LIGHTEST_GREY_FRAC => 0.8;
+use constant HIGHLIGHT_COLOUR    => Gtk2::Gdk::Color->new(255*257,0,0); # red
+use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
+use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant CELL_OUTLINE_COLOUR => Gtk2::Gdk::Color->new(0, 0, 0);
+use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
+use constant DARKEST_GREY_FRAC   => 0.2;
+use constant LIGHTEST_GREY_FRAC  => 0.8;
 
 ##########################################################
 # Construction
@@ -134,7 +134,7 @@ sub new {
     $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
     $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
 
-    $self->set_colour_none;
+    $self->set_colour_for_undef;
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
@@ -171,7 +171,7 @@ sub new {
         x1 => 0,
         y1 => 0,
         x2 => CELL_SIZE_X,
-        fill_color_gdk => CELL_WHITE,
+        fill_color_gdk => COLOUR_WHITE,
         #outline_color => "black",
         #width_pixels => 2,
         y2 => CELL_SIZE_X,
@@ -312,7 +312,7 @@ sub make_mark {
         'Gnome2::Canvas::Text',
         text            => q{},
         anchor          => $anchor,
-        fill_color_gdk  => CELL_BLACK,
+        fill_color_gdk  => COLOUR_BLACK,
     );
 
     $mark->raise_to_top();
@@ -399,7 +399,7 @@ sub setup_value_label {
         x => 0, y => 0,
         markup => "<b>Value: </b>",
         anchor => 'nw',
-        fill_color_gdk => CELL_BLACK,
+        fill_color_gdk => COLOUR_BLACK,
     );
 
     my ($text_width, $text_height)
@@ -412,7 +412,7 @@ sub setup_value_label {
         y1 => 0,
         x2 => $text_width,
         y2 => $text_height,
-        fill_color_gdk => CELL_WHITE,
+        fill_color_gdk => COLOUR_WHITE,
     );
 
     $rect->lower(1);
@@ -569,8 +569,8 @@ sub set_base_struct {
 #    y1                  => 0,
 #    x2                  => $xx * CELL_SIZE_X,
 #    y2                  => $yy * $cell_size_y,
-#    fill_color_gdk      => CELL_WHITE,
-#    outline_color_gdk   => CELL_BLACK,
+#    fill_color_gdk      => COLOUR_WHITE,
+#    outline_color_gdk   => COLOUR_BLACK,
 #    width_pixels        => $width_pixels
 #);
 
@@ -615,14 +615,14 @@ sub set_base_struct {
             y1                  => 0,
             x2                  => CELL_SIZE_X,
             y2                  => $cell_size_y,
-            fill_color_gdk      => CELL_WHITE,
-            outline_color_gdk   => CELL_BLACK,
+            fill_color_gdk      => COLOUR_WHITE,
+            outline_color_gdk   => COLOUR_BLACK,
             width_pixels        => $width_pixels
         );
 
         $container->signal_connect_swapped (event => \&on_event, $self);
 
-        $self->{cells}{$container}[INDEX_COLOUR]  = CELL_WHITE;
+        $self->{cells}{$container}[INDEX_COLOUR]  = COLOUR_WHITE;
         $self->{cells}{$container}[INDEX_ELEMENT] = $element;
         $self->{cells}{$container}[INDEX_RECT]    = $rect;
 
@@ -640,7 +640,7 @@ sub set_base_struct {
     }
 
 
-    $self->store_cell_outline_colour (CELL_BLACK);
+    $self->store_cell_outline_colour (COLOUR_BLACK);
 
     $progress_bar = undef;
 
@@ -791,13 +791,13 @@ sub load_shapefile {
 }
 
 # Colours elements using a callback function
-# The callback should return a Gtk2::Gdk::Color object, or undef
-# to set the colour to CELL_WHITE
+# The callback should return a Gtk2::Gdk::Color object,
+# or undef to set the colour to a default colour
 sub colour {
     my $self     = shift;
     my $callback = shift;
 
-#print "Colouring " . (scalar keys %{$self->{cells}}) . " cells\n";
+    my $colour_none = $self->get_colour_for_undef;
 
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
@@ -805,7 +805,7 @@ sub colour {
         #  sometimes we are called before all cells have contents
         next CELL if !defined $cell->[INDEX_RECT];
 
-        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // CELL_WHITE;
+        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // $colour_none // COLOUR_WHITE;
         $cell->[INDEX_COLOUR] = $colour_ref;
 
         eval {
@@ -1069,8 +1069,8 @@ sub draw_circle {
         y1                => $offset_y,
         x2                => $offset_x + CIRCLE_DIAMETER,
         y2                => $offset_y + CIRCLE_DIAMETER,
-        fill_color_gdk    => CELL_BLACK,
-        outline_color_gdk => CELL_BLACK,
+        fill_color_gdk    => COLOUR_BLACK,
+        outline_color_gdk => COLOUR_BLACK,
     );
     #$item->signal_connect_swapped(event => \&on_marker_event, $self);
     return $item;
@@ -1097,14 +1097,14 @@ sub on_marker_event {
 #        $cross_group,
 #        "Gnome2::Canvas::Line",
 #        points => [MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X, MARK_END_OFFSET_X],
-#        fill_color_gdk => CELL_BLACK,
+#        fill_color_gdk => COLOUR_BLACK,
 #        width_units => 1,
 #    );
 #    Gnome2::Canvas::Item->new (
 #        $cross_group,
 #        "Gnome2::Canvas::Line",
 #        points => [MARK_END_OFFSET_X, MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X],
-#        fill_color_gdk => CELL_BLACK,
+#        fill_color_gdk => COLOUR_BLACK,
 #        width_units => 1,
 #    );
 #
@@ -1124,7 +1124,7 @@ sub draw_minus {
             CELL_SIZE_X - MARK_X_OFFSET,
             $offset_y,
         ],
-        fill_color_gdk => CELL_BLACK,
+        fill_color_gdk => COLOUR_BLACK,
         width_units => 1,
     );
 
@@ -1141,7 +1141,7 @@ sub draw_minus {
 sub colour_cells {
     my $self = shift;
 
-    my $colour_none = $self->get_colour_none;
+    my $colour_none = $self->get_colour_for_undef;
 
     foreach my $cell (values %{$self->{cells}}) {
         my $rect = $cell->[INDEX_RECT];
@@ -1151,25 +1151,26 @@ sub colour_cells {
     return;
 }
 
-sub get_colour_none {
+sub get_colour_for_undef {
     my $self = shift;
     my $colour_none = shift;
 
     #  default to black if an analysis is specified, white otherwise
-    my $null    = $self->{colour_none} || CELL_BLACK;
-    my $default = defined $self->{analysis} ? $null : CELL_WHITE;
+    #my $null    = $self->{colour_none} || COLOUR_BLACK;
+    #my $default = defined $self->{analysis} ? $null : COLOUR_WHITE;
+    #
+    #$colour_none ||= $default;
 
-    $colour_none ||= $default;
-
-    return $colour_none;    
+    return $colour_none // $self->set_colour_for_undef;
 }
 
-sub set_colour_none {
+sub set_colour_for_undef {
     my ($self, $colour) = @_;
     
-    my $g = 0;
-    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+    #my $g = 0;
+    #$colour //= Gtk2::Gdk::Color->new($g, $g, $g);
     #$colour //= Gtk2::Gdk::Color->parse('blue');
+    $colour //= COLOUR_WHITE;
 
     croak "Colour argument must be a Gtk2::Gdk::Color object\n"
       if not blessed ($colour) eq 'Gtk2::Gdk::Color';
@@ -1212,7 +1213,7 @@ sub get_colour_hue {
     my $hue;
     if (! defined $max || ! defined $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return CELL_BLACK;
+        #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
@@ -1237,7 +1238,7 @@ sub get_colour_saturation {
     my $sat;
     if (! defined $max || ! defined $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return CELL_BLACK;
+        #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
@@ -1258,7 +1259,7 @@ sub get_colour_grey {
     my $sat;
     if (! defined $max || ! defined $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return CELL_BLACK;
+        #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
         return Gtk2::Gdk::Color->new(0, 0, 0)
@@ -1518,7 +1519,7 @@ sub on_event {
                     x2 => $event->x,
                     y2 => $event->y,
                     fill_color_gdk => undef,
-                    outline_color_gdk => CELL_BLACK,
+                    outline_color_gdk => COLOUR_BLACK,
                     #outline_color_gdk => HIGHLIGHT_COLOUR,
                     width_pixels => 0,
                 );
@@ -1623,7 +1624,7 @@ sub on_background_event {
                 x2 => $event->x + 1,
                 y2 => $event->y + 1,
                 fill_color_gdk => undef,
-                outline_color_gdk => CELL_BLACK,
+                outline_color_gdk => COLOUR_BLACK,
                 width_pixels => 0,
             );
         }

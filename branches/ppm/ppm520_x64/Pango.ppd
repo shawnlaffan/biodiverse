@@ -7,6 +7,6 @@
         <REQUIRE NAME="ExtUtils;PkgConfig" VERSION="1.03" \>
         <REQUIRE VERSION="1.22" NAME="Glib;" \>
         <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
-        <CODEBASE HREF="" />
+        <CODEBASE HREF="Pango-520.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

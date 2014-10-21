@@ -5,6 +5,6 @@
         <REQUIRE VERSION="0.2" NAME="ExtUtils;Depends" \>
         <REQUIRE NAME="ExtUtils;PkgConfig" VERSION="1" \>
         <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
-        <CODEBASE HREF="" />
+        <CODEBASE HREF="Cairo-520.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

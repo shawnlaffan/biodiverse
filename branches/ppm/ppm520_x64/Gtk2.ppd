@@ -8,6 +8,6 @@
         <REQUIRE VERSION="1.28" NAME="Glib;" \>
         <REQUIRE NAME="Pango;" VERSION="1.22" \>
         <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
-        <CODEBASE HREF="" />
+        <CODEBASE HREF="Gtk2-520.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

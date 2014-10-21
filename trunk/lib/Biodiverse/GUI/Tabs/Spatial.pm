@@ -31,6 +31,15 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
+use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
+use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
+#use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
+use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+
+
+
 ##################################################
 # Initialisation
 ##################################################
@@ -246,6 +255,8 @@ sub new {
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
         menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
@@ -1747,18 +1758,25 @@ sub recolour {
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
     
-    my $elements_hash = $self->{output_ref}->get_element_hash;
-    my $list = $self->{selected_list};
+    my $output_ref    = $self->{output_ref};
+    my $elements_hash = $output_ref->get_element_hash;
+    my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
 
     return if !defined $index;
 
+    my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
+
     my $colour_func = sub {
         my $elt = shift // return;
+        if (!$output_ref->group_passed_def_query(group => $elt)) {
+            return $self->get_excluded_cell_colour;
+        }
+
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)
-            : undef;
+            : $colour_none;
     };
 
     $grid->colour($colour_func);

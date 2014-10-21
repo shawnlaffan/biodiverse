@@ -6,6 +6,7 @@ use 5.010;
 our $VERSION = '0.99_005';
 
 use List::Util qw/min max/;
+use Scalar::Util qw /blessed/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -418,8 +419,8 @@ sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
     if ($menu_item) {
-        # Just got the signal for the deselected option. Wait for signal for
-        # selected one.
+        # Just got the signal for the deselected option.
+        # Wait for signal for selected one.
         return if !$menu_item->get_active();
 
         my $mode = $menu_item->get_label();
@@ -439,7 +440,7 @@ sub on_colour_mode_changed {
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_color();
                 $self->{grid}->set_legend_hue($self->{hue});
-                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms - needed here?  recolour below does this
+                eval {$self->{dendrogram}->recolour(all_elements => 1)};  #  only clusters have dendrograms - needed here?  recolour below does this
             }
             $colour_dialog->destroy();
         }
@@ -448,7 +449,7 @@ sub on_colour_mode_changed {
     }
 
     $self->{grid}->set_legend_mode($self->{colour_mode});
-    $self->recolour();
+    $self->recolour(all_elements => 1);
 
     return;
 }
@@ -658,7 +659,6 @@ sub on_set_cell_outline_colour {
 
     # set menu item for show outline as active if not currently
     $self->set_cell_outline_menuitem_active (1);
-    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
 
     return;
 }
@@ -670,6 +670,92 @@ sub on_set_cell_show_outline {
     return;
 }
 
+
+sub get_undef_cell_colour {
+    my $self   = shift;
+
+    my $grid = $self->{grid} // return;
+
+    return $grid->get_colour_for_undef // $grid->set_colour_for_undef;
+}
+
+sub set_undef_cell_colour {
+    my ($self, $colour) = @_;
+    
+    my $grid = $self->{grid} // return;
+
+    $grid->set_colour_for_undef($colour);
+}
+
+sub on_set_undef_cell_colour {
+    my ($self, $widget, $colour) = @_;
+
+    if (! $colour) {  #  fire up a colour selector
+        $colour = $self->get_colour_from_chooser ($self->get_undef_cell_colour);
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->set_undef_cell_colour ($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
+sub get_excluded_cell_colour {
+    my $self   = shift;
+
+    return $self->{colour_excluded_cell} // $self->set_excluded_cell_colour;
+}
+
+sub set_excluded_cell_colour {
+    my ($self, $colour) = @_;
+    
+    my $g = my $grey = 0.9 * 255 * 257;;
+    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+
+    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+
+    $self->{colour_excluded_cell} = $colour;
+}
+
+sub on_set_excluded_cell_colour {
+    my ($self, $widget, $colour) = @_;
+
+    if (! $colour) {  #  fire up a colour selector
+        $colour = $self->get_colour_from_chooser ($self->get_excluded_cell_colour);
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->set_excluded_cell_colour ($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
+sub get_colour_from_chooser {
+    my ($self, $colour) = @_;
+
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
+    my $selector = $dialog->colorsel;  #  get_color_selection?
+
+    if ($colour) {
+        $selector->set_current_color ($colour);
+    }
+
+    if ($dialog->run eq 'ok') {
+        $colour = $selector->get_current_color;
+    }
+    $dialog->destroy;
+
+    return $colour;
+}
 
 sub on_set_tree_line_widths {
     my $self = shift;
@@ -773,6 +859,7 @@ sub delete_cached_values {
 
     return;
 }
+
 
 
 1;

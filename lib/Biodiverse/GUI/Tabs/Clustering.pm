@@ -282,6 +282,8 @@ sub new {
         menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
         menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
+        menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
     );
 
     for my $n (0..6) {
@@ -1938,9 +1940,16 @@ sub on_group_mode_changed {
 
 sub recolour {
     my $self = shift;
+    my %args = @_;
+
+    #  need to update the grid before the tree else the grid is not changed properly
     $self->set_plot_min_max_values;
-    $self->{dendrogram}->recolour();
     $self->{grid}->set_legend_mode($self->{colour_mode});
+
+    $self->{dendrogram}->recolour();
+    if ($args{all_elements}) {
+        $self->{dendrogram}->recolour_cluster_elements;
+    }
 }
 
 sub set_plot_min_max_values {
@@ -2040,7 +2049,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
-    print 'Trying to call ', $method, "\n";
+    #say "Calling $method via autoload";
     return $self->$method(@_);
 }
 

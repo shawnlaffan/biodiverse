@@ -283,6 +283,7 @@ sub new {
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
         menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
         menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
     );
 
     for my $n (0..6) {

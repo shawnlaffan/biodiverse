@@ -256,6 +256,7 @@ sub new {
 
         menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
         menuitem_spatial_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
@@ -1764,6 +1765,8 @@ sub recolour {
 
     return if !defined $index;
 
+    my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
+
     my $colour_func = sub {
         my $elt = shift // return;
         if (!$output_ref->group_passed_def_query(group => $elt)) {
@@ -1773,7 +1776,7 @@ sub recolour {
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)
-            : undef;
+            : $colour_none;
     };
 
     $grid->colour($colour_func);

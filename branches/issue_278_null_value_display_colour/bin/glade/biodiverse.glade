@@ -1176,8 +1176,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1194,8 +1194,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6023,6 +6023,15 @@ Colours are currently taken from the outer ring.</property>
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkSeparatorMenuItem" id="separatormenuitem1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8325,6 +8334,15 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
                                     <property name="label" translatable="yes">Set excluded cell colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
                                     <property name="use_underline">True</property>
                                   </widget>
                                 </child>

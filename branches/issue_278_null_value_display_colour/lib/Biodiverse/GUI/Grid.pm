@@ -797,7 +797,7 @@ sub colour {
     my $self     = shift;
     my $callback = shift;
 
-    my $colour_none = $self->get_colour_for_undef;
+    my $colour_none = $self->get_colour_for_undef // COLOUR_WHITE;
 
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
@@ -805,7 +805,7 @@ sub colour {
         #  sometimes we are called before all cells have contents
         next CELL if !defined $cell->[INDEX_RECT];
 
-        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // $colour_none // COLOUR_WHITE;
+        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // $colour_none;
         $cell->[INDEX_COLOUR] = $colour_ref;
 
         eval {
@@ -1161,15 +1161,12 @@ sub get_colour_for_undef {
     #
     #$colour_none ||= $default;
 
-    return $colour_none // $self->set_colour_for_undef;
+    return $self->{colour_none} // $self->set_colour_for_undef;
 }
 
 sub set_colour_for_undef {
     my ($self, $colour) = @_;
     
-    #my $g = 0;
-    #$colour //= Gtk2::Gdk::Color->new($g, $g, $g);
-    #$colour //= Gtk2::Gdk::Color->parse('blue');
     $colour //= COLOUR_WHITE;
 
     croak "Colour argument must be a Gtk2::Gdk::Color object\n"

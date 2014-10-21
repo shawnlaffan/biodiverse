@@ -102,6 +102,9 @@ sub new {
 
     if (defined $self->{parent_tab}) {
         weaken $self->{parent_tab};
+        #  fixme
+        #  there is too much back-and-forth between the tab and the tree
+        $self->{parent_tab}->set_undef_cell_colour(COLOUR_LIST_UNDEF);  
     }
 
 
@@ -803,6 +806,9 @@ sub recolour_cluster_elements {
     my $analysis_min      = $self->{analysis_min};
     my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
+    
+    my $parent_tab = $self->{parent_tab};
+    my $colour_for_undef = $parent_tab->get_undef_cell_colour;
 
     # sets colours according to palette
     my $palette_colour_func = sub {
@@ -832,10 +838,10 @@ sub recolour_cluster_elements {
             no autovivification;
 
             my $list_ref = $cluster_node->get_list_ref (list => $list_name)
-              // return COLOUR_LIST_UNDEF;
+              // return $colour_for_undef;
 
             my $val = $list_ref->{$list_index}
-              // return COLOUR_LIST_UNDEF;
+              // return $colour_for_undef;
 
             return $map->get_colour ($val, $analysis_min, $analysis_max);
         }

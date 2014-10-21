@@ -671,17 +671,33 @@ sub on_set_cell_show_outline {
 }
 
 
-sub on_set_excluded_cell_colour {
+sub get_undef_cell_colour {
+    my $self   = shift;
+
+    my $grid = $self->{grid} // return;
+
+    return $grid->get_colour_for_undef // $grid->set_colour_for_undef;
+}
+
+sub set_undef_cell_colour {
+    my ($self, $colour) = @_;
+    
+    my $grid = $self->{grid} // return;
+
+    $grid->set_colour_for_undef($colour);
+}
+
+sub on_set_undef_cell_colour {
     my ($self, $widget, $colour) = @_;
 
     if (! $colour) {  #  fire up a colour selector
-        $colour = $self->get_colour_from_chooser;
+        $colour = $self->get_colour_from_chooser ($self->get_undef_cell_colour);
     }
 
     #  if still no colour chosen
     return if !$colour;
 
-    $self->set_excluded_cell_colour ($colour);
+    $self->set_undef_cell_colour ($colour);
 
     $self->recolour (all_elements => 1);
 
@@ -693,7 +709,6 @@ sub get_excluded_cell_colour {
 
     return $self->{colour_excluded_cell} // $self->set_excluded_cell_colour;
 }
-
 
 sub set_excluded_cell_colour {
     my ($self, $colour) = @_;
@@ -707,14 +722,35 @@ sub set_excluded_cell_colour {
     $self->{colour_excluded_cell} = $colour;
 }
 
-sub get_colour_from_chooser {
-    my $self = shift;
-    
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
+sub on_set_excluded_cell_colour {
+    my ($self, $widget, $colour) = @_;
 
-    my $colour;
+    if (! $colour) {  #  fire up a colour selector
+        $colour = $self->get_colour_from_chooser ($self->get_excluded_cell_colour);
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->set_excluded_cell_colour ($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
+sub get_colour_from_chooser {
+    my ($self, $colour) = @_;
+
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
+    my $selector = $dialog->colorsel;  #  get_color_selection?
+
+    if ($colour) {
+        $selector->set_current_color ($colour);
+    }
+
     if ($dialog->run eq 'ok') {
-        $colour = $dialog->colorsel->get_current_color;
+        $colour = $selector->get_current_color;
     }
     $dialog->destroy;
 

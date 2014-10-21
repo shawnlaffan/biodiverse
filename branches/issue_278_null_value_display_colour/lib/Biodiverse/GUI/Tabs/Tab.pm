@@ -440,7 +440,7 @@ sub on_colour_mode_changed {
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_color();
                 $self->{grid}->set_legend_hue($self->{hue});
-                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms - needed here?  recolour below does this
+                eval {$self->{dendrogram}->recolour(all_elements => 1)};  #  only clusters have dendrograms - needed here?  recolour below does this
             }
             $colour_dialog->destroy();
         }
@@ -449,7 +449,7 @@ sub on_colour_mode_changed {
     }
 
     $self->{grid}->set_legend_mode($self->{colour_mode});
-    $self->recolour();
+    $self->recolour(all_elements => 1);
 
     return;
 }

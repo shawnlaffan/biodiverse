@@ -2049,7 +2049,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
-    print 'Trying to call ', $method, "\n";
+    #say "Calling $method via autoload";
     return $self->$method(@_);
 }
 

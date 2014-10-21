@@ -742,7 +742,7 @@ sub on_set_excluded_cell_colour {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
     my $selector = $dialog->colorsel;  #  get_color_selection?
 
     if ($colour) {

@@ -834,9 +834,8 @@ sub set_cell_outline_colour {
     my $self = shift;
     my $colour = shift;
     
-    if (! $colour) {  #  should fire up a colour selector
-        #$colour = Gtk2::Gdk::Color->parse('red');
-        $colour = $self->get_colour_from_chooser;
+    if (! $colour) {
+        $colour = $self->get_colour_from_chooser ($self->get_cell_outline_colour);
     }
 
     #  if still no colour chosen
@@ -871,18 +870,25 @@ sub set_cell_show_outline {
     return;
 }
 
+#  same code as in Tab.pm
 sub get_colour_from_chooser {
-    my $self = shift;
-    
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
-    my $c;
-    if ('ok' eq $dialog->run) {
-        $c = $dialog->colorsel->get_current_color;
+    my ($self, $colour) = @_;
+
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
+    my $selector = $dialog->colorsel;  #  get_color_selection?
+
+    if ($colour) {
+        $selector->set_current_color ($colour);
+    }
+
+    if ($dialog->run eq 'ok') {
+        $colour = $selector->get_current_color;
     }
     $dialog->destroy;
 
-    return $c;
+    return $colour;
 }
+
 
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {

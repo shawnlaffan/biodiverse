@@ -1,0 +1,11 @@
+--- Heavy.pm	2011-12-02 15:15:22.000000000 +1100
++++ Heavy.pm	2012-10-30 16:25:52.124835500 +1100
+@@ -145,7 +145,7 @@
+     else {
+         $filename = File::Spec->catfile(
+             ($ENV{PAR_TEMP} || File::Spec->tmpdir),
+-            ($name || ($member->crc32String . ".$DynaLoader::dl_dlext"))
++            ($name || ((File::Spec->splitpath ($member->fileName))[-1]))
+         );
+         ($filename) = $filename =~ /^([\x20-\xff]+)$/;
+ 

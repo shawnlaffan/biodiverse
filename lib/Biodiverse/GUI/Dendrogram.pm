@@ -1848,7 +1848,10 @@ sub render_graph {
 sub resize_background_rect {
     my $self = shift;
 
-    $self->{back_rect}->set(    x2 => $self->{render_width}, y2 => $self->{render_height});
+    $self->{back_rect}->set(
+        x2 => $self->{render_width},
+        y2 => $self->{render_height},
+    );
     $self->{back_rect}->lower_to_bottom();
 
     return;
@@ -1933,7 +1936,8 @@ sub draw_line {
 sub on_event {
     my ($self, $event, $line) = @_;
 
-my $type = $event->type;
+    my $type = $event->type;
+
     # If not in click mode, pass through button events to background
     return 0 if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click');
 
@@ -2054,10 +2058,11 @@ sub on_background_event {
             ($self->{drag_x}, $self->{drag_y}) = $event->coords;
 
             # Grab mouse
-            $item->grab ([qw/pointer-motion-mask button-release-mask/],
-                         Gtk2::Gdk::Cursor->new ('fleur'),
-                        $event->time
-                        );
+            $item->grab (
+                [qw/pointer-motion-mask button-release-mask/],
+                Gtk2::Gdk::Cursor->new ('fleur'),
+                $event->time
+            );
             $self->{dragging} = 1;
             $self->{dragged}  = 0;
         }
@@ -2137,13 +2142,13 @@ sub on_background_event {
             # Scroll
             $self->{centre_x} = clamp (
                 $self->{centre_x} - $dx,
-                $self->{width_px}/2,
-                $self->{render_width}-$self->{width_px}/2
+                $self->{width_px} / 2,
+                $self->{render_width} - $self->{width_px} / 2,
             ) ;
             $self->{centre_y} = clamp (
-                $self->{centre_y}-$dy,
-                $self->{height_px}/2,
-                $self->{render_height}-$self->{height_px}/2
+                $self->{centre_y} - $dy,
+                $self->{height_px} / 2,
+                $self->{render_height} - $self->{height_px} / 2,
             );
 
             # Convert into world coords
@@ -2197,18 +2202,18 @@ sub on_resize {
     #$self->{render_height} = $self->{height_px};
 
     my $resize_bk = 0;
-    if ($self->{render_width} == 0 || $self->{zoom_fit} == 1) {
+    if ($self->{render_width} == 0 || $self->get_zoom_fit) {
         $self->{render_width} = $size->width;
         $resize_bk = 1;
-        #$self->resize_background_rect();
     }
-    if ($self->{render_height} == 0 || $self->{zoom_fit} == 1) {
+    if ($self->{render_height} == 0 || $self->get_zoom_fit) {
         $self->{render_height} = $size->height;
         $resize_bk = 1;
-        #$self->resize_background_rect();
     }
 
-    $self->resize_background_rect() if $resize_bk;
+    if ($resize_bk) {
+        $self->resize_background_rect;
+    }
 
     if (exists $self->{unscaled_width}) {
 
@@ -2338,10 +2343,10 @@ sub centre_tree {
 sub zoom_in {
     my $self = shift;
 
-    $self->{render_width} = $self->{render_width} * 1.5;
+    $self->{render_width}  = $self->{render_width} * 1.5;
     $self->{render_height} = $self->{render_height} * 1.5;
 
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit(0);
     $self->post_zoom();
 
     return;
@@ -2350,10 +2355,10 @@ sub zoom_in {
 sub zoom_out {
     my $self = shift;
 
-    $self->{render_width} = $self->{render_width} / 1.5;
+    $self->{render_width}  = $self->{render_width} / 1.5;
     $self->{render_height} = $self->{render_height} / 1.5;
 
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit (0);
     $self->post_zoom();
 
     return;
@@ -2361,12 +2366,24 @@ sub zoom_out {
 
 sub zoom_fit {
     my $self = shift;
-    $self->{render_width} = $self->{width_px};
+    $self->{render_width}  = $self->{width_px};
     $self->{render_height} = $self->{height_px};
-    $self->{zoom_fit} = 1;
+    $self->set_zoom_fit(1);
     $self->post_zoom();
 
     return;
+}
+
+sub set_zoom_fit {
+    my ($self, $zoom_fit) = @_;
+    
+    $self->{zoom_fit} = $zoom_fit;
+}
+
+sub get_zoom_fit {
+    my ($self) = @_;
+    
+    return $self->{zoom_fit};
 }
 
 sub post_zoom {
@@ -2382,8 +2399,16 @@ sub post_zoom {
     $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
 
     # Scroll
-    $self->{centre_x} = clamp($self->{centre_x}, $self->{width_px}/2, $self->{render_width}-$self->{width_px}/2) ;
-    $self->{centre_y} = clamp($self->{centre_y}, $self->{height_px}/2, $self->{render_height}-$self->{height_px}/2);
+    $self->{centre_x} = clamp(
+        $self->{centre_x},
+        $self->{width_px} / 2,
+        $self->{render_width} - $self->{width_px} / 2,
+    );
+    $self->{centre_y} = clamp(
+        $self->{centre_y},
+        $self->{height_px} / 2,
+        $self->{render_height} - $self->{height_px} / 2,
+    );
 
     # Convert into world coords
     $self->{centre_x} = $self->{centre_x} / $self->{length_scale};

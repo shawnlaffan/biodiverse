@@ -7,6 +7,7 @@ our $VERSION = '0.99_005';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
+use List::MoreUtils qw /minmax/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -462,12 +463,8 @@ sub set_active_pane {
 
 sub rect_canonicalise {
     my ($self, $rect) = @_;
-    if ($rect->[0] > $rect->[2]) {
-        ($rect->[0], $rect->[2]) = ($rect->[2], $rect->[0]);
-    }
-    if ($rect->[1] > $rect->[3]) {
-        ($rect->[1], $rect->[3]) = ($rect->[3], $rect->[1]);
-    }
+    ($rect->[0], $rect->[2]) = minmax ($rect->[2], $rect->[0]);
+    ($rect->[1], $rect->[3]) = minmax ($rect->[3], $rect->[1]);
 }
 
 sub rect_centre {
@@ -583,6 +580,8 @@ sub handle_grid_drag_zoom {
     my $width_s   = max ($x2 - $x1, 1); # Selected box width
     my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
 
+my @scroll_target = $canvas->w2c($rect->[0], $rect->[1]);
+
     # Special case: If the rect is tiny, the user probably just clicked
     # and released. Do something sensible, like just double the zoom level.
     if ($width_s <= 2 || $height_s <= 2) {
@@ -596,6 +595,7 @@ sub handle_grid_drag_zoom {
 
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
     if (exists $grid->{render_width}) {
+        #  something here is affecting the dendrogram's plotting so it does not centre properly
         $grid->{render_width}  *= $ratio;
         $grid->{render_height} *= $ratio;
     }
@@ -637,7 +637,7 @@ sub handle_grid_drag_zoom {
         $rect->[3] = $mid + 0.5 * $width / $window_aspect;
     }
     else {
-        # 1st case illustracted above. We need to change the width.
+        # 1st case illustrated above. We need to change the width.
         my $mid    = ($rect->[0] + $rect->[2]) / 2;
         my $height =  $rect->[3] - $rect->[1];
         $rect->[0] = $mid - 0.5 * $height * $window_aspect;
@@ -645,9 +645,12 @@ sub handle_grid_drag_zoom {
     }
 
     # Apply and pan
+    $grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
-    $grid->update_scrollbars;
+#$canvas->scroll_to(@scroll_target);
+#$canvas->update_now;
+    $grid->update_scrollbars;    
 }
 
 

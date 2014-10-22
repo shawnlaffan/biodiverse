@@ -2197,12 +2197,12 @@ sub on_resize {
     #$self->{render_height} = $self->{height_px};
 
     my $resize_bk = 0;
-    if ($self->{render_width} == 0 || $self->{zoom_fit} == 1) {
+    if ($self->{render_width} == 0 || $self->get_zoom_fit) {
         $self->{render_width} = $size->width;
         $resize_bk = 1;
         #$self->resize_background_rect();
     }
-    if ($self->{render_height} == 0 || $self->{zoom_fit} == 1) {
+    if ($self->{render_height} == 0 || $self->get_zoom_fit) {
         $self->{render_height} = $size->height;
         $resize_bk = 1;
         #$self->resize_background_rect();
@@ -2338,10 +2338,10 @@ sub centre_tree {
 sub zoom_in {
     my $self = shift;
 
-    $self->{render_width} = $self->{render_width} * 1.5;
+    $self->{render_width}  = $self->{render_width} * 1.5;
     $self->{render_height} = $self->{render_height} * 1.5;
 
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit(0);
     $self->post_zoom();
 
     return;
@@ -2350,10 +2350,10 @@ sub zoom_in {
 sub zoom_out {
     my $self = shift;
 
-    $self->{render_width} = $self->{render_width} / 1.5;
+    $self->{render_width}  = $self->{render_width} / 1.5;
     $self->{render_height} = $self->{render_height} / 1.5;
 
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit (0);
     $self->post_zoom();
 
     return;
@@ -2361,12 +2361,24 @@ sub zoom_out {
 
 sub zoom_fit {
     my $self = shift;
-    $self->{render_width} = $self->{width_px};
+    $self->{render_width}  = $self->{width_px};
     $self->{render_height} = $self->{height_px};
-    $self->{zoom_fit} = 1;
+    $self->set_zoom_fit(1);
     $self->post_zoom();
 
     return;
+}
+
+sub set_zoom_fit {
+    my ($self, $zoom_fit) = @_;
+    
+    $self->{zoom_fit} = $zoom_fit;
+}
+
+sub get_zoom_fit {
+    my ($self) = @_;
+    
+    return $self->{zoom_fit};
 }
 
 sub post_zoom {
@@ -2382,8 +2394,16 @@ sub post_zoom {
     $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
 
     # Scroll
-    $self->{centre_x} = clamp($self->{centre_x}, $self->{width_px}/2, $self->{render_width}-$self->{width_px}/2) ;
-    $self->{centre_y} = clamp($self->{centre_y}, $self->{height_px}/2, $self->{render_height}-$self->{height_px}/2);
+    $self->{centre_x} = clamp(
+        $self->{centre_x},
+        $self->{width_px} / 2,
+        $self->{render_width}  - $self->{width_px} / 2,
+    );
+    $self->{centre_y} = clamp(
+        $self->{centre_y},
+        $self->{height_px} / 2,
+        $self->{render_height} - $self->{height_px} / 2,
+    );
 
     # Convert into world coords
     $self->{centre_x} = $self->{centre_x} / $self->{length_scale};

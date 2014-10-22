@@ -645,6 +645,7 @@ sub handle_grid_drag_zoom {
     }
 
     # Apply and pan
+    $grid->set_zoom_fit(0);  #  don't zoom to all of the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
     $grid->update_scrollbars;

@@ -644,13 +644,18 @@ my @scroll_target = $canvas->w2c($rect->[0], $rect->[1]);
         $rect->[2] = $mid + 0.5 * $height * $window_aspect;
     }
 
+    my $midx = ($rect->[0] + $rect->[2]) / 2;
+    my $midy = ($rect->[1] + $rect->[3]) / 2;
+    $midx = $rect->[0];
+    $midy = $rect->[1];
+    
     # Apply and pan
     $grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
 #$canvas->scroll_to(@scroll_target);
 #$canvas->update_now;
-    $grid->update_scrollbars;    
+    $grid->update_scrollbars ($midx, $midy);    
 }
 
 

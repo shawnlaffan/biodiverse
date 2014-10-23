@@ -1526,6 +1526,7 @@ sub set_plot_mode {
     $self->{border_len}      = 0.5 * BORDER_FRACTION * ($self->{max_len} + $self->{neg_len}) / (1 - BORDER_FRACTION);
     $self->{unscaled_width}  = 2 * $self->{border_len} + $self->{max_len} + $self->{neg_len};
 
+    #  these are in "tree coords"
     $self->{centre_x} = $self->{unscaled_width} / 2;
     $self->{centre_y} = $self->{unscaled_height} / 2;
 
@@ -2249,8 +2250,8 @@ sub setup_scrollbars {
     my $self = shift;
     return if not $self->{render_width};
 
-    #print "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}\n";
-    #print "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}\n";
+    say "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}";
+    say "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}";
 
     $self->{hadjust}->upper( $self->{render_width} );
     $self->{vadjust}->upper( $self->{render_height} );
@@ -2268,20 +2269,43 @@ sub setup_scrollbars {
 }
 
 sub update_scrollbars {
-    my $self = shift;
+    my ($self, $scrollx, $scrolly) = @_;
 
-    #print "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}\n";
-    #print "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}\n";
+if (defined $scrollx) {
+    say "[CANVAS] Orig scroll is $scrollx, $scrolly";
+    $scrollx *= $self->{render_width}  / $self->{width_px};
+    $scrolly *= $self->{render_height} / $self->{height_px};
+}
+else {
+    my @current_scroll_offsets = $self->{canvas}->get_scroll_offsets();
+    $scrollx //= $current_scroll_offsets[0];
+    $scrolly //= $current_scroll_offsets[1];
+}
+#$scrollx *= $self->{length_scale};
+#$scrolly *= $self->{height_scale};
+
+
+say "[CANVAS]: $self->{centre_x}, $scrollx, $scrolly\nscale  x: $self->{length_scale} y: $self->{height_scale}";
+say "[CANVAS]: Limits on x scroll: " . $self->{hadjust}->lower . ', ' . $self->{hadjust}->upper;
+say "[CANVAS]: Limits on y scroll: " . $self->{vadjust}->lower . ', ' . $self->{vadjust}->upper;
+say "[SIZE]: $self->{width_px}, $self->{height_px}";
+
+
+$self->{hadjust}->set_value($scrollx);
+$self->{vadjust}->set_value($scrolly);
+
+return;
+
+    say "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}";
+    say "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}";
 
     $self->{hadjust}->set_value($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    #print "[update_scrollbars] set hadjust to ";
-    #print ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    #print "\n";
+    say "[update_scrollbars] set hadjust to "
+        . ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
 
     $self->{vadjust}->set_value($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    #print "[update_scrollbars] set vadjust to ";
-    #print ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    #print "\n";
+    say "[update_scrollbars] set vadjust to "
+        . ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
 
     return;
 }
@@ -2293,7 +2317,7 @@ sub onHScroll {
         my $h = $self->{hadjust}->get_value;
         $self->{centre_x} = ($h + $self->{width_px} / 2) / $self->{length_scale};
 
-        #print "[onHScroll] centre x:$self->{centre_x}\n";
+        #say "[onHScroll] centre x:$self->{centre_x}";
         $self->centre_tree;
     }
 
@@ -2307,7 +2331,7 @@ sub onVScroll {
         my $v = $self->{vadjust}->get_value;
         $self->{centre_y} = ($v + $self->{height_px} / 2) / $self->{height_scale};
 
-        #print "[onVScroll] centre y:$self->{centre_y}\n";
+        #say "[onVScroll] centre y:$self->{centre_y}";
         $self->centre_tree;
     }
 
@@ -2321,7 +2345,7 @@ sub centre_tree {
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;
 
-    #print "[centre_tree] scroll xoffset=$xoffset  yoffset=$yoffset\n";
+    #say "[centre_tree] scroll xoffset=$xoffset  yoffset=$yoffset";
 
     my $matrix = [1,0,0,1, -1 * $xoffset, -1 * $yoffset];
     eval {$self->{lines_group}->affine_absolute($matrix)};

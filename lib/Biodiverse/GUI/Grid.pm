@@ -157,7 +157,7 @@ sub new {
     # Set up canvas
     $self->{canvas}->set_center_scroll_region(0);
     $self->{canvas}->show;
-    $self->set_zoom_fit(1);
+    $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
     
     if ($show_value) {
@@ -1582,7 +1582,7 @@ sub on_size_allocate {
     $self->{height_px} = $size->height;
 
     if (exists $self->{width_units}) {
-        if ($self->get_zoom_fit) {
+        if ($self->get_zoom_fit_flag) {
             $self->fit_grid();
         }
         else {
@@ -1856,7 +1856,7 @@ sub reposition {
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
-    ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
+       ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 
@@ -1920,7 +1920,7 @@ sub zoom_in {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu * 1.5 );
-    $self->set_zoom_fit(0);
+    $self->set_zoom_fit_flag(0);
     $self->post_zoom();
     
     return;
@@ -1930,7 +1930,7 @@ sub zoom_out {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu / 1.5 );
-    $self->set_zoom_fit (0);
+    $self->set_zoom_fit_flag (0);
     $self->post_zoom();
     
     return;
@@ -1938,20 +1938,20 @@ sub zoom_out {
 
 sub zoom_fit {
     my $self = shift;
-    $self->set_zoom_fit (1);
+    $self->set_zoom_fit_flag (1);
     $self->fit_grid();
     $self->post_zoom();
     
     return;
 }
 
-sub set_zoom_fit {
+sub set_zoom_fit_flag {
     my ($self, $zoom_fit) = @_;
     
     $self->{zoom_fit} = $zoom_fit;
 }
 
-sub get_zoom_fit {
+sub get_zoom_fit_flag {
     my ($self) = @_;
     
     return $self->{zoom_fit};

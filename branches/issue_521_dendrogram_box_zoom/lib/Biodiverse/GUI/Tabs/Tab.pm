@@ -602,8 +602,8 @@ sub handle_grid_drag_zoom {
         my ($dx, $dy) = ($plot_centre[0] - $rect_centre[0], $plot_centre[1] - $rect_centre[1]);
 
         # Convert into scaled coords
-        $grid->{centre_x} = $grid->{centre_x} * $grid->{length_scale};
-        $grid->{centre_y} = $grid->{centre_y} * $grid->{height_scale};
+        $grid->{centre_x} *= $grid->{length_scale};
+        $grid->{centre_y} *= $grid->{height_scale};
         
         # Pan across
         $grid->{centre_x} = $grid->clamp (
@@ -618,8 +618,8 @@ sub handle_grid_drag_zoom {
         );
 
         # Convert into world coords
-        $grid->{centre_x} = $grid->{centre_x} / $grid->{length_scale};
-        $grid->{centre_y} = $grid->{centre_y} / $grid->{height_scale};
+        $grid->{centre_x} /= $grid->{length_scale};
+        $grid->{centre_y} /= $grid->{height_scale};
 
         #  now adjust the zoom level
         $grid->{render_width}  *= $ratio;

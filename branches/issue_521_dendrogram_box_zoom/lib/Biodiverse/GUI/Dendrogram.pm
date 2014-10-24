@@ -2397,8 +2397,8 @@ sub post_zoom {
     $self->resize_background_rect();
 
     # Convert into scaled coords
-    $self->{centre_x} = $self->{centre_x} * $self->{length_scale};
-    $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
+    $self->{centre_x} *= $self->{length_scale};
+    $self->{centre_y} *= $self->{height_scale};
 
     # Scroll
     $self->{centre_x} = $self->clamp(
@@ -2413,8 +2413,8 @@ sub post_zoom {
     );
 
     # Convert into world coords
-    $self->{centre_x} = $self->{centre_x} / $self->{length_scale};
-    $self->{centre_y} = $self->{centre_y} / $self->{height_scale};
+    $self->{centre_x} /= $self->{length_scale};
+    $self->{centre_y} /= $self->{height_scale};
 
     $self->centre_tree();
     $self->setup_scrollbars();

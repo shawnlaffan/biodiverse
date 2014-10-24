@@ -2253,8 +2253,8 @@ sub setup_scrollbars {
     my $self = shift;
     return if not $self->{render_width};
 
-    say "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}";
-    say "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}";
+    #say "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}";
+    #say "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}";
 
     $self->{hadjust}->upper( $self->{render_width} );
     $self->{vadjust}->upper( $self->{render_height} );
@@ -2274,41 +2274,16 @@ sub setup_scrollbars {
 sub update_scrollbars {
     my ($self, $scrollx, $scrolly) = @_;
 
-#if (defined $scrollx) {
-#    say "[CANVAS] Orig scroll is $scrollx, $scrolly";
-#    $scrollx *= $self->{render_width}  / $self->{width_px};
-#    $scrolly *= $self->{render_height} / $self->{height_px};
-#}
-#else {
-#    my @current_scroll_offsets = $self->{canvas}->get_scroll_offsets();
-#    $scrollx //= $current_scroll_offsets[0];
-#    $scrolly //= $current_scroll_offsets[1];
-#}
-##$scrollx *= $self->{length_scale};
-##$scrolly *= $self->{height_scale};
-#
-#
-#say "[CANVAS]: $self->{centre_x}, $scrollx, $scrolly\nscale  x: $self->{length_scale} y: $self->{height_scale}";
-#say "[CANVAS]: Limits on x scroll: " . $self->{hadjust}->lower . ', ' . $self->{hadjust}->upper;
-#say "[CANVAS]: Limits on y scroll: " . $self->{vadjust}->lower . ', ' . $self->{vadjust}->upper;
-#say "[SIZE]: $self->{width_px}, $self->{height_px}";
-#
-#
-#$self->{hadjust}->set_value($scrollx);
-#$self->{vadjust}->set_value($scrolly);
-#
-#return;
-
-    say "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}";
-    say "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}";
+    #say "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}";
+    #say "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}";
 
     $self->{hadjust}->set_value($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    say "[update_scrollbars] set hadjust to "
-        . ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
+    #say "[update_scrollbars] set hadjust to "
+    #    . ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
 
     $self->{vadjust}->set_value($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    say "[update_scrollbars] set vadjust to "
-        . ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
+    #say "[update_scrollbars] set vadjust to "
+    #    . ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
 
     return;
 }
@@ -2446,51 +2421,6 @@ sub post_zoom {
     $self->update_scrollbars();
 
     return;
-}
-
-sub update_current_plot_extents {
-    my ($self, $extent) = @_;
-
-    my $width_px  = $self->{width_px} || return;
-    my $height_px = $self->{height_px};
-
-    my $extent_px  = $self->{plot_extent_px};
-    $extent_px  = [0, 0, $width_px, $height_px];
-
-    my $extent_rendered = $self->{plot_extent_rendered};
-    $extent_rendered  //= [0, 0, $self->{render_width}, $self->{render_height}];
-
-    $extent //= $extent_px;
-    my $new_extent_px = [@$extent];
-    $self->{plot_extent_px} = $new_extent_px;
-
-    $self->{rendered_extents} //= [0, 0, $self->{render_width}, $self->{render_height}];
-    my $rendered_extents = $self->{rendered_extents};
-
-    $self->{relative_extents} //= [];
-    my $relative_extents = $self->{relative_extents};
-
-my @extent_px = @$extent_px;
-    my @rel_extent = (
-        $extent_px[0] / $width_px,
-        $extent_px[1] / $height_px,
-        $extent_px[2] / $width_px,
-        $extent_px[3] / $height_px,
-    );
-    
-    return if !$self->{render_width};
-
-    my $render_width  = $self->{render_width};
-    my $render_height = $self->{render_height};
-
-    my $new_extent_rendered = [
-        $render_width  * $rel_extent[0],
-        $render_height * $rel_extent[1],
-        $render_width  * $rel_extent[2],
-        $render_height * $rel_extent[3],
-    ];
-
-    #push @$re, \@rel_extent;
 }
 
 

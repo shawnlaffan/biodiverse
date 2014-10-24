@@ -1526,6 +1526,7 @@ sub set_plot_mode {
     $self->{border_len}      = 0.5 * BORDER_FRACTION * ($self->{max_len} + $self->{neg_len}) / (1 - BORDER_FRACTION);
     $self->{unscaled_width}  = 2 * $self->{border_len} + $self->{max_len} + $self->{neg_len};
 
+    #  these are in "tree coords"
     $self->{centre_x} = $self->{unscaled_width} / 2;
     $self->{centre_y} = $self->{unscaled_height} / 2;
 
@@ -1555,19 +1556,19 @@ sub set_cluster {
     my $cluster = shift;
     my $plot_mode = shift; # (cluster) 'length' or 'depth'
 
+    return if ! defined $cluster;  #  trying to avoid warnings
+    #  skip incomplete clusterings (where the tree was not built)
+    my $completed = $cluster->get_param('COMPLETED') // 1;
+    return if $completed != 1;
+
     # Clear any palette colours
+    $self->{node_palette_colours} = {};
     foreach my $node_ref (values %{$cluster->get_node_hash}) {
         #$node_ref->set_cached_value(__gui_palette_colour => undef);
         $self->{node_palette_colours}{$node_ref->get_name} = undef;
     }
 
-    # Init variables
     $self->{cluster} = $cluster;
-    return if ! defined $cluster;  #  trying to avoid warnings
-    #  skip incomplete clusterings (where the tree was not built)
-    my $completed = $cluster->get_param('COMPLETED');
-    return if defined $completed and $completed != 1;
-
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
     $self->{element_to_cluster} = {};
@@ -1614,6 +1615,9 @@ sub clear {
     my $self = shift;
 
     $self->clear_highlights;
+    if ($self->{cluster}) {
+        $self->zoom_fit;  #  reset any zooming so we don't wreck any new tree plots
+    }
 
     $self->{node_lines} = {};
     $self->{node_colours_cache} = {};
@@ -2121,14 +2125,13 @@ sub on_background_event {
 
             if (defined $self->{select_func}) {
                 my $f = $self->{select_func};
-                &$f([$x_start, $y_start, $x_end, $y_end]);
+                $f->([$x_start, $y_start, $x_end, $y_end]);
             }
         }
     }
     elsif ( $event->type eq 'motion-notify') {
         my ($x, $y) = $event->coords;
 
-        #if ($self->{dragging} && $event->state >= 'button1-mask' ) {
         if ($self->{dragging}) {
             # Work out how much we've moved away from last time
             my ($dx, $dy) = ($x - $self->{drag_x}, $y - $self->{drag_y});
@@ -2140,12 +2143,12 @@ sub on_background_event {
             $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
 
             # Scroll
-            $self->{centre_x} = clamp (
+            $self->{centre_x} = $self->clamp (
                 $self->{centre_x} - $dx,
                 $self->{width_px} / 2,
                 $self->{render_width} - $self->{width_px} / 2,
             ) ;
-            $self->{centre_y} = clamp (
+            $self->{centre_y} = $self->clamp (
                 $self->{centre_y} - $dy,
                 $self->{height_px} / 2,
                 $self->{render_height} - $self->{height_px} / 2,
@@ -2202,11 +2205,11 @@ sub on_resize {
     #$self->{render_height} = $self->{height_px};
 
     my $resize_bk = 0;
-    if ($self->{render_width} == 0 || $self->get_zoom_fit) {
+    if ($self->{render_width} == 0 || $self->get_zoom_fit_flag) {
         $self->{render_width} = $size->width;
         $resize_bk = 1;
     }
-    if ($self->{render_height} == 0 || $self->get_zoom_fit) {
+    if ($self->{render_height} == 0 || $self->get_zoom_fit_flag) {
         $self->{render_height} = $size->height;
         $resize_bk = 1;
     }
@@ -2236,7 +2239,7 @@ sub on_resize {
 }
 
 sub clamp {
-    my ($val, $min, $max) = @_;
+    my ($self, $val, $min, $max) = @_;
     return $min if $val < $min;
     return $max if $val > $max;
     return $val;
@@ -2249,8 +2252,8 @@ sub setup_scrollbars {
     my $self = shift;
     return if not $self->{render_width};
 
-    #print "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}\n";
-    #print "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}\n";
+    #say "[setupScrolllbars] render w:$self->{render_width} h:$self->{render_height}";
+    #say "[setupScrolllbars]   px   w:$self->{width_px} h:$self->{height_px}";
 
     $self->{hadjust}->upper( $self->{render_width} );
     $self->{vadjust}->upper( $self->{render_height} );
@@ -2268,20 +2271,18 @@ sub setup_scrollbars {
 }
 
 sub update_scrollbars {
-    my $self = shift;
+    my ($self, $scrollx, $scrolly) = @_;
 
-    #print "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}\n";
-    #print "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}\n";
+    #say "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}";
+    #say "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}";
 
     $self->{hadjust}->set_value($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    #print "[update_scrollbars] set hadjust to ";
-    #print ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    #print "\n";
+    #say "[update_scrollbars] set hadjust to "
+    #    . ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
 
     $self->{vadjust}->set_value($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    #print "[update_scrollbars] set vadjust to ";
-    #print ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    #print "\n";
+    #say "[update_scrollbars] set vadjust to "
+    #    . ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
 
     return;
 }
@@ -2293,7 +2294,7 @@ sub onHScroll {
         my $h = $self->{hadjust}->get_value;
         $self->{centre_x} = ($h + $self->{width_px} / 2) / $self->{length_scale};
 
-        #print "[onHScroll] centre x:$self->{centre_x}\n";
+        #say "[onHScroll] centre x:$self->{centre_x}";
         $self->centre_tree;
     }
 
@@ -2307,7 +2308,7 @@ sub onVScroll {
         my $v = $self->{vadjust}->get_value;
         $self->{centre_y} = ($v + $self->{height_px} / 2) / $self->{height_scale};
 
-        #print "[onVScroll] centre y:$self->{centre_y}\n";
+        #say "[onVScroll] centre y:$self->{centre_y}";
         $self->centre_tree;
     }
 
@@ -2321,7 +2322,7 @@ sub centre_tree {
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;
 
-    #print "[centre_tree] scroll xoffset=$xoffset  yoffset=$yoffset\n";
+    #say "[centre_tree] scroll xoffset=$xoffset  yoffset=$yoffset";
 
     my $matrix = [1,0,0,1, -1 * $xoffset, -1 * $yoffset];
     eval {$self->{lines_group}->affine_absolute($matrix)};
@@ -2346,7 +2347,7 @@ sub zoom_in {
     $self->{render_width}  = $self->{render_width} * 1.5;
     $self->{render_height} = $self->{render_height} * 1.5;
 
-    $self->set_zoom_fit(0);
+    $self->set_zoom_fit_flag(0);
     $self->post_zoom();
 
     return;
@@ -2358,7 +2359,7 @@ sub zoom_out {
     $self->{render_width}  = $self->{render_width} / 1.5;
     $self->{render_height} = $self->{render_height} / 1.5;
 
-    $self->set_zoom_fit (0);
+    $self->set_zoom_fit_flag (0);
     $self->post_zoom();
 
     return;
@@ -2368,19 +2369,19 @@ sub zoom_fit {
     my $self = shift;
     $self->{render_width}  = $self->{width_px};
     $self->{render_height} = $self->{height_px};
-    $self->set_zoom_fit(1);
+    $self->set_zoom_fit_flag(1);
     $self->post_zoom();
 
     return;
 }
 
-sub set_zoom_fit {
+sub set_zoom_fit_flag {
     my ($self, $zoom_fit) = @_;
     
     $self->{zoom_fit} = $zoom_fit;
 }
 
-sub get_zoom_fit {
+sub get_zoom_fit_flag {
     my ($self) = @_;
     
     return $self->{zoom_fit};
@@ -2389,30 +2390,32 @@ sub get_zoom_fit {
 sub post_zoom {
     my $self = shift;
 
+    return if !$self->{cluster};
+
     $self->render_tree();
     $self->render_graph();
     $self->reposition_sliders();
     $self->resize_background_rect();
 
     # Convert into scaled coords
-    $self->{centre_x} = $self->{centre_x} * $self->{length_scale};
-    $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
+    $self->{centre_x} *= $self->{length_scale};
+    $self->{centre_y} *= $self->{height_scale};
 
     # Scroll
-    $self->{centre_x} = clamp(
+    $self->{centre_x} = $self->clamp(
         $self->{centre_x},
         $self->{width_px} / 2,
         $self->{render_width} - $self->{width_px} / 2,
     );
-    $self->{centre_y} = clamp(
+    $self->{centre_y} = $self->clamp(
         $self->{centre_y},
         $self->{height_px} / 2,
         $self->{render_height} - $self->{height_px} / 2,
     );
 
     # Convert into world coords
-    $self->{centre_x} = $self->{centre_x} / $self->{length_scale};
-    $self->{centre_y} = $self->{centre_y} / $self->{height_scale};
+    $self->{centre_x} /= $self->{length_scale};
+    $self->{centre_y} /= $self->{height_scale};
 
     $self->centre_tree();
     $self->setup_scrollbars();
@@ -2420,6 +2423,7 @@ sub post_zoom {
 
     return;
 }
+
 
 ##########################################################
 # Misc

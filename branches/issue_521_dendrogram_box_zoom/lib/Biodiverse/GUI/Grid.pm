@@ -1856,7 +1856,7 @@ sub reposition {
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
-    ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
+       ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 

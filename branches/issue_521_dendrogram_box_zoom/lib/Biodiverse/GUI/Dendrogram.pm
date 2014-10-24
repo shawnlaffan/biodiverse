@@ -177,7 +177,9 @@ sub new {
     }
 
     $self->{drag_mode} = 'click';
-
+    
+    #$self->update_current_plot_extents;
+    
     # Labels::initMatrixGrid will set {page} (hacky}
 
     return $self;
@@ -1544,7 +1546,9 @@ sub set_plot_mode {
     $self->render_graph;
     $self->setup_scrollbars;
     $self->resize_background_rect;
-
+    
+    $self->update_current_plot_extents;
+    
     return;
 }
 
@@ -2122,14 +2126,13 @@ sub on_background_event {
 
             if (defined $self->{select_func}) {
                 my $f = $self->{select_func};
-                &$f([$x_start, $y_start, $x_end, $y_end]);
+                $f->([$x_start, $y_start, $x_end, $y_end]);
             }
         }
     }
     elsif ( $event->type eq 'motion-notify') {
         my ($x, $y) = $event->coords;
 
-        #if ($self->{dragging} && $event->state >= 'button1-mask' ) {
         if ($self->{dragging}) {
             # Work out how much we've moved away from last time
             my ($dx, $dy) = ($x - $self->{drag_x}, $y - $self->{drag_y});
@@ -2141,12 +2144,12 @@ sub on_background_event {
             $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
 
             # Scroll
-            $self->{centre_x} = clamp (
+            $self->{centre_x} = $self->clamp (
                 $self->{centre_x} - $dx,
                 $self->{width_px} / 2,
                 $self->{render_width} - $self->{width_px} / 2,
             ) ;
-            $self->{centre_y} = clamp (
+            $self->{centre_y} = $self->clamp (
                 $self->{centre_y} - $dy,
                 $self->{height_px} / 2,
                 $self->{render_height} - $self->{height_px} / 2,
@@ -2237,7 +2240,7 @@ sub on_resize {
 }
 
 sub clamp {
-    my ($val, $min, $max) = @_;
+    my ($self, $val, $min, $max) = @_;
     return $min if $val < $min;
     return $max if $val > $max;
     return $val;
@@ -2271,30 +2274,30 @@ sub setup_scrollbars {
 sub update_scrollbars {
     my ($self, $scrollx, $scrolly) = @_;
 
-if (defined $scrollx) {
-    say "[CANVAS] Orig scroll is $scrollx, $scrolly";
-    $scrollx *= $self->{render_width}  / $self->{width_px};
-    $scrolly *= $self->{render_height} / $self->{height_px};
-}
-else {
-    my @current_scroll_offsets = $self->{canvas}->get_scroll_offsets();
-    $scrollx //= $current_scroll_offsets[0];
-    $scrolly //= $current_scroll_offsets[1];
-}
-#$scrollx *= $self->{length_scale};
-#$scrolly *= $self->{height_scale};
-
-
-say "[CANVAS]: $self->{centre_x}, $scrollx, $scrolly\nscale  x: $self->{length_scale} y: $self->{height_scale}";
-say "[CANVAS]: Limits on x scroll: " . $self->{hadjust}->lower . ', ' . $self->{hadjust}->upper;
-say "[CANVAS]: Limits on y scroll: " . $self->{vadjust}->lower . ', ' . $self->{vadjust}->upper;
-say "[SIZE]: $self->{width_px}, $self->{height_px}";
-
-
-$self->{hadjust}->set_value($scrollx);
-$self->{vadjust}->set_value($scrolly);
-
-return;
+#if (defined $scrollx) {
+#    say "[CANVAS] Orig scroll is $scrollx, $scrolly";
+#    $scrollx *= $self->{render_width}  / $self->{width_px};
+#    $scrolly *= $self->{render_height} / $self->{height_px};
+#}
+#else {
+#    my @current_scroll_offsets = $self->{canvas}->get_scroll_offsets();
+#    $scrollx //= $current_scroll_offsets[0];
+#    $scrolly //= $current_scroll_offsets[1];
+#}
+##$scrollx *= $self->{length_scale};
+##$scrolly *= $self->{height_scale};
+#
+#
+#say "[CANVAS]: $self->{centre_x}, $scrollx, $scrolly\nscale  x: $self->{length_scale} y: $self->{height_scale}";
+#say "[CANVAS]: Limits on x scroll: " . $self->{hadjust}->lower . ', ' . $self->{hadjust}->upper;
+#say "[CANVAS]: Limits on y scroll: " . $self->{vadjust}->lower . ', ' . $self->{vadjust}->upper;
+#say "[SIZE]: $self->{width_px}, $self->{height_px}";
+#
+#
+#$self->{hadjust}->set_value($scrollx);
+#$self->{vadjust}->set_value($scrolly);
+#
+#return;
 
     say "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}";
     say "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}";
@@ -2423,12 +2426,12 @@ sub post_zoom {
     $self->{centre_y} = $self->{centre_y} * $self->{height_scale};
 
     # Scroll
-    $self->{centre_x} = clamp(
+    $self->{centre_x} = $self->clamp(
         $self->{centre_x},
         $self->{width_px} / 2,
         $self->{render_width} - $self->{width_px} / 2,
     );
-    $self->{centre_y} = clamp(
+    $self->{centre_y} = $self->clamp(
         $self->{centre_y},
         $self->{height_px} / 2,
         $self->{render_height} - $self->{height_px} / 2,
@@ -2444,6 +2447,52 @@ sub post_zoom {
 
     return;
 }
+
+sub update_current_plot_extents {
+    my ($self, $extent) = @_;
+
+    my $width_px  = $self->{width_px} || return;
+    my $height_px = $self->{height_px};
+
+    my $extent_px  = $self->{plot_extent_px};
+    $extent_px  = [0, 0, $width_px, $height_px];
+
+    my $extent_rendered = $self->{plot_extent_rendered};
+    $extent_rendered  //= [0, 0, $self->{render_width}, $self->{render_height}];
+
+    $extent //= $extent_px;
+    my $new_extent_px = [@$extent];
+    $self->{plot_extent_px} = $new_extent_px;
+
+    $self->{rendered_extents} //= [0, 0, $self->{render_width}, $self->{render_height}];
+    my $rendered_extents = $self->{rendered_extents};
+
+    $self->{relative_extents} //= [];
+    my $relative_extents = $self->{relative_extents};
+
+my @extent_px = @$extent_px;
+    my @rel_extent = (
+        $extent_px[0] / $width_px,
+        $extent_px[1] / $height_px,
+        $extent_px[2] / $width_px,
+        $extent_px[3] / $height_px,
+    );
+    
+    return if !$self->{render_width};
+
+    my $render_width  = $self->{render_width};
+    my $render_height = $self->{render_height};
+
+    my $new_extent_rendered = [
+        $render_width  * $rel_extent[0],
+        $render_height * $rel_extent[1],
+        $render_width  * $rel_extent[2],
+        $render_height * $rel_extent[3],
+    ];
+
+    #push @$re, \@rel_extent;
+}
+
 
 ##########################################################
 # Misc

@@ -468,7 +468,7 @@ sub rect_canonicalise {
 }
 
 sub rect_centre {
-    my ($rect, ) = @_;
+    my ($self, $rect) = @_;
     return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
 
@@ -572,7 +572,7 @@ sub handle_grid_drag_zoom {
     # Scale
     my $width_px  = $grid->{width_px}; # Viewport/window size
     my $height_px = $grid->{height_px};
-    my ($xc, $yc) = $canvas->world_to_window(rect_centre ($rect));
+    my ($xc, $yc) = $canvas->world_to_window($self->rect_centre ($rect));
     #print "Centre: $xc $yc\n";
     my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
     my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
@@ -581,6 +581,8 @@ sub handle_grid_drag_zoom {
     my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
 
 my @scroll_target = $canvas->w2c($rect->[0], $rect->[1]);
+say "WINDOW COORDS: $x1, $y1, $x2, $y2";
+say "CANVAS COORDS: ", join ', ', ($canvas->w2c($rect->[0], $rect->[1]), $canvas->w2c($rect->[2], $rect->[3]));
 
     # Special case: If the rect is tiny, the user probably just clicked
     # and released. Do something sensible, like just double the zoom level.
@@ -596,8 +598,42 @@ my @scroll_target = $canvas->w2c($rect->[0], $rect->[1]);
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
     if (exists $grid->{render_width}) {
         #  something here is affecting the dendrogram's plotting so it does not centre properly
+
+        my @plot_centre = ($width_px  / 2, $height_px  / 2);
+        my @rect_centre = $self->rect_centre ($rect);
+
+        my ($dx, $dy) = ($plot_centre[0] - $rect_centre[0], $plot_centre[1] - $rect_centre[1]);
+say "Centre coord prezoom:   $grid->{centre_x}, $grid->{centre_y}, ($dx, $dy)";
+
+        # Convert into scaled coords
+        $grid->{centre_x} = $grid->{centre_x} * $grid->{length_scale};
+        $grid->{centre_y} = $grid->{centre_y} * $grid->{height_scale};
+        
+say "Centre coord midzoom:   $grid->{centre_x}, $grid->{centre_y}, ($dx, $dy)";
+        # Pan across
+        $grid->{centre_x} = $grid->clamp (
+            $grid->{centre_x} - $dx,
+            0,
+            $grid->{render_width},
+        ) ;
+        $grid->{centre_y} = $grid->clamp (
+            $grid->{centre_y} - $dy,
+            0,
+            $grid->{render_height},
+        );
+
+        # Convert into world coords
+        $grid->{centre_x} = $grid->{centre_x} / $grid->{length_scale};
+        $grid->{centre_y} = $grid->{centre_y} / $grid->{height_scale};
+
+        #  now adjust the zoom level
         $grid->{render_width}  *= $ratio;
         $grid->{render_height} *= $ratio;
+
+say "Centre coord postzoom:  $grid->{centre_x}, $grid->{centre_y}";
+$grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
+$grid->post_zoom;
+return;
     }
     else {
         my $oppu = $canvas->get_pixels_per_unit;
@@ -649,13 +685,27 @@ my @scroll_target = $canvas->w2c($rect->[0], $rect->[1]);
     $midx = $rect->[0];
     $midy = $rect->[1];
     
+    my @relative_extents = (
+        $rect->[0] / $width_px,
+        $rect->[1] / $height_px,
+        $rect->[2] / $width_px,
+        $rect->[3] / $height_px,
+    );
+    my @extents = (
+        $rect->[0],
+        $rect->[1],
+        $rect->[2],
+        $rect->[3],
+    );
+
     # Apply and pan
     $grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
-#$canvas->scroll_to(@scroll_target);
-#$canvas->update_now;
-    $grid->update_scrollbars ($midx, $midy);    
+    #$grid->update_current_plot_extents (\@extents) if $grid->can('update_current_plot_extents');
+    $grid->update_scrollbars ($midx, $midy);
+
+say 'bladunk';
 }
 
 

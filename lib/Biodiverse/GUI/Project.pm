@@ -1398,8 +1398,10 @@ sub member_of {
 # Get array of output refs for this basedata
 sub get_basedata_outputs {
     my $self = shift;
-    my $ref = shift;
-    
+    my $ref  = shift;
+
+    return if !defined $ref;
+
     my $iter  = $self->{iters}{basedata_iters}{$ref};
     my $model = $self->{models}{basedata_output_model};
 

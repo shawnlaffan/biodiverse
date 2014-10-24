@@ -1547,8 +1547,6 @@ sub set_plot_mode {
     $self->setup_scrollbars;
     $self->resize_background_rect;
     
-    $self->update_current_plot_extents;
-    
     return;
 }
 
@@ -1560,19 +1558,19 @@ sub set_cluster {
     my $cluster = shift;
     my $plot_mode = shift; # (cluster) 'length' or 'depth'
 
+    return if ! defined $cluster;  #  trying to avoid warnings
+    #  skip incomplete clusterings (where the tree was not built)
+    my $completed = $cluster->get_param('COMPLETED') // 1;
+    return if $completed != 1;
+
     # Clear any palette colours
+    $self->{node_palette_colours} = {};
     foreach my $node_ref (values %{$cluster->get_node_hash}) {
         #$node_ref->set_cached_value(__gui_palette_colour => undef);
         $self->{node_palette_colours}{$node_ref->get_name} = undef;
     }
 
-    # Init variables
     $self->{cluster} = $cluster;
-    return if ! defined $cluster;  #  trying to avoid warnings
-    #  skip incomplete clusterings (where the tree was not built)
-    my $completed = $cluster->get_param('COMPLETED');
-    return if defined $completed and $completed != 1;
-
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
     $self->{element_to_cluster} = {};
@@ -1619,6 +1617,9 @@ sub clear {
     my $self = shift;
 
     $self->clear_highlights;
+    if ($self->{cluster}) {
+        $self->zoom_fit;  #  reset any zooming so we don't wreck any new tree plots
+    }
 
     $self->{node_lines} = {};
     $self->{node_colours_cache} = {};
@@ -2206,11 +2207,11 @@ sub on_resize {
     #$self->{render_height} = $self->{height_px};
 
     my $resize_bk = 0;
-    if ($self->{render_width} == 0 || $self->get_zoom_fit) {
+    if ($self->{render_width} == 0 || $self->get_zoom_fit_flag) {
         $self->{render_width} = $size->width;
         $resize_bk = 1;
     }
-    if ($self->{render_height} == 0 || $self->get_zoom_fit) {
+    if ($self->{render_height} == 0 || $self->get_zoom_fit_flag) {
         $self->{render_height} = $size->height;
         $resize_bk = 1;
     }
@@ -2348,7 +2349,7 @@ sub zoom_in {
     $self->{render_width}  = $self->{render_width} * 1.5;
     $self->{render_height} = $self->{render_height} * 1.5;
 
-    $self->set_zoom_fit(0);
+    $self->set_zoom_fit_flag(0);
     $self->post_zoom();
 
     return;
@@ -2360,7 +2361,7 @@ sub zoom_out {
     $self->{render_width}  = $self->{render_width} / 1.5;
     $self->{render_height} = $self->{render_height} / 1.5;
 
-    $self->set_zoom_fit (0);
+    $self->set_zoom_fit_flag (0);
     $self->post_zoom();
 
     return;
@@ -2370,19 +2371,19 @@ sub zoom_fit {
     my $self = shift;
     $self->{render_width}  = $self->{width_px};
     $self->{render_height} = $self->{height_px};
-    $self->set_zoom_fit(1);
+    $self->set_zoom_fit_flag(1);
     $self->post_zoom();
 
     return;
 }
 
-sub set_zoom_fit {
+sub set_zoom_fit_flag {
     my ($self, $zoom_fit) = @_;
     
     $self->{zoom_fit} = $zoom_fit;
 }
 
-sub get_zoom_fit {
+sub get_zoom_fit_flag {
     my ($self) = @_;
     
     return $self->{zoom_fit};
@@ -2390,6 +2391,8 @@ sub get_zoom_fit {
 
 sub post_zoom {
     my $self = shift;
+
+    return if !$self->{cluster};
 
     $self->render_tree();
     $self->render_graph();

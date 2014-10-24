@@ -625,7 +625,7 @@ sub handle_grid_drag_zoom {
         $grid->{render_width}  *= $ratio;
         $grid->{render_height} *= $ratio;
 
-        $grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized
+        $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized
         $grid->post_zoom;
         return;
     }
@@ -680,7 +680,7 @@ sub handle_grid_drag_zoom {
     $midy = $rect->[1];
 
     # Apply and pan
-    $grid->set_zoom_fit(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
+    $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
     $grid->update_scrollbars ($midx, $midy);

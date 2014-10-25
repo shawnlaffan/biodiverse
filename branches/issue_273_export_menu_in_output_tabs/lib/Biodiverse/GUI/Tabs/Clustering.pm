@@ -1418,6 +1418,8 @@ sub on_run_analysis {
 
     }
 
+    $self->update_export_menu;
+
     return;
 }
 

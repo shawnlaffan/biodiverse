@@ -1755,7 +1755,7 @@ sub end_selection {
     # call callback, using original event coords
     # TODO: the call with rect info could be a separate callback.
     my $f = $self->{select_func};
-    &$f($elements, undef, [$x_start, $y_start, $x_end, $y_end]);
+    $f->($elements, undef, [$x_start, $y_start, $x_end, $y_end]);
 
     return;
 }

@@ -178,7 +178,7 @@ sub new {
 
     $self->{drag_mode} = 'click';
 
-    # Labels::initMatrixGrid will set {page} (hacky}
+    # Labels::initMatrixGrid will set $self->{page} (hacky}
 
     return $self;
 }
@@ -206,7 +206,7 @@ sub new {
 sub destroy {
     my $self = shift;
 
-    print "[Dendrogram] Trying to clean up references\n";
+    say "[Dendrogram] Trying to clean up references";
 
     $self->{node_lines} = undef;
     delete $self->{node_lines};
@@ -1526,7 +1526,9 @@ sub set_plot_mode {
     $self->{border_len}      = 0.5 * BORDER_FRACTION * ($self->{max_len} + $self->{neg_len}) / (1 - BORDER_FRACTION);
     $self->{unscaled_width}  = 2 * $self->{border_len} + $self->{max_len} + $self->{neg_len};
 
-    #  these are in "tree coords"
+    #  These are in "tree coords" and the whole plotting process is based on them.
+    #  As the plot is panned and zoomed these are updated to be at the centre of the plot.
+    #  Everything else is then scaled from them.  
     $self->{centre_x} = $self->{unscaled_width} / 2;
     $self->{centre_y} = $self->{unscaled_height} / 2;
 

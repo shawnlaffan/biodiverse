@@ -404,11 +404,13 @@ sub update_dendrogram_combo {
 
     my $xmlpage = $self->{xmlPage};
     my $combobox = $xmlpage->get_widget('comboTreeSelect');
-    
-    #  clear the curent entries
-    my $model = $combobox->get_model;
-    $model->clear;
-    
+
+    #  Clear the curent entries.
+    #  We need to load a new ListStore to avoid crashes due
+    #  to them being destroyed somewhere in the refresh process
+    my $model = Gtk2::ListStore->new('Glib::String');
+    $combobox->set_model ($model);
+
     my $combo_items = 0;
     foreach my $option ('project', 'none', 'hide panel') {
         $combobox->append_text($option);
@@ -777,7 +779,7 @@ sub on_selected_phylogeny_changed {
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        #$self->{dendrogram}->clear;
+        $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($str);
@@ -1226,12 +1228,15 @@ sub on_run {
         $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
         $self->update_lists_combo; # will display first analysis as a side-effect...
+        #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
     }
 
     #  make sure the grid is sensitive again
     $self->{initialising_grid} = 0;
+
+    $self->update_export_menu;
 
     $self->{project}->set_dirty;
 

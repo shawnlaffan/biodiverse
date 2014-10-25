@@ -902,26 +902,26 @@ sub delete_cached_values {
 sub update_export_menu {
     my $self = shift;
 
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{output_ref};
+
     # Clear out old entries from menu so we can rebuild it.
     # This will be useful when we add checks for which export methods are valid.  
     my $export_menu = $self->{export_menu};
-    $export_menu->destroy if $export_menu;
 
-    my $menubar = $self->{menubar};
+    if (!$export_menu) {
+        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $menubar->append($export_menu);
+        $self->{export_menu} = $export_menu;
+    }
 
-    $export_menu = Gtk2::MenuItem->new_with_label('Export');
-    $menubar->append($export_menu);
-    
-    my $output_ref = $self->{output_ref};
     if (!$output_ref) {
-        $menubar->set_sensitive(0);
+        $export_menu->set_sensitive(0);
     }
     else {
         my $submenu = Gtk2::Menu->new;
         # Get the Parameters metadata
         my %args = $output_ref->get_args (sub => 'export');
-        #use Data::Dumper;
-        #say Data::Dumper::Dumper \%args;
         my $format_labels = $args{format_labels};
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
@@ -933,7 +933,7 @@ sub update_export_menu {
         }
 
         $export_menu->set_submenu($submenu);
-
+        $export_menu->set_sensitive(1);
     }
 
     $menubar->show_all();

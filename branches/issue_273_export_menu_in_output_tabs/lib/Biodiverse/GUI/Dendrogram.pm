@@ -113,6 +113,14 @@ sub new {
     $self->{sp_index} = undef;
     bless $self, $class;
 
+    #  clean up if we are a refresh
+    if (my $child = $main_frame->get_child) {
+        $main_frame->remove( $child );
+    }
+    if (my $child = $graph_frame->get_child) {
+        $graph_frame->remove( $child );
+    }
+
     # Make and hook up the canvases
     $self->{canvas} = Gnome2::Canvas->new();
     $self->{graph}  = Gnome2::Canvas->new();
@@ -1294,8 +1302,9 @@ sub clear_highlights {
         my $node_name = $node->get_name;
         # assume node has associated line
         my $line = $self->{node_lines}->{$node_name};
+        next if !$line;
         my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
-        $line->set(fill_color_gdk => $colour_ref) if defined $line;
+        $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;
 
@@ -1311,7 +1320,8 @@ sub highlight_node {
           = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
         foreach my $node (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};  
+            my $line = $self->{node_lines}->{$node->get_name};
+            next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
     }
@@ -1338,7 +1348,8 @@ sub highlight_path {
           = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
         foreach my $node (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};  
+            my $line = $self->{node_lines}->{$node->get_name};
+            next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
     }
@@ -1558,10 +1569,9 @@ sub set_cluster {
     my $cluster = shift;
     my $plot_mode = shift; # (cluster) 'length' or 'depth'
 
-    return if ! defined $cluster;  #  trying to avoid warnings
-    #  skip incomplete clusterings (where the tree was not built)
-    my $completed = $cluster->get_param('COMPLETED') // 1;
-    return if $completed != 1;
+    $self->{cluster} = $cluster;
+    
+    return if !defined $cluster;  #  trying to avoid warnings
 
     # Clear any palette colours
     $self->{node_palette_colours} = {};
@@ -1570,9 +1580,13 @@ sub set_cluster {
         $self->{node_palette_colours}{$node_ref->get_name} = undef;
     }
 
-    $self->{cluster} = $cluster;
+    #  skip incomplete clusterings (where the tree was not built)
+    my $completed = $cluster->get_param('COMPLETED') // 1;
+    return if $completed != 1;
+
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
+
     $self->{element_to_cluster} = {};
     $self->{selected_list_index} = {};
     $self->{cluster_colour_mode} = 'palette';
@@ -1651,7 +1665,7 @@ sub render_tree {
     my $self = shift;
     my $tree = $self->{tree_node};
 
-    return if !$self->{render_width};
+    return if !($self->{render_width} && $self->{unscaled_width});
 
     my $render_props_tree = join ',', (
         $self->{unscaled_width},
@@ -1752,7 +1766,7 @@ sub render_graph {
     my $self = shift;
     my $lengths = $self->{total_lengths_array};
 
-    return if !$self->{render_width};
+    return if !($self->{render_width} && $self->{unscaled_width});
 
     my $graph_height_units = $self->{graph_height_px};
     $self->{graph_height_units} = $graph_height_units;

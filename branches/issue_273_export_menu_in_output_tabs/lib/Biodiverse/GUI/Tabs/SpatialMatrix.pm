@@ -217,6 +217,8 @@ sub new {
 
     say '[SpatialMatrix tab] - Loaded tab';
 
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
+    $self->update_export_menu;
 
     #  debug stuff
     $self->{selected_list} = 'SUBELEMENTS';

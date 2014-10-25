@@ -303,6 +303,7 @@ sub new {
 
     $self->choose_tool('Select');
 
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
     $self->update_export_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
@@ -581,111 +582,6 @@ sub update_lists_combo {
     return;
 }
 
-
-sub update_export_menu {
-    my $self = shift;
-
-    # Clear out old entries from menu.
-    my $export_menu = $self->{export_menu};
-    $export_menu->destroy if $export_menu;
-
-    my $menubar = $self->{xmlPage}->get_widget('menubar_spatial');
-
-    $export_menu = Gtk2::MenuItem->new_with_label('Export');
-    $menubar->append($export_menu);
-    
-    my $output_ref = $self->{output_ref};
-    if (!$output_ref) {
-        $menubar->set_sensitive(0);
-    }
-    else {
-        my $submenu = Gtk2::Menu->new;
-        # Get the Parameters metadata
-        my %args = $output_ref->get_args (sub => 'export');
-        #use Data::Dumper;
-        #say Data::Dumper::Dumper \%args;
-        my $format_labels = $args{format_labels};
-        foreach my $label (sort keys %$format_labels) {
-            my $menu_item = Gtk2::MenuItem->new($label);
-            $submenu->append($menu_item);
-            $menu_item->signal_connect_swapped(
-                activate => \&do_export, [$self, $output_ref, $label],
-            );
-        }
-
-        $export_menu->set_submenu($submenu);
-
-        #$export_menu->signal_connect(
-        #    toggled => \&Biodiverse::GUI::Export::Run($output_ref)
-        #);
-    }
-
-    $menubar->show_all();
-}
-
-sub do_export {
-    my $args = shift;
-    my $self = shift @$args;
-    Biodiverse::GUI::Export::Run(@$args);
-}
-
-sub __update_output_indices_menu {
-    my $self = shift;
-    my $indices = $self->make_output_indices_array();
-    $self->{output_indices_array} = $indices;
-
-    # Clear out old entries from menu.
-    my $menu = $self->{toolbar_menu};
-
-    my $heading = $self->{xmlPage}->get_widget('menuitem_spatial_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_spatial_indices_end');
-
-    my @menu_items = $menu->get_children();
-
-    my $pos = 0;
-    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
-        $pos++;
-    }
-    $pos++;
-
-    my $first_pos = $pos;
-
-    # Remove everything until the end
-    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
-        my $menu_item = $menu_items[$pos++];
-        $menu->remove($menu_item);
-        $menu_item->destroy();
-    }
-
-    # Start inserting at $first_pos
-    $pos = $first_pos;
-    my $first_item = undef;
-    $self->{index_menu_items} = {};
-    for my $index (@$indices) {
-        my $gui_index = $index;
-        $gui_index =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $gui_index);
-        if (not defined $first_item) {
-            $first_item = $menu_item;
-            $self->{selected_index} = $index;
-        }
-        $self->{index_menu_items}->{$index} = $menu_item;
-        $menu_item->signal_connect_swapped(
-                toggled => \&on_output_index_toggled, $self);
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
-
-    $self->on_active_index_changed();
-}
-
-# Changes which index is displayed as selected in the menu
-#sub change_selected_index {
-#    my ($self, $index) = @_;
-#
-#    $self->{index_menu_items}->{$index}->activate();
-#}
 
 # Generates Perl array with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid

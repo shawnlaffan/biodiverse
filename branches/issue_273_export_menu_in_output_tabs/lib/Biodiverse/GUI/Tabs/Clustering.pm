@@ -318,6 +318,9 @@ sub new {
         }
     };
 
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
+    $self->update_export_menu;
+
     say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;

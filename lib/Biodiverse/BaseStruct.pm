@@ -602,14 +602,17 @@ sub export_divagis {
 
 my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
 Note: If you export a list then each shape (point or polygon) 
-will be repeated for each list item. 
+will be repeated for each list item.
+
 Choose the __no_list__ option to not do this,
 in which case to attach any lists you will need to run a second 
 export to the delimited text format and then join them.  
 This is needed because shapefile field names can only be
 11 characters long and cannot contain non-alphanumeric characters.
+
 Note also that shapefiles do not have an undefined value 
 so any undefined values will be converted to zeroes.
+
 Export of array lists to shapefiles is not supported. 
 END_OF_SHAPE_COMMENT
   ;

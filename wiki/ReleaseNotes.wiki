@@ -19,6 +19,7 @@ Main changes since the preceding version ([#Version_0.99_004 0.99_004]) are belo
   *  GUI
     *  The colour of cells with undefined (nodata) values can now be set by the user.  So can the colour of cells which failed the definition query or were otherwise excluded.  Issue 278
     *  An export menu is now visible in all output tabs so one does not need to go back to the outputs tab whenever one wishes to export them.  Issue 273
+    *  Progress bars are now displayed in all matrix exports.  This avoids periods of GUI non-responsiveness.  Matrices are also written directly file to reduce memory overheads for large matrices.  Issue 517
 
 
 = Version 0.99_004 = 

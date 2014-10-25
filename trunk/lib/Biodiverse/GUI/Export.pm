@@ -14,6 +14,8 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Cwd;
 
+use List::MoreUtils qw /any none/;
+
 our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
@@ -23,7 +25,8 @@ use Biodiverse::GUI::YesNoCancel;
 
 sub Run {
     my $object = shift;
-    
+    my $selected_format = shift // '';
+
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted
     return if ! defined $object;  
@@ -40,47 +43,52 @@ sub Run {
     # get the selected format
     
     my $format_choices = $args{format_choices};
+    my $format_choice_array = $args{format_choices}[0]{choices};
     
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-    my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
+    if (none {$_ eq $selected_format} @$format_choice_array) {
+        #  get user preference if none passed as an arg
+        my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
+        my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
+        
+        #my $format_dlg = $dlgxml->get_widget('dlgExport');
+        $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
+        $format_dlg->set_title ('Export parameters');
     
-    #my $format_dlg = $dlgxml->get_widget('dlgExport');
-    $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
-    $format_dlg->set_title ('Export parameters');
+        # Build widgets for parameters
+        my $format_table = $dlgxml->get_widget('tableImportParameters');
+        
+        # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+        my $format_extractors
+            = Biodiverse::GUI::ParametersTable::fill(
+                $format_choices,
+                $format_table,
+                $dlgxml,
+        ); 
+    
+        # Show the dialog
+        $format_dlg->show_all();
+    
+      RUN_FORMAT_DIALOG:
+        my $format_response = $format_dlg->run();
+        
+        if ($format_response ne 'ok') {
+            $format_dlg->destroy;
+            return;
+        }
+        
+        my $formats
+          = Biodiverse::GUI::ParametersTable::extract($format_extractors);
+    
+        $selected_format = $formats->[1];
 
-    # Build widgets for parameters
-    my $format_table = $dlgxml->get_widget('tableImportParameters');
-    
-    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-    my $format_extractors
-        = Biodiverse::GUI::ParametersTable::fill(
-            $format_choices,
-            $format_table,
-            $dlgxml,
-    ); 
-
-    # Show the dialog
-    $format_dlg->show_all();
-
-  RUN_FORMAT_DIALOG:
-    my $format_response = $format_dlg->run();
-    
-    if ($format_response ne 'ok') {
         $format_dlg->destroy;
-        return;
     }
-    
-    my $formats
-      = Biodiverse::GUI::ParametersTable::extract($format_extractors);
 
-    my $selected_format = $formats->[1];
     my $params = $args{parameters}{$selected_format};
-
-    $format_dlg->destroy;
 
     #####################
     #  and now get the params for the selected format
-    $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
 
     my $dlg = $dlgxml->get_widget('dlgExport');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );

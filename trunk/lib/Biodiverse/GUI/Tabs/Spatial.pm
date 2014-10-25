@@ -63,9 +63,6 @@ sub new {
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
-    # Set up options menu
-    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
-
     # Add to notebook
     $self->add_to_notebook (
         page         => $page,
@@ -306,8 +303,8 @@ sub new {
 
     $self->choose_tool('Select');
 
-    #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
-    #$options_menu->set_menu ($self->get_options_menu);
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
+    $self->update_export_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
@@ -407,11 +404,13 @@ sub update_dendrogram_combo {
 
     my $xmlpage = $self->{xmlPage};
     my $combobox = $xmlpage->get_widget('comboTreeSelect');
-    
-    #  clear the curent entries
-    my $model = $combobox->get_model;
-    $model->clear;
-    
+
+    #  Clear the curent entries.
+    #  We need to load a new ListStore to avoid crashes due
+    #  to them being destroyed somewhere in the refresh process
+    my $model = Gtk2::ListStore->new('Glib::String');
+    $combobox->set_model ($model);
+
     my $combo_items = 0;
     foreach my $option ('project', 'none', 'hide panel') {
         $combobox->append_text($option);
@@ -585,65 +584,6 @@ sub update_lists_combo {
     return;
 }
 
-
-
-sub __update_output_indices_menu {
-    my $self = shift;
-    my $indices = $self->make_output_indices_array();
-    $self->{output_indices_array} = $indices;
-
-    # Clear out old entries from menu.
-    my $menu = $self->{toolbar_menu};
-
-    my $heading = $self->{xmlPage}->get_widget('menuitem_spatial_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_spatial_indices_end');
-
-    my @menu_items = $menu->get_children();
-
-    my $pos = 0;
-    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
-        $pos++;
-    }
-    $pos++;
-
-    my $first_pos = $pos;
-
-    # Remove everything until the end
-    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
-        my $menu_item = $menu_items[$pos++];
-        $menu->remove($menu_item);
-        $menu_item->destroy();
-    }
-
-    # Start inserting at $first_pos
-    $pos = $first_pos;
-    my $first_item = undef;
-    $self->{index_menu_items} = {};
-    for my $index (@$indices) {
-        my $gui_index = $index;
-        $gui_index =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $gui_index);
-        if (not defined $first_item) {
-            $first_item = $menu_item;
-            $self->{selected_index} = $index;
-        }
-        $self->{index_menu_items}->{$index} = $menu_item;
-        $menu_item->signal_connect_swapped(
-                toggled => \&on_output_index_toggled, $self);
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
-
-    $self->on_active_index_changed();
-}
-
-# Changes which index is displayed as selected in the menu
-#sub change_selected_index {
-#    my ($self, $index) = @_;
-#
-#    $self->{index_menu_items}->{$index}->activate();
-#}
 
 # Generates Perl array with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
@@ -839,7 +779,7 @@ sub on_selected_phylogeny_changed {
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        #$self->{dendrogram}->clear;
+        $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($str);
@@ -1288,12 +1228,15 @@ sub on_run {
         $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
         $self->update_lists_combo; # will display first analysis as a side-effect...
+        #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
     }
 
     #  make sure the grid is sensitive again
     $self->{initialising_grid} = 0;
+
+    $self->update_export_menu;
 
     $self->{project}->set_dirty;
 

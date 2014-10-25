@@ -1,4 +1,5 @@
 package Biodiverse::GUI::Tabs::Outputs;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -314,10 +315,10 @@ sub on_export {
 
     my $selected = $self->get_selection();
     my $object;
-    $selected->{type} = "" if ! defined $selected->{type};
+    $selected->{type} //= '';
     if ($selected->{type} eq 'output') {
         $object = $selected->{output_ref};    
-        print "[Outputs tab] Exporting output\n";
+        say "[Outputs tab] Exporting output";
     }
     elsif ($selected->{type} eq 'basedata') {
 

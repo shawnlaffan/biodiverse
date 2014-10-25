@@ -63,9 +63,6 @@ sub new {
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
-    # Set up options menu
-    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
-
     # Add to notebook
     $self->add_to_notebook (
         page         => $page,
@@ -306,8 +303,7 @@ sub new {
 
     $self->choose_tool('Select');
 
-    #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
-    #$options_menu->set_menu ($self->get_options_menu);
+    $self->update_export_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
@@ -586,6 +582,52 @@ sub update_lists_combo {
 }
 
 
+sub update_export_menu {
+    my $self = shift;
+
+    # Clear out old entries from menu.
+    my $export_menu = $self->{export_menu};
+    $export_menu->destroy if $export_menu;
+
+    my $menubar = $self->{xmlPage}->get_widget('menubar_spatial');
+
+    $export_menu = Gtk2::MenuItem->new_with_label('Export');
+    $menubar->append($export_menu);
+    
+    my $output_ref = $self->{output_ref};
+    if (!$output_ref) {
+        $menubar->set_sensitive(0);
+    }
+    else {
+        my $submenu = Gtk2::Menu->new;
+        # Get the Parameters metadata
+        my %args = $output_ref->get_args (sub => 'export');
+        #use Data::Dumper;
+        #say Data::Dumper::Dumper \%args;
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_export, [$self, $output_ref, $label],
+            );
+        }
+
+        $export_menu->set_submenu($submenu);
+
+        #$export_menu->signal_connect(
+        #    toggled => \&Biodiverse::GUI::Export::Run($output_ref)
+        #);
+    }
+
+    $menubar->show_all();
+}
+
+sub do_export {
+    my $args = shift;
+    my $self = shift @$args;
+    Biodiverse::GUI::Export::Run(@$args);
+}
 
 sub __update_output_indices_menu {
     my $self = shift;

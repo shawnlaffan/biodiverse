@@ -745,9 +745,11 @@ sub on_combo_map_list_changed {
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
         $self->hide_legend;
+        $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);
     }
     else {
         $self->show_legend;
+        $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     }
 
     my @widgets = qw {

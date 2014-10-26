@@ -1524,7 +1524,6 @@ sub show_analysis {
     $self->update_lists_combo();
     $self->update_output_indices_combo();
     $self->update_dendrogram_combo();
-    #$self->update_output_indices_menu();
     
     return;
 }
@@ -1539,6 +1538,8 @@ sub on_active_list_changed {
     $self->{selected_list} = $list;
     $self->update_output_indices_combo();
     #$self->update_output_indices_menu();
+
+    $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     
     return;
 }

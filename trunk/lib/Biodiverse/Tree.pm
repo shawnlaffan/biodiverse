@@ -7,12 +7,8 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-#use Data::Dumper;
-#use Devel::Symdump;
-#use Scalar::Util;
 use Scalar::Util qw /looks_like_number/;
-#use Time::HiRes qw /tv_interval gettimeofday/;
-#use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
@@ -1226,6 +1222,11 @@ sub get_lists_export_metadata {
     my $self = shift;
 
     my @lists = $self->get_lists_for_export;
+    
+    my $default_idx = 0;
+    if (my $last_used_list = $self->get_cached_value('LAST_SELECTED_LIST')) {
+        $default_idx = first_index {$last_used_list eq $_} @lists;
+    }
 
     my $metadata = [
         {
@@ -1233,7 +1234,7 @@ sub get_lists_export_metadata {
             label_text  => 'List to export',
             type        => 'choice',
             choices     => \@lists,
-            default     => 0
+            default     => $default_idx,
         }
     ];
 

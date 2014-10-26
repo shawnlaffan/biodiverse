@@ -928,7 +928,7 @@ sub update_export_menu {
             my $menu_item = Gtk2::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
-                activate => \&do_export, [$self, $output_ref, $label],
+                activate => \&do_export, [$self, $label],
             );
         }
 
@@ -941,8 +941,13 @@ sub update_export_menu {
 
 sub do_export {
     my $args = shift;
-    my $self = shift @$args;
-    Biodiverse::GUI::Export::Run(@$args);
+    my $self = $args->[0];
+    my @rest_of_args;
+    if (scalar @$args > 1) {
+        @rest_of_args = @$args[1..$#$args];
+    }
+
+    Biodiverse::GUI::Export::Run($self->{output_ref}, @rest_of_args);
 }
 
 

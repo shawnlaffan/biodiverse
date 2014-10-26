@@ -19,6 +19,7 @@ use autovivification;
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum/;
+use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
@@ -256,6 +257,11 @@ sub get_common_export_metadata {
     #  get the available lists
     my @lists = $self->get_lists_for_export;
 
+    my $default_idx = 0;
+    if (my $last_used_list = $self->get_cached_value('LAST_SELECTED_LIST')) {
+        $default_idx = first_index {$last_used_list eq $_} @lists;
+    }
+
     my $metadata = [
         {
             name => 'file',
@@ -266,8 +272,8 @@ sub get_common_export_metadata {
             label_text  => 'List to export',
             type        => 'choice',
             choices     => \@lists,
-            default     => 0
-        }
+            default     => $default_idx,
+        },
     ];
 
     return wantarray ? @$metadata : $metadata;
@@ -638,7 +644,7 @@ sub get_metadata_export_shapefile {
                 label_text  => 'List to export',
                 type        => 'choice',
                 choices     => \@lists,
-                default     => 0
+                default     => 0,
             },
             {
                 name        => 'shapetype',

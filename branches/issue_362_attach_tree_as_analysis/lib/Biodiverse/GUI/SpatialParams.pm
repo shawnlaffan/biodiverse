@@ -60,9 +60,8 @@ sub new {
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
-    
+
     #  show/hide button
-    #my $check_button = Gtk2::CheckButton->new ();
     my $check_button = Gtk2::ToggleButton->new_with_label('-');
     #$check_button->set (yalign => 0);
     $self->{check_button} = $check_button;
@@ -151,7 +150,7 @@ sub on_syntax_check {
                 ? 'Biodiverse::SpatialConditions::DefQuery'
                 : 'Biodiverse::SpatialConditions';
 
-    #  Get the baedata associated with this output.  If none then use the selected.
+    #  Get the basedata associated with this output.  If none then use the selected.
     my $bd = $self->get_param ('BASEDATA_REF') || $gui->get_project->get_selected_base_data;
 
     my $spatial_conditions = eval {

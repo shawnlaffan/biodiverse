@@ -640,11 +640,25 @@ sub get_newick_tree_data {
 }
 
 sub get_tabular_tree_data {
-    return get_data_section('TABULAR_TREE');
+    return get_data_section_with_unix_line_endings('TABULAR_TREE');
 }
 
 sub get_tabular_tree_data_x2 {
-    return get_data_section('TABULAR_TREE_x2');
+    return get_data_section_with_unix_line_endings('TABULAR_TREE_x2');
+}
+
+# Sometimes we get failing tests due to line ending problems
+# This avoids it.
+sub get_data_section_with_unix_line_endings {
+    my $section = shift;
+
+    my $data = get_data_section($section);
+
+    if ($data =~ /\r/) {
+        $data =~ s/\r//gs;
+    }
+
+    return $data;
 }
 
 sub get_basedata_site_data {

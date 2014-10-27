@@ -337,7 +337,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my %path;
-    foreach my $label (sort keys %$label_list) {
+    foreach my $label (keys %$label_list) {
         next if not exists $all_nodes->{$label};
 
         my $current_node = $all_nodes->{$label};

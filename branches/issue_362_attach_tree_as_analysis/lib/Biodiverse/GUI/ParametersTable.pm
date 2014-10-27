@@ -55,7 +55,7 @@ use 5.010;
 
 use Glib;
 use Gtk2;
-use Text::Wrapper;
+#use Text::Wrapper;
 
 use Carp;
 use English qw { -no_match_vars };
@@ -78,7 +78,7 @@ sub fill {
 
     my $row = 0;
     
-    my $label_wrapper = Text::Wrapper->new(columns => 30);
+    #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
     foreach my $param (@$params) {
@@ -102,12 +102,18 @@ sub fill {
 
         # Make the label
         my $label = Gtk2::Label->new;
-        my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
+        $label->set_line_wrap(30);
+        #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
+        my $label_text = $param->{label_text} || $param->{name};
         chomp $label_text;
         $label->set_alignment(0, 0.5);
         $label->set_text( $label_text );
 
         if ($param->{type} eq 'comment') {
+            #  reflow the label text
+            $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
+            $label->set_text( $label_text );
+
             $table->attach($label,  0, 2, $rows, $rows + 1, 'fill', [], 0, 0);
         }
         else {
@@ -228,6 +234,8 @@ sub generate_comment {
 
     #  just a placeholder
     my $label = Gtk2::Label->new;
+    $label->set_line_wrap(30);
+    $label->set_selectable(1);
 
     return ($label, undef);
 }

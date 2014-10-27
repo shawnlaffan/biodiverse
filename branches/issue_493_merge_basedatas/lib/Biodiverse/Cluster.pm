@@ -13,8 +13,9 @@ use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
+use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -149,6 +150,7 @@ sub export_matrices {
     return;
 }
 
+#  some of this can be refactored wth Spatial::get_spatial_conditions_ref
 sub process_spatial_conditions_and_def_query {
     my $self = shift;
     my %args = @_;
@@ -157,29 +159,38 @@ sub process_spatial_conditions_and_def_query {
     $args{spatial_conditions} //= ['sp_select_all ()'];
 
     my @spatial_conditions = @{$args{spatial_conditions}};
-    #  and we remove any undefined or empty conditions
+
+    #  remove any undefined or empty conditions at the end of the array
+  CHECK:
     for my $i (reverse 0 .. $#spatial_conditions) {
 
-        if (    defined $spatial_conditions[$i]
-            and length $spatial_conditions[$i] == 0) {
-            $spatial_conditions[$i] = undef;
+        my $condition = $spatial_conditions[$i];
+        if (blessed $condition) {
+            $condition = $condition->get_conditions_unparsed;
         }
-        if (not defined $spatial_conditions[$i]) {
-            splice (@spatial_conditions, $i);
-            next;
-        }
+
+        $condition =~ s/^\s*//;  #  strip leading and trailing whitespace
+        $condition =~ s/\s*$//;
+
+        last CHECK if length $condition;
+
+        say '[CLUSTER] Deleting undefined or empty spatial condition at end of conditions array';
+        pop @spatial_conditions;
     }
 
     #  now generate the spatial_conditions
     my $spatial_conditions_array = [];
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_conditions_array->[$i]) {
+        if (! blessed $spatial_conditions[$i]) {
             $spatial_conditions_array->[$i]
               = Biodiverse::SpatialConditions->new (
                     conditions   => $spatial_conditions[$i],
                     basedata_ref => $self->get_basedata_ref,
             );
+        }
+        else {
+            $spatial_conditions_array->[$i] = $spatial_conditions[$i];
         }
         $i++;
     }
@@ -287,7 +298,7 @@ sub build_matrices {
     my %args = @_;
 
     #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    my $file_handles = $args{file_handles} // [];
     delete $args{file_handles};
 
     #  override any args if we are a re-run
@@ -319,7 +330,7 @@ sub build_matrices {
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
     my $mx_class = $self->get_param('MATRIX_CLASS') // $mx_class_default;
-    my %mx_common_args = (BASEDATA_REF => $bd,);
+    my %mx_common_args = (BASEDATA_REF => $bd, INDEX => $index);
     if ($self->exists_param ('MATRIX_INDEX_PRECISION')) {  #  undef is OK, but must be explicitly set
         my $mx_index_precision = $self->get_param('MATRIX_INDEX_PRECISION');
         $mx_common_args{VAL_INDEX_PRECISION} = $mx_index_precision;
@@ -328,7 +339,7 @@ sub build_matrices {
     my @matrices;
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        my $mx_name = $name . " Matrix_$i";
+        my $mx_name = $name . " $index Matrix_$i";
 
         my $already_there = $bd->get_matrix_outputs;
         if (exists $already_there->{$mx_name}) {
@@ -343,6 +354,7 @@ sub build_matrices {
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
             %mx_common_args,
+            SPATIAL_CONDITION => $condition->get_conditions_unparsed,
         );
         $i ++;
     }
@@ -356,17 +368,23 @@ sub build_matrices {
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
 
-    print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
+    say "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING";
 
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
-        print {$fh} $output_gdm_format
-        ? "x1,y1,x2,y2,$index\n"
-        : "Element1,Element2,$index\n";
+        say {$fh} $output_gdm_format
+            ? "x1,y1,x2,y2,$index"
+            : "Element1,Element2,$index";
+    }
+    
+    my $csv_object;
+    if (scalar @$file_handles) {
+        $csv_object = $self->get_csv_object;
     }
 
+
     #  we use a spatial object as it handles all the spatial checks.
-    print "[CLUSTER] Generating neighbour lists\n";
+    say "[CLUSTER] Generating neighbour lists";
     my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
     my $sp_success = eval {
         $sp->run_analysis (
@@ -420,7 +438,10 @@ sub build_matrices {
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
     #print "[CLUSTER] Progress (% of $to_do elements):     ";
-    my @processed_elements;
+    my %processed_elements;
+
+    my $no_progress;
+    my $build_start_time = time();
 
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
@@ -444,14 +465,17 @@ sub build_matrices {
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
-
         }
+        my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
 
         #  loop over the neighbours and add them to the appropriate matrix
         foreach my $i (0 .. $#matrices) {
             my $matrix = $matrices[$i];
 
-            my %nbrs = %{$neighbours[$i]};  #  save a few calcs
+            my $nbr_hash = $neighbours[$i];  #  save a few calcs
+            if (scalar @$file_handles) {
+                @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
+            }
 
             my $matrices_array = defined $shadow_matrix
                                 ? [$matrix, $shadow_matrix]
@@ -463,20 +487,32 @@ sub build_matrices {
                 %args,  
                 matrices           => $matrices_array,
                 element            => $element1,
-                element_list       => [keys %nbrs],
+                element_list       => [keys %$nbr_hash],
                 index_function     => $index_function,
                 index              => $index,
                 cache_abc          => $cache_abc,
                 file_handle        => $file_handles->[$i],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
-                processed_elements => \@processed_elements,
+                processed_elements => \%processed_elements,
+                no_progress        => $no_progress,
+                csv_object         => $csv_object,
+                nbrs_so_far_this_element => \%nbrs_so_far_this_element,
             );
 
             $valid_count += $x;
+
+            #  do we need the progress dialogue?
+            my $build_end_time = time();
+            if (!$no_progress &&
+                ($build_end_time - $build_start_time
+                 < 3 * $Biodiverse::Config::progress_update_interval)) {
+                $no_progress = 1;
+            }
+            $build_start_time= $build_end_time;
         }
 
-        push @processed_elements, $element1;
+        $processed_elements{$element1}++;
     }
 
     my $element_check = $self->get_param ('ELEMENT_CHECK');
@@ -486,9 +522,9 @@ sub build_matrices {
         $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $to_do groups\n";
+    say "[CLUSTER] Completed $count of $to_do groups";
 
-    print "[CLUSTER] Valid value count is $valid_count\n";
+    say "[CLUSTER] Valid value count is $valid_count";
     if (! $valid_count) {
         croak "No valid results - matrix is empty\n";
     }
@@ -549,7 +585,7 @@ sub build_matrix_elements {
 
     my %already_calculated;
 
-    my $csv_out;
+    my $csv_out = $args{csv_object};
     #  take care of closed file handles
     if ( defined $ofh ) {
         if ( not defined fileno $ofh ) {
@@ -558,12 +594,11 @@ sub build_matrix_elements {
                 . " is unusable, setting it to undef";
             $ofh = undef;
         }
-        $csv_out = $self->get_csv_object;
+        $csv_out //= $self->get_csv_object;
 
         %already_calculated = $self->infer_if_already_calculated (
-            spatial_object => $sp,
-            element => $element1,
             processed_elements => $processed_elements,
+            nbrs_so_far_this_element => $args{nbrs_so_far_this_element},
         );
     }
 
@@ -572,7 +607,7 @@ sub build_matrix_elements {
     #print "Elements to calc: ", (scalar @$element_list2), "\n";
     my $progress;
     my $to_do = scalar @$element_list2;
-    if ($to_do > 100) {  #  arbitrary threshold
+    if ($to_do > 100 && !$args{no_progress}) {  #  arbitrary threshold
         $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
     }
     my $n_matrices = scalar @$matrices;
@@ -581,17 +616,20 @@ sub build_matrix_elements {
   ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
         $n++;
-        if ($progress) {
-            $progress->update ("processing column $n of $to_do", $n / $to_do);
+
+        {
+            no autovivification;  #  save a bit of memory
+            next ELEMENT2 if $already_calculated{$element2};
+            next ELEMENT2 if $element1 eq $element2;
+
+            if ($pass_def_query) {  #  poss redundant check now
+                next ELEMENT2
+                  if not exists $pass_def_query->{$element2};
+            }
         }
 
-        next ELEMENT2 if $element1 eq $element2;
-        next ELEMENT2 if $already_calculated{$element2};
-
-        if ($pass_def_query) {  #  poss redundant check now
-            #my $null = undef;  #  debug
-            next ELEMENT2
-              if not exists $pass_def_query->{$element2};
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
         }
 
         #  If we already have this value then get it and assign it.
@@ -602,31 +640,34 @@ sub build_matrix_elements {
         my $iter   = 0;
         my %not_exists_iter;
         my $value;
-      MX:
-        foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
-            #last MX if $ofh;
 
-            $value = $mx->get_defined_value_aa ($element1, $element2);
-            if (defined $value) {  #  don't redo them...
-                $exists ++;
-            }
-            else {
-                $not_exists_iter{$iter} = 1;
-            }
-            $iter ++;
-        }
+        if (!$ofh) {
+          MX:
+            foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
+                #last MX if $ofh;
 
-        next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
-
-        if ($exists) {  #  if it is in one then we use it
-            foreach my $iter (keys %not_exists_iter) {
-                $matrices->[$iter]->add_element (
-                    element1 => $element1,
-                    element2 => $element2,
-                    value    => $value,
-                )
+                $value = $mx->get_defined_value_aa ($element1, $element2);
+                if (defined $value) {  #  don't redo them...
+                    $exists ++;
+                }
+                else {
+                    $not_exists_iter{$iter} = 1;
+                }
+                $iter ++;
             }
-            next ELEMENT2;
+
+            next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
+
+            if ($exists) {  #  if it is in one then we use it
+                foreach my $iter (keys %not_exists_iter) {
+                    $matrices->[$iter]->add_element (
+                        element1 => $element1,
+                        element2 => $element2,
+                        value    => $value,
+                    )
+                }
+                next ELEMENT2;
+            }
         }
 
         #  use elements if no cached labels
@@ -653,12 +694,6 @@ sub build_matrix_elements {
         );
 
         my $values = $indices_object->run_calculations(%args, %elements);
-
-        # useful for debugging  (comment out otherwise?)
-        if (0 && $EVAL_ERROR && ! defined $values->{$index}) {
-            croak "PROBLEMS WITH $element1 $element2\n"
-                  . $EVAL_ERROR;
-        }
 
         #  caching - a bit dodgy
         #  what if we have calc_abc and calc_abc3 as deps?
@@ -690,14 +725,14 @@ sub build_matrix_elements {
                 ? [
                    @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
                    @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
-                   $values->{$index}
+                   $values->{$index},
                    ]
                 : [$element1, $element2, $values->{$index}];
             my $text = $self->list2csv(
                 list       => $res_list,
                 csv_object => $csv_out,
             );
-            print {$ofh} ($text . "\n");
+            say {$ofh} $text;
         }
         else {
             foreach my $mx (@$matrices) {
@@ -712,7 +747,7 @@ sub build_matrix_elements {
         $valid_count ++;
     }
     
-    my $cache_size = scalar keys %$cache;
+    #my $cache_size = scalar keys %$cache;
 
     return $valid_count;
 }
@@ -720,32 +755,25 @@ sub build_matrix_elements {
 #  We have been calculated
 #  if el2 is a neighbour of el1,
 #  and el1 has been processed.
+#  Inefficient for multiple nbrs sets, as we iterate over all nbrs from inner sets
+#  i.e. for 2 nbr sets we check nbr set 1 twice
 sub infer_if_already_calculated {
     my $self = shift;
     my %args = @_;
 
-    my $sp = $args{spatial_object};
-    my $element = $args{element};
     my $processed_elements = $args{processed_elements};
 
-    my %already_calculated;
-    
-    return wantarray ? %already_calculated : \%already_calculated
-      if scalar @$processed_elements == 0;
-    
-    my $nbr_list_name = '_NBR_SET1';  #  need to generalise this, or pass as an arg (and make a method)
-    my $nbrs
-          = $sp->get_list_values (
-              element => $element,
-              list    => $nbr_list_name,
-              autovivify => 0,
-          )
-          || [];
+    return wantarray ? () : {} 
+      if not scalar keys %$processed_elements;
 
-    NBR:
-    foreach my $nbr (sort @$nbrs) {
-        next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
-        $already_calculated{$nbr} = 1;
+    my %already_calculated;
+
+    my $nbrs = $args{nbrs_so_far_this_element} // {};
+
+    foreach my $nbr (keys %$nbrs) {
+        if (exists $processed_elements->{$nbr}) {
+            $already_calculated{$nbr} = 1;
+        }
     }
 
     return wantarray ? %already_calculated : \%already_calculated;
@@ -783,6 +811,14 @@ sub get_orig_matrices {
     }
 
     return wantarray ? @$matrices : $matrices;
+}
+
+sub get_orig_shadow_matrix {
+    my $self = shift;
+
+    my $matrix = $self->get_param ('ORIGINAL_SHADOW_MATRIX');
+
+    return $matrix;
 }
 
 sub get_matrices_ref {
@@ -1362,6 +1398,61 @@ sub setup_linkage_function {
     return;
 }
 
+sub get_outputs_with_same_index_and_spatial_conditions {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd  = $self->get_basedata_ref;
+    my @comparable = $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
+
+    return if !scalar @comparable;
+    
+    no autovivification;
+
+    my $cluster_index = $self->get_param ('CLUSTER_INDEX');
+    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
+    my $tree_ref      = $analysis_args->{tree_ref} // '';
+    my $matrix_ref    = $analysis_args->{matrix_ref} // '';
+
+    #  Incomplete - need to get dependencies as well in case they are not declared,
+    #  but for now it will work as we won't get this far if they are not specified
+    #  Should also check optional args if we ever implement them
+    #  This should also all be encapsulated in Indices.pm
+    my $indices       = $self->get_indices_object_for_matrix_and_clustering;
+    my $valid_calcs   = $indices->get_valid_calculations_to_run;
+    my %required_args = $indices->get_required_args (calculations => $valid_calcs);
+    my %required;
+    foreach my $calc (%required_args) {
+        my $r = $required_args{$calc};
+        @required{keys %$r} = values %$r;
+    }
+
+
+  COMP:
+    foreach my $comp (@comparable) {
+        my $comp_cluster_index = $comp->get_param ('CLUSTER_INDEX');
+
+        next COMP if !defined $comp_cluster_index;
+        next COMP if $comp_cluster_index ne $cluster_index;
+
+        #  now we need to check required args and the like
+        #  currently blunt as we should only check args required by the indices objects
+        my $comp_analysis_args = $comp->get_param ('ANALYSIS_ARGS');
+        foreach my $arg_key (keys %required) {
+            next COMP if !exists $comp_analysis_args->{$arg_key}
+                      || !exists $analysis_args->{$arg_key};
+            my $c_val = $comp_analysis_args->{$arg_key} // '';
+            my $a_val = $analysis_args->{$arg_key} // '';
+            next COMP if $a_val ne $c_val;
+        }
+
+        return $comp;
+    }
+
+    return;    
+}
+
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1452,12 +1543,11 @@ sub cluster {
 
         if (!$self->get_matrix_count) {
             #  can we get them from another output?
-            my $bd = $self->get_basedata_ref;
-            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            my $ref = $self->get_outputs_with_same_index_and_spatial_conditions (compare_with => $self);
             if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
 
-                my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
-                my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                my $other_original_matrices = $ref->get_orig_matrices;
+                my $other_orig_shadow_mx    = $ref->get_orig_shadow_matrix;
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {

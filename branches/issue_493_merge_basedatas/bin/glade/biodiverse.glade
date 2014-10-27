@@ -446,81 +446,6 @@
                             <child>
                               <placeholder/>
                             </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1198,93 +1123,6 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1338,8 +1176,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1356,8 +1194,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4240,6 +4078,17 @@ This will create a new basedata with the corrected axis orders. </property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_binarise_basedata_elements">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Convert all sample counts to binary.
+All non-zero values will be set to 1</property>
+                        <property name="label" translatable="yes">Binarise sample counts</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_binarise_basedata_elements"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkMenuItem" id="menu_attach_basedata_properties">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -4624,6 +4473,17 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_equalise_tree_branches">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">All non-zero branches will be assigned the same length.
+The sum of all branches will be the same as in the original tree. </property>
+                        <property name="label" translatable="yes">Convert to equalised branch lengths</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_tree_equalise_branch_lengths"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -4857,7 +4717,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xpad">5</property>
-                    <property name="label" translatable="yes">Selected Basedata</property>
+                    <property name="label" translatable="yes">Basedata</property>
                   </widget>
                 </child>
               </widget>
@@ -5886,7 +5746,7 @@ Merely closes the window if no file is selected.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolCL">
+                      <widget class="GtkToggleButton" id="btnZoomInToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -5977,48 +5837,6 @@ Merely closes the window if no file is selected.</property>
                         <property name="can_focus">False</property>
                         <property name="pack_direction">ttb</property>
                         <child>
-                          <widget class="GtkMenuItem" id="menuitem_clustering_data">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Data</property>
-                            <child>
-                              <widget class="GtkMenu" id="menu_clustering_data">
-                                <property name="can_focus">False</property>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_cluster_map_list">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Lists</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_map_lists_end">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_cluster_map_indices">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Indices</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_map_indices_end">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
                           <widget class="GtkMenuItem" id="menuitem_clustering_display">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -6037,57 +5855,6 @@ Merely closes the window if no file is selected.</property>
                                 </child>
                                 <child>
                                   <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep1">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_cluster_colour_mode">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Colour mode</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
-
-Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
-                                    <property name="label">Hue</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
-
-Colours are currently taken from the outer ring.</property>
-                                    <property name="label">Sat...</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label">Grey</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                   </widget>
@@ -6174,6 +5941,80 @@ Colours are currently taken from the outer ring.</property>
                                         </child>
                                       </widget>
                                     </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_colour_mode">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">This is only settable when the plot has continuous values (i.e. not the cluster option)</property>
+                                    <property name="label" translatable="yes">Colour mode</property>
+                                    <property name="use_underline">True</property>
+                                    <child>
+                                      <widget class="GtkMenu" id="menu2">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
+
+Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
+                                            <property name="label" translatable="yes">Hue</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
+
+Colours are currently taken from the outer ring.</property>
+                                            <property name="label" translatable="yes">Sat...</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">Grey</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_excluded_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                                    <property name="label" translatable="yes">Set excluded cell colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
+                                    <property name="use_underline">True</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -6302,6 +6143,28 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                     <property name="label" translatable="yes">Use the slider bar to select nodes for colouring?</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_cluster_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend
+(continous values only)</property>
+                                    <property name="label" translatable="yes">Show legend</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_set_tree_line_widths">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the width of the tree branches.
+Does not affect the vertical connectors. 
+</property>
+                                    <property name="label" translatable="yes">Set tree branch line widths</property>
+                                    <property name="use_underline">True</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -7465,7 +7328,7 @@ This setting has no effect on the slider bar.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolVL">
+                      <widget class="GtkToggleButton" id="btnZoomInToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7565,6 +7428,16 @@ This setting has no effect on the slider bar.</property>
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_labels_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend</property>
+                                    <property name="label" translatable="yes">Show legend</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_labels_overlays">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -7627,6 +7500,16 @@ This setting has no effect on the slider bar.</property>
                                     <property name="label" translatable="yes">Highlight node paths for groups?</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_set_tree_line_widths">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the width of the tree branches.
+Does not affect the vertical connectors. </property>
+                                    <property name="label" translatable="yes">Set tree branch line widths</property>
+                                    <property name="use_underline">True</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -8129,7 +8012,7 @@ This setting has no effect on the slider bar.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolSP">
+                      <widget class="GtkToggleButton" id="btnZoomInToolSP">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -8234,6 +8117,12 @@ This setting has no effect on the slider bar.</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">Overlays...</property>
                                     <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem4">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -8432,6 +8321,30 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem3">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_excluded_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                                    <property name="label" translatable="yes">Set excluded cell colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_spatial_cell_outline_colour">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8448,6 +8361,32 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <property name="label" translatable="yes">Show cell outlines</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_spatial_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend</property>
+                                    <property name="label" translatable="yes">Show legend</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_set_tree_line_widths">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the width of the tree branches.
+Does not affect the vertical connectors.</property>
+                                    <property name="label" translatable="yes">Set tree branch line widths</property>
+                                    <property name="use_underline">True</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -8861,7 +8800,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkFrame" id="frame3">
+                          <widget class="GtkFrame" id="frame_spatial_tree_plot">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="border_width">2</property>
@@ -8984,78 +8923,82 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkToolbar" id="toolbar_spatial_tab_bottom">
+                  <widget class="GtkHBox" id="hbox_spatial_tab_bottom">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="toolbar_style">both</property>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem15">
+                      <widget class="GtkLabel" id="label_spatial_combos">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboLists">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="add_tearoffs">True</property>
-                          </widget>
-                        </child>
+                        <property name="label" translatable="yes">Lists and indices:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorToolItem" id="separatortoolitem1">
+                      <widget class="GtkComboBox" id="comboLists">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="add_tearoffs">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem45">
+                      <widget class="GtkComboBox" id="comboIndices">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboIndices">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="add_tearoffs">True</property>
-                          </widget>
-                        </child>
+                        <property name="add_tearoffs">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorToolItem" id="separatortoolitem4">
+                      <widget class="GtkSeparatorToolItem" id="separatortoolitem4k">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
-                      <widget class="GtkToolItem" id="toolitem4">
+                      <widget class="GtkLabel" id="label3">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <child>
-                          <widget class="GtkComboBox" id="comboTreeSelect">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip" translatable="yes">Select tree to display</property>
-                            <property name="active">0</property>
-                            <property name="add_tearoffs">True</property>
-                            <property name="items" translatable="yes">Plot analysis tree
-Plot project tree</property>
-                          </widget>
-                        </child>
+                        <property name="label" translatable="yes">Tree plot:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkComboBox" id="comboTreeSelect">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Select tree to display</property>
+                        <property name="active">0</property>
+                        <property name="add_tearoffs">True</property>
+                        <property name="items" translatable="yes"/>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">5</property>
                       </packing>
                     </child>
                   </widget>
@@ -9358,81 +9301,6 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
                         <child>
                           <placeholder/>
                         </child>

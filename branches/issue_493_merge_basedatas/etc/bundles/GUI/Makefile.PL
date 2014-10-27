@@ -16,6 +16,7 @@ WriteMakefile(
         "Gnome2::Canvas" => "0",
         "Browser::Open" => "0",
         "LWP::Simple" => "0",
+        "HTTP::Tiny" => "0",
     },
     BUILD_REQUIRES => {
         "ExtUtils::Depends" => "0",

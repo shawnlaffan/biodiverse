@@ -28,9 +28,9 @@ sub get_metadata_calc_phylo_rpd1 {
             PHYLO_RPD_NULL1 => {
                 description => 'Null model score used as the denominator in the RPD1 calculations',
             },
-            PHYLO_RPD_DIFF1 => {description => 'How much more or less PD is there than expected, in original tree units.'
-                             . ' This is calculated as RPD1 * PD - PD.',
-                formula     => ['= PHYLO\_RPD1 * PD - PD'],
+            PHYLO_RPD_DIFF1 => {
+                description => 'How much more or less PD is there than expected, in original tree units.',
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)'],
             }
         },
     );
@@ -43,6 +43,7 @@ sub calc_phylo_rpd1 {
     my %args = @_;
 
     my $tree = $args{tree_ref};
+    my $total_tree_length = $tree->get_total_tree_length;
 
     my $pd_p_score = $args{PD_P};
     my $pd_score   = $args{PD_P};
@@ -62,8 +63,7 @@ sub calc_phylo_rpd1 {
 
         $results{PHYLO_RPD1}      = $phylo_rpd1;
         $results{PHYLO_RPD_NULL1} = $null;
-        #  if ratio is -ve then we have less than expected so diff is -ve
-        $results{PHYLO_RPD_DIFF1} = $phylo_rpd1 * $pd_score - $pd_score;
+        $results{PHYLO_RPD_DIFF1} = $total_tree_length * ($pd_p_score - $null);
     }
 
     return wantarray ? %results : \%results;
@@ -92,9 +92,9 @@ sub get_metadata_calc_phylo_rpe1 {
             PHYLO_RPE_NULL1        => {
                 description => 'Null score used as the denominator in the RPE calculations',
             },
-            PHYLO_RPE_DIFF1 => {description => 'How much more or less PE is there than expected, in original tree units.'
-                             . ' This is calculated as RPE1 * PE - PE.',
-                formula     => ['= PE\_WE - PHYLO\_RPE1 * PE\_WE']
+            PHYLO_RPE_DIFF1 => {
+                description => 'How much more or less PE is there than expected, in original tree units.',
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );
@@ -105,8 +105,9 @@ sub get_metadata_calc_phylo_rpe1 {
 sub calc_phylo_rpe1 {
     my $self = shift;
     my %args = @_;
-    
+
     my $tree = $args{trimmed_tree};
+    my $total_tree_length = $tree->get_total_tree_length;
 
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
@@ -126,14 +127,15 @@ sub calc_phylo_rpe1 {
     {
         no warnings qw /numeric uninitialized/;
 
-        my $n = $tree->get_terminal_element_count;  #  should this be a pre_calc_global?  The value is cached, though.
+        #  should this be a pre_calc_global?  The value is cached, though.
+        my $n = $tree->get_terminal_element_count;
+
         my $null       = eval {$we / $n};
         my $phylo_rpe1 = eval {$pe_p_score / $null};
 
         $results{PHYLO_RPE1}      = $phylo_rpe1;
         $results{PHYLO_RPE_NULL1} = $null;
-        #  if ratio is -ve then we have less than expected so diff is -ve
-        $results{PHYLO_RPE_DIFF1} = $phylo_rpe1 * $pe_score - $pe_score;
+        $results{PHYLO_RPE_DIFF1} = $total_tree_length * ($pe_p_score - $null);
     }
 
     return wantarray ? %results : \%results;
@@ -151,7 +153,7 @@ sub get_metadata_calc_phylo_rpd2 {
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_pd_node_list/],
         pre_calc_global => ['get_tree_with_equalised_branch_lengths'],  #  should just use node counts in the original tree
-        #required_args   => ['tree_ref'],
+        required_args   => ['tree_ref'],
         uses_nbr_lists  => 1,
         indices         => {
             PHYLO_RPD2      => {
@@ -160,9 +162,9 @@ sub get_metadata_calc_phylo_rpd2 {
             PHYLO_RPD_NULL2 => {
                 description => 'Null model score used as the denominator in the RPD2 calculations',
             },
-            PHYLO_RPD_DIFF2 => {description => 'How much more or less PD is there than expected, in original tree units.'
-                             . ' This is calculated as RPD2 * PD - PD.',
-                formula     => ['= PHYLO\_RPD2 * PD - PD'],
+            PHYLO_RPD_DIFF2 => {
+                description => 'How much more or less PD is there than expected, in original tree units.',
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)'],
             }
         },
     );
@@ -174,8 +176,10 @@ sub calc_phylo_rpd2 {
     my $self = shift;
     my %args = @_;
 
-    my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES};
-    my $total_tree_length = $tree_ref->get_total_tree_length;
+    my $orig_tree_ref = $args{tree_ref};
+    my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
+    my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES};
+    my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
 
     my $pd_p_score     = $args{PD_P};
     my $pd_score       = $args{PD};
@@ -183,6 +187,7 @@ sub calc_phylo_rpd2 {
 
     #  Allow for zero length nodes, as we keep them as zero.
     #  The grep in scalar context is a fast way of counting the number of non-zero branches.
+    #  %$included_nodes is for the original tree
     my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
 
     my %results;
@@ -190,13 +195,12 @@ sub calc_phylo_rpd2 {
         no warnings qw /numeric uninitialized/;
 
         #my $n    = $tree_ref->get_terminal_element_count;
-        my $null = eval {$pd_score_eq_branch_lengths / $total_tree_length};
+        my $null = eval {$pd_score_eq_branch_lengths / $null_total_tree_length};
         my $phylo_rpd2 = eval {$pd_p_score / $null};
 
         $results{PHYLO_RPD2}      = $phylo_rpd2;
         $results{PHYLO_RPD_NULL2} = $null;
-        #  if ratio is -ve then we have less than expected so diff is -ve
-        $results{PHYLO_RPD_DIFF2} = eval {$pd_score * $phylo_rpd2 - $pd_score};
+        $results{PHYLO_RPD_DIFF2} = eval {$orig_total_tree_length * ($pd_p_score - $null)};
     }
 
     return wantarray ? %results : \%results;
@@ -215,7 +219,7 @@ sub get_metadata_calc_phylo_rpe2 {
         reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pe calc_pe_lists/],
-        pre_calc_global => ['get_trimmed_tree_with_equalised_branch_lengths'],
+        pre_calc_global => [qw /get_trimmed_tree get_trimmed_tree_with_equalised_branch_lengths/],
         uses_nbr_lists  => 1,
         indices         => {
             PHYLO_RPE2       => {
@@ -225,9 +229,8 @@ sub get_metadata_calc_phylo_rpe2 {
                 description => 'Null score used as the denominator in the RPE2 calculations',
             },
             PHYLO_RPE_DIFF2  => {
-                description => 'How much more or less PE is there than expected, in original tree units.'
-                             . ' This is calculated as RPE2 * PE - PE.',
-                formula     => ['= PHYLO\_RPE2 * PE\_WE - PE\_WE'],
+                description => 'How much more or less PE is there than expected, in original tree units.',
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );
@@ -238,9 +241,12 @@ sub get_metadata_calc_phylo_rpe2 {
 sub calc_phylo_rpe2 {
     my $self = shift;
     my %args = @_;
-    
-    my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
-    my $total_tree_length = $tree_ref->get_total_tree_length;
+
+    my $orig_tree_ref = $args{trimmed_tree};
+    my $orig_total_tree_length = $orig_tree_ref->get_total_tree_length;
+
+    my $null_tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED};
+    my $null_total_tree_length = $null_tree_ref->get_total_tree_length;
 
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
@@ -254,7 +260,7 @@ sub calc_phylo_rpe2 {
     my %results;
     {
         foreach my $node (keys %$node_ranges_global) {
-            my $node_ref = $tree_ref->get_node_ref(node => $node);
+            my $node_ref = $null_tree_ref->get_node_ref(node => $node);
             $pe_null += $node_ref->get_length
                       * $node_ranges_local->{$node}
                       / $node_ranges_global->{$node};
@@ -262,13 +268,12 @@ sub calc_phylo_rpe2 {
 
         no warnings qw /numeric uninitialized/;
 
-        my $null       = eval {$pe_null / $total_tree_length};  #  equiv to PE_WE_P for the equalised tree
+        my $null       = eval {$pe_null / $null_total_tree_length};  #  equiv to PE_WE_P for the equalised tree
         my $phylo_rpe2 = eval {$pe_p_score / $null};
 
         $results{PHYLO_RPE2}      = $phylo_rpe2;
         $results{PHYLO_RPE_NULL2} = $null;
-        #  if ratio is -ve then we have less than expected so diff is -ve
-        $results{PHYLO_RPE_DIFF2} = eval {$pe_score * $phylo_rpe2 - $pe_score};
+        $results{PHYLO_RPE_DIFF2} = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }
 
     return wantarray ? %results : \%results;
@@ -427,12 +432,8 @@ sub get_tree_with_equalised_branch_lengths {
     
     my $tree_ref = $args{tree_ref} // croak "missing tree_ref argument\n";
 
-    my $new_tree = $tree_ref->clone;
-    foreach my $node ($new_tree->get_node_refs) {
-        my $len = $node->get_length ? 1 : 0;
-        $node->set_length (length => $len);
-    }
-    $new_tree->rename(new_name => $tree_ref->get_param ('NAME') . ' EQ');
+    #  should let the sub calculate the length, but everything is set up for 1 or 0 lengths
+    my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths (node_length => 1);
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES => $new_tree,
@@ -464,20 +465,8 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 
     my $tree_ref = $args{trimmed_tree} // croak "missing trimmed_tree argument\n";
 
-    my $new_tree = $tree_ref->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
-
-    foreach my $node ($new_tree->get_node_refs) {
-        #  zero length nodes stay that way
-        my $len = $node->get_length ? 1 : 0;
-        $node->set_length (length => $len);
-        $node->delete_cached_values;
-    }
-    $new_tree->rename(new_name => $tree_ref->get_param ('NAME') . ' EQ');
+    #  lengths will be non-zero, but not 1
+    my $new_tree = $tree_ref->clone_tree_with_equalised_branch_lengths;
 
     my %results = (
         TREE_REF_EQUALISED_BRANCHES_TRIMMED => $new_tree,

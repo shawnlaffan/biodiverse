@@ -27,7 +27,7 @@ use Scalar::Util qw /blessed reftype/;
 
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use parent qw /Biodiverse::Common/;
 
@@ -69,7 +69,7 @@ sub build {
         $resolutions[$i] = 0 if $resolutions[$i] < 0;  #  no negatives
     }
 
-    print "[INDEX] Building index for resolution ", join (',', @resolutions), "\n";
+    say '[INDEX] Building index for resolution ', join (',', @resolutions);
 
     $self->set_param (RESOLUTIONS => \@resolutions);
 
@@ -423,11 +423,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             csv_object => $csv_object,
         );
         my %valid_offsets = ($offsets => $off_array);
-        print "Done (and what's more I cheated)\n";
+        say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
 
-    #elsif (my $i_dist = $spatial_conditions->get_index_max_dist) {
     if (my $i_dist = $spatial_conditions->get_index_max_dist) {
         print "[INDEX] Max search dist is $i_dist - using shortcut\n";
         $use_subset_search = 1;
@@ -458,6 +457,9 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         return wantarray ? %offsets : \%offsets;
     }
 
+    #  no need to recheck invalid offsets in these cases  (wrong - comment out)
+    #  my $no_recheck_invalid_offsets = $spatial_conditions->get_result_type eq 'side';
+    
     #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
     $poss_elements_ref = $self->get_poss_elements (
         minima      => $minima,
@@ -482,6 +484,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my %index_elements_to_search;
     my $total_elements_to_search;
     my $corner_case_count = 0;
+
     foreach my $element (@$extreme_elements_ref) {
         my $element_array = $self->csv2list (
             string     => $element,
@@ -493,7 +496,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             precision   => \@index_res_precision,
         );
 
-        $element_search_list{$element} = $nbrs_ref;
+        $element_search_list{$element}   = $nbrs_ref;
         $element_search_arrays{$element} = $element_array;
 
         if ($use_subset_search) {  #  only want to search a few nearby index cells
@@ -536,7 +539,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  works from the eight neighbours of each corner to ensure we allow for data elements near the index boundaries.
     #  Keeps a track of those offsets that have already passed so it does not need to check them again.
     my %valid_index_offsets;
-    my %offsets_checked;
     my (@min_offset, @max_offset);
 
     my $progress_bar = Biodiverse::Progress->new();
@@ -549,6 +551,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     foreach my $extreme_element (keys %element_search_list) {  #  loop over the corner cases
 
         my $extreme_ref = $element_search_arrays{$extreme_element};
+        #my %offsets_checked;
 
         #  loop over the 3x3 nbrs of the extreme element
         foreach my $check_element (@{$element_search_list{$extreme_element}}) {  
@@ -573,7 +576,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                          . ($count / $to_do);
             $progress_bar->update ($p_text, $progress / 100) ;
 
-            COMPARE: foreach my $element (@{$index_elements_to_search{$extreme_element}}) {
+          COMPARE:
+            foreach my $element (@{$index_elements_to_search{$extreme_element}}) {
                 #  evaluate current check element against the search nbrs for their related extreme element
                 #   to see if they pass the conditions
 
@@ -595,7 +599,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 # or we get floating point difference problems
                 my @offset_list;
                 foreach my $i (0 .. $#$extreme_ref) {
-                    #push @list, sprintf ($index_res_precision[$i], $element_ref->[$i] - $extreme_ref->[$i]) + 0;
                     push @offset_list,
                         0
                         + $self->set_precision_aa (
@@ -603,21 +606,19 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                                 $index_res_precision[$i],
                         );
                 }
-                #my $offsets = $self->list2csv (
-                #    list        => \@offset_list,
-                #    csv_object  => $csv_object,
-                #);
                 #  We only ever have numbers here so there is
                 #  no need for csv quoting to kick in.
                 my $offsets = join $sep, @offset_list;  
 
-                $offsets_checked{$offsets} ++;
+                #  Failed attempt to skip any that have been assessed, but 
+                #  there might be conditions where it fails for one origin,
+                #  but not for others. e.g. an annulus.
+                #  Sides also fail due to the four corners and their nbrs.
+                #next COMPARE if $no_recheck_invalid_offsets && $offsets_checked{$offsets};
+                #$offsets_checked{$offsets} ++;
 
-                #  skip it if it's already passed
-                next if exists $valid_index_offsets{$offsets};
-
-                #  might want to also check if it has already been checked and failed?
-                #  No - there might be cases where it fails for one origin, but not for others
+                #  Skip it if it's already passed.
+                next COMPARE if exists $valid_index_offsets{$offsets};
 
                 next COMPARE
                     if not $spatial_conditions->evaluate (
@@ -635,7 +636,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #print Data::Dumper::Dumper(\%valid_index_offsets);
     #print Data::Dumper::Dumper (\@min_offset);
     #print Data::Dumper::Dumper (\@max_offset);
-    print "\nDone\n";
+    say "\nDone";
 
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }

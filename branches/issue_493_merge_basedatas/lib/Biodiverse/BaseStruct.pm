@@ -19,13 +19,14 @@ use autovivification;
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum/;
+use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -143,6 +144,7 @@ sub get_reordered_element_names {
     croak "incorrect or clashing axes\n"
       if scalar keys %tmp != scalar @reorder_cols;
 
+    my $quote_char = $self->get_param('QUOTES');
     foreach my $element ($self->get_element_list) {
         my $el_array = $self->get_element_name_as_array (element => $element);
         my @new_el_array = @$el_array[@reorder_cols];
@@ -151,6 +153,7 @@ sub get_reordered_element_names {
             list       => \@new_el_array,
             csv_object => $csv_object,
         );
+        $self->dequote_element(element => $new_element, quote_char => $quote_char);
 
         $reordered{$element} = $new_element;
     }
@@ -254,6 +257,11 @@ sub get_common_export_metadata {
     #  get the available lists
     my @lists = $self->get_lists_for_export;
 
+    my $default_idx = 0;
+    if (my $last_used_list = $self->get_cached_value('LAST_SELECTED_LIST')) {
+        $default_idx = first_index {$last_used_list eq $_} @lists;
+    }
+
     my $metadata = [
         {
             name => 'file',
@@ -264,8 +272,8 @@ sub get_common_export_metadata {
             label_text  => 'List to export',
             type        => 'choice',
             choices     => \@lists,
-            default     => 0
-        }
+            default     => $default_idx,
+        },
     ];
 
     return wantarray ? @$metadata : $metadata;
@@ -600,14 +608,17 @@ sub export_divagis {
 
 my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
 Note: If you export a list then each shape (point or polygon) 
-will be repeated for each list item. 
+will be repeated for each list item.
+
 Choose the __no_list__ option to not do this,
 in which case to attach any lists you will need to run a second 
 export to the delimited text format and then join them.  
 This is needed because shapefile field names can only be
 11 characters long and cannot contain non-alphanumeric characters.
+
 Note also that shapefiles do not have an undefined value 
 so any undefined values will be converted to zeroes.
+
 Export of array lists to shapefiles is not supported. 
 END_OF_SHAPE_COMMENT
   ;
@@ -633,7 +644,7 @@ sub get_metadata_export_shapefile {
                 label_text  => 'List to export',
                 type        => 'choice',
                 choices     => \@lists,
-                default     => 0
+                default     => 0,
             },
             {
                 name        => 'shapetype',
@@ -812,7 +823,7 @@ sub export_shapefile {
             );
 
             # write a separate shape for each label
-            foreach my $key (keys %list_data) {
+            foreach my $key (sort keys %list_data) {
                 $shp_writer->add_shape(
                     $shape,
                     {
@@ -2207,6 +2218,10 @@ sub to_tree {
                 csv_object  => $csv_obj,
                 list        => [@components[0..$i]],
             );
+            $node_name = $self->dequote_element (
+                element    => $node_name,
+                quote_char => $quotes,
+            );
 
             my $parent_name = $i ? $prev_names[$i-1] : undef;  #  no parent if at highest level
 
@@ -2690,6 +2705,14 @@ sub exists_sub_element {
       // croak "Argument 'element' not specified\n";
     my $subelement = $args{subelement}
       // croak "Argument 'subelement' not specified\n";
+
+    no autovivification;
+    exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
+}
+
+#  array args variant, with no testing of args - let perl warn as needed
+sub exists_sub_element_aa {
+    my ($self, $element, $subelement) = @_;
 
     no autovivification;
     exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
@@ -3279,7 +3302,24 @@ sub get_base_stats_all {
     return;
 }
 
-#  are the sample counts floats or ints?  
+sub binarise_subelement_sample_counts {
+    my $self = shift;
+
+    foreach my $element ($self->get_element_list) {
+        my $list_ref = $self->get_list_ref (element => $element, list => 'SUBELEMENTS');
+        foreach my $val (values %$list_ref) {
+            $val = 1;
+        }
+        $self->delete_lists(element => $element, lists => ['BASE_STATS']);
+    }
+
+    $self->delete_cached_values;
+
+    return;
+}
+
+#  are the sample counts floats or ints?
+#  Could use Scalar::Util::Numeric::isfloat here if speed becomes an issue
 sub sample_counts_are_floats {
     my $self = shift;
 

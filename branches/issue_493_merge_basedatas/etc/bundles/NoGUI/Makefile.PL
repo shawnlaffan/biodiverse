@@ -41,8 +41,8 @@ WriteMakefile(
         "List::Util" => "1.39",
         "Class::Inspector" => "0",
         "autovivification" => "0.11",
-        "List::BinarySearch" => 0,
-        "List::BinarySearch::XS" => 0,
+        "List::BinarySearch" => "0",
+        "List::BinarySearch::XS" => "0",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",
@@ -51,5 +51,6 @@ WriteMakefile(
         "Perl::Tidy" => "0",
         "Test::Most" => "0",
         "Devel::Symdump" => "0",
+        "File::Compare" => "0",
     },
 );

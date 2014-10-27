@@ -55,12 +55,12 @@ use 5.010;
 
 use Glib;
 use Gtk2;
-use Text::Wrapper;
+#use Text::Wrapper;
 
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
@@ -78,7 +78,7 @@ sub fill {
 
     my $row = 0;
     
-    my $label_wrapper = Text::Wrapper->new(columns => 30);
+    #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
     foreach my $param (@$params) {
@@ -102,12 +102,18 @@ sub fill {
 
         # Make the label
         my $label = Gtk2::Label->new;
-        my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
+        $label->set_line_wrap(30);
+        #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
+        my $label_text = $param->{label_text} || $param->{name};
         chomp $label_text;
         $label->set_alignment(0, 0.5);
         $label->set_text( $label_text );
 
         if ($param->{type} eq 'comment') {
+            #  reflow the label text
+            $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
+            $label->set_text( $label_text );
+
             $table->attach($label,  0, 2, $rows, $rows + 1, 'fill', [], 0, 0);
         }
         else {
@@ -214,16 +220,22 @@ sub generate_file {
 
     # The dialog already has a filechooser widget. We just return an extractor function
     my $chooser = $dlgxml->get_widget('filechooser');
+
+    use Cwd;
+    $chooser->set_current_folder_uri(getcwd());
+
     my $extract = sub { return ($param->{name}, $chooser->get_filename); };
     return (undef, $extract);
 }
 
 sub generate_comment {
     my $param  = shift;
-    my $dlgxml = shift;
+    #my $dlgxml = shift;
 
     #  just a placeholder
     my $label = Gtk2::Label->new;
+    $label->set_line_wrap(30);
+    $label->set_selectable(1);
 
     return ($label, undef);
 }

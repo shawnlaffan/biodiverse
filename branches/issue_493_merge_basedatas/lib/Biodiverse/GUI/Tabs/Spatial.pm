@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use Gtk2;
 use Carp;
@@ -31,6 +31,15 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
+use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
+use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
+#use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
+use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+
+
+
 ##################################################
 # Initialisation
 ##################################################
@@ -53,9 +62,6 @@ sub new {
     my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
-
-    # Set up options menu
-    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
 
     # Add to notebook
     $self->add_to_notebook (
@@ -97,7 +103,7 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->hide;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->hide;
         $self->{xmlPage}->get_widget('toolbarSpatial')->hide;
     }
     else {
@@ -138,6 +144,7 @@ sub new {
 
     $self->set_label_widget_tooltip;
 
+    
     # Spatial parameters
     my ($initial_sp1, $initial_sp2);
     my $initial_def1 = $NULL_STRING;
@@ -235,7 +242,7 @@ sub new {
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
@@ -244,11 +251,15 @@ sub new {
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
-        menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        
+        menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
+        menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
+        menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
+        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
+    #  bodge - should set the radio group
     for my $n (0..6) {
         my $widget_name = "radio_colour_stretch$n";
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
@@ -285,15 +296,15 @@ sub new {
     $self->{drag_modes} = {
         Select  => 'click',
         Pan     => 'pan',
-        Zoom    => 'select',
+        ZoomIn  => 'select',
         ZoomOut => 'click',
         ZoomFit => 'click',
     };
 
     $self->choose_tool('Select');
 
-    #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
-    #$options_menu->set_menu ($self->get_options_menu);
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
+    $self->update_export_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
@@ -372,7 +383,7 @@ sub on_show_hide_parameters {
 sub setup_dendrogram {
     my $self = shift;
 
-    $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
+    $self->update_dendrogram_combo;    
 
     $self->init_dendrogram();
     # Register callbacks when selected phylogeny is changed
@@ -383,9 +394,45 @@ sub setup_dendrogram {
     );
     $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
         changed => \&on_selected_phylogeny_changed, 
-        $self
+        $self,
     );
     $self->on_selected_phylogeny_changed();
+}
+
+sub update_dendrogram_combo {
+    my $self = shift;
+
+    my $xmlpage = $self->{xmlPage};
+    my $combobox = $xmlpage->get_widget('comboTreeSelect');
+
+    #  Clear the curent entries.
+    #  We need to load a new ListStore to avoid crashes due
+    #  to them being destroyed somewhere in the refresh process
+    my $model = Gtk2::ListStore->new('Glib::String');
+    $combobox->set_model ($model);
+
+    my $combo_items = 0;
+    foreach my $option ('project', 'none', 'hide panel') {
+        $combobox->append_text($option);
+        $combo_items ++;
+    }
+    
+    no autovivification;
+    
+    my $output_ref = $self->{output_ref};
+    if ($output_ref && $output_ref->can('get_embedded_tree') && $output_ref->get_embedded_tree) {
+        $combobox->prepend_text('analysis');
+        $combo_items++;
+    }
+
+    if ($self->get_trees_are_available_to_plot) {
+        $combobox->set_active(0);
+    }
+    else {
+        #  Last one is 'hide panel'
+        #  It would be nice to extract from the model itself, if someone could work that out...
+        $combobox->set_active ($combo_items-1);  
+    }
 }
 
 # For the phylogeny tree:
@@ -479,6 +526,8 @@ sub init_grid {
 
     $self->{initialising_grid} = 0;
 
+    $self->warn_if_basedata_has_gt2_axes;
+
     return;
 }
 
@@ -535,65 +584,6 @@ sub update_lists_combo {
     return;
 }
 
-
-
-sub __update_output_indices_menu {
-    my $self = shift;
-    my $indices = $self->make_output_indices_array();
-    $self->{output_indices_array} = $indices;
-
-    # Clear out old entries from menu.
-    my $menu = $self->{toolbar_menu};
-
-    my $heading = $self->{xmlPage}->get_widget('menuitem_spatial_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_spatial_indices_end');
-
-    my @menu_items = $menu->get_children();
-
-    my $pos = 0;
-    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
-        $pos++;
-    }
-    $pos++;
-
-    my $first_pos = $pos;
-
-    # Remove everything until the end
-    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
-        my $menu_item = $menu_items[$pos++];
-        $menu->remove($menu_item);
-        $menu_item->destroy();
-    }
-
-    # Start inserting at $first_pos
-    $pos = $first_pos;
-    my $first_item = undef;
-    $self->{index_menu_items} = {};
-    for my $index (@$indices) {
-        my $gui_index = $index;
-        $gui_index =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $gui_index);
-        if (not defined $first_item) {
-            $first_item = $menu_item;
-            $self->{selected_index} = $index;
-        }
-        $self->{index_menu_items}->{$index} = $menu_item;
-        $menu_item->signal_connect_swapped(
-                toggled => \&on_output_index_toggled, $self);
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
-
-    $self->on_active_index_changed();
-}
-
-# Changes which index is displayed as selected in the menu
-#sub change_selected_index {
-#    my ($self, $index) = @_;
-#
-#    $self->{index_menu_items}->{$index}->activate();
-#}
 
 # Generates Perl array with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
@@ -789,7 +779,7 @@ sub on_selected_phylogeny_changed {
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        #$self->{dendrogram}->clear;
+        $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($str);
@@ -803,17 +793,6 @@ sub set_phylogeny_options_sensitive {
     my $enabled = shift;
 
     my $page = $self->{xmlPage};
-
-    # this is to make phylogeny options in display menu visible (add to glade on spatial pane?)
-#    for my $widget (
-#        qw /
-#            phylogeny_plot_length
-#            phylogeny_plot_depth
-#            highlight_groups_on_map_labels_tab
-#            use_highlight_path_changed1
-#        /) { #/
-#        $page->get_widget($widget)->set_sensitive($enabled);
-#    }
 }
  
 ## START PASTE OF PHYLO METHODS FROM LABELS
@@ -874,6 +853,7 @@ sub on_phylogeny_highlight {
 
 sub on_phylogeny_click {
     my $self = shift;
+
     if ($self->{tool} eq 'Select') {
         my $node = shift;
         $self->{dendrogram}->do_colour_nodes_below($node);
@@ -881,7 +861,6 @@ sub on_phylogeny_click {
             $self->{grid}->mark_if_exists( {}, 'circle' );
             $self->{grid}->mark_if_exists( {}, 'minus');
         }
-        
     }
     elsif ($self->{tool} eq 'ZoomOut') {
         $self->{dendrogram}->zoom_out();
@@ -897,7 +876,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1059,7 +1038,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};
@@ -1175,10 +1154,10 @@ sub on_run {
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
         tree_ref           => $self->{project}->get_selected_phylogeny,
-        definition_query   => $self->{definition_query1}->get_text(),
+        definition_query   => $self->{definition_query1}->get_validated_conditions,
         spatial_conditions => [
-            $self->{spatial1}->get_text(),
-            $self->{spatial2}->get_text(),
+            $self->{spatial1}->get_validated_conditions,
+            $self->{spatial2}->get_validated_conditions,
         ],
     );
 
@@ -1210,10 +1189,10 @@ sub on_run {
         my $old_ref = $self->{output_ref};
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
+        #  rename the temp file in the basedata
+        $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
     }
 
-    #  fix the temp name before we add it to the basedata
-    $output_ref->rename (new_name => $self->{output_name});
     $self->{output_ref} = $output_ref;
     $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 
@@ -1246,14 +1225,18 @@ sub on_run {
         elsif (defined $output_ref) {
             $self->{grid}->set_base_struct($output_ref);
         }
-        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
+        $self->{xmlPage}->get_widget('hbox_spatial_tab_bottom')->show;
         $self->{xmlPage}->get_widget('toolbarSpatial')->show;
-        $self->update_lists_combo(); # will display first analysis as a side-effect...
+        $self->update_lists_combo; # will display first analysis as a side-effect...
+        #$self->setup_dendrogram;   # completely refresh the dendrogram
+        $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
     }
 
     #  make sure the grid is sensitive again
     $self->{initialising_grid} = 0;
+
+    $self->update_export_menu;
 
     $self->{project}->set_dirty;
 
@@ -1359,10 +1342,14 @@ sub on_grid_hover {
 
 
 #  #1F78B4 = blue
+#  #8DA0CB = mid-blue
+#  #2166ac = a brighter blue
+#  #4393c3 = a light brighter blue
+#  #33a02c = mid green
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#8DA0CB', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;
@@ -1413,7 +1400,24 @@ sub highlight_paths_on_dendrogram {
 
 sub on_end_grid_hover {
     my $self = shift;
-    $self->{dendrogram}->clear_highlights;
+    my $dendrogram = $self->{dendrogram}
+      // return;
+
+    $dendrogram->clear_highlights;
+}
+
+sub get_trees_are_available_to_plot {
+    my $self = shift;
+    
+    my $count = $self->{project}->get_available_phylogeny_count;
+
+    if ($self->{output_ref} && $self->{output_ref}->can('get_embedded_tree')) {
+        if ($self->{output_ref}->get_embedded_tree) {
+            $count++;
+        }
+    }
+
+    return !!$count;
 }
 
 sub get_current_tree {
@@ -1423,9 +1427,22 @@ sub get_current_tree {
 
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
+    $tree_method //= 'none';
+
+    my $tree_frame = $self->{xmlPage}->get_widget ('frame_spatial_tree_plot');
+        
+    if ($tree_method eq 'hide panel') {
+        $tree_frame->hide;
+        return;
+    }
+    else {
+        $tree_frame->show;
+    }
+
+    return if $tree_method eq 'none';
 
     # phylogenies
-    if ($tree_method eq 'Plot analysis tree') {
+    if ($tree_method eq 'analysis') {
         # get tree from spatial analysis, if possible
         return if !$self->{output_ref}->can('get_embedded_tree');
         return $self->{output_ref}->get_embedded_tree;
@@ -1433,7 +1450,6 @@ sub get_current_tree {
 
     # get tree from project
     return $self->{project}->get_selected_phylogeny;
-
 }
 
 # Keep name in sync with the tab label
@@ -1490,8 +1506,8 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
-    return;
+
+    return 1;
 }
 
 
@@ -1507,7 +1523,7 @@ sub show_analysis {
     $self->{selected_index} = $name;
     $self->update_lists_combo();
     $self->update_output_indices_combo();
-    #$self->update_output_indices_menu();
+    $self->update_dendrogram_combo();
     
     return;
 }
@@ -1522,6 +1538,8 @@ sub on_active_list_changed {
     $self->{selected_list} = $list;
     $self->update_output_indices_combo();
     #$self->update_output_indices_menu();
+
+    $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     
     return;
 }
@@ -1684,16 +1702,25 @@ sub recolour {
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
     
-    my $elements_hash = $self->{output_ref}->get_element_hash;
-    my $list = $self->{selected_list};
+    my $output_ref    = $self->{output_ref};
+    my $elements_hash = $output_ref->get_element_hash;
+    my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
+
+    return if !defined $index;
+
+    my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
 
     my $colour_func = sub {
         my $elt = shift // return;
+        if (!$output_ref->group_passed_def_query(group => $elt)) {
+            return $self->get_excluded_cell_colour;
+        }
+
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)
-            : undef;
+            : $colour_none;
     };
 
     $grid->colour($colour_func);
@@ -1845,35 +1872,6 @@ sub get_options_menu {
     return $menu;
 }
 
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    my $tool = $key_tool_map{$keyval};
-
-    if (not defined $tool) {
-        return;
-    }
-
-    if ($tool eq 'ZoomOut') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{grid}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
-
 ####
 # TODO: This whole section needs to be deduplicated between Labels.pm
 ####
@@ -1895,63 +1893,13 @@ sub choose_tool {
     $self->{tool} = $tool;
 
     if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
-        $self->{grid}->{drag_mode} = $self->{drag_modes}->{$tool};
+        $self->{grid}{drag_mode} = $self->{drag_modes}{$tool};
     }
-    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}->{$tool};
+    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom out
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom fit
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
-
-sub on_grid_click {
-    my $self = shift;
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

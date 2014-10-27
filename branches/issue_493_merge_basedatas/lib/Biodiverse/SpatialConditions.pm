@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 our $NULL_STRING = q{};
 
@@ -478,9 +478,10 @@ sub verify {
     }
 
     if ($valid) {
+        my $bd = $self->get_basedata_ref // $args{basedata};
 
-        my $basedata = $args{basedata};  #  should use this for the distances
-        my $bd = $args{basedata};
+        my $basedata = $bd;  #  should use this for the distances
+        #my $bd = $args{basedata};
 
         $self->set_param( VERIFYING => 1 );
 
@@ -1097,7 +1098,7 @@ sub sp_annulus {
         foreach my $axis (@$axes) {
 
             #  drop out clause to save some comparisons over large data sets
-            return if $dists->[$axis] > $args{radius};
+            return if $dists->[$axis] > $args{outer_radius};
 
             # increment
             $d_sqr += $dists->[$axis]**2;
@@ -1230,13 +1231,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( ( ref $size ) !~ /ARRAY/ ) {
+    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( ( ref $origin ) !~ /ARRAY/ ) {
+    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 
@@ -1723,8 +1724,7 @@ sub _sp_side {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #  PadWalker gives hashrefs of scalar refs,
-    #  so need to de-ref to get the value
+    #  Need to de-ref to get the values
     my @coord     = @{ $h->{coord_array} };
     my @nbr_coord = @{ $h->{nbrcoord_array} };
 

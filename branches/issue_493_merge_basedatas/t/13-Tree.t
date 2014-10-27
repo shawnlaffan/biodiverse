@@ -19,7 +19,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster/;
+use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -152,6 +152,37 @@ sub test_trim_tree {
     check_trimmings($tree3, \@exp_deleted, \@keep_targets, 'trim/keep');
     $node_count = $tree3->get_node_count;
     is ($node_count, $start_node_count - 5, 'trim/keep: node count is as expected');
+
+}
+
+sub test_trim_tree_after_adding_extras {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+    my $bd    = shift || get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my $tree2 = $tree1->clone;
+    my $root = $tree2->get_root_node;
+    use Biodiverse::TreeNode;
+    my $node1 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 1',
+        length => 1,
+    );
+    my $node2 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 2',
+        length => 1,
+    );
+    $root->add_children (children => [$node1, $node2]);
+    #  add it to the Biodiverse::Tree object as well so the trimming works
+    $tree2->add_node (node_ref => $node1);
+    $tree2->add_node (node_ref => $node2);
+
+    $tree2->trim (keep => scalar $bd->get_labels);
+    my $name = $tree2->get_param('NAME') // 'noname';
+    $tree2->rename(new_name => $name . ' trimmed');
+
+    ok (
+        $tree1->trees_are_same (comparison => $tree2),
+        'trimmed and original tree same after trimming extra added nodes'
+    );
 
 }
 
@@ -398,6 +429,111 @@ sub test_export_tabular_tree {
 
 
     return;
+}
+
+sub test_export_nexus {
+    my $tree = shift // get_site_data_as_tree();
+
+    _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
+    _test_export_nexus (tree => $tree, no_translate_block => 0);
+    
+}
+
+
+sub _test_export_nexus {
+    my %args = @_;
+    my $tree = $args{tree};
+    delete $args{tree};
+
+    my $test_suffix = ', args:';
+    foreach my $key (sort keys %args) {
+        my $val = $args{$key};
+        $test_suffix .= " $key => $val,";
+    }
+    chop $test_suffix;
+
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+
+    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
+    #note "File name is $fname";
+    my $success = eval {
+        $tree->export_nexus (
+            file => $fname,
+            %args,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    diag $e if $e;
+    ok (!$e, 'exported to nexus without error' . $test_suffix);
+
+    #  now reimport it
+    my $nex = Biodiverse::ReadNexus->new();
+    $nex->import_data (
+        file => $fname,
+    );
+    my @imported_trees = $nex->get_tree_array;
+    my $imported_tree  = $imported_trees[0];
+
+    #  check terminals
+    ok (
+        $tree->trees_are_same (
+            comparison => $imported_tree,
+        ),
+        'Reimported tabular tree matches original' . $test_suffix,
+    );
+
+    my %nodes   = $tree->get_node_hash;
+    my %nodes_i = $imported_tree->get_node_hash;
+
+    subtest "lengths and child counts match$test_suffix" => sub {
+        foreach my $node_name (keys %nodes) {
+            my $node   = $nodes{$node_name};
+            my $node_i = $nodes_i{$node_name};
+
+            is (
+                $node->get_length,
+                $node_i->get_length,
+                'nodes are same length',
+            );
+            is (
+                $node->get_child_count,
+                $node_i->get_child_count,
+                'nodes have same child count',
+            );
+            my (@child_names, @child_names_i);
+            foreach my $child ($node->get_children) {
+                push @child_names, $child->get_name;
+            }
+            foreach my $child ($node_i->get_children) {
+                push @child_names_i, $child->get_name;
+            }
+            is_deeply (
+                [sort @child_names_i],
+                [sort @child_names],
+                'child names are the same for node ' . $node->get_name,
+            );
+        };
+    };
+
+
+    return;
+}
+
+
+
+
+
+sub test_equalise_branch_lengths {
+    my $tree = shift // get_site_data_as_tree();
+
+    my $eq_tree = $tree->clone_tree_with_equalised_branch_lengths;
+
+    is ($tree->get_total_tree_length,
+        $eq_tree->get_total_tree_length,
+        'eq tree has same total length as orig',
+    );
+
+    is ($tree->get_node_count, $eq_tree->get_node_count, 'node counts match');
 }
 
 

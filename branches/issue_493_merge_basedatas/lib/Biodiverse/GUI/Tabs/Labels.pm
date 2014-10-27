@@ -15,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -143,7 +143,7 @@ sub new {
 
     $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
     $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
-    $sig_clicked->('btnZoomToolVL',    \&on_zoom_tool);
+    $sig_clicked->('btnZoomInToolVL',  \&on_zoom_in_tool);
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
@@ -156,11 +156,12 @@ sub new {
     $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
     $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
     $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
+    $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
+    $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
     
     $self->{use_highlight_path} = 1;
     
-    print "[GUI] - Loaded tab - Labels\n";
-    
+    say "[GUI] - Loaded tab - Labels";
     
     return $self;
 }
@@ -197,9 +198,11 @@ sub init_grid {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
-    
+
     $self->{grid}->set_legend_mode('Sat');
-    
+
+    $self->warn_if_basedata_has_gt2_axes;
+
     return 1;
 }
 
@@ -276,9 +279,11 @@ sub init_dendrogram {
 
 sub add_column {
     my $self = shift;
-    my $tree = shift;
-    my $title = shift;
-    my $model_id = shift;
+    my %args = @_;
+    
+    my $tree     = $args{tree};
+    my $title    = $args{title};
+    my $model_id = $args{model_id};
 
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
@@ -311,15 +316,15 @@ sub init_list {
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
     my @columns;
     my $i = 0;
-    $self->add_column ($tree, 'Label', $i);
+    $self->add_column (tree => $tree, title => 'Label', model_id => $i);
     foreach my $column (@$stats_metadata) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self->add_column ($tree, $column_name, $i);
+        $self->add_column (tree => $tree, title => $column_name, model_id => $i);
     }
-    $self->add_column ($tree, $selected_list1_name, ++$i);
-    $self->add_column ($tree, $selected_list2_name, ++$i);
+    $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
+    $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
 
 # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -462,6 +467,7 @@ sub set_phylogeny_options_sensitive {
             phylogeny_plot_depth
             highlight_groups_on_map_labels_tab
             use_highlight_path_changed1
+            menuitem_labels_set_tree_line_widths
         /) { #/
         $page->get_widget($widget)->set_sensitive($enabled);
     }
@@ -621,6 +627,7 @@ sub on_selected_labels_changed {
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
 
+    
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
@@ -832,10 +839,8 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_select {
-    my $self          = shift;
-    my $groups        = shift;
-    my $ignore_change = shift;
-    my $rect          = shift; # [x1, y1, x2, y2]
+    my ($self, $groups , $ignore_change, $rect) = @_;
+    # $rect = [x1, y1, x2, y2]
 
     #say 'Rect: ' . Dumper ($rect);
 
@@ -875,24 +880,24 @@ sub on_grid_select {
         }
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{grid};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;
 }
-
-sub on_grid_click {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
+#
+#sub on_grid_click {
+#    my $self = shift;
+#
+#    if ($self->{tool} eq 'ZoomOut') {
+#        $self->{grid}->zoom_out();
+#    }
+#    elsif ($self->{tool} eq 'ZoomFit') {
+#        $self->{grid}->zoom_fit();
+#    }
+#}
 
 ##################################################
 # Phylogeny events
@@ -1010,7 +1015,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1170,7 +1175,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};
@@ -1258,7 +1263,7 @@ sub on_matrix_clicked {
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $rect = [
             map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
                 ($v_start, $h_start, $v_end, $h_end)
@@ -1301,12 +1306,12 @@ sub remove {
 my %drag_modes = (
     Select  => 'select',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn    => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
 
-my %dendogram_drag_modes = (
+my %dendrogram_drag_modes = (
     %drag_modes,
     Select  => 'click',
 );
@@ -1328,82 +1333,26 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode}        = $drag_modes{$tool};
-    $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode}  = $dendogram_drag_modes{$tool};
+    $self->{grid}{drag_mode}        = $drag_modes{$tool};
+    $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
 
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    if (not defined $tool) {
-        return;
-    }
-
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
-
+#  no longer used?  
 sub on_zoom_in {
     my $grid = shift;
     $grid->zoom_in();
-    
+say 'LB: Called on_zoom_in';
     return;
 }
 
 sub on_zoom_out {
     my $grid = shift;
     $grid->zoom_out();
+say 'LB: Called on_zoom_out';
     
     return;
 }
@@ -1411,7 +1360,8 @@ sub on_zoom_out {
 sub on_zoom_fit {
     my $grid = shift;
     $grid->zoom_fit();
-    
+say 'LB: Called on_zoom_fit';
+
     return;
 }
 
@@ -1431,8 +1381,8 @@ sub on_overlays {
 # Sets the vertical pane's position (0->all the way down | 1->fully up)
 sub set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
@@ -1446,8 +1396,8 @@ sub set_pane {
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
 

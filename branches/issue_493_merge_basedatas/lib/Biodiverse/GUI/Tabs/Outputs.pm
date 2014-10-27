@@ -1,4 +1,5 @@
 package Biodiverse::GUI::Tabs::Outputs;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -12,7 +13,7 @@ use Biodiverse::GUI::Export;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
 
@@ -314,10 +315,10 @@ sub on_export {
 
     my $selected = $self->get_selection();
     my $object;
-    $selected->{type} = "" if ! defined $selected->{type};
+    $selected->{type} //= '';
     if ($selected->{type} eq 'output') {
         $object = $selected->{output_ref};    
-        print "[Outputs tab] Exporting output\n";
+        say "[Outputs tab] Exporting output";
     }
     elsif ($selected->{type} eq 'basedata') {
 
@@ -466,6 +467,8 @@ sub on_delete {
     return;
 }
 
+#  ignore keyboard events for now (was triggering when exporting outputs)
+sub on_bare_key {}
 
 1;
 

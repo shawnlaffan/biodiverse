@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_005';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -213,6 +213,9 @@ my %data_funcs = (
     on_rename_basedata_labels => {
         METHOD => 'do_rename_basedata_labels',
     },
+    on_binarise_basedata_elements => {
+        METHOD => 'do_binarise_basedata_elements',
+    },
     on_basedata_export_labels => {
         METHOD => 'do_export_labels',
     },
@@ -291,6 +294,9 @@ my %data_funcs = (
     },
     on_range_weight_tree => {
         METHOD => 'do_range_weight_tree',
+    },
+    on_tree_equalise_branch_lengths => {
+        METHOD => 'do_tree_equalise_branch_lengths',
     },
     on_matrix_export => {
         METHOD => 'do_export_matrix',

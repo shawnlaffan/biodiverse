@@ -7,15 +7,18 @@
 
 == Biodiverse GUI ==
 
-  === 0.99_004 (development release)===
+  === 0.99_005 (development release)===
 
   _This is the current development version, leading towards a version 1.0 release._
 
-  The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_004 release notes] summarise the changes in this version.
+  The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_005 release notes] summarise the changes in this version.
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_win64.7z Windows (64 bit)].  Download, unzip and then run the Biodiverse executable file.  (The 7zip utility can be downloaded from http://www.7-zip.org).
+  * Windows (64 bit).  Download, unzip and then run the Biodiverse executable file.
+    * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_005_win64.7z 7zip format]. File size is 27 MB.  (The 7zip utility can be downloaded from http://www.7-zip.org).
+    * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_005_win64.zip zip format]. File size is 41 MB.  
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_linux64.tar.gz Linux (64 bit)].  Download, unzip, and then run the Biodiverse binary.  You might need to follow some of the [https://code.google.com/p/biodiverse/wiki/InstallationLinuxBinary installation instructions].
+
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_005_linux64.tar.gz Linux (64 bit)].  Download, unzip, and then run the Biodiverse binary.  You might need to follow some of the [https://code.google.com/p/biodiverse/wiki/InstallationLinuxBinary installation instructions].
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_source.7z Source code].  For Mac users.  See the [https://code.google.com/p/biodiverse/wiki/InstallationMacSource installation instructions].
 

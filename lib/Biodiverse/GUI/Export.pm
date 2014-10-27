@@ -119,6 +119,7 @@ sub Run {
 
     if ($response ne 'ok') {
         $dlg->destroy;
+        $gui->activate_keyboard_snooper (1);
         return;
     }
     

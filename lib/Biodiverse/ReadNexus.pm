@@ -612,7 +612,6 @@ sub parse_newick {
 
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
-        #$est_node_count = () = $string =~ /([(,])/g;
         $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
         $est_node_count ||= 1;
         #say "Estimated node count is $est_node_count";
@@ -655,11 +654,15 @@ sub parse_newick {
 
             $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 
-            if (exists $translate_hash->{$name}) {
-                $name = $translate_hash->{$name} ;
+            #if (exists $translate_hash->{$name}) {
+            #    $name = $translate_hash->{$name} ;
+            #}
+            if (my @components = $name =~ $RE_TEXT_IN_QUOTES) {
+                $name = $components[1];
             }
-            $name =~ s{^$quote_char} {};  #  strip any bounding quotes - let the next csv line decide
-            $name =~ s{$quote_char$} {};
+            if ($name =~ /^$quote_char(.+)$quote_char$/) {
+                $name = $1;  #  strip any bounding quotes - let the next csv line decide
+            }
             #  and now we need to make the name use the CSV rules used everywhere else
             $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
             if ($name =~ /^$quote_char(?:[$quote_char]*)$quote_char$/) {

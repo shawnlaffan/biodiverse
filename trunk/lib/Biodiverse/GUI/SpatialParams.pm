@@ -14,6 +14,7 @@ Class that implements the widgets for entering spatial params, with:
 
 =cut
 
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -36,11 +37,14 @@ sub new {
     my $start_hidden = shift;
     my $is_def_query = shift;
 
-    my $text_buffer = Gtk2::TextBuffer->new;
     my $hbox = Gtk2::HBox->new(0,2);
+    
     # Text view
-    $text_buffer->set_text($initial_text);
+    my $text_buffer = Gtk2::TextBuffer->new;
+    
+    
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
+    my $text_view_no_scroll = Gtk2::TextView->new_with_buffer($text_buffer);
 
     #  an expander has less visual impact than the previous approach
     my $expander = Gtk2::Expander->new();
@@ -51,34 +55,66 @@ sub new {
         text_view    => $text_view,
         is_def_query => $is_def_query,
         expander     => $expander,
+        current_text_view => 'Frame',
     };
     bless $self, $class;
 
     # Syntax-check button
     my $syntax_button = Gtk2::Button->new;
-    $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button') );
+    $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button'));
     $syntax_button->signal_connect_swapped(clicked => \&on_syntax_check, $self);
+    $syntax_button->set_tooltip_text('Check the validity of the spatial condition syntax');
 
-    # Scrolled window
+    # Scrolled window for multi-line conditions
     my $scroll = Gtk2::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
     
-    my $hideable_widgets = [$scroll, $syntax_button];
+    # Framed text view for single-line conditions
+    my $frame = Gtk2::Frame->new();
+    $frame->add($text_view_no_scroll);
+    
+    my $hideable_widgets = [$scroll, $frame, $syntax_button];
 
     # HBox
     $hbox->pack_start($expander, 0, 0, 0);
     $hbox->pack_start($scroll, 1, 1, 0);
+    $hbox->pack_start($frame, 1, 1, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);
     $hbox->show_all();
+
+    my $cb_text_buffer = sub {
+        if ($text_buffer->get_line_count > 1) {
+            $scroll->show;
+            $frame->hide;
+            $text_view->grab_focus;
+            $self->{current_text_view} = 'Scroll';
+        }
+        else {
+            $scroll->hide;
+            $frame->show;
+            $text_view_no_scroll->grab_focus;
+            $self->{current_text_view} = 'Frame';
+        }
+    };
+    $text_buffer->signal_connect_swapped (
+        changed => $cb_text_buffer,
+    );
+    $text_buffer->set_text($initial_text);
+    $cb_text_buffer->();
 
 
     my $expander_cb = sub {
         my $expand = !$expander->get_expanded;
         my $method = $expand ? 'show' : 'hide';
         foreach my $widget (@$hideable_widgets) {
-            $widget->$method;
+            if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+                $widget->hide;  # hide the inactive textview regardless
+            }
+            else {
+                $widget->$method;
+            }
         }
     };
     $expander->set_tooltip_text ('Show or hide the edit and verify boxes.  Use this to free up some screen real estate.');
@@ -87,9 +123,15 @@ sub new {
         $self,
     );
     $expander->set_expanded(!$start_hidden);
+
     my $method = $start_hidden ? 'hide' : 'show';
     foreach my $widget (@$hideable_widgets) {
-        $widget->$method;
+        if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+            $widget->hide;  # hide the inactive textview regardless
+        }
+        else {
+            $widget->$method;
+        }
     }
 
     return $self;

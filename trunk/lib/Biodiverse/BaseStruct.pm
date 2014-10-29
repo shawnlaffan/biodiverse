@@ -2192,10 +2192,7 @@ sub to_tree {
     my $self = shift;
     my %args = @_;
 
-    my $name = $args{name};
-    if (not defined $name) {
-        $name = $self->get_param ('NAME') . "_AS_TREE";
-    }
+    my $name = $args{name} // $self->get_param ('NAME') . "_AS_TREE";
     my $tree = Biodiverse::Tree->new (NAME => $name);
 
     my $elements = $self->get_element_hash;

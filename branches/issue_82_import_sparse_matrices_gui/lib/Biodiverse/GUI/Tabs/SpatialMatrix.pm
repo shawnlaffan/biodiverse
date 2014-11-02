@@ -5,7 +5,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Gtk2;
 use Carp;
@@ -147,6 +147,8 @@ sub new {
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
 
         menuitem_spatial_cell_outline_colour  => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
@@ -215,6 +217,8 @@ sub new {
 
     say '[SpatialMatrix tab] - Loaded tab';
 
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
+    $self->update_export_menu;
 
     #  debug stuff
     $self->{selected_list} = 'SUBELEMENTS';
@@ -585,30 +589,50 @@ sub set_plot_min_max_values {
     return;
 }
 
+sub get_index_cell_colour {
+    my $self = shift;
+
+    return $self->{index_cell_colour} // $self->set_index_cell_colour;
+}
+
+sub set_index_cell_colour {
+    my ($self, $colour) = @_;
+
+    my $default = 150 * 257;
+    $colour //= Gtk2::Gdk::Color->new($default, $default, $default);
+    $self->{index_cell_colour} = $colour;
+
+    return $colour;
+}
+
 sub recolour {
     my $self = shift;
     my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
-# callback function to get colour of each element
+    # callback function to get colour of each element
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
 
-#my $elements_hash = $self->{groups_ref}->get_element_hash;
-    my $matrix_ref    = $self->{output_ref};
-    my $sel_element   = $self->{selected_element};
+    my $matrix_ref  = $self->{output_ref};
+    my $sel_element = $self->{selected_element};
 
     my $colour_func = sub {
         my $elt = shift;
-        if ($elt eq $sel_element) {  #  mid grey
-            return $grid->get_colour_grey (($min + $max + $max) / 3, $min, $max);
-        }
+
+        return $self->get_index_cell_colour
+          if $elt eq $sel_element; #  mid grey by default
+
+        return $self->get_excluded_cell_colour
+          if !$matrix_ref->element_is_in_matrix (element => $elt);
+
         my $val = $matrix_ref->get_value (
             element1 => $elt,
             element2 => $sel_element,
         );
+
         return defined $val
             ? $grid->get_colour($val, $min, $max)
-            : undef;
+            : undef;    
     };
 
     $grid->colour($colour_func);

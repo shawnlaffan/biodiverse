@@ -8,7 +8,7 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 
@@ -211,10 +211,11 @@ sub import_data {
                     : undef;
 
         #  check the remap value is valid (need to test for quotes?)
-        my $null_entry = $el_sep x $#remap;
+        my $null_entry = $el_sep x scalar @remap;
+        chop $null_entry;  #  a null is all sep chars, one fewer than we have columns
         $hash->{REMAP} = $remapped unless (
             ! defined $remapped or                      #  thar's nowt there
-            scalar @remap && (length $element == 0) or  #  one column wide, but empty
+            scalar @remap && (length ($element) == 0) or  #  one column wide, but empty
             $remapped eq $null_entry or                 #  contains only the join char
             $remapped eq $element                       #  remapping to self, no need to store
         );

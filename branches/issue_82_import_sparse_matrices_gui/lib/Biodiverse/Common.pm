@@ -24,9 +24,12 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 
-#  need to avoid an OIO destroyed twice warning due
+#  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
-use threads;
+#  but wrap it in an eval to avoid problems on threaded builds
+BEGIN {
+    eval 'use threads';
+}
 
 use Math::Random::MT::Auto;  
 
@@ -37,7 +40,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 my $EMPTY_STRING = q{};
 

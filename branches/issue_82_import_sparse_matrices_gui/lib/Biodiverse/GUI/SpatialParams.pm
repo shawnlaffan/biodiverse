@@ -14,13 +14,14 @@ Class that implements the widgets for entering spatial params, with:
 
 =cut
 
+use 5.010;
 use strict;
 use warnings;
 use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Glib;
 use Gtk2;
@@ -36,104 +37,106 @@ sub new {
     my $start_hidden = shift;
     my $is_def_query = shift;
 
-    my $text_buffer = Gtk2::TextBuffer->new;
     my $hbox = Gtk2::HBox->new(0,2);
+    
     # Text view
-    $text_buffer->set_text($initial_text);
+    my $text_buffer = Gtk2::TextBuffer->new;
+    
+    
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
+    my $text_view_no_scroll = Gtk2::TextView->new_with_buffer($text_buffer);
+
+    #  an expander has less visual impact than the previous approach
+    my $expander = Gtk2::Expander->new();
 
     my $self = {
         buffer       => $text_buffer,
         hbox         => $hbox,
         text_view    => $text_view,
         is_def_query => $is_def_query,
+        expander     => $expander,
+        current_text_view => 'Frame',
     };
     bless $self, $class;
 
     # Syntax-check button
     my $syntax_button = Gtk2::Button->new;
-    $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button') );
+    $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button'));
     $syntax_button->signal_connect_swapped(clicked => \&on_syntax_check, $self);
+    $syntax_button->set_tooltip_text('Check the validity of the spatial condition syntax');
 
-    # Scrolled window
+    # Scrolled window for multi-line conditions
     my $scroll = Gtk2::ScrolledWindow->new;
     $scroll->set_policy('automatic', 'automatic');
     $scroll->set_shadow_type('in');
     $scroll->add( $text_view );
     
-    #  show/hide button
-    #my $check_button = Gtk2::CheckButton->new ();
-    my $check_button = Gtk2::ToggleButton->new_with_label('-');
-    #$check_button->set (yalign => 0);
-    $self->{check_button} = $check_button;
+    # Framed text view for single-line conditions
+    my $frame = Gtk2::Frame->new();
+    $frame->add($text_view_no_scroll);
     
-    $check_button->signal_connect_swapped (
-        clicked => \&on_show_hide,
-        $self,
-    );
-    $check_button->set_active (1);
-    $check_button->set_has_tooltip (1);
-    #$check_button->set_tooltip_text ($self->get_show_hide_tooltip);
-    
-    $self->{hideable_widgets} = [$scroll, $syntax_button];
+    my $hideable_widgets = [$scroll, $frame, $syntax_button];
 
-    
     # HBox
-    $hbox->pack_start($check_button, 0, 0, 0);
+    $hbox->pack_start($expander, 0, 0, 0);
     $hbox->pack_start($scroll, 1, 1, 0);
+    $hbox->pack_start($frame, 1, 1, 0);
     $hbox->pack_end($syntax_button, 0, 0, 0);
     $hbox->show_all();
-    
-    if ($start_hidden) {  #  triggers callback to hide them
-        $check_button->set_active (0);
+
+    my $cb_text_buffer = sub {
+        if ($text_buffer->get_line_count > 1) {
+            $scroll->show;
+            $frame->hide;
+            $text_view->grab_focus;
+            $self->{current_text_view} = 'Scroll';
+        }
+        else {
+            $scroll->hide;
+            $frame->show;
+            $text_view_no_scroll->grab_focus;
+            $self->{current_text_view} = 'Frame';
+        }
+    };
+    $text_buffer->signal_connect_swapped (
+        changed => $cb_text_buffer,
+    );
+    $text_buffer->set_text($initial_text);
+    $cb_text_buffer->();
+
+
+    my $expander_cb = sub {
+        my $expand = !$expander->get_expanded;
+        my $method = $expand ? 'show' : 'hide';
+        foreach my $widget (@$hideable_widgets) {
+            if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+                $widget->hide;  # hide the inactive textview regardless
+            }
+            else {
+                $widget->$method;
+            }
+        }
+    };
+    $expander->set_tooltip_text ('Show or hide the edit and verify boxes.  Use this to free up some screen real estate.');
+    $expander->signal_connect_swapped (
+        activate => $expander_cb,
+        $self,
+    );
+    $expander->set_expanded(!$start_hidden);
+
+    my $method = $start_hidden ? 'hide' : 'show';
+    foreach my $widget (@$hideable_widgets) {
+        if (not $widget =~ 'Button' and not $widget =~ $self->{current_text_view}) {
+            $widget->hide;  # hide the inactive textview regardless
+        }
+        else {
+            $widget->$method;
+        }
     }
 
     return $self;
 }
 
-sub on_show_hide {
-    my $self = shift;
-    
-    my $check_button = $self->{check_button};
-    
-    my $active = $check_button->get_active;
-    my $showhide = $active
-                    ? 'show'
-                    : 'hide';
-
-    foreach my $widget (@{$self->{hideable_widgets}}) {
-        $widget->$showhide;
-    }
-
-    if ($active) {
-        $check_button->set_label ('-');
-    }
-    else {
-        $check_button->set_label ('+');
-    }
-    
-    $check_button->set_tooltip_text ($self->get_show_hide_tooltip);
-
-    return;
-}
-
-sub get_show_hide_tooltip {
-    my $self = shift;
-    
-    my $check_button = $self->{check_button};
-    my $active = $check_button->get_active;
-
-    my $text;
-    if ($active) {
-        $text = 'Hide the edit and verify boxes to '
-                . 'free up some screen real estate';
-    }
-    else {
-        $text = 'Show the edit and verify boxes';
-    }
-
-    return $text;
-}
 
 sub syntax_check {
     my $self = shift;
@@ -151,7 +154,7 @@ sub on_syntax_check {
                 ? 'Biodiverse::SpatialConditions::DefQuery'
                 : 'Biodiverse::SpatialConditions';
 
-    #  Get the baedata associated with this output.  If none then use the selected.
+    #  Get the basedata associated with this output.  If none then use the selected.
     my $bd = $self->get_param ('BASEDATA_REF') || $gui->get_project->get_selected_base_data;
 
     my $spatial_conditions = eval {
@@ -207,25 +210,6 @@ sub get_text_view {
     return $self->{text_view};
 }
 
-sub on_hide {
-    my $self = shift;
-    
-    my $widget = $self->get_widget;
-    $widget->hide;
-    $self->{hidden} = 1;
-    
-    return;
-}
-
-sub on_show {
-    my $self = shift;
-    
-    my $widget = $self->get_widget;
-    $widget->show;
-    $self->{hidden} = 0;
-    
-    return;
-}
 
 #sub get_copy_widget {
 #    my $self = shift;

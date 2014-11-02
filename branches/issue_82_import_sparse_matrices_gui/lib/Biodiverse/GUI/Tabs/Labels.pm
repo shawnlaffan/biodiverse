@@ -15,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -476,16 +476,15 @@ sub set_phylogeny_options_sensitive {
 sub on_selected_phylogeny_changed {
     my $self = shift;
 
-# phylogenies
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
-            $self->set_phylogeny_options_sensitive(1);
+        $self->set_phylogeny_options_sensitive(1);
     }
     else {
-#$self->{dendrogram}->clear;
+        $self->{dendrogram}->set_cluster(undef, 'length');  
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);

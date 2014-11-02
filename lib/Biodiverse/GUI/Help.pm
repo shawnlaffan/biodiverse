@@ -130,7 +130,7 @@ END_LINK_TEXT
 sub help_show_check_for_updates {
     my $gui = shift;
     
-    my $download_url = 'http://code.google.com/p/biodiverse/downloads/list';
+    my $download_url = 'https://code.google.com/p/biodiverse/wiki/Downloads';
     
     my $url = 'http://biodiverse.googlecode.com/svn/trunk/etc/versions.txt';
     my $http_response = HTTP::Tiny->new->get($url);

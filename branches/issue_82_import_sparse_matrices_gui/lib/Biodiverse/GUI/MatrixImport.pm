@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use File::Basename;
 use Carp;
+use Scalar::Util qw /reftype/;
 
 use File::BOM qw / :subs /;
 
@@ -13,7 +14,7 @@ use Gtk2::GladeXML;
 our $VERSION = '0.99_006';
 
 use Biodiverse::GUI::Project;
-use Biodiverse::GUI::BasedataImport;  #  needed for the ramp dialogue - should shift that to its own package
+use Biodiverse::GUI::BasedataImport;  #  needed for the remap dialogue - should shift that to its own package
 use Biodiverse::ElementProperties;
 use Biodiverse::Common;
 
@@ -25,18 +26,27 @@ sub run {
     my $gui = shift;
     my $max_hdr_cols = shift // 50;  #  too many slows the GUI, and are typically redundant
 
+    # Get format choice
+    my $response = Biodiverse::GUI::YesNoCancel->run({
+        header => "Use sparse format?\n",
+        text   => 'Choose no if you are using a standard nxn matrix.'
+    });
+    return if $response eq 'cancel';
+
+    my $use_sparse_format = $response eq 'yes';
+
+    return import_sparse_format($gui, $max_hdr_cols) if $use_sparse_format;
+
+    
     #########
+    #  We are using the "normal" approach from here on
+    #  
     # 1. Get the matrix name & filename
     #########
+
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Import Matrix', ['csv', 'txt'], 'csv', 'txt', '*');
 
-    return if ! ($filename && $name);
-
-    #####
-    #
-    #  Add option to use normal or sparse
-    #  - simpler than autodetection which is fraught with possible problems.
-    #  branch off into different sub if sparse format
+    return if ! ($filename && defined $name);
     
     
     # Get header columns
@@ -110,8 +120,9 @@ sub run {
     #########
     # 2. Get column types
     #########
+    
     my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
-    my ($column_settings, $response);
+    my ($column_settings);
 
   GET_RESPONSE:
     while (1) { # Keep showing dialog until have at least one label & one matrix-start column
@@ -142,6 +153,7 @@ sub run {
 
     return if !$column_settings;
 
+    
     #  do we need a remap table?
     my $remap;
     my $remap_response
@@ -237,7 +249,7 @@ sub get_column_settings {
 
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
-sub make_columns_dialog {
+sub make_columns_dialog_normal {
     my $header       = shift;  # ref to column header array
     my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
@@ -277,18 +289,6 @@ sub make_columns_dialog {
     $label->set_use_markup(1);
     $label->set_alignment(1, 0.5);
     $table->attach_defaults($label, 0, 1, 0, 1);
-
-    #$label = Gtk2::Label->new($type_options->[0]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 1, 2);
-    #
-    #$label = Gtk2::Label->new($type_options->[1]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 2, 3);
-    #
-    #$label = Gtk2::Label->new($type_options->[2]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 3, 4);
     
     my $iter = 0;
     foreach my $type (@$type_options) {
@@ -338,6 +338,91 @@ sub add_column {
 
     # Store widgets
     $col_widgets->[$col_id] = [$radio1, $radio2, $radio3];
+}
+
+sub import_sparse_format {
+    my ($gui, $max_hdr_cols) = @_;
+
+    my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Import Matrix', ['csv', 'txt'], 'csv', 'txt', '*');
+
+    return if ! ($filename && defined $name);
+
+    my $column_settings = Biodiverse::GUI::BasedataImport::get_remap_info (
+        gui => $gui,
+        type => 'matrix',
+        get_dir_from => $filename,
+        filename => $filename,
+        other_properties => [qw/Row Column Value/],
+        column_overrides => [qw/Row Column Value/],
+        required_cols    => [qw/Row Column Value/],
+    );
+
+    #  nothing selected
+    return if !scalar keys %$column_settings;
+
+    #  do we need a remap table?
+    my $remap;
+    my $remap_response
+        = Biodiverse::GUI::YesNoCancel->run ({
+            title => 'Remap option',
+            text  => 'Remap element names and set include/exclude?'
+            }
+        );
+
+    return if lc $remap_response eq 'cancel';
+
+    if (lc $remap_response eq 'yes') {
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui => $gui,
+            type => 'remap',
+            get_dir_from => $filename,
+        );
+
+        #  now do something with them...
+        if ($remap_data{file}) {
+            #my $file = $remap_data{file};
+            $remap = Biodiverse::ElementProperties->new;
+            $remap->import_data (%remap_data);
+        }
+    }
+
+    #########
+    # 3. Add the matrix
+    #########
+    my $matrix_ref = Biodiverse::Matrix->new (NAME => $name);
+
+    # Set parameters
+
+    my %mapping = (
+        label_row_columns => 'row',
+        label_col_columns => 'column',
+        value_column      => 'value',
+    );
+
+    my %import_args;
+    foreach my $coltype (keys %mapping) {
+        my $option = $mapping{$coltype};
+        my $aref = $import_args{$coltype} = [];
+        my $cols = $column_settings->{$option};
+        if (!reftype $cols) {
+            $cols = [$cols]
+        }
+        foreach my $col (@$cols) {
+            push (@$aref, $col);
+        }
+    }
+
+    # Load file
+    $matrix_ref->import_data_sparse(
+        file               => $filename,
+        element_properties => $remap,
+        #csv_object         => $csv_object,
+        %import_args,
+    );
+
+    $gui->get_project->add_matrix ($matrix_ref);
+
+    return $matrix_ref;    
 }
 
 1;

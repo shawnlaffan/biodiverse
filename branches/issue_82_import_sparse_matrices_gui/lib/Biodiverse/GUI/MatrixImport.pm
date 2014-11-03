@@ -26,18 +26,7 @@ sub run {
     my $gui = shift;
     my $max_hdr_cols = shift // 50;  #  too many slows the GUI, and are typically redundant
 
-    # Get format choice
-    my $response = Biodiverse::GUI::YesNoCancel->run({
-        header => "Use sparse format?\n",
-        text   => 'Choose no if you are using a standard nxn matrix.'
-    });
-    return if $response eq 'cancel';
 
-    my $use_sparse_format = $response eq 'yes';
-
-    return import_sparse_format($gui, $max_hdr_cols) if $use_sparse_format;
-
-    
     #########
     #  We are using the "normal" approach from here on
     #  
@@ -48,6 +37,18 @@ sub run {
 
     return if ! ($filename && defined $name);
     
+    #  should we use a sparse or normal format
+    my $response = run_combo_sparse_normal();
+
+    return if !$response;
+
+    my $use_sparse_format = $response eq 'sparse' ? 1 : 0;
+
+
+    return import_sparse_format($name, $filename, $gui, $max_hdr_cols)
+      if $use_sparse_format;
+
+
     
     # Get header columns
     say "[GUI] Discovering columns from $filename";
@@ -341,9 +342,7 @@ sub add_column {
 }
 
 sub import_sparse_format {
-    my ($gui, $max_hdr_cols) = @_;
-
-    my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Import Matrix', ['csv', 'txt'], 'csv', 'txt', '*');
+    my ($name, $filename, $gui, $max_hdr_cols) = @_;
 
     return if ! ($filename && defined $name);
 
@@ -423,6 +422,40 @@ sub import_sparse_format {
     $gui->get_project->add_matrix ($matrix_ref);
 
     return $matrix_ref;    
+}
+
+
+sub run_combo_sparse_normal {
+    
+    my $combo = Gtk2::ComboBox->new_text;
+    $combo->append_text ('normal');
+    $combo->append_text ('sparse');
+    $combo->set_active(0);
+    $combo->show_all;
+    $combo->set_tooltip_text ('Normal is an n by n symmetric matric while sparse is one row/column pair per line');
+
+    my $label = Gtk2::Label->new ('Input file format');
+
+    my $dlg = Gtk2::Dialog->new_with_buttons (
+        'Input file format',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($label, 0, 0, 0);
+    $vbox->pack_start($combo, 0, 0, 0);
+
+    $dlg->show_all;
+    
+    my $response = $dlg->run();
+    $dlg->destroy();
+    
+    return if lc($response) ne 'ok';
+    
+    return $combo->get_active_text;
 }
 
 1;

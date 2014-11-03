@@ -509,7 +509,7 @@ sub on_selected_matrix_changed {
 
     my $xml_page = $self->{xmlPage};
 
-#  hide the second list if no matrix selected
+    #  hide the second list if no matrix selected
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
 
     my $list = $xml_page->get_widget('listLabels1');
@@ -517,8 +517,8 @@ sub on_selected_matrix_changed {
 
     if (! defined $matrix_ref) {
         $list_window->hide;     #  hide the second list
-            $col->set_visible (0);  #  hide the list 2 selection
-#    col from list 1
+        $col->set_visible (0);  #  hide the list 2 selection
+        #    col from list 1
     }
     else {
         $list_window->show;
@@ -527,9 +527,9 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
-# matrix
+    # matrix
     $self->on_sorted(); # (this reloads the whole matrix anyway)    
-        $self->{matrix_grid}->zoom_fit();
+    $self->{matrix_grid}->zoom_fit();
 
     return;
 }

@@ -118,7 +118,8 @@ sub new {
     # Set up canvas
     $self->{canvas}->set_center_scroll_region(0);
     $self->{canvas}->show;
-    $self->{zoom_fit}  = 1;
+    #$self->{zoom_fit}  = 1;
+    $self->set_zoom_fit_flag(1);
     $self->{dragging}  = 0;
     $self->{selecting} = 0;
 
@@ -864,7 +865,9 @@ sub on_size_allocate {
     $self->{height_px} = $size->height;
 
     if (exists $self->{width_units}) {
-        $self->fit_grid() if ($self->{zoom_fit});
+        if ($self->get_zoom_fit_flag) {
+            $self->fit_grid();
+        }
 
         $self->reposition();
         $self->setup_scrollbars();
@@ -1053,7 +1056,7 @@ sub reposition {
     );
     
     # Reposition the "mark" textboxes
-    my $mark_x = $scroll_x + $width - $legend_width - 2*$border_width; # world units
+    my $mark_x = $scroll_x + $width - $legend_width - 2 * $border_width; # world units
     foreach my $i (0..3) {
         $self->{marks}[$i]->set( x => $mark_x , y => $scroll_y + $i * $height / 3);
     }
@@ -1090,7 +1093,7 @@ sub zoom_in {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu * 1.5 );
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit_flag (0);
     $self->post_zoom();
     
     return;
@@ -1100,7 +1103,7 @@ sub zoom_out {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu / 1.5 );
-    $self->{zoom_fit} = 0;
+    $self->set_zoom_fit_flag (0);
     $self->post_zoom();
     
     return;
@@ -1108,11 +1111,23 @@ sub zoom_out {
 
 sub zoom_fit {
     my $self = shift;
-    $self->{zoom_fit} = 1;
+    $self->set_zoom_fit_flag (1);
     $self->fit_grid();
     $self->post_zoom();
     
     return;
+}
+
+sub set_zoom_fit_flag {
+    my ($self, $zoom_fit) = @_;
+    
+    $self->{zoom_fit} = $zoom_fit;
+}
+
+sub get_zoom_fit_flag {
+    my ($self) = @_;
+    
+    return $self->{zoom_fit};
 }
 
 sub post_zoom {

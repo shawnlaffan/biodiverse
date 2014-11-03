@@ -676,13 +676,14 @@ sub handle_grid_drag_zoom {
 
     my $midx = ($rect->[0] + $rect->[2]) / 2;
     my $midy = ($rect->[1] + $rect->[3]) / 2;
-    $midx = $rect->[0];
-    $midy = $rect->[1];
+    #$midx = $rect->[0];
+    #$midy = $rect->[1];
 
     # Apply and pan
     $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
     $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
+    #$canvas->scroll_to($canvas->w2c($midx, $midy));
     $grid->update_scrollbars ($midx, $midy);
 
 }

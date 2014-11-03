@@ -1840,7 +1840,6 @@ sub resize_background_rect {
             );
             $self->{back_rect}->lower_to_bottom();
         }
-
     }
     
     return;

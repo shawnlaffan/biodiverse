@@ -6,7 +6,7 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed/;
+use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
@@ -320,6 +320,10 @@ sub import_data_sparse {
     my @label_row_columns  = @{$args{label_row_columns}};
     my @label_col_columns  = @{$args{label_col_columns}};
     my $value_column       = $args{value_column};
+    
+    if (reftype ($value_column)) {
+        $value_column = $value_column->[0];  #  take the first if we are passed an array
+    }
 
     say "[MATRICES] INPUT MATRIX FILE: $file";
 
@@ -384,6 +388,8 @@ sub import_data_sparse {
             list       => \@tmp,
             csv_object => $out_csv,
         );
+        $col_label = $self->dequote_element (element => $col_label, quote_char => $out_quote_char);
+        $row_label = $self->dequote_element (element => $row_label, quote_char => $out_quote_char);
 
         if ($element_properties) {
 

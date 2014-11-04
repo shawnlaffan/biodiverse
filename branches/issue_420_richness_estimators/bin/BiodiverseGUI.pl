@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -137,13 +137,32 @@ sub get_gladefile {
         return $gladefile;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
-        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade')->stringify;
-        if (-e $gladefile) {
+        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade');
+        my $gladefile_str = $gladefile->stringify;
+        if (-e $gladefile_str) {
             say "Using PAR glade file $gladefile";
-            return $gladefile;
+            return $gladefile_str;
         }
         else {
-            say "Cannot locate $gladefile";
+            #  manually unpack the glade folder contents
+            require Archive::Zip;
+
+            my $glade_folder = $gladefile->dir;
+            my $zip = Archive::Zip->new($ENV{PAR_PROGNAME}) or die "Unable to open $ENV{PAR_PROGNAME}";
+            my $glade_zipped = $zip->extractTree( 'glade', $glade_folder );
+
+            if (-e $gladefile && -s $gladefile_str) {
+                say "Using PAR glade file $gladefile";
+                return $gladefile_str;
+            }
+            else {
+                say '=============';
+                say "Cannot locate $gladefile";
+                say 'This can happen if your temp directory is cleaned while '
+                    . 'you are running Biodiverse.  Deleting the par temp directory '
+                    . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
+                say '=============';
+            }
         }
     }
 
@@ -156,7 +175,7 @@ sub get_gladefile {
         $gladefile = Path::Class::file( $Bin, 'biodiverse.glade' )->stringify;
     }
 
-    croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+    die 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
 
     say "Using $gladefile";
 
@@ -178,13 +197,30 @@ sub get_iconfile {
         return $icon;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
-        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico')->stringify;
-        if (-e $icon) {
+        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico');
+        my $icon_str = $icon->stringify;
+        if (-e $icon_str) {
             say "Using PAR icon file $icon";
-            return $icon;
+            return $icon_str;
         }
         else {
-            say "Cannot locate $icon";
+            #  manually unpack the icon file
+            require Archive::Zip;
+
+            my $folder = $icon->dir;
+            my $fname  = $icon->basename;
+            my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
+              or die "Unable to open $ENV{PAR_PROGNAME}";
+
+            my $glade_zipped = $zip->extractMember ( $fname, $icon_str );
+
+            if (-e $icon) {
+                say "Using PAR icon file $icon";
+                return $icon_str;
+            }
+            else {
+                say "Cannot locate $icon in the PAR archive";
+            }
         }
     }
 

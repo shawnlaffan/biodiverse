@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -130,7 +130,6 @@ sub use_base {
         if (exists $ENV{BIODIVERSE_EXTENSIONS}
             && ! $ENV{BIODIVERSE_EXTENSIONS_IGNORE}) {
             $file = $ENV{BIODIVERSE_EXTENSIONS};
-            $use_envt_var = 1;
         }
         else {
             print "[USE_BASE] No user defined extensions\n";
@@ -145,20 +144,21 @@ sub use_base {
     if (-e $file) {
         say "...from file $file";
         local $/ = undef;
-        my $success = open (my $fh, '<', $ENV{BIODIVERSE_EXTENSIONS});
-        croak "Unable to open extensions file $ENV{BIODIVERSE_EXTENSIONS}\n"
+        my $success = open (my $fh, '<', $file);
+        croak "Unable to open extensions file $file\n"
             if ! $success;
 
         $x = eval (<$fh>);
         my $e = $EVAL_ERROR;
         if ($e) {
-            warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or syntax\n";
+            warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or contents\n";
             warn $EVAL_ERROR;
-            warn "$ENV{BIODIVERSE_EXTENSIONS}\n";
+            warn "$file\n";
         }
         close ($fh);
     }
-    elsif ($use_envt_var) {
+    else {
+        warn "File $file does not exist\n";
         warn "Loading extensions directly from environment variable is deprecated\n";
         warn "Nothing loaded\n";
     }

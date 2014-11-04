@@ -4,16 +4,17 @@ use strict;
 use warnings;
 use File::Basename;
 use Carp;
+use Scalar::Util qw /reftype/;
 
 use File::BOM qw / :subs /;
 
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::GUI::Project;
-use Biodiverse::GUI::BasedataImport;  #  needed for the ramp dialogue - should shift that to its own package
+use Biodiverse::GUI::BasedataImport;  #  needed for the remap dialogue - should shift that to its own package
 use Biodiverse::ElementProperties;
 use Biodiverse::Common;
 
@@ -25,13 +26,30 @@ sub run {
     my $gui = shift;
     my $max_hdr_cols = shift // 50;  #  too many slows the GUI, and are typically redundant
 
+
     #########
+    #  We are using the "normal" approach from here on
+    #  
     # 1. Get the matrix name & filename
     #########
+
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Import Matrix', ['csv', 'txt'], 'csv', 'txt', '*');
 
-    return if ! ($filename && $name);
+    return if ! ($filename && defined $name);
+    
+    #  should we use a sparse or normal format
+    my $response = run_combo_sparse_normal();
 
+    return if !$response;
+
+    my $use_sparse_format = $response eq 'sparse' ? 1 : 0;
+
+
+    return import_sparse_format($name, $filename, $gui, $max_hdr_cols)
+      if $use_sparse_format;
+
+
+    
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
@@ -103,8 +121,9 @@ sub run {
     #########
     # 2. Get column types
     #########
+    
     my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
-    my ($column_settings, $response);
+    my ($column_settings);
 
   GET_RESPONSE:
     while (1) { # Keep showing dialog until have at least one label & one matrix-start column
@@ -135,6 +154,7 @@ sub run {
 
     return if !$column_settings;
 
+    
     #  do we need a remap table?
     my $remap;
     my $remap_response
@@ -230,7 +250,7 @@ sub get_column_settings {
 
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
-sub make_columns_dialog {
+sub make_columns_dialog_normal {
     my $header       = shift;  # ref to column header array
     my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
@@ -270,18 +290,6 @@ sub make_columns_dialog {
     $label->set_use_markup(1);
     $label->set_alignment(1, 0.5);
     $table->attach_defaults($label, 0, 1, 0, 1);
-
-    #$label = Gtk2::Label->new($type_options->[0]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 1, 2);
-    #
-    #$label = Gtk2::Label->new($type_options->[1]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 2, 3);
-    #
-    #$label = Gtk2::Label->new($type_options->[2]);
-    #$label->set_alignment(1, 0.5);
-    #$table->attach_defaults($label, 0, 1, 3, 4);
     
     my $iter = 0;
     foreach my $type (@$type_options) {
@@ -331,6 +339,123 @@ sub add_column {
 
     # Store widgets
     $col_widgets->[$col_id] = [$radio1, $radio2, $radio3];
+}
+
+sub import_sparse_format {
+    my ($name, $filename, $gui, $max_hdr_cols) = @_;
+
+    return if ! ($filename && defined $name);
+
+    my $column_settings = Biodiverse::GUI::BasedataImport::get_remap_info (
+        gui => $gui,
+        type => 'matrix',
+        get_dir_from => $filename,
+        filename => $filename,
+        other_properties => [qw/Row Column Value/],
+        column_overrides => [qw/Row Column Value/],
+        required_cols    => [qw/Row Column Value/],
+    );
+
+    #  nothing selected
+    return if !scalar keys %$column_settings;
+
+    #  do we need a remap table?
+    my $remap;
+    my $remap_response
+        = Biodiverse::GUI::YesNoCancel->run ({
+            title => 'Remap option',
+            text  => 'Remap element names and set include/exclude?'
+            }
+        );
+
+    return if lc $remap_response eq 'cancel';
+
+    if (lc $remap_response eq 'yes') {
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+            gui => $gui,
+            type => 'remap',
+            get_dir_from => $filename,
+        );
+
+        #  now do something with them...
+        if ($remap_data{file}) {
+            #my $file = $remap_data{file};
+            $remap = Biodiverse::ElementProperties->new;
+            $remap->import_data (%remap_data);
+        }
+    }
+
+    #########
+    # 3. Add the matrix
+    #########
+    my $matrix_ref = Biodiverse::Matrix->new (NAME => $name);
+
+    # Set parameters
+
+    my %mapping = (
+        label_row_columns => 'row',
+        label_col_columns => 'column',
+        value_column      => 'value',
+    );
+
+    my %import_args;
+    foreach my $coltype (keys %mapping) {
+        my $option = $mapping{$coltype};
+        my $aref = $import_args{$coltype} = [];
+        my $cols = $column_settings->{$option};
+        if (!reftype $cols) {
+            $cols = [$cols]
+        }
+        foreach my $col (@$cols) {
+            push (@$aref, $col);
+        }
+    }
+
+    # Load file
+    $matrix_ref->import_data_sparse(
+        file               => $filename,
+        element_properties => $remap,
+        #csv_object         => $csv_object,
+        %import_args,
+    );
+
+    $gui->get_project->add_matrix ($matrix_ref);
+
+    return $matrix_ref;    
+}
+
+
+sub run_combo_sparse_normal {
+    
+    my $combo = Gtk2::ComboBox->new_text;
+    $combo->append_text ('normal');
+    $combo->append_text ('sparse');
+    $combo->set_active(0);
+    $combo->show_all;
+    $combo->set_tooltip_text ('Normal is an n by n symmetric matric while sparse is one row/column pair per line');
+
+    my $label = Gtk2::Label->new ('Input file format');
+
+    my $dlg = Gtk2::Dialog->new_with_buttons (
+        'Input file format',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($label, 0, 0, 0);
+    $vbox->pack_start($combo, 0, 0, 0);
+
+    $dlg->show_all;
+    
+    my $response = $dlg->run();
+    $dlg->destroy();
+    
+    return if lc($response) ne 'ok';
+    
+    return $combo->get_active_text;
 }
 
 1;

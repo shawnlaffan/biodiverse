@@ -24,9 +24,12 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 
-#  need to avoid an OIO destroyed twice warning due
+#  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
-use threads;
+#  but wrap it in an eval to avoid problems on threaded builds
+BEGIN {
+    eval 'use threads';
+}
 
 use Math::Random::MT::Auto;  
 
@@ -37,7 +40,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 my $EMPTY_STRING = q{};
 
@@ -857,7 +860,7 @@ sub write_table {
     }
     else {
         print "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
-        $self -> write_table_csv (%args, data => $data);
+        $self->write_table_csv (%args, data => $data);
     }
 }
 
@@ -1409,6 +1412,8 @@ sub move_to_front_of_list {
 sub guess_field_separator {
     my $self = shift;
     my %args = @_;  #  these are passed straight through, except sep_char is overridden
+    
+    my $lines_to_use = $args{lines_to_use} // 10;
 
     my $string = $args{string};
     $string = $$string if ref $string;
@@ -1444,14 +1449,14 @@ sub guess_field_separator {
     my @str_arr = split $eol, $string;
     my $sep;
 
-    if (@str_arr > 1) {  #  check the sep char works using subsequent lines
+    if ($lines_to_use > 1 && @str_arr > 1) {  #  check the sep char works using subsequent lines
         %sep_count = reverse %sep_count;  #  should do it properly above
         my %checked;
 
       SEP:
         foreach my $sep (sort keys %sep_count) {
             #  check up to the first ten lines
-            foreach my $string (@str_arr[1 .. min (10, $#str_arr)]) {
+            foreach my $string (@str_arr[1 .. min ($lines_to_use, $#str_arr)]) {
                 my $flds = eval {
                     $self->csv2list (
                         %args,
@@ -1621,6 +1626,7 @@ sub get_csv_object_using_guesswork {
         string     => $string,
         quote_char => $quote_char,
         eol        => $eol,
+        lines_to_use => $args{lines_to_use},
     );
 
     my $csv_obj = $self->get_csv_object (

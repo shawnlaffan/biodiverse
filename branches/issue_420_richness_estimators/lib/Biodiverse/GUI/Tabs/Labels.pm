@@ -15,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -476,16 +476,15 @@ sub set_phylogeny_options_sensitive {
 sub on_selected_phylogeny_changed {
     my $self = shift;
 
-# phylogenies
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
-            $self->set_phylogeny_options_sensitive(1);
+        $self->set_phylogeny_options_sensitive(1);
     }
     else {
-#$self->{dendrogram}->clear;
+        $self->{dendrogram}->set_cluster(undef, 'length');  
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
@@ -510,7 +509,7 @@ sub on_selected_matrix_changed {
 
     my $xml_page = $self->{xmlPage};
 
-#  hide the second list if no matrix selected
+    #  hide the second list if no matrix selected
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
 
     my $list = $xml_page->get_widget('listLabels1');
@@ -518,8 +517,8 @@ sub on_selected_matrix_changed {
 
     if (! defined $matrix_ref) {
         $list_window->hide;     #  hide the second list
-            $col->set_visible (0);  #  hide the list 2 selection
-#    col from list 1
+        $col->set_visible (0);  #  hide the list 2 selection
+        #    col from list 1
     }
     else {
         $list_window->show;
@@ -528,9 +527,9 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
-# matrix
+    # matrix
     $self->on_sorted(); # (this reloads the whole matrix anyway)    
-        $self->{matrix_grid}->zoom_fit();
+    $self->{matrix_grid}->zoom_fit();
 
     return;
 }
@@ -1232,11 +1231,14 @@ sub on_matrix_hover {
 
 sub on_matrix_clicked {
     my $self = shift;
-    my ($h_start, $h_end, $v_start, $v_end) = @_;
+    my %args = @_;
+    my $cell_coords  = $args{cell_coords};
+    my $pixel_coords = $args{pixel_coords};
 
     #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
 
     if ($self->{tool} eq 'Select') {
+        my ($h_start, $h_end, $v_start, $v_end) = @{$cell_coords};
         $h_start = Gtk2::TreePath->new_from_indices($h_start);
         $h_end   = Gtk2::TreePath->new_from_indices($h_end);
         $v_start = Gtk2::TreePath->new_from_indices($v_start);
@@ -1264,11 +1266,7 @@ sub on_matrix_clicked {
         $vlist->scroll_to_cell( $v_start );
     }
     elsif ($self->{tool} eq 'ZoomIn') {
-        my $rect = [
-            map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
-                ($v_start, $h_start, $v_end, $h_end)
-        ];
-        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
+        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
     }
 
     return;

@@ -8,6 +8,7 @@ use warnings;
 use FindBin qw/$Bin/;
 use rlib;
 use Scalar::Util qw /blessed/;
+use File::Compare;
 
 use Test::More;
 
@@ -30,8 +31,45 @@ my @classes = qw /
     Biodiverse::Matrix::LowMem
 /;
 
-foreach my $class (@classes) {
-    run_main_tests($class);
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
+
+    done_testing;
+    return 0;
+}
+
+sub test_to_table {
+    foreach my $class (@classes) {
+        _test_to_table ($class);
+    }
+}
+
+sub test_main_tests {
+    foreach my $class (@classes) {
+        run_main_tests($class);
+    }
 }
 
 foreach my $class (@classes) {
@@ -39,14 +77,14 @@ foreach my $class (@classes) {
 }
 
 #  now check with lower precision
-{
+sub test_lower_precision {
     my $class = 'Biodiverse::Matrix';
     my $precision = '%.1f';
     run_with_site_data ($class, VAL_INDEX_PRECISION => $precision);
 }
 
 #  can one class substitute for the other?
-{
+sub test_class_substitution {
     my $normal_class = 'Biodiverse::Matrix';
     my $lowmem_class = 'Biodiverse::Matrix::LowMem';
 
@@ -67,17 +105,82 @@ foreach my $class (@classes) {
 }
 
 
-#  NEED TO TEST EFFECT OF DELETIONS
-foreach my $class (@classes) {
-    run_deletions($class);
+#  Test the effect of deletions
+sub test_deletions {
+    foreach my $class (@classes) {
+        run_deletions($class);
+    }
 }
 
-{
-    test_cluster_analysis();
+sub test_cluster_analysis {
+    #  make sure we get the same cluster result using each type of matrix
+    #my $data = get_cluster_mini_data();
+    #my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my $prng_seed = 123456;
+
+    my $class1 = 'Biodiverse::Matrix';
+    my $cl1 = $bd->add_cluster_output (
+        name => $class1,
+        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+        MATRIX_CLASS        => $class1,
+    );
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    my $nwk1 = $cl1->to_newick;
+
+    #  make sure we build a new matrix
+    $bd->delete_all_outputs();
+
+    my $class2 = 'Biodiverse::Matrix::LowMem';
+    my $cl2 = $bd->add_cluster_output (
+        name => $class2,
+        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+        MATRIX_CLASS        => $class2,
+    );
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    my $nwk2 = $cl2->to_newick;
+
+    
+    is (
+        $nwk1,
+        $nwk2,
+        "Cluster analyses using matrices of classes $class1 and $class2 are the same"
+    );
 }
 
 
-done_testing();
+#  generate a matrix, export to sparse format, and then try to import it
+sub test_import_sparse_format {
+    my $mx = create_matrix_object();
+
+    my $fname = rand() . 'tmp_mx.csv';
+
+    $mx->export (
+        format => 'Delimited text',
+        file   => $fname,
+        type   => 'sparse',
+    );
+
+    foreach my $class (@classes) {
+        my $mx_from_sp = $class->new(
+            name => $class,
+        );
+        $mx_from_sp->import_data_sparse (
+            file => $fname,
+            label_row_columns => [0],
+            label_col_columns => [1],
+            value_column      => 2,
+        );
+        run_main_tests ($class, $mx_from_sp);
+    }
+    
+    unlink $fname;
+}
 
 sub run_deletions {
     my ($class, $mx) = @_;
@@ -332,46 +435,6 @@ sub run_with_site_data {
     #$mx->save_to_yaml (filename => $mx =~ /LowMem/ ? 'xx_LowMem.bmy' : 'xx_normal.bmy');
 }
 
-sub test_cluster_analysis {
-    #  make sure we get the same cluster result using each type of matrix
-    #my $data = get_cluster_mini_data();
-    #my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-
-    my $prng_seed = 123456;
-
-    my $class1 = 'Biodiverse::Matrix';
-    my $cl1 = $bd->add_cluster_output (
-        name => $class1,
-        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
-        MATRIX_CLASS        => $class1,
-    );
-    $cl1->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    my $nwk1 = $cl1->to_newick;
-
-    #  make sure we build a new matrix
-    $bd->delete_all_outputs();
-
-    my $class2 = 'Biodiverse::Matrix::LowMem';
-    my $cl2 = $bd->add_cluster_output (
-        name => $class2,
-        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
-        MATRIX_CLASS        => $class2,
-    );
-    $cl2->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    my $nwk2 = $cl2->to_newick;
-
-    
-    is (
-        $nwk1,
-        $nwk2,
-        "Cluster analyses using matrices of classes $class1 and $class2 are the same"
-    );
-}
 
 
 sub create_matrix_object {
@@ -403,7 +466,41 @@ sub create_matrix_object {
     return $mx;
 }
 
+sub _test_to_table {
+    my ($class, $expected) = @_;
 
+    my $mx = create_matrix_object($class);
+    $expected //= get_exported_matrix_data();
+
+    my @types = qw /normal sparse gdm/;
+    my %tables;
+
+    foreach my $type (@types) {
+        my $table = $mx->to_table (type => $type);
+        $tables{$type} = $table;
+        
+        is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
+    }
+    
+    #  now check the exports are the same with and without file handles
+    foreach my $type (@types) {
+        my $f   = File::Temp->new (TEMPLATE => 'bd_XXXXXX', TMPDIR => 1);
+        my $pfx = $f->filename;
+
+        my $fname_use_fh = $pfx . '_use_fh.csv';
+        my $fname_no_fh  = $pfx . '_no_fh.csv';
+
+        $mx->export_delimited_text (type => $type, filename => $fname_use_fh);
+        $mx->export_delimited_text (type => $type, filename => $fname_no_fh, _no_fh => 1);
+
+        my $comp = File::Compare::compare ($fname_use_fh, $fname_no_fh);
+        ok (!$comp, "Exported files with and without file handles in to_table are identical for $type, " . blessed ($mx));
+
+        unlink $fname_use_fh, $fname_no_fh;
+    }
+    
+
+}
 
 
 ######################################
@@ -412,6 +509,11 @@ sub get_matrix_data {
     return get_data_section('MATRIX_DATA');
 }
 
+sub get_exported_matrix_data {
+    my $data = get_data_section('EXPORTED_MATRIX_DATA');
+    my $hash = eval $data;
+    return $hash;
+}
 
 1;
 
@@ -428,4 +530,354 @@ f 1
 
 @@ placeholder
 - a b c d e
+
+
+@@ EXPORTED_MATRIX_DATA
+{
+  gdm => [
+    [
+      'x1',
+      'y1',
+      'x2',
+      'y2',
+      'Value'
+    ],
+    [
+      'a',
+      undef,
+      'b',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'c',
+      undef,
+      '2'
+    ],
+    [
+      'a',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'a',
+      undef,
+      'e',
+      undef,
+      '1'
+    ],
+    [
+      'a',
+      undef,
+      'f',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'b',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'b',
+      undef,
+      'd',
+      undef,
+      '5'
+    ],
+    [
+      'b',
+      undef,
+      'e',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'a',
+      undef,
+      '2'
+    ],
+    [
+      'c',
+      undef,
+      'b',
+      undef,
+      '3'
+    ],
+    [
+      'c',
+      undef,
+      'd',
+      undef,
+      '6'
+    ],
+    [
+      'c',
+      undef,
+      'e',
+      undef,
+      '3'
+    ],
+    [
+      'd',
+      undef,
+      'a',
+      undef,
+      '4'
+    ],
+    [
+      'd',
+      undef,
+      'b',
+      undef,
+      '5'
+    ],
+    [
+      'd',
+      undef,
+      'c',
+      undef,
+      '6'
+    ],
+    [
+      'd',
+      undef,
+      'e',
+      undef,
+      '4'
+    ],
+    [
+      'e',
+      undef,
+      'a',
+      undef,
+      '1'
+    ],
+    [
+      'e',
+      undef,
+      'b',
+      undef,
+      '2'
+    ],
+    [
+      'e',
+      undef,
+      'c',
+      undef,
+      '3'
+    ],
+    [
+      'e',
+      undef,
+      'd',
+      undef,
+      '4'
+    ],
+    [
+      'f',
+      undef,
+      'a',
+      undef,
+      '1'
+    ]
+  ],
+  normal => [
+    [
+      '',
+      'a',
+      'b',
+      'c',
+      'd',
+      'e',
+      'f'
+    ],
+    [
+      'a',
+      undef,
+      '1',
+      '2',
+      '4',
+      '1',
+      '1'
+    ],
+    [
+      'b',
+      '1',
+      undef,
+      '3',
+      '5',
+      '2',
+      undef
+    ],
+    [
+      'c',
+      '2',
+      '3',
+      undef,
+      '6',
+      '3',
+      undef
+    ],
+    [
+      'd',
+      '4',
+      '5',
+      '6',
+      undef,
+      '4',
+      undef
+    ],
+    [
+      'e',
+      '1',
+      '2',
+      '3',
+      '4',
+      undef,
+      undef
+    ],
+    [
+      'f',
+      '1',
+      undef,
+      undef,
+      undef,
+      undef,
+      undef
+    ]
+  ],
+  sparse => [
+    [
+      'Row',
+      'Column',
+      'Value'
+    ],
+    [
+      'a',
+      'b',
+      '1'
+    ],
+    [
+      'a',
+      'c',
+      '2'
+    ],
+    [
+      'a',
+      'd',
+      '4'
+    ],
+    [
+      'a',
+      'e',
+      '1'
+    ],
+    [
+      'a',
+      'f',
+      '1'
+    ],
+    [
+      'b',
+      'a',
+      '1'
+    ],
+    [
+      'b',
+      'c',
+      '3'
+    ],
+    [
+      'b',
+      'd',
+      '5'
+    ],
+    [
+      'b',
+      'e',
+      '2'
+    ],
+    [
+      'c',
+      'a',
+      '2'
+    ],
+    [
+      'c',
+      'b',
+      '3'
+    ],
+    [
+      'c',
+      'd',
+      '6'
+    ],
+    [
+      'c',
+      'e',
+      '3'
+    ],
+    [
+      'd',
+      'a',
+      '4'
+    ],
+    [
+      'd',
+      'b',
+      '5'
+    ],
+    [
+      'd',
+      'c',
+      '6'
+    ],
+    [
+      'd',
+      'e',
+      '4'
+    ],
+    [
+      'e',
+      'a',
+      '1'
+    ],
+    [
+      'e',
+      'b',
+      '2'
+    ],
+    [
+      'e',
+      'c',
+      '3'
+    ],
+    [
+      'e',
+      'd',
+      '4'
+    ],
+    [
+      'f',
+      'a',
+      '1'
+    ]
+  ]
+}
 

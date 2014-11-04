@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 #use Data::Dumper;
 use Carp;
@@ -202,9 +202,10 @@ sub add_progress_entry {
     
     my $progress_widget = Gtk2::ProgressBar->new;
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
-    
+
     # show the progress window
-    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
+    #  don't use present - it grabs the system focus and makes work in other windows impossible
+    #$self->{progress_bars}->{window}->present;
     $self->{progress_bars}->{window}->show_all;
     
     #say "Current progress bars: " . Dumper($self->{progress_bars});
@@ -249,9 +250,16 @@ sub clear_progress_entry {
         ) {
         $self->{progress_bars}->{window}->hide;
     }
-    else {
-        $self->{progress_bars}->{window}->resize(1,1);
-    }
+    #else {
+        #  The resize below triggers Gtk critical warnings when minimised.
+        #  We seem not to be able to detect when windows are minimised on Windows
+        #  as state is always normal.
+        #my $window = $self->{progress_bars}->{window};
+        #$window = $self->{gladexml}->get_widget('wndMain');
+        #my $state = $window->get_state;
+        #warn "State is $state\n";
+        #$self->{progress_bars}->{window}->resize(1,1);
+    #}
 }
 
 # called when window closed, try to stop active process?

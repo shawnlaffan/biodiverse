@@ -18,7 +18,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use parent qw /Biodiverse::Common/;
 
@@ -287,9 +287,9 @@ sub import_nexus {
                     #if ($trans_name =~ / ^\' /) {
                     #if (my @components = $trans_name =~ $RE_TEXT_IN_QUOTES) {
                         #$trans_name = $1;
-                        $trans_name =~ s/^'//;  #  strip back the quotes
-                        $trans_name =~ s/'$//;
-                        $trans_name =~ s/''/'/g;
+                        #$trans_name =~ s/^'//;  #  strip back the quotes
+                        #$trans_name =~ s/'$//;
+                        #$trans_name =~ s/''/'/g;
                     #}
                     $translate{$trans_code} = $trans_name;
                 }
@@ -604,7 +604,7 @@ sub parse_newick {
     
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
-    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
+    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
 
     my ($length, $default_length) = (0, 0);
     my ($name, $boot_value, $est_node_count, @nodes_added);
@@ -612,7 +612,6 @@ sub parse_newick {
 
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
-        #$est_node_count = () = $string =~ /([(,])/g;
         $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
         $est_node_count ||= 1;
         #say "Estimated node count is $est_node_count";
@@ -645,26 +644,21 @@ sub parse_newick {
 
         #  we have a comma or are at the end of the string, so we create this node and start a new one
         elsif ($string =~ m/ \G (,)/xgcs) {  
-            #if ($1 =~ /,/) {  
-            ##    #print "found a comma\n";
-            #}
-            #else {
-            #    #print "hit the end of line\n";
-            #}
-            #print "Position is " . (pos $string) . " of $str_len\n";
 
             $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 
             if (exists $translate_hash->{$name}) {
                 $name = $translate_hash->{$name} ;
             }
-            $name =~ s{^$quote_char} {};  #  strip any bounding quotes - let the next csv line decide
-            $name =~ s{$quote_char$} {};
-            #  and now we need to make the name use the CSV rules used everywhere else
-            $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-            if ($name =~ /^$quote_char(?:[$quote_char]*)$quote_char$/) {
-                $name = substr ($name, 1);
-                chop $name;
+            if ($name =~ $RE_TEXT_IN_QUOTES) {
+                my $tmp = $self->csv2list (csv_object => $csv_obj, string => $name);
+                if (scalar @$tmp == 1) {
+                    $name = $tmp->[0];
+                }
+                else {
+                    $name   = $self->list2csv (csv_object => $csv_obj, list => $tmp);
+                }
+                $name = $self->dequote_element (element => $name, quote_char => $quote_char);
             }
 
             if ($use_element_properties) {
@@ -746,14 +740,9 @@ sub parse_newick {
         elsif ($string =~ m/ \G (?=') /xgcs) { 
             #print "found a quote char\n";
             #print "Position is " . (pos $string) . " of $str_len\n";
-            
-            #$string =~ m/\G (.*?) ' (?!')/xgcs;  
+
             $string =~ m/\G ($RE_QUOTED) /xgcs;  #  eat up to the next non-escaped quote
             $name = $1;
-            $name =~ s/^'//;  #  strip ack the quotes
-            $name =~ s/'$//;
-            $name =~ s/''/'/g;
-            #print '';
         }
 
         #  next value is a length if we have a colon
@@ -761,8 +750,7 @@ sub parse_newick {
             #print "found a length value\n";
             #print "Position is " . (pos $string) . " of $str_len\n";
 
-            #  get the number - assumes it is in standard decimal form
-            #$string =~ m/\G (\d* \.? \d*) /xgcs;
+            #  get the number
             $string =~ m/\G ( $RE_NUMBER ) /xgcs;
             #print "length value is $1\n";
             $length = $1;
@@ -780,8 +768,7 @@ sub parse_newick {
             #print "found a name value $1\n";
             #print "\tbut it is anonymous\n" if length ($1) == 0;
             #print "Position is " . (pos $string) . " of $str_len\n";
-            
-            #$string =~ m/\G (.+?)\b /xgcs;  #  match to the next word boundary
+
             $name = $1;
         }
 
@@ -803,25 +790,25 @@ sub parse_newick {
     
     #  the following is a duplicate of code from above, but converting to a sub uses
     #  almost as many lines as the two blocks combined
-    
+    #  (later --- not sure this is still the case now)
+
     #print "Tree is $tree";
     $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 
     if (exists $translate_hash->{$name}) {
         $name = $translate_hash->{$name};
     }
-    
-    #  strip any quotes - let list2csv decide
-    if (my @components = $name =~ $RE_TEXT_IN_QUOTES) {
-        $name = $components[1];
+    #  strip any quotes - let the csv object decide
+    if ($name =~ $RE_TEXT_IN_QUOTES) {
+        my $tmp = $self->csv2list (csv_object => $csv_obj, string => $name);
+        if (scalar @$tmp == 1) {
+            $name = $tmp->[0];
+        }
+        else {
+            $name = $self->list2csv (csv_object => $csv_obj, list => $tmp);
+        }
+        $name = $self->dequote_element (element => $name, quote_char => $quote_char);
     }
-
-    #  and now we need to make the name use the CSV rules used everywhere else
-    $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-    $name = $self->dequote_element (
-        element    => $name,
-        quote_char => $quote_char,
-    );
 
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);

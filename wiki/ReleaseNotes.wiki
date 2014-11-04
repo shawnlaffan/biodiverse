@@ -4,6 +4,22 @@
 
 <wiki:toc max_depth="4" />
 
+= Version 0.99_006 = 
+
+This is the sixth phase of the development version leading towards version 1.0.
+
+As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
+
+For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
+
+To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
+
+Main changes since the preceding version ([#Version_0.99_004 0.99_005]) are below.  Issue numbers which are not crossed out are yet to be completed.  
+
+  *  GUI
+    *  The new pan and zoom functionality now works consistently across all views (maps, trees and matrices).  Issue 353
+
+
 = Version 0.99_005 = 
 
 This is the fifth phase of the development version leading towards version 1.0.

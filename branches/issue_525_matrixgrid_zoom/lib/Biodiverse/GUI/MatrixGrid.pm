@@ -12,8 +12,8 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Carp;
-use POSIX;
-use List::Util qw /max/;
+use POSIX qw /floor/;
+use List::Util qw /min max/;
 
 our $VERSION = '0.99_006';
 
@@ -334,9 +334,8 @@ sub draw_matrix {
 
     # Draw left to right, top to bottom
     for (my $y = 0; $y < $side_length; $y++) {
-        $progress += 1 / $side_length;
+        $progress = min ($y / $side_length, 1);
         $progress = $self->set_precision (value => $progress, precision => '%.4f');
-        if ($progress > 1) {$progress = 1};  #  should just do $progress = $y / $side_length?
         $progress_count ++;
         my $progress_text = "Drawing matrix, $progress_count rows";
 
@@ -750,20 +749,18 @@ sub on_event {
     
     # normalize coordinates
     my $max_coord = $self->{total_x} * CELL_SIZE + CELL_SIZE;
-    $x = 0 if $x < 0;
-    $y = 0 if $y < 0;
-    $x = $max_coord if $x > $max_coord;
-    $y = $max_coord if $y > $max_coord;
+    $x = min($max_coord, max (0, $x));
+    $y = min($max_coord, max (0, $y));
 
     # By "horizontal element" we refer to the one whose values are on the row of the matrix running
     # horizontally. It is determined by the y-value
-    my ($horz_elt, $vert_elt) = (POSIX::floor($y / CELL_SIZE), POSIX::floor($x / CELL_SIZE) );
+    my ($horz_elt, $vert_elt) = (floor($y / CELL_SIZE), floor($x / CELL_SIZE) );
 
     # If moved right onto the edge, we end up at the "next" row/col which doesn't exist
     $horz_elt-- if $y == $max_coord;
     $vert_elt-- if $x == $max_coord;
 
-    #print "x=$x y=$y max=$max_coord horez=$horz_elt vert=$vert_elt\n";
+    #say "x=$x y=$y max=$max_coord horz=$horz_elt vert=$vert_elt";
 
     if ($event->type eq 'enter-notify') {
 
@@ -789,6 +786,7 @@ sub on_event {
         if ($self->{drag_mode} eq 'select') {
 
             ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt}) = ($horz_elt, $vert_elt);
+            ($self->{sel_start_x}, $self->{sel_start_y}) = ($x, $y);
 
             # Grab mouse
             $cell->grab (
@@ -827,7 +825,6 @@ sub on_event {
             # Establish the selection
             my ($horz_start, $vert_start) = ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt});
             my ($horz_end,   $vert_end)   = ($horz_elt, $vert_elt);
-            my $tmp;
 
             if ($horz_start > $horz_end) {
                 ($horz_start, $horz_end) = ($horz_end, $horz_start);
@@ -837,7 +834,11 @@ sub on_event {
             }
 
             if (my $f = $self->{select_func}) {
-                $f->($horz_start, $horz_end, $vert_start, $vert_end);
+                my $cell_coords = [$horz_start, $horz_end, $vert_start, $vert_end];
+                my $pixel_coords = [$x, $y, $self->{sel_start_x}, $self->{sel_start_y}];
+                $f->(cell_coords => $cell_coords, pixel_coords => $pixel_coords);
+                delete $self->{sel_start_x};  #  clean up
+                delete $self->{sel_start_y};
             }
         }
     }

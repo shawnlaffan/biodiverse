@@ -1231,11 +1231,14 @@ sub on_matrix_hover {
 
 sub on_matrix_clicked {
     my $self = shift;
-    my ($h_start, $h_end, $v_start, $v_end) = @_;
+    my %args = @_;
+    my $cell_coords  = $args{cell_coords};
+    my $pixel_coords = $args{pixel_coords};
 
     #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
 
     if ($self->{tool} eq 'Select') {
+        my ($h_start, $h_end, $v_start, $v_end) = @{$cell_coords};
         $h_start = Gtk2::TreePath->new_from_indices($h_start);
         $h_end   = Gtk2::TreePath->new_from_indices($h_end);
         $v_start = Gtk2::TreePath->new_from_indices($v_start);
@@ -1263,11 +1266,7 @@ sub on_matrix_clicked {
         $vlist->scroll_to_cell( $v_start );
     }
     elsif ($self->{tool} eq 'ZoomIn') {
-        my $rect = [
-            map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
-                ($v_start, $h_start, $v_end, $h_end)
-        ];
-        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
+        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
     }
 
     return;

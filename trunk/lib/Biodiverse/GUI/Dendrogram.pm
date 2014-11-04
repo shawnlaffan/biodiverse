@@ -41,7 +41,7 @@ use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
 use constant COLOUR_NOT_IN_TREE       => COLOUR_BLACK;
-use constant COLOUR_LIST_UNDEF        => COLOUR_BLACK;
+use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";

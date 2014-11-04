@@ -509,7 +509,7 @@ sub on_selected_matrix_changed {
 
     my $xml_page = $self->{xmlPage};
 
-#  hide the second list if no matrix selected
+    #  hide the second list if no matrix selected
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
 
     my $list = $xml_page->get_widget('listLabels1');
@@ -517,8 +517,8 @@ sub on_selected_matrix_changed {
 
     if (! defined $matrix_ref) {
         $list_window->hide;     #  hide the second list
-            $col->set_visible (0);  #  hide the list 2 selection
-#    col from list 1
+        $col->set_visible (0);  #  hide the list 2 selection
+        #    col from list 1
     }
     else {
         $list_window->show;
@@ -527,9 +527,9 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
-# matrix
+    # matrix
     $self->on_sorted(); # (this reloads the whole matrix anyway)    
-        $self->{matrix_grid}->zoom_fit();
+    $self->{matrix_grid}->zoom_fit();
 
     return;
 }
@@ -1231,11 +1231,14 @@ sub on_matrix_hover {
 
 sub on_matrix_clicked {
     my $self = shift;
-    my ($h_start, $h_end, $v_start, $v_end) = @_;
+    my %args = @_;
+    my $cell_coords  = $args{cell_coords};
+    my $pixel_coords = $args{pixel_coords};
 
     #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
 
     if ($self->{tool} eq 'Select') {
+        my ($h_start, $h_end, $v_start, $v_end) = @{$cell_coords};
         $h_start = Gtk2::TreePath->new_from_indices($h_start);
         $h_end   = Gtk2::TreePath->new_from_indices($h_end);
         $v_start = Gtk2::TreePath->new_from_indices($v_start);
@@ -1263,11 +1266,7 @@ sub on_matrix_clicked {
         $vlist->scroll_to_cell( $v_start );
     }
     elsif ($self->{tool} eq 'ZoomIn') {
-        my $rect = [
-            map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
-                ($v_start, $h_start, $v_end, $h_end)
-        ];
-        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
+        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $pixel_coords);
     }
 
     return;

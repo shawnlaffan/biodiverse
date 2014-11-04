@@ -1161,13 +1161,7 @@ sub get_colour_for_undef {
     my $self = shift;
     my $colour_none = shift;
 
-    #  default to black if an analysis is specified, white otherwise
-    #my $null    = $self->{colour_none} || COLOUR_BLACK;
-    #my $default = defined $self->{analysis} ? $null : COLOUR_WHITE;
-    #
-    #$colour_none ||= $default;
-
-    return $self->{colour_none} // $self->set_colour_for_undef;
+    return $self->{colour_none} // $self->set_colour_for_undef ($colour_none);
 }
 
 sub set_colour_for_undef {

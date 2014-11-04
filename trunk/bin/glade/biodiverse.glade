@@ -5691,14 +5691,14 @@ Merely closes the window if no file is selected.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool2">
                             <property name="visible">True</property>
@@ -7273,14 +7273,14 @@ This setting has no effect on the slider bar.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool1">
                             <property name="visible">True</property>
@@ -7957,14 +7957,14 @@ Does not affect the vertical connectors. </property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolSP">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool">
                             <property name="visible">True</property>

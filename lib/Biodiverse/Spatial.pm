@@ -12,7 +12,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -769,10 +769,9 @@ sub get_nbrs_for_element {
                             exclude_list => $exclude_list,
                         );
                     }
-
                 }
 
-                #  Add to the exclude list unless we are at the last spatial param,
+                #  Add to the exclude list unless we are at the last spatial condition,
                 #  in which case it is no longer needed.
                 #  Hopefully this will save meaningful memory for large neighbour sets
                 if ($i != $#$spatial_conditions_ref) {
@@ -1087,6 +1086,24 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
+sub group_passed_def_query {
+    my $self = shift;
+    my %args = @_;
+
+    my $group = $args{group};
+
+    croak "Argument 'group' not passed\n"
+      if !defined $group;
+
+    my $passed = $self->get_param('PASS_DEF_QUERY');
+
+    no autovivification;
+
+    #  return true if no def query was run
+    return $passed ? $passed->{$group} : 1;  
+}
+
+
 sub get_groups_that_pass_def_query {
     my $self = shift;
     my %args = @_;
@@ -1124,10 +1141,28 @@ sub get_groups_that_pass_def_query {
     return wantarray ? %$passed : $passed;
 }
 
-#sub numerically {$a <=> $b};
-#sub max {
-#    return $_[0] > $_[1] ? $_[0] : $_[1];
-#}
+#  assumes the def query has already been run
+sub get_groups_that_failed_def_query {
+    my $self = shift;
+    my %args = @_;
+
+    my $passed = $self->get_param('PASS_DEF_QUERY');
+
+    return wantarray ? %$passed : $passed
+      if !$passed;
+
+    my $groups = $self->get_element_list;
+
+    no autovivification;
+
+    my @failed = grep {$passed->{$_}} @$groups;
+    my %failed_hash;
+    @failed_hash{@failed} = (1) x @failed;
+
+    return wantarray ? %failed_hash : \%failed_hash;
+}
+
+
 
 1;
 

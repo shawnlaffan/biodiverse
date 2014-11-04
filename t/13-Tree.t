@@ -21,6 +21,7 @@ use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
 use Biodiverse::Cluster;
+use Biodiverse::BaseData;
 
 my $default_prng_seed = 2345;
 
@@ -108,6 +109,10 @@ sub test_max_path_length {
     };
 }
 
+sub test_get_multiple_trees_from_nexus {
+    my @array = get_tree_array_from_sample_data();
+    is (scalar @array, 2, 'Got two trees from the site data nexus file');
+}
 
 sub test_trim_tree {
     my $tree1 = shift || get_site_data_as_tree();
@@ -163,11 +168,11 @@ sub test_trim_tree_after_adding_extras {
     my $root = $tree2->get_root_node;
     use Biodiverse::TreeNode;
     my $node1 = Biodiverse::TreeNode-> new (
-        name   => 'EXTRA_NODE 1',
+        name   => '00EXTRA_NODE 1',
         length => 1,
     );
     my $node2 = Biodiverse::TreeNode-> new (
-        name   => 'EXTRA_NODE 2',
+        name   => '00EXTRA_NODE 2',
         length => 1,
     );
     $root->add_children (children => [$node1, $node2]);
@@ -177,7 +182,7 @@ sub test_trim_tree_after_adding_extras {
 
     $tree2->trim (keep => scalar $bd->get_labels);
     my $name = $tree2->get_param('NAME') // 'noname';
-    $tree2->rename(new_name => $name . ' trimmed');
+    $tree2->rename(new_name => $name . '_trimmed');
 
     ok (
         $tree1->trees_are_same (comparison => $tree2),
@@ -434,8 +439,9 @@ sub test_export_tabular_tree {
 sub test_export_nexus {
     my $tree = shift // get_site_data_as_tree();
 
-    _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
     _test_export_nexus (tree => $tree, no_translate_block => 0);
+    _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
+    
     
 }
 
@@ -455,7 +461,7 @@ sub _test_export_nexus {
     my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
 
     my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
-    #note "File name is $fname";
+    note "File name is $fname";
     my $success = eval {
         $tree->export_nexus (
             file => $fname,
@@ -479,7 +485,7 @@ sub _test_export_nexus {
         $tree->trees_are_same (
             comparison => $imported_tree,
         ),
-        'Reimported tabular tree matches original' . $test_suffix,
+        'Reimported nexus tree matches original' . $test_suffix,
     );
 
     my %nodes   = $tree->get_node_hash;
@@ -520,6 +526,33 @@ sub _test_export_nexus {
 }
 
 
+sub test_roundtrip_names_with_quotes_in_newick {
+    # need a basedata to get the quoting we need to test
+    my $bd = Biodiverse::BaseData->new(name => 'blonk', CELL_SIZES => [1,1]);
+    $bd->add_element (group => '1:1', label => q{'a b':});
+    $bd->add_element (group => '1:1', label => q{'a c':});
+    $bd->add_element (group => '1:1', label => q{a:b});
+
+    my $tree1 = $bd->to_tree;
+    
+    foreach my $label ($bd->get_labels) {
+        ok ($tree1->exists_node(name => $label), qq{terminal /$label/ is in tree});
+    }
+
+    my $nwk_str1 = $tree1->to_newick;
+
+    my $read_nex = Biodiverse::ReadNexus->new;
+    $read_nex->import_newick (data => $nwk_str1);
+    my $tree_array = $read_nex->get_tree_array;
+
+    my $tree2 = $tree_array->[0];
+    
+    #say $nwk_str1;
+    #say $tree2->to_newick;
+    
+
+    ok ($tree1->trees_are_same(comparison => $tree2), 'trees are the same when roundtripped via newick and names have quotes');
+}
 
 
 

@@ -3,9 +3,11 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use List::Util qw/min max/;
+use Scalar::Util qw /blessed/;
+use List::MoreUtils qw /minmax/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -303,7 +305,8 @@ my %key_tool_map = (
     X => 'ZoomOut',
     C => 'Pan',
     V => 'ZoomFit',
-    B => 'Select'
+    B => 'Select',
+    S => 'Select',
 );
 
 # Default for tabs that don't implement on_bare_key
@@ -321,7 +324,7 @@ sub on_bare_key {
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
         $self->{$self->{active_pane}}->zoom_fit();
     }
-    else {
+    elsif ($self->{active_pane}) {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
     }
 }
@@ -418,8 +421,8 @@ sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
     if ($menu_item) {
-        # Just got the signal for the deselected option. Wait for signal for
-        # selected one.
+        # Just got the signal for the deselected option.
+        # Wait for signal for selected one.
         return if !$menu_item->get_active();
 
         my $mode = $menu_item->get_label();
@@ -439,7 +442,7 @@ sub on_colour_mode_changed {
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_color();
                 $self->{grid}->set_legend_hue($self->{hue});
-                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms - needed here?  recolour below does this
+                eval {$self->{dendrogram}->recolour(all_elements => 1)};  #  only clusters have dendrograms - needed here?  recolour below does this
             }
             $colour_dialog->destroy();
         }
@@ -448,7 +451,7 @@ sub on_colour_mode_changed {
     }
 
     $self->{grid}->set_legend_mode($self->{colour_mode});
-    $self->recolour();
+    $self->recolour(all_elements => 1);
 
     return;
 }
@@ -461,16 +464,12 @@ sub set_active_pane {
 
 sub rect_canonicalise {
     my ($self, $rect) = @_;
-    if ($rect->[0] > $rect->[2]) {
-        ($rect->[0], $rect->[2]) = ($rect->[2], $rect->[0]);
-    }
-    if ($rect->[1] > $rect->[3]) {
-        ($rect->[1], $rect->[3]) = ($rect->[3], $rect->[1]);
-    }
+    ($rect->[0], $rect->[2]) = minmax ($rect->[2], $rect->[0]);
+    ($rect->[1], $rect->[3]) = minmax ($rect->[3], $rect->[1]);
 }
 
 sub rect_centre {
-    my ($rect, ) = @_;
+    my ($self, $rect) = @_;
     return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
 
@@ -569,16 +568,17 @@ sub on_grid_click {
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
     my $canvas = $grid->{canvas};
+
     $self->rect_canonicalise ($rect);
 
     # Scale
     my $width_px  = $grid->{width_px}; # Viewport/window size
     my $height_px = $grid->{height_px};
-    my ($xc, $yc) = $canvas->world_to_window(rect_centre ($rect));
+    my ($xc, $yc) = $canvas->world_to_window($self->rect_centre ($rect));
     #print "Centre: $xc $yc\n";
     my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
     my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
-    say "Window Rect: $x1 $x2 $y1 $y2";
+    #say "Window Rect: $x1 $x2 $y1 $y2";
     my $width_s   = max ($x2 - $x1, 1); # Selected box width
     my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
 
@@ -594,18 +594,49 @@ sub handle_grid_drag_zoom {
     }
 
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
-    if (exists $grid->{render_width}) {
+
+    if (exists $grid->{render_width}) {  #  should shift this into a method in Dendrogram.pm
+
+        my @plot_centre = ($width_px  / 2, $height_px  / 2);
+        my @rect_centre = $self->rect_centre ($rect);
+
+        my ($dx, $dy) = ($plot_centre[0] - $rect_centre[0], $plot_centre[1] - $rect_centre[1]);
+
+        # Convert into scaled coords
+        $grid->{centre_x} *= $grid->{length_scale};
+        $grid->{centre_y} *= $grid->{height_scale};
+        
+        # Pan across
+        $grid->{centre_x} = $grid->clamp (
+            $grid->{centre_x} - $dx,
+            0,
+            $grid->{render_width},
+        ) ;
+        $grid->{centre_y} = $grid->clamp (
+            $grid->{centre_y} - $dy,
+            0,
+            $grid->{render_height},
+        );
+
+        # Convert into world coords
+        $grid->{centre_x} /= $grid->{length_scale};
+        $grid->{centre_y} /= $grid->{height_scale};
+
+        #  now adjust the zoom level
         $grid->{render_width}  *= $ratio;
         $grid->{render_height} *= $ratio;
-    }
-    else {
-        my $oppu = $canvas->get_pixels_per_unit;
-        #print "Old PPU: $oppu\n";
-        my $ppu = $oppu * $ratio;
-        #print "New PPU: $ppu\n";
-        $canvas->set_pixels_per_unit($ppu);
+
+        $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized
+        $grid->post_zoom;
+        return;
     }
 
+
+    my $oppu = $canvas->get_pixels_per_unit;
+    #say "Old PPU: $oppu";
+    my $ppu = $oppu * $ratio;
+    #say "New PPU: $ppu";
+    $canvas->set_pixels_per_unit($ppu);
 
     # Now pan so that the selection is centered. There are two cases.
     # +------------------------------------------+
@@ -628,6 +659,8 @@ sub handle_grid_drag_zoom {
     # the same aspect ratio as the window. (One axis will not change).
     my $window_aspect =  $width_px / $height_px;
     my $rect_aspect   = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
+    #say "WA: $window_aspect, RA: $rect_aspect";
+    #say "R: " . join ' ', @$rect;
     if ($rect_aspect > $window_aspect) {
         # 2nd case illustrated above. We need to change the height.
         my $mid    = ($rect->[1] + $rect->[3]) / 2;
@@ -636,17 +669,26 @@ sub handle_grid_drag_zoom {
         $rect->[3] = $mid + 0.5 * $width / $window_aspect;
     }
     else {
-        # 1st case illustracted above. We need to change the width.
+        # 1st case illustrated above. We need to change the width.
         my $mid    = ($rect->[0] + $rect->[2]) / 2;
         my $height =  $rect->[3] - $rect->[1];
         $rect->[0] = $mid - 0.5 * $height * $window_aspect;
         $rect->[2] = $mid + 0.5 * $height * $window_aspect;
     }
 
+    my $midx = ($rect->[0] + $rect->[2]) / 2;
+    my $midy = ($rect->[1] + $rect->[3]) / 2;
+    #$midx = $rect->[0];
+    #$midy = $rect->[1];
+
     # Apply and pan
+    $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
-    $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
-    $grid->update_scrollbars;
+    my @target = $canvas->w2c($rect->[0], $rect->[1]);
+    #say "Scrolling to " . join ' ', @target;
+    $canvas->scroll_to(@target);
+    $grid->update_scrollbars ($midx, $midy);
+
 }
 
 
@@ -658,7 +700,6 @@ sub on_set_cell_outline_colour {
 
     # set menu item for show outline as active if not currently
     $self->set_cell_outline_menuitem_active (1);
-    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
 
     return;
 }
@@ -670,6 +711,92 @@ sub on_set_cell_show_outline {
     return;
 }
 
+
+sub get_undef_cell_colour {
+    my $self   = shift;
+
+    my $grid = $self->{grid} // return;
+
+    return $grid->get_colour_for_undef // $grid->set_colour_for_undef;
+}
+
+sub set_undef_cell_colour {
+    my ($self, $colour) = @_;
+    
+    my $grid = $self->{grid} // return;
+
+    $grid->set_colour_for_undef($colour);
+}
+
+sub on_set_undef_cell_colour {
+    my ($self, $widget, $colour) = @_;
+
+    if (! $colour) {  #  fire up a colour selector
+        $colour = $self->get_colour_from_chooser ($self->get_undef_cell_colour);
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->set_undef_cell_colour ($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
+sub get_excluded_cell_colour {
+    my $self   = shift;
+
+    return $self->{colour_excluded_cell} // $self->set_excluded_cell_colour;
+}
+
+sub set_excluded_cell_colour {
+    my ($self, $colour) = @_;
+    
+    my $g = my $grey = 0.9 * 255 * 257;;
+    $colour //= Gtk2::Gdk::Color->new($g, $g, $g);
+
+    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+
+    $self->{colour_excluded_cell} = $colour;
+}
+
+sub on_set_excluded_cell_colour {
+    my ($self, $widget, $colour) = @_;
+
+    if (! $colour) {  #  fire up a colour selector
+        $colour = $self->get_colour_from_chooser ($self->get_excluded_cell_colour);
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    $self->set_excluded_cell_colour ($colour);
+
+    $self->recolour (all_elements => 1);
+
+    return;
+}
+
+sub get_colour_from_chooser {
+    my ($self, $colour) = @_;
+
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
+    my $selector = $dialog->colorsel;  #  get_color_selection?
+
+    if ($colour) {
+        $selector->set_current_color ($colour);
+    }
+
+    if ($dialog->run eq 'ok') {
+        $colour = $selector->get_current_color;
+    }
+    $dialog->destroy;
+
+    return $colour;
+}
 
 sub on_set_tree_line_widths {
     my $self = shift;
@@ -773,6 +900,60 @@ sub delete_cached_values {
 
     return;
 }
+
+
+
+sub update_export_menu {
+    my $self = shift;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{output_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.  
+    my $export_menu = $self->{export_menu};
+
+    if (!$export_menu) {
+        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $menubar->append($export_menu);
+        $self->{export_menu} = $export_menu;
+    }
+
+    if (!$output_ref) {
+        $export_menu->set_sensitive(0);
+    }
+    else {
+        my $submenu = Gtk2::Menu->new;
+        # Get the Parameters metadata
+        my %args = $output_ref->get_args (sub => 'export');
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            next if !$label;
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_export, [$self, $label],
+            );
+        }
+
+        $export_menu->set_submenu($submenu);
+        $export_menu->set_sensitive(1);
+    }
+
+    $menubar->show_all();
+}
+
+sub do_export {
+    my $args = shift;
+    my $self = $args->[0];
+    my @rest_of_args;
+    if (scalar @$args > 1) {
+        @rest_of_args = @$args[1..$#$args];
+    }
+
+    Biodiverse::GUI::Export::Run($self->{output_ref}, @rest_of_args);
+}
+
 
 
 1;

@@ -440,6 +440,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1102,6 +1108,12 @@ Shapefile
                     <property name="n_columns">2</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">3</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                     <child>
                       <placeholder/>
                     </child>
@@ -4705,7 +4717,7 @@ The sum of all branches will be the same as in the original tree. </property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xpad">5</property>
-                    <property name="label" translatable="yes">Selected Basedata</property>
+                    <property name="label" translatable="yes">Basedata</property>
                   </widget>
                 </child>
               </widget>
@@ -5679,14 +5691,14 @@ Merely closes the window if no file is selected.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool2">
                             <property name="visible">True</property>
@@ -5848,57 +5860,6 @@ Merely closes the window if no file is selected.</property>
                                   </widget>
                                 </child>
                                 <child>
-                                  <widget class="GtkMenuItem" id="menuitem_cluster_colour_mode">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Colour mode</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
-
-Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
-                                    <property name="label">Hue</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="active">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
-
-Colours are currently taken from the outer ring.</property>
-                                    <property name="label">Sat...</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label">Grey</property>
-                                    <property name="use_underline">True</property>
-                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
                                   <widget class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -5980,6 +5941,80 @@ Colours are currently taken from the outer ring.</property>
                                         </child>
                                       </widget>
                                     </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_colour_mode">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">This is only settable when the plot has continuous values (i.e. not the cluster option)</property>
+                                    <property name="label" translatable="yes">Colour mode</property>
+                                    <property name="use_underline">True</property>
+                                    <child>
+                                      <widget class="GtkMenu" id="menu2">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
+
+Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
+                                            <property name="label" translatable="yes">Hue</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
+
+Colours are currently taken from the outer ring.</property>
+                                            <property name="label" translatable="yes">Sat...</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">Grey</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_excluded_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                                    <property name="label" translatable="yes">Set excluded cell colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
+                                    <property name="use_underline">True</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -7238,14 +7273,14 @@ This setting has no effect on the slider bar.</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool1">
                             <property name="visible">True</property>
@@ -7922,14 +7957,14 @@ Does not affect the vertical connectors. </property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <property name="tooltip" translatable="yes">Select (S or B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectToolSP">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <property name="tooltip" translatable="yes">Select (S or B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool">
                             <property name="visible">True</property>
@@ -8082,6 +8117,12 @@ Does not affect the vertical connectors. </property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="yes">Overlays...</property>
                                     <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem4">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -8280,6 +8321,30 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem3">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_excluded_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                                    <property name="label" translatable="yes">Set excluded cell colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_undef_cell_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                                    <property name="label" translatable="yes">Set undefined value colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_spatial_cell_outline_colour">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8296,6 +8361,12 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <property name="label" translatable="yes">Show cell outlines</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -8729,7 +8800,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkFrame" id="frame3">
+                          <widget class="GtkFrame" id="frame_spatial_tree_plot">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="border_width">2</property>
@@ -8906,7 +8977,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                       <widget class="GtkLabel" id="label3">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Plot tree from:  </property>
+                        <property name="label" translatable="yes">Tree plot:  </property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -8922,8 +8993,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                         <property name="tooltip" translatable="yes">Select tree to display</property>
                         <property name="active">0</property>
                         <property name="add_tearoffs">True</property>
-                        <property name="items" translatable="yes">analysis
-project</property>
+                        <property name="items" translatable="yes"/>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
@@ -9231,6 +9301,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

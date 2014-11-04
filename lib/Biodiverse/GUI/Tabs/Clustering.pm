@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -282,6 +282,8 @@ sub new {
         menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
         menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
+        menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
+        menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
     );
 
     for my $n (0..6) {
@@ -315,6 +317,9 @@ sub new {
             $widget->hide;
         }
     };
+
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
+    $self->update_export_menu;
 
     say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
@@ -740,9 +745,11 @@ sub on_combo_map_list_changed {
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
         $self->hide_legend;
+        $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);
     }
     else {
         $self->show_legend;
+        $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     }
 
     my @widgets = qw {
@@ -1413,6 +1420,8 @@ sub on_run_analysis {
 
     }
 
+    $self->update_export_menu;
+
     return;
 }
 
@@ -1938,9 +1947,16 @@ sub on_group_mode_changed {
 
 sub recolour {
     my $self = shift;
+    my %args = @_;
+
+    #  need to update the grid before the tree else the grid is not changed properly
     $self->set_plot_min_max_values;
-    $self->{dendrogram}->recolour();
     $self->{grid}->set_legend_mode($self->{colour_mode});
+
+    $self->{dendrogram}->recolour();
+    if ($args{all_elements}) {
+        $self->{dendrogram}->recolour_cluster_elements;
+    }
 }
 
 sub set_plot_min_max_values {
@@ -2040,7 +2056,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
-    print 'Trying to call ', $method, "\n";
+    #say "Calling $method via autoload";
     return $self->$method(@_);
 }
 

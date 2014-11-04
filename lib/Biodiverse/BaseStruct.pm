@@ -19,13 +19,14 @@ use autovivification;
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum/;
+use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 my $EMPTY_STRING = q{};
 
@@ -256,6 +257,11 @@ sub get_common_export_metadata {
     #  get the available lists
     my @lists = $self->get_lists_for_export;
 
+    my $default_idx = 0;
+    if (my $last_used_list = $self->get_cached_value('LAST_SELECTED_LIST')) {
+        $default_idx = first_index {$last_used_list eq $_} @lists;
+    }
+
     my $metadata = [
         {
             name => 'file',
@@ -266,8 +272,8 @@ sub get_common_export_metadata {
             label_text  => 'List to export',
             type        => 'choice',
             choices     => \@lists,
-            default     => 0
-        }
+            default     => $default_idx,
+        },
     ];
 
     return wantarray ? @$metadata : $metadata;
@@ -602,14 +608,17 @@ sub export_divagis {
 
 my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
 Note: If you export a list then each shape (point or polygon) 
-will be repeated for each list item. 
+will be repeated for each list item.
+
 Choose the __no_list__ option to not do this,
 in which case to attach any lists you will need to run a second 
 export to the delimited text format and then join them.  
 This is needed because shapefile field names can only be
 11 characters long and cannot contain non-alphanumeric characters.
+
 Note also that shapefiles do not have an undefined value 
 so any undefined values will be converted to zeroes.
+
 Export of array lists to shapefiles is not supported. 
 END_OF_SHAPE_COMMENT
   ;
@@ -635,7 +644,7 @@ sub get_metadata_export_shapefile {
                 label_text  => 'List to export',
                 type        => 'choice',
                 choices     => \@lists,
-                default     => 0
+                default     => 0,
             },
             {
                 name        => 'shapetype',
@@ -2183,10 +2192,7 @@ sub to_tree {
     my $self = shift;
     my %args = @_;
 
-    my $name = $args{name};
-    if (not defined $name) {
-        $name = $self->get_param ('NAME') . "_AS_TREE";
-    }
+    my $name = $args{name} // $self->get_param ('NAME') . "_AS_TREE";
     my $tree = Biodiverse::Tree->new (NAME => $name);
 
     my $elements = $self->get_element_hash;

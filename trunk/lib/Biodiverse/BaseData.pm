@@ -368,7 +368,6 @@ sub get_coord_bounds {
 
     my (@min, @max);
 
-
     my $gp = $self->get_groups_ref;
 
     my $group_hash = $gp->get_element_hash;

@@ -33,6 +33,8 @@ my $use_small = 1;
 my $rand_iterations = 1;
 
 my $bd = get_numeric_labels_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+$bd->build_spatial_index (resolutions => [100000, 100000]);
+
 
 my $debug = q{};
    $debug = 'array';

@@ -1786,6 +1786,10 @@ sub assign_element_properties {
     my $method = 'get_' . $type . '_ref';
     my $gp_lb_ref = $self->$method;
     
+    #  Clean up in case we add different ones.
+    #  We cannot get the list here as we might only be adding a subset of elements
+    $gp_lb_ref->delete_cached_value ('ELEMENT_PROPERTY_KEYS');
+
     my $count = 0;
     
   ELEMENT_PROPS:

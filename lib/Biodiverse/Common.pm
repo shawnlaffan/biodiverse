@@ -329,8 +329,8 @@ sub set_params {
     my $self = shift;
     my %args = @_;
 
-    while (my ($param, $value) = each %args) {
-        $self->{PARAMS}{$param} = $value;
+    foreach my $param (keys %args) {
+        $self->{PARAMS}{$param} = $args{$param};
     }
 
     return scalar keys %args;

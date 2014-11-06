@@ -368,34 +368,54 @@ sub get_coord_bounds {
 
     my (@min, @max);
 
-    my $groups = $self->get_groups;
-    
-    return wantarray ? () : {}
-      if !scalar @$groups;
 
     my $gp = $self->get_groups_ref;
 
-    my @coord0 = $gp->get_element_name_as_array (element => $groups->[0]);
-    $i = 0;
-    foreach my $axis (@coord0) {
-        $min[$i] = $axis;
-        $max[$i] = $axis;
-        $i ++;
-    }
+    my $group_hash = $gp->get_element_hash;
 
-    foreach my $gp_name (@$groups) {
+    return wantarray ? () : {}
+      if !scalar keys %$group_hash;
 
-        my @coord = $gp->get_element_name_as_array (element => $gp_name);
+    my $progress = Biodiverse::Progress->new();
+    my $to_do    = scalar keys %$group_hash;
 
-        foreach my $j (@string_comp) {
-            my $axis = $coord[$j];
-            $min[$j] = $axis if $axis lt $min[$j];
-            $max[$j] = $axis if $axis gt $max[$j];
+    $i = -1;
+  GROUP:
+    foreach my $gp_name (keys %$group_hash) {
+        $i++;
+        my $coord = $gp->get_element_name_as_array (element => $gp_name);
+
+        if (!$i) {  #  first one
+            my $j = 0;
+            foreach my $axis (@$coord) {
+                $min[$j] = $axis;
+                $max[$j] = $axis;
+                $j++;
+            }
+            next GROUP;
+        }
+
+        $progress->update ("Getting coord bounds\n($i of $to_do)", $i / $to_do);
+
+        if (@string_comp) {  #  rarer than numeric
+            foreach my $j (@string_comp) {
+                my $axis = $coord->[$j];
+                if ($axis lt $min[$j]) {
+                    $min[$j] = $axis;
+                }
+                elsif ($axis gt $max[$j]) {
+                    $max[$j] = $axis;
+                }
+            }
         }
         foreach my $j (@numeric_comp) {
-            my $axis = $coord[$j];
-            $min[$j] = $axis if $axis < $min[$j];
-            $max[$j] = $axis if $axis > $max[$j];
+            my $axis = $coord->[$j];
+            if ($axis < $min[$j]) {
+                $min[$j] = $axis
+            }
+            elsif ($axis > $max[$j]) {
+                $max[$j] = $axis;
+            }
         }
 
     }

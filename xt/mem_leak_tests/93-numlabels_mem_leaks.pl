@@ -29,36 +29,40 @@ use Biodiverse::TestHelpers qw {:basedata};
 
 local $| = 1;
 
-my $use_small = 1;
-my $rand_iterations = 1;
-
-my $bd = get_numeric_labels_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-$bd->build_spatial_index (resolutions => [100000, 100000]);
-
-
-my $debug = q{};
-   $debug = 'array';
-   #$debug = 'file';
-
-if ($debug eq 'array') {
-    use Test::LeakTrace;
-    print "Debug is array\n";
-    my @leaks = leaked_info {
+do {
+    my $use_small = 1;
+    my $rand_iterations = 1;
+    
+    my $bd = get_numeric_labels_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    $bd->build_spatial_index (resolutions => [100000, 100000]);
+    
+    
+    my $debug = q{};
+       $debug = 'array';
+       #$debug = 'file';
+    
+    if ($debug eq 'array') {
+        use Test::LeakTrace;
+        print "Debug is array\n";
+        my @leaks = leaked_info {
+            run_process($bd);
+        };
+        process_leaks (@leaks);
+    }
+    elsif ($debug eq 'file') {
+        use Test::LeakTrace;
+        print "Debug is file\n";
+        leaktrace {
+            run_process($bd);
+        } -verbose;
+    }
+    else {
         run_process($bd);
-    };
-    process_leaks (@leaks);
-}
-elsif ($debug eq 'file') {
-    use Test::LeakTrace;
-    print "Debug is file\n";
-    leaktrace {
-        run_process($bd);
-    } -verbose;
-}
-else {
-    run_process($bd);
-}
+    }
+    
+    undef $bd;
 
+};
 
 exit;
 

@@ -3204,7 +3204,7 @@ sub get_hash_list_keys_across_elements {
         next ELEMENT if ! (ref ($hash) =~ /HASH/);
 
         if (scalar keys %$hash) {
-            @hash_keys{keys %$hash} = values %$hash;
+            @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster
         }
     }
 
@@ -3225,10 +3225,14 @@ sub get_list_ref {
     my $element = $args{element}
       // croak "Argument 'element' not defined\n";
 
-    croak "Element $args{element} does not exist\n"
-      if ! $self->exists_element (element => $element);
+    #croak "Element $args{element} does not exist\n"
+    #  if ! $self->exists_element (element => $element);
 
-    my $el = $self->{ELEMENTS}{$element};
+    no autovivification;
+
+    my $el = $self->{ELEMENTS}{$element}
+      // croak "Element $args{element} does not exist\n";
+
     if (! exists $el->{$list}) {
         return if ! $args{autovivify};  #  should croak?
         $el->{$list} = {};  #  should we default to a hash?
@@ -3394,7 +3398,13 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
+    my $keys = $self->get_cached_value ('ELEMENT_PROPERTY_KEYS');
+
+    return wantarray ? @$keys : $keys if $keys;
+
     my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
+
+    $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
 
     return wantarray ? @keys : \@keys;
 }

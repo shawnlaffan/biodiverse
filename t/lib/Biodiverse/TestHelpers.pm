@@ -531,6 +531,7 @@ sub get_basedata_object_from_site_data {
 
 sub get_numeric_labels_basedata_object_from_site_data {
     my %args = @_;
+    my $sample_count_columns = exists $args{sample_count_columns} ? $args{sample_count_columns} : [3];
 
     my $file = write_data_to_temp_file(get_numeric_labels_basedata_site_data());
 
@@ -544,7 +545,7 @@ sub get_numeric_labels_basedata_object_from_site_data {
         input_files                  => [$file],
         group_columns                => [0, 1],
         label_columns                => [2],
-        sample_count_columns         => [3],
+        sample_count_columns         => $sample_count_columns,
         skip_lines_with_undef_groups => 1,
     );
 

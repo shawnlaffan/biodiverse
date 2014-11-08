@@ -1740,7 +1740,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $self = shift;
     my %args = @_;
 
-    my $so_far       = $args{soFar} || [];  #  reference to an array of values
+    my $so_far      = $args{soFar} || [];  #  reference to an array of values
     my $depth       = $args{depth} || 0;
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
@@ -1749,53 +1749,34 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
+    
+    foreach my $depth (0 .. $#$minima) {
+        #  go through each element of @$so_far and append one of the values from this level
+        my @this_depth;
 
-    #  go through each element of @$so_far and append one of the values from this level
-    my @this_depth;
+        my $min = min ($minima->[$depth], $maxima->[$depth]);
+        my $max = max ($minima->[$depth], $maxima->[$depth]);
+        my $res = $resolutions->[$depth];
 
-    my $min = min ($minima->[$depth], $maxima->[$depth]);
-    my $max = max ($minima->[$depth], $maxima->[$depth]);
-    my $res = $resolutions->[$depth];
+        #  need to fix the precision for some floating point comparisons
+        for (my $value = $min;
+             (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
+             $value += $res) {
 
-    #  debug stuff
-    #if ($res > 20) {
-        #my $val = $min;
-        #print $val, "::";
-        #$val += $res;
-        #print $val, "::", $max, "::(sprintf ($precision->[$depth], $val) + 0) <= $max\::",
-        #        (sprintf ($precision->[$depth], $val) + 0) <= $max, "::end\n";
-        #print $EMPTY_STRING;
-    #}
-
-    #  need to fix the precision for some floating point comparisons
-    for (my $value = $min;
-         (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
-         $value += $res) {
-
-        my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
-        if ($depth > 0) {
-            foreach my $element (@$so_far) {
-                #print "$element . $sep_char . $value\n";
-                push @this_depth, $element . $sep_char . $val;
+            my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
+            if ($depth > 0) {
+                foreach my $element (@$so_far) {
+                    #print "$element . $sep_char . $value\n";
+                    push @this_depth, $element . $sep_char . $val;
+                }
             }
+            else {
+                push (@this_depth, $val);
+            }
+            last if $min == $max;  #  avoid infinite loop
         }
-        else {
-            push (@this_depth, $val);
-        }
-        last if $min == $max;  #  avoid infinite loop
-    }
-
-    $so_far = \@this_depth;
-
-    if ($depth < $#$minima) {
-        my $next_depth = $depth + 1;
-        $so_far = $self -> get_poss_elements (
-            %args,
-            sep_char  => $sep_char,
-            precision => $precision,
-            depth     => $next_depth,
-            soFar     => $so_far
-        );
+    
+        $so_far = \@this_depth;
     }
 
     return $so_far;

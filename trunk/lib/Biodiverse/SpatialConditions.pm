@@ -70,7 +70,7 @@ sub new {
     $conditions =~ s/^\s+//xms;
     $conditions =~ s/\s+$//xms;
 
-    $self->set_param(
+    $self->set_params(
         CONDITIONS    => $conditions,
         WARNING_COUNT => 0,
         KEEP_LAST_DISTANCES => $args{keep_last_distances},

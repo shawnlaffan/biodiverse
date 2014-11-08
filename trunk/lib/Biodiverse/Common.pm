@@ -1740,8 +1740,8 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $self = shift;
     my %args = @_;
 
-    my $so_far      = $args{soFar} || [];  #  reference to an array of values
-    my $depth       = $args{depth} || 0;
+    my $so_far      = [];  #  reference to an array of values
+    #my $depth       = $args{depth} || 0;
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
@@ -2021,7 +2021,7 @@ sub find_circular_refs {
 
                 foreach my $ref (@_) {
                     print "testing circularity of $ref\n";
-                    find_cycle($ref);
+                    find_weakened_cycle($ref);
                 }
                 '
     }

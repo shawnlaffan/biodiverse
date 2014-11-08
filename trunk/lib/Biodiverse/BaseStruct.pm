@@ -3100,7 +3100,7 @@ sub get_lists_across_elements {
 
         my $list = $self->$list_method (element => $elt);
         if (scalar @$list) {
-            @tmp_hash{@$list} = (1) x scalar @$list;
+            @tmp_hash{@$list} = undef;  #  we only care about the keys
         }
         $count++;
         last SEARCH_FOR_LISTS if $count > $max_search;

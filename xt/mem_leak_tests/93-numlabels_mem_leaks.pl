@@ -1,23 +1,21 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+use 5.016;
 
 use English qw { -no_match_vars };
 use Carp;
 
-#  need to consider Class::Inspector for the method hunting
+use Scalar::Util qw /isweak/;
 
-## is it possible the increase is due to hash keys being assigned when clone methods track refs they have already traversed???
-# see also last post in http://www.perlmonks.org/?node_id=226251
-
-use Data::Section::Simple qw(get_data_section);
+#use Data::Section::Simple qw(get_data_section);
 
 use FindBin qw /$Bin/;
 use lib "$Bin/../../lib";
 use lib "$Bin/../../t/lib";
 use rlib;
 
-use File::Temp qw /tempfile/;
+#use File::Temp qw /tempfile/;
 
 #  load up the user defined libs
 use Biodiverse::Config;
@@ -29,15 +27,13 @@ use Biodiverse::TestHelpers qw {:basedata};
 
 local $| = 1;
 
-do {
+main();
+exit;
+
+sub main {
     my $use_small = 1;
     my $rand_iterations = 1;
     
-    my $bd = get_numeric_labels_basedata_object_from_site_data(
-        CELL_SIZES => [100000, 100000],
-        sample_count_columns => undef,
-    );
-    $bd->build_spatial_index (resolutions => [100000, 100000]);
 
     my $debug = q{};
     $debug = 'array';
@@ -47,7 +43,7 @@ do {
         use Test::LeakTrace;
         print "Debug is array\n";
         my @leaks = leaked_info {
-            run_process($bd);
+            run_process();
         };
         process_leaks (@leaks);
     }
@@ -55,18 +51,15 @@ do {
         use Test::LeakTrace;
         print "Debug is file\n";
         leaktrace {
-            run_process($bd);
+            run_process();
         } -verbose;
     }
     else {
-        run_process($bd);
+        run_process();
     }
-    
-    undef $bd;
 
-};
+}
 
-exit;
 
 sub process_leaks {
     my @leaks = @_;
@@ -96,9 +89,12 @@ sub process_leaks {
 }
 
 sub run_process {
-    my ($bd) = @_;
-
-    $bd //= get_numeric_labels_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd = Biodiverse::BaseData->new(file => 'numeric_data.bds');
+    $bd //= get_numeric_labels_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+        sample_count_columns => undef,
+    );
+    $bd->build_spatial_index (resolutions => [100000, 100000]);
     
     process_data ($bd);
 
@@ -109,15 +105,27 @@ sub process_data {
     print "...In process() sub\n";
     #print "Loading basedata $bd_file\n";
     
+    my $calcs = [qw /calc_numeric_label_stats calc_numeric_label_quantiles/];
+    #$calcs = [qw/calc_richness/];  #  simplest sub
+    
+    my $sp_cond = ['sp_circle(radius => 200000)'];
+    #$sp_cond = ['sp_self_only()'];  #  is optimised to not be needed
+
+    
     my $sp = $bd->add_spatial_output (
         name => 'glurgle',
     );
     $sp->run_analysis (
-        calculations => [qw /calc_numeric_label_stats calc_numeric_label_quantiles/],
-        spatial_conditions => ['sp_circle(radius => 200000)'],
+        calculations => $calcs,
+        spatial_conditions => $sp_cond,
     );
 
-    undef $bd;
+    #say 'WEAK' if isweak $sp->{PARAMS}{BASEDATA_REF};
+
+    #$bd->find_circular_refs ($sp);
+
+    #undef $bd;
+    #undef $sp;
     
     print "...process completed\n";
 }

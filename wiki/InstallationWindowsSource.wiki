@@ -59,13 +59,13 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Gtk2-GladeXML.ppd
   ppm install %BDV_PPM%/Geo-GDAL.ppd
 
-  #  This is not yet in the Task files on CPAN
+  ::  This is not yet in the Task files on CPAN
   cpanm List::BinarySearch
 
   :: YAML::Syck has installation failures at v1.27 so install a patched version via PPM 
   ppm install %BDV_PPM%/YAML-Syck.ppd
 
-  #  this was added is post 0.99_004 and is not in the task file yet
+  ::  this was added is post 0.99_004 and is not in the task file yet
   cpanm HTTP::Tiny
 
   :: Now install the rest of the dependencies

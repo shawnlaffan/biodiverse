@@ -1846,6 +1846,10 @@ sub do_trim_tree_to_basedata {
     return if $response ne 'ok';  #  they chickened out
 
     my $new_tree = $phylogeny->clone;
+    $new_tree->delete_cached_values;
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
     if (!$args{no_trim}) {
         $new_tree->trim (keep => scalar $bd->get_labels);
     }
@@ -1854,6 +1858,7 @@ sub do_trim_tree_to_basedata {
         foreach my $node ($new_tree->get_node_refs) {
             my $range = $node->get_node_range (basedata_ref => $bd);
             $node->set_length (length => $node->get_length / $range);
+            $node->delete_cached_values;
         }
     }
 

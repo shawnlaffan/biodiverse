@@ -357,9 +357,9 @@ sub init {
     #  check if we had any errors when loading extensions
     my @load_extension_errors = Biodiverse::Config::get_load_extension_errors();
     if (@load_extension_errors) {
-        my $count = scalar @load_extension_errors;
+        my $count = scalar @load_extension_errors - 1;  #  last item is @INC, so not an extension
         my $text = "Failed to load $count extensions\n"
-                 . join "\n", $#load_extension_errors;  #  last item is @INC, so not an extension
+                 . join "\n", @load_extension_errors;
         $self->report_error($text);
     }
 

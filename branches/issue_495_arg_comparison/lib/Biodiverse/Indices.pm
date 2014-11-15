@@ -640,16 +640,22 @@ sub get_full_dependency_list {
     my $self = shift;
     my %args = @_;
     
-    my $calc_hash = $self->get_calculations_as_flat_hash;
+    my $calc_hash = $args{calc_hash} || $self->get_calculations_as_flat_hash;
+    my @calc_list = sort keys %$calc_hash;  #  make it predictable to start with
     my %dep_list;
 
     no autovivification;
 
-    foreach my $calc (keys %$calc_hash, $self->get_invalid_calculations) {
+    my %done;
+  CALC:
+    while (my $calc = shift @calc_list) {
+        next CALC if $done{$calc};
+
         my $meta = $self->get_metadata (sub => $calc);
         foreach my $type (@dep_types) {
             my $deps = $meta->get_dep_list ($type);
             next if !defined $deps;
+            
             if (!reftype ($deps)) {
                 $dep_list{$deps}++;
             }
@@ -781,7 +787,8 @@ sub get_index_source_hash {
     return wantarray ? %list2 : \%list2;
 }
 
-sub get_required_args {  #  return a hash of those methods that require a parameter be specified
+#  return a hash of the required args for a set of methods
+sub get_required_args {
     my $self = shift;
     my %args = @_;
     my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
@@ -824,6 +831,52 @@ sub get_required_args_as_flat_array {
     my @a = sort keys %results;
     return wantarray ? @a : \@a;
 }
+
+
+#  return a hash of the required args for a set of methods, including their dependencies
+sub get_required_args_including_dependencies {
+    my $self = shift;
+    my %args = @_;
+
+    no autovivification;
+
+    my $list = $self->get_param('VALID_CALCULATIONS');
+    my $calcs_to_run = $list->{calculations_to_run};
+    my @calculations = keys %$calcs_to_run;
+    foreach my $calc (keys %$calcs_to_run) {
+        my $reverse_deps = $calcs_to_run->{$calc}{reverse_deps};
+        push @calculations, keys %$reverse_deps;
+    }
+
+    my %params;
+    my %done;
+
+    foreach my $calc (@calculations) {
+        next if $done{$calc};
+        my $ref = $self->get_metadata (sub => $calc);
+        if (my $reqd_args = $ref->get_required_args) {  #  make it a hash if it not already
+            if ((ref $reqd_args) =~ /ARRAY/) {
+                my @r = @$reqd_args;
+                if ($args{no_regexp}) {  #  dirty hack to skip regexps since these are currently only for locals
+                    @r = grep {ref ($_) ne 'Regexp'} @$reqd_args;
+                }
+                my %hash;
+                @hash{@r} = (1) x scalar @r;
+                $reqd_args = \%hash;
+            }
+            elsif (not ref $reqd_args) {
+                $reqd_args = {$reqd_args => 1};
+            }
+            if (scalar keys %$reqd_args) {
+                $params{$calc} = $reqd_args;
+            }
+        }
+        $done{$calc}++;
+    }
+
+    return wantarray ? %params : \%params;
+}
+
 
 sub is_region_grower_index {
     my $self = shift;

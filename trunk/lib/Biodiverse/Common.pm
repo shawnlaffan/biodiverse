@@ -574,7 +574,9 @@ sub clear_spatial_condition_caches {
     };
     eval {
         my $def_query = $self->get_param('DEFINITION_QUERY');
-        $def_query->delete_cached_values (keys => $args{keys})
+        if ($def_query) {
+            $def_query->delete_cached_values (keys => $args{keys});
+        }
     };
 
     return;

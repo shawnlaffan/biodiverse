@@ -84,9 +84,9 @@ sub compare {
     my $recycled_results
       =    $self->get_param ('RESULTS_ARE_RECYCLABLE')
         && $comparison->get_param ('RESULTS_ARE_RECYCLABLE');
-    if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
-        $recycled_results = $args{no_recycle};
-    }
+    #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
+    #    $recycled_results = $args{no_recycle};
+    #}
 
     if ($recycled_results) {  #  set up some lists
         foreach my $list_name (keys %base_list_indices) {
@@ -242,6 +242,8 @@ sub sp_calc {
 
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
+    my $use_recycling              = !$args{no_recycling};
+    #say "[SPATIAL] Using recycling: $use_recycling";
 
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
     my $definition_query
@@ -261,8 +263,8 @@ sub sp_calc {
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
-        element_list1 => [],  #  for validity checking only
-        element_list2 => $nbr_list_count == 2 ? [] : undef,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => $nbr_list_count == 2 ? [] : undef,
         processing_element => 'x',
     );
 
@@ -274,12 +276,13 @@ sub sp_calc {
     my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
     my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);
 
-    my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
-    my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $recyclable_nbrhoods     = $use_recycling ? $self->get_recyclable_nbrhoods : [];
+    my $results_are_recyclable  = $use_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
+
     #  These need to be shifted into get_recyclable_nbrhoods:
     #  If we are using neighbours from another spatial object
     #  then we use its recycle setting, and store it for later
-    if ($use_nbrs_from) {
+    if ($use_nbrs_from && $use_recycling) {
         $results_are_recyclable =
           $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
         $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
@@ -310,9 +313,7 @@ sub sp_calc {
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
     if (not $self->exists_param ('SPATIAL_INDEX')) {
-        $self->set_param (
-            SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX')
-        );
+        $self->set_param (SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX'));
     }
     my $sp_index = $self->get_param ('SPATIAL_INDEX');
 
@@ -322,7 +323,7 @@ sub sp_calc {
                             || [];
     $spatial_conditions_ref   = $self->get_spatial_conditions || [];
 
-    if (! $use_nbrs_from) {
+    if (!$use_nbrs_from && $use_recycling) {
         #  first look for a sibling with the same spatial parameters
         my @comparable = eval {
             $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
@@ -333,7 +334,7 @@ sub sp_calc {
     #  but this time check the index
     if (! $use_nbrs_from) {
 
-        SPATIAL_PARAMS_LOOP:
+      SPATIAL_PARAMS_LOOP:
         for my $i (0 .. $#$spatial_conditions_ref) {
             my $set_i = $i + 1;
             my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
@@ -521,20 +522,17 @@ sub sp_calc {
         }
 
         #  skip if we've already copied them across
-        next if (
-            $results_are_recyclable
-            and
-            $self->exists_list (
+        next if $results_are_recyclable
+            && $self->exists_list (
                 element => $element,
                 list    => 'RESULTS_SAME_AS',
-            )
-        );
+            );
 
         my @nbr_list = $self->get_nbrs_for_element (
             element       => $element,
             use_nbrs_from => $use_nbrs_from,
             elements_to_exclude => \@elements_to_exclude,
-            search_blocks_ref => $search_blocks_ref,
+            search_blocks_ref   => $search_blocks_ref,
         );
 
         my %elements = (

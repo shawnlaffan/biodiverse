@@ -919,7 +919,8 @@ sub update_export_menu {
         $self->{export_menu} = $export_menu;
     }
 
-    if (!$output_ref) {
+    if (!$output_ref || $output_ref->get_param('COMPLETED') != 1) {
+        #  completed == 2 for clusters analyses with matrices only
         $export_menu->set_sensitive(0);
     }
     else {

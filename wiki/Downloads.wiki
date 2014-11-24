@@ -26,7 +26,9 @@
 
   ==== Known issues ====
 
-  See the [https://code.google.com/p/biodiverse/issues/list?can=2&q=Milestone%3DRelease1.0+&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&cells=tiles open issue list for the 1.0 development series].
+  * There appear to be problems with the cp936 locale, and probably other CJK character set locales.  The workaround for now is to set your locale and region to US (see details in Issue 506).
+
+  * See also the [https://code.google.com/p/biodiverse/issues/list?can=2&q=Milestone%3DRelease1.0+&colspec=ID+Type+Status+Priority+Milestone+Owner+Summary&cells=tiles open issue list for the 1.0 development series].
 
   === 0.19 (stable release) ===
 
@@ -44,6 +46,11 @@
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x64.tar.gz Linux (64 bit)]
 
   * [http://dl.bintray.com/shawnlaffan/Biodiverse/biodiverse_0.19_linux_x32.tar.gz Linux (32 bit)]
+
+  ====Known issues====
+
+  * There appear to be problems with the cp936 locale, and probably other CJK character set locales.  The workaround for now is to set your locale and region to US (see details in Issue 506).
+
 
   ===Quick Start Guide===
 

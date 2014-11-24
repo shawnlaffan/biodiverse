@@ -584,17 +584,22 @@ sub sp_calc {
                       grep {exists $elements_to_use{$_}}
                       @{$nbr_list[0]};
 
-            if (! $self->nbr_list_already_recycled(element => $element)) {
-                #  for each nbr in %nbrs_1,
-                #  copy the neighbour sets for those that are recyclable
-                $self->recycle_nbr_lists (
-                    recyclable_nbrhoods => $recyclable_nbrhoods,
-                    nbr_lists           => \@nbr_list,
-                    nbrs_1              => \%nbrs_1,
-                    definition_query    => $definition_query,
-                    pass_def_query      => $pass_def_query,
-                    element             => $element,
-                );
+          RECYC:
+            foreach my $first_nbr (keys %nbrs_1) {
+                next RECYC if $first_nbr eq $element;
+                if (! $self->nbr_list_already_recycled(element => $first_nbr)) {
+                    #  for each nbr in %nbrs_1,
+                    #  copy the neighbour sets for those that are recyclable
+                    $self->recycle_nbr_lists (
+                        recyclable_nbrhoods => $recyclable_nbrhoods,
+                        nbr_lists           => \@nbr_list,
+                        nbrs_1              => \%nbrs_1,
+                        definition_query    => $definition_query,
+                        pass_def_query      => $pass_def_query,
+                        element             => $element,
+                    );
+                    last RECYC;
+                }
             }
         }
         if ($results_are_recyclable) {
@@ -668,8 +673,9 @@ sub get_nbrs_for_element {
 
     foreach my $i (0 .. $#$spatial_conditions_ref) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);
-        #  useful since we can have non-overlapping neighbourhoods
-        #  where we set all the results in one go
+        #  Useful since we can have non-overlapping neighbourhoods
+        #  where we set all the results in one go.
+        #  Should only be triggered when results recycling is off but we still recycle nbrs
         if ($self->exists_list (
                 element => $element,
                 list    => $nbr_list_name
@@ -681,7 +687,6 @@ sub get_nbrs_for_element {
                   list    => $nbr_list_name,
               )
               || [];
-
             $nbr_list[$i] = $nbrs;
             push @exclude, @$nbrs;
         }
@@ -776,9 +781,12 @@ sub get_nbrs_for_element {
                     push @exclude, @{$nbr_list[$i]};
                 }
             }
+            
+            #  now save it 
             $self->add_to_lists (
                 element        => $element,
                 $nbr_list_name => $nbr_list[$i],
+                use_ref        => 1,
             );
         }
     }
@@ -835,16 +843,15 @@ sub recycle_nbr_lists {
         last LOOP_RECYC_NBRHOODS
             if ! $recyclable_nbrhoods->[$i];  
 
-        #  this is set above
-        #next LOOP_RECYC_NBRHOODS if $nbrs_recycled;
-
         my $nbr_list_name = '_NBR_SET' . ($i+1);
-        my $nbr_list_ref = $nbr_lists->[$i];
+        my $nbr_list_ref  = $nbr_lists->[$i];
 
         LOOP_RECYC_NBRS:
         foreach my $nbr (keys %$nbrs_1) {
-            #  don't append to processing element - we set it above
-            next LOOP_RECYC_NBRS if $nbr eq $element;  
+            #  comment out next line - the list refs
+            #  are being changed somewhere so we end up not 
+            #  recycling the same list 
+            #next LOOP_RECYC_NBRS if $nbr eq $element;
 
             if ($definition_query) {
                 my $pass = exists $pass_def_query->{$nbr};
@@ -854,7 +861,7 @@ sub recycle_nbr_lists {
             #  recycle the array using a ref to save space
             $self->add_to_lists (
                 element         => $nbr,
-                $nbr_list_name  => $nbr_lists->[$i],
+                $nbr_list_name  => $nbr_list_ref,
                 use_ref         => 1,  
             );
         }
@@ -868,7 +875,7 @@ sub nbr_list_already_recycled {
     my %args = @_;
 
     #  we only work on the first nbr set
-    my $nbr_list_name = '_NBR_SET0';
+    my $nbr_list_name = '_NBR_SET1';
 
     return $self->exists_list (
         element => $args{element},
@@ -1043,29 +1050,31 @@ sub get_recyclable_nbrhoods {
     );
 
     for my $i (0 .. $#$spatial_conditions_ref) {
-        my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
-
+        my $sp_cond     = $spatial_conditions_ref->[$i];
+        my $result_type = $sp_cond->get_result_type;
+        
         my $prev_nbr_is_recyclable = 1;  #  always check first one
         if ($i > 0) {  #  only check $i if $i-1 is true
             $prev_nbr_is_recyclable = $recyclable_nbrhoods[$i-1];
         }
 
-        if (    $prev_nbr_is_recyclable
-             && exists $recyc_candidates{$result_type} ) {
+        next if !(    $prev_nbr_is_recyclable
+             && exists $recyc_candidates{$result_type}
+             && !$sp_cond->get_no_recycling_flag );
 
-            # only those in the first nbrhood,
-            # or if the previous nbrhood is recyclable
-            # and we allow recyc beyond first index
-            my $is_valid_recyc_index =
-              defined $recyc_candidates{$result_type}
-                ? $i <= $recyc_candidates{$result_type}
-                : 1;
+        # only those in the first nbrhood,
+        # or if the previous nbrhood is recyclable
+        # and we allow recyc beyond first index
+        my $is_valid_recyc_index =
+          defined $recyc_candidates{$result_type}
+            ? $i <= $recyc_candidates{$result_type}
+            : 1;
 
-            if ( $is_valid_recyc_index ) { 
-                $recyclable_nbrhoods[$i] = 1;
-                $results_are_recyclable ++;
-            }
+        if ( $is_valid_recyc_index ) { 
+            $recyclable_nbrhoods[$i] = 1;
+            $results_are_recyclable ++;
         }
+
     }
 
     #  we can only recycle the results if all nbr sets are recyclable 

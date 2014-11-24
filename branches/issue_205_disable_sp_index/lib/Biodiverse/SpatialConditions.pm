@@ -125,6 +125,17 @@ sub has_conditions {
     return length $conditions;
 }
 
+#  should callers ignore recycling if detected?
+sub set_no_recycling_flag {
+    my ($self, $flag) = @_;
+    $self->{no_recycling} = $flag;
+}
+
+sub get_no_recycling_flag {
+    my $self = shift;
+    return $self->{no_recycling};
+}
+
 sub get_used_dists {
     my $self = shift;
     return $self->get_param('USES');

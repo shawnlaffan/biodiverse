@@ -216,23 +216,25 @@ sub test_recycling {
     my $blessed_condition4 = Biodiverse::SpatialConditions->new (conditions => $spatial_condition_text);
     my $sp4 = $bd4->add_spatial_output (name => 'sp4');
     $sp4->run_analysis (
-        spatial_conditions => [$blessed_condition4, 'sp_circle(radius => 2)'],
+        spatial_conditions => [$blessed_condition4, 'sp_block(size => 3)'],
         calculations => [@calculations],
     );
 
-    ok ( $sp1->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag set for sp1');
-    ok (!$sp2->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag not set for sp2');
-    ok (!$sp3->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag not set for sp3');
-    ok (!$sp4->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag not set for sp4');
+    ok ( $sp1->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag on for sp1');
+    ok (!$sp2->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp2');
+    ok (!$sp3->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp3');
+    ok (!$sp4->get_param ('RESULTS_ARE_RECYCLABLE'), 'Recycling flag off for sp4');
 
-    my %tbl_args = (symmetric => 1, list => 'EL_LIST_ALL');
+    my %tbl_args = (symmetric => 1, list => 'EL_LIST1');
     my $t1 = $sp1->to_table (%tbl_args);
     my $t2 = $sp2->to_table (%tbl_args);
     my $t3 = $sp3->to_table (%tbl_args);
+    my $t4 = $sp4->to_table (%tbl_args);
     
-    is_deeply ($t2, $t1, 'results match for recycling on and off');
-    is_deeply ($t3, $t1, 'results match for recycling on and off (indices object control)');
-    
+    is_deeply ($t2, $t1, 'nbr set 1 match for recycling on and off');
+    is_deeply ($t3, $t1, 'nbr set 1 match for recycling on and off (indices object control)');
+    is_deeply ($t4, $t1, 'nbr set 1 match for recycling on and off (two nbr sets)');
+
     #  now check they were not recycled
     subtest 'results recycling per element' => sub {
         my $el_list = $sp1->get_element_list;
@@ -248,20 +250,32 @@ sub test_recycling {
     subtest 'nbr recycling per element' => sub {
         my $el_list = $sp1->get_element_list;
         for my $el (sort @$el_list) {
-            my $listref1 = $sp1->get_list_ref (list => '_NBR_SET1', element => $el);
-            my $listref2 = $sp2->get_list_ref (list => '_NBR_SET1', element => $el);
-            my $listref3 = $sp3->get_list_ref (list => '_NBR_SET1', element => $el);
-            my $listref4 = $sp4->get_list_ref (list => '_NBR_SET1', element => $el);
+            my %n_args = (list => '_NBR_SET1', element => $el);
+            my $listref1 = $sp1->get_list_ref (%n_args);
+            my $listref2 = $sp2->get_list_ref (%n_args);
+            my $listref3 = $sp3->get_list_ref (%n_args);
+            my $listref4 = $sp4->get_list_ref (%n_args);
             foreach my $nbr (@$listref1) {
                 next if $el eq $nbr;
-                my $listref1n = $sp1->get_list_ref (list => '_NBR_SET1', element => $nbr);
-                my $listref2n = $sp2->get_list_ref (list => '_NBR_SET1', element => $nbr);
-                my $listref3n = $sp3->get_list_ref (list => '_NBR_SET1', element => $nbr);
-                my $listref4n = $sp4->get_list_ref (list => '_NBR_SET1', element => $nbr);
+                my $listref1n = $sp1->get_list_ref (%n_args);
+                my $listref2n = $sp2->get_list_ref (%n_args);
+                my $listref3n = $sp3->get_list_ref (%n_args);
+                my $listref4n = $sp4->get_list_ref (%n_args);
                 is   ($listref1, $listref1n, "_NBR_SET1 recycled for sp1, $el v $nbr");
                 isnt ($listref2, $listref2n, "_NBR_SET1 not recycled for sp2, $el v $nbr");
                 isnt ($listref3, $listref3n, "_NBR_SET1 not recycled for sp3, $el v $nbr");
                 is   ($listref4, $listref4n, "_NBR_SET1 recycled for sp4, $el v $nbr");
+            }
+        }
+    };
+
+    subtest '_NBR_SET2 is not recycled' => sub {
+        my $el_list = $sp4->get_element_list;
+        for my $el (sort @$el_list) {
+            my $listref4 = $sp4->get_list_ref (list => '_NBR_SET2', element => $el);
+            foreach my $nbr (@$listref4) {
+                my $listref4n = $sp4->get_list_ref (list => '_NBR_SET2', element => $nbr);
+                isnt ($listref4, $listref4n, "_NBR_SET2 not recycled for sp4, $el v $nbr");
             }
         }
     };

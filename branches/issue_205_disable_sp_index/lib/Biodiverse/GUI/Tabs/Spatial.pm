@@ -270,6 +270,8 @@ sub new {
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
+
+        button_spatial_options => {clicked => \&run_options_dialogue},
     );
 
     #  bodge - should set the radio group
@@ -1163,6 +1165,8 @@ sub on_run {
         return;
     }
 
+    my $options = $self->get_options;
+
     my %args = (
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
@@ -1172,6 +1176,7 @@ sub on_run {
             $self->{spatial1}->get_validated_conditions,
             $self->{spatial2}->get_validated_conditions,
         ],
+        %$options,
     );
 
     # Perform the analysis
@@ -1912,6 +1917,96 @@ sub choose_tool {
     $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
     
     $self->set_display_cursors ($tool);
+}
+
+#  cargo culted from SpatialParams.pm under the assumption that it will diverge over time
+sub run_options_dialogue {
+    my $self = shift;
+
+    my $dlg = Gtk2::Dialog->new (
+        'Spatial conditions options',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok' => 'ok',
+    );
+
+    my $options = $self->{options};
+    if (!$options) {
+        my ($ignore_spatial_index, $no_recycling);
+        if (my $output_ref = $self->{output_ref}) {
+            no autovivification;
+            my ($p_key, $analysis_args) = $output_ref->get_analysis_args_from_object (
+                object => $output_ref,
+            );
+            $ignore_spatial_index = $analysis_args->{ignore_spatial_index};
+            $no_recycling = $analysis_args->{no_recycling};
+        }
+        $self->{options} = {
+            ignore_spatial_index => $ignore_spatial_index,
+            no_recycling         => $no_recycling,
+        };
+        $options = $self->{options};
+    }
+    
+
+    my $table = Gtk2::Table->new(2, 2);
+    $table->set_row_spacings(5);
+    $table->set_col_spacings(20);
+
+    my @tb_props = (['expand', 'fill'], 'shrink', 0, 0);
+    my $tip_text;
+
+    my $row = 0;
+    my $sp_index_label    = Gtk2::Label->new ('Ignore spatial index?');
+    my $sp_index_checkbox = Gtk2::CheckButton->new;
+    $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
+    $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
+    $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = 'Set this to on if the spatial conditions do not work properly '
+              . "when the BaseData has a spatial index set.\n"
+              . 'This can also be set on a per-condition basis via the conditions properties';
+    foreach my $widget ($sp_index_label, $sp_index_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
+
+    $row++;
+    my $recyc_label = Gtk2::Label->new ('Turn off recycling?');
+    my $recyc_checkbox = Gtk2::CheckButton->new;
+    $recyc_checkbox->set_active ($options->{no_recycling});
+    $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
+    $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = 'Biodiverse tries to detect cases where it can recycle neighour '
+              . "sets and spatial results, and this can sometimes not work.\n"
+              . "Set this to on to stop Biodiverse checking for such cases.\n"
+              . 'This can also be set on a per-condition basis via the conditions properties'';
+    foreach my $widget ($recyc_label, $recyc_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($table, 0, 0, 0);
+    $dlg->show_all;
+
+    my $result = $dlg->run;
+
+    if (lc($result) eq 'ok') {
+        $options->{ignore_spatial_index} = $sp_index_checkbox->get_active;
+        $options->{no_recycling}         = $recyc_checkbox->get_active;
+    }
+
+    $dlg->destroy;
+    return;
+}
+
+sub get_options {
+    my $self = shift;
+    
+    my $options = $self->{options} // {};
+    
+    return wantarray ? %$options : $options;
 }
 
 

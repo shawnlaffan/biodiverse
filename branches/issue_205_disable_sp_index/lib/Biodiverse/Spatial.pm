@@ -243,6 +243,7 @@ sub sp_calc {
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
     my $use_recycling              = !$args{no_recycling};
+    my $ignore_spatial_index       = $args{ignore_spatial_index};
     #say "[SPATIAL] Using recycling: $use_recycling";
 
     my $spatial_conditions_arr  = $self->get_spatial_conditions_arr (%args);
@@ -312,10 +313,13 @@ sub sp_calc {
 
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
-    if (not $self->exists_param ('SPATIAL_INDEX')) {
-        $self->set_param (SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX'));
+    my $sp_index;
+    if (!$ignore_spatial_index) {
+        if (not $self->exists_param ('SPATIAL_INDEX')) {
+            $self->set_param (SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX'));
+        }
+        $sp_index = $self->get_param ('SPATIAL_INDEX');
     }
-    my $sp_index = $self->get_param ('SPATIAL_INDEX');
 
     #  use existing offsets if they exist
     #  (eg if this is a randomisation based on some original sp_calc)
@@ -738,7 +742,7 @@ sub get_nbrs_for_element {
                 else {    #  no nbr list thus far so go looking
 
                     #  don't use the index if there are no search blocks
-                    #  (this is controlled above where the search blocks are processed)
+                    #  (this setting is controlled above where the search blocks are processed)
                     my $sp_index_i;
                     if ($search_blocks_arr->[$i]) {
                         $sp_index_i = $sp_index;

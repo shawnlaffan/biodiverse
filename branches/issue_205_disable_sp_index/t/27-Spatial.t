@@ -188,7 +188,7 @@ sub test_recycling {
 
     my @calculations = qw /calc_element_lists_used/;
     my $spatial_condition_text = 'sp_block(size => 2)';
-    
+
     my $sp1 = $bd1->add_spatial_output (name => 'sp1');
     my $blessed_condition1 = Biodiverse::SpatialConditions->new (conditions => $spatial_condition_text);
     $sp1->run_analysis (

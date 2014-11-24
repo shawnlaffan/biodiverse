@@ -11,7 +11,7 @@
 
   _This is the current development version, leading towards a version 1.0 release._
 
-  The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_005 release notes] summarise the changes in this version.
+  The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_005 release notes] summarise the changes in this version.  There is also a series of blog posts at http://biodiverse-analysis-software.blogspot.com.au/
 
   * Windows (64 bit).  Download, unzip and then run the Biodiverse executable file.
     * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_005_win64.7z 7zip format]. File size is 27 MB.  (The 7zip utility can be downloaded from http://www.7-zip.org).

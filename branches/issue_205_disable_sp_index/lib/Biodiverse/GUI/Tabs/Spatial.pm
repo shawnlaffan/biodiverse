@@ -146,37 +146,45 @@ sub new {
 
     
     # Spatial parameters
-    my ($initial_sp1, $initial_sp2);
+    my ($initial_sp1, $initial_sp2, @spatial_conditions, $defq_object);
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
         
-        my $spatial_conditions = $output_ref->get_spatial_conditions;
+        @spatial_conditions = @{$output_ref->get_spatial_conditions};
         #  allow for empty conditions
         $initial_sp1
-            = defined $spatial_conditions->[0]
-            ? $spatial_conditions->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions[0]
+            ? $spatial_conditions[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $initial_sp2
-            = defined $spatial_conditions->[1]
-            ? $spatial_conditions->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions[1]
+            ? $spatial_conditions[1]->get_conditions_unparsed()
             : $NULL_STRING;
-        
+
         my $definition_query = $output_ref->get_param ('DEFINITION_QUERY');
         $initial_def1
             = defined $definition_query
             ? $definition_query->get_conditions_unparsed()
             : $NULL_STRING;
+        $defq_object = $definition_query;
     }
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
         my $cell_x = $cell_sizes->[0];
         $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = "sp_circle (radius => $cell_x)";
+        $initial_sp2 = $cell_x > 0 ? "sp_circle (radius => $cell_x)" : '';
     }
 
-    $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);
-    my $hide_flag = not (length $initial_sp2);
-    $self->{spatial2} = Biodiverse::GUI::SpatialParams->new($initial_sp2, $hide_flag);
+    $self->{spatial1} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $initial_sp1,
+        condition_object => $spatial_conditions[0],
+    );
+    my $start_hidden = not (length $initial_sp2);
+    $self->{spatial2} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $initial_sp2,
+        start_hidden => $start_hidden,
+        condition_object => $spatial_conditions[1],
+    );
 
     $self->{xmlPage}->get_widget('frameSpatialParams1')->add(
         $self->{spatial1}->get_widget
@@ -185,9 +193,14 @@ sub new {
         $self->{spatial2}->get_widget
     );
 
-    $hide_flag = not (length $initial_def1);
+    $start_hidden = not (length $initial_def1);
     $self->{definition_query1}
-        = Biodiverse::GUI::SpatialParams->new($initial_def1, $hide_flag, 'is_def_query');
+        = Biodiverse::GUI::SpatialParams->new(
+            initial_text => $initial_def1,
+            start_hidden => $start_hidden,
+            is_def_query => 'is_def_query',
+            condition_object => $defq_object,
+        );
     $self->{xmlPage}->get_widget('frameDefinitionQuery1')->add(
         $self->{definition_query1}->get_widget
     );

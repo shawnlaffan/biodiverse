@@ -33,9 +33,12 @@ use parent qw /Biodiverse::Common/;  #  need get/set_param
 
 sub new {
     my $class = shift;
-    my $initial_text = shift;
-    my $start_hidden = shift;
-    my $is_def_query = shift;
+    my %args = @_;
+
+    my $initial_text = $args{initial_text};
+    my $start_hidden = $args{start_hidden};
+    my $is_def_query = $args{is_def_query};
+    my $condition_object = $args{condition_object};
 
     my $hbox = Gtk2::HBox->new(0,2);
     
@@ -55,6 +58,7 @@ sub new {
         is_def_query => $is_def_query,
         expander     => $expander,
         current_text_view => 'Frame',
+        validated_conditions => $condition_object, #  assumes it works
     };
     bless $self, $class;
 
@@ -195,7 +199,15 @@ sub on_syntax_check {
 
 sub get_validated_conditions {
     my $self = shift;
-    return $self->{validated_conditions};
+
+    my $conditions = $self->{validated_conditions};
+    croak "Conditions not yet validated\n" if !defined $conditions;
+
+    my $options = $self->get_options;
+    $conditions->set_no_recycling_flag ($options->{no_recycling});
+    $conditions->set_ignore_spatial_index_flag ($options->{ignore_spatial_index});
+
+    return $conditions;
 }
 
 sub get_widget {
@@ -226,25 +238,40 @@ sub run_options_dialogue {
         'gtk-cancel' => 'cancel',
         'gtk-ok' => 'ok',
     );
-    
-    $self->{options} //= {
-        ignore_spatial_index => 0,
-        no_recycling => 0,
-    };
+
     my $options = $self->{options};
+    if (!$options) {
+        my ($ignore_spatial_index, $no_recycling);
+        if (my $cond_object = eval {$self->get_validated_conditions}) {
+            $ignore_spatial_index = $cond_object->get_ignore_spatial_index_flag;
+            $no_recycling = $cond_object->get_no_recycling_flag;
+        }
+        $self->{options} = {
+            ignore_spatial_index => $ignore_spatial_index,
+            no_recycling         => $no_recycling,
+        };
+        $options = $self->{options};
+    }
+    
 
     my $table = Gtk2::Table->new(2, 2);
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
     my @tb_props = (['expand', 'fill'], 'shrink', 0, 0);
-    
+    my $tip_text;
+
     my $row = 0;
     my $sp_index_label    = Gtk2::Label->new ('Ignore spatial index?');
     my $sp_index_checkbox = Gtk2::CheckButton->new;
     $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
     $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = 'Set this to on if the spatial condition does not work properly when the BaseData has a spatial index set.';
+    foreach my $widget ($sp_index_label, $sp_index_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
 
     $row++;
     my $recyc_label = Gtk2::Label->new ('Turn off recycling?');
@@ -252,6 +279,12 @@ sub run_options_dialogue {
     $recyc_checkbox->set_active ($options->{no_recycling});
     $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = "Biodiverse tries to detect cases where it can recycle neighour sets and spatial results, and this can sometimes not work.\n"
+     . 'Set this to on to stop Biodiverse checking for such cases.';
+    foreach my $widget ($recyc_label, $recyc_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
 
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start ($table, 0, 0, 0);

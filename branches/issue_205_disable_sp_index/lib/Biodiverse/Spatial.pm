@@ -781,7 +781,7 @@ sub get_nbrs_for_element {
                     push @exclude, @{$nbr_list[$i]};
                 }
             }
-            
+
             #  now save it 
             $self->add_to_lists (
                 element        => $element,
@@ -827,31 +827,28 @@ sub recycle_list_results {
 sub recycle_nbr_lists {
     my $self = shift;
     my %args = @_;
-    
+
     my $recyclable_nbrhoods = $args{recyclable_nbrhoods};
     my $nbr_lists           = $args{nbr_lists};
     my $nbrs_1              = $args{nbrs_1};
     my $definition_query    = $args{definition_query};
     my $pass_def_query      = $args{pass_def_query};
     my $element             = $args{element};
-    
+
     #  for each nbr in %nbrs_1,
     #  copy the neighbour sets for those that overlap
-    LOOP_RECYC_NBRHOODS:
+  LOOP_RECYC_NBRHOODS:
     foreach my $i (0 .. $#$recyclable_nbrhoods) {
         #  all preceding must be recyclable
         last LOOP_RECYC_NBRHOODS
-            if ! $recyclable_nbrhoods->[$i];  
+            if !$recyclable_nbrhoods->[$i];  
 
         my $nbr_list_name = '_NBR_SET' . ($i+1);
         my $nbr_list_ref  = $nbr_lists->[$i];
 
         LOOP_RECYC_NBRS:
         foreach my $nbr (keys %$nbrs_1) {
-            #  comment out next line - the list refs
-            #  are being changed somewhere so we end up not 
-            #  recycling the same list 
-            #next LOOP_RECYC_NBRS if $nbr eq $element;
+            next LOOP_RECYC_NBRS if $nbr eq $element;
 
             if ($definition_query) {
                 my $pass = exists $pass_def_query->{$nbr};
@@ -866,7 +863,7 @@ sub recycle_nbr_lists {
             );
         }
     }
-    
+
     return;
 }
 

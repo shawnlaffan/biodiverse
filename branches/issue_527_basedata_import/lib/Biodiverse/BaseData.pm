@@ -1353,19 +1353,20 @@ sub import_data_raster {
 
                   ROW:
                     foreach my $lineref (@tile) {
-                        my ($ngeo, $ncell, $grpn);
+                        my ($ngeo, $ncell, $grpn, $grpstring);
                         if (!$tf_4) {  #  no transform so constant y for this line
                             $ngeo  = $tf_3 + $gridy * $tf_5;
                             $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
                             $grpn  = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
                         }
 
-                        my $gridx = $wpos - 1;
+                        my $gridx  = $wpos - 1;
+                        my $prev_x = $tf_0 - 100;  #  just need something west of the origin
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
                             $gridx++;
-                            $processed_count++;
+
                             # need to add check for empty groups when it is added as an argument
                             next COLUMN
                               if defined $nodata_value && $entry == $nodata_value;
@@ -1383,18 +1384,29 @@ sub import_data_raster {
                             my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
                             my $grpe  = $cellorigin_e + $ecell * $cellsize_e + $halfcellsize_e;
 
+                            my $new_gp;
                             if ($tf_4) {  #  need to transform the y coords
                                 $ngeo  = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
                                 $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
                                 # subtract half cell width since position is top-left
                                 $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
+                                #  cannot guarantee constant groups for rotated/transformed data
+                                #  so we need a new group name
+                                $new_gp = 1;
+                            }
+                            else {
+                                #  if $grpe has not changed then we can re-use the previous group name
+                                $new_gp = $prev_x != $grpe;
                             }
 
-                            #  no need to dequote since these will always be numbers
-                            my $grpstring = $self->list2csv (
-                                list        => [$grpe, $grpn],
-                                csv_object  => $out_csv,
-                            );
+                            if ($new_gp) {
+                                #  build a new group name if needed
+                                #  no need to dequote since these will always be numbers
+                                $grpstring = $self->list2csv (
+                                    list        => [$grpe, $grpn],
+                                    csv_object  => $out_csv,
+                                );
+                            }
 
                             # set label if determined at cell level
                             my $count = 1;
@@ -1417,9 +1429,13 @@ sub import_data_raster {
                                 csv_object => $out_csv,
                             );
 
+                            $prev_x = $grpe;
+
                         } # each entry on line
 
                         $gridy++;
+                        $processed_count += scalar @$lineref;  #  saves incrementing in the loop
+
                     } # each line in block
 
                     $wpos += $blockw;

@@ -9,7 +9,7 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
-use List::Util 1.33 qw /max min sum any all none notall/;
+use List::Util 1.33 qw /max min sum any all none notall pairs/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
@@ -1340,6 +1340,9 @@ sub import_data_raster {
                     $frac
                 }
 
+                #  temporary store for groups and labels so
+                #  we can reduce the calls to add_element
+                my %gp_lb_hash;  
 
                 $wpos = 0;
                 while ($wpos < $data->{RasterXSize}) {
@@ -1421,13 +1424,8 @@ sub import_data_raster {
                                             : $entry;
                             } 
 
-                            # add to elements (skipped if the label is nodata)
-                            $self->add_element (
-                                label      => $this_label,
-                                group      => $grpstring,
-                                count      => $count,
-                                csv_object => $out_csv,
-                            );
+                            #  collate the data
+                            $gp_lb_hash{$grpstring}{$this_label} += $count;
 
                             $prev_x = $grpe;
 
@@ -1442,6 +1440,22 @@ sub import_data_raster {
                 } # each block in width
 
                 $hpos += $blockh;
+                
+                #  now add the collated data
+                foreach my $gp_lb_pair (pairs %gp_lb_hash) {
+                    my ($gp, $lb_hash) = @$gp_lb_pair;
+                    foreach my $lb_count_pair (pairs %$lb_hash) {
+                        my ($lb, $count) = @$lb_count_pair;
+                        # add to elements (skipped if the label is nodata)
+                        $self->add_element (
+                            label      => $lb,
+                            group      => $gp,
+                            count      => $count,
+                            csv_object => $out_csv,
+                        );
+                    }
+                }
+
             } # each block in height
         } # each raster band
         

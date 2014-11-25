@@ -146,37 +146,45 @@ sub new {
 
     
     # Spatial parameters
-    my ($initial_sp1, $initial_sp2);
+    my ($initial_sp1, $initial_sp2, @spatial_conditions, $defq_object);
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
         
-        my $spatial_conditions = $output_ref->get_spatial_conditions;
+        @spatial_conditions = @{$output_ref->get_spatial_conditions};
         #  allow for empty conditions
         $initial_sp1
-            = defined $spatial_conditions->[0]
-            ? $spatial_conditions->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions[0]
+            ? $spatial_conditions[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $initial_sp2
-            = defined $spatial_conditions->[1]
-            ? $spatial_conditions->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions[1]
+            ? $spatial_conditions[1]->get_conditions_unparsed()
             : $NULL_STRING;
-        
+
         my $definition_query = $output_ref->get_param ('DEFINITION_QUERY');
         $initial_def1
             = defined $definition_query
             ? $definition_query->get_conditions_unparsed()
             : $NULL_STRING;
+        $defq_object = $definition_query;
     }
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
         my $cell_x = $cell_sizes->[0];
         $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = "sp_circle (radius => $cell_x)";
+        $initial_sp2 = $cell_x > 0 ? "sp_circle (radius => $cell_x)" : '';
     }
 
-    $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);
-    my $hide_flag = not (length $initial_sp2);
-    $self->{spatial2} = Biodiverse::GUI::SpatialParams->new($initial_sp2, $hide_flag);
+    $self->{spatial1} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $initial_sp1,
+        condition_object => $spatial_conditions[0],
+    );
+    my $start_hidden = not (length $initial_sp2);
+    $self->{spatial2} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $initial_sp2,
+        start_hidden => $start_hidden,
+        condition_object => $spatial_conditions[1],
+    );
 
     $self->{xmlPage}->get_widget('frameSpatialParams1')->add(
         $self->{spatial1}->get_widget
@@ -185,9 +193,14 @@ sub new {
         $self->{spatial2}->get_widget
     );
 
-    $hide_flag = not (length $initial_def1);
+    $start_hidden = not (length $initial_def1);
     $self->{definition_query1}
-        = Biodiverse::GUI::SpatialParams->new($initial_def1, $hide_flag, 'is_def_query');
+        = Biodiverse::GUI::SpatialParams->new(
+            initial_text => $initial_def1,
+            start_hidden => $start_hidden,
+            is_def_query => 'is_def_query',
+            condition_object => $defq_object,
+        );
     $self->{xmlPage}->get_widget('frameDefinitionQuery1')->add(
         $self->{definition_query1}->get_widget
     );
@@ -257,6 +270,8 @@ sub new {
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
+
+        button_spatial_options => {clicked => \&run_options_dialogue},
     );
 
     #  bodge - should set the radio group
@@ -1150,6 +1165,8 @@ sub on_run {
         return;
     }
 
+    my $options = $self->get_options;
+
     my %args = (
         calculations       => \@to_run,
         matrix_ref         => $self->{project}->get_selected_matrix,
@@ -1159,6 +1176,7 @@ sub on_run {
             $self->{spatial1}->get_validated_conditions,
             $self->{spatial2}->get_validated_conditions,
         ],
+        %$options,
     );
 
     # Perform the analysis
@@ -1899,6 +1917,96 @@ sub choose_tool {
     $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
     
     $self->set_display_cursors ($tool);
+}
+
+#  cargo culted from SpatialParams.pm under the assumption that it will diverge over time
+sub run_options_dialogue {
+    my $self = shift;
+
+    my $dlg = Gtk2::Dialog->new (
+        'Spatial conditions options',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok' => 'ok',
+    );
+
+    my $options = $self->{options};
+    if (!$options) {
+        my ($ignore_spatial_index, $no_recycling);
+        if (my $output_ref = $self->{output_ref}) {
+            no autovivification;
+            my ($p_key, $analysis_args) = $output_ref->get_analysis_args_from_object (
+                object => $output_ref,
+            );
+            $ignore_spatial_index = $analysis_args->{ignore_spatial_index};
+            $no_recycling = $analysis_args->{no_recycling};
+        }
+        $self->{options} = {
+            ignore_spatial_index => $ignore_spatial_index,
+            no_recycling         => $no_recycling,
+        };
+        $options = $self->{options};
+    }
+    
+
+    my $table = Gtk2::Table->new(2, 2);
+    $table->set_row_spacings(5);
+    $table->set_col_spacings(20);
+
+    my @tb_props = (['expand', 'fill'], 'shrink', 0, 0);
+    my $tip_text;
+
+    my $row = 0;
+    my $sp_index_label    = Gtk2::Label->new ('Ignore spatial index?');
+    my $sp_index_checkbox = Gtk2::CheckButton->new;
+    $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
+    $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
+    $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = 'Set this to on if the spatial conditions do not work properly '
+              . "when the BaseData has a spatial index set.\n"
+              . 'This can also be set on a per-condition basis via the conditions properties';
+    foreach my $widget ($sp_index_label, $sp_index_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
+
+    $row++;
+    my $recyc_label = Gtk2::Label->new ('Turn off recycling?');
+    my $recyc_checkbox = Gtk2::CheckButton->new;
+    $recyc_checkbox->set_active ($options->{no_recycling});
+    $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
+    $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);
+    $tip_text = 'Biodiverse tries to detect cases where it can recycle neighour '
+              . "sets and spatial results, and this can sometimes not work.\n"
+              . "Set this to on to stop Biodiverse checking for such cases.\n"
+              . 'This can also be set on a per-condition basis via the conditions properties';
+    foreach my $widget ($recyc_label, $recyc_checkbox) {
+        $widget->set_has_tooltip(1);
+        $widget->set_tooltip_text ($tip_text);
+    }
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($table, 0, 0, 0);
+    $dlg->show_all;
+
+    my $result = $dlg->run;
+
+    if (lc($result) eq 'ok') {
+        $options->{ignore_spatial_index} = $sp_index_checkbox->get_active;
+        $options->{no_recycling}         = $recyc_checkbox->get_active;
+    }
+
+    $dlg->destroy;
+    return;
+}
+
+sub get_options {
+    my $self = shift;
+    
+    my $options = $self->{options} // {};
+    
+    return wantarray ? %$options : $options;
 }
 
 

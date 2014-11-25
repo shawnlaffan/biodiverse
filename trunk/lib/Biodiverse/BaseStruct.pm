@@ -2910,22 +2910,18 @@ sub add_to_lists {  #  add to a list, create if not already there.
     my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
     delete $args{use_ref};  #  should it be in its own sub?
 
-    while ((my $list_name, my $list_values) = each %args) {
+    foreach my $list_name (keys %args) {
+        my $list_values = $args{$list_name};
         if ($use_ref) {
             $self->{ELEMENTS}{$element}{$list_name} = $list_values;
         }
-        elsif ((ref $list_values) =~ /HASH/) {
-            $self->{ELEMENTS}{$element}{$list_name} = {}
-              if ! exists $self->{ELEMENTS}{$element}{$list_name};
-
-            $self->{ELEMENTS}{$element}{$list_name}
-              = {%{$self->{ELEMENTS}{$element}{$list_name}}, %{$list_values}};
+        elsif ((ref $list_values) =~ /HASH/) {  #  slice assign
+            my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= {});
+            @$listref{keys %$list_values} = values %$list_values;
         }
         elsif ((ref $list_values) =~ /ARRAY/) {
-            $self->{ELEMENTS}{$element}{$list_name} = []
-              if ! exists $self->{ELEMENTS}{$element}{$list_name};
-
-            push @{$self->{ELEMENTS}{$element}{$list_name}}, @{$list_values};
+            my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= []);
+            push @$listref, @$list_values;
         }
         else {
             croak "no valid list ref passed to add_to_lists, %args\n";

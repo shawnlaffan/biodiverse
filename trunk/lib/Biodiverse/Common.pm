@@ -452,6 +452,34 @@ sub set_default_params {
     return;
 }
 
+sub get_analysis_args_from_object {
+    my $self = shift;
+    my %args = @_;
+    
+    my $object = $args{object};
+
+    my $get_copy = $args{get_copy} // 1;
+
+    my $analysis_args;
+    my $p_key;
+  ARGS_PARAM:
+    for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
+        $analysis_args = $object->get_param ($key);
+        $p_key = $key;
+        last ARGS_PARAM if defined $analysis_args;
+    }
+
+    my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
+
+    my @results = (
+        $p_key,
+        $return_hash,
+    );
+
+    return wantarray ? @results : \@results;
+}
+
+
 #  Get the spatial conditions for this object if set
 #  Allow for back-compat.
 sub get_spatial_conditions {

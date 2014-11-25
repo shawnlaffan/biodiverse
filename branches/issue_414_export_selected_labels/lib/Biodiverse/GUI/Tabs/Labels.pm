@@ -158,11 +158,14 @@ sub new {
     $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
     $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
-    
+
     $self->{use_highlight_path} = 1;
-    
+
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubarLabelsOptions');
+    $self->update_export_menu;
+
     say "[GUI] - Loaded tab - Labels";
-    
+
     return $self;
 }
 
@@ -1434,6 +1437,72 @@ sub set_pane_signal {
     
     return;
 }
+
+
+
+sub update_export_menu {
+    my $self = shift;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{base_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.  
+    my $export_menu = $self->{export_menu};
+    if (!$export_menu) {
+        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $menubar->append($export_menu);
+        $self->{export_menu} = $export_menu;
+    }
+
+    my %type_hash = (
+        Labels => $output_ref->get_labels_ref,
+        Groups => $output_ref->get_groups_ref,
+    );
+
+    my $submenu = Gtk2::Menu->new;
+
+    foreach my $type (keys %type_hash) {
+        my $ref = $type_hash{$type};
+        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
+
+        my $bs_submenu = Gtk2::Menu->new;
+
+        # Get the Parameters metadata
+        my %args = $ref->get_args (sub => 'export');
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            next if !$label;
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $bs_submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_export, [$self, $ref, $label],
+            );
+        }
+        $submenu_item->set_submenu($bs_submenu);
+        $submenu_item->set_sensitive(1);
+        $submenu->append($submenu_item);
+    }
+
+    $export_menu->set_submenu($submenu);
+    $export_menu->set_sensitive(1);
+
+    $menubar->show_all();
+}
+
+sub do_export {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    my @rest_of_args;
+    if (scalar @$args > 2) {
+        @rest_of_args = @$args[2..$#$args];
+    }
+
+    Biodiverse::GUI::Export::Run($ref, @rest_of_args);
+}
+
+
 
 sub numerically {$a <=> $b};
 

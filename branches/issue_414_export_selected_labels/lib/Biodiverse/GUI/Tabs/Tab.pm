@@ -901,13 +901,11 @@ sub delete_cached_values {
     return;
 }
 
-
-
 sub update_export_menu {
     my $self = shift;
 
     my $menubar = $self->{menubar};
-    my $output_ref = $self->{output_ref};
+    my $output_ref = $self->{output_ref};  
 
     # Clear out old entries from menu so we can rebuild it.
     # This will be useful when we add checks for which export methods are valid.  
@@ -919,7 +917,7 @@ sub update_export_menu {
         $self->{export_menu} = $export_menu;
     }
 
-    if (!$output_ref || $output_ref->get_param('COMPLETED') != 1) {
+    if (!$output_ref || ($output_ref->get_param('COMPLETED') // 1) != 1) {
         #  completed == 2 for clusters analyses with matrices only
         $export_menu->set_sensitive(0);
     }

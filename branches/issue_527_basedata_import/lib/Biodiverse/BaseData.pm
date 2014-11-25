@@ -773,6 +773,7 @@ sub import_data {
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
     my $data_in_matrix_form  = $args{data_in_matrix_form};
     my $allow_empty_groups   = $args{allow_empty_groups};
+    my $allow_empty_labels   = $args{allow_empty_labels};
 
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
@@ -816,7 +817,7 @@ sub import_data {
         group_properties     => $group_properties,
         use_group_properties => $use_group_properties,
         allow_empty_groups   => $allow_empty_groups,
-        allow_empty_labels   => $args{allow_empty_labels},
+        allow_empty_labels   => $allow_empty_labels,
     );
 
     my $line_count_all_input_files = 0;
@@ -919,7 +920,14 @@ sub import_data {
         my $chunk_count = 0;
         #my $total_chunk_text = $self->get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
         my $total_chunk_text = '>0';
-        
+        my %gp_lb_hash;
+        my %args_for_add_elements_collated = (
+            csv_object => $out_csv,
+            binarise_counts    => $binarise_counts,
+            allow_empty_groups => $allow_empty_groups,
+            allow_empty_labels => $allow_empty_labels,
+        );
+
         say '[BASEDATA] Line number: 1';
         say "[BASEDATA]  Chunk size $line_count lines";
         
@@ -947,6 +955,13 @@ sub import_data {
                 $chunk_count ++;
                 $total_chunk_text
                     = $file_handle->eof ? $chunk_count : ">$chunk_count";
+
+                #  add the collated data
+                $self->add_elements_collated (
+                    data      => \%gp_lb_hash,
+                    %args_for_add_elements_collated,
+                );
+                %gp_lb_hash = (); #  clear the collated list
             }
 
 
@@ -1138,19 +1153,26 @@ sub import_data {
                     );
                 }
 
-                $self->add_element (
-                    %args,
-                    label      => $el,
-                    group      => $group,
-                    count      => $count,
-                    binary     => $binarise_counts,
-                    csv_object => $out_csv,
-                );
+                #  collate them so we can add them in a batch later
+                if (looks_like_number $count) {
+                    $gp_lb_hash{$group}{$el} += $count;
+                }
+                else {
+                    #  don't override existing counts with undef
+                    $gp_lb_hash{$group}{$el} //= $count;  
+                }
             }
 
             $line_count_used_this_file  ++;
             $line_count_all_input_files ++;
         }
+
+
+        #  add the last set
+        $self->add_elements_collated (
+            data      => \%gp_lb_hash,
+            %args_for_add_elements_collated,
+        );
 
         $file_handle->close;
         say "\tDONE (used $line_count_used_this_file of $line_count lines)";
@@ -1248,6 +1270,11 @@ sub import_data_raster {
         quote_char => $quotes,
     );
     
+    my %args_for_add_elements_collated = (
+        csv_object => $out_csv,
+        %args,  #  we can finesse this later 
+    );
+    
     # load each file, using same arguments/parameters
     #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
     foreach my $file (@{$args{input_files}}) {
@@ -1342,7 +1369,7 @@ sub import_data_raster {
 
                 #  temporary store for groups and labels so
                 #  we can reduce the calls to add_element
-                my %gp_lb_hash;  
+                my %gp_lb_hash;
 
                 $wpos = 0;
                 while ($wpos < $data->{RasterXSize}) {
@@ -1440,21 +1467,11 @@ sub import_data_raster {
                 } # each block in width
 
                 $hpos += $blockh;
-                
-                #  now add the collated data
-                foreach my $gp_lb_pair (pairs %gp_lb_hash) {
-                    my ($gp, $lb_hash) = @$gp_lb_pair;
-                    foreach my $lb_count_pair (pairs %$lb_hash) {
-                        my ($lb, $count) = @$lb_count_pair;
-                        # add to elements (skipped if the label is nodata)
-                        $self->add_element (
-                            label      => $lb,
-                            group      => $gp,
-                            count      => $count,
-                            csv_object => $out_csv,
-                        );
-                    }
-                }
+
+                $self->add_elements_collated (
+                    %args_for_add_elements_collated,
+                    data       => \%gp_lb_hash,
+                );
 
             } # each block in height
         } # each raster band
@@ -2156,6 +2173,37 @@ sub add_element {  #  run some calls to the sub hashes
 
     return;
 }
+
+#  add elements from a collated hash
+#  assumes {gps}{labels}{counts}
+sub add_elements_collated {
+    my $self = shift;
+    my %args = @_;
+
+    my $gp_lb_hash = $args{data};
+    my $csv = $args{csv_object}
+      // croak "csv_object arg not passed\n";
+
+    #  now add the collated data
+    foreach my $gp_lb_pair (pairs %$gp_lb_hash) {
+        my ($gp, $lb_hash) = @$gp_lb_pair;
+        foreach my $lb_count_pair (pairs %$lb_hash) {
+            my ($lb, $count) = @$lb_count_pair;
+            # add to elements (skipped if the label is nodata)
+            $self->add_element (
+                %args,
+                label      => $lb,
+                group      => $gp,
+                count      => $count,
+                csv_object => $csv,
+            );
+        }
+    }
+
+    return;
+}
+
+
 
 sub get_group_element_as_array {
     my $self = shift;

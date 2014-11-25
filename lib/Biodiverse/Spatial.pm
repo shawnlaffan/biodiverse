@@ -84,9 +84,9 @@ sub compare {
     my $recycled_results
       =    $self->get_param ('RESULTS_ARE_RECYCLABLE')
         && $comparison->get_param ('RESULTS_ARE_RECYCLABLE');
-    if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
-        $recycled_results = $args{no_recycle};
-    }
+    #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
+    #    $recycled_results = $args{no_recycle};
+    #}
 
     if ($recycled_results) {  #  set up some lists
         foreach my $list_name (keys %base_list_indices) {
@@ -242,8 +242,11 @@ sub sp_calc {
 
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
+    my $use_recycling              = !$args{no_recycling};
+    my $ignore_spatial_index       = $args{ignore_spatial_index};
+    #say "[SPATIAL] Using recycling: $use_recycling";
 
-    my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
+    my $spatial_conditions_arr  = $self->get_spatial_conditions_arr (%args);
     my $definition_query
       = $self->get_definition_query (definition_query => $args{definition_query});
 
@@ -257,12 +260,12 @@ sub sp_calc {
         NAME         => 'Indices for ' . $self->get_param('NAME'),
     );
 
-    my $nbr_list_count = scalar @$spatial_conditions_ref;
+    my $nbr_list_count = scalar @$spatial_conditions_arr;
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
-        element_list1 => [],  #  for validity checking only
-        element_list2 => $nbr_list_count == 2 ? [] : undef,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => $nbr_list_count == 2 ? [] : undef,
         processing_element => 'x',
     );
 
@@ -274,12 +277,13 @@ sub sp_calc {
     my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
     my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);
 
-    my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
-    my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $recyclable_nbrhoods     = $use_recycling ? $self->get_recyclable_nbrhoods : [];
+    my $results_are_recyclable  = $use_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
+
     #  These need to be shifted into get_recyclable_nbrhoods:
     #  If we are using neighbours from another spatial object
     #  then we use its recycle setting, and store it for later
-    if ($use_nbrs_from) {
+    if ($use_nbrs_from && $use_recycling) {
         $results_are_recyclable =
           $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
         $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
@@ -309,20 +313,21 @@ sub sp_calc {
 
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
-    if (not $self->exists_param ('SPATIAL_INDEX')) {
-        $self->set_param (
-            SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX')
-        );
+    my $sp_index;
+    if (!$ignore_spatial_index) {
+        if (not $self->exists_param ('SPATIAL_INDEX')) {
+            $self->set_param (SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX'));
+        }
+        $sp_index = $self->get_param ('SPATIAL_INDEX');
     }
-    my $sp_index = $self->get_param ('SPATIAL_INDEX');
 
     #  use existing offsets if they exist
     #  (eg if this is a randomisation based on some original sp_calc)
-    my $search_blocks_ref = $self->get_param ('INDEX_SEARCH_BLOCKS')
+    my $search_blocks_arr = $self->get_param ('INDEX_SEARCH_BLOCKS')
                             || [];
-    $spatial_conditions_ref   = $self->get_spatial_conditions || [];
+    $spatial_conditions_arr = $self->get_spatial_conditions || [];
 
-    if (! $use_nbrs_from) {
+    if (!$use_nbrs_from && $use_recycling) {
         #  first look for a sibling with the same spatial parameters
         my @comparable = eval {
             $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
@@ -333,10 +338,13 @@ sub sp_calc {
     #  but this time check the index
     if (! $use_nbrs_from) {
 
-        SPATIAL_PARAMS_LOOP:
-        for my $i (0 .. $#$spatial_conditions_ref) {
+      SPATIAL_PARAMS_LOOP:
+        for my $i (0 .. $#$spatial_conditions_arr) {
             my $set_i = $i + 1;
-            my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
+
+            my $sp_cond_obj  = $spatial_conditions_arr->[$i];
+            my $result_type  = $sp_cond_obj->get_result_type;
+            my $ignore_index = $sp_cond_obj->get_ignore_spatial_index_flag;
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
@@ -347,7 +355,7 @@ sub sp_calc {
                 say "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
-            elsif ($spatial_conditions_ref->[$i]->get_param ('INDEX_NO_USE')) { #  or if the conditions won't cooperate with the index
+            elsif ($ignore_index || $sp_cond_obj->get_param ('INDEX_NO_USE')) { #  or if the conditions won't cooperate with the index
                 say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";  #  put this feedback in the spatialparams?
                 next SPATIAL_PARAMS_LOOP;
             }
@@ -355,7 +363,7 @@ sub sp_calc {
                 say "[SPATIAL] Result type for neighbour set $set_i is $result_type."
             }
 
-            my $search_blocks = $search_blocks_ref->[$i];
+            my $search_blocks = $search_blocks_arr->[$i];
 
             if (defined $sp_index && ! defined $search_blocks) {
                 if ($i == 0) {
@@ -363,16 +371,16 @@ sub sp_calc {
                 }
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
                 $search_blocks = $sp_index->predict_offsets (
-                    spatial_conditions => $spatial_conditions_ref->[$i],
+                    spatial_conditions => $spatial_conditions_arr->[$i],
                     cellsizes          => scalar $bd->get_cell_sizes,
                     progress_text_pfx  => $progress_text_pfx,
                 );
-                $search_blocks_ref->[$i] = $search_blocks;
+                $search_blocks_arr->[$i] = $search_blocks;
             }
         }
     }
 
-    $self->set_param (INDEX_SEARCH_BLOCKS => $search_blocks_ref);
+    $self->set_param (INDEX_SEARCH_BLOCKS => $search_blocks_arr);
     
     #  maybe we only have a few we need to calculate?
     my %elements_to_use;
@@ -521,20 +529,17 @@ sub sp_calc {
         }
 
         #  skip if we've already copied them across
-        next if (
-            $results_are_recyclable
-            and
-            $self->exists_list (
+        next if $results_are_recyclable
+            && $self->exists_list (
                 element => $element,
                 list    => 'RESULTS_SAME_AS',
-            )
-        );
+            );
 
         my @nbr_list = $self->get_nbrs_for_element (
             element       => $element,
             use_nbrs_from => $use_nbrs_from,
             elements_to_exclude => \@elements_to_exclude,
-            search_blocks_ref => $search_blocks_ref,
+            search_blocks_arr   => $search_blocks_arr,
         );
 
         my %elements = (
@@ -586,17 +591,22 @@ sub sp_calc {
                       grep {exists $elements_to_use{$_}}
                       @{$nbr_list[0]};
 
-            if (! $self->nbr_list_already_recycled(element => $element)) {
-                #  for each nbr in %nbrs_1,
-                #  copy the neighbour sets for those that are recyclable
-                $self->recycle_nbr_lists (
-                    recyclable_nbrhoods => $recyclable_nbrhoods,
-                    nbr_lists           => \@nbr_list,
-                    nbrs_1              => \%nbrs_1,
-                    definition_query    => $definition_query,
-                    pass_def_query      => $pass_def_query,
-                    element             => $element,
-                );
+          RECYC:
+            foreach my $first_nbr (keys %nbrs_1) {
+                next RECYC if $first_nbr eq $element;
+                if (! $self->nbr_list_already_recycled(element => $first_nbr)) {
+                    #  for each nbr in %nbrs_1,
+                    #  copy the neighbour sets for those that are recyclable
+                    $self->recycle_nbr_lists (
+                        recyclable_nbrhoods => $recyclable_nbrhoods,
+                        nbr_lists           => \@nbr_list,
+                        nbrs_1              => \%nbrs_1,
+                        definition_query    => $definition_query,
+                        pass_def_query      => $pass_def_query,
+                        element             => $element,
+                    );
+                    last RECYC;
+                }
             }
         }
         if ($results_are_recyclable) {
@@ -659,19 +669,21 @@ sub get_nbrs_for_element {
     my $element       = $args{element};
     my $use_nbrs_from = $args{use_nbrs_from};
     my $elements_to_exclude = $args{elements_to_exclude};
-    my $search_blocks_ref = $args{search_blocks_ref};
+    my $search_blocks_arr   = $args{search_blocks_arr};
     
-    my $spatial_conditions_ref = $self->get_spatial_conditions;
+    my $spatial_conditions_arr = $self->get_spatial_conditions;
     my $sp_index = $self->get_param ('SPATIAL_INDEX');
     my $bd = $self->get_basedata_ref;
 
     my @nbr_list;
     my @exclude;
 
-    foreach my $i (0 .. $#$spatial_conditions_ref) {
+    foreach my $i (0 .. $#$spatial_conditions_arr) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);
-        #  useful since we can have non-overlapping neighbourhoods
-        #  where we set all the results in one go
+        #  Useful since we can have non-overlapping neighbourhoods
+        #  where we set all the results in one go.
+        #  Should only be triggered when results recycling is off but we still recycle nbrs,
+        #  as we don't double handle when recycling results
         if ($self->exists_list (
                 element => $element,
                 list    => $nbr_list_name
@@ -683,7 +695,6 @@ sub get_nbrs_for_element {
                   list    => $nbr_list_name,
               )
               || [];
-
             $nbr_list[$i] = $nbrs;
             push @exclude, @$nbrs;
         }
@@ -693,14 +704,13 @@ sub get_nbrs_for_element {
                     element => $element,
                     list    => $nbr_list_name,
                 );
-                if (! defined $nbr_list[$i]) {
-                    $nbr_list[$i] = [];  #  use empty list if necessary
-                }
+                $nbr_list[$i] //= [];  #  use empty list if necessary
             }
             #  if $use_nbrs_from lacks the list, or we're finding the neighbours ourselves
             if (not defined $nbr_list[$i]) {  
                 my $list;
-                my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
+                my $sp_cond_obj = $spatial_conditions_arr->[$i];
+                my $result_type = $sp_cond_obj->get_result_type;
                 #  get everything
                 if ($result_type eq 'always_true') {  
                     $list = $bd->get_groups;
@@ -732,15 +742,17 @@ sub get_nbrs_for_element {
                 else {    #  no nbr list thus far so go looking
 
                     #  don't use the index if there are no search blocks
-                    my $sp_index_i = defined $search_blocks_ref->[$i]
-                      ? $sp_index
-                      : undef;
+                    #  (this setting is controlled above where the search blocks are processed)
+                    my $sp_index_i;
+                    if ($search_blocks_arr->[$i]) {
+                        $sp_index_i = $sp_index;
+                    }
 
                     my %args_for_nbr_list = (
                         element            => $element,
-                        spatial_conditions => $spatial_conditions_ref->[$i],
+                        spatial_conditions => $sp_cond_obj,
                         index              => $sp_index_i,
-                        index_offsets      => $search_blocks_ref->[$i],
+                        index_offsets      => $search_blocks_arr->[$i],
                     );
                     my $exclude_list = [@exclude, @$elements_to_exclude];
 
@@ -774,13 +786,16 @@ sub get_nbrs_for_element {
                 #  Add to the exclude list unless we are at the last spatial condition,
                 #  in which case it is no longer needed.
                 #  Hopefully this will save meaningful memory for large neighbour sets
-                if ($i != $#$spatial_conditions_ref) {
+                if ($i != $#$spatial_conditions_arr) {
                     push @exclude, @{$nbr_list[$i]};
                 }
             }
+
+            #  now save it 
             $self->add_to_lists (
                 element        => $element,
                 $nbr_list_name => $nbr_list[$i],
+                use_ref        => 1,
             );
         }
     }
@@ -821,32 +836,28 @@ sub recycle_list_results {
 sub recycle_nbr_lists {
     my $self = shift;
     my %args = @_;
-    
+
     my $recyclable_nbrhoods = $args{recyclable_nbrhoods};
     my $nbr_lists           = $args{nbr_lists};
     my $nbrs_1              = $args{nbrs_1};
     my $definition_query    = $args{definition_query};
     my $pass_def_query      = $args{pass_def_query};
     my $element             = $args{element};
-    
+
     #  for each nbr in %nbrs_1,
     #  copy the neighbour sets for those that overlap
-    LOOP_RECYC_NBRHOODS:
+  LOOP_RECYC_NBRHOODS:
     foreach my $i (0 .. $#$recyclable_nbrhoods) {
         #  all preceding must be recyclable
         last LOOP_RECYC_NBRHOODS
-            if ! $recyclable_nbrhoods->[$i];  
-
-        #  this is set above
-        #next LOOP_RECYC_NBRHOODS if $nbrs_recycled;
+            if !$recyclable_nbrhoods->[$i];  
 
         my $nbr_list_name = '_NBR_SET' . ($i+1);
-        my $nbr_list_ref = $nbr_lists->[$i];
+        my $nbr_list_ref  = $nbr_lists->[$i];
 
         LOOP_RECYC_NBRS:
         foreach my $nbr (keys %$nbrs_1) {
-            #  don't append to processing element - we set it above
-            next LOOP_RECYC_NBRS if $nbr eq $element;  
+            next LOOP_RECYC_NBRS if $nbr eq $element;
 
             if ($definition_query) {
                 my $pass = exists $pass_def_query->{$nbr};
@@ -856,12 +867,12 @@ sub recycle_nbr_lists {
             #  recycle the array using a ref to save space
             $self->add_to_lists (
                 element         => $nbr,
-                $nbr_list_name  => $nbr_lists->[$i],
+                $nbr_list_name  => $nbr_list_ref,
                 use_ref         => 1,  
             );
         }
     }
-    
+
     return;
 }
 
@@ -870,7 +881,7 @@ sub nbr_list_already_recycled {
     my %args = @_;
 
     #  we only work on the first nbr set
-    my $nbr_list_name = '_NBR_SET0';
+    my $nbr_list_name = '_NBR_SET1';
 
     return $self->exists_list (
         element => $args{element},
@@ -967,13 +978,13 @@ sub get_definition_query {
     return $definition_query;
 }
 
-sub get_spatial_conditions_ref {
+sub get_spatial_conditions_arr {
     my $self = shift;
     my %args  = @_;
 
-    my $spatial_conditions_ref = $self->get_spatial_conditions;
+    my $spatial_conditions_arr = $self->get_spatial_conditions;
 
-    return $spatial_conditions_ref if defined $spatial_conditions_ref;
+    return $spatial_conditions_arr if defined $spatial_conditions_arr;
     
     #  if we don't already have spatial conditions then check the arguments
 
@@ -981,21 +992,21 @@ sub get_spatial_conditions_ref {
     croak "spatial_conditions not an array ref or not defined\n"
       if not (ref $args{spatial_conditions}) =~ /ARRAY/;
 
-    $spatial_conditions_ref = $args{spatial_conditions};
+    $spatial_conditions_arr = $args{spatial_conditions};
     my $check = 1;
 
   CHECK:
     while ($check) {  #  clean up undef or empty params at the end
 
-        if (scalar @$spatial_conditions_ref == 0) {
+        if (scalar @$spatial_conditions_arr == 0) {
             warn "[Spatial] No valid spatial conditions specified\n";
             #  put an empty string as the only entry,
             #  saves problems down the line
-            $spatial_conditions_ref->[0] = $EMPTY_STRING;
+            $spatial_conditions_arr->[0] = $EMPTY_STRING;
             return;
         }
 
-        my $param = $spatial_conditions_ref->[-1] // $EMPTY_STRING;
+        my $param = $spatial_conditions_arr->[-1] // $EMPTY_STRING;
         if (blessed $param) {
             $param = $param->get_conditions_unparsed;
         }
@@ -1006,22 +1017,22 @@ sub get_spatial_conditions_ref {
         last CHECK if length $param;
 
         say '[SPATIAL] Deleting undefined or empty spatial condition at end of conditions array';
-        pop @$spatial_conditions_ref;    
+        pop @$spatial_conditions_arr;    
     }
 
     #  Now loop over them and parse the spatial params into objects if needed
-    for my $i (0 .. $#$spatial_conditions_ref) {
-        if (! blessed $spatial_conditions_ref->[$i]) {
-            $spatial_conditions_ref->[$i]
+    for my $i (0 .. $#$spatial_conditions_arr) {
+        if (! blessed $spatial_conditions_arr->[$i]) {
+            $spatial_conditions_arr->[$i]
                 = Biodiverse::SpatialConditions->new (
-                    conditions   => $spatial_conditions_ref->[$i],
+                    conditions   => $spatial_conditions_arr->[$i],
                     basedata_ref => $self->get_basedata_ref,
                 );
         }
     }
-    $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_ref);
+    $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_arr);
 
-    return $spatial_conditions_ref;
+    return $spatial_conditions_arr;
 }
 
 
@@ -1032,7 +1043,7 @@ sub get_recyclable_nbrhoods {
     my $self = shift;
     my %args = @_;
 
-    my $spatial_conditions_ref = $self->get_spatial_conditions_ref;
+    my $spatial_conditions_ref = $self->get_spatial_conditions_arr;
 
     my @recyclable_nbrhoods;
     my $results_are_recyclable = 0;
@@ -1045,29 +1056,31 @@ sub get_recyclable_nbrhoods {
     );
 
     for my $i (0 .. $#$spatial_conditions_ref) {
-        my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
-
+        my $sp_cond     = $spatial_conditions_ref->[$i];
+        my $result_type = $sp_cond->get_result_type;
+        
         my $prev_nbr_is_recyclable = 1;  #  always check first one
         if ($i > 0) {  #  only check $i if $i-1 is true
             $prev_nbr_is_recyclable = $recyclable_nbrhoods[$i-1];
         }
 
-        if (    $prev_nbr_is_recyclable
-             && exists $recyc_candidates{$result_type} ) {
+        next if !(    $prev_nbr_is_recyclable
+             && exists $recyc_candidates{$result_type}
+             && !$sp_cond->get_no_recycling_flag );
 
-            # only those in the first nbrhood,
-            # or if the previous nbrhood is recyclable
-            # and we allow recyc beyond first index
-            my $is_valid_recyc_index =
-              defined $recyc_candidates{$result_type}
-                ? $i <= $recyc_candidates{$result_type}
-                : 1;
+        # only those in the first nbrhood,
+        # or if the previous nbrhood is recyclable
+        # and we allow recyc beyond first index
+        my $is_valid_recyc_index =
+          defined $recyc_candidates{$result_type}
+            ? $i <= $recyc_candidates{$result_type}
+            : 1;
 
-            if ( $is_valid_recyc_index ) { 
-                $recyclable_nbrhoods[$i] = 1;
-                $results_are_recyclable ++;
-            }
+        if ( $is_valid_recyc_index ) { 
+            $recyclable_nbrhoods[$i] = 1;
+            $results_are_recyclable ++;
         }
+
     }
 
     #  we can only recycle the results if all nbr sets are recyclable 

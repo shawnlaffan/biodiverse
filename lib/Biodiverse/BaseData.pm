@@ -1296,10 +1296,12 @@ sub import_data_raster {
                     $this_label = "band$b";
                 }
             }
-            $this_label = $self->dequote_element (
-                element    => $this_label,
-                quote_char => $quotes,
-            );
+            if (defined $this_label) {
+                $this_label = $self->dequote_element (
+                    element    => $this_label,
+                    quote_char => $quotes,
+                );
+            }
 
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)

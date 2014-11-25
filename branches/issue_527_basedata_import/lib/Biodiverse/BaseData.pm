@@ -1554,7 +1554,13 @@ sub import_data_shapefile {
         sep_char   => $el_sep,
         quote_char => $quotes,
     );
-    
+    my %args_for_add_elements_collated = (
+        csv_object => $out_csv,
+        binarise_counts    => $args{binarise_counts},
+        allow_empty_groups => $args{allow_empty_groups},
+        allow_empty_labels => $args{allow_empty_labels},
+    );
+
     # load each file, using same arguments/parameters
     foreach my $file (@{$args{input_files}}) {
         $file = Path::Class::file($file)->absolute;
@@ -1576,13 +1582,15 @@ sub import_data_shapefile {
 
         my $shape_count = $shapefile->shapes();
         say "have $shape_count shapes";
-        
+
         #  some validation
         my %db_rec1 = $shapefile->get_dbf_record(1);
         foreach my $key (@label_field_names) {
             croak "Shapefile $file does not have a field called $key\n"
               if !exists $db_rec1{$key};
         }
+
+        my %gp_lb_hash;
 
         # iterate over shapes
       SHAPE:
@@ -1671,13 +1679,14 @@ sub import_data_shapefile {
                             quote_char => $quotes,
                         );
                     }
-                    # add to elements
-                    $self->add_element (
-                        label      => $this_label,
-                        group      => $grpstring,
-                        count      => $this_count,
-                        csv_object => $out_csv,
-                    );
+                    #  collate the groups and labels so we can add them in a batch later
+                    if (looks_like_number $this_count) {
+                        $gp_lb_hash{$grpstring}{$this_label} += $this_count;
+                    }
+                    else {
+                        #  don't override existing counts with undef
+                        $gp_lb_hash{$grpstring}{$this_label} //= $this_count;  
+                    }
                 }
             } # each point
 
@@ -1690,6 +1699,13 @@ sub import_data_shapefile {
             );
 
         } # each shape
+
+        #  add the collated data
+        $self->add_elements_collated (
+            data      => \%gp_lb_hash,
+            %args_for_add_elements_collated,
+        );
+        %gp_lb_hash = (); #  clear the collated list
 
         $progress_bar->update('Done', 1);
     } # each file

@@ -162,6 +162,7 @@ sub new {
     $self->{use_highlight_path} = 1;
 
     $self->{menubar} = $self->{xmlPage}->get_widget('menubarLabelsOptions');
+    $self->update_selection_menu;
     $self->update_export_menu;
 
     say "[GUI] - Loaded tab - Labels";
@@ -1491,6 +1492,95 @@ sub update_export_menu {
 }
 
 sub do_export {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    my @rest_of_args;
+    if (scalar @$args > 2) {
+        @rest_of_args = @$args[2..$#$args];
+    }
+
+    Biodiverse::GUI::Export::Run($ref, @rest_of_args);
+}
+
+
+sub update_selection_menu {
+    my $self = shift;
+
+    my $menubar    = $self->{menubar};
+    my $base_ref = $self->{base_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.  
+    my $selection_menu_item = $self->{selection_menu};
+    if (!$selection_menu_item) {
+        $selection_menu_item  = Gtk2::MenuItem->new_with_label('Selection');
+        $menubar->append($selection_menu_item);
+        $self->{selection_menu} = $selection_menu_item;
+    }
+    my $selection_menu = Gtk2::Menu->new;
+    $selection_menu_item->set_submenu($selection_menu);
+
+    my %type_hash = (
+        Labels => $base_ref->get_labels_ref,
+        Groups => $base_ref->get_groups_ref,
+    );
+
+    #  export submenu 
+    my $export_menu_item = Gtk2::MenuItem->new_with_label('Export');
+    my $export_submenu = Gtk2::Menu->new;
+
+    foreach my $type (keys %type_hash) {
+        my $ref = $type_hash{$type};
+
+        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
+        my $submenu = Gtk2::Menu->new;
+
+        # Get the Parameters metadata
+        my %args = $ref->get_args (sub => 'export');
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            next if !$label;
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_selection_export, [$self, $ref, $label],
+            );
+        }
+        $submenu_item->set_submenu($submenu);
+        $export_submenu->append($submenu_item);
+    }
+    $export_menu_item->set_submenu($export_submenu);
+    
+    ####  now some options to delete selected labels
+    my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
+    my $delete_submenu = Gtk2::Menu->new;
+
+    foreach my $option ('Selected labels', 'Non-selected labels') {
+        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        $delete_submenu->append ($submenu_item);
+    }
+    $delete_menu_item->set_submenu($delete_submenu);
+
+    ####  now some options to create new basedatas
+    my $new_bd_menu_item = Gtk2::MenuItem->new_with_label('Create new BaseData object from');
+    my $new_bd_submenu = Gtk2::Menu->new;
+
+    foreach my $option ('Selected labels', 'Non-selected labels') {
+        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        $new_bd_submenu->append ($submenu_item);
+    }
+    $new_bd_menu_item->set_submenu($new_bd_submenu);
+
+
+    $selection_menu->append($export_menu_item);
+    $selection_menu->append($delete_menu_item);
+    $selection_menu->append($new_bd_menu_item);
+
+    $menubar->show_all();
+}
+
+sub do_selection_export {
     my $args = shift;
     my $self = $args->[0];
     my $ref  = $args->[1];

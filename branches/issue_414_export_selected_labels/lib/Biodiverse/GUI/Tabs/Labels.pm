@@ -1657,7 +1657,7 @@ sub update_selection_menu {
     my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
     my $delete_submenu = Gtk2::Menu->new;
 
-    foreach my $option ('Selected labels') { #, 'Non-selected labels') {
+    foreach my $option ('Selected labels', 'Selected labels, leaving empty groups') {
         my $submenu_item = Gtk2::MenuItem->new_with_label($option);
         $delete_submenu->append ($submenu_item);
         $submenu_item->signal_connect_swapped(
@@ -1771,17 +1771,33 @@ sub do_delete_selected_basedata_records {
     my $bd   = $args->[1];
     my $type = $args->[2];
 
-    my $trim_keyword = ($type =~ /Sel/) ? 'trim' : 'keep';
+    #  need to handle non-selections if we allow the keep option
+    #my $trim_keyword = ($type =~ /Sel/) ? 'trim' : 'keep';
+    my $trim_keyword = 'trim';
+
+    #  fragile approach
+    my $delete_empty_groups = not $type =~ /leaving empty groups/;
 
     my $selected = $self->get_selected_labels;
     return if !scalar @$selected;
 
-    $bd->trim ($trim_keyword => $selected);
-    $self->remove_selected_labels_from_list;
-    
     my $gui = $self->{gui};
+
+    eval {
+        $bd->trim (
+            $trim_keyword => $selected,
+            delete_empty_groups => $delete_empty_groups,
+        );
+    };
+    if (my $e = $EVAL_ERROR) {
+        $gui->report_error ($e);
+        return;
+    }
+
+    $self->remove_selected_labels_from_list;
+
     $gui->{project}->set_dirty;
-    
+
     return;
 }
 

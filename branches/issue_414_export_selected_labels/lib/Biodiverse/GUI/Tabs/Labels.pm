@@ -417,9 +417,9 @@ sub make_labels_model {
 
 #  the selection cols
     my @selection_cols = (
-            {$selected_list1_name => 'Int'},
-            {$selected_list2_name => 'Int'},
-            );
+        {$selected_list1_name => 'Int'},
+        {$selected_list2_name => 'Int'},
+    );
 
 #my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
     my $label_type = 'Glib::String';
@@ -443,7 +443,7 @@ sub make_labels_model {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 
-#  set the values - selection cols will be undef
+        #  set the values - selection cols will be undef
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
@@ -458,6 +458,74 @@ sub make_labels_model {
 
     return;
 }
+
+#  variation on
+#  http://gtk.10911.n7.nabble.com/Remove-Multiple-Rows-from-Gtk2-ListStore-td66092.html
+sub remove_selected_labels_from_list {
+    my $self = shift;
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+    my $treeview2 = $self->{xmlPage}->get_widget('listLabels2');
+    
+    my $selection = $treeview1->get_selection;
+    my $sorted_model = $selection->get_tree_view()->get_model();
+    my @paths = $selection->get_selected_rows();
+
+    my $global_model = $self->{labels_model};
+
+    my $model1 = $treeview1->get_model;
+    my $model2 = $treeview2->get_model;
+
+    $self->{ignore_selected_change} = 1;
+    $treeview1->set_model(undef);
+    $treeview2->set_model(undef);
+
+    # Convert paths to row references
+    my (@rowrefs, @row_iters, @indices);
+    foreach my $path (@paths) {
+        my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
+        push @rowrefs, $treerowreference;
+    }
+
+    foreach my $rowref (@rowrefs) {
+        my $path = $rowref->get_path;
+        my $iter = $global_model->get_iter($path);
+        $global_model->remove($iter);
+    }
+
+    $treeview1->set_model ($model1);
+    $treeview2->set_model ($model2);
+    
+    #  need to update the matrix if it is displayed
+    #  but for some reason we aren't resetting all its rows and cols
+    $self->on_selected_matrix_changed;
+
+    delete $self->{ignore_selected_change};
+
+    return;
+}
+
+
+#sub remove_selected_labels_from_list {
+#    my $self = shift;
+#
+#    # Get the current selection
+#    my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+#    my @paths = $selection->get_selected_rows();
+#    my @selected = map { ($_->get_indices)[0] } @paths;
+#    my $sorted_model = $selection->get_tree_view()->get_model();
+#    my $global_model = $self->{labels_model};
+#
+#    my @selected_labels;
+#    foreach my $path (@paths) {
+#        # don't know why all this is needed (gtk bug?)
+#        my $iter  = $sorted_model->get_iter($path);
+#        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+#        $global_model->remove($iter);
+#    }    
+#
+#    return;
+#}
 
 sub get_selected_labels {
     my $self = shift;
@@ -738,17 +806,20 @@ sub on_sorted {
     my $self = shift;
 
     my $xml_page = $self->{xmlPage};
-    my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
-    my $vmodel = $xml_page->get_widget('listLabels2')->get_model();
-    my $model  = $self->{labels_model};
+    my $hmodel   = $xml_page->get_widget('listLabels1')->get_model();
+    my $vmodel   = $xml_page->get_widget('listLabels2')->get_model();
+    my $model    = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
-
 
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices
 
-            my $hiter = $hmodel->iter_nth_child(undef,$h);
+        my $hiter = $hmodel->iter_nth_child(undef,$h);
         my $viter = $vmodel->iter_nth_child(undef,$v);
+
+        #  a kludge - we should not have such cases,
+        #  but deletions cause them
+        return if !defined $hiter or !defined $viter;
 
 # some bug in gtk2-perl stops me from just doing
 # $hlabel = $hmodel->get($hiter, 0)
@@ -760,9 +831,9 @@ sub on_sorted {
         my $vlabel = $model->get($vi, 0);
 
         return $matrix_ref->get_value(
-                element1 => $hlabel,
-                element2 => $vlabel,
-                );
+            element1 => $hlabel,
+            element2 => $vlabel,
+        );
     };
 
     my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
@@ -777,9 +848,9 @@ sub on_sorted {
             }
             $self->{matrix_grid}->set_values($values_func);
             $self->{matrix_grid}->set_colouring(
-                    $matrix_ref->get_min_value,
-                    $matrix_ref->get_max_value,
-                    );
+                $matrix_ref->get_min_value,
+                $matrix_ref->get_max_value,
+            );
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -1229,26 +1300,33 @@ sub on_matrix_hover {
 
     my ($hiter, $viter) = ($hmodel->iter_nth_child(undef,$h), $vmodel->iter_nth_child(undef,$v));
 
-    # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
-    #
-    my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
-
-    my $model = $self->{labels_model};
-    my $hlabel = $model->get($hi, 0);
-    my $vlabel = $model->get($vi, 0);
-
     my $str;
-    my $matrix_ref = $self->{matrix_ref};
 
-    if (not $matrix_ref) {
-        $str = "<b>Matrix</b>: none selected";
-    }
-    elsif ($matrix_ref->element_pair_exists(element1 => $hlabel, element2 => $vlabel) == 0) {
-        $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
+    if (defined $hiter && defined $viter) {
+
+        # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
+        #
+        my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
+    
+        my $model = $self->{labels_model};
+        my $hlabel = $model->get($hi, 0);
+        my $vlabel = $model->get($vi, 0);
+    
+        my $matrix_ref = $self->{matrix_ref};
+    
+        if (not $matrix_ref) {
+            $str = "<b>Matrix</b>: none selected";
+        }
+        elsif ($matrix_ref->element_pair_exists(element1 => $hlabel, element2 => $vlabel) == 0) {
+            $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
+        }
+        else {
+            my $value = $matrix_ref->get_value(element1 => $hlabel, element2 => $vlabel);
+            $str = sprintf ("<b>Matrix</b> ($hlabel, $vlabel): %.4f", $value);
+        }
     }
     else {
-        my $value = $matrix_ref->get_value(element1 => $hlabel, element2 => $vlabel);
-        $str = sprintf ("<b>Matrix</b> ($hlabel, $vlabel): %.4f", $value);
+        $str = "<b>Matrix</b>: not in matrix";
     }
 
     $self->{xmlPage}->get_widget('lblMatrix')->set_markup($str);
@@ -1579,9 +1657,12 @@ sub update_selection_menu {
     my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
     my $delete_submenu = Gtk2::Menu->new;
 
-    foreach my $option ('Selected labels', 'Non-selected labels') {
+    foreach my $option ('Selected labels') { #, 'Non-selected labels') {
         my $submenu_item = Gtk2::MenuItem->new_with_label($option);
         $delete_submenu->append ($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_delete_selected_basedata_records, [$self, $base_ref, $option],
+        );
     }
     $delete_menu_item->set_submenu($delete_submenu);
 
@@ -1682,6 +1763,28 @@ sub do_new_basedata_from_selection {
 
     return;
 }
+
+sub do_delete_selected_basedata_records {
+    my $args = shift;
+
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    my $trim_keyword = ($type =~ /Sel/) ? 'trim' : 'keep';
+
+    my $selected = $self->get_selected_labels;
+    return if !scalar @$selected;
+
+    $bd->trim ($trim_keyword => $selected);
+    $self->remove_selected_labels_from_list;
+    
+    my $gui = $self->{gui};
+    $gui->{project}->set_dirty;
+    
+    return;
+}
+
 
 sub numerically {$a <=> $b};
 

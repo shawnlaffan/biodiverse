@@ -1597,7 +1597,11 @@ sub update_selection_menu {
         );
     }
     $new_bd_menu_item->set_submenu($new_bd_submenu);
-
+    $new_bd_menu_item->set_tooltip_text(
+          'Create a subset of the basedata comprising '
+        . 'all groups containing selected labels. '
+        . 'Optionally retains empty groups.'
+    );
 
     $selection_menu->append($export_menu_item);
     $selection_menu->append($delete_menu_item);
@@ -1646,6 +1650,9 @@ sub do_new_basedata_from_selection {
     my $label = Gtk2::Label->new('Delete empty groups?');
     my $chk   = Gtk2::CheckButton->new;
     $chk->set_active(1);
+    my $tip_text = 'Set to off if you wish to retain all the current groups, even if they are empty.';
+    $label->set_tooltip_text($tip_text);
+    $chk->set_tooltip_text($tip_text);
     $hbox->pack_start($label, 0, 0, 0);
     $hbox->pack_start($chk, 0, 0, 0);
     $vbox->pack_start($hbox, 0, 0, 0);

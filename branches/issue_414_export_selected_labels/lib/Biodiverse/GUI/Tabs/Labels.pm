@@ -498,7 +498,7 @@ sub remove_selected_labels_from_list {
     
     #  need to update the matrix if it is displayed
     #  but for some reason we aren't resetting all its rows and cols
-    $self->on_selected_matrix_changed;
+    $self->on_selected_matrix_changed (redraw => 1);
 
     delete $self->{ignore_selected_change};
 
@@ -596,6 +596,7 @@ sub on_highlight_groups_on_map_changed {
 
 sub on_selected_matrix_changed {
     my $self = shift;
+    my %args = @_;
 
     my $matrix_ref = $self->{project}->get_selected_matrix;
 
@@ -622,7 +623,7 @@ sub on_selected_matrix_changed {
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
     # matrix
-    $self->on_sorted(); # (this reloads the whole matrix anyway)    
+    $self->on_sorted(%args); # (this reloads the whole matrix anyway)    
     $self->{matrix_grid}->zoom_fit();
 
     return;
@@ -804,6 +805,14 @@ sub set_selected_list_cols {
 
 sub on_sorted {
     my $self = shift;
+    my %args;
+    #  a massive bodge since we can be called as a
+    #  gtk callback and it then has only one arg
+    if (@_ %2) {  
+        %args = @_;
+    }
+
+    my $redraw = $args{redraw};
 
     my $xml_page = $self->{xmlPage};
     my $hmodel   = $xml_page->get_widget('listLabels1')->get_model();
@@ -840,7 +849,7 @@ sub on_sorted {
     my $drawable = $self->{matrix_drawable};
     if ($matrix_ref) {
         if ($drawable) {
-            if (! $self->{matrix_drawn}) {
+            if ($redraw || !$self->{matrix_drawn}) {
                 my $num_values
                     = $self->{base_ref}->get_labels_ref->get_element_count;
                 $self->{matrix_grid}->draw_matrix( $num_values );

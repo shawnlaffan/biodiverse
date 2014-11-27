@@ -1361,9 +1361,9 @@ sub find_max_min {
     my $data = shift;
     my ($min_x, $max_x, $min_y, $max_y);
 
-    foreach ($data->get_element_list) {
+    foreach my $element ($data->get_element_list) {
 
-        my ($x, $y) = $data->get_element_name_coord (element => $_);
+        my ($x, $y) = $data->get_element_name_coord (element => $element);
 
         $min_x = $x if ( (not defined $min_x) || $x < $min_x);
         $min_y = $y if ( (not defined $min_y) || $y < $min_y);

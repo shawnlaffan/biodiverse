@@ -2676,6 +2676,7 @@ sub trim {
         $self->delete_cached_values;
         $self->get_groups_ref->delete_cached_values;
         $self->get_labels_ref->delete_cached_values;
+        $self->rebuild_spatial_index;
     }
 
     my %results = (

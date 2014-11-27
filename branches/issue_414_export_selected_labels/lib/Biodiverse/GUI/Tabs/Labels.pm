@@ -459,6 +459,28 @@ sub make_labels_model {
     return;
 }
 
+sub get_selected_labels {
+    my $self = shift;
+
+    # Get the current selection
+    my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+    my @paths = $selection->get_selected_rows();
+    my @selected = map { ($_->get_indices)[0] } @paths;
+    my $sorted_model = $selection->get_tree_view()->get_model();
+    my $global_model = $self->{labels_model};
+
+    my @selected_labels;
+    foreach my $path (@paths) {
+        # don't know why all this is needed (gtk bug?)
+        my $iter  = $sorted_model->get_iter($path);
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        my $label = $global_model->get($iter1, LABELS_MODEL_NAME);
+        push @selected_labels, $label;
+    }
+
+    return wantarray ? @selected_labels : \@selected_labels;
+}
+
 sub set_phylogeny_options_sensitive {
     my $self = shift;
     my $enabled = shift;
@@ -972,6 +994,7 @@ sub on_phylogeny_highlight {
 
 sub on_phylogeny_click {
     my $self = shift;
+
     if ($self->{tool} eq 'Select') {
         my $node_ref = shift;
         $self->{dendrogram}->do_colour_nodes_below($node_ref);
@@ -1563,12 +1586,15 @@ sub update_selection_menu {
     $delete_menu_item->set_submenu($delete_submenu);
 
     ####  now some options to create new basedatas
-    my $new_bd_menu_item = Gtk2::MenuItem->new_with_label('Create new BaseData object from');
+    my $new_bd_menu_item = Gtk2::MenuItem->new_with_label('New BaseData from');
     my $new_bd_submenu = Gtk2::Menu->new;
 
     foreach my $option ('Selected labels', 'Non-selected labels') {
         my $submenu_item = Gtk2::MenuItem->new_with_label($option);
         $new_bd_submenu->append ($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_new_basedata_from_selection, [$self, $base_ref, $option],
+        );
     }
     $new_bd_menu_item->set_submenu($new_bd_submenu);
 
@@ -1592,7 +1618,63 @@ sub do_selection_export {
     Biodiverse::GUI::Export::Run($ref, @rest_of_args);
 }
 
+sub do_new_basedata_from_selection {
+    my $args = shift;
 
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    my $trim_keyword = ($type =~ /Sel/) ? 'keep' : 'trim';
+
+    my $selected_labels = $self->get_selected_labels;
+
+    # Show the Get Name dialog
+    my $gui = $self->{gui};
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_title ('Basedata object name');
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $bd->get_param('NAME') . ' SUBSET';
+    $txt_name->set_text($name);
+    
+    #  now pack in the options
+    my $vbox = $dlg->get_content_area();
+    my $hbox = Gtk2::HBox->new;
+    my $label = Gtk2::Label->new('Delete empty groups?');
+    my $chk   = Gtk2::CheckButton->new;
+    $chk->set_active(1);
+    $hbox->pack_start($label, 0, 0, 0);
+    $hbox->pack_start($chk, 0, 0, 0);
+    $vbox->pack_start($hbox, 0, 0, 0);
+    $vbox->show_all;
+
+    my $response = $dlg->run();
+    
+    if (lc($response) ne 'ok') {
+        $dlg->destroy;
+        return;
+    }
+
+        #  lazy method - clone the whole basedata then trim it
+    #  we can make it more efficient later
+    my $new_bd = $bd->clone (no_outputs => 1);
+    $new_bd->trim (
+        $trim_keyword => $selected_labels,
+        delete_empty_groups => $chk->get_active,
+    );
+
+    my $chosen_name = $txt_name->get_text;
+    $new_bd->rename (new_name => $chosen_name);
+
+    $dlg->destroy;
+
+    $gui->{project}->add_base_data($new_bd);
+
+    return;
+}
 
 sub numerically {$a <=> $b};
 

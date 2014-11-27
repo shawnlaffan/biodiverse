@@ -2611,17 +2611,20 @@ sub trim {
     croak "neither trim nor keep args specified\n"
       if ! defined $args{keep} && ! defined $args{trim};
     
+    my $delete_empty_groups = $args{delete_empty_groups};
+    my $delete_empty_labels = $args{delete_empty_labels};
+
     my $data;
     my $keep = $args{keep};  #  keep only these (overrides trim)
     my $trim = $args{trim};  #  delete all of these
     if ($keep) {
         $trim = undef;
         $data = $keep;
-        print "[BASEDATA] Trimming labels from basedata using keep option\n";
+        say "[BASEDATA] Trimming labels from basedata using keep option";
     }
     else {
         $data = $trim;
-        print "[BASEDATA] Trimming labels from basedata using trim option\n";
+        say "[BASEDATA] Trimming labels from basedata using trim option";
     }
 
     croak "keep or trim argument is not a ref\n"
@@ -2639,10 +2642,10 @@ sub trim {
             }
         }
     }
-    elsif ((ref $keep) =~ /ARRAY/) {  #  convert to hash if needed
+    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ((ref $keep) =~ /HASH/) {
+    elsif ((ref $data) =~ /HASH/) {
         %keep_or_trim = %$keep;
     }
 
@@ -2662,8 +2665,17 @@ sub trim {
             $self->delete_element (
                 type    => 'LABELS',
                 element => $label,
+                delete_empty_groups => $delete_empty_groups,
+                delete_empty_labels => $delete_empty_labels,
             );
         $delete_count ++;
+    }
+    
+    if ($delete_count) {
+        say "Deleted $delete_count labels and $delete_sub_count groups";
+        $self->delete_cached_values;
+        $self->get_groups_ref->delete_cached_values;
+        $self->get_labels_ref->delete_cached_values;
     }
 
     my %results = (

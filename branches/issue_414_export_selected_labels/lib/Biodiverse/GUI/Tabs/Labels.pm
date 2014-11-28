@@ -544,13 +544,11 @@ sub switch_selection {
     $model1->foreach (
         sub {
             my ($model, $path, $iter) = @_;
-            #we want data at the model's column 0  
-            #where the iter is pointing
-            my $value    = $model->get($iter, 0);
+            #we want rows where the list1 selected column is not 1
             my $selected = $model->get($iter, $labels_model_list1_sel_col);
             my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
 
-            if (!$selected) {
+            if ($selected != 1) {  #  -99999 is also not selected
                 push @p_unselected, $treerowreference;
             }
 
@@ -560,6 +558,58 @@ sub switch_selection {
 
     $selection->unselect_all;
     foreach my $rowref (@p_unselected) {
+        my $path = $rowref->get_path;
+        $selection->select_path($path);
+    }
+
+    delete $self->{ignore_selected_change};
+
+    #  now we trigger the re-selection
+    on_selected_labels_changed ($selection, [$self, 'listLabels1']);
+
+    return;
+}
+
+sub select_using_regex {
+    my $self = shift;
+    my %args = @_;
+
+    my $regex = $args{regex};
+    my $exact = $args{exact};
+    my $add_to = $args{add_to};
+
+    if ($exact) {
+        $regex = qr/\A$regex\z/;
+    }
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+
+    my $selection = $treeview1->get_selection;
+    my $model1    = $treeview1->get_model;
+
+    $self->{ignore_selected_change} = 1;
+
+    my @p_targets;
+    $model1->foreach (
+        sub {
+            my ($model, $path, $iter) = @_;
+            #we want rows where the list1 selected column is not 1
+            my $value = $model->get($iter, 0);
+            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+
+            if ($value =~ $regex) {  #  -99999 is also not selected
+                push @p_targets, $treerowreference;
+            }
+
+            return;
+        }
+    );
+
+    if (!$add_to) {
+        $selection->unselect_all;
+    }
+
+    foreach my $rowref (@p_targets) {
         my $path = $rowref->get_path;
         $selection->select_path($path);
     }
@@ -1722,12 +1772,19 @@ sub update_selection_menu {
         . 'Optionally retains empty groups.'
     );
 
+    my $select_regex_item = Gtk2::MenuItem->new_with_label('Select labels by text matching');
+    $select_regex_item->signal_connect_swapped (
+        activate => \&do_select_labels_regex, [$self, $base_ref],
+    );
+    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant flags');
+
     my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
     $switch_selection_item->signal_connect_swapped (
         activate => \&do_switch_selection, [$self, $base_ref],
     );
     $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
 
+    $selection_menu->append($select_regex_item);
     $selection_menu->append($switch_selection_item);
     $selection_menu->append($export_menu_item);
     $selection_menu->append($delete_menu_item);
@@ -1872,6 +1929,75 @@ sub do_delete_selected_basedata_records {
     return;
 }
 
+sub do_select_labels_regex {
+    my $args = shift;
+
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    # Show the Get Name dialog
+    # We really need to consctruct our own here, and use an alignment
+    # or add a text entry to the params table constructors
+    my $gui = $self->{gui};
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_title ('Select by regex');
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+
+    my $txt_label = $dlgxml->get_widget('label130');
+    $txt_label->set_text('Match text:');
+    
+    my $txt_widget = $dlgxml->get_widget('txtName');
+    my $string = '';
+    $txt_widget->set_text($string);
+
+    my $tip_text;
+
+    #  now pack in the options
+    my $hbox_exact  = Gtk2::HBox->new;
+    my $label_exact = Gtk2::Label->new('Exact match');
+    my $chk_exact   = Gtk2::CheckButton->new;
+    $chk_exact->set_active(0);
+    $tip_text = 'The default is to select partial matches.  Set to on if you want an exact match.';
+    $label_exact->set_tooltip_text($tip_text);
+    $chk_exact->set_tooltip_text($tip_text);
+    $hbox_exact->pack_start($label_exact, 0, 0, 0);
+    $hbox_exact->pack_start($chk_exact, 0, 0, 0);
+    
+    my $hbox_add_to  = Gtk2::HBox->new;
+    my $label_add_to = Gtk2::Label->new('Add to selection?');
+    my $chk_add_to   = Gtk2::CheckButton->new;
+    $chk_add_to->set_active(0);
+    $tip_text = 'Add to the current selection?';
+    $label_add_to->set_tooltip_text($tip_text);
+    $chk_add_to->set_tooltip_text($tip_text);
+    $hbox_add_to->pack_start($label_add_to, 0, 0, 0);
+    $hbox_add_to->pack_start($chk_add_to, 0, 0, 0);
+    
+    my $vbox = $dlg->get_content_area();
+    $vbox->pack_start($hbox_exact,  0, 0, 0);
+    $vbox->pack_start($hbox_add_to, 0, 0, 0);
+    $vbox->show_all;
+
+    my $response = $dlg->run();
+    
+    if (lc($response) ne 'ok') {
+        $dlg->destroy;
+        return;
+    }
+
+    my $text = $txt_widget->get_text;
+    my $regex = qr/$text/;
+    my $exact = $chk_exact->get_active;
+    my $add_to = $chk_add_to->get_active;
+
+    $dlg->destroy;
+
+    $self->select_using_regex (regex => $regex, exact => $exact, add_to => $add_to);
+
+    return;
+}
 
 sub numerically {$a <=> $b};
 

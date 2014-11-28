@@ -125,6 +125,13 @@ sub test_trim_tree {
     my @delete_targets = @named_nodes[0..10];
     my @remaining      = @named_nodes[11..$#named_nodes];
     my @keep_targets   = @delete_targets;
+    
+    #  trigger some caching, as we were getting errors due to cached values getting in the way
+    foreach my $tree ($tree1, $tree2, $tree3) {
+        foreach my $node ($tree->get_node_refs) {
+            $node->get_all_descendants;
+        }
+    }
 
     my %n;
 

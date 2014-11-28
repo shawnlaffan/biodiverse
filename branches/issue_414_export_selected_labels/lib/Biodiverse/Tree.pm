@@ -1915,7 +1915,7 @@ sub trim {
             my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
-            #  If none were deleted then we can trim this node.
+            #  If none of the descendents are in the keep list then we can trim this node.
             #  Otherwise add this node and all of its ancestors to the keep list.
             if ($child_count == scalar keys %children) {
                 $trim->{$name} = $node;
@@ -1974,6 +1974,7 @@ sub trim {
       NODE:
         foreach my $name (keys %node_hash) {
             $i++;
+
             my $node = $node_hash{$name};
             next NODE if $deleted_hash{$node};  #  already deleted
             next NODE if !$node->is_internal_node;
@@ -1984,12 +1985,14 @@ sub trim {
                 $i / $to_do,
             );
 
-            my $children = $node->get_all_descendants;
+            #  need to ignore any cached descendants (and we cleanup the cache lower down)
+            my $children = $node->get_all_descendants (cache => 0);
           DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
                 next NODE if ! $child_node->is_internal_node;
             }
+
             #  might have already been deleted, so wrap in an eval
             my @deleted_names = eval {
                 $self->delete_node (node => $name, no_delete_cache => 1)

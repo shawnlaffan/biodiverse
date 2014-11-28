@@ -287,7 +287,7 @@ sub generate_spatial_conditions {
 
     my $default = $param->{default} || '';
 
-    my $sp = Biodiverse::GUI::SpatialParams->new($default);
+    my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
     return ($sp->get_widget, $extract);

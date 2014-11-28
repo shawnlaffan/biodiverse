@@ -534,15 +534,13 @@ sub switch_selection {
     my $self = shift;
 
     my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
-    
+
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
 
-    my $global_model = $self->{labels_model};
-
     $self->{ignore_selected_change} = 1;
 
-    my (@p_selected, @p_unselected);
+    my @p_unselected;
     $model1->foreach (
         sub {
             my ($model, $path, $iter) = @_;
@@ -550,16 +548,9 @@ sub switch_selection {
             #where the iter is pointing
             my $value    = $model->get($iter, 0);
             my $selected = $model->get($iter, $labels_model_list1_sel_col);
-            #my $selected = $selection->path_is_selected($path);
-            #  need to get at the selected column
-            #say "$value, $selected";
             my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
-            if ($selected) {
-                #$selection->unselect_path($path);
-                push @p_selected, $treerowreference;
-            }
-            else {
-                #$selection->select_path($path);
+
+            if (!$selected) {
                 push @p_unselected, $treerowreference;
             }
 
@@ -570,7 +561,6 @@ sub switch_selection {
     $selection->unselect_all;
     foreach my $rowref (@p_unselected) {
         my $path = $rowref->get_path;
-        #my $iter = $selection->get_iter($path);
         $selection->select_path($path);
     }
 

@@ -470,7 +470,6 @@ sub remove_selected_labels_from_list {
     my $treeview2 = $self->{xmlPage}->get_widget('listLabels2');
     
     my $selection = $treeview1->get_selection;
-    my $sorted_model = $selection->get_tree_view()->get_model();
     my @paths = $selection->get_selected_rows();
 
     my $global_model = $self->{labels_model};
@@ -483,7 +482,7 @@ sub remove_selected_labels_from_list {
     $treeview2->set_model(undef);
 
     # Convert paths to row references
-    my (@rowrefs, @row_iters, @indices);
+    my @rowrefs;
     foreach my $path (@paths) {
         my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
         push @rowrefs, $treerowreference;
@@ -508,34 +507,13 @@ sub remove_selected_labels_from_list {
 }
 
 
-#sub remove_selected_labels_from_list {
-#    my $self = shift;
-#
-#    # Get the current selection
-#    my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
-#    my @paths = $selection->get_selected_rows();
-#    my @selected = map { ($_->get_indices)[0] } @paths;
-#    my $sorted_model = $selection->get_tree_view()->get_model();
-#    my $global_model = $self->{labels_model};
-#
-#    my @selected_labels;
-#    foreach my $path (@paths) {
-#        # don't know why all this is needed (gtk bug?)
-#        my $iter  = $sorted_model->get_iter($path);
-#        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-#        $global_model->remove($iter);
-#    }    
-#
-#    return;
-#}
-
 sub get_selected_labels {
     my $self = shift;
 
     # Get the current selection
     my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
     my @paths = $selection->get_selected_rows();
-    my @selected = map { ($_->get_indices)[0] } @paths;
+    #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
 
@@ -550,6 +528,60 @@ sub get_selected_labels {
 
     return wantarray ? @selected_labels : \@selected_labels;
 }
+
+
+sub switch_selection {
+    my $self = shift;
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+    
+    my $selection = $treeview1->get_selection;
+    my $model1    = $treeview1->get_model;
+
+    my $global_model = $self->{labels_model};
+
+    $self->{ignore_selected_change} = 1;
+
+    my (@p_selected, @p_unselected);
+    $model1->foreach (
+        sub {
+            my ($model, $path, $iter) = @_;
+            #we want data at the model's column 0  
+            #where the iter is pointing
+            my $value    = $model->get($iter, 0);
+            my $selected = $model->get($iter, $labels_model_list1_sel_col);
+            #my $selected = $selection->path_is_selected($path);
+            #  need to get at the selected column
+            #say "$value, $selected";
+            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+            if ($selected) {
+                #$selection->unselect_path($path);
+                push @p_selected, $treerowreference;
+            }
+            else {
+                #$selection->select_path($path);
+                push @p_unselected, $treerowreference;
+            }
+
+            return;
+        }
+    );
+
+    $selection->unselect_all;
+    foreach my $rowref (@p_unselected) {
+        my $path = $rowref->get_path;
+        #my $iter = $selection->get_iter($path);
+        $selection->select_path($path);
+    }
+
+    delete $self->{ignore_selected_change};
+
+    #  now we trigger the re-selection
+    on_selected_labels_changed ($selection, [$self, 'listLabels1']);
+
+    return;
+}
+
 
 sub set_phylogeny_options_sensitive {
     my $self = shift;
@@ -814,7 +846,7 @@ sub on_sorted {
     my %args;
     #  a massive bodge since we can be called as a
     #  gtk callback and it then has only one arg
-    if (@_ %2) {  
+    if ((@_ % 2) == 0) {  
         %args = @_;
     }
 
@@ -1700,11 +1732,28 @@ sub update_selection_menu {
         . 'Optionally retains empty groups.'
     );
 
+    my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
+    $switch_selection_item->signal_connect_swapped (
+        activate => \&do_switch_selection, [$self, $base_ref],
+    );
+    $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
+
+    $selection_menu->append($switch_selection_item);
     $selection_menu->append($export_menu_item);
     $selection_menu->append($delete_menu_item);
     $selection_menu->append($new_bd_menu_item);
 
     $menubar->show_all();
+}
+
+sub do_switch_selection {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    
+    $self->switch_selection;
+
+    return;
 }
 
 sub do_selection_export {

@@ -2982,13 +2982,13 @@ sub get_range_union {
 
 sub get_groups {  #  get a list of the groups in the data set
     my $self = shift;
-    my %args = @_;
+    #my %args = @_;
     return $self->get_groups_ref->get_element_list;
 }
 
 sub get_labels { #  get a list of the labels in the selected BaseData
     my $self = shift;
-    my %args = @_;
+    #my %args = @_;
     return $self->get_labels_ref->get_element_list;
 }
 

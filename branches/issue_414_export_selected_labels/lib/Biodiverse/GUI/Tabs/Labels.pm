@@ -32,6 +32,8 @@ my $labels_model_list1_sel_col;  # these are set in sub make_labels_model
 my $labels_model_list2_sel_col;
 
 use constant CELL_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
+use constant COLOUR_GREY => Gtk2::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*257*2/3);
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
@@ -192,7 +194,7 @@ sub init_grid {
         hover_func      => $hover_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
-        grid_click_func =>  $grid_click_closure,
+        grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
     );
     $self->{grid}->{page} = $self; # Hacky
@@ -638,7 +640,7 @@ sub on_selected_labels_changed {
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
     # selects labels one-by-one
-    return if (defined $self->{ignore_selected_change});
+    return if defined $self->{ignore_selected_change};
 
     # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
@@ -664,8 +666,12 @@ sub on_selected_labels_changed {
 
     return if $id ne 'listLabels1';
 
+    my $bd = $self->{base_ref};
+
     # Now, for the top list, colour the grid, based on how many labels occur in a given cell
     my %group_richness; # analysis list
+    my $gp_list = $bd->get_groups;
+    @group_richness{$bd->get_groups} = (0) x scalar @$gp_list;
     #my $max_value;
     my ($iter, $iter1, $label, $hash);
 
@@ -675,7 +681,6 @@ sub on_selected_labels_changed {
     my $tree = $self->{project}->get_selected_phylogeny;
     my @phylogeny_colour_nodes;
 
-    my $bd = $self->{base_ref};
 
     foreach my $path (@paths) {
 
@@ -714,7 +719,8 @@ sub on_selected_labels_changed {
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};
-        return if ! $val;
+        return COLOUR_GREY if !defined $val;
+        return if !$val;
         return $grid->get_colour($val, 0, $max_value);
     };
 
@@ -1661,12 +1667,13 @@ sub update_selection_menu {
         $export_submenu->append($submenu_item);
     }
     $export_menu_item->set_submenu($export_submenu);
-    
+    $export_menu_item->set_tooltip_text('Export selected labels across all groups in which they occur');
+
     ####  now some options to delete selected labels
     my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
     my $delete_submenu = Gtk2::Menu->new;
 
-    foreach my $option ('Selected labels', 'Selected labels, leaving empty groups') {
+    foreach my $option ('Selected labels', 'Selected labels, retaining empty groups') {
         my $submenu_item = Gtk2::MenuItem->new_with_label($option);
         $delete_submenu->append ($submenu_item);
         $submenu_item->signal_connect_swapped(
@@ -1709,7 +1716,23 @@ sub do_selection_export {
         @rest_of_args = @$args[2..$#$args];
     }
 
-    Biodiverse::GUI::Export::Run($ref, @rest_of_args);
+    my $selected_labels = $self->get_selected_labels;
+
+    #  lazy method - clone the whole basedata then trim it
+    #  we can make it more efficient later
+    my $bd = $self->{base_ref};
+    my $new_bd = $bd->clone (no_outputs => 1);
+    $new_bd->trim (
+        keep => $selected_labels,
+        delete_empty_groups => 1,
+    );
+
+    my $new_ref = $new_bd->get_groups_ref;
+    if ($ref->get_param('TYPE') eq 'LABELS') {
+        $new_ref = $new_bd->get_labels_ref; 
+    }
+
+    Biodiverse::GUI::Export::Run($new_ref, @rest_of_args);
 }
 
 sub do_new_basedata_from_selection {
@@ -1755,7 +1778,7 @@ sub do_new_basedata_from_selection {
         return;
     }
 
-        #  lazy method - clone the whole basedata then trim it
+    #  lazy method - clone the whole basedata then trim it
     #  we can make it more efficient later
     my $new_bd = $bd->clone (no_outputs => 1);
     $new_bd->trim (
@@ -1785,7 +1808,7 @@ sub do_delete_selected_basedata_records {
     my $trim_keyword = 'trim';
 
     #  fragile approach
-    my $delete_empty_groups = not $type =~ /leaving empty groups/;
+    my $delete_empty_groups = not $type =~ /retaining empty groups/;
 
     my $selected = $self->get_selected_labels;
     return if !scalar @$selected;

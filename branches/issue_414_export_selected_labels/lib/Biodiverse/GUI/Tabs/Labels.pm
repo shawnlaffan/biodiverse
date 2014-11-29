@@ -574,9 +574,10 @@ sub select_using_regex {
     my $self = shift;
     my %args = @_;
 
-    my $regex = $args{regex};
-    my $exact = $args{exact};
+    my $regex  = $args{regex};
+    my $exact  = $args{exact};
     my $add_to = $args{add_to};
+    my $negate = $args{negate};
 
     if ($exact) {
         $regex = qr/\A$regex\z/;
@@ -597,7 +598,12 @@ sub select_using_regex {
             my $value = $model->get($iter, 0);
             my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
 
-            if ($value =~ $regex) {  #  -99999 is also not selected
+            my $match = $value =~ $regex;
+            if ($negate) {
+                $match = !$match;
+            }
+
+            if ($match) {
                 push @p_targets, $treerowreference;
             }
 
@@ -1956,15 +1962,17 @@ sub do_select_labels_regex {
 
     #  now pack in the options
     my $hbox_exact  = Gtk2::HBox->new;
-    my $label_exact = Gtk2::Label->new('Exact match');
+    my $label_exact = Gtk2::Label->new('Exact match?');
     my $chk_exact   = Gtk2::CheckButton->new;
     $chk_exact->set_active(0);
-    $tip_text = 'The default is to select partial matches.  Set to on if you want an exact match.';
+    $tip_text = 'The default is to select partial matches '
+              . '(i.e. "cac" will match "cactus" and "cacaphony" .  '
+              . 'Set to on if you want to use an exact match.';
     $label_exact->set_tooltip_text($tip_text);
     $chk_exact->set_tooltip_text($tip_text);
     $hbox_exact->pack_start($label_exact, 0, 0, 0);
-    $hbox_exact->pack_start($chk_exact, 0, 0, 0);
-    
+    $hbox_exact->pack_start($chk_exact,   0, 0, 0);
+
     my $hbox_add_to  = Gtk2::HBox->new;
     my $label_add_to = Gtk2::Label->new('Add to selection?');
     my $chk_add_to   = Gtk2::CheckButton->new;
@@ -1973,11 +1981,22 @@ sub do_select_labels_regex {
     $label_add_to->set_tooltip_text($tip_text);
     $chk_add_to->set_tooltip_text($tip_text);
     $hbox_add_to->pack_start($label_add_to, 0, 0, 0);
-    $hbox_add_to->pack_start($chk_add_to, 0, 0, 0);
+    $hbox_add_to->pack_start($chk_add_to,   0, 0, 0);
+
+    my $hbox_negate  = Gtk2::HBox->new;
+    my $label_negate = Gtk2::Label->new('Negate condition?');
+    my $chk_negate   = Gtk2::CheckButton->new;
+    $chk_negate->set_active(0);
+    $tip_text = 'Negate the condition?  i.e. "cac" will match anything not containing "cac"';
+    $label_negate->set_tooltip_text($tip_text);
+    $chk_negate->set_tooltip_text($tip_text);
+    $hbox_negate->pack_start($label_negate, 0, 0, 0);
+    $hbox_negate->pack_start($chk_negate,   0, 0, 0);
     
     my $vbox = $dlg->get_content_area();
     $vbox->pack_start($hbox_exact,  0, 0, 0);
     $vbox->pack_start($hbox_add_to, 0, 0, 0);
+    $vbox->pack_start($hbox_negate, 0, 0, 0);
     $vbox->show_all;
 
     my $response = $dlg->run();
@@ -1991,10 +2010,16 @@ sub do_select_labels_regex {
     my $regex = qr/$text/;
     my $exact = $chk_exact->get_active;
     my $add_to = $chk_add_to->get_active;
+    my $negate = $chk_negate->get_active;
 
     $dlg->destroy;
 
-    $self->select_using_regex (regex => $regex, exact => $exact, add_to => $add_to);
+    $self->select_using_regex (
+        regex  => $regex,
+        exact  => $exact,
+        add_to => $add_to,
+        negate => $negate,
+    );
 
     return;
 }

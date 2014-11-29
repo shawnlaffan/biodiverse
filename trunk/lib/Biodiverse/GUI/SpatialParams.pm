@@ -35,7 +35,7 @@ sub new {
     my $class = shift;
     my %args = @_;
 
-    my $initial_text = $args{initial_text};
+    my $initial_text = $args{initial_text} // '';
     my $start_hidden = $args{start_hidden};
     my $is_def_query = $args{is_def_query};
     my $condition_object = $args{condition_object};

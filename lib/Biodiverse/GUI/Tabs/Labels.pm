@@ -32,6 +32,8 @@ my $labels_model_list1_sel_col;  # these are set in sub make_labels_model
 my $labels_model_list2_sel_col;
 
 use constant CELL_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
+use constant COLOUR_GREY => Gtk2::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*257*2/3);
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
@@ -158,11 +160,15 @@ sub new {
     $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
     $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
-    
+
     $self->{use_highlight_path} = 1;
-    
+
+    $self->{menubar} = $self->{xmlPage}->get_widget('menubarLabelsOptions');
+    $self->update_selection_menu;
+    $self->update_export_menu;
+
     say "[GUI] - Loaded tab - Labels";
-    
+
     return $self;
 }
 
@@ -188,7 +194,7 @@ sub init_grid {
         hover_func      => $hover_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
-        grid_click_func =>  $grid_click_closure,
+        grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
     );
     $self->{grid}->{page} = $self; # Hacky
@@ -413,9 +419,9 @@ sub make_labels_model {
 
 #  the selection cols
     my @selection_cols = (
-            {$selected_list1_name => 'Int'},
-            {$selected_list2_name => 'Int'},
-            );
+        {$selected_list1_name => 'Int'},
+        {$selected_list2_name => 'Int'},
+    );
 
 #my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
     my $label_type = 'Glib::String';
@@ -439,7 +445,7 @@ sub make_labels_model {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 
-#  set the values - selection cols will be undef
+        #  set the values - selection cols will be undef
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
@@ -454,6 +460,179 @@ sub make_labels_model {
 
     return;
 }
+
+#  variation on
+#  http://gtk.10911.n7.nabble.com/Remove-Multiple-Rows-from-Gtk2-ListStore-td66092.html
+sub remove_selected_labels_from_list {
+    my $self = shift;
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+    my $treeview2 = $self->{xmlPage}->get_widget('listLabels2');
+    
+    my $selection = $treeview1->get_selection;
+    my @paths = $selection->get_selected_rows();
+
+    my $global_model = $self->{labels_model};
+
+    my $model1 = $treeview1->get_model;
+    my $model2 = $treeview2->get_model;
+
+    $self->{ignore_selected_change} = 1;
+    $treeview1->set_model(undef);
+    $treeview2->set_model(undef);
+
+    # Convert paths to row references
+    my @rowrefs;
+    foreach my $path (@paths) {
+        my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
+        push @rowrefs, $treerowreference;
+    }
+
+    foreach my $rowref (@rowrefs) {
+        my $path = $rowref->get_path;
+        my $iter = $global_model->get_iter($path);
+        $global_model->remove($iter);
+    }
+
+    $treeview1->set_model ($model1);
+    $treeview2->set_model ($model2);
+    
+    #  need to update the matrix if it is displayed
+    #  but for some reason we aren't resetting all its rows and cols
+    $self->on_selected_matrix_changed (redraw => 1);
+
+    delete $self->{ignore_selected_change};
+
+    return;
+}
+
+
+sub get_selected_labels {
+    my $self = shift;
+
+    # Get the current selection
+    my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+    my @paths = $selection->get_selected_rows();
+    #my @selected = map { ($_->get_indices)[0] } @paths;
+    my $sorted_model = $selection->get_tree_view()->get_model();
+    my $global_model = $self->{labels_model};
+
+    my @selected_labels;
+    foreach my $path (@paths) {
+        # don't know why all this is needed (gtk bug?)
+        my $iter  = $sorted_model->get_iter($path);
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        my $label = $global_model->get($iter1, LABELS_MODEL_NAME);
+        push @selected_labels, $label;
+    }
+
+    return wantarray ? @selected_labels : \@selected_labels;
+}
+
+
+sub switch_selection {
+    my $self = shift;
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+
+    my $selection = $treeview1->get_selection;
+    my $model1    = $treeview1->get_model;
+
+    $self->{ignore_selected_change} = 1;
+
+    my @p_unselected;
+    $model1->foreach (
+        sub {
+            my ($model, $path, $iter) = @_;
+            #we want rows where the list1 selected column is not 1
+            my $selected = $model->get($iter, $labels_model_list1_sel_col);
+            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+
+            if ($selected != 1) {  #  -99999 is also not selected
+                push @p_unselected, $treerowreference;
+            }
+
+            return;
+        }
+    );
+
+    $selection->unselect_all;
+    foreach my $rowref (@p_unselected) {
+        my $path = $rowref->get_path;
+        $selection->select_path($path);
+    }
+
+    delete $self->{ignore_selected_change};
+
+    #  now we trigger the re-selection
+    on_selected_labels_changed ($selection, [$self, 'listLabels1']);
+
+    return;
+}
+
+sub select_using_regex {
+    my $self = shift;
+    my %args = @_;
+
+    my $regex  = $args{regex};
+    my $exact  = $args{exact};
+    my $negate = $args{negate};
+
+    my $selection_type = $args{selection_type} || 'new';
+
+    if ($exact) {
+        $regex = qr/\A$regex\z/;
+    }
+
+    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+
+    my $selection = $treeview1->get_selection;
+    my $model1    = $treeview1->get_model;
+
+    $self->{ignore_selected_change} = 1;
+
+    my @p_targets;
+    $model1->foreach (
+        sub {
+            my ($model, $path, $iter) = @_;
+            #we want rows where the list1 selected column is not 1
+            my $value = $model->get($iter, 0);
+            my $treerowreference = Gtk2::TreeRowReference->new ($model, $path);
+
+            my $match = $value =~ $regex;
+            if ($negate) {
+                $match = !$match;
+            }
+
+            if ($match) {
+                push @p_targets, $treerowreference;
+            }
+
+            return;
+        }
+    );
+
+    if ($selection_type eq 'new') {
+        $selection->unselect_all;
+    }
+
+    my $method = 'select_path';
+    if ($selection_type eq 'remove_from') {
+        $method = 'unselect_path';
+    }
+    foreach my $rowref (@p_targets) {
+        my $path = $rowref->get_path;
+        $selection->$method($path);
+    }
+
+    delete $self->{ignore_selected_change};
+
+    #  now we trigger the re-selection
+    on_selected_labels_changed ($selection, [$self, 'listLabels1']);
+
+    return;
+}
+
 
 sub set_phylogeny_options_sensitive {
     my $self = shift;
@@ -502,6 +681,7 @@ sub on_highlight_groups_on_map_changed {
 
 sub on_selected_matrix_changed {
     my $self = shift;
+    my %args = @_;
 
     my $matrix_ref = $self->{project}->get_selected_matrix;
 
@@ -528,7 +708,7 @@ sub on_selected_matrix_changed {
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
     # matrix
-    $self->on_sorted(); # (this reloads the whole matrix anyway)    
+    $self->on_sorted(%args); # (this reloads the whole matrix anyway)    
     $self->{matrix_grid}->zoom_fit();
 
     return;
@@ -543,7 +723,7 @@ sub on_selected_labels_changed {
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
     # selects labels one-by-one
-    return if (defined $self->{ignore_selected_change});
+    return if defined $self->{ignore_selected_change};
 
     # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
@@ -569,8 +749,12 @@ sub on_selected_labels_changed {
 
     return if $id ne 'listLabels1';
 
+    my $bd = $self->{base_ref};
+
     # Now, for the top list, colour the grid, based on how many labels occur in a given cell
     my %group_richness; # analysis list
+    my $gp_list = $bd->get_groups;
+    @group_richness{$bd->get_groups} = (0) x scalar @$gp_list;
     #my $max_value;
     my ($iter, $iter1, $label, $hash);
 
@@ -580,7 +764,6 @@ sub on_selected_labels_changed {
     my $tree = $self->{project}->get_selected_phylogeny;
     my @phylogeny_colour_nodes;
 
-    my $bd = $self->{base_ref};
 
     foreach my $path (@paths) {
 
@@ -619,7 +802,8 @@ sub on_selected_labels_changed {
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};
-        return if ! $val;
+        return COLOUR_GREY if !defined $val;
+        return if !$val;
         return $grid->get_colour($val, 0, $max_value);
     };
 
@@ -710,19 +894,30 @@ sub set_selected_list_cols {
 
 sub on_sorted {
     my $self = shift;
+    my %args;
+    #  a massive bodge since we can be called as a
+    #  gtk callback and it then has only one arg
+    if ((@_ % 2) == 0) {  
+        %args = @_;
+    }
+
+    my $redraw = $args{redraw};
 
     my $xml_page = $self->{xmlPage};
-    my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
-    my $vmodel = $xml_page->get_widget('listLabels2')->get_model();
-    my $model  = $self->{labels_model};
+    my $hmodel   = $xml_page->get_widget('listLabels1')->get_model();
+    my $vmodel   = $xml_page->get_widget('listLabels2')->get_model();
+    my $model    = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
-
 
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices
 
-            my $hiter = $hmodel->iter_nth_child(undef,$h);
+        my $hiter = $hmodel->iter_nth_child(undef,$h);
         my $viter = $vmodel->iter_nth_child(undef,$v);
+
+        #  a kludge - we should not have such cases,
+        #  but deletions cause them
+        return if !defined $hiter or !defined $viter;
 
 # some bug in gtk2-perl stops me from just doing
 # $hlabel = $hmodel->get($hiter, 0)
@@ -734,16 +929,16 @@ sub on_sorted {
         my $vlabel = $model->get($vi, 0);
 
         return $matrix_ref->get_value(
-                element1 => $hlabel,
-                element2 => $vlabel,
-                );
+            element1 => $hlabel,
+            element2 => $vlabel,
+        );
     };
 
     my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
     my $drawable = $self->{matrix_drawable};
     if ($matrix_ref) {
         if ($drawable) {
-            if (! $self->{matrix_drawn}) {
+            if ($redraw || !$self->{matrix_drawn}) {
                 my $num_values
                     = $self->{base_ref}->get_labels_ref->get_element_count;
                 $self->{matrix_grid}->draw_matrix( $num_values );
@@ -751,9 +946,9 @@ sub on_sorted {
             }
             $self->{matrix_grid}->set_values($values_func);
             $self->{matrix_grid}->set_colouring(
-                    $matrix_ref->get_min_value,
-                    $matrix_ref->get_max_value,
-                    );
+                $matrix_ref->get_min_value,
+                $matrix_ref->get_max_value,
+            );
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -968,6 +1163,7 @@ sub on_phylogeny_highlight {
 
 sub on_phylogeny_click {
     my $self = shift;
+
     if ($self->{tool} eq 'Select') {
         my $node_ref = shift;
         $self->{dendrogram}->do_colour_nodes_below($node_ref);
@@ -1202,26 +1398,33 @@ sub on_matrix_hover {
 
     my ($hiter, $viter) = ($hmodel->iter_nth_child(undef,$h), $vmodel->iter_nth_child(undef,$v));
 
-    # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
-    #
-    my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
-
-    my $model = $self->{labels_model};
-    my $hlabel = $model->get($hi, 0);
-    my $vlabel = $model->get($vi, 0);
-
     my $str;
-    my $matrix_ref = $self->{matrix_ref};
 
-    if (not $matrix_ref) {
-        $str = "<b>Matrix</b>: none selected";
-    }
-    elsif ($matrix_ref->element_pair_exists(element1 => $hlabel, element2 => $vlabel) == 0) {
-        $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
+    if (defined $hiter && defined $viter) {
+
+        # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
+        #
+        my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
+    
+        my $model = $self->{labels_model};
+        my $hlabel = $model->get($hi, 0);
+        my $vlabel = $model->get($vi, 0);
+    
+        my $matrix_ref = $self->{matrix_ref};
+    
+        if (not $matrix_ref) {
+            $str = "<b>Matrix</b>: none selected";
+        }
+        elsif ($matrix_ref->element_pair_exists(element1 => $hlabel, element2 => $vlabel) == 0) {
+            $str = "<b>Matrix</b> ($hlabel, $vlabel): not in matrix";
+        }
+        else {
+            my $value = $matrix_ref->get_value(element1 => $hlabel, element2 => $vlabel);
+            $str = sprintf ("<b>Matrix</b> ($hlabel, $vlabel): %.4f", $value);
+        }
     }
     else {
-        my $value = $matrix_ref->get_value(element1 => $hlabel, element2 => $vlabel);
-        $str = sprintf ("<b>Matrix</b> ($hlabel, $vlabel): %.4f", $value);
+        $str = "<b>Matrix</b>: not in matrix";
     }
 
     $self->{xmlPage}->get_widget('lblMatrix')->set_markup($str);
@@ -1432,6 +1635,383 @@ sub set_pane_signal {
     delete $self->{"set_panePos$id"};
     delete $self->{"set_pane_signalID$id"};
     
+    return;
+}
+
+
+
+sub update_export_menu {
+    my $self = shift;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{base_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.  
+    my $export_menu = $self->{export_menu};
+    if (!$export_menu) {
+        $export_menu  = Gtk2::MenuItem->new_with_label('Export');
+        $menubar->append($export_menu);
+        $self->{export_menu} = $export_menu;
+    }
+
+    my %type_hash = (
+        Labels => $output_ref->get_labels_ref,
+        Groups => $output_ref->get_groups_ref,
+    );
+
+    my $submenu = Gtk2::Menu->new;
+
+    foreach my $type (keys %type_hash) {
+        my $ref = $type_hash{$type};
+        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
+
+        my $bs_submenu = Gtk2::Menu->new;
+
+        # Get the Parameters metadata
+        my %args = $ref->get_args (sub => 'export');
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            next if !$label;
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $bs_submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_export, [$self, $ref, $label],
+            );
+        }
+        $submenu_item->set_submenu($bs_submenu);
+        $submenu_item->set_sensitive(1);
+        $submenu->append($submenu_item);
+    }
+
+    $export_menu->set_submenu($submenu);
+    $export_menu->set_sensitive(1);
+
+    $menubar->show_all();
+}
+
+sub do_export {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    my @rest_of_args;
+    if (scalar @$args > 2) {
+        @rest_of_args = @$args[2..$#$args];
+    }
+
+    Biodiverse::GUI::Export::Run($ref, @rest_of_args);
+}
+
+
+sub update_selection_menu {
+    my $self = shift;
+
+    my $menubar    = $self->{menubar};
+    my $base_ref = $self->{base_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.  
+    my $selection_menu_item = $self->{selection_menu};
+    if (!$selection_menu_item) {
+        $selection_menu_item  = Gtk2::MenuItem->new_with_label('Selection');
+        $menubar->append($selection_menu_item);
+        $self->{selection_menu} = $selection_menu_item;
+    }
+    my $selection_menu = Gtk2::Menu->new;
+    $selection_menu_item->set_submenu($selection_menu);
+
+    my %type_hash = (
+        Labels => $base_ref->get_labels_ref,
+        Groups => $base_ref->get_groups_ref,
+    );
+
+    #  export submenu 
+    my $export_menu_item = Gtk2::MenuItem->new_with_label('Export');
+    my $export_submenu = Gtk2::Menu->new;
+
+    foreach my $type (keys %type_hash) {
+        my $ref = $type_hash{$type};
+
+        my $submenu_item = Gtk2::MenuItem->new_with_label($type);
+        my $submenu = Gtk2::Menu->new;
+
+        # Get the Parameters metadata
+        my %args = $ref->get_args (sub => 'export');
+        my $format_labels = $args{format_labels};
+        foreach my $label (sort keys %$format_labels) {
+            next if !$label;
+            my $menu_item = Gtk2::MenuItem->new($label);
+            $submenu->append($menu_item);
+            $menu_item->signal_connect_swapped(
+                activate => \&do_selection_export, [$self, $ref, $label],
+            );
+        }
+        $submenu_item->set_submenu($submenu);
+        $export_submenu->append($submenu_item);
+    }
+    $export_menu_item->set_submenu($export_submenu);
+    $export_menu_item->set_tooltip_text('Export selected labels across all groups in which they occur');
+
+    ####  now some options to delete selected labels
+    my $delete_menu_item = Gtk2::MenuItem->new_with_label('Delete');
+    my $delete_submenu = Gtk2::Menu->new;
+
+    foreach my $option ('Selected labels', 'Selected labels, retaining empty groups') {
+        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        $delete_submenu->append ($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_delete_selected_basedata_records, [$self, $base_ref, $option],
+        );
+    }
+    $delete_menu_item->set_submenu($delete_submenu);
+
+    ####  now some options to create new basedatas
+    my $new_bd_menu_item = Gtk2::MenuItem->new_with_label('New BaseData from');
+    my $new_bd_submenu = Gtk2::Menu->new;
+
+    foreach my $option ('Selected labels', 'Non-selected labels') {
+        my $submenu_item = Gtk2::MenuItem->new_with_label($option);
+        $new_bd_submenu->append ($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_new_basedata_from_selection, [$self, $base_ref, $option],
+        );
+    }
+    $new_bd_menu_item->set_submenu($new_bd_submenu);
+    $new_bd_menu_item->set_tooltip_text(
+          'Create a subset of the basedata comprising '
+        . 'all groups containing selected labels. '
+        . 'Optionally retains empty groups.'
+    );
+
+    my $select_regex_item = Gtk2::MenuItem->new_with_label('Select labels by text matching');
+    $select_regex_item->signal_connect_swapped (
+        activate => \&do_select_labels_regex, [$self, $base_ref],
+    );
+    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant flags');
+
+    my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
+    $switch_selection_item->signal_connect_swapped (
+        activate => \&do_switch_selection, [$self, $base_ref],
+    );
+    $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
+
+    $selection_menu->append($select_regex_item);
+    $selection_menu->append($switch_selection_item);
+    $selection_menu->append($export_menu_item);
+    $selection_menu->append($delete_menu_item);
+    $selection_menu->append($new_bd_menu_item);
+
+    $menubar->show_all();
+}
+
+sub do_switch_selection {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    
+    $self->switch_selection;
+
+    return;
+}
+
+sub do_selection_export {
+    my $args = shift;
+    my $self = $args->[0];
+    my $ref  = $args->[1];
+    my @rest_of_args;
+    if (scalar @$args > 2) {
+        @rest_of_args = @$args[2..$#$args];
+    }
+
+    my $selected_labels = $self->get_selected_labels;
+
+    #  lazy method - clone the whole basedata then trim it
+    #  we can make it more efficient later
+    my $bd = $self->{base_ref};
+    my $new_bd = $bd->clone (no_outputs => 1);
+    $new_bd->trim (
+        keep => $selected_labels,
+        delete_empty_groups => 1,
+    );
+
+    my $new_ref = $new_bd->get_groups_ref;
+    if ($ref->get_param('TYPE') eq 'LABELS') {
+        $new_ref = $new_bd->get_labels_ref; 
+    }
+
+    Biodiverse::GUI::Export::Run($new_ref, @rest_of_args);
+}
+
+sub do_new_basedata_from_selection {
+    my $args = shift;
+
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    my $trim_keyword = ($type =~ /Sel/) ? 'keep' : 'trim';
+
+    my $selected_labels = $self->get_selected_labels;
+
+    # Show the Get Name dialog
+    my $gui = $self->{gui};
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_title ('Basedata object name');
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $bd->get_param('NAME') . ' SUBSET';
+    $txt_name->set_text($name);
+    
+    #  now pack in the options
+    my $vbox = $dlg->get_content_area();
+    my $hbox = Gtk2::HBox->new;
+    my $label = Gtk2::Label->new('Delete empty groups?');
+    my $chk   = Gtk2::CheckButton->new;
+    $chk->set_active(1);
+    my $tip_text = 'Set to off if you wish to retain all the current groups, even if they are empty.';
+    $label->set_tooltip_text($tip_text);
+    $chk->set_tooltip_text($tip_text);
+    $hbox->pack_start($label, 0, 0, 0);
+    $hbox->pack_start($chk, 0, 0, 0);
+    $vbox->pack_start($hbox, 0, 0, 0);
+    $vbox->show_all;
+
+    my $response = $dlg->run();
+    
+    if (lc($response) ne 'ok') {
+        $dlg->destroy;
+        return;
+    }
+
+    #  lazy method - clone the whole basedata then trim it
+    #  we can make it more efficient later
+    my $new_bd = $bd->clone (no_outputs => 1);
+    $new_bd->trim (
+        $trim_keyword => $selected_labels,
+        delete_empty_groups => $chk->get_active,
+    );
+
+    my $chosen_name = $txt_name->get_text;
+    $new_bd->rename (new_name => $chosen_name);
+
+    $dlg->destroy;
+
+    $gui->{project}->add_base_data($new_bd);
+
+    return;
+}
+
+sub do_delete_selected_basedata_records {
+    my $args = shift;
+
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    #  need to handle non-selections if we allow the keep option
+    #my $trim_keyword = ($type =~ /Sel/) ? 'trim' : 'keep';
+    my $trim_keyword = 'trim';
+
+    #  fragile approach
+    my $delete_empty_groups = not $type =~ /retaining empty groups/;
+
+    my $selected = $self->get_selected_labels;
+    return if !scalar @$selected;
+
+    my $gui = $self->{gui};
+
+    eval {
+        $bd->trim (
+            $trim_keyword => $selected,
+            delete_empty_groups => $delete_empty_groups,
+        );
+    };
+    if (my $e = $EVAL_ERROR) {
+        $gui->report_error ($e);
+        return;
+    }
+
+    $self->remove_selected_labels_from_list;
+
+    $gui->{project}->set_dirty;
+
+    return;
+}
+
+sub do_select_labels_regex {
+    my $args = shift;
+
+    my $self = $args->[0];  #  don't shift these - it wrecks the callback
+    my $bd   = $args->[1];
+    my $type = $args->[2];
+
+    my $gui = $self->{gui};
+    #  Hijack the import daligue.  (We should really build our own).
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
+    my $dlg    = $dlgxml->get_widget('dlgImportParameters');
+    my $table  = $dlgxml->get_widget ('tableImportParameters');
+    my $table_params = [
+        {
+            name       => 'text',
+            type       => 'text_one_line',
+            default    => '',
+            label_text => 'Text to match',
+            tooltip    => '',
+        },
+        {
+            name       => 'selection_type',
+            type       => 'choice',
+            default    => 0,
+            label_text => 'Selection type',
+            choices    => [qw /new add_to remove_from/],
+            tooltip    => 'Use this to define a new selection, add to the current selection, or remove from selection',
+        },
+        {
+            name       => 'exact',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Full match?',
+            tooltip    => 'The default is to select partial matches '
+                        . '(i.e. "cac" will match "cac", "cactus" and "cacaphony").  '
+                        . 'Set to on if you want to use only a full match.',
+        },
+        {
+            name       => 'negate',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Negate the selection?',
+            tooltip    => 'Negate the condition?  i.e. "cac" will match anything not containing "cac"',
+        },
+        {
+            name       => 'case_insensitive',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Use case insensitive matching?',
+            tooltip    => 'i.e. "cac" will match "Cac", "CAC", and "cac"',
+        },
+    ];
+
+    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
+
+    $dlg->show_all;
+    my $response = $dlg->run;
+
+    if (lc($response) ne 'ok') {
+        $dlg->destroy;
+        return;
+    }
+
+    my $parameters = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    $dlg->destroy;
+
+    my %params = @$parameters;
+    my $regex = $params{case_insensitive}
+      ? qr/$params{text}/i
+      : qr/$params{text}/;
+    $self->select_using_regex (%params, regex => $regex);
+
     return;
 }
 

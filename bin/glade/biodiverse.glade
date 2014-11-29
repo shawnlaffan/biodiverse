@@ -7444,11 +7444,10 @@ This setting has no effect on the slider bar.</property>
                         <property name="can_focus">False</property>
                         <property name="pack_direction">ttb</property>
                         <child>
-                          <widget class="GtkImageMenuItem" id="menuitem9">
+                          <widget class="GtkMenuItem" id="menuitem9">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="use_stock">False</property>
-                            <property name="always_show_image">True</property>
+                            <property name="label" translatable="yes">Display</property>
                             <child>
                               <widget class="GtkMenu" id="menuitem9_menu">
                                 <property name="can_focus">False</property>
@@ -7546,13 +7545,6 @@ Does not affect the vertical connectors. </property>
                                     <property name="use_underline">True</property>
                                   </widget>
                                 </child>
-                              </widget>
-                            </child>
-                            <child internal-child="image">
-                              <widget class="GtkImage" id="image1">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="stock">gtk-index</property>
                               </widget>
                             </child>
                           </widget>

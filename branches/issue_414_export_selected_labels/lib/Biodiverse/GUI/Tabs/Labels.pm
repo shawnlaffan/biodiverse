@@ -576,8 +576,9 @@ sub select_using_regex {
 
     my $regex  = $args{regex};
     my $exact  = $args{exact};
-    my $add_to = $args{add_to};
     my $negate = $args{negate};
+
+    my $selection_type = $args{selection_type} || 'new';
 
     if ($exact) {
         $regex = qr/\A$regex\z/;
@@ -611,13 +612,17 @@ sub select_using_regex {
         }
     );
 
-    if (!$add_to) {
+    if ($selection_type eq 'new') {
         $selection->unselect_all;
     }
 
+    my $method = 'select_path';
+    if ($selection_type eq 'remove_from') {
+        $method = 'unselect_path';
+    }
     foreach my $rowref (@p_targets) {
         my $path = $rowref->get_path;
-        $selection->select_path($path);
+        $selection->$method($path);
     }
 
     delete $self->{ignore_selected_change};
@@ -1942,84 +1947,61 @@ sub do_select_labels_regex {
     my $bd   = $args->[1];
     my $type = $args->[2];
 
-    # Show the Get Name dialog
-    # We really need to consctruct our own here, and use an alignment
-    # or add a text entry to the params table constructors
     my $gui = $self->{gui};
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg->set_title ('Select by regex');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    #  Hijack the import daligue.  (We should really build our own).
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
+    my $dlg    = $dlgxml->get_widget('dlgImportParameters');
+    my $table  = $dlgxml->get_widget ('tableImportParameters');
+    my $table_params = [
+        {
+            name       => 'text',
+            type       => 'text_one_line',
+            default    => '',
+            label_text => 'Text to match',
+            tooltip    => '',
+        },
+        {
+            name       => 'selection_type',
+            type       => 'choice',
+            default    => 0,
+            label_text => 'Selection type',
+            choices    => [qw /new add_to remove_from/],
+            tooltip    => 'Use this to define a new selection, add to the current selection, or remove from selection',
+        },
+        {
+            name       => 'exact',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Exact match?',
+            tooltip    => 'The default is to select partial matches '
+                        . '(i.e. "cac" will match "cactus" and "cacaphony").  '
+                        . 'Set to on if you want to use an exact match.',
+        },
+        {
+            name       => 'negate',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Negate the selection?',
+            tooltip    => 'Negate the condition?  i.e. "cac" will match anything not containing "cac"',
+        },
+    ];
 
-    my $txt_label = $dlgxml->get_widget('label130');
-    $txt_label->set_text('Match text:');
-    
-    my $txt_widget = $dlgxml->get_widget('txtName');
-    my $string = '';
-    $txt_widget->set_text($string);
+    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
 
-    my $tip_text;
+    $dlg->show_all;
+    my $response = $dlg->run;
 
-    #  now pack in the options
-    my $hbox_exact  = Gtk2::HBox->new;
-    my $label_exact = Gtk2::Label->new('Exact match?');
-    my $chk_exact   = Gtk2::CheckButton->new;
-    $chk_exact->set_active(0);
-    $tip_text = 'The default is to select partial matches '
-              . '(i.e. "cac" will match "cactus" and "cacaphony" .  '
-              . 'Set to on if you want to use an exact match.';
-    $label_exact->set_tooltip_text($tip_text);
-    $chk_exact->set_tooltip_text($tip_text);
-    $hbox_exact->pack_start($label_exact, 0, 0, 0);
-    $hbox_exact->pack_start($chk_exact,   0, 0, 0);
-
-    my $hbox_add_to  = Gtk2::HBox->new;
-    my $label_add_to = Gtk2::Label->new('Add to selection?');
-    my $chk_add_to   = Gtk2::CheckButton->new;
-    $chk_add_to->set_active(0);
-    $tip_text = 'Add to the current selection?';
-    $label_add_to->set_tooltip_text($tip_text);
-    $chk_add_to->set_tooltip_text($tip_text);
-    $hbox_add_to->pack_start($label_add_to, 0, 0, 0);
-    $hbox_add_to->pack_start($chk_add_to,   0, 0, 0);
-
-    my $hbox_negate  = Gtk2::HBox->new;
-    my $label_negate = Gtk2::Label->new('Negate condition?');
-    my $chk_negate   = Gtk2::CheckButton->new;
-    $chk_negate->set_active(0);
-    $tip_text = 'Negate the condition?  i.e. "cac" will match anything not containing "cac"';
-    $label_negate->set_tooltip_text($tip_text);
-    $chk_negate->set_tooltip_text($tip_text);
-    $hbox_negate->pack_start($label_negate, 0, 0, 0);
-    $hbox_negate->pack_start($chk_negate,   0, 0, 0);
-    
-    my $vbox = $dlg->get_content_area();
-    $vbox->pack_start($hbox_exact,  0, 0, 0);
-    $vbox->pack_start($hbox_add_to, 0, 0, 0);
-    $vbox->pack_start($hbox_negate, 0, 0, 0);
-    $vbox->show_all;
-
-    my $response = $dlg->run();
-    
     if (lc($response) ne 'ok') {
         $dlg->destroy;
         return;
     }
 
-    my $text = $txt_widget->get_text;
-    my $regex = qr/$text/;
-    my $exact = $chk_exact->get_active;
-    my $add_to = $chk_add_to->get_active;
-    my $negate = $chk_negate->get_active;
-
+    my $parameters = Biodiverse::GUI::ParametersTable::extract ($extractors);
     $dlg->destroy;
 
-    $self->select_using_regex (
-        regex  => $regex,
-        exact  => $exact,
-        add_to => $add_to,
-        negate => $negate,
-    );
+    my %params = @$parameters;
+    my $regex  = qr/$params{text}/;
+    $self->select_using_regex (%params, regex => $regex);
 
     return;
 }

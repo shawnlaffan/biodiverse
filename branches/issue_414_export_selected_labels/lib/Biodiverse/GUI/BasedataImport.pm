@@ -191,7 +191,7 @@ sub run {
     $file_title->set_alignment (0, 1);
     $vbox->pack_start ($file_title, 0, 0, 0);
 
-    my $file_list_label = Gtk2::Label ->new($file_list_as_text . "\n\n");
+    my $file_list_label = Gtk2::Label->new($file_list_as_text . "\n\n");
     $file_list_label->set_alignment (0, 1);
     $vbox->pack_start ($file_list_label, 0, 0, 0);
     my $import_vbox = $dlgxml->get_widget('import_parameters_vbox');

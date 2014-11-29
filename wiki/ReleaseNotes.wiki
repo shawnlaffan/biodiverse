@@ -28,6 +28,7 @@ Main changes since the preceding version ([#Version_0.99_004 0.99_005]) are belo
     *  Trees exported from Biodiverse now roundtrip properly when labels are quoted.  Issue 270
     *  Sparse format matrix files can now be imported in the GUI.  Issue 82
     *  Matrix exports now use a progress dialog to avoid a non-responsive GUI.  They also write direct to file to reduce memory overheads.  Issue 517
+    *  Basedata imports are now faster.  The effect is greatest for raster imports where there is no transform in place.  Issue 527
 
   *  Analyses
     *  In the spatial analyses, users can control the use of the spatial index across the whole analysis, or on a per-spatial condition level.  Issue 205

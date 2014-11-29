@@ -1972,10 +1972,10 @@ sub do_select_labels_regex {
             name       => 'exact',
             type       => 'boolean',
             default    => 0,
-            label_text => 'Exact match?',
+            label_text => 'Full match?',
             tooltip    => 'The default is to select partial matches '
-                        . '(i.e. "cac" will match "cactus" and "cacaphony").  '
-                        . 'Set to on if you want to use an exact match.',
+                        . '(i.e. "cac" will match "cac", "cactus" and "cacaphony").  '
+                        . 'Set to on if you want to use only a full match.',
         },
         {
             name       => 'negate',
@@ -1983,6 +1983,13 @@ sub do_select_labels_regex {
             default    => 0,
             label_text => 'Negate the selection?',
             tooltip    => 'Negate the condition?  i.e. "cac" will match anything not containing "cac"',
+        },
+        {
+            name       => 'case_insensitive',
+            type       => 'boolean',
+            default    => 0,
+            label_text => 'Use case insensitive matching?',
+            tooltip    => 'i.e. "cac" will match "Cac", "CAC", and "cac"',
         },
     ];
 
@@ -2000,7 +2007,9 @@ sub do_select_labels_regex {
     $dlg->destroy;
 
     my %params = @$parameters;
-    my $regex  = qr/$params{text}/;
+    my $regex = $params{case_insensitive}
+      ? qr/$params{text}/i
+      : qr/$params{text}/;
     $self->select_using_regex (%params, regex => $regex);
 
     return;

@@ -1,1 +1,0 @@
-Bundles for Biodiverse dependencies, until such time as we load the whole shebang onto CPAN.  

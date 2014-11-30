@@ -99,7 +99,10 @@ my %help_funcs = (
     },
     on_menu_mailing_list_activate => {
         METHOD => 'help_show_mailing_list',
-    }
+    },
+    on_menu_blog_activate => {
+        METHOD => 'help_show_blog',
+    },
 );
 
 

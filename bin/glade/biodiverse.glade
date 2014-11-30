@@ -4691,6 +4691,16 @@ The sum of all branches will be the same as in the original tree. </property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="help_show_blog">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Go to the Biodiverse blog</property>
+                        <property name="label" translatable="yes">Blog</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menu_blog_activate"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkMenuItem" id="menu_help_citation">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

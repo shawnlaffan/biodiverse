@@ -2635,7 +2635,7 @@ sub trim {
     if (blessed $data) {
         #  assume it is a tree or matrix if blessed
         METHOD:
-        foreach my $method (qw /get_named_nodes get_elements/) {
+        foreach my $method (qw /get_named_nodes get_elements get_labels_as_hash/) {
             if ($data->can($method)) {
                 %keep_or_trim = $data->$method;
                 last METHOD;

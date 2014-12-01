@@ -2635,7 +2635,7 @@ sub trim {
     if (blessed $data) {
         #  assume it is a tree or matrix if blessed
         METHOD:
-        foreach my $method (qw /get_named_nodes get_elements/) {
+        foreach my $method (qw /get_named_nodes get_elements get_labels_as_hash/) {
             if ($data->can($method)) {
                 %keep_or_trim = $data->$method;
                 last METHOD;
@@ -2990,6 +2990,17 @@ sub get_labels { #  get a list of the labels in the selected BaseData
     my $self = shift;
     #my %args = @_;
     return $self->get_labels_ref->get_element_list;
+}
+
+#  get a hash of the labels in the selected BaseData
+#  returns a copy to avoid autoviv problems
+sub get_labels_as_hash { 
+    my $self = shift;
+    #my %args = @_;
+    my $labels = $self->get_labels;
+    my %hash;
+    @hash{@$labels} = (1) x @$labels;
+    return wantarray ? %hash : \%hash;
 }
 
 sub get_groups_with_label {  #  get a list of the groups that contain $label

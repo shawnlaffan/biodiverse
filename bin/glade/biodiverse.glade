@@ -4343,6 +4343,16 @@ Assumes a dissimilarity matrix, so take care.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_trim_matrix_to_basedata">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Remove any elements not found in the selected basedata</property>
+                        <property name="label" translatable="yes">Trim to match basedata</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_trim_matrix_to_basedata"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator11">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

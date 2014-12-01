@@ -32,7 +32,7 @@ Main changes since the preceding version ([#Version_0.99_004 0.99_005]) are belo
 
   *  Analyses
     *  In the spatial analyses, users can control the use of the spatial index across the whole analysis, or on a per-spatial condition level.  Issue 205
-    *  Control is also available for result and neighbour set recycling (the system detects these correctly in most cases, but it is useful to control it).  Issue 205
+    *  Control is also available for result and neighbour set recycling (the system detects these correctly in most cases, but it is useful to control it in falsely detected cases).  Issue 205
 
 = Version 0.99_005 = 
 

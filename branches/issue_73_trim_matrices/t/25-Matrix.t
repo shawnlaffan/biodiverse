@@ -72,13 +72,16 @@ sub test_trim {
     $bd->trim (keep => [qw /Genus:sp10 Genus:sp11 Genus:sp12/]);
 
     foreach my $class (@classes) {
-        my $mx = get_matrix_object_from_sample_data();
+        my $mx = get_matrix_object_from_sample_data($class);
         _test_trim($mx, $bd);
     }
 }
 
 sub _test_trim {
     my ($mx, $bd) = @_;
+
+    my $mx_el_count = $mx->get_element_count;
+    my $mx_element_pair_count = $mx->get_element_pair_count;
 
     #  use a basedata object, then a simple array
     foreach my $ref ($bd, scalar $bd->get_labels) {
@@ -88,21 +91,37 @@ sub _test_trim {
         my %trim_results = $mx_trim->trim (trim => $bd);
         my %keep_results = $mx_keep->trim (keep => $bd);
 
+        my $mx_trim_el_count = $mx_trim->get_element_count;
+        my $mx_keep_el_count = $mx_keep->get_element_count;
+
+        #  two different checks to do the same thing
         is (
             $trim_results{DELETE_COUNT} + $keep_results{DELETE_COUNT},
-            $mx->get_element_count,
-            'deleted correct number of elements for class ' . blessed ($mx),
+            $mx_el_count,
+            'check 1: deleted correct number of elements for class ' . blessed ($mx),
+        );
+        is (
+            $mx_trim_el_count + $mx_keep_el_count,
+            $mx_el_count,
+            'check 2: deleted correct number of elements for class ' . blessed ($mx),
         );
 
-        #  cannot rely on get_element_pair_count at the moment
-        #is (
-        #    $trim_results{DELETE_SUB_COUNT} + $keep_results{DELETE_SUB_COUNT},
-        #    $mx->get_element_pair_count,
-        #    'deleted correct number of element pairs for class ' . blessed ($mx),
-        #);
+        #  we have lower-left matrices with values along the diagonal
+        #  so can predict what we should see if correct element pairs are deleted
+        foreach my $mx_to_check ($mx_keep, $mx_trim) {
+            my $observed = $mx_to_check->get_element_pair_count;
+            my $el_count = $mx_to_check->get_element_count;
 
+            my $exp = $el_count * ($el_count - 1) / 2 + $el_count;
+            is (
+                $observed,
+                $exp,
+                'deleted correct number of element pairs for class ' . blessed ($mx),
+            );
+        }
     }
 
+    return;
 }
 
 

@@ -535,20 +535,20 @@ sub get_element_count {
     return scalar keys %{$self->{ELEMENTS}};
 }
 
-sub get_element_pair_count {
-    my $self = shift;
-
-    #my $count = 0;
-    #for my $value (values %{$self->{ELEMENTS}}) {
-    #    $count += $value;
-    #}
-    my $count = sum values %{$self->{ELEMENTS}};
-    $count /= 2;  #  correct for double counting
-    #  IS THIS CORRECTION VALID?  We can have symmetric and non-symmetric matrices, so a:b and b:a
-    #  It depends on how they are tracked, though.  
-
-    return $count;
-}
+#sub get_element_pair_count {
+#    my $self = shift;
+#
+#    #my $count = 0;
+#    #for my $value (values %{$self->{ELEMENTS}}) {
+#    #    $count += $value;
+#    #}
+#    my $count = sum values %{$self->{ELEMENTS}};
+#    $count /= 2;  #  correct for double counting
+#    #  IS THIS CORRECTION VALID?  We can have symmetric and non-symmetric matrices, so a:b and b:a
+#    #  It depends on how they are tracked, though.  
+#
+#    return $count;
+#}
 
 sub get_element_pairs_with_value {
     my $self = shift;
@@ -609,33 +609,6 @@ sub delete_all_elements {
 }
 
 
-#  clear all pairs containing this element.
-#  should properly be delete_element, but it's already used
-sub delete_all_pairs_with_element {  
-    my $self = shift;
-    my %args = @_;
-    
-    croak "element not specified\n" if ! defined $args{element};
-    croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
-    
-    my @elements = $self->get_elements_as_array;
-    my $delete_count = 0;
-    foreach my $el (@elements) {
-        if ($self->element_pair_exists (
-                element1 => $el,
-                element2 => $args{element})
-            ) {
-
-            $self->delete_element (
-                element1 => $el,
-                element2 => $args{element},
-            );
-        }
-        $delete_count++;
-    }
-    
-    return $delete_count;
-}
 
 
 sub numerically {$a <=> $b};

@@ -1176,8 +1176,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1194,8 +1194,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4364,6 +4364,16 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="label" translatable="yes">Convert matrix to tree</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_convert_matrix_to_phylogeny"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_trim_matrix_to_basedata">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Remove any elements not found in the selected basedata</property>
+                        <property name="label" translatable="yes">Trim to match basedata</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_trim_matrix_to_basedata"/>
                       </widget>
                     </child>
                     <child>

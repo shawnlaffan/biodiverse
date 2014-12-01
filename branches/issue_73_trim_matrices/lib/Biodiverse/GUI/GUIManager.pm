@@ -1606,6 +1606,78 @@ sub do_convert_labels_to_phylogeny {
     return;
 }
 
+#  Should probably rename this sub as it is being used for more purposes,
+#  some of which do not involve trimming.  
+sub do_trim_matrix_to_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    my $mx = $self->{project}->get_selected_matrix;
+    my $bd = $self->{project}->get_selected_base_data || return 0;
+    
+    if (! defined $mx) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no matrix currently selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    # Show the Get Name dialog
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $mx->get_param('NAME');
+
+    my $suffix = $args{suffix} || 'TRIMMED';
+    # If ends with _TRIMMED followed by a number then increment it
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
+        $name = $1 . ($2 + 1)
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response = $dlg->run();
+    my $chosen_name = $txt_name->get_text;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_mx = $mx->clone;
+    $new_mx->delete_cached_values;
+
+    if (!$args{no_trim}) {
+        $new_mx->trim (keep => $bd);
+    }
+
+    $new_mx->set_param (NAME => $chosen_name);
+
+    #  now we add it if it is not already in the list
+    #  otherwise we select it
+    my $matrices = $self->{project}->get_matrix_list;
+
+    my $in_list = grep {$_ eq $new_mx} @$matrices;
+
+    if ($in_list) {
+        $self->{project}->select_matrix ($new_mx);
+    }
+    else {
+        $self->{project}->add_matrix($new_mx, 0);
+    }
+
+    return;
+}
+
+
 sub do_convert_matrix_to_phylogeny {
     my $self = shift;
     

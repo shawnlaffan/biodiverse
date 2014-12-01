@@ -465,6 +465,10 @@ sub delete_element {
     }
 
     my $index_val = $self->get_value_index_key (value => $value);
+    if (!$val_index->{$index_val}) {
+        $self->rebuild_value_index;  #  a bit underhanded, but this ensures we upgrade old matrices
+    }
+    
 
     delete $val_index->{$index_val}{$element1}{$element2};
     if (!scalar keys %{$val_index->{$index_val}{$element1}}) {

@@ -135,26 +135,20 @@ sub get_element_pair_count {
 sub delete_all_pairs_with_element {  
     my $self = shift;
     my %args = @_;
-    
+
     croak "element not specified\n" if ! defined $args{element};
     croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
-    
+
+    my $element = $args{element};
+
+    my @deleted;    
     my @elements = $self->get_elements_as_array;
     my $delete_count = 0;
-    foreach my $el (@elements) {
-        if ($self->element_pair_exists (
-                element1 => $el,
-                element2 => $args{element})
-            ) {
-
-            $self->delete_element (
-                element1 => $el,
-                element2 => $args{element},
-            );
-            $delete_count++;
-        }
+    foreach my $pair_el (@elements) {
+        $delete_count += $self->delete_element (element1 => $pair_el, element2 => $element);
+        $delete_count += $self->delete_element (element1 => $element, element2 => $pair_el);
     }
-    
+
     return $delete_count;
 }
 

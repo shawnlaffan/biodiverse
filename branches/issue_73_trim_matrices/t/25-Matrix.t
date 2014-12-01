@@ -84,7 +84,7 @@ sub _test_trim {
     my $mx_element_pair_count = $mx->get_element_pair_count;
 
     #  use a basedata object, then a simple array
-    foreach my $ref ($bd, scalar $bd->get_labels) {
+    foreach my $ref ($bd, [$bd->get_labels, 'name_not_in_mx']) {
         my $mx_trim = $mx->clone;
         my $mx_keep = $mx->clone;
 

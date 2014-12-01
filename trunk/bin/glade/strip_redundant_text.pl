@@ -16,7 +16,8 @@ die "Cannot rename $file" if !$success;
 
 #  strip out any swapped cruft
 my $count = $data =~ s/swapped="no"//g;
-say $count;
+$count ||= 0;
+say "Cleaned out $count cases of 'swapped=\"no\"'";
 
 #  we get excess placeholders creeping in
 my $re_child_placeholder = qr {
@@ -26,7 +27,8 @@ my $re_child_placeholder = qr {
 }x;
 
 $count = $data =~ s/($re_child_placeholder)$re_child_placeholder+/$1/g;
-say $count;
+$count ||= 0;
+say "Cleaned out $count child placeholder blocks";
 
 open(my $ofh, '>', $file) or die 'Cannot open output file';
 print {$ofh} $data;

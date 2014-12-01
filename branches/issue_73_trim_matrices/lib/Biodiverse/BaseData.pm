@@ -2992,6 +2992,17 @@ sub get_labels { #  get a list of the labels in the selected BaseData
     return $self->get_labels_ref->get_element_list;
 }
 
+#  get a hash of the labels in the selected BaseData
+#  returns a copy to avoid autoviv problems
+sub get_labels_as_hash { 
+    my $self = shift;
+    #my %args = @_;
+    my $labels = $self->get_labels;
+    my %hash;
+    @hash{@$labels} = (1) x @$labels;
+    return wantarray ? %hash : \%hash;
+}
+
 sub get_groups_with_label {  #  get a list of the groups that contain $label
     my $self = shift;
     my %args = @_;

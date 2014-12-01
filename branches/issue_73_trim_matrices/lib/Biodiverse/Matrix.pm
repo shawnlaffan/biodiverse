@@ -619,6 +619,7 @@ sub delete_all_pairs_with_element {
     croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
     
     my @elements = $self->get_elements_as_array;
+    my $delete_count = 0;
     foreach my $el (@elements) {
         if ($self->element_pair_exists (
                 element1 => $el,
@@ -630,9 +631,10 @@ sub delete_all_pairs_with_element {
                 element2 => $args{element},
             );
         }
+        $delete_count++;
     }
     
-    return;
+    return $delete_count;
 }
 
 

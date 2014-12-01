@@ -66,6 +66,46 @@ sub test_to_table {
     }
 }
 
+
+sub test_trim {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    $bd->trim (keep => [qw /Genus:sp10 Genus:sp11 Genus:sp12/]);
+
+    foreach my $class (@classes) {
+        my $mx = get_matrix_object_from_sample_data();
+        _test_trim($mx, $bd);
+    }
+}
+
+sub _test_trim {
+    my ($mx, $bd) = @_;
+
+    #  use a basedata object, then a simple array
+    foreach my $ref ($bd, scalar $bd->get_labels) {
+        my $mx_trim = $mx->clone;
+        my $mx_keep = $mx->clone;
+
+        my %trim_results = $mx_trim->trim (trim => $bd);
+        my %keep_results = $mx_keep->trim (keep => $bd);
+
+        is (
+            $trim_results{DELETE_COUNT} + $keep_results{DELETE_COUNT},
+            $mx->get_element_count,
+            'deleted correct number of elements for class ' . blessed ($mx),
+        );
+
+        #  cannot rely on get_element_pair_count at the moment
+        #is (
+        #    $trim_results{DELETE_SUB_COUNT} + $keep_results{DELETE_SUB_COUNT},
+        #    $mx->get_element_pair_count,
+        #    'deleted correct number of element pairs for class ' . blessed ($mx),
+        #);
+
+    }
+
+}
+
+
 sub test_main_tests {
     foreach my $class (@classes) {
         run_main_tests($class);

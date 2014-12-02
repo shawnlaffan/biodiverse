@@ -990,38 +990,42 @@ sub to_table {
 
     my $check_elements = $self->get_element_list;
 
-    #  check if the file is symmetric or not.  Check the list type as well.
+    #  Check if the lists in this object are symmetric.  Check the list type as well.
+    #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
     my $is_asym = 0;
     my %list_keys;
     my $prev_list_keys;
 
-    #print "[BASESTRUCT] Checking elements for list contents\n";
-    CHECK_ELEMENTS:
+    say "[BASESTRUCT] Checking elements for list symmetry: $list";
+  CHECK_ELEMENTS:
     foreach my $i (0 .. $#$check_elements) {  # sample the lot
         my $check_element = $check_elements->[$i];
         last CHECK_ELEMENTS if ! defined $check_element;
 
-        my $values = $self->get_list_values (element => $check_element, list => $list);
+        my $values = $self->get_list_values (
+            element => $check_element,
+            list    => $list,
+        );
         if ((ref $values) =~ /HASH/) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
                 last CHECK_ELEMENTS;
             }
-            $prev_list_keys = scalar keys %$values if ! defined $prev_list_keys;
-            @list_keys{keys %$values} = values %$values;
+            $prev_list_keys //= scalar keys %$values;
+            @list_keys{keys %$values} = undef;
         }
         elsif ((ref $values) =~ /ARRAY/) {
             $is_asym = 1;  #  arrays are always treated as asymmetric
             last CHECK_ELEMENTS;
         }
 
-        #  increment if not first check and keys differ from previous run
-        $is_asym ++ if $i && $last_contents_count != scalar keys %list_keys;
-
-        #  This list has different keys.
-        #  Allows for lists of same length but different keys.
-        last CHECK_ELEMENTS if $is_asym;
+        #  Increment if not first check and we have added new keys from previous run.
+        #  Allows for lists of same length but with different keys.
+        if ($i && $last_contents_count != scalar keys %list_keys) {
+            $is_asym ++ ;
+            last CHECK_ELEMENTS if $is_asym;
+        }
 
         $last_contents_count = scalar keys %list_keys;
     }
@@ -3102,7 +3106,7 @@ sub get_lists_across_elements {
         last SEARCH_FOR_LISTS if $count > $max_search;
     }
 
-    #  remove private lists if needed
+    #  remove private lists if needed - should just use a grep
     if ($no_private) {
         foreach my $key (keys %tmp_hash) {
             if ($key =~ /^_/) {  #  not those starting with an underscore

@@ -2754,33 +2754,31 @@ sub increment_values {
     return;
 }
 
+#  get a list from an element
+#  returns a direct ref in scalar context
 sub get_list_values {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
 
-    my $element = $args{element};
-    my $list = $args{list};
+    no autovivification;
 
-    croak "List not defined\n" if ! defined $list;
-    croak "Element $element does not exist in BaseStruct\n"
-      if ! $self->exists_element(element => $element);
+    my $element = $args{element}
+      // croak "element not specified\n";
+    my $list = $args{list}
+      // croak "List not defined\n";
 
-    my $element_ref = $self->{ELEMENTS}{$element};
+    my $element_ref = $self->{ELEMENTS}{$element}
+     // croak "Element $element does not exist in BaseStruct\n";
 
     return if ! exists $element_ref->{$list};
-
     return $element_ref->{$list} if ! wantarray;
 
     #  need to return correct type in list context
     return %{$element_ref->{$list}}
       if ref ($element_ref->{$list}) =~ /HASH/;
 
-    if (ref($element_ref->{$list}) =~ /ARRAY/) {
-        #  SWL 15Feb2011: should this always sort?
-        my @list = sort @{$element_ref->{$list}};
-        return @list;
-    }
+    return @{$element_ref->{$list}}
+      if ref($element_ref->{$list}) =~ /ARRAY/;
 
     return;
 }

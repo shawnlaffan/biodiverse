@@ -2334,6 +2334,7 @@ sub onVScroll {
 sub centre_tree {
     my $self = shift;
     return if !defined $self->{lines_group};
+    return if !$self->{cluster}->get_total_tree_length;
 
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;

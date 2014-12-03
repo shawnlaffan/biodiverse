@@ -6,7 +6,7 @@ use warnings;
 use Scalar::Util qw /blessed/;
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -21,7 +21,7 @@ sub get_metadata_calc_hierarchical_label_ratios {
     
     my $bd = $self->get_basedata_ref;
     
-    my $column_count = eval {$bd -> get_label_column_count} || 0;
+    my $column_count = eval {$bd->get_label_column_count} || 0;
     my %indices;
     if ($column_count) {
         for my $i (0 .. $column_count - 1) {  
@@ -34,15 +34,17 @@ sub get_metadata_calc_hierarchical_label_ratios {
             
             next if $i == 0;
             
-            $indices{"HIER_ARAT$i\_$j"}     = {description => "Ratio of A scores, (HIER_A$i / HIER_A$j)", lumper => 0,};
-            $indices{"HIER_BRAT$i\_$j"}     = {description => "Ratio of B scores, (HIER_B$i / HIER_B$j)", lumper => 0,};
-            $indices{"HIER_CRAT$i\_$j"}     = {description => "Ratio of C scores, (HIER_C$i / HIER_C$j)", lumper => 0,};
-            $indices{"HIER_ASUMRAT$i\_$j"}  = {description => "1 - Ratio of shared label sample counts, (HIER_ASUM$i / HIER_ASUM$j)",
-                                               cluster => 'NO_CACHE_ABC',  #  value is true, but allows a caveat
-                                              };
+            my $ij_text = "${i}_${j}";
+            $indices{"HIER_ARAT$ij_text"}     = {description => "Ratio of A scores, (HIER_A$i / HIER_A$j)", lumper => 0,};
+            $indices{"HIER_BRAT$ij_text"}     = {description => "Ratio of B scores, (HIER_B$i / HIER_B$j)", lumper => 0,};
+            $indices{"HIER_CRAT$ij_text"}     = {description => "Ratio of C scores, (HIER_C$i / HIER_C$j)", lumper => 0,};
+            $indices{"HIER_ASUMRAT$ij_text"}  = {
+                description => "1 - Ratio of shared label sample counts, (HIER_ASUM$i / HIER_ASUM$j)",
+                cluster     => 'NO_CACHE_ABC',  #  value is true, but allows a caveat
+            };
         }
     }
-    
+
     #my $levels = ($column_count - 1);
     my $desc = <<"END_H_DESC"
 Analyse the diversity of labels using their hierarchical levels.
@@ -99,7 +101,7 @@ sub calc_hierarchical_label_ratios {
         $results{'HIER_B' . $i} = $$xx{B};
         $results{'HIER_C' . $i} = $$xx{C};
         
-        my $xx_a_keys = $self -> get_shared_hash_keys (
+        my $xx_a_keys = $self->get_shared_hash_keys (
             lists => [
                 $xx->{label_hash1},
                 $xx->{label_hash2}
@@ -173,18 +175,19 @@ sub get_basedatas_by_label_hierarchy {
     }
 
     my $targets = $results{BD_HIERARCHY};
+    my $quote_char = $bd->get_param('QUOTES');
 
     my $progress_count = 0;
-    my $to_do = $labels_ref -> get_element_count;
+    my $to_do = $labels_ref->get_element_count;
 
-    foreach my $label ($labels_ref -> get_element_list) {
-        my @element_array = $labels_ref -> get_element_name_as_array (
+    foreach my $label ($labels_ref->get_element_list) {
+        my @element_array = $labels_ref->get_element_name_as_array (
             element => $label,
         );
         my %groups = $bd->get_groups_with_label_as_hash (label => $label);
 
-        $progress_count ++;
-        $progress_bar -> update (
+        $progress_count++;
+        $progress_bar->update (
             "Building hierarchical basedata\n"
             . "for label columns 0 to $label_max_index\n"
             . "($progress_count / $to_do)",
@@ -197,8 +200,13 @@ sub get_basedatas_by_label_hierarchy {
 
             foreach my $i (0 .. $label_max_index) {
                 #  get the new label from the slice
-                my $new_label = $bd -> list2csv (
+                my $new_label = $bd->list2csv (
                     list => [@element_array[0..$i]]
+                );
+
+                $new_label = $self->dequote_element (
+                    element    => $new_label,
+                    quote_char => $quote_char,
                 );
 
                 #  now add this new label/group pair to the new basedata

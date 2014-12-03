@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -305,7 +305,8 @@ my %key_tool_map = (
     X => 'ZoomOut',
     C => 'Pan',
     V => 'ZoomFit',
-    B => 'Select'
+    B => 'Select',
+    S => 'Select',
 );
 
 # Default for tabs that don't implement on_bare_key
@@ -629,14 +630,13 @@ sub handle_grid_drag_zoom {
         $grid->post_zoom;
         return;
     }
-    else {
-        my $oppu = $canvas->get_pixels_per_unit;
-        #print "Old PPU: $oppu\n";
-        my $ppu = $oppu * $ratio;
-        #print "New PPU: $ppu\n";
-        $canvas->set_pixels_per_unit($ppu);
-    }
 
+
+    my $oppu = $canvas->get_pixels_per_unit;
+    #say "Old PPU: $oppu";
+    my $ppu = $oppu * $ratio;
+    #say "New PPU: $ppu";
+    $canvas->set_pixels_per_unit($ppu);
 
     # Now pan so that the selection is centered. There are two cases.
     # +------------------------------------------+
@@ -659,6 +659,8 @@ sub handle_grid_drag_zoom {
     # the same aspect ratio as the window. (One axis will not change).
     my $window_aspect =  $width_px / $height_px;
     my $rect_aspect   = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
+    #say "WA: $window_aspect, RA: $rect_aspect";
+    #say "R: " . join ' ', @$rect;
     if ($rect_aspect > $window_aspect) {
         # 2nd case illustrated above. We need to change the height.
         my $mid    = ($rect->[1] + $rect->[3]) / 2;
@@ -676,13 +678,15 @@ sub handle_grid_drag_zoom {
 
     my $midx = ($rect->[0] + $rect->[2]) / 2;
     my $midy = ($rect->[1] + $rect->[3]) / 2;
-    $midx = $rect->[0];
-    $midy = $rect->[1];
+    #$midx = $rect->[0];
+    #$midy = $rect->[1];
 
     # Apply and pan
     $grid->set_zoom_fit_flag(0);  #  don't zoom to all when the window gets resized - poss should set some params to maintain the extent
     $grid->post_zoom;
-    $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
+    my @target = $canvas->w2c($rect->[0], $rect->[1]);
+    #say "Scrolling to " . join ' ', @target;
+    $canvas->scroll_to(@target);
     $grid->update_scrollbars ($midx, $midy);
 
 }
@@ -897,13 +901,11 @@ sub delete_cached_values {
     return;
 }
 
-
-
 sub update_export_menu {
     my $self = shift;
 
     my $menubar = $self->{menubar};
-    my $output_ref = $self->{output_ref};
+    my $output_ref = $self->{output_ref};  
 
     # Clear out old entries from menu so we can rebuild it.
     # This will be useful when we add checks for which export methods are valid.  
@@ -915,7 +917,8 @@ sub update_export_menu {
         $self->{export_menu} = $export_menu;
     }
 
-    if (!$output_ref) {
+    if (!$output_ref || ($output_ref->get_param('COMPLETED') // 1) != 1) {
+        #  completed == 2 for clusters analyses with matrices only
         $export_menu->set_sensitive(0);
     }
     else {

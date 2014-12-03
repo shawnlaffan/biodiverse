@@ -16,7 +16,7 @@ use HTTP::Tiny;
 
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 ##############################################
 #  Web links.  
@@ -38,6 +38,7 @@ my %subs_and_urls = (
     help_show_release_notes            => $base_url . 'ReleaseNotes',
     help_show_citation                 => $base_url . 'PublicationsList',
     help_show_mailing_list             => 'http://groups.google.com/group/biodiverse-users',
+    help_show_blog                     => 'http://biodiverse-analysis-software.blogspot.com.au',
 );
 
 sub _make_url_accessors {
@@ -86,8 +87,6 @@ If it has not then please copy and paste the URL into your web browser.
 $link
 </span>
 
-Note that you need to be connected to the web for this to work.
-
 END_LINK_TEXT
 ;
 
@@ -130,7 +129,7 @@ END_LINK_TEXT
 sub help_show_check_for_updates {
     my $gui = shift;
     
-    my $download_url = 'http://code.google.com/p/biodiverse/downloads/list';
+    my $download_url = 'https://code.google.com/p/biodiverse/wiki/Downloads';
     
     my $url = 'http://biodiverse.googlecode.com/svn/trunk/etc/versions.txt';
     my $http_response = HTTP::Tiny->new->get($url);

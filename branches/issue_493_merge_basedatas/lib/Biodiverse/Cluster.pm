@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -1420,7 +1420,10 @@ sub get_outputs_with_same_index_and_spatial_conditions {
     #  This should also all be encapsulated in Indices.pm
     my $indices       = $self->get_indices_object_for_matrix_and_clustering;
     my $valid_calcs   = $indices->get_valid_calculations_to_run;
-    my %required_args = $indices->get_required_args (calculations => $valid_calcs);
+    my %required_args = $indices->get_required_args_including_dependencies (
+        calculations => $valid_calcs,
+        no_regexp => 1,
+    );
     my %required;
     foreach my $calc (%required_args) {
         my $r = $required_args{$calc};

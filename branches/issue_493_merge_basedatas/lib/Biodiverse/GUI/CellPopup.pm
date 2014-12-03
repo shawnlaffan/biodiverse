@@ -8,7 +8,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Gtk2;
 
@@ -295,10 +295,14 @@ sub show_properties {
     if (not $popup->{properties_model}) {
         my $bd  = $data->get_param ('BASEDATA_REF') || $data;
 
-        my %properties = $bd->get_groups_ref->get_list_values (
-            element => $element,
-            list    => 'PROPERTIES',
-        );
+        my %properties;
+        #  maybe we deleted it...
+        if ($bd->get_groups_ref->exists_element (element => $element)) {
+            %properties = $bd->get_groups_ref->get_list_values (
+                element => $element,
+                list    => 'PROPERTIES',
+            );
+        }
 
         #return if ! scalar keys %properties;  #  no properties to display
 

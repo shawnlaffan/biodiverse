@@ -19,7 +19,7 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -1161,13 +1161,7 @@ sub get_colour_for_undef {
     my $self = shift;
     my $colour_none = shift;
 
-    #  default to black if an analysis is specified, white otherwise
-    #my $null    = $self->{colour_none} || COLOUR_BLACK;
-    #my $default = defined $self->{analysis} ? $null : COLOUR_WHITE;
-    #
-    #$colour_none ||= $default;
-
-    return $self->{colour_none} // $self->set_colour_for_undef;
+    return $self->{colour_none} // $self->set_colour_for_undef ($colour_none);
 }
 
 sub set_colour_for_undef {
@@ -1367,9 +1361,9 @@ sub find_max_min {
     my $data = shift;
     my ($min_x, $max_x, $min_y, $max_y);
 
-    foreach ($data->get_element_list) {
+    foreach my $element ($data->get_element_list) {
 
-        my ($x, $y) = $data->get_element_name_coord (element => $_);
+        my ($x, $y) = $data->get_element_name_coord (element => $element);
 
         $min_x = $x if ( (not defined $min_x) || $x < $min_x);
         $min_y = $y if ( (not defined $min_y) || $y < $min_y);
@@ -1840,7 +1834,6 @@ sub resize_background_rect {
             );
             $self->{back_rect}->lower_to_bottom();
         }
-
     }
     
     return;

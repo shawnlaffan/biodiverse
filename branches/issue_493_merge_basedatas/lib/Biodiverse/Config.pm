@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -48,7 +48,7 @@ BEGIN {
     #  Add the gtk and gdal libs if using windows - brittle?
     #  Search up the tree until we find a dir of the requisite name
     #  and which contains a bin folder
-    if ($OSNAME eq 'MSWin32') {
+    if ($OSNAME eq 'MSWin32' && !$ENV{BD_NO_LIB_SEARCH}) {
         #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
         my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
         
@@ -93,7 +93,6 @@ BEGIN {
 
 
 #  add biodiverse lib paths so we get all the extensions
-#  should be a sub not a begin block
 sub add_lib_paths {
     my $var = shift // 'BIODIVERSE_LIB';
 

@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use File::Basename;
 use Gtk2;
@@ -18,6 +18,7 @@ use Text::Wrapper;
 use File::BOM qw / :subs /;
 use Scalar::Util qw /reftype looks_like_number/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
+use List::Util qw /all/;
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
@@ -190,7 +191,7 @@ sub run {
     $file_title->set_alignment (0, 1);
     $vbox->pack_start ($file_title, 0, 0, 0);
 
-    my $file_list_label = Gtk2::Label ->new($file_list_as_text . "\n\n");
+    my $file_list_label = Gtk2::Label->new($file_list_as_text . "\n\n");
     $file_list_label->set_alignment (0, 1);
     $vbox->pack_start ($file_list_label, 0, 0, 0);
     my $import_vbox = $dlgxml->get_widget('import_parameters_vbox');
@@ -595,7 +596,7 @@ sub run {
     if ($read_format == $raster_idx) {
         my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata (keys %multiple_file_lists) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->import_data_raster(
                     %import_params,
                     #%rest_of_options,
@@ -1544,6 +1545,7 @@ sub get_remap_info {
     my $column_overrides = $args{column_overrides};
     my $filename         = $args{filename};
     my $max_cols_to_show = $args{max_cols_to_show} || 100;
+    my $required_cols    = $args{required_cols} // [qw/Input_element/];
 
     my ($_file, $data_dir, $_suffixes)
         = $get_dir_from && length $get_dir_from
@@ -1639,10 +1641,10 @@ sub get_remap_info {
         }
 
         #  drop out
-        last RUN_DLG if $column_settings->{Input_element};
+        last RUN_DLG if all {$column_settings->{$_}} @$required_cols;
 
         #  need to check we have the right number...
-        my $text = 'Please select as many Input_element columns as you have label axes';
+        my $text = 'Insufficient columns chosen of types.  Must have at least one of: ' . join ' ', @$required_cols;
         my $msg = Gtk2::MessageDialog->new (
             undef,
             'modal',
@@ -1654,7 +1656,7 @@ sub get_remap_info {
         $msg->run();
         $msg->destroy();
     }
-    
+
     $dlg->destroy();
 
     #Input_label Remapped_label Range

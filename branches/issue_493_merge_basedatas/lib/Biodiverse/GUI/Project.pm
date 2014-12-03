@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -1329,6 +1329,7 @@ sub set_matrix_buttons {
                 menu_matrix_rename
                 menu_matrix_describe
                 menu_matrix_export
+                menu_trim_matrix_to_basedata
                 convert_matrix_to_phylogeny
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);

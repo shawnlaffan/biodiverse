@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -73,6 +73,7 @@ sub new {
         label_widget => $label_widget,
     );
 
+    my (@spatial_conditions, $defq_object);
     my $sp_initial1 = "sp_select_all ()\n"
                       . "#  This creates a complete matrix and is recommended "
                       . "as the last condition for clustering purposes";
@@ -141,19 +142,20 @@ sub new {
             $self->{existing} = 0;
         }
 
-        my $spatial_conditions = $cluster_ref->get_spatial_conditions || [];
+        @spatial_conditions = @{$cluster_ref->get_spatial_conditions || []};
         $sp_initial1
-            = defined $spatial_conditions->[0]
-            ? $spatial_conditions->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions[0]
+            ? $spatial_conditions[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $sp_initial2
-            = defined $spatial_conditions->[1]
-            ? $spatial_conditions->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions[1]
+            ? $spatial_conditions[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY') //  $empty_string;
         if (blessed $def_query_init1) { #  get the text if already an object 
             $def_query_init1 = $def_query_init1->get_conditions_unparsed();
+            $defq_object     = $def_query_init1;
         }
         if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
             my $spin_widget = $xml_page->get_widget('spinbutton_cluster_prng_seed');
@@ -175,22 +177,31 @@ sub new {
     $self->set_label_widget_tooltip;
 
 
-    $self->{spatialParams1}
-        = Biodiverse::GUI::SpatialParams->new($sp_initial1);
+    $self->{spatialParams1} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $sp_initial1,
+        condition_object => $spatial_conditions[0],
+    );
     $xml_page->get_widget('frameClusterSpatialParams1')->add(
         $self->{spatialParams1}->get_widget,
     );
 
-    my $hide_flag = not (length $sp_initial2);
-    $self->{spatialParams2}
-        = Biodiverse::GUI::SpatialParams->new($sp_initial2, $hide_flag);
+    my $start_hidden = not (length $sp_initial2);
+    $self->{spatialParams2} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $sp_initial2,
+        start_hidden => $start_hidden,
+        condition_object => $spatial_conditions[1],
+    );
     $xml_page->get_widget('frameClusterSpatialParams2')->add(
         $self->{spatialParams2}->get_widget
     );
 
-    $hide_flag = not (length $def_query_init1);
-    $self->{definition_query1}
-        = Biodiverse::GUI::SpatialParams->new($def_query_init1, $hide_flag, 'is_def_query');
+    $start_hidden = not (length $def_query_init1);
+    $self->{definition_query1} = Biodiverse::GUI::SpatialParams->new(
+        initial_text => $def_query_init1,
+        start_hidden => $start_hidden,
+        is_def_query => 'is_def_query',
+        condition_object => $defq_object,
+    );
     $xml_page->get_widget('frameClusterDefinitionQuery1')->add(
         $self->{definition_query1}->get_widget
     );

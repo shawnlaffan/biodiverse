@@ -10,7 +10,7 @@ use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -1523,10 +1523,7 @@ sub calc_element_lists_used {
         EL_LIST_ALL  => $args{element_list_all},
     );
 
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 
@@ -1548,7 +1545,7 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my $self = shift;
     #my %args = @_;
 
-    return $self -> _calc_abc (
+    return $self->_calc_abc (
         @_,
         count_labels  => 0,
         count_samples => 0,
@@ -1595,7 +1592,7 @@ sub calc_abc3 {  #  run calc_abc, but keep a track of the label counts and sampl
     my $self = shift;
     #my %args = @_;
 
-    return $self -> _calc_abc(@_, count_samples => 1);
+    return $self->_calc_abc(@_, count_samples => 1);
 }
 
 sub _calc_abc {  #  required by all the other indices, as it gets the labels in the elements

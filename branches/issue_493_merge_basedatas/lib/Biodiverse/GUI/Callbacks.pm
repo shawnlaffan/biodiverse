@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -99,7 +99,10 @@ my %help_funcs = (
     },
     on_menu_mailing_list_activate => {
         METHOD => 'help_show_mailing_list',
-    }
+    },
+    on_menu_blog_activate => {
+        METHOD => 'help_show_blog',
+    },
 );
 
 
@@ -291,6 +294,9 @@ my %data_funcs = (
     },
     on_trim_tree_to_basedata => {
         METHOD => 'do_trim_tree_to_basedata',
+    },
+    on_trim_matrix_to_basedata => {
+        METHOD => 'do_trim_matrix_to_basedata',
     },
     on_range_weight_tree => {
         METHOD => 'do_range_weight_tree',

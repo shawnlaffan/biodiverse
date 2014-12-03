@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.99_005';
+our $VERSION = '0.99_006';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -41,7 +41,7 @@ use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
 use constant COLOUR_NOT_IN_TREE       => COLOUR_BLACK;
-use constant COLOUR_LIST_UNDEF        => COLOUR_BLACK;
+use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
@@ -2334,6 +2334,7 @@ sub onVScroll {
 sub centre_tree {
     my $self = shift;
     return if !defined $self->{lines_group};
+    return if !$self->{cluster}->get_total_tree_length;
 
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;

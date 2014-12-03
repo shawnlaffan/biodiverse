@@ -21,18 +21,18 @@ use Biodiverse::TestHelpers qw /:basedata/;
 REORDER:
 {
     my $bd = eval {
-            get_basedata_object (
-                x_spacing  => 1,
-                y_spacing  => 1,
-                CELL_SIZES => [1, 1],
-                x_max      => 10,
-                y_max      => 10,
-                x_min      => 0,
-                y_min      => 0,
-                use_rand_counts => 1,
-            );
-        };
-    
+        get_basedata_object (
+            x_spacing  => 1,
+            y_spacing  => 1,
+            CELL_SIZES => [1, 1],
+            x_max      => 10,
+            y_max      => 10,
+            x_min      => 0,
+            y_min      => 0,
+            use_rand_counts => 1,
+        );
+    };
+
     my $test_label = '0_0';
     my $lb_props = {blah => 25, blahblah => 10};
     my $lb = $bd->get_labels_ref;

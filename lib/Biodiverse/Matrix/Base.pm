@@ -115,6 +115,44 @@ sub element_pair_exists {
     return 0;
 }
 
+sub get_element_pair_count {
+    my $self = shift;
+
+    return 0 if ! exists $self->{BYELEMENT};
+
+    my $elements = $self->{BYELEMENT};
+
+    my $count = 0;
+    foreach my $subhash (values %$elements) {
+        $count += scalar keys %$subhash;
+    }
+
+    return $count;
+}
+
+#  clear all pairs containing this element.
+#  should properly be delete_element, but it's already used
+sub delete_all_pairs_with_element {  
+    my $self = shift;
+    my %args = @_;
+
+    croak "element not specified\n" if ! defined $args{element};
+    croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
+
+    my $element = $args{element};
+
+    my @deleted;    
+    my @elements = $self->get_elements_as_array;
+    my $delete_count = 0;
+    foreach my $pair_el (@elements) {
+        $delete_count += $self->delete_element (element1 => $pair_el, element2 => $element);
+        $delete_count += $self->delete_element (element1 => $element, element2 => $pair_el);
+    }
+
+    return $delete_count;
+}
+
+
 #  pass-through method
 sub get_elements_with_value {
     my $self = shift;
@@ -952,6 +990,79 @@ END_MX_TOOLTIP
     return $tool_tip;
 }
 
+
+sub trim {
+    my $self = shift;
+    my %args = @_;
+
+    croak "neither trim nor keep args specified\n"
+      if ! defined $args{keep} && ! defined $args{trim};
+
+    my $data;
+    my $keep = $args{keep};  #  keep only these (overrides trim)
+    my $trim = $args{trim};  #  delete all of these
+    if ($keep) {
+        $trim = undef;
+        $data = $keep;
+        say "[MATRIX] Trimming elements using keep option";
+    }
+    else {
+        $data = $trim;
+        say "[MATRIX] Trimming elements using trim option";
+    }
+
+    croak "keep or trim argument is not a ref\n"
+      if ! ref $data;
+
+    my %keep_or_trim;
+
+    if (blessed $data) {
+      METHOD:
+        foreach my $method (qw /get_named_nodes get_elements get_labels_as_hash/) {
+            if ($data->can($method)) {
+                %keep_or_trim = $data->$method;
+                last METHOD;
+            }
+        }
+    }
+    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
+        @keep_or_trim{@$data} = (1) x scalar @$data;
+    }
+    elsif ((ref $data) =~ /HASH/) {
+        %keep_or_trim = %$keep;
+    }
+
+    my $delete_count = 0;
+    my $delete_sub_count = 0;
+    
+  ELEMENT:
+    foreach my $element ($self->get_elements_as_array) {
+        if ($keep) {    #  keep if in the list
+            next ELEMENT if exists $keep_or_trim{$element};
+        }
+        elsif ($trim) { #  trim if not in the list  
+            next ELEMENT if ! exists $keep_or_trim{$element};
+        }
+
+        $delete_sub_count +=
+            $self->delete_all_pairs_with_element (
+                element => $element,
+            );
+        $delete_count ++;
+    }
+
+    if ($delete_count) {
+        say "Deleted $delete_count elements and $delete_sub_count pairs";
+        $self->delete_cached_values;
+    }
+
+    my %results = (
+        DELETE_COUNT     => $delete_count,
+        DELETE_SUB_COUNT => $delete_sub_count,
+    );
+
+    return wantarray ? %results : \%results;
+}
 
 sub numerically {$a <=> $b};
 

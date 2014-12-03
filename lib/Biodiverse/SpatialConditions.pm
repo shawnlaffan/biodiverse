@@ -70,7 +70,7 @@ sub new {
     $conditions =~ s/^\s+//xms;
     $conditions =~ s/\s+$//xms;
 
-    $self->set_param(
+    $self->set_params(
         CONDITIONS    => $conditions,
         WARNING_COUNT => 0,
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
@@ -124,6 +124,29 @@ sub has_conditions {
     $conditions =~ s/\s//g;
     return length $conditions;
 }
+
+#  should callers ignore recycling if detected?
+sub set_no_recycling_flag {
+    my ($self, $flag) = @_;
+    $self->{no_recycling} = $flag;
+}
+
+sub get_no_recycling_flag {
+    my $self = shift;
+    return $self->{no_recycling};
+}
+
+
+sub set_ignore_spatial_index_flag {
+    my ($self, $flag) = @_;
+    $self->{ignore_spatial_index} = $flag;
+}
+
+sub get_ignore_spatial_index_flag {
+    my $self = shift;
+    return $self->{ignore_spatial_index};    
+}
+
 
 sub get_used_dists {
     my $self = shift;

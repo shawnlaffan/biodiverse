@@ -357,9 +357,9 @@ sub init {
     #  check if we had any errors when loading extensions
     my @load_extension_errors = Biodiverse::Config::get_load_extension_errors();
     if (@load_extension_errors) {
-        my $count = scalar @load_extension_errors;
+        my $count = scalar @load_extension_errors - 1;  #  last item is @INC, so not an extension
         my $text = "Failed to load $count extensions\n"
-                 . join "\n", $#load_extension_errors;  #  last item is @INC, so not an extension
+                 . join "\n", @load_extension_errors;
         $self->report_error($text);
     }
 
@@ -1606,6 +1606,78 @@ sub do_convert_labels_to_phylogeny {
     return;
 }
 
+#  Should probably rename this sub as it is being used for more purposes,
+#  some of which do not involve trimming.  
+sub do_trim_matrix_to_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    my $mx = $self->{project}->get_selected_matrix;
+    my $bd = $self->{project}->get_selected_base_data || return 0;
+    
+    if (! defined $mx) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no matrix currently selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    # Show the Get Name dialog
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $mx->get_param('NAME');
+
+    my $suffix = $args{suffix} || 'TRIMMED';
+    # If ends with _TRIMMED followed by a number then increment it
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
+        $name = $1 . ($2 + 1)
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response = $dlg->run();
+    my $chosen_name = $txt_name->get_text;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_mx = $mx->clone;
+    $new_mx->delete_cached_values;
+
+    if (!$args{no_trim}) {
+        $new_mx->trim (keep => $bd);
+    }
+
+    $new_mx->set_param (NAME => $chosen_name);
+
+    #  now we add it if it is not already in the list
+    #  otherwise we select it
+    my $matrices = $self->{project}->get_matrix_list;
+
+    my $in_list = grep {$_ eq $new_mx} @$matrices;
+
+    if ($in_list) {
+        $self->{project}->select_matrix ($new_mx);
+    }
+    else {
+        $self->{project}->add_matrix($new_mx, 0);
+    }
+
+    return;
+}
+
+
 sub do_convert_matrix_to_phylogeny {
     my $self = shift;
     
@@ -1747,27 +1819,28 @@ sub do_convert_phylogeny_to_matrix {
         $txt_name->set_text($name);
 
         $response = $dlg->run();
+        my $chosen_name = $txt_name->get_text;
+        $dlg->destroy;
 
-        if ($response eq 'ok') {
-            my $chosen_name = $txt_name->get_text;
-            $dlg->destroy;
+        return if $response ne 'ok';
 
-            eval {
-                $matrix_ref = $phylogeny->to_matrix (
-                        name => $chosen_name,
-                );
-            };
-            if ($EVAL_ERROR) {
-                $self->report_error ($EVAL_ERROR);
-                return;
-            }
-
-            if ($phylogeny->get_param ('CACHE_TREE_AS_MATRIX')) {
-                $phylogeny->set_param (AS_MX => $matrix_ref);
-            }
-
+        eval {
+            $matrix_ref = $phylogeny->to_matrix (
+                    name => $chosen_name,
+            );
+        };
+        if ($EVAL_ERROR) {
+            $self->report_error ($EVAL_ERROR);
+            return;
         }
+
+        if ($phylogeny->get_param ('CACHE_TREE_AS_MATRIX')) {
+            $phylogeny->set_param (AS_MX => $matrix_ref);
+        }
+
     }
+    
+    return if !$matrix_ref;
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
@@ -1846,6 +1919,10 @@ sub do_trim_tree_to_basedata {
     return if $response ne 'ok';  #  they chickened out
 
     my $new_tree = $phylogeny->clone;
+    $new_tree->delete_cached_values;
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
     if (!$args{no_trim}) {
         $new_tree->trim (keep => scalar $bd->get_labels);
     }
@@ -1854,6 +1931,7 @@ sub do_trim_tree_to_basedata {
         foreach my $node ($new_tree->get_node_refs) {
             my $range = $node->get_node_range (basedata_ref => $bd);
             $node->set_length (length => $node->get_length / $range);
+            $node->delete_cached_values;
         }
     }
 

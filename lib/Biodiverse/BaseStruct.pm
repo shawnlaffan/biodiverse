@@ -990,38 +990,42 @@ sub to_table {
 
     my $check_elements = $self->get_element_list;
 
-    #  check if the file is symmetric or not.  Check the list type as well.
+    #  Check if the lists in this object are symmetric.  Check the list type as well.
+    #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
     my $is_asym = 0;
     my %list_keys;
     my $prev_list_keys;
 
-    #print "[BASESTRUCT] Checking elements for list contents\n";
-    CHECK_ELEMENTS:
+    say "[BASESTRUCT] Checking elements for list symmetry: $list";
+  CHECK_ELEMENTS:
     foreach my $i (0 .. $#$check_elements) {  # sample the lot
         my $check_element = $check_elements->[$i];
         last CHECK_ELEMENTS if ! defined $check_element;
 
-        my $values = $self->get_list_values (element => $check_element, list => $list);
+        my $values = $self->get_list_values (
+            element => $check_element,
+            list    => $list,
+        );
         if ((ref $values) =~ /HASH/) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
                 last CHECK_ELEMENTS;
             }
-            $prev_list_keys = scalar keys %$values if ! defined $prev_list_keys;
-            @list_keys{keys %$values} = values %$values;
+            $prev_list_keys //= scalar keys %$values;
+            @list_keys{keys %$values} = undef;
         }
         elsif ((ref $values) =~ /ARRAY/) {
             $is_asym = 1;  #  arrays are always treated as asymmetric
             last CHECK_ELEMENTS;
         }
 
-        #  increment if not first check and keys differ from previous run
-        $is_asym ++ if $i && $last_contents_count != scalar keys %list_keys;
-
-        #  This list has different keys.
-        #  Allows for lists of same length but different keys.
-        last CHECK_ELEMENTS if $is_asym;
+        #  Increment if not first check and we have added new keys from previous run.
+        #  Allows for lists of same length but with different keys.
+        if ($i && $last_contents_count != scalar keys %list_keys) {
+            $is_asym ++ ;
+            last CHECK_ELEMENTS if $is_asym;
+        }
 
         $last_contents_count = scalar keys %list_keys;
     }
@@ -2750,33 +2754,31 @@ sub increment_values {
     return;
 }
 
+#  get a list from an element
+#  returns a direct ref in scalar context
 sub get_list_values {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
 
-    my $element = $args{element};
-    my $list = $args{list};
+    no autovivification;
 
-    croak "List not defined\n" if ! defined $list;
-    croak "Element $element does not exist in BaseStruct\n"
-      if ! $self->exists_element(element => $element);
+    my $element = $args{element}
+      // croak "element not specified\n";
+    my $list = $args{list}
+      // croak "List not defined\n";
 
-    my $element_ref = $self->{ELEMENTS}{$element};
+    my $element_ref = $self->{ELEMENTS}{$element}
+     // croak "Element $element does not exist in BaseStruct\n";
 
     return if ! exists $element_ref->{$list};
-
     return $element_ref->{$list} if ! wantarray;
 
     #  need to return correct type in list context
     return %{$element_ref->{$list}}
       if ref ($element_ref->{$list}) =~ /HASH/;
 
-    if (ref($element_ref->{$list}) =~ /ARRAY/) {
-        #  SWL 15Feb2011: should this always sort?
-        my @list = sort @{$element_ref->{$list}};
-        return @list;
-    }
+    return @{$element_ref->{$list}}
+      if ref($element_ref->{$list}) =~ /ARRAY/;
 
     return;
 }
@@ -2910,22 +2912,18 @@ sub add_to_lists {  #  add to a list, create if not already there.
     my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
     delete $args{use_ref};  #  should it be in its own sub?
 
-    while ((my $list_name, my $list_values) = each %args) {
+    foreach my $list_name (keys %args) {
+        my $list_values = $args{$list_name};
         if ($use_ref) {
             $self->{ELEMENTS}{$element}{$list_name} = $list_values;
         }
-        elsif ((ref $list_values) =~ /HASH/) {
-            $self->{ELEMENTS}{$element}{$list_name} = {}
-              if ! exists $self->{ELEMENTS}{$element}{$list_name};
-
-            $self->{ELEMENTS}{$element}{$list_name}
-              = {%{$self->{ELEMENTS}{$element}{$list_name}}, %{$list_values}};
+        elsif ((ref $list_values) =~ /HASH/) {  #  slice assign
+            my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= {});
+            @$listref{keys %$list_values} = values %$list_values;
         }
         elsif ((ref $list_values) =~ /ARRAY/) {
-            $self->{ELEMENTS}{$element}{$list_name} = []
-              if ! exists $self->{ELEMENTS}{$element}{$list_name};
-
-            push @{$self->{ELEMENTS}{$element}{$list_name}}, @{$list_values};
+            my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= []);
+            push @$listref, @$list_values;
         }
         else {
             croak "no valid list ref passed to add_to_lists, %args\n";
@@ -3100,13 +3098,13 @@ sub get_lists_across_elements {
 
         my $list = $self->$list_method (element => $elt);
         if (scalar @$list) {
-            @tmp_hash{@$list} = (1) x scalar @$list;
+            @tmp_hash{@$list} = undef;  #  we only care about the keys
         }
         $count++;
         last SEARCH_FOR_LISTS if $count > $max_search;
     }
 
-    #  remove private lists if needed
+    #  remove private lists if needed - should just use a grep
     if ($no_private) {
         foreach my $key (keys %tmp_hash) {
             if ($key =~ /^_/) {  #  not those starting with an underscore
@@ -3204,7 +3202,7 @@ sub get_hash_list_keys_across_elements {
         next ELEMENT if ! (ref ($hash) =~ /HASH/);
 
         if (scalar keys %$hash) {
-            @hash_keys{keys %$hash} = values %$hash;
+            @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster
         }
     }
 
@@ -3225,10 +3223,14 @@ sub get_list_ref {
     my $element = $args{element}
       // croak "Argument 'element' not defined\n";
 
-    croak "Element $args{element} does not exist\n"
-      if ! $self->exists_element (element => $element);
+    #croak "Element $args{element} does not exist\n"
+    #  if ! $self->exists_element (element => $element);
 
-    my $el = $self->{ELEMENTS}{$element};
+    no autovivification;
+
+    my $el = $self->{ELEMENTS}{$element}
+      // croak "Element $args{element} does not exist\n";
+
     if (! exists $el->{$list}) {
         return if ! $args{autovivify};  #  should croak?
         $el->{$list} = {};  #  should we default to a hash?
@@ -3394,7 +3396,13 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
+    my $keys = $self->get_cached_value ('ELEMENT_PROPERTY_KEYS');
+
+    return wantarray ? @$keys : $keys if $keys;
+
     my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
+
+    $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
 
     return wantarray ? @keys : \@keys;
 }

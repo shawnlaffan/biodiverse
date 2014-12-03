@@ -329,8 +329,8 @@ sub set_params {
     my $self = shift;
     my %args = @_;
 
-    while (my ($param, $value) = each %args) {
-        $self->{PARAMS}{$param} = $value;
+    foreach my $param (keys %args) {
+        $self->{PARAMS}{$param} = $args{$param};
     }
 
     return scalar keys %args;
@@ -451,6 +451,34 @@ sub set_default_params {
     
     return;
 }
+
+sub get_analysis_args_from_object {
+    my $self = shift;
+    my %args = @_;
+    
+    my $object = $args{object};
+
+    my $get_copy = $args{get_copy} // 1;
+
+    my $analysis_args;
+    my $p_key;
+  ARGS_PARAM:
+    for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
+        $analysis_args = $object->get_param ($key);
+        $p_key = $key;
+        last ARGS_PARAM if defined $analysis_args;
+    }
+
+    my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
+
+    my @results = (
+        $p_key,
+        $return_hash,
+    );
+
+    return wantarray ? @results : \@results;
+}
+
 
 #  Get the spatial conditions for this object if set
 #  Allow for back-compat.
@@ -574,7 +602,9 @@ sub clear_spatial_condition_caches {
     };
     eval {
         my $def_query = $self->get_param('DEFINITION_QUERY');
-        $def_query->delete_cached_values (keys => $args{keys})
+        if ($def_query) {
+            $def_query->delete_cached_values (keys => $args{keys});
+        }
     };
 
     return;
@@ -1740,8 +1770,8 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $self = shift;
     my %args = @_;
 
-    my $so_far       = $args{soFar} || [];  #  reference to an array of values
-    my $depth       = $args{depth} || 0;
+    my $so_far      = [];  #  reference to an array of values
+    #my $depth       = $args{depth} || 0;
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
@@ -1749,53 +1779,34 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
+    
+    foreach my $depth (0 .. $#$minima) {
+        #  go through each element of @$so_far and append one of the values from this level
+        my @this_depth;
 
-    #  go through each element of @$so_far and append one of the values from this level
-    my @this_depth;
+        my $min = min ($minima->[$depth], $maxima->[$depth]);
+        my $max = max ($minima->[$depth], $maxima->[$depth]);
+        my $res = $resolutions->[$depth];
 
-    my $min = min ($minima->[$depth], $maxima->[$depth]);
-    my $max = max ($minima->[$depth], $maxima->[$depth]);
-    my $res = $resolutions->[$depth];
+        #  need to fix the precision for some floating point comparisons
+        for (my $value = $min;
+             (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
+             $value += $res) {
 
-    #  debug stuff
-    #if ($res > 20) {
-        #my $val = $min;
-        #print $val, "::";
-        #$val += $res;
-        #print $val, "::", $max, "::(sprintf ($precision->[$depth], $val) + 0) <= $max\::",
-        #        (sprintf ($precision->[$depth], $val) + 0) <= $max, "::end\n";
-        #print $EMPTY_STRING;
-    #}
-
-    #  need to fix the precision for some floating point comparisons
-    for (my $value = $min;
-         (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
-         $value += $res) {
-
-        my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
-        if ($depth > 0) {
-            foreach my $element (@$so_far) {
-                #print "$element . $sep_char . $value\n";
-                push @this_depth, $element . $sep_char . $val;
+            my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
+            if ($depth > 0) {
+                foreach my $element (@$so_far) {
+                    #print "$element . $sep_char . $value\n";
+                    push @this_depth, $element . $sep_char . $val;
+                }
             }
+            else {
+                push (@this_depth, $val);
+            }
+            last if $min == $max;  #  avoid infinite loop
         }
-        else {
-            push (@this_depth, $val);
-        }
-        last if $min == $max;  #  avoid infinite loop
-    }
-
-    $so_far = \@this_depth;
-
-    if ($depth < $#$minima) {
-        my $next_depth = $depth + 1;
-        $so_far = $self -> get_poss_elements (
-            %args,
-            sep_char  => $sep_char,
-            precision => $precision,
-            depth     => $next_depth,
-            soFar     => $so_far
-        );
+    
+        $so_far = \@this_depth;
     }
 
     return $so_far;
@@ -2040,7 +2051,7 @@ sub find_circular_refs {
 
                 foreach my $ref (@_) {
                     print "testing circularity of $ref\n";
-                    find_cycle($ref);
+                    find_weakened_cycle($ref);
                 }
                 '
     }

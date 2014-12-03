@@ -109,6 +109,11 @@ sub fill {
         $label->set_alignment(0, 0.5);
         $label->set_text( $label_text );
 
+        my $fill_flags = 'fill';
+        if ($param->{type} =~ 'text') {
+            $fill_flags = ['expand', 'fill']
+        }
+
         if ($param->{type} eq 'comment') {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
@@ -118,7 +123,7 @@ sub fill {
         }
         else {
             $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-            $table->attach($widget, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+            $table->attach($widget, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
         }
 
         # Add a tooltip
@@ -169,6 +174,7 @@ sub generate_widget {
         choice
         spatial_conditions
         comment
+        text_one_line
     };
     my %valid_choices_hash;
     @valid_choices_hash{@valid_choices} = (1) x scalar @valid_choices;
@@ -279,6 +285,7 @@ sub generate_boolean {
     $checkbox->set(active => $default);
 
     my $extract = sub { return ($param->{name}, $checkbox->get_active); };
+
     return ($checkbox, $extract);
 }
 
@@ -287,26 +294,33 @@ sub generate_spatial_conditions {
 
     my $default = $param->{default} || '';
 
-    my $sp = Biodiverse::GUI::SpatialParams->new($default);
+    my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
+
     return ($sp->get_widget, $extract);
 }
 
-#sub generate_text_one_line {
-#    my $param = shift;
-#    my $default = $param->{default};  #  defaults to undef
-#
-#    my $text_buffer = Gtk2::TextBuffer->new;
-#    
-#    # Text view
-#    $text_buffer->set_text($default);
-#    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
-#        
-#    my $extract = sub { return ($param->{name}, $text_buffer->get_text); };
-#    return ($text_view->get_widget, $extract);
-#
-#}
+sub generate_text_one_line {
+    my $param = shift;
+    my $default = $param->{default} // '';
+
+    my $text_buffer = Gtk2::TextBuffer->new;
+    
+    # Text view
+    $text_buffer->set_text($default);
+    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
+    my $frame = Gtk2::Frame->new();
+    $frame->add($text_view);
+
+    my $extract = sub {
+        my ($start, $end) = $text_buffer->get_bounds();
+        my $text = $text_buffer->get_text($start, $end, 0);
+        return ($param->{name}, $text);
+    };
+
+    return ($frame, $extract);
+}
 
 
 1;

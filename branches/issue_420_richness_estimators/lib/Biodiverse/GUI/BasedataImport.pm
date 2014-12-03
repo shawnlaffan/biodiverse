@@ -191,7 +191,7 @@ sub run {
     $file_title->set_alignment (0, 1);
     $vbox->pack_start ($file_title, 0, 0, 0);
 
-    my $file_list_label = Gtk2::Label ->new($file_list_as_text . "\n\n");
+    my $file_list_label = Gtk2::Label->new($file_list_as_text . "\n\n");
     $file_list_label->set_alignment (0, 1);
     $vbox->pack_start ($file_list_label, 0, 0, 0);
     my $import_vbox = $dlgxml->get_widget('import_parameters_vbox');
@@ -596,7 +596,7 @@ sub run {
     if ($read_format == $raster_idx) {
         my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata (keys %multiple_file_lists) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->import_data_raster(
                     %import_params,
                     #%rest_of_options,

@@ -179,19 +179,6 @@ sub get_element_pairs_with_value {
     return wantarray ? %results : \%results;
 }
 
-sub get_element_pair_count {
-    my $self = shift;
-
-    return 0 if ! exists $self->{BYELEMENT};
-
-    my $count = 0;
-    my $elements = $self->{BYELEMENT};
-    foreach my $hash (values %$elements) {
-        $count += scalar keys %$hash;
-    }
-
-    return $count;
-}
 
 sub get_elements_as_array {
     my $self = shift;

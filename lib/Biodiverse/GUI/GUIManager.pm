@@ -1819,27 +1819,28 @@ sub do_convert_phylogeny_to_matrix {
         $txt_name->set_text($name);
 
         $response = $dlg->run();
+        my $chosen_name = $txt_name->get_text;
+        $dlg->destroy;
 
-        if ($response eq 'ok') {
-            my $chosen_name = $txt_name->get_text;
-            $dlg->destroy;
+        return if $response ne 'ok';
 
-            eval {
-                $matrix_ref = $phylogeny->to_matrix (
-                        name => $chosen_name,
-                );
-            };
-            if ($EVAL_ERROR) {
-                $self->report_error ($EVAL_ERROR);
-                return;
-            }
-
-            if ($phylogeny->get_param ('CACHE_TREE_AS_MATRIX')) {
-                $phylogeny->set_param (AS_MX => $matrix_ref);
-            }
-
+        eval {
+            $matrix_ref = $phylogeny->to_matrix (
+                    name => $chosen_name,
+            );
+        };
+        if ($EVAL_ERROR) {
+            $self->report_error ($EVAL_ERROR);
+            return;
         }
+
+        if ($phylogeny->get_param ('CACHE_TREE_AS_MATRIX')) {
+            $phylogeny->set_param (AS_MX => $matrix_ref);
+        }
+
     }
+    
+    return if !$matrix_ref;
     
     #  now we add it if it is not already in the list
     #  otherwise we select it

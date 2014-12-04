@@ -3151,33 +3151,34 @@ sub get_numeric_hash_lists {
 sub get_array_lists {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
-    my $element = $args{element};
 
-    #  this will blow up anything expecting a list that is requesting non-existent elements - for debugging reasons
-    return if ! $self->exists_element (element => $args{element});
+    my $element = $args{element}
+      // croak "Element not specified, get_array_lists\n";
 
-    my @list;
-    foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
-        push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /ARRAY/;
-    }
-    return @list if wantarray;
-    return \@list;
+    no autovivification;
+
+    my $el_ref = $self->{ELEMENTS}{$element}
+      // croak "Element $element does not exist, cannot get hash list\n";
+
+    my @list = grep {ref ($el_ref->{$_}) =~ /ARRAY/} keys %$el_ref;
+
+    return wantarray ? @list : \@list;
 }
 
 sub get_hash_lists {
     my $self = shift;
     my %args = @_;
-    defined $args{element} || croak "Element not specified, get_hash_lists\n";
-    my $element = $args{element}; 
-    my @list;
 
-    croak "Element does not exist, cannot get hash list\n" if ! $self->exists_element (element => $element);
-    #if ($self->exists_element (element => $element)) {
-        foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
-            push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /HASH/;
-        }
-    #}
+    my $element = $args{element}
+      // croak "Element not specified, get_hash_lists\n";
+
+    no autovivification;
+
+    my $el_ref = $self->{ELEMENTS}{$element}
+      // croak "Element $element does not exist, cannot get hash list\n";
+
+    my @list = grep {ref ($el_ref->{$_}) =~ /HASH/} keys %$el_ref;
+
     return wantarray ? @list : \@list;
 }
 

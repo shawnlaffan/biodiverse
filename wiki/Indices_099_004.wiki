@@ -1,5 +1,4 @@
 #summary Table of available indices
-#labels Featured
 
 = Indices available in Biodiverse =
 _Generated GMT Mon Sep  8 05:18:48 2014 using build_indices_table.pl, Biodiverse version 0.99_004._

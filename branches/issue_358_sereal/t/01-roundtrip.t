@@ -80,6 +80,7 @@ sub get_data_object {
     delete $cl->{MATRICES};
     $cl->delete_cached_values_below;
 
+    
     #foreach my $ref (values %{$cl->{TREE_BY_NAME}}) {
     #    unweaken $ref->{_PARENT};
     #}

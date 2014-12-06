@@ -128,7 +128,7 @@ sub test_save_and_reload {
     #is ($bd->get_label_count, $new_bd->get_label_count, "label counts match, suffix is $suffix_feedback");
     #is ($bd->get_group_count, $new_bd->get_group_count, "label counts match, suffix is $suffix_feedback");
     
-    is_deeply ($new_bd, $bd, 'basedatas are the same for suffix $suffix');
+    is_deeply ($new_bd, $bd, "basedatas are the same for suffix $suffix");
     
     unlink $fname;
 }

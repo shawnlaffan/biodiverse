@@ -11,7 +11,8 @@ use English ( -no_match_vars );
 
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
-use YAML::Syck;
+#use YAML::Syck;
+use YAML::XS;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
@@ -227,14 +228,22 @@ sub load_yaml_file {
     return if ! -e $args{file};
     return if ! ($args{file} =~ /$suffix$/);
 
-    $self = YAML::Syck::LoadFile ($args{file});
+    my $loaded = YAML::XS::LoadFile ($args{file});
 
     #  yaml does not handle waek refs, so we need to put them back in
     foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self->$fn if $self->can($fn);
+        if ($loaded->can($fn)) {
+            say $fn;
+            eval {
+                $loaded->$fn;
+                1;
+            };
+            warn $EVAL_ERROR if $EVAL_ERROR;
+	}
+        #$self->$fn if $self->can($fn);
     }
-    return $self;
 
+    return $loaded;
 }
 
 sub load_data_dumper_file {
@@ -841,7 +850,7 @@ sub save_to_yaml {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    eval {YAML::Syck::DumpFile ($file, $self)};
+    eval {YAML::XS::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $file;
@@ -880,10 +889,10 @@ sub dump_to_yaml {
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
         print "WRITING TO FILE $file\n";
-        YAML::Syck::DumpFile ($file, $data);
+        YAML::XS::DumpFile ($file, $data);
     }
     else {
-        print YAML::Syck::Dump ($data);
+        print YAML::XS::Dump ($data);
         print "...\n";
     }
 

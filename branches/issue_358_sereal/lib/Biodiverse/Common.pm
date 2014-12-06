@@ -777,7 +777,7 @@ sub save_to_sereal {
     my $encoder = Sereal::Encoder->new();
     my $out = $encoder->encode($self);
 
-    open (my $fh, '>', $file);
+    open (my $fh, '>', $file) or die "Cannot open $file";
     print {$fh} $out;
     my $e = $EVAL_ERROR;
 

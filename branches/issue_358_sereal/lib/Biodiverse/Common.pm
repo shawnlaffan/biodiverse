@@ -105,16 +105,63 @@ sub load_file {
       if !-r $args{file};
 
     my $object;
-    foreach my $type (qw /storable yaml/) {
+    foreach my $type (qw /sereal storable yaml/) {
         my $func = "load_$type\_file";
         $object = eval {$self->$func (%args)};
-        #croak $EVAL_ERROR if $EVAL_ERROR;
-        #warn $@ if $@;
+        warn $EVAL_ERROR if $EVAL_ERROR;
         last if defined $object;
     }
 
     return $object;
 }
+
+sub load_sereal_file {
+    my $self = shift;  #  gets overwritten if the file passes the tests
+    my %args = @_;
+
+    croak "argument 'file' not defined\n"  if ! defined ($args{file});
+
+    my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
+
+    my $file = Path::Class::file($args{file})->absolute;
+    if (! -e $file) {
+        croak "[BASEDATA] File $file does not exist\n";
+    }
+
+    if (!$args{ignore_suffix} && ($file !~ /$suffix$/)) {
+        croak "[BASEDATA] File $file does not have the correct suffix\n";
+    }
+
+    my $string;
+    {
+        local $/ = undef;
+        open(my $fh, '<', $file) or die 'Cannot open $file';
+        $string = <$fh>;
+    }
+    #  load data from sereal file, ignores rest of the args
+    use Sereal::Decoder;
+    my $decoder = Sereal::Decoder->new();
+
+    #  need to use a substring methinks for perls<5.20 since they lack COW
+    my $type = $decoder->looks_like_sereal($string);
+    if ($type eq '') {
+        say "Not a Sereal document";
+        croak "$file is not a Sereal document";
+    }
+    elsif ($type eq '0') {
+        say "Possibly utf8 encoded Sereal document";
+        croak "Won't open $file as a Sereal document";
+    }
+    else {
+        say "Sereal document version $type";
+    }
+
+    my $structure;
+    $self = $decoder->decode($string, $structure);
+
+    return $self;
+}
+
 
 sub load_storable_file {
     my $self = shift;  #  gets overwritten if the file passes the tests
@@ -184,10 +231,36 @@ sub load_yaml_file {
 
     #  yaml does not handle waek refs, so we need to put them back in
     foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self -> $fn if $self->can($fn);
+        $self->$fn if $self->can($fn);
     }
     return $self;
 
+}
+
+sub load_data_dumper_file {
+    my $self = shift;  #  gets overwritten if the file passes the tests
+    my %args = @_;
+
+    return if ! defined ($args{file});
+    #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
+
+    return if ! -e $args{file};
+    #return if ! ($args{file} =~ /$suffix$/);
+
+    my $data;
+    {
+        local $/ = undef;
+        open(my $fh, '<', $args{file}) or die "Cannot open $args{file}\n";
+        $data = <$fh>;
+    }
+    $self = eval $data;
+
+    #  yaml does not handle waek refs, so we need to put them back in
+    #foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
+    #    $self -> $fn if $self->can($fn);
+    #}
+
+    return $self;
 }
 
 sub set_basedata_ref {
@@ -661,7 +734,8 @@ sub save_to {
 
     my $tmp_file_name = $file_name . '.tmp';
 
-    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+    #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_sereal';
 
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -674,6 +748,37 @@ sub save_to {
 
     return $file_name;
 }
+
+#  Dump the whole object to a Sereal file.
+sub save_to_sereal {  
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{filename};
+    if (! defined $file) {
+        my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
+        $file = Path::Class::file($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
+    }
+    $file = Path::Class::file($file)->absolute;
+
+    say "[COMMON] WRITING TO FILE $file";
+
+    use Sereal::Encoder;
+
+    my $encoder = Sereal::Encoder->new();
+    my $out = $encoder->encode($self);
+
+    open (my $fh, '>', $file);
+    print {$fh} $out;
+    my $e = $EVAL_ERROR;
+
+    $fh->close;
+
+    croak $e if $e;
+
+    return $file;
+}
+
 
 #  Dump the whole object to a Storable file.
 #  Get the prefix from $self{PARAMS}, or some other default.
@@ -716,7 +821,7 @@ sub save_to_xml {
 
     open (my $fh, '>', $file);
     print $fh dump_xml ($self);
-    $fh -> close;
+    $fh->close;
 
     return $file;
 }
@@ -741,6 +846,29 @@ sub save_to_yaml {
 
     return $file;
 }
+
+sub save_to_data_dumper {  
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{filename};
+    if (! defined $file) {
+        my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
+        my $suffix = $self->get_param('OUTSUFFIX') || 'data_dumper';
+        $file = Path::Class::file($file || ($prefix . '.' . $suffix));
+    }
+    $file = Path::Class::file($file)->absolute;
+
+    print "[COMMON] WRITING TO FILE $file\n";
+
+    use Data::Dumper;
+    open (my $fh, '>', $file);
+    print {$fh} Dumper ($self);
+    $fh->close;
+
+    return $file;
+}
+
 
 #  dump a data structure to a yaml file.
 sub dump_to_yaml {  

@@ -43,6 +43,7 @@ WriteMakefile(
         "autovivification" => "0.11",
         "List::BinarySearch" => "0",
         "List::BinarySearch::XS" => "0",
+        "Sereal" => "3",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

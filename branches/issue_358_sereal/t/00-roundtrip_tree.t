@@ -104,6 +104,22 @@ sub test_save_and_reload {
 
     is_deeply ($decoded_data, $data, "Data structures match for YAML::XS, $weaken_text");
 
+    diag 'try Dump and Load';
+    
+    my $fname = 'dump.yml';
+    #open(my $fh, '>', $fname) or die "Cannot open dump.yml";
+    
+    lives_ok {
+        YAML::XS::DumpFile $fname, $data;
+    } "Dumped to file using YAML::XS, $weaken_text";
+
+    #close $fh;
+
+    lives_ok {
+        $decoded_data = YAML::XS::LoadFile $fname;
+    } "Loaded from file using YAML::XS, $weaken_text";
+
+    is_deeply ($decoded_data, $data, "Data structures match for YAML::XS from file, $weaken_text");
 }
 
 

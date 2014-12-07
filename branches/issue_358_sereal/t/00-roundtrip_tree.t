@@ -43,7 +43,7 @@ done_testing();
 sub get_data {
     my %args = @_;
 
-    diag $];
+    #diag $];
 
     my @children;
 
@@ -81,11 +81,7 @@ sub test_save_and_reload {
     my %args = @_;
     my $data = get_data (%args);
 
-    #local $Data::Dumper::Purity    = 1;
-    #local $Data::Dumper::Terse     = 1;
-    #local $Data::Dumper::Sortkeys  = 1;
-    #local $Data::Dumper::Indent    = 1;
-    #local $Data::Dumper::Quotekeys = 0;
+    #diag '=== ARGS ARE:  ' . join ' ', %args;
 
     my $context_text;
     $context_text .= $args{no_weaken} ? 'not weakened' : 'weakened';
@@ -103,11 +99,14 @@ sub test_save_and_reload {
         $encoded_data = $encoder->encode($data)
     } "Encoded using Sereal, $context_text";
 
-    lives_ok {
-        $decoder->decode ($encoded_data, $decoded_data);
-    } "Decoded using Sereal, $context_text";
-
-    is_deeply ($decoded_data, $data, "Data structures match for Sereal, $context_text");
+    #  no point testing if serialisation failed
+    if ($encoded_data) {
+        lives_ok {
+            $decoder->decode ($encoded_data, $decoded_data);
+        } "Decoded using Sereal, $context_text";
+    
+        is_deeply ($decoded_data, $data, "Data structures match for Sereal, $context_text");
+    }
 
     #diag "Working on YAML::XS";
 
@@ -121,16 +120,13 @@ sub test_save_and_reload {
 
     is_deeply ($decoded_data, $data, "Data structures match for YAML::XS, $context_text");
 
-    diag 'try Dump and Load';
+    #diag 'try Dump and Load';
     
     my $fname = 'dump.yml';
-    #open(my $fh, '>', $fname) or die "Cannot open dump.yml";
     
     lives_ok {
         YAML::XS::DumpFile $fname, $data;
     } "Dumped to file using YAML::XS, $context_text";
-
-    #close $fh;
 
     lives_ok {
         $decoded_data = YAML::XS::LoadFile $fname;

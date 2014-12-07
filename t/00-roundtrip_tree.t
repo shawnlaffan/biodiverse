@@ -34,6 +34,8 @@ done_testing();
 sub get_data {
     my $no_weaken_refs = shift;
 
+    diag $];
+
     my @children;
 
     my $root = {
@@ -46,6 +48,8 @@ sub get_data {
         TREE_BY_NAME => {},
     );
 
+    #$hash{TREE_BY_NAME}{root} = $root;
+
     foreach my $i (0 .. 3) {
         my $child = {
             PARENT => $root,
@@ -57,6 +61,7 @@ sub get_data {
         push @children, $child;
         $hash{TREE_BY_NAME}{$i} = $child;
     }
+    
 
     return \%hash;
 }

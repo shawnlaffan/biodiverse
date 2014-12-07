@@ -123,10 +123,6 @@ sub test_save_and_reload {
     lives_ok {
         $new_bd = eval {$class->new (file => $fname)}
     } "Opened without exception thrown, suffix is $suffix_feedback";
-
-    #  if we reloaded properly then we will have the same label and group counts
-    #is ($bd->get_label_count, $new_bd->get_label_count, "label counts match, suffix is $suffix_feedback");
-    #is ($bd->get_group_count, $new_bd->get_group_count, "label counts match, suffix is $suffix_feedback");
     
     is_deeply ($new_bd, $bd, "basedatas are the same for suffix $suffix");
     

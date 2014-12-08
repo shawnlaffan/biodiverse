@@ -14,6 +14,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Mishler, B.D., Knerr, N., González-Orozco, C.E., Thornhill, A.H., Laffan, S.W. & Miller, J.T. (2014) Phylogenetic measures of biodiversity and neo- and paleo-endemism in Australian _Acacia_. [http://dx.doi.org/10.1038/ncomms5473 Nature Communications, 5, 4473].
 
+  *  Cook, L.G., Hardy, N.B. and Crisp, M.D. (in press) Three explanations for biodiversity hotspots: small range size, geographical overlap and time for species accumulation. An Australian case study.  [http://dx.doi.org/10.1111/nph.13199 New Phytologist].
+
   *  Costion, C.M., Edwards, W., Ford, A.J., Metcalfe, D.J., Cross, H.B., Harrington, M.G., Richardson, J.E., Hilbert, D.W., Lowe, A.J. and Crayn, D.M. (in press) Using phylogenetic diversity to identify ancient rain forest refugia and diversification zones in a biodiversity hotspot.  [http://dx.doi.org/10.1111/ddi.12266 Diversity and Distributions].
 
   *  Bui, E.N., González-Orozco, C.E. and Miller, J.T. (2014) _Acacia_, climate, and geochemistry in Australia.  [http://dx.doi.org/10.1007/s11104-014-2113-x Plant and Soil, 381, 161-175].
@@ -29,6 +31,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
   *  González-Orozco, C.E., Ebach, M.C., Laffan, S.W., Thornhill, A.H., Knerr, N., Schmidt-Lebuhn, A., Cargill, C.C., Clements, M., Nagalingum, N., Mishler, B.D. & Miller, J.T. (2014) Quantifying phytogeographical regions of Australia using geospatial turnover in species composition.  [http://dx.doi.org/10.1371/journal.pone.0092558 PLoS One, 9, e92558].
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (2014) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions, 20, 46-58].
+
+  * Kooyman, R.M., Wilf, P., Barreda, V.D., Carpenter, R.J., Jordan, G.J., Sniderman, J.M.K., Allen, A., Brodribb, T.J., Crayn, D., Feild, T.S., Laffan, S.W., Lusk, C., Rossetto, M. & Weston, P. (2014) Paleo-Antarctic Rainforest into the Modern Old World Tropics: the Rich Past and Threatened Future of the "Southern Wet Forest Survivors". [http://10.3732/ajb.1400340 American Journal of Botany, 101, 2121-2135].
 
   *  Loader, S.P., Ceccarelli, F.S., Menegon, M., Howell, K.M., Kassahun, R., Mengistu, A.A., Saber, S.A., Gebresenbet, F., Sá, R., Davenport, T.R.B., Larson, J.G., Müller, H., Wilkinson, M. and Gower, D.J. (2014) Persistence and stability of Eastern Afromontane forests: evidence from brevicipitid frogs.  [http://dx.doi.org/10.1111/jbi.12331 Journal of Biogeography, 9, 1781-1792].
 

@@ -16,7 +16,7 @@ use Data::Dumper;
 use Sereal ();
 use Storable ();
 #use YAML::Syck ();
-use YAML::XS qw /Load Dump/;
+use YAML::XS ();
 
 use Scalar::Util qw /weaken/;
 
@@ -33,6 +33,10 @@ test_save_and_reload();
 #  (second time is in the "by name" subhash)
 test_save_and_reload(store_root_by_name => 1);
 
+#  Try with blessed nodes (trying to trigger YAML::XS problem)
+test_save_and_reload(store_root_by_name => 1, bless_nodes => 1);
+
+
 #  child to parent refs are strong
 #  Should pass
 test_save_and_reload(no_weaken_refs => 1);
@@ -44,6 +48,7 @@ sub get_data {
     my %args = @_;
 
     #diag $];
+    my $classname = 'Meaningless::ClassName';
 
     my @children;
 
@@ -51,6 +56,10 @@ sub get_data {
         name     => 'root',
         children => \@children,
     };
+
+    if ($args{bless_nodes}) {
+        bless $root, $classname;
+    }
 
     my %hash = (
         TREE => $root,
@@ -66,10 +75,17 @@ sub get_data {
             PARENT => $root,
             NAME => $i,
         };
+
+        if ($args{bless_nodes}) {
+            bless $child, $classname;
+        }
+
         if (!$args{no_weaken_refs}) {
             weaken $child->{PARENT};
         }
+
         push @children, $child;
+        #  store it in the by-name cache
         $hash{TREE_BY_NAME}{$i} = $child;
     }
 
@@ -115,16 +131,17 @@ sub test_save_and_reload {
     #  Try YAML::XS - we get undef root nodes ($h{TREE} = undef)
     #  using DumpFile/LoadFile for the full blown original case,
     #  but it seems not to occur with this cut-down case.
-    #  My (evidence free) speculation is that it is to do with blessing.
+    #  My (evidence free) speculation is that it is to do with objects.
+    #  Does not happen with YAML::Syck.
 
     #diag "Working on YAML::XS";
 
     lives_ok {
-        $encoded_data = Dump $data;
+        $encoded_data = YAML::XS::Dump $data;
     } "Encoded using YAML::XS, $context_text";
 
     lives_ok {
-        $decoded_data = Load $encoded_data;
+        $decoded_data = YAML::XS::Load $encoded_data;
     } "Decoded using YAML::XS, $context_text";
 
     is_deeply (

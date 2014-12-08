@@ -35,7 +35,7 @@ test_save_and_reload(store_root_by_name => 1);
 
 #  child to parent refs are strong
 #  Should pass
-test_save_and_reload(no_weaken => 1);
+test_save_and_reload(no_weaken_refs => 1);
 
 
 done_testing();
@@ -61,7 +61,7 @@ sub get_data {
         $hash{TREE_BY_NAME}{root} = $root;
     }
 
-    foreach my $i (0 .. 3) {
+    foreach my $i (0 .. 1) {
         my $child = {
             PARENT => $root,
             NAME => $i,
@@ -105,8 +105,17 @@ sub test_save_and_reload {
             $decoder->decode ($encoded_data, $decoded_data);
         } "Decoded using Sereal, $context_text";
     
-        is_deeply ($decoded_data, $data, "Data structures match for Sereal, $context_text");
+        is_deeply (
+            $decoded_data,
+            $data,
+            "Data structures match for Sereal, $context_text",
+        );
     }
+
+    #  Try YAML::XS - we get undef root nodes ($h{TREE} = undef)
+    #  using DumpFile/LoadFile for the full blown original case,
+    #  but it seems not to occur with this cut-down case.
+    #  My (evidence free) speculation is that it is to do with blessing.
 
     #diag "Working on YAML::XS";
 
@@ -118,9 +127,13 @@ sub test_save_and_reload {
         $decoded_data = Load $encoded_data;
     } "Decoded using YAML::XS, $context_text";
 
-    is_deeply ($decoded_data, $data, "Data structures match for YAML::XS, $context_text");
+    is_deeply (
+        $decoded_data,
+        $data,
+        "Data structures match for YAML::XS, $context_text",
+    );
 
-    #diag 'try Dump and Load';
+    #diag 'try YAML DumpFile and LoadFile';
     
     my $fname = 'dump.yml';
     
@@ -132,7 +145,28 @@ sub test_save_and_reload {
         $decoded_data = YAML::XS::LoadFile $fname;
     } "Loaded from file using YAML::XS, $context_text";
 
-    is_deeply ($decoded_data, $data, "Data structures match for YAML::XS from file, $context_text");
+    is_deeply (
+        $decoded_data,
+        $data,
+        "Data structures match for YAML::XS from file, $context_text",
+    );
+
+    #diag 'try Storable';
+
+    lives_ok {
+        $encoded_data = Storable::freeze ($data);
+    } "Frozen using Storable, $context_text";
+
+    lives_ok {
+        $decoded_data = Storable::thaw ($encoded_data);
+    } "Thawed using Storable, $context_text";
+
+    is_deeply (
+        $decoded_data,
+        $data,
+        "Data structures match for Storable freeze/thaw, $context_text",
+    );
+
 }
 
 

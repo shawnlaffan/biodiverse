@@ -532,10 +532,15 @@ sub set_display_cursors {
                 $cursor = $self->get_cached_value ($cache_name);
                 if (!$cursor) {
                     my $ic = Gtk2::IconTheme->new();
-                    my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
-                    my $display = $window->get_display;
-                    $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
-                    $self->set_cached_value ($cache_name => $cursor);
+                    my $pixbuf = eval {$ic->load_icon($icon, 16, 'no-svg')};
+                    if ($@) {
+                        warn $@;
+                    }
+                    else {
+                        my $display = $window->get_display;
+                        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                        $self->set_cached_value ($cache_name => $cursor);
+                    }
                 }
             }
         }

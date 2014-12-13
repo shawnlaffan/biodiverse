@@ -1805,7 +1805,7 @@ sub update_selection_menu {
     $select_regex_item->signal_connect_swapped (
         activate => \&do_select_labels_regex, [$self, $base_ref],
     );
-    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant flags');
+    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant modifiers.');
 
     my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
     $switch_selection_item->signal_connect_swapped (
@@ -1814,21 +1814,22 @@ sub update_selection_menu {
     $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
 
     my $selection_mode_item = Gtk2::MenuItem->new_with_label('Selection mode');
-    my $sel_mode_submenu = Gtk2::Menu->new;
-    my $gp_item = [];
+    my $sel_mode_submenu    = Gtk2::Menu->new;
+    my $sel_group = [];
 
     foreach my $option (qw /new add_to remove_from/) {
-        my $submenu_item = Gtk2::RadioMenuItem->new_with_label($gp_item, $option);
+        my $submenu_item = Gtk2::RadioMenuItem->new_with_label($sel_group, $option);
         $sel_mode_submenu->append ($submenu_item);
-        #$submenu_item->set_group($submenu_item);
         $submenu_item->signal_connect_swapped(
             activate => \&do_set_selection_mode, [$self, $option],
         );
-        push @$gp_item, $submenu_item;  #  first one is default
+        push @$sel_group, $submenu_item;  #  first one is default
     }
     $selection_mode_item->set_submenu($sel_mode_submenu);
     $selection_mode_item->set_tooltip_text(
-        'Set the selection mode',
+          'Set the selection mode for grid, tree and matrix selections. '
+        . 'List selections can be added and removed control clicking '
+        . '(shift clicking adds ranges of labels).',
     );
 
     $selection_menu->append($selection_mode_item);

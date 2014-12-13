@@ -46,7 +46,7 @@ if ($success) {  #  export to CSV using defaults
         list   => 'SPATIAL_RESULTS',
     );
     $sp->export (
-        file   => $basedata_file . '_$radius',
+        file   => $basedata_file . "_$radius",
         format => 'GeoTIFF',
         list   => 'SPATIAL_RESULTS',
     );

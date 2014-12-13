@@ -7,6 +7,8 @@ use English ( -no_match_vars );
 
 use Data::Dumper;
 
+use List::MoreUtils qw /firstidx/;
+
 use Gtk2;
 use Carp;
 use Biodiverse::GUI::GUIManager;
@@ -477,7 +479,7 @@ sub remove_selected_labels_from_list {
     my $model1 = $treeview1->get_model;
     my $model2 = $treeview2->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
@@ -501,7 +503,7 @@ sub remove_selected_labels_from_list {
     #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     return;
 }
@@ -538,7 +540,7 @@ sub switch_selection {
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
 
     my @p_unselected;
     $model1->foreach (
@@ -562,7 +564,7 @@ sub switch_selection {
         $selection->select_path($path);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     #  now we trigger the re-selection
     on_selected_labels_changed ($selection, [$self, 'listLabels1']);
@@ -578,7 +580,7 @@ sub select_using_regex {
     my $exact  = $args{exact};
     my $negate = $args{negate};
 
-    my $selection_type = $args{selection_type} || 'new';
+    my $selection_mode = $args{selection_mode} | $self->get_selection_mode || 'new';
 
     if ($exact) {
         $regex = qr/\A$regex\z/;
@@ -589,7 +591,7 @@ sub select_using_regex {
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
 
     my @p_targets;
     $model1->foreach (
@@ -612,12 +614,12 @@ sub select_using_regex {
         }
     );
 
-    if ($selection_type eq 'new') {
+    if ($selection_mode eq 'new') {
         $selection->unselect_all;
     }
 
     my $method = 'select_path';
-    if ($selection_type eq 'remove_from') {
+    if ($selection_mode eq 'remove_from') {
         $method = 'unselect_path';
     }
     foreach my $rowref (@p_targets) {
@@ -625,7 +627,7 @@ sub select_using_regex {
         $selection->$method($path);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     #  now we trigger the re-selection
     on_selected_labels_changed ($selection, [$self, 'listLabels1']);
@@ -723,7 +725,7 @@ sub on_selected_labels_changed {
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
     # selects labels one-by-one
-    return if defined $self->{ignore_selected_change};
+    return if defined $self->{ignore_selection_change};
 
     # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
@@ -877,14 +879,14 @@ sub set_selected_list_cols {
         }
     }
 
-    $self->{ignore_selected_change} = 'listLabels1';
+    $self->{ignore_selection_change} = 'listLabels1';
 
 #  and now loop over the iters and change the selection values
     foreach my $array_ref (@changed_iters) {
         $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
 #print "[Labels] \n";
 
@@ -1058,7 +1060,7 @@ sub on_grid_select {
         my $elt;
 
 
-        $self->{ignore_selected_change} = 'listLabels1';
+        $self->{ignore_selection_change} = 'listLabels1';
         while ($iter) {
             my $hi = $hmodel->convert_iter_to_child_iter($iter);
             $elt = $model->get($hi, 0);
@@ -1070,7 +1072,7 @@ sub on_grid_select {
             $iter = $hmodel->iter_next($iter);
         }
         if (not $ignore_change) {
-            delete $self->{ignore_selected_change};
+            delete $self->{ignore_selection_change};
         }
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
@@ -1178,7 +1180,7 @@ sub on_phylogeny_click {
         my $iter = $hmodel->get_iter_first();
         my $elt;
 
-        $self->{ignore_selected_change} = 'listLabels1';
+        $self->{ignore_selection_change} = 'listLabels1';
         while ($iter) {
             my $hi = $hmodel->convert_iter_to_child_iter($iter);
             $elt = $model->get($hi, 0);
@@ -1190,7 +1192,7 @@ sub on_phylogeny_click {
 
             $iter = $hmodel->iter_next($iter);
         }
-        delete $self->{ignore_selected_change};
+        delete $self->{ignore_selection_change};
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
         # Remove the hover marks
@@ -1795,6 +1797,25 @@ sub update_selection_menu {
     );
     $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
 
+    my $selection_mode_item = Gtk2::MenuItem->new_with_label('Selection mode');
+    my $sel_mode_submenu = Gtk2::Menu->new;
+    my $gp_item = [];
+
+    foreach my $option (qw /new add_to remove_from/) {
+        my $submenu_item = Gtk2::RadioMenuItem->new_with_label($gp_item, $option);
+        $sel_mode_submenu->append ($submenu_item);
+        #$submenu_item->set_group($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_set_selection_mode, [$self, $option],
+        );
+        push @$gp_item, $submenu_item;  #  first one is default
+    }
+    $selection_mode_item->set_submenu($sel_mode_submenu);
+    $selection_mode_item->set_tooltip_text(
+        'Set the selection mode',
+    );
+
+    $selection_menu->append($selection_mode_item);
     $selection_menu->append($select_regex_item);
     $selection_menu->append($switch_selection_item);
     $selection_menu->append($export_menu_item);
@@ -1945,7 +1966,10 @@ sub do_select_labels_regex {
 
     my $self = $args->[0];  #  don't shift these - it wrecks the callback
     my $bd   = $args->[1];
-    my $type = $args->[2];
+
+    my $mode = $self->get_selection_mode;
+    my @modes = qw /new add_to remove_from/;
+    my $mode_idx = firstidx {$_ eq $mode} @modes;
 
     my $gui = $self->{gui};
     #  Hijack the import daligue.  (We should really build our own).
@@ -1961,11 +1985,11 @@ sub do_select_labels_regex {
             tooltip    => '',
         },
         {
-            name       => 'selection_type',
+            name       => 'selection_mode',
             type       => 'choice',
-            default    => 0,
+            default    => $mode_idx,
             label_text => 'Selection type',
-            choices    => [qw /new add_to remove_from/],
+            choices    => [@modes],
             tooltip    => 'Use this to define a new selection, add to the current selection, or remove from selection',
         },
         {
@@ -2013,6 +2037,23 @@ sub do_select_labels_regex {
     $self->select_using_regex (%params, regex => $regex);
 
     return;
+}
+
+sub set_selection_mode {
+    my ($self, $mode) = @_;
+    $self->{selection_mode} = $mode;
+}
+
+sub get_selection_mode {
+    my $self = shift;
+    return $self->{selection_mode} // 'new';
+}
+
+sub do_set_selection_mode {
+    my ($args, $widget) = @_;
+    my ($self, $mode) = @$args;
+    
+    $self->set_selection_mode ($mode);
 }
 
 sub numerically {$a <=> $b};

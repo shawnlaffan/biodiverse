@@ -334,7 +334,7 @@ sub init_list {
     $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
     $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
 
-# Set model to a wrapper that lets this list have independent sorting
+    # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
@@ -1055,10 +1055,15 @@ sub on_grid_select {
         my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
         my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
 
-        $hselection->unselect_all();
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hselection->unselect_all();
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
         my $iter = $hmodel->get_iter_first();
         my $elt;
-
 
         $self->{ignore_selection_change} = 'listLabels1';
         while ($iter) {
@@ -1066,7 +1071,7 @@ sub on_grid_select {
             $elt = $model->get($hi, 0);
 
             if (exists $hash{ $elt } ) {
-                $hselection->select_iter($iter);
+                $hselection->$sel_method($iter);
             }
 
             $iter = $hmodel->iter_next($iter);
@@ -1171,12 +1176,18 @@ sub on_phylogeny_click {
         $self->{dendrogram}->do_colour_nodes_below($node_ref);
         my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
 
-        # Select all terminal labels
+        # Select terminal labels as per the selection mode
         my $model      = $self->{labels_model};
         my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
         my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
 
-        $hselection->unselect_all();
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hselection->unselect_all();
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
         my $iter = $hmodel->get_iter_first();
         my $elt;
 
@@ -1187,7 +1198,7 @@ sub on_phylogeny_click {
             #print "[onPhylogenyClick] selected: $elt\n";
 
             if (exists $terminal_elements->{ $elt } ) {
-                $hselection->select_iter($iter);
+                $hselection->$sel_method($iter);
             }
 
             $iter = $hmodel->iter_next($iter);
@@ -1455,15 +1466,20 @@ sub on_matrix_clicked {
         my $hsel = $hlist->get_selection;
         my $vsel = $vlist->get_selection;
 
-        $hsel->unselect_all;
-        $vsel->unselect_all;
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hsel->unselect_all;
+            $vsel->unselect_all;
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_range' : 'select_range';
 
         eval {
-            $hsel->select_range($h_start, $h_end);
+            $hsel->$sel_method($h_start, $h_end);
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
         eval {
-            $vsel->select_range($v_start, $v_end);
+            $vsel->$sel_method($v_start, $v_end);
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
 

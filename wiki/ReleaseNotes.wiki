@@ -22,7 +22,7 @@ Main changes since the preceding version ([#Version_0.99_006 0.99_006]) are belo
 
   *  GUI
     *  The label selection mode can now be set, so in addition to being able to create a new selection each time one of the grid, tree or matrix panes is clicked, users can now also add to or remove from the current selection.  This allows the selection of, for example, distinct clades on the tree.  These might then be deleted from the basedata using the deletion methods added in the previous development release.  Issue 535
-    *  Fixed a crash when a tree was trimmed and had no remaining branches.  Issue 534
+    *  Fixed a crash when a tree was trimmed and had no remaining branches, and a View Labels tab was open.  Issue 534
 
 
 == Version 0.99_006 ==

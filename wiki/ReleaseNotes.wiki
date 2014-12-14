@@ -4,15 +4,19 @@
 
 <wiki:toc max_depth="4" />
 
-= Version 0.99_007 = 
+= Version 0.99 =
 
-This is the seventh phase of the development version leading towards version 1.0.
+This is a development release series, leading towards version 1.0.
 
-As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
+Collectively, these releases comprise several major changes to the underlying code-base, as well as the addition of a number of major new features.  They are not backwards compatible with previous versions (0.19 and earlier) in several respects.  They can still use most Biodiverse files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
 
 For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
 
 To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
+
+== Version 0.99_007 ==
+
+This is the seventh phase of the development version leading towards version 1.0.
 
 Main changes since the preceding version ([#Version_0.99_006 0.99_006]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
@@ -21,15 +25,9 @@ Main changes since the preceding version ([#Version_0.99_006 0.99_006]) are belo
     *  Fixed a crash when a tree was trimmed and had no remaining branches.  Issue 534
 
 
-= Version 0.99_006 = 
+== Version 0.99_006 ==
 
 This is the sixth phase of the development version leading towards version 1.0.
-
-As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
-
-For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
-
-To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 Main changes since the preceding version ([#Version_0.99_005 0.99_005]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
@@ -51,15 +49,9 @@ Main changes since the preceding version ([#Version_0.99_005 0.99_005]) are belo
     *  In the spatial analyses, users can control the use of the spatial index across the whole analysis, or on a per-spatial condition level.  Issue 205
     *  Control is also available for result and neighbour set recycling (the system detects these correctly in most cases, but it is useful to control it in falsely detected cases).  Issue 205
 
-= Version 0.99_005 = 
+== Version 0.99_005 ==
 
 This is the fifth phase of the development version leading towards version 1.0.
-
-As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
-
-For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
-
-To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 Main changes since the preceding version ([#Version_0.99_004 0.99_004]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
@@ -69,15 +61,9 @@ Main changes since the preceding version ([#Version_0.99_004 0.99_004]) are belo
     *  Progress bars are now displayed in all matrix exports.  This avoids periods of GUI non-responsiveness.  Matrices are also written directly file to reduce memory overheads for large matrices.  Issue 517
 
 
-= Version 0.99_004 = 
+== Version 0.99_004 ==
 
 This is the fourth phase of the development version leading towards version 1.0 (0.99_003 was only used for internal numbering).
-
-As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
-
-For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
-
-To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 Main changes since the preceding version ([#Version_0.99_002 0.99_002]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
@@ -103,15 +89,9 @@ Main changes since the preceding version ([#Version_0.99_002 0.99_002]) are belo
     *  Tree exports to nexus format can optionally not use the translate block.  This means internal nodes can be named and the read.nexus function in ape will still be able to read the file.  Issue 502
 
 
-= Version 0.99_002 = 
+== Version 0.99_002 ==
 
 This is the second phase of the development version leading towards version 1.0.
-
-This comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.  
-
-For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
-
-To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are below.  Issue numbers which are not crossed out are yet to be completed.  
 
@@ -136,15 +116,9 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
 
 
 
-= Version 0.99_001 = 
+== Version 0.99_001 ==
 
 This is the first phase of the development version leading towards version 1.0.
-
-This comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.  
-
-For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
-
-To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 Main changes since the previous version (0.19) are below.  Issue numbers which are not crossed out are yet to be completed.  
 

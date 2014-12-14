@@ -727,6 +727,13 @@ sub on_selected_labels_changed {
     # selects labels one-by-one
     return if defined $self->{ignore_selection_change};
 
+    #  convoluted, but allows caller subs to not know these details
+    $id ||= 'listLabels1';
+    if (!$selection) {
+        my $treeview1 = $self->{xmlPage}->get_widget($id);
+        $selection = $treeview1->get_selection;
+    }
+
     # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
     my $select_list_name = 'selected_' . $rowcol;
@@ -1833,8 +1840,8 @@ sub update_selection_menu {
     );
 
     $selection_menu->append($selection_mode_item);
-    $selection_menu->append($select_regex_item);
     $selection_menu->append($switch_selection_item);
+    $selection_menu->append($select_regex_item);
     $selection_menu->append($export_menu_item);
     $selection_menu->append($delete_menu_item);
     $selection_menu->append($new_bd_menu_item);
@@ -1972,6 +1979,7 @@ sub do_delete_selected_basedata_records {
     }
 
     $self->remove_selected_labels_from_list;
+    on_selected_labels_changed (undef, [$self]);
 
     $gui->{project}->set_dirty;
 
@@ -1984,7 +1992,7 @@ sub do_select_labels_regex {
     my $self = $args->[0];  #  don't shift these - it wrecks the callback
     my $bd   = $args->[1];
 
-    my $mode = $self->get_selection_mode;
+    my $mode  = $self->get_selection_mode;
     my @modes = qw /new add_to remove_from/;
     my $mode_idx = firstidx {$_ eq $mode} @modes;
 
@@ -1992,6 +2000,7 @@ sub do_select_labels_regex {
     #  Hijack the import daligue.  (We should really build our own).
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg    = $dlgxml->get_widget('dlgImportParameters');
+    $dlg->set_title('Text selection');
     my $table  = $dlgxml->get_widget ('tableImportParameters');
     my $table_params = [
         {

@@ -1065,10 +1065,10 @@ sub delete_selection_callback {
     my $closure = shift;
 
     my $hash = $self->{callbacks}{$type};
-    if ($hash) {
+    if ($hash && $closure) {
         delete $hash->{$closure};
     }
-    
+
     return;
 }
 

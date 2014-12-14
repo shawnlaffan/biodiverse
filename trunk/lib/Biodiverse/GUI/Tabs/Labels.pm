@@ -17,7 +17,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_007';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab

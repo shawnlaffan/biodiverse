@@ -1963,7 +1963,16 @@ sub do_delete_selected_basedata_records {
     my $delete_empty_groups = not $type =~ /retaining empty groups/;
 
     my $selected = $self->get_selected_labels;
-    return if !scalar @$selected;
+    my $count = scalar @$selected;
+
+    return if !$count;
+    
+    my $response = Biodiverse::GUI::YesNoCancel->run({
+        header => "Delete $count selected labels?",
+        hide_cancel => 1,
+    });
+
+    return if $response ne 'yes';
 
     my $gui = $self->{gui};
 

@@ -6,8 +6,8 @@ use warnings;
 use English qw { -no_match_vars };
 
 
-use PAR::Packer 1.007;
-use Module::ScanDeps 1.13;
+use PAR::Packer 1.022;    #  make sure we get all the Strawberry libs
+use Module::ScanDeps 1.16;
 BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }
@@ -151,15 +151,16 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
 sub get_dll_list {
     my $folder = shift;
 
+    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 includes them now
     my @dll_pfx = qw /
-        libeay   libexpat libgcc   libgif libiconv
-        libjpeg  liblzma  libpng   libpq  libstdc
+        libeay   libexpat libgif   libiconv
+        libjpeg  liblzma  libpng   libpq 
         libtiff  libxml2  ssleay32 zlib1
     /;
 
-    my @files = glob "$folder\\*.dll";
-    my $regstr   = join '|', @dll_pfx;
-    my $regmatch = qr /$regstr/;
+    my @files     = glob "$folder\\*.dll";
+    my $regstr    = join '|', @dll_pfx;
+    my $regmatch  = qr /$regstr/;
     my @dll_files = grep {$_ =~ $regmatch} @files;
 
     say $folder;

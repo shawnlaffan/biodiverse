@@ -9,7 +9,7 @@
 
   === 0.99_007 (development release)===
 
-  _This is the current development version, leading towards a version 1.0 release._
+  _This is the current development version, leading towards a version 1.0 release.  Version 1 will be released soon if no show stopping bugs are detected._
 
   The [https://code.google.com/p/biodiverse/wiki/ReleaseNotes#Version_0.99_007 release notes] summarise the changes in this version.  
 

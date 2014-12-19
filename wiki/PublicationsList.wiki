@@ -18,6 +18,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Costion, C.M., Edwards, W., Ford, A.J., Metcalfe, D.J., Cross, H.B., Harrington, M.G., Richardson, J.E., Hilbert, D.W., Lowe, A.J. and Crayn, D.M. (in press) Using phylogenetic diversity to identify ancient rain forest refugia and diversification zones in a biodiversity hotspot.  [http://dx.doi.org/10.1111/ddi.12266 Diversity and Distributions].
 
+  *  Daru, B.H., van der Bank, M. and Davies, T.J. (in press) Spatial incongruence among hotspots and complementary areas of tree diversity in southern Africa.  [http://dx.doi.org/10.1111/ddi.12290 Diversity and Distributions].  
+
   *  Bui, E.N., González-Orozco, C.E. and Miller, J.T. (2014) _Acacia_, climate, and geochemistry in Australia.  [http://dx.doi.org/10.1007/s11104-014-2113-x Plant and Soil, 381, 161-175].
 
   *  Carnaval, A., Waltari, E., Rodrigues, M., Rosauer, D., VanDerWal, J., Damasceno, R., Prates, I., Strangas, M., Spanos, Z., Rivera, D.,Pie, M., Firkowski, C., Bornschein, M., Ribeiro, L. & Moritz, C. (2014) Prediction of phylogeographic endemism in an environmentally complex biome. [http://dx.doi.org/10.1098/rspb.2014.1461 Proceedings of the Royal Society B. 281, 20141461].

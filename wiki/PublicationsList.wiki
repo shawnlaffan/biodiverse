@@ -40,6 +40,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Mendoza, A.M. and Arita, H.T. (2014) Priority setting by sites and by species using rarity, richness and phylogenetic diversity: the case of neotropical glassfrogs (Anura: Centrolenidae) [http://dx.doi.org/10.1007/s10531-014-0642-5 Biodiversity and Conservation, 23, 909-926].
 
+  *  Nagalingum, N.S., Knerr, N., Mishler, B.D. and D.C. Cargill (2014) Overlapping fern and bryophyte hotspots: assessing ferns as a predictor of bryophyte diversity. [http://dx.doi.org/10.7751/telopea20148280 Telopea, 17, 383–392].
+
   *  Perales, H. and Golicher, D. (2014) Mapping the Diversity of Maize Races in Mexico. [http://dx.doi.org/10.1371/journal.pone.0114657 PLoS ONE 9(12): e114657].
 
   *  Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2014) Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities.  [http://dx.doi.org/10.1111/j.1600-0587.2013.00466.x Ecography, 37, 21-32].

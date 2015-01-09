@@ -212,7 +212,7 @@ sub get_iconfile {
             my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
               or die "Unable to open $ENV{PAR_PROGNAME}";
 
-            my $glade_zipped = $zip->extractMember ( $fname, $icon_str );
+            my $success = $zip->extractMember ( $fname, $icon_str );
 
             if (-e $icon) {
                 say "Using PAR icon file $icon";

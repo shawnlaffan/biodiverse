@@ -18,14 +18,14 @@ my ($opt, $usage) = describe_options(
   '%c <arguments>',
   [ 'input_dir|i=s',     'The folder containing the input rasters', { required => 1 } ],
   [ 'output_prefix|o=s', 'The output prefix for exported files', { required => 1 }],
-  [ 'cellsize|c=s',      'The folder containing the input rasters', { required => 1 } ],
+  [ 'cellsize|c=s',      'The cellsize of the basedata object', { required => 1 } ],
   [ 'name|n:s',          'The name of the basedata file', {required => 0, default => 'xx'} ],
   [ 'raster_extension|x:s', 'Raster file extension', {required => 0, default => 'asc'}],  #  change to tif, flt etc as needed
   #[ 'remap_file|rf=s',       'The text file containing label remap details', { required => 1 } ],  #  needed later
   [],
   [ 'help',       "print usage message and exit" ],
 );
- 
+
 if ($opt->help) {
     print($usage->text);
     exit;

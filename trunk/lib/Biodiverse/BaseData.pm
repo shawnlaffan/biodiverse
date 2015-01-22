@@ -1199,7 +1199,7 @@ sub import_data_raster {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
-    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 0);
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';

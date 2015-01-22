@@ -21,7 +21,7 @@ my ($opt, $usage) = describe_options(
   [ 'cellsize|c=s',      'The cellsize of the basedata object', { required => 1 } ],
   [ 'name|n:s',          'The name of the basedata file', {required => 0, default => 'xx'} ],
   [ 'raster_extension|x:s', 'Raster file extension', {required => 0, default => 'asc'}],  #  change to tif, flt etc as needed
-  [ 'labels_as_bands|l:b', 'Should basedata labels be the band names or values?', {required => 0, default => '1'}],
+  [ 'labels_as_bands|l', 'Should basedata labels be the band names or values?'],
   #[ 'remap_file|rf=s',       'The text file containing label remap details', { required => 1 } ],  #  needed later
   [],
   [ 'help',       "print usage message and exit" ],

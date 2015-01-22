@@ -20,7 +20,8 @@ my ($opt, $usage) = describe_options(
   [ 'output_prefix|o=s', 'The output prefix for exported files', { required => 1 }],
   [ 'cellsize|c=s',      'The cellsize of the basedata object', { required => 1 } ],
   [ 'name|n:s',          'The name of the basedata file', {required => 0, default => 'xx'} ],
-  #[ 'raster_extension|x:s', 'Raster file extension', {required => 0, default => 'asc'}],  #  change to tif, flt etc as needed
+  [ 'raster_extension|x:s', 'Raster file extension', {required => 0, default => 'asc'}],  #  change to tif, flt etc as needed
+  [ 'labels_as_bands|l:b', 'Should basedata labels be the band names or values?', {required => 0, default => '1'}],
   #[ 'remap_file|rf=s',       'The text file containing label remap details', { required => 1 } ],  #  needed later
   [],
   [ 'help',       "print usage message and exit" ],
@@ -36,6 +37,7 @@ my $out_pfx     = $opt->output_prefix;
 #my $remap_file  = $opt->remap_file;
 my $cellsize    = $opt->cellsize;
 my $name        = $opt->name || $out_pfx;
+my $labels_as_bands = $opt->labels_as_bands;
 
 my $file_suffix = $opt->raster_extension;
 
@@ -63,7 +65,7 @@ my @files = glob "$in_folder/*.$file_suffix";
 my $success = eval {
     $bd->import_data_raster (
         input_files     => \@files,
-        labels_as_bands => 1,  #  use the bands (files) as the label (species) names
+        labels_as_bands => $labels_as_bands,  #  use the bands (files) as the label (species) names
     );
 };
 croak $EVAL_ERROR if $EVAL_ERROR;

@@ -76,7 +76,7 @@ sub rename {
 
     my $name = $args{new_name};
     if (not defined $name) {
-        croak "[Tree] Argument 'name' not defined\n";
+        croak "[Tree] Argument 'new_name' not defined\n";
     }
 
     #  first tell the basedata object

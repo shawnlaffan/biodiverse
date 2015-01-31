@@ -1093,7 +1093,7 @@ sub to_table_sym {
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
-    my @header = ('Element');  
+    my @header = ('ELEMENT');  
 
     if (! $no_element_array) {
         my $i = 0;
@@ -1187,7 +1187,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
 
-    push my @header, 'Element';  
+    push my @header, 'ELEMENT'; 
     if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
         #  get the number of element columns
@@ -1297,7 +1297,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my @data;
     my @elements = sort keys %$elements;
 
-    push my @header, "ELEMENT";  #  need the number of element components for the header
+    push my @header, 'ELEMENT';  #  need the number of element components for the header
     if (! $no_element_array) {
         my $i = 0;
         foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns

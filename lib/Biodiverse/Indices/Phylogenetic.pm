@@ -332,17 +332,26 @@ sub get_path_lengths_to_root_node {
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
+    #  avoid millions of subroutine calls below
+    my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE')
+      // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE => $c); $c};
+
     # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
     my %path;
-    foreach my $label (keys %$label_list) {
-        next if not exists $all_nodes->{$label};
+    foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
+        #next if not exists $all_nodes->{$label};
 
         my $current_node = $all_nodes->{$label};
+        my $sub_path     = $path_cache->{$current_node};
 
-        my $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
+        if (!$sub_path) {
+            $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
+            $path_cache->{$current_node} = $sub_path;
+        }
+
         @path{keys %$sub_path} = undef;  #  assign lengths later in one pass
     }
 

@@ -1439,8 +1439,9 @@ sub get_node_range_hash {
         $progress,
     );
 
-    foreach my $node_name (keys %$nodes) {
-        my $node = $nodes->{$node_name};
+    #  sort by depth so we start from the terminals
+    foreach my $node (sort {$b->get_depth <=> $a->get_depth} values %$nodes) {
+        my $node_name = $node->get_name;
         if ($return_lists) {
             my @range = $self->get_node_range (
                 %args,
@@ -1460,7 +1461,7 @@ sub get_node_range_hash {
             }
         }
         $count ++;
-        $progress     = $count / $to_do;
+        $progress      = $count / $to_do;
         $progress_text = int (100 * $progress);
         $progress_bar->update(
             "Calculating node ranges\n($progress_text)",
@@ -1480,24 +1481,35 @@ sub get_node_range {
 
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
 
-    my $bd = $args{basedata_ref} || $self->get_basedata_ref;
-
-    my @labels   = ($node_ref->get_name);
-    my $children =  $node_ref->get_all_named_descendants;
-
-    #  collect the set of non-internal (named) nodes
-    #  Possibly should only work with terminals
-    #  which would simplify things.
-    #foreach my $node_ref (values %$children) {
-    #    next if $node_ref->is_internal_node;
-    #    push @labels, $node_ref->get_name;
-    #}
-    push @labels, (keys %$children);
-
     my $return_count = !wantarray;
 
-    #  if not wantarray then we only want the count, so get it directly
-    return $bd->get_range_union (labels => \@labels, return_count => $return_count);
+    my $cache_name = 'NODE_RANGE_LISTS';
+    my $cache      = $self->get_cached_value($cache_name)
+                   // do {my $c = {}; $self->set_cached_value ($cache_name => $c); $c};
+
+    my $node_name = $node_ref->get_name;
+    my %groups;
+
+    my $children = $node_ref->get_children // [];
+    if (scalar @$children) {
+        foreach my $child (@$children) {
+            my $child_name = $child->get_name;
+            my $cached_list = $cache->{$child_name}
+              // $self->get_node_range (node_ref => $child);
+            @groups{keys %$cached_list} = undef;
+        }
+    }
+    else {  #  terminal node
+        my $bd = $args{basedata_ref} || $self->get_basedata_ref;
+        my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
+        @groups{keys %$gp_list} = undef;
+    }
+
+    $cache->{$node_name} = \%groups;
+
+    return scalar keys %groups if $return_count;
+
+    return wantarray ? %groups : [keys %groups];
 }
 
 

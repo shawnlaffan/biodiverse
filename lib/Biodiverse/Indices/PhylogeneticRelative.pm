@@ -260,7 +260,7 @@ sub calc_phylo_rpe2 {
     my %results;
     {
         foreach my $node (keys %$node_ranges_global) {
-            my $node_ref = $null_tree_ref->get_node_ref(node => $node);
+            my $node_ref = $null_tree_ref->get_node_ref_aa($node);
             $pe_null += $node_ref->get_length
                       * $node_ranges_local->{$node}
                       / $node_ranges_global->{$node};

@@ -1439,7 +1439,7 @@ sub get_node_range_hash {
         $progress,
     );
 
-    #  sort by depth so we start from the terminals
+    #  sort by depth so we start from the terminals and avoid recursion in get_node_range
     foreach my $node (sort {$b->get_depth <=> $a->get_depth} values %$nodes) {
         my $node_name = $node->get_name;
         if ($return_lists) {
@@ -1474,12 +1474,13 @@ sub get_node_range_hash {
     return wantarray ? %results : \%results;
 }
 
-#  Shawn's approach using tree's caching
+
 sub get_node_range {
     my $self = shift;
     my %args = @_;
 
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
+    my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     my $return_count = !wantarray;
 
@@ -1493,22 +1494,22 @@ sub get_node_range {
     my $children = $node_ref->get_children // [];
     if (scalar @$children) {
         foreach my $child (@$children) {
-            my $child_name = $child->get_name;
-            my $cached_list = $cache->{$child_name}
+            #my $child_name = $child->get_name;
+            my $cached_list = $cache->{$child}
               // $self->get_node_range (node_ref => $child);
             @groups{keys %$cached_list} = undef;
         }
     }
-    else {  #  terminal node
-        my $bd = $args{basedata_ref} || $self->get_basedata_ref;
+    if (!$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
         @groups{keys %$gp_list} = undef;
     }
 
-    $cache->{$node_name} = \%groups;
+    #  Cache by ref because future cases might use the cache
+    #  for multiple trees with overlapping name sets.
+    $cache->{$node_ref} = \%groups;
 
     return scalar keys %groups if $return_count;
-
     return wantarray ? %groups : [keys %groups];
 }
 

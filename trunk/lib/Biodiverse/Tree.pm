@@ -322,7 +322,20 @@ sub get_node_ref {
     Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
       if !exists $self->{TREE_BY_NAME}{$node};
 
-    return $self->{TREE_BY_NAME}{$node};    
+    return $self->{TREE_BY_NAME}{$node};
+}
+
+#  array args version of get_node_ref
+sub get_node_ref_aa {
+    my ($self, $node) = @_;
+
+    croak "node not specified in call to get_node_ref\n"
+      if !defined $node;
+
+    no autovivification;
+
+    return $self->{TREE_BY_NAME}{$node}
+      // Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.

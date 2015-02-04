@@ -320,6 +320,7 @@ sub test_sum_to_pd {
             element => $elt_to_check,
         );
         my $sum  = sum values %$list;
+        $sum = snap_to_precision (value => $sum, precision => '%.10f');
         is ($sum, 1, "$list_name sums to 1, sp_select_all()");
     }
 

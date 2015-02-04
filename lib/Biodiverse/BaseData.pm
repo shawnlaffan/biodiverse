@@ -2972,7 +2972,7 @@ sub get_range_union {
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
         next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
-        @shared_elements{keys %$elements_now} = values %$elements_now;
+        @shared_elements{keys %$elements_now} = undef;
     }
     
     return wantarray

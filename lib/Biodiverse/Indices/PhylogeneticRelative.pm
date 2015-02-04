@@ -485,7 +485,7 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
     my %metadata = (
         name            => 'get_tree_node_length_hash_for_trimmed_tree_eq_branch_lengths',
-        description     => 'A hash of the node lengths, indexed by node name',
+        description     => 'A hash of the trimmed eq branch length tree node lengths, indexed by node name',
         pre_calc_global => qw /get_trimmed_tree_with_equalised_branch_lengths/,
         indices         => {
             TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH => {
@@ -498,6 +498,7 @@ sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
     return $metadata_class->new(\%metadata);
 }
 
+#  should just be a wrapper around Tree::get_node_length_hash
 sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
     my $self = shift;
     my %args = @_;

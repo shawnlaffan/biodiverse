@@ -484,7 +484,7 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
 
 sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
     my %metadata = (
-        name            => 'get_tree_node_length_hash',
+        name            => 'get_tree_node_length_hash_for_trimmed_tree_eq_branch_lengths',
         description     => 'A hash of the node lengths, indexed by node name',
         pre_calc_global => qw /get_trimmed_tree_with_equalised_branch_lengths/,
         indices         => {

@@ -1494,9 +1494,10 @@ sub get_node_range {
     #}
     push @labels, (keys %$children);
 
-    my @range = $bd->get_range_union (labels => \@labels);
+    my $return_count = !wantarray;
 
-    return wantarray ? @range : scalar @range;
+    #  if not wantarray then we only want the count, so get it directly
+    return $bd->get_range_union (labels => \@labels, return_count => $return_count);
 }
 
 

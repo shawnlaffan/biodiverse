@@ -1931,9 +1931,7 @@ sub get_node_range {
         push (@labels, $name);
     }
 
-    my @range = $bd->get_range_union (labels => \@labels);
-
-    my $range = scalar @range;
+    my $range = $bd->get_range_union (labels => \@labels, return_counts => 1);
 
     $self->set_cached_value ($cache_key => $range);
 

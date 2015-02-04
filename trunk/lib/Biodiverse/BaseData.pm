@@ -2975,6 +2975,8 @@ sub get_range_union {
         @shared_elements{keys %$elements_now} = undef;
     }
     
+    return scalar keys %shared_elements if $args{return_count}; #/
+
     return wantarray
         ? (keys %shared_elements)
         : [keys %shared_elements];

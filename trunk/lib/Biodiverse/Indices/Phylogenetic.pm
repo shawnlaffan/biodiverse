@@ -165,7 +165,7 @@ sub calc_pd_terminal_node_list {
 
     my %terminals;
     foreach my $node_name (@keys) {
-        next if ! $tree_ref->get_node_ref(node => $node_name)->is_terminal_node;
+        next if ! $tree_ref->get_node_ref_aa($node_name)->is_terminal_node;
         $terminals{$node_name} = $pd_included_node_list->{$node_name};
     }
 
@@ -2572,6 +2572,42 @@ sub get_aed_scores {
         ED_SCORES  => \%ed_wts,
         AED_SCORES => \%aed_wts,
     );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_tree_node_length_hash {
+    my %metadata = (
+        name            => 'get_tree_node_length_hash',
+        description     => 'A hash of the node lengths, indexed by node name',
+        required_args   => qw /tree_ref/,
+        indices         => {
+            TREE_NODE_LENGTH_HASH => {
+                description => 'Hash of node lengths, indexed by node name',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub get_tree_node_length_hash {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree_ref = $args{tree_ref} // croak 'Missing tree_ref arg';
+    my $node_hash = $tree_ref->get_node_hash;
+    
+    my %len_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        my $length   = $node_ref->get_length;
+        $len_hash{$node_name} = $length;
+    }
+    
+    my %results = (TREE_NODE_LENGTH_HASH => \%len_hash);
 
     return wantarray ? %results : \%results;
 }

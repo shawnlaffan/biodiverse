@@ -219,7 +219,11 @@ sub get_metadata_calc_phylo_rpe2 {
         reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pe calc_pe_lists/],
-        pre_calc_global => [qw /get_trimmed_tree get_trimmed_tree_with_equalised_branch_lengths/],
+        pre_calc_global => [qw /
+            get_trimmed_tree
+            get_trimmed_tree_with_equalised_branch_lengths
+            get_trimmed_tree_eq_branch_lengths_node_length_hash
+        /],
         uses_nbr_lists  => 1,
         indices         => {
             PHYLO_RPE2       => {
@@ -255,15 +259,18 @@ sub calc_phylo_rpe2 {
     #  This is simply the sum of the local ranges for each node.  
     my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
     my $node_ranges_global = $args{PE_RANGELIST};
+    my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
     my $pe_null;
 
     my %results;
     {
-        foreach my $node (keys %$node_ranges_global) {
-            my $node_ref = $null_tree_ref->get_node_ref_aa($node);
-            $pe_null += $node_ref->get_length
-                      * $node_ranges_local->{$node}
-                      / $node_ranges_global->{$node};
+        foreach my $null_node (keys %$node_ranges_global) {
+            no autovivification;
+            #my $null_node_ref = $null_tree_ref->get_node_ref_aa($null_node);
+            #$pe_null += $null_node_ref->get_length
+            $pe_null += $null_node_len_hash->{$null_node}
+                      * $node_ranges_local->{$null_node}
+                      / $node_ranges_global->{$null_node};
         }
 
         no warnings qw /numeric uninitialized/;
@@ -475,6 +482,43 @@ sub get_trimmed_tree_with_equalised_branch_lengths {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
+    my %metadata = (
+        name            => 'get_tree_node_length_hash',
+        description     => 'A hash of the node lengths, indexed by node name',
+        pre_calc_global => qw /get_trimmed_tree_with_equalised_branch_lengths/,
+        indices         => {
+            TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH => {
+                description => 'Hash of node lengths for the equalised branch length tree, indexed by node name',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED}
+      // croak 'Missing TREE_REF_EQUALISED_BRANCHES_TRIMMED arg';
+    my $node_hash = $tree_ref->get_node_hash;
+    
+    my %len_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        my $length   = $node_ref->get_length;
+        $len_hash{$node_name} = $length;
+    }
+    
+    my %results = (
+        TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH => \%len_hash,
+    );
+
+    return wantarray ? %results : \%results;
+}
 
 
 1;

@@ -362,26 +362,20 @@ sub get_path_lengths_to_root_node {
         #  A binary search to reduce the slice assignments did not speed things up,
         #  but possibly it was not well implemented.
         #  A method which returns node names along the path might do the job.
-        if (!scalar @path_array) {
-            push @path_array, sort {$a cmp $b} @$sub_path;
+        if (!scalar keys %path) {
+            @path{@$sub_path} = undef;
         }
         else {
-            use List::BinarySearch::XS qw /binsearch_pos/;
-          NODE_NAME:
-            foreach my $node_name (@$sub_path) {
-                my $i = binsearch_pos {$a cmp $b} $node_name, @path_array;
-                last NODE_NAME if $i < $#path_array && $path_array[$i] eq $node_name;
-                splice @path_array, $i, 0, $node_name;
-            }
+            my $i = List::MoreUtils::firstidx {exists $path{$_}} @$sub_path;
+            @path{@$sub_path[0..$i-1]} = undef;
         }
-        #@path{keys %$sub_path} = undef;
     }
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
-    #@path{keys %path} = @$len_hash{keys %path};
-    @path{@path_array} = @$len_hash{@path_array};
+    @path{keys %path} = @$len_hash{keys %path};
+    #@path{@path_array} = @$len_hash{@path_array};
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};

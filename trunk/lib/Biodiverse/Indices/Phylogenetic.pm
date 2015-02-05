@@ -332,7 +332,9 @@ sub get_path_lengths_to_root_node {
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
-    #  avoid millions of subroutine calls below
+    #  Avoid millions of subroutine calls below.
+    #  We could use a global precalc, but that won;t scale well with
+    #  massive trees where we only need a subset.
     my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE')
       // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE => $c); $c};
 
@@ -342,12 +344,12 @@ sub get_path_lengths_to_root_node {
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
-        #next if not exists $all_nodes->{$label};
-
-        my $current_node = $all_nodes->{$label};
-        my $sub_path     = $path_cache->{$current_node};
+        #  Could assign to $current_node here, but profiling indicates it
+        #  takes meaningful chunks of time for large data sets
+        my $sub_path = $path_cache->{$all_nodes->{$label}};
 
         if (!$sub_path) {
+            my $current_node = $all_nodes->{$label};
             $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
             $path_cache->{$current_node} = $sub_path;
         }

@@ -343,7 +343,6 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my %path;
-    my @path_array;
     foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
@@ -351,24 +350,14 @@ sub get_path_lengths_to_root_node {
 
         if (!$sub_path) {
             my $current_node = $all_nodes->{$label};
-            #$sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
-            $sub_path = $current_node->get_path_to_root_node (cache => $cache);
-            my @p = map {$_->get_name} @$sub_path;
-            $sub_path = \@p;
+            $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
             $path_cache->{$current_node} = $sub_path;
         }
 
         #  This is a bottleneck for large data sets.
         #  A binary search to reduce the slice assignments did not speed things up,
         #  but possibly it was not well implemented.
-        #  A method which returns node names along the path might do the job.
-        if (!scalar keys %path) {
-            @path{@$sub_path} = undef;
-        }
-        else {
-            my $i = List::MoreUtils::firstidx {exists $path{$_}} @$sub_path;
-            @path{@$sub_path[0..$i-1]} = undef;
-        }
+        @path{keys %$sub_path} = undef;
     }
 
     #  Assign the lengths once each.

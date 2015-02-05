@@ -354,7 +354,9 @@ sub get_path_lengths_to_root_node {
             $path_cache->{$current_node} = $sub_path;
         }
 
-        @path{keys %$sub_path} = undef;  #  assign lengths later in one pass
+        #  Assign lengths later in one pass
+        #  The grep is to try to reduce assignment overheads in the slice
+        @path{grep {!exists $path{$_}} keys %$sub_path} = undef;  
     }
 
     #  Assign the lengths once each.

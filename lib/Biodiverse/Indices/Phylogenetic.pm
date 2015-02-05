@@ -350,33 +350,11 @@ sub get_path_lengths_to_root_node {
 
         if (!$sub_path) {
             my $current_node = $all_nodes->{$label};
-            #$sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
-            $sub_path = $current_node->get_path_to_root_node (cache => $cache);
+            $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
             $path_cache->{$current_node} = $sub_path;
         }
 
-        my @node_names = map {$_->get_name} @$sub_path;
-        #  Assign lengths later in one pass.
-        if (!scalar keys %path) {
-            @path{@node_names} = ();
-        }
-        else {
-            #  Use a binary search to avoid adding seen nodes,
-            #  thus avoiding repeated assignments in the slice.
-            my ($b_lower, $b_upper) = (0, $#node_names);
-            my $b_mid = int ($b_upper / 2);
-            while ($b_lower != $b_mid && $b_upper != $b_mid) {
-                if (exists $path{$node_names[$b_mid]}) {
-                    $b_upper = $b_mid;
-                }
-                else {
-                    $b_lower = $b_mid;
-                }
-                $b_mid = int ($b_lower + ($b_upper - $b_lower) / 2);
-            }
-            
-            @path{@node_names[0 .. $b_mid]} = ();
-        }
+        @path{keys %$sub_path} = undef;
     }
 
     #  Assign the lengths once each.

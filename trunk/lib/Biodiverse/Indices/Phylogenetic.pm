@@ -343,6 +343,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my %path;
+    my @path_array;
     foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
@@ -350,17 +351,37 @@ sub get_path_lengths_to_root_node {
 
         if (!$sub_path) {
             my $current_node = $all_nodes->{$label};
-            $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
+            #$sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
+            $sub_path = $current_node->get_path_to_root_node (cache => $cache);
+            my @p = map {$_->get_name} @$sub_path;
+            $sub_path = \@p;
             $path_cache->{$current_node} = $sub_path;
         }
 
-        @path{keys %$sub_path} = undef;
+        #  This is a bottleneck for large data sets.
+        #  A binary search to reduce the slice assignments did not speed things up,
+        #  but possibly it was not well implemented.
+        #  A method which returns node names along the path might do the job.
+        if (!scalar @path_array) {
+            push @path_array, sort {$a cmp $b} @$sub_path;
+        }
+        else {
+            use List::BinarySearch::XS qw /binsearch_pos/;
+          NODE_NAME:
+            foreach my $node_name (@$sub_path) {
+                my $i = binsearch_pos {$a cmp $b} $node_name, @path_array;
+                last NODE_NAME if $i < $#path_array && $path_array[$i] eq $node_name;
+                splice @path_array, $i, 0, $node_name;
+            }
+        }
+        #@path{keys %$sub_path} = undef;
     }
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
-    @path{keys %path} = @$len_hash{keys %path};
+    #@path{keys %path} = @$len_hash{keys %path};
+    @path{@path_array} = @$len_hash{@path_array};
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};

@@ -338,6 +338,7 @@ sub run_randomisation {
                    $bd->get_spatial_output_refs,
                    );
     delete $args{targets};
+    @targets = sort {$a->get_param('NAME') cmp $b->get_param('NAME')} @targets;
 
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation

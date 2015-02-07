@@ -347,14 +347,37 @@ sub get_depth {
     my $depth = $self->{NODE_VALUES}{DEPTH};
 
     return $depth if defined $depth;
-    
+
     if ($self->is_root_node) {
         $self->set_depth(depth => 0);
         return 0;
     }
 
-    #  recursively search up the tree
-    $self->set_depth(depth => ($self->get_parent->get_depth + 1));
+    #  search up the tree but avoid recursion
+    my @parents = $self->get_parent;
+    $depth      = $parents[0]->{NODE_VALUES}{DEPTH};
+  PARENT:
+    while (!defined $depth) {
+        my $parent = $parents[0]->get_parent;
+        last PARENT if !defined $parent;
+        if ($parent->is_root_node) {
+            $depth = 0;
+        }
+        else {
+            $depth = $parent->{NODE_VALUES}{DEPTH};
+        }
+        unshift @parents, $parent;
+        last PARENT if defined $depth;
+    }
+    shift @parents;
+    $depth ++;
+    foreach my $node (@parents) {
+        $node->set_depth(depth => $depth);
+        $depth++;
+    }
+    $self->set_depth(depth => $depth);
+    #   old recursive approach - leaked memory
+    #$self->set_depth(depth => ($self->get_parent->get_depth + 1));
 
     return $self->{NODE_VALUES}{DEPTH};
 }

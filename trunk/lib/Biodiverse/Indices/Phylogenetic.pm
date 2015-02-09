@@ -231,10 +231,18 @@ sub _calc_pd {
     my $tree_ref   = $args{tree_ref};
     my $label_list = $args{PHYLO_LABELS_ON_TREE};
     my $richness   = scalar keys %$label_list;
+    
+    #  the el_list is used to trigger caching, and only if we have one element
+    my $el_list = [];
+    my $pass_el_list = scalar @{$args{element_list1} // []} + scalar @{$args{element_list2} // []};
+    if ($pass_el_list == 1) {
+        $el_list = [@{$args{element_list1} // []}, @{$args{element_list2} // []}];
+    }
 
     my $nodes_in_path = $self->get_path_lengths_to_root_node (
         @_,
-        labels => $label_list,
+        labels  => $label_list,
+        el_list => $el_list,
     );
 
     my $PD_score = sum values %$nodes_in_path;
@@ -274,6 +282,11 @@ sub get_metadata_get_path_length_cache {
         name            => 'get_path_length_cache',
         description     => 'Cache for path lengths.',
         uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            path_length_cache => {
+                description => 'Path length cache hash',
+            },
+        },
     );
 
     return $metadata_class->new(\%metadata);
@@ -295,11 +308,6 @@ sub get_metadata_get_path_lengths_to_root_node {
         description     => 'Get the path lengths to the root node of a tree for a set of labels.',
         uses_nbr_lists  => 1,  #  how many lists it must have
         pre_calc_global => 'get_path_length_cache',
-        indices         => {
-            path_length_cache => {
-                description => 'Path length cache hash',
-            }
-        }
     );
 
     return $metadata_class->new(\%metadata);
@@ -313,14 +321,15 @@ sub get_path_lengths_to_root_node {
 
     my $cache = !$args{no_cache};
     #$cache = 0;  #  turn it off for debug
+    my $el_list = $args{el_list} // [];
     
     #  have we cached it?
-    my $use_path_cache = $cache && $self->get_pairwise_mode();
+    #my $use_path_cache = $cache && $self->get_pairwise_mode();
+    my $use_path_cache = $cache && scalar @$el_list == 1;
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
-        my @el_list = keys %{$args{el_list}};
-        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
-            my $path = $cache->{$el_list[0]};
+        if ($el_list && scalar @$el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
+            my $path = $cache->{$el_list->[0]};
             return (wantarray ? %$path : $path) if $path;
         }
         else {
@@ -346,10 +355,10 @@ sub get_path_lengths_to_root_node {
     foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
-        my $sub_path = $path_cache->{$all_nodes->{$label}};
+        my $current_node = $all_nodes->{$label};
+        my $sub_path = $path_cache->{$current_node};
 
         if (!$sub_path) {
-            my $current_node = $all_nodes->{$label};
             $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
             $path_cache->{$current_node} = $sub_path;
         }
@@ -368,8 +377,8 @@ sub get_path_lengths_to_root_node {
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
-        my @el_list = keys %{$args{el_list}};  #  can only have one item
-        $cache_h->{$el_list[0]} = \%path;
+        #my @el_list = @$el_list;  #  can only have one item
+        $cache_h->{$el_list->[0]} = \%path;
     }
 
     return wantarray ? %path : \%path;
@@ -1124,7 +1133,7 @@ sub get_metadata__calc_pe {
         name            => 'Phylogenetic Endemism base calcs',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism',  #  keeps it clear of the other indices in the GUI
-        pre_calc_global => [qw /get_node_range_hash get_trimmed_tree get_pe_element_cache/],
+        pre_calc_global => [qw /get_node_range_hash get_trimmed_tree get_pe_element_cache get_path_length_cache/],
         pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
@@ -1169,7 +1178,8 @@ sub _calc_pe {
             my $labels = $bd->get_labels_in_group_as_hash (group => $group);
             my $nodes_in_path = $self->get_path_lengths_to_root_node (
                 @_,
-                labels => $labels,
+                labels  => $labels,
+                el_list => [$group],
             );
 
             my ($gp_score, %gp_wts, %gp_ranges);
@@ -2230,14 +2240,14 @@ sub _calc_phylo_abc_lists {
         %args,
         labels   => $label_hash1,
         tree_ref => $tree,
-        el_list  => $args{element_list1},
+        el_list  => [keys $args{element_list1}],
     );
 
     my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
         %args,
         labels   => $label_hash2,
         tree_ref => $tree,
-        el_list  => $args{element_list2},
+        el_list  => [keys $args{element_list2}],
     );
 
     my %A = (%$nodes_in_path1, %$nodes_in_path2); 

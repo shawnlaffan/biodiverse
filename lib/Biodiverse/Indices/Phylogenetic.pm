@@ -1171,16 +1171,22 @@ sub _calc_pe {
                 @_,
                 labels => $labels,
             );
-     
+
             my ($gp_score, %gp_wts, %gp_ranges);
-            
+
+            #  slice assignment to avoid massively duplicated assignments in the loop
+            @gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
+
             #  loop over the nodes and run the calcs
+          NODE:
             while (my ($name, $length) = each %$nodes_in_path) {
-                my $range = $node_ranges->{$name};
-                my $wt    = eval {$length / $range} || 0;
+                # Not sure we even need to test for zero ranges.
+                # We should never suffer this given the pre_calcs.
+                my $range = $gp_ranges{$name}
+                  || next NODE;
+                my $wt     = $length / $range;
                 $gp_score += $wt;
-                $gp_wts{$name}    = $wt;
-                $gp_ranges{$name} = $range;
+                $gp_wts{$name} = $wt;
             }
 
             $results = {

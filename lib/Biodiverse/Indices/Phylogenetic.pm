@@ -215,7 +215,7 @@ sub get_metadata__calc_pd {
         name            => 'Phylogenetic Diversity base calcs',
         type            => 'Phylogenetic Indices',
         pre_calc        => 'calc_labels_on_tree',
-        pre_calc_global => qw /get_path_length_cache/,
+        pre_calc_global => [qw /get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
     );
@@ -276,6 +276,46 @@ sub _calc_pd {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_set_path_length_cache_by_group_flag {
+    my $self = shift;
+
+    my %metadata = (
+        name            => 'Path length cache use flag',
+        description     => 'Should we use the path length cache? It does not always need to be used.',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return $metadata_class->new(\%metadata);
+    
+}
+
+sub set_path_length_cache_by_group_flag {
+    my $self = shift;
+
+    my $flag;
+
+    #  do we have a combination of _calc_pe with _calc_pd or _calc_phylo_abc_lists, or are we in pairwise mode?
+    if ($self->get_pairwise_mode) {
+        $flag = 1;
+    }
+    else {
+        no autovivification;
+        my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
+        my $dep_list       = $validated_calcs->{calc_deps_by_type}{pre_calc};
+        if ($dep_list->{_calc_pe} && ($dep_list->{_calc_pd} || $dep_list->{_calc_phylo_abc_lists})) {
+            $flag = 1;
+        }
+    }
+
+    #  We set a param to avoid having to pass it around,
+    #  as some of the subs which need it are not called as dependencies
+    $self->set_param(USE_PATH_LENGTH_CACHE_BY_GROUP => $flag);
+    
+    #  no need to return any contents, but we do need to return something to keep the dep calc process happy
+    return wantarray ? () : {};
+}
+
+
 sub get_metadata_get_path_length_cache {
     my $self = shift;
 
@@ -326,16 +366,21 @@ sub get_path_lengths_to_root_node {
     
     #  have we cached it?
     #my $use_path_cache = $cache && $self->get_pairwise_mode();
-    my $use_path_cache = $cache && scalar @$el_list == 1;
+    my $use_path_cache
+        =  $cache
+        && $self->get_param('USE_PATH_LENGTH_CACHE_BY_GROUP')
+        && scalar @$el_list == 1;  #  caching makes sense only if we have
+                                   #  only one element (group) containing labels
+
     if ($use_path_cache) {
-        my $cache   = $args{path_length_cache};
-        if (scalar @$el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
-            my $path = $cache->{$el_list->[0]};
+        my $cache_h   = $args{path_length_cache};
+        #if (scalar @$el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
+            my $path = $cache_h->{$el_list->[0]};
             return (wantarray ? %$path : $path) if $path;
-        }
-        else {
-            $use_path_cache = undef;  #  skip caching below
-        }
+        #}
+        #else {
+        #    $use_path_cache = undef;  #  skip caching below
+        #}
     }
 
     my $label_list = $args{labels};
@@ -1134,7 +1179,13 @@ sub get_metadata__calc_pe {
         name            => 'Phylogenetic Endemism base calcs',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism',  #  keeps it clear of the other indices in the GUI
-        pre_calc_global => [qw /get_node_range_hash get_trimmed_tree get_pe_element_cache get_path_length_cache/],
+        pre_calc_global => [ qw /
+            get_node_range_hash
+            get_trimmed_tree
+            get_pe_element_cache
+            get_path_length_cache
+            set_path_length_cache_by_group_flag
+        /],
         pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
@@ -2222,7 +2273,7 @@ sub get_metadata__calc_phylo_abc_lists {
         description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
         type            =>  'Phylogenetic Indices',
         pre_calc        =>  'calc_abc',
-        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  1,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},
     );

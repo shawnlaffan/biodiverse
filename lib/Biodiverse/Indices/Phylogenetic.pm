@@ -215,6 +215,7 @@ sub get_metadata__calc_pd {
         name            => 'Phylogenetic Diversity base calcs',
         type            => 'Phylogenetic Indices',
         pre_calc        => 'calc_labels_on_tree',
+        pre_calc_global => qw /get_path_length_cache/,
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
     );
@@ -328,7 +329,7 @@ sub get_path_lengths_to_root_node {
     my $use_path_cache = $cache && scalar @$el_list == 1;
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
-        if ($el_list && scalar @$el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
+        if (scalar @$el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
             my $path = $cache->{$el_list->[0]};
             return (wantarray ? %$path : $path) if $path;
         }
@@ -342,10 +343,10 @@ sub get_path_lengths_to_root_node {
       or croak "argument tree_ref is not defined\n";
 
     #  Avoid millions of subroutine calls below.
-    #  We could use a global precalc, but that won;t scale well with
+    #  We could use a global precalc, but that won't scale well with
     #  massive trees where we only need a subset.
-    my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE')
-      // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE => $c); $c};
+    my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE_PER_TERMINAL')
+      // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE_PER_TERMINAL => $c); $c};
 
     # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
@@ -2240,14 +2241,14 @@ sub _calc_phylo_abc_lists {
         %args,
         labels   => $label_hash1,
         tree_ref => $tree,
-        el_list  => [keys $args{element_list1}],
+        el_list  => [keys %{$args{element_list1}}],
     );
 
     my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
         %args,
         labels   => $label_hash2,
         tree_ref => $tree,
-        el_list  => [keys $args{element_list2}],
+        el_list  => [keys %{$args{element_list2}}],
     );
 
     my %A = (%$nodes_in_path1, %$nodes_in_path2); 

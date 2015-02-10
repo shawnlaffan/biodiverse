@@ -4,7 +4,6 @@ package Biodiverse::ReadNexus;
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
 use 5.010;
-use 5.010;
 use strict;
 use warnings;
 use Carp;

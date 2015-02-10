@@ -1186,18 +1186,20 @@ sub _calc_pe {
             my ($gp_score, %gp_wts, %gp_ranges);
 
             #  slice assignment to avoid massively duplicated assignments in the loop
-            @gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
+            #  wasn't faster according to nytprof
+            #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
 
             #  loop over the nodes and run the calcs
           NODE:
             while (my ($name, $length) = each %$nodes_in_path) {
                 # Not sure we even need to test for zero ranges.
                 # We should never suffer this given the pre_calcs.
-                my $range = $gp_ranges{$name}
+                my $range = $node_ranges->{$name}
                   || next NODE;
                 my $wt     = $length / $range;
                 $gp_score += $wt;
-                $gp_wts{$name} = $wt;
+                $gp_wts{$name}    = $wt;
+                $gp_ranges{$name} = $range;
             }
 
             $results = {

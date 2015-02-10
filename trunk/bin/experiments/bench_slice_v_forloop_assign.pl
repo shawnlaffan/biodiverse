@@ -5,7 +5,7 @@ use 5.016;
 
 $| = 1;
 
-use constant USE_TWO_HASHES => 0;
+use constant USE_TWO_HASHES => 1;
 
 my $check_count = 1000;
 
@@ -57,9 +57,11 @@ sub loop_bkgnd {
 __END__
 
 
-Loop approach pays off if more than one hash is assigned to.  
+Loop approach pays off if more than one hash is assigned to.
+Results differ if run under the debugger, but that's not how the code is used in the wild. 
 
 #  sample run with USE_TWO_HASHES = 1
+#  $other_hash = {0 .. 1001}
 
                Rate slice_assign  loop_assign   loop_bkgnd
 slice_assign 2666/s           --          -3%         -48%
@@ -67,6 +69,8 @@ loop_assign  2739/s           3%           --         -47%
 loop_bkgnd   5157/s          93%          88%           --
 
 #  sample run with USE_TWO_HASHES = 0
+#  $other_hash = {0 .. 1001}
+
                Rate  loop_assign   loop_bkgnd slice_assign
 loop_assign  3413/s           --         -30%         -63%
 loop_bkgnd   4859/s          42%           --         -47%

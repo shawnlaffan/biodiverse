@@ -405,14 +405,24 @@ sub get_path_lengths_to_root_node {
         my $sub_path = $path_cache->{$current_node};
 
         if (!$sub_path) {
-            $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
+            $sub_path = $current_node->get_path_to_root_node (cache => $cache);
+            my @p = map {$_->get_name} @$sub_path;
+            $sub_path = \@p;
             $path_cache->{$current_node} = $sub_path;
         }
 
         #  This is a bottleneck for large data sets.
-        #  A binary search to reduce the slice assignments did not speed things up,
-        #  but possibly it was not well implemented.
-        @path{keys %$sub_path} = undef;
+        #  The last-if approach is faster than a straight slice,
+        #  but we should (might) be able to get even more speedup with XS code.  
+        if (!scalar keys %path) {
+            @path{@$sub_path} = ();
+        }
+        else {
+            foreach my $node_name (@$sub_path) {
+                last if exists $path{$node_name};
+                $path{$node_name} = undef;
+            }
+        }
     }
 
     #  Assign the lengths once each.

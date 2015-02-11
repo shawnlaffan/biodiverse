@@ -159,6 +159,8 @@ sub setup {
 __END__
 
 
+Strawberry perl 5.16
+
 ok 1 - outputs match, slice_assign & first_idx
 ok 2 - outputs match, slice_assign & last_if
 1..2
@@ -198,3 +200,47 @@ Check count is 1000
 first_idx  124/s         --       -27%       -46%
 slice_full 171/s        38%         --       -26%
 last_if    232/s        87%        36%         --
+
+
+
+Perlbrew 5.20.1
+
+ok 1 - outputs match, slice_assign & first_idx
+ok 2 - outputs match, slice_assign & last_if
+1..2
+
+Check count is 10
+             Rate  first_idx slice_full    last_if
+first_idx  4609/s         --        -7%        -7%
+slice_full 4948/s         7%         --        -0%
+last_if    4948/s         7%         0%         --
+
+Check count is 50
+             Rate  first_idx slice_full    last_if
+first_idx  2224/s         --        -2%       -16%
+slice_full 2259/s         2%         --       -15%
+last_if    2648/s        19%        17%         --
+
+Check count is 100
+             Rate slice_full  first_idx    last_if
+slice_full 1399/s         --        -1%       -22%
+first_idx  1410/s         1%         --       -21%
+last_if    1786/s        28%        27%         --
+
+Check count is 300
+            Rate slice_full  first_idx    last_if
+slice_full 558/s         --       -12%       -37%
+first_idx  633/s        13%         --       -28%
+last_if    885/s        59%        40%         --
+
+Check count is 500
+            Rate slice_full  first_idx    last_if
+slice_full 355/s         --       -17%       -43%
+first_idx  427/s        20%         --       -32%
+last_if    626/s        76%        47%         --
+
+Check count is 1000
+            Rate slice_full  first_idx    last_if
+slice_full 185/s         --       -22%       -50%
+first_idx  238/s        29%         --       -36%
+last_if    372/s       101%        56%         --

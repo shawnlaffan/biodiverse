@@ -1223,17 +1223,13 @@ sub _calc_pe {
     #  default these to undef - more meaningful than zero
     my ($PE_WE, $PE_WE_P);
 
-    my %ranges;
-    my %wts;
-    my %local_ranges;
-    my %unweighted_wts;  #  count once for each label, not weighted by group
-    my %nodes_in_path;
+    my (%ranges, %wts, %local_ranges, %results);
 
     foreach my $group (@$element_list_all) {
-        my $results;
+        my $results_this_gp;
         #  use the cached results for a group if present
         if (exists $results_cache->{$group}) {
-            $results = $results_cache->{$group};
+            $results_this_gp = $results_cache->{$group};
         }
         #  else build them and cache them
         else {
@@ -1246,8 +1242,7 @@ sub _calc_pe {
 
             my ($gp_score, %gp_wts, %gp_ranges);
 
-            #  slice assignment to avoid massively duplicated assignments in the loop
-            #  wasn't faster according to nytprof
+            #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
 
             #  loop over the nodes and run the calcs
@@ -1263,35 +1258,41 @@ sub _calc_pe {
                 $gp_ranges{$name} = $range;
             }
 
-            $results = {
+            $results_this_gp = {
                 PE_WE           => $gp_score,
-                wts             => \%gp_wts,
-                ranges          => \%gp_ranges,
-                nodes_in_path   => $nodes_in_path,
+                PE_WTLIST       => \%gp_wts,
+                PE_RANGELIST    => \%gp_ranges,
             };
 
-            $results_cache->{$group} = $results;
+            $results_cache->{$group} = $results_this_gp;
         }
 
-        if (defined $results->{PE_WE}) {
-            $PE_WE += $results->{PE_WE};
+        if (defined $results_this_gp->{PE_WE}) {
+            $PE_WE += $results_this_gp->{PE_WE};
         }
 
-        my $hash_ref;
+        #  Avoid some redundant slicing and dicing when we have only one group
+        #  Pays off when processing large data sets
+        if (scalar @$element_list_all == 1) {
+            #  no need to collate anything so make a shallow copy
+            @results{keys %$results_this_gp} = values %$results_this_gp;
+            #  but we do need to add to the local range hash
+            my $hashref = $results_this_gp->{PE_WTLIST};
+            @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
+        }
+        else {
+            my $hash_ref;
 
-        # ranges are invariant, so can be crashed together
-        $hash_ref = $results->{ranges};
-        @ranges{keys %$hash_ref} = values %$hash_ref;
+            # ranges are invariant, so can be crashed together
+            $hash_ref = $results_this_gp->{PE_RANGELIST};
+            @ranges{keys %$hash_ref} = values %$hash_ref;
 
-        # nodes are also invariant
-        $hash_ref = $results->{nodes_in_path};
-        @nodes_in_path{keys %$hash_ref} = values %$hash_ref;
-
-        # weights need to be summed
-        $hash_ref = $results->{wts};
-        foreach my $node (keys %$hash_ref) {
-            $wts{$node} += $hash_ref->{$node};
-            $local_ranges{$node}++;
+            # weights need to be summed
+            $hash_ref = $results_this_gp->{PE_WTLIST};
+            foreach my $node (keys %$hash_ref) {
+                $wts{$node} += $hash_ref->{$node};
+                $local_ranges{$node}++;
+            }
         }
     }
 
@@ -1303,13 +1304,16 @@ sub _calc_pe {
         $PE_WE_P = eval {$PE_WE / $total_tree_length};
     }
 
-    my %results = (
-        PE_WE          => $PE_WE,
-        PE_WE_P        => $PE_WE_P,
-        PE_WTLIST      => \%wts,
-        PE_RANGELIST   => \%ranges,
-        PE_LOCAL_RANGELIST => \%local_ranges,
-    );
+    #  need the collated versions
+    if (scalar @$element_list_all > 1) {
+        $results{PE_WE}     = $PE_WE;
+        $results{PE_WTLIST} = \%wts;
+        $results{PE_RANGELIST} = \%ranges;
+    }
+
+    #  need to set these
+    $results{PE_WE_P} = $PE_WE_P;
+    $results{PE_LOCAL_RANGELIST} = \%local_ranges;
 
     return wantarray ? %results : \%results;
 }
@@ -1538,12 +1542,12 @@ sub get_node_range_hash {
     foreach my $node (sort {$b->get_depth <=> $a->get_depth} values %$nodes) {
         my $node_name = $node->get_name;
         if ($return_lists) {
-            my @range = $self->get_node_range (
+            my %range = $self->get_node_range (
                 %args,
                 node_ref => $node,
             );
             my %range_hash;
-            @range_hash{@range} = undef;
+            @range_hash{keys %range} = ();  #  looks like double handling here...
             $node_range{$node_name} = \%range_hash;
         }
         else {
@@ -1577,7 +1581,7 @@ sub get_node_range {
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
-    my $return_count = !wantarray;
+    my $return_count = !wantarray && !$args{return_list};
 
     my $cache_name = 'NODE_RANGE_LISTS';
     my $cache      = $self->get_cached_value($cache_name)
@@ -1590,9 +1594,16 @@ sub get_node_range {
     if (scalar @$children) {
         foreach my $child (@$children) {
             #my $child_name = $child->get_name;
-            my $cached_list = $cache->{$child}
-              // $self->get_node_range (node_ref => $child);
-            @groups{keys %$cached_list} = undef;
+            my $cached_list = $cache->{$child};
+            if (!defined $cached_list) {
+                #  bodge to work around inconsistent returns
+                #  (can be a key count, a hash, or an array ref of keys)
+                my $c = $self->get_node_range (node_ref => $child, return_list => 1);
+                @groups{@$c} = ();
+            }
+            else {
+                @groups{keys %$cached_list} = ();
+            }
         }
     }
     if (!$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {

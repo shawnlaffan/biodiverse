@@ -3257,8 +3257,7 @@ sub get_sample_count {
 }
 
 sub get_variety {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     no autovivification;
 
@@ -3266,6 +3265,16 @@ sub get_variety {
       croak "element not specified\n";
 
     my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;  #  should croak? 
+
+    #  no explicit return - minor speedup prior to perl 5.20
+    scalar keys %$href;
+}
+
+sub get_variety_aa {
+    no autovivification;
+
+    my $href = $_[0]->{ELEMENTS}{$_[1]}{SUBELEMENTS}
       // return;  #  should croak? 
 
     #  no explicit return - minor speedup prior to perl 5.20

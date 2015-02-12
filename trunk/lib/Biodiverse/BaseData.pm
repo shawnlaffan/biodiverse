@@ -2828,13 +2828,13 @@ sub delete_sub_element {
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
     
-    if ($delete_empty_gps && !$groups_ref->get_variety (element => $group)) {
+    if ($delete_empty_gps && !$groups_ref->get_variety_aa ($group)) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && !$labels_ref->get_variety (element => $label)) {
+    if ($delete_empty_lbs && !$labels_ref->get_variety_aa ($label)) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,

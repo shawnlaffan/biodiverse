@@ -1327,17 +1327,20 @@ sub swap_to_reach_richness_targets {
             #  those not in the unfilled groups
 
             #  we will remove one of these labels
-            my %loser_labels = $new_bd->get_labels_in_group_as_hash (
+            my $loser_labels = $new_bd->get_labels_in_group_as_hash (
                 group => $target_group,
             );
-            my %loser_labels2 = %loser_labels;  #  keep a copy
+            my %loser_labels_copy = %$loser_labels;  #  keep a copy
             #  get those not in the unfilled groups
-            delete @loser_labels{keys %labels_in_unfilled_gps};
+            #  profiling indicates this next line is a bottleneck for large data sets
+            delete @loser_labels_copy{keys %labels_in_unfilled_gps};  
 
             #  use the lot if all labels are in the unfilled groups
-            my $loser_labels_hash_to_use = scalar keys %loser_labels
-                                            ? \%loser_labels
-                                            : \%loser_labels2;
+            my $loser_labels_hash_to_use = scalar keys %loser_labels_copy
+                                            ? \%loser_labels_copy
+                                            : $loser_labels;
+
+say 'Length of loser label hashes: orig: ', (scalar keys %$loser_labels), ' copy: ', (scalar keys %loser_labels_copy);
 
             my $loser_labels_array
                 = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);
@@ -1771,7 +1774,8 @@ sub insert_into_sorted_list {
     my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
     splice @$list, $idx, 0, $item;
 
-    return $idx;
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
 }
 
 sub delete_from_sorted_list {
@@ -1784,7 +1788,9 @@ sub delete_from_sorted_list {
     if (defined $idx) {
         splice @$list, $idx, 1;
     }
-    return $idx;
+
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
 }
 
 

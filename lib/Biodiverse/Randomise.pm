@@ -1330,44 +1330,49 @@ sub swap_to_reach_richness_targets {
             my $loser_labels = $new_bd->get_labels_in_group_as_hash (
                 group => $target_group,
             );
-            my %loser_labels_copy = %$loser_labels;  #  keep a copy
-            #  get those not in the unfilled groups
-            #  profiling indicates this next line is a bottleneck for large data sets
-            delete @loser_labels_copy{keys %labels_in_unfilled_gps};  
+            #my %loser_labels_copy = %$loser_labels;  #  keep a copy
+            ##  get those not in the unfilled groups
+            ##  profiling indicates this next line is a bottleneck for large data sets
+            #delete @loser_labels_copy{keys %labels_in_unfilled_gps};  
+            #
+            ##  use the lot if all labels are in the unfilled groups
+            #my $loser_labels_hash_to_use = scalar keys %loser_labels_copy
+            #                                ? \%loser_labels_copy
+            #                                : $loser_labels;
 
-            #  use the lot if all labels are in the unfilled groups
-            my $loser_labels_hash_to_use = scalar keys %loser_labels_copy
-                                            ? \%loser_labels_copy
-                                            : $loser_labels;
+#say 'Length of loser label hashes: orig: ',
+#    (scalar keys %$loser_labels),
+#    ' copy: ',
+#    (scalar keys %loser_labels_copy),
+#    ' unfilled gps: ',
+#    (scalar keys %labels_in_unfilled_gps);
+    
+            my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;
+            my $loser_labels_array_to_use = scalar @loser_labels_filtered
+                ? \@loser_labels_filtered
+                : [sort keys %$loser_labels];
 
-say 'Length of loser label hashes: orig: ',
-    (scalar keys %$loser_labels),
-    ' copy: ',
-    (scalar keys %loser_labels_copy);
-    ' unfilled gps: ',
-    (scalar keys %labels_in_unfilled_gps);
-
-            my $loser_labels_array
-                = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);
+            my $loser_labels_array_shuffled
+                = $rand->shuffle ($loser_labels_array_to_use);
 
             #  now we loop over the labels and choose the first one that
             #  can be placed in an unfilled group,
             #  otherwise just take the first one
 
             #  set some defaults
-            my $remove_label  = $loser_labels_array->[0];
-            my $removed_count = $loser_labels_hash_to_use->{$remove_label};
+            my $remove_label  = $loser_labels_array_shuffled->[0];
+            my $removed_count = $loser_labels->{$remove_label};
             my $swap_to_unfilled = 0;
 
           BY_LOSER_LABEL:
-            foreach my $label (@$loser_labels_array) {
+            foreach my $label (@$loser_labels_array_shuffled) {
                 #  Do we have any unfilled groups without this label?
                 my $x = $unfilled_gps_without_label{$label} // [];
 
                 next BY_LOSER_LABEL if !scalar @$x;
 
                 $remove_label  = $label;
-                $removed_count = $loser_labels_hash_to_use->{$remove_label};
+                $removed_count = $loser_labels->{$remove_label};
                 $swap_to_unfilled = 1;
                 last BY_LOSER_LABEL;
             }

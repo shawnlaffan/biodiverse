@@ -1340,7 +1340,12 @@ sub swap_to_reach_richness_targets {
                                             ? \%loser_labels_copy
                                             : $loser_labels;
 
-say 'Length of loser label hashes: orig: ', (scalar keys %$loser_labels), ' copy: ', (scalar keys %loser_labels_copy);
+say 'Length of loser label hashes: orig: ',
+    (scalar keys %$loser_labels),
+    ' copy: ',
+    (scalar keys %loser_labels_copy);
+    ' unfilled gps: ',
+    (scalar keys %labels_in_unfilled_gps);
 
             my $loser_labels_array
                 = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);

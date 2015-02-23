@@ -1330,24 +1330,11 @@ sub swap_to_reach_richness_targets {
             my $loser_labels = $new_bd->get_labels_in_group_as_hash (
                 group => $target_group,
             );
-            #my %loser_labels_copy = %$loser_labels;  #  keep a copy
-            ##  get those not in the unfilled groups
-            ##  profiling indicates this next line is a bottleneck for large data sets
-            #delete @loser_labels_copy{keys %labels_in_unfilled_gps};  
-            #
-            ##  use the lot if all labels are in the unfilled groups
-            #my $loser_labels_hash_to_use = scalar keys %loser_labels_copy
-            #                                ? \%loser_labels_copy
-            #                                : $loser_labels;
 
-#say 'Length of loser label hashes: orig: ',
-#    (scalar keys %$loser_labels),
-#    ' copy: ',
-#    (scalar keys %loser_labels_copy),
-#    ' unfilled gps: ',
-#    (scalar keys %labels_in_unfilled_gps);
-    
+            #  get those labels not in the unfilled groups
             my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;
+
+            #  but use all labels lot if all are in the unfilled groups (i.e. the filtered list is empty)
             my $loser_labels_array_to_use = scalar @loser_labels_filtered
                 ? \@loser_labels_filtered
                 : [sort keys %$loser_labels];

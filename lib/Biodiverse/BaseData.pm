@@ -2803,12 +2803,11 @@ sub delete_element {
 
 #  delete a subelement from a label or a group
 sub delete_sub_element {
-    my $self = shift;
-    my %args = @_;
-    
+    my ($self, %args) = @_;
+
     my $label = $args{label};
     my $group = $args{group};
-    
+
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
@@ -2818,7 +2817,7 @@ sub delete_sub_element {
     #  clean up if labels or groups are now empty
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
-    
+
     if ($delete_empty_gps && !$groups_ref->get_variety_aa ($group)) {
         $self->delete_element (
             type => 'GROUPS',

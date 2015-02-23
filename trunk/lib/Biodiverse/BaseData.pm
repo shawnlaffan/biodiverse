@@ -2812,17 +2812,8 @@ sub delete_sub_element {
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
-    #my $orig_range = $labels_ref->get_variety (element => $label);
-    #my $orig_richness = $groups_ref->get_richness (element => $group);    
-    
-    $labels_ref->delete_sub_element (
-        element    => $label,
-        subelement => $group,
-    );
-    $groups_ref->delete_sub_element (
-        element    => $group,
-        subelement => $label,
-    );
+    $labels_ref->delete_sub_element_aa ($label, $group);
+    $groups_ref->delete_sub_element_aa ($group, $label);
 
     #  clean up if labels or groups are now empty
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
@@ -2841,7 +2832,7 @@ sub delete_sub_element {
         );
     }
 
-    return;
+    1;
 }
 
 sub get_redundancy {    #  A cheat method, assumes we want group redundancy by default,

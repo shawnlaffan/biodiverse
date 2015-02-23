@@ -2679,7 +2679,33 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    return;
+    1;
+}
+
+#  array args version to avoid the args hash creation
+#  (benchmarking indicates it takes a meaningful slab of time)
+sub delete_sub_element_aa {
+    my ($self, $element, $sub_element) = @_;
+    
+    croak "element not specified\n" if !defined $element;
+    croak "subelement not specified\n" if !defined $sub_element;
+
+    return if ! exists $self->{ELEMENTS}{$element};
+
+    my $href = $self->{ELEMENTS}{$element};
+
+    if (exists $href->{BASE_STATS}) {
+        delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
+        delete $href->{BASE_STATS}{VARIETY};
+        if (exists $href->{BASE_STATS}{SAMPLECOUNT}) {
+            $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
+        }
+    }
+    if (exists $href->{SUBELEMENTS}) {
+        delete $href->{SUBELEMENTS}{$sub_element};
+    }
+
+    1;
 }
 
 sub exists_element {

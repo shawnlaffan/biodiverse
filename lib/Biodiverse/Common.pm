@@ -1639,8 +1639,13 @@ sub get_csv_object_using_guesswork {
 
         #  Strip trailing chars until we get a newline at the end.
         #  Not perfect for CSV if embedded newlines, but it's a start.
+        my $i = 0;
         while (length $first_10000_chars) {
+            $i++;
             last if $first_10000_chars =~ /\n$/;
+            #  Avoid infinite loops due to wide chars.
+            #  Should fix it properly, though, since later stuff won't work.
+            last if $i > 10000;
             chop $first_10000_chars;
         }
         $string = $first_10000_chars;

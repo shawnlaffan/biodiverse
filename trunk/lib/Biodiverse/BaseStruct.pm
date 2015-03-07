@@ -2715,8 +2715,8 @@ sub exists_element {
     my $el = $args{element}
       // croak "element not specified\n";
 
-    my $exists = exists $self->{ELEMENTS}{$el};
-    return $exists;
+    #  no explicit return for speed under pre-5.20 perls
+    exists $self->{ELEMENTS}{$el};
 }
 
 sub exists_sub_element {

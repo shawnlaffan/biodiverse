@@ -1204,9 +1204,9 @@ sub swap_to_reach_richness_targets {
             }
             else {
                 $unfilled_gps_without_label{$label} //= [];
-                $self->insert_into_sorted_list (
-                    item => $gp,
-                    list => $unfilled_gps_without_label{$label},
+                $self->insert_into_sorted_list_aa (
+                    $gp,
+                    $unfilled_gps_without_label{$label},
                 );
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
@@ -1361,9 +1361,9 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                $self->insert_into_sorted_list (
-                    item => $target_group,
-                    list => $groups_without_labels_a{$remove_label},
+                $self->insert_into_sorted_list_aa (
+                    $target_group,
+                    $groups_without_labels_a{$remove_label},
                 );
             }
             #   unfilled_groups condition will never trigger in this if-branch
@@ -1410,9 +1410,9 @@ sub swap_to_reach_richness_targets {
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
-                $self->insert_into_sorted_list ( #  update the tracker
-                    item => $old_gp,
-                    list => $cloned_bd_groups_with_label_a{$remove_label},
+                $self->insert_into_sorted_list_aa ( #  update the tracker
+                    $old_gp,
+                    $cloned_bd_groups_with_label_a{$remove_label},
                 );
             }
             else {
@@ -1779,7 +1779,7 @@ sub insert_into_sorted_list {
 
 #  array args version - should reduce sub cleanup overheads
 sub insert_into_sorted_list_aa {
-    my ($self, $list, $item) = @_;
+    my ($self, $item, $list) = @_;
 
     my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
     splice @$list, $idx, 0, $item;

@@ -1217,23 +1217,11 @@ sub swap_to_reach_richness_targets {
     # expensive method calls to get_groups_with(out)_label_as_hash
     my %groups_without_labels_a;       #  store sorted arrays
     my %cloned_bd_groups_with_label_a;
+    my %orig_bd_groups_with_label_a;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
-
-    
-#  debugging
-#my %xx;
-#foreach my $lb (keys %unfilled_gps_without_label) {
-#    my $lref = $unfilled_gps_without_label{$lb};
-#    foreach my $gp (@$lref) {
-#        $xx{$gp}{$lb}++;
-#    }
-#}
-#use Test::More;
-#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
-
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
@@ -1334,10 +1322,10 @@ sub swap_to_reach_richness_targets {
             #  get those labels not in the unfilled groups
             my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;
 
-            #  but use all labels lot if all are in the unfilled groups (i.e. the filtered list is empty)
+            #  but select from all labels if all are in the unfilled groups (i.e. the filtered list is empty)
             my $loser_labels_array_to_use = scalar @loser_labels_filtered
                 ? \@loser_labels_filtered
-                : [sort keys %$loser_labels];
+                : [sort keys %$loser_labels];  #  could cache this as a sorted list
 
             my $loser_labels_array_shuffled
                 = $rand->shuffle ($loser_labels_array_to_use);
@@ -1389,19 +1377,33 @@ sub swap_to_reach_richness_targets {
                 #  unallocated lists.
                 #  Use one of its old locations.
                 #  (Just use the first one).
-                my %old_groups
-                    = $bd->get_groups_with_label_as_hash (
+                my $old_gps_with_remove_label = $orig_bd_groups_with_label_a{$remove_label};
+                if (!$old_gps_with_remove_label) {  #  These do not change so access and cache.  Sort is for repeatability.
+                    my $gps = $bd->get_groups_with_label_as_hash (
                         label => $remove_label,
                     );
+                    my @gps = sort keys %$gps;
+                    $old_gps_with_remove_label = \@gps;
+                    $orig_bd_groups_with_label_a{$remove_label} = $old_gps_with_remove_label;
+                }
 
-                my @cloned_self_gps_with_label
+                my $cloned_self_gps_with_label
                     = $cloned_bd->get_groups_with_label_as_hash (
                         label => $remove_label,
                     );
 
                 #  make sure it does not add to an existing case
-                delete @old_groups{@cloned_self_gps_with_label};
-                my $old_gp = minstr keys %old_groups;
+                #delete @old_groups{keys %$cloned_self_gps_with_label};
+                #my $old_gp = minstr keys %old_groups;
+                #my $old_gp = minstr grep {!exists $cloned_self_gps_with_label->{$_}} keys %$old_gps_with_remove_label;
+                my $old_gp;
+              BY_GP:
+                for my $gp (@$old_gps_with_remove_label) {
+                    if (!exists $cloned_self_gps_with_label->{$gp}) {
+                        $old_gp = $gp;
+                        last BY_GP;
+                    }
+                }
                 $cloned_bd->add_element   (
                     label => $remove_label,
                     group => $old_gp,
@@ -1767,6 +1769,17 @@ sub insert_into_sorted_list {
     my %args = @_;
     my $list = $args{list};
     my $item = $args{item};
+
+    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    splice @$list, $idx, 0, $item;
+
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
+}
+
+#  array args version - should reduce sub cleanup overheads
+sub insert_into_sorted_list_aa {
+    my ($self, $list, $item) = @_;
 
     my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
     splice @$list, $idx, 0, $item;

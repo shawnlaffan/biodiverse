@@ -1036,7 +1036,8 @@ END_PROGRESS_TEXT
         if (scalar keys %filled_groups) {
             delete @target_groups_hash{keys %filled_groups};
             $check = scalar keys %target_groups_hash;
-            my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
+            #   grep is not faster than the slice delete in this case
+            #my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
         }
         @target_groups = sort keys %target_groups_hash;
 

@@ -1021,25 +1021,29 @@ END_PROGRESS_TEXT
             || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
-        my %target_groups = %all_target_groups;
+        #  we don't need the values, and slice assignment is
+        #  faster than straight copy (close to twice as fast)
+        my %target_groups_hash;
+        @target_groups_hash{keys %all_target_groups} = ();  
 
         #  don't consider groups that are full or that already have this label
         if (scalar keys %$new_bd_has_label) {
-            delete @target_groups{keys %$new_bd_has_label} ;
+            delete @target_groups_hash{keys %$new_bd_has_label} ;
         }
 
-        my $check  = scalar keys %target_groups;
+        my $check  = scalar keys %target_groups_hash;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
-            delete @target_groups{keys %filled_groups};
-            $check = scalar keys %target_groups;
+            delete @target_groups_hash{keys %filled_groups};
+            $check = scalar keys %target_groups_hash;
+            my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
         }
-        @target_groups = sort keys %target_groups;
+        @target_groups = sort keys %target_groups_hash;
 
         ###  get the remaining original groups containing the original label.  Make sure it's a copy
         my %tmp
             = $cloned_bd->get_groups_with_label_as_hash (label => $label);
-        my $tmp_rand_order = $rand->shuffle ([keys %tmp]);
+        my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
         BY_GROUP:
         foreach my $from_group (@$tmp_rand_order) {

@@ -921,7 +921,8 @@ sub get_csv_object_for_export {
     }
     
     my $csv_obj = $self->get_csv_object (
-        sep_char => $sep_char,
+        %args,
+        sep_char   => $sep_char,
         quote_char => $quote_char,
     );
 
@@ -1229,7 +1230,9 @@ sub get_csv_object {
         @_,
     );
 
-    $args{escape_char} //= $args{quote_char};
+    if (!exists $args{escape_char}) {
+        $args{escape_char} //= $args{quote_char};
+    }
 
     foreach my $arg (keys %args) {
         if (! exists $valid_csv_args{$arg}) {

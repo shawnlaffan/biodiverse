@@ -1081,6 +1081,8 @@ sub to_table_sym {
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
+    my $quote_char = $csv_obj->quote_char // $self->get_param('QUOTES');
+
     my @data;
     my @elements = sort $self->get_element_list;
 
@@ -1089,6 +1091,9 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$list_hash_ref;
+    my @quoted_print_order =
+        map {looks_like_number ($_) ? $_ : "$quote_char$_$quote_char"}
+        @print_order;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
 
@@ -1110,14 +1115,14 @@ sub to_table_sym {
         push @header, qw /Key Value/; #/
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
     #  now add the data to the array
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
         if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
             if ($#array < $max_element_array_len) {  #  pad if needed
@@ -1183,6 +1188,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
+    my $quote_char = $csv_obj->quote_char // $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
@@ -1206,8 +1212,8 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push @data, \@header;
 
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element));
         }
@@ -1281,18 +1287,24 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $elements = $self->get_element_hash();
     my %indices_hash;
 
-    print "[BASESTRUCT] Getting keys...\n";
-    BY_ELEMENT1:
+    my $quote_char = $csv_obj->quote_char // $self->get_param('QUOTES');
+
+    say "[BASESTRUCT] Getting keys...";
+
+  BY_ELEMENT1:
     foreach my $elt (keys %$elements) {
-            my $sub_list = $elements->{$elt}{$list};
-            if ((ref $sub_list) =~ /ARRAY/) {
-                @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
-            }
-            elsif ((ref $sub_list) =~ /HASH/) {
-                @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
-            }
+        my $sub_list = $elements->{$elt}{$list};
+        if ((ref $sub_list) =~ /ARRAY/) {
+            @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
+        }
+        elsif ((ref $sub_list) =~ /HASH/) {
+            @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
+        }
     }
     my @print_order = sort keys %indices_hash;
+    my @quoted_print_order =
+        map {looks_like_number ($_) ? $_ : "$quote_char$_$quote_char"}
+        @print_order;
 
     my @data;
     my @elements = sort keys %$elements;
@@ -1310,7 +1322,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         push @header, qw /Key Value/;
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
@@ -1318,8 +1330,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
+        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
 
-        my @basic = ($element);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }

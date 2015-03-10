@@ -1031,7 +1031,7 @@ END_PROGRESS_TEXT
             delete @target_groups_hash{keys %$new_bd_has_label} ;
         }
 
-        my $check  = scalar keys %target_groups_hash;
+        my $check  = scalar keys %all_target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
             delete @target_groups_hash{keys %filled_groups};

@@ -289,6 +289,7 @@ sub get_table_export_metadata {
             : (',', 'tab', ';', 'space', ':');
 
     my @quote_chars = qw /" ' + $/; #"
+    my $el_quote_char = $self->get_param('QUOTES');
 
     my $mx_explanation = $self->get_tooltip_sparse_normal;
 
@@ -299,7 +300,7 @@ sub get_table_export_metadata {
             tooltip    => "Rectangular matrix, one row per element (group).\n"
                         . $mx_explanation,
             type       => 'boolean',
-            default    => 1
+            default    => 1,
         },
         {
             name       => 'one_value_per_line',
@@ -307,7 +308,7 @@ sub get_table_export_metadata {
             tooltip    => "Sparse matrix, repeats elements for each value.\n"
                         . $mx_explanation,
             type       => 'boolean',
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'sep_char',
@@ -315,7 +316,7 @@ sub get_table_export_metadata {
             tooltip    => 'Suggested options are comma for .csv files, tab for .txt files',
             type       => 'choice',
             choices    => \@sep_chars,
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'quote_char',
@@ -323,7 +324,7 @@ sub get_table_export_metadata {
             tooltip    => 'For delimited text exports only',
             type       => 'choice',
             choices    => \@quote_chars,
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'no_data_value',
@@ -333,8 +334,18 @@ sub get_table_export_metadata {
             type       => 'choice',
             choices    => \@no_data_values,
             default    => 0,
-        },   
-     ];
+        },
+        {
+            name       => 'quote_element_names_and_headers',
+            label_text => 'Quote element names and headers',
+            tooltip    => 'Should the element names (labels and groups) and column headers be quoted?  '
+                        . 'MS Excel otherwise misinterprets characters such as colons in the names '
+                        . 'as a range operator or time variable, wrecking the data on import.'
+                        . "\nThis uses the internal quote character, which is $el_quote_char.",
+            type       => 'boolean',
+            default    => 0,
+        },
+    ];
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
 }
@@ -1077,9 +1088,12 @@ sub to_table_sym {
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
+
+    my $quote_char = $self->get_param('QUOTES');
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -1089,6 +1103,9 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$list_hash_ref;
+    my @quoted_print_order =
+        map {$quote_el_names ? $_ : "$quote_char$_$quote_char"}
+        @print_order;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
 
@@ -1110,14 +1127,14 @@ sub to_table_sym {
         push @header, qw /Key Value/; #/
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
     #  now add the data to the array
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = $quote_el_names ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
         if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
             if ($#array < $max_element_array_len) {  #  pad if needed
@@ -1180,9 +1197,11 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
+    my $quote_char = $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
@@ -1206,8 +1225,8 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push @data, \@header;
 
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = $quote_el_names ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element));
         }
@@ -1272,6 +1291,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
@@ -1281,18 +1301,24 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $elements = $self->get_element_hash();
     my %indices_hash;
 
-    print "[BASESTRUCT] Getting keys...\n";
-    BY_ELEMENT1:
+    my $quote_char = $self->get_param('QUOTES');
+
+    say "[BASESTRUCT] Getting keys...";
+
+  BY_ELEMENT1:
     foreach my $elt (keys %$elements) {
-            my $sub_list = $elements->{$elt}{$list};
-            if ((ref $sub_list) =~ /ARRAY/) {
-                @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
-            }
-            elsif ((ref $sub_list) =~ /HASH/) {
-                @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
-            }
+        my $sub_list = $elements->{$elt}{$list};
+        if ((ref $sub_list) =~ /ARRAY/) {
+            @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
+        }
+        elsif ((ref $sub_list) =~ /HASH/) {
+            @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
+        }
     }
     my @print_order = sort keys %indices_hash;
+    my @quoted_print_order =
+        map {$quote_el_names && looks_like_number ($_) ? $_ : "$quote_char$_$quote_char"}
+        @print_order;
 
     my @data;
     my @elements = sort keys %$elements;
@@ -1310,7 +1336,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         push @header, qw /Key Value/;
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
@@ -1318,8 +1344,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
+        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
 
-        my @basic = ($element);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }

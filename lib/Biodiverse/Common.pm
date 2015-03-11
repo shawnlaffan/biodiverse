@@ -1596,16 +1596,39 @@ sub guess_eol {
     my %args = @_;
 
     return if ! defined $args{string};
+
     my $string = $args{string};
     $string = $$string if ref ($string);
 
-    my $pattern = $args{pattern} || qr/[\r\n]+/;
+    my $pattern = $args{pattern} || qr/(?:\r\n|\n|\r)/;
 
-    if ($string =~ /($pattern).*\z/s) {
-        return $1;
+    use feature 'unicode_strings';  #  needed?
+
+    my %newlines;
+    my @newlines_a = $string =~ /$pattern/g;
+    foreach my $nl (@newlines_a) {
+        $newlines{$nl}++;
     }
 
-    return "\n";
+    my $eol;
+
+    my @eols = keys %newlines;
+    if (!scalar @eols) {
+        $eol = "\n";
+    }
+    elsif (scalar @eols == 1) {
+        $eol = $eols[0];
+    }
+    else {
+        foreach my $e (@eols) {
+            my $max_count = 0;
+            if ($newlines{$e} > $max_count) {
+                $eol = $e;
+            }
+        }
+    }
+
+    return $eol // "\n";
 }
 
 
@@ -1660,7 +1683,7 @@ sub get_csv_object_using_guesswork {
 
     $eol //= $self->guess_eol (string => $string);
 
-    $quote_char //= $self->guess_quote_char (string => \$string);
+    $quote_char //= $self->guess_quote_char (string => \$string, eol => $eol);
     #  if all else fails...
     $quote_char //= $self->get_param ('QUOTES');
 

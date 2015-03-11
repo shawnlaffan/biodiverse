@@ -22,7 +22,7 @@
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_007_linux64.tar.gz Linux (64 bit)].  Download, unzip, and then run the Biodiverse binary.  You might need to follow some of the [https://code.google.com/p/biodiverse/wiki/InstallationLinuxBinary installation instructions].
 
-  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_007_source.7z Source code].  For Mac users.  See the [https://code.google.com/p/biodiverse/wiki/InstallationMacSource installation instructions].
+  * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_007_source.zip Source code].  For Mac users.  See the [https://code.google.com/p/biodiverse/wiki/InstallationMacSource installation instructions].
 
   * [http://biodiverse.unsw.edu.au/downloads/biodiverse_0.99_004_example_data.7z Example data]
 

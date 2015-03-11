@@ -1632,26 +1632,30 @@ sub get_csv_object_using_guesswork {
         croak "Both arguments 'string' and 'fname' not specified\n"
           if !defined $fname;
 
-        my $first_10000_chars;
+        my $first_char_set = '';
 
         #  read in a chunk of the file for guesswork
         my $fh2 = IO::File->new;
         $fh2->open ($fname, '<:via(File::BOM)');
-        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        while (!$fh2->eof && length ($first_char_set) < 10000) {
+            $first_char_set .= $fh2->getline;
+        }
         $fh2->close;
 
         #  Strip trailing chars until we get a newline at the end.
         #  Not perfect for CSV if embedded newlines, but it's a start.
-        my $i = 0;
-        while (length $first_10000_chars) {
-            $i++;
-            last if $first_10000_chars =~ /\n$/;
-            #  Avoid infinite loops due to wide chars.
-            #  Should fix it properly, though, since later stuff won't work.
-            last if $i > 10000;
-            chop $first_10000_chars;
+        if ($first_char_set =~ /\n/) {
+            my $i = 0;
+            while (length $first_char_set) {
+                $i++;
+                last if $first_char_set =~ /\n$/;
+                #  Avoid infinite loops due to wide chars.
+                #  Should fix it properly, though, since later stuff won't work.
+                last if $i > 10000;
+                chop $first_char_set;
+            }
         }
-        $string = $first_10000_chars;
+        $string = $first_char_set;
     }
 
     $eol //= $self->guess_eol (string => $string);

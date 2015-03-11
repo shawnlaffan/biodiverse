@@ -830,14 +830,11 @@ sub import_data {
         say "[BASEDATA] INPUT FILE: $file";
         my $file_base = $file->basename;
 
-        my $file_handle = IO::File->new;
+        #my $file_handle = IO::File->new;
+        open_bom (my $file_handle, $file, ':utf8');
 
-        if (-e $file and -r $file) {
-            $file_handle->open ($file, '<:via(File::BOM)');
-        }
-        else {
-            croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n";
-        }
+        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+          if not (-e $file and -r $file);
 
         my $file_size_Mb
             = $self->set_precision (

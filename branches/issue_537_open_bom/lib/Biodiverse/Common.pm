@@ -23,6 +23,7 @@ use HTML::QuickTable;
 #use XBase;
 #use MRO::Compat;
 use Class::Inspector;
+use File::BOM qw /:subs/;
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -1598,11 +1599,37 @@ sub guess_eol {
 
     my $pattern = $args{pattern} || qr/[\r\n]+/;
 
-    if ($string =~ /($pattern).*\z/s) {
-        return $1;
+    use feature 'unicode_strings';
+
+    my %newlines;
+    my @newlines_a = $string =~ /$pattern/g;
+    foreach my $nl (@newlines_a) {
+        $newlines{$nl}++;
     }
 
-    return "\n";
+    my $eol;
+
+    my @eols = keys %newlines;
+    if (!scalar @eols) {
+        $eol = "\n";
+    }
+    elsif (scalar @eols == 1) {
+        $eol = $eols[0];
+    }
+    else {
+        foreach my $e (@eols) {
+            my $max_count = 0;
+            if ($newlines{$e} > $max_count) {
+                $eol = $newlines{$e};
+            }
+        }
+    }
+
+    #if ($string =~ /($pattern).*\z/s) {
+    #    return $1;
+    #}
+
+    return $eol // "\n";
 }
 
 
@@ -1629,13 +1656,14 @@ sub get_csv_object_using_guesswork {
         croak "Both arguments 'string' and 'fname' not specified\n"
           if !defined $fname;
 
+        #  read in a chunk of the file for guesswork (sep_char and quotes)
         my $first_10000_chars;
-
-        #  read in a chunk of the file for guesswork
-        my $fh2 = IO::File->new;
-        $fh2->open ($fname, '<:via(File::BOM)');
+        #my $fh2 = IO::File->new;
+        #$fh2->open ($fname, '<:via(File::BOM)');
+        open_bom (my $fh2, $fname, ':utf8');
         my $count_chars = $fh2->read ($first_10000_chars, 10000);
         $fh2->close;
+        #say $first_10000_chars;
 
         #  Strip trailing chars until we get a newline at the end.
         #  Not perfect for CSV if embedded newlines, but it's a start.
@@ -1647,6 +1675,7 @@ sub get_csv_object_using_guesswork {
             #  Should fix it properly, though, since later stuff won't work.
             last if $i > 10000;
             chop $first_10000_chars;
+            #say "$first_10000_chars :: " . length $first_10000_chars;
         }
         $string = $first_10000_chars;
     }

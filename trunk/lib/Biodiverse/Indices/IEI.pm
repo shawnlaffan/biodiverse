@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.99_007';
+our $VERSION = '0.99_008';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

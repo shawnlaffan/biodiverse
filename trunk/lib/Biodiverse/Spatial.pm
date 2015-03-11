@@ -12,7 +12,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_007';
+our $VERSION = '0.99_008';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;

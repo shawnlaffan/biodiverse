@@ -2,7 +2,7 @@ package Biodiverse::Metadata;
 use strict;
 use warnings;
 
-our $VERSION = '0.99_007';
+our $VERSION = '0.99_008';
 
 sub new {
     my $class = shift;

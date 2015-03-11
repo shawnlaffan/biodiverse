@@ -26,7 +26,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_007';
+our $VERSION = '0.99_008';
 
 my $EMPTY_STRING = q{};
 

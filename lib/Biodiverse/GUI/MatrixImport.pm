@@ -11,7 +11,7 @@ use File::BOM qw / :subs /;
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.99_007';
+our $VERSION = '0.99_008';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport;  #  needed for the remap dialogue - should shift that to its own package

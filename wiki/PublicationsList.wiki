@@ -12,6 +12,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order by year, then by author within years).
 
+  *  Nagalingum, N.S., Knerr, N., Laffan, S., Gonzalez-Orozco, C., Thornhill, A., Miller, J.T. and Mishler, B.D. (in press) Continental scale patterns and predictors of fern richness and phylogenetic diversity. [http://journal.frontiersin.org/article/10.3389/fgene.2015.00132/ Frontiers in Genetics].
+
   *  Schmidt-Lebuhn, A.N., Knerr, N.J., Miller, J.T and Mishler, B.D. (in press) Phylogenetic diversity and endemism of Australian daisies (Asteraceae).  [http://dx.doi.org/10.1111/jbi.12488]
 
   *  Cook, L.G., Hardy, N.B. and Crisp, M.D. (in press) Three explanations for biodiversity hotspots: small range size, geographical overlap and time for species accumulation. An Australian case study.  [http://dx.doi.org/10.1111/nph.13199 New Phytologist].

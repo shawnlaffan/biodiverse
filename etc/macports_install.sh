@@ -6,6 +6,7 @@
 
 sudo port install p5-gtk2-gladexml
 sudo port install p5-gnome2-canvas
+sudo port install gdal
 
 sudo /opt/local/bin/perl -MCPAN -e 'install LWP::Simple'
 sudo /opt/local/bin/perl -MCPAN -e 'install Task::Biodiverse::NoGUI'

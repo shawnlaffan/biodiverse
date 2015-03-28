@@ -1104,7 +1104,7 @@ sub to_table_sym {
     );
     my @print_order = sort keys %$list_hash_ref;
     my @quoted_print_order =
-        map {$quote_el_names ? $_ : "$quote_char$_$quote_char"}
+        map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
         @print_order;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
@@ -1133,7 +1133,7 @@ sub to_table_sym {
     
     #  now add the data to the array
     foreach my $element (@elements) {
-        my $el = $quote_el_names ? $element : "$quote_char$element$quote_char";
+        my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
@@ -1225,7 +1225,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push @data, \@header;
 
     foreach my $element (@elements) {
-        my $el = $quote_el_names ? $element : "$quote_char$element$quote_char";
+        my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element));
@@ -1317,7 +1317,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
     my @print_order = sort keys %indices_hash;
     my @quoted_print_order =
-        map {$quote_el_names && looks_like_number ($_) ? $_ : "$quote_char$_$quote_char"}
+        map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}
         @print_order;
 
     my @data;

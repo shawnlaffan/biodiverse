@@ -402,12 +402,18 @@ sub get_calculation_metadata_as_markdown {
     my %indices;
     my %calculation_hash;
     foreach my $type (sort keys %calculations) {
-        push @toc, "  * [$type](#$type)";
+        my $wiki_anchor = lc $type;
+        $wiki_anchor    =~ s/ /-/g;
+        $wiki_anchor    =~ s/[^a-z-]//g;
+        push @toc, "  * [$type](#$wiki_anchor)";
         foreach my $calculations (@{$calculations{$type}}) {
             my $ref = $self->get_metadata (sub => $calculations);
             $ref->{analysis} = $calculations;
             $calculation_hash{$type}{$calculations} = $ref;
-            push @toc, "    * [$ref->{name}](#$ref->{name})";
+            my $wiki_anchor = lc $ref->{name};
+            $wiki_anchor    =~ s/ /-/g;
+            $wiki_anchor    =~ s/[^a-z-]//g;
+            push @toc, "    * [$ref->{name}](#$wiki_anchor)";
         }
     }
 

@@ -397,13 +397,17 @@ sub get_calculation_metadata_as_markdown {
 
     #my @place_holder = (undef, undef);
 
+    my @toc;
+
     my %indices;
     my %calculation_hash;
     foreach my $type (sort keys %calculations) {
+        push @toc, "  * [$type](#$type)";
         foreach my $calculations (@{$calculations{$type}}) {
             my $ref = $self->get_metadata (sub => $calculations);
             $ref->{analysis} = $calculations;
             $calculation_hash{$type}{$calculations} = $ref;
+            push @toc, "    * [$ref->{name}](#$ref->{name})";
         }
     }
 
@@ -411,7 +415,11 @@ sub get_calculation_metadata_as_markdown {
     #                                  || $a->{name} cmp $b->{name}
     #                                  };
 
-    my $html;
+    my $markdown;
+
+    $markdown .= "**Indices available in Biodiverse:**\n";
+    $markdown .= join "\n", @toc;
+    $markdown .= "\n\n";
 
     my %done;
     my $count = 1;
@@ -431,7 +439,7 @@ sub get_calculation_metadata_as_markdown {
         my $type_text = $type;
         #$type_text =~ s/\*/`\*`/;  #  escape any highlight characters
         #$type_text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
-        $html .= "## $type_text ##";
+        $markdown .= "## $type_text ##";
 
         my $type_ref = $calculation_hash{$type};
 
@@ -445,13 +453,13 @@ sub get_calculation_metadata_as_markdown {
                 #$_ =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
             }
 
-            $html .= "\n \n \n";
-            $html .= "\n \n### $name ###\n \n";
-            $html .= "**Description:**   $description\n\n";
-            $html .= "**Subroutine:**   $ref->{analysis}\n\n";
-            #$html .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
+            $markdown .= "\n \n \n";
+            $markdown .= "\n \n### $name ###\n \n";
+            $markdown .= "**Description:**   $description\n\n";
+            $markdown .= "**Subroutine:**   $ref->{analysis}\n\n";
+            #$markdown .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
             if (my $reference = $ref->get_reference) {
-                $html .= "**Reference:**   $reference\n \n\n";
+                $markdown .= "**Reference:**   $reference\n \n\n";
             }
 
             my $formula = $ref->get_formula;
@@ -489,7 +497,7 @@ sub get_calculation_metadata_as_markdown {
                     $iter++;
                 }
 
-                $html .= "**Formula:**\n   $formula_url\n\n";
+                $markdown .= "**Formula:**\n   $formula_url\n\n";
             }
 
             my @table;
@@ -571,7 +579,7 @@ sub get_calculation_metadata_as_markdown {
                 }
             }
 
-            #$html .= $table;
+            #$markdown .= $table;
 
             #  splice in the separator text
             my @separator = ('----') x scalar @{$table[0]};
@@ -586,14 +594,14 @@ sub get_calculation_metadata_as_markdown {
 
                 #my $x = grep {! defined $_} @$line;
 
-                $html .= $line_text;
+                $markdown .= $line_text;
             }
 
-            $html .= "\n\n";
+            $markdown .= "\n\n";
         }
     }
 
-    return $html;
+    return $markdown;
 }
 
 

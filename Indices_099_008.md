@@ -1,3 +1,7 @@
+---
+layout: recipe
+title: Indices_test
+---
 
 # Indices available in Biodiverse 
 _Generated GMT Sun Apr  5 11:09:41 2015 using build_indices_table.pl, Biodiverse version 0.99_008._

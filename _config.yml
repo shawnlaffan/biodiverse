@@ -4,8 +4,8 @@ email: shawn.laffan@unsw.edu.au
 description: > # this means to ignore newlines until "baseurl:"
   Biodiverse is a tool for the spatial analysis of diversity.
 baseurl: /biodiverse/ # the subpath of your site, e.g. /blog/
-url: "http://shawnlaffan.github.io/biodiverse/" # the base hostname & protocol for your site
+url: "http://shawnlaffan.github.io/biodiverse" # the base hostname & protocol for your site
 github_username:  shawnlaffan
 
 # Build settings
-markdown: kramdown
+markdown: redcarpet

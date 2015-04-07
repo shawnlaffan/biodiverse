@@ -1,5 +1,4 @@
 ---
-layout: recipe
 title: Indices_test
 ---
 
@@ -465,10 +464,10 @@ hash values are the property value frequencies.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* | *Reference* |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| 31 | ENDC_CWE | Corrected weighted endemism |   | 1 | ![= \\frac{ENDC\\_WE}{ENDC\\_RICHNESS}](http://latex.codecogs.com/png.latex?= \\frac{ENDC\\_WE}{ENDC\\_RICHNESS}%.png)  |   |
+| 31 | ENDC_CWE | Corrected weighted endemism |   | 1 | ![= \frac{ENDC\_WE}{ENDC\_RICHNESS}](http://latex.codecogs.com/png.latex?= \frac{ENDC\_WE}{ENDC\_RICHNESS}%.png)  |   |
 | 32 | ENDC_RICHNESS | Richness used in ENDC_CWE (same as index RICHNESS_SET1) |   | 1 |   |   |
-| 33 | ENDC_SINGLE | Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.   Useful if your data have sampling biases and best applied with a small window. |   | 1 | ![= \\sum_{t \\in T} \\frac {1} {R_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {1} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) in neighbour set 1, and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  | Slatyer et al. (2007) J. Biogeog http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x |
-| 34 | ENDC_WE | Weighted endemism |   | 1 | ![= \\sum_{t \\in T} \\frac {r_t} {R_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {r_t} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) in neighbour set 1, ![r_t](http://latex.codecogs.com/png.latex?r_t%.png) is the local range (the number of elements containing label ![t](http://latex.codecogs.com/png.latex?t%.png) within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  |   |
+| 33 | ENDC_SINGLE | Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.   Useful if your data have sampling biases and best applied with a small window. |   | 1 | ![= \sum_{t \in T} \frac {1} {R_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {1} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) in neighbour set 1, and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  | Slatyer et al. (2007) J. Biogeog http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x |
+| 34 | ENDC_WE | Weighted endemism |   | 1 | ![= \sum_{t \in T} \frac {r_t} {R_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {r_t} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) in neighbour set 1, ![r_t](http://latex.codecogs.com/png.latex?r_t%.png) is the local range (the number of elements containing label ![t](http://latex.codecogs.com/png.latex?t%.png) within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  |   |
 
 
 
@@ -529,8 +528,8 @@ hash values are the property value frequencies.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 45 | ENDC_CWE_NORM | Corrected weighted endemism normalised by groups |   | 1 | ![= \\frac{ENDC\\_CWE}{EL\\_COUNT\\_ALL}](http://latex.codecogs.com/png.latex?= \\frac{ENDC\\_CWE}{EL\\_COUNT\\_ALL}%.png)  |
-| 46 | ENDC_WE_NORM | Weighted endemism normalised by groups |   | 1 | ![= \\frac{ENDC\\_WE}{EL\\_COUNT\\_ALL}](http://latex.codecogs.com/png.latex?= \\frac{ENDC\\_WE}{EL\\_COUNT\\_ALL}%.png)  |
+| 45 | ENDC_CWE_NORM | Corrected weighted endemism normalised by groups |   | 1 | ![= \frac{ENDC\_CWE}{EL\_COUNT\_ALL}](http://latex.codecogs.com/png.latex?= \frac{ENDC\_CWE}{EL\_COUNT\_ALL}%.png)  |
+| 46 | ENDC_WE_NORM | Weighted endemism normalised by groups |   | 1 | ![= \frac{ENDC\_WE}{EL\_COUNT\_ALL}](http://latex.codecogs.com/png.latex?= \frac{ENDC\_WE}{EL\_COUNT\_ALL}%.png)  |
 
 
 
@@ -546,10 +545,10 @@ hash values are the property value frequencies.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* | *Reference* |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| 47 | ENDW_CWE | Corrected weighted endemism |   | 1 | ![= \\frac{ENDW\\_WE}{ENDW\\_RICHNESS}](http://latex.codecogs.com/png.latex?= \\frac{ENDW\\_WE}{ENDW\\_RICHNESS}%.png)  |   |
+| 47 | ENDW_CWE | Corrected weighted endemism |   | 1 | ![= \frac{ENDW\_WE}{ENDW\_RICHNESS}](http://latex.codecogs.com/png.latex?= \frac{ENDW\_WE}{ENDW\_RICHNESS}%.png)  |   |
 | 48 | ENDW_RICHNESS | Richness used in ENDW_CWE (same as index RICHNESS_ALL) |   | 1 |   |   |
-| 49 | ENDW_SINGLE | Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.   Useful if your data have sampling biases and best applied with a small window. |   | 1 | ![= \\sum_{t \\in T} \\frac {1} {R_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {1} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across neighbour sets 1 & 2, and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  | Slatyer et al. (2007) J. Biogeog http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x |
-| 50 | ENDW_WE | Weighted endemism |   | 1 | ![= \\sum_{t \\in T} \\frac {r_t} {R_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {r_t} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across both neighbour sets, ![r_t](http://latex.codecogs.com/png.latex?r_t%.png) is the local range (the number of elements containing label ![t](http://latex.codecogs.com/png.latex?t%.png) within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  |   |
+| 49 | ENDW_SINGLE | Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in.   Useful if your data have sampling biases and best applied with a small window. |   | 1 | ![= \sum_{t \in T} \frac {1} {R_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {1} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across neighbour sets 1 & 2, and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  | Slatyer et al. (2007) J. Biogeog http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x |
+| 50 | ENDW_WE | Weighted endemism |   | 1 | ![= \sum_{t \in T} \frac {r_t} {R_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {r_t} {R_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across both neighbour sets, ![r_t](http://latex.codecogs.com/png.latex?r_t%.png) is the local range (the number of elements containing label ![t](http://latex.codecogs.com/png.latex?t%.png) within neighbour sets 1 & 2, this is also its value in list ABC2_LABELS_ALL), and ![R_t](http://latex.codecogs.com/png.latex?R_t%.png) is the global range of label ![t](http://latex.codecogs.com/png.latex?t%.png) across the data set (the number of groups it is found in, unless the range is specified at import).  |   |
 
 
 
@@ -610,8 +609,8 @@ hash values are the property value frequencies.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 61 | ENDW_CWE_NORM | Corrected weighted endemism normalised by groups |   | 1 | ![= \\frac{ENDW\\_CWE}{EL\\_COUNT\\_ALL}](http://latex.codecogs.com/png.latex?= \\frac{ENDW\\_CWE}{EL\\_COUNT\\_ALL}%.png)  |
-| 62 | ENDW_WE_NORM | Weighted endemism normalised by groups |   | 1 | ![= \\frac{ENDW\\_WE}{EL\\_COUNT\\_ALL}](http://latex.codecogs.com/png.latex?= \\frac{ENDW\\_WE}{EL\\_COUNT\\_ALL}%.png)  |
+| 61 | ENDW_CWE_NORM | Corrected weighted endemism normalised by groups |   | 1 | ![= \frac{ENDW\_CWE}{EL\_COUNT\_ALL}](http://latex.codecogs.com/png.latex?= \frac{ENDW\_CWE}{EL\_COUNT\_ALL}%.png)  |
+| 62 | ENDW_WE_NORM | Weighted endemism normalised by groups |   | 1 | ![= \frac{ENDW\_WE}{EL\_COUNT\_ALL}](http://latex.codecogs.com/png.latex?= \frac{ENDW\_WE}{EL\_COUNT\_ALL}%.png)  |
 
 
 ## Hierarchical Labels ##
@@ -845,13 +844,13 @@ there is no redundancy in the sampling
  
 
 **Formula:**
-   ![= 1 - \\frac{richness}{sum\\ of\\ the\\ sample\\ counts}](http://latex.codecogs.com/png.latex?= 1 - \\frac{richness}{sum\\ of\\ the\\ sample\\ counts}%.png)
+   ![= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}](http://latex.codecogs.com/png.latex?= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}%.png)
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 108 | REDUNDANCY_ALL | for both neighbour sets |   | 1 | ![= 1 - \\frac{RICHNESS\\_ALL}{ABC3\\_SUM\\_ALL}](http://latex.codecogs.com/png.latex?= 1 - \\frac{RICHNESS\\_ALL}{ABC3\\_SUM\\_ALL}%.png)  |
-| 109 | REDUNDANCY_SET1 | for neighour set 1 |   | 1 | ![= 1 - \\frac{RICHNESS\\_SET1}{ABC3\\_SUM\\_SET1}](http://latex.codecogs.com/png.latex?= 1 - \\frac{RICHNESS\\_SET1}{ABC3\\_SUM\\_SET1}%.png)  |
-| 110 | REDUNDANCY_SET2 | for neighour set 2 |   | 2 | ![= 1 - \\frac{RICHNESS\\_SET2}{ABC3\\_SUM\\_SET2}](http://latex.codecogs.com/png.latex?= 1 - \\frac{RICHNESS\\_SET2}{ABC3\\_SUM\\_SET2}%.png)  |
+| 108 | REDUNDANCY_ALL | for both neighbour sets |   | 1 | ![= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}](http://latex.codecogs.com/png.latex?= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}%.png)  |
+| 109 | REDUNDANCY_SET1 | for neighour set 1 |   | 1 | ![= 1 - \frac{RICHNESS\_SET1}{ABC3\_SUM\_SET1}](http://latex.codecogs.com/png.latex?= 1 - \frac{RICHNESS\_SET1}{ABC3\_SUM\_SET1}%.png)  |
+| 110 | REDUNDANCY_SET2 | for neighour set 2 |   | 2 | ![= 1 - \frac{RICHNESS\_SET2}{ABC3\_SUM\_SET2}](http://latex.codecogs.com/png.latex?= 1 - \frac{RICHNESS\_SET2}{ABC3\_SUM\_SET2}%.png)  |
 
 
 
@@ -999,7 +998,7 @@ BaseData labels not in the matrix are ignored
 **Subroutine:**   calc_mx_rao_qe
 
 **Formula:**
-   ![= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j](http://latex.codecogs.com/png.latex?= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j%.png) where ![p_i](http://latex.codecogs.com/png.latex?p_i%.png) and ![p_j](http://latex.codecogs.com/png.latex?p_j%.png) are the sample counts for the i'th and j'th labels, ![d_{ij}](http://latex.codecogs.com/png.latex?d_{ij}%.png) is the matrix value for the pair of labels ![ij](http://latex.codecogs.com/png.latex?ij%.png) and ![L](http://latex.codecogs.com/png.latex?L%.png) is the set of labels across both neighbour sets that occur in the matrix.
+   ![= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j](http://latex.codecogs.com/png.latex?= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j%.png) where ![p_i](http://latex.codecogs.com/png.latex?p_i%.png) and ![p_j](http://latex.codecogs.com/png.latex?p_j%.png) are the sample counts for the i'th and j'th labels, ![d_{ij}](http://latex.codecogs.com/png.latex?d_{ij}%.png) is the matrix value for the pair of labels ![ij](http://latex.codecogs.com/png.latex?ij%.png) and ![L](http://latex.codecogs.com/png.latex?L%.png) is the set of labels across both neighbour sets that occur in the matrix.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -1038,9 +1037,9 @@ For the hash form, use the ABC3_LABELS_ALL index from the 'Sample count lists' c
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 153 | NUMD_ABSMEAN | Mean absolute dissimilarity of labels in set 1 to those in set 2. | cluster metric | 1 | ![= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} abs (l_{1i} - l_{2j})(w_{1i} \\times w_{2j})}{n_1 \\times n_2}](http://latex.codecogs.com/png.latex?= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} abs (l_{1i} - l_{2j})(w_{1i} \\times w_{2j})}{n_1 \\times n_2}%.png)where![L1](http://latex.codecogs.com/png.latex?L1%.png) and ![L2](http://latex.codecogs.com/png.latex?L2%.png) are the labels in neighbour sets 1 and 2 respectively, and ![n1](http://latex.codecogs.com/png.latex?n1%.png) and ![n2](http://latex.codecogs.com/png.latex?n2%.png) are the sample counts in neighbour sets 1 and 2  |
-| 154 | NUMD_COUNT | Count of comparisons used. |   | 1 | ![= n1 * n2](http://latex.codecogs.com/png.latex?= n1 * n2%.png)where values are as for ![NUMD\\_ABSMEAN](http://latex.codecogs.com/png.latex?NUMD\\_ABSMEAN%.png)  |
-| 155 | NUMD_VARIANCE | Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2. | cluster metric | 1 | ![= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} (l_{1i} - l_{2j})^2(w_{1i} \\times w_{2j})}{n_1 \\times n_2}](http://latex.codecogs.com/png.latex?= \\frac{\\sum_{l_{1i} \\in L_1} \\sum_{l_{2j} \\in L_2} (l_{1i} - l_{2j})^2(w_{1i} \\times w_{2j})}{n_1 \\times n_2}%.png)where values are as for ![NUMD\\_ABSMEAN](http://latex.codecogs.com/png.latex?NUMD\\_ABSMEAN%.png)  |
+| 153 | NUMD_ABSMEAN | Mean absolute dissimilarity of labels in set 1 to those in set 2. | cluster metric | 1 | ![= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}](http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png)where![L1](http://latex.codecogs.com/png.latex?L1%.png) and ![L2](http://latex.codecogs.com/png.latex?L2%.png) are the labels in neighbour sets 1 and 2 respectively, and ![n1](http://latex.codecogs.com/png.latex?n1%.png) and ![n2](http://latex.codecogs.com/png.latex?n2%.png) are the sample counts in neighbour sets 1 and 2  |
+| 154 | NUMD_COUNT | Count of comparisons used. |   | 1 | ![= n1 * n2](http://latex.codecogs.com/png.latex?= n1 * n2%.png)where values are as for ![NUMD\_ABSMEAN](http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png)  |
+| 155 | NUMD_VARIANCE | Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2. | cluster metric | 1 | ![= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}](http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png)where values are as for ![NUMD\_ABSMEAN](http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png)  |
 
 
 
@@ -1233,8 +1232,8 @@ so values >0 have longer branches than expected.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 196 | PHYLO_NRI1 | Net Relatedness Index, unweighted |   | 1 | ![NRI = \\frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}](http://latex.codecogs.com/png.latex?NRI = \\frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}%.png)  |
-| 197 | PHYLO_NTI1 | Nearest Taxon Index, unweighted |   | 1 | ![NTI = \\frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}](http://latex.codecogs.com/png.latex?NTI = \\frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}%.png)  |
+| 196 | PHYLO_NRI1 | Net Relatedness Index, unweighted |   | 1 | ![NRI = \frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}](http://latex.codecogs.com/png.latex?NRI = \frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}%.png)  |
+| 197 | PHYLO_NTI1 | Nearest Taxon Index, unweighted |   | 1 | ![NTI = \frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}](http://latex.codecogs.com/png.latex?NTI = \frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}%.png)  |
 
 
 
@@ -1254,7 +1253,7 @@ so values >0 have longer branches than expected.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 198 | PMPD3_MAX | Maximum of pairwise phylogenetic distances |   | 1 |   |
-| 199 | PMPD3_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j](http://latex.codecogs.com/png.latex?MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j%.png)where ![d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
+| 199 | PMPD3_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j](http://latex.codecogs.com/png.latex?MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j%.png)where ![d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
 | 200 | PMPD3_MIN | Minimum of pairwise phylogenetic distances |   | 1 |   |
 | 201 | PMPD3_N | Count of pairwise phylogenetic distances |   | 1 |   |
 | 202 | PMPD3_RMSD | Root mean squared pairwise phylogenetic distances |   | 1 |   |
@@ -1282,7 +1281,7 @@ so values >0 have longer branches than expected.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 208 | PMPD2_MAX | Maximum of pairwise phylogenetic distances |   | 1 |   |
-| 209 | PMPD2_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j](http://latex.codecogs.com/png.latex?MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j%.png)where ![d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
+| 209 | PMPD2_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j](http://latex.codecogs.com/png.latex?MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j%.png)where ![d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
 | 210 | PMPD2_MIN | Minimum of pairwise phylogenetic distances |   | 1 |   |
 | 211 | PMPD2_N | Count of pairwise phylogenetic distances |   | 1 |   |
 | 212 | PMPD2_RMSD | Root mean squared pairwise phylogenetic distances |   | 1 |   |
@@ -1310,7 +1309,7 @@ so values >0 have longer branches than expected.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 218 | PMPD1_MAX | Maximum of pairwise phylogenetic distances |   | 1 |   |
-| 219 | PMPD1_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j](http://latex.codecogs.com/png.latex?MPD = \\frac {\\sum_{t_i = 1}^{n_t-1} \\sum_{t_j = 1}^{n_t} d_{t_i \\leftrightarrow t_j}}{(n_t-1)^2}, i \\neq j%.png)where ![d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \\leftrightarrow t_j} = \\sum_{b \\in B_{t_i \\leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
+| 219 | PMPD1_MEAN | Mean of pairwise phylogenetic distances |   | 1 | ![MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j](http://latex.codecogs.com/png.latex?MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j%.png)where ![d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b](http://latex.codecogs.com/png.latex?d_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b%.png)is the sum of the branch lengths along the path connecting ![t_i](http://latex.codecogs.com/png.latex?t_i%.png)and![t_j](http://latex.codecogs.com/png.latex?t_j%.png)such that ![L_b](http://latex.codecogs.com/png.latex?L_b%.png)is the length of each branch in the set of branches![B](http://latex.codecogs.com/png.latex?B%.png)  |
 | 220 | PMPD1_MIN | Minimum of pairwise phylogenetic distances |   | 1 |   |
 | 221 | PMPD1_N | Count of pairwise phylogenetic distances |   | 1 |   |
 | 222 | PMPD1_RMSD | Root mean squared pairwise phylogenetic distances |   | 1 |   |
@@ -1731,10 +1730,10 @@ Uses labels in both neighbourhoods.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* | *Reference* |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| 274 | PD | Phylogenetic diversity |   | 1 | ![= \\sum_{c \\in C} L_c](http://latex.codecogs.com/png.latex?= \\sum_{c \\in C} L_c%.png) where ![C](http://latex.codecogs.com/png.latex?C%.png)is the set of branches in the minimum spanning path joining the labels in both neighbour sets to the root of the tree,![c](http://latex.codecogs.com/png.latex?c%.png) is a branch (a single segment between two nodes) in the spanning path ![C](http://latex.codecogs.com/png.latex?C%.png), and ![L_c](http://latex.codecogs.com/png.latex?L_c%.png) is the length of branch ![c](http://latex.codecogs.com/png.latex?c%.png).  | Faith (1992) Biol. Cons. http://dx.doi.org/10.1016/0006-3207(92)91201-3 |
-| 275 | PD_P | Phylogenetic diversity as a proportion of total tree length |   | 1 | ![= \\frac { PD }{ \\sum_{c \\in C} L_c }](http://latex.codecogs.com/png.latex?= \\frac { PD }{ \\sum_{c \\in C} L_c }%.png) where terms are the same as for PD, but ![c](http://latex.codecogs.com/png.latex?c%.png), ![C](http://latex.codecogs.com/png.latex?C%.png) and ![L_c](http://latex.codecogs.com/png.latex?L_c%.png) are calculated for all nodes in the tree.  |   |
-| 276 | PD_P_per_taxon | Phylogenetic diversity per taxon as a proportion of total tree length |   | 1 | ![= \\frac { PD\\_P }{ RICHNESS\\_ALL }](http://latex.codecogs.com/png.latex?= \\frac { PD\\_P }{ RICHNESS\\_ALL }%.png)  |   |
-| 277 | PD_per_taxon | Phylogenetic diversity per taxon |   | 1 | ![= \\frac { PD }{ RICHNESS\\_ALL }](http://latex.codecogs.com/png.latex?= \\frac { PD }{ RICHNESS\\_ALL }%.png)  |   |
+| 274 | PD | Phylogenetic diversity |   | 1 | ![= \sum_{c \in C} L_c](http://latex.codecogs.com/png.latex?= \sum_{c \in C} L_c%.png) where ![C](http://latex.codecogs.com/png.latex?C%.png)is the set of branches in the minimum spanning path joining the labels in both neighbour sets to the root of the tree,![c](http://latex.codecogs.com/png.latex?c%.png) is a branch (a single segment between two nodes) in the spanning path ![C](http://latex.codecogs.com/png.latex?C%.png), and ![L_c](http://latex.codecogs.com/png.latex?L_c%.png) is the length of branch ![c](http://latex.codecogs.com/png.latex?c%.png).  | Faith (1992) Biol. Cons. http://dx.doi.org/10.1016/0006-3207(92)91201-3 |
+| 275 | PD_P | Phylogenetic diversity as a proportion of total tree length |   | 1 | ![= \frac { PD }{ \sum_{c \in C} L_c }](http://latex.codecogs.com/png.latex?= \frac { PD }{ \sum_{c \in C} L_c }%.png) where terms are the same as for PD, but ![c](http://latex.codecogs.com/png.latex?c%.png), ![C](http://latex.codecogs.com/png.latex?C%.png) and ![L_c](http://latex.codecogs.com/png.latex?L_c%.png) are calculated for all nodes in the tree.  |   |
+| 276 | PD_P_per_taxon | Phylogenetic diversity per taxon as a proportion of total tree length |   | 1 | ![= \frac { PD\_P }{ RICHNESS\_ALL }](http://latex.codecogs.com/png.latex?= \frac { PD\_P }{ RICHNESS\_ALL }%.png)  |   |
+| 277 | PD_per_taxon | Phylogenetic diversity per taxon |   | 1 | ![= \frac { PD }{ RICHNESS\_ALL }](http://latex.codecogs.com/png.latex?= \frac { PD }{ RICHNESS\_ALL }%.png)  |   |
 
 
 
@@ -1824,9 +1823,9 @@ Uses labels in both neighbourhoods.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 285 | TDB_DENOMINATOR | Denominator from TDB_DISTINCTNESS |   | 1 |   |
-| 286 | TDB_DISTINCTNESS | Taxonomic distinctness, binary weighted |   | 1 | ![= \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}}{s(s-1))}](http://latex.codecogs.com/png.latex?= \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}}{s(s-1))}%.png)where ![\\omega_{ij}](http://latex.codecogs.com/png.latex?\\omega_{ij}%.png)is the path length from label ![i](http://latex.codecogs.com/png.latex?i%.png)to the ancestor node shared with ![j](http://latex.codecogs.com/png.latex?j%.png)  |
+| 286 | TDB_DISTINCTNESS | Taxonomic distinctness, binary weighted |   | 1 | ![= \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))}](http://latex.codecogs.com/png.latex?= \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))}%.png)where ![\omega_{ij}](http://latex.codecogs.com/png.latex?\omega_{ij}%.png)is the path length from label ![i](http://latex.codecogs.com/png.latex?i%.png)to the ancestor node shared with ![j](http://latex.codecogs.com/png.latex?j%.png)  |
 | 287 | TDB_NUMERATOR | Numerator from TDB_DISTINCTNESS |   | 1 |   |
-| 288 | TDB_VARIATION | Variation of the binary taxonomic distinctness |   | 1 | ![= \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}^2}{s(s-1))} - \\bar{\\omega}^2](http://latex.codecogs.com/png.latex?= \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}^2}{s(s-1))} - \\bar{\\omega}^2%.png)where ![\\bar{\\omega} = \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}}{s(s-1))} \\equiv TDB\\_DISTINCTNESS](http://latex.codecogs.com/png.latex?\\bar{\\omega} = \\frac{\\sum \\sum_{i \\neq j} \\omega_{ij}}{s(s-1))} \\equiv TDB\\_DISTINCTNESS%.png)  |
+| 288 | TDB_VARIATION | Variation of the binary taxonomic distinctness |   | 1 | ![= \frac{\sum \sum_{i \neq j} \omega_{ij}^2}{s(s-1))} - \bar{\omega}^2](http://latex.codecogs.com/png.latex?= \frac{\sum \sum_{i \neq j} \omega_{ij}^2}{s(s-1))} - \bar{\omega}^2%.png)where ![\bar{\omega} = \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))} \equiv TDB\_DISTINCTNESS](http://latex.codecogs.com/png.latex?\bar{\omega} = \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))} \equiv TDB\_DISTINCTNESS%.png)  |
 
 
 ## Phylogenetic Indices (relative) ##
@@ -1880,7 +1879,7 @@ Uses labels in both neighbourhoods.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 293 | PHYLO_RPD1 | RPD1 |   | 1 |   |
-| 294 | PHYLO_RPD_DIFF1 | How much more or less PD is there than expected, in original tree units. |   | 1 | ![= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL1)](http://latex.codecogs.com/png.latex?= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL1)%.png)  |
+| 294 | PHYLO_RPD_DIFF1 | How much more or less PD is there than expected, in original tree units. |   | 1 | ![= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)](http://latex.codecogs.com/png.latex?= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)%.png)  |
 | 295 | PHYLO_RPD_NULL1 | Null model score used as the denominator in the RPD1 calculations |   | 1 |   |
 
 
@@ -1901,7 +1900,7 @@ Uses labels in both neighbourhoods.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 296 | PHYLO_RPD2 | RPD2 |   | 1 |   |
-| 297 | PHYLO_RPD_DIFF2 | How much more or less PD is there than expected, in original tree units. |   | 1 | ![= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL2)](http://latex.codecogs.com/png.latex?= tree\\_length \\times (PD\\_P - PHYLO\\_RPD\\_NULL2)%.png)  |
+| 297 | PHYLO_RPD_DIFF2 | How much more or less PD is there than expected, in original tree units. |   | 1 | ![= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)](http://latex.codecogs.com/png.latex?= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)%.png)  |
 | 298 | PHYLO_RPD_NULL2 | Null model score used as the denominator in the RPD2 calculations |   | 1 |   |
 
 
@@ -1922,7 +1921,7 @@ Uses labels in both neighbourhoods.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 299 | PHYLO_RPE1 | Relative Phylogenetic Endemism score |   | 1 |   |
-| 300 | PHYLO_RPE_DIFF1 | How much more or less PE is there than expected, in original tree units. |   | 1 | ![= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL1)](http://latex.codecogs.com/png.latex?= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL1)%.png)  |
+| 300 | PHYLO_RPE_DIFF1 | How much more or less PE is there than expected, in original tree units. |   | 1 | ![= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)](http://latex.codecogs.com/png.latex?= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png)  |
 | 301 | PHYLO_RPE_NULL1 | Null score used as the denominator in the RPE calculations |   | 1 |   |
 
 
@@ -1943,7 +1942,7 @@ Uses labels in both neighbourhoods.
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | 302 | PHYLO_RPE2 | Relative Phylogenetic Endemism score, type 2 |   | 1 |   |
-| 303 | PHYLO_RPE_DIFF2 | How much more or less PE is there than expected, in original tree units. |   | 1 | ![= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL1)](http://latex.codecogs.com/png.latex?= tree\\_length \\times (PE\\_WE\\_P - PHYLO\\_RPE\\_NULL1)%.png)  |
+| 303 | PHYLO_RPE_DIFF2 | How much more or less PE is there than expected, in original tree units. |   | 1 | ![= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)](http://latex.codecogs.com/png.latex?= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png)  |
 | 304 | PHYLO_RPE_NULL2 | Null score used as the denominator in the RPE2 calculations |   | 1 |   |
 
 
@@ -2031,9 +2030,9 @@ Uses the same algorithm as the endemism indices but weights by sample counts ins
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 312 | RAREC_CWE | Corrected weighted rarity |   | 1 | ![= \\frac{RAREC\\_WE}{RAREC\\_RICHNESS}](http://latex.codecogs.com/png.latex?= \\frac{RAREC\\_WE}{RAREC\\_RICHNESS}%.png)  |
+| 312 | RAREC_CWE | Corrected weighted rarity |   | 1 | ![= \frac{RAREC\_WE}{RAREC\_RICHNESS}](http://latex.codecogs.com/png.latex?= \frac{RAREC\_WE}{RAREC\_RICHNESS}%.png)  |
 | 313 | RAREC_RICHNESS | Richness used in RAREC_CWE (same as index RICHNESS_SET1). |   | 1 |   |
-| 314 | RAREC_WE | Weighted rarity |   | 1 | ![= \\sum_{t \\in T} \\frac {s_t} {S_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {s_t} {S_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across neighbour set 1, ![s_t](http://latex.codecogs.com/png.latex?s_t%.png) is sum of the sample counts for ![t](http://latex.codecogs.com/png.latex?t%.png) across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ![S_t](http://latex.codecogs.com/png.latex?S_t%.png) is the total number of samples across the data set for label ![t](http://latex.codecogs.com/png.latex?t%.png) (unless the total sample count is specified at import).  |
+| 314 | RAREC_WE | Weighted rarity |   | 1 | ![= \sum_{t \in T} \frac {s_t} {S_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {s_t} {S_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across neighbour set 1, ![s_t](http://latex.codecogs.com/png.latex?s_t%.png) is sum of the sample counts for ![t](http://latex.codecogs.com/png.latex?t%.png) across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ![S_t](http://latex.codecogs.com/png.latex?S_t%.png) is the total number of samples across the data set for label ![t](http://latex.codecogs.com/png.latex?t%.png) (unless the total sample count is specified at import).  |
 
 
 
@@ -2069,9 +2068,9 @@ by sample counts instead of by groups occupied.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 317 | RAREW_CWE | Corrected weighted rarity |   | 1 | ![= \\frac{RAREW\\_WE}{RAREW\\_RICHNESS}](http://latex.codecogs.com/png.latex?= \\frac{RAREW\\_WE}{RAREW\\_RICHNESS}%.png)  |
+| 317 | RAREW_CWE | Corrected weighted rarity |   | 1 | ![= \frac{RAREW\_WE}{RAREW\_RICHNESS}](http://latex.codecogs.com/png.latex?= \frac{RAREW\_WE}{RAREW\_RICHNESS}%.png)  |
 | 318 | RAREW_RICHNESS | Richness used in RAREW_CWE (same as index RICHNESS_ALL). |   | 1 |   |
-| 319 | RAREW_WE | Weighted rarity |   | 1 | ![= \\sum_{t \\in T} \\frac {s_t} {S_t}](http://latex.codecogs.com/png.latex?= \\sum_{t \\in T} \\frac {s_t} {S_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across both neighbour sets, ![s_t](http://latex.codecogs.com/png.latex?s_t%.png) is sum of the sample counts for ![t](http://latex.codecogs.com/png.latex?t%.png) across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ![S_t](http://latex.codecogs.com/png.latex?S_t%.png) is the total number of samples across the data set for label ![t](http://latex.codecogs.com/png.latex?t%.png) (unless the total sample count is specified at import).  |
+| 319 | RAREW_WE | Weighted rarity |   | 1 | ![= \sum_{t \in T} \frac {s_t} {S_t}](http://latex.codecogs.com/png.latex?= \sum_{t \in T} \frac {s_t} {S_t}%.png) where ![t](http://latex.codecogs.com/png.latex?t%.png) is a label (taxon) in the set of labels (taxa) ![T](http://latex.codecogs.com/png.latex?T%.png) across both neighbour sets, ![s_t](http://latex.codecogs.com/png.latex?s_t%.png) is sum of the sample counts for ![t](http://latex.codecogs.com/png.latex?t%.png) across the elements in neighbour sets 1 & 2 (its value in list ABC3_LABELS_ALL), and ![S_t](http://latex.codecogs.com/png.latex?S_t%.png) is the total number of samples across the data set for label ![t](http://latex.codecogs.com/png.latex?t%.png) (unless the total sample count is specified at import).  |
 
 
 
@@ -2105,7 +2104,7 @@ by sample counts instead of by groups occupied.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 322 | BETA_2 | The other beta | cluster metric | 1 | ![= \\frac{A + B + C}{max((A+B), (A+C))} - 1](http://latex.codecogs.com/png.latex?= \\frac{A + B + C}{max((A+B), (A+C))} - 1%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png)is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.  |
+| 322 | BETA_2 | The other beta | cluster metric | 1 | ![= \frac{A + B + C}{max((A+B), (A+C))} - 1](http://latex.codecogs.com/png.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png)is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.  |
 
 
 
@@ -2121,7 +2120,7 @@ Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).
 **Subroutine:**   calc_bray_curtis
 
 **Formula:**
-   ![= 1 - \\frac{2W}{A + B}](http://latex.codecogs.com/png.latex?= 1 - \\frac{2W}{A + B}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the sum of the sample counts in neighbour set 1, ![B](http://latex.codecogs.com/png.latex?B%.png) is the sum of sample counts in neighbour set 2, and ![W=\\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})](http://latex.codecogs.com/png.latex?W=\\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})%.png) (meaning it sums the minimum of the sample counts for each of the ![n](http://latex.codecogs.com/png.latex?n%.png) labels across the two neighbour sets), 
+   ![= 1 - \frac{2W}{A + B}](http://latex.codecogs.com/png.latex?= 1 - \frac{2W}{A + B}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the sum of the sample counts in neighbour set 1, ![B](http://latex.codecogs.com/png.latex?B%.png) is the sum of sample counts in neighbour set 2, and ![W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})](http://latex.codecogs.com/png.latex?W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})%.png) (meaning it sums the minimum of the sample counts for each of the ![n](http://latex.codecogs.com/png.latex?n%.png) labels across the two neighbour sets), 
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2147,7 +2146,7 @@ for unbalanced sizes.
 **Subroutine:**   calc_bray_curtis_norm_by_gp_counts
 
 **Formula:**
-   ![= 1 - \\frac{2W}{A + B}](http://latex.codecogs.com/png.latex?= 1 - \\frac{2W}{A + B}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the sum of the sample counts in neighbour set 1 normalised (divided) by the number of groups, ![B](http://latex.codecogs.com/png.latex?B%.png) is the sum of the sample counts in neighbour set 2 normalised by the number of groups, and ![W = \\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})](http://latex.codecogs.com/png.latex?W = \\sum^n_{i=1} min(sample\\_count\\_label_{i_{set1}},sample\\_count\\_label_{i_{set2}})%.png) (meaning it sums the minimum of the normalised sample counts for each of the ![n](http://latex.codecogs.com/png.latex?n%.png) labels across the two neighbour sets), 
+   ![= 1 - \frac{2W}{A + B}](http://latex.codecogs.com/png.latex?= 1 - \frac{2W}{A + B}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the sum of the sample counts in neighbour set 1 normalised (divided) by the number of groups, ![B](http://latex.codecogs.com/png.latex?B%.png) is the sum of the sample counts in neighbour set 2 normalised by the number of groups, and ![W = \sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})](http://latex.codecogs.com/png.latex?W = \sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})%.png) (meaning it sums the minimum of the normalised sample counts for each of the ![n](http://latex.codecogs.com/png.latex?n%.png) labels across the two neighbour sets), 
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2169,7 +2168,7 @@ for unbalanced sizes.
 **Subroutine:**   calc_jaccard
 
 **Formula:**
-   ![= 1 - \\frac{A}{A + B + C}](http://latex.codecogs.com/png.latex?= 1 - \\frac{A}{A + B + C}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
+   ![= 1 - \frac{A}{A + B + C}](http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + B + C}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2189,7 +2188,7 @@ for unbalanced sizes.
 **Subroutine:**   calc_kulczynski2
 
 **Formula:**
-   ![= 1 - 0.5 * (\\frac{A}{A + B} + \\frac{A}{A + C})](http://latex.codecogs.com/png.latex?= 1 - 0.5 * (\\frac{A}{A + B} + \\frac{A}{A + C})%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
+   ![= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})](http://latex.codecogs.com/png.latex?= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2211,7 +2210,7 @@ for unbalanced sizes.
  
 
 **Formula:**
-   ![=\\frac{ \\left | B - C \\right | }{ 2A + B + C } \\times \\frac { A }{ A + min (B, C) }= SORENSON - S2](http://latex.codecogs.com/png.latex?=\\frac{ \\left | B - C \\right | }{ 2A + B + C } \\times \\frac { A }{ A + min (B, C) }= SORENSON - S2%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
+   ![=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }= SORENSON - S2](http://latex.codecogs.com/png.latex?=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }= SORENSON - S2%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2231,7 +2230,7 @@ Should collapse to be the Simpson index for presence/absence data.
 **Subroutine:**   calc_tx_rao_qe
 
 **Formula:**
-   ![= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j](http://latex.codecogs.com/png.latex?= \\sum_{i \\in L} \\sum_{j \\in L} d_{ij} p_i p_j%.png) where ![p_i](http://latex.codecogs.com/png.latex?p_i%.png) and ![p_j](http://latex.codecogs.com/png.latex?p_j%.png) are the sample counts for the i'th and j'th labels, ![d_{ij}](http://latex.codecogs.com/png.latex?d_{ij}%.png) is a value of zero if ![i = j](http://latex.codecogs.com/png.latex?i = j%.png) , and a value of 1 otherwise. ![L](http://latex.codecogs.com/png.latex?L%.png) is the set of labels across both neighbour sets.
+   ![= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j](http://latex.codecogs.com/png.latex?= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j%.png) where ![p_i](http://latex.codecogs.com/png.latex?p_i%.png) and ![p_j](http://latex.codecogs.com/png.latex?p_j%.png) are the sample counts for the i'th and j'th labels, ![d_{ij}](http://latex.codecogs.com/png.latex?d_{ij}%.png) is a value of zero if ![i = j](http://latex.codecogs.com/png.latex?i = j%.png) , and a value of 1 otherwise. ![L](http://latex.codecogs.com/png.latex?L%.png) is the set of labels across both neighbour sets.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2256,7 +2255,7 @@ Should collapse to be the Simpson index for presence/absence data.
  
 
 **Formula:**
-   ![= 1 - \\frac{A}{A + min(B, C)}](http://latex.codecogs.com/png.latex?= 1 - \\frac{A}{A + min(B, C)}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
+   ![= 1 - \frac{A}{A + min(B, C)}](http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + min(B, C)}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |
@@ -2280,10 +2279,10 @@ Should collapse to be the Simpson index for presence/absence data.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* | *Formula* |
 | ---- | ---- | ---- | ---- | ---- | ---- |
-| 338 | SHANNON_E | Shannon's evenness (H / HMAX) |   | 1 | ![Evenness = \\frac{H}{HMAX}](http://latex.codecogs.com/png.latex?Evenness = \\frac{H}{HMAX}%.png)  |
-| 339 | SHANNON_H | Shannon's H |   | 1 | ![H = - \\sum^n_{i=1} (p_i \\cdot ln (p_i))](http://latex.codecogs.com/png.latex?H = - \\sum^n_{i=1} (p_i \\cdot ln (p_i))%.png)  |
+| 338 | SHANNON_E | Shannon's evenness (H / HMAX) |   | 1 | ![Evenness = \frac{H}{HMAX}](http://latex.codecogs.com/png.latex?Evenness = \frac{H}{HMAX}%.png)  |
+| 339 | SHANNON_H | Shannon's H |   | 1 | ![H = - \sum^n_{i=1} (p_i \cdot ln (p_i))](http://latex.codecogs.com/png.latex?H = - \sum^n_{i=1} (p_i \cdot ln (p_i))%.png)  |
 | 340 | SHANNON_HMAX | maximum possible value of Shannon's H |   | 1 | ![HMAX = ln(richness)](http://latex.codecogs.com/png.latex?HMAX = ln(richness)%.png)  |
-| 341 | SIMPSON_D | Simpson's D. A score of zero is more similar. |   | 1 | ![D = 1 - \\sum^n_{i=1} p_i^2](http://latex.codecogs.com/png.latex?D = 1 - \\sum^n_{i=1} p_i^2%.png)  |
+| 341 | SIMPSON_D | Simpson's D. A score of zero is more similar. |   | 1 | ![D = 1 - \sum^n_{i=1} p_i^2](http://latex.codecogs.com/png.latex?D = 1 - \sum^n_{i=1} p_i^2%.png)  |
 
 
 
@@ -2299,7 +2298,7 @@ It is the complement of the (unimplemented) Czechanowski index, and numerically 
 **Subroutine:**   calc_sorenson
 
 **Formula:**
-   ![= 1 - \\frac{2A}{2A + B + C}](http://latex.codecogs.com/png.latex?= 1 - \\frac{2A}{2A + B + C}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
+   ![= 1 - \frac{2A}{2A + B + C}](http://latex.codecogs.com/png.latex?= 1 - \frac{2A}{2A + B + C}%.png) where ![A](http://latex.codecogs.com/png.latex?A%.png) is the count of labels found in both neighbour sets, ![B](http://latex.codecogs.com/png.latex?B%.png) is the count unique to neighbour set 1, and ![C](http://latex.codecogs.com/png.latex?C%.png) is the count unique to neighbour set 2. Use the [Label counts](#Label_counts) calculation to derive these directly.
 
 | *Index #* | *Index* | *Index description* | *Valid cluster metric?* | *Minimum number of neighbour sets* |
 | ---- | ---- | ---- | ---- | ---- |

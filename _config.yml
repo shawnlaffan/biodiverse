@@ -8,4 +8,6 @@ url: "http://shawnlaffan.github.io/biodiverse" # the base hostname & protocol fo
 github_username:  shawnlaffan
 
 # Build settings
-markdown: redcarpet
+markdown: kramdown
+kramdown:
+  input: GFM

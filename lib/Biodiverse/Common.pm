@@ -2453,7 +2453,7 @@ Convert a list to a CSV string using text::CSV_XS.  Must be passed a list refere
 
 =head1 REPORTING ERRORS
 
-http://code.google.com/p/biodiverse/issues/list
+https://github.com/shawnlaffan/biodiverse/issues
 
 =head1 AUTHOR
 

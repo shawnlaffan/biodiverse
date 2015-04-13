@@ -241,7 +241,7 @@ are in the matrix.  These must be derived from the data structure each time.
 
 =head1 REPORTING ERRORS
 
-http://code.google.com/p/biodiverse/issues/list
+https://github.com/shawnlaffan/biodiverse/issues
 
 =head1 AUTHOR
 

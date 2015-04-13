@@ -2751,7 +2751,7 @@ Biodiverse::Indices::Phylogenetic
 Phylogenetic indices for the Biodiverse system.
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.
+See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 METHODS
 

@@ -1411,8 +1411,7 @@ Biodiverse::Indices
 =head1 DESCRIPTION
 
 Indices handler for the Biodiverse system.
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for the list
-of available indices.
+See L<http://purl.org/biodiverse/wiki/Indices> for the list of available indices.
 
 =head1 METHODS
 

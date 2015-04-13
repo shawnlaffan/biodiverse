@@ -17,7 +17,7 @@ More than 250 indices are supported.  See the [Indices](https://github.com/shawn
 
 *Example* applications can be seen at the [publications page](https://github.com/shawnlaffan/biodiverse/wiki/PublicationsList).
 
-*Help* can be located via the [help pages](https://github.com/shawnlaffan/biodiverse/wiki/HelpOverview) (these are also listed at the left of this page).
+*Help* can be located via the [help pages](https://github.com/shawnlaffan/biodiverse/wiki/Home) (these are also accessible via the wiki link on the right of this page).
 
 A **discussion group** is at http://groups.google.com.au/group/biodiverse-users and a **blog** at http://biodiverse-analysis-software.blogspot.com.au/
 

@@ -38,7 +38,7 @@ Installation instructions can be accessed through the [Installation](https://pur
 # News 
 
 27-Oct-2014
-A new development release is now available.  It can be downloaded from https://purl.org/biodiverse/wiki/Downloads?tm=2 
+A new development release is now available.  It can be downloaded from https://purl.org/biodiverse/wiki/Downloads 
 
 The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-099_005
 

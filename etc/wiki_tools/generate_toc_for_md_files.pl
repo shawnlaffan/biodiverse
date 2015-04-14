@@ -81,14 +81,17 @@ foreach my $file (@files) {
     
 }
 
+
+#  https://github.com/gitlabhq/gitlabhq/blob/master/doc/markdown/markdown.md#header-ids-and-links
 sub convert_header_to_anchor {
     my $header = shift;
     $header = lc $header;
     $header =~ s/^#+\s+//;
     $header =~ s/\s+#+$//;
-    $header =~ s/[^a-z0-9-.]/ /g;
-    $header =~ s/\s+$//;
-    $header =~ s/ /-/g;
+    $header =~ s/\.//g;  #  URL above seems incorrect about this one
+    $header =~ s/[^a-z0-9_-]/-/g;
+    $header =~ s/-+/-/g;
+    $header =~ s/-+$//;
 
     return '#' . $header;
 }

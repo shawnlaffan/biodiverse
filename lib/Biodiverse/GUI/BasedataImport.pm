@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use File::Basename;
 use Gtk2;
@@ -334,14 +334,14 @@ sub run {
         #my $file = ufile("path", $filename_utf8);
         #print $file . "\n";
 
-        # have unicode filename issues - see http://code.google.com/p/biodiverse/issues/detail?id=272
+        # have unicode filename issues - see https://github.com/shawnlaffan/biodiverse/issues/272
         if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
             my $exists = -e $filename_utf8 || 0;
             my $msg = "Unable to open $filenames[0].\n";
             $msg .= $exists
                 ? "Check file read permissions."
                 : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
-                  . "See http://code.google.com/p/biodiverse/issues/detail?id=272";
+                  . "See https://github.com/shawnlaffan/biodiverse/issues/272";
             $msg .= "\n";
             croak $msg;
         }

@@ -1,7 +1,7 @@
 package Biodiverse::Exception;
 use strict;
 use warnings;
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use Config;
 my ($bit_size, $prng_init_descr, $other_bit_size);
@@ -86,7 +86,7 @@ use Exception::Class (
               'Unable to open the given file'
             . "Check file read permissions."
             . "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
-            . 'See http://code.google.com/p/biodiverse/issues/detail?id=272'
+            . 'See https://github.com/shawnlaffan/biodiverse/issues/272'
     }
 );
 

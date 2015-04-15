@@ -41,7 +41,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 my $EMPTY_STRING = q{};
 
@@ -1058,7 +1058,8 @@ sub get_csv_object_for_export {
     }
     
     my $csv_obj = $self->get_csv_object (
-        sep_char => $sep_char,
+        %args,
+        sep_char   => $sep_char,
         quote_char => $quote_char,
     );
 
@@ -1366,7 +1367,9 @@ sub get_csv_object {
         @_,
     );
 
-    $args{escape_char} //= $args{quote_char};
+    if (!exists $args{escape_char}) {
+        $args{escape_char} //= $args{quote_char};
+    }
 
     foreach my $arg (keys %args) {
         if (! exists $valid_csv_args{$arg}) {
@@ -1730,16 +1733,39 @@ sub guess_eol {
     my %args = @_;
 
     return if ! defined $args{string};
+
     my $string = $args{string};
     $string = $$string if ref ($string);
 
-    my $pattern = $args{pattern} || qr/[\r\n]+/;
+    my $pattern = $args{pattern} || qr/(?:\r\n|\n|\r)/;
 
-    if ($string =~ /($pattern).*\z/s) {
-        return $1;
+    use feature 'unicode_strings';  #  needed?
+
+    my %newlines;
+    my @newlines_a = $string =~ /$pattern/g;
+    foreach my $nl (@newlines_a) {
+        $newlines{$nl}++;
     }
 
-    return "\n";
+    my $eol;
+
+    my @eols = keys %newlines;
+    if (!scalar @eols) {
+        $eol = "\n";
+    }
+    elsif (scalar @eols == 1) {
+        $eol = $eols[0];
+    }
+    else {
+        foreach my $e (@eols) {
+            my $max_count = 0;
+            if ($newlines{$e} > $max_count) {
+                $eol = $e;
+            }
+        }
+    }
+
+    return $eol // "\n";
 }
 
 
@@ -1766,26 +1792,35 @@ sub get_csv_object_using_guesswork {
         croak "Both arguments 'string' and 'fname' not specified\n"
           if !defined $fname;
 
-        my $first_10000_chars;
+        my $first_char_set = '';
 
         #  read in a chunk of the file for guesswork
         my $fh2 = IO::File->new;
         $fh2->open ($fname, '<:via(File::BOM)');
-        my $count_chars = $fh2->read ($first_10000_chars, 10000);
+        while (!$fh2->eof && length ($first_char_set) < 10000) {
+            $first_char_set .= $fh2->getline;
+        }
         $fh2->close;
 
         #  Strip trailing chars until we get a newline at the end.
         #  Not perfect for CSV if embedded newlines, but it's a start.
-        while (length $first_10000_chars) {
-            last if $first_10000_chars =~ /\n$/;
-            chop $first_10000_chars;
+        if ($first_char_set =~ /\n/) {
+            my $i = 0;
+            while (length $first_char_set) {
+                $i++;
+                last if $first_char_set =~ /\n$/;
+                #  Avoid infinite loops due to wide chars.
+                #  Should fix it properly, though, since later stuff won't work.
+                last if $i > 10000;
+                chop $first_char_set;
+            }
         }
-        $string = $first_10000_chars;
+        $string = $first_char_set;
     }
 
     $eol //= $self->guess_eol (string => $string);
 
-    $quote_char //= $self->guess_quote_char (string => \$string);
+    $quote_char //= $self->guess_quote_char (string => \$string, eol => $eol);
     #  if all else fails...
     $quote_char //= $self->get_param ('QUOTES');
 
@@ -2555,7 +2590,7 @@ Convert a list to a CSV string using text::CSV_XS.  Must be passed a list refere
 
 =head1 REPORTING ERRORS
 
-http://code.google.com/p/biodiverse/issues/list
+https://github.com/shawnlaffan/biodiverse/issues
 
 =head1 AUTHOR
 

@@ -10,7 +10,7 @@ use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -1535,7 +1535,7 @@ sub get_metadata_calc_abc {
         type            => 'not_for_gui',
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - https://github.com/shawnlaffan/biodiverse/issues/336
     );
 
     return $metadata_class->new(\%metadata);
@@ -1560,7 +1560,7 @@ sub get_metadata_calc_abc2 {
         type            => 'not_for_gui',  #  why not???
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
     );
 
     return $metadata_class->new(\%metadata);
@@ -1582,7 +1582,7 @@ sub get_metadata_calc_abc3 {
         type            => 'not_for_gui',  #  why not?
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
     );
 
     return $metadata_class->new(\%metadata);
@@ -1797,7 +1797,7 @@ Biodiverse::Indices::Indices
 
 Indices for the Biodiverse system.
 Inherited by Biodiverse::Indices.  Do not use directly.
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.
+See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 METHODS
 

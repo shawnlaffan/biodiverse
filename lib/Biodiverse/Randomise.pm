@@ -25,7 +25,7 @@ use Class::Inspector;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 my $EMPTY_STRING = q{};
 
@@ -338,6 +338,7 @@ sub run_randomisation {
                    $bd->get_spatial_output_refs,
                    );
     delete $args{targets};
+    @targets = sort {$a->get_param('NAME') cmp $b->get_param('NAME')} @targets;
 
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation
@@ -1020,25 +1021,30 @@ END_PROGRESS_TEXT
             || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
-        my %target_groups = %all_target_groups;
+        #  we don't need the values, and slice assignment is
+        #  faster than straight copy (close to twice as fast)
+        my %target_groups_hash;
+        @target_groups_hash{keys %all_target_groups} = ();  
 
         #  don't consider groups that are full or that already have this label
         if (scalar keys %$new_bd_has_label) {
-            delete @target_groups{keys %$new_bd_has_label} ;
+            delete @target_groups_hash{keys %$new_bd_has_label} ;
         }
 
-        my $check  = scalar keys %target_groups;
+        my $check  = scalar keys %all_target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
-            delete @target_groups{keys %filled_groups};
-            $check = scalar keys %target_groups;
+            delete @target_groups_hash{keys %filled_groups};
+            $check = scalar keys %target_groups_hash;
+            #   grep is not faster than the slice delete in this case
+            #my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
         }
-        @target_groups = sort keys %target_groups;
+        @target_groups = sort keys %target_groups_hash;
 
         ###  get the remaining original groups containing the original label.  Make sure it's a copy
         my %tmp
             = $cloned_bd->get_groups_with_label_as_hash (label => $label);
-        my $tmp_rand_order = $rand->shuffle ([keys %tmp]);
+        my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
         BY_GROUP:
         foreach my $from_group (@$tmp_rand_order) {
@@ -1203,9 +1209,9 @@ sub swap_to_reach_richness_targets {
             }
             else {
                 $unfilled_gps_without_label{$label} //= [];
-                $self->insert_into_sorted_list (
-                    item => $gp,
-                    list => $unfilled_gps_without_label{$label},
+                $self->insert_into_sorted_list_aa (
+                    $gp,
+                    $unfilled_gps_without_label{$label},
                 );
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
@@ -1216,23 +1222,11 @@ sub swap_to_reach_richness_targets {
     # expensive method calls to get_groups_with(out)_label_as_hash
     my %groups_without_labels_a;       #  store sorted arrays
     my %cloned_bd_groups_with_label_a;
+    my %orig_bd_groups_with_label_a;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
-
-    
-#  debugging
-#my %xx;
-#foreach my $lb (keys %unfilled_gps_without_label) {
-#    my $lref = $unfilled_gps_without_label{$lb};
-#    foreach my $gp (@$lref) {
-#        $xx{$gp}{$lb}++;
-#    }
-#}
-#use Test::More;
-#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
-
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
@@ -1326,39 +1320,39 @@ sub swap_to_reach_richness_targets {
             #  those not in the unfilled groups
 
             #  we will remove one of these labels
-            my %loser_labels = $new_bd->get_labels_in_group_as_hash (
+            my $loser_labels = $new_bd->get_labels_in_group_as_hash (
                 group => $target_group,
             );
-            my %loser_labels2 = %loser_labels;  #  keep a copy
-            #  get those not in the unfilled groups
-            delete @loser_labels{keys %labels_in_unfilled_gps};
 
-            #  use the lot if all labels are in the unfilled groups
-            my $loser_labels_hash_to_use = scalar keys %loser_labels
-                                            ? \%loser_labels
-                                            : \%loser_labels2;
+            #  get those labels not in the unfilled groups
+            my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;
 
-            my $loser_labels_array
-                = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);
+            #  but select from all labels if all are in the unfilled groups (i.e. the filtered list is empty)
+            my $loser_labels_array_to_use = scalar @loser_labels_filtered
+                ? \@loser_labels_filtered
+                : [sort keys %$loser_labels];  #  could cache this as a sorted list
+
+            my $loser_labels_array_shuffled
+                = $rand->shuffle ($loser_labels_array_to_use);
 
             #  now we loop over the labels and choose the first one that
             #  can be placed in an unfilled group,
             #  otherwise just take the first one
 
             #  set some defaults
-            my $remove_label  = $loser_labels_array->[0];
-            my $removed_count = $loser_labels_hash_to_use->{$remove_label};
+            my $remove_label  = $loser_labels_array_shuffled->[0];
+            my $removed_count = $loser_labels->{$remove_label};
             my $swap_to_unfilled = 0;
 
           BY_LOSER_LABEL:
-            foreach my $label (@$loser_labels_array) {
+            foreach my $label (@$loser_labels_array_shuffled) {
                 #  Do we have any unfilled groups without this label?
                 my $x = $unfilled_gps_without_label{$label} // [];
 
                 next BY_LOSER_LABEL if !scalar @$x;
 
                 $remove_label  = $label;
-                $removed_count = $loser_labels_hash_to_use->{$remove_label};
+                $removed_count = $loser_labels->{$remove_label};
                 $swap_to_unfilled = 1;
                 last BY_LOSER_LABEL;
             }
@@ -1372,9 +1366,9 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                $self->insert_into_sorted_list (
-                    item => $target_group,
-                    list => $groups_without_labels_a{$remove_label},
+                $self->insert_into_sorted_list_aa (
+                    $target_group,
+                    $groups_without_labels_a{$remove_label},
                 );
             }
             #   unfilled_groups condition will never trigger in this if-branch
@@ -1388,28 +1382,42 @@ sub swap_to_reach_richness_targets {
                 #  unallocated lists.
                 #  Use one of its old locations.
                 #  (Just use the first one).
-                my %old_groups
-                    = $bd->get_groups_with_label_as_hash (
+                my $old_gps_with_remove_label = $orig_bd_groups_with_label_a{$remove_label};
+                if (!$old_gps_with_remove_label) {  #  These do not change so access and cache.  Sort is for repeatability.
+                    my $gps = $bd->get_groups_with_label_as_hash (
                         label => $remove_label,
                     );
+                    my @gps = sort keys %$gps;
+                    $old_gps_with_remove_label = \@gps;
+                    $orig_bd_groups_with_label_a{$remove_label} = $old_gps_with_remove_label;
+                }
 
-                my @cloned_self_gps_with_label
+                my $cloned_self_gps_with_label
                     = $cloned_bd->get_groups_with_label_as_hash (
                         label => $remove_label,
                     );
 
                 #  make sure it does not add to an existing case
-                delete @old_groups{@cloned_self_gps_with_label};
-                my $old_gp = minstr keys %old_groups;
+                #delete @old_groups{keys %$cloned_self_gps_with_label};
+                #my $old_gp = minstr keys %old_groups;
+                #my $old_gp = minstr grep {!exists $cloned_self_gps_with_label->{$_}} keys %$old_gps_with_remove_label;
+                my $old_gp;
+              BY_GP:
+                for my $gp (@$old_gps_with_remove_label) {
+                    if (!exists $cloned_self_gps_with_label->{$gp}) {
+                        $old_gp = $gp;
+                        last BY_GP;
+                    }
+                }
                 $cloned_bd->add_element   (
                     label => $remove_label,
                     group => $old_gp,
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
-                $self->insert_into_sorted_list ( #  update the tracker
-                    item => $old_gp,
-                    list => $cloned_bd_groups_with_label_a{$remove_label},
+                $self->insert_into_sorted_list_aa ( #  update the tracker
+                    $old_gp,
+                    $cloned_bd_groups_with_label_a{$remove_label},
                 );
             }
             else {
@@ -1770,7 +1778,19 @@ sub insert_into_sorted_list {
     my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
     splice @$list, $idx, 0, $item;
 
-    return $idx;
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
+}
+
+#  array args version - should reduce sub cleanup overheads
+sub insert_into_sorted_list_aa {
+    my ($self, $item, $list) = @_;
+
+    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    splice @$list, $idx, 0, $item;
+
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
 }
 
 sub delete_from_sorted_list {
@@ -1783,7 +1803,9 @@ sub delete_from_sorted_list {
     if (defined $idx) {
         splice @$list, $idx, 1;
     }
-    return $idx;
+
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
 }
 
 

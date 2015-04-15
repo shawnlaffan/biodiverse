@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -212,7 +212,7 @@ sub get_iconfile {
             my $zip = Archive::Zip->new($ENV{PAR_PROGNAME})
               or die "Unable to open $ENV{PAR_PROGNAME}";
 
-            my $glade_zipped = $zip->extractMember ( $fname, $icon_str );
+            my $success = $zip->extractMember ( $fname, $icon_str );
 
             if (-e $icon) {
                 say "Using PAR icon file $icon";

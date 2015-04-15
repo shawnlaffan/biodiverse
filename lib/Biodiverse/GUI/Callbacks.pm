@@ -5,7 +5,9 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_006';
+use Browser::Open qw( open_browser );  #  needed for the about dialogue
+
+our $VERSION = '0.99_008';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -113,16 +115,29 @@ sub on_about_activate {
     my $dlg = Gtk2::AboutDialog->new();
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
+    my $url = 'http://www.purl.org/biodiverse';
+
     $dlg->set(
-        authors  => ['Shawn Laffan', 'Eugene Lubarsky', 'Dan Rosauer'],
+        authors  => ['Shawn Laffan', 'Eugene Lubarsky', 'Dan Rosauer', 'Michael Zhou', 'Anthony Knittel'],
         comments => 'A tool for the spatial analysis of diversity.',
         name     => 'Biodiverse',
         program_name => 'Biodiverse',
         version => $gui->get_version(),
         license => $Biodiverse::Config::license,
-        website => 'http://www.purl.org/biodiverse',
+        website => $url,
         #locale  => $locale_text,
     );
+
+    #  Need to override the default URL handler, on Windows at least
+    $dlg->signal_connect ('activate-link' => sub {
+        if ($OSNAME eq 'MSWin32') {
+            system ('start', $url);
+        }
+        else {
+            my $check_open = open_browser ($url);
+        }
+        return 1;
+    });
 
     #  Locale stuff should go into its own section - need to add a button
     #use POSIX qw(locale_h);

@@ -576,6 +576,30 @@ sub test_equalise_branch_lengths {
     is ($tree->get_node_count, $eq_tree->get_node_count, 'node counts match');
 }
 
+sub test_depth {
+    my $tree = Biodiverse::Tree->new (NAME => 'test depth');
+    
+    #  bifurcating number scheme
+    my @nums = qw /1 2 3 4 5 6 7 14 15/;
+    my %nodes;
+    for my $num (@nums) {
+        my $node = $tree->add_node(name => $num);
+        $nodes{$num} = $node;
+    }
+    $nodes{1}->add_children(children => [$nodes{2}, $nodes{3}]);
+    $nodes{2}->add_children(children => [$nodes{4}, $nodes{5}]);
+    $nodes{3}->add_children(children => [$nodes{6}, $nodes{7}]);
+    $nodes{7}->add_children(children => [$nodes{14}, $nodes{15}]);
+    
+    my %expected;
+    @expected{@nums} = qw /0 1 1 2 2 2 2 3 3/;
+    subtest 'Expected node depths' => sub {
+        for my $num (@nums) {
+            my $exp_depth = $expected{$num};
+            is ($nodes{$num}->get_depth, $exp_depth, "Expected depth for node $num ($exp_depth)");
+        }
+    };
+}
 
 ######################################
 

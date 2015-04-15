@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -1056,7 +1056,7 @@ sub run_indices_test1_inner {
         $indices->run_precalc_globals(%$calc_args);
     };
     $e = $EVAL_ERROR;
-    note $e if $e;
+    diag $e if $e;
     ok (!$e, "Ran global precalcs without eval error");
 
     my %results = eval { $indices->run_calculations(%$calc_args) };

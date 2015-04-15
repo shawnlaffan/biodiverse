@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -467,7 +467,7 @@ Biodiverse::Indices::GroupProperties
 Group property indices for the Biodiverse system.
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.
+See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 METHODS
 

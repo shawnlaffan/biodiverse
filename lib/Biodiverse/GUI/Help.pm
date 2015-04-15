@@ -16,7 +16,7 @@ use HTTP::Tiny;
 
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 ##############################################
 #  Web links.  
@@ -29,10 +29,10 @@ my $bandaid_text = '(This is a bandaid solution until we get hyperlinks working)
 #  Build the URL accessor subs from a hash
 #  process borrowed from Statistics::Descriptive v3
 
-my $base_url = 'http://code.google.com/p/biodiverse/wiki/';
+my $base_url = 'http://purl.org/biodiverse/wiki/';
 
 my %subs_and_urls = (
-    help_show_link_to_web_help         => $base_url . 'HelpOverview',
+    help_show_link_to_web_help         => $base_url . 'Home',
     help_show_calculations_and_indices => $base_url . 'Indices',
     help_show_spatial_conditions       => $base_url . 'SpatialConditions',
     help_show_release_notes            => $base_url . 'ReleaseNotes',
@@ -129,9 +129,9 @@ END_LINK_TEXT
 sub help_show_check_for_updates {
     my $gui = shift;
     
-    my $download_url = 'https://code.google.com/p/biodiverse/wiki/Downloads';
+    my $download_url = 'http://purl.org/biodiverse/wiki/Downloads';
     
-    my $url = 'http://biodiverse.googlecode.com/svn/trunk/etc/versions.txt';
+    my $url = 'https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/versions.txt';
     my $http_response = HTTP::Tiny->new->get($url);
     my $content = $http_response->{content};
 

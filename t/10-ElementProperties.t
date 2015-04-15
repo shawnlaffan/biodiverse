@@ -42,7 +42,7 @@ use Biodiverse::ElementProperties;
 
     is ($success, 1, $string);
 
-    print Dumper ($remap);
+    #print Dumper ($remap);
 
     #  need to add tests for get methods
 }

@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use List::Util qw /min max/;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use Biodiverse::Matrix;
 use Biodiverse::Exception;
@@ -241,7 +241,7 @@ are in the matrix.  These must be derived from the data structure each time.
 
 =head1 REPORTING ERRORS
 
-http://code.google.com/p/biodiverse/issues/list
+https://github.com/shawnlaffan/biodiverse/issues
 
 =head1 AUTHOR
 

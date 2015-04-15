@@ -26,7 +26,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 my $EMPTY_STRING = q{};
 
@@ -289,6 +289,7 @@ sub get_table_export_metadata {
             : (',', 'tab', ';', 'space', ':');
 
     my @quote_chars = qw /" ' + $/; #"
+    my $el_quote_char = $self->get_param('QUOTES');
 
     my $mx_explanation = $self->get_tooltip_sparse_normal;
 
@@ -299,7 +300,7 @@ sub get_table_export_metadata {
             tooltip    => "Rectangular matrix, one row per element (group).\n"
                         . $mx_explanation,
             type       => 'boolean',
-            default    => 1
+            default    => 1,
         },
         {
             name       => 'one_value_per_line',
@@ -307,7 +308,7 @@ sub get_table_export_metadata {
             tooltip    => "Sparse matrix, repeats elements for each value.\n"
                         . $mx_explanation,
             type       => 'boolean',
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'sep_char',
@@ -315,7 +316,7 @@ sub get_table_export_metadata {
             tooltip    => 'Suggested options are comma for .csv files, tab for .txt files',
             type       => 'choice',
             choices    => \@sep_chars,
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'quote_char',
@@ -323,7 +324,7 @@ sub get_table_export_metadata {
             tooltip    => 'For delimited text exports only',
             type       => 'choice',
             choices    => \@quote_chars,
-            default    => 0
+            default    => 0,
         },
         {
             name       => 'no_data_value',
@@ -333,8 +334,18 @@ sub get_table_export_metadata {
             type       => 'choice',
             choices    => \@no_data_values,
             default    => 0,
-        },   
-     ];
+        },
+        {
+            name       => 'quote_element_names_and_headers',
+            label_text => 'Quote element names and headers',
+            tooltip    => 'Should the element names (labels and groups) and column headers be quoted?  '
+                        . 'MS Excel otherwise misinterprets characters such as colons in the names '
+                        . 'as a range operator or time variable, wrecking the data on import.'
+                        . "\nThis uses the internal quote character, which is $el_quote_char.",
+            type       => 'boolean',
+            default    => 0,
+        },
+    ];
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
 }
@@ -1077,9 +1088,12 @@ sub to_table_sym {
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
+
+    my $quote_char = $self->get_param('QUOTES');
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -1089,11 +1103,14 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$list_hash_ref;
+    my @quoted_print_order =
+        map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
+        @print_order;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
-    my @header = ('Element');  
+    my @header = ('ELEMENT');  
 
     if (! $no_element_array) {
         my $i = 0;
@@ -1110,14 +1127,14 @@ sub to_table_sym {
         push @header, qw /Key Value/; #/
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
     #  now add the data to the array
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
+        my @basic = ($el);
         if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
             if ($#array < $max_element_array_len) {  #  pad if needed
@@ -1180,14 +1197,16 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
+    my $quote_char = $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
 
-    push my @header, 'Element';  
+    push my @header, 'ELEMENT'; 
     if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
         #  get the number of element columns
@@ -1206,8 +1225,8 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push @data, \@header;
 
     foreach my $element (@elements) {
-
-        my @basic = ($element);
+        my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
+        my @basic = ($el);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element));
         }
@@ -1272,6 +1291,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
+    my $quote_el_names     = $args{quote_element_names_and_headers};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
@@ -1281,23 +1301,29 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $elements = $self->get_element_hash();
     my %indices_hash;
 
-    print "[BASESTRUCT] Getting keys...\n";
-    BY_ELEMENT1:
+    my $quote_char = $self->get_param('QUOTES');
+
+    say "[BASESTRUCT] Getting keys...";
+
+  BY_ELEMENT1:
     foreach my $elt (keys %$elements) {
-            my $sub_list = $elements->{$elt}{$list};
-            if ((ref $sub_list) =~ /ARRAY/) {
-                @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
-            }
-            elsif ((ref $sub_list) =~ /HASH/) {
-                @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
-            }
+        my $sub_list = $elements->{$elt}{$list};
+        if ((ref $sub_list) =~ /ARRAY/) {
+            @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
+        }
+        elsif ((ref $sub_list) =~ /HASH/) {
+            @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
+        }
     }
     my @print_order = sort keys %indices_hash;
+    my @quoted_print_order =
+        map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}
+        @print_order;
 
     my @data;
     my @elements = sort keys %$elements;
 
-    push my @header, "ELEMENT";  #  need the number of element components for the header
+    push my @header, 'ELEMENT';  #  need the number of element components for the header
     if (! $no_element_array) {
         my $i = 0;
         foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns
@@ -1310,7 +1336,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         push @header, qw /Key Value/;
     }
     else {
-        push @header, @print_order;
+        push @header, @quoted_print_order;
     }
     push @data, \@header;
     
@@ -1318,8 +1344,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
+        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my @basic = ($el);
 
-        my @basic = ($element);
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
@@ -2679,7 +2706,33 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    return;
+    1;
+}
+
+#  array args version to avoid the args hash creation
+#  (benchmarking indicates it takes a meaningful slab of time)
+sub delete_sub_element_aa {
+    my ($self, $element, $sub_element) = @_;
+    
+    croak "element not specified\n" if !defined $element;
+    croak "subelement not specified\n" if !defined $sub_element;
+
+    return if ! exists $self->{ELEMENTS}{$element};
+
+    my $href = $self->{ELEMENTS}{$element};
+
+    if (exists $href->{BASE_STATS}) {
+        delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
+        delete $href->{BASE_STATS}{VARIETY};
+        if (exists $href->{BASE_STATS}{SAMPLECOUNT}) {
+            $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
+        }
+    }
+    if (exists $href->{SUBELEMENTS}) {
+        delete $href->{SUBELEMENTS}{$sub_element};
+    }
+
+    1;
 }
 
 sub exists_element {
@@ -2689,8 +2742,8 @@ sub exists_element {
     my $el = $args{element}
       // croak "element not specified\n";
 
-    my $exists = exists $self->{ELEMENTS}{$el};
-    return $exists;
+    #  no explicit return for speed under pre-5.20 perls
+    exists $self->{ELEMENTS}{$el};
 }
 
 sub exists_sub_element {
@@ -3257,8 +3310,7 @@ sub get_sample_count {
 }
 
 sub get_variety {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     no autovivification;
 
@@ -3266,6 +3318,16 @@ sub get_variety {
       croak "element not specified\n";
 
     my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;  #  should croak? 
+
+    #  no explicit return - minor speedup prior to perl 5.20
+    scalar keys %$href;
+}
+
+sub get_variety_aa {
+    no autovivification;
+
+    my $href = $_[0]->{ELEMENTS}{$_[1]}{SUBELEMENTS}
       // return;  #  should croak? 
 
     #  no explicit return - minor speedup prior to perl 5.20

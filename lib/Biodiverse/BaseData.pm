@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use parent qw {Biodiverse::Common};
 
@@ -1199,7 +1199,7 @@ sub import_data_raster {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
-    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 0);
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
@@ -2803,45 +2803,35 @@ sub delete_element {
 
 #  delete a subelement from a label or a group
 sub delete_sub_element {
-    my $self = shift;
-    my %args = @_;
-    
+    my ($self, %args) = @_;
+
     my $label = $args{label};
     my $group = $args{group};
-    
+
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
-    #my $orig_range = $labels_ref->get_variety (element => $label);
-    #my $orig_richness = $groups_ref->get_richness (element => $group);    
-    
-    $labels_ref->delete_sub_element (
-        element    => $label,
-        subelement => $group,
-    );
-    $groups_ref->delete_sub_element (
-        element    => $group,
-        subelement => $label,
-    );
+    $labels_ref->delete_sub_element_aa ($label, $group);
+    $groups_ref->delete_sub_element_aa ($group, $label);
 
     #  clean up if labels or groups are now empty
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
-    
-    if ($delete_empty_gps && !$groups_ref->get_variety (element => $group)) {
+
+    if ($delete_empty_gps && !$groups_ref->get_variety_aa ($group)) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && !$labels_ref->get_variety (element => $label)) {
+    if ($delete_empty_lbs && !$labels_ref->get_variety_aa ($label)) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
         );
     }
 
-    return;
+    1;
 }
 
 sub get_redundancy {    #  A cheat method, assumes we want group redundancy by default,
@@ -2972,9 +2962,11 @@ sub get_range_union {
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
         next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
-        @shared_elements{keys %$elements_now} = values %$elements_now;
+        @shared_elements{keys %$elements_now} = undef;
     }
     
+    return scalar keys %shared_elements if $args{return_count}; #/
+
     return wantarray
         ? (keys %shared_elements)
         : [keys %shared_elements];

@@ -1,6 +1,6 @@
 # Biodiverse
 
-Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. Biodiverse supports the following processes: 
+Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic, trait and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. Biodiverse supports the following processes: 
 
   1. Linked visualisation of data distributions in geographic, taxonomic, phylogenetic and matrix spaces;
   1. Spatial moving window analyses including richness, endemism, phylogenetic diversity and beta diversity;

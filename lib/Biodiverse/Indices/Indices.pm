@@ -10,7 +10,7 @@ use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.99_006';
+our $VERSION = '0.99_008';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

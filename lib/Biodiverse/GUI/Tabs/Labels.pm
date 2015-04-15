@@ -7,6 +7,8 @@ use English ( -no_match_vars );
 
 use Data::Dumper;
 
+use List::MoreUtils qw /firstidx/;
+
 use Gtk2;
 use Carp;
 use Biodiverse::GUI::GUIManager;
@@ -332,7 +334,7 @@ sub init_list {
     $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
     $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
 
-# Set model to a wrapper that lets this list have independent sorting
+    # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
@@ -477,7 +479,7 @@ sub remove_selected_labels_from_list {
     my $model1 = $treeview1->get_model;
     my $model2 = $treeview2->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
@@ -501,7 +503,7 @@ sub remove_selected_labels_from_list {
     #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     return;
 }
@@ -538,7 +540,7 @@ sub switch_selection {
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
 
     my @p_unselected;
     $model1->foreach (
@@ -562,7 +564,7 @@ sub switch_selection {
         $selection->select_path($path);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     #  now we trigger the re-selection
     on_selected_labels_changed ($selection, [$self, 'listLabels1']);
@@ -578,7 +580,7 @@ sub select_using_regex {
     my $exact  = $args{exact};
     my $negate = $args{negate};
 
-    my $selection_type = $args{selection_type} || 'new';
+    my $selection_mode = $args{selection_mode} | $self->get_selection_mode || 'new';
 
     if ($exact) {
         $regex = qr/\A$regex\z/;
@@ -589,7 +591,7 @@ sub select_using_regex {
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
 
-    $self->{ignore_selected_change} = 1;
+    $self->{ignore_selection_change} = 1;
 
     my @p_targets;
     $model1->foreach (
@@ -612,12 +614,12 @@ sub select_using_regex {
         }
     );
 
-    if ($selection_type eq 'new') {
+    if ($selection_mode eq 'new') {
         $selection->unselect_all;
     }
 
     my $method = 'select_path';
-    if ($selection_type eq 'remove_from') {
+    if ($selection_mode eq 'remove_from') {
         $method = 'unselect_path';
     }
     foreach my $rowref (@p_targets) {
@@ -625,7 +627,7 @@ sub select_using_regex {
         $selection->$method($path);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
     #  now we trigger the re-selection
     on_selected_labels_changed ($selection, [$self, 'listLabels1']);
@@ -723,7 +725,14 @@ sub on_selected_labels_changed {
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
     # selects labels one-by-one
-    return if defined $self->{ignore_selected_change};
+    return if defined $self->{ignore_selection_change};
+
+    #  convoluted, but allows caller subs to not know these details
+    $id ||= 'listLabels1';
+    if (!$selection) {
+        my $treeview1 = $self->{xmlPage}->get_widget($id);
+        $selection = $treeview1->get_selection;
+    }
 
     # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
@@ -877,14 +886,14 @@ sub set_selected_list_cols {
         }
     }
 
-    $self->{ignore_selected_change} = 'listLabels1';
+    $self->{ignore_selection_change} = 'listLabels1';
 
 #  and now loop over the iters and change the selection values
     foreach my $array_ref (@changed_iters) {
         $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
     }
 
-    delete $self->{ignore_selected_change};
+    delete $self->{ignore_selection_change};
 
 #print "[Labels] \n";
 
@@ -1053,24 +1062,29 @@ sub on_grid_select {
         my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
         my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
 
-        $hselection->unselect_all();
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hselection->unselect_all();
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
         my $iter = $hmodel->get_iter_first();
         my $elt;
 
-
-        $self->{ignore_selected_change} = 'listLabels1';
+        $self->{ignore_selection_change} = 'listLabels1';
         while ($iter) {
             my $hi = $hmodel->convert_iter_to_child_iter($iter);
             $elt = $model->get($hi, 0);
 
             if (exists $hash{ $elt } ) {
-                $hselection->select_iter($iter);
+                $hselection->$sel_method($iter);
             }
 
             $iter = $hmodel->iter_next($iter);
         }
         if (not $ignore_change) {
-            delete $self->{ignore_selected_change};
+            delete $self->{ignore_selection_change};
         }
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
@@ -1169,28 +1183,34 @@ sub on_phylogeny_click {
         $self->{dendrogram}->do_colour_nodes_below($node_ref);
         my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
 
-        # Select all terminal labels
+        # Select terminal labels as per the selection mode
         my $model      = $self->{labels_model};
         my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
         my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
 
-        $hselection->unselect_all();
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hselection->unselect_all();
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_iter' : 'select_iter';
+
         my $iter = $hmodel->get_iter_first();
         my $elt;
 
-        $self->{ignore_selected_change} = 'listLabels1';
+        $self->{ignore_selection_change} = 'listLabels1';
         while ($iter) {
             my $hi = $hmodel->convert_iter_to_child_iter($iter);
             $elt = $model->get($hi, 0);
             #print "[onPhylogenyClick] selected: $elt\n";
 
             if (exists $terminal_elements->{ $elt } ) {
-                $hselection->select_iter($iter);
+                $hselection->$sel_method($iter);
             }
 
             $iter = $hmodel->iter_next($iter);
         }
-        delete $self->{ignore_selected_change};
+        delete $self->{ignore_selection_change};
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
         # Remove the hover marks
@@ -1453,15 +1473,20 @@ sub on_matrix_clicked {
         my $hsel = $hlist->get_selection;
         my $vsel = $vlist->get_selection;
 
-        $hsel->unselect_all;
-        $vsel->unselect_all;
+        my $sel_mode = $self->get_selection_mode;
+
+        if ($sel_mode eq 'new') {
+            $hsel->unselect_all;
+            $vsel->unselect_all;
+        }
+        my $sel_method = $sel_mode eq 'remove_from' ? 'unselect_range' : 'select_range';
 
         eval {
-            $hsel->select_range($h_start, $h_end);
+            $hsel->$sel_method($h_start, $h_end);
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
         eval {
-            $vsel->select_range($v_start, $v_end);
+            $vsel->$sel_method($v_start, $v_end);
         };
         warn $EVAL_ERROR if $EVAL_ERROR;
 
@@ -1787,7 +1812,7 @@ sub update_selection_menu {
     $select_regex_item->signal_connect_swapped (
         activate => \&do_select_labels_regex, [$self, $base_ref],
     );
-    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant flags');
+    $select_regex_item->set_tooltip_text ('Select by text matching.  Uses regular expressions so you can use all relevant modifiers.');
 
     my $switch_selection_item = Gtk2::MenuItem->new_with_label('Switch selection');
     $switch_selection_item->signal_connect_swapped (
@@ -1795,8 +1820,28 @@ sub update_selection_menu {
     );
     $switch_selection_item->set_tooltip_text ('Switch selection to all currently non-selected labels');
 
-    $selection_menu->append($select_regex_item);
+    my $selection_mode_item = Gtk2::MenuItem->new_with_label('Selection mode');
+    my $sel_mode_submenu    = Gtk2::Menu->new;
+    my $sel_group = [];
+
+    foreach my $option (qw /new add_to remove_from/) {
+        my $submenu_item = Gtk2::RadioMenuItem->new_with_label($sel_group, $option);
+        $sel_mode_submenu->append ($submenu_item);
+        $submenu_item->signal_connect_swapped(
+            activate => \&do_set_selection_mode, [$self, $option],
+        );
+        push @$sel_group, $submenu_item;  #  first one is default
+    }
+    $selection_mode_item->set_submenu($sel_mode_submenu);
+    $selection_mode_item->set_tooltip_text(
+          'Set the selection mode for grid, tree and matrix selections. '
+        . 'List selections can be added and removed control clicking '
+        . '(shift clicking adds ranges of labels).',
+    );
+
+    $selection_menu->append($selection_mode_item);
     $selection_menu->append($switch_selection_item);
+    $selection_menu->append($select_regex_item);
     $selection_menu->append($export_menu_item);
     $selection_menu->append($delete_menu_item);
     $selection_menu->append($new_bd_menu_item);
@@ -1918,7 +1963,16 @@ sub do_delete_selected_basedata_records {
     my $delete_empty_groups = not $type =~ /retaining empty groups/;
 
     my $selected = $self->get_selected_labels;
-    return if !scalar @$selected;
+    my $count = scalar @$selected;
+
+    return if !$count;
+    
+    my $response = Biodiverse::GUI::YesNoCancel->run({
+        header => "Delete $count selected labels?",
+        hide_cancel => 1,
+    });
+
+    return if $response ne 'yes';
 
     my $gui = $self->{gui};
 
@@ -1934,6 +1988,7 @@ sub do_delete_selected_basedata_records {
     }
 
     $self->remove_selected_labels_from_list;
+    on_selected_labels_changed (undef, [$self]);
 
     $gui->{project}->set_dirty;
 
@@ -1945,12 +2000,16 @@ sub do_select_labels_regex {
 
     my $self = $args->[0];  #  don't shift these - it wrecks the callback
     my $bd   = $args->[1];
-    my $type = $args->[2];
+
+    my $mode  = $self->get_selection_mode;
+    my @modes = qw /new add_to remove_from/;
+    my $mode_idx = firstidx {$_ eq $mode} @modes;
 
     my $gui = $self->{gui};
     #  Hijack the import daligue.  (We should really build our own).
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg    = $dlgxml->get_widget('dlgImportParameters');
+    $dlg->set_title('Text selection');
     my $table  = $dlgxml->get_widget ('tableImportParameters');
     my $table_params = [
         {
@@ -1961,11 +2020,11 @@ sub do_select_labels_regex {
             tooltip    => '',
         },
         {
-            name       => 'selection_type',
+            name       => 'selection_mode',
             type       => 'choice',
-            default    => 0,
+            default    => $mode_idx,
             label_text => 'Selection type',
-            choices    => [qw /new add_to remove_from/],
+            choices    => [@modes],
             tooltip    => 'Use this to define a new selection, add to the current selection, or remove from selection',
         },
         {
@@ -2013,6 +2072,23 @@ sub do_select_labels_regex {
     $self->select_using_regex (%params, regex => $regex);
 
     return;
+}
+
+sub set_selection_mode {
+    my ($self, $mode) = @_;
+    $self->{selection_mode} = $mode;
+}
+
+sub get_selection_mode {
+    my $self = shift;
+    return $self->{selection_mode} // 'new';
+}
+
+sub do_set_selection_mode {
+    my ($args, $widget) = @_;
+    my ($self, $mode) = @$args;
+    
+    $self->set_selection_mode ($mode);
 }
 
 sub numerically {$a <=> $b};

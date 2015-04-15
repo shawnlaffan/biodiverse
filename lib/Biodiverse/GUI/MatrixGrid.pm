@@ -503,7 +503,7 @@ sub highlight {
 
     # concatenate each region
     #  mask and stipple need to use Cairo
-    #  - see issue 480 https://code.google.com/p/biodiverse/issues/detail?id=480
+    #  - see issue 480 https://github.com/shawnlaffan/biodiverse/issues/480
     my $mask_path    = Gnome2::Canvas::PathDef->concat(@paths);
     my $mask_stipple = Gtk2::Gdk::Bitmap->create_from_data(
         undef,

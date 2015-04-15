@@ -368,6 +368,250 @@ sub get_calculation_metadata_as_wiki {
     return $html;
 }
 
+#  now we have moved to github
+sub get_calculation_metadata_as_markdown {
+    my $self = shift;
+
+    my %calculations = $self->get_calculations (@_);
+
+    #  the html version
+    my @header = (  
+        #"Name",
+        #"Analysis description",
+        #"Subroutine",
+        'Index #',
+        'Index',
+        'Index description',
+        'Valid cluster metric?',
+        'Minimum number of neighbour sets',
+        'Formula',
+        'Reference',
+    );
+
+    foreach my $text (@header) {
+        #$text =~ s/\*/`\*`/;  #  escape any highlight characters
+        #$text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+        $text = "*$text*";
+    }
+
+    my %hash;
+
+    #my @place_holder = (undef, undef);
+
+    my @toc;
+
+    my %indices;
+    my %calculation_hash;
+    foreach my $type (sort keys %calculations) {
+        my $wiki_anchor = lc $type;
+        $wiki_anchor    =~ s/ /-/g;
+        $wiki_anchor    =~ s/[^a-z0-9-]//g;
+        push @toc, "  * [$type](#$wiki_anchor)";
+        foreach my $calculations (@{$calculations{$type}}) {
+            my $ref = $self->get_metadata (sub => $calculations);
+            $ref->{analysis} = $calculations;
+            $calculation_hash{$type}{$calculations} = $ref;
+            my $wiki_anchor = lc $ref->{name};
+            $wiki_anchor    =~ s/ /-/g;
+            $wiki_anchor    =~ s/[^a-z0-9-]//g;
+            push @toc, "    * [$ref->{name}](#$wiki_anchor)";
+        }
+    }
+
+    #my $sort_by_type_then_name = sub {   $a->{type} cmp $b->{type}
+    #                                  || $a->{name} cmp $b->{name}
+    #                                  };
+
+    my $markdown;
+
+    $markdown .= "**Indices available in Biodiverse:**\n";
+    $markdown .= join "\n", @toc;
+    $markdown .= "\n\n";
+
+    my %done;
+    my $count = 1;
+    my $SPACE = q{ };
+
+    my $codecogs_url = 'http://latex.codecogs.com/png.latex?';
+    #my $codecogs_prefix
+    #    #= q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
+    #    = '<img src="http://latex.codecogs.com/png.latex?';
+    #my $codecogs_suffix
+    #    #= q{"/>};
+    #    = ' />';
+
+    #loop through the types
+  BY_TYPE:
+    foreach my $type (sort keys %calculation_hash) {
+        my $type_text = $type;
+        #$type_text =~ s/\*/`\*`/;  #  escape any highlight characters
+        #$type_text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+        $markdown .= "## $type_text ##";
+
+        my $type_ref = $calculation_hash{$type};
+
+      BY_NAME:  #  loop through the names
+        foreach my $ref (sort {$a->get_name cmp $b->get_name} values %$type_ref) {
+
+            my $name = $ref->{name};
+            my $description = $ref->get_description;
+            foreach ($name, $description) {
+                #$_ =~ s/\*/`\*`/;  #  escape any highlight characters
+                #$_ =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+            }
+
+            $markdown .= "\n \n \n";
+            $markdown .= "\n \n### $name ###\n \n";
+            $markdown .= "**Description:**   $description\n\n";
+            $markdown .= "**Subroutine:**   $ref->{analysis}\n\n";
+            #$markdown .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
+            if (my $reference = $ref->get_reference) {
+                $markdown .= "**Reference:**   $reference\n \n\n";
+            }
+
+            my $formula = $ref->get_formula;
+            croak 'Formula is not an array'
+              if defined $formula and not (ref $formula) =~ /ARRAY/;
+
+            if ($formula and (ref $formula) =~ /ARRAY/) {
+                my $formula_url;
+                my $iter = 0;
+
+              FORMULA_ELEMENT_OVERVIEW:
+                foreach my $element (@{$formula}) {
+                    if (! defined $element
+                        || $element eq q{}) {
+                        $iter ++;
+                        next FORMULA_ELEMENT_OVERVIEW;
+                       }
+
+                    if ($iter % 2) {
+                        #$formula .= "\n";
+                        if (not $element =~ /^\s/) {
+                            $formula_url .= ' ';
+                        }
+                        $formula_url .= $element;
+                    }
+                    else {
+                        #$formula .= "\n";
+                        my $eqn = $element;
+                        $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                        $formula_url .= "![$eqn]($codecogs_url";
+                        $formula_url .= $eqn;
+                        $formula_url .= "%.png)";
+                        #$formula_url .= $codecogs_suffix;
+                    }
+                    $iter++;
+                }
+
+                $markdown .= "**Formula:**\n   $formula_url\n\n";
+            }
+
+            my @table;
+            push @table, [@header];
+
+            my $i = 0;
+            my $uses_reference = 0;
+            my $uses_formula = 0;
+            foreach my $index (sort keys %{$ref->get_indices}) {
+
+                #  repeated code from above - need to generalise to a sub
+                my $formula_url;
+                my $formula = $ref->get_index_formula ($index);
+                croak "Formula for $index is not an array"
+                  if defined $formula and not ((ref $formula) =~ /ARRAY/);
+
+                if (1 and $formula and (ref $formula) =~ /ARRAY/) {
+
+                    $uses_formula = 1;
+
+                    my $iter = 0;
+                    foreach my $element (@$formula) {
+                        if ($iter % 2) {
+                            if (not $element =~ /^\s/) {
+                                $formula .= ' ';
+                            }
+                            $formula_url .= $element;
+                        }
+                        else {
+                            my $eqn = $element;
+                            $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                            $formula_url .= "![$eqn]($codecogs_url";
+                            $formula_url .= $eqn;
+                            $formula_url .= '%.png)';
+                            #$formula_url .= $codecogs_suffix;
+                        }
+                        $iter++;
+                    }
+                }
+                $formula_url .= $SPACE;
+
+                my @line;
+
+                push @line, $count;
+                push @line, $index;
+
+                my $description = $ref->get_index_description ($index) || $SPACE;
+                $description =~ s{\n}{ }gmo;  # purge any newlines
+                #$description =~ s/\*/`\*`/;  #  avoid needless bolding
+                push @line, $description;
+
+                push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;
+                push @line, $ref->get_index_uses_nbr_lists ($index) || $ref->get_uses_nbr_lists || $SPACE;
+                push @line, $formula_url;
+                my $reference = $ref->get_index_reference ($index);
+                if (defined $reference) {
+                    $uses_reference = 1;
+                    $reference =~s{\n}{ }gmo;
+                }
+                push @line, $reference || $SPACE;
+
+                push @table, \@line;
+
+                $i++;
+                $count ++;
+            }
+
+            #  remove the reference col if none given
+            if (! $uses_reference) {
+                foreach my $row (@table) {
+                    pop @$row;
+                }
+            }
+
+            #  and remove the formula also if need be
+            if (! $uses_formula) {
+                foreach my $row (@table) {
+                    splice @$row, 5, 1;
+                }
+            }
+
+            #$markdown .= $table;
+
+            #  splice in the separator text
+            my @separator = ('----') x scalar @{$table[0]};
+            splice @table, 1, 0, \@separator;
+
+            foreach my $line (@table) {    
+                my $line_text;
+                $line_text .= q{| };
+                $line_text .= join (q{ | }, @$line);
+                $line_text .= q{ |};
+                $line_text .= "\n";
+
+                #my $x = grep {! defined $_} @$line;
+
+                $markdown .= $line_text;
+            }
+
+            $markdown .= "\n\n";
+        }
+    }
+
+    return $markdown;
+}
+
+
 sub _convert_to_hash {
     my $self = shift;
     my %args = @_;
@@ -1168,8 +1412,7 @@ Biodiverse::Indices
 =head1 DESCRIPTION
 
 Indices handler for the Biodiverse system.
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for the list
-of available indices.
+See L<http://purl.org/biodiverse/wiki/Indices> for the list of available indices.
 
 =head1 METHODS
 

@@ -230,9 +230,11 @@ sub reset_total_length {
 
 sub reset_total_length_below {
     my $self = shift;
-    
+
     $self->reset_total_length;
-    foreach my $child ($self->get_children) {
+    
+    my %descendents = $self->get_all_descendants;
+    foreach my $child (values %descendents) {
         $child->reset_total_length_below;
     }
 
@@ -345,14 +347,37 @@ sub get_depth {
     my $depth = $self->{NODE_VALUES}{DEPTH};
 
     return $depth if defined $depth;
-    
+
     if ($self->is_root_node) {
         $self->set_depth(depth => 0);
         return 0;
     }
 
-    #  recursively search up the tree
-    $self->set_depth(depth => ($self->get_parent->get_depth + 1));
+    #  search up the tree but avoid recursion
+    my @parents = $self->get_parent;
+    $depth      = $parents[0]->{NODE_VALUES}{DEPTH};
+  PARENT:
+    while (!defined $depth) {
+        my $parent = $parents[0]->get_parent;
+        last PARENT if !defined $parent;
+        if ($parent->is_root_node) {
+            $depth = 0;
+        }
+        else {
+            $depth = $parent->{NODE_VALUES}{DEPTH};
+        }
+        unshift @parents, $parent;
+        last PARENT if defined $depth;
+    }
+    shift @parents;
+    $depth ++;
+    foreach my $node (@parents) {
+        $node->set_depth(depth => $depth);
+        $depth++;
+    }
+    $self->set_depth(depth => $depth);
+    #   old recursive approach - leaked memory
+    #$self->set_depth(depth => ($self->get_parent->get_depth + 1));
 
     return $self->{NODE_VALUES}{DEPTH};
 }
@@ -761,19 +786,18 @@ sub get_terminal_elements {
           if defined $cache_ref;
     }
 
-    my @list;
+    my %list;
 
     if ($self->is_terminal_node) {
-        push @list, ($self->get_name, 1);
+        $list{$self->get_name} = 1;
     }
     else {
-        foreach my $child ($self->get_children) {
-            push @list, $child->get_terminal_elements (%args);
-        }
-    }
+        my %descendents = $self->get_all_descendants;
+        my %terminals   = pairgrep {$b->is_terminal_node} %descendents;
+        @list{keys %terminals} = (1) x scalar keys %terminals;
+    }    
 
     #  the values are really a hash, and need to be coerced into one when used
-    my %list = @list;
     if ($args{cache}) {
         $self->set_cached_value (TERMINAL_ELEMENTS => \%list);
     }
@@ -878,16 +902,16 @@ sub get_all_descendants {
         }
     }
 
-    my @list;
-    push @list, $self->get_children;
-    foreach my $child (@list) {
-        push @list, $child->get_children;
+    my @a_list;
+    push @a_list, $self->get_children;
+    foreach my $child (@a_list) {
+        push @a_list, $child->get_children;
     }
     #  the values are really a hash, and need to be coerced into one when used
     #  hashes save memory when using globally repeated keys and are more flexible
     #my @hash_list;
     my %list;
-    foreach my $node (@list) {
+    foreach my $node (@a_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
         weaken $list{$name};
@@ -941,13 +965,6 @@ sub get_path_lengths_to_root_node {
     my $self = shift;
     my %args = (cache => 1, @_);
 
-    #if ($self->is_root_node) {
-    #    my %result = ($self->get_name, $self->get_length);
-    #    return wantarray ? %result : \%result;
-    #}
-
-    #  don't cache internals
-    #my $use_cache = $self->is_internal_node ? 0 : $args{cache};
     my $use_cache = $args{cache};  #  cache internals
 
     if ($use_cache) {
@@ -1931,9 +1948,7 @@ sub get_node_range {
         push (@labels, $name);
     }
 
-    my @range = $bd->get_range_union (labels => \@labels);
-
-    my $range = scalar @range;
+    my $range = $bd->get_range_union (labels => \@labels, return_count => 1);
 
     $self->set_cached_value ($cache_key => $range);
 

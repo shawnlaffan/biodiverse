@@ -24,7 +24,7 @@ use Biodiverse::Common;
 
 use Getopt::Long;
 
-my ($in_file, $rand_name, $print_usage);
+my ($in_file, $rand_name, $print_usage, $bd_name);
 my %rest_of_args;
 my $iterations = 10;
 
@@ -32,6 +32,7 @@ my $iterations = 10;
 GetOptions (
     "basedata|bd=s"  => \$in_file,
     "rand_name|r=s"  => \$rand_name,
+    "bd_name|=s"     => \$bd_name,
     "iterations|iters|i:i" => \$iterations,
     "args:s{,}"      => \%rest_of_args,
     "help|h" => \$print_usage,
@@ -43,6 +44,7 @@ my @usage_array = (
     $0,
     '--basedata  --bd Basedata file name',
     '--rand_name  --r Randomisation output name',
+    '--bd_name        Basedata object name to use (optional)',
     '--iterations --i Number of randomisation iterations [default is 10]',
     '--args           Rest of randomisation args as',
     '                 key=value pairs,',
@@ -65,6 +67,7 @@ die "\nError: Basedata file not specified\n$usage\n"
 die "\nError: Randomisation name not specified\n$usage\n"
   if !defined $rand_name;
 
+
 my $tmp_bd     = Biodiverse::BaseData->new(CELL_SIZES => [100000, 100000]);
 my $extensions = join ('|', $tmp_bd->get_param('OUTSUFFIX'), $tmp_bd->get_param('OUTSUFFIX_YAML'));
 my $re_valid   = qr/($extensions)$/i;
@@ -75,6 +78,11 @@ if (! defined $bd) {
     warn "basedata $bd does not exist - check your path\n";
     exit;
 }
+
+if ($bd_name) {
+    $bd->rename (new_name => $bd_name);
+}
+
 
 my $rand = $bd->get_randomisation_output_ref (name => $rand_name)
         // $bd->add_randomisation_output     (name => $rand_name);

@@ -319,8 +319,13 @@ sub skewness {
             
             my $mean = $self->mean();
 
-            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 3 } $self->get_data();
-            my $sum_pow3 = List::Util::sum @tmp;
+            my $sum_pow3;
+            foreach my $rec ( $self->get_data() ) {
+                $sum_pow3 +=  (($rec - $mean) / $sd) ** 3;
+            }
+            #  these are not as fast
+            #my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 3 } $self->get_data();
+            #my $sum_pow3 = List::Util::sum map { (($_ - $mean) / $sd) ** 3 } $self->get_data();
 
             my $correction = $n / ( ($n-1) * ($n-2) );
 
@@ -347,8 +352,13 @@ sub kurtosis {
 
             my $mean = $self->mean();
 
-            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 4 } $self->get_data();
-            my $sum_pow4 = List::Util::sum @tmp;
+            my $sum_pow4;
+            foreach my $rec ( $self->get_data() ) {
+                $sum_pow4 +=  (($rec - $mean) / $sd) ** 4;
+            }
+            #  these are not as fast
+            #my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 4 } $self->get_data();
+            #my $sum_pow4 = List::Util::sum map { (($_ - $mean) / $sd) ** 4 } $self->get_data();
 
             my $correction1 = ( $n * ($n+1) ) / ( ($n-1) * ($n-2) * ($n-3) );
             my $correction2 = ( 3  * ($n-1) ** 2) / ( ($n-2) * ($n-3) );

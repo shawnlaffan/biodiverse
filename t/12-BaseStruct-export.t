@@ -56,12 +56,15 @@ use Biodiverse::TestHelpers qw /:basedata/;
     foreach my $symmetric (0, 1) {
         foreach my $one_value_per_line (0, 1) {
             foreach my $no_element_array (0, 1) {
-                push @arg_combinations,
-                    {
-                        symmetric          => $symmetric,
-                        one_value_per_line => $one_value_per_line,
-                        no_element_array   => $no_element_array,
-                    };
+                foreach my $quote_element_name (0, 1) {
+                    push @arg_combinations,
+                        {
+                            symmetric          => $symmetric,
+                            one_value_per_line => $one_value_per_line,
+                            no_element_array   => $no_element_array,
+                            quote_element_names => $quote_element_name,
+                        };
+                }
             }
         }
     }

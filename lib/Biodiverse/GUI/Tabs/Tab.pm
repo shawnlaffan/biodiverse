@@ -317,14 +317,18 @@ sub on_bare_key {
 
     return if not defined $tool;
 
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+    my $active_pane = $self->{active_pane};
+
+    return if !defined $active_pane;
+
+    if ($tool eq 'ZoomOut' and $active_pane ne '') {
         # Do an instant zoom out and keep the current tool.
         $self->{$self->{active_pane}}->zoom_out();
     }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+    elsif ($tool eq 'ZoomFit' and $active_pane ne '') {
         $self->{$self->{active_pane}}->zoom_fit();
     }
-    elsif ($self->{active_pane}) {
+    elsif ($active_pane) {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
     }
 }
@@ -532,10 +536,15 @@ sub set_display_cursors {
                 $cursor = $self->get_cached_value ($cache_name);
                 if (!$cursor) {
                     my $ic = Gtk2::IconTheme->new();
-                    my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
-                    my $display = $window->get_display;
-                    $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
-                    $self->set_cached_value ($cache_name => $cursor);
+                    my $pixbuf = eval {$ic->load_icon($icon, 16, 'no-svg')};
+                    if ($@) {
+                        warn $@;
+                    }
+                    else {
+                        my $display = $window->get_display;
+                        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                        $self->set_cached_value ($cache_name => $cursor);
+                    }
                 }
             }
         }

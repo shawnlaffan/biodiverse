@@ -4,7 +4,6 @@ package Biodiverse::ReadNexus;
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
 use 5.010;
-use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -787,7 +786,10 @@ sub parse_newick {
     
     #print "hit the end of line\n";
     #print "Position is " . (pos $string) . " of $str_len\n";
-    
+
+    #  try to avoid leaktrace warnings
+    #undef $children_of_current_node;
+
     #  the following is a duplicate of code from above, but converting to a sub uses
     #  almost as many lines as the two blocks combined
     #  (later --- not sure this is still the case now)

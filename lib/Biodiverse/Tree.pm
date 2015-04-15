@@ -76,7 +76,7 @@ sub rename {
 
     my $name = $args{new_name};
     if (not defined $name) {
-        croak "[Tree] Argument 'name' not defined\n";
+        croak "[Tree] Argument 'new_name' not defined\n";
     }
 
     #  first tell the basedata object
@@ -322,7 +322,20 @@ sub get_node_ref {
     Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
       if !exists $self->{TREE_BY_NAME}{$node};
 
-    return $self->{TREE_BY_NAME}{$node};    
+    return $self->{TREE_BY_NAME}{$node};
+}
+
+#  array args version of get_node_ref
+sub get_node_ref_aa {
+    my ($self, $node) = @_;
+
+    croak "node not specified in call to get_node_ref\n"
+      if !defined $node;
+
+    no autovivification;
+
+    return $self->{TREE_BY_NAME}{$node}
+      // Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -2142,6 +2155,7 @@ sub collapse_tree {
     }
 
     $self->delete_cached_values;
+    $self->delete_cached_values_below;
 
     #  reset all the total length values
     $self->reset_total_length;
@@ -2154,6 +2168,13 @@ sub collapse_tree {
     }
     #foreach my $now_empty (@now_empty) {
     $self->delete_from_node_hash (nodes => \@now_empty) if scalar @now_empty;
+
+    #  rerun the resets - prob overkill
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
+    $self->reset_total_length;
+    $self->get_total_tree_length;
+
 
     if ($verbose) {
         say '[TREE] Total length: ' . $self->get_tree_length;
@@ -2264,7 +2285,7 @@ sub clone_tree_with_equalised_branch_lengths {
 
     if (!defined $non_zero_len) {
         my $non_zero_node_count = grep {$_->get_length} $self->get_node_refs;
-        $non_zero_len = $self->get_total_tree_length / $non_zero_node_count;
+        $non_zero_len = $self->get_total_tree_length / ($non_zero_node_count || 1);
     }
 
     my $new_tree = $self->clone;

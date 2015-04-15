@@ -28,6 +28,38 @@ my $metadata_class = 'Biodiverse::Metadata::Indices';
 my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
 
+my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
+NRI and NTI for the set of labels
+on the tree in the sample. This
+version is -1* the Phylocom implementation,
+so values >0 have longer branches than expected.
+END_NRI_NTI_EXPL_TEXT
+  ;
+
+my $nri_formula = ['NRI = \frac{MPD_{obs} - mean(MPD_{rand})}{sd(MPD_{rand})}'];
+my $nti_formula = ['NTI = \frac{MNTD_{obs} - mean(MNTD_{rand})}{sd(MNTD_{rand})}'];
+my $mpd_mntd_path_formula = [
+    'where ',
+    'd_{t_i \leftrightarrow t_j} = \sum_{b \in B_{t_i \leftrightarrow t_j}} L_b',
+    'is the sum of the branch lengths along the path connecting ',
+    't_i',
+    'and',
+    't_j',
+    'such that ',
+    'L_b',
+    'is the length of each branch in the set of branches',
+    'B',    
+];
+my $mpd_formula = [
+    'MPD = \frac {\sum_{t_i = 1}^{n_t-1} \sum_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{(n_t-1)^2}, i \neq j',
+    @$mpd_mntd_path_formula,
+];
+my $mntd_formula = [  
+    'MNTD = \frac {\sum_{t_i = 1}^{n_t-1} \min_{t_j = 1}^{n_t} d_{t_i \leftrightarrow t_j}}{n_t-1}, i \neq j',
+    @$mpd_mntd_path_formula,
+];
+
+
 sub get_mpd_mntd_metadata {
     my $self = shift;
     my %args = @_;
@@ -57,6 +89,7 @@ sub get_mpd_mntd_metadata {
         },
         PMPD_MEAN => {
             description    => 'Mean of pairwise phylogenetic distances',
+            formula        => $mpd_formula,
         },
         PMPD_MAX => {
             description    => 'Maximum of pairwise phylogenetic distances',
@@ -250,7 +283,8 @@ sub _calc_phylo_mpd_mntd {
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
-    #  Loop over all possible pairs, 
+    #  Loop over all possible pairs
+    my $i = 0;
     BY_LABEL:
     foreach my $label1 (@labels1) {
         my $label_count1 = $label_hash1->{$label1};
@@ -260,13 +294,13 @@ sub _calc_phylo_mpd_mntd {
             @mntd_path_lengths_this_node,
             @mpd_wts_this_node,
         );
-        my $i = 0;
+        my $j = 0;
 
-        LABEL2:
-        foreach my $label2 (@labels2) {
+      BY_LABEL2:
+        foreach my $label2 (@labels2) {  #  could work on i..n instead of 1..n, but mntd needs minima
 
             #  skip same labels (FIXME: but not if used as dissim measure)
-            next LABEL2 if $label1 eq $label2;
+            next BY_LABEL2 if $label1 eq $label2;
 
             my $path_length = $mx->get_defined_value_aa ($label1, $label2);
 
@@ -299,10 +333,12 @@ sub _calc_phylo_mpd_mntd {
                 push @mpd_wts_this_node, $label_hash2->{$label2};
             }
 
-            $i ++;
+            $j ++;
         }
 
-        if ($i) {  #  only if we added something
+        #  next steps only if we added something
+        next BY_LABEL if !$j;
+
             #  weighting scheme won't work with non-integer wts - need to use weighted stats
             push @mpd_path_lengths, @mpd_path_lengths_this_node;
             my $min = min (@mntd_path_lengths_this_node);
@@ -312,13 +348,12 @@ sub _calc_phylo_mpd_mntd {
                 push @mntd_wts, $label_count1;
             }
         }
-    }
 
     my %results;
 
     my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
     my @pfxs  = qw /PNTD PMPD/;
-    my $i = -1;
+    $i = -1;
     foreach my $path (@paths) {
         $i++;
 
@@ -413,15 +448,6 @@ sub get_phylo_nri_nti_cache {
     return wantarray ? %results : \%results;
 }
 
-my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
-NRI and NTI for the set of labels
-on the tree in the sample. This
-version is -1 times the Phylocom implementation,
-so values >0 have longer branches than expected.
-END_NRI_NTI_EXPL_TEXT
-  ;
-
-
 sub get_metadata_calc_nri_nti1 {
     my $self = shift;
 
@@ -435,11 +461,11 @@ sub get_metadata_calc_nri_nti1 {
         indices     => {
             PHYLO_NRI1 => {
                 description    => 'Net Relatedness Index, unweighted',
-                formula        => [],
+                formula        => $nri_formula,
             },
             PHYLO_NTI1 => {
                 description    => 'Nearest Taxon Index, unweighted',
-                formula        => [],
+                formula        => $nti_formula,
             },
         },
         uses_nbr_lists => 1,
@@ -885,7 +911,7 @@ those available in the PhyloCom system (L<http://phylodiversity.net/phylocom/>).
 
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
-See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.
+See L<http://purl.org/biodiverse/wiki/Indices> for more details.
 
 =head1 METHODS
 

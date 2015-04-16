@@ -119,62 +119,47 @@ my %file_temp_args = (
         calculations       => ['calc_richness'],
     );
 
-    my $tmp_obj1  = File::Temp->new (%file_temp_args);
-    my $filename1 = $tmp_obj1->filename;
-    undef $tmp_obj1;  # we just wanted the name, and we'll overwrite it
+    my $table;
 
-    $gps->export_table_delimited_text (
-        file   => $filename1,
+    $table = $gps->to_table (
         list   => 'SUBELEMENTS',
         quote_element_names_and_headers => 1,
     );
-    headers_and_elements_are_quoted($filename1, 'SUBELEMENTS');
+    table_headers_and_elements_are_quoted($table, 'SUBELEMENTS');
 
-    $gps->export_table_delimited_text (
-        file   => $filename1,
+    $table = $gps->to_table (
         list   => 'SUBELEMENTS',
         symmetric => 0,  #  export defaults to symmetric, so override to test
         quote_element_names_and_headers => 1,
     );
-    headers_and_elements_are_quoted($filename1, 'SUBELEMENTS');
+    table_headers_and_elements_are_quoted($table, 'SUBELEMENTS');
 
-    $sp->export_table_delimited_text (
-        file   => $filename1,
+    $table = $sp->to_table (
         list   => 'SPATIAL_RESULTS',
         quote_element_names_and_headers => 1,
     );
-    headers_and_elements_are_quoted($filename1, 'SPATIAL_RESULTS');
+    table_headers_and_elements_are_quoted($table, 'SPATIAL_RESULTS');
 
-    unlink $filename1;
 }
 
-sub headers_and_elements_are_quoted {
-    my ($filename, $extra_feedback) = @_;
+sub table_headers_and_elements_are_quoted {
+    my ($table, $extra_feedback) = @_;
     $extra_feedback //= '';
-
-    open(my $fh, '<', $filename) or die "Cannot open $filename";
-    
-    my $header = <$fh>;
-    chomp $header;
-    my @header = split ',', $header;
 
     my $re_is_quoted = qr /^'[^']+'$/;
     
-    subtest 'Headers and element names are quoted' => sub { 
-        foreach my $field_name (@header) {  #  first three are not quoted - should we?
+    subtest 'Headers and element names are quoted' => sub {
+        my $header = $table->[0];
+        foreach my $field_name (@$header) {  #  first three are not quoted - should we?
             ok ($field_name =~ $re_is_quoted, "$field_name is quoted, $extra_feedback");
         }
-        while (my $line = <$fh>) {
-            chomp $line;
-            my @line = split ',', $line;
-            ok ($line[0] =~ $re_is_quoted, "element name $line[0] is quoted, $extra_feedback");
+        foreach my $line (@$table[1..$#$table]) {
+            ok ($line->[0] =~ $re_is_quoted, "element name $line->[0] is quoted, $extra_feedback");
         }
     };
 
-    $fh->close;
     return;
 }
-
 
 
 sub run_basestruct_export_to_table {

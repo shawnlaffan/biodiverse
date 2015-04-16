@@ -21,6 +21,14 @@ use Test::More;
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
 
+
+my %file_temp_args = (
+    TEMPLATE => "biodiverse_export_test_XXXXX",
+    SUFFIX   => '.csv',
+    UNLINK   => 0,
+);
+
+
 # delimited text
 {
     my $e;  #  for eval errors;
@@ -43,7 +51,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
     );
     
     my $gp = $num_bd->get_groups_ref;
-    
+
     #  now make a basestruct with a symmetric list to export
     my $sp = $num_bd->add_spatial_output (name => 'Blahblah');
     $sp->run_analysis (
@@ -59,9 +67,9 @@ use Biodiverse::TestHelpers qw /:basedata/;
                 foreach my $quote_element_name (0, 1) {
                     push @arg_combinations,
                         {
-                            symmetric          => $symmetric,
-                            one_value_per_line => $one_value_per_line,
-                            no_element_array   => $no_element_array,
+                            symmetric           => $symmetric,
+                            one_value_per_line  => $one_value_per_line,
+                            no_element_array    => $no_element_array,
                             quote_element_names => $quote_element_name,
                         };
                 }
@@ -92,6 +100,83 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
 
 
+{
+    my $bd = get_basedata_object (
+        CELL_SIZES => [2, 2],
+        x_spacing => 1,
+        y_spacing => 1,
+        x_max     => 10,
+        y_max     => 10,
+        x_min     => 0,
+        y_min     => 1,
+    );
+    my $gps = $bd->get_groups_ref;
+
+    #  now make a basestruct with a symmetric list to export
+    my $sp = $bd->add_spatial_output (name => 'Blahblah');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_richness'],
+    );
+
+    my $tmp_obj1  = File::Temp->new (%file_temp_args);
+    my $filename1 = $tmp_obj1->filename;
+    undef $tmp_obj1;  # we just wanted the name, and we'll overwrite it
+
+    $gps->export_table_delimited_text (
+        file   => $filename1,
+        list   => 'SUBELEMENTS',
+        quote_element_names_and_headers => 1,
+    );
+    headers_and_elements_are_quoted($filename1, 'SUBELEMENTS');
+
+    $gps->export_table_delimited_text (
+        file   => $filename1,
+        list   => 'SUBELEMENTS',
+        symmetric => 0,  #  export defaults to symmetric, so override to test
+        quote_element_names_and_headers => 1,
+    );
+    headers_and_elements_are_quoted($filename1, 'SUBELEMENTS');
+
+    $sp->export_table_delimited_text (
+        file   => $filename1,
+        list   => 'SPATIAL_RESULTS',
+        quote_element_names_and_headers => 1,
+    );
+    headers_and_elements_are_quoted($filename1, 'SPATIAL_RESULTS');
+
+    unlink $filename1;
+}
+
+sub headers_and_elements_are_quoted {
+    my ($filename, $extra_feedback) = @_;
+    $extra_feedback //= '';
+
+    open(my $fh, '<', $filename) or die "Cannot open $filename";
+    
+    my $header = <$fh>;
+    chomp $header;
+    my @header = split ',', $header;
+
+    my $re_is_quoted = qr /^'[^']+'$/;
+    
+    subtest 'Headers and element names are quoted' => sub { 
+        foreach my $field_name (@header) {  #  first three are not quoted - should we?
+            ok ($field_name =~ $re_is_quoted, "$field_name is quoted, $extra_feedback");
+        }
+        while (my $line = <$fh>) {
+            chomp $line;
+            my @line = split ',', $line;
+            ok ($line[0] =~ $re_is_quoted, "element name $line[0] is quoted, $extra_feedback");
+        }
+    };
+
+    $fh->close;
+    return;
+}
+
+
+
 sub run_basestruct_export_to_table {
     my %args = @_;
 
@@ -110,11 +195,6 @@ sub run_basestruct_export_to_table {
     $feedback_text =~ s/, $//;
     
 
-    my %file_temp_args = (
-        TEMPLATE => "biodiverse_export_test_XXXXX",
-        SUFFIX   => '.csv',
-        UNLINK   => 0,
-    );
 
     my $tmp_obj1  = File::Temp->new (%file_temp_args);
     my $filename1 = $tmp_obj1->filename;

@@ -1129,6 +1129,14 @@ sub to_table_sym {
     else {
         push @header, @quoted_print_order;
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char";
+        }
+    }
+
     push @data, \@header;
     
     #  now add the data to the array
@@ -1222,7 +1230,17 @@ sub to_table_asym {  #  get the data as an asymmetric table
     else {
         push @header, "Value";
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char" ;
+        }
+    }
+
     push @data, \@header;
+    
+    
 
     foreach my $element (@elements) {
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
@@ -1338,6 +1356,14 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     else {
         push @header, @quoted_print_order;
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char" ;
+        }
+    }
+
     push @data, \@header;
     
     print "[BASESTRUCT] Processing elements...\n";

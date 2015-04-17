@@ -374,14 +374,11 @@ sub get_calculation_metadata_as_markdown {
     my %calculations = $self->get_calculations (@_);
 
     #  the html version
-    my @header = (  
-        #"Name",
-        #"Analysis description",
-        #"Subroutine",
+    my @header = (
         'Index #',
         'Index',
         'Index description',
-        'Valid cluster metric?',
+        'Grouping metric?',
         'Minimum number of neighbour sets',
         'Formula',
         'Reference',
@@ -498,7 +495,6 @@ sub get_calculation_metadata_as_markdown {
                         $formula_url .= "![$eqn]($codecogs_url";
                         $formula_url .= $eqn;
                         $formula_url .= "%.png)";
-                        #$formula_url .= $codecogs_suffix;
                     }
                     $iter++;
                 }
@@ -555,7 +551,10 @@ sub get_calculation_metadata_as_markdown {
                 #$description =~ s/\*/`\*`/;  #  avoid needless bolding
                 push @line, $description;
 
-                push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;
+                my $clus_text = $ref->get_index_is_cluster_metric ($index) ? "cluster metric"
+                              : $ref->get_index_is_lumper($index)          ? 'region grower'
+                              : $SPACE;
+                push @line, $clus_text;
                 push @line, $ref->get_index_uses_nbr_lists ($index) || $ref->get_uses_nbr_lists || $SPACE;
                 push @line, $formula_url;
                 my $reference = $ref->get_index_reference ($index);

@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.0';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;

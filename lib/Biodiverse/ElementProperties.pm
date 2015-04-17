@@ -8,7 +8,7 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.0';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 

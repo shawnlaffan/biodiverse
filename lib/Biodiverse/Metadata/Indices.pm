@@ -6,7 +6,7 @@ use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.0';
 
 sub new {
     my ($class, $data) = @_;

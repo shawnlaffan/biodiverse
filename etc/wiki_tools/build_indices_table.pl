@@ -97,7 +97,7 @@ Most of the headings are self-explanatory.  For the others:
   * The *Minimum number of neighbour sets* dictates whether or not a calculation or index will be run.  If you specify only one neighbour set then all those calculations that require two sets will be dropped from the analysis.  (This is always the case for calculations applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the calculations lump neighbour sets 1 and 2 together.  See the [SpatialConditions](SpatialConditions.md) page for more details on neighbour sets.
 
 Note that calculations can provide different numbers of indices depending on the nature of the BaseData set used.
-This currently applies to the hierarchically partitioned endemism calculations (both [central](#Endemism_central_hierarchical_partition) and [whole](#Endemism_whole_hierarchical_partition)) and [hierarchical labels](#Hierarchical_Labels).
+This currently applies to the hierarchically partitioned endemism calculations (both [central](#endemism-central-hierarchical-partition) and [whole](#endemism-whole-hierarchical-partition)) and [hierarchical labels](#hierarchical-labels).
 
 
 END_OF_INTRO
@@ -137,7 +137,7 @@ say 'done';
 
 sub get_label_properties {
     my $data = <<'END_LABEL_PROPS'
-ax1,ax2,example_prop1,example_prop2
+ax1,ax2,exprop1,exprop2
 a,b,1,1,1
 END_LABEL_PROPS
   ;
@@ -146,10 +146,10 @@ END_LABEL_PROPS
 }
 
 sub get_group_properties {
-    my $data = <<'END_LABEL_PROPS'
-ax1,ax2,example_gprop1,example_gprop2
+    my $data = <<'END_GP_PROPS'
+ax1,ax2,gprop1,gprop2
 1,1,1,1,1
-END_LABEL_PROPS
+END_GP_PROPS
   ;
 
     element_properties_from_string($data);

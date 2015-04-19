@@ -1,5 +1,16 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.0 2015-04-19
+    - Update for version 1.0 release.
+    - Set minimum versions
+        - List::Util => 1.41
+        - YAML:Syck  => 1.29  
+        - List::MoreUtils    => 0.410
+        - autovivification   => 0.14
+        - List::BinarySearch => 0.25
+        - List::BinarySearch::XS  => 0.09
+        - Statistics::Descriptive => 3.0608
+
 0.99002 2014-08-12
     - Update for Biodiverse 0.99_002 development release.  Don't use a dev version number for the Task distro, though. 
     - Add List::BinarySearch
@@ -17,7 +28,7 @@ Revision history for Perl module Task::Biodiverse::NoGUI
     - Added several new dependencies (rlib, Class::Inspector, List::MoreUtils)
     - Removed redundant dependencies (Pad::Walker, MRO::Compat, Devel::SymDump)
     - Min version is now 5.010
-    
+
 0.17001 2012-07-28
     - Set Math::Random::MT::Auto minimum version to 6.19 to handle crashes
       when initialised with state vectors from different architectures

@@ -9,8 +9,19 @@ WriteMakefile(
         'AUTHOR' => 'Shawn Laffan (shawn.laffan@unsw.edu.au)',
         'ABSTRACT' => 'Task for Biodiverse dependencies',
         ) : (),
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+        resources => {
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/shawnlaffan/biodiverse.git',
+                web  => 'http://purl.org/biodiverse',
+                bugtracker  => 'https://github.com/shawnlaffan/biodiverse/issues/',
+            },
+        },
+    },
     PREREQ_PM => {
-        "Task::Biodiverse::NoGUI" => "0.19",
+        "Task::Biodiverse::NoGUI" => "1.0",
         "Data::DumpXML" => "0",
         "Gtk2::GladeXML" => "0",
         "Gnome2::Canvas" => "0",

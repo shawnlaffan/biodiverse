@@ -16,8 +16,11 @@ WriteMakefile(
                 type => 'git',
                 url  => 'https://github.com/shawnlaffan/biodiverse.git',
                 web  => 'http://purl.org/biodiverse',
-                bugtracker  => 'https://github.com/shawnlaffan/biodiverse/issues/',
             },
+            bugtracker => {
+                web => 'https://github.com/shawnlaffan/biodiverse/issues/',
+            },
+
         },
     },
     PREREQ_PM => {

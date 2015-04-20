@@ -126,7 +126,7 @@ sub new {
 
         $self->{output_name}  = $cluster_ref->get_param('NAME');
         $self->{basedata_ref} = $cluster_ref->get_param('BASEDATA_REF');
-        say "[Clustering tab] Existing spatial output - "
+        say "[Clustering tab] Existing output - "
               . $self->{output_name}
               . " within Basedata set - "
               . $self->{basedata_ref}->get_param ('NAME');

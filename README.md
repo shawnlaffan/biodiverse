@@ -15,7 +15,7 @@ More than 300 indices are supported.  See the [Indices](https://purl.org/biodive
 
 *Screen shots* can be found on the ScreenShots page.
 
-*Example* applications can be seen at the [publications page](https://purl.org/biodiverse/wiki/PublicationsList).
+*Example applications* can be seen at the [publications page](https://purl.org/biodiverse/wiki/PublicationsList).
 
 *Help* can be located via the [help pages](https://purl.org/biodiverse/wiki/Home) (these are also accessible via the wiki link on the right of this page).
 

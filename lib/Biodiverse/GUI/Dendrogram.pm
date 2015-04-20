@@ -934,7 +934,9 @@ sub recolour_cluster_lines {
         $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
         $line = $self->{node_lines}->{$node_name};
-        $line->set(fill_color_gdk => $colour_ref);
+        if ($line) {
+            $line->set(fill_color_gdk => $colour_ref);
+        }
 
         # And also colour all nodes below
         foreach my $child_ref (values %{$node_ref->get_all_descendants}) {
@@ -977,7 +979,10 @@ sub colour_line {
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
-    $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    my $line = $self->{node_lines}->{$name};
+    if ($line) {
+        $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    }
     $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
     return;

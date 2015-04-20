@@ -323,10 +323,26 @@ sub new {
     
     $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
     $self->update_export_menu;
+    $self->init_colour_clusters;
 
     say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;
+}
+
+sub init_colour_clusters {
+    my $self = shift;
+    my $cluster_ref = $self->{output_ref};
+
+    return if !$cluster_ref || !$self->{dendrogram};
+
+    my $root = eval {$cluster_ref->get_root_node};
+    return if !$root;  #  we have too many root nodes
+
+    $self->{dendrogram}->do_colour_nodes_below;
+    $self->{dendrogram}->do_colour_nodes_below($root);
+
+    return;
 }
 
 #  change sensitivity of the GDM output widget
@@ -691,9 +707,7 @@ sub on_map_index_changed {
 
     # Just got the signal for the deselected option. Wait for signal for
     # selected one.
-    if (!$menu_item->get_active()) {
-        return;
-    }
+    return if !$menu_item->get_active();
 
     # Got signal for newly selected option.
     my $index = $menu_item->get_label();
@@ -742,7 +756,7 @@ sub on_combo_map_list_changed {
                                 #  as there are no map lists
 
     my $model = $combo->get_model;
-    my $list = $model->get($iter, 0);
+    my $list  = $model->get($iter, 0);
 
     my $sensitive = 1;
     if ($list eq '<i>Cluster</i>') {
@@ -1414,6 +1428,8 @@ sub on_run_analysis {
         if (defined $output_ref) {
             $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
         }
+
+        $self->init_colour_clusters;
 
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {

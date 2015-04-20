@@ -321,14 +321,6 @@ sub new {
 
     $self->set_frame_label_widget;
     
-    #  hide this menu - should delete from glade
-    do {
-        my $wname = 'menuitem_clustering_data';
-        if (my $widget = $xml_page->get_widget ($wname)) {
-            $widget->hide;
-        }
-    };
-
     $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
     $self->update_export_menu;
 

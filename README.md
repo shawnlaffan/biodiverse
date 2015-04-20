@@ -11,7 +11,7 @@ Biodiverse is a tool for the spatial analysis of diversity using indices based o
 
 Biodiverse is open-source and supports user developed extensions. It can be used both through a graphical user interface (GUI) and through user written scripts.
 
-More than 250 indices are supported.  See the [Indices](https://purl.org/biodiverse/wiki/Indices) page.
+More than 300 indices are supported.  See the [Indices](https://purl.org/biodiverse/wiki/Indices) page.
 
 *Screen shots* can be found on the ScreenShots page.
 
@@ -22,9 +22,9 @@ More than 250 indices are supported.  See the [Indices](https://purl.org/biodive
 A **discussion group** is at http://groups.google.com.au/group/biodiverse-users and a **blog** at http://biodiverse-analysis-software.blogspot.com.au/
 
 
-To cite Biodiverse or acknowledge its use, use the following details, substituting the version of the application that you used for "Version 0.17".
+To cite Biodiverse or acknowledge its use, use the following details, substituting the version of the application that you used for "Version 1.0".
 
-*  Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (2010) Biodiverse, a tool for the spatial analysis of biological and related diversity. [Ecography. Vol 33, 643-647 (Version 0.17)](http://dx.doi.org/10.1111/j.1600-0587.2010.06237.x).
+*  Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (2010) Biodiverse, a tool for the spatial analysis of biological and related diversity. [Ecography. Vol 33, 643-647 (Version 1.0)](http://dx.doi.org/10.1111/j.1600-0587.2010.06237.x).
 
 An overview of the system is also provided in Dan Rosauer's talk at TDWG2008:
 
@@ -36,6 +36,12 @@ For a list of **publications using Biodiverse**, see the [PublicationsList](http
 Installation instructions can be accessed through the [Installation](https://purl.org/biodiverse/wiki/Installation) page.
 
 # News 
+
+20-Apr-2015
+Biodiverse version 1.0 has been released.  https://purl.org/biodiverse/wiki/Downloads
+
+The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-1
+
 
 27-Oct-2014
 A new development release is now available.  It can be downloaded from https://purl.org/biodiverse/wiki/Downloads 
@@ -56,13 +62,6 @@ The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#versi
 13-Aug-2014
 
 A Biodiverse pipeline for the CANAPE (Categorical Analysis of Neo and Palaeo Endemism) analyses described in [Mishler et al. (2014)](http://dx.doi.org/10.1038/ncomms5473) is now available.  See https://github.com/NunzioKnerr/biodiverse_pipeline 
-
-
-31-Oct-2013
-
-Biodiverse version 0.19 has been released.  It can be downloaded from https://bintray.com/shawnlaffan/Biodiverse/Biodiverse-releases .
-
-The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-019
 
 
 

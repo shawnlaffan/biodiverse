@@ -224,6 +224,9 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Encode::JP;
     use Encode::KR;
     use Encode::TW;
+    
+    #  Big stuff needs loading
+    use Math::BigInt;
 }
 
 

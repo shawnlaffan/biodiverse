@@ -32,7 +32,7 @@ my $iterations = 10;
 GetOptions (
     "basedata|bd=s"  => \$in_file,
     "rand_name|r=s"  => \$rand_name,
-    "bd_name|=s"     => \$bd_name,
+    "bd_name=s"     => \$bd_name,
     "iterations|iters|i:i" => \$iterations,
     "args:s{,}"      => \%rest_of_args,
     "help|h" => \$print_usage,

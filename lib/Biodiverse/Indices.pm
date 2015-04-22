@@ -435,6 +435,7 @@ sub get_calculation_metadata_as_markdown {
     #my $codecogs_suffix
     #    #= q{"/>};
     #    = ' />';
+    my %region_grower_indices = $self->get_valid_region_grower_indices;
 
     #loop through the types
   BY_TYPE:
@@ -552,7 +553,7 @@ sub get_calculation_metadata_as_markdown {
                 push @line, $description;
 
                 my $clus_text = $ref->get_index_is_cluster_metric ($index) ? "cluster metric"
-                              : $ref->get_index_is_lumper($index)          ? 'region grower'
+                              : exists ($region_grower_indices{$index})    ? 'region grower'
                               : $SPACE;
                 push @line, $clus_text;
                 push @line, $ref->get_index_uses_nbr_lists ($index) || $ref->get_uses_nbr_lists || $SPACE;

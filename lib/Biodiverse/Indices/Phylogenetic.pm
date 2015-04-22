@@ -2398,7 +2398,7 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
     my %metadata = (
         name            =>  'Corrected weighted phylogenetic rarity',
         description     =>  q{What proportion of the PD is abundance-restricted to this neighbour set?},
-        type            =>  'Phylogenetic Endemism',
+        type            =>  'Phylogenetic Endemism Indices',
         pre_calc        => [qw /_calc_phylo_aed_t calc_pd/],
         uses_nbr_lists  =>  1,
         reference       => '',

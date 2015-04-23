@@ -953,6 +953,9 @@ END_PROGRESS_TEXT
     my $i = 0;
     my $total_to_do = scalar @sorted_groups;
 
+    #  track any zero richness targets so we can list them as filled immediately
+    my (%filled_groups, %unfilled_groups);
+
     foreach my $group (@sorted_groups) {
 
         my $progress = $i / $total_to_do;
@@ -966,13 +969,19 @@ END_PROGRESS_TEXT
         );
 
         #  round down - could make this an option
-        $target_richness{$group} = floor (
-            $bd->get_richness (
-                element => $group
-            )
+        my $target_val = floor (
+            ($bd->get_richness (element => $group)) || 0 #  handle undef
             * $multiplier
             + $addition
         );
+        $target_richness{$group} = $target_val;
+        if ($target_val) {
+            $unfilled_groups{$group}++;
+        }
+        else {
+            $filled_groups{$group} = 0;
+            $cloned_bd->delete_group(group => $group);
+        }
         $i++;
     }
 
@@ -987,8 +996,6 @@ END_PROGRESS_TEXT
     my @target_groups = $bd->get_groups;
     my %all_target_groups
         = $bd->array_to_hash_keys (list => \@target_groups);
-    my %filled_groups;
-    my %unfilled_groups = %target_richness;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
     $i = 0;
@@ -1160,7 +1167,7 @@ sub swap_to_reach_richness_targets {
 
     my $cloned_bd       = $args{cloned_bd};
     my $new_bd          = $args{new_bd};
-    my %filled_groups   = %{$args{filled_groups}};
+    my %filled_groups   = %{$args{filled_groups}};  #  values are the richnesses - we use them to track empties
     my %unfilled_groups = %{$args{unfilled_groups}};
     my %target_richness = %{$args{target_richness}};
     my $rand            = $args{rand_object};
@@ -1217,6 +1224,7 @@ sub swap_to_reach_richness_targets {
             }
         }
     }
+    my $target_has_empty_gps = any {!$_} values %filled_groups;
 
     #  Track which groups do and don't have labels to avoid repeated and
     # expensive method calls to get_groups_with(out)_label_as_hash
@@ -1301,14 +1309,23 @@ sub swap_to_reach_richness_targets {
         my $target_groups_tmp_a = $groups_without_labels_a{$add_label};
         if (!$target_groups_tmp_a || !scalar @$target_groups_tmp_a) {
             my $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
-            $target_groups_tmp_a  = $groups_without_labels_a{$add_label} = [sort keys %$target_groups_tmp];
+            no autovivification;
+            #  only use non-empty groups ($filled_groups{$_} != 0)
+            my $tmp;
+            if ($target_has_empty_gps) {
+                $tmp = [sort grep {$filled_groups{$_}} keys %$target_groups_tmp];
+            }
+            else {
+                $tmp = [sort keys %$target_groups_tmp];
+            }
+            $target_groups_tmp_a  = $groups_without_labels_a{$add_label} = $tmp;
         };
         #  cache maintains a sorted list, so no need to re-sort.  
         $i = int $rand->rand(scalar @$target_groups_tmp_a);
         my $target_group = $target_groups_tmp_a->[$i];
 
         my $target_gp_richness
-          = $new_bd->get_richness (element => $target_group);
+          = $new_bd->get_richness (element => $target_group) // 0;
 
         #  If the target group is at its richness threshold then
         #  we must first remove one label.
@@ -1517,7 +1534,7 @@ sub swap_to_reach_richness_targets {
         }
 
         #  check if we've filled this group, if nothing was swapped out
-        my $new_richness = $new_bd->get_richness (element => $target_group);
+        my $new_richness = $new_bd->get_richness (element => $target_group) // 0;
 
         warn "ISSUES WITH TARGET $target_group\n"
           if $new_richness > $target_richness{$target_group};

@@ -60,7 +60,16 @@ sub main {
 
 
 sub test_rand_structured_richness_same {
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $c = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    #  add some empty groups - need enough to trigger issue #543
+    foreach my $i (1 .. 20) {
+        my $x = $i * -$c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
 
     #  name is short for test_rand_calc_per_node_uses_orig_bd
     my $sp = $bd->add_spatial_output (name => 'sp');
@@ -85,9 +94,10 @@ sub test_rand_structured_richness_same {
     subtest 'richness scores match' => sub {
         foreach my $rand_bd (@$rand_bd_array) {
             foreach my $group (sort $rand_bd->get_groups) {
-                is ($rand_bd->get_richness (element => $group),
-                    $bd->get_richness(element => $group),
-                    "richness for $group matches",
+                my $bd_richness = $bd->get_richness(element => $group) // 0;
+                is ($rand_bd->get_richness (element => $group) // 0,
+                    $bd_richness,
+                    "richness for $group matches ($bd_richness)",
                 );
             }
         }

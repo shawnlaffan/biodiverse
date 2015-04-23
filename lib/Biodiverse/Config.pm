@@ -225,7 +225,7 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Encode::KR;
     use Encode::TW;
     
-    #  Big stuff needs loading
+    #  Big stuff needs loading (poss not any more with PAR>1.08)
     use Math::BigInt;
 }
 

@@ -495,7 +495,7 @@ sub get_calculation_metadata_as_markdown {
                         $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
                         $formula_url .= "![$eqn]($codecogs_url";
                         $formula_url .= $eqn;
-                        $formula_url .= "%.png)";
+                        $formula_url .= "%.png) ";
                     }
                     $iter++;
                 }
@@ -534,7 +534,7 @@ sub get_calculation_metadata_as_markdown {
                             $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
                             $formula_url .= "![$eqn]($codecogs_url";
                             $formula_url .= $eqn;
-                            $formula_url .= '%.png)';
+                            $formula_url .= '%.png) ';
                             #$formula_url .= $codecogs_suffix;
                         }
                         $iter++;

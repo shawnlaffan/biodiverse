@@ -216,7 +216,7 @@ sub export_prng_init_state {
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 
-    print "[RANDOMISE] Dumped initial PRNG state to $filename\n";
+    say "[RANDOMISE] Dumped initial PRNG state to $filename";
 
     return;
 }
@@ -248,7 +248,7 @@ sub export_prng_current_state {
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 
-    print "[RANDOMISE] Dumped current PRNG state to $filename\n";
+    say "[RANDOMISE] Dumped current PRNG state to $filename";
 
     return;
 }
@@ -389,15 +389,15 @@ sub run_randomisation {
     foreach my $i (1 .. $iterations) {
 
         if ($max_iters && $$total_iterations >= $max_iters) {
-            print "[RANDOMISE] Maximum iteration count reached: $max_iters\n";
+            say "[RANDOMISE] Maximum iteration count reached: $max_iters";
             $return_success_code = 2;
             last ITERATION;
         }
 
         $$total_iterations++;
 
-        print "[RANDOMISE] $results_list_name iteration $$total_iterations "
-            . "($i of $iterations this run)\n";
+        say "[RANDOMISE] $results_list_name iteration $$total_iterations "
+            . "($i of $iterations this run)";
 
         $progress_bar->update (
             "Randomisation iteration $i of $iterations this run",
@@ -429,7 +429,7 @@ sub run_randomisation {
         TARGET:
         foreach my $target (@targets) {
             my $rand_analysis;
-            print "target: ", $target->get_param ('NAME') || $target, "\n";
+            say "target: ", $target->get_param ('NAME') || $target;
 
             next TARGET if ! defined $target;
             if (! $target->can('run_analysis')) {
@@ -527,7 +527,7 @@ sub run_randomisation {
 
         #  this argument is not yet exposed to the GUI
         if ($args{save_rand_bd}) {
-            print "[Randomise] Saving randomised basedata\n";
+            say "[Randomise] Saving randomised basedata";
             $rand_bd->save;
         }
         if ($args{return_rand_bd_array}) {
@@ -540,7 +540,7 @@ sub run_randomisation {
             && $$total_iterations =~ /$args{save_checkpoint}$/
             ) {
 
-            print "[Randomise] Saving incremental basedata\n";
+            say "[Randomise] Saving incremental basedata";
             my $file_name = $bd->get_param ('NAME');
             $file_name .= '_' . $function . '_iter_' . $$total_iterations;
             eval {
@@ -931,7 +931,7 @@ END_PROGRESS_TEXT
     );
 
     #  create a clone for destructive sampling
-    #  clear out the outputs - we seem to get a memory leak otherwise
+    #  clear out the outputs - we don't need them
     my $cloned_bd = $bd->clone (no_outputs => 1);
 
     $progress_bar->reset;
@@ -953,7 +953,8 @@ END_PROGRESS_TEXT
     my $i = 0;
     my $total_to_do = scalar @sorted_groups;
 
-    #  track any zero richness targets so we can list them as filled immediately
+    #  %filled_groups is used to track richness targets
+    #  Any zero richness targets can be treated as filled immediately
     my (%filled_groups, %unfilled_groups);
 
     foreach my $group (@sorted_groups) {
@@ -978,7 +979,7 @@ END_PROGRESS_TEXT
         if ($target_val) {
             $unfilled_groups{$group}++;
         }
-        else {
+        else {  #  handle empty groups without extra tracking hashes
             $filled_groups{$group} = 0;
             $cloned_bd->delete_group(group => $group);
         }
@@ -1127,8 +1128,8 @@ END_PROGRESS_TEXT
         delete @target_gps{$new_bd->get_groups};
 
         my $count = scalar keys %target_gps;
-        print '[Randomise structured] '
-              . "Creating $count empty groups in new basedata\n";
+        say '[Randomise structured] '
+              . "Creating $count empty groups in new basedata";
 
         foreach my $gp (keys %target_gps) {
             $new_bd->add_element (group => $gp, csv_object => $csv_object);
@@ -1153,7 +1154,7 @@ END_PROGRESS_TEXT
     );
 
     my $time_taken = sprintf "%d", tv_interval ($start_time);
-    print "[RANDOMISE] Time taken for rand_structured: $time_taken seconds\n";
+    say "[RANDOMISE] Time taken for rand_structured: $time_taken seconds";
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
@@ -1196,12 +1197,12 @@ sub swap_to_reach_richness_targets {
                       + (scalar keys %unfilled_groups);
 
     if ($total_to_do) {
-        print "[RANDOMISE] Swapping labels to reach richness targets\n";
+        say "[RANDOMISE] Swapping labels to reach richness targets";
     }
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
-    
+
     #  Track the labels in the unfilled groups.
     #  This avoids collating them every iteration.
     my (%labels_in_unfilled_gps,
@@ -1618,7 +1619,7 @@ sub process_group_props_by_set {
     my $text        = "Transferring group properties from $name to $to_name";
 
     my $total_to_do = $elements_ref->get_element_count;
-    print "[BASEDATA] Transferring properties for $total_to_do groups\n";
+    say "[BASEDATA] Transferring properties for $total_to_do groups";
 
     my $count = 0;
     my $i = -1;
@@ -1690,7 +1691,7 @@ sub process_group_props_by_item {
     my $text        = "Transferring group properties from $name to $to_name";
 
     my $total_to_do = $elements_ref->get_element_count;
-    print "[BASEDATA] Transferring group properties for $total_to_do\n";
+    say "[BASEDATA] Transferring group properties for $total_to_do";
 
     my $count = 0;
     my $i = -1;

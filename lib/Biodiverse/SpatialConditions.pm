@@ -22,6 +22,9 @@ use parent qw /Biodiverse::Common/;
 
 our $VERSION = '1.0';
 
+my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
+use Biodiverse::Metadata::SpatialConditions;
+
 our $NULL_STRING = q{};
 
 use Regexp::Common qw /comment number/;
@@ -86,6 +89,9 @@ sub new {
 
 sub get_type {return 'spatial conditions'};
 
+sub metadata_class {
+    return $metadata_class;
+}
 
 sub get_conditions {
     my $self = shift;
@@ -918,7 +924,7 @@ sub get_metadata_sp_circle {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
@@ -935,7 +941,7 @@ sub get_metadata_sp_circle {
         result_type   => 'circle',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a circle (or hypersphere for n-dimensions)
@@ -974,7 +980,7 @@ sub get_metadata_sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
@@ -987,7 +993,7 @@ sub get_metadata_sp_circle_cell {
         result_type   => 'circle',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  cell based circle.
@@ -1033,7 +1039,7 @@ sub get_metadata_sp_rectangle {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
               'A rectangle.  Assessed against all dimensions by default '
             . "(more properly called a hyperbox)\n"
@@ -1046,7 +1052,7 @@ sub get_metadata_sp_rectangle {
         example       => $rectangle_example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a circle (or hypersphere for n-dimensions)
@@ -1084,7 +1090,7 @@ sub get_metadata_sp_annulus {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "An annulus.  Assessed against all dimensions by default\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
@@ -1103,7 +1109,7 @@ sub get_metadata_sp_annulus {
             . q{sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])},
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run an annulus
@@ -1143,7 +1149,7 @@ sub get_metadata_sp_square {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "An overlapping square assessed against all dimensions (more properly called a hypercube).\n"
             . 'Uses group (map) distances.',
@@ -1160,7 +1166,7 @@ sub get_metadata_sp_square {
             . q{sp_square (size => 300000)},
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a square (or hypercube for n-dimensions)
@@ -1190,7 +1196,7 @@ sub get_metadata_sp_square_cell {
       . "(more properly called a hypercube).\n"
       . q{Uses 'cell' distances.};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         use_cell_distance => 1,    #  need all the distances
         required_args => ['size'],
@@ -1198,7 +1204,7 @@ sub get_metadata_sp_square_cell {
         example       => 'sp_square_cell (size => 3)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_square_cell {
@@ -1222,7 +1228,7 @@ sub get_metadata_sp_block {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             'A non-overlapping block.  Set an axis to undef to ignore it.',
         index_max_dist =>
@@ -1236,7 +1242,7 @@ sub get_metadata_sp_block {
             . 'sp_block (size => [3,undef,5]) #  rectangular block, ignores second axis',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  non-overlapping block, cube or hypercube
@@ -1294,7 +1300,7 @@ sub get_metadata_sp_ellipse {
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
       . q{which are used (default is [0,1]).  The default rotate_angle is pi/2.};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         use_euc_distances => $axes,
         use_euc_distance  => $axes ? undef : 1,
@@ -1315,7 +1321,7 @@ sub get_metadata_sp_ellipse {
             . 'rotate_angle => 1.5714)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  a two dimensional ellipse -
@@ -1378,7 +1384,7 @@ sub sp_ellipse {
 #    my %args = @_;
 #
 #    ARGS: if ($args{get_args}) {
-#        my %args_r = (
+#        my %metadata = (
 #                    description => "Randomly select a set of neighbours",
 #                    #  flag index dist if easy to determine
 #                    index_max_dist => undef,
@@ -1386,7 +1392,7 @@ sub sp_ellipse {
 #                    optional_args => [qw //],
 #                    result_type => "random",
 #                    );
-#        return wantarray ? %args_r : \%args_r;
+#        return $self->metadata_class->new (\%metadata);
 #    }
 #
 #}
@@ -1395,14 +1401,14 @@ sub get_metadata_sp_select_all {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description    => 'Select all elements as neighbours',
         result_type    => 'always_true',
         example        => 'sp_select_all() #  select every group',
         index_max_dist => -1,  #  search whole index if using this in a complex condition
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_all {
@@ -1415,14 +1421,14 @@ sub sp_select_all {
 sub get_metadata_sp_self_only {
     my $self = shift;
 
-    my %args_r = (
+    my %metadata = (
         description    => 'Select only the processing group',
         result_type    => 'self_only',
         index_max_dist => 0,    #  search only self if using index
         example        => 'sp_self_only() #  only use the proceessing cell',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_self_only {
@@ -1444,7 +1450,7 @@ sp_select_element (element => 'Biome1:savannah forest')
 END_SP_SELECT_ELEMENT
   ;
 
-    my %args_r = (
+    my %metadata = (
         description => 'Select a specific element.  Basically the same as sp_match_text, but with optimisations enabled',
         index_max_dist => undef,
 
@@ -1459,7 +1465,7 @@ END_SP_SELECT_ELEMENT
         example => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_element {
@@ -1494,7 +1500,7 @@ sp_match_text (text => 'NK', axis => 2, type => 'proc')
 END_SP_MT_EX
   ;
 
-    my %args_r = (
+    my %metadata = (
         description        => 'Select all neighbours matching a text string',
         index_max_dist => undef,
 
@@ -1511,7 +1517,7 @@ END_SP_MT_EX
         example => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_match_text {
@@ -1548,7 +1554,7 @@ END_RE_EXAMPLE
     my $description = 'Select all neighbours with an axis matching '
         . 'a regular expresion';
 
-    my %args_r = (
+    my %metadata = (
         description        => $description,
         index_max_dist => undef,
 
@@ -1564,7 +1570,7 @@ END_RE_EXAMPLE
         example      => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_match_regex {
@@ -1630,7 +1636,7 @@ sub get_metadata_sp_is_left_of {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1641,7 +1647,7 @@ sub get_metadata_sp_is_left_of {
               'sp_is_left_of (vector_angle => 1.5714)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1667,7 +1673,7 @@ sub get_metadata_sp_is_right_of {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1678,7 +1684,7 @@ sub get_metadata_sp_is_right_of {
               'sp_is_right_of (vector_angle => 1.5714)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1704,7 +1710,7 @@ sub get_metadata_sp_in_line_with {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1715,7 +1721,7 @@ sub get_metadata_sp_in_line_with {
               'sp_in_line_with (vector_angle => Math::Trig::pip2) #  pi/2 = 90 degree angle',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1797,7 +1803,7 @@ sub _sp_side {
 sub get_metadata_sp_select_sequence {
     my $self = shift;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             'Select a subset of all available neighbours based on a sample sequence '
             . '(note that groups are sorted south-west to north-east)',
@@ -1823,7 +1829,7 @@ sub get_metadata_sp_select_sequence {
             . q{sp_select_sequence (frequency => 10, first_offset => 2, reverse_order => 1)},
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_sequence {
@@ -2027,7 +2033,7 @@ sub get_metadata_sp_select_block {
             . q{sp_select_block (size => 500, count => 2, clear_cache => 1)}
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_block {
@@ -2162,7 +2168,7 @@ sub get_metadata_sp_point_in_poly {
             . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2227,7 +2233,7 @@ sub get_metadata_sp_point_in_poly_shape {
         example => $examples,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2322,7 +2328,7 @@ sub get_metadata_sp_points_in_same_poly_shape {
         example => $examples,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2603,7 +2609,7 @@ sub get_metadata_sp_group_not_empty {
             . q{sp_group_not_empty (element => '5467:9876')},
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_group_not_empty {
@@ -2640,7 +2646,7 @@ sub get_metadata_sp_in_label_range {
             . q{sp_in_label_range(label => 'Genus:Sp1')}
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2710,7 +2716,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
 
     my $example = $self->get_example_sp_get_spatial_output_list_value;
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
         required_args  => [qw /output index/],
@@ -2719,7 +2725,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
         example        => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  get the value from another spatial output

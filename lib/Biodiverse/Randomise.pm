@@ -22,6 +22,9 @@ use List::BinarySearch qw /binsearch  binsearch_pos/;
 #use MRO::Compat;
 use Class::Inspector;
 
+my $metadata_class = 'Biodiverse::Metadata::Randomisation';
+use Biodiverse::Metadata::Randomisation;
+
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
@@ -61,6 +64,11 @@ sub new {
 
     return $self;
 }
+
+sub metadata_class {
+    return $metadata_class;
+}
+
 
 sub _get_metadata_export {
     my $self = shift;
@@ -712,15 +720,15 @@ sub get_metadata_rand_nochange {
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
-    my %args = (
-        Description => 'No change - just a cloned data set',
+    my %metadata = (
+        description => 'No change - just a cloned data set',
         parameters  => [
             $group_props_parameters,
             $tree_shuffle_parameters,
         ],
     );
 
-    return wantarray ? %args : \%args;
+    return $self->metadata_class->new(\%metadata);
 }
 
 #  does not actually change anything - handy for cluster trees to try different selections
@@ -745,15 +753,15 @@ sub get_metadata_rand_csr_by_group {
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
 
-    my %args = (
-        Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
+    my %metadata = (
+        description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
         parameters  => [
             $group_props_parameters,
             $tree_shuffle_parameters,
         ],
     ); 
 
-    return wantarray ? %args : \%args;
+    return $self->metadata_class->new(\%metadata);
 }
 
 #  complete spatial randomness by group - just shuffles the subelement lists between elements
@@ -860,7 +868,7 @@ END_TOOLTIP_ADDN
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
-    my %args = (
+    my %metadata = (
         parameters  => [ 
             {name       => 'richness_multiplier',
              type       => 'float',
@@ -877,12 +885,12 @@ END_TOOLTIP_ADDN
             $group_props_parameters,
             $tree_shuffle_parameters,
         ],
-        Description => "Randomly allocate labels to groups,\n"
+        description => "Randomly allocate labels to groups,\n"
                        . 'but keep the richness the same or within '
                        . 'some multiplier factor.',
     );
 
-    return wantarray ? %args : \%args;
+    return $self->metadata_class->new(\%metadata);
 }
 
 #  randomly allocate labels to groups, but keep the richness the same or within some multiplier

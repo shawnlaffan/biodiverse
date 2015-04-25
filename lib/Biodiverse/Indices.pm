@@ -67,6 +67,10 @@ sub new {
     return $self;
 }
 
+sub metadata_class {
+    return $metadata_class;
+}
+
 sub reset_results {
     my $self = shift;
     my %args = @_;
@@ -78,43 +82,6 @@ sub reset_results {
     return;
 }
 
-sub get_metadata {
-    my $self = shift;
-    my %args = @_;
-
-    croak 'get_metadata called in list context'
-      if wantarray;
-    
-    #  Is caching a good idea?  Some metadata depends on given arguments,
-    #  and these could change across the life of an object.
-    my $cache   = $self->get_cached_metadata;
-    my $subname = $args{sub};
-
-    my $metadata = $cache->{$subname};
-
-    if (!$metadata) {
-        $metadata = $self->get_args(@_);
-
-        if (not blessed $metadata) {
-            warn "metadata for $args{sub} is not blessed, blessing into $metadata_class";
-            $metadata = $metadata_class->new ($metadata);
-        }
-        $cache->{$subname} = $metadata;
-    }
-
-    return $metadata;
-}
-    
-sub get_cached_metadata {
-    my $self = shift;
-
-    my $cache = $self->get_cached_value ('METADATA_CACHE');
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value (METADATA_CACHE => $cache)
-    }
-    return $cache;
-}
 
 ###########################
 #

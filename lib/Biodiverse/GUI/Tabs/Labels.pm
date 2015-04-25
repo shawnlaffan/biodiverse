@@ -321,11 +321,12 @@ sub init_list {
 
 
     my $labels_ref = $self->{base_ref}->get_labels_ref;
-    my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
+    my $stats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
+    my $types = $stats_metadata->get_types;
     my @columns;
     my $i = 0;
     $self->add_column (tree => $tree, title => 'Label', model_id => $i);
-    foreach my $column (@$stats_metadata) {
+    foreach my $column (@$types) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
@@ -415,7 +416,7 @@ sub make_labels_model {
     my $base_ref = $self->{base_ref};
     my $labels_ref = $base_ref->get_labels_ref();
 
-    my $basestats_indices = $labels_ref->get_args (sub => 'get_base_stats');
+    my $basestats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
 
     my @column_order;
 
@@ -429,8 +430,9 @@ sub make_labels_model {
     my $label_type = 'Glib::String';
 
     my @types = ($label_type);
-#my $i = 0;
-    foreach my $column (@$basestats_indices, @selection_cols) {
+    my $bs_types = $basestats_metadata->get_types;
+
+    foreach my $column (@$bs_types, @selection_cols) {
         my ($key, $value) = %{$column};
         push @types, 'Glib::' . $value;
         push @column_order, $key;

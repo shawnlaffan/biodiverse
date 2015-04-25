@@ -35,6 +35,10 @@ use parent qw /Biodiverse::Common/; #  access the common functions as methods
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
+my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
+use Biodiverse::Metadata::BaseStruct;
+
+
 sub new {
     my $class = shift;
 
@@ -75,6 +79,10 @@ sub new {
     $self->weaken_basedata_ref;
 
     return $self;
+}
+
+sub metadata_class {
+    return $metadata_class;
 }
 
 sub rename {
@@ -3440,9 +3448,9 @@ sub get_metadata_get_base_stats {
         : 'Uint';
 
     my $types = [
-        {VARIETY       => 'Int'},
-        {SAMPLES       => $sample_type},
-        {REDUNDANCY    => 'Double'},
+        {VARIETY    => 'Int'},
+        {SAMPLES    => $sample_type},
+        {REDUNDANCY => 'Double'},
     ];
 
     my $property_keys = $self->get_element_property_keys;
@@ -3450,7 +3458,7 @@ sub get_metadata_get_base_stats {
         push @$types, {$property => 'Double'};
     }
 
-    return wantarray ? @$types : $types;
+    return $self->metadata_class->new({types => $types});
 }
 
 sub get_base_stats {  #  calculate basestats for a single element

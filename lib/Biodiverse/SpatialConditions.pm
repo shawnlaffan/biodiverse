@@ -430,10 +430,11 @@ sub get_invalid_args_for_sub_call {
 
     my %called_args_hash = %{$args{args}};
 
-    my %metadata = $self->get_args (sub => $args{sub});
+    my $metadata = $self->get_metadata (sub => $args{sub});
 
     foreach my $key (qw /required_args optional_args/) {
-        my $list = $metadata{$key} || [];
+        my $method = "get_$key";
+        my $list = $metadata->$method;
         delete @called_args_hash{@$list};
     }
 
@@ -1369,23 +1370,6 @@ sub sp_ellipse {
 
     return $test;
 }
-
-#sub _sp_random_select {
-#    my %args = @_;
-#
-#    ARGS: if ($args{get_args}) {
-#        my %metadata = (
-#                    description => "Randomly select a set of neighbours",
-#                    #  flag index dist if easy to determine
-#                    index_max_dist => undef,
-#                    required_args => [qw //],
-#                    optional_args => [qw //],
-#                    result_type => "random",
-#                    );
-#        return $self->metadata_class->new (\%metadata);
-#    }
-#
-#}
 
 sub get_metadata_sp_select_all {
     my $self = shift;

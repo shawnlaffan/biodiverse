@@ -167,7 +167,7 @@ sub parse_distances {
     $conditions .= "\n";
     $conditions =~ s/$RE_COMMENT//g;
 
-    my %params;
+    my %uses_distances;
     my %missing_args;
     my %missing_opt_args;
     my %invalid_args;
@@ -201,17 +201,17 @@ sub parse_distances {
 
     #  initialise the params hash items
     foreach my $key (@dist_scalar_flags) {
-        $params{$key} = undef;
+        $uses_distances{$key} = undef;
     }
     foreach my $key (@dist_list_flags) {
-        $params{$key} = {};
+        $uses_distances{$key} = {};
     }
 
     #  match $D with no trailing subscript, any amount of whitespace
     #  check all possible matches
     foreach my $match ( $conditions =~ /\$D\b\s*\W/g ) {
         next if ( $match =~ /\[/ );
-        $params{use_euc_distance} = 1;
+        $uses_distances{use_euc_distance} = 1;
         last;    # drop out if found
     }
 
@@ -219,7 +219,7 @@ sub parse_distances {
     #  check all possible matches
     foreach my $match ( $conditions =~ /\$C\b\s*\W/g ) {
         next if ( $match =~ /\[/ );
-        $params{use_cell_distance} = 1;
+        $uses_distances{use_cell_distance} = 1;
         last;
     }
 
@@ -227,22 +227,22 @@ sub parse_distances {
     foreach my $dist ( $conditions =~ /\$d\[\s*($RE_INT)\]/g ) {
 
         #  hash indexed by distances used
-        $params{use_euc_distances}{$dist}++;
+        $uses_distances{use_euc_distances}{$dist}++;
     }
 
     #  matches $D[0], $D[1] etc.
     foreach my $dist ( $conditions =~ /\$D\[\s*($RE_INT)\]/g ) {
-        $params{use_abs_euc_distances}{$dist}++;
+        $uses_distances{use_abs_euc_distances}{$dist}++;
     }
 
     #  matches $c[0], $c[1] etc.
     foreach my $dist ( $conditions =~ /\$c\[\s*($RE_INT)\]/g ) {
-        $params{use_cell_distances}{$dist}++;
+        $uses_distances{use_cell_distances}{$dist}++;
     }
 
     #  matches $C[0], $C[1] etc.
     foreach my $dist ( $conditions =~ /\$C\[\s*($RE_INT)\]/g ) {
-        $params{use_abs_cell_distances}{$dist}++;
+        $uses_distances{use_abs_cell_distances}{$dist}++;
     }
 
     #  match $nbr_z==5, $nbrcoord[1]<=10 etc
@@ -323,7 +323,7 @@ sub parse_distances {
             #  just use the ones we care about
             foreach my $key ( @dist_scalar_flags ) {
                 my $method = "get_$key";
-                $params{$key} ||= $metadata->$method;
+                $uses_distances{$key} ||= $metadata->$method;
             }
             foreach my $key ( @dist_list_flags ) {
                 my $method = "get_$key";
@@ -331,7 +331,7 @@ sub parse_distances {
                 croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
                   if not reftype $a eq 'ARRAY';
                 foreach my $dist (@$a) {
-                    $params{$key}{$dist}++;
+                    $uses_distances{$key}{$dist}++;
                 }
             }
             
@@ -385,12 +385,11 @@ sub parse_distances {
     $self->set_param( INVALID_ARGS   => \%invalid_args );
     $self->set_param( INCORRECT_ARGS => \%incorrect_args );
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
-    $self->set_param( USES           => \%params );
-
+    $self->set_param( USES             => \%uses_distances );
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
-    foreach my $value ( values %params ) {
+    foreach my $value ( values %uses_distances ) {
 
         if ( ref $value ) {        #  assuming hash here
             my $count = scalar keys %$value;
@@ -406,7 +405,7 @@ sub parse_distances {
 
     }
 
-    #  add $self -> to each condition that does not have it
+    #  prepend $self-> to all the sp_xx sub calls
     my $re_object_call = qr {
                 (
                   (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
@@ -415,8 +414,6 @@ sub parse_distances {
                   (?:$re_sub_names)  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
-
-    #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
 

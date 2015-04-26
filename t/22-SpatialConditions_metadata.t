@@ -7,6 +7,8 @@ use English qw{
     -no_match_vars
 };
 
+use Scalar::Util qw /reftype/;
+
 use rlib;
 use Test::More;
 
@@ -28,10 +30,12 @@ sub test_metadata {
     my $pfx = 'get_metadata_sp_';  #  avoid export subs
     my $x = $object->get_subs_with_prefix (prefix => $pfx);
     
+    my %meta_defaults = Biodiverse::Metadata::SpatialConditions::get_default_vals();
+
     my %meta_keys;
 
     my (%descr, %parameters);
-    foreach my $meta_sub (keys %$x) {
+    foreach my $meta_sub (sort keys %$x) {
         my $calc = $meta_sub;
         $calc =~ s/^get_metadata_//;
 
@@ -40,6 +44,17 @@ sub test_metadata {
         $descr{$metadata->get_description}{$meta_sub}++;
         
         @meta_keys{keys %$metadata} = (1) x scalar keys %$metadata;
+        
+        #  check the reftypes are valid (match the defaults)
+        subtest "reftypes for $calc match defaults" => sub {   
+            foreach my $key (keys %$metadata) {
+                is (
+                    reftype ($metadata->{$key}),
+                    reftype ($meta_defaults{$key}),
+                    $key,
+                );
+            }
+        }
     }
 
     subtest 'No duplicate descriptions' => sub {

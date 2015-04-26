@@ -1229,14 +1229,14 @@ sub run_sp_cond_tests {
             #diag $cond;
 
             my $sp_conditions = Biodiverse::SpatialConditions->new (
-                conditions => $cond,
+                conditions   => $cond,
+                basedata_ref => $bd,
             );
-            
+
             if ($index) {
                 $index_offsets = $index->predict_offsets (
                     spatial_conditions => $sp_conditions,
                     cellsizes          => $bd->get_param ('CELL_SIZES'),
-                    #progress_text_pfx => $progress_text_pfx,
                 );
             }
 

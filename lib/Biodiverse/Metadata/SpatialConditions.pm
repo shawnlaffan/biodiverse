@@ -5,6 +5,7 @@ use 5.016;
 use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
+use Clone qw /clone/;
 
 our $VERSION = '1.0';
 
@@ -66,6 +67,12 @@ sub get_default {
         $default = {};
     }
     return $default;
+}
+
+#   make sure we return a clone to avoid other code messing with the internals
+sub get_default_vals {
+    my $clone = clone \%methods_and_defaults;
+    return wantarray ? %$clone : $clone;
 }
 
 __PACKAGE__->_make_access_methods (\%methods_and_defaults);

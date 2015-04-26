@@ -920,10 +920,9 @@ sub get_metadata_sp_circle {
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses group (map) distances.',
-        use_euc_distances => $args{axes},
-        use_euc_distance  => $args{axes}
-        ? undef
-        : 1,    #  don't need $D if we're using a subset
+        use_abs_euc_distances => ($args{axes} // []),
+        #  don't need $D if we're using a subset
+        use_euc_distance      => !$args{axes},
                 #  flag index dist if easy to determine
         index_max_dist =>
             ( looks_like_number $args{radius} ? $args{radius} : undef ),
@@ -976,10 +975,9 @@ sub get_metadata_sp_circle_cell {
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses cell distances.',
-        use_cell_distances => $args{axes},
-        use_cell_distance  => $args{axes}
-                            ? undef
-                            : 1,    #  don't need $C if we're using a subset
+        use_abs_cell_distances => ($args{axes} // []),
+        #  don't need $C if we're using a subset
+        use_cell_distance      => !$args{axes},    
         required_args => ['radius'],
         result_type   => 'circle',
     );
@@ -1086,7 +1084,7 @@ sub get_metadata_sp_annulus {
             "An annulus.  Assessed against all dimensions by default\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses group (map) distances.',
-        use_euc_distances => $args{axes},
+        use_abs_euc_distances => ($args{axes} // []),
             #  don't need $D if we're using a subset
         use_euc_distance  => $args{axes} ? undef : 1,    
             #  flag index dist if easy to determine
@@ -1985,15 +1983,12 @@ sub get_metadata_sp_select_block {
             'size',           #  size of the block
         ],    
         optional_args => [
-            'count',      #  how many groups per block?
+            'count',          #  how many groups per block?
             'use_cache',      #  a boolean flag, defaults to 1
             'reverse_order',  #  work from the other end
             'random',         #  randomise within blocks?
             'prng_seed',      #  seed for the PRNG
         ],
-        #index_no_use => 1,          #  turn the index off
-        #result_type  => 'subset',
-        #result_type  => 'non_overlapping',
         result_type  => 'complex',  #  need to make it a subset, but that part needs work
         example =>
             '# Select up to two groups per block with each block being 5 groups '

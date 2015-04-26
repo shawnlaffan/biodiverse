@@ -20,7 +20,10 @@ done_testing();
 
 sub test_metadata {
     my $bd = Biodiverse::BaseData->new(CELL_SIZES => [1,1]);
-    my $object = eval {Biodiverse::SpatialConditions->new(BASEDATA_REF => $bd)};
+    my $object = eval {
+        Biodiverse::SpatialConditions->new(BASEDATA_REF => $bd, conditions => 'sp_select_all()');
+    };
+    croak $@ if $@;
 
     my $pfx = 'get_metadata_sp_';  #  avoid export subs
     my $x = $object->get_subs_with_prefix (prefix => $pfx);

@@ -187,7 +187,25 @@ sub parse_distances {
     my @nbrcoord = @d;
     my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
 
-    $params{use_euc_distance} = undef;
+
+    my @dist_scalar_flags = qw /
+        use_euc_distance
+        use_cell_distance
+    /;
+    my @dist_list_flags = qw /
+        use_euc_distances
+        use_abs_euc_distances
+        use_cell_distances
+        use_abs_cell_distances
+    /;
+
+    #  initialise the params hash items
+    foreach my $key (@dist_scalar_flags) {
+        $params{$key} = undef;
+    }
+    foreach my $key (@dist_list_flags) {
+        $params{$key} = {};
+    }
 
     #  match $D with no trailing subscript, any amount of whitespace
     #  check all possible matches
@@ -197,8 +215,6 @@ sub parse_distances {
         last;    # drop out if found
     }
 
-    $params{use_cell_distance} = undef;
-
     #  match $C with no trailing subscript, any amount of whitespace
     #  check all possible matches
     foreach my $match ( $conditions =~ /\$C\b\s*\W/g ) {
@@ -207,8 +223,6 @@ sub parse_distances {
         last;
     }
 
-    $params{use_euc_distances} = {};
-
     #  matches $d[0], $d[1] etc.  Loops over any subscripts present
     foreach my $dist ( $conditions =~ /\$d\[\s*($RE_INT)\]/g ) {
 
@@ -216,21 +230,15 @@ sub parse_distances {
         $params{use_euc_distances}{$dist}++;
     }
 
-    $params{use_abs_euc_distances} = {};
-
     #  matches $D[0], $D[1] etc.
     foreach my $dist ( $conditions =~ /\$D\[\s*($RE_INT)\]/g ) {
         $params{use_abs_euc_distances}{$dist}++;
     }
 
-    $params{use_cell_distances} = {};
-
     #  matches $c[0], $c[1] etc.
     foreach my $dist ( $conditions =~ /\$c\[\s*($RE_INT)\]/g ) {
         $params{use_cell_distances}{$dist}++;
     }
-
-    $params{use_abs_cell_distances} = {};
 
     #  matches $C[0], $C[1] etc.
     foreach my $dist ( $conditions =~ /\$C\[\s*($RE_INT)\]/g ) {
@@ -308,76 +316,61 @@ sub parse_distances {
                 $invalid_args{$sub_name_and_args} = $invalid;
             }
 
-            my %res = $self->get_args( sub => $sub, %hash_1 );
+            my $metadata = $self->get_metadata ( sub => $sub, %hash_1 );
 
-            foreach my $key ( keys %res ) {
-
-                #  what params do we need?
-                #  (handle the use_euc_distances flags etc)
-                #  just use the ones we care about
-                if ( exists $params{$key} ) {
-                    if ( ref( $res{$key} ) =~ /HASH/ ) {
-                        my $h = $res{$key};
-                        foreach my $dist ( keys %$h ) {
-                            $params{$key}{$dist}++;
-                        }
-                    }
-                    elsif ( ref( $res{$key} ) =~ /ARRAY/ ) {
-                        my $a = $res{$key};
-                        foreach my $dist (@$a) {
-                            $params{$key}{$dist}++;
-                        }
-                    }
-                    else {  #  get the max of all the inputs, assuming numeric
-                        $params{$key} =
-                            max( $res{$key} || 0, $params{$key} || 0 );
-                    }
-                }
-
-                #  check required args are present (but not that they are valid)
-                if ( $key eq 'required_args' ) {
-                    foreach my $req ( @{ $res{$key} } ) {
-                        if ( not exists $hash_1{$req} ) {
-                            $missing_args{$sub_name_and_args}{$req}++;
-                        }
-                    }
-                }
-
-                #  check which optional args are missing (but not that they are valid)
-                if ( $key eq 'optional_args' ) {
-                    foreach my $req ( @{ $res{$key} } ) {
-                        if ( not exists $hash_1{$req} ) {
-                            $missing_opt_args{$sub_name_and_args}{$req}++;
-                        }
-                    }
-                }
-
-                #  REALLY BAD CODE - does not allow for other
-                #  functions and operators
-                elsif ( $key eq 'result_type' ) {
-                    $results_types .= " $res{$key}";
-                }
-
-                #  need to handle -ve values to turn off the index
-                elsif (     $key eq 'index_max_dist'
-                        and defined $res{$key}
-                        and not $index_max_dist_off )
-                {
-                    $index_max_dist =
-                      defined $index_max_dist
-                        ? max( $index_max_dist, $res{$key} )
-                        : $res{$key};
-                    if ( $res{$key} < 0 ) {
-                        $index_max_dist_off = 1;
-                        $index_max_dist     = undef;
-                    }
-                }
-
-                #  should we not use a spatial index?
-                elsif ( $key eq 'index_no_use' and $res{$key} ) {
-                    $index_no_use = 1;
+            #  what params do we need?
+            #  (handle the use_euc_distances flags etc)
+            #  just use the ones we care about
+            foreach my $key ( @dist_scalar_flags ) {
+                my $method = "get_$key";
+                $params{$key} ||= $metadata->$method;
+            }
+            foreach my $key ( @dist_list_flags ) {
+                my $method = "get_$key";
+                my $a = $metadata->$method;
+                croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
+                  if not reftype $a eq 'ARRAY';
+                foreach my $dist (@$a) {
+                    $params{$key}{$dist}++;
                 }
             }
+            
+            #  check required args are present (but not that they are valid)
+            my $required_args = $metadata->get_required_args;
+            foreach my $req ( @$required_args ) {
+                if ( not exists $hash_1{$req} ) {
+                    $missing_args{$sub_name_and_args}{$req}++;
+                }
+            }
+
+            #  check which optional args are missing (but not that they are valid)
+            my $optional_args = $metadata->get_optional_args;
+            foreach my $req ( @$optional_args ) {
+                if ( not exists $hash_1{$req} ) {
+                    $missing_opt_args{$sub_name_and_args}{$req}++;
+                }
+            }
+
+            #  REALLY BAD CODE - does not allow for other
+            #  functions and operators
+            $results_types .= ' ' . $metadata->get_result_type;
+
+            #  need to handle -ve values to turn off the index
+            my $this_index_max_dist = $metadata->get_index_max_dist;
+            if (defined $this_index_max_dist && !$index_max_dist_off ) {
+                if ( $this_index_max_dist < 0 ) {
+                    $index_max_dist_off = 1;
+                    $index_max_dist     = undef;
+                }
+                else {
+                    $index_max_dist //= $this_index_max_dist;
+                    $index_max_dist = max( $index_max_dist, $this_index_max_dist );
+                }
+            }
+
+            #  Should we not use a spatial index?  True if any of the conditions say so
+            $index_no_use ||= $metadata->get_index_no_use;
+
         }
         else {    #  bumpalong by one
             $conditions =~ m/ \G (.) /xgcs;

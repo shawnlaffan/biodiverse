@@ -1759,12 +1759,16 @@ sub get_metadata {
     croak 'get_metadata called in list context'
       if wantarray;
     
-    #  Is caching a good idea?  Some metadata depends on given arguments,
-    #  and these could change across the life of an object.
-    my $cache   = $self->get_cached_metadata;
+    my $use_cache = !$args{no_use_cache};
+    my ($cache, $metadata);
     my $subname = $args{sub};
-
-    my $metadata = $cache->{$subname};
+    
+    #  Some metadata depends on given arguments,
+    #  and these could change across the life of an object.
+    if ($use_cache) {
+        $cache = $self->get_cached_metadata;
+        $metadata = $cache->{$subname};
+    }
 
     if (!$metadata) {
         $metadata = $self->get_args(@_);
@@ -1773,7 +1777,9 @@ sub get_metadata {
             warn "metadata for $args{sub} is not blessed\n";  #  only when debugging
             #$metadata = $metadata_class->new ($metadata);
         }
-        $cache->{$subname} = $metadata;
+        if ($use_cache) {
+            $cache->{$subname} = $metadata;
+        }
     }
 
     return $metadata;

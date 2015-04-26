@@ -93,6 +93,11 @@ sub metadata_class {
     return $metadata_class;
 }
 
+sub get_metadata {
+    my $self = shift;
+    return $self->SUPER::get_metadata (@_, no_use_cache => 1);
+}
+
 sub get_conditions {
     my $self = shift;
     my %args = @_;
@@ -2012,7 +2017,7 @@ sub sp_select_block {
     #  do stuff here
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $bd        = $args{caller_object} || $h->{basedata};
+    my $bd        = $args{caller_object} || $h->{basedata} || $self->get_basedata_ref;
     my $coord_id1 = $h->{coord_id1};
     my $coord_id2 = $h->{coord_id2};
 
@@ -2094,7 +2099,7 @@ sub get_spatial_output_sp_select_block {
 
     my $size = $args{size};
 
-    my $bd = $args{basedata_ref};
+    my $bd = $args{basedata_ref} // $self->get_basedata_ref;
     my $sp = $bd->add_spatial_output (name => 'get nbrs for sp_select_block ' . time());
     $bd->delete_output(output => $sp, delete_basedata_ref => 0);
 

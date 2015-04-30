@@ -246,7 +246,7 @@ sub get_index_elements {
 
     if (defined $offset) {  #  we have been given an index element with an offset, so return the elements from the offset
 
-        my $csv_object = $self->get_cached_value ('CSV_OBJECT');
+        my $csv_object = $args{csv_object} // $self->get_cached_value ('CSV_OBJECT');
         #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
         if (!defined $csv_object || !exists $csv_object->{quote_binary}) {  #  second condition is dirty and underhanded
             my $sep = $self->get_param('JOIN_CHAR');
@@ -314,18 +314,18 @@ sub get_index_elements {
         }
     }
 
-    return wantarray ? () : {}  #  check this after any offset is applied
-      if !$self->element_exists (element => $element);
-
-    my $elref = $self->{ELEMENTS}{$element};
-    return wantarray ? %$elref : $elref;
+    no autovivification;
+    my $elref = $self->{ELEMENTS}{$element} // {};
+    #  no explicit return for small speedup on pre-5.20 perls
+    wantarray ? %$elref : $elref;
 }
 
 sub get_index_elements_as_array {
     my $self = shift;
     my $tmp_ref = eval {$self->get_index_elements (@_)};
     croak $EVAL_ERROR if $EVAL_ERROR;
-    return wantarray ? keys %{$tmp_ref} : [keys %{$tmp_ref}];
+    #  no explicit return for small speedup on pre-5.20 perls
+    wantarray ? keys %{$tmp_ref} : [keys %{$tmp_ref}];
 }
 
 #  snap a set of coords (or a single value) to the index

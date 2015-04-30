@@ -3874,6 +3874,8 @@ sub get_neighbours {
         my $element_array =
           $self->get_group_element_as_array (element => $element1);
 
+        my $index_csv_obj = $index->get_cached_value ('CSV_OBJECT');
+
         my $index_coord = $index->snap_to_index (
             element_array => $element_array,
             as_array      => 1,
@@ -3885,15 +3887,14 @@ sub get_neighbours {
               $index->get_index_elements_as_array (
                     element => $index_coord,
                     offset  => $offset,
+                    csv_object => $index_csv_obj,
             );
         }
     }
     
     #  Do we have a shortcut where we don't have to deal
     #  with all of the comparisons? (messy at the moment)
-    my $type_is_subset = $spatial_conditions->get_result_type eq 'subset'
-                       ? 1
-                       : undef;
+    my $type_is_subset = ($spatial_conditions->get_result_type eq 'subset');
 
     #print "$element1  Evaluating ", scalar @compare_list, " nbrs\n";
 

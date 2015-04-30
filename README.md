@@ -9,6 +9,8 @@ Biodiverse is a tool for the spatial analysis of diversity using indices based o
   1. Interactive visualisation of turnover patterns (for example beta-diversity); and 
   1. Randomisations for hypothesis testing. 
 
+Biodiverse can be downloaded from http://purl.org/biodiverse/wiki/Downloads
+
 Biodiverse is open-source and supports user developed extensions. It can be used both through a graphical user interface (GUI) and through user written scripts.
 
 More than 300 indices are supported.  See the [Indices](https://purl.org/biodiverse/wiki/Indices) page.

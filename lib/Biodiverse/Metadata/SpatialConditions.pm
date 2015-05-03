@@ -30,7 +30,7 @@ my %methods_and_defaults = (
     use_euc_distances      => [],
     use_abs_euc_distances  => [],
     use_cell_distance      => undef,
-    use_cell_distances      => [],
+    use_cell_distances     => [],
     use_abs_cell_distances => [],
 );
 

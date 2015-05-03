@@ -3848,9 +3848,10 @@ sub get_neighbours {
     my $spatial_conditions = $args{spatial_conditions}
                           // $args{spatial_params}
                           || croak "[BASEDATA] No spatial_conditions argument\n";
-    my $index        = $args{index};
-    my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
-    my $cellsizes    = $self->get_cell_sizes;
+    my $index         = $args{index};
+    my $index_offsets = $args{index_offsets};
+    my $is_def_query  = $args{is_def_query};  #  some processing changes if a def query
+    my $cellsizes     = $self->get_cell_sizes;
 
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,
@@ -3867,10 +3868,12 @@ sub get_neighbours {
     my $groups_ref = $self->get_groups_ref;
 
     my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
-    if (!defined $args{index} || !defined $args{index_offsets}) {
+    if (   !defined $index || !defined $index_offsets
+        || scalar keys %$index_offsets > $self->get_group_count) {
         @compare_list = $self->get_groups;
     }
-    else {  #  we have a spatial index defined - get the possible list of neighbours
+    else {  #  we have a spatial index defined and there are fewer offsets than groups
+            #  so we get the possible list of neighbours from the index
         my $element_array =
           $self->get_group_element_as_array (element => $element1);
 
@@ -3891,7 +3894,7 @@ sub get_neighbours {
             );
         }
     }
-    
+
     #  Do we have a shortcut where we don't have to deal
     #  with all of the comparisons? (messy at the moment)
     my $type_is_subset = ($spatial_conditions->get_result_type eq 'subset');
@@ -3903,7 +3906,7 @@ sub get_neighbours {
     my %valid_nbrs;
     NBR:
     foreach my $element2 (sort @compare_list) {
-        
+
         if ($progress) {
             $i ++;
             $progress->update(

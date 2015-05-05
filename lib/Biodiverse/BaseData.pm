@@ -1876,7 +1876,8 @@ sub assign_element_properties {
     
     #  Clean up in case we add different ones.
     #  We cannot get the list here as we might only be adding a subset of elements
-    $gp_lb_ref->delete_cached_value ('ELEMENT_PROPERTY_KEYS');
+    #$gp_lb_ref->delete_cached_value ('ELEMENT_PROPERTY_KEYS');
+    $gp_lb_ref->delete_cached_values;
 
     my $count = 0;
     

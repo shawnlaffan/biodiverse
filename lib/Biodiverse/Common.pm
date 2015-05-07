@@ -601,7 +601,7 @@ sub clear_spatial_condition_caches {
         }
     };
     eval {
-        my $def_query = $self->get_param('DEFINITION_QUERY');
+        my $def_query = $self->get_def_query;
         if ($def_query) {
             $def_query->delete_cached_values (keys => $args{keys});
         }
@@ -689,6 +689,13 @@ sub save_to_storable {
     $file = Path::Class::file($file)->absolute;
 
     print "[COMMON] WRITING TO FILE $file\n";
+
+#use Data::Dump qw /dump/;
+#my $dump_fname = $file . '.dump';
+#open(my $fh_d, '>', "$dump_fname") or die "Cannot open dump file $dump_fname";
+#print {$fh_d} dump $self;
+#$fh_d->close;
+#$self->save_to_yaml (%args);
 
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.

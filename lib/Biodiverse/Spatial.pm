@@ -644,6 +644,12 @@ sub sp_calc {
 
     $self->clear_spatial_condition_caches;
     $self->clear_spatial_index_csv_object;
+    #  need to also clear the args caches - sometimes the def query escapes
+    my $sp_cond_args = $args{spatial_conditions};
+    foreach my $obj ($args{definition_query}, @{$sp_cond_args || []}) {
+        next if !$obj;
+        $obj->delete_cached_values;
+    }
 
     #  this will cache as well
     my $lists = $self->get_lists_across_elements();

@@ -1166,6 +1166,8 @@ sub on_run {
     }
 
     my $options = $self->get_options;
+    
+    #my $defq = $self->{definition_query1}->get_validated_conditions;
 
     my %args = (
         calculations       => \@to_run,
@@ -1190,6 +1192,9 @@ sub on_run {
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
     }
+
+    #  sometimes this can be missed in Biodiverse::Spatial::run_analysis.  
+    $self->{definition_query1}->delete_cached_values;
 
     #  only add to the project if successful
     if (!$success) {

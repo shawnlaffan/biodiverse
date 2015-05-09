@@ -576,7 +576,9 @@ sub read_whole_file {
       || croak "[READNEXUS] cannot open $file for reading\n";
 
     local $/ = undef;
-    my $text = <$fh>;  #  suck the whole thing in
+    my $text = eval {<$fh>};  #  suck the whole thing in
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
     $fh->close || croak "Cannot close $file\n";
 
     return $text;

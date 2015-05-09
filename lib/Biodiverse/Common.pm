@@ -690,13 +690,6 @@ sub save_to_storable {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-#use Data::Dump qw /dump/;
-#my $dump_fname = $file . '.dump';
-#open(my $fh_d, '>', "$dump_fname") or die "Cannot open dump file $dump_fname";
-#print {$fh_d} dump $self;
-#$fh_d->close;
-#$self->save_to_yaml (%args);
-
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };

@@ -172,7 +172,7 @@ sub set_length {
     my $self = shift;
     my %args = @_;
     #croak 'length argument missing' if not exists ($args{length});
-    $self->{NODE_VALUES}{LENGTH} = $args{length} // $default_length;
+    $self->{NODE_VALUES}{LENGTH} = 0 + ($args{length} // $default_length);
 
     return;
 }
@@ -914,7 +914,7 @@ sub get_all_descendants {
     foreach my $node (@a_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
-        weaken $list{$name};
+        weaken $list{$name} if !isweak $list{$name};
     }
 
     if ($args{cache}) {
@@ -951,6 +951,7 @@ sub get_path_to_root_node {
     my $node = $self;
     while ($node) {  #  undef when root node
         push @$path, $node;
+        weaken $path->[-1] if !isweak $path->[-1];  #  paranoia - should not be weak
         $node = $node->get_parent;
     }
 

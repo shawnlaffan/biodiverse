@@ -647,7 +647,7 @@ sub sp_calc {
     #  need to also clear the args caches - sometimes the def query escapes
     my $sp_cond_args = $args{spatial_conditions};
     foreach my $obj ($args{definition_query}, @{$sp_cond_args || []}) {
-        next if !$obj;
+        next if !$obj || !blessed $obj;
         $obj->delete_cached_values;
     }
 

@@ -1273,7 +1273,7 @@ sub get_sources_for_node {
     #print Data::Dumper::Dumper($node_ref->get_value_keys);
     $sources{Labels} = sub { show_phylogeny_labels(@_, $node_ref); };
     $sources{Groups} = sub { show_phylogeny_groups(@_, $node_ref, $basedata_ref); };
-    $sources{Descendents} = sub { show_phylogeny_descendents(@_, $node_ref); };
+    $sources{Descendants} = sub { show_phylogeny_descendents(@_, $node_ref); };
 
     # Custom lists - getValues() - all lists in node's $self
     # FIXME: try to merge with CellPopup::showOutputList
@@ -1392,11 +1392,10 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendants_and_self;
+    my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
-        my $node_ref = $node_hash->{$element};
-        my $count = $node_ref->get_child_count;
+        my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);
     }

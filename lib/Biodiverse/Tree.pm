@@ -1925,7 +1925,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendants;  #  make sure we use a copy
+            my %children    = $node->get_names_of_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none of the descendents are in the keep list then we can trim this node.
@@ -2000,7 +2000,7 @@ sub trim {
 
             #  need to ignore any cached descendants (and we cleanup the cache lower down)
             my $children = $node->get_all_descendants (cache => 0);
-          DESCENDENT:
+          DESCENDANT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
                 next NODE if ! $child_node->is_internal_node;

@@ -755,8 +755,8 @@ sub _calc_pd_pe_clade_contributions {
         #  Possibly inefficient as we are not caching by node
         #  but at least the descendants are cached and perhaps that
         #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $node_hash = $node_ref->get_all_descendants_and_self;
-        my $wt_sum = sum @$wt_list{keys %$node_hash};
+        my $descendant_names = $node_ref->get_names_of_all_descendants_and_self;
+        my $wt_sum = sum @$wt_list{keys %$descendant_names};
 
         #  round off to avoid spurious spatial variation.
         $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;

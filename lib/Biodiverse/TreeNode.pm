@@ -870,6 +870,16 @@ sub get_all_descendants_and_self {
     return wantarray ? %descendents : \%descendents;
 }
 
+sub get_names_of_all_descendants_and_self {
+    my $self = shift;
+
+    my %descendents = $self->get_names_of_all_descendants(@_);
+    my $name = $self->get_name;
+    $descendents{$name} = $self->get_child_count;
+    
+    return wantarray ? %descendents : \%descendents;
+}
+
 #  a left over - here just in case 
 sub get_all_children {
     my $self = shift;
@@ -886,7 +896,7 @@ sub get_descendent_count {
 sub get_all_descendants {
     my $self = shift;
     my %args = (
-        cache => 1, #  cache unless told otherwise
+        cache => 0, #  no cache unless told otherwise
         @_,
     );
 
@@ -919,6 +929,46 @@ sub get_all_descendants {
 
     if ($args{cache}) {
         $self->set_cached_value(DESCENDENTS => \%list);
+    }
+
+    #  make sure we return copies to avoid pollution by other subs
+    return wantarray ? %list : {%list};
+}
+
+
+#  get all the nodes (whether terminal or not) which are descendants of a node
+sub get_names_of_all_descendants {
+    my $self = shift;
+    my %args = (
+        cache => 1, #  cache unless told otherwise
+        @_,
+    );
+
+    #  empty hash by default
+    return wantarray ? () : {} if ($self->is_terminal_node);
+
+    #  we have cached values from a previous pass - return them unless told not to
+    if ($args{cache}) {
+        my $cached_hash = $self->get_cached_value('DESCENDANT_NAMES');
+        if ($cached_hash) {  # return copies to avoid any later pollution
+            return wantarray ? %$cached_hash : {%$cached_hash};
+        }
+    }
+
+    my @a_list;
+    push @a_list, $self->get_children;
+    foreach my $child (@a_list) {
+        push @a_list, $child->get_children;
+    }
+
+    my %list;
+    foreach my $node (@a_list) {
+        my $name = $node->get_name;
+        $list{$name} = $node->get_child_count;
+    }
+
+    if ($args{cache}) {
+        $self->set_cached_value(DESCENDANT_NAMES => \%list);
     }
 
     #  make sure we return copies to avoid pollution by other subs

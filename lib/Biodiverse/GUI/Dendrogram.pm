@@ -939,7 +939,10 @@ sub recolour_cluster_lines {
         }
 
         # And also colour all nodes below
-        foreach my $child_ref (values %{$node_ref->get_all_descendants}) {
+        # - don't cache on the tree as we can get recursion stack blow-outs
+        # - https://github.com/shawnlaffan/biodiverse/issues/549
+        # We could cache on $self if it were needed.
+        foreach my $child_ref (values %{$node_ref->get_all_descendants (cache => 0)}) {
             $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
@@ -1301,10 +1304,9 @@ sub clear_highlights {
     return if !$self->{highlighted_lines};
 
     my @nodes_remaining
-      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
+      = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
 
-    foreach my $node (@nodes_remaining) {
-        my $node_name = $node->get_name;
+    foreach my $node_name (@nodes_remaining) {
         # assume node has associated line
         my $line = $self->{node_lines}->{$node_name};
         next if !$line;
@@ -1322,10 +1324,10 @@ sub highlight_node {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
-        foreach my $node (@nodes_remaining) {
+          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+        foreach my $node_name (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};
+            my $line = $self->{node_lines}->{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
@@ -1350,10 +1352,10 @@ sub highlight_path {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
-        foreach my $node (@nodes_remaining) {
+          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+        foreach my $node_name (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};
+            my $line = $self->{node_lines}->{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }

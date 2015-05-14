@@ -1306,7 +1306,7 @@ sub swap_to_reach_richness_targets {
             group => $from_group,
             label => $add_label,
         );
-        $self->delete_from_sorted_list (item => $from_group, list => $from_cloned_groups_tmp_a);
+        $self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
 
         #  Now add this label to a group that does not already contain it.
         #  Ideally we want to find a group that has not yet
@@ -1477,16 +1477,12 @@ sub swap_to_reach_richness_targets {
                   if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
-                $self->delete_from_sorted_list (
-                    item => $return_gp,
-                    list => $unfilled_gps_without_label{$remove_label},
+                $self->delete_from_sorted_list_aa (
+                    $return_gp, $unfilled_gps_without_label{$remove_label}
                 );
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
-                    $self->delete_from_sorted_list (
-                        item => $return_gp,
-                        list => $aref,
-                    );
+                    $self->delete_from_sorted_list_aa ($return_gp, $aref);
                     if (!scalar @$aref) {
                         delete $groups_without_labels_a{$remove_label};
                     }
@@ -1500,7 +1496,7 @@ sub swap_to_reach_richness_targets {
                     delete $unfilled_groups{$last_filled};
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
-                        $self->delete_from_sorted_list (item => $last_filled, list => $list);
+                        $self->delete_from_sorted_list_aa ($last_filled, $list);
                     }
                     delete $unfilled_gps_without_label_by_gp{$last_filled};
                   LB:
@@ -1531,14 +1527,14 @@ sub swap_to_reach_richness_targets {
             csv_object => $csv_object,
         );
         if (my $aref = $groups_without_labels_a{$add_label}) {
-            $self->delete_from_sorted_list (item => $target_group, list => $aref);
+            $self->delete_from_sorted_list_aa ($target_group, $aref);
             if (!scalar @$aref) {
                 delete $groups_without_labels_a{$add_label};
             }
         }
         if (exists $unfilled_groups{$target_group}) {
             my $list = $unfilled_gps_without_label{$add_label};
-            $self->delete_from_sorted_list (item => $target_group, list => $list);
+            $self->delete_from_sorted_list_aa ($target_group, $list);
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
         }
 
@@ -1556,7 +1552,7 @@ sub swap_to_reach_richness_targets {
             LB:
             foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
                 my $list = $unfilled_gps_without_label{$label};
-                $self->delete_from_sorted_list (item => $target_group, list => $list);
+                $self->delete_from_sorted_list_aa ($target_group, $list);
             }
             delete $unfilled_gps_without_label_by_gp{$target_group};
             $last_filled = $target_group;
@@ -1825,6 +1821,19 @@ sub delete_from_sorted_list {
     my $list = $args{list};
     my $item = $args{item};
     
+    my $idx  = binsearch { $a cmp $b } $item, @$list;
+    if (defined $idx) {
+        splice @$list, $idx, 1;
+    }
+
+    # skip the explicit return as a minor speedup for pre-5.20 systems
+    $idx;
+}
+
+#  array args version to reduce sub and args hash cleanup overheads
+sub delete_from_sorted_list_aa {
+    my ($self, $item, $list) = @_;
+
     my $idx  = binsearch { $a cmp $b } $item, @$list;
     if (defined $idx) {
         splice @$list, $idx, 1;

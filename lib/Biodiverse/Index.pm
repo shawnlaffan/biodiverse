@@ -432,7 +432,6 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     
     my $i_dist = $spatial_conditions->get_index_max_dist;
     if ($i_dist) {
-        #$use_subset_search = 1;
         my $max_off = $self->round_up_to_resolution (values => $i_dist);
         my $min_off = [];
         foreach my $i (0 .. $#$max_off) {
@@ -512,33 +511,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $element_search_list{$element}   = $nbrs_ref;
         $element_search_arrays{$element} = $element_array;
 
-        if ($use_subset_search) {  #  only want to search a few nearby index cells - still needed?
-            #  do we want to go up or down?
-            my @target;
-
-            my $i = 0;
-            foreach my $axis (@$element_array) {
-                
-                if ($axis == $minima->[$i]) {
-                    $target[$i] = $minima->[$i] + $subset_search_offsets->[$i] + $index_resolutions->[$i];
-                }
-                else {
-                    $target[$i] = $maxima->[$i] - $subset_search_offsets->[$i] - $index_resolutions->[$i];
-                }
-                $i++;
-            }
-
-            my $x = $self->get_poss_elements (
-                minima => $element_array,
-                maxima => \@target,
-                resolutions => $index_resolutions,
-                precision => \@index_res_precision,
-            );
-            $index_elements_to_search{$element} = $x;
-        }
-        else {
-            $index_elements_to_search{$element} = $poss_offset_array;
-        }
+        $index_elements_to_search{$element} = $poss_offset_array;
 
         $total_elements_to_search += scalar @$nbrs_ref;
         $corner_case_count ++;

@@ -2337,13 +2337,13 @@ sub get_element_list {
 
 sub sort_by_axes {
     my $self = shift;
-    my $a = shift;
-    my $b = shift;
+    my $item_a = shift;
+    my $item_b = shift;
 
     my $axes = $self->get_cell_sizes;
     my $res = 0;
-    my $a_array = $self->get_element_name_as_array (element => $a);
-    my $b_array = $self->get_element_name_as_array (element => $b);
+    my $a_array = $self->get_element_name_as_array (element => $item_a);
+    my $b_array = $self->get_element_name_as_array (element => $item_b);
     foreach my $i (0 .. $#$axes) {
         $res = $axes->[$i] < 0
             ? $a_array->[$i] cmp $b_array->[$i]
@@ -2904,10 +2904,10 @@ sub get_array_list_values {
     #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
     #  if ! exists $self->{ELEMENTS}{$element};
 
-#if (!$self->{ELEMENTS}{$element}{$list}) {
-#    print "PRIBLEMS";
-#    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
-#}
+if (!$self->{ELEMENTS}{$element}{$list}) {
+    print "PRIBLEMS";
+    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
+}
 
     my $list_ref = $self->{ELEMENTS}{$element}{$list}
       // Biodiverse::BaseStruct::ListDoesNotExist->throw (

@@ -24,6 +24,7 @@ use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
 use Scalar::Util qw /blessed reftype/;
+use List::Util;
 
 use Biodiverse::Progress;
 
@@ -398,7 +399,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $minima    = $self->get_param('MINIMA');
     my $maxima    = $self->get_param('MAXIMA');
     my $cellsizes = $args{cellsizes};  #  needs to be passed if used
-    my $poss_elements_ref;
+    my $poss_offset_array;
+    my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  get the decimal precision of the index resolution (we get floating point to string problems lower down)
     #  also generate an array of the index ranges
@@ -412,6 +414,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     }
 
     my $subset_search_offsets;
+    my $extreme_elements_ref;
     my $use_subset_search = $args{index_use_subset_search};
     my $using_cell_units  = undef;
     my $subset_dist       = $args{index_search_dist};
@@ -426,10 +429,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
-
-    if (my $i_dist = $spatial_conditions->get_index_max_dist) {
-        print "[INDEX] Max search dist is $i_dist - using shortcut\n";
-        $use_subset_search = 1;
+    
+    my $i_dist = $spatial_conditions->get_index_max_dist;
+    if ($i_dist) {
+        #$use_subset_search = 1;
         my $max_off = $self->round_up_to_resolution (values => $i_dist);
         my $min_off = [];
         foreach my $i (0 .. $#$max_off) {
@@ -441,40 +444,50 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             # minima will be the negated max, so we can get ranges like -2..2.
             $min_off->[$i] = -1 * $max_off->[$i];
         }
-        my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
-        my $offsets = $self->get_poss_elements (
+        $poss_offset_array = $self->get_poss_elements (
             minima      => $min_off,
             maxima      => $max_off,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
-            sep_char    => $sep_char,
+            #sep_char    => $sep_char,
         );
-        my %offsets;
-        foreach my $offset (@$offsets) {
-            $offsets{$offset} = [split $sep_char, $offset];
+        if (   $i_dist > 2 * List::Util::min (@$index_resolutions)
+            && $spatial_conditions->get_result_type ne 'complex') {
+            #  should add a shape parameter to the spatial conditions as we can skip to the else if it is a box/block
+            #  check the offsets - threshold needs tuning
+            my @span = map {$max_off->[$_] - $min_off->[$_]} (0..$#$max_off);
+            $extreme_elements_ref = $self->get_poss_elements (
+                minima      => $min_off,
+                maxima      => $max_off,
+                resolutions => \@span,
+                precision   => \@index_res_precision,
+            );
         }
-        #@offsets{@$offsets} = @$offsets;
-        return wantarray ? %offsets : \%offsets;
+        else {  #  just use a box of offsets
+            say "[INDEX] Max search dist is $i_dist - using shortcut";
+            my %offsets;
+            foreach my $offset (@$poss_offset_array) {
+                $offsets{$offset} = [split $sep_char, $offset];
+            }
+            return wantarray ? %offsets : \%offsets;
+        }
     }
-
-    #  no need to recheck invalid offsets in these cases  (wrong - comment out)
-    #  my $no_recheck_invalid_offsets = $spatial_conditions->get_result_type eq 'side';
-    
-    #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
-    $poss_elements_ref = $self->get_poss_elements (
-        minima      => $minima,
-        maxima      => $maxima,
-        resolutions => $index_resolutions,
-        precision   => \@index_res_precision,
-    );
-
-    #  generate the extrema
-    my $extreme_elements_ref = $self->get_poss_elements (
-        minima      => $minima,
-        maxima      => $maxima,
-        resolutions => \@ranges,
-        precision   => \@index_res_precision,
-    );
+    else {
+        #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
+        $poss_offset_array = $self->get_poss_elements (
+            minima      => $minima,
+            maxima      => $maxima,
+            resolutions => $index_resolutions,
+            precision   => \@index_res_precision,
+        );
+        #  generate the extrema
+        $extreme_elements_ref = $self->get_poss_elements (
+            minima      => $minima,
+            maxima      => $maxima,
+            resolutions => \@ranges,
+            precision   => \@index_res_precision,
+        );
+    }
 
     #  now we grab the first order neighbours around each of the extrema
     #  these will be used to check the index offsets
@@ -499,7 +512,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $element_search_list{$element}   = $nbrs_ref;
         $element_search_arrays{$element} = $element_array;
 
-        if ($use_subset_search) {  #  only want to search a few nearby index cells
+        if ($use_subset_search) {  #  only want to search a few nearby index cells - still needed?
             #  do we want to go up or down?
             my @target;
 
@@ -524,7 +537,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             $index_elements_to_search{$element} = $x;
         }
         else {
-            $index_elements_to_search{$element} = $poss_elements_ref;
+            $index_elements_to_search{$element} = $poss_offset_array;
         }
 
         $total_elements_to_search += scalar @$nbrs_ref;
@@ -633,11 +646,23 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             }  #  :COMPARE
         }
     }
+
+    #  we found too many offsets - stick to the i_dist box estimate if we have one
+    if ($i_dist && scalar keys %valid_index_offsets > scalar @$poss_offset_array) {
+        my %offsets;
+        foreach my $offset (@$poss_offset_array) {
+            $offsets{$offset} = [split $sep_char, $offset];
+        }
+        say "\nDone - using box of offsets ($i_dist based)";
+        return wantarray ? %offsets : \%offsets;
+    }
+
     #print Data::Dumper::Dumper(\%valid_index_offsets);
     #print Data::Dumper::Dumper (\@min_offset);
     #print Data::Dumper::Dumper (\@max_offset);
+    #say 'Using ', scalar keys %valid_index_offsets, ' of ', scalar @$poss_offset_array, ' i_dist is ', ($i_dist // 'undef')
+    #  if $i_dist;
     say "\nDone";
-
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }
 

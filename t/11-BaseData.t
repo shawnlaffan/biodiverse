@@ -96,6 +96,85 @@ sub main {
 }
 
 
+#  Try a varity of cell and index sizes.
+#  Should check the error messages to ensure we get the expected error.
+#  Should also test the index behaves as expected,
+#  but it is also exercised in the spatial conditions tests.
+sub test_spatial_index_build_exceptions {
+    my $label_name = 'blah';  #  only need one of these
+
+    my $bd = Biodiverse::BaseData->new (CELL_SIZES => [10, 100]);
+    $bd->add_element (label => $label_name, group => '5:150');
+    $bd->add_element (label => $label_name, group => '55:1150');
+    
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [10, 100])},
+        'build index with resolution same as bd',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 400])},
+        'build index with resolution double bd',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 100])},
+        'build index with resolution double/same as bd',
+    );
+    
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+        "won't build index with resolution smaller than bd",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 0])},
+        "won't build index with resolution smaller than bd, one zero",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [0, 100])},
+        "won't build index with resolution smaller than bd, one zero",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 10])},
+        "won't build index with one axis resolution smaller than bd",
+    );
+
+    #  now check a basedata with a text axis    
+    $bd = Biodiverse::BaseData->new (CELL_SIZES => [-1, 2, 2]);
+    $bd->add_element (label => $label_name, group => 'x:5:151');
+    $bd->add_element (label => $label_name, group => 'y:55:1151');
+    
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 2, 2])},
+        'build index with resolution same as bd (text axis)',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 4, 4])},
+        'build index with resolution double bd (text axis)',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 4, 2])},
+        'build index with resolution double/same as bd (text axis)',
+    );
+    
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+        "won't build index with fewer axes than basedata (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 2, 0])},
+        "won't build index with resolution smaller than bd, one zero (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [0, 0, 100])},
+        "won't build index with resolution smaller than bd, one zero (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 1, 10])},
+        "won't build index with text axis resolution smaller than bd",
+    );
+    
+    
+}
+
 sub test_binarise_sample_counts {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
 

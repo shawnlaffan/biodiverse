@@ -1,6 +1,10 @@
 # Biodiverse
 
-Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic, trait and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. Biodiverse supports the following processes: 
+Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic, trait and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. 
+
+**DOWNLOAD**:  Biodiverse can be downloaded from http://purl.org/biodiverse/wiki/Downloads
+
+Biodiverse supports the following processes: 
 
   1. Linked visualisation of data distributions in geographic, taxonomic, phylogenetic and matrix spaces;
   1. Spatial moving window analyses including richness, endemism, phylogenetic diversity and beta diversity;
@@ -8,8 +12,6 @@ Biodiverse is a tool for the spatial analysis of diversity using indices based o
   1. Spatially constrained region grower analyses; 
   1. Interactive visualisation of turnover patterns (for example beta-diversity); and 
   1. Randomisations for hypothesis testing. 
-
-Biodiverse can be downloaded from http://purl.org/biodiverse/wiki/Downloads
 
 Biodiverse is open-source and supports user developed extensions. It can be used both through a graphical user interface (GUI) and through user written scripts.
 

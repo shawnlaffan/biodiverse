@@ -1199,13 +1199,14 @@ sub run_sp_cond_tests {
     my ($index, $index_offsets);
     my $index_text = ' (no spatial index)';
 
-    foreach my $i (0 .. 2) {
+    my $nbrs_from_no_index;
+    my @index_res_multipliers = (0, 1, 2);
+    #@index_res_multipliers = (2.13);
+
+    foreach my $i (sort {$a <=> $b} @index_res_multipliers) {
 
         if ($i) {
-            my @index_res;
-            foreach my $r (@$res) {
-                push @index_res, $r * $i;
-            }
+            my @index_res = map {$_ * $i} @$res;
             $index = $bd->build_spatial_index (
                 resolutions => [@index_res],
                 version     => $index_version,
@@ -1250,7 +1251,13 @@ sub run_sp_cond_tests {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            is (keys %$nbrs, $expected, $cond . $index_text);
+            is (keys %$nbrs, $expected, "Nbr count: $cond$index_text");
+            if ($nbrs_from_no_index->{$condition}) {
+                is_deeply ($nbrs, $nbrs_from_no_index->{$condition}, "Nbr hash: $cond$index_text")
+            }
+            else {
+                $nbrs_from_no_index->{$condition} = $nbrs;
+            }
         }
 
     }

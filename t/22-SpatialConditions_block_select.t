@@ -21,10 +21,11 @@ use Biodiverse::TestHelpers qw {:spatial_conditions};
 #  need to build these from tables
 #  need to add more
 #  the ##1 notation is odd, but is changed for each test using regexes
+#  We set the PRNG seed to ensure consistent results
 my %conditions = (
     block_select => {
-        'sp_select_block (size => ##5, count => 2)' => 2,
-        'sp_select_block (size => ##3, count => 3)' => 3,
+        'sp_select_block (size => ##5, count => 2, prng_seed => 1234)' => 2,
+        'sp_select_block (size => ##3, count => 3, prng_seed => 1234)' => 3,
     },
 );
 

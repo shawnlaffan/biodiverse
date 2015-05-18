@@ -1201,7 +1201,6 @@ sub run_sp_cond_tests {
 
     my $nbrs_from_no_index;
     my @index_res_multipliers = (0, 1, 2);
-    #@index_res_multipliers = (2.13);
 
     foreach my $i (sort {$a <=> $b} @index_res_multipliers) {
 

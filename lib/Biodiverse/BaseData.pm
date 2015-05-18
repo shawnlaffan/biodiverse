@@ -3180,10 +3180,28 @@ sub get_labels_ref {
 
 sub build_spatial_index {  #  builds GROUPS, not LABELS
     my $self = shift;
+    my %args = @_;
+
+    my $gp_object   = $self->get_groups_ref;
+    my $resolutions = $args{resolutions};
+    my $cell_sizes  = $gp_object->get_cell_sizes;
+    croak "[INDEX] Resolutions array does not match the group object ($#$resolutions != $#$cell_sizes)\n"
+      if $#$resolutions != $#$cell_sizes;
+    #  now check each axis
+    for my $i (0 .. $#$cell_sizes) {
+        no autovivification;
+        next if $cell_sizes->[$i] <= 0;  #  we aren't worried about text or zero axes
+        croak "[INDEX] Non-text group axis resolution is less than the index resolution, "
+            . "axis $i ($resolutions->[$i] < $cell_sizes->[$i])\n"
+          if $resolutions->[$i] < $cell_sizes->[$i];
+        my $ratio = $resolutions->[$i] / $cell_sizes->[$i];
+        croak "[INDEX] Index resolution is not a multiple of the group axis resolution, "
+            . "axis $i  ($resolutions->[$i] vs $cell_sizes->[$i])\n"
+          if $ratio != int($ratio);
+    }
 
     #  need to get a hash of all the groups and their coords.
     my %groups;
-    my $gp_object = $self->get_groups_ref;
     foreach my $gp ($self->get_groups) {
         $groups{$gp} = $gp_object->get_element_name_as_array (element => $gp);
     }
@@ -3195,7 +3213,7 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
         $self->delete_param ('SPATIAL_INDEX');
     }
     else {
-        $index = Biodiverse::Index->new (@_, element_hash => \%groups);
+        $index = Biodiverse::Index->new (%args, element_hash => \%groups);
         $self->set_param (SPATIAL_INDEX => $index);
     }
 

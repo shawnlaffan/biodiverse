@@ -82,18 +82,17 @@ sub build {
     my $blessed = blessed $element_hash->{$keys[0]};
 
     #  get the bounds and the list of unique element columns
-    my (%count, %bounds, %ihash);
+    my (%count, %bounds);
 
     #  get the coord bounds
     foreach my $element (@keys) {
 
         my $coord_array     #  will blow up if no such method
             = eval {$element_hash->{$element}->get_coord_array}  
-            || $element_hash->{$element};
+              || $element_hash->{$element};
 
         foreach my $i (0 .. $#resolutions) {
             #print "COLUMNS: $column, $i\n";
-            $ihash{$i}++;
             $count{$i}{$coord_array->[$i]}++;
             if ($resolutions[$i] == 0) {
                 $bounds{max}[$i] = 0;
@@ -344,8 +343,7 @@ sub round_up_to_resolution {
         $values = [($values) x scalar @$resolutions];
     }
     
-    my $multipliers = $args{multipliers};
-    $multipliers = 1 if not defined $multipliers;
+    my $multipliers = $args{multipliers} // 1;
     if ((ref $multipliers) !~ /ARRAY/) {  
         $multipliers = [($multipliers) x scalar @$resolutions];
     }

@@ -428,9 +428,9 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
     
-    my $i_dist = $spatial_conditions->get_index_max_dist;
-    if ($i_dist) {
-        my $max_off = $self->round_up_to_resolution (values => $i_dist);
+    my $index_max_search_dist = $spatial_conditions->get_index_max_dist;
+    if ($index_max_search_dist) {
+        my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
         my $min_off = [];
         foreach my $i (0 .. $#$max_off) {
             #  snap to range of data - avoids crashes
@@ -448,7 +448,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             precision   => \@index_res_precision,
             #sep_char    => $sep_char,
         );
-        if (   $i_dist > 2 * List::Util::min (@$index_resolutions)
+        if (   $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
             && $spatial_conditions->get_result_type ne 'complex') {
             #  should add a shape parameter to the spatial conditions as we can skip to the else if it is a box/block
             #  check the offsets - threshold needs tuning
@@ -461,7 +461,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             );
         }
         else {  #  just use a box of offsets
-            say "[INDEX] Max search dist is $i_dist - using shortcut";
+            say "[INDEX] Max search dist is $index_max_search_dist - using shortcut";
             my %offsets;
             foreach my $offset (@$poss_offset_array) {
                 $offsets{$offset} = [split $sep_char, $offset];
@@ -619,20 +619,20 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     }
 
     #  we found too many offsets - stick to the i_dist box estimate if we have one
-    if ($i_dist && scalar keys %valid_index_offsets > scalar @$poss_offset_array) {
+    if ($index_max_search_dist && scalar keys %valid_index_offsets > scalar @$poss_offset_array) {
         my %offsets;
         foreach my $offset (@$poss_offset_array) {
             $offsets{$offset} = [split $sep_char, $offset];
         }
-        say "\nDone - using box of offsets ($i_dist based)";
+        say "\nDone - using box of offsets ($index_max_search_dist based)";
         return wantarray ? %offsets : \%offsets;
     }
 
     #print Data::Dumper::Dumper(\%valid_index_offsets);
     #print Data::Dumper::Dumper (\@min_offset);
     #print Data::Dumper::Dumper (\@max_offset);
-    #say 'Using ', scalar keys %valid_index_offsets, ' of ', scalar @$poss_offset_array, ' i_dist is ', ($i_dist // 'undef')
-    #  if $i_dist;
+    #say 'Using ', scalar keys %valid_index_offsets, ' of ', scalar @$poss_offset_array, ' i_dist is ', ($index_max_search_dist // 'undef')
+    #  if $index_max_search_dist;
     say "\nDone";
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }

@@ -17,6 +17,8 @@ use Geo::ShapeFile;
 use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed reftype/;
+use List::MoreUtils qw /uniq/;
+use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
@@ -266,6 +268,8 @@ sub parse_distances {
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
     my $re_sub_names      = qr /$re_sub_names_text/xsm;
+    
+    my %shape_hash;
 
     my $str_len = length $conditions;
     pos($conditions) = 0;
@@ -372,6 +376,9 @@ sub parse_distances {
                     $index_max_dist = max( $index_max_dist, $this_index_max_dist );
                 }
             }
+            
+            my $shape = $metadata->get_shape_type;
+            $shape_hash{$shape} ++;
 
             #  Should we not use a spatial index?  True if any of the conditions say so
             $index_no_use ||= $metadata->get_index_no_use;
@@ -391,6 +398,7 @@ sub parse_distances {
     $self->set_param( INCORRECT_ARGS => \%incorrect_args );
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES             => \%uses_distances );
+    $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
@@ -909,6 +917,10 @@ sub get_index_max_dist {
     #  or restructure the get_result_type to find both at once
 }
 
+sub get_shape_type {
+    my $self = shift;
+    return $self->get_param('SHAPE_TYPES') // '';
+}
 
 ################################################################################
 #  now for a set of shortcut subs so people don't have to learn so much perl syntax,
@@ -1033,6 +1045,22 @@ sub get_metadata_sp_rectangle {
     my $self = shift;
     my %args = @_;
 
+    my $shape_type = 'rectangle';
+
+    #  sometimes complex conditions are passed, not just numeric scalars
+    my @unique_axis_vals = uniq @{$args{sizes}};
+    my $non_numeric_axis_count = grep {!looks_like_number $_} @unique_axis_vals;
+    my ($largest_axis, $axis_count);
+    $axis_count = 0;
+    if ($non_numeric_axis_count == 0) {
+        $largest_axis = max @unique_axis_vals;
+        $axis_count   = scalar @{$args{sizes}};
+    }
+
+    if ($axis_count > 1 && scalar @unique_axis_vals == 1) {
+        $shape_type = 'square';
+    }
+
     my %metadata = (
         description =>
               'A rectangle.  Assessed against all dimensions by default '
@@ -1044,6 +1072,8 @@ sub get_metadata_sp_rectangle {
         optional_args => [qw /axes/],
         result_type   => 'circle',  #  centred on processing group, so leave as type circle
         example       => $rectangle_example,
+        index_max_dist => $largest_axis,
+        shape_type     => $shape_type,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1153,6 +1183,7 @@ sub get_metadata_sp_square {
             ( looks_like_number $args{size} ? $args{size} : undef ),
         required_args => ['size'],
         result_type   => 'square',
+        shape_type    => 'square',
         example =>
             q{#  an overlapping square, cube or hypercube depending on the number of axes}
             . q{#    note - you cannot yet specify which axes to use }
@@ -1222,14 +1253,21 @@ sub get_metadata_sp_block {
     my $self = shift;
     my %args = @_;
 
+    my $shape_type = 'complex';
+    if (looks_like_number $args{size} && !defined $args{origin}) {
+        $shape_type = 'square';
+    }
+    
+    my $index_max_dist = looks_like_number $args{size} ? $args{size} : undef;
+
     my %metadata = (
         description =>
             'A non-overlapping block.  Set an axis to undef to ignore it.',
-        index_max_dist =>
-            ( looks_like_number $args{size} ? $args{size} : undef ),
-        required_args => ['size'],
-        optional_args => ['origin'],
-        result_type   => 'non_overlapping'
+        index_max_dist => $index_max_dist,
+        shape_type     => $shape_type,
+        required_args  => ['size'],
+        optional_args  => ['origin'],
+        result_type    => 'non_overlapping'
         , #  we can recycle results for this (but it must contain the processing group)
           #  need to add optionals for origin and axes_to_use
         example => "sp_block (size => 3)\n"
@@ -2654,8 +2692,8 @@ sub sp_in_label_range {
 
 
 
-sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
-sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
+#sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
+#sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 
 
 sub get_example_sp_get_spatial_output_list_value {

@@ -22,6 +22,7 @@ my %methods_and_defaults = (
     description    => 'no_description',
     result_type    => 'no_type',
     index_max_dist => undef,
+    shape_type     => 'unknown',
     example        => 'no_example',
     required_args  => [],
     optional_args  => [],

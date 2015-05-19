@@ -448,7 +448,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             precision   => \@index_res_precision,
             #sep_char    => $sep_char,
         );
-        if (   $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
+        if (   $spatial_conditions->get_shape_type ne 'square'
+            && $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
             && $spatial_conditions->get_result_type ne 'complex') {
             #  should add a shape parameter to the spatial conditions as we can skip to the else if it is a box/block
             #  check the offsets - threshold needs tuning

@@ -1904,6 +1904,8 @@ sub assign_element_properties {
     return $count;
 }
 
+
+#  should probably wipe the cache if we do rename something
 sub rename_labels {
     my $self = shift;
     my %args = @_;
@@ -1912,6 +1914,10 @@ sub rename_labels {
       if $self->get_output_ref_count;
 
     my $remap = $args{remap};
+    my $labels_are_numeric = $self->labels_are_numeric;
+    my $remap_labels_are_all_numeric = 1;
+    my $remap_count = 0;
+    #my %remapped_names;
 
     LABEL:
     foreach my $label ($remap->get_element_list) {
@@ -1920,12 +1926,34 @@ sub rename_labels {
 
         next LABEL if !defined $remapped;
 
-        $self->rename_label (label => $label, new_name => $remapped);
+        $self->rename_label (
+            label    => $label,
+            new_name => $remapped,
+            no_numeric_check => 1,
+        );
+        $remap_count ++;
+        #$remapped_names{$remapped}++;
+
+        $remap_labels_are_all_numeric &&= looks_like_number $remapped;
+        if ($labels_are_numeric && !$remap_labels_are_all_numeric) {
+            $labels_are_numeric = 0;
+            $self->set_param (NUMERIC_LABELS => 0);
+        }
+
+    }
+
+    #  trigger a recheck on next call to labels_are_numeric
+    if (  !$labels_are_numeric
+        && $remap_labels_are_all_numeric
+        #&& scalar keys %remapped_names == $self->get_label_count
+        ) {
+        $self->set_param (NUMERIC_LABELS => undef);
     }
 
     return;
 }
 
+#  should probably wipe the cache if we do rename something
 sub rename_label {
     my $self = shift;
     my %args = @_;
@@ -1939,24 +1967,27 @@ sub rename_label {
     my $gp = $self->get_groups_ref;
     my $label = $args{label};
     my $new_name = $args{new_name};
+    my $labels_are_numeric = !$args{no_numeric_check} && $self->labels_are_numeric;
 
-    if ($lb->exists_element (element => $label)) {
-    
-        my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
-        foreach my $group (@sub_elements) {
-            $gp->rename_subelement (
-                element     => $group,
-                sub_element => $label,
-                new_name    => $new_name,
-            );
-        }
-    
-        print "[BASEDATA] Renamed $label to $new_name\n";
-    
+    if (!$lb->exists_element (element => $label)) {
+        say "[BASEDATA] Label $label does not exist, not renaming it";
+        return;
     }
-    else {
-        say "Label $label does not exist, not renaming it";
+    
+    
+    my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
+    foreach my $group (@sub_elements) {
+        $gp->rename_subelement (
+            element     => $group,
+            sub_element => $label,
+            new_name    => $new_name,
+        );
     }
+    if ($labels_are_numeric && !looks_like_number $new_name) {
+        $self->set_param (NUMERIC_LABELS => 0);
+    }
+
+    say "[BASEDATA] Renamed $label to $new_name";
 
     return;
 }
@@ -2114,7 +2145,13 @@ sub get_label_columns_for_matrix_import {
 
 sub labels_are_numeric {
     my $self = shift;
-    return $self->get_param('NUMERIC_LABELS');
+
+    my $is_numeric = $self->get_param('NUMERIC_LABELS');
+    return $is_numeric if defined $is_numeric;
+
+    $is_numeric = $self->get_labels_ref->elements_are_numeric || 0;
+    $self->set_param (NUMERIC_LABELS => $is_numeric);
+    return $is_numeric;
 }
 
 #  are the sample counts floats or ints?  

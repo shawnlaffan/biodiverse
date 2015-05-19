@@ -96,7 +96,64 @@ sub main {
 }
 
 
-#  Try a varity of cell and index sizes.
+sub test_remapped_labels_when_stringified_and_numeric {
+    my $label_numeric1 = 10;
+    my $label_numeric2 = 20;
+    my $label_text1    = 'barry the wonder dog';
+    my $label_text2    = 'barry the non-wonder dog';
+
+    my $bd1 = Biodiverse::BaseData->new (CELL_SIZES => [2, 2]);
+    $bd1->add_element (label => $label_numeric1, group => '5:5');
+    $bd1->add_element (label => $label_numeric1, group => '55:1150');
+    my $bd2 = $bd1->clone;
+
+    ok ($bd1->labels_are_numeric, 'Labels are numeric');
+    ok ($bd2->labels_are_numeric, 'Labels are numeric, cloned');
+
+    my $remap = Biodiverse::ElementProperties->new ();
+    $remap->add_element (element => $label_numeric1);
+    my $remap_hash = {REMAP => $label_text1};
+    $remap->add_lists (element => $label_numeric1, PROPERTIES => $remap_hash);
+
+    $bd1->rename_labels (remap => $remap);
+    ok (!$bd1->labels_are_numeric, 'Labels are no longer numeric after rename_labels');
+
+    #  now we try with a single rename
+    $bd2->rename_label (label => $label_numeric1, new_name => $label_text1);
+    ok (!$bd2->labels_are_numeric, 'Labels are no longer numeric after rename_label');
+
+    my $bd3 = Biodiverse::BaseData->new (CELL_SIZES => [2, 2]);
+    $bd3->add_element (label => $label_text1,  group => '5:5');
+    $bd3->add_element (label => $label_text2, group => '55:1150');
+    my $bd4 = $bd3->clone;
+    my $bd5 = $bd3->clone;
+
+    ok (!$bd3->labels_are_numeric, 'Text labels are not numeric');
+
+    my $remap_text2num = Biodiverse::ElementProperties->new ();
+    $remap_text2num->add_element (element => $label_text1);
+    $remap_text2num->add_lists   (element => $label_text1, PROPERTIES => {REMAP => $label_numeric1});
+
+    $bd3->rename_labels (remap => $remap_text2num);
+    ok (!$bd1->labels_are_numeric, 'Text labels still not numeric after one label renamed');
+
+    $remap_text2num->add_element (element => $label_text2);
+    $remap_text2num->add_lists   (element => $label_text2, PROPERTIES => {REMAP => $label_numeric2});
+
+    $bd3->rename_labels (remap => $remap_text2num);
+    ok ($bd3->labels_are_numeric, 'Text labels are now numeric, done one at a time');
+
+    $bd4->rename_labels (remap => $remap_text2num);
+    ok ($bd4->labels_are_numeric, 'Text labels are now numeric, all done at once');
+
+    #  now we try with all text labels mapped to one numeric label
+    $remap_text2num->add_lists   (element => $label_text2, PROPERTIES => {REMAP => $label_numeric1});
+    $bd5->rename_labels (remap => $remap_text2num);
+    ok ($bd5->labels_are_numeric, 'Text labels are now numeric, all remapped into one number');
+}
+
+
+#  Try a variety of cell and index sizes.
 #  Should check the error messages to ensure we get the expected error.
 #  Should also test the index behaves as expected,
 #  but it is also exercised in the spatial conditions tests.

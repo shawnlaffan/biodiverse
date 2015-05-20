@@ -7,7 +7,7 @@ use Readonly;
 use Scalar::Util qw /reftype/;
 use Clone qw /clone/;
 
-our $VERSION = '1.0';
+our $VERSION = '1.0_001';
 
 sub new {
     my ($class, $data) = @_;

@@ -28,7 +28,7 @@ use Biodiverse::Metadata::Randomisation;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '1.0';
+our $VERSION = '1.0_001';
 
 my $EMPTY_STRING = q{};
 

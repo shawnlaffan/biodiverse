@@ -3,7 +3,7 @@ package Task::Biodiverse::NoGUI;
 use strict;
 use warnings;
 
-our $VERSION = '1.0';
+our $VERSION = '1.0_001';
 
 
 1;

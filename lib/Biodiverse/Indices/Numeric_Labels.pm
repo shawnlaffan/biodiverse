@@ -11,7 +11,7 @@ use List::Util qw /sum min/;
 
 use Carp;
 
-our $VERSION = '1.0';
+our $VERSION = '1.0_001';
 
 use Biodiverse::Statistics;
 

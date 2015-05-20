@@ -13,7 +13,7 @@ use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '1.0';
+our $VERSION = '1.0_001';
 
 our $AUTOLOAD;
 

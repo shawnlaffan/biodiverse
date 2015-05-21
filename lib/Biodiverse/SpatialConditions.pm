@@ -932,6 +932,15 @@ sub get_metadata_sp_circle {
     my $self = shift;
     my %args = @_;
 
+    my $example = <<'END_CIRC_EX'
+#  A circle of radius 1000 across all axes
+sp_circle (radius => 1000)
+
+#  use only axes 0 and 3
+sp_circle (radius => 1000, axes => [0, 3])
+END_CIRC_EX
+  ;
+
     my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
@@ -946,6 +955,7 @@ sub get_metadata_sp_circle {
         required_args => ['radius'],
         optional_args => [qw /axes/],
         result_type   => 'circle',
+        example       => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -987,6 +997,15 @@ sub get_metadata_sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
+    my $example = <<'END_CIRC_CELL_EX'
+#  A circle of radius 3 cells across all axes
+sp_circle (radius => 3)
+
+#  use only axes 0 and 3
+sp_circle_cell (radius => 3, axes => [0, 3])
+END_CIRC_CELL_EX
+  ;
+
     my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
@@ -997,6 +1016,7 @@ sub get_metadata_sp_circle_cell {
         use_cell_distance      => !$args{axes},    
         required_args => ['radius'],
         result_type   => 'circle',
+        example       => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1032,10 +1052,17 @@ sub sp_circle_cell {
 
 
 my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
-#  A rectangle of equal size on the first two axes, and 100 on the third.
+#  A rectangle of equal size on the first two axes,
+#  and 100 on the third.
 sp_rectangle (sizes => [100000, 100000, 100])
-#  The same, but with the axes reordered (an example of using the axes argument)
-sp_rectangle (sizes => [100000, 100, 100000], axes => [0,2,1])
+
+#  The same, but with the axes reordered
+#  (an example of using the axes argument)
+sp_rectangle (
+    sizes => [100000, 100, 100000],
+    axes  => [0, 2, 1],
+)
+
 #  Use only the first an third axes
 sp_rectangle (sizes => [100000, 100000], axes => [0,2])
 END_RECTANGLE_EXAMPLE
@@ -1172,6 +1199,15 @@ sub sp_annulus {
 sub get_metadata_sp_square {
     my $self = shift;
     my %args = @_;
+    
+    my $example = <<'END_SQR_EX'
+#  An overlapping square, cube or hypercube
+#  depending on the number of axes
+#   Note - you cannot yet specify which axes to use
+#   so it will be square on all sides
+sp_square (size => 300000)
+END_SQR_EX
+  ;
 
     my %metadata = (
         description =>
@@ -1184,11 +1220,7 @@ sub get_metadata_sp_square {
         required_args => ['size'],
         result_type   => 'square',
         shape_type    => 'square',
-        example =>
-            q{#  an overlapping square, cube or hypercube depending on the number of axes}
-            . q{#    note - you cannot yet specify which axes to use }
-            . q{#    so it will be square on all sides}
-            . q{sp_square (size => 300000)},
+        example       =>  $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1331,6 +1363,16 @@ sub get_metadata_sp_ellipse {
     my $description =
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
       . q{which are used (default is [0,1]).  The default rotate_angle is pi/2.};
+    my $example = <<'END_ELLIPSE_EX'
+# East west aligned ellipse
+sp_ellipse (
+    major_radius => 300000,
+    minor_radius => 100000,
+    axes => [0,1],
+    rotate_angle => 1.5714,
+)
+END_ELLIPSE_EX
+  ;
 
     my %metadata = (
         description => $description,
@@ -1346,11 +1388,7 @@ sub get_metadata_sp_ellipse {
         required_args => [qw /major_radius minor_radius/],
         optional_args => [qw /axes rotate_angle rotate_angle_deg/],
         result_type   => 'ellipse',
-        example       =>
-              '# East west aligned ellipse'
-            . 'sp_ellipse (major_radius => 300000, '
-            . 'minor_radius => 100000, axes => [0,1], '
-            . 'rotate_angle => 1.5714)',
+        example       => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -1818,6 +1856,23 @@ sub _sp_side {
 sub get_metadata_sp_select_sequence {
     my $self = shift;
 
+    my $example = <<'END_SEL_SEQ_EX'
+# Select every tenth group (groups are sorted alphabetically)
+sp_select_sequence (frequency => 10)
+
+#  Select every tenth group, starting from the third
+sp_select_sequence (frequency => 10, first_offset => 2)
+
+#  Select every tenth group, starting from the third last 
+#  and working backwards
+sp_select_sequence (
+    frequency     => 10,
+    first_offset  =>  2,
+    reverse_order =>  1,
+)
+END_SEL_SEQ_EX
+  ;
+
     my %metadata = (
         description =>
             'Select a subset of all available neighbours based on a sample sequence '
@@ -1835,13 +1890,7 @@ sub get_metadata_sp_select_sequence {
         ],
         index_no_use => 1,          #  turn the index off
         result_type  => 'subset',
-        example =>
-            "# Select every tenth group (groups are sorted alphabetically)\n"
-            . q{sp_select_sequence (frequency => 10)}
-            . "#  Select every tenth group, starting from the third\n"
-            . q{sp_select_sequence (frequency => 10, first_offset => 2)}
-            . "#  Select every tenth group, starting from the third last and working backwards\n"
-            . q{sp_select_sequence (frequency => 10, first_offset => 2, reverse_order => 1)},
+        example      => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2014,6 +2063,22 @@ sub clear_cached_subset_nbrs {
 sub get_metadata_sp_select_block {
     my $self = shift;
     my %args = @_;
+    
+    my $example = <<'END_SPSB_EX'
+# Select up to two groups per block with each block being 5 groups
+on a side where the group size is 100
+sp_select_block (size => 500, count => 2)
+
+#  Now do it non-randomly and start from the lower right
+sp_select_block (size => 500, count => 10, random => 0, reverse => 1)
+
+#  Rectangular block with user specified PRNG starting seed
+sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)
+
+# Lower memory footprint (but longer running times for neighbour searches)
+sp_select_block (size => 500, count => 2, clear_cache => 1)
+END_SPSB_EX
+  ;
 
     my %metadata = (
         description =>
@@ -2033,16 +2098,7 @@ sub get_metadata_sp_select_block {
             'prng_seed',      #  seed for the PRNG
         ],
         result_type  => 'complex',  #  need to make it a subset, but that part needs work
-        example =>
-            '# Select up to two groups per block with each block being 5 groups '
-            . "on a side where the group size is 100\n"
-            . q{sp_select_block (size => 500, count => 2)}
-            . "#  Now do it non-randomly and start from the lower right\n"
-            . q{sp_select_block (size => 500, count => 10, random => 0, reverse => 1)}
-            . "#  Rectangular block with user specified PRNG starting seed\n"
-            . q{sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)}
-            . "# Lower memory footprint (but longer running times for neighbour searches)\n"
-            . q{sp_select_block (size => 500, count => 2, clear_cache => 1)}
+        example      => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2163,10 +2219,21 @@ sub get_metadata_sp_point_in_poly {
     my $self = shift;
     
     my %args = @_;
+    
+    my $example = <<'END_SP_PINPOLY'
+# Is the neighbour coord in a square polygon?
+sp_point_in_poly (
+    polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]],
+    point   => \@nbrcoord,
+)
+
+END_SP_PINPOLY
+  ;
 
     my %metadata = (
         description =>
-            'Select groups that occur within a user-defined polygon',
+            "Select groups that occur within a user-defined polygon \n"
+            . '(see sp_point_in_poly_shape for an altrnative)',
         required_args      => [
             'polygon',           #  array of vertices, or a Math::Polygon object
         ],
@@ -2175,9 +2242,7 @@ sub get_metadata_sp_point_in_poly {
         ],
         index_no_use => 1,
         result_type  => 'always_same',
-        example =>
-              q{# Is the neighbour coord in a square polygon?}
-            . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
+        example      => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2605,6 +2670,19 @@ sub get_metadata_sp_group_not_empty {
     
     my %args = @_;
 
+    my $example = <<'END_GP_NOT_EMPTY_EX'
+# Restrict calculations to those non-empty groups.
+#  Will use the processing group if a def query,
+#  the neighbour group otherwise.
+sp_group_not_empty ()
+
+# The same as above, but being specific about which group (element) to test.
+#  This is probably best used in cases where the element
+#  to check is varied spatially.}
+sp_group_not_empty (element => '5467:9876')
+END_GP_NOT_EMPTY_EX
+  ;
+
     my %metadata = (
         description   => 'Is an element non-empty?',
         required_args => [],
@@ -2612,13 +2690,7 @@ sub get_metadata_sp_group_not_empty {
             'element',      #  which element to use 
         ],
         result_type   => $NULL_STRING,
-        example       =>
-              q{# Restrict calculations to those non-empty groups.}
-            . q{#  Will use the processing group if a def query, the neighbour group otherwise.}
-            . q{sp_group_not_empty ()}
-            . q{# The same as above, but being specific about which group (element) to test.}
-            . q{#  This is probably best used in cases where the element to check is varied spatially.}
-            . q{sp_group_not_empty (element => '5467:9876')},
+        example       => $example,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2654,7 +2726,7 @@ sub get_metadata_sp_in_label_range {
         result_type   => 'always_same',
         index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       =>
-              q{# Are we in the range of label called Genus:Sp1?}
+              qq{# Are we in the range of label called Genus:Sp1?\n}
             . q{sp_in_label_range(label => 'Genus:Sp1')}
     );
 
@@ -2752,8 +2824,8 @@ sub sp_get_spatial_output_list_value {
 
     my $default_element
       = eval {$self->is_def_query}
-      ? $h->{coord_id1}
-      : $h->{coord_id2};
+        ? $h->{coord_id1}
+        : $h->{coord_id2};  #?
 
     my $element = $args{element} // $default_element;
 
@@ -2775,6 +2847,57 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+
+sub get_conditions_metadata_as_markdown {
+    my $self = shift;
+
+    my $condition_subs = $self->get_subs_with_prefix (prefix => 'sp_');
+
+    #my @keys_of_interest = qw /
+    #    description
+    #    required_args
+    #    optional_args
+    #    example
+    #/;
+    #  also need to know if it uses the index, disables it or has no effect
+
+    my $md;
+
+    foreach my $sub_name (sort keys %$condition_subs) {
+        say $sub_name;
+        my $metadata = $self->get_metadata (sub => $sub_name);
+        #say join ' ', sort keys %$metadata;
+        my @md_this_sub;
+        push @md_this_sub, "### $sub_name ###";
+        push @md_this_sub, $metadata->get_description;
+
+        my $required_args = $metadata->get_required_args;
+        if (!scalar @$required_args) {
+            $required_args = ['*none*'];
+        }
+        push @md_this_sub, '**Required args:**  ' . join ', ', sort @$required_args;
+
+        my $optional_args = $metadata->get_optional_args;
+        if (!scalar @$optional_args) {
+            $optional_args = ['*none*'];
+        }
+        push @md_this_sub, '**Optional args:**  ' . join ', ', sort @$optional_args;
+
+        my $example = $metadata->get_example;
+        my @ex = split "\n", $example;
+        my @len_check = grep {length ($_) > 78} @ex;
+        croak (join "\n", $sub_name, @len_check) if scalar @len_check;
+        croak "$sub_name has no example" if !$example || $example eq 'no_example';
+
+        push @md_this_sub, "**Example:**\n```perl\n$example\n```";
+
+        $md .= join "\n\n", @md_this_sub;
+        $md .= "\n\n";
+
+    }
+    
+    return $md;
+}
 
 
 

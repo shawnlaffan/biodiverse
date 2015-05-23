@@ -2904,10 +2904,10 @@ sub get_array_list_values {
     #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
     #  if ! exists $self->{ELEMENTS}{$element};
 
-if (!$self->{ELEMENTS}{$element}{$list}) {
-    print "PRIBLEMS";
-    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
-}
+#if (!$self->{ELEMENTS}{$element}{$list}) {
+#    print "PRIBLEMS with list $list in element $element";
+#    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
+#}
 
     my $list_ref = $self->{ELEMENTS}{$element}{$list}
       // Biodiverse::BaseStruct::ListDoesNotExist->throw (

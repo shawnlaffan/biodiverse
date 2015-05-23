@@ -1948,7 +1948,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
         TDB_DISTINCTNESS => {
             description    => 'Taxonomic distinctness, binary weighted',
             formula        => [
-                '= \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))}',
+                '= \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1)}',
                 'where ',
                 '\omega_{ij}',
                 'is the path length from label ',
@@ -1968,7 +1968,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
             formula        => [
                 '= \frac{\sum \sum_{i \neq j} \omega_{ij}^2}{s(s-1))} - \bar{\omega}^2',
                 'where ',
-                '\bar{\omega} = \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))} \equiv TDB\_DISTINCTNESS',
+                '\bar{\omega} = \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1)} \equiv TDB\_DISTINCTNESS',
             ],
         },
     };

@@ -82,7 +82,7 @@ This is a brief description of the evaluation process used to determine the set 
 
 Currently the system operates on boolean membership of the set of neighbours, so a group either is or is not a neighbour of the processing group.  If no spatial index is used then every group's membership of the processing cell's neighbour set is considered in turn.  If a spatial index is used then only a subset of neighbours is considered (those within the relevant spatial index blocks).  This is why processing times are usually shorter when using an index (see [KeyConcepts#Using_the_spatial_index](KeyConcepts#using-the-spatial-index)).
 
-Spatial conditions need not return symmetric sets.  In this way group _i_ can be in group _j_'s neighbour set, but _j_ need not be in _i_'s neighbour set.  This is not an issue for moving window analyses, but can cause asymmetric dissimilarity matrices if used to run a spatially constrained cluster analysis.  This is why it is generally a good idea in these cases to set the second neighbourhood to be `sp_always_true()` or `1` (which is the same thing).
+Spatial conditions need not return symmetric sets.  In this way group _i_ can be in group _j_'s neighbour set, but _j_ need not be in _i_'s neighbour set.  This is not an issue for moving window analyses, but can cause asymmetric dissimilarity matrices if used to run a spatially constrained cluster analysis.  This is why it is generally a good idea in these cases to set the second neighbourhood to be `sp_select_all()` or `1` (which is the same thing).
 
 In the calculations, groups in neighbour set 1 are excluded from neighbour set 2 so there are no overlaps that would violate the comparison calculations.
 

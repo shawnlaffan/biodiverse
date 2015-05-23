@@ -2684,7 +2684,7 @@ END_GP_NOT_EMPTY_EX
   ;
 
     my %metadata = (
-        description   => 'Is an element non-empty?',
+        description   => 'Is a basedata group non-empty? (i.e. contains one or more labels)',
         required_args => [],
         optional_args => [
             'element',      #  which element to use 

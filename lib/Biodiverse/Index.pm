@@ -135,6 +135,56 @@ sub get_element_count {
     return scalar keys %$el_hash;
 }
 
+#  observed item count across all possible items
+sub get_item_density_across_all_poss_index_elements {
+    my $self = shift;
+
+    my $cache_key = 'ITEM_DENSITY_ACROSS_ALL_POSS_INDEX_ELEMENTS';
+
+    my $val = $self->get_cached_value ($cache_key);
+    return $val if defined $val;
+
+    $val = $self->get_indexed_item_count
+      / $self->get_poss_index_key_count;
+
+    $self->set_cached_value ($cache_key => $val);
+
+    return $val;
+}
+
+sub get_poss_index_key_count {
+    my $self = shift;
+
+    my $maxima = $self->get_param('MAXIMA');
+    my $minima = $self->get_param('MINIMA');
+    my $resolutions = $self->get_param('RESOLUTIONS');
+    
+    my $count = 1;
+    foreach my $i (0 .. $#$maxima) {
+        my $multipler = 1 + ($maxima->[$i] - $minima->[$i]) / ($resolutions->[$i] || 1);
+        $count *= $multipler;
+    }
+
+    return $count;
+}
+
+sub get_indexed_item_count {
+    my $self = shift;
+
+    my $count;
+    my $keys = $self->get_index_keys;
+    
+  ELT:
+    foreach my $element (@$keys) {
+        no autovivification;
+        my $elref = $self->{ELEMENTS}{$element}
+          // next ELT;
+        $count += keys $elref;
+    }
+    
+    return $count;
+}
+
 sub snap_to_index {
     my $self = shift;
     my %args = @_;

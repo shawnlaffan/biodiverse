@@ -3924,14 +3924,17 @@ sub get_neighbours {
     my $groups_ref = $self->get_groups_ref;
 
     #  Get the list of possible neighbours - should allow this as an arg?
+    #  Don't check the index unless it will result in fewer loop iterations overall.
+    #  Assumes the neighbour comparison checks cost as much as the index offset checks.  
     my @compare_list;
     if (   !defined $index || !defined $index_offsets
-        || scalar keys %$index_offsets > $self->get_group_count) {
+        || ($index->get_item_density_across_all_poss_index_elements
+            * scalar keys %$index_offsets) > ($self->get_group_count / 2)
+        ) {
         @compare_list = $self->get_groups;
     }
-    else {  #  We have a spatial index defined and there are fewer offsets than groups
+    else {  #  We have a spatial index defined and a favourable ratio of offsets to groups
             #  so we get the possible list of neighbours from the index.
-            #  Should check some function of mean density of index if one is found
         my $element_array =
           $self->get_group_element_as_array (element => $element1);
 

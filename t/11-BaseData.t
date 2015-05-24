@@ -227,9 +227,51 @@ sub test_spatial_index_build_exceptions {
     dies_ok (
         sub {$bd->build_spatial_index (resolutions => [-1, 1, 10])},
         "won't build index with text axis resolution smaller than bd",
-    );
-    
-    
+    );    
+}
+
+sub test_spatial_index_density {
+    my $bd1 = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    my $join_char = $bd1->get_param('JOIN_CHAR');
+    #  completely filled;
+    foreach my $x (0 .. 49) {
+        foreach my $y (0 .. 49) {
+            my $gp = join $join_char, $x+0.5, $y+0.5;
+            $bd1->add_element (group => $gp, label => 'a');
+        }
+    }
+
+    my ($index, $density);
+
+    $index = $bd1->build_spatial_index(resolutions => [1, 1]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 1, 'index density is 1');
+
+    $index = $bd1->build_spatial_index(resolutions => [2, 2]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 4, 'index density is 4');
+
+    #  dirty, hackish cheat to get a text axis
+    $bd1->set_param(CELL_SIZES => [1, -1]);
+    $bd1->get_groups_ref->set_param(CELL_SIZES => [1, -1]);
+    $index = $bd1->build_spatial_index(resolutions => [2, 0]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 100, 'index density is 100, one text axis');    
+
+    my $bd2 = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    $join_char = $bd2->get_param('JOIN_CHAR');
+    #  half filled;
+    foreach my $x (0 .. 49) {
+        next if $x % 2 == 0;
+        foreach my $y (0 .. 49) {
+            my $gp = join $join_char, $x+0.5, $y+0.5;
+            $bd2->add_element (group => $gp, label => 'a');
+        }
+    }
+
+    $index = $bd2->build_spatial_index(resolutions => [2, 2]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 2, 'index density is 2 when only half the groups exist');
 }
 
 sub test_binarise_sample_counts {

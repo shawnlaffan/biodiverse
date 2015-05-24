@@ -3923,13 +3923,15 @@ sub get_neighbours {
     
     my $groups_ref = $self->get_groups_ref;
 
-    my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
+    #  Get the list of possible neighbours - should allow this as an arg?
+    my @compare_list;
     if (   !defined $index || !defined $index_offsets
         || scalar keys %$index_offsets > $self->get_group_count) {
         @compare_list = $self->get_groups;
     }
-    else {  #  we have a spatial index defined and there are fewer offsets than groups
-            #  so we get the possible list of neighbours from the index
+    else {  #  We have a spatial index defined and there are fewer offsets than groups
+            #  so we get the possible list of neighbours from the index.
+            #  Should check some function of mean density of index if one is found
         my $element_array =
           $self->get_group_element_as_array (element => $element1);
 

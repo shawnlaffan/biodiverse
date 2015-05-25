@@ -1,4 +1,4 @@
-package Biodiverse::Metadata::Export::BaseStruct;
+package Biodiverse::Metadata::Export::Component;
 use strict;
 use warnings;
 
@@ -19,7 +19,12 @@ sub new {
 
 
 my %methods_and_defaults = (
-    types => [],
+    name        => '',
+    label_text  => '',
+    tooltip     => '',
+    type        => '',
+    choices     => [],
+    default     => '',
 );
 
 
@@ -32,7 +37,7 @@ sub _make_access_methods {
             do {
                 sub {
                     my $self = shift;
-                    return $self->{$key} // $self->get_default ($key);
+                    return $self->{$key} // $self->get_default_value ($key);
                 };
             };
     }
@@ -40,7 +45,7 @@ sub _make_access_methods {
     return;
 }
 
-sub get_default {
+sub get_default_value {
     my ($self, $key) = @_;
 
     #  set defaults - make sure they are new each time

@@ -41,6 +41,9 @@ use Biodiverse::Metadata::BaseStruct;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Export;
 
+my $export_metadata_component_class = 'Biodiverse::Metadata::Export::Component';
+use Biodiverse::Metadata::Export::Component;
+
 sub new {
     my $class = shift;
 
@@ -283,6 +286,9 @@ sub get_common_export_metadata {
             default     => $default_idx,
         },
     ];
+    foreach (@$metadata) {
+        bless $_, $export_metadata_component_class;
+    }
 
     return wantarray ? @$metadata : $metadata;
 }
@@ -477,19 +483,22 @@ sub get_nodata_export_metadata {
 
     my @no_data_values = $self->get_nodata_values;
 
-    my $table_metadata_defaults = [ 
+    my $metadata = [ 
         {
             name        => 'no_data_value',
             label_text  => 'NoData value',
             tooltip     => 'Zero is not a safe value to use for nodata in most '
-                        . 'cases, so be warned',
+                         . 'cases, so be warned',
             type        => 'choice',
             choices     => \@no_data_values,
             default     => 0
         },   
     ];
+    foreach (@$metadata) {
+        bless $_, $export_metadata_component_class;
+    }
 
-    return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
+    return wantarray ? @$metadata : $metadata;
 }
 
 
@@ -651,35 +660,40 @@ sub get_metadata_export_shapefile {
     #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
-    my %args = (
-        format => 'Shapefile',
-        parameters => [
-            {  # GUI supports just one of these
-                name => 'file',
-                type => 'file'
-            },
-            {
-                name        => 'list',
-                label_text  => 'List to export',
-                type        => 'choice',
-                choices     => \@lists,
-                default     => 0,
-            },
-            {
-                name        => 'shapetype',
-                label_text  => 'Shape type',
-                type        => 'choice',
-                choices     => [qw /POLYGON POINT/],
-                default     => 0,
-            },
-            @nodata_meta,
-            {
-                type        => 'comment',
-                label_text  => $shape_export_comment_text,
-            },
-        ],
+    my @parameters = (
+        {  # GUI supports just one of these
+            name => 'file',
+            type => 'file'
+        },
+        {
+            name        => 'list',
+            label_text  => 'List to export',
+            type        => 'choice',
+            choices     => \@lists,
+            default     => 0,
+        },
+        {
+            name        => 'shapetype',
+            label_text  => 'Shape type',
+            type        => 'choice',
+            choices     => [qw /POLYGON POINT/],
+            default     => 0,
+        },
+        @nodata_meta,
+        {
+            type        => 'comment',
+            label_text  => $shape_export_comment_text,
+        },
     );
+    foreach (@parameters) {
+        bless $_, $export_metadata_component_class;
+    }
 
+    my %args = (
+        format     => 'Shapefile',
+        parameters => \@parameters,
+    );
+    
     return wantarray ? %args : \%args;
 }
 

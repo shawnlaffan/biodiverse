@@ -23,8 +23,8 @@ my $stats_class = 'Biodiverse::Statistics';
 use Biodiverse::Metadata::Export;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
-use Biodiverse::Metadata::Export::Parameter;
-my $export_metadata_parameter_class = 'Biodiverse::Metadata::Export::Parameter';
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
@@ -771,13 +771,13 @@ sub get_metadata_export {
     my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [
-            {
+            bless ({
                 name        => 'format',
                 label_text  => 'Format to use',
                 type        => 'choice',
                 choices     => \@formats,
                 default     => 0
-            },
+            }, $parameter_metadata_class),
         ],
         format_labels  => \%format_labels,
         component_map  => \%component_map,
@@ -825,7 +825,7 @@ sub get_metadata_export_nexus {
         },
     );
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (
@@ -866,7 +866,7 @@ sub get_metadata_export_newick {
             tooltip     => 'Should the internal node labels be included?',
             type        => 'boolean',
             default     => 1,
-        }, $export_metadata_parameter_class),
+        }, $parameter_metadata_class),
     );
 
     my %args = (
@@ -927,7 +927,7 @@ sub get_metadata_export_shapefile {
         }
     );
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (
@@ -1042,7 +1042,7 @@ sub get_metadata_export_tabular_tree {
     );
     
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (
@@ -1149,7 +1149,7 @@ sub get_metadata_export_table_grouped {
     );
 
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
         
     my %args = (
@@ -1192,7 +1192,7 @@ sub get_metadata_export_range_table {
 
     my @parameters = $self->get_table_export_metadata();
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %metadata = (
@@ -1283,7 +1283,7 @@ sub get_lists_export_metadata {
         }
     ];
     for (@$metadata) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     return wantarray ? @$metadata : $metadata;    
@@ -1322,7 +1322,7 @@ sub get_table_export_metadata {
         },
     ];
     for (@$table_metadata_defaults) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;

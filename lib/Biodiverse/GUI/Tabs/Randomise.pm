@@ -390,9 +390,9 @@ sub on_function_changed {
     
     my $object = $self->{output_ref}
                  || $self->{output_placeholder_ref};
-    my %info = $object->get_args (sub => $func);
+    my $metadata = $object->get_metadata (sub => $func);
     
-    my $params = $info{parameters};
+    my $params = $metadata->get_parameters;
 
     return if not defined $params;
     

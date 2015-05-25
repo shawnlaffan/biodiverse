@@ -16,7 +16,7 @@ use Gtk2::GladeXML;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-use Scalar::Util qw /reftype looks_like_number/;
+use Scalar::Util qw /reftype looks_like_number blessed/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 use List::Util qw /all/;
 
@@ -28,6 +28,8 @@ use Biodiverse::ElementProperties;
 #  for use in check_if_r_data_frame
 use Biodiverse::Common;
 
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 #  A few name setups for a change-over that never happened,
 #  so the the $import_n part is actually redundant.
@@ -240,6 +242,10 @@ sub run {
     };
     push @{$args{parameters}}, $gp_axis_precision_spinner;
 
+    #  should not need to do this
+    for (@{$args{parameters}}) {
+        bless $_, $parameter_metadata_class if !blessed $_;
+    }
 
     my %import_params;
     my $table_params;

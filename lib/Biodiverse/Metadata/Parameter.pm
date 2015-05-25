@@ -1,6 +1,9 @@
-package Biodiverse::Metadata::Export::Parameter;
+package Biodiverse::Metadata::Parameter;
 use strict;
 use warnings;
+
+#  mostly used by Biodiverse::GUI::ParametersTable,
+#  but specified extensively in import and export metadata
 
 use 5.016;
 use Carp;

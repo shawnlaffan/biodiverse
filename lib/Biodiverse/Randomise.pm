@@ -22,11 +22,15 @@ use List::BinarySearch qw /binsearch  binsearch_pos/;
 #use MRO::Compat;
 use Class::Inspector;
 
-my $metadata_class = 'Biodiverse::Metadata::Randomisation';
 use Biodiverse::Metadata::Randomisation;
+my $metadata_class = 'Biodiverse::Metadata::Randomisation';
 
-my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
+
 
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
@@ -109,20 +113,26 @@ sub _get_metadata_export {
     @formats = sort @formats;
     $self->move_to_front_of_list (list => \@formats, item => 'Delimited text');
 
+    my @parameters = (
+        {
+            name => 'file',
+            type => 'file',
+        },
+        {
+            name        => 'format',
+            label_text  => 'What to export',
+            type        => 'choice',
+            choices     => \@formats,
+            default     => 0,
+        },
+        @export_sub_params,
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %args = (
-        parameters => [ {
-                name => 'file',
-                type => 'file',
-            },
-            {
-                name        => 'format',
-                label_text  => 'What to export',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0,
-            },
-            @export_sub_params,
-        ],
+        parameters => \@parameters,
         format_labels => \%format_labels,
     );
 

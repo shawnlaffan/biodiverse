@@ -17,6 +17,9 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
+
 our $VERSION = '1.0_001';
 
 use parent qw {
@@ -1695,8 +1698,8 @@ sub update_export_menu {
         my $bs_submenu = Gtk2::Menu->new;
 
         # Get the Parameters metadata
-        my %args = $ref->get_metadata (sub => 'export');
-        my $format_labels = $args{format_labels};
+        my $metadata = $ref->get_metadata (sub => 'export');
+        my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
             my $menu_item = Gtk2::MenuItem->new($label);
@@ -1762,8 +1765,8 @@ sub update_selection_menu {
         my $submenu = Gtk2::Menu->new;
 
         # Get the Parameters metadata
-        my %args = $ref->get_metadata (sub => 'export');
-        my $format_labels = $args{format_labels};
+        my $metadata = $ref->get_metadata (sub => 'export');
+        my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
             my $menu_item = Gtk2::MenuItem->new($label);
@@ -2052,6 +2055,9 @@ sub do_select_labels_regex {
             tooltip    => 'i.e. "cac" will match "Cac", "CAC", and "cac"',
         },
     ];
+    for (@$table_params) {
+        bless $_, $parameter_metadata_class;
+    }
 
     my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
 

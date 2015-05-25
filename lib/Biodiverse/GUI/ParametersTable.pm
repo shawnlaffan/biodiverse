@@ -86,7 +86,11 @@ sub fill {
         #
         # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
-
+#  debug
+use Scalar::Util qw /blessed/;
+if (!blessed $param) {
+    warn "Param not blessed";
+}
         my ($widget, $extractor) = generate_widget($param, $dlgxml);
 
         if ($extractor) {

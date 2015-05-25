@@ -38,11 +38,11 @@ my $stats_class = 'Biodiverse::Statistics';
 my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
 use Biodiverse::Metadata::BaseStruct;
 
-my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
-use Biodiverse::Metadata::Export::Parameter;
-my $export_metadata_parameter_class = 'Biodiverse::Metadata::Export::Parameter';
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub new {
     my $class = shift;
@@ -216,17 +216,20 @@ sub get_metadata_export {
         list => \@formats,
         item => 'Delimited text'
     );
+    
+    my $format_choice = bless
+        {
+            name        => 'format',
+            label_text  => 'Format to use',
+            type        => 'choice',
+            choices     => \@formats,
+            default     => 0
+        },
+        $parameter_metadata_class;
 
     my %metadata = (
         parameters     => \%params_per_sub,
-        format_choices => [{
-                name        => 'format',
-                label_text  => 'Format to use',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0
-            },
-        ],
+        format_choices => [$format_choice],
         format_labels  => \%format_labels,
     ); 
 
@@ -287,7 +290,7 @@ sub get_common_export_metadata {
         },
     ];
     foreach (@$metadata) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     return wantarray ? @$metadata : $metadata;
@@ -360,6 +363,9 @@ sub get_table_export_metadata {
             default    => 0,
         },
     ];
+    for (@$table_metadata_defaults) {
+        bless $_, $parameter_metadata_class;
+    }
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
 }
@@ -372,7 +378,7 @@ sub get_metadata_export_table_delimited_text {
         $self->get_table_export_metadata(),
     );
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (
@@ -500,7 +506,7 @@ sub get_nodata_export_metadata {
         },   
     ];
     foreach (@$metadata) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     return wantarray ? @$metadata : $metadata;
@@ -691,7 +697,7 @@ sub get_metadata_export_shapefile {
         },
     );
     foreach (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (

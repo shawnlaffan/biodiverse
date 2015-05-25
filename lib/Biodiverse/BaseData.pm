@@ -34,6 +34,8 @@ use Biodiverse::Indices;
 #  needs to be after anything which calls Biodiverse::Config, as that adds the paths needed on windows
 use Geo::GDAL;
 
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 our $VERSION = '1.0_001';
 
@@ -547,64 +549,68 @@ sub get_metadata_get_base_stats {
 sub get_metadata_import_data_common {
     my $self = shift;
     
+    my @parameters = (
+        { name       => 'use_label_properties',
+          label_text => 'Set label properties and remap?',
+          tooltip    => "Change label names, \n"
+                      . "set range, sample count,\n"
+                      . "set exclude and include flags at the label level etc.",
+          type       => 'boolean',
+          default    => 0,
+        },
+        { name       => 'use_group_properties',
+          label_text => 'Set group properties and remap?',
+          tooltip    => "Change group names, \n"
+                      . "set exclude and include flags at the group level etc.",
+          type       => 'boolean',
+          default    => 0,
+        },
+        { name       => 'allow_empty_labels',
+         label_text  => 'Allow labels with no groups?',
+         tooltip     => "Retain labels with no groups.\n"
+                      . "Requires a sample count column with value zero\n"
+                      . "(undef is treated as 1).",
+         type        => 'boolean',
+         default     => 0,
+        },
+        { name       => 'allow_empty_groups',
+          label_text => 'Allow empty groups?',
+          tooltip    => "Retain groups with no labels.\n"
+                      . "Requires a sample count column with value zero\n"
+                      . "(undef is treated as 1).",
+          type       => 'boolean',
+          default    => 0,
+        },
+        { name       => 'data_in_matrix_form',
+          label_text => 'Data are in matrix form?',
+          tooltip    => 'Are the data in a form like a site by species matrix?',
+          type       => 'boolean',
+          default    => 0,
+        },
+        { name       => 'skip_lines_with_undef_groups',
+          label_text => 'Skip lines with undef groups?',
+          tooltip    => 'Turn on if some records have undefined/blank/NA '
+                      . 'group values and should be skipped.  '
+                      . 'Import will otherwise fail if they are found.',
+          type       => 'boolean',
+          default    => 1,
+        },
+        { name       => 'binarise_counts',
+          label_text => 'Convert sample counts to binary?',
+          tooltip    => 'Any non-zero sample count will be '
+                      . "converted to a value of 1.  \n"
+                      . 'Applies to each record, not to groups.',
+          type       => 'boolean',
+          default    => 0,
+        },
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     #  these parameters are only for the GUI, so are not a full set
     my %arg_hash = (
-        parameters => [
-            #{ name => 'input_files', type => 'file' }, # not for the GUI
-            { name       => 'use_label_properties',
-              label_text => 'Set label properties and remap?',
-              tooltip    => "Change label names, \n"
-                          . "set range, sample count,\n"
-                          . "set exclude and include flags at the label level etc.",
-              type       => 'boolean',
-              default    => 0,
-            },
-            { name       => 'use_group_properties',
-              label_text => 'Set group properties and remap?',
-              tooltip    => "Change group names, \n"
-                          . "set exclude and include flags at the group level etc.",
-              type       => 'boolean',
-              default    => 0,
-            },
-            { name       => 'allow_empty_labels',
-             label_text  => 'Allow labels with no groups?',
-             tooltip     => "Retain labels with no groups.\n"
-                          . "Requires a sample count column with value zero\n"
-                          . "(undef is treated as 1).",
-             type        => 'boolean',
-             default     => 0,
-            },
-            { name       => 'allow_empty_groups',
-              label_text => 'Allow empty groups?',
-              tooltip    => "Retain groups with no labels.\n"
-                          . "Requires a sample count column with value zero\n"
-                          . "(undef is treated as 1).",
-              type       => 'boolean',
-              default    => 0,
-            },
-            { name       => 'data_in_matrix_form',
-              label_text => 'Data are in matrix form?',
-              tooltip    => 'Are the data in a form like a site by species matrix?',
-              type       => 'boolean',
-              default    => 0,
-            },
-            { name       => 'skip_lines_with_undef_groups',
-              label_text => 'Skip lines with undef groups?',
-              tooltip    => 'Turn on if some records have undefined/blank/NA '
-                          . 'group values and should be skipped.  '
-                          . 'Import will otherwise fail if they are found.',
-              type       => 'boolean',
-              default    => 1,
-            },
-            { name       => 'binarise_counts',
-              label_text => 'Convert sample counts to binary?',
-              tooltip    => 'Any non-zero sample count will be '
-                          . "converted to a value of 1.  \n"
-                          . 'Applies to each record, not to groups.',
-              type       => 'boolean',
-              default    => 0,
-            }
-        ]
+        parameters => \@parameters,
     );
     
     return wantarray ? %arg_hash : \%arg_hash;
@@ -621,25 +627,30 @@ sub get_metadata_import_data_text {
     my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
     my @input_quote_chars = ('guess', @quote_chars);
     
+    my @parameters = (
+        #{ name => 'input_files', type => 'file' }, # not for the GUI
+        { name       => 'input_sep_char',
+          label_text => 'Input field separator',
+          tooltip    => 'Select character',
+          type       => 'choice',
+          choices    => \@input_sep_chars,
+          default    => 0,
+        },
+        { name       => 'input_quote_char',
+          label_text => 'Input quote character',
+          tooltip    => 'Select character',
+          type       => 'choice',
+          choices    => \@input_quote_chars,
+          default    => 0,
+        },
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     #  these parameters are only for the GUI, so are not a full set
     my %arg_hash = (
-        parameters => [
-            #{ name => 'input_files', type => 'file' }, # not for the GUI
-            { name       => 'input_sep_char',
-              label_text => 'Input field separator',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_sep_chars,
-              default    => 0,
-            },
-            { name       => 'input_quote_char',
-              label_text => 'Input quote character',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_quote_chars,
-              default    => 0,
-            },
-        ]
+        parameters => \@parameters,
     );
     
     return wantarray ? %arg_hash : \%arg_hash;
@@ -656,47 +667,48 @@ sub get_metadata_import_data_raster {
     my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
     my @input_quote_chars = ('guess', @quote_chars);
     
+    my @parameters = (
+        { name       => 'labels_as_bands',
+          label_text => 'Read bands as labels?',
+          tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
+          type       => 'boolean',
+          default    => 0,
+        },
+        { name       => 'raster_cellsize_e',
+          label_text => 'Cell size east/long',
+          tooltip    => 'Size of group cells (Eastings/Longitude)',
+          type       => 'float',
+          default    => 100000,
+          digits     => 10,
+        },
+        { name       => 'raster_cellsize_n',
+          label_text => 'Cell size north/lat',
+          tooltip    => 'Size of group cells (Northings/Latitude)',
+          type       => 'float',
+          default    => 100000,
+          digits     => 10,
+        },
+        { name       => 'raster_origin_e',
+          label_text => 'Cell origin east/long',
+          tooltip    => 'Origin of group cells (Eastings/Longitude)',
+          type       => 'float',
+          default    => 0,
+          digits     => 10,
+        },
+        { name       => 'raster_origin_n',
+          label_text => 'Cell origin north/lat',
+          tooltip    => 'Origin of group cells (Northings/Latitude)',
+          type       => 'float',
+          default    => 0,
+          digits     => 10,
+        },
+    );
+
     #  these parameters are only for the GUI, so are not a full set
     my %arg_hash = (
-        parameters => [
-            #{ name => 'input_files', type => 'file' }, # not for the GUI
-            { name       => 'labels_as_bands',
-              label_text => 'Read bands as labels?',
-              tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
-              type       => 'boolean',
-              default    => 0,
-            },
-            { name       => 'raster_cellsize_e',
-              label_text => 'Cell size east/long',
-              tooltip    => 'Size of group cells (Eastings/Longitude)',
-              type       => 'float',
-              default    => 100000,
-              digits     => 10,
-            },
-            { name       => 'raster_cellsize_n',
-              label_text => 'Cell size north/lat',
-              tooltip    => 'Size of group cells (Northings/Latitude)',
-              type       => 'float',
-              default    => 100000,
-              digits     => 10,
-            },
-            { name       => 'raster_origin_e',
-              label_text => 'Cell origin east/long',
-              tooltip    => 'Origin of group cells (Eastings/Longitude)',
-              type       => 'float',
-              default    => 0,
-              digits     => 10,
-            },
-            { name       => 'raster_origin_n',
-              label_text => 'Cell origin north/lat',
-              tooltip    => 'Origin of group cells (Northings/Latitude)',
-              type       => 'float',
-              default    => 0,
-              digits     => 10,
-            },
-        ]
+        parameters => \@parameters,
     );
-    
+
     return wantarray ? %arg_hash : \%arg_hash;
 }
 

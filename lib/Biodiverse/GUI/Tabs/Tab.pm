@@ -13,6 +13,8 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
 
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub add_to_notebook {
     my $self = shift;
@@ -822,6 +824,7 @@ sub on_set_tree_line_widths {
                     . 'Does not affect the vertical connectors',
         tooltip    => 'Set to zero to let the system calculate a default',
     };
+    bless $props, $parameter_metadata_class;
 
     my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);
 

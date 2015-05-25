@@ -21,8 +21,8 @@ my $normal_class   = 'Biodiverse::Matrix';
 use Biodiverse::Metadata::Export;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
-use Biodiverse::Metadata::Export::Parameter;
-my $export_metadata_parameter_class = 'Biodiverse::Metadata::Export::Parameter';
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 #  check if the matrix contains an element with any pair
 sub element_is_in_matrix { 
@@ -829,16 +829,17 @@ sub get_metadata_export {
         item => 'Delimited text'
     );
 
+    my $format_choice = bless {
+        name        => 'format',
+        label_text  => 'Format to use',
+        type        => 'choice',
+        choices     => \@formats,
+        default     => 0
+    }, $parameter_metadata_class;
+
     my %metadata = (
         parameters     => \%params_per_sub,
-        format_choices => [{
-                name        => 'format',
-                label_text  => 'Format to use',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0
-            },
-        ],
+        format_choices => [$format_choice],
         format_labels  => \%format_labels,
     ); 
 
@@ -957,7 +958,7 @@ sub get_metadata_export_delimited_text {
     );
 
     for (@parameters) {
-        bless $_, $export_metadata_parameter_class;
+        bless $_, $parameter_metadata_class;
     }
 
     my %args = (

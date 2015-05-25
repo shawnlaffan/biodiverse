@@ -246,8 +246,8 @@ sub export {
         }
         elsif ($args{no_data_value} =~ /^([-+]?)(\d+)\*\*(\d+)$/) {  #  e.g. -2**128
             my $val = $2 ** $3;
-            if ($1) {
-                $val += -1;
+            if ($1 eq '-') {
+                $val *= -1;
             };
             $args{no_data_value} = $val;
         }
@@ -697,7 +697,7 @@ sub export_shapefile {
 
     my $nodata = $args{nodata_value};
     if (!looks_like_number $nodata) {
-        $nodata = -2**128;
+        $nodata = -1 * 2**128;
     }
 
     # we are writing as 2D or 3D points or polygons,

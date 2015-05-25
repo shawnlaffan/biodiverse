@@ -21,6 +21,9 @@ my $normal_class   = 'Biodiverse::Matrix';
 use Biodiverse::Metadata::Export;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 
+use Biodiverse::Metadata::Export::Parameter;
+my $export_metadata_parameter_class = 'Biodiverse::Metadata::Export::Parameter';
+
 #  check if the matrix contains an element with any pair
 sub element_is_in_matrix { 
     my $self = shift;
@@ -902,59 +905,64 @@ sub get_metadata_export_delimited_text {
     
     my @formats = qw /normal sparse gdm/;
     
+    my @parameters = (
+        {
+            name       => 'file',  # GUI supports just one of these
+            type       => 'file'
+        }, 
+        {
+            name       => 'type',
+            label_text => 'output format',
+            type       => 'choice',
+            tooltip    => $self->get_tooltip_sparse_normal,
+            choices    => \@formats,
+            default    => 0
+        },
+        {
+            name       => 'symmetric',
+            label_text => 'Force output to be symmetric',
+            type       => 'boolean',
+            default    => 1
+        },
+        {
+            name       => 'lower_left',
+            label_text => 'Print lower left only',
+            tooltip    => 'print lower left matrix',
+            type       => 'boolean',
+            default    => 0
+        },
+        {
+            name       => 'upper_right',
+            label_text => 'Print upper right only',
+            tooltip    => 'print upper right matrix',
+            type       => 'boolean',
+            default    => 0
+        },
+        {
+            name       => 'sep_char',
+            label_text => 'Field separator',
+            type       => 'choice',
+            tooltip    => 'for text outputs',
+            choices    => \@sep_chars,
+            default    => 0,
+        },
+        {
+            name       => 'quote_char',
+            label_text => 'Quote character',
+            type       => 'choice',
+            tooltip    => 'for text outputs',
+            choices    => \@quote_chars,
+            default    => 0,
+        },
+    );
+
+    for (@parameters) {
+        bless $_, $export_metadata_parameter_class;
+    }
 
     my %args = (
         format => 'Delimited text',
-        parameters => [
-            {
-                name       => 'file',  # GUI supports just one of these
-                type       => 'file'
-            }, 
-            {
-                name       => 'type',
-                label_text => 'output format',
-                type       => 'choice',
-                tooltip    => $self->get_tooltip_sparse_normal,
-                choices    => \@formats,
-                default    => 0
-            },
-            {
-                name       => 'symmetric',
-                label_text => 'Force output to be symmetric',
-                type       => 'boolean',
-                default    => 1
-            },
-            {
-                name       => 'lower_left',
-                label_text => 'Print lower left only',
-                tooltip    => 'print lower left matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'upper_right',
-                label_text => 'Print upper right only',
-                tooltip    => 'print upper right matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'sep_char',
-                label_text => 'Field separator',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@sep_chars,
-                default    => 0,
-            },
-            {
-                name       => 'quote_char',
-                label_text => 'Quote character',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@quote_chars,
-                default    => 0,
-            },
-        ]
+        parameters => \@parameters,
     );
     
     return wantarray ? %args : \%args;

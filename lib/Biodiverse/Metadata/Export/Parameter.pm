@@ -1,4 +1,4 @@
-package Biodiverse::Metadata::Export::Component;
+package Biodiverse::Metadata::Export::Parameter;
 use strict;
 use warnings;
 

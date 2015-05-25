@@ -41,8 +41,8 @@ use Biodiverse::Metadata::BaseStruct;
 my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Export;
 
-my $export_metadata_component_class = 'Biodiverse::Metadata::Export::Component';
-use Biodiverse::Metadata::Export::Component;
+use Biodiverse::Metadata::Export::Parameter;
+my $export_metadata_parameter_class = 'Biodiverse::Metadata::Export::Parameter';
 
 sub new {
     my $class = shift;
@@ -287,7 +287,7 @@ sub get_common_export_metadata {
         },
     ];
     foreach (@$metadata) {
-        bless $_, $export_metadata_component_class;
+        bless $_, $export_metadata_parameter_class;
     }
 
     return wantarray ? @$metadata : $metadata;
@@ -367,12 +367,17 @@ sub get_table_export_metadata {
 sub get_metadata_export_table_delimited_text {
     my $self = shift;
 
+    my @parameters = (
+        $self->get_common_export_metadata(),
+        $self->get_table_export_metadata(),
+    );
+    for (@parameters) {
+        bless $_, $export_metadata_parameter_class;
+    }
+
     my %args = (
         format => 'Delimited text',
-        parameters => [
-            $self->get_common_export_metadata(),
-            $self->get_table_export_metadata(),
-        ],
+        parameters => \@parameters,
     ); 
 
     return wantarray ? %args : \%args;
@@ -495,7 +500,7 @@ sub get_nodata_export_metadata {
         },   
     ];
     foreach (@$metadata) {
-        bless $_, $export_metadata_component_class;
+        bless $_, $export_metadata_parameter_class;
     }
 
     return wantarray ? @$metadata : $metadata;
@@ -686,7 +691,7 @@ sub get_metadata_export_shapefile {
         },
     );
     foreach (@parameters) {
-        bless $_, $export_metadata_component_class;
+        bless $_, $export_metadata_parameter_class;
     }
 
     my %args = (

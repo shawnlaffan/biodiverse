@@ -401,16 +401,17 @@ sub on_function_changed {
         my $args = $self->{output_ref}->get_param ('ARGS') || {};
         foreach my $arg (keys %$args) {
             foreach my $parameter (@$params) {
-                next if $parameter->{name} ne $arg;
+                next if $parameter->get_name ne $arg;
                 my $def_val = $args->{$arg};
-                if ($parameter->{type} eq 'choice') {
-                    $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->{choices}};
+                if ($parameter->get_type eq 'choice') {
+                    $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->get_choices};
                     #  if no full match then get the first suffix match - allows for shorthand options
                     if ($def_val < 0) {  
-                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @{$parameter->{choices}};
+                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @{$parameter->get_choices};
                     }
                 }
-                $parameter->{default} = $def_val;
+                #  should implement methods to do these steps:
+                $parameter->{default}   = $def_val;
                 $parameter->{sensitive} = 0;  #  cannot change the value
             }
         }
@@ -419,10 +420,10 @@ sub on_function_changed {
     #  keep a track of what we've already added
     my @params_to_add;
     foreach my $p (@$params) {
-        if (! exists $self->{param_extractors_added}{$p->{name}}) {
+        if (! exists $self->{param_extractors_added}{$p->get_name}) {
             push (@params_to_add, $p) ;
         }
-        $self->{param_extractors_added}{$p->{name}} ++;
+        $self->{param_extractors_added}{$p->get_name} ++;
     }
 
     

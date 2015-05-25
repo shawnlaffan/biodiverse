@@ -31,6 +31,9 @@ my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
+use Biodiverse::Metadata::ParameterRandomisation;
+my $parameter_rand_metadata_class = 'Biodiverse::Metadata::ParameterRandomisation';
+
 
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
@@ -880,27 +883,32 @@ END_TOOLTIP_ADDN
 
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my @parameters = (
+        {name       => 'richness_multiplier',
+         type       => 'float',
+         default    => 1,
+         increment  => 1,
+         tooltip    => $tooltip_mult,
+        },
+        {name       => 'richness_addition',
+         type       => 'float',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_addn,
+         },
+        $group_props_parameters,
+        $tree_shuffle_parameters,
+    );
+    for (@parameters) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
 
     my %metadata = (
-        parameters  => [ 
-            {name       => 'richness_multiplier',
-             type       => 'float',
-             default    => 1,
-             increment  => 1,
-             tooltip    => $tooltip_mult,
-             },
-            {name       => 'richness_addition',
-             type       => 'float',
-             default    => 0,
-             increment  => 1,
-             tooltip    => $tooltip_addn,
-             },
-            $group_props_parameters,
-            $tree_shuffle_parameters,
-        ],
+        parameters  => \@parameters,
         description => "Randomly allocate labels to groups,\n"
-                       . 'but keep the richness the same or within '
-                       . 'some multiplier factor.',
+                     . 'but keep the richness the same or within '
+                     . 'some multiplier factor.',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1763,15 +1771,16 @@ END_OF_GPPROP_TOOLTIP
 sub get_group_prop_metadata {
     my $self = shift;
 
-    my %metadata = (
+    my $metadata = {
         name => 'randomise_group_props_by',
         type => 'choice',
         choices => [qw /no_change by_set by_item/],
         default => 0,
         tooltip => $process_group_props_tooltip,
-    );
+    };
+    bless $metadata, $parameter_rand_metadata_class;
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata;
 }
 
 #  should build this from metadata
@@ -1791,15 +1800,16 @@ sub get_tree_shuffle_metadata {
     my $default = first_index {$_ =~ 'no_change$'} @choices;
     @choices = map {(my $x = $_) =~ s/^shuffle_//; $x} @choices;  #  strip the shuffle_ off the front
 
-    my %metadata = (
+    my $metadata = {
         name => 'randomise_trees_by',
         type => 'choice',
         choices => \@choices,
         default => $default,
         tooltip => $randomise_trees_tooltip,
-    );
+    };
+    bless $metadata, $parameter_rand_metadata_class;
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata;
 }
 
 

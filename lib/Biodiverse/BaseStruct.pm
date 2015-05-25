@@ -38,6 +38,8 @@ my $stats_class = 'Biodiverse::Statistics';
 my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
 use Biodiverse::Metadata::BaseStruct;
 
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+use Biodiverse::Metadata::Export;
 
 sub new {
     my $class = shift;
@@ -212,7 +214,7 @@ sub get_metadata_export {
         item => 'Delimited text'
     );
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [{
                 name        => 'format',
@@ -225,7 +227,7 @@ sub get_metadata_export {
         format_labels  => \%format_labels,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 # export to a file
@@ -233,23 +235,21 @@ sub export {
     my $self = shift;
     my %args = @_;
 
-    #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
-
-    my %valid_subs = reverse %{$metadata{format_labels}};
-    my $format     = $args{format};
-
-    my $sub_to_use = exists $valid_subs{$format} ? $format : $metadata{format_labels}{$format};
-    croak "Argument 'format=>$format' not specified or not valid\n"
-      if !$sub_to_use;
+    #  get our own metadata...  Much of the following can be shifted into the export metadata package
+    my $metadata   = $self->get_metadata (sub => 'export');
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
 
     #  convert no_data_values if appropriate
     if (defined $args{no_data_value}) {
         if ($args{no_data_value} eq 'undef') {
             $args{no_data_value} = undef;
         }
-        elsif ($args{no_data_value} =~ /^[-+]?\d+\*\*\d+$/) {  #  e.g. -2**128
-            $args{no_data_value} = eval $args{no_data_value};
+        elsif ($args{no_data_value} =~ /^([-+]?)(\d+)\*\*(\d+)$/) {  #  e.g. -2**128
+            my $val = $2 ** $3;
+            if ($1) {
+                $val += -1;
+            };
+            $args{no_data_value} = $val;
         }
     }
 
@@ -3663,3 +3663,4 @@ GNU General Public License for more details.
 For a full copy of the license see <http://www.gnu.org/licenses/>.
 
 =cut
+

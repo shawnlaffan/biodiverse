@@ -77,24 +77,26 @@ sub get_valid_indices_sub {
 
 #  the master export sub is in Biodiverse::Tree
 #  this is just to handle the matrices used in clustering
+#  We should really turn this off, as the matrices have been
+#  added to the basedata for quote some time now.  
 sub get_metadata_export_matrices {
     my $self = shift;
 
-    my %args;
+    my $metadata;
 
-    my $matrices = $self->get_param ('ORIGINAL_MATRICES');
+    my $matrices = $self->get_orig_matrices;
     eval {
-        %args = $matrices->[0]->get_args (sub => 'export')
+        $metadata = $matrices->[0]->get_metadata (sub => 'export')
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     #  override matrix setting
-    #  could casue grief if matrices allow more than delimited text
-    if (! defined $args{format} || $args{format} ne 'Matrices') {
-        $args{format} = 'Matrices';
+    #  could cause grief if matrices allow more than delimited text
+    if (! defined $metadata->{format} || $metadata->{format} ne 'Matrices') {
+        $metadata->{format} = 'Matrices';
     }
 
-    return wantarray ? %args : \%args;
+    return $metadata;
 }
 
 #  export the matrices used in any clustering
@@ -139,7 +141,6 @@ sub export_matrices {
     }
     if (scalar @$matrices > 1) {  #  only need the shadow (combined) matrix if more than one was used
         my $filename = $file;
-        #$filename =~ s/(\.\S+$)/_shadowmatrix$1/;
         $filename .= "_shadowmatrix$suffix";
         $shadow_matrix->export (
             @_,

@@ -25,6 +25,9 @@ use Class::Inspector;
 my $metadata_class = 'Biodiverse::Metadata::Randomisation';
 use Biodiverse::Metadata::Randomisation;
 
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+use Biodiverse::Metadata::Export;
+
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
@@ -166,7 +169,7 @@ sub get_metadata_export {
         item => 'Initial PRNG state'
     );
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [{
                 name        => 'format',
@@ -179,7 +182,7 @@ sub get_metadata_export {
         format_labels  => \%format_labels,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new(\%metadata);
 }
 
 sub export {
@@ -187,9 +190,9 @@ sub export {
     my %args = @_;
 
     #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
+    my $metadata = $self->get_metadata (sub => 'export');
 
-    my $sub_to_use = $metadata{format_labels}{$args{format}} || croak "Argument 'format' not specified\n";
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
 
     eval {$self->$sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;

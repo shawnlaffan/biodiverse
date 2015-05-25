@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Carp;
+use Scalar::Util qw /blessed/;
 
 use rlib;
 
@@ -27,6 +28,18 @@ my %file_temp_args = (
     SUFFIX   => '.csv',
     UNLINK   => 0,
 );
+
+
+#  check the metadata
+#  we just want no warnings raised here?
+{
+    my $bd = Biodiverse::BaseData->new (CELL_SIZES => [1, 1]);
+    $bd->add_element (group => '0.5:0.5', label => 'a');
+    
+    my $metadata = $bd->get_groups_ref->get_metadata (sub => 'export');
+    #  not a very good test...
+    ok (blessed ($metadata), 'basestruct export metadata is blessed');
+}
 
 
 # delimited text

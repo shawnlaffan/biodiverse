@@ -18,6 +18,9 @@ my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';
 my $normal_class   = 'Biodiverse::Matrix';
 
+use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
 #  check if the matrix contains an element with any pair
 sub element_is_in_matrix { 
     my $self = shift;
@@ -823,7 +826,7 @@ sub get_metadata_export {
         item => 'Delimited text'
     );
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [{
                 name        => 'format',
@@ -836,7 +839,7 @@ sub get_metadata_export {
         format_labels  => \%format_labels,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 sub export {
@@ -844,12 +847,9 @@ sub export {
     my %args = @_;
     
     #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
-    
-    my $format = $args{format};
-    my $sub_to_use
-        = $metadata{format_labels}{$format}
-            || croak "Argument 'format => $format' not valid\n";
+    my $metadata = $self->get_metadata (sub => 'export');
+
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
     
     eval {$self->$sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;

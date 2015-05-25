@@ -20,6 +20,10 @@ our $AUTOLOAD;
 use Statistics::Descriptive;
 my $stats_class = 'Biodiverse::Statistics';
 
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+use Biodiverse::Metadata::Export;
+
+
 use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
 use Biodiverse::BaseStruct;
@@ -689,14 +693,14 @@ sub export {
             || length ($args{file}) == 0;
 
     #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
+    my $metadata = $self->get_metadata (sub => 'export');
 
-    my $sub_to_use = $metadata{format_labels}{$args{format}}
-      || croak "Argument 'format' not specified\n";
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
 
     #  remap the format name if needed - part of the matrices kludge
-    if ($metadata{component_map}{$args{format}}) {
-        $args{format} = $metadata{component_map}{$args{format}};
+    my $component_map = $metadata->get_component_map;
+    if ($component_map->{$args{format}}) {
+        $args{format} = $component_map->{$args{format}};
     }
 
     eval {
@@ -762,7 +766,7 @@ sub get_metadata_export {
         item => 'Nexus'
     );
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [
             {
@@ -777,7 +781,7 @@ sub get_metadata_export {
         component_map  => \%component_map,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 sub get_lists_for_export {

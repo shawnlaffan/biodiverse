@@ -37,13 +37,13 @@ sub Run {
     $gui->activate_keyboard_snooper (0);
 
     # Get the Parameters metadata
-    my %args = $object->get_args (sub => 'export');
+    my $metadata = $object->get_metadata (sub => 'export');
     
     ###################
     # get the selected format
     
-    my $format_choices = $args{format_choices};
-    my $format_choice_array = $args{format_choices}[0]{choices};
+    my $format_choices = $metadata->get_format_choices;
+    my $format_choice_array = $format_choices->[0]{choices};
     
     if (none {$_ eq $selected_format} @$format_choice_array) {
         #  get user preference if none passed as an arg
@@ -84,7 +84,9 @@ sub Run {
         $format_dlg->destroy;
     }
 
-    my $params = $args{parameters}{$selected_format};
+    #my $meta_params = $metadata->get_parameters;
+    #my $params = $params->{$selected_format};  #  should be a method
+    my $params = $metadata->get_parameters_for_format (format => $selected_format);
 
     #####################
     #  and now get the params for the selected format

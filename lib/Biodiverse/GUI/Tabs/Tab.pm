@@ -933,8 +933,8 @@ sub update_export_menu {
     else {
         my $submenu = Gtk2::Menu->new;
         # Get the Parameters metadata
-        my %args = $output_ref->get_args (sub => 'export');
-        my $format_labels = $args{format_labels};
+        my $metadata = $output_ref->get_metadata (sub => 'export');
+        my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
             my $menu_item = Gtk2::MenuItem->new($label);

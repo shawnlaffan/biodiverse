@@ -1774,7 +1774,7 @@ sub get_metadata {
         $metadata = $self->get_args(@_);
 
         if (not blessed $metadata) {
-            warn "metadata for $args{sub} is not blessed\n";  #  only when debugging
+            croak "metadata for $args{sub} is not blessed (caller is $self)\n";  #  only when debugging
             #$metadata = $metadata_class->new ($metadata);
         }
         if ($use_cache) {

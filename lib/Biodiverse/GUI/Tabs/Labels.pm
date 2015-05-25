@@ -1695,7 +1695,7 @@ sub update_export_menu {
         my $bs_submenu = Gtk2::Menu->new;
 
         # Get the Parameters metadata
-        my %args = $ref->get_args (sub => 'export');
+        my %args = $ref->get_metadata (sub => 'export');
         my $format_labels = $args{format_labels};
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
@@ -1762,7 +1762,7 @@ sub update_selection_menu {
         my $submenu = Gtk2::Menu->new;
 
         # Get the Parameters metadata
-        my %args = $ref->get_args (sub => 'export');
+        my %args = $ref->get_metadata (sub => 'export');
         my $format_labels = $args{format_labels};
         foreach my $label (sort keys %$format_labels) {
             next if !$label;

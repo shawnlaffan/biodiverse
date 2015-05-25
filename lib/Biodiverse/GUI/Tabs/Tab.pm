@@ -840,7 +840,7 @@ sub on_set_tree_line_widths {
     my $label = Gtk2::Label->new($props->{label_text});
     $hbox->pack_start($label,   0, 0, 1);
     $hbox->pack_start($spinner, 0, 0, 1);
-    $spinner->set_tooltip_text ($props->{tooltip});
+    $spinner->set_tooltip_text ($props->get_tooltip);
 
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start($hbox, 0, 0, 10);

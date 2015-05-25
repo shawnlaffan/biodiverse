@@ -411,8 +411,8 @@ sub on_function_changed {
                     }
                 }
                 #  should implement methods to do these steps:
-                $parameter->{default}   = $def_val;
-                $parameter->{sensitive} = 0;  #  cannot change the value
+                $parameter->set_default ($def_val);
+                $parameter->set_sensitive (0);  #  cannot change the value
             }
         }
     }

@@ -259,13 +259,13 @@ sub run {
         @cell_origins = $basedata_ref->get_cell_origins;
 
         foreach my $thisp (@$table_params) {
-            $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
-            $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');
-            $thisp->{default} = $cell_sizes[0]   if ($thisp->{name} eq 'raster_cellsize_e');
-            $thisp->{default} = $cell_sizes[1]   if ($thisp->{name} eq 'raster_cellsize_n');        
+            $thisp->set_default ($cell_origins[0]) if ($thisp->get_name eq 'raster_origin_e');
+            $thisp->set_default ($cell_origins[1]) if ($thisp->get_name eq 'raster_origin_n');
+            $thisp->set_default ($cell_sizes[0])   if ($thisp->get_name eq 'raster_cellsize_e');
+            $thisp->set_default ($cell_sizes[1])   if ($thisp->get_name eq 'raster_cellsize_n');        
         }
     }
-    
+
     # Build widgets for parameters
     my $table = $dlgxml->get_widget ('tableImportParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)

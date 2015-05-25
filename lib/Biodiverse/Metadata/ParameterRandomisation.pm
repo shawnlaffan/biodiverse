@@ -23,12 +23,14 @@ sub new {
 
 my %methods_and_defaults = (
     name        => '',
+    
     tooltip     => '',
     type        => '',
     choices     => [],
     default     => '',
     sensitive   => 1,
     increment   => 1,
+    digits      => undef,
 );
 
 
@@ -42,6 +44,13 @@ sub _make_access_methods {
                 sub {
                     my $self = shift;
                     return $self->{$key} // $self->get_default_value ($key);
+                };
+            };
+        *{$pkg . '::' . 'set_' . $key} =
+            do {
+                sub {
+                    my ($self, $val) = @_;
+                    $self->{$key} = $val;
                 };
             };
     }

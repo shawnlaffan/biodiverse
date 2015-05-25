@@ -31,8 +31,8 @@ my $export_metadata_class = 'Biodiverse::Metadata::Export';
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-use Biodiverse::Metadata::ParameterRandomisation;
-my $parameter_rand_metadata_class = 'Biodiverse::Metadata::ParameterRandomisation';
+use Biodiverse::Metadata::Parameter;
+my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 
 require Biodiverse::BaseData;

@@ -2,8 +2,8 @@ package Biodiverse::Metadata::Parameter;
 use strict;
 use warnings;
 
-#  mostly used by Biodiverse::GUI::ParametersTable,
-#  but specified extensively in import and export metadata
+#  Mostly needed by Biodiverse::GUI::ParametersTable,
+#  with params and specified extensively in import and export metadata
 
 use 5.016;
 use Carp;
@@ -28,6 +28,11 @@ my %methods_and_defaults = (
     type        => '',
     choices     => [],
     default     => '',
+    sensitive   => 1,
+    min         => undef,
+    max         => undef,
+    digits      => undef,
+    increment   => 1,
 );
 
 
@@ -41,6 +46,13 @@ sub _make_access_methods {
                 sub {
                     my $self = shift;
                     return $self->{$key} // $self->get_default_value ($key);
+                };
+            };
+        *{$pkg . '::' . 'set_' . $key} =
+            do {
+                sub {
+                    my ($self, $val) = @_;
+                    $self->{$key} = $val;
                 };
             };
     }

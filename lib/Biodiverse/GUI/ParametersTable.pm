@@ -131,7 +131,7 @@ sub fill {
         }
 
         # Add a tooltip
-        my $tip_text = $param->{tooltip};
+        my $tip_text = $param->get_tooltip;
         if ($tip_text) {
             $tooltip_group->set_tip($widget, $tip_text, undef);
         }
@@ -168,7 +168,7 @@ sub extract {
 sub generate_widget {
     my $param = $_[0];
 
-    my $type = $param->{type};
+    my $type = $param->get_type;
 
     my @valid_choices = qw {
         file
@@ -192,7 +192,7 @@ sub generate_widget {
     my $sub_name = 'generate_' . $type;
 
     my @results = eval "$sub_name (\@_)";
-    croak "Unsupported parameter type $type\n" if $EVAL_ERROR;
+    croak "Unsupported parameter type $type \n$EVAL_ERROR\n" if $EVAL_ERROR;
 
     return @results;
 }
@@ -209,7 +209,7 @@ sub generate_choice {
     }
 
     # select default
-    my $default = $param->{default} // 0;
+    my $default = $param->get_default // 0;
     $combo->set_active($default);
 
     # Extraction closure
@@ -254,10 +254,10 @@ sub generate_comment {
 sub generate_integer {
     my $param = shift;
 
-    my $default = $param->{default} || 0;
-    my $incr    = $param->{increment} || 1;
-    my $min     = $param->{min} // 0;
-    my $max     = $param->{max} // 10000000;
+    my $default = $param->get_default || 0;
+    my $incr    = $param->get_increment || 1;
+    my $min     = $param->get_min // 0;
+    my $max     = $param->get_max // 10000000;
 
     my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
@@ -269,26 +269,26 @@ sub generate_integer {
 sub generate_float {
     my $param = shift;
     
-    my $default = $param->{default} || 0;
-    my $digits  = $param->{digits} || 2;
-    my $incr    = $param->{increment} || 0.1;
+    my $default = $param->get_default || 0;
+    my $digits  = $param->get_digits  || 2;
+    my $incr    = $param->get_increment || 0.1;
 
     my $adj = Gtk2::Adjustment->new($default,0, 10000000, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, $digits);
 
-    my $extract = sub { return ($param->{name}, $spin->get_value); };
+    my $extract = sub { return ($param->get_name, $spin->get_value); };
     return ($spin, $extract);
 }
 
 sub generate_boolean {
     my $param = shift;
 
-    my $default = $param->{default} || 0;
+    my $default = $param->get_default || 0;
     
     my $checkbox = Gtk2::CheckButton->new;
     $checkbox->set(active => $default);
 
-    my $extract = sub { return ($param->{name}, $checkbox->get_active); };
+    my $extract = sub { return ($param->get_name, $checkbox->get_active); };
 
     return ($checkbox, $extract);
 }
@@ -296,7 +296,7 @@ sub generate_boolean {
 sub generate_spatial_conditions {
     my $param = shift;
 
-    my $default = $param->{default} || '';
+    my $default = $param->get_default || '';
 
     my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
@@ -307,7 +307,7 @@ sub generate_spatial_conditions {
 
 sub generate_text_one_line {
     my $param = shift;
-    my $default = $param->{default} // '';
+    my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
     

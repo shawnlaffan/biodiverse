@@ -576,6 +576,63 @@ sub test_equalise_branch_lengths {
     is ($tree->get_node_count, $eq_tree->get_node_count, 'node counts match');
 }
 
+
+sub test_rescale_by_longest_path {
+    my $tree = get_site_data_as_tree();
+
+    my $longest_path = $tree->get_longest_path_length_to_terminals;
+    my $total_length = $tree->get_total_length;
+
+    my $target_name = '1950000:1350000';
+    my $target_node = $tree->get_node_ref (node => $target_name);
+    $target_node->set_length (length => 100);
+
+    $tree->delete_cached_values;
+    $tree->delete_cached_values_below;
+
+    my $new_longest_path = $tree->get_longest_path_length_to_terminals;
+
+    #  some sanity checks
+    is (
+        $new_longest_path,
+        $longest_path + 100,
+        'Longest path is 100 units longer',
+    );
+    is ($total_length + 100,
+        $tree->get_total_length,
+        'new tree is 100 units longer',
+    );
+
+    #  now we rescale things
+    my $rescaled_tree
+      = $tree->clone_tree_with_rescaled_branch_lengths (scale_factor => 0.01);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        $new_longest_path / 100,
+        'New longest path is 0.01 of the original',
+    );
+    is (
+        $rescaled_tree->get_total_length,
+        $tree->get_total_length / 100,
+        'New total tree length is 0.01 of the original',
+    );
+
+    #  now check we can go back
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (scale_factor => 100);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        $new_longest_path,
+        'New longest path is same as the original after rescaling by 100',
+    );
+    is (
+        $rescaled_tree->get_total_length,
+        $tree->get_total_length,
+        'New total tree length is same as the original after rescaling by 100',
+    );
+}
+
+
 sub test_depth {
     my $tree = Biodiverse::Tree->new (NAME => 'test depth');
     

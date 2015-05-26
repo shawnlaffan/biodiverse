@@ -278,6 +278,13 @@ sub get_length_to_tip {
     return $self->get_tree_length;
 }
 
+#  an even better name than get_length_to_tip given what this does
+sub get_longest_path_to_tip {
+    my $self = shift;
+
+    return $self->get_tree_length;
+}
+
 #  Get the terminal elements below this node
 #  If not a TreeNode reference, then return a
 #  hash ref containing only this node
@@ -2348,6 +2355,34 @@ sub clone_tree_with_equalised_branch_lengths {
     return $new_tree;
 }
 
+sub clone_tree_with_rescaled_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' RS');
+
+    my $scale_factor = $args{scale_factor};
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;    
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length * $scale_factor;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        #my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
 
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {

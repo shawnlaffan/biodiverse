@@ -30,7 +30,7 @@ sub test_metadata {
     my $pfx = 'get_metadata_sp_';  #  avoid export subs
     my $x = $object->get_subs_with_prefix (prefix => $pfx);
     
-    my %meta_defaults = Biodiverse::Metadata::SpatialConditions::get_default_vals();
+    my %meta_defaults = Biodiverse::Metadata::SpatialConditions->_get_method_default_hash();
 
     my %meta_keys;
 

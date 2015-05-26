@@ -319,6 +319,9 @@ my %data_funcs = (
     on_tree_equalise_branch_lengths => {
         METHOD => 'do_tree_equalise_branch_lengths',
     },
+    on_tree_rescale_branch_lengths => {
+        METHOD => 'do_tree_rescale_branch_lengths',
+    },
     on_matrix_export => {
         METHOD => 'do_export_matrix',
     },

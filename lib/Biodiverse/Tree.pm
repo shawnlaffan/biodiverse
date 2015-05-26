@@ -2362,6 +2362,7 @@ sub clone_tree_with_rescaled_branch_lengths {
     my $name = $args{name} // ($self->get_param ('NAME') . ' RS');
 
     my $scale_factor = $args{scale_factor};
+    $scale_factor //= 1 / $self->get_longest_path_length_to_terminals;
 
     my $new_tree = $self->clone;
     $new_tree->delete_cached_values;    

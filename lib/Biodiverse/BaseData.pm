@@ -672,7 +672,7 @@ sub get_metadata_import_data_raster {
           label_text => 'Read bands as labels?',
           tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
           type       => 'boolean',
-          default    => 0,
+          default    => 1,
         },
         { name       => 'raster_cellsize_e',
           label_text => 'Cell size east/long',
@@ -1215,7 +1215,7 @@ sub import_data_raster {
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
-    my $labels_as_bands = $args{labels_as_bands};
+    my $labels_as_bands = exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
     my $cellorigin_e    = $args{raster_origin_e};
     my $cellorigin_n    = $args{raster_origin_n};
     my $cellsize_e      = $args{raster_cellsize_e};

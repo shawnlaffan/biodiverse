@@ -119,6 +119,7 @@ sub _describe {
     push @description, "Root node count: "     . scalar @{$self->get_root_node_refs};
 
     push @description, "Sum of branch lengths: " . sprintf "%.6g", $self->get_total_tree_length;
+    push @description, "Longest path: "          . sprintf "%.6g", $self->get_longest_path_to_tip;
 
     my $description = join "\n", @description;
 
@@ -2361,8 +2362,10 @@ sub clone_tree_with_rescaled_branch_lengths {
 
     my $name = $args{name} // ($self->get_param ('NAME') . ' RS');
 
+    my $new_length = $args{new_length} || 1;
+
     my $scale_factor = $args{scale_factor};
-    $scale_factor //= 1 / $self->get_longest_path_length_to_terminals;
+    $scale_factor //= $new_length / ($self->get_longest_path_length_to_terminals || 1);
 
     my $new_tree = $self->clone;
     $new_tree->delete_cached_values;    

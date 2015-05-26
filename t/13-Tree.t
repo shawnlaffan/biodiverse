@@ -630,6 +630,25 @@ sub test_rescale_by_longest_path {
         $tree->get_total_length,
         'New total tree length is same as the original after rescaling by 100',
     );
+    
+    #  now check new_length
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (new_length => 5);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        5,
+        'New length is 5 when arg new_length=>5',
+    );
+    
+    #  now check new_length
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (new_length => 0.25);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        0.25,
+        'New length is 0.25 when arg new_length=>0.25',
+    );
+    
 }
 
 

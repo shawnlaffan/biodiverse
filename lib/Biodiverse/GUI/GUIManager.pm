@@ -2043,7 +2043,7 @@ sub do_tree_rescale_branch_lengths {
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'RS';
-    # If ends with _TRIMMED followed by a number then increment it
+    # If ends with $suffix followed by a number then increment it
     if ($name =~ /(.*_$suffix)([0-9]+)$/) {
         $name = $1 . ($2 + 1)
     }
@@ -2059,7 +2059,56 @@ sub do_tree_rescale_branch_lengths {
 
     return if $response ne 'ok';  #  they chickened out
 
-    my $new_tree = $phylogeny->clone_tree_with_rescaled_branch_lengths;
+    #  now get the new length
+    my $param = {
+        name       => 'new_length',
+        label_text => 'New length',
+        tooltip    => 'New length of the longest path from root to tip.  '
+                    . 'All nodes are scaled linearly to this.  '
+                    . 'Increment is the current length, a value of 0 is converted to 1',
+        type       => 'float',
+        default    => 1,
+        digits     => 10,
+        increment  => $phylogeny->get_longest_path_length_to_terminals,
+    };
+    bless $param, 'Biodiverse::Metadata::Parameter';
+
+    $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
+    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+
+    #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
+    $param_dlg->set_title ('Rescale options');
+    
+    # Build widgets for parameters
+    my $param_table = $dlgxml->get_widget('tableImportParameters');
+
+    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $param_extractors
+        = Biodiverse::GUI::ParametersTable::fill(
+            [$param],
+            $param_table,
+            $dlgxml,
+    ); 
+
+    # Show the dialog
+    $param_dlg->show_all();
+
+    $response = $param_dlg->run();
+
+    if ($response ne 'ok') {
+        $param_dlg->destroy;
+        return;
+    }
+
+    my $params
+      = Biodiverse::GUI::ParametersTable::extract($param_extractors);
+
+    $param_dlg->destroy;
+
+    my $new_length = $params->[-1];
+
+    my $new_tree
+      = $phylogeny->clone_tree_with_rescaled_branch_lengths (new_length => $new_length);
 
     $new_tree->set_param (NAME => $chosen_name);
 

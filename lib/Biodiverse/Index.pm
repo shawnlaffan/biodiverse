@@ -179,7 +179,7 @@ sub get_indexed_item_count {
         no autovivification;
         my $elref = $self->{ELEMENTS}{$element}
           // next ELT;
-        $count += keys $elref;
+        $count += keys %$elref;
     }
     
     return $count;

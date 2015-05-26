@@ -46,7 +46,7 @@ This just calls the extractor functions and combines the results
    { name => 'increment', type => 'integer', default => 5 },
    { name => 'Spatial', type => 'spatial_conditions', default => '$D < 5' },
    { name => 'use_length', type => 'boolean', default => 1 } ]
-
+Note - all need to be blessed now (needs to update help for this)
 =cut
 
 use strict;

@@ -6,6 +6,8 @@ use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
 
+#use parent qw /Biodiverse::Metadata/;
+
 our $VERSION = '1.0_001';
 
 sub new {
@@ -17,7 +19,7 @@ sub new {
 }
 
 
-my %methods_and_defaults = (
+Readonly my %methods_and_defaults = (
     name           => 'no_name',
     description    => 'no_description',
     uses_nbr_lists => 1,
@@ -28,6 +30,10 @@ my %methods_and_defaults = (
     type           => '',
     formula        => undef,
 );
+
+sub _get_method_defaults {
+    return wantarray ? %methods_and_defaults : {%methods_and_defaults};
+}
 
 
 sub _make_access_methods {

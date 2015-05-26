@@ -184,13 +184,13 @@ sub get_metadata_export {
 
     my %metadata = (
         parameters     => \%params_per_sub,
-        format_choices => [{
+        format_choices => [bless ({
                 name        => 'format',
                 label_text  => 'Format to use',
                 type        => 'choice',
                 choices     => \@formats,
                 default     => 0
-            },
+            }, $parameter_metadata_class),
         ],
         format_labels  => \%format_labels,
     ); 
@@ -218,10 +218,10 @@ sub get_metadata_export_prng_init_state {
 
     my %args = (
         format => 'Initial PRNG state',
-        parameters => [{
+        parameters => [bless ({
                 name       => 'file',
                 type       => 'file'
-            },
+            }, $parameter_metadata_class),
         ],
     );
 
@@ -250,10 +250,10 @@ sub get_metadata_export_prng_current_state {
 
     my %args = (
         format => 'Current PRNG state',
-        parameters => [{
+        parameters => [bless ({
                 name       => 'file',
                 type       => 'file'
-            },
+            }, $parameter_metadata_class),
         ],
     );
 

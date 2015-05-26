@@ -318,7 +318,7 @@ sub on_export {
     $selected->{type} //= '';
     if ($selected->{type} eq 'output') {
         $object = $selected->{output_ref};    
-        say "[Outputs tab] Exporting output";
+        say "[Outputs tab] Exporting output " . $object->get_name;
     }
     elsif ($selected->{type} eq 'basedata') {
 

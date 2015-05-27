@@ -90,8 +90,7 @@ sub run {
     }
     
     my ($use_new, $basedata_ref);
-
-    #if ($response eq 'ok') {
+    my @format_uses_columns = qw /shapefile text/;
 
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
@@ -176,7 +175,7 @@ sub run {
     }
 
     # interpret if raster or text depending on format box
-    my $read_format = $dlgxml->get_widget($file_format)->get_active();
+    my $read_format = lc $dlgxml->get_widget($file_format)->get_active_text;
     
     $dlg->destroy();
 
@@ -206,13 +205,13 @@ sub run {
     my %args = $basedata_ref->get_args (sub => 'import_data_common');
     
     # set visible fields in import dialog
-    if ($read_format == $text_idx) {
+    if ($read_format eq 'text') {
         my %text_args = $basedata_ref->get_args (sub => 'import_data_text');
         
         # add new params to args
         push @{$args{parameters}}, @{$text_args{parameters}};         
     }
-    elsif ($read_format == $raster_idx) {
+    elsif ($read_format eq 'raster') {
         my %raster_args = $basedata_ref->get_args (sub => 'import_data_raster');        
 
         # add new params to args
@@ -253,7 +252,7 @@ sub run {
 
     my @cell_sizes;
     my @cell_origins;
-    if ($read_format == $raster_idx) {
+    if ($read_format eq 'raster') {
         # set some default values (a bit of a hack)
         @cell_sizes   = $basedata_ref->get_cell_sizes;
         @cell_origins = $basedata_ref->get_cell_origins;
@@ -292,12 +291,12 @@ sub run {
     
     # (no pre-processing needed for raster)
 
-    if ($read_format == $raster_idx) {
+    if ($read_format eq 'raster') {
         # just set cell sizes etc values from dialog
         @cell_origins = ($import_params{raster_origin_e},   $import_params{raster_origin_n});
         @cell_sizes   = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
     }
-    elsif ($read_format == $shapefile_idx) {
+    elsif ($read_format eq 'shapefile') {
         # process as shapefile
 
         # find available columns from first file, assume all the same
@@ -328,7 +327,7 @@ sub run {
 
         $col_names_for_dialog = \@field_names;
     }
-    elsif ($read_format == $text_idx) {
+    elsif ($read_format eq 'text') {
         # process as text input, get columns from file
 
         # Get header columns
@@ -416,7 +415,7 @@ sub run {
     # 2. Get column types (using first file...)
     #########
     my $column_settings;
-    if ($read_format == $shapefile_idx || $read_format == $text_idx) {
+    if (my $xx = grep {$_ eq $read_format} @format_uses_columns) {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
             header      => $col_names_for_dialog,
@@ -485,7 +484,7 @@ sub run {
     # 3. Get column order
     #########
     my $reorder_params;
-    if ($read_format == $shapefile_idx || $read_format == $text_idx) {
+    if (my $xx = grep {$_ eq $read_format} @format_uses_columns) {
         my $old_labels_array = $column_settings->{labels};
         if ($use_matrix) {
             $column_settings->{labels}
@@ -599,7 +598,7 @@ sub run {
 
     my $success = 1;
     # run appropriate import routine
-    if ($read_format == $raster_idx) {
+    if ($read_format eq 'raster') {
         my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata (keys %multiple_file_lists) {
             $success &&= eval {
@@ -613,7 +612,7 @@ sub run {
             };
         }
     }
-    elsif ($read_format == $shapefile_idx) {
+    elsif ($read_format eq 'shapefile') {
         #  shapefiles import based on names, so extract them
         my (@group_col_names, @label_col_names);
         foreach my $specs (@{$column_settings->{labels}}) {
@@ -639,7 +638,7 @@ sub run {
             };
         }
     } 
-    elsif ($read_format == $text_idx) {        
+    elsif ($read_format eq 'text') {        
         foreach my $bdata (keys %multiple_file_lists) {
             $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(

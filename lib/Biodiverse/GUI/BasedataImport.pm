@@ -19,6 +19,7 @@ use File::BOM qw / :subs /;
 use Scalar::Util qw /reftype looks_like_number blessed/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 use List::Util qw /all/;
+use Spreadsheet::Read 0.60;
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
@@ -53,7 +54,8 @@ my $shapefile_idx = 2;  # index in combo box
 # maintain reference for these, to allow referring when import method changes
 my $txtcsv_filter; 
 my $allfiles_filter;  
-my $shapefiles_filter;  
+my $shapefiles_filter;
+my $spreadsheets_filter;
 
 my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
 Set to 'is_lat' if column contains latitude values,
@@ -90,7 +92,7 @@ sub run {
     }
     
     my ($use_new, $basedata_ref);
-    my @format_uses_columns = qw /shapefile text/;
+    my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
@@ -153,10 +155,8 @@ sub run {
         }
     } 
     elsif ($use_new) {
-        # Add it
-        # FIXME: why am i adding it now?? better at the end?
         my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
-        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
+
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
             CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
@@ -174,7 +174,7 @@ sub run {
         $multiple_file_lists{$basedata_name} = \@filenames;
     }
 
-    # interpret if raster or text depending on format box
+    # interpret if raster, text etc depending on format box
     my $read_format = lc $dlgxml->get_widget($file_format)->get_active_text;
     
     $dlg->destroy();
@@ -327,52 +327,107 @@ sub run {
 
         $col_names_for_dialog = \@field_names;
     }
-    elsif ($read_format eq 'text') {
-        # process as text input, get columns from file
+    elsif ($read_format eq 'text' || $read_format eq 'spreadsheet') {
+        # process as tabular input, get columns from file
 
         # Get header columns
         say "[GUI] Discovering columns from $filenames[0]";
-        my $fh;
         my $filename_utf8 = Glib::filename_display_name $filenames[0];
+        my (@line2_cols, @header);
 
-        #use Path::Class::Unicode;
-        #my $file = ufile("path", $filename_utf8);
-        #print $file . "\n";
+        if ($read_format eq 'text') {
+            
+            my $fh;
 
-        # have unicode filename issues - see https://github.com/shawnlaffan/biodiverse/issues/272
-        if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
-            my $exists = -e $filename_utf8 || 0;
-            my $msg = "Unable to open $filenames[0].\n";
-            $msg .= $exists
-                ? "Check file read permissions."
-                : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
-                  . "See https://github.com/shawnlaffan/biodiverse/issues/272";
-            $msg .= "\n";
-            croak $msg;
+            # have unicode filename issues - see https://github.com/shawnlaffan/biodiverse/issues/272
+            if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
+                my $exists = -e $filename_utf8 || 0;
+                my $msg = "Unable to open $filenames[0].\n";
+                $msg .= $exists
+                    ? "Check file read permissions."
+                    : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
+                      . "See https://github.com/shawnlaffan/biodiverse/issues/272";
+                $msg .= "\n";
+                croak $msg;
+            }
+    
+            my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
+                fname => $filename_utf8,
+            );
+    
+            my $line = <$fh>;
+            @header  = $gui->get_project->csv2list(
+                string      => $line,
+                csv_object  => $csv_obj,
+            );
+    
+            #  R data frames are saved missing the first field in the header
+            my $is_r_data_frame = check_if_r_data_frame (
+                file       => $filenames[0],
+                csv_object => $csv_obj,
+            );
+            #  add a field to the header if needed
+            if ($is_r_data_frame) {
+                unshift @header, ':R_data_frame_col_0:';
+            }
+
+            # check data, if additional lines in data, append in column list.
+            my $line2 = <$fh>;
+            @line2_cols  = $gui->get_project->csv2list(
+                string      => $line2,
+                csv_object  => $csv_obj,
+            );
+
+            close $fh;
         }
+        else {  #  we have a spreadsheet
+            my $book = Spreadsheet::Read::ReadData($filename_utf8);
+            croak "Unable to read spreadsheet $filename_utf8\n"
+              if !$book;
 
-        my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
-            fname => $filename_utf8,
-        );
+            #  need to sort the sheets by file order
+            my $sheets = $book->[0]{sheet};
+            my @sheet_names = sort {$sheets->{$a} <=> $sheets->{$b}} keys %$sheets;
+            #  need to find which one they want
+            my $sheet_id = 1;
+            
+            my $param = bless {
+                type    => 'choice',
+                choices => \@sheet_names,
+                default => 0,
+                name    => 'sheet_id',
+            }, $parameter_metadata_class;
 
-        my $line = <$fh>;
-        my @header  = $gui->get_project->csv2list(
-            string      => $line,
-            csv_object  => $csv_obj,
-        );
+            #  get the sheet ID - need to refactor this code
+            my $s_dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
+            $dlg = $s_dlgxml->get_widget('dlgImportParameters');
+            my $table = $s_dlgxml->get_widget ('tableImportParameters');
+            # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+            my $extractors = Biodiverse::GUI::ParametersTable::fill ([$param], $table, $s_dlgxml); 
 
-        #  R data frames are saved missing the first field in the header
-        my $is_r_data_frame = check_if_r_data_frame (
-            file       => $filenames[0],
-            csv_object => $csv_obj,
-        );
-        #  add a field to the header if needed
-        if ($is_r_data_frame) {
-            unshift @header, ':R_data_frame_col_0:';
+            $dlg->show_all;
+            $response = $dlg->run;
+            $dlg->destroy;
+
+            return if $response ne 'ok';
+
+            my $chosen_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+            my %chosen_params = @$chosen_params;
+            $sheet_id = $sheets->{$chosen_params{'sheet_id'}};
+
+            my @rows = Spreadsheet::Read::rows ($book->[$sheet_id]);
+
+            @header = @{$rows[0]};;
+            @line2_cols = @{$rows[1]};
+
+            #  avoid the need to re-read the file,
+            #  as import_data_spreadsheet can handle books as file args
+            $filenames[0] = $book;  
         }
 
         # Check for empty fields in header.
         # CSV files from excel can have dangling headers
+        #  should use a map for this?
         my $col_num = 0;
         while ($col_num <= $#header) {
             if (!defined $header[$col_num] || !length $header[$col_num]) {
@@ -380,19 +435,10 @@ sub run {
             }
             $col_num++;
         }
-
-        # check data, if additional lines in data, append in column list.
-        my $line2 = <$fh>;
-        my @line2_cols  = $gui->get_project->csv2list(
-            string      => $line2,
-            csv_object  => $csv_obj,
-        );
         while($col_num <= $#line2_cols) {
             $header[$col_num] = "col_$col_num";
             $col_num++;         
         }
-
-        close $fh;
 
         $use_matrix = $import_params{data_in_matrix_form};
         $col_names_for_dialog = \@header;
@@ -612,8 +658,8 @@ sub run {
             };
         }
     }
-    elsif ($read_format eq 'shapefile') {
-        #  shapefiles import based on names, so extract them
+    elsif ($read_format eq 'shapefile' or $read_format eq 'spreadsheet') {
+        #  shapefiles and spreadsheets import based on names, so extract them
         my (@group_col_names, @label_col_names);
         foreach my $specs (@{$column_settings->{labels}}) {
             push @label_col_names, $specs->{name};
@@ -625,10 +671,11 @@ sub run {
         foreach my $specs (@{$column_settings->{sample_counts}}) {
             push @sample_count_col_names, $specs->{name};
         }
+        my $import_method = "import_data_$read_format";
         # process data
         foreach my $bdata (keys %multiple_file_lists) {
             $success &= eval {
-                $multiple_brefs{$bdata}->import_data_shapefile(
+                $multiple_brefs{$bdata}->$import_method(
                     %import_params,
                     input_files             => $multiple_file_lists{$bdata},
                     group_fields            => \@group_col_names,
@@ -638,7 +685,7 @@ sub run {
             };
         }
     } 
-    elsif ($read_format eq 'text') {        
+    elsif ($read_format eq 'text') {
         foreach my $bdata (keys %multiple_file_lists) {
             $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(
@@ -1186,6 +1233,13 @@ sub make_filename_dialog {
     $shapefiles_filter->set_name('shapefiles');
     $filechooser->add_filter($shapefiles_filter);
 
+    $spreadsheets_filter = Gtk2::FileFilter->new();
+    $spreadsheets_filter->add_pattern('*.xlsx');
+    $spreadsheets_filter->add_pattern('*.xls');
+    $spreadsheets_filter->add_pattern('*.ods');
+    $spreadsheets_filter->set_name('spreadsheets');
+    $filechooser->add_filter($spreadsheets_filter);
+
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
@@ -1197,7 +1251,10 @@ sub make_filename_dialog {
     );
 
     $dlgxml->get_widget($file_format)->set_active(0);
-    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&on_import_method_changed, [$gui, $dlgxml]);
+    $dlgxml->get_widget($importmethod_combo)->signal_connect(
+        changed => \&on_import_method_changed,
+        [$gui, $dlgxml],
+    );
     
     return ($dlgxml, $dlg);
 }
@@ -1208,18 +1265,21 @@ sub on_import_method_changed {
     my $args         = shift;
     my ($gui, $dlgxml) = @$args;
     
-    my $active_choice = $format_combo->get_active();
+    my $active_choice = lc $format_combo->get_active_text;
     my $f_widget      = $dlgxml->get_widget($filechooser_input);
     
     # find which is selected
-    if ($active_choice == $text_idx) {
+    if ($active_choice eq 'text') {
         $f_widget->set_filter($txtcsv_filter);
     }
-    elsif ($active_choice == $raster_idx) {
+    elsif ($active_choice eq 'raster') {
         $f_widget->set_filter($allfiles_filter);
     }
-    elsif ($active_choice == $shapefile_idx) {
+    elsif ($active_choice eq 'shapefile') {
         $f_widget->set_filter($shapefiles_filter);
+    }
+    elsif ($active_choice eq 'spreadsheet') {
+        $f_widget->set_filter($spreadsheets_filter);
     }
 
     return;

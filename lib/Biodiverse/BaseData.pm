@@ -1792,8 +1792,11 @@ sub import_data_spreadsheet {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
-    say '[BASEDATA] Loading from files as spreadsheet '
-        . join (q{ }, map {$_ // 'undef'} @{$args{input_files}});
+    say '[BASEDATA] Loading from files as spreadsheet: '
+        . join (q{, },
+                map {reftype ($_) ? '<<preloaded book>>' : $_}
+                map {$_ // 'undef'} @{$args{input_files}}
+        );
 
     # needed to construct the groups and labels
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
@@ -1878,8 +1881,7 @@ sub import_data_spreadsheet {
             my @gp_fields;
             my $i = 0;
             foreach my $val (@group_field_vals) {
-                #  not sure we need the second check - it is shapefile cargo cult
-                if (!defined $val || $val eq '-1.79769313486232e+308') {
+                if (!defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";
                 }

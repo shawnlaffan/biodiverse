@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Data::Dumper;
+use Path::Class;
 
 use rlib;
 
@@ -976,6 +977,139 @@ sub test_roundtrip_shapefile {
         $i++;
     }
     
+}
+
+sub test_import_spreadsheet {
+    my %bd_args = (
+        NAME => 'test import spreadsheet',
+        CELL_SIZES => [10000,100000],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    #  an empty input_files array
+    eval {
+        $bd1->import_data_spreadsheet(
+            input_files   => [undef],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok ($e, 'import spreadsheet failed when no or undef file passed');
+    
+    #  a non-existent file
+    eval {
+        $bd1->import_data_spreadsheet(
+            input_files   => ['blongordia.xlsx'],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok ($e, 'import spreadsheet failed when no or undef file passed');
+    
+    foreach my $extension (qw /xlsx ods xls/) {
+        my $tmp_file = Path::Class::File->new (
+            Path::Class::File->new($0)->dir,
+            "test_spreadsheet_import.$extension",
+        );
+        my $fname = $tmp_file->stringify;
+        say "testing filename $fname";
+        _test_import_spreadsheet($fname, "filetype $extension");
+    }
+}
+
+sub _test_import_spreadsheet {
+    my ($fname, $feedback) = @_;
+
+
+    my %bd_args = (
+        NAME => 'test import spreadsheet' . $fname,
+        CELL_SIZES => [10000,100000],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    eval {
+        $bd1->import_data_spreadsheet(
+            input_files   => [$fname],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "import spreadsheet with no exceptions raised, $feedback");
+    
+    my $lb = $bd1->get_labels_ref;
+    my $gp = $bd1->get_groups_ref;
+    
+    my $bd2 = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd2->import_data_spreadsheet(
+            input_files   => [$fname],
+            sheet_ids     => [1],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "no errors for import spreadsheet with sheet id specified, $feedback");
+    
+    is_deeply ($bd2, $bd1, "same contents when sheet_id specified as default, $feedback");
+
+    eval {
+        $bd2->import_data_spreadsheet(
+            input_files   => [$fname, $fname],
+            sheet_ids     => [1, 2],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "no errors for import spreadsheet with two sheet ids specified, $feedback");
+    
+    #  label counts in $bd2 should be double that of $bd1
+    #  $bd2 should also have Genus2:sp1 etc
+    subtest "Label counts are doubled, $feedback" => sub {
+        foreach my $lb ($bd1->get_labels) {
+            is (
+                $bd2->get_label_sample_count (element => $lb),
+                $bd1->get_label_sample_count (element => $lb) * 2,
+                "Label sample count doubled: $lb",
+            );
+        }
+    };
+    subtest "Additional labels imported, $feedback" => sub {
+        foreach my $lb ($bd1->get_labels) {
+            #  second label set should be Genus2:Sp1 etc
+            my $alt_label = $lb;
+            $alt_label =~ s/Genus:/Genus2:/;
+            ok ($bd2->exists_label (label => $alt_label), "bd2 contains $alt_label");
+        }
+    };
+    
+    my $bd3 = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd3->import_data_spreadsheet(
+            input_files   => [$fname],
+            sheet_ids     => ['Example_site_data'],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
+    
+    is_deeply ($bd3, $bd1, "data matches for sheet id as name and number, $feedback");
 }
 
 sub test_attach_ranges_and_sample_counts {

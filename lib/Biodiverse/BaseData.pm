@@ -10,13 +10,22 @@ use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.33 qw /max min sum any all none notall pairs/;
-use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
+
+use Spreadsheet::Read 0.60;
+
+#  these are here for PAR purposes to ensure they get packed
+#  Spreadsheet::Read calls them as needed
+#  (not sure we need all of them, though)
+use Spreadsheet::ReadSXC qw //;
+use Spreadsheet::ParseExcel qw //;
+use Spreadsheet::ParseXLSX qw //;
+use Spreadsheet::XLSX qw //;
 
 use English qw { -no_match_vars };
 
@@ -1732,6 +1741,214 @@ sub import_data_shapefile {
 
     return 1;  #  success
 }
+
+
+sub import_data_spreadsheet {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
+
+    #  load the properties tables from the args, or use the ones we already have
+    #  labels first
+    my $label_properties;
+    my $use_label_properties = $args{use_label_properties};
+    if ($use_label_properties) {  # twisted - FIXFIXFIX
+        $label_properties = $args{label_properties}
+                            || $self->get_param ('LABEL_PROPERTIES');
+        if ($args{label_properties}) {
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
+        }
+    }
+    #  then groups
+    my $group_properties;
+    my $use_group_properties = $args{use_group_properties};
+    if ($use_group_properties) {
+        $group_properties = $args{group_properties}
+                            || $self->get_param ('GROUP_PROPERTIES');
+        if ($args{group_properties}) {
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+        }
+    }
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    croak "Input files array not provided\n"
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+
+    my $skip_lines_with_undef_groups
+      = exists $args{skip_lines_with_undef_groups}
+          ? $args{skip_lines_with_undef_groups}
+          : 1;
+
+    my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
+    my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
+    my @smp_count_field_names = @{$args{sample_count_col_names} // []};
+
+    my @group_origins = $self->get_cell_origins;
+    my @group_sizes   = $self->get_cell_sizes;
+
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+    
+    say '[BASEDATA] Loading from files as spreadsheet '
+        . join (q{ }, map {$_ // 'undef'} @{$args{input_files}});
+
+    # needed to construct the groups and labels
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    my %args_for_add_elements_collated = (
+        csv_object => $out_csv,
+        binarise_counts    => $args{binarise_counts},
+        allow_empty_groups => $args{allow_empty_groups},
+        allow_empty_labels => $args{allow_empty_labels},
+    );
+
+    
+    #  could use a hash, but this allows open books to be passed
+    my @sheet_array = @{$args{sheet_ids} // []};
+
+    # load each file, using same arguments/parameters
+    my $file_i = -1;
+    foreach my $book (@{$args{input_files}}) {
+        $file_i++;
+
+        croak "[BASEDATA] Undefined input_file array item passed to import_data_spreadsheet\n"
+           if !defined $book; # assuming undef on fail
+           
+        if (!ref $book) {  #  we have a file name
+            my $file = Path::Class::file($book)->absolute;
+            say "[BASEDATA] INPUT FILE: $file";
+
+            # open as spreadsheet
+            my $fnamebase = $file->stringify;
+            $book = ReadData($fnamebase);
+
+            croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
+               if !defined $book; # assuming undef on fail
+        }
+
+        my $sheet_id = $sheet_array[$file_i] // 1;
+        if (!looks_like_number $sheet_id) {  #  must be a named sheet
+            $sheet_id = $book->[0]{sheet}{$sheet_id};
+        }
+
+        my @rows = Spreadsheet::Read::rows ($book->[$sheet_id]);
+        my $header = shift @rows;
+
+        #  some validation (and get the col numbers)
+        my $i = -1;
+        my %db_rec1 = map {$_ => ++$i} @$header;
+        foreach my $key (@label_field_names) {
+            croak "Spreadsheet does not have a field called $key in book $sheet_id\n"
+              if !exists $db_rec1{$key};
+        }
+
+        my %gp_lb_hash;
+
+        my $count = 1;
+        my $row_count = scalar @rows;
+
+        # iterate over rows
+      ROW:
+        foreach my $row (@rows) {
+            $count++;
+
+            my %db_rec;
+            @db_rec{@$header} = @$row;  #  inefficient - we should get the row numbers and slice on them
+
+            my $this_count = scalar @smp_count_field_names
+                ? sum 0, @db_rec{@smp_count_field_names}
+                : 1;
+
+            my @lb_fields = @db_rec{@label_field_names};
+            my $this_label = $self->list2csv (
+                list        => \@lb_fields,
+                csv_object  => $out_csv
+            );
+
+            # form group text from group fields (defined as csv string of central points of group)
+            # Needs to process the data in the same way as for text imports - refactoring is in order.
+            my @group_field_vals = @db_rec{@group_field_names};
+            my @gp_fields;
+            my $i = 0;
+            foreach my $val (@group_field_vals) {
+                #  not sure we need the second check - it is shapefile cargo cult
+                if (!defined $val || $val eq '-1.79769313486232e+308') {
+                    next ROW if $skip_lines_with_undef_groups;
+                    croak "record $count has an undefined coordinate\n";
+                }
+
+                my $origin = $group_origins[$i];
+                my $g_size = $group_sizes[$i];
+
+                if ($g_size > 0) {
+                    my $cell       = floor (($val - $origin) / $g_size); 
+                    my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
+                    push @gp_fields, $grp_centre;
+                }
+                else {
+                    push @gp_fields, $val;
+                }
+            }
+            my $grpstring = $self->list2csv (
+                list        => \@gp_fields,
+                csv_object  => $out_csv,
+            );
+
+            #print "adding point label $this_label group $grpstring count $this_count\n";       
+
+            if (scalar @label_field_names <= 1) {
+                $this_label = $self->dequote_element (
+                    element    => $this_label,
+                    quote_char => $quotes,
+                );
+            }
+            #  collate the groups and labels so we can add them in a batch later
+            if (looks_like_number $this_count) {
+                $gp_lb_hash{$grpstring}{$this_label} += $this_count;
+            }
+            else {
+                #  don't override existing counts with undef
+                $gp_lb_hash{$grpstring}{$this_label} //= $this_count;  
+            }
+
+            # progress bar stuff
+            my $frac = $count / $row_count;
+            $progress_bar->update(
+                "Loading spreadsheet\n" .
+                "Row $count of $row_count\n",
+                $frac
+            );
+
+        } # each row
+
+        #  add the collated data
+        $self->add_elements_collated (
+            data => \%gp_lb_hash,
+            %args_for_add_elements_collated,
+        );
+        %gp_lb_hash = (); #  clear the collated list
+
+        $progress_bar->update('Done', 1);
+    } # each file
+
+
+    $self->run_import_post_processes (
+        %args,
+        label_axis_count => scalar @label_field_names,
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    return 1;  #  success
+}
+
 
 sub run_import_post_processes {
     my $self = shift;

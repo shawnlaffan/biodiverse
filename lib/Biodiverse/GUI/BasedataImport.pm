@@ -677,6 +677,7 @@ sub run {
             $success &= eval {
                 $multiple_brefs{$bdata}->$import_method(
                     %import_params,
+                    %rest_of_options,
                     input_files             => $multiple_file_lists{$bdata},
                     group_fields            => \@group_col_names,
                     label_fields            => \@label_col_names,

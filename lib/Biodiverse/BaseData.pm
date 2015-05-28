@@ -1749,6 +1749,10 @@ sub import_data_spreadsheet {
     
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
+    my $data_in_matrix_form  = $args{data_in_matrix_form};
+    my $allow_empty_groups   = $args{allow_empty_groups};
+    my $allow_empty_labels   = $args{allow_empty_labels};
+
 
     #  load the properties tables from the args, or use the ones we already have
     #  labels first
@@ -1783,7 +1787,7 @@ sub import_data_spreadsheet {
           : 1;
 
     my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
-    my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
+    my @label_field_names = @{$data_in_matrix_form ? [] : $args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
 
     my @group_origins = $self->get_cell_origins;
@@ -1794,7 +1798,7 @@ sub import_data_spreadsheet {
     
     say '[BASEDATA] Loading from files as spreadsheet: '
         . join (q{, },
-                map {reftype ($_) ? '<<preloaded book>>' : $_}
+                map {(reftype ($_) && !blessed ($_)) ? '<<preloaded book>>' : $_}
                 map {$_ // 'undef'} @{$args{input_files}}
         );
 
@@ -1812,6 +1816,8 @@ sub import_data_spreadsheet {
         allow_empty_labels => $args{allow_empty_labels},
     );
 
+    my @label_axes = $self->get_labels_ref->get_cell_sizes;
+    my $label_axis_count = scalar @label_axes;
     
     #  could use a hash, but this allows open books to be passed
     my @sheet_array = @{$args{sheet_ids} // []};
@@ -1824,7 +1830,7 @@ sub import_data_spreadsheet {
         croak "[BASEDATA] Undefined input_file array item passed to import_data_spreadsheet\n"
            if !defined $book; # assuming undef on fail
            
-        if (!ref $book) {  #  we have a file name
+        if (blessed $book || !ref $book) {  #  we have a file name
             my $file = Path::Class::file($book)->absolute;
             say "[BASEDATA] INPUT FILE: $file";
 
@@ -1851,10 +1857,40 @@ sub import_data_spreadsheet {
             croak "Spreadsheet does not have a field called $key in book $sheet_id\n"
               if !exists $db_rec1{$key};
         }
+        foreach my $key (@group_field_names) {
+            croak "Spreadsheet does not have a field called $key in book $sheet_id\n"
+              if !exists $db_rec1{$key};
+        }
+
+        #  parse the header line if we are using a matrix format file
+        my $matrix_label_col_hash = {};
+        if ($data_in_matrix_form) {
+            my $label_start_col = $args{label_start_col};
+            my $label_end_col   = $args{label_end_col};
+            #  if we've been passed an array then
+            #  use the first one for the start and the last for the end
+            #  - this can happen due to the way GUI::BasedataImport
+            #  handles options and is something we need to clean
+            #  up with better metadata
+            if (ref $label_start_col) {
+                $label_start_col = $label_start_col->[0];
+            }
+            if (ref $label_end_col) {  
+                $label_end_col = $label_end_col->[-1];
+            }
+            $matrix_label_col_hash
+                = $self->get_label_columns_for_matrix_import  (
+                    csv_object       => $out_csv,
+                    label_array      => $header,
+                    label_start_col  => $label_start_col,
+                    label_end_col    => $label_end_col,
+                    #%line_parse_args,
+            );
+        }
 
         my %gp_lb_hash;
 
-        my $count = 1;
+        my $count = 0;
         my $row_count = scalar @rows;
 
         # iterate over rows
@@ -1864,16 +1900,6 @@ sub import_data_spreadsheet {
 
             my %db_rec;
             @db_rec{@$header} = @$row;  #  inefficient - we should get the row numbers and slice on them
-
-            my $this_count = scalar @smp_count_field_names
-                ? sum 0, @db_rec{@smp_count_field_names}
-                : 1;
-
-            my @lb_fields = @db_rec{@label_field_names};
-            my $this_label = $self->list2csv (
-                list        => \@lb_fields,
-                csv_object  => $out_csv
-            );
 
             # form group text from group fields (defined as csv string of central points of group)
             # Needs to process the data in the same way as for text imports - refactoring is in order.
@@ -1905,19 +1931,72 @@ sub import_data_spreadsheet {
 
             #print "adding point label $this_label group $grpstring count $this_count\n";       
 
-            if (scalar @label_field_names <= 1) {
-                $this_label = $self->dequote_element (
-                    element    => $this_label,
-                    quote_char => $quotes,
-                );
-            }
-            #  collate the groups and labels so we can add them in a batch later
-            if (looks_like_number $this_count) {
-                $gp_lb_hash{$grpstring}{$this_label} += $this_count;
+            my %elements;
+            if ($data_in_matrix_form) {
+                %elements =
+                    $self->get_labels_from_line_matrix (
+                        fields_ref      => $row,
+                        csv_object      => $out_csv,
+                        #line_num        => $line_num,
+                        #file            => $file,
+                        label_col_hash  => $matrix_label_col_hash,
+                        #%line_parse_args,
+                    );
             }
             else {
-                #  don't override existing counts with undef
-                $gp_lb_hash{$grpstring}{$this_label} //= $this_count;  
+                my $this_count = scalar @smp_count_field_names
+                    ? sum 0, @db_rec{@smp_count_field_names}
+                    : 1;
+                my @lb_fields = @db_rec{@label_field_names};
+                my $this_label = $self->list2csv (
+                    list        => \@lb_fields,
+                    csv_object  => $out_csv
+                );
+                %elements = ($this_label => $this_count);
+                #%elements =
+                #    $self->get_labels_from_line (
+                #        fields_ref      => $fields_ref,
+                #        csv_object      => $out_csv,
+                #        line_num        => $line_num,
+                #        file            => $file,
+                #        #%line_parse_args,
+                #    );
+            }
+
+          ADD_ELEMENTS:
+            while (my ($el, $count) = each %elements) {
+                if (defined $count) {
+                    next ADD_ELEMENTS if $count eq 'NA';
+
+                    next ADD_ELEMENTS
+                      if $data_in_matrix_form
+                         && $count eq $EMPTY_STRING;
+
+                    next ADD_ELEMENTS
+                      if !$count and !$allow_empty_groups;
+                }
+                else {  #  don't allow undef counts in matrices
+                    next ADD_ELEMENTS
+                      if $data_in_matrix_form;
+                }
+                #  single label col or matrix form data need extra quotes to be stripped
+                #  should clean up mx form on first pass
+                #  or do as a post-processing step
+                if ($label_axis_count <= 1 || $data_in_matrix_form) {
+                    $el = $self->dequote_element (
+                        element    => $el,
+                        quote_char => $quotes,
+                    );
+                }
+
+                #  collate them so we can add them in a batch later
+                if (looks_like_number $count) {
+                    $gp_lb_hash{$grpstring}{$el} += $count;
+                }
+                else {
+                    #  don't override existing counts with undef
+                    $gp_lb_hash{$grpstring}{$el} //= $count;  
+                }
             }
 
             # progress bar stuff

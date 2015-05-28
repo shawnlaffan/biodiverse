@@ -1021,6 +1021,8 @@ sub test_import_spreadsheet {
         say "testing filename $fname";
         _test_import_spreadsheet($fname, "filetype $extension");
     }
+
+    _test_import_spreadsheet_matrix_form ();
 }
 
 sub _test_import_spreadsheet {
@@ -1029,7 +1031,7 @@ sub _test_import_spreadsheet {
 
     my %bd_args = (
         NAME => 'test import spreadsheet' . $fname,
-        CELL_SIZES => [10000,100000],
+        CELL_SIZES => [100000,100000],
     );
 
     my $bd1 = Biodiverse::BaseData->new (%bd_args);
@@ -1063,6 +1065,8 @@ sub _test_import_spreadsheet {
     ok (!$e, "no errors for import spreadsheet with sheet id specified, $feedback");
     
     is_deeply ($bd2, $bd1, "same contents when sheet_id specified as default, $feedback");
+    
+    is ($bd1->get_group_count, 19, "Group count is correct, $feedback");
 
     eval {
         $bd2->import_data_spreadsheet(
@@ -1110,6 +1114,60 @@ sub _test_import_spreadsheet {
     ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
     
     is_deeply ($bd3, $bd1, "data matches for sheet id as name and number, $feedback");
+}
+
+sub _test_import_spreadsheet_matrix_form {
+    #my ($fname, $feedback) = @_;
+    my $feedback = 'matrix form';
+    
+    my $fname_mx   = 'test_spreadsheet_import_matrix_form.xlsx';
+    my $fname_norm = 'test_spreadsheet_import.xlsx';
+
+    $fname_mx = Path::Class::File->new (
+        Path::Class::File->new($0)->dir,
+        $fname_mx,
+    );
+    $fname_norm = Path::Class::File->new (
+        Path::Class::File->new($0)->dir,
+        $fname_norm,
+    );
+    
+    my %bd_args = (
+        NAME => 'test import spreadsheet',
+        CELL_SIZES => [100000,100000],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    eval {
+        $bd1->import_data_spreadsheet(
+            input_files   => [$fname_mx],
+            group_field_names => [qw /x y/],
+            label_start_col   => [3],
+            data_in_matrix_form => 1,
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "import spreadsheet with no exceptions raised, $feedback");
+    
+    my $bd2 = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd2->import_data_spreadsheet(
+            input_files   => [$fname_norm],
+            sheet_ids     => [1],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    
+    is ($bd1->get_group_count, $bd2->get_group_count, 'group counts match');
+    is ($bd1->get_label_count, $bd2->get_label_count, 'label counts match');
+
+    is_deeply ($bd1, $bd2, "same contents matrix form and non-matrix form, $feedback");
 }
 
 sub test_attach_ranges_and_sample_counts {

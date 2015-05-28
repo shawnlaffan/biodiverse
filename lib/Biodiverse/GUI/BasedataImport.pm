@@ -217,6 +217,13 @@ sub run {
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
     }
+    else {
+        #  for spreadsheet and shapefile we filter out the remap stuff
+        #  until we remove it completely from the import stage
+        my $p = $args{parameters};
+        my @p2 = grep {print $_->get_name; not $_->get_name =~ /use_(label|group)_properties/} @$p;
+        $args{parameters} = \@p2;
+    }
     my $max_col_spinner = {
         name       => 'max_opt_cols',
         type       => 'integer',

@@ -2215,45 +2215,61 @@ sub assign_element_properties {
 }
 
 
-#  should probably wipe the cache if we do rename something
 sub rename_labels {
     my $self = shift;
+    return $self->_rename_groups_or_labels(@_, type => 'label');
+}
+
+sub rename_groups {
+    my $self = shift;
+    return $self->_rename_groups_or_labels(@_, type => 'group');
+}
+
+#  should probably wipe the cache if we do rename something
+sub _rename_groups_or_labels {
+    my $self = shift;
     my %args = @_;
+
+    my $type = $args{type}
+      // croak "Need to specify arg type => group or label\n";
     
-    croak "Cannot rename labels when basedata has existing outputs\n"
+    croak "Cannot rename ${type}s when basedata has existing outputs\n"
       if $self->get_output_ref_count;
 
     my $remap = $args{remap};
-    my $labels_are_numeric = $self->labels_are_numeric;
+    my $labels_are_numeric = $type eq 'label' && $self->labels_are_numeric;
     my $remap_labels_are_all_numeric = 1;
     my $remap_count = 0;
     #my %remapped_names;
+    my $method = "rename_$type";
 
-    LABEL:
+    ELEMENT:
     foreach my $label ($remap->get_element_list) {
         my $remapped
             = $remap->get_element_remapped (element => $label);
 
-        next LABEL if !defined $remapped;
+        next ELEMENT if !defined $remapped;
 
-        $self->rename_label (
-            label    => $label,
+        $self->$method (
+            $type    => $label,
             new_name => $remapped,
             no_numeric_check => 1,
         );
         $remap_count ++;
         #$remapped_names{$remapped}++;
 
-        $remap_labels_are_all_numeric &&= looks_like_number $remapped;
-        if ($labels_are_numeric && !$remap_labels_are_all_numeric) {
-            $labels_are_numeric = 0;
-            $self->set_param (NUMERIC_LABELS => 0);
+        if ($type eq 'label') {
+            $remap_labels_are_all_numeric &&= looks_like_number $remapped;
+            if ($labels_are_numeric && !$remap_labels_are_all_numeric) {
+                $labels_are_numeric = 0;
+                $self->set_param (NUMERIC_LABELS => 0);
+            }
         }
-
     }
 
     #  trigger a recheck on next call to labels_are_numeric
-    if (  !$labels_are_numeric
+    if (   $type eq 'label'
+        && !$labels_are_numeric
         && $remap_labels_are_all_numeric
         #&& scalar keys %remapped_names == $self->get_label_count
         ) {
@@ -2298,6 +2314,40 @@ sub rename_label {
     }
 
     say "[BASEDATA] Renamed $label to $new_name";
+
+    return;
+}
+
+#  should combine with rename_label
+sub rename_group {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Argument 'group' not specified\n"
+      if !defined $args{group};
+    croak "Argument 'new_name' not specified\n"
+      if !defined $args{new_name};
+
+    my $lb = $self->get_labels_ref;
+    my $gp = $self->get_groups_ref;
+    my $group = $args{group};
+    my $new_name = $args{new_name};
+
+    if (!$gp->exists_element (element => $group)) {
+        say "[BASEDATA] Element $group does not exist, not renaming it";
+        return;
+    }
+
+    my @sub_elements = $gp->rename_element (element => $group, new_name => $new_name);
+    foreach my $sub_element (@sub_elements) {
+        $lb->rename_subelement (
+            element     => $sub_element,
+            sub_element => $group,
+            new_name    => $new_name,
+        );
+    }
+
+    say "[BASEDATA] Renamed $group to $new_name";
 
     return;
 }

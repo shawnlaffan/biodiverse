@@ -1335,63 +1335,94 @@ sub test_multidimensional_import {
     is (0, 1, 'need to test multidimensional data import, including text axes');
 }
 
-#  rename labels
+sub test_rename_groups {
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    $bd = $bd->transpose;
+    
+    _test_rename_labels_or_groups('groups', $bd);
+}
+
 sub test_rename_labels {
     my $bd = get_basedata_object_from_site_data(
         CELL_SIZES => [100000, 100000],
     );
     
+    _test_rename_labels_or_groups('labels', $bd);
+}
+
+#  rename labels
+sub _test_rename_labels_or_groups {
+    my ($type, $bd) = @_;
+
+    $bd //= get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    
     my $tmp_remap_file = write_data_to_temp_file (get_label_remap_data());
     my $fname = $tmp_remap_file->filename;
-    my %lbprops_args = (
+    my %rename_props_args = (
         input_element_cols    => [1,2],
         remapped_element_cols => [3,4],
     );
 
-    my $lb_props = Biodiverse::ElementProperties->new;
-    my $success = eval { $lb_props->import_data(%lbprops_args, file => $fname) };    
+    my $rename_props = Biodiverse::ElementProperties->new;
+    my $success = eval { $rename_props->import_data(%rename_props_args, file => $fname) };    
     diag $EVAL_ERROR if $EVAL_ERROR;
     
-    ok ($success == 1, 'import label remap without error');
+    ok ($success == 1, "import $type remap without error");
 
-    my $lb = $bd->get_labels_ref;
+    my $other_type_method = $type eq 'labels'
+        ? 'get_groups_ref'
+        : 'get_labels_ref'; # /
+
+    my $type_method = "get_${type}_ref";
+    my $lbgp = $bd->$type_method;
     my %lb_expected_counts = (
         'Genus:sp1' => undef,
-        'nominal_new_name:' => $lb->get_sample_count (element => 'Genus:sp11'),
+        'nominal_new_name:' => $lbgp->get_sample_count (element => 'Genus:sp11'),
     );
+
+    my $hash_method = $type eq 'labels'
+        ? 'get_groups_with_label_as_hash'
+        : 'get_labels_in_group_as_hash';
+    my $el_type = $type eq 'labels' ? 'label' : 'group';
 
     my %expected_groups_with_labels = (
         'Genus:sp2' => {},
-        'nominal_new_name:' => {$bd->get_groups_with_label_as_hash (label => 'Genus:sp11')},
+        'nominal_new_name:' => {$bd->$hash_method ($el_type => 'Genus:sp11')},
     );
 
     foreach my $label (qw /Genus:sp1 Genus:sp2 Genus:sp18/) {
-        $lb_expected_counts{'Genus:sp2'} += $lb->get_sample_count (element => $label);
+        $lb_expected_counts{'Genus:sp2'} += $lbgp->get_sample_count (element => $label);
 
-        my %gps_with_label = $bd->get_groups_with_label_as_hash (label => $label);
+        my %gps_with_label = $bd->$hash_method ($el_type => $label);
         my $hashref = $expected_groups_with_labels{'Genus:sp2'};
         while (my ($gp, $count) = each %gps_with_label) {
             $hashref->{$gp} += $count;
         }
     }
 
-    my $gp = $bd->get_groups_ref;
+    my $gp = $bd->$other_type_method;
     my %gp_expected;
     foreach my $group ($gp->get_element_list) {
         $gp_expected{$group} = $gp->get_sample_count (element => $group);
     }
     
+    my $rename_method = "rename_$type";
     eval {
-        $bd->rename_labels (
-            remap => $lb_props,
+        $bd->$rename_method (
+            remap => $rename_props,
         );
     };
     my $e = $EVAL_ERROR;
+    diag $e if $e;
     isnt ($e, undef, 'no eval errors assigning label properties');
 
 
     foreach my $label (sort keys %lb_expected_counts) {
-        my $count = $lb->get_sample_count (element => $label);
+        my $count = $lbgp->get_sample_count (element => $label);
         is ($count, $lb_expected_counts{$label}, "Got expected count for $label");
     }
 
@@ -1403,15 +1434,15 @@ sub test_rename_labels {
     
     subtest 'Renamed labels are in expected groups' => sub {
         while (my ($label, $hash) = each %expected_groups_with_labels) {
-            my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
+            my %observed_hash = $bd->$hash_method($el_type => $label);
             is_deeply ($hash, \%observed_hash, $label);
         }
     };
     
     subtest 'Rename label element arrays are updated' => sub {
-        my $lb = $bd->get_labels_ref;
+        my $lbgp = $bd->get_labels_ref;
         foreach my $label (reverse sort $bd->get_labels) {
-            my $el_array = $lb->get_element_name_as_array (element => $label);
+            my $el_array = $lbgp->get_element_name_as_array (element => $label);
             foreach my $el (@$el_array) {
                 ok ($label =~ /$el/, "Label $label contains $el");
             }
@@ -1419,6 +1450,7 @@ sub test_rename_labels {
     }
     
 }
+
 
 #  reordering of axes
 sub test_reorder_axes {

@@ -1310,19 +1310,29 @@ sub do_duplicate_basedata {
 
 sub do_rename_basedata_labels {
     my $self = shift;
-    
+    $self->_do_rename_basedata_groups_or_labels('rename_labels');
+}
+
+sub do_rename_basedata_groups {
+    my $self = shift;
+    $self->_do_rename_basedata_groups_or_labels('rename_groups');
+}
+
+sub _do_rename_basedata_groups_or_labels {
+    my ($self, $method) = @_;
+
     my $bd = $self->{project}->get_selected_base_data();
     my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
         gui => $self,
         column_overrides => [qw /Input_element Remapped_element/],
     );
-    
+
     ##  now do something with them...
     if ($options{file}) {
         #my $file = $options{file};
         my $check_list = Biodiverse::ElementProperties->new;
         $check_list->import_data (%options);
-        $bd->rename_labels (remap => $check_list);
+        $bd->$method (remap => $check_list);
     }
 
     $self->set_dirty;

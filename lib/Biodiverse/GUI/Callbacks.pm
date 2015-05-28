@@ -231,6 +231,9 @@ my %data_funcs = (
     on_rename_basedata_labels => {
         METHOD => 'do_rename_basedata_labels',
     },
+    on_rename_basedata_groups => {
+        METHOD => 'do_rename_basedata_groups',
+    },
     on_binarise_basedata_elements => {
         METHOD => 'do_binarise_basedata_elements',
     },

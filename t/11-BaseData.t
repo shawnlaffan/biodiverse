@@ -1418,7 +1418,7 @@ sub _test_rename_labels_or_groups {
     };
     my $e = $EVAL_ERROR;
     diag $e if $e;
-    isnt ($e, undef, 'no eval errors assigning label properties');
+    ok (!$e, 'no eval errors assigning label properties');
 
 
     foreach my $label (sort keys %lb_expected_counts) {

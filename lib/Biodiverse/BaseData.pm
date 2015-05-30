@@ -4538,7 +4538,7 @@ sub merge {
     foreach my $group ($from_bd->get_groups) {
         my $tmp = $from_bd->get_labels_in_group_as_hash (group => $group);
 
-        #if (!scalar keys %$tmp) {
+        if (!scalar keys %$tmp) {
             #  make sure we get any empty groups
             $self->add_element(
                 group      => $group,
@@ -4546,7 +4546,7 @@ sub merge {
                 csv_object => $csv_object,
                 allow_empty_groups => 1,
             );
-        #}
+        }
 
         foreach my $label (keys %$tmp) {
             my $count = $tmp->{$label};

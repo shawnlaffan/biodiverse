@@ -4494,6 +4494,27 @@ sub has_empty_groups {
     return 1;
 }
 
+sub cellsizes_and_origins_match {
+    my $self = shift;
+    my %args = @_;
+
+    my $from_bd = $args{from} || croak "from argument is undefined\n";
+
+    my @cellsizes      = $self->get_cell_sizes;
+    my @from_cellsizes = $from_bd->get_cell_sizes;
+
+    my @cellorigins      = $self->get_cell_origins;
+    my @from_cellorigins = $from_bd->get_cell_origins;
+
+    for my $i (0 .. $#cellsizes) {
+        return 0
+          if   $cellsizes[$i]   != $from_cellsizes[$i]
+            || $cellorigins[$i] != $from_cellorigins[$i];
+    }
+
+    return 1;    
+}
+
 #  merge labels and groups from another basedata into this one
 sub merge {
     my $self = shift;
@@ -4506,30 +4527,18 @@ sub merge {
     croak "Cannot merge into basedata with existing outputs"
       if $self->get_output_ref_count;
 
-    my @cellsizes      = $self->get_cell_sizes;
-    my @from_cellsizes = $from_bd->get_cell_sizes;
-
-    my @cellorigins      = $self->get_cell_origins;
-    my @from_cellorigins = $from_bd->get_cell_origins;
-
-    my $not_same;
-    for my $i (0 .. $#cellsizes) {
-        if (   $cellsizes[$i]   != $from_cellsizes[$i]
-            || $cellorigins[$i] != $from_cellorigins[$i]) {
-            $not_same = 1;
-            last;
-        }
-    }
-
     croak "cannot merge into basedata with different cell sizes and offsets"
-      if $not_same;
+      if !$self->cellsizes_and_origins_match (%args);
 
-    my $csv_object = $self->get_csv_object;
+    my $csv_object  = $self->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
+    );
 
     foreach my $group ($from_bd->get_groups) {
         my $tmp = $from_bd->get_labels_in_group_as_hash (group => $group);
 
-        if (!scalar keys %$tmp) {
+        #if (!scalar keys %$tmp) {
             #  make sure we get any empty groups
             $self->add_element(
                 group      => $group,
@@ -4537,7 +4546,7 @@ sub merge {
                 csv_object => $csv_object,
                 allow_empty_groups => 1,
             );
-        }
+        #}
 
         foreach my $label (keys %$tmp) {
             my $count = $tmp->{$label};

@@ -18,6 +18,8 @@ use Readonly;
 use FindBin qw ( $Bin );
 use Path::Class ();
 use Text::Wrapper;
+use List::MoreUtils qw /first_index/;
+
 
 use Biodiverse::Config;
 
@@ -1336,6 +1338,74 @@ sub _do_rename_basedata_groups_or_labels {
     }
 
     $self->set_dirty;
+    return;
+}
+
+sub do_merge_basedatas {
+    my $self = shift;
+
+    my $bd = $self->get_project->get_selected_base_data;
+    my $b_list = $self->get_project->get_base_data_list;
+    my @basedatas =
+        grep {$_ ne $bd && $bd->cellsizes_and_origins_match (from => $_)}
+        @$b_list;
+    my @names = map {$_->get_name} @basedatas;
+
+    croak "No valid basedatas to merge from (must have same cell sizes and origins)\n"
+      if !scalar @names;
+
+    #  now get the new length
+    my $param = {
+        name       => 'from',
+        label_text => 'Basedata to merge into selected basedata',
+        tooltip    => 'Labels and groups from this basedata will be merged '
+                    . 'into the selected basedata in the project',
+        type       => 'choice_index',
+        default    => 0,
+        choices    => \@names,
+    };
+    bless $param, 'Biodiverse::Metadata::Parameter';
+
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
+    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+
+    #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
+    $param_dlg->set_title ('Select basedata');
+    
+    # Build widgets for parameters
+    my $param_table = $dlgxml->get_widget('tableImportParameters');
+
+    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $param_extractors
+        = Biodiverse::GUI::ParametersTable::fill(
+            [$param],
+            $param_table,
+            $dlgxml,
+    ); 
+
+    # Show the dialog
+    $param_dlg->show_all();
+
+    my $response = $param_dlg->run();
+
+    if ($response ne 'ok') {
+        $param_dlg->destroy;
+        return;
+    }
+
+    my $params
+      = Biodiverse::GUI::ParametersTable::extract($param_extractors);
+
+    $param_dlg->destroy;
+
+    my %args = @$params;
+
+    my $from = $basedatas[$args{from}];
+
+    $bd->merge(from => $from);
+
+    $self->set_dirty;
+
     return;
 }
 

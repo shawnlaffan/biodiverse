@@ -176,6 +176,7 @@ sub generate_widget {
         float
         boolean
         choice
+        choice_index
         spatial_conditions
         comment
         text_one_line
@@ -215,6 +216,34 @@ sub generate_choice {
     # Extraction closure
     my $extract = sub {
         return ($param->{name}, $combo->get_active_text);
+    };
+
+    # Wrap inside an EventBox so that tooltips work
+    my $ebox = Gtk2::EventBox->new;
+    $ebox->add($combo);
+
+    return ($ebox, $extract);
+}
+
+#  we want the index, not the text
+sub generate_choice_index {
+    my $param = shift;
+
+    my $combo = Gtk2::ComboBox->new_text;
+
+    # Fill the combo
+    foreach my $choice (@{$param->{choices}}) {
+                #print "Appending $choice\n";
+        $combo->append_text($choice);
+    }
+
+    # select default
+    my $default = $param->get_default // 0;
+    $combo->set_active($default);
+
+    # Extraction closure
+    my $extract = sub {
+        return ($param->{name}, $combo->get_active);
     };
 
     # Wrap inside an EventBox so that tooltips work

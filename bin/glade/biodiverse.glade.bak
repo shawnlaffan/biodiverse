@@ -437,6 +437,9 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1106,6 +1109,9 @@ Spreadsheet</property>
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1156,8 +1162,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1174,8 +1180,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4076,6 +4082,16 @@ This will create a new basedata with the corrected axis orders. </property>
                         <property name="label" translatable="yes">Transpose</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_transpose_basedata" swapped="no"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_merge_basedatas">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Merge two basedatas.</property>
+                        <property name="label" translatable="yes">Merge</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_merge_basedatas" swapped="no"/>
                       </widget>
                     </child>
                     <child>
@@ -9314,6 +9330,9 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

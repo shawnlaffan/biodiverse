@@ -1575,6 +1575,9 @@ sub test_merge {
     $e = $EVAL_ERROR;
     ok ($e, 'exception raised when merging into self');
 
+    #  need to check the element arrays
+    #  - we were getting issues with groups not have correct _ELEMENT_ARRAYS
+
     return;
 }
 

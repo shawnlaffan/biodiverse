@@ -1150,8 +1150,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1168,8 +1168,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4070,6 +4070,16 @@ This will create a new basedata with the corrected axis orders. </property>
                         <property name="label" translatable="yes">Transpose</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_transpose_basedata" />
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_merge_basedatas">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Merge groups and labels from another basedata into the selected basedata.</property>
+                        <property name="label" translatable="yes">Merge into</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_merge_basedatas" />
                       </widget>
                     </child>
                     <child>

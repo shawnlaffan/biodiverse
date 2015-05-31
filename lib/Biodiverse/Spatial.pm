@@ -1166,15 +1166,14 @@ sub get_groups_that_failed_def_query {
     my %args = @_;
 
     my $passed = $self->get_param('PASS_DEF_QUERY');
-
-    return wantarray ? %$passed : $passed
-      if !$passed;
+    
+    return if !$passed;  #  empty if not run
 
     my $groups = $self->get_element_list;
 
     no autovivification;
 
-    my @failed = grep {$passed->{$_}} @$groups;
+    my @failed = grep {!exists $passed->{$_}} @$groups;
     my %failed_hash;
     @failed_hash{@failed} = (1) x @failed;
 

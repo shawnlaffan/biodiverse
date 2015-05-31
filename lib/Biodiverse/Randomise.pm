@@ -1208,6 +1208,15 @@ sub get_metadata_rand_structured_subset {
     }, $parameter_rand_metadata_class;
     push @$parameters, $spatial_condition_param;
 
+    my $def_query_param = bless {
+        name       => 'definition_query',
+        label_text => "Definition query",
+        default    => '',
+        type       => 'spatial_conditions',
+        tooltip    => 'Only groups that pass the definition query will have their labels randomised.',
+    }, $parameter_rand_metadata_class;
+    push @$parameters, $def_query_param;
+
     my %metadata = (
         parameters  => \@$parameters,
         description => "Randomly allocate labels to groups within the subset in which they occur,\n"
@@ -1226,6 +1235,8 @@ sub rand_structured_subset {
 
     my $bd = $self->get_param ('BASEDATA_REF')
             || $args{basedata_ref};
+    
+    my $def_query = $args{definition_query};
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1238,12 +1249,13 @@ sub rand_structured_subset {
     #  we only want the neighbour sets
     $sp->run_analysis (
         spatial_conditions => $args{spatial_conditions} || [$args{subset_spatial_condition}],
+        definition_query   => $def_query,
         calculations       => [],
         override_valid_analysis_check => 1,
         #exclude_processed_elements    => 1,  #  has no effect on recycling?
     );
 
-    $bd->delete_output (output => $sp);
+    #$bd->delete_output (output => $sp);
 
     my $csv_object = $bd->get_csv_object (
         sep_char   => $bd->get_param('JOIN_CHAR'),
@@ -1256,25 +1268,66 @@ sub rand_structured_subset {
     my %done;
     my @subset_basedatas;
     my $to_do = $bd->get_group_count;
-    my $completed = -1;
+
+    my $failed_def_query = $sp->get_groups_that_failed_def_query;
+
+    if ($failed_def_query) {
+        #$failed_def_query = $sp->get_groups_that_failed_def_query;
+        my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+
+        foreach my $nbr_group (keys %$failed_def_query) {
+            my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+
+            if (!scalar keys %$tmp) {
+                #  make sure we get any empty groups
+                $new_bd->add_element(
+                    group      => $nbr_group,
+                    count      => 0,
+                    csv_object => $csv_object,
+                    allow_empty_groups => 1,
+                );
+            }
+
+            foreach my $label (keys %$tmp) {
+                my $count = $tmp->{$label};
+                $new_bd->add_element(
+                    label => $label,
+                    group => $nbr_group,
+                    count => $count,
+                    csv_object => $csv_object,
+                );
+            }
+            $done{$nbr_group}++;
+        }
+        push @subset_basedatas, $new_bd;
+    }
 
   SUBSET_BD:
     foreach my $group (sort $bd->get_groups) {
         no autovivification;
-        $completed ++;
 
-        my $nbrs = $sp->get_list_ref (element => $group, list => '_NBR_SET1');
+        last SUBSET_BD if (scalar keys %done) == $to_do;
+        next SUBSET_BD if exists $failed_def_query->{$group};
+
+        my $nbrs = $sp->get_list_ref (
+            element => $group,
+            list    => '_NBR_SET1',
+            autovivify => 0,
+        ) // [];
+
         my @nbrs_to_check = grep {!$done{$_}} @$nbrs;
 
         next SUBSET_BD if !scalar @nbrs_to_check;
-        
-        $progress->update ($progress_text, $completed / $to_do);
+
+        $progress->update ($progress_text, (scalar keys %done) / $to_do);
 
         my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
 
         for my $nbr_group (@nbrs_to_check) {            
             my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
-
+croak "$nbr_group exists\n"
+  if $subset_basedatas[0]
+    && $subset_basedatas[0]->exists_group (group => $nbr_group);
             if (!scalar keys %$tmp) {
                 #  make sure we get any empty groups
                 $new_bd->add_element(
@@ -1304,7 +1357,7 @@ sub rand_structured_subset {
         );
 
         push @subset_basedatas, $subset_rand_bd;
-        #  merge as we go - clunky for debug purposes
+        #  merge as we go - clunky but used for debug purposes
         if ($subset_basedatas[0] ne $subset_basedatas[-1]) {
             $subset_basedatas[0]->merge (from => $subset_basedatas[-1]);
             pop @subset_basedatas;

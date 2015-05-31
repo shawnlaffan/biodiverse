@@ -118,8 +118,41 @@ sub test_rand_structured_richness_same {
     return;
 }
 
+sub test_rand_structured_subset_richness_same_with_defq {
+    my $defq = '$y > 1050000';
+    my ($bd, $rand_bd_array) = test_rand_structured_subset_richness_same ($defq);
+
+    #  need to generate a dummy spatial output with the same def query
+    my $sp = $bd->add_spatial_output (name => 'checker');
+    $sp->run_analysis (
+        definition_query   => $defq,
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_richness'],
+    );
+    my $failed_defq = $sp->get_groups_that_failed_def_query;
+
+    subtest 'groups that failed def query are unchanged' => sub {
+        my $i = -1;
+        foreach my $rand_bd (@$rand_bd_array) {
+            $i++;
+            foreach my $gp (sort keys %$failed_defq) {
+                my $expected = $bd->get_labels_in_group_as_hash(group => $gp);
+                my $observed = $rand_bd->get_labels_in_group_as_hash(group => $gp);
+                is_deeply (
+                    $observed,
+                    $expected,
+                    "defq check: $gp labels are same for rand_bd $i",
+                );
+            }
+        }
+    };
+
+    return;
+}
 
 sub test_rand_structured_subset_richness_same {
+    my $def_query = shift;
+
     my $c = 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
 
@@ -152,6 +185,8 @@ sub test_rand_structured_subset_richness_same {
         seed       => $prng_seed,
         return_rand_bd_array => 1,
         subset_spatial_condition => 'sp_block(size => 1000000)',
+        definition_query     => $def_query,
+        #subset_spatial_condition => 'sp_select_all()',
     );
 
     subtest "Labels in groups differ $rand_name" => sub {
@@ -192,7 +227,7 @@ sub test_rand_structured_subset_richness_same {
         }
     };
 
-    return;
+    return ($bd, $rand_bd_array);
 }
 
 

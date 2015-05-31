@@ -184,7 +184,7 @@ sub set_label_hash_key_count {
     my %args = @_;
 
     my $ref = $self->get_labels_ref;
-    return $ref->_set_elements_hash_key_count (count => $args{count});
+    return $ref->_set_elements_hash_key_count (count => $args{count} || 1);
 }
 
 

@@ -119,6 +119,84 @@ sub test_rand_structured_richness_same {
 }
 
 
+sub test_rand_structured_subset_richness_same {
+    my $c = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    #  add some empty groups - need enough to trigger issue #543
+    foreach my $i (1 .. 20) {
+        my $x = $i * -$c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
+
+    $bd->build_spatial_index (resolutions => [100000, 100000]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_structured_subset';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_structured_subset',
+        iterations => 3,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        subset_spatial_condition => 'sp_block(size => 1000000)',
+    );
+
+    subtest "Labels in groups differ $rand_name" => sub {
+        my $i = 0;
+        foreach my $rand_bd (@$rand_bd_array) {
+            my $match_count = 0;
+            my $expected_count = 0;
+            foreach my $group (sort $rand_bd->get_groups) {
+                my $labels      = $bd->get_labels_in_group_as_hash (group => $group);
+                my $rand_labels = $rand_bd->get_labels_in_group_as_hash (group => $group);
+                $match_count    += grep {exists $labels->{$_}} keys %$rand_labels;
+                $expected_count += scalar keys %$labels;
+            }
+            isnt ($match_count, $expected_count, "contents differ, rand_bd $i");
+        }
+        $i++;
+    };
+
+    subtest "richness scores match for $rand_name" => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $group (sort $rand_bd->get_groups) {
+                my $bd_richness = $bd->get_richness(element => $group) // 0;
+                is ($rand_bd->get_richness (element => $group) // 0,
+                    $bd_richness,
+                    "richness for $group matches ($bd_richness)",
+                );
+            }
+        }
+    };
+    subtest "range scores match for $rand_name" => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $label ($rand_bd->get_labels) {
+                is ($rand_bd->get_range (element => $label),
+                    $bd->get_range (element => $label),
+                    "range for $label matches",
+                );
+            }
+        }
+    };
+
+    return;
+}
+
+
+
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
     

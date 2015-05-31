@@ -12,7 +12,7 @@ use English ( -no_match_vars );
 use Data::Dumper qw { Dumper };
 use Carp;
 use POSIX qw { ceil floor };
-use Time::HiRes qw { gettimeofday tv_interval };
+use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
 use List::Util qw /any all none minstr max/;
 use List::MoreUtils qw /first_index/;
@@ -921,8 +921,7 @@ sub rand_structured {
 
     my $start_time = [gettimeofday];
 
-    my $bd = $self->get_param ('BASEDATA_REF')
-            || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1189,6 +1188,130 @@ END_PROGRESS_TEXT
     $cloned_bd = undef;
 
     return $new_bd;
+}
+
+
+sub get_metadata_rand_structured_subset {
+    my $self = shift;
+
+    my $inherit_meta = $self->get_metadata_rand_structured;
+    my $parameters = $inherit_meta->get_parameters;
+    
+    my $spatial_condition_param = bless {
+        name       => 'subset_spatial_condition',
+        label_text => "Spatial condition\nto define subsets",
+        default    => 'sp_select_all()' . ' ' x 20,  #  add spaces to get some widget width
+        type       => 'spatial_conditions',
+        tooltip    => 'Controls the spatial subsets used in the randomisation.  '
+                    . 'Subsets are forced to be non-overlapping, so conditions '
+                    . 'such as sp_circle() will probably not work as desired.',
+    }, $parameter_rand_metadata_class;
+    push @$parameters, $spatial_condition_param;
+
+    my %metadata = (
+        parameters  => \@$parameters,
+        description => "Randomly allocate labels to groups within the subset in which they occur,\n"
+                     . 'but keep the richness the same or within '
+                     . 'some multiplier factor.',
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+sub rand_structured_subset {
+    my $self = shift;
+    my %args = @_;
+    
+    my $time = time;
+
+    my $bd = $self->get_param ('BASEDATA_REF')
+            || $args{basedata_ref};
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $rand_object = $args{rand_object};  #  can't store to all output formats and then recreate
+    delete $args{rand_object};
+
+    my $name = "get nbrs for rand_structured_subset, $time" . $self->get_name;
+    my $sp = $bd->add_spatial_output (name => $name);
+
+    #  we only want the neighbour sets
+    $sp->run_analysis (
+        spatial_conditions => $args{spatial_conditions} || [$args{subset_spatial_condition}],
+        calculations       => [],
+        override_valid_analysis_check => 1,
+        #exclude_processed_elements    => 1,  #  has no effect on recycling?
+    );
+
+    $bd->delete_output (output => $sp);
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $bd->get_param('JOIN_CHAR'),
+        quote_char => $bd->get_param('QUOTES'),
+    );
+
+    my $progress_text = 'Processing groups for structured subset randomisation';
+    my $progress = Biodiverse::Progress->new (text => $progress_text);
+
+    my %done;
+    my @subset_basedatas;
+    my $to_do = $bd->get_group_count;
+    my $completed = -1;
+
+  SUBSET_BD:
+    foreach my $group (sort $bd->get_groups) {
+        no autovivification;
+        $completed ++;
+
+        my $nbrs = $sp->get_list_ref (element => $group, list => '_NBR_SET1');
+        my @nbrs_to_check = grep {!$done{$_}} @$nbrs;
+
+        next SUBSET_BD if !scalar @nbrs_to_check;
+        
+        $progress->update ($progress_text, $completed / $to_do);
+
+        my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+
+        for my $nbr_group (@nbrs_to_check) {            
+            my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+
+            if (!scalar keys %$tmp) {
+                #  make sure we get any empty groups
+                $new_bd->add_element(
+                    group      => $nbr_group,
+                    count      => 0,
+                    csv_object => $csv_object,
+                    allow_empty_groups => 1,
+                );
+            }
+
+            foreach my $label (keys %$tmp) {
+                my $count = $tmp->{$label};
+                $new_bd->add_element(
+                    label => $label,
+                    group => $nbr_group,
+                    count => $count,
+                    csv_object => $csv_object,
+                );
+            }
+
+            $done{$nbr_group} ++;
+        }
+        my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_rand_bd = $subset_rand->rand_structured (
+            %args,
+            rand_object  => $rand_object,
+        );
+
+        push @subset_basedatas, $subset_rand_bd;
+        #  merge as we go - clunky for debug purposes
+        if ($subset_basedatas[0] ne $subset_basedatas[-1]) {
+            $subset_basedatas[0]->merge (from => $subset_basedatas[-1]);
+            pop @subset_basedatas;
+        }
+    }
+
+    return $subset_basedatas[0];
 }
 
 sub swap_to_reach_richness_targets {

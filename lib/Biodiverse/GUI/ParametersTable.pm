@@ -78,6 +78,7 @@ sub fill {
 
     my $row = 0;
     
+    my $get_innards_hash = {};
     #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
@@ -91,7 +92,7 @@ sub fill {
 #if (!blessed $param) {
 #    warn "Param not blessed";
 #}
-        my ($widget, $extractor) = generate_widget($param, $dlgxml);
+        my ($widget, $extractor) = generate_widget($param, $dlgxml, $get_innards_hash);
 
         if ($extractor) {
             push @extract_closures, $extractor;
@@ -146,6 +147,21 @@ sub fill {
     }
     
     $table->show_all;  #  sometimes we have compound widgets not being shown
+    
+    #  hack for spatial conditions widgets so we don't show both edit views
+    foreach my $object (values %$get_innards_hash) {
+        next if !blessed $object;
+        next if not (blessed $object) =~ /Spatial/;
+        #  trigger a change
+        my $text = $object->get_text;
+        if (length $text) {
+            $object->{buffer}->set_text ($text);
+        }
+        else {
+            $object->{buffer}->set_text (' ');
+            $object->{buffer}->set_text ($text);
+        }
+    }
 
     $tooltip_group->enable();
     return \@extract_closures;
@@ -324,12 +340,15 @@ sub generate_boolean {
 
 sub generate_spatial_conditions {
     my $param = shift;
+    my $get_object_hash = pop;  # clunky way of getting the object back
 
     my $default = $param->get_default || '';
 
     my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
+    
+    $get_object_hash->{$param->get_name} = $sp;
 
     return ($sp->get_widget, $extract);
 }

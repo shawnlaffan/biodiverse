@@ -1561,6 +1561,25 @@ sub test_merge {
         }
     };
 
+    #  need to check the element arrays
+    #  - we were getting issues with groups not having correct _ELEMENT_ARRAYS
+    #  due to an incorrectly specified csv object
+    subtest 'merge: group element arrays are valid when no overlap' => sub {
+        my $gp = $bd_x1->get_groups_ref;
+        foreach my $group ($bd_x1->get_groups) {
+            my $c1 = $gp->get_element_name_as_array (element => $group);
+            is (scalar @$c1, 2, "element array has 2 axes, $group");
+        }
+    };
+    subtest 'merge: label element arrays are valid when no overlap' => sub {
+        my $lb = $bd_x1->get_labels_ref;
+        foreach my $label ($bd_x1->get_labels) {
+            my $c1 = $lb->get_element_name_as_array (element => $label);
+            is (scalar @$c1, 1, "element array has 1 axis, $label");
+        }
+    };
+
+
     $bd_x1 = $bd_x0->clone;
     $bd_x2 = $bd_x0->clone;
     $bd_x2->add_element (label => 'bongo_dog_band');
@@ -1574,9 +1593,6 @@ sub test_merge {
     eval {$bd_x0->merge (from => $bd_x0)};
     $e = $EVAL_ERROR;
     ok ($e, 'exception raised when merging into self');
-
-    #  need to check the element arrays
-    #  - we were getting issues with groups not have correct _ELEMENT_ARRAYS
 
     return;
 }

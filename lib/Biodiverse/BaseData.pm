@@ -4547,16 +4547,10 @@ sub merge {
                 allow_empty_groups => 1,
             );
         }
-
-        foreach my $label (keys %$tmp) {
-            my $count = $tmp->{$label};
-            $self->add_element(
-                label => $label,
-                group => $group,
-                count => $count,
-                csv_object => $csv_object,
-            );
-        }
+        $self->add_elements_collated (
+            data => {$group => $tmp},
+            csv_object => $csv_object,
+        );
     }
     #  make sure we get any labels without groups
     foreach my $label ($from_bd->get_labels) {

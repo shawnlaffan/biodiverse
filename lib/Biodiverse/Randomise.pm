@@ -1243,19 +1243,26 @@ sub rand_structured_subset {
     my $rand_object = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
 
-    my $name = "get nbrs for rand_structured_subset, $time" . $self->get_name;
-    my $sp = $bd->add_spatial_output (name => $name);
+    my $sp = $self->get_param('SUBSET_SPATIAL_OUTPUT');
+    #  build one if we don't have it cached
+    if (!$sp) {
+        my $name = "get nbrs for rand_structured_subset, $time" . $self->get_name;
+        $sp = $bd->add_spatial_output (name => $name);
 
-    #  we only want the neighbour sets
-    $sp->run_analysis (
-        spatial_conditions => $args{spatial_conditions} || [$args{subset_spatial_condition}],
-        definition_query   => $def_query,
-        calculations       => [],
-        override_valid_analysis_check => 1,
-        #exclude_processed_elements    => 1,  #  has no effect on recycling?
-    );
+        #  we only want the neighbour sets
+        $sp->run_analysis (
+            spatial_conditions => $args{spatial_conditions} || [$args{subset_spatial_condition}],
+            definition_query   => $def_query,
+            calculations       => [],
+            override_valid_analysis_check => 1,
+            calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+            #no_create_failed_def_query    => 1,
+            #exclude_processed_elements    => 1,  #  has no effect on recycling?
+        );
 
-    #$bd->delete_output (output => $sp);
+        $bd->delete_output (output => $sp);
+        $self->set_param(SUBSET_SPATIAL_OUTPUT => $sp);
+    }
 
     my $csv_object = $bd->get_csv_object (
         sep_char   => $bd->get_param('JOIN_CHAR'),
@@ -1287,16 +1294,10 @@ sub rand_structured_subset {
                     allow_empty_groups => 1,
                 );
             }
-
-            foreach my $label (keys %$tmp) {
-                my $count = $tmp->{$label};
-                $new_bd->add_element(
-                    label => $label,
-                    group => $nbr_group,
-                    count => $count,
-                    csv_object => $csv_object,
-                );
-            }
+            $new_bd->add_elements_collated (
+                data => {$nbr_group => $tmp},
+                csv_object => $csv_object,
+            );
             $done{$nbr_group}++;
         }
         push @subset_basedatas, $new_bd;
@@ -1325,9 +1326,7 @@ sub rand_structured_subset {
 
         for my $nbr_group (@nbrs_to_check) {            
             my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
-croak "$nbr_group exists\n"
-  if $subset_basedatas[0]
-    && $subset_basedatas[0]->exists_group (group => $nbr_group);
+
             if (!scalar keys %$tmp) {
                 #  make sure we get any empty groups
                 $new_bd->add_element(
@@ -1338,16 +1337,10 @@ croak "$nbr_group exists\n"
                 );
             }
 
-            foreach my $label (keys %$tmp) {
-                my $count = $tmp->{$label};
-                $new_bd->add_element(
-                    label => $label,
-                    group => $nbr_group,
-                    count => $count,
-                    csv_object => $csv_object,
-                );
-            }
-
+            $new_bd->add_elements_collated (
+                data => {$nbr_group => $tmp},
+                csv_object => $csv_object,
+            );
             $done{$nbr_group} ++;
         }
         my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);

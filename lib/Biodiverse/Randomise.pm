@@ -429,10 +429,11 @@ sub run_randomisation {
         );
 
         my $rand_bd = eval {
-            $self->$function (
+            $self->get_randomised_basedata (
                 %args,
-                rand_object => $rand_object,
-                rand_iter   => $$total_iterations,
+                rand_object   => $rand_object,
+                rand_iter     => $$total_iterations,
+                rand_function => $function,
             );
         };
         croak $EVAL_ERROR if $EVAL_ERROR || ! defined $rand_bd;
@@ -594,6 +595,15 @@ sub run_randomisation {
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
+}
+
+sub get_randomised_basedata {
+    my $self = shift;
+    my %args = @_;
+    
+    my $function = $args{rand_function};
+    
+    return $self->$function(%args);
 }
 
 #  here is where we can hack into the args and override any trees etc

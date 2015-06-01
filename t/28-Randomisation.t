@@ -180,13 +180,12 @@ sub test_rand_structured_subset_richness_same {
 
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
-        function   => 'rand_structured_subset',
+        function   => 'rand_structured',
         iterations => 3,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
-        subset_spatial_condition => 'sp_block(size => 1000000)',
+        spatial_condition => 'sp_block(size => 1000000)',
         definition_query     => $def_query,
-        #subset_spatial_condition => 'sp_select_all()',
     );
 
     subtest "Labels in groups differ $rand_name" => sub {

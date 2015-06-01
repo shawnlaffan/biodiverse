@@ -439,7 +439,7 @@ sub run_randomisation {
         croak $EVAL_ERROR if $EVAL_ERROR || ! defined $rand_bd;
 
         $rand_bd->rename (
-            name => $bd->get_param ('NAME') . '_' . $function . '_' . $$total_iterations,
+            name => join ('_', $bd->get_param ('NAME'), $function, $$total_iterations),
         );
 
         $self->process_group_props (
@@ -601,9 +601,16 @@ sub get_randomised_basedata {
     my $self = shift;
     my %args = @_;
     
-    my $function = $args{rand_function};
-    
-    return $self->$function(%args);
+    my $rand_bd;
+    if ($args{spatial_conditions} || $args{definition_query} || $args{spatial_condition}) {
+        $rand_bd = $self->get_rand_structured_subset(%args);
+    }
+    else {
+        my $function = $args{rand_function};
+        $rand_bd = $self->$function(%args)
+    }
+
+    return $rand_bd;
 }
 
 #  here is where we can hack into the args and override any trees etc
@@ -743,12 +750,14 @@ sub compare_cluster_calcs_per_node {
 sub get_metadata_rand_nochange {
     my $self = shift;
     
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
     my %metadata = (
         description => 'No change - just a cloned data set',
         parameters  => [
+            @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
         ],
@@ -775,6 +784,7 @@ sub rand_nochange {
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
 
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
@@ -782,6 +792,7 @@ sub get_metadata_rand_csr_by_group {
     my %metadata = (
         description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
         parameters  => [
+            @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
         ],
@@ -891,9 +902,11 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
     my @parameters = (
+        @$subset_parameters,
         {name       => 'richness_multiplier',
          type       => 'float',
          default    => 1,
@@ -1201,14 +1214,13 @@ END_PROGRESS_TEXT
 }
 
 
-sub get_metadata_rand_structured_subset {
+sub get_metadata_get_rand_structured_subset {
     my $self = shift;
 
-    my $inherit_meta = $self->get_metadata_rand_structured;
-    my $parameters = $inherit_meta->get_parameters;
-    
+    my $parameters = [];
+
     my $spatial_condition_param = bless {
-        name       => 'subset_spatial_condition',
+        name       => 'spatial_condition',
         label_text => "Spatial condition\nto define subsets",
         default    => 'sp_select_all()' . ' ' x 20,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
@@ -1227,21 +1239,16 @@ sub get_metadata_rand_structured_subset {
     }, $parameter_rand_metadata_class;
     push @$parameters, $def_query_param;
 
-    my %metadata = (
-        parameters  => \@$parameters,
-        description => "Randomly allocate labels to groups within the subset in which they occur,\n"
-                     . 'but keep the richness the same or within '
-                     . 'some multiplier factor.',
-    );
-
-    return $self->metadata_class->new(\%metadata);
+    return wantarray ? @$parameters : $parameters;
 }
 
-sub rand_structured_subset {
+sub get_rand_structured_subset {
     my $self = shift;
     my %args = @_;
-    
+
     my $time = time;
+
+    my $rand_function = $args{rand_function};
 
     my $bd = $self->get_param ('BASEDATA_REF')
             || $args{basedata_ref};
@@ -1261,7 +1268,7 @@ sub rand_structured_subset {
 
         #  we only want the neighbour sets
         $sp->run_analysis (
-            spatial_conditions => $args{spatial_conditions} || [$args{subset_spatial_condition}],
+            spatial_conditions => $args{spatial_conditions} || [$args{spatial_condition}],
             definition_query   => $def_query,
             calculations       => [],
             override_valid_analysis_check => 1,
@@ -1354,7 +1361,7 @@ sub rand_structured_subset {
             $done{$nbr_group} ++;
         }
         my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
-        my $subset_rand_bd = $subset_rand->rand_structured (
+        my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,
         );

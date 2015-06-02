@@ -70,6 +70,7 @@ sub fill {
     my $params = shift;
     my $table  = shift;
     my $dlgxml = shift;
+    my $get_innards_hash = shift // {};
 
     # Ask object for parameters metadata
     my @extract_closures;
@@ -78,7 +79,6 @@ sub fill {
 
     my $row = 0;
     
-    my $get_innards_hash = {};
     #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
@@ -87,11 +87,7 @@ sub fill {
         #
         # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
-#  debug
-#use Scalar::Util qw /blessed/;
-#if (!blessed $param) {
-#    warn "Param not blessed";
-#}
+
         my ($widget, $extractor) = generate_widget($param, $dlgxml, $get_innards_hash);
 
         if ($extractor) {
@@ -142,12 +138,10 @@ sub fill {
 
         $label->show;
         if ($param->{type} ne 'comment') {
-            $widget->show;
+            $widget->show_all;
         }
     }
-    
-    $table->show_all;  #  sometimes we have compound widgets not being shown
-    
+
     #  hack for spatial conditions widgets so we don't show both edit views
     foreach my $object (values %$get_innards_hash) {
         next if !blessed $object;

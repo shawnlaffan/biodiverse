@@ -120,15 +120,9 @@ sub test_rand_structured_richness_same {
 
 sub test_rand_structured_subset_richness_same_with_defq {
     my $defq = '$y > 1050000';
-    my ($bd, $rand_bd_array) = test_rand_structured_subset_richness_same ($defq);
+    my ($rand_object, $bd, $rand_bd_array) = test_rand_structured_subset_richness_same ($defq);
 
-    #  need to generate a dummy spatial output with the same def query
-    my $sp = $bd->add_spatial_output (name => 'checker');
-    $sp->run_analysis (
-        definition_query   => $defq,
-        spatial_conditions => ['sp_self_only()'],
-        calculations       => ['calc_richness'],
-    );
+    my $sp = $rand_object->get_param ('SUBSET_SPATIAL_OUTPUT');
     my $failed_defq = $sp->get_groups_that_failed_def_query;
 
     subtest 'groups that failed def query are unchanged' => sub {
@@ -147,6 +141,22 @@ sub test_rand_structured_subset_richness_same_with_defq {
         }
     };
 
+    #  now try with a def query but no spatial condition
+    #  - we should get the same result as condition sp_select_all()
+    my $rand_object2 = $bd->add_randomisation_output (name => 'defq but no sp_cond');
+    $rand_object2->run_analysis (
+        function   => 'rand_structured',
+        iterations => 1,
+        seed       => 2345,
+        definition_query => $defq,
+    );
+    my $sp2 = $rand_object2->get_param ('SUBSET_SPATIAL_OUTPUT');
+    my $sp_conditions = $sp2->get_spatial_conditions_arr;
+    ok (
+        $sp_conditions->[0]->get_conditions_unparsed eq 'sp_select_all()',
+        'got expected default condition when defq specified without spatial condition',
+    );
+    
     return;
 }
 
@@ -178,8 +188,8 @@ sub test_rand_structured_subset_richness_same {
 
     my $rand_name = 'rand_structured_subset';
 
-    my $rand = $bd->add_randomisation_output (name => $rand_name);
-    my $rand_bd_array = $rand->run_analysis (
+    my $rand_object = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand_object->run_analysis (
         function   => 'rand_structured',
         iterations => 3,
         seed       => $prng_seed,
@@ -226,7 +236,7 @@ sub test_rand_structured_subset_richness_same {
         }
     };
 
-    return ($bd, $rand_bd_array);
+    return ($rand_object, $bd, $rand_bd_array);
 }
 
 

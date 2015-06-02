@@ -1265,10 +1265,28 @@ sub get_rand_structured_subset {
     if (!$sp) {
         my $name = "get nbrs for rand_structured_subset, $time" . $self->get_name;
         $sp = $bd->add_spatial_output (name => $name);
+        
+        my $sp_conditions = $args{spatial_conditions} || [$args{spatial_condition}];
+    
+        #  Check the sp conditions
+        #  If we get only whitespace and comments then default to selecting all groups
+        my $sp_check_text = $sp_conditions->[0];
+        $sp_check_text //= '';
+        if (blessed ($sp_check_text)) {
+            $sp_check_text = $sp_check_text->get_conditions_unparsed;
+        }
+        $sp_check_text =~ s/[\s\r\n]//g;  #  clear any whitespace
+        $sp_check_text =~ s/^#.*$//g;     #  and any comments
+        if (!length $sp_check_text) {     #  all we had was whitespace and comments
+            $sp_conditions->[0] = 'sp_select_all()';
+        }
+
+        #  truncate the spatial conditions, as we only use nbr set 1
+        $sp_conditions = [$sp_conditions->[0]];
 
         #  we only want the neighbour sets
         $sp->run_analysis (
-            spatial_conditions => $args{spatial_conditions} || [$args{spatial_condition}],
+            spatial_conditions => $sp_conditions,
             definition_query   => $def_query,
             calculations       => [],
             override_valid_analysis_check => 1,

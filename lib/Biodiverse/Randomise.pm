@@ -1314,7 +1314,6 @@ sub get_rand_structured_subset {
     my $failed_def_query = $sp->get_groups_that_failed_def_query;
 
     if ($failed_def_query) {
-        #$failed_def_query = $sp->get_groups_that_failed_def_query;
         my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
 
         foreach my $nbr_group (keys %$failed_def_query) {
@@ -1329,10 +1328,12 @@ sub get_rand_structured_subset {
                     allow_empty_groups => 1,
                 );
             }
-            $new_bd->add_elements_collated (
-                data => {$nbr_group => $tmp},
-                csv_object => $csv_object,
-            );
+            else {
+                $new_bd->add_elements_collated (
+                    data => {$nbr_group => $tmp},
+                    csv_object => $csv_object,
+                );
+            }
             $done{$nbr_group}++;
         }
         push @subset_basedatas, $new_bd;
@@ -1371,11 +1372,12 @@ sub get_rand_structured_subset {
                     allow_empty_groups => 1,
                 );
             }
-
-            $new_bd->add_elements_collated (
-                data => {$nbr_group => $tmp},
-                csv_object => $csv_object,
-            );
+            else {
+                $new_bd->add_elements_collated (
+                    data => {$nbr_group => $tmp},
+                    csv_object => $csv_object,
+                );
+            }
             $done{$nbr_group} ++;
         }
         my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
@@ -1385,7 +1387,7 @@ sub get_rand_structured_subset {
         );
 
         push @subset_basedatas, $subset_rand_bd;
-        #  merge as we go - clunky but used for debug purposes
+        #  merge as we go - clunky but useful for debug purposes
         if ($subset_basedatas[0] ne $subset_basedatas[-1]) {
             $subset_basedatas[0]->merge (from => $subset_basedatas[-1]);
             pop @subset_basedatas;

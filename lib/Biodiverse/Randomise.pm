@@ -834,8 +834,8 @@ sub rand_csr_by_group {
     my $total_to_do = $#orig_groups;
 
     my $csv_object = $bd->get_csv_object (
-        sep_char   => $self->get_param('JOIN_CHAR'),
-        quote_char => $self->get_param('QUOTES'),
+        sep_char   => $bd->get_param('JOIN_CHAR'),
+        quote_char => $bd->get_param('QUOTES'),
     );
 
     foreach my $i (0 .. $#orig_groups) {
@@ -1055,8 +1055,8 @@ END_PROGRESS_TEXT
     say "[RANDOMISE] Target is $total_to_do.  Running.";
 
     my $csv_object = $bd->get_csv_object (
-        sep_char   => $self->get_param ('JOIN_CHAR'),
-        quote_char => $self->get_param ('QUOTES'),
+        sep_char   => $bd->get_param ('JOIN_CHAR'),
+        quote_char => $bd->get_param ('QUOTES'),
     );
 
     BY_LABEL:
@@ -1415,8 +1415,8 @@ sub swap_to_reach_richness_targets {
     
 
     my $csv_object = $bd->get_csv_object (
-        sep_char   => $self->get_param ('JOIN_CHAR'),
-        quote_char => $self->get_param ('QUOTES'),
+        sep_char   => $bd->get_param ('JOIN_CHAR'),
+        quote_char => $bd->get_param ('QUOTES'),
     );
 
     #  and now we do some amazing cell swapping work to

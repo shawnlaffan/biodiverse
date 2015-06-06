@@ -454,12 +454,44 @@ sub node_calcs_gave_expected_results {
 }
 
 
+sub test_group_properties_reassigned_subset_rand {
+    my %args = (
+        spatial_condition => 'sp_block (size => 1000000)',
+    );
+
+    #  get a basedata aftr we have run some tests on it first
+    my $bd = test_group_properties_reassigned(%args);
+
+    my @sp_outputs = $bd->get_spatial_output_refs;
+    my $sp = $sp_outputs[0];
+
+    subtest 'Spatial analysis results are all tied for subset matching spatial condition' => sub {
+        my @lists = grep {$_ =~ />>GP/} $sp->get_lists_across_elements;
+        foreach my $element ($sp->get_element_list) {
+            foreach my $list (@lists) {
+                my $list_ref = $sp->get_list_ref (
+                    element => $element,
+                    list    => $list,
+                    autovivify => 0,
+                );
+                my @keys = sort grep {$_ =~ /^T_/} keys %$list_ref;
+                foreach my $key (@keys) {
+                    is ($list_ref->{$key}, 1, "$list $element $key")
+                }
+            }
+        }
+    };
+
+}
+
 sub test_group_properties_reassigned {
+    my %args = @_;
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
 
     my $rand_func   = 'rand_csr_by_group';
     my $object_name = 't_g_p_r';
     
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     my $gp_props = get_group_properties_site_data_object();
 
     eval { $bd->assign_element_properties (
@@ -475,7 +507,7 @@ sub test_group_properties_reassigned {
 
     $sp->run_analysis (
         calculations => [qw /calc_gpprop_stats/],
-        spatial_conditions => ['sp_self_only()'],
+        spatial_conditions => [$args{spatial_condition} // 'sp_self_only()'],
     );
 
     my %prop_handlers = (
@@ -512,7 +544,7 @@ sub test_group_properties_reassigned {
         subtest "$props_func checks" => $sub_same;
     }
 
-    return;
+    return $bd;
 }
 
 sub test_randomise_tree_ref_args {

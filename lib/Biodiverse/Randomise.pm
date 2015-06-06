@@ -445,13 +445,6 @@ sub run_randomisation {
             name => join ('_', $bd->get_param ('NAME'), $function, $$total_iterations),
         );
 
-        $self->process_group_props (
-            orig_bd  => $bd,
-            rand_bd  => $rand_bd,
-            function => $randomise_group_props_by,
-            rand_object => $rand_object,
-        );
-
         my %randomised_arg_object_cache;
 
         TARGET:
@@ -617,8 +610,15 @@ sub get_randomised_basedata {
         $rand_bd = $self->get_rand_structured_subset(%args);
     }
     else {
+        my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
         my $function = $args{rand_function};
-        $rand_bd = $self->$function(%args)
+        $rand_bd = $self->$function(%args);
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $rand_bd,
+            function => $args{randomise_group_props_by},
+            rand_object => $args{rand_object},
+        );
     }
 
     return $rand_bd;
@@ -1372,6 +1372,12 @@ sub get_rand_structured_subset {
                     csv_object => $csv_object,
                 );
             }
+            $self->process_group_props (
+                orig_bd  => $bd,
+                rand_bd  => $new_bd,
+                function => $args{randomise_group_props_by},
+                rand_object => $rand_object,
+            );
             $done{$nbr_group}++;
         }
         push @subset_basedatas, $new_bd;
@@ -1416,6 +1422,12 @@ sub get_rand_structured_subset {
                     csv_object => $csv_object,
                 );
             }
+            $self->process_group_props (
+                orig_bd  => $bd,
+                rand_bd  => $new_bd,
+                function => $args{randomise_group_props_by},
+                rand_object => $rand_object,
+            );
             $done{$nbr_group} ++;
         }
         my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
@@ -1897,7 +1909,7 @@ sub process_group_props_by_set {
     my $shuffled_to_elements = $rand->shuffle (\@to_element_list);
 
     BY_ELEMENT:
-    foreach my $element (sort $elements_ref->get_element_list) {
+    foreach my $element (sort $to_elements_ref->get_element_list) {
         $i++;
         my $progress = $i / $total_to_do;
         $progress_bar->update (
@@ -1959,20 +1971,20 @@ sub process_group_props_by_item {
     my $to_name     = $rand_bd->get_param ('NAME');
     my $text        = "Transferring group properties from $name to $to_name";
 
-    my $total_to_do = $elements_ref->get_element_count;
+    my $total_to_do = $to_elements_ref->get_element_count;
     say "[BASEDATA] Transferring group properties for $total_to_do";
 
     my $count = 0;
     my $i = -1;
 
     my @to_element_list = sort $to_elements_ref->get_element_list;
-    
+
     for my $prop_key ($elements_ref->get_element_property_keys) {
 
         my $shuffled_to_elements = $rand->shuffle ([@to_element_list]);  #  need a shuffled copy
 
         BY_ELEMENT:
-        foreach my $element ($elements_ref->get_element_list) {
+        foreach my $element (sort $to_elements_ref->get_element_list) {
             $i++;
             my $progress = $i / $total_to_do;
             $progress_bar->update (

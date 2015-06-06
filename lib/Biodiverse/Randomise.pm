@@ -772,6 +772,8 @@ sub get_common_rand_metadata {
             always_sensitive => 1,
         }, $parameter_metadata_class),
     );
+    
+    @common = ();  #  override until we allow some args to be overridden on subsequent runs.  
 
     return wantarray ? @common : \@common;
 }

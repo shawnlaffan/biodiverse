@@ -138,7 +138,7 @@ sub fill {
         }
 
         # widgets are sensitive unless explicitly told otherwise
-        $widget->set_sensitive (exists $param->{sensitive} ? $param->{sensitive} : 1);  
+        $widget->set_sensitive ($param->get_always_sensitive ? 1 : $param->get_sensitive // 1);
 
         $label->show;
         if ($param->{type} ne 'comment') {

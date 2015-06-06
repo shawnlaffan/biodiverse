@@ -15,7 +15,7 @@ use Biodiverse::GUI::Project;
 use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
 
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number reftype/;
 use List::MoreUtils qw /first_index/;
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
@@ -272,7 +272,8 @@ sub set_button_sensitivity {
     }
 
     my $table = $self->{xmlPage}->get_widget('tableParams');
-    $table->set_sensitive ($sens);
+    $table->set_sensitive ($sens);  #  comment out - don't do whole table
+    #$self->on_function_changed;
 
     #  no - keep this modifiable
     #if (defined $self->{save_checkpoint_button}) {
@@ -404,15 +405,17 @@ sub on_function_changed {
                 next if $parameter->get_name ne $arg;
                 my $def_val = $args->{$arg};
                 if ($parameter->get_type eq 'choice') {
-                    $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->get_choices};
+                    my $choices = $parameter->get_choices;
+                    $def_val = first_index {$_ eq $args->{$arg}} @$choices;
                     #  if no full match then get the first suffix match - allows for shorthand options
                     if ($def_val < 0) {  
-                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @{$parameter->get_choices};
+                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @$choices;
                     }
                 }
-                #  should implement methods to do these steps:
                 $parameter->set_default ($def_val);
-                $parameter->set_sensitive (0);  #  cannot change the value
+                if (!$parameter->get_always_sensitive) {
+                    $parameter->set_sensitive (0);  #  cannot change the value
+                }
             }
         }
     }
@@ -621,7 +624,7 @@ sub on_run {
     $args{save_checkpoint} = $self->{save_checkpoint_button}->get_value;
     
     my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_widget('randomise_results_list_name')-> get_text;
+    my $name = $xml_page->get_widget('randomise_results_list_name')->get_text;
     my $seed = $xml_page->get_widget('randomise_seed_value')->get_text;
     $seed =~ s/\s//g;  #  strip any whitespace
     if (not defined $seed or length ($seed) == 0) {
@@ -633,7 +636,7 @@ sub on_run {
         $seed = undef;
     }
 
-    my $param_hash = Biodiverse::GUI::ParametersTable::extract(
+    my $param_hash = Biodiverse::GUI::ParametersTable::extract (
         $self->{param_extractors}
     );
     %args = (
@@ -645,7 +648,7 @@ sub on_run {
     my $str_args;  #  for user feedback
     while (my ($arg, $value) = each %args) {
         if (! ref $value) {
-            $value = "undef" if not defined $value;
+            $value //= "undef";
             $str_args .= "\t$arg\t= $value\n" ;
         }
         elsif ((ref $value) =~ /ARRAY/) {
@@ -680,7 +683,7 @@ sub on_run {
             $basedata_ref->add_randomisation_output (name => $name);
         };
         if ($EVAL_ERROR) {
-            $self->{gui}-> report_error ($EVAL_ERROR);
+            $self->{gui}->report_error ($EVAL_ERROR);
         }
         #  need to add it to the GUI outputs
         $self->{output_ref} = $output_ref;
@@ -703,6 +706,13 @@ sub on_run {
     if (not $success) {  # dropped out for some reason, eg no valid analyses.
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
         return;
+    }
+
+    if (reftype ($success // 1) eq 'ARRAY') {
+        #  we were passed an array of basedatas
+        foreach my $bd (@$success) {
+            $self->{gui}->get_project->add_base_data($bd);
+        }
     }
 
     $self->update_iterations_count_label (

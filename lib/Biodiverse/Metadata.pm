@@ -1,4 +1,5 @@
 package Biodiverse::Metadata;
+use 5.016;
 use strict;
 use warnings;
 use Scalar::Util qw /reftype/;

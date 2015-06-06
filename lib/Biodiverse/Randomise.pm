@@ -404,8 +404,11 @@ sub run_randomisation {
     }
 
     my $return_success_code = 1;
+    my $add_basedatas_to_project = $args{add_basedatas_to_project};
+    my $return_rand_bd_array = $args{return_rand_bd_array} || $add_basedatas_to_project;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
-    
+    my $retain_outputs = $args{retain_outputs} || $add_basedatas_to_project;
+
     my $progress_bar = Biodiverse::Progress->new(text => 'Randomisation');
 
     #  do stuff here
@@ -535,7 +538,7 @@ sub run_randomisation {
                     orig_analysis  => $target,
                     rand_bd        => $rand_bd,
                     rand_iter      => $$total_iterations,
-                    retain_outputs => $args{retain_outputs},
+                    retain_outputs => $retain_outputs,
                     result_list_name => $results_list_name,
                 );
             };
@@ -544,7 +547,7 @@ sub run_randomisation {
             #  and now remove this output to save a bit of memory
             #  unless we've been told to keep it
             #  (this has not been exposed to the GUI yet)
-            if (! $args{retain_outputs}) {
+            if (!$retain_outputs) {
                 #$rand_bd->delete_output (output => $rand_analysis);
                 $rand_bd->delete_all_outputs();
             }
@@ -555,8 +558,15 @@ sub run_randomisation {
             say "[Randomise] Saving randomised basedata";
             $rand_bd->save;
         }
-        if ($args{return_rand_bd_array}) {
-            push @rand_bd_array, $rand_bd;
+        if ($return_rand_bd_array) {
+            if ($add_basedatas_to_project) {
+                if (scalar @rand_bd_array <= $add_basedatas_to_project) {
+                    push @rand_bd_array, $rand_bd;
+                }
+            }
+            else {
+                push @rand_bd_array, $rand_bd;
+            }
         }
         
 
@@ -576,6 +586,7 @@ sub run_randomisation {
     }
 
     #  now we're done, increment the randomisation counts
+    #  Not sure why - possibly a left-over from when we allowed subsets to be checked
     foreach my $target (@targets) {
         my $count = $target->get_param ($rand_iter_param_name) || 0;
         $count += $iterations;
@@ -590,7 +601,7 @@ sub run_randomisation {
 
     #  return the rand_bd's if told to
     return (wantarray ? @rand_bd_array : \@rand_bd_array)
-      if $args{return_rand_bd_array};
+      if $return_rand_bd_array;
     
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
@@ -747,12 +758,31 @@ sub compare_cluster_calcs_per_node {
 #
 #  a set of functions to return a randomised basedata object
 
+sub get_common_rand_metadata {
+    my $self = shift;
+
+    my @common = (
+        bless ({
+            name       => 'add_basedatas_to_project',
+            label_text => 'How many basedatas to add to the project',
+            type       => 'integer',
+            default    => 0,
+            increment  => 1,
+            tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
+            always_sensitive => 1,
+        }, $parameter_metadata_class),
+    );
+
+    return wantarray ? @common : \@common;
+}
+
 sub get_metadata_rand_nochange {
     my $self = shift;
     
     my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $common_metadata = $self->get_common_rand_metadata;
 
     my %metadata = (
         description => 'No change - just a cloned data set',
@@ -760,6 +790,7 @@ sub get_metadata_rand_nochange {
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
+            @$common_metadata,
         ],
     );
 
@@ -787,6 +818,7 @@ sub get_metadata_rand_csr_by_group {
     my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $common_metadata = $self->get_common_rand_metadata;
 
 
     my %metadata = (
@@ -795,6 +827,7 @@ sub get_metadata_rand_csr_by_group {
             @$subset_parameters,
             $group_props_parameters,
             $tree_shuffle_parameters,
+            @$common_metadata,
         ],
     ); 
 
@@ -905,6 +938,8 @@ END_TOOLTIP_ADDN
     my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
     my $group_props_parameters  = $self->get_group_prop_metadata;
     my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $common_metadata  = $self->get_common_rand_metadata;
+    
     my @parameters = (
         @$subset_parameters,
         {name       => 'richness_multiplier',
@@ -918,9 +953,10 @@ END_TOOLTIP_ADDN
          default    => 0,
          increment  => 1,
          tooltip    => $tooltip_addn,
-         },
+         },        
         $group_props_parameters,
         $tree_shuffle_parameters,
+        @$common_metadata,
     );
     for (@parameters) {
         next if blessed $_;
@@ -965,8 +1001,8 @@ END_PROGRESS_TEXT
 ;
 
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
-    $new_bd->get_groups_ref->set_param ($bd->get_groups_ref->get_params_hash);
-    $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
+    $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
+    $new_bd->get_labels_ref->set_params ($bd->get_labels_ref->get_params_hash);
     my $new_bd_name = $new_bd->get_param ('NAME');
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
@@ -1222,7 +1258,7 @@ sub get_metadata_get_rand_structured_subset {
     my $spatial_condition_param = bless {
         name       => 'spatial_condition',
         label_text => "Spatial condition\nto define subsets",
-        default    => 'sp_select_all()' . ' ' x 20,  #  add spaces to get some widget width
+        default    => ' ' x 30,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
         tooltip    => 'Controls the spatial subsets used in the randomisation.  '
                     . 'Subsets are forced to be non-overlapping, so conditions '

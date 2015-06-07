@@ -325,7 +325,7 @@ sub run_randomisation {
     my $self = shift;
     my %args = @_;
 
-    my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $function = $self->get_param ('FUNCTION')
                    // $args{function}
@@ -601,7 +601,74 @@ sub run_randomisation {
     return $return_success_code;
 }
 
+
 sub get_randomised_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    return $self->_get_randomised_basedata (%args)
+      if !$args{labels_not_to_randomise};
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    my $constant_labels = $args{labels_not_to_randomise};
+    
+    my $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
+    my $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
+    $const_bd->rename (new_name => $const_bd->get_name . ' constant label subset');
+    $non_const_bd->rename (new_name => $non_const_bd->get_name . ' random label subset');
+
+    if (!ref $constant_labels) {
+        $constant_labels = [split /[\r\n]+/, $constant_labels];
+        #  Maybe we were passed a list of key value pairs
+        #  This can happen with pasting from GUI popups
+        my $label1 = $constant_labels->[0];
+        if (!$bd->exists_label(label => $label1) && $label1 =~ /(.+)\t+\d+$/) {
+            if ($bd->exists_label(label => $1)) {   
+                for my $label (@$constant_labels) {
+                    $label =~ s/\s+\d+$//;
+                }
+            }
+        }
+        say join ' ', @$constant_labels;
+    }
+    
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $bd->get_param('JOIN_CHAR'),
+        quote_char => $bd->get_param('QUOTES'),
+    );
+
+    my %const_label_hash;
+    @const_label_hash{@$constant_labels} = undef;
+    for my $label ($bd->get_labels) {
+        no autovivification;
+        my $groups = $bd->get_groups_with_label_as_hash (label => $label);
+
+        #  we should cache the constant BD
+        my $target_bd = exists $const_label_hash{$label} ? $const_bd : $non_const_bd;
+        $target_bd->add_elements_collated_by_label (
+            data       => {$label => $groups},
+            csv_object => $csv_object,
+        );
+    }
+    foreach my $empty_gp ($bd->get_empty_groups) {
+        $const_bd->add_element (
+            group => $empty_gp,
+            count => 0,
+            allow_empty_groups => 1,
+        );
+    }
+
+    $non_const_bd->rebuild_spatial_index;  #  sometimes the non_const basedata is "missing" groups
+    my $new_rand_bd = $self->_get_randomised_basedata (%args, basedata_ref => $non_const_bd);
+
+    $new_rand_bd->merge (from => $const_bd);
+
+    return $new_rand_bd;
+}
+
+
+#  need to rename this
+sub _get_randomised_basedata {
     my $self = shift;
     my %args = @_;
     
@@ -610,7 +677,7 @@ sub get_randomised_basedata {
         $rand_bd = $self->get_rand_structured_subset(%args);
     }
     else {
-        my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
+        my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
         my $function = $args{rand_function};
         $rand_bd = $self->$function(%args);
         $self->process_group_props (
@@ -773,7 +840,16 @@ sub get_common_rand_metadata {
         }, $parameter_metadata_class),
     );
     
-    @common = ();  #  override until we allow some args to be overridden on subsequent runs.  
+    #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
+    @common = (
+        bless ({
+            name       => 'labels_not_to_randomise',
+            label_text => 'Labels to not randomise',
+            type       => 'text',
+            default    => '',
+            tooltip    => 'List of labels to not randomise, one per line',
+        }, $parameter_metadata_class),
+    );
 
     return wantarray ? @common : \@common;
 }
@@ -806,7 +882,7 @@ sub rand_nochange {
 
     say "[RANDOMISE] Running 'no change' randomisation";
 
-    my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     #  create a clone with no outputs
     my $new_bd = $bd->clone (no_outputs => 1);
@@ -841,7 +917,7 @@ sub rand_csr_by_group {
     my $self = shift;
     my %args = @_;
 
-    my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1288,8 +1364,7 @@ sub get_rand_structured_subset {
 
     my $rand_function = $args{rand_function};
 
-    my $bd = $self->get_param ('BASEDATA_REF')
-            || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     
     my $def_query = $args{definition_query};
 
@@ -1428,12 +1503,16 @@ sub get_rand_structured_subset {
                 function => $args{randomise_group_props_by},
                 rand_object => $rand_object,
             );
+            #  tests dont trigger index-related errors,
+            #  but we need to play safe nonetheless
+            $new_bd->rebuild_spatial_index;  
             $done{$nbr_group} ++;
         }
         my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
         my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,
+            basedata_ref => $new_bd,
         );
 
         push @subset_basedatas, $subset_rand_bd;
@@ -1460,8 +1539,7 @@ sub swap_to_reach_richness_targets {
     my $progress_text   = $args{progress_text};
     my $progress_bar    = $args{progress_bar} // Biodiverse::Progress->new();
 
-    my $bd = $self->get_param ('BASEDATA_REF')
-             || $args{basedata_ref};
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     
 
     my $csv_object = $bd->get_csv_object (

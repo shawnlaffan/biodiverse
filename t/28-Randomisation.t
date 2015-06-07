@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 #
-#  tests for both normal and lowmem matrices, where they overlap in methods
 
 use 5.010;
 use strict;
@@ -27,6 +26,10 @@ use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 exit main( @ARGV );
 
 sub main {
@@ -42,19 +45,10 @@ sub main {
         return 0;
     }
     
-    test_metadata();
-
-    test_rand_structured_richness_same();
-
-    test_stability_given_prng();
-
-    test_same_results_given_same_prng_seed();
-
-    test_rand_calc_per_node_uses_orig_bd();
-    
-    test_group_properties_reassigned();
-
-    test_randomise_tree_ref_args();
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
 
     done_testing;
     return 0;
@@ -198,6 +192,175 @@ sub test_rand_structured_subset_richness_same {
         definition_query     => $def_query,
     );
 
+    check_randomisation_results_differ ($rand_object, $bd, $rand_bd_array);
+
+    return ($rand_object, $bd, $rand_bd_array);
+}
+
+sub test_rand_constant_labels {
+
+    my $c  = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    #  add a couple of empty groups
+    foreach my $i (1 .. 2) {
+        my $x = $i * -$c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
+
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_labels_held_constant';
+
+    my $labels_not_to_randomise = [qw/Genus:sp22 Genus:sp28 Genus:sp31 Genus:sp16 Genus:sp18/];
+
+    my $rand_object = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand_object->run_analysis (
+        function   => 'rand_structured',
+        iterations => 2,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        spatial_condition => 'sp_block(size => 1000000)',
+        labels_not_to_randomise => $labels_not_to_randomise,
+    );
+
+    #  check ranges are identical for the constants
+    subtest 'Constant label ranges are unchanged' => sub {
+        my $i = -1;
+        foreach my $rand_bd (@$rand_bd_array) {
+            $i++;
+            foreach my $label (@$labels_not_to_randomise) {
+                my $old_range = $bd->get_groups_with_label (label => $label);
+                my $new_range = $rand_bd->get_groups_with_label (label => $label);
+                is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
+
+                my $orig_list = $bd->get_labels_ref->get_list_ref (
+                    element => $label,
+                    list => 'SUBELEMENTS',
+                    autovivify => 0,
+                );
+                my $new_list = $rand_bd->get_labels_ref->get_list_ref (
+                    element => $label,
+                    list => 'SUBELEMENTS',
+                    autovivify => 0,
+                );
+                no autovivification;
+                is_deeply (
+                    $orig_list,
+                    $new_list,
+                    "sample counts match for $label, randomisation $i",
+                );
+            }
+        }
+    };
+
+    check_randomisation_results_differ ($rand_object, $bd, $rand_bd_array);
+    
+    return ($rand_object, $bd, $rand_bd_array);
+}
+
+
+#  Are the differing input methods for constant labels stable?
+sub test_rand_constant_labels_differing_input_methods {
+
+    my $c  = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    #  add a couple of empty groups
+    foreach my $i (1 .. 2) {
+        my $x = $i * -$c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
+
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_labels_held_constant';
+
+    my $labels_not_to_randomise_array = [qw/Genus:sp22 Genus:sp28 Genus:sp31 Genus:sp16 Genus:sp18/];
+    my $labels_not_to_randomise_text = join "\n", @$labels_not_to_randomise_array;
+    my %labels_not_to_randomise_hash;
+    @labels_not_to_randomise_hash{@$labels_not_to_randomise_array}
+      = (1) x scalar @$labels_not_to_randomise_array;
+    my $labels_not_to_randomise_text_h = join "\n", %labels_not_to_randomise_hash;
+    
+    my %args = (
+        function   => 'rand_structured',
+        iterations => 1,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        spatial_condition => 'sp_block(size => 1000000)',
+    );
+
+    my $rand_object_a = $bd->add_randomisation_output (name => $rand_name . '_a');
+    my $rand_bd_array_a = $rand_object_a->run_analysis (
+        %args,
+        labels_not_to_randomise => $labels_not_to_randomise_array,
+    );
+
+    my $rand_object_t = $bd->add_randomisation_output (name => $rand_name . '_t');
+    my $rand_bd_array_t = $rand_object_t->run_analysis (
+        %args,
+        labels_not_to_randomise => $labels_not_to_randomise_text,
+    );
+    
+    my $rand_object_th = $bd->add_randomisation_output (name => $rand_name . '_th');
+    my $rand_bd_array_th = $rand_object_th->run_analysis (
+        %args,
+        labels_not_to_randomise => $labels_not_to_randomise_text_h,
+    );
+
+    subtest "array and text variants result in same labels held constant" => sub {
+        my $bd_a  = $rand_bd_array_a->[0];
+        my $bd_t  = $rand_bd_array_t->[0];
+        my $bd_th = $rand_bd_array_th->[0];
+
+        for my $gp ($bd->get_groups) {
+            my $expected = scalar $bd_a->get_labels_in_group_as_hash (group => $gp);
+            is_deeply (
+                scalar $bd_t->get_labels_in_group_as_hash (group => $gp),
+                $expected,
+                $gp,
+            );
+            is_deeply (
+                scalar $bd_th->get_labels_in_group_as_hash (group => $gp),
+                $expected,
+                $gp,
+            );
+        }
+    }
+
+}
+
+sub check_randomisation_results_differ {
+    my ($rand_object, $bd, $rand_bd_array) = @_;
+    
+    my $rand_name = $rand_object->get_name;
+    
+    #  need to refactor these subtests
     subtest "Labels in groups differ $rand_name" => sub {
         my $i = 0;
         foreach my $rand_bd (@$rand_bd_array) {
@@ -235,28 +398,7 @@ sub test_rand_structured_subset_richness_same {
             }
         }
     };
-
-    return ($rand_object, $bd, $rand_bd_array);
-}
-
-
-
-#  make sure we get the same result with the same prng across two runs
-sub test_same_results_given_same_prng_seed {
     
-    TODO: {
-        local $TODO = 'Tests not implemented yet';
-        is (1, 1, 'placeholder');    
-        #my $data = get_cluster_mini_data();
-        #my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-        #
-        #check_order_is_same_given_same_prng (basedata_ref => $bd);
-        #
-        #my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-        #check_order_is_same_given_same_prng (basedata_ref => $site_bd);
-
-    };
-
 }
 
 #  need to implement this for randomisations
@@ -272,7 +414,7 @@ sub check_order_is_same_given_same_prng {
 #  Should get same result for two iterations run in one go as we do for
 #  two run sequentially (first, pause, second)
 #  Need to rename this sub
-sub test_stability_given_prng {
+sub test_same_results_given_same_prng_seed {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 
     #  name is short for test_rand_calc_per_node_uses_orig_bd
@@ -760,7 +902,7 @@ sub test_prng_state_vector {
     #  will this work on non-windows systems? 
     my $bit_size = $Config{archname} =~ /x86/ ? 32 : 64;  #  will 128 bits ever be needed for this work?
     my $wrong_bit_size = $Config{archname} =~ /x86/ ? 64 : 32;
-    my $bd = Biodiverse::BaseData->new(NAME => 'PRNG tester');
+    my $bd = Biodiverse::BaseData->new(NAME => 'PRNG tester', CELL_SIZES => [1, 1]);
 
     my $data_section_name = "PRNG_STATE_${bit_size}BIT";
     my $state_vector = get_data_section ($data_section_name);
@@ -783,7 +925,7 @@ sub test_prng_state_vector {
     };
     my $e = $EVAL_ERROR;
     $err = Biodiverse::PRNG::InvalidStateVector->caught ? 1 : 0;
-    diag $e;
+    #diag $e;
     ok ($err, "Initialise PRNG with $wrong_bit_size bit vector and caught the error as expected");
 
 }

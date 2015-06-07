@@ -1843,6 +1843,13 @@ sub update_selection_menu {
         . '(shift clicking adds ranges of labels).',
     );
 
+
+    my $selection_to_clipboard = Gtk2::MenuItem->new_with_label('Copy to clipboard');
+    $selection_to_clipboard->signal_connect_swapped(
+        activate => \&do_copy_selection_to_clipboard, [$self],
+    );
+
+    $selection_menu->append($selection_to_clipboard);
     $selection_menu->append($selection_mode_item);
     $selection_menu->append($switch_selection_item);
     $selection_menu->append($select_regex_item);
@@ -1862,6 +1869,73 @@ sub do_switch_selection {
 
     return;
 }
+
+sub do_copy_selection_to_clipboard {
+    my $args = shift;
+    my $self = $args->[0];
+
+    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+
+    use constant TYPE_TEXT => 1;
+    use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
+
+    # Add text and HTML (spreadsheet programs can read it) data to clipboard
+    # We'll be called back when someone pastes
+    eval {
+        $clipboard->set_with_data (
+            \&clipboard_get_func,
+            \&clipboard_clear_func,
+            $self,
+            {target=>'STRING',        info => TYPE_TEXT},
+            {target=>'TEXT',          info => TYPE_TEXT},
+            {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
+            {target=>'UTF8_STRING',   info => TYPE_TEXT},
+            {target=>'text/plain',    info => TYPE_TEXT},
+            {target=>'text/html',     info => TYPE_TEXT},
+        );
+    };
+    warn $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+
+sub clipboard_get_func {
+    my $clipboard = shift;
+    my $selection = shift;
+    my $datatype  = shift;  #  currently we only handle text, so this is ignored
+    my $self      = shift;
+
+    my $text;
+
+    if (! $self) {
+        my $gui = Biodiverse::GUI::GUIManager->instance;
+        my $e = "Unable to paste data.\nLabels tab has been closed so link with source data is lost\n";
+        $gui->report_error($e);
+        return;
+    }
+
+    my $selected_labels = $self->get_selected_labels;
+    
+    # Generate the text
+    foreach my $label (@$selected_labels) {
+        $text .= "$label\n";
+    }
+
+    # Give the data..
+    print "[Labels] Sending data for selection to clipboard\n";
+
+    $selection->set_text($text);
+
+    return;
+}
+
+sub clipboard_clear_func {
+    print "[Labels] Clipboard cleared\n";
+
+    return;
+}
+
 
 sub do_selection_export {
     my $args = shift;

@@ -1,5 +1,10 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.0001 2015-06-08
+    - Update for 1.0001 dev release, but don't use a dev version for the task file.
+    - Add Spreadsheet::Read, Spreadsheet::ReadSXC, Spreadsheet::ParseExcel,
+      Spreadsheet::ParseXLSX and Spreadsheet::XLSX
+
 1.0 2015-04-19
     - Update for version 1.0 release.
     - Set minimum versions

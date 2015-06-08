@@ -1439,22 +1439,11 @@ sub get_rand_structured_subset {
 
         foreach my $nbr_group (keys %$failed_def_query) {
             my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
-
-            if (!scalar keys %$tmp) {
-                #  make sure we get any empty groups
-                $bd_failed_def_query->add_element(
-                    group      => $nbr_group,
-                    count      => 0,
-                    csv_object => $csv_object,
-                    allow_empty_groups => 1,
-                );
-            }
-            else {
-                $bd_failed_def_query->add_elements_collated (
-                    data => {$nbr_group => $tmp},
-                    csv_object => $csv_object,
-                );
-            }
+            $bd_failed_def_query->add_elements_collated (
+                data => {$nbr_group => $tmp},
+                csv_object => $csv_object,
+                allow_empty_groups => 1,
+            );
         }
         $bd_failed_def_query->rebuild_spatial_index;
         $cached_subset_basedatas->{failed_def_query} = $bd_failed_def_query;
@@ -1498,24 +1487,13 @@ sub get_rand_structured_subset {
 
             $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
 
-            for my $nbr_group (@nbrs_to_check) {            
+            for my $nbr_group (@nbrs_to_check) {       
                 my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
-
-                if (!scalar keys %$tmp) {
-                    #  make sure we get any empty groups
-                    $subset_bd->add_element(
-                        group      => $nbr_group,
-                        count      => 0,
-                        csv_object => $csv_object,
-                        allow_empty_groups => 1,
-                    );
-                }
-                else {
-                    $subset_bd->add_elements_collated (
-                        data => {$nbr_group => $tmp},
-                        csv_object => $csv_object,
-                    );
-                }
+                $subset_bd->add_elements_collated (
+                    data => {$nbr_group => $tmp},
+                    csv_object => $csv_object,
+                    allow_empty_groups => 1,
+                );
             }
             #  tests dont trigger index-related errors,
             #  but we need to play safe nonetheless

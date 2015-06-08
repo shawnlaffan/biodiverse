@@ -611,7 +611,7 @@ sub get_randomised_basedata {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     my $constant_labels = $args{labels_not_to_randomise};
-    
+
     my $const_bd     = Biodiverse::BaseData->new($bd->get_params_hash);
     my $non_const_bd = Biodiverse::BaseData->new($bd->get_params_hash);
     $const_bd->rename (new_name => $const_bd->get_name . ' constant label subset');
@@ -658,6 +658,7 @@ sub get_randomised_basedata {
         );
     }
 
+    $const_bd->rebuild_spatial_index;
     $non_const_bd->rebuild_spatial_index;  #  sometimes the non_const basedata is "missing" groups
     my $new_rand_bd = $self->_get_randomised_basedata (%args, basedata_ref => $non_const_bd);
 

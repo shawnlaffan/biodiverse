@@ -255,8 +255,8 @@ sub test_rand_constant_labels {
         foreach my $rand_bd (@$rand_bd_array) {
             $i++;
             foreach my $label (@$labels_not_to_randomise) {
-                my $old_range = $bd->get_groups_with_label (label => $label);
-                my $new_range = $rand_bd->get_groups_with_label (label => $label);
+                my $old_range = $bd->get_groups_with_label_as_hash (label => $label);
+                my $new_range = $rand_bd->get_groups_with_label_as_hash (label => $label);
                 is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
 
                 my $orig_list = $bd->get_labels_ref->get_list_ref (

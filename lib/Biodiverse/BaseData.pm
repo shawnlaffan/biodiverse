@@ -2595,14 +2595,55 @@ sub add_elements_collated {
     my %args = @_;
 
     my $gp_lb_hash = $args{data};
+    my $csv_object = $args{csv_object}
+      // croak "csv_object arg not passed\n";
+
+    my $allow_empty_groups = $args{allow_empty_groups};
+
+    #  now add the collated data
+    foreach my $gp_lb_pair (pairs %$gp_lb_hash) {
+        my ($gp, $lb_hash) = @$gp_lb_pair;
+
+        if ($allow_empty_groups && !scalar %$lb_hash) {
+            $self->add_element(
+                group      => $gp,
+                count      => 0,
+                csv_object => $csv_object,
+                allow_empty_groups => 1,
+            );
+        }
+        else {
+
+            foreach my $lb_count_pair (pairs %$lb_hash) {
+                my ($lb, $count) = @$lb_count_pair;
+                # add to elements (skipped if the label is nodata)
+                $self->add_element (
+                    %args,
+                    label      => $lb,
+                    group      => $gp,
+                    count      => $count,
+                    csv_object => $csv_object,
+                );
+            }
+        }
+    }
+
+    return;
+}
+
+sub add_elements_collated_by_label {
+    my $self = shift;
+    my %args = @_;
+
+    my $gp_lb_hash = $args{data};
     my $csv = $args{csv_object}
       // croak "csv_object arg not passed\n";
 
     #  now add the collated data
     foreach my $gp_lb_pair (pairs %$gp_lb_hash) {
-        my ($gp, $lb_hash) = @$gp_lb_pair;
-        foreach my $lb_count_pair (pairs %$lb_hash) {
-            my ($lb, $count) = @$lb_count_pair;
+        my ($lb, $gp_hash) = @$gp_lb_pair;
+        foreach my $gp_count_pair (pairs %$gp_hash) {
+            my ($gp, $count) = @$gp_count_pair;
             # add to elements (skipped if the label is nodata)
             $self->add_element (
                 %args,
@@ -3454,6 +3495,16 @@ sub get_groups_without_label_as_hash {
 
     return wantarray ? %groups : \%groups;
 }
+
+sub get_empty_groups {
+    my $self = shift;
+    my %args = @_;
+
+    my @gps = grep {!$self->get_richness (element => $_)} $self->get_groups;
+
+    return wantarray ? @gps : \@gps;
+}
+
 
 
 

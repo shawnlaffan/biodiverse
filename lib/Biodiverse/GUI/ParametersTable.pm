@@ -194,6 +194,7 @@ sub generate_widget {
         spatial_conditions
         comment
         text_one_line
+        text
     };
     my %valid_choices_hash;
     @valid_choices_hash{@valid_choices} = (1) x scalar @valid_choices;
@@ -370,6 +371,32 @@ sub generate_text_one_line {
     };
 
     return ($frame, $extract);
+}
+
+sub generate_text {
+    my $param = shift;
+    my $default = $param->get_default // '';
+
+    my $text_buffer = Gtk2::TextBuffer->new;
+    
+    # Text view
+    $text_buffer->set_text($default);
+    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
+
+    # Scrolled window for multi-line conditions
+    my $scroll = Gtk2::ScrolledWindow->new;
+    $scroll->set_policy('automatic', 'automatic');
+    $scroll->set_shadow_type('in');
+    $scroll->add( $text_view );
+
+
+    my $extract = sub {
+        my ($start, $end) = $text_buffer->get_bounds();
+        my $text = $text_buffer->get_text($start, $end, 0);
+        return ($param->{name}, $text);
+    };
+
+    return ($scroll, $extract);
 }
 
 

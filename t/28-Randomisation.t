@@ -192,6 +192,19 @@ sub test_rand_structured_subset_richness_same {
         definition_query     => $def_query,
     );
 
+    subtest "group and label sets match" => sub {
+        my @obs_gps = sort $bd->get_groups;
+        my @obs_lbs = sort $bd->get_labels;
+        my $i = -1;
+        foreach my $rand_bd (@$rand_bd_array) {
+            $i++;
+            my @rand_gps = sort $rand_bd->get_groups;
+            my @rand_lbs = sort $rand_bd->get_labels;
+            is_deeply (\@rand_gps, \@obs_gps, "group sets match for iteration $i");
+            is_deeply (\@rand_lbs, \@obs_lbs, "label sets match for iteration $i");
+        }
+    };
+
     check_randomisation_results_differ ($rand_object, $bd, $rand_bd_array);
 
     return ($rand_object, $bd, $rand_bd_array);
@@ -383,7 +396,7 @@ sub check_randomisation_results_differ {
                 my $bd_richness = $bd->get_richness(element => $group) // 0;
                 is ($rand_bd->get_richness (element => $group) // 0,
                     $bd_richness,
-                    "richness for $group matches ($bd_richness)",
+                    "richness for $group matches",
                 );
             }
         }

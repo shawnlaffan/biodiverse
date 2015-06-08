@@ -1365,6 +1365,7 @@ sub get_rand_structured_subset {
     my $rand_function = $args{rand_function};
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    my $new_bd = Biodiverse::BaseData->new($bd->get_params_hash);
     
     my $def_query = $args{definition_query};
 
@@ -1424,17 +1425,24 @@ sub get_rand_structured_subset {
     my @subset_basedatas;
     my $to_do = $bd->get_group_count;
 
-    my $failed_def_query = $sp->get_groups_that_failed_def_query;
+    my $cached_subset_basedatas = $self->get_cached_value ('SUBSET_BASEDATAS');
+    if (!$cached_subset_basedatas) {
+        $cached_subset_basedatas = {};
+        $self->set_cached_value (SUBSET_BASEDATAS => $cached_subset_basedatas);
+    }
 
-    if ($failed_def_query) {
-        my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+    my $failed_def_query = $sp->get_groups_that_failed_def_query;
+    my $bd_failed_def_query = $cached_subset_basedatas->{failed_def_query};
+
+    if (!$bd_failed_def_query && $failed_def_query) {
+        $bd_failed_def_query = Biodiverse::BaseData->new ($bd->get_params_hash);
 
         foreach my $nbr_group (keys %$failed_def_query) {
             my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
 
             if (!scalar keys %$tmp) {
                 #  make sure we get any empty groups
-                $new_bd->add_element(
+                $bd_failed_def_query->add_element(
                     group      => $nbr_group,
                     count      => 0,
                     csv_object => $csv_object,
@@ -1442,88 +1450,108 @@ sub get_rand_structured_subset {
                 );
             }
             else {
-                $new_bd->add_elements_collated (
+                $bd_failed_def_query->add_elements_collated (
                     data => {$nbr_group => $tmp},
                     csv_object => $csv_object,
                 );
             }
-            $self->process_group_props (
-                orig_bd  => $bd,
-                rand_bd  => $new_bd,
-                function => $args{randomise_group_props_by},
-                rand_object => $rand_object,
-            );
-            $done{$nbr_group}++;
         }
-        push @subset_basedatas, $new_bd;
+        $bd_failed_def_query->rebuild_spatial_index;
+        $cached_subset_basedatas->{failed_def_query} = $bd_failed_def_query;
     }
+    if ($bd_failed_def_query) {
+        my $gps = $bd_failed_def_query->get_groups;
+        @done{@$gps} = (1) x scalar @$gps;
+
+        push @subset_basedatas, $bd_failed_def_query;
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $bd_failed_def_query,
+            function => $args{randomise_group_props_by},
+            rand_object => $rand_object,
+        );
+    }
+
 
   SUBSET_BD:
     foreach my $group (sort $bd->get_groups) {
         no autovivification;
 
-        last SUBSET_BD if (scalar keys %done) == $to_do;
+        last SUBSET_BD if $to_do == scalar keys %done;
         next SUBSET_BD if exists $failed_def_query->{$group};
 
-        my $nbrs = $sp->get_list_ref (
-            element => $group,
-            list    => '_NBR_SET1',
-            autovivify => 0,
-        ) // [];
+        my $subset_bd = $cached_subset_basedatas->{$group};
 
-        my @nbrs_to_check = grep {!$done{$_}} @$nbrs;
+        if (!$subset_bd) {
+            #  we need to build one
+            my $nbrs = $sp->get_list_ref (
+                element => $group,
+                list    => '_NBR_SET1',
+                autovivify => 0,
+            ) // [];
 
-        next SUBSET_BD if !scalar @nbrs_to_check;
+            my @nbrs_to_check = grep {!$done{$_}} @$nbrs;
 
-        $progress->update ($progress_text, (scalar keys %done) / $to_do);
+            next SUBSET_BD if !scalar @nbrs_to_check;
 
-        my $new_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+            $progress->update ($progress_text, (scalar keys %done) / $to_do);
 
-        for my $nbr_group (@nbrs_to_check) {            
-            my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+            $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
 
-            if (!scalar keys %$tmp) {
-                #  make sure we get any empty groups
-                $new_bd->add_element(
-                    group      => $nbr_group,
-                    count      => 0,
-                    csv_object => $csv_object,
-                    allow_empty_groups => 1,
-                );
+            for my $nbr_group (@nbrs_to_check) {            
+                my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+
+                if (!scalar keys %$tmp) {
+                    #  make sure we get any empty groups
+                    $subset_bd->add_element(
+                        group      => $nbr_group,
+                        count      => 0,
+                        csv_object => $csv_object,
+                        allow_empty_groups => 1,
+                    );
+                }
+                else {
+                    $subset_bd->add_elements_collated (
+                        data => {$nbr_group => $tmp},
+                        csv_object => $csv_object,
+                    );
+                }
             }
-            else {
-                $new_bd->add_elements_collated (
-                    data => {$nbr_group => $tmp},
-                    csv_object => $csv_object,
-                );
-            }
-            $self->process_group_props (
-                orig_bd  => $bd,
-                rand_bd  => $new_bd,
-                function => $args{randomise_group_props_by},
-                rand_object => $rand_object,
-            );
             #  tests dont trigger index-related errors,
             #  but we need to play safe nonetheless
-            $new_bd->rebuild_spatial_index;  
-            $done{$nbr_group} ++;
+            $subset_bd->rebuild_spatial_index;
+            $cached_subset_basedatas->{$group} = $subset_bd;
         }
-        my $subset_rand = $new_bd->add_randomisation_output (name => $self->get_name);
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $subset_bd,
+            function => $args{randomise_group_props_by},
+            rand_object => $rand_object,
+        );
+        my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
         my $subset_rand_bd = $subset_rand->$rand_function (
             %args,
             rand_object  => $rand_object,
-            basedata_ref => $new_bd,
+            basedata_ref => $subset_bd,
         );
 
+        my $gps = $subset_bd->get_groups;
+        @done{@$gps} = (1) x scalar @$gps;
+
         push @subset_basedatas, $subset_rand_bd;
-        #  merge as we go - clunky but useful for debug purposes
-        if ($subset_basedatas[0] ne $subset_basedatas[-1]) {
-            $subset_basedatas[0]->merge (from => $subset_basedatas[-1]);
-            pop @subset_basedatas;
+
+        #  Merge as we go - looks clunky but is useful for debug purposes
+        #  Also shifts off the def query if one exists
+        while (scalar @subset_basedatas) {
+            my $subset = shift @subset_basedatas;
+            $new_bd->merge (from => $subset);
         }
+
+        #  keep the cached version clean of outputs
+        $subset_bd->delete_all_outputs;
     }
 
-    return $subset_basedatas[0];
+    return $new_bd;
 }
 
 sub swap_to_reach_richness_targets {

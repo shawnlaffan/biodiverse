@@ -210,7 +210,59 @@ sub test_rand_structured_subset_richness_same {
     return ($rand_object, $bd, $rand_bd_array);
 }
 
-sub test_rand_constant_labels {
+sub test_rand_labels_all_constant {
+    my $c  = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    #  add a couple of empty groups
+    foreach my $i (1 .. 2) {
+        my $x = $i * -$c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
+
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_labels_held_constant';
+
+    my $labels_not_to_randomise = $bd->get_labels;
+
+    my $rand_object = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand_object->run_analysis (
+        function   => 'rand_structured',
+        iterations => 2,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        #spatial_condition => 'sp_block(size => 1000000)',
+        labels_not_to_randomise => $labels_not_to_randomise,
+    );
+
+    subtest 'Constant label ranges are unchanged when all are constant' => sub {
+        my $i = -1;
+        foreach my $rand_bd (@$rand_bd_array) {
+            $i++;
+            foreach my $label (@$labels_not_to_randomise) {
+                no autovivification;
+                my $old_range = $bd->get_groups_with_label_as_hash (label => $label);
+                my $new_range = $rand_bd->get_groups_with_label_as_hash (label => $label);
+                is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
+            }
+        }
+    };
+}
+
+sub test_rand_labels_constant {
 
     my $c  = 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
@@ -255,26 +307,10 @@ sub test_rand_constant_labels {
         foreach my $rand_bd (@$rand_bd_array) {
             $i++;
             foreach my $label (@$labels_not_to_randomise) {
+                no autovivification;
                 my $old_range = $bd->get_groups_with_label_as_hash (label => $label);
                 my $new_range = $rand_bd->get_groups_with_label_as_hash (label => $label);
                 is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
-
-                my $orig_list = $bd->get_labels_ref->get_list_ref (
-                    element => $label,
-                    list => 'SUBELEMENTS',
-                    autovivify => 0,
-                );
-                my $new_list = $rand_bd->get_labels_ref->get_list_ref (
-                    element => $label,
-                    list => 'SUBELEMENTS',
-                    autovivify => 0,
-                );
-                no autovivification;
-                is_deeply (
-                    $orig_list,
-                    $new_list,
-                    "sample counts match for $label, randomisation $i",
-                );
             }
         }
     };

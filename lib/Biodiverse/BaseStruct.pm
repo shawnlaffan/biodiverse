@@ -2581,7 +2581,7 @@ sub _set_elements_hash_key_count {
 
     #  do nothing if undef, zero or negative
     croak "Invalid count argument $count\n"
-      if !$count || !looks_like_number $count || $count < 0;
+      if !looks_like_number $count || $count < 0;
 
     my $href = $self->{ELEMENTS};
 

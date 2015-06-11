@@ -59,7 +59,8 @@ WriteMakefile(
         "Spreadsheet::Read" => "0.60",
         "Spreadsheet::ReadSXC" => "0",
         "Spreadsheet::ParseExcel" => "0",
-        "Spreadsheet::ParseXLSX Spreadsheet::XLSX" => "0",
+        "Spreadsheet::ParseXLSX" => "0",
+        "Spreadsheet::XLSX" => "0",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

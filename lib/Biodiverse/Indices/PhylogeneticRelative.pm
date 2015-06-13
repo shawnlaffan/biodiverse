@@ -152,7 +152,10 @@ sub get_metadata_calc_phylo_rpd2 {
         reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_pd_node_list/],
-        pre_calc_global => ['get_tree_with_equalised_branch_lengths'],  #  should just use node counts in the original tree
+        pre_calc_global => [qw/
+            get_tree_with_equalised_branch_lengths
+            get_tree_zero_length_branch_count
+        /],
         required_args   => ['tree_ref'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -188,7 +191,13 @@ sub calc_phylo_rpd2 {
     #  Allow for zero length nodes, as we keep them as zero.
     #  The grep in scalar context is a fast way of counting the number of non-zero branches.
     #  %$included_nodes is for the original tree
-    my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
+    my $pd_score_eq_branch_lengths;
+    if ($args{TREE_ZERO_LENGTH_BRANCH_COUNT}) {
+        $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
+    }
+    else {
+        $pd_score_eq_branch_lengths = scalar keys %$included_nodes;
+    }
 
     my %results;
     {
@@ -413,6 +422,36 @@ sub get_labels_not_on_trimmed_tree {
 
     my %results = (labels_not_on_trimmed_tree => \%hash);
 
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_tree_zero_length_branch_count {
+    my $self = shift;
+
+    my %metadata = (
+        name            => 'get_tree_zero_length_branch_count',
+        description     => 'Flag for if the tree has zero length branches',
+        required_args   => ['tree_ref'],
+        indices         => {
+            TREE_ZERO_LENGTH_BRANCH_COUNT => {
+                description => 'Zero length branch flag',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_tree_zero_length_branch_count {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{tree_ref};
+    
+    my $count = grep {!$_->get_length} $tree->get_node_refs;
+    
+    my %results = (TREE_ZERO_LENGTH_BRANCH_COUNT => $count);
+    
     return wantarray ? %results : \%results;
 }
 

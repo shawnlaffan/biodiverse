@@ -203,7 +203,6 @@ sub calc_phylo_rpd2 {
     {
         no warnings qw /numeric uninitialized/;
 
-        #my $n    = $tree_ref->get_terminal_element_count;
         my $null = eval {$pd_score_eq_branch_lengths / $null_total_tree_length};
         my $phylo_rpd2 = eval {$pd_p_score / $null};
 

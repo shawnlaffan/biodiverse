@@ -13,6 +13,8 @@ use rlib;
 
 use Test::More;
 
+use Scalar::Util qw /refaddr/;
+
 use English qw / -no_match_vars /;
 local $| = 1;
 
@@ -257,14 +259,16 @@ sub test_recycling {
             my $listref4 = $sp4->get_list_ref (%n_args);
             foreach my $nbr (@$listref1) {
                 next if $el eq $nbr;
-                my $listref1n = $sp1->get_list_ref (%n_args);
-                my $listref2n = $sp2->get_list_ref (%n_args);
-                my $listref3n = $sp3->get_list_ref (%n_args);
-                my $listref4n = $sp4->get_list_ref (%n_args);
-                is   ($listref1, $listref1n, "_NBR_SET1 recycled for sp1, $el v $nbr");
-                isnt ($listref2, $listref2n, "_NBR_SET1 not recycled for sp2, $el v $nbr");
-                isnt ($listref3, $listref3n, "_NBR_SET1 not recycled for sp3, $el v $nbr");
-                is   ($listref4, $listref4n, "_NBR_SET1 recycled for sp4, $el v $nbr");
+                #  make sure we check the neighbour
+                my %n_args_n = (list => '_NBR_SET1', element => $nbr);
+                my $listref1n = $sp1->get_list_ref (%n_args_n);
+                my $listref2n = $sp2->get_list_ref (%n_args_n);
+                my $listref3n = $sp3->get_list_ref (%n_args_n);
+                my $listref4n = $sp4->get_list_ref (%n_args_n);
+                is   (refaddr $listref1, refaddr $listref1n, "_NBR_SET1 recycled for sp1, $el v $nbr");
+                isnt (refaddr $listref2, refaddr $listref2n, "_NBR_SET1 not recycled for sp2, $el v $nbr");
+                isnt (refaddr $listref3, refaddr $listref3n, "_NBR_SET1 not recycled for sp3, $el v $nbr");
+                is   (refaddr $listref4, refaddr $listref4n, "_NBR_SET1 recycled for sp4, $el v $nbr");
             }
         }
     };
@@ -275,7 +279,7 @@ sub test_recycling {
             my $listref4 = $sp4->get_list_ref (list => '_NBR_SET2', element => $el);
             foreach my $nbr (@$listref4) {
                 my $listref4n = $sp4->get_list_ref (list => '_NBR_SET2', element => $nbr);
-                isnt ($listref4, $listref4n, "_NBR_SET2 not recycled for sp4, $el v $nbr");
+                isnt (refaddr $listref4, refaddr $listref4n, "_NBR_SET2 not recycled for sp4, $el v $nbr");
             }
         }
     };

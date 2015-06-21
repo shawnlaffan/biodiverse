@@ -1580,6 +1580,10 @@ sub get_node_range {
 
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
+    
+    #  sometimes a child node has the full set,
+    #  so there is no need to keep collating
+    my $max_group_count = $bd->get_group_count;
 
     my $return_count = !wantarray && !$args{return_list};
 
@@ -1591,7 +1595,13 @@ sub get_node_range {
     my %groups;
 
     my $children = $node_ref->get_children // [];
-    if (scalar @$children) {
+
+    if (  !$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
+        my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
+        @groups{keys %$gp_list} = undef;
+    }
+    if (scalar @$children && $max_group_count != keys %groups) {
+      CHILD:
         foreach my $child (@$children) {
             #my $child_name = $child->get_name;
             my $cached_list = $cache->{$child};
@@ -1599,16 +1609,13 @@ sub get_node_range {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                @groups{@$c} = ();
+                @groups{@$c} = undef;
             }
             else {
-                @groups{keys %$cached_list} = ();
+                @groups{keys %$cached_list} = undef;
             }
+            last CHILD if $max_group_count == keys %groups;
         }
-    }
-    if (!$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
-        my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
-        @groups{keys %$gp_list} = undef;
     }
 
     #  Cache by ref because future cases might use the cache

@@ -2355,9 +2355,8 @@ sub get_element_count {
 
 sub get_element_list {
     my $self = shift;
-    return wantarray
-            ? keys %{$self->{ELEMENTS}}
-            : [keys %{$self->{ELEMENTS}}];
+    my $el_hash = $self->{ELEMENTS};
+    return wantarray ? keys %$el_hash : [keys %$el_hash];
 }
 
 sub sort_by_axes {

@@ -142,15 +142,12 @@ sub test_empty_groups {
         spatial_conditions => ['sp_self_only'],
     );
 
-    TODO:
-    {
-        my $result_list = $sp->get_list_ref (element => $empty_group_name, list => 'SPATIAL_RESULTS');
-        my $expected = {
-            RICHNESS_ALL  => 0,
-            RICHNESS_SET1 => 0,
-        };
-        is_deeply ($result_list, $expected, 'empty group has expected results');
-    }
+    my $result_list = $sp->get_list_ref (element => $empty_group_name, list => 'SPATIAL_RESULTS');
+    my $expected = {
+        RICHNESS_ALL  => 0,
+        RICHNESS_SET1 => 0,
+    };
+    is_deeply ($result_list, $expected, 'empty group has expected results');
 }
 
 

@@ -2557,18 +2557,8 @@ sub add_element {  #  run some calls to the sub hashes
     if ($count) {
         #  add the labels and groups as element and subelement
         #  labels is the transpose of groups
-        $gp_ref->add_sub_element (
-            element    => $group,
-            subelement => $label,
-            count      => $count,
-            csv_object => $args{csv_object},
-        );
-        $lb_ref->add_sub_element (
-            element    => $label,
-            subelement => $group,
-            count      => $count,
-            csv_object => $args{csv_object},
-        );
+        $gp_ref->add_sub_element_aa ($group, $label, $count, $args{csv_object});
+        $lb_ref->add_sub_element_aa ($label, $group, $count, $args{csv_object});
     }
     else {
         if ($args{allow_empty_groups}) {

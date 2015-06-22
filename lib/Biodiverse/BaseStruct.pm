@@ -2654,6 +2654,32 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     return;
 }
 
+#  array args version for high frequency callers
+sub add_sub_element_aa {
+    my ($self, $element, $sub_element, $count, $csv_object) = @_;
+
+    #no autovivification;
+
+    croak "element not specified\n"    if !defined $element;
+    croak "subelement not specified\n" if !defined $sub_element;
+
+    my $elts_ref = $self->{ELEMENTS};
+
+    if (! exists $elts_ref->{$element}) {
+        $self->add_element (
+            element    => $element,
+            csv_object => $csv_object,
+        );
+    }
+
+    #  previous base_stats invalid - clear them if needed
+    delete $elts_ref->{$element}{BASE_STATS};
+
+    $elts_ref->{$element}{SUBELEMENTS}{$sub_element} += ($count // 1);
+
+    return;
+}
+
 sub rename_element {
     my $self = shift;
     my %args = @_;

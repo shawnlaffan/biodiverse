@@ -1347,27 +1347,33 @@ sub test_reintegrate_after_randomisation {
         'spatial results differ after randomisation, bd1 & bd3',
     );
 
-    #  we need the original values for checking
-    my $bd_orig = $bd1->clone;
-    $bd1->reintegrate_after_parallel_randomisations (
-        from => $bd2,
-    );
-    check_randomisation_lists_incremented_correctly (
-        orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-        integr => $bd2->get_spatial_output_ref (name => 'analysis1'),
-        from   => $bd1->get_spatial_output_ref (name => 'analysis1')
-    );
+    my $bd_orig;
 
-    #  update the orig values since bd1 has integrated $bd2
-    $bd_orig = $bd1->clone;
-    $bd1->reintegrate_after_parallel_randomisations (
-        from => $bd3,
-    );
-    check_randomisation_lists_incremented_correctly (
-        orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-        integr => $bd3->get_spatial_output_ref (name => 'analysis1'),
-        from   => $bd1->get_spatial_output_ref (name => 'analysis1')
-    );
+    for my $bd_from ($bd2, $bd3) {
+        #  we need the pre-integration values for checking
+        $bd_orig = $bd1->clone;
+        $bd1->reintegrate_after_parallel_randomisations (
+            from => $bd_from,
+        );
+        check_randomisation_lists_incremented_correctly (
+            orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
+            integr => $bd_from->get_spatial_output_ref (name => 'analysis1'),
+            from   => $bd1->get_spatial_output_ref (name => 'analysis1')
+        );
+    }
+
+    foreach my $rand_ref (sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs ) {
+        my $name = $rand_ref->get_name;
+        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
+            6,
+            "Total iterations is correct after reintegration, $name",
+        );
+        my $prng_init_states = $rand_ref->get_prng_init_states_array;
+        is (scalar @$prng_init_states,
+            2,
+            "Got 2 init states from reintegrations, $name",
+        );
+    }
 
 }
 

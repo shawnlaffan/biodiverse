@@ -1290,6 +1290,126 @@ sub test_reorder_axes {
 }
 
 
+sub test_reintegrate_after_randomisation {
+    #  use a small basedata for test speed purposes
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 5,
+        y_max       => 5,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd1 = get_basedata_object (%args);
+    
+    #  need some extra labels so the randomisations have something to do
+    $bd1->add_element (group => '0.5:0.5', label => 'extra1');
+    $bd1->add_element (group => '1.5:0.5', label => 'extra1');
+
+
+    my $sp = $bd1->add_spatial_output (name => 'analysis1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 1)'],
+        calculations => [qw /calc_endemism_central calc_element_lists_used/],
+    );
+
+    my $bd2 = $bd1->clone;
+    my $bd3 = $bd1->clone;
+
+    my $prng_seed = 2345;
+    foreach my $bd ($bd1, $bd2, $bd3) { 
+        my $rand1 = $bd->add_randomisation_output (name => 'random1');
+        my $rand2 = $bd->add_randomisation_output (name => 'random2');
+        $prng_seed++;
+        $rand1->run_analysis (
+            function   => 'rand_csr_by_group',
+            iterations => 2,
+            seed       => $prng_seed,
+        );
+        $prng_seed++;
+        $rand2->run_analysis (
+            function => 'rand_csr_by_group',
+            iterations => 2,
+            seed => $prng_seed,
+        );
+    }
+
+    isnt_deeply (
+        $bd1->get_spatial_output_ref (name => 'analysis1'),
+        $bd2->get_spatial_output_ref (name => 'analysis1'),
+        'spatial results differ after randomisation, bd1 & bd2',
+    );
+    isnt_deeply (
+        $bd1->get_spatial_output_ref (name => 'analysis1'),
+        $bd3->get_spatial_output_ref (name => 'analysis1'),
+        'spatial results differ after randomisation, bd1 & bd3',
+    );
+
+    #  we need the original values for checking
+    my $bd_orig = $bd1->clone;
+    $bd1->reintegrate_after_parallel_randomisations (
+        from => $bd2,
+    );
+    check_randomisation_lists_incremented_correctly (
+        orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
+        integr => $bd2->get_spatial_output_ref (name => 'analysis1'),
+        from   => $bd1->get_spatial_output_ref (name => 'analysis1')
+    );
+
+    #  update the orig values since bd1 has integrated $bd2
+    $bd_orig = $bd1->clone;
+    $bd1->reintegrate_after_parallel_randomisations (
+        from => $bd3,
+    );
+    check_randomisation_lists_incremented_correctly (
+        orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
+        integr => $bd3->get_spatial_output_ref (name => 'analysis1'),
+        from   => $bd1->get_spatial_output_ref (name => 'analysis1')
+    );
+
+}
+
+
+sub check_randomisation_lists_incremented_correctly {
+    my %args = @_;
+    my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig integr from/};
+    
+    subtest 'randomisation lists incremented correctly' => sub {
+        my $gp_list = $sp_integr->get_element_list;
+        my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
+        my @rand_lists = grep {$_ =~ />>/} @$list_names;
+        foreach my $group (@$gp_list) {
+            foreach my $list_name (@rand_lists) {
+                my %l_args = (element => $group, list => $list_name);
+                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
+                my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                my $lr_from   = $sp_from->get_list_ref (%l_args);
+
+                foreach my $key (sort keys %$lr_integr) {
+                    no autovivification;
+                    if ($key =~ /^P_/) {
+                        my $index = $key;
+                        $index =~ s/^P_//;
+                        is ($lr_integr->{$key},
+                            $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
+                            "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
+                        );
+                    }
+                    else {
+                        is ($lr_integr->{$key},
+                            ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
+                            "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
+                        );
+                    }
+                }
+            }
+        }
+    };
+}
+
+
 sub test_merge {
     my $e;
     my %args = (

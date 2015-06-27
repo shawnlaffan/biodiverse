@@ -4610,6 +4610,69 @@ sub merge {
     return;
 }
 
+sub reintegrate_after_parallel_randomisations {
+    my $self = shift;
+    my %args = @_;
+    
+    my $bd_from = $args{from} || croak "from argument is undefined\n";
+
+    croak "Cannot merge into self" if $self eq $bd_from;
+
+    croak "No point reintegrating into basedata with no outputs"
+      if !$self->get_output_ref_count;
+
+    croak "cannot merge into basedata with different cell sizes and offsets"
+      if !$self->cellsizes_and_origins_match (%args);
+
+    my @outputs_to   = $self->get_output_refs_sorted_by_name;
+    my @outputs_from = $bd_from->get_output_refs_sorted_by_name;
+    
+    croak "Cannot reintegrate when number of outputs differs"
+      if scalar @outputs_to != scalar @outputs_from;
+    
+    foreach my $i (0 .. $#outputs_to) {
+        croak "mismatch of output names"
+          if $outputs_to[$i]->get_name ne $outputs_from[$i]->get_name;
+        #  need to check # of elements etc
+    }
+
+    #  now we can finally get some work done
+    #  working on spatial only for now
+    foreach my $i (0 .. $#outputs_to) {
+        my $to   = $outputs_to[$i];
+        my $from = $outputs_from[$i];
+
+        next if !(blessed ($to) =~ /Spatial/);  #  not a generic enough check
+        
+        my $gp_list = $to->get_element_list;
+        my @rand_lists = grep {$_ =~ />>/} $to->get_lists_across_elements;
+        foreach my $group (@$gp_list) {
+            foreach my $list_name (@rand_lists) {
+                my %l_args = (element => $group, list => $list_name);
+                my $lr_to   = $to->get_list_ref (%l_args);
+                my $lr_from = $from->get_list_ref (%l_args);
+                my %all_keys;
+                #  get all the keys due to ties not being tracked in all cases
+                @all_keys{keys %$lr_from, %$lr_to} = undef;
+                my %p_keys;
+                @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
+                foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
+                    no autovivification;  #  don't pollute the from data set
+                    $lr_to->{$key} += ($lr_from->{$key} // 0),
+                }
+                foreach my $key (keys %p_keys) {
+                    no autovivification;  #  don't pollute the from data set
+                    my $index = $key;
+                    $index =~ s/^P_//;
+                    $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 
 sub numerically {$a <=> $b};
 

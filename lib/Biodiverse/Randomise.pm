@@ -2208,6 +2208,16 @@ sub delete_from_sorted_list_aa {
 }
 
 
+sub get_prng_init_states_array {
+    my $self = shift;
+    my $states = $self->get_param ('RAND_INIT_STATES_ARRAY');
+    if (!defined $states) {
+        $states = [];
+        $self->set_param (RAND_INIT_STATES_ARRAY => $states);
+    }
+    return wantarray ? @$states : $states;
+}
+
 
 #  these appear redundant but might help with mem leaks
 #our $AUTOLOAD;

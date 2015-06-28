@@ -2210,12 +2210,30 @@ sub delete_from_sorted_list_aa {
 
 sub get_prng_init_states_array {
     my $self = shift;
-    my $states = $self->get_param ('RAND_INIT_STATES_ARRAY');
-    if (!defined $states) {
-        $states = [];
-        $self->set_param (RAND_INIT_STATES_ARRAY => $states);
-    }
+    my $state_data = $self->get_prng_init_state_data;
+    my $states = ($state_data->{STATES_ARRAY} //= []);
     return wantarray ? @$states : $states;
+}
+
+sub get_prng_init_total_counts_array {
+    my $self = shift;
+    my $state_data = $self->get_prng_init_state_data;
+    my $counts = ($state_data->{TOTAL_COUNTS_ARRAY} //= []);
+    return wantarray ? @$counts : $counts;
+}
+
+sub get_prng_init_state_data {
+    my $self = shift;
+    my $state_data = $self->get_param ('RAND_INIT_STATE_DATA');
+    if (!defined $state_data) {
+        $state_data = {
+            STATES_ARRAY       => [],
+            TOTAL_COUNTS_ARRAY => [],
+        };
+        $self->set_param (RAND_INIT_STATE_DATA => $state_data);
+    }
+
+    return wantarray ? @$state_data : $state_data;
 }
 
 

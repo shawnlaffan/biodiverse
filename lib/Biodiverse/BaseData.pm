@@ -4661,11 +4661,16 @@ sub reintegrate_after_parallel_randomisations {
             next RAND_FROM if $state_str eq $init_state_from_str;
         }
         push @randomisations_from_to_use, $name_from;
-        #  we are going to add this one, so add its init state to the list
-        #  should also track the end state and the number of iters it provided
+        # We are going to add this one, so add its init state to the list
+        #  and track the number of iters it provided.
+        #  -- should also track the end state 
         push @$prng_init_states, $init_state_from;
+        my $prng_total_counts_array = $rand_to->get_prng_init_total_counts_array;
+
+        my $iterations_from = $rand_from->get_param ('TOTAL_ITERATIONS');
+        push @$prng_total_counts_array, $iterations_from;
         my $total_iterations = $rand_to->get_param_as_ref ('TOTAL_ITERATIONS');
-        $$total_iterations += $rand_from->get_param ('TOTAL_ITERATIONS')
+        $$total_iterations += $iterations_from;
     }
 
     my $rand_list_re_text  = '^(?:' . join ('|', @randomisations_from_to_use) . ')>>';

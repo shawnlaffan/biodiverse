@@ -1290,7 +1290,7 @@ sub test_reorder_axes {
 }
 
 
-sub test_reintegrate_after_randomisation {
+sub test_reintegrate_after_separate_randomisations {
     #  use a small basedata for test speed purposes
     my %args = (
         x_spacing   => 1,
@@ -1357,8 +1357,8 @@ sub test_reintegrate_after_randomisation {
         );
         check_randomisation_lists_incremented_correctly (
             orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-            integr => $bd_from->get_spatial_output_ref (name => 'analysis1'),
-            from   => $bd1->get_spatial_output_ref (name => 'analysis1')
+            integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
+            from   => $bd_from->get_spatial_output_ref (name => 'analysis1')
         );
     }
 
@@ -1373,14 +1373,64 @@ sub test_reintegrate_after_randomisation {
             2,
             "Got 2 init states from reintegrations, $name",
         );
+        my $a = $rand_ref->get_prng_init_total_counts_array;
+        is_deeply ($a, [2, 2], "got expected total iteration counts array, $name");
+    }
+    
+    #  now check that we don't double reintegrate
+    $bd_orig = $bd1->clone;
+    for my $bd_from ($bd2, $bd3) {
+        #  we need the pre-integration values for checking
+        $bd1->reintegrate_after_parallel_randomisations (
+            from => $bd_from,
+        );
+        check_randomisation_integration_skipped (
+            orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
+            integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
+        );
+    }
+    
+    foreach my $rand_ref (sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs ) {
+        my $name = $rand_ref->get_name;
+        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
+            6,
+            "Total iterations is correct after reintegration ignored, $name",
+        );
+        my $prng_init_states = $rand_ref->get_prng_init_states_array;
+        is (scalar @$prng_init_states,
+            2,
+            "Got 2 init states when reintegrations ignored, $name",
+        );
+        my $a = $rand_ref->get_prng_init_total_counts_array;
+        is_deeply ($a, [2, 2], "got expected total iteration counts array when reintegrations ignored, $name");
     }
 
 }
 
+sub check_randomisation_integration_skipped {
+    my %args = @_;
+    my ($sp_orig, $sp_integr) = @args{qw /orig integr/};
+
+    subtest 'randomisation lists incremented correctly when integration should be skipped (i.e. no integration was done)' => sub {
+        my $gp_list = $sp_integr->get_element_list;
+        my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
+        my @rand_lists = grep {$_ =~ />>/} @$list_names;
+        foreach my $group (@$gp_list) {
+            foreach my $list_name (@rand_lists) {
+                my %l_args = (element => $group, list => $list_name);
+                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
+                my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                is_deeply ($lr_integr, $lr_orig, "$group, $list_name");
+            }
+        }
+    };
+}
+
+
 
 sub check_randomisation_lists_incremented_correctly {
     my %args = @_;
-    my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig integr from/};
+    my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig from integr/};
     
     subtest 'randomisation lists incremented correctly' => sub {
         my $gp_list = $sp_integr->get_element_list;

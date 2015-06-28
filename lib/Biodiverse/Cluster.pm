@@ -1642,12 +1642,14 @@ sub cluster {
 
     #  This should only be used when the user wants it,
     #  but it only triggers in certain circumstances
-    eval {
-        my $max_poss_value = $self->get_max_poss_matrix_value (
-            matrix => $matrix_for_nodes,
-        );
-        $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
-    };
+    if ($self->can('get_max_poss_matrix_value')) {
+        eval {
+            my $max_poss_value = $self->get_max_poss_matrix_value (
+                matrix => $matrix_for_nodes,
+            );
+            $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
+        };
+    }
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?

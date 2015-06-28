@@ -94,7 +94,7 @@ my $time = time();
 
 my $success = eval {
     $rand->run_analysis (
-        save_checkpoint => 99,
+        save_checkpoint => -1,
         iterations      => $iterations,
         %rest_of_args,
     );

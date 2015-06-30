@@ -584,7 +584,10 @@ sub run_randomisation {
         my $count = $target->get_param ($rand_iter_param_name) || 0;
         $count += $iterations;
         $target->set_param ($rand_iter_param_name => $count);
-        #eval {$target->clear_lists_across_elements_cache};
+        if ($target->can ('clear_lists_across_elements_cache')) {
+            $target->clear_lists_across_elements_cache;
+        }
+        $target->delete_cached_value ('METADATA_CACHE');  #  avoid export issues in the GUI
     }
 
     #  and keep a track of the randomisation state,

@@ -708,7 +708,7 @@ sub on_run {
         return;
     }
 
-    if (reftype ($success // 1) eq 'ARRAY') {
+    if ((reftype ($success) // 1) eq 'ARRAY') {
         #  we were passed an array of basedatas
         foreach my $bd (@$success) {
             $self->{gui}->get_project->add_base_data($bd);

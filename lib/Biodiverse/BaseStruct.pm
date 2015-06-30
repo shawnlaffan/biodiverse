@@ -3163,7 +3163,9 @@ sub get_list_value_stats {
 
 sub clear_lists_across_elements_cache {
     my $self = shift;
-    $self->set_param (LISTS_ACROSS_ELEMENTS => undef);
+    my $keys = $self->get_cached_value_keys;
+    my @keys_to_delete = grep {$_ =~ /^LISTS_ACROSS_ELEMENTS/} @$keys;
+    $self->delete_cached_values (keys => \@keys_to_delete);
     return;
 }
 

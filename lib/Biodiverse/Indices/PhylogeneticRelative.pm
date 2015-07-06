@@ -273,9 +273,7 @@ sub calc_phylo_rpe2 {
     my %results;
     {
         foreach my $null_node (keys %$node_ranges_global) {
-            no autovivification;
-            #my $null_node_ref = $null_tree_ref->get_node_ref_aa($null_node);
-            #$pe_null += $null_node_ref->get_length
+            #no autovivification;
             $pe_null += $null_node_len_hash->{$null_node}
                       * $node_ranges_local->{$null_node}
                       / $node_ranges_global->{$null_node};

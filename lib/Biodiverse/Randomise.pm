@@ -1242,13 +1242,9 @@ END_PROGRESS_TEXT
                  . "$check $check2 :: $i\n"
                     if defined $to_group and exists $filled_groups{$to_group};
 
-            # assign this label to its new group
-            $new_bd->add_element (
-                label => $label,
-                group => $to_group,
-                count => $count,
-                csv_object => $csv_object,
-            );
+            # Assign this label to its new group.
+            # Use array args version for speed.
+            $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
             #  now delete it from the list of candidates
             $cloned_bd->delete_sub_element_aa ($label, $from_group);

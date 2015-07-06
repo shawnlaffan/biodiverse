@@ -2578,6 +2578,42 @@ sub add_element {  #  run some calls to the sub hashes
     return;
 }
 
+#  add groups and labels without any of the options in add_element,
+#  array args version for speed
+sub add_element_simple_aa {
+    my ($self, $label, $group, $count, $csv_object) = @_;
+
+    $count //= 1;
+
+    my $gp_ref = $self->get_groups_ref;
+    if (not defined $label) {  #  one of these will break if neither label nor group is defined
+        $gp_ref->add_element (
+            element    => $group,
+            csv_object => $csv_object,
+        );
+        return;
+    }
+
+    my $lb_ref = $self->get_labels_ref;
+    if (not defined $group) {
+        $lb_ref->add_element (
+            element    => $label,
+            csv_object => $csv_object,
+        );
+        return;
+    }
+
+    if ($count) {
+        #  add the labels and groups as element and subelement
+        #  labels is the transpose of groups
+        $gp_ref->add_sub_element_aa ($group, $label, $count, $csv_object);
+        $lb_ref->add_sub_element_aa ($label, $group, $count, $csv_object);
+    }
+
+    1;
+}
+
+
 #  add elements from a collated hash
 #  assumes {gps}{labels}{counts}
 sub add_elements_collated {

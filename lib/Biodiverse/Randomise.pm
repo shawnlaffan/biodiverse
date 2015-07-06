@@ -1251,10 +1251,7 @@ END_PROGRESS_TEXT
             );
 
             #  now delete it from the list of candidates
-            $cloned_bd->delete_sub_element (
-                label => $label,
-                group => $from_group,
-            );
+            $cloned_bd->delete_sub_element_aa ($label, $from_group);
             delete $tmp{$from_group};
 
             #  increment richness and then check if we've filled this group.
@@ -1667,10 +1664,7 @@ sub swap_to_reach_richness_targets {
         my $add_count  = $from_groups_hash->{$from_group};
 
         #  clear the pair out of cloned_self
-        $cloned_bd->delete_sub_element (
-            group => $from_group,
-            label => $add_label,
-        );
+        $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
         $self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
 
         #  Now add this label to a group that does not already contain it.
@@ -1749,10 +1743,8 @@ sub swap_to_reach_richness_targets {
             }
 
             #  Remove it from $target_group in new_bd
-            $new_bd->delete_sub_element (
-                label => $remove_label,
-                group => $target_group,
-            );
+            $new_bd->delete_sub_element_aa ($remove_label, $target_group);
+
             #  track the removal only if the tracker hash includes $remove_label
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
@@ -1879,7 +1871,7 @@ sub swap_to_reach_richness_targets {
 
             $swap_count ++;
 
-            if (!($swap_count % 1000)) {
+            if (!($swap_count % 5000)) {
                 say "Swap count $swap_count";
             }
         }

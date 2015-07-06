@@ -3263,6 +3263,33 @@ sub delete_sub_element {
     1;
 }
 
+#  Array args version of delete_sub_element.
+#  Always deletes elements if they are empty.
+sub delete_sub_element_aa {
+    my ($self, $label, $group) = @_;
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    $labels_ref->delete_sub_element_aa ($label, $group);
+    $groups_ref->delete_sub_element_aa ($group, $label);
+
+    if (!$groups_ref->get_variety_aa ($group)) {
+        $self->delete_element (
+            type => 'GROUPS',
+            element => $group,
+        );
+    }
+    if (!$labels_ref->get_variety_aa ($label)) {
+        $self->delete_element (
+            type => 'LABELS',
+            element => $label,
+        );
+    }
+
+    1;
+}
+
 sub get_redundancy {    #  A cheat method, assumes we want group redundancy by default,
                         # drops the call down to the GROUPS object
     my $self = shift;

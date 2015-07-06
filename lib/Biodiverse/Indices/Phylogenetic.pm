@@ -1603,16 +1603,20 @@ sub get_node_range {
     if (scalar @$children && $max_group_count != keys %groups) {
       CHILD:
         foreach my $child (@$children) {
-            #my $child_name = $child->get_name;
             my $cached_list = $cache->{$child};
             if (!defined $cached_list) {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                @groups{@$c} = undef;
+                # Filter first - see comment in else block.
+                @groups{grep {!exists $groups{$_}} @$c} = undef;
             }
             else {
-                @groups{keys %$cached_list} = undef;
+                #  Benchmarking shows grep speeds up the process.
+                #  Ranges are strongly overlapping at higher levels,
+                #  so we avoid redundant reassignments.
+                #  Makes a difference for very large data sets.
+                @groups{grep {!exists $groups{$_}} keys %$cached_list} = undef;
             }
             last CHILD if $max_group_count == keys %groups;
         }

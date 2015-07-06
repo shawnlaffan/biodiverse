@@ -1246,12 +1246,12 @@ END_PROGRESS_TEXT
 
             # Assign this label to its new group.
             # Use array args version for speed.
-            #$new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
-            $new_bd_additions{$to_group}{$label} = $count;
+            $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
+            #$new_bd_additions{$to_group}{$label} = $count;
 
             #  now delete it from the list of candidates
-            #$cloned_bd->delete_sub_element_aa ($label, $from_group);
-            $cloned_bd_deletions{$from_group}{$label}++;
+            $cloned_bd->delete_sub_element_aa ($label, $from_group);
+            #$cloned_bd_deletions{$from_group}{$label}++;
             delete $tmp{$from_group};
 
             #  increment richness and then check if we've filled this group.
@@ -1271,13 +1271,13 @@ END_PROGRESS_TEXT
             last BY_GROUP if !scalar @target_groups;  
         }
 
-        $new_bd->add_elements_collated (
-            data => \%new_bd_additions,
-            csv_object => $csv_object,
-        );
-        $cloned_bd->delete_sub_elements_collated_by_group (
-            data => \%cloned_bd_deletions,
-        );
+        #$new_bd->add_elements_collated (
+        #    data => \%new_bd_additions,
+        #    csv_object => $csv_object,
+        #);
+        #$cloned_bd->delete_sub_elements_collated_by_group (
+        #    data => \%cloned_bd_deletions,
+        #);
     }
 
     my $target_label_count = $cloned_bd->get_label_count;

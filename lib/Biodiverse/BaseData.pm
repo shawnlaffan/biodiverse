@@ -3326,6 +3326,51 @@ sub delete_sub_element_aa {
     1;
 }
 
+sub delete_sub_elements_collated_by_group {
+    my $self = shift;
+    my %args = @_;
+    my $gp_lb_hash = $args{data};
+
+    #  clean up if labels or groups are now empty
+    my $delete_empty_gps = $args{delete_empty_groups} // 1;
+    my $delete_empty_lbs = $args{delete_empty_labels} // 1;
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    my %labels_processed;
+
+    foreach my $group (keys %$gp_lb_hash) {
+        my $label_subhash = $gp_lb_hash->{$group};
+        foreach my $label (keys %$label_subhash) {
+            $labels_processed{$label}++;
+            $labels_ref->delete_sub_element_aa ($label, $group);
+            $groups_ref->delete_sub_element_aa ($group, $label);
+        }
+    }
+
+    if ($delete_empty_gps) {
+        foreach my $group (keys %$gp_lb_hash) {
+            next if $groups_ref->get_variety_aa ($group);
+            $self->delete_element (
+                type => 'GROUPS',
+                element => $group,
+            );
+        }
+    }
+    if ($delete_empty_lbs) {
+        foreach my $label (%labels_processed) {
+            next if $labels_ref->get_variety_aa ($label);
+            $self->delete_element (
+                type => 'LABELS',
+                element => $label,
+            );
+        }
+    }
+
+    1;
+}
+
 sub get_redundancy {    #  A cheat method, assumes we want group redundancy by default,
                         # drops the call down to the GROUPS object
     my $self = shift;

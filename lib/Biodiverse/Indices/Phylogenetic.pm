@@ -2836,17 +2836,12 @@ sub calc_phylo_abundance {
             croak $e;
         }
 
-        my $length  = $node_ref->get_length;
-        my $abundance = $abundance_hash->{$label};
-
-        $pd_abundance_hash{$label} += $length * $abundance;
-        $pd_abundance += $length * $abundance;
-
-      TRAVERSE_TO_ROOT:
-        while ($node_ref = $node_ref->get_parent) {
-            my $node_len = $node_ref->get_length;
-
-            $pd_abundance_hash{$node_ref->get_name} += $node_len * $abundance;
+        my $abundance    = $abundance_hash->{$label};
+        my $path_lengths = $node_ref->get_path_lengths_to_root_node;
+        
+        foreach my $node_name (keys %$path_lengths) {
+            my $node_len   = $path_lengths->{$node_name};
+            $pd_abundance_hash{$node_name} += $node_len * $abundance;
             $pd_abundance += $node_len * $abundance;
         }
     }    

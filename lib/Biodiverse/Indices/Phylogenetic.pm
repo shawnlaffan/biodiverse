@@ -2765,6 +2765,100 @@ sub get_tree_node_length_hash {
 }
 
 
+
+sub get_metadata_calc_phylo_abundance {
+
+    my %metadata = (
+        description     => 'Phylogenetic abundance based on branch '
+                           . "lengths back to the root of the tree.\n"
+                           . 'Uses labels in both neighbourhoods.',
+        name            => 'Phylogenetic Abundance',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pd calc_abc3 calc_labels_on_tree/],
+        pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PHYLO_ABUNDANCE   => {
+                cluster       => undef,
+                description   => 'Phylogenetic abundance',
+                reference     => '',
+                formula       => [
+                    '= \sum_{c \in C} A \times L_c',
+                    ' where ',
+                    'C',
+                    'is the set of branches in the minimum spanning path '
+                     . 'joining the labels in both neighbour sets to the root of the tree,',
+                     'c',
+                    ' is a branch (a single segment between two nodes) in the '
+                    . 'spanning path ',
+                    'C',
+                    ', and ',
+                    'L_c',
+                    ' is the length of branch ',
+                    'c',
+                    ', and ',
+                    'A',
+                    ' is the abundance of that branch (the sum of its descendant label abundances).'
+                ],
+            },
+            PHYLO_ABUNDANCE_BRANCH_HASH => {
+                cluster       => undef,
+                description   => 'Phylogenetic abundance per branch',
+                reference     => '',
+                type => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_phylo_abundance {
+    my $self = shift;
+    my %args = @_;
+    
+    my $named_labels   = $args{PHYLO_LABELS_ON_TREE};
+    my $abundance_hash = $args{label_hash_all};
+    my $tree           = $args{trimmed_tree};
+
+    my %pd_abundance_hash;
+    my $pd_abundance;
+
+    LABEL:
+    foreach my $label (keys %$named_labels) {
+
+        #  check if node exists - should use a pre_calc
+        my $node_ref = eval {
+            $tree->get_node_ref (node => $label);
+        };
+        if (my $e = $EVAL_ERROR) {  #  still needed? 
+            next LABEL if Biodiverse::Tree::NotExistsNode->caught;
+            croak $e;
+        }
+
+        my $length  = $node_ref->get_length;
+        my $abundance = $abundance_hash->{$label};
+
+        $pd_abundance_hash{$label} += $length * $abundance;
+        $pd_abundance += $length * $abundance;
+
+      TRAVERSE_TO_ROOT:
+        while ($node_ref = $node_ref->get_parent) {
+            my $node_len = $node_ref->get_length;
+
+            $pd_abundance_hash{$node_ref->get_name} += $node_len * $abundance;
+            $pd_abundance += $node_len * $abundance;
+        }
+    }    
+
+    my %results = (
+        PHYLO_ABUNDANCE => $pd_abundance,
+        PHYLO_ABUNDANCE_BRANCH_HASH => \%pd_abundance_hash,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 1;
 
 

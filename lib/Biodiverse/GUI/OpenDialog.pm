@@ -12,7 +12,7 @@ use Gtk2::GladeXML;
 
 use Cwd;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.0_002';
 
 use Biodiverse::GUI::GUIManager;
 

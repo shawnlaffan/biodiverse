@@ -6,7 +6,7 @@ use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.0_002';
 
 use parent qw /Biodiverse::Metadata/;
 

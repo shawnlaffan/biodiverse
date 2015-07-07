@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.0_002';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

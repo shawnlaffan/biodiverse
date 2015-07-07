@@ -8,7 +8,7 @@ use Scalar::Util qw /reftype/;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.0_002';
 
 
 my %methods_and_defaults = (

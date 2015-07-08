@@ -132,7 +132,7 @@ sub test_phylo_abundance_binarised {
                 list    => 'PHYLO_ABUNDANCE_BRANCH_HASH',
                 element => $elt,
             );
-            my $b_sum = sum values $branch_list;
+            my $b_sum = sum values %$branch_list;
             
             is ($abundance, $b_sum, "Got $abundance for $elt");
 

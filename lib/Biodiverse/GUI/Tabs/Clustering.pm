@@ -1742,7 +1742,7 @@ sub show_cluster_labels {
     # For each element, get its labels and put into %total_labels
     my %total_labels;
     foreach my $element (sort keys %{$elements}) {
-        my %labels = $basedata_ref->get_labels_in_group_as_hash(group => $element);
+        my %labels = $basedata_ref->get_labels_in_group_as_hash_aa($element);
         #print Data::Dumper::Dumper(\%labels);
         @total_labels{keys %labels} = undef;
     }

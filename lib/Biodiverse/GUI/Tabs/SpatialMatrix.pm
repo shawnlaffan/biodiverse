@@ -506,12 +506,12 @@ sub on_grid_hover {
         my ($labels1, $labels2);
 
         # hovered group
-        $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $group);
+        $labels2 = $bd_ref->get_labels_in_group_as_hash_aa ($group);
 
         #  index group
         if (defined $self->{selected_element}) {
             #push @nbr_gps, $self->{selected_element};
-            $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
+            $labels1 = $bd_ref->get_labels_in_group_as_hash_aa ($self->{selected_element});
         }
 
         $self->highlight_paths_on_dendrogram ([$labels1, $labels2]);

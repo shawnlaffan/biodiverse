@@ -3613,11 +3613,18 @@ sub get_labels_in_group {  #  get a list of the labels that occur in $group
     return $self->get_groups_ref->get_sub_element_list(element => $args{group});
 }
 
-sub get_labels_in_group_as_hash {  #  get a hash of the labels that occur in $group
+#  get a hash of the labels that occur in $group
+sub get_labels_in_group_as_hash {
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
     return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
+}
+
+#  get a hash of the labels that occur in $group
+sub get_labels_in_group_as_hash_aa {
+    my ($self, $group) = @_;
+    $self->get_groups_ref->get_sub_element_hash_aa($group);
 }
 
 #  get the complement of the labels in a group
@@ -4685,7 +4692,7 @@ sub merge {
     );
 
     foreach my $group ($from_bd->get_groups) {
-        my $tmp = $from_bd->get_labels_in_group_as_hash (group => $group);
+        my $tmp = $from_bd->get_labels_in_group_as_hash_aa ($group);
 
         if (!scalar keys %$tmp) {
             #  make sure we get any empty groups

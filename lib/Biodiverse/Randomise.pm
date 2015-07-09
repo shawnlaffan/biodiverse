@@ -977,7 +977,7 @@ sub rand_csr_by_group {
         );
 
         #  get the labels from the original group and assign them to the random group
-        my %tmp = $bd->get_labels_in_group_as_hash (group => $orig_groups[$i]);
+        my %tmp = $bd->get_labels_in_group_as_hash_aa ($orig_groups[$i]);
 
         while (my ($label, $counts) = each %tmp) {
             $new_bd->add_element(
@@ -1247,11 +1247,9 @@ END_PROGRESS_TEXT
             # Assign this label to its new group.
             # Use array args version for speed.
             $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
-            #$new_bd_additions{$to_group}{$label} = $count;
 
             #  now delete it from the list of candidates
             $cloned_bd->delete_sub_element_aa ($label, $from_group);
-            #$cloned_bd_deletions{$from_group}{$label}++;
             delete $tmp{$from_group};
 
             #  increment richness and then check if we've filled this group.
@@ -1270,14 +1268,6 @@ END_PROGRESS_TEXT
             #  move to next label if no more targets for this label
             last BY_GROUP if !scalar @target_groups;  
         }
-
-        #$new_bd->add_elements_collated (
-        #    data => \%new_bd_additions,
-        #    csv_object => $csv_object,
-        #);
-        #$cloned_bd->delete_sub_elements_collated_by_group (
-        #    data => \%cloned_bd_deletions,
-        #);
     }
 
     my $target_label_count = $cloned_bd->get_label_count;
@@ -1446,7 +1436,7 @@ sub get_rand_structured_subset {
         $bd_failed_def_query = Biodiverse::BaseData->new ($bd->get_params_hash);
 
         foreach my $nbr_group (keys %$failed_def_query) {
-            my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+            my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
             $bd_failed_def_query->add_elements_collated (
                 data => {$nbr_group => $tmp},
                 csv_object => $csv_object,
@@ -1496,7 +1486,7 @@ sub get_rand_structured_subset {
             $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
 
             for my $nbr_group (@nbrs_to_check) {       
-                my $tmp = $bd->get_labels_in_group_as_hash (group => $nbr_group);
+                my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
                 $subset_bd->add_elements_collated (
                     data => {$nbr_group => $tmp},
                     csv_object => $csv_object,
@@ -1587,7 +1577,7 @@ sub swap_to_reach_richness_targets {
         %unfilled_gps_without_label_by_gp,
     );
     foreach my $gp (keys %unfilled_groups) {
-        my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
+        my $list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
         foreach my $label ($bd->get_labels) {
             if (exists $list->{$label}) {
                 $labels_in_unfilled_gps{$label}++;
@@ -1712,9 +1702,8 @@ sub swap_to_reach_richness_targets {
             #  those not in the unfilled groups
 
             #  we will remove one of these labels
-            my $loser_labels = $new_bd->get_labels_in_group_as_hash (
-                group => $target_group,
-            );
+            my $loser_labels
+              = $new_bd->get_labels_in_group_as_hash_aa ($target_group);
 
             #  get those labels not in the unfilled groups
             my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;

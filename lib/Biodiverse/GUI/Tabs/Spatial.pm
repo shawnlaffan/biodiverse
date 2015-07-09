@@ -1342,11 +1342,11 @@ sub on_grid_hover {
         my (%labels1, %labels2);
 
         foreach my $nbr_grp (keys %nbrs_hash_inner) {
-            my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
+            my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
             @labels1{keys %$this_labels} = values %$this_labels;
         }
         foreach my $nbr_grp (keys %nbrs_hash_outer) {
-            my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
+            my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
             @labels2{keys %$this_labels} = values %$this_labels;
         }
 

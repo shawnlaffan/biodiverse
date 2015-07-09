@@ -2554,6 +2554,21 @@ sub get_sub_element_hash {
     wantarray ? %$hash : $hash;
 }
 
+sub get_sub_element_hash_aa {
+    my ($self, $element) = @_;
+
+    no autovivification;
+
+    croak "argument 'element' not specified\n"
+      if !defined $element;
+
+    #  Ideally we should throw an exception, but at the moment too many other
+    #  things need a result and we aren't testing for them.
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS} // {};
+
+    wantarray ? %$hash : $hash;
+}
+
 sub get_subelement_count {
     my $self = shift;
 

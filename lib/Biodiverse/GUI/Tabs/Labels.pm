@@ -1025,7 +1025,7 @@ sub on_grid_hover {
 
 # get labels in the group
     my $bd = $self->get_base_ref;
-    my $labels = $bd->get_labels_in_group_as_hash(group => $group);
+    my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
 
 # highlight in the tree
     foreach my $label (keys %$labels) {
@@ -1057,7 +1057,7 @@ sub on_grid_select {
         my %hash;
         my $bd = $self->{base_ref};
         foreach my $group (@$groups) {
-            my $hashref = $bd->get_labels_in_group_as_hash(group => $group);
+            my $hashref = $bd->get_labels_in_group_as_hash_aa($group);
             @hash{ keys %$hashref } = ();
         }
 

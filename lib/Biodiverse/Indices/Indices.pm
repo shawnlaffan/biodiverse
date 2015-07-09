@@ -1644,7 +1644,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
         ELEMENT:
         foreach my $element (@$el_listref) {
-            my $sublist = $bd->get_labels_in_group_as_hash (group => $element);
+            my $sublist = $bd->get_labels_in_group_as_hash_aa ($element);
             push @label_list, %$sublist;
             push @checked_elements, $element;
         }

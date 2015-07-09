@@ -1233,7 +1233,7 @@ sub _calc_pe {
         }
         #  else build them and cache them
         else {
-            my $labels = $bd->get_labels_in_group_as_hash (group => $group);
+            my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
             my $nodes_in_path = $self->get_path_lengths_to_root_node (
                 @_,
                 labels  => $labels,

@@ -253,7 +253,7 @@ sub get_iei_data_for_elements {
             #  get it if not cached
             if (! exists $hash_cache->{$element}) {
                 my %labels
-                    = $bd -> get_labels_in_group_as_hash (group => $element);
+                    = $bd -> get_labels_in_group_as_hash_aa ($element);
                 my @sorted_labels = sort numerically keys %labels;
 
                 #  add to the cache

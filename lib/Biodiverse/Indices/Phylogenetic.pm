@@ -251,7 +251,7 @@ sub _calc_pd {
     #  need to use node length instead of 1
     #my %included_nodes;
     #@included_nodes{keys %$nodes_in_path} = (1) x scalar keys %$nodes_in_path;
-    my %included_nodes = %$nodes_in_path;
+    #my %included_nodes = %$nodes_in_path;
 
     my ($PD_P, $PD_per_taxon, $PD_P_per_taxon);
     {
@@ -270,7 +270,7 @@ sub _calc_pd {
         PD_per_taxon      => $PD_per_taxon,
         PD_P_per_taxon    => $PD_P_per_taxon,
 
-        PD_INCLUDED_NODE_LIST => \%included_nodes,
+        PD_INCLUDED_NODE_LIST => $nodes_in_path,
     );
 
     return wantarray ? %results : \%results;

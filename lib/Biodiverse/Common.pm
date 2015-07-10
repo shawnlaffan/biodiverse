@@ -2216,7 +2216,7 @@ sub compare_lists_by_item {
 
         #  make sure it gets a value of 0 if false
         my $increment = 0;
-        if (eval {$base > $comp}) {
+        if ($base > $comp) {
             $increment = 1;
         }
 

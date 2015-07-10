@@ -3307,19 +3307,20 @@ sub delete_sub_element_aa {
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
-    $labels_ref->delete_sub_element_aa ($label, $group);
-    $groups_ref->delete_sub_element_aa ($group, $label);
+    #  return value of delete_sub_element_aa is the number of subelements remaining,
+    #  or undef if no subelements list
 
-    if (!$groups_ref->get_variety_aa ($group)) {
+    if (!($labels_ref->delete_sub_element_aa ($label, $group) // 1)) {
         $self->delete_element (
-            type => 'GROUPS',
-            element => $group,
+            type    => 'LABELS',
+            element => $label,
         );
     }
-    if (!$labels_ref->get_variety_aa ($label)) {
+
+    if (!($groups_ref->delete_sub_element_aa ($group, $label) // 1)) {
         $self->delete_element (
-            type => 'LABELS',
-            element => $label,
+            type    => 'GROUPS',
+            element => $group,
         );
     }
 

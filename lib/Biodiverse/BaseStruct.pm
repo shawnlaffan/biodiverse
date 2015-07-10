@@ -2816,9 +2816,10 @@ sub delete_sub_element_aa {
     croak "element not specified\n" if !defined $element;
     croak "subelement not specified\n" if !defined $sub_element;
 
-    return if ! exists $self->{ELEMENTS}{$element};
+    no autovivification;
 
-    my $href = $self->{ELEMENTS}{$element};
+    my $href = $self->{ELEMENTS}{$element}
+     // return;
 
     if (exists $href->{BASE_STATS}) {
         delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
@@ -2827,11 +2828,9 @@ sub delete_sub_element_aa {
             $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
         }
     }
-    if (exists $href->{SUBELEMENTS}) {
-        delete $href->{SUBELEMENTS}{$sub_element};
-    }
+    delete $href->{SUBELEMENTS}{$sub_element};
 
-    1;
+    keys %{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {

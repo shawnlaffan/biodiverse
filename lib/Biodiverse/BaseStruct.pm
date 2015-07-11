@@ -2830,7 +2830,7 @@ sub delete_sub_element_aa {
     }
     delete $href->{SUBELEMENTS}{$sub_element};
 
-    keys %{$href->{SUBELEMENTS}};
+    scalar keys %{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {

@@ -3276,20 +3276,20 @@ sub delete_sub_element {
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
-    $labels_ref->delete_sub_element_aa ($label, $group);
-    $groups_ref->delete_sub_element_aa ($group, $label);
+    my $labels_remaining = $labels_ref->delete_sub_element_aa ($label, $group) // 1;
+    my $groups_remaining = $groups_ref->delete_sub_element_aa ($group, $label) // 1;
 
     #  clean up if labels or groups are now empty
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
 
-    if ($delete_empty_gps && !$groups_ref->get_variety_aa ($group)) {
+    if ($delete_empty_gps && !$groups_remaining) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && !$labels_ref->get_variety_aa ($label)) {
+    if ($delete_empty_lbs && !$labels_remaining) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,

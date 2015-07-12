@@ -2755,7 +2755,7 @@ sub sp_in_label_range {
 
     my $bd  = $h->{basedata};
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
+    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     my $exists = exists $labels_in_group->{$label};
 

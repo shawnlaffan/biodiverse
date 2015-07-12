@@ -3619,7 +3619,8 @@ sub get_labels_in_group_as_hash {
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
-    return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
+    #return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
+    $self->get_groups_ref->get_sub_element_hash_aa($args{group});
 }
 
 #  get a hash of the labels that occur in $group

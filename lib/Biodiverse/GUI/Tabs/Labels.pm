@@ -1023,13 +1023,13 @@ sub on_grid_hover {
 
     return if ! defined $group;
 
-# get labels in the group
+    # get labels in the group
     my $bd = $self->get_base_ref;
     my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
 
-# highlight in the tree
+    # highlight in the tree
     foreach my $label (keys %$labels) {
-# Might not match some or all nodes
+        # Might not match some or all nodes
         eval {
             my $node_ref = $tree->get_node_ref (node => $label);
             if ($self->{use_highlight_path}) {

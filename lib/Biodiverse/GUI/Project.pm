@@ -1268,11 +1268,13 @@ sub manage_empty_basedatas {
         menu_trim_basedata_using_tree
         menu_trim_basedata_using_matrix
         menu_rename_basedata_labels
+        menu_rename_basedata_groups
         menu_attach_basedata_properties
         menu_basedata_reorder_axes
         menu_binarise_basedata_elements
         menu_attach_ranges_as_properties
         menu_attach_abundances_as_properties
+        menu_merge_basedatas
     /];
     $self->manage_empty_model(
         model   => $model,

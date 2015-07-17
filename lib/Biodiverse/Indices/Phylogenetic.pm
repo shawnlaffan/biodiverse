@@ -1608,15 +1608,10 @@ sub get_node_range {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                # Filter first - see comment in else block.
-                @groups{grep {!exists $groups{$_}} @$c} = undef;
+                @groups{@$c} = undef;
             }
             else {
-                #  Benchmarking shows grep speeds up the process.
-                #  Ranges are strongly overlapping at higher levels,
-                #  so we avoid redundant reassignments.
-                #  Makes a difference for very large data sets.
-                @groups{grep {!exists $groups{$_}} keys %$cached_list} = undef;
+                @groups{keys %$cached_list} = undef;
             }
             last CHILD if $max_group_count == keys %groups;
         }

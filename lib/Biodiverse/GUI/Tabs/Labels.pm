@@ -497,6 +497,7 @@ sub remove_selected_labels_from_list {
 
     foreach my $rowref (@rowrefs) {
         my $path = $rowref->get_path;
+        next if !defined $path;
         my $iter = $global_model->get_iter($path);
         $global_model->remove($iter);
     }

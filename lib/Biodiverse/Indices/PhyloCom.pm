@@ -316,6 +316,7 @@ sub _calc_phylo_mpd_mntd {
                         ancestral_node => $last_ancestor,
                         %args,
                     );
+                    #  Panda::Lib merge_hash target
                     @path{keys %$sub_path} = values %$sub_path;
                 }
                 delete $path{$last_ancestor->get_name()};

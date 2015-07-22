@@ -415,6 +415,7 @@ sub get_path_lengths_to_root_node {
         #  The last-if approach is faster than a straight slice,
         #  but we should (might) be able to get even more speedup with XS code.  
         if (!scalar keys %path) {
+            #  target for Panda::Lib merge_hash
             @path{@$sub_path} = ();
         }
         else {
@@ -1285,6 +1286,7 @@ sub _calc_pe {
 
             # ranges are invariant, so can be crashed together
             $hash_ref = $results_this_gp->{PE_RANGELIST};
+            #  target for Panda::Lib merge_hash
             @ranges{keys %$hash_ref} = values %$hash_ref;
 
             # weights need to be summed
@@ -1598,6 +1600,7 @@ sub get_node_range {
 
     if (  !$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
+        #  target for Panda::Lib merge_hash
         @groups{keys %$gp_list} = undef;
     }
     if (scalar @$children && $max_group_count != keys %groups) {
@@ -1608,9 +1611,11 @@ sub get_node_range {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
+                #  target for Panda::Lib merge_hash
                 @groups{@$c} = undef;
             }
             else {
+                #  target for Panda::Lib merge_hash
                 @groups{keys %$cached_list} = undef;
             }
             last CHILD if $max_group_count == keys %groups;

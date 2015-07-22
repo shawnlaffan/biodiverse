@@ -1198,6 +1198,8 @@ sub run_sp_cond_tests {
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
     my $index_text = ' (no spatial index)';
+    
+    my %results;
 
     my $nbrs_from_no_index;
     my @index_res_multipliers = (0, 1, 2);
@@ -1256,18 +1258,20 @@ sub run_sp_cond_tests {
             }
             else {
                 $nbrs_from_no_index->{$condition} = $nbrs;
+                $results{$cond} = $nbrs;
             }
         }
-
     }
 
-    return;
+    return wantarray ? %results : \%results;
 }
 
 
 sub test_sp_cond_res_pairs {
     my $conditions = shift;
     my @res_pairs  = @_;
+    
+    my %results;
 
     SKIP:
     {
@@ -1284,13 +1288,14 @@ sub test_sp_cond_res_pairs {
                 x_min      => $x[0],
                 y_min      => $y[0],
             );
+            my $key = join (':', @$res, @x);
 
             #  should sub this - get centre_group or something
             my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
             my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
             my $element = join ":", $element_x, $element_y;
     
-            run_sp_cond_tests (
+            $results{$key} = run_sp_cond_tests (
                 basedata   => $bd,
                 element    => $element,
                 conditions => $conditions,
@@ -1298,6 +1303,7 @@ sub test_sp_cond_res_pairs {
             );
         }
     }
+    return wantarray ? %results : \%results;
 }
 
 sub get_sp_conditions_to_run {

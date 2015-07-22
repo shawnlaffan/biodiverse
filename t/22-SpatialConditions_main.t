@@ -49,6 +49,8 @@ my %conditions = (
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pi)'   => 159,
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip2)' => 159,
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4)' => 153,
+        #  degrees
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle_deg => 45)' => 153,
     },
     block => {
         'sp_block (size => ##3)' => 9,

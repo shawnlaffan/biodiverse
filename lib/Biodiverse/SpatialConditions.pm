@@ -1362,9 +1362,10 @@ sub get_metadata_sp_ellipse {
 
     my $description =
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
-      . q{which are used (default is [0,1]).  The default rotate_angle is pi/2.};
+      . q{which are used (default is [0,1]).  The default rotate_angle is 0, }
+      . q{such that the major axis is east-west.};
     my $example = <<'END_ELLIPSE_EX'
-# East west aligned ellipse
+# North-south aligned ellipse
 sp_ellipse (
     major_radius => 300000,
     minor_radius => 100000,
@@ -1421,12 +1422,12 @@ sub sp_ellipse {
     my $major_radius = $args{major_radius};    #  longest axis
     my $minor_radius = $args{minor_radius};    #  shortest axis
 
-    #  set the default offset as north in radians, anticlockwise 1.57 is north
-    my $rotate_angle =
-        defined $args{rotate_angle} ? $args{rotate_angle} : Math::Trig::pi2;
+    #  set the default offset as east-west in radians (anticlockwise 1.57 is north)
+    my $rotate_angle = $args{rotate_angle};
     if ( defined $args{rotate_angle_deg} and not defined $rotate_angle ) {
-        $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
+            $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
     }
+    $rotate_angle //= 0;
 
     my $d0 = $d[ $axes->[0] ];
     my $d1 = $d[ $axes->[1] ];

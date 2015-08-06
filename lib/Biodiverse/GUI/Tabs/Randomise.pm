@@ -191,10 +191,10 @@ sub add_save_checkpoint_to_table {
     my $label = Gtk2::Label->new("Checkpoint save\niterations");
     
     
-    my $default = 99;
-    my $incr    = 900;
+    my $default = -1;
+    my $incr    = 100;
     
-    my $adj = Gtk2::Adjustment->new($default, 0, 10000000, $incr, $incr * 10, 0);
+    my $adj = Gtk2::Adjustment->new($default, -1, 10000000, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
     
     my $tooltip_group = Gtk2::Tooltips->new;

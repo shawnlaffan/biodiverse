@@ -1342,7 +1342,7 @@ sub get_metadata_get_rand_structured_subset {
     my $spatial_condition_param = bless {
         name       => 'spatial_condition',
         label_text => "Spatial condition\nto define subsets",
-        default    => ' ' x 30,  #  add spaces to get some widget width
+        default    => '', #' ' x 30,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
         tooltip    => 'Controls the spatial subsets used in the randomisation.  '
                     . 'Subsets are forced to be non-overlapping, so conditions '

@@ -738,6 +738,79 @@ sub test_group_properties_reassigned {
     return $bd;
 }
 
+sub test_label_properties_reassigned_with_condition {
+    test_label_properties_reassigned (spatial_condition => 'sp_block (size => 300000)');
+}
+
+sub test_label_properties_reassigned {
+    my %args = @_;
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    my $rand_func   = 'rand_structured';
+    my $object_name = 't_l_p_r';
+    
+    my $lb_props = get_label_properties_site_data_object();
+
+    eval { $bd->assign_element_properties (
+        type              => 'labels',
+        properties_object => $lb_props,
+    ) };
+    my $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, 'Label properties assigned without eval error');
+    
+    my $prop_keys = $bd->get_labels_ref->get_element_property_keys;  #  trigger some caching which needs to be cleared
+
+    #  name is short for sub name
+    my $sp = $bd->add_spatial_output (name => 't_l_p_r');
+
+    $sp->run_analysis (
+        calculations => [qw /calc_lbprop_stats/],
+        spatial_conditions => [$args{spatial_condition} // 'sp_self_only()'],
+    );
+
+    my %prop_handlers = (
+        no_change => 0,
+        #by_set    => 1,
+        #by_item   => 1,
+    );
+
+    while (my ($props_func, $negate_expected) = each %prop_handlers) {
+
+        my $rand_name   = 'r' . $object_name . $props_func;
+
+        my $rand = $bd->add_randomisation_output (name => $rand_name);
+        my $rand_bd_array = $rand->run_analysis (
+            %args,
+            function   => $rand_func,
+            iterations => 1,
+            retain_outputs        => 1,
+            return_rand_bd_array  => 1,
+        );
+    
+        my $rand_bd = $rand_bd_array->[0];
+
+        my $prop_keys_rand = $rand_bd->get_labels_ref->get_element_property_keys;
+        is_deeply ($prop_keys_rand, $prop_keys, "Property keys match");
+        
+        my @refs = $rand_bd->get_spatial_output_refs;
+        my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
+    
+        my $sub_same = sub {
+            basedata_label_props_are_same (
+                object1 => $bd,
+                object2 => $rand_bd,
+                negate  => $negate_expected,
+            );
+        };
+
+        subtest "$props_func checks" => $sub_same;
+    }
+
+    return $bd;
+}
+
 sub test_randomise_tree_ref_args {
     my $rand_func   = 'rand_csr_by_group';
     my $object_name = 't_r_t_r_f';
@@ -886,18 +959,33 @@ sub test_randomise_tree_ref_args {
 
 
 sub basedata_group_props_are_same {
+    basedata_element_props_are_same (@_, type => 'groups');
+}
+
+sub basedata_label_props_are_same {
+    basedata_element_props_are_same (@_, type => 'labels');
+}
+
+sub basedata_element_props_are_same {
     my %args = @_;
     my $bd1 = $args{object1};
     my $bd2 = $args{object2};
     my $negate_check = $args{negate};
 
-    my $gp1 = $bd1->get_groups_ref;
-    my $gp2 = $bd2->get_groups_ref;
+    my ($el_ref1, $el_ref2);
+    if ($args{type} eq 'labels') {
+        $el_ref1 = $bd1->get_labels_ref;
+        $el_ref2 = $bd2->get_labels_ref;
+    }
+    else {
+        $el_ref1 = $bd1->get_groups_ref;
+        $el_ref2 = $bd2->get_groups_ref;
+    }
 
-    my %groups1 = $gp1->get_element_hash;
-    my %groups2 = $gp2->get_element_hash;
+    my %elements1 = $el_ref1->get_element_hash;
+    my %elements2 = $el_ref2->get_element_hash;
 
-    is (scalar keys %groups1, scalar keys %groups2, 'basedata objects have same number of groups');
+    is (scalar keys %elements1, scalar keys %elements2, 'objects have same number of elements');
 
     my $check_count;
 
@@ -905,9 +993,9 @@ sub basedata_group_props_are_same {
     my $defined_count1 = my $defined_count2 = 0;
     my $sum1 = my $sum2 = 0;
 
-    foreach my $gp_name (sort keys %groups1) {
-        my $list1 = $gp1->get_list_ref (element => $gp_name, list => 'PROPERTIES');
-        my $list2 = $gp2->get_list_ref (element => $gp_name, list => 'PROPERTIES');
+    foreach my $el_name (sort keys %elements1) {
+        my $list1 = $el_ref1->get_list_ref (element => $el_name, list => 'PROPERTIES');
+        my $list2 = $el_ref2->get_list_ref (element => $el_name, list => 'PROPERTIES');
 
         my @tmp;
         @tmp = grep {defined $_} values %$list1;
@@ -922,14 +1010,14 @@ sub basedata_group_props_are_same {
         }
     }
 
-    my $text = 'Group property sets ';
+    my $text = ucfirst ($args{type}) . ' property sets ';
     $text .= $negate_check ? 'differ' : 'are the same';
 
     if ($negate_check) {
-        isnt ($check_count, scalar keys %groups1, $text);
+        isnt ($check_count, scalar keys %elements1, $text);
     }
     else {
-        is ($check_count, scalar keys %groups1, $text);
+        is ($check_count, scalar keys %elements1, $text);
     }
 
     #  useful so long as we guarantee randomised basedata will have the same groups as the orig

@@ -62,6 +62,7 @@ use Exporter::Easy (
             qw(
                 get_element_properties_test_data
                 get_group_properties_site_data_object
+                get_label_properties_site_data_object
                 :utils
             ),
         ],
@@ -706,6 +707,13 @@ sub get_group_properties_site_data {
 
 sub get_group_properties_site_data_object {
     my $data  = get_group_properties_site_data;
+    my $props = element_properties_from_string($data);
+
+    return $props;
+}
+
+sub get_label_properties_site_data_object {
+    my $data  = get_label_properties_site_data;
     my $props = element_properties_from_string($data);
 
     return $props;

@@ -2850,6 +2850,9 @@ sub transfer_element_properties {
         $count ++;
     }
 
+    #  scorched earth approach
+    $to_elements_ref->delete_cached_values; # (keys => ['ELEMENT_PROPERTY_KEYS']);
+
     return $count;
 }
 

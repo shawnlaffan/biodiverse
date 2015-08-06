@@ -56,10 +56,12 @@ sub get_lbp_stats_objects {
     #  These are then added to the stats objects to save it
     #  recalculating all its stats each time.
     LABEL:
-    while (my ($label, $count) = each %$label_hash_all) {
+    foreach my $label (keys %$label_hash_all) {
         my $properties = $lb->get_element_properties (element => $label);
 
-        next LABEL if ! defined $properties;
+        next LABEL if !defined $properties;
+
+        my $count = $label_hash_all->{$label};
 
         PROPERTY:
         while (my ($prop, $value) = each %$properties) {

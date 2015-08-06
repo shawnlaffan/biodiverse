@@ -677,11 +677,20 @@ sub _get_randomised_basedata {
     my %args = @_;
     
     my $rand_bd;
-    if ($args{spatial_conditions} || $args{definition_query} || $args{spatial_condition}) {
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+
+    #  do we have one or more valid conditions which imply a subset is needed?
+    my $check = join '', map {$_ // ''} ($args{spatial_conditions}, $args{definition_query}, $args{spatial_condition});
+    $check =~ s/\s//g;
+
+    if (length $check) {
         $rand_bd = $self->get_rand_structured_subset(%args);
+        $bd->transfer_label_properties (
+            %args,
+            receiver => $rand_bd,
+        );
     }
     else {
-        my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
         my $function = $args{rand_function};
         $rand_bd = $self->$function(%args);
         $self->process_group_props (
@@ -995,7 +1004,6 @@ sub rand_csr_by_group {
     );
 
     return $new_bd;
-
 }
 
 sub get_metadata_rand_structured {

@@ -2130,6 +2130,7 @@ sub get_metadata_calc_phylo_sorenson {
         name           =>  'Phylo Sorenson',
         type           =>  'Phylogenetic Turnover',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+        reference      => 'Bryant et al. (2008) http://dx.doi.org/10.1073/pnas.0801920105',
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
@@ -2173,6 +2174,7 @@ sub get_metadata_calc_phylo_jaccard {
         name           =>  'Phylo Jaccard',
         type           =>  'Phylogenetic Turnover',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+        reference      => 'Lozupone and Knight (2005) http://dx.doi.org/10.1128/AEM.71.12.8228-8235.2005',
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {

@@ -3201,7 +3201,7 @@ sub delete_label {
     
     my $label = $args{label} // croak "Argument 'label' not defined\n";
     
-    return $self->delete_element (type => 'LABELS', element => $label);
+    return $self->delete_element (%args, type => 'LABELS', element => $label);
 }
 
 sub delete_group {
@@ -3210,7 +3210,7 @@ sub delete_group {
     
     my $group = $args{group} // croak "Argument 'group' not defined\n";
     
-    return $self->delete_element (type => 'GROUPS', element => $group);
+    return $self->delete_element (%args, type => 'GROUPS', element => $group);
 }
 
 

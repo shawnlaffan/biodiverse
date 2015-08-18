@@ -2480,39 +2480,9 @@ sub show_index_dialog {
     my $tooltip_group = Gtk2::Tooltips->new;
     my $table = $dlgxml->get_widget('tableImportParameters');
 
-    #my $window = Gtk2::Window->new;
-    #$window->set_title ('Set index sizes xxxx');
-    #$window->set_resizable (1);
-    #$window->set_modal (1);
-    ##$window->set_position ('GTK_WIN_POS_CENTER_ON_PARENT');
-    #$window->set_transient_for ( $gui->get_widget('wndMain') );
-    #my $table = Gtk2::Table->new (1,2);
-    #$table->set_col_spacings (3);
-    #$table->set_row_spacings (3);
-    #$window->add ($table);
-
-    #$table->set_homogeneous (0);
-
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_title ('Set index sizes');
-    
-    # Make the checkbox to use index or not
-    #my $check_label = Gtk2::Label->new;
-    #$check_label->set_use_markup (1);
-    #$check_label->set_markup( '<b>Use index?</b>' );
-    #my $check_box = Gtk2::CheckButton->new;
-    #$check_box->set(active => $used_index ? 1 : 0);
-    #my $rows = $table->get('n-rows');
-    #$rows++;
-    #$table->set('n-rows' => $rows);
-    #$table->attach($check_label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-    #$table->attach($check_box,    1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
-    #$tooltip_group->set_tip(
-    #    $check_label,
-    #    'Uncheck to delete the current index',
-    #    undef,
-    #);
     
     #  add the incr/decr buttons
     my $rows = $table->get('n-rows');
@@ -2548,7 +2518,8 @@ sub show_index_dialog {
         my $step_incr = $cellsize;
 
         if ($cellsize == 0) {   #  allow some change for points
-            $init_value = ($coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i]) / 20;
+            #  avoid precision issues later on when predicting offsets
+            $init_value = 0 + sprintf "%.10f", ($coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i]) / 20;
             $min_val    = 0;      #  should allow non-zero somehow
             $step_incr  = $init_value;
         }
@@ -2584,7 +2555,7 @@ sub show_index_dialog {
         my $widget = Gtk2::SpinButton->new(
             $adj,
             $init_value,
-            6,
+            10,
         );
 
         $table->attach($label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0);
@@ -2593,10 +2564,21 @@ sub show_index_dialog {
         push @resolution_widgets, $widget;
 
         # Add a tooltip
-        my $tip_text = $is_text_axis
-            ? "Text axes must be set to zero"
-            : "Set the index size for axis $i\n"
-              . "Middle click the arrows to change by $page_incr.";
+        my $tip_text = "Set the index size for axis $i\n"
+              . "Middle click the arrows to change by $page_incr.\n";
+        if ($is_text_axis) {
+            $tip_text = "Text axes must be set to zero";
+        }
+        else {
+            if ($cellsize == 0) {
+                $tip_text .= "The default value and increment are calculated as 1/20th "
+                          .  "of the axis extent, rounded to the nearest 10 decimal places";
+            }
+            else {
+                $tip_text .= "The default value and increment are equal to the cell size";
+            }
+        }
+        
         $tooltip_group->set_tip($widget, $tip_text, undef);
         $tooltip_group->set_tip($label,  $tip_text, undef);
 

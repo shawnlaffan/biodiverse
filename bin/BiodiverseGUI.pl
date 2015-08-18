@@ -36,6 +36,8 @@ say '@INC: ', join q{ }, @INC;
 use Biodiverse::Config;
 use Biodiverse::GUI::GUIManager;
 
+say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
+
 #  load Gtk
 use Gtk2 qw/-init/;
 

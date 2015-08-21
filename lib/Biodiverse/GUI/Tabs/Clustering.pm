@@ -318,8 +318,6 @@ sub new {
     }
 
     $self->choose_tool('Select');
-
-    $self->set_frame_label_widget;
     
     $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
     $self->update_export_menu;
@@ -505,26 +503,6 @@ sub on_combo_metric_changed {
     return;
 };
 
-
-sub set_frame_label_widget {
-    my $self = shift;
-    
-    my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget->show;
-
-    my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
-    $frame->set_label_widget ($widget);
-    
-    $widget->signal_connect_swapped (
-        clicked => \&on_show_hide_parameters,
-        $self,
-    );
-    $widget->set_active (0);
-    $widget->set_has_tooltip (1);
-    $widget->set_tooltip_text ('show/hide the parameters section');
-
-    return;
-}
 
 sub on_show_hide_parameters {
     my $self = shift;

@@ -306,8 +306,6 @@ sub new {
         $self->recolour();
     }
 
-    $self->set_frame_label_widget;
-
     $self->{drag_modes} = {
         Select  => 'click',
         Pan     => 'pan',
@@ -355,25 +353,6 @@ sub screenshot {
     return;
 }
 
-sub set_frame_label_widget {
-    my $self = shift;
-    
-    my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget->show;
-
-    my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
-    $frame->set_label_widget ($widget);
-
-    $widget->signal_connect_swapped (
-        clicked => \&on_show_hide_parameters,
-        $self,
-    );
-    $widget->set_active (0);
-    $widget->set_has_tooltip (1);
-    $widget->set_tooltip_text ('show/hide the parameters section');
-
-    return;
-}
 
 sub on_show_hide_parameters {
     my $self = shift;

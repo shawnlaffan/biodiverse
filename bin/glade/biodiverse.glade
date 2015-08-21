@@ -1150,8 +1150,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1168,8 +1168,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6268,11 +6268,49 @@ Does not affect the vertical connectors.
                                         <property name="can_focus">False</property>
                                         <property name="n_rows">2</property>
                                         <child>
-                                          <widget class="GtkFrame" id="frame_cluster_parameters">
+                                          <widget class="GtkFrame" id="frame22">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <property name="border_width">5</property>
                                             <property name="label_xalign">0</property>
+                                            <child>
+                                              <widget class="GtkScrolledWindow" id="scrolledwindow22">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="border_width">5</property>
+                                                <property name="hscrollbar_policy">never</property>
+                                                <property name="vscrollbar_policy">automatic</property>
+                                                <child>
+                                                  <widget class="GtkTreeView" id="treeSpatialCalculations">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                  </widget>
+                                                </child>
+                                              </widget>
+                                            </child>
+                                            <child>
+                                              <widget class="GtkLabel" id="label119">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">Calculations to run for each cluster node (optional)</property>
+                                                <property name="use_markup">True</property>
+                                              </widget>
+                                              <packing>
+                                                <property name="type">label_item</property>
+                                              </packing>
+                                            </child>
+                                          </widget>
+                                          <packing>
+                                            <property name="top_attach">1</property>
+                                            <property name="bottom_attach">2</property>
+                                            <property name="x_options">GTK_FILL</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkExpander" id="expander4">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="expanded">True</property>
                                             <child>
                                               <widget class="GtkAlignment" id="alignment36">
                                                 <property name="visible">True</property>
@@ -6287,174 +6325,6 @@ Does not affect the vertical connectors.
                                                     <property name="n_columns">3</property>
                                                     <property name="column_spacing">2</property>
                                                     <property name="row_spacing">4</property>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <widget class="GtkFrame" id="frame2">
-                                                        <property name="visible">True</property>
-                                                        <property name="can_focus">False</property>
-                                                        <property name="label_xalign">0</property>
-                                                        <child>
-                                                          <widget class="GtkHBox" id="hbox_cluster_options">
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">False</property>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_no_cache_abc">
-                                                            <property name="label" translatable="yes">Do not 
-use caching </property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Don't use caching when building the matrix.
-This reduces memory requirements
-but can slow down processing.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">0</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_build_matrices_only">
-                                                            <property name="label" translatable="yes">Build matrices 
-and then stop</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Just build the matrices 
-and don't actually cluster.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">1</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_output_to_file">
-                                                            <property name="label" translatable="yes">Output matrices 
-direct to text files</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
-Will not cluster if set and matrices will not be displayable via the project.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">2</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_output_gdm_format">
-                                                            <property name="label" translatable="yes">Output matrices 
-direct to GDM 
-compatible format</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Only if the "Output 
-matrices to text files"
- option is checked.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">3</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_keep_sp_nbrs_output">
-                                                            <property name="label" translatable="yes">Keep spatial 
-neighbours output</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">The spatial output is used to define the set of 
-neighbouring groups used for matrix building.
-Use this if you want to better understand how
-your results were generated.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">4</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_no_clone_matrices">
-                                                            <property name="label" translatable="yes">Do not clone matrices 
-before clustering</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">This will save memory, but you cannot then 
-view the matrix as it is destroyed as part 
-of clustering.  It will not be added to the BaseData object.
-Matrix exporting is also slowed, as the 
-system must rebuild the matrices each time you export.</property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">5</property>
-                                                            </packing>
-                                                            </child>
-                                                            <child>
-                                                            <widget class="GtkCheckButton" id="chk_clear_singletons">
-                                                            <property name="label" translatable="yes">Clear singleton
-nodes from tree</property>
-                                                            <property name="visible">True</property>
-                                                            <property name="can_focus">True</property>
-                                                            <property name="receives_default">False</property>
-                                                            <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Singletons are terminal nodes 
-connected directly to the root.
-Clearing them is useful 
-for RegionGrower analyses.  </property>
-                                                            <property name="draw_indicator">True</property>
-                                                            </widget>
-                                                            <packing>
-                                                            <property name="expand">True</property>
-                                                            <property name="fill">True</property>
-                                                            <property name="position">6</property>
-                                                            </packing>
-                                                            </child>
-                                                          </widget>
-                                                        </child>
-                                                        <child>
-                                                          <widget class="GtkLabel" id="label_frame2">
-                                                            <property name="can_focus">False</property>
-                                                            <property name="label" translatable="yes">Options</property>
-                                                            <property name="use_markup">True</property>
-                                                          </widget>
-                                                          <packing>
-                                                            <property name="type">label_item</property>
-                                                          </packing>
-                                                        </child>
-                                                      </widget>
-                                                      <packing>
-                                                        <property name="right_attach">3</property>
-                                                        <property name="top_attach">7</property>
-                                                        <property name="bottom_attach">8</property>
-                                                        <property name="x_options">GTK_FILL</property>
-                                                      </packing>
-                                                    </child>
                                                     <child>
                                                       <placeholder/>
                                                     </child>
@@ -6514,7 +6384,7 @@ for RegionGrower analyses.  </property>
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <widget class="GtkLabel" id="label4">
+                                                      <widget class="GtkLabel" id="label7">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <property name="has_tooltip">True</property>
@@ -6748,7 +6618,7 @@ than one pair of elements can be merged.   </property>
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <widget class="GtkLabel" id="label7">
+                                                      <widget class="GtkLabel" id="label8">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <property name="tooltip" translatable="yes">(Optional)
@@ -6763,16 +6633,184 @@ Select a set of indices to determine the ordering of clustering when there is mo
                                                         <property name="y_options">GTK_FILL</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkFrame" id="frame2">
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">False</property>
+                                                        <property name="label_xalign">0</property>
+                                                        <child>
+                                                          <widget class="GtkHBox" id="hbox_cluster_options">
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">False</property>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_no_cache_abc">
+                                                            <property name="label" translatable="yes">Do not 
+use caching </property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Don't use caching when building the matrix.
+This reduces memory requirements
+but can slow down processing.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">0</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_build_matrices_only">
+                                                            <property name="label" translatable="yes">Build matrices 
+and then stop</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Just build the matrices 
+and don't actually cluster.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">1</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_output_to_file">
+                                                            <property name="label" translatable="yes">Output matrices 
+direct to text files</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
+Will not cluster if set and matrices will not be displayable via the project.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">2</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_output_gdm_format">
+                                                            <property name="label" translatable="yes">Output matrices 
+direct to GDM 
+compatible format</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Only if the "Output 
+matrices to text files"
+ option is checked.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">3</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_keep_sp_nbrs_output">
+                                                            <property name="label" translatable="yes">Keep spatial 
+neighbours output</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">The spatial output is used to define the set of 
+neighbouring groups used for matrix building.
+Use this if you want to better understand how
+your results were generated.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">4</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_no_clone_matrices">
+                                                            <property name="label" translatable="yes">Do not clone matrices 
+before clustering</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">This will save memory, but you cannot then 
+view the matrix as it is destroyed as part 
+of clustering.  It will not be added to the BaseData object.
+Matrix exporting is also slowed, as the 
+system must rebuild the matrices each time you export.</property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">5</property>
+                                                            </packing>
+                                                            </child>
+                                                            <child>
+                                                            <widget class="GtkCheckButton" id="chk_clear_singletons">
+                                                            <property name="label" translatable="yes">Clear singleton
+nodes from tree</property>
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Singletons are terminal nodes 
+connected directly to the root.
+Clearing them is useful 
+for RegionGrower analyses.  </property>
+                                                            <property name="draw_indicator">True</property>
+                                                            </widget>
+                                                            <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">6</property>
+                                                            </packing>
+                                                            </child>
+                                                          </widget>
+                                                        </child>
+                                                        <child>
+                                                          <widget class="GtkLabel" id="label_frame2">
+                                                            <property name="can_focus">False</property>
+                                                            <property name="label" translatable="yes">Options</property>
+                                                            <property name="use_markup">True</property>
+                                                          </widget>
+                                                          <packing>
+                                                            <property name="type">label_item</property>
+                                                          </packing>
+                                                        </child>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="right_attach">3</property>
+                                                        <property name="top_attach">7</property>
+                                                        <property name="bottom_attach">8</property>
+                                                        <property name="x_options">GTK_FILL</property>
+                                                      </packing>
+                                                    </child>
                                                   </widget>
                                                 </child>
                                               </widget>
                                             </child>
                                             <child>
-                                              <widget class="GtkLabel" id="label_cluster_parameters">
+                                              <widget class="GtkLabel" id="cluster_params_expander">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="tooltip" translatable="yes">Show/hide the parameters section</property>
                                                 <property name="label" translatable="yes">Parameters</property>
-                                                <property name="use_markup">True</property>
                                               </widget>
                                               <packing>
                                                 <property name="type">label_item</property>
@@ -6780,46 +6818,7 @@ Select a set of indices to determine the ordering of clustering when there is mo
                                             </child>
                                           </widget>
                                           <packing>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkFrame" id="frame22">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="border_width">5</property>
-                                            <property name="label_xalign">0</property>
-                                            <child>
-                                              <widget class="GtkScrolledWindow" id="scrolledwindow22">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="border_width">5</property>
-                                                <property name="hscrollbar_policy">never</property>
-                                                <property name="vscrollbar_policy">automatic</property>
-                                                <child>
-                                                  <widget class="GtkTreeView" id="treeSpatialCalculations">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                  </widget>
-                                                </child>
-                                              </widget>
-                                            </child>
-                                            <child>
-                                              <widget class="GtkLabel" id="label119">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label" translatable="yes">Calculations to run for each cluster node (optional)</property>
-                                                <property name="use_markup">True</property>
-                                              </widget>
-                                              <packing>
-                                                <property name="type">label_item</property>
-                                              </packing>
-                                            </child>
-                                          </widget>
-                                          <packing>
-                                            <property name="top_attach">1</property>
-                                            <property name="bottom_attach">2</property>
-                                            <property name="x_options">GTK_FILL</property>
+                                            <property name="y_options">GTK_SHRINK | GTK_FILL</property>
                                           </packing>
                                         </child>
                                       </widget>
@@ -8426,11 +8425,49 @@ Does not affect the vertical connectors.</property>
                                         <property name="can_focus">False</property>
                                         <property name="n_rows">2</property>
                                         <child>
-                                          <widget class="GtkFrame" id="frame_spatial_parameters">
+                                          <widget class="GtkFrame" id="frame_spatial_analysis_tree">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
                                             <property name="border_width">5</property>
                                             <property name="label_xalign">0</property>
+                                            <child>
+                                              <widget class="GtkScrolledWindow" id="scrolledwindow10">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="border_width">5</property>
+                                                <property name="hscrollbar_policy">never</property>
+                                                <property name="vscrollbar_policy">automatic</property>
+                                                <child>
+                                                  <widget class="GtkTreeView" id="treeCalculations">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                  </widget>
+                                                </child>
+                                              </widget>
+                                            </child>
+                                            <child>
+                                              <widget class="GtkLabel" id="label52">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">Calculations to run for each neighbourhood</property>
+                                                <property name="use_markup">True</property>
+                                              </widget>
+                                              <packing>
+                                                <property name="type">label_item</property>
+                                              </packing>
+                                            </child>
+                                          </widget>
+                                          <packing>
+                                            <property name="top_attach">1</property>
+                                            <property name="bottom_attach">2</property>
+                                            <property name="x_options">GTK_FILL</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkExpander" id="expander3">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="expanded">True</property>
                                             <child>
                                               <widget class="GtkAlignment" id="alignment9">
                                                 <property name="visible">True</property>
@@ -8625,11 +8662,11 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                               </widget>
                                             </child>
                                             <child>
-                                              <widget class="GtkLabel" id="label_spatial_parameters">
+                                              <widget class="GtkLabel" id="label6">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="tooltip" translatable="yes">show/hide the parameters section</property>
                                                 <property name="label" translatable="yes">Parameters</property>
-                                                <property name="use_markup">True</property>
                                               </widget>
                                               <packing>
                                                 <property name="type">label_item</property>
@@ -8637,46 +8674,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                             </child>
                                           </widget>
                                           <packing>
-                                            <property name="y_options">GTK_FILL</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkFrame" id="frame_spatial_analysis_tree">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="border_width">5</property>
-                                            <property name="label_xalign">0</property>
-                                            <child>
-                                              <widget class="GtkScrolledWindow" id="scrolledwindow10">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">True</property>
-                                                <property name="border_width">5</property>
-                                                <property name="hscrollbar_policy">never</property>
-                                                <property name="vscrollbar_policy">automatic</property>
-                                                <child>
-                                                  <widget class="GtkTreeView" id="treeCalculations">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                  </widget>
-                                                </child>
-                                              </widget>
-                                            </child>
-                                            <child>
-                                              <widget class="GtkLabel" id="label52">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="label" translatable="yes">Calculations to run for each neighbourhood</property>
-                                                <property name="use_markup">True</property>
-                                              </widget>
-                                              <packing>
-                                                <property name="type">label_item</property>
-                                              </packing>
-                                            </child>
-                                          </widget>
-                                          <packing>
-                                            <property name="top_attach">1</property>
-                                            <property name="bottom_attach">2</property>
-                                            <property name="x_options">GTK_FILL</property>
+                                            <property name="y_options">GTK_SHRINK | GTK_FILL</property>
                                           </packing>
                                         </child>
                                       </widget>

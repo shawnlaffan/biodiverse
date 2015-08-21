@@ -199,9 +199,6 @@ sub new {
     $combo_label_widget->set_text ('Index group:  ');
 
     $self->init_output_indices_combo();
-    #$self->update_output_indices_menu();
-
-    $self->set_frame_label_widget;
 
     $self->{drag_modes} = {
         Select  => 'select',
@@ -224,32 +221,6 @@ sub new {
     $self->{selected_list} = 'SUBELEMENTS';
 
     return $self;
-}
-
-
-sub set_frame_label_widget {
-    my $self = shift;
-
-    my $label = $self->{xmlPage}->get_widget('label_spatial_parameters');
-    $label->hide;
-
-    return;
-
-    my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget->show;
-
-    my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
-    $frame->set_label_widget ($widget);
-
-    $widget->signal_connect_swapped (
-        clicked => \&on_show_hide_parameters,
-        $self,
-    );
-    $widget->set_active (0);
-    $widget->set_has_tooltip (1);
-    $widget->set_tooltip_text ('show/hide the parameters section');
-
-    return;
 }
 
 sub on_show_hide_parameters {

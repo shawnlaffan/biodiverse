@@ -70,10 +70,16 @@ sub main {
     my %results;
     foreach my $key (sort keys %conditions_to_run) {
         #diag $key;
-        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, @res_pairs);
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
     }
 
     test_ellipse_angles_match(\%results);
+
+    #  zero the resolution for a bit of paranoia
+    foreach my $key (sort keys %conditions_to_run) {
+        next if not $key =~ 'circle';
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);  
+    }
 
     done_testing;
     return 0;

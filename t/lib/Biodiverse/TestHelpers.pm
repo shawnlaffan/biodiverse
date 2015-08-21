@@ -1203,7 +1203,8 @@ sub run_sp_cond_tests {
     my $conditions = $args{conditions};
     my $index_version = $args{index_version};
 
-    my $res = $bd->get_param('CELL_SIZES');
+    my $res = $args{resolution} || $bd->get_param('CELL_SIZES');
+
     my ($index, $index_offsets);
     my $index_text = ' (no spatial index)';
     
@@ -1276,8 +1277,8 @@ sub run_sp_cond_tests {
 
 
 sub test_sp_cond_res_pairs {
-    my $conditions = shift;
-    my @res_pairs  = @_;
+    my ($conditions, $res_pairs, $zero_cell_sizes) = @_;
+    my @res_pairs  = @$res_pairs;
     
     my %results;
 
@@ -1302,12 +1303,17 @@ sub test_sp_cond_res_pairs {
             my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
             my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
             my $element = join ":", $element_x, $element_y;
+            
+            if ($zero_cell_sizes) {
+                $bd->set_param(CELL_SIZES => [0,0]);
+            }
     
             $results{$key} = run_sp_cond_tests (
                 basedata   => $bd,
                 element    => $element,
                 conditions => $conditions,
                 index_version => undef,  #  this arg is for debug
+                resolution => $res,
             );
         }
     }

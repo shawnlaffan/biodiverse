@@ -2719,7 +2719,7 @@ sub get_metadata_sp_in_label_range {
     my %args = @_;
 
     my %metadata = (
-        description   => "Is a label within a group's range?",
+        description   => "Is a group within a label's range?",
         required_args => ['label'],
         optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
@@ -2729,6 +2729,7 @@ sub get_metadata_sp_in_label_range {
         example       =>
               qq{# Are we in the range of label called Genus:Sp1?\n}
             . q{sp_in_label_range(label => 'Genus:Sp1')}
+            . q{#  The type argument determines is the processing or neighbour group is assessed}
     );
 
     return $self->metadata_class->new (\%metadata);

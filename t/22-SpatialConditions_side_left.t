@@ -44,7 +44,7 @@ sub main {
 
     foreach my $key (sort keys %conditions_to_run) {
         #diag $key;
-        test_sp_cond_res_pairs ($conditions{$key}, @res_pairs);
+        test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
     }
 
     done_testing;

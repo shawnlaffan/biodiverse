@@ -3359,8 +3359,9 @@ sub get_hash_list_keys_across_elements {
             @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster
         }
     }
-
-    return wantarray ? keys %hash_keys : [keys %hash_keys];
+    my @sorted_keys = sort keys %hash_keys;
+    
+    return wantarray ? @sorted_keys : [@sorted_keys];
 }
 
 #  return a reference to the specified list

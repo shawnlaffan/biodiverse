@@ -1037,12 +1037,14 @@ END_TOOLTIP_ADDN
          default    => 1,
          increment  => 1,
          tooltip    => $tooltip_mult,
+         box_group  => 'Richness constraints',
         },
         {name       => 'richness_addition',
          type       => 'float',
          default    => 0,
          increment  => 1,
          tooltip    => $tooltip_addn,
+         box_group  => 'Richness constraints',
          },        
         $group_props_parameters,
         $tree_shuffle_parameters,
@@ -2103,8 +2105,8 @@ sub process_group_props_by_item {
 my $process_group_props_tooltip = <<'END_OF_GPPROP_TOOLTIP'
 Group properties in the randomised basedata will be assigned in these ways:
 no_change:  The same as in the original basedata. 
-by_set:     All of a group's properties are assigned as a set.
-by_item:    Properties are randomly allocated to new groups on an individual basis.  
+by_set:     All of a group's properties are assigned to a random group as a set.
+by_item:    A group's properties are randomly allocated to random groups individually.  
 END_OF_GPPROP_TOOLTIP
   ;
 
@@ -2117,6 +2119,7 @@ sub get_group_prop_metadata {
         choices => [qw /no_change by_set by_item/],
         default => 0,
         tooltip => $process_group_props_tooltip,
+        box_group => 'Trees and groups',
     };
     bless $metadata, $parameter_rand_metadata_class;
 
@@ -2146,6 +2149,7 @@ sub get_tree_shuffle_metadata {
         choices => \@choices,
         default => $default,
         tooltip => $randomise_trees_tooltip,
+        box_group => 'Trees and groups',
     };
     bless $metadata, $parameter_rand_metadata_class;
 

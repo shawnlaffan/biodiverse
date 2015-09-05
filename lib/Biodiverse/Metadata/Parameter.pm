@@ -37,6 +37,7 @@ my %methods_and_defaults = (
     digits      => undef,
     increment   => 1,
     always_sensitive => undef,
+    box_group   => undef,
 );
 
 sub _get_method_default_hash {

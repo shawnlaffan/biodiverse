@@ -101,33 +101,51 @@ sub fill {
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
 
-        # Add an extra row
-        my ($rows) = $table->get('n-rows');
-        $rows++;
-        $table->set('n-rows' => $rows);
-
         # Make the label
-        my $label = Gtk2::Label->new;
-        $label->set_line_wrap(30);
-        #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
         my $label_text = $param->{label_text} || $param->{name};
         chomp $label_text;
+        my $label = Gtk2::Label->new ($label_text);
+        $label->set_line_wrap(30);
+        #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
         $label->set_alignment(0, 0.5);
-        $label->set_text( $label_text );
+        #$label->set_text( $label_text );
 
         my $fill_flags = 'fill';
         if ($param->{type} =~ 'text') {
             $fill_flags = ['expand', 'fill']
         }
-
         if ($param->{type} eq 'comment') {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
             $label->set_text( $label_text );
+            $widget = Gtk2::HBox->new;
+        }
 
-            $table->attach($label,  0, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        my $rows = $table->get('n-rows');
+
+        my $box_group_name = $param->get_box_group;
+        my ($hbox, $added_hbox_row);
+        if (defined $box_group_name) {
+            if (!$self->{box_groups}{$box_group_name}) {
+                # Add an extra row
+                $rows++;
+                $table->set('n-rows' => $rows);
+                $added_hbox_row++;
+                $hbox = $self->{box_groups}{$box_group_name} = Gtk2::HBox->new;
+                my $l = Gtk2::Label->new ($box_group_name);
+                $l->set_alignment(0, 0.5);
+                $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+                $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
+                $l->show;
+            }
+            $hbox //= $self->{box_groups}{$box_group_name};
+            $hbox->pack_start($label, 0, 0, 0);
+            $hbox->pack_start($widget, 0, 0, 0);
+            $hbox->show_all;
         }
         else {
+            $rows++;
+            $table->set('n-rows' => $rows);
             $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
             $table->attach($widget, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
         }

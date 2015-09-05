@@ -1376,8 +1376,9 @@ sub do_merge_basedatas {
     my $param_table = $dlgxml->get_widget('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $param_extractors
-        = Biodiverse::GUI::ParametersTable::fill(
+        = $parameters_table->fill(
             [$param],
             $param_table,
             $dlgxml,
@@ -1394,7 +1395,7 @@ sub do_merge_basedatas {
     }
 
     my $params
-      = Biodiverse::GUI::ParametersTable::extract($param_extractors);
+      = $parameters_table->extract($param_extractors);
 
     $param_dlg->destroy;
 
@@ -2163,8 +2164,9 @@ sub do_tree_rescale_branch_lengths {
     my $param_table = $dlgxml->get_widget('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $param_extractors
-        = Biodiverse::GUI::ParametersTable::fill(
+        = $parameters_table->fill(
             [$param],
             $param_table,
             $dlgxml,
@@ -2181,7 +2183,7 @@ sub do_tree_rescale_branch_lengths {
     }
 
     my $params
-      = Biodiverse::GUI::ParametersTable::extract($param_extractors);
+      = $parameters_table->extract($param_extractors);
 
     $param_dlg->destroy;
 

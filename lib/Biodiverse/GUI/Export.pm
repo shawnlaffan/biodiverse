@@ -58,8 +58,9 @@ sub Run {
         my $format_table = $dlgxml->get_widget('tableImportParameters');
         
         # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+        my $parameters_table = Biodiverse::GUI::ParametersTable->new;
         my $format_extractors
-            = Biodiverse::GUI::ParametersTable::fill(
+            = $parameters_table->fill(
                 $format_choices,
                 $format_table,
                 $dlgxml,
@@ -77,7 +78,7 @@ sub Run {
         }
         
         my $formats
-          = Biodiverse::GUI::ParametersTable::extract($format_extractors);
+          = $parameters_table->extract($format_extractors);
     
         $selected_format = $formats->[1];
 
@@ -105,8 +106,9 @@ sub Run {
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $extractors
-        = Biodiverse::GUI::ParametersTable::fill(
+        = $parameters_table->fill(
             $params,
             $table,
             $dlgxml
@@ -126,7 +128,7 @@ sub Run {
     }
     
     # Export!
-    $params = Biodiverse::GUI::ParametersTable::extract($extractors);
+    $params = $parameters_table->extract($extractors);
     my $filename = $chooser->get_filename();
     $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
     if ( (not -e $filename)

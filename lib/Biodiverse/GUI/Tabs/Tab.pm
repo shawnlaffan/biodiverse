@@ -826,7 +826,8 @@ sub on_set_tree_line_widths {
     };
     bless $props, $parameter_metadata_class;
 
-    my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
 
     my $dlg = Gtk2::Dialog->new_with_buttons (
         'Set branch width',

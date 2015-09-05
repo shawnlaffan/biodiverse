@@ -275,7 +275,8 @@ sub run {
     # Build widgets for parameters
     my $table = $dlgxml->get_widget ('tableImportParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml); 
 
     $dlg->show_all;
     $response = $dlg->run;
@@ -287,7 +288,7 @@ sub run {
             if $use_new || $one_basedata_per_file;
         return;
     }
-    my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    my $import_params = $parameters_table->extract ($extractors);
     %import_params = @$import_params;
     
     # next stage, if we are reading as raster, just call import function here and exit.
@@ -410,7 +411,8 @@ sub run {
             $dlg = $s_dlgxml->get_widget('dlgImportParameters');
             my $table = $s_dlgxml->get_widget ('tableImportParameters');
             # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-            my $extractors = Biodiverse::GUI::ParametersTable::fill ([$param], $table, $s_dlgxml); 
+            my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+            my $extractors = $parameters_table->fill ([$param], $table, $s_dlgxml); 
 
             $dlg->show_all;
             $response = $dlg->run;
@@ -418,7 +420,7 @@ sub run {
 
             return if $response ne 'ok';
 
-            my $chosen_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+            my $chosen_params = $parameters_table->extract ($extractors);
             my %chosen_params = @$chosen_params;
             $sheet_id = $sheets->{$chosen_params{'sheet_id'}};
 
@@ -1647,7 +1649,8 @@ sub get_remap_info {
     my $table_name = 'tableImportParameters';
     my $table = $dlgxml->get_widget ($table_name );
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-    my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill ($params, $table, $dlgxml); 
     
     $dlg->show_all;
     my $response = $dlg->run;
@@ -1655,7 +1658,7 @@ sub get_remap_info {
     
     return wantarray ? () : {} if $response ne 'ok';
 
-    my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    my $properties_params = $parameters_table->extract ($extractors);
     my %properties_params = @$properties_params;
 
     # Get header columns

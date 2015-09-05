@@ -66,11 +66,16 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
 use Data::Dumper;
 
+
+sub new {
+    my ($class, %args) = @_;
+    my $self = bless {}, $class;
+    return $self;
+}
+
 sub fill {
-    my $params = shift;
-    my $table  = shift;
-    my $dlgxml = shift;
-    my $get_innards_hash = shift // {};
+    my ($self, $params, $table, $dlgxml, $get_innards_hash) = @_;
+    $get_innards_hash //= {};
 
     # Ask object for parameters metadata
     my @extract_closures;
@@ -88,7 +93,7 @@ sub fill {
         # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
 
-        my ($widget, $extractor) = generate_widget($param, $dlgxml, $get_innards_hash);
+        my ($widget, $extractor) = $self->generate_widget($param, $dlgxml, $get_innards_hash);
 
         if ($extractor) {
             push @extract_closures, $extractor;
@@ -158,11 +163,14 @@ sub fill {
     }
 
     $tooltip_group->enable();
-    return \@extract_closures;
+
+    $self->{extractors} = \@extract_closures;
+    return $self->{extractors};
 }
 
 sub extract {
-    my $extractors = shift;
+    my ($self, $extractors) = @_;
+    $extractors //= $self->{extractors};
 
     # We call all the extractor closures which get values from the widgets
     my @params;
@@ -176,8 +184,9 @@ sub extract {
 
 # Generates widget + extractor for some parameter
 sub generate_widget {
-    my $param = $_[0];
+    my ($self, @args) = @_;
 
+    my $param = $args[0];
     my $type = $param->get_type;
 
     my @valid_choices = qw {
@@ -203,14 +212,14 @@ sub generate_widget {
 
     my $sub_name = 'generate_' . $type;
 
-    my @results = eval "$sub_name (\@_)";
+    my @results = $self->$sub_name (@args);
     croak "Unsupported parameter type $type \n$EVAL_ERROR\n" if $EVAL_ERROR;
 
     return @results;
 }
 
 sub generate_choice {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $combo = Gtk2::ComboBox->new_text;
 
@@ -238,7 +247,7 @@ sub generate_choice {
 
 #  we want the index, not the text
 sub generate_choice_index {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $combo = Gtk2::ComboBox->new_text;
 
@@ -265,8 +274,7 @@ sub generate_choice_index {
 }
 
 sub generate_file {
-    my $param  = shift;
-    my $dlgxml = shift;
+    my ($self, $param, $dlgxml) = @_;
 
     # The dialog already has a filechooser widget. We just return an extractor function
     my $chooser = $dlgxml->get_widget('filechooser');
@@ -279,8 +287,7 @@ sub generate_file {
 }
 
 sub generate_comment {
-    my $param  = shift;
-    #my $dlgxml = shift;
+    my ($self, $param) = @_;
 
     #  just a placeholder
     my $label = Gtk2::Label->new;
@@ -292,7 +299,7 @@ sub generate_comment {
 
 
 sub generate_integer {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $default = $param->get_default || 0;
     my $incr    = $param->get_increment || 1;
@@ -307,7 +314,7 @@ sub generate_integer {
 }
 
 sub generate_float {
-    my $param = shift;
+    my ($self, $param) = @_;
     
     my $default = $param->get_default || 0;
     my $digits  = $param->get_digits  || 2;
@@ -321,7 +328,7 @@ sub generate_float {
 }
 
 sub generate_boolean {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $default = $param->get_default || 0;
     
@@ -334,7 +341,7 @@ sub generate_boolean {
 }
 
 sub generate_spatial_conditions {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $get_object_hash = pop;  # clunky way of getting the object back
 
     my $default = $param->get_default || '';
@@ -349,7 +356,7 @@ sub generate_spatial_conditions {
 }
 
 sub generate_text_one_line {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
@@ -370,7 +377,7 @@ sub generate_text_one_line {
 }
 
 sub generate_text {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;

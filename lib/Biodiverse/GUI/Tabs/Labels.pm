@@ -2134,7 +2134,8 @@ sub do_select_labels_regex {
         bless $_, $parameter_metadata_class;
     }
 
-    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml); 
 
     $dlg->show_all;
     my $response = $dlg->run;
@@ -2144,7 +2145,7 @@ sub do_select_labels_regex {
         return;
     }
 
-    my $parameters = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    my $parameters = $parameters_table->extract ($extractors);
     $dlg->destroy;
 
     my %params = @$parameters;

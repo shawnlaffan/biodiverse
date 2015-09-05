@@ -432,8 +432,9 @@ sub on_function_changed {
     
     # Build widgets for parameters
     my $table = $self->{xmlPage}->get_widget('tableParams');
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $new_extractors
-        = Biodiverse::GUI::ParametersTable::fill(\@params_to_add, $table);
+        = $parameters_table->fill(\@params_to_add, $table);
     if (! defined $self->{param_extractors}) {
         $self->{param_extractors} = [];
     }
@@ -636,7 +637,8 @@ sub on_run {
         $seed = undef;
     }
 
-    my $param_hash = Biodiverse::GUI::ParametersTable::extract (
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $param_hash = $parameters_table->extract (
         $self->{param_extractors}
     );
     %args = (

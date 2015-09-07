@@ -135,7 +135,7 @@ sub test_rand_structured_richness_multiplier_and_addition {
         seed       => $prng_seed,
         return_rand_bd_array => 1,
         richness_addition    => 1,
-        richness_muoltiplier => 2,
+        richness_multiplier  => 2,
     );
 
     subtest 'richness scores do not match for richness_addition and multiplier' => sub {

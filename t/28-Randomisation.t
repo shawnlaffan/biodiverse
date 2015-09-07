@@ -112,6 +112,58 @@ sub test_rand_structured_richness_same {
     return;
 }
 
+
+sub test_rand_structured_richness_multiplier_and_addition {
+    my $c = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_structured';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_structured',
+        iterations => 3,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        richness_addition    => 1,
+        richness_muoltiplier => 2,
+    );
+
+    subtest 'richness scores do not match for richness_addition and multiplier' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            my $same = 1;
+            foreach my $group (sort $rand_bd->get_groups) {
+                my $bd_richness = $bd->get_richness(element => $group) // 0;
+                $same &&= ($bd_richness == $rand_bd->get_richness (element => $group));
+                last if !$same;
+            }
+            ok (!$same, $rand_bd->get_name);
+        }
+    };
+    subtest 'range scores match for richness_addition and multiplier' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $label ($rand_bd->get_labels) {
+                is ($rand_bd->get_range (element => $label),
+                    $bd->get_range (element => $label),
+                    "range for $label matches",
+                );
+            }
+        }
+    };
+
+    return;
+}
+
+
 sub test_rand_structured_subset_richness_same_with_defq {
     my $defq = '$y > 1050000';
     my ($rand_object, $bd, $rand_bd_array) = test_rand_structured_subset_richness_same ($defq);

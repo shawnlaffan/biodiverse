@@ -1150,7 +1150,7 @@ END_PROGRESS_TEXT
 
         #  round down - could make this an option
         my $target_val = floor (
-            ($bd->get_richness (element => $group)) || 0 #  handle undef
+            ($bd->get_richness (element => $group) || 0) #  handle undef
             * $multiplier
             + $addition
         );

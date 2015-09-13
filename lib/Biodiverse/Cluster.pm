@@ -1715,6 +1715,8 @@ sub cluster {
         $root_node->set_value (MATRIX_ITER_USED => undef);
     }
 
+    $root_node->ladderise;
+
     if ($args{clear_cached_values}) {
         $root_node->delete_cached_values_below;
     }

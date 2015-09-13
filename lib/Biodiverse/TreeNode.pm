@@ -516,7 +516,7 @@ sub delete_children {
 sub get_children {
     my $self = shift;
     return if not defined $self->{_CHILDREN};
-    my @children = @{$self->{_CHILDREN}}; #  messy, but seeing if we can avoid mem leaks
+    my @children = @{$self->{_CHILDREN}};
     return wantarray ? @children : \@children;
 }
 
@@ -695,6 +695,35 @@ sub flatten_tree {
     }
     print "\n";
     return wantarray ? @empty_nodes : \@empty_nodes;
+}
+
+sub ladderise {
+    my ($self, %args) = @_;
+    
+    my %nodes = $self->get_all_descendants_and_self;
+    foreach my $node (values %nodes) {
+        $node->sort_children;
+    }
+
+    return;
+}
+
+sub sort_children {
+    my ($self, %args) = @_;
+    my $children = $self->{_CHILDREN};
+    return if scalar @$children <= 1;
+
+    #  could use Sort::Maker if this turns out to be slow
+    my $sort_func = $args{sort_func}
+      // sub {$b->get_descendent_count <=> $a->get_descendent_count || $a->get_name cmp $b->get_name};
+
+    my @sorted = $args{reverse}
+        ? reverse sort $sort_func @$children
+        : sort $sort_func @$children;
+
+    $self->{_CHILDREN} = \@sorted;
+
+    return;
 }
 
 #  raise any zero length children to be children of the parents (siblings of this node).

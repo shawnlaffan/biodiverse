@@ -4529,6 +4529,16 @@ Creates a new tree.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_ladderise_tree">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.  
+This cannot be undone.  </property>
+                        <property name="label" translatable="yes">Ladderise</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

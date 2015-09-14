@@ -328,6 +328,9 @@ my %data_funcs = (
     on_tree_rescale_branch_lengths => {
         METHOD => 'do_tree_rescale_branch_lengths',
     },
+    on_tree_ladderise => {
+        METHOD => 'do_tree_ladderise',
+    },
     on_matrix_export => {
         METHOD => 'do_export_matrix',
     },

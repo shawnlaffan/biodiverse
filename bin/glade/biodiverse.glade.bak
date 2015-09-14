@@ -1162,8 +1162,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1180,8 +1180,8 @@ Spreadsheet</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -4541,6 +4541,16 @@ Creates a new tree.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_ladderise_tree">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.  
+This cannot be undone.  </property>
+                        <property name="label" translatable="yes">Ladderise</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -6353,6 +6363,9 @@ Does not affect the vertical connectors.
                                                       <placeholder/>
                                                     </child>
                                                     <child>
+                                                      <placeholder/>
+                                                    </child>
+                                                    <child>
                                                       <widget class="GtkHBox" id="hbox_cluster_metric">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
@@ -6658,12 +6671,6 @@ Select a set of indices to determine the ordering of clustering when there is mo
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
                                                       <widget class="GtkFrame" id="frame2">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
@@ -6827,6 +6834,9 @@ for RegionGrower analyses.  </property>
                                                         <property name="bottom_attach">8</property>
                                                         <property name="x_options">GTK_FILL</property>
                                                       </packing>
+                                                    </child>
+                                                    <child>
+                                                      <placeholder/>
                                                     </child>
                                                   </widget>
                                                 </child>

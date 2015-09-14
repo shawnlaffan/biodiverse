@@ -1339,9 +1339,10 @@ sub set_matrix_buttons {
 }
 
 # enable/disable buttons
+# Really need to loop through the menu and operate on all but import and open
 sub set_phylogeny_buttons {
     my ($self, $sensitive) = @_;
-    #foreach ('btnPhylogenyDelete') {
+
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (qw /
                 btnPhylogenyDelete
@@ -1356,6 +1357,8 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
                 menu_equalise_tree_branches
+                menu_rescale_tree_branches2
+                menu_ladderise_tree
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }

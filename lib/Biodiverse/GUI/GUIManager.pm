@@ -2210,6 +2210,30 @@ sub do_tree_rescale_branch_lengths {
     return;
 }
 
+sub do_tree_ladderise {
+    my $self = shift;
+    my %args = @_;
+
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
+
+    if (! defined $phylogeny) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no tree selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    $phylogeny->ladderise;
+
+    return;
+}
+
+
 sub do_basedata_extract_embedded_trees {
     my $self = shift;
     

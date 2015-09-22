@@ -1,54 +1,77 @@
-#  Benchmark two approaches wihch could be used to get a total tree path length
+#  Benchmark two approaches which could be used to get a total tree path length
 #  It is actually to do with a hash slice vs for-last approach
 use 5.016;
 
 use Benchmark qw {:all};
-use List::Util qw /pairs pairkeys pairvalues pairmap/;
+use List::Util qw /pairs pairkeys pairvalues pairmap max/;
 use Test::More;
+use Math::Random::MT::Auto;
+
+my $prng = Math::Random::MT::Auto->new;
+
+local $| = 1;
 
 #srand (2000);
 
-my $n = 200; #  depth of the paths
-my $m = 80;  #  number of paths
-my %path_arrays;  #  ordered key-value pairs
+my $n = 30;   #  depth of the paths
+my $m = 1800;  #  number of paths
+my $r = 28;    #  how far to be the same until (irand)
+my $subset_size = int ($m/2);
+my %path_arrays;  #  ordered keys
 my %path_hashes;  #  unordered key-value pairs
 my %len_hash;
 
 #  generate a set of paths 
 foreach my $i (0 .. $m) {
-    my $same_to = int (rand() * $n/4);
+    my $same_to = max (1, int (rand() * $r));
     my @a;
-    @a = map {(1+$m)*$i*$n+$_.'_', 1} (0 .. $same_to);
-    push @a, map {$_, 1} ($same_to+1 .. $n);
-    $path_arrays{$i} = \@a;
+    #@a = map {((1+$m)*$i*$n+$_), 1} (0 .. $same_to);
+    @a = map {$_ => $_} (0 .. $same_to);
+    push @a, map {((1+$m)*$i*$n+$_) => $_} ($same_to+1 .. $n);
     #say join ' ', @a;
     my %hash = @a;
     $path_hashes{$i} = \%hash;
+    $path_arrays{$i} = [reverse sort {$a <=> $b} keys %hash];
     
     @len_hash{keys %hash} = values %hash;
 }
 
-
 my $sliced = slice (\%path_hashes);
 my $forled = for_last (\%path_arrays);
 my $slice2 = slice_mk2 (\%path_hashes);
+my $inline = inline_assign (\%path_arrays);
 
-is_deeply ($forled, $sliced, 'slice results are the same');
-is_deeply ($forled, $slice2, 'slice2 results are the same');
+#is_deeply ($sliced, \%len_hash, 'slice results are the same');
+#is_deeply ($slice2, \%len_hash, 'slice2 results are the same');
+#is_deeply ($forled, \%len_hash, 'forled results are the same');
+#is_deeply ($inline, \%len_hash, 'inline results are the same');
 
 
 done_testing;
 
-say "Testing $m paths of depth $n";
-cmpthese (
-    -2,
-    {
-        sliced => sub {slice (\%path_hashes)},
-        slice2 => sub {slice_mk2 (\%path_hashes)},
-        forled => sub {for_last (\%path_arrays)},
-    }
-);
+#exit();
 
+for (0..2) {
+    say "Testing $subset_size of $m paths of length $n and overlap up to $r";
+    
+    my @subset = ($prng->shuffle (0..$m))[0..$subset_size];
+    #say scalar @subset;
+    #say join ' ', @subset[0..4];
+    my (%path_hash_subset, %path_array_subset);
+    @path_hash_subset{@subset}  = @path_hashes{@subset};
+    @path_array_subset{@subset} = @path_arrays{@subset};
+    
+    cmpthese (
+        -3,
+        {
+            slice1 => sub {slice (\%path_hash_subset)},
+            slice2 => sub {slice_mk2 (\%path_hash_subset)},
+            forled => sub {for_last (\%path_array_subset)},
+            inline => sub {inline_assign (\%path_array_subset)},
+        }
+    );
+    say '';
+}
 
 
 sub slice {
@@ -59,7 +82,8 @@ sub slice {
     foreach my $path (values %$paths) {
         @combined{keys %$path} = values %$path;
     }
-    
+    #@combined{keys %combined} = @len_hash{keys %combined};
+
     return \%combined;
 }
 
@@ -73,7 +97,7 @@ sub slice_mk2 {
         @combined{keys %$path} = undef;
     }
     
-    @combined{keys %combined} = @len_hash{keys %combined};
+    #@combined{keys %combined} = @len_hash{keys %combined};
     
     return \%combined;
 }
@@ -81,25 +105,133 @@ sub slice_mk2 {
 sub for_last {
     my $paths = shift;
     
-
-    my @keys = keys %$paths;
-    my $first = shift @keys;
-    my $first_list = $paths->{$first};
     
     #  initialise
     my %combined;
-    @combined{pairkeys @$first_list} = pairvalues @$first_list;
-    
+
+  LIST:
     foreach my $list (values %$paths) {
-        foreach my $pair (pairs @$list) {
-            my ($key, $val) = @$pair;
+        if (!scalar keys %combined) {
+            @combined{@$list} = undef;
+            next LIST;
+        }
+        
+        foreach my $key (@$list) {
             last if exists $combined{$key};
-            $combined{$key} = $val;
+            $combined{$key} = undef;
         }
     }
+    #@combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }
+
+sub inline_assign {
+    my $paths = shift;
+    
+    #my @keys = keys %$paths;
+    #my $first = $keys[0];
+    #my $first_list = $paths->{$first};
+
+    my %combined;
+    #@combined{@$first_list} = (1) x @$first_list;
+
+    #say scalar keys %combined;
+    foreach my $path (values %$paths) {
+        merge_hash_keys_lastif (\%combined, $path);
+        #say join ' ', 'path:', @$path;
+        #say join ' ', 'comb:', sort {$a <=> $b} keys %combined;
+        #say scalar keys %combined;
+    }
+    #say scalar keys %combined;
+    #my @sorted = sort {$a <=> $b} keys %combined;
+    #say join ' ', 'c keys:', @sorted;
+    #say join ' ', 'lengths:', @sorted;
+    #@combined{keys %combined} = @len_hash{keys %combined};
+    #for my $key (@sorted) {
+    #    $combined{$key} = $len_hash{$key};
+    #}
+    
+    return \%combined;
+}
+
+use Inline C => <<'END_OF_C_CODE';
+ 
+void merge_hash_keys(SV* dest, SV* from) {
+  HV* hash_dest;
+  HV* hash_from;
+  HE* hash_entry;
+  int num_keys_from, num_keys_dest, i;
+  SV* sv_key;
+ 
+  if (! SvROK(dest))
+    croak("dest is not a reference");
+  if (! SvROK(from))
+    croak("from is not a reference");
+ 
+  hash_from = (HV*)SvRV(from);
+  hash_dest = (HV*)SvRV(dest);
+  
+  num_keys_from = hv_iterinit(hash_from);
+  // printf ("There are %i keys in hash_from\n", num_keys_from);
+  // num_keys_dest = hv_iterinit(hash_dest);
+  // printf ("There are %i keys in hash_dest\n", num_keys_dest);
+
+  for (i = 0; i < num_keys_from; i++) {
+    hash_entry = hv_iternext(hash_from);
+    sv_key = hv_iterkeysv(hash_entry);
+    if (hv_exists_ent (hash_dest, sv_key, 0)) {
+    //    printf ("Found key %s\n", SvPV(sv_key, PL_na));
+    }
+    else {
+    //    printf ("Did not find key %s\n", SvPV(sv_key, PL_na));
+        // hv_store_ent(hash_dest, sv_key, &PL_sv_undef, 0);
+        hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
+    }
+    // printf ("%i: %s\n", i, SvPV(sv_key, PL_na));
+  }
+  return;
+}
+
+void merge_hash_keys_lastif(SV* dest, SV* from) {
+  HV* hash_dest;
+  AV* arr_from;
+  HE* hash_entry;
+  int i;
+  SV* sv_key;
+  int num_keys_from;
+ 
+  if (! SvROK(dest))
+    croak("dest is not a reference");
+  if (! SvROK(from))
+    croak("from is not a reference");
+
+  arr_from  = (AV*)SvRV(from);
+  hash_dest = (HV*)SvRV(dest);
+
+  num_keys_from = av_len (arr_from);
+  // printf ("There are %i keys in from list\n", num_keys_from+1);
+  
+  //  should use a while loop with condition being the key does not exist in dest?
+  for (i = 0; i <= num_keys_from; i++) {
+    SV **sv_key = av_fetch(arr_from, i, 0);  //  cargo culted from List::MoreUtils::insert_after
+    // printf ("Checking key %s\n", SvPV(*sv_key, PL_na));
+    if (hv_exists_ent (hash_dest, *sv_key, 0)) {
+        // printf ("Found key %s\n", SvPV(*sv_key, PL_na));
+        break;
+    }
+    else {
+        // hv_store_ent(hash_dest, *sv_key, &PL_sv_undef, 0);
+        hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
+    }
+  }
+  return;
+}
+
+
+END_OF_C_CODE
+
+
 
 1;
 

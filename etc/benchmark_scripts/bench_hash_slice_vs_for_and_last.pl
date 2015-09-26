@@ -15,16 +15,16 @@ local $| = 1;
 
 my $n = 30;   #  depth of the paths
 my $m = 1800;  #  number of paths
-my $r = 28;    #  how far to be the same until (irand)
+my $r = 20;    #  how far to be the same until (irand)
 my $subset_size = int ($m/2);
 my %path_arrays;  #  ordered keys
 my %path_hashes;  #  unordered key-value pairs
 my %len_hash;
 
-$n = 5;
-$m = 8;
-$r = 2;
-$subset_size = $n;
+#$n = 5;
+#$m = 8;
+#$r = 2;
+#$subset_size = $n;
 
 #  generate a set of paths 
 foreach my $i (0 .. $m) {
@@ -46,15 +46,15 @@ my $forled = for_last (\%path_arrays);
 my $slice2 = slice_mk2 (\%path_hashes);
 my $inline = inline_assign (\%path_arrays);
 
-#is_deeply ($sliced, \%len_hash, 'slice results are the same');
-#is_deeply ($slice2, \%len_hash, 'slice2 results are the same');
-#is_deeply ($forled, \%len_hash, 'forled results are the same');
-#is_deeply ($inline, \%len_hash, 'inline results are the same');
+is_deeply ($sliced, \%len_hash, 'slice results are the same');
+is_deeply ($slice2, \%len_hash, 'slice2 results are the same');
+is_deeply ($forled, \%len_hash, 'forled results are the same');
+is_deeply ($inline, \%len_hash, 'inline results are the same');
 
 
 done_testing;
 
-exit();
+#exit();
 
 for (0..2) {
     say "Testing $subset_size of $m paths of length $n and overlap up to $r";
@@ -67,7 +67,7 @@ for (0..2) {
     @path_array_subset{@subset} = @path_arrays{@subset};
     
     cmpthese (
-        -3,
+        -4,
         {
             slice1 => sub {slice (\%path_hash_subset)},
             slice2 => sub {slice_mk2 (\%path_hash_subset)},
@@ -87,7 +87,7 @@ sub slice {
     foreach my $path (values %$paths) {
         @combined{keys %$path} = values %$path;
     }
-    #@combined{keys %combined} = @len_hash{keys %combined};
+    @combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }
@@ -102,7 +102,7 @@ sub slice_mk2 {
         @combined{keys %$path} = undef;
     }
     
-    #@combined{keys %combined} = @len_hash{keys %combined};
+    @combined{keys %combined} = @len_hash{keys %combined};
     
     return \%combined;
 }
@@ -126,7 +126,7 @@ sub for_last {
             $combined{$key} = undef;
         }
     }
-    #@combined{keys %combined} = @len_hash{keys %combined};
+    @combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }
@@ -202,12 +202,16 @@ void merge_hash_keys(SV* dest, SV* from) {
 void copy_values_from (SV* dest, SV* from) {
   HV* hash_dest;
   HV* hash_from;
-  HE* hash_entry;
+  HE* hash_entry_dest;
+  HE* hash_entry_from;
   int num_keys_from, num_keys_dest, i;
   SV* sv_key;
   SV* sv_val;
+  SV* sv_val_from;
   HV* hv;
   char key;
+  bool exists;
+  int* len;
  
   if (! SvROK(dest))
     croak("dest is not a reference");
@@ -218,34 +222,24 @@ void copy_values_from (SV* dest, SV* from) {
   hash_dest = (HV*)SvRV(dest);
   
   num_keys_from = hv_iterinit(hash_from);
-  printf ("There are %i keys in hash_from\n", num_keys_from);
+  // printf ("There are %i keys in hash_from\n", num_keys_from);
   num_keys_dest = hv_iterinit(hash_dest);
-  printf ("There are %i keys in hash_dest\n", num_keys_dest);
+  // printf ("There are %i keys in hash_dest\n", num_keys_dest);
 
   for (i = 0; i < num_keys_dest; i++) {
-    hash_entry = hv_iternext(hash_dest);  //  #  the assignment seems to be interfering with this line
-    sv_key = hv_iterkeysv(hash_entry);
-    printf ("Checking key %i: '%s'\n", i, SvPV(sv_key, PL_na));
-    if (hv_exists_ent (hash_from, sv_key, 0)) {
-        key = sprintf ("%s", SvPV(sv_key, PL_na));
-        printf ("Found key %s\n", key);
-        sv_val = hv_fetch (hash_from, sv_key, 0, 0);
-        // sv_val = HeVAL(hv);
-        // sv_val = hv_fetchs (hash_from, key, 0);
-        if (sv_val) {
-            printf ("value is validish: '%s'\n", SvPV(sv_val, PL_na));
-        }
-        printf ("Using value %s\n", SvPV(sv_val, PL_na));
-        hv_store_ent (hash_dest, sv_key, sv_val, 0);
-        // hv_store_ent(hash_dest, sv_key, newSV(0), 0);
-        // sv_val = hv_fetch_ent (hash_dest, sv_key, 0, 0);
-        // printf ("Stored value %s\n", SvPV(sv_val, PL_na));
+    hash_entry_dest = hv_iternext(hash_dest);  
+    sv_key = hv_iterkeysv(hash_entry_dest);
+    // printf ("Checking key %i: '%s' (%x)\n", i, SvPV(sv_key, PL_na), sv_key);
+    exists = hv_exists_ent (hash_from, sv_key, 0);
+    // printf (exists ? "Exists\n" : "not exists\n");
+    if (exists) {
+        // printf ("Found key %s\n", SvPV(sv_key, PL_na));
+        hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
+        sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
+        // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
+        //  Should be able to assign directly to hash_entry_dest?
+        hv_store_ent (hash_dest, sv_key, sv_val_from, 0);
     }
-    else {
-    //    printf ("Did not find key %s\n", SvPV(sv_key, PL_na));
-     //   hv_store_ent(hash_dest, sv_key, newSV(0), 0);
-    }
-    // printf ("%i: %s\n", i, SvPV(sv_key, PL_na));
   }
   return;
 }

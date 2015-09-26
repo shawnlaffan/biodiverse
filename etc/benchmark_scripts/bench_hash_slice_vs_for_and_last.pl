@@ -87,7 +87,7 @@ sub slice {
     foreach my $path (values %$paths) {
         @combined{keys %$path} = values %$path;
     }
-    #@combined{keys %combined} = @len_hash{keys %combined};
+    @combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }
@@ -266,19 +266,28 @@ END_OF_C_CODE
 __END__
 
 Sample results below.
-Some runs have no meaningful difference from sliced to slice2,
-but slice2 is always faster (even if only 2%).
-Normally it is ~15% faster.  
+Removing the slice assign from slice1 makes it about as fast as inline,
+but the relevant sub in Biodiverse uses an array so cannot do a
+direct slice assign on hash values.
+e.g. (@hash1(keys %hash2) = values %hash2)
 
+Testing 450 of 1800 paths of length 20 and overlap up to 19
+        Rate slice1 slice2 forled inline
+slice1 112/s     --   -10%   -20%   -43%
+slice2 124/s    11%     --   -11%   -37%
+forled 139/s    25%    12%     --   -29%
+inline 195/s    75%    58%    40%     --
 
-Testing 800 paths of depth 20
-         Rate forled sliced slice2
-forled 59.2/s     --   -69%   -73%
-sliced  192/s   225%     --   -13%
-slice2  222/s   275%    15%     --
+Testing 450 of 1800 paths of length 20 and overlap up to 19
+        Rate slice1 slice2 forled inline
+slice1 113/s     --   -11%   -18%   -41%
+slice2 127/s    13%     --    -8%   -34%
+forled 138/s    22%     9%     --   -28%
+inline 192/s    70%    51%    39%     --
 
-Testing 800 paths of depth 20
-         Rate forled sliced slice2
-forled 49.5/s     --   -74%   -77%
-sliced  194/s   292%     --   -12%
-slice2  219/s   342%    13%     --
+Testing 450 of 1800 paths of length 20 and overlap up to 19
+        Rate slice1 slice2 forled inline
+slice1 117/s     --    -9%   -18%   -41%
+slice2 128/s    10%     --   -10%   -35%
+forled 143/s    22%    11%     --   -28%
+inline 197/s    69%    54%    38%     --

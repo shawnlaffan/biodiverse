@@ -13,9 +13,9 @@ local $| = 1;
 
 #srand (2000);
 
-my $n = 30;   #  depth of the paths
+my $n = 20;   #  depth of the paths
 my $m = 1800;  #  number of paths
-my $r = 29;    #  how far to be the same until (irand)
+my $r = $n - 1;    #  how far to be the same until (irand)
 my $subset_size = int ($m/4);
 my %path_arrays;  #  ordered keys
 my %path_hashes;  #  unordered key-value pairs
@@ -87,7 +87,7 @@ sub slice {
     foreach my $path (values %$paths) {
         @combined{keys %$path} = values %$path;
     }
-    @combined{keys %combined} = @len_hash{keys %combined};
+    #@combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }
@@ -190,12 +190,7 @@ void copy_values_from (SV* dest, SV* from) {
   HE* hash_entry_from;
   int num_keys_from, num_keys_dest, i;
   SV* sv_key;
-  SV* sv_val;
   SV* sv_val_from;
-  HV* hv;
-  // char key;
-  // bool exists;
-  // int* len;
  
   if (! SvROK(dest))
     croak("dest is not a reference");
@@ -230,7 +225,6 @@ void copy_values_from (SV* dest, SV* from) {
 void merge_hash_keys_lastif(SV* dest, SV* from) {
   HV* hash_dest;
   AV* arr_from;
-  HE* hash_entry;
   int i;
   SV* sv_key;
   int num_keys_from;

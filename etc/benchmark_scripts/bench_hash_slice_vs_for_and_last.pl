@@ -21,6 +21,11 @@ my %path_arrays;  #  ordered keys
 my %path_hashes;  #  unordered key-value pairs
 my %len_hash;
 
+$n = 5;
+$m = 8;
+$r = 2;
+$subset_size = $n;
+
 #  generate a set of paths 
 foreach my $i (0 .. $m) {
     my $same_to = max (1, int (rand() * $r));
@@ -49,7 +54,7 @@ my $inline = inline_assign (\%path_arrays);
 
 done_testing;
 
-#exit();
+exit();
 
 for (0..2) {
     say "Testing $subset_size of $m paths of length $n and overlap up to $r";
@@ -151,7 +156,8 @@ sub inline_assign {
     #for my $key (@sorted) {
     #    $combined{$key} = $len_hash{$key};
     #}
-    
+    copy_values_from (\%combined, \%len_hash);
+
     return \%combined;
 }
 
@@ -186,7 +192,58 @@ void merge_hash_keys(SV* dest, SV* from) {
     else {
     //    printf ("Did not find key %s\n", SvPV(sv_key, PL_na));
         // hv_store_ent(hash_dest, sv_key, &PL_sv_undef, 0);
-        hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
+        hv_store_ent(hash_dest, sv_key, newSV(0), 0);
+    }
+    // printf ("%i: %s\n", i, SvPV(sv_key, PL_na));
+  }
+  return;
+}
+
+void copy_values_from (SV* dest, SV* from) {
+  HV* hash_dest;
+  HV* hash_from;
+  HE* hash_entry;
+  int num_keys_from, num_keys_dest, i;
+  SV* sv_key;
+  SV* sv_val;
+  HV* hv;
+  char key;
+ 
+  if (! SvROK(dest))
+    croak("dest is not a reference");
+  if (! SvROK(from))
+    croak("from is not a reference");
+ 
+  hash_from = (HV*)SvRV(from);
+  hash_dest = (HV*)SvRV(dest);
+  
+  num_keys_from = hv_iterinit(hash_from);
+  printf ("There are %i keys in hash_from\n", num_keys_from);
+  num_keys_dest = hv_iterinit(hash_dest);
+  printf ("There are %i keys in hash_dest\n", num_keys_dest);
+
+  for (i = 0; i < num_keys_dest; i++) {
+    hash_entry = hv_iternext(hash_dest);  //  #  the assignment seems to be interfering with this line
+    sv_key = hv_iterkeysv(hash_entry);
+    printf ("Checking key %i: '%s'\n", i, SvPV(sv_key, PL_na));
+    if (hv_exists_ent (hash_from, sv_key, 0)) {
+        key = sprintf ("%s", SvPV(sv_key, PL_na));
+        printf ("Found key %s\n", key);
+        sv_val = hv_fetch (hash_from, sv_key, 0, 0);
+        // sv_val = HeVAL(hv);
+        // sv_val = hv_fetchs (hash_from, key, 0);
+        if (sv_val) {
+            printf ("value is validish: '%s'\n", SvPV(sv_val, PL_na));
+        }
+        printf ("Using value %s\n", SvPV(sv_val, PL_na));
+        hv_store_ent (hash_dest, sv_key, sv_val, 0);
+        // hv_store_ent(hash_dest, sv_key, newSV(0), 0);
+        // sv_val = hv_fetch_ent (hash_dest, sv_key, 0, 0);
+        // printf ("Stored value %s\n", SvPV(sv_val, PL_na));
+    }
+    else {
+    //    printf ("Did not find key %s\n", SvPV(sv_key, PL_na));
+     //   hv_store_ent(hash_dest, sv_key, newSV(0), 0);
     }
     // printf ("%i: %s\n", i, SvPV(sv_key, PL_na));
   }

@@ -3,7 +3,7 @@
 use 5.016;
 
 use Benchmark qw {:all};
-use List::Util qw /pairs pairkeys pairvalues pairmap max/;
+use List::Util qw /max/;
 use Test::More;
 use Math::Random::MT::Auto;
 
@@ -15,8 +15,8 @@ local $| = 1;
 
 my $n = 30;   #  depth of the paths
 my $m = 1800;  #  number of paths
-my $r = 20;    #  how far to be the same until (irand)
-my $subset_size = int ($m/2);
+my $r = 29;    #  how far to be the same until (irand)
+my $subset_size = int ($m/4);
 my %path_arrays;  #  ordered keys
 my %path_hashes;  #  unordered key-value pairs
 my %len_hash;
@@ -133,29 +133,13 @@ sub for_last {
 
 sub inline_assign {
     my $paths = shift;
-    
-    #my @keys = keys %$paths;
-    #my $first = $keys[0];
-    #my $first_list = $paths->{$first};
 
     my %combined;
-    #@combined{@$first_list} = (1) x @$first_list;
 
-    #say scalar keys %combined;
     foreach my $path (values %$paths) {
         merge_hash_keys_lastif (\%combined, $path);
-        #say join ' ', 'path:', @$path;
-        #say join ' ', 'comb:', sort {$a <=> $b} keys %combined;
-        #say scalar keys %combined;
     }
-    #say scalar keys %combined;
-    #my @sorted = sort {$a <=> $b} keys %combined;
-    #say join ' ', 'c keys:', @sorted;
-    #say join ' ', 'lengths:', @sorted;
-    #@combined{keys %combined} = @len_hash{keys %combined};
-    #for my $key (@sorted) {
-    #    $combined{$key} = $len_hash{$key};
-    #}
+
     copy_values_from (\%combined, \%len_hash);
 
     return \%combined;
@@ -209,9 +193,9 @@ void copy_values_from (SV* dest, SV* from) {
   SV* sv_val;
   SV* sv_val_from;
   HV* hv;
-  char key;
-  bool exists;
-  int* len;
+  // char key;
+  // bool exists;
+  // int* len;
  
   if (! SvROK(dest))
     croak("dest is not a reference");
@@ -221,7 +205,7 @@ void copy_values_from (SV* dest, SV* from) {
   hash_from = (HV*)SvRV(from);
   hash_dest = (HV*)SvRV(dest);
   
-  num_keys_from = hv_iterinit(hash_from);
+  // num_keys_from = hv_iterinit(hash_from);
   // printf ("There are %i keys in hash_from\n", num_keys_from);
   num_keys_dest = hv_iterinit(hash_dest);
   // printf ("There are %i keys in hash_dest\n", num_keys_dest);
@@ -230,15 +214,14 @@ void copy_values_from (SV* dest, SV* from) {
     hash_entry_dest = hv_iternext(hash_dest);  
     sv_key = hv_iterkeysv(hash_entry_dest);
     // printf ("Checking key %i: '%s' (%x)\n", i, SvPV(sv_key, PL_na), sv_key);
-    exists = hv_exists_ent (hash_from, sv_key, 0);
+    // exists = hv_exists_ent (hash_from, sv_key, 0);
     // printf (exists ? "Exists\n" : "not exists\n");
-    if (exists) {
+    if (hv_exists_ent (hash_from, sv_key, 0)) {
         // printf ("Found key %s\n", SvPV(sv_key, PL_na));
         hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
         sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
         // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
-        //  Should be able to assign directly to hash_entry_dest?
-        hv_store_ent (hash_dest, sv_key, sv_val_from, 0);
+        HeVAL(hash_entry_dest) = sv_val_from;
     }
   }
   return;

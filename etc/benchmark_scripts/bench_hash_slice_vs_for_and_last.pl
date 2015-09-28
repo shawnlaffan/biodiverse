@@ -170,6 +170,9 @@ void merge_hash_keys(SV* dest, SV* from) {
   for (i = 0; i < num_keys_from; i++) {
     hash_entry = hv_iternext(hash_from);
     sv_key = hv_iterkeysv(hash_entry);
+    //  Could use hv_fetch_ent with the lval arg set to 1.
+    //  That will autovivify an undef entry
+    //  http://stackoverflow.com/questions/19832153/hash-keys-behavior
     if (hv_exists_ent (hash_dest, sv_key, 0)) {
     //    printf ("Found key %s\n", SvPV(sv_key, PL_na));
     }

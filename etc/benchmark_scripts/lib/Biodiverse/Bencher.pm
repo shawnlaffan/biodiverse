@@ -5,9 +5,9 @@ use warnings;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw/
-    merge_hash_keys
+    add_hash_keys
     copy_values_from
-    merge_hash_keys_lastif
+    add_hash_keys_lastif
 /;
 
 use Inline 'C';
@@ -18,7 +18,7 @@ __DATA__
 
 __C__
 
-void merge_hash_keys(SV* dest, SV* from) {
+void add_hash_keys(SV* dest, SV* from) {
   HV* hash_dest;
   HV* hash_from;
   HE* hash_entry;
@@ -99,7 +99,7 @@ void copy_values_from (SV* dest, SV* from) {
   return;
 }
 
-void merge_hash_keys_lastif(SV* dest, SV* from) {
+void add_hash_keys_lastif(SV* dest, SV* from) {
   HV* hash_dest;
   AV* arr_from;
   int i;

@@ -8,7 +8,7 @@ use Test::More;
 use Math::Random::MT::Auto;
 
 use rlib;
-use Biodiverse::Bencher qw/merge_hash_keys_lastif copy_values_from/;
+use Biodiverse::Bencher qw/add_hash_keys_lastif copy_values_from/;
 
 my $prng = Math::Random::MT::Auto->new;
 
@@ -147,7 +147,7 @@ sub inline_assign {
     my %combined;
 
     foreach my $path (values %$paths) {
-        merge_hash_keys_lastif (\%combined, $path);
+        add_hash_keys_lastif (\%combined, $path);
     }
 
     copy_values_from (\%combined, \%len_hash);

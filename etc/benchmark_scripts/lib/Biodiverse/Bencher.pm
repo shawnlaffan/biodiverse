@@ -88,9 +88,12 @@ void copy_values_from (SV* dest, SV* from) {
     if (hv_exists_ent (hash_from, sv_key, 0)) {
         // printf ("Found key %s\n", SvPV(sv_key, PL_na));
         hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
-        sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
+        //  This will cause headaches with duplicate refs
+        //  sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
+        // sv_val_from = newSVsv(HeVAL(hash_entry_from));
         // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
-        HeVAL(hash_entry_dest) = sv_val_from;
+        // HeVAL(hash_entry_dest) = sv_val_from;
+        HeVAL(hash_entry_dest) = newSVsv(HeVAL(hash_entry_from));
     }
   }
   return;
@@ -101,6 +104,7 @@ void merge_hash_keys_lastif(SV* dest, SV* from) {
   AV* arr_from;
   int i;
   SV* sv_key;
+  SV* sv_fill_val;
   int num_keys_from;
  
   if (! SvROK(dest))
@@ -113,20 +117,26 @@ void merge_hash_keys_lastif(SV* dest, SV* from) {
 
   num_keys_from = av_len (arr_from);
   // printf ("There are %i keys in from list\n", num_keys_from+1);
-  
+
+  //  Generate one SV and re-use it.
+  //  Need to warn in docs that it is the same SV for all assigned vals,
+  //  so change one means change all.
+  sv_fill_val = newSV(0);
+
   //  should use a while loop with condition being the key does not exist in dest?
   for (i = 0; i <= num_keys_from; i++) {
     SV **sv_key = av_fetch(arr_from, i, 0);  //  cargo culted from List::MoreUtils::insert_after
     // printf ("Checking key %s\n", SvPV(*sv_key, PL_na));
     if (hv_exists_ent (hash_dest, *sv_key, 0)) {
-        // printf ("Found key %s\n", SvPV(*sv_key, PL_na));
         break;
     }
     else {
-        // hv_store_ent(hash_dest, *sv_key, &PL_sv_undef, 0);
-        hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
+        // hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
+        //  possible mem leakage?
+        hv_store_ent(hash_dest, *sv_key, SvREFCNT_inc(sv_fill_val), 0);
     }
   }
+  // SvREFCNT_dec (sv_fill_val);  // avoid mem leak?
   return;
 }
 

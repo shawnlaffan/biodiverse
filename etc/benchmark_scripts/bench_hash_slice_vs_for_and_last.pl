@@ -7,6 +7,9 @@ use List::Util qw /max/;
 use Test::More;
 use Math::Random::MT::Auto;
 
+use rlib;
+use Biodiverse::Bencher qw/merge_hash_keys_lastif copy_values_from/;
+
 my $prng = Math::Random::MT::Auto->new;
 
 local $| = 1;
@@ -28,7 +31,7 @@ my %len_hash;
 
 #  generate a set of paths 
 foreach my $i (0 .. $m) {
-    my $same_to = max (1, int (rand() * $r));
+    my $same_to = max (1, int $prng->rand($r));
     my @a;
     #@a = map {((1+$m)*$i*$n+$_), 1} (0 .. $same_to);
     @a = map {$_ => $_} (0 .. $same_to);
@@ -45,6 +48,10 @@ my $sliced = slice (\%path_hashes);
 my $forled = for_last (\%path_arrays);
 my $slice2 = slice_mk2 (\%path_hashes);
 my $inline = inline_assign (\%path_arrays);
+
+#foreach my $key (keys %len_hash) {
+#    $len_hash{$key}++;
+#}
 
 is_deeply ($sliced, \%len_hash, 'slice results are the same');
 is_deeply ($slice2, \%len_hash, 'slice2 results are the same');
@@ -67,7 +74,7 @@ for (0..2) {
     @path_array_subset{@subset} = @path_arrays{@subset};
     
     cmpthese (
-        -4,
+        -3,
         {
             slice1 => sub {slice (\%path_hash_subset)},
             slice2 => sub {slice_mk2 (\%path_hash_subset)},
@@ -87,6 +94,9 @@ sub slice {
     foreach my $path (values %$paths) {
         @combined{keys %$path} = values %$path;
     }
+    #  next line is necessary when the paths
+    #  have different values from %combined,
+    #  albeit the initial use case was the same
     @combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
@@ -145,122 +155,6 @@ sub inline_assign {
     return \%combined;
 }
 
-use Inline C => <<'END_OF_C_CODE';
- 
-void merge_hash_keys(SV* dest, SV* from) {
-  HV* hash_dest;
-  HV* hash_from;
-  HE* hash_entry;
-  int num_keys_from, num_keys_dest, i;
-  SV* sv_key;
- 
-  if (! SvROK(dest))
-    croak("dest is not a reference");
-  if (! SvROK(from))
-    croak("from is not a reference");
- 
-  hash_from = (HV*)SvRV(from);
-  hash_dest = (HV*)SvRV(dest);
-  
-  num_keys_from = hv_iterinit(hash_from);
-  // printf ("There are %i keys in hash_from\n", num_keys_from);
-  // num_keys_dest = hv_iterinit(hash_dest);
-  // printf ("There are %i keys in hash_dest\n", num_keys_dest);
-
-  for (i = 0; i < num_keys_from; i++) {
-    hash_entry = hv_iternext(hash_from);
-    sv_key = hv_iterkeysv(hash_entry);
-    //  Could use hv_fetch_ent with the lval arg set to 1.
-    //  That will autovivify an undef entry
-    //  http://stackoverflow.com/questions/19832153/hash-keys-behavior
-    if (hv_exists_ent (hash_dest, sv_key, 0)) {
-    //    printf ("Found key %s\n", SvPV(sv_key, PL_na));
-    }
-    else {
-    //    printf ("Did not find key %s\n", SvPV(sv_key, PL_na));
-        // hv_store_ent(hash_dest, sv_key, &PL_sv_undef, 0);
-        hv_store_ent(hash_dest, sv_key, newSV(0), 0);
-    }
-    // printf ("%i: %s\n", i, SvPV(sv_key, PL_na));
-  }
-  return;
-}
-
-void copy_values_from (SV* dest, SV* from) {
-  HV* hash_dest;
-  HV* hash_from;
-  HE* hash_entry_dest;
-  HE* hash_entry_from;
-  int num_keys_from, num_keys_dest, i;
-  SV* sv_key;
-  SV* sv_val_from;
- 
-  if (! SvROK(dest))
-    croak("dest is not a reference");
-  if (! SvROK(from))
-    croak("from is not a reference");
- 
-  hash_from = (HV*)SvRV(from);
-  hash_dest = (HV*)SvRV(dest);
-  
-  // num_keys_from = hv_iterinit(hash_from);
-  // printf ("There are %i keys in hash_from\n", num_keys_from);
-  num_keys_dest = hv_iterinit(hash_dest);
-  // printf ("There are %i keys in hash_dest\n", num_keys_dest);
-
-  for (i = 0; i < num_keys_dest; i++) {
-    hash_entry_dest = hv_iternext(hash_dest);  
-    sv_key = hv_iterkeysv(hash_entry_dest);
-    // printf ("Checking key %i: '%s' (%x)\n", i, SvPV(sv_key, PL_na), sv_key);
-    // exists = hv_exists_ent (hash_from, sv_key, 0);
-    // printf (exists ? "Exists\n" : "not exists\n");
-    if (hv_exists_ent (hash_from, sv_key, 0)) {
-        // printf ("Found key %s\n", SvPV(sv_key, PL_na));
-        hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
-        sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
-        // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
-        HeVAL(hash_entry_dest) = sv_val_from;
-    }
-  }
-  return;
-}
-
-void merge_hash_keys_lastif(SV* dest, SV* from) {
-  HV* hash_dest;
-  AV* arr_from;
-  int i;
-  SV* sv_key;
-  int num_keys_from;
- 
-  if (! SvROK(dest))
-    croak("dest is not a reference");
-  if (! SvROK(from))
-    croak("from is not a reference");
-
-  arr_from  = (AV*)SvRV(from);
-  hash_dest = (HV*)SvRV(dest);
-
-  num_keys_from = av_len (arr_from);
-  // printf ("There are %i keys in from list\n", num_keys_from+1);
-  
-  //  should use a while loop with condition being the key does not exist in dest?
-  for (i = 0; i <= num_keys_from; i++) {
-    SV **sv_key = av_fetch(arr_from, i, 0);  //  cargo culted from List::MoreUtils::insert_after
-    // printf ("Checking key %s\n", SvPV(*sv_key, PL_na));
-    if (hv_exists_ent (hash_dest, *sv_key, 0)) {
-        // printf ("Found key %s\n", SvPV(*sv_key, PL_na));
-        break;
-    }
-    else {
-        // hv_store_ent(hash_dest, *sv_key, &PL_sv_undef, 0);
-        hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
-    }
-  }
-  return;
-}
-
-
-END_OF_C_CODE
 
 
 
@@ -276,21 +170,21 @@ e.g. (@hash1(keys %hash2) = values %hash2)
 
 Testing 450 of 1800 paths of length 20 and overlap up to 19
         Rate slice1 slice2 forled inline
-slice1 112/s     --   -10%   -20%   -43%
-slice2 124/s    11%     --   -11%   -37%
-forled 139/s    25%    12%     --   -29%
-inline 195/s    75%    58%    40%     --
+slice1 224/s     --   -14%   -20%   -36%
+slice2 261/s    17%     --    -7%   -25%
+forled 280/s    25%     7%     --   -19%
+inline 347/s    55%    33%    24%     --
+
+Testing 450 of 1800 paths of length 20 and overlap up to 19
+        Rate slice1 forled slice2 inline
+slice1 231/s     --   -20%   -21%   -48%
+forled 288/s    25%     --    -1%   -35%
+slice2 292/s    26%     1%     --   -34%
+inline 444/s    93%    54%    52%     --
 
 Testing 450 of 1800 paths of length 20 and overlap up to 19
         Rate slice1 slice2 forled inline
-slice1 113/s     --   -11%   -18%   -41%
-slice2 127/s    13%     --    -8%   -34%
-forled 138/s    22%     9%     --   -28%
-inline 192/s    70%    51%    39%     --
-
-Testing 450 of 1800 paths of length 20 and overlap up to 19
-        Rate slice1 slice2 forled inline
-slice1 117/s     --    -9%   -18%   -41%
-slice2 128/s    10%     --   -10%   -35%
-forled 143/s    22%    11%     --   -28%
-inline 197/s    69%    54%    38%     --
+slice1 213/s     --   -19%   -25%   -47%
+slice2 263/s    24%     --    -7%   -35%
+forled 283/s    33%     8%     --   -30%
+inline 403/s    90%    53%    43%     --

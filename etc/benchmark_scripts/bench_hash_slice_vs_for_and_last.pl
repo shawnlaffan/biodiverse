@@ -26,7 +26,7 @@ my %len_hash;
 
 #$n = 5;
 #$m = 8;
-#$r = 2;
+#$r = 0;
 #$subset_size = $n;
 
 #  generate a set of paths 
@@ -43,6 +43,13 @@ foreach my $i (0 .. $m) {
     
     @len_hash{keys %hash} = values %hash;
 }
+
+use Test::LeakTrace;
+leaktrace {
+    my $x = inline_assign (\%path_arrays);
+    #say join ':', values %$x;
+} -verbose;
+
 
 my $sliced = slice (\%path_hashes);
 my $forled = for_last (\%path_arrays);

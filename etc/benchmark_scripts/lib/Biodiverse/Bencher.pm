@@ -88,11 +88,17 @@ void copy_values_from (SV* dest, SV* from) {
     if (hv_exists_ent (hash_from, sv_key, 0)) {
         // printf ("Found key %s\n", SvPV(sv_key, PL_na));
         hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
+
+        //  These few lines redundant now?
         //  This will cause headaches with duplicate refs
         //  sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
         // sv_val_from = newSVsv(HeVAL(hash_entry_from));
         // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
         // HeVAL(hash_entry_dest) = sv_val_from;
+
+        // need to decrement the current ref count before we overwrite it,
+        // otherwise Test::LeakTrace notes unhappiness.
+        SvREFCNT_dec(HeVAL(hash_entry_dest));
         HeVAL(hash_entry_dest) = newSVsv(HeVAL(hash_entry_from));
     }
   }
@@ -134,9 +140,10 @@ void add_hash_keys_lastif(SV* dest, SV* from) {
         // hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
         //  possible mem leakage?
         hv_store_ent(hash_dest, *sv_key, SvREFCNT_inc(sv_fill_val), 0);
+        // hv_store_ent(hash_dest, *sv_key, sv_fill_val, 0);
     }
   }
-  // SvREFCNT_dec (sv_fill_val);  // avoid mem leak?
+  SvREFCNT_dec (sv_fill_val);  // avoid mem leak?
   return;
 }
 

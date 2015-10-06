@@ -7,7 +7,7 @@ use FindBin qw { $Bin };
 use File::Spec;
 use File::Find;
 
-use rlib;
+use Test::Lib;
 
 #  need to move GUI modules into their own test file
 BEGIN {

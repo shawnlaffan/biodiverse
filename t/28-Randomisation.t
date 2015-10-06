@@ -7,7 +7,7 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 use List::Util qw /first sum0/;
 
 use Test::More;

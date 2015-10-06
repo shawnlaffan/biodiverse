@@ -2,9 +2,6 @@
 use strict;
 use warnings;
 
-
-use rlib;
-
 use File::Temp;
 
 use Devel::Leak;

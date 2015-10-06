@@ -35,6 +35,7 @@ WriteMakefile(
         "Clone" => "0.35",
         "Regexp::Common" => "0",
         "rlib" => "0",
+        "Test::Lib" => "0",
         "parent" => "0",
         "Readonly" => "0",
         "URI::Escape::XS" => "0",

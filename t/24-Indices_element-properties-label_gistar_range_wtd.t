@@ -5,7 +5,7 @@ use warnings;
 
 local $| = 1;
 
-use rlib;
+use Test::Lib;
 use Test::More;
 
 use Biodiverse::TestHelpers qw{

@@ -8,7 +8,7 @@ use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util qw /blessed/;
 
-use rlib;
+use Test::Lib;
 
 use Data::Section::Simple qw(
     get_data_section

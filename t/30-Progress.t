@@ -4,7 +4,7 @@ use warnings;
 use English qw / -no_match_vars /;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 
 use Test::More tests => 2;
 use Test::NoWarnings;

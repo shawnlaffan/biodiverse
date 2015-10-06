@@ -9,7 +9,7 @@ use English qw{
 
 use Scalar::Util qw /reftype/;
 
-use rlib;
+use Test::Lib;
 use Test::More;
 
 use Biodiverse::BaseData;

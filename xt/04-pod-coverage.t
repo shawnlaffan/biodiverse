@@ -4,8 +4,6 @@ use Test::More;
 
 local $| = 1;
 
-use rlib;
-
 use English qw ( -no_match_vars );
 
 # Ensure a recent version of Test::Pod::Coverage

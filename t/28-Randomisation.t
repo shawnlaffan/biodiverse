@@ -24,6 +24,8 @@ use Test::Exception;
 use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
 use Biodiverse::Cluster;
 
+use Math::Random::MT::Auto;
+
 my $default_prng_seed = 2345;
 
 use Devel::Symdump;
@@ -108,6 +110,88 @@ sub test_rand_structured_richness_same {
             }
         }
     };
+
+    return;
+}
+
+
+#  Basic spatial structure approach
+#  We find a neighbourhood and fill it up, then find another and fill it up, etc
+sub test_rand_spatially_structured {
+    my $c  = 1;
+    my $c3 = $c * 1;
+    my $c6 = $c * 2;
+    my $c9 = $c * 3;
+    my $bd_size = 25;
+
+    my $prng_seed = 2345;
+    
+    my $prng = Math::Random::MT::Auto->new;
+    
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'test_rand_spatially_structured',
+        CELL_SIZES => [$c, $c],
+    );
+    
+    foreach my $i (0 .. $bd_size) {
+        foreach my $j (0 .. $bd_size) {
+            my $group = "$i:$j";
+            $bd->add_element (group => $group);
+            foreach my $label (qw /a b c/) {
+                if ($prng->rand < (1/3)) {
+                    $bd->add_element (group => $group, label => $label);
+                }
+            }
+        }
+    }
+    
+    $bd->build_spatial_index(resolutions => [$c, $c]);
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness/],
+    );
+
+    my $rand_name = 'rand_spatially_structured';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_structured',
+        iterations => 1,  #  reset to 3 later
+        seed       => $prng_seed,
+        richness_addition   => 30,  #  make sure we can put our three labels anywhere
+        richness_multiplier => 1,
+        spatial_conditions_for_label_allocation => [
+            "sp_circle(radius => $c3)",
+            "sp_circle(radius => $c6)",
+            "sp_circle(radius => $c9)",
+        ],
+        return_rand_bd_array => 1,
+    );
+
+    $rand_bd_array->[0]->get_groups_ref->export (
+        format => 'GeoTIFF',
+        file => 'barry',
+        list => 'SUBELEMENTS',
+    );
+    
+    subtest 'range scores match' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $label (sort $rand_bd->get_labels) {
+                is ($rand_bd->get_range (element => $label),
+                    $bd->get_range (element => $label),
+                    "range for $label matches",
+                );
+            }
+        }
+    };
+
+    {
+        local $TODO = 'Not implemented yet';
+        ok (0, "Spatially structured allocation of labels");
+    }
 
     return;
 }

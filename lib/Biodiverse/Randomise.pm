@@ -1006,6 +1006,49 @@ sub rand_csr_by_group {
     return $new_bd;
 }
 
+
+sub get_spatial_output_for_label_allocation {
+    my ($self, %args) = @_;
+    
+    my $sp_conditions = $args{spatial_conditions_for_label_allocation};
+    
+    return if !$sp_conditions;
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    
+    #  Check the sp conditions
+    #  If we get only whitespace and comments then default to selecting all groups
+    my $sp_check_text = $sp_conditions->[0];
+    $sp_check_text //= '';
+    if (blessed ($sp_check_text)) {
+        $sp_check_text = $sp_check_text->get_conditions_unparsed;
+    }
+    $sp_check_text =~ s/[\s\r\n]//g;  #  clear any whitespace
+    $sp_check_text =~ s/^\s*#.*$//g;     #  and any comments
+
+    return if !length $sp_check_text; #  all we had was whitespace and comments
+
+    my $sp = $self->get_param('SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION');
+    
+    return $sp if $sp;
+
+    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation');
+
+    #  we only want the neighbour sets
+    $sp->run_analysis (
+        spatial_conditions => $sp_conditions,
+        #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
+        calculations       => [],
+        override_valid_analysis_check => 1,
+        calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+    );
+
+    $bd->delete_output (output => $sp);
+    $self->set_param(SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION => $sp);
+
+    return $sp;
+}
+
 sub get_metadata_rand_structured {
     my $self = shift;
 
@@ -1074,13 +1117,15 @@ sub rand_structured {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
+    my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
+
     my $progress_bar = Biodiverse::Progress->new();
 
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
 
     #  need to get these from the ARGS param if available - should also croak if negative
-    my $multiplier = $args{richness_multiplier} || 1;
+    my $multiplier = $args{richness_multiplier} // 1;
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');
 
@@ -1124,7 +1169,7 @@ END_PROGRESS_TEXT
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand->shuffle ([@sorted_labels]);
 
-    printf "[RANDOMISE] Richness Shuffling %s labels from %s groups\n",
+    printf "[RANDOMISE] Spatially structured shuffling %s labels from %s groups\n",
        scalar @sorted_labels, scalar @sorted_groups;
 
     #  generate a hash with the target richness values
@@ -1233,21 +1278,91 @@ END_PROGRESS_TEXT
             = $cloned_bd->get_groups_with_label_as_hash (label => $label);
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
-        my (%new_bd_additions, %cloned_bd_deletions);
+        my (
+            %new_bd_additions,
+            %cloned_bd_deletions,
+            @sp_alloc_nbr_lists,
+            $last_group_assigned,
+            %assigned,
+        );
 
-        BY_GROUP:
+      BY_GROUP:
         foreach my $from_group (@$tmp_rand_order) {
             my $count = $tmp{$from_group};
+            my $to_group;
 
-            #  select a group at random to assign to
-            my $j = int ($rand->rand (scalar @target_groups));
-            my $to_group = $target_groups[$j];
-            #  make sure we don't select this group again
-            #  for this label this time round
-            splice (@target_groups, $j, 1);
+#  should we always assign to the seed location?
+#  What if the central group is not part of the nbr set?
+#  Issue is that the algorithm might never land on a valid target
+#  group given the selection process is only unfilled groups without the label
+
+            if (!$sp_for_label_allocation || !defined $last_group_assigned) {
+                #  select a group at random to assign to
+                my $j = int ($rand->rand (scalar @target_groups));
+                $to_group = $target_groups[$j];
+
+                #  make sure we don't select this group again
+                #  for this label this time round
+                splice (@target_groups, $j, 1);
+
+                if ($sp_for_label_allocation) {
+                    #  we need a copy
+                    #  should cache and clone these to avoid re-sorting the same data
+                    @sp_alloc_nbr_lists
+                      = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
+                        element => $to_group,
+                        sort_lists => 1,  #  could later add a proximity sort
+                    );
+                    foreach my $list (@sp_alloc_nbr_lists) {
+                        #  don't reconsider $to_group, and drop out of this loop if we find it
+                        last if defined $self->delete_from_sorted_list_aa ($to_group, $list);
+                    }
+                }
+            }
+            else {
+                my $target_nbrs = $sp_alloc_nbr_lists[0];
+
+              FIND_TARGET_NBR:
+                while (scalar @sp_alloc_nbr_lists) {
+                    if ($target_nbrs && !scalar @$target_nbrs) {
+                        if (scalar @sp_alloc_nbr_lists) {
+                            shift @sp_alloc_nbr_lists;  #  start work on the next neighbour set
+                            if (!scalar @sp_alloc_nbr_lists) {
+                                $last_group_assigned = undef;
+                                next BY_GROUP;  #  no nbrs left
+                            }
+                            $target_nbrs = $sp_alloc_nbr_lists[0];
+                            next FIND_TARGET_NBR if !scalar @$target_nbrs;
+                        }
+                        else {
+                            $last_group_assigned = undef;
+                            next BY_GROUP;
+                        }
+                    }
+                    my $j = int ($rand->rand (scalar @$target_nbrs));
+                    $to_group = $target_nbrs->[$j];
+                    splice (@$target_nbrs, $j, 1);
+                    next FIND_TARGET_NBR
+                      if $assigned{$to_group} || exists $filled_groups{$to_group};
+                    last FIND_TARGET_NBR if exists $target_groups_hash{$to_group};
+                }
+
+                if (!defined $to_group) {
+                    $last_group_assigned = undef;
+                    next BY_GROUP;
+                }
+
+                #  make sure we don't select this group again
+                #  for this label this time round
+                $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
+            }
+
+            $last_group_assigned = $to_group;
 
             #  drop out criterion, occurs when $richness_multiplier < 1
-            last BY_GROUP if not defined $to_group;  
+            last BY_GROUP if not defined $to_group;
+
+            $assigned{$to_group}++;
 
             warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                  . "$filled_groups{$to_group}, $target_richness{$to_group}, "
@@ -2198,12 +2313,15 @@ sub delete_from_sorted_list {
 }
 
 #  array args version to reduce sub and args hash cleanup overheads
+#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
 sub delete_from_sorted_list_aa {
-    my ($self, $item, $list) = @_;
+    #my ($self, $item, $list) = @_;
 
-    my $idx  = binsearch { $a cmp $b } $item, @$list;
+    #my $idx  = binsearch { $a cmp $b } $item, @$list;
+    my $idx  = binsearch { $a cmp $b } $_[1], @{$_[2]};
     if (defined $idx) {
-        splice @$list, $idx, 1;
+        #splice @$list, $idx, 1;
+        splice @{$_[2]}, $idx, 1;
     }
 
     # skip the explicit return as a minor speedup for pre-5.20 systems

@@ -151,7 +151,7 @@ sub test_rand_spatially_structured {
 
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
-        calculations => [qw /calc_richness/],
+        calculations => [qw /calc_richness calc_endemism_central_lists/],
     );
 
     my $rand_name = 'rand_spatially_structured';
@@ -187,6 +187,8 @@ sub test_rand_spatially_structured {
             }
         }
     };
+    
+    #  test that all groups have local range scores >1 a s check of clustering.
 
     {
         local $TODO = 'Not implemented yet';

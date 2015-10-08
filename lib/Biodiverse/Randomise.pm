@@ -2036,6 +2036,14 @@ sub swap_to_reach_richness_targets {
             $last_filled = $target_group;
         }
     }
+    
+    my $sc_ref = $self->get_param_as_ref ('SWAP_COUNT');
+    if (defined $sc_ref) {
+        $$sc_ref += $swap_count;
+    }
+    else {
+        $self->set_param (SWAP_COUNT => $swap_count);
+    }
 
     say "[Randomise structured] Final swap count is $swap_count";
 

@@ -150,8 +150,8 @@ sub test_rand_spatially_structured {
     my $sp = $bd->add_spatial_output (name => 'sp');
 
     $sp->run_analysis (
-        spatial_conditions => ['sp_self_only()'],
-        calculations => [qw /calc_richness calc_endemism_central_lists/],
+        spatial_conditions => ['sp_square (size => 3)'],
+        calculations => [qw /calc_local_range_lists/],
     );
 
     my $rand_name = 'rand_spatially_structured';
@@ -159,7 +159,7 @@ sub test_rand_spatially_structured {
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
         function   => 'rand_structured',
-        iterations => 1,  #  reset to 3 later
+        iterations => 3,  #  reset to 3 later
         seed       => $prng_seed,
         richness_addition   => 30,  #  make sure we can put our three labels anywhere
         richness_multiplier => 1,
@@ -169,14 +169,13 @@ sub test_rand_spatially_structured {
             "sp_circle(radius => $c9)",
         ],
         return_rand_bd_array => 1,
+        retain_outputs => 1,
     );
 
-    $rand_bd_array->[0]->get_groups_ref->export (
-        format => 'GeoTIFF',
-        file => 'barry',
-        list => 'SUBELEMENTS',
+    ok (!$rand->get_param('SWAP_COUNT'),
+        'Did not use swap process in spatially structured rand',
     );
-    
+
     subtest 'range scores match' => sub {
         foreach my $rand_bd (@$rand_bd_array) {
             foreach my $label (sort $rand_bd->get_labels) {
@@ -187,13 +186,33 @@ sub test_rand_spatially_structured {
             }
         }
     };
-    
-    #  test that all groups have local range scores >1 a s check of clustering.
 
-    {
-        local $TODO = 'Not implemented yet';
-        ok (0, "Spatially structured allocation of labels");
-    }
+    #  check the local ranges
+    subtest 'no isolated cases' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            my $outputs = $rand_bd->get_output_refs;
+            my $output  = $outputs->[0];  #  only one output
+            foreach my $group (sort $output->get_element_list) {
+                next if !$rand_bd->get_richness(element => $group);
+                my $labels = $rand_bd->get_labels_in_group (group => $group);
+                my $list = $output->get_list_ref (
+                    element => $group,
+                    list => 'ABC2_LABELS_SET1',
+                );
+                foreach my $label (sort @$labels) {
+                    cmp_ok ($list->{$label}, '>', 1,
+                        "local range for $label is > 1, group $group",
+                    );
+                }
+            }
+        }
+    };
+
+    $rand_bd_array->[0]->get_groups_ref->export (
+        format => 'GeoTIFF',
+        file => 'barry',
+        list => 'SUBELEMENTS',
+    );
 
     return;
 }
@@ -245,6 +264,58 @@ sub test_rand_structured_richness_multiplier_and_addition {
             }
         }
     };
+
+    return;
+}
+
+sub test_rand_structured_does_not_swap {
+    my $c = 1;
+    my $bd_size = 25;
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'test_rand_spatially_structured',
+        CELL_SIZES => [$c, $c],
+    );
+    
+    #my $prng_seed = 2345;
+    my $prng = Math::Random::MT::Auto->new;
+
+    
+    foreach my $i (0 .. $bd_size) {
+        foreach my $j (0 .. $bd_size) {
+            my $group = "$i:$j";
+            $bd->add_element (group => $group);
+            foreach my $label (qw /a b c/) {
+                if ($prng->rand < (1/3)) {
+                    $bd->add_element (group => $group, label => $label);
+                }
+            }
+        }
+    }
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name = 'rand_structured';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    $rand->run_analysis (
+        function   => 'rand_structured',
+        iterations => 3,
+        seed       => $prng_seed,
+        #return_rand_bd_array => 1,
+        richness_addition    => 10000,
+        richness_multiplier  => 2,
+    );
+
+    ok (!$rand->get_param('SWAP_COUNT'),
+        'Did not use swap process when richness targets are massive',
+    );
 
     return;
 }

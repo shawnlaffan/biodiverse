@@ -6,7 +6,7 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Data::Dumper;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

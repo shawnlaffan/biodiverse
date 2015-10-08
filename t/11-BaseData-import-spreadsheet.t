@@ -11,7 +11,7 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
 
-use rlib;
+use Test::Lib;
 
 use Data::Section::Simple qw(
     get_data_section

@@ -9,7 +9,7 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 
 use Test::More;
 

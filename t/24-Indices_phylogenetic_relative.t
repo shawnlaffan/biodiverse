@@ -12,7 +12,7 @@ BEGIN {
     #$ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 0;
 }
 
-use rlib;
+use Test::Lib;
 use Test::More;
 use Biodiverse::Config;
 use List::Util qw /sum/;

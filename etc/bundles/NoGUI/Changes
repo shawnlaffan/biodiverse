@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.00012 2015-10-06
+    - Depend on Test::Lib in addition to rlib
+
 1.00011 2015-06-11
     - Fix a copy-paste error in the makefile which resulted in neither of
       Spreadsheet::ParseXLSX and Spreadsheet::XLSX being installed.

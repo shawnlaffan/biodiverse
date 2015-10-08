@@ -13,7 +13,6 @@ use Scalar::Util qw /isweak/;
 use FindBin qw /$Bin/;
 use lib "$Bin/../../lib";
 use lib "$Bin/../../t/lib";
-use rlib;
 
 #use File::Temp qw /tempfile/;
 

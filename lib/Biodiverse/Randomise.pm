@@ -1281,7 +1281,7 @@ END_PROGRESS_TEXT
         my (
             %new_bd_additions,
             %cloned_bd_deletions,
-            @sp_alloc_nbr_lists,
+            @sp_alloc_nbr_list,
             $last_group_assigned,
             %assigned,
             %valid_nbrs,
@@ -1302,7 +1302,7 @@ END_PROGRESS_TEXT
 #  Issue is that the algorithm might never land on a valid target
 #  group given the selection process is only unfilled groups without the label
 
-            if ($use_new_seed_group || !scalar @sp_alloc_nbr_lists) {
+            if ($use_new_seed_group || !scalar @sp_alloc_nbr_list) {
                 #  select a group at random to assign to
                 my $j = int ($rand->rand (scalar @target_groups));
                 $to_group = $target_groups[$j];
@@ -1314,52 +1314,40 @@ END_PROGRESS_TEXT
                 if ($sp_for_label_allocation) {
                     #  we need a copy
                     #  should cache and clone these to avoid re-sorting the same data
-                    @sp_alloc_nbr_lists
+                    @sp_alloc_nbr_list = ();
+                    my @sp_alloc_nbr_list_source
                       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
                         element => $to_group,
                         sort_lists => 1,  #  could later add a proximity sort
                     );
-                    my @subset;
                     #my $nbr_count;
-                    foreach my $list_ref (@sp_alloc_nbr_lists) {
+                    foreach my $list_ref (@sp_alloc_nbr_list_source) {
                         #warn "XXX $to_group: " . join ' ', @$list_ref, "\n";
                         #  don't reconsider $to_group
-                        my $k = $self->delete_from_sorted_list_aa ($to_group, $list_ref);
+                        #my $k = $self->delete_from_sorted_list_aa ($to_group, $list_ref);
                         my @sublist = grep
-                          {exists $target_groups_hash{$_} || !exists $filled_groups{$_}}
+                          {   exists $target_groups_hash{$_}
+                           && !exists $filled_groups{$_}
+                           && !exists $assigned{$_}
+                           && $_ ne $to_group}
                           @$list_ref;
                         #$nbr_count += scalar @sublist;
-                        push @subset, \@sublist if scalar @sublist;
+                        if (scalar @sublist) {
+                            push @sp_alloc_nbr_list, @{$rand->shuffle (\@sublist)};
+                        }
                     }
-                    @sp_alloc_nbr_lists = @subset;
                     $use_new_seed_group = 0;
                     #say "There are $nbr_count targets for group $to_group";
                 }
             }
             else {
-                my $target_nbrs = $sp_alloc_nbr_lists[0];
-
-              FIND_TARGET_NBR:
-                while (scalar @sp_alloc_nbr_lists) {
-                    $to_group = undef;
-                    if ($target_nbrs && !scalar @$target_nbrs) {
-                        shift @sp_alloc_nbr_lists;  #  start work on the next neighbour set
-                        if (!scalar @sp_alloc_nbr_lists) {  #  but if none are left then restart from a new seed group
-                            $use_new_seed_group = 1;
-                            redo BY_GROUP;  #  no nbrs left
-                        }
-                        $target_nbrs = $sp_alloc_nbr_lists[0];
-                        next FIND_TARGET_NBR if !scalar @$target_nbrs;
-                    }
-                    my $j = int ($rand->rand (scalar @$target_nbrs));
-                    $to_group = $target_nbrs->[$j];
-                    splice (@$target_nbrs, $j, 1);
-                    next FIND_TARGET_NBR
-                      if $assigned{$to_group} || exists $filled_groups{$to_group};
-                    last FIND_TARGET_NBR if exists $target_groups_hash{$to_group};
+                if (!scalar @sp_alloc_nbr_list) {  #  no nbrs left for this seed group
+                    $use_new_seed_group = 1;
+                    redo BY_GROUP;  
                 }
+                $to_group = shift @sp_alloc_nbr_list;
 
-                if (!defined $to_group) {
+                if (!defined $to_group) {  #  should not get here now?  
                     $use_new_seed_group = 1;
                     redo BY_GROUP;
                 }

@@ -122,26 +122,27 @@ sub test_rand_spatially_structured {
     my $c3 = $c * 1;
     my $c6 = $c * 2;
     my $c9 = $c * 3;
-    my $bd_size = 25;
+    my $bd_size = 21;
 
     my $prng_seed = 2345;
     
-    my $prng = Math::Random::MT::Auto->new;
+    #my $prng = Math::Random::MT::Auto->new;
     
     my $bd = Biodiverse::BaseData->new (
         NAME => 'test_rand_spatially_structured',
         CELL_SIZES => [$c, $c],
+        CELL_ORIGINS => [$c/2, $c/2],
     );
     
+    my @labels = qw /a b c/;
+    my $k = 0;
     foreach my $i (0 .. $bd_size) {
         foreach my $j (0 .. $bd_size) {
             my $group = "$i:$j";
             $bd->add_element (group => $group);
-            foreach my $label (qw /a b c/) {
-                if ($prng->rand < (1/3)) {
-                    $bd->add_element (group => $group, label => $label);
-                }
-            }
+            my $label = $labels[$i % 3];
+            $bd->add_element (group => $group, label => $label, count => $k);
+            $k++;
         }
     }
     
@@ -159,11 +160,12 @@ sub test_rand_spatially_structured {
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
         function   => 'rand_structured',
-        iterations => 3,  #  reset to 3 later
+        iterations => 1,  #  reset to 3 later
         seed       => $prng_seed,
         richness_addition   => 30,  #  make sure we can put our three labels anywhere
         richness_multiplier => 1,
         spatial_conditions_for_label_allocation => [
+            "sp_self_only()",
             "sp_circle(radius => $c3)",
             "sp_circle(radius => $c6)",
             "sp_circle(radius => $c9)",
@@ -172,8 +174,11 @@ sub test_rand_spatially_structured {
         retain_outputs => 1,
     );
 
-    ok (!$rand->get_param('SWAP_COUNT'),
-        'Did not use swap process in spatially structured rand',
+    is ($rand->get_param('SWAP_OUT_COUNT'), 0,
+        'Did not swap out in spatially structured rand',
+    );
+    is ($rand->get_param('SWAP_INSERT_COUNT'), 0,
+        'Did not swap insert in spatially structured rand',
     );
 
     subtest 'range scores match' => sub {
@@ -207,12 +212,6 @@ sub test_rand_spatially_structured {
             }
         }
     };
-
-    $rand_bd_array->[0]->get_groups_ref->export (
-        format => 'GeoTIFF',
-        file => 'barry',
-        list => 'SUBELEMENTS',
-    );
 
     return;
 }
@@ -313,8 +312,11 @@ sub test_rand_structured_does_not_swap {
         richness_multiplier  => 2,
     );
 
-    ok (!$rand->get_param('SWAP_COUNT'),
-        'Did not use swap process when richness targets are massive',
+    is ($rand->get_param('SWAP_OUT_COUNT'), 0,
+        'Did not swap out when richness targets are massive',
+    );
+    is ($rand->get_param('SWAP_INSERT_COUNT'), 0,
+        'Did not swap insert when richness targets are massive',
     );
 
     return;

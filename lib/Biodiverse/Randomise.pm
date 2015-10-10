@@ -1284,19 +1284,25 @@ END_PROGRESS_TEXT
             @sp_alloc_nbr_lists,
             $last_group_assigned,
             %assigned,
+            %valid_nbrs,
         );
+
+        my $use_new_seed_group = 1;
+
+#my $should_process = scalar keys %tmp;
+#my $did_process = 0;
 
       BY_GROUP:
         foreach my $from_group (@$tmp_rand_order) {
             my $count = $tmp{$from_group};
             my $to_group;
 
-#  should we always assign to the seed location?
-#  What if the central group is not part of the nbr set?
+#  Should we always assign to the seed group?
+#  What if the seed group is not part of the nbr set?
 #  Issue is that the algorithm might never land on a valid target
 #  group given the selection process is only unfilled groups without the label
 
-            if (!$sp_for_label_allocation || !defined $last_group_assigned) {
+            if ($use_new_seed_group || !scalar @sp_alloc_nbr_lists) {
                 #  select a group at random to assign to
                 my $j = int ($rand->rand (scalar @target_groups));
                 $to_group = $target_groups[$j];
@@ -1313,10 +1319,21 @@ END_PROGRESS_TEXT
                         element => $to_group,
                         sort_lists => 1,  #  could later add a proximity sort
                     );
-                    foreach my $list (@sp_alloc_nbr_lists) {
-                        #  don't reconsider $to_group, and drop out of this loop if we find it
-                        last if defined $self->delete_from_sorted_list_aa ($to_group, $list);
+                    my @subset;
+                    #my $nbr_count;
+                    foreach my $list_ref (@sp_alloc_nbr_lists) {
+                        #warn "XXX $to_group: " . join ' ', @$list_ref, "\n";
+                        #  don't reconsider $to_group
+                        my $k = $self->delete_from_sorted_list_aa ($to_group, $list_ref);
+                        my @sublist = grep
+                          {exists $target_groups_hash{$_} || !exists $filled_groups{$_}}
+                          @$list_ref;
+                        #$nbr_count += scalar @sublist;
+                        push @subset, \@sublist if scalar @sublist;
                     }
+                    @sp_alloc_nbr_lists = @subset;
+                    $use_new_seed_group = 0;
+                    #say "There are $nbr_count targets for group $to_group";
                 }
             }
             else {
@@ -1324,20 +1341,15 @@ END_PROGRESS_TEXT
 
               FIND_TARGET_NBR:
                 while (scalar @sp_alloc_nbr_lists) {
+                    $to_group = undef;
                     if ($target_nbrs && !scalar @$target_nbrs) {
-                        if (scalar @sp_alloc_nbr_lists) {
-                            shift @sp_alloc_nbr_lists;  #  start work on the next neighbour set
-                            if (!scalar @sp_alloc_nbr_lists) {
-                                $last_group_assigned = undef;
-                                next BY_GROUP;  #  no nbrs left
-                            }
-                            $target_nbrs = $sp_alloc_nbr_lists[0];
-                            next FIND_TARGET_NBR if !scalar @$target_nbrs;
+                        shift @sp_alloc_nbr_lists;  #  start work on the next neighbour set
+                        if (!scalar @sp_alloc_nbr_lists) {  #  but if none are left then restart from a new seed group
+                            $use_new_seed_group = 1;
+                            redo BY_GROUP;  #  no nbrs left
                         }
-                        else {
-                            $last_group_assigned = undef;
-                            next BY_GROUP;
-                        }
+                        $target_nbrs = $sp_alloc_nbr_lists[0];
+                        next FIND_TARGET_NBR if !scalar @$target_nbrs;
                     }
                     my $j = int ($rand->rand (scalar @$target_nbrs));
                     $to_group = $target_nbrs->[$j];
@@ -1348,8 +1360,8 @@ END_PROGRESS_TEXT
                 }
 
                 if (!defined $to_group) {
-                    $last_group_assigned = undef;
-                    next BY_GROUP;
+                    $use_new_seed_group = 1;
+                    redo BY_GROUP;
                 }
 
                 #  make sure we don't select this group again
@@ -1357,12 +1369,10 @@ END_PROGRESS_TEXT
                 $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
             }
 
-            $last_group_assigned = $to_group;
-
             #  drop out criterion, occurs when $richness_multiplier < 1
             last BY_GROUP if not defined $to_group;
 
-            $assigned{$to_group}++;
+            delete $target_groups_hash{$to_group};
 
             warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                  . "$filled_groups{$to_group}, $target_richness{$to_group}, "
@@ -1372,6 +1382,8 @@ END_PROGRESS_TEXT
             # Assign this label to its new group.
             # Use array args version for speed.
             $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
+
+            $assigned{$to_group}++;
 
             #  now delete it from the list of candidates
             $cloned_bd->delete_sub_element_aa ($label, $from_group);
@@ -1692,7 +1704,8 @@ sub swap_to_reach_richness_targets {
         say "[RANDOMISE] Swapping labels to reach richness targets";
     }
 
-    my $swap_count = 0;
+    my $swap_out_count = 0;
+    my $swap_insert_count = 0;
     my $last_filled = $EMPTY_STRING;
 
     #  Track the labels in the unfilled groups.
@@ -1747,7 +1760,7 @@ sub swap_to_reach_richness_targets {
                 (scalar keys %filled_groups),
                 $target_label_count,
                 $target_group_count,
-                $swap_count,
+                $swap_out_count,
                 $last_filled;
 
         my $progress_i = scalar keys %filled_groups;
@@ -1946,6 +1959,7 @@ sub swap_to_reach_richness_targets {
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
+                $swap_insert_count++;
 
                 my $new_richness = $new_bd->get_richness (
                     element => $return_gp,
@@ -1990,10 +2004,10 @@ sub swap_to_reach_richness_targets {
                 }
             }
 
-            $swap_count ++;
+            $swap_out_count ++;
 
-            if (!($swap_count % 5000)) {
-                say "Swap count $swap_count";
+            if (!($swap_out_count % 5000)) {
+                say "Swap count $swap_out_count";
             }
         }
 
@@ -2004,6 +2018,7 @@ sub swap_to_reach_richness_targets {
             count => $add_count,
             csv_object => $csv_object,
         );
+        $swap_insert_count++;
         if (my $aref = $groups_without_labels_a{$add_label}) {
             $self->delete_from_sorted_list_aa ($target_group, $aref);
             if (!scalar @$aref) {
@@ -2036,16 +2051,24 @@ sub swap_to_reach_richness_targets {
             $last_filled = $target_group;
         }
     }
-    
-    my $sc_ref = $self->get_param_as_ref ('SWAP_COUNT');
+
+    my $sc_ref = $self->get_param_as_ref ('SWAP_OUT_COUNT');
     if (defined $sc_ref) {
-        $$sc_ref += $swap_count;
+        $$sc_ref += $swap_out_count;
     }
     else {
-        $self->set_param (SWAP_COUNT => $swap_count);
+        $self->set_param (SWAP_OUT_COUNT => $swap_out_count);
     }
+    $sc_ref = $self->get_param_as_ref ('SWAP_INSERT_COUNT');
+    if (defined $sc_ref) {
+        $$sc_ref += $swap_insert_count;
+    }
+    else {
+        $self->set_param (SWAP_INSERT_COUNT => $swap_insert_count);
+    }
+    
 
-    say "[Randomise structured] Final swap count is $swap_count";
+    say "[Randomise structured] Final swap count is $swap_out_count";
 
     return;
 }

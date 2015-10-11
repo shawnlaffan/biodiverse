@@ -1285,6 +1285,7 @@ END_PROGRESS_TEXT
             $last_group_assigned,
             %assigned,
             %valid_nbrs,
+            @to_groups,
         );
 
         my $use_new_seed_group = 1;
@@ -1293,19 +1294,17 @@ END_PROGRESS_TEXT
 #my $did_process = 0;
 
       BY_GROUP:
-        foreach my $from_group (@$tmp_rand_order) {
-            my $count = $tmp{$from_group};
-            my $to_group;
+        while (scalar @$tmp_rand_order) {
 
 #  Should we always assign to the seed group?
 #  What if the seed group is not part of the nbr set?
 #  Issue is that the algorithm might never land on a valid target
 #  group given the selection process is only unfilled groups without the label
 
-            if ($use_new_seed_group || !scalar @sp_alloc_nbr_list) {
+            if (!scalar @to_groups) {
                 #  select a group at random to assign to
                 my $j = int ($rand->rand (scalar @target_groups));
-                $to_group = $target_groups[$j];
+                push @to_groups, $target_groups[$j];
 
                 #  make sure we don't select this group again
                 #  for this label this time round
@@ -1314,84 +1313,71 @@ END_PROGRESS_TEXT
                 if ($sp_for_label_allocation) {
                     #  we need a copy
                     #  should cache and clone these to avoid re-sorting the same data
-                    @sp_alloc_nbr_list = ();
                     my @sp_alloc_nbr_list_source
                       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
-                        element => $to_group,
+                        element => $to_groups[0],
                         sort_lists => 1,  #  could later add a proximity sort
                     );
-                    #my $nbr_count;
                     foreach my $list_ref (@sp_alloc_nbr_list_source) {
-                        #warn "XXX $to_group: " . join ' ', @$list_ref, "\n";
-                        #  don't reconsider $to_group
-                        #my $k = $self->delete_from_sorted_list_aa ($to_group, $list_ref);
                         my @sublist = grep
                           {   exists $target_groups_hash{$_}
                            && !exists $filled_groups{$_}
                            && !exists $assigned{$_}
-                           && $_ ne $to_group}
+                           && $_ ne $to_groups[0]}
                           @$list_ref;
-                        #$nbr_count += scalar @sublist;
                         if (scalar @sublist) {
-                            push @sp_alloc_nbr_list, @{$rand->shuffle (\@sublist)};
+                            push @to_groups, @{$rand->shuffle (\@sublist)};
                         }
                     }
-                    $use_new_seed_group = 0;
-                    #say "There are $nbr_count targets for group $to_group";
                 }
-            }
-            else {
-                if (!scalar @sp_alloc_nbr_list) {  #  no nbrs left for this seed group
-                    $use_new_seed_group = 1;
-                    redo BY_GROUP;  
-                }
-                $to_group = shift @sp_alloc_nbr_list;
-
-                if (!defined $to_group) {  #  should not get here now?  
-                    $use_new_seed_group = 1;
-                    redo BY_GROUP;
-                }
-
-                #  make sure we don't select this group again
-                #  for this label this time round
-                $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
             }
 
             #  drop out criterion, occurs when $richness_multiplier < 1
-            last BY_GROUP if not defined $to_group;
+            #  and we run out of groups to assign to
+            last BY_GROUP if !scalar @to_groups;
 
-            delete $target_groups_hash{$to_group};
+            while (defined (my $to_group = shift @to_groups)) {
 
-            warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
-                 . "$filled_groups{$to_group}, $target_richness{$to_group}, "
-                 . "$check $check2 :: $i\n"
-                    if defined $to_group and exists $filled_groups{$to_group};
+                last BY_GROUP if !scalar @$tmp_rand_order;
+                #last BY_GROUP if not defined $to_group;  #  likely now?
 
-            # Assign this label to its new group.
-            # Use array args version for speed.
-            $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
+                my $from_group = shift @$tmp_rand_order;
+                my $count = $tmp{$from_group};
 
-            $assigned{$to_group}++;
+                delete $target_groups_hash{$to_group};
+                $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
 
-            #  now delete it from the list of candidates
-            $cloned_bd->delete_sub_element_aa ($label, $from_group);
-            delete $tmp{$from_group};
+                warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
+                     . "$filled_groups{$to_group}, $target_richness{$to_group}, "
+                     . "$check $check2 :: $i\n"
+                        if defined $to_group and exists $filled_groups{$to_group};
+                
+                # Assign this label to its new group.
+                # Use array args version for speed.
+                $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
-            #  increment richness and then check if we've filled this group.
-            my $richness = ++$new_bd_richness{$to_group};
+                $assigned{$to_group}++;
 
-            if ($richness >= $target_richness{$to_group}) {
+                #  now delete it from the list of candidates
+                $cloned_bd->delete_sub_element_aa ($label, $from_group);
+                delete $tmp{$from_group};
 
-                warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
-                  if ($richness > $target_richness{$to_group});
+                #  increment richness and then check if we've filled this group.
+                my $richness = ++$new_bd_richness{$to_group};
 
-                $filled_groups{$to_group} = $richness;
-                delete $unfilled_groups{$to_group};
-                $last_filled = $to_group;
-            };
+                if ($richness >= $target_richness{$to_group}) {
 
-            #  move to next label if no more targets for this label
-            last BY_GROUP if !scalar @target_groups;  
+                    warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
+                      if ($richness > $target_richness{$to_group});
+
+                    $filled_groups{$to_group} = $richness;
+                    delete $unfilled_groups{$to_group};
+                    $last_filled = $to_group;
+                };
+
+                #  move to next label if no more targets for this label
+                last BY_GROUP if !scalar @target_groups;
+            }
         }
     }
 

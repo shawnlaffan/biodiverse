@@ -1012,10 +1012,15 @@ sub get_spatial_output_for_label_allocation {
     
     my $sp_conditions = $args{spatial_conditions_for_label_allocation};
     
-    return if !$sp_conditions;
+    return if !defined $sp_conditions;
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
     
+    #  GUI only handles one until we can generate a compound widget
+    if (!ref $sp_conditions || blessed $sp_conditions) {
+        $sp_conditions = [$sp_conditions];
+    }
+
     #  Check the sp conditions
     #  If we get only whitespace and comments then default to selecting all groups
     my $sp_check_text = $sp_conditions->[0];
@@ -1049,7 +1054,41 @@ sub get_spatial_output_for_label_allocation {
     return $sp;
 }
 
-sub get_metadata_rand_structured {
+sub get_metadata_rand_spatially_structured {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+    my $spatial_condition_param = bless {
+        name       => 'spatial_conditions_for_label_allocation',
+        label_text => "Spatial condition\nto define target groups\naround a seed location",
+        default    => '', #' ' x 30,  #  add spaces to get some widget width
+        type       => 'spatial_conditions',
+        tooltip    => 'Labels will be assigned to groups within the specified '
+                    . 'neighbourhood around a random seed location.  '
+                    . 'A new seed location is selected when there are no more '
+                    . 'neighbours to select from.',
+    }, $parameter_rand_metadata_class;
+    push @parameters, $spatial_condition_param;
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, selecting "
+                     . "new locations as a function of one or more spatial conditions\n"
+                     . 'but keep the richness the same or within '
+                     . 'some multiplier factor.',
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_spatially_structured {
+    my $self = shift;
+    my %args = @_;
+    return $self->rand_structured (%args);
+}
+
+sub get_common_rand_structured_metadata {
     my $self = shift;
 
     my $tooltip_mult =<<'END_TOOLTIP_MULT'
@@ -1088,7 +1127,7 @@ END_TOOLTIP_ADDN
          increment  => 1,
          tooltip    => $tooltip_addn,
          box_group  => 'Richness constraints',
-         },        
+         },
         $group_props_parameters,
         $tree_shuffle_parameters,
         @$common_metadata,
@@ -1097,6 +1136,14 @@ END_TOOLTIP_ADDN
         next if blessed $_;
         bless $_, $parameter_rand_metadata_class;
     }
+    
+    return wantarray ? @parameters : \@parameters;
+}
+
+sub get_metadata_rand_structured {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1318,6 +1365,7 @@ END_PROGRESS_TEXT
                         element => $to_groups[0],
                         sort_lists => 1,  #  could later add a proximity sort
                     );
+                  NBR_LIST_REF:
                     foreach my $list_ref (@sp_alloc_nbr_list_source) {
                         my @sublist = grep
                           {   exists $target_groups_hash{$_}
@@ -1325,9 +1373,8 @@ END_PROGRESS_TEXT
                            && !exists $assigned{$_}
                            && $_ ne $to_groups[0]}
                           @$list_ref;
-                        if (scalar @sublist) {
-                            push @to_groups, @{$rand->shuffle (\@sublist)};
-                        }
+                        next NBR_LIST_REF if !scalar @sublist;
+                        push @to_groups, @{$rand->shuffle (\@sublist)};
                     }
                 }
             }

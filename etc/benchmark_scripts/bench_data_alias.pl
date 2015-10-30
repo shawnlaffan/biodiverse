@@ -3,7 +3,7 @@ use Benchmark qw {:all};
 use 5.016;
 use Data::Dumper;
 use Data::Alias qw /alias/;
-
+use PDL;
 
 my %hashbase;
 #@hash{1..1000} = (rand()) x 1000;
@@ -12,15 +12,41 @@ for my $i (1..1000) {
 }
 my $hashref = \%hashbase;
 
+my @keys = keys %$hashref;
+my $gpdl1 = pdl @$hashref{@keys};
+my $gpdl2 = pdl @$hashref{@keys};
+my $gpdl3 = pdl @$hashref{@keys};
+
+
 cmpthese (
     -5,
     {
-        hash_deref_once => sub {hash_deref_once ()},
+        #hash_deref_once => sub {hash_deref_once ()},
         data_alias => sub {data_alias ()},
         hash_deref_rep => sub {hash_deref_rep ()},
+        pdl_build_each_time => sub {pdl_build_each_time ()},
+        pdl_build_once      => sub {pdl_build_once ()},
     }
 );
 
+
+sub pdl_build_once {
+    my $pdlsum = $gpdl1 * $gpdl2 / $gpdl3;
+    my $sum = $pdlsum->sum;
+    return $sum;
+}
+
+sub pdl_build_each_time {
+    #my @keys = keys %$hashref;
+    my $pdl1 = pdl [@$hashref{@keys}];
+    my $pdl2 = pdl [@$hashref{@keys}];
+    my $pdl3 = pdl [@$hashref{@keys}];
+    my $pdlsum = $pdl1 * $pdl2 / $pdl3;
+    #print $pdlsum;
+    my $sum = $pdlsum->sum;
+    #print $sum . "\n";
+    return $sum;
+}
 
 sub hash_deref_once {
     my %hashd1 = %$hashref;
@@ -30,6 +56,7 @@ sub hash_deref_once {
     foreach my $key (keys %hashd1) {
         $sum += $hashd1{$key} * $hashd2{$key} / $hashd3{$key};
     }
+    return $sum;
 }
 
 sub hash_deref_rep {
@@ -40,6 +67,7 @@ sub hash_deref_rep {
     foreach my $key (keys %$hashref) {
         $sum += $href1->{$key} * $href2->{$key} / $href3->{$key};
     }
+    return $sum;
 }
 
 sub data_alias {
@@ -51,6 +79,7 @@ sub data_alias {
     foreach my $key (keys %hasha1) {
         $sum += $hasha1{$key} * $hasha2{$key} / $hasha3{$key};
     }
+    return $sum;
 }
 
 

@@ -1031,7 +1031,7 @@ sub import_data {
                 if ($cell_sizes[$i] >= 0) {
                     next BYLINE
                       if $skip_lines_with_undef_groups
-                         && (!defined $coord || $coord eq 'NA');
+                         && (!defined $coord || $coord eq 'NA' || $coord eq '');
 
                     if ($cell_is_lat_array[$i]) {
                         my $lat_args = {

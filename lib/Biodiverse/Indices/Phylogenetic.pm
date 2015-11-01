@@ -14,6 +14,8 @@ use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 use Data::Alias qw /alias/;
 
+use Biodiverse::Utils qw /add_hash_keys_last_if_exists copy_values_from/;
+
 our $VERSION = '1.1';
 
 use Biodiverse::Statistics;
@@ -413,26 +415,15 @@ sub get_path_lengths_to_root_node {
             $path_cache_hash{$current_node} = $sub_path;
         }
 
-        #  This is a bottleneck for large data sets.
-        #  The last-if approach is faster than a straight slice,
-        #  but we should (might) be able to get even more speedup with XS code.  
-        if (!scalar keys %path) {
-            #  target for Panda::Lib merge_hash
-            @path{@$sub_path} = ();
-        }
-        else {
-            foreach my $node_name (@$sub_path) {
-                last if exists $path{$node_name};
-                $path{$node_name} = undef;
-            }
-        }
+        #  This is a bottleneck for large data sets, so use an XSUB.
+        add_hash_keys_last_if_exists (\%path, $sub_path);
     }
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
-    @path{keys %path} = @$len_hash{keys %path};
-    #@path{@path_array} = @$len_hash{@path_array};
+    #@path{keys %path} = @$len_hash{keys %path};
+    copy_values_from (\%path, $len_hash);
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};

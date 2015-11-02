@@ -400,7 +400,7 @@ sub get_path_lengths_to_root_node {
     my $all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
-    my %path;
+    my $path_hash = {};
     foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
@@ -415,22 +415,22 @@ sub get_path_lengths_to_root_node {
         }
 
         #  This is a bottleneck for large data sets, so use an XSUB.
-        add_hash_keys_last_if_exists (\%path, $sub_path);
+        add_hash_keys_last_if_exists ($path_hash, $sub_path);
     }
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
     #@path{keys %path} = @$len_hash{keys %path};
-    copy_values_from (\%path, $len_hash);
+    copy_values_from ($path_hash, $len_hash);
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
         #my @el_list = @$el_list;  #  can only have one item
-        $cache_h->{$el_list->[0]} = \%path;
+        $cache_h->{$el_list->[0]} = $path_hash;
     }
 
-    return wantarray ? %path : \%path;
+    return wantarray ? %$path_hash : $path_hash;
 }
 
 

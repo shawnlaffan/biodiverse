@@ -395,24 +395,23 @@ sub get_path_lengths_to_root_node {
     #  massive trees where we only need a subset.
     my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE_PER_TERMINAL')
       // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE_PER_TERMINAL => $c); $c};
-    alias my %path_cache_hash = %$path_cache;
 
     # get a hash of node refs
-    alias my %all_nodes = $tree_ref->get_node_hash;
+    my $all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
     my %path;
-    foreach my $label (grep {exists $all_nodes{$_}} keys %$label_list) {
+    foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
-        my $current_node = $all_nodes{$label};
-        my $sub_path = $path_cache_hash{$current_node};
+        my $current_node = $all_nodes->{$label};
+        my $sub_path = $path_cache->{$current_node};
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_to_root_node (cache => $cache);
             my @p = map {$_->get_name} @$sub_path;
             $sub_path = \@p;
-            $path_cache_hash{$current_node} = $sub_path;
+            $path_cache->{$current_node} = $sub_path;
         }
 
         #  This is a bottleneck for large data sets, so use an XSUB.

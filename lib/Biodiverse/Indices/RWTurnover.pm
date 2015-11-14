@@ -2,6 +2,7 @@ package Biodiverse::Indices::RWTurnover;
 use strict;
 use warnings;
 use autovivification;
+use Data::Alias qw /alias/;
 
 use Carp;
 
@@ -121,29 +122,30 @@ sub calc_phylo_rw_turnover {
     my $el_list2    = [keys %{$args{element_list2}}];
 
     my $node_ranges = $args{node_range_hash};
-    my $weights     = $args{PE_WTLIST};
+    #my $weights     = $args{PE_WTLIST};
+    #  use an alias to avoid deref overheads with large data sets
+    alias my %weights = %{$args{PE_WTLIST}};
     my ($a, $b, $c) = (0, 0, 0);
     
     my $parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
-    my (%done_a, %done_b, %done_c);
+    #my (%done_a, %done_b, %done_c);
+    my %done_a;
 
-    #  There is a possible speed-up by getting all ancestors of the a-scores,
-    #  but profiling showed it took much longer than the direct search.
-    #  Possibly there is a pay-off for larger data sets as the direct search becomes longer.
 
     NODE:
-    foreach my $node (keys %$weights) {
+    foreach my $node (keys %weights) {
         no autovivification;
 
-        next if $done_a{$node};
+        next NODE if exists $done_a{$node};
 
-        my $wt = $weights->{$node};
+        my $wt = $weights{$node};
 
         my $range_hash = $node_ranges->{$node};
 
         #  Which neighbour sets does our node have terminals in?
         #  This is the "slow" bit of this sub...
-        # any() takes twice as long as foreach
+        #  any() takes twice as long as foreach
+        #  Could use alias here, or add a Biodiverse::Utils xsub
         #my $in_set1 = any {exists $range_hash->{$_}} @$el_list1;  
         #my $in_set2 = any {exists $range_hash->{$_}} @$el_list2;
         my ($in_set1, $in_set2);
@@ -158,10 +160,10 @@ sub calc_phylo_rw_turnover {
             if ($in_set2) {  #  we are in both nbr sets, therefore so are our ancestors
                 $a += $wt;
                 $done_a{$node}++;
-                my $pnode = $node;  #  parent node
+                my $pnode = $node;  #  initial parent node key
                 while (my $pnode = $parent_name_hash->{$pnode}) {
-                    last if $done_a{$pnode};
-                    $a += $weights->{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
+                    last if exists $done_a{$pnode};
+                    $a += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
                     $done_a{$pnode}++;
                 }
             }

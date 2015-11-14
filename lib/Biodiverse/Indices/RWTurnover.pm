@@ -92,7 +92,12 @@ sub get_metadata_calc_phylo_rw_turnover {
         reference       => 'TBA',
         type            => 'Phylogenetic Turnover',
         pre_calc        => [qw /calc_pe_lists calc_abc/],
-        pre_calc_global => [qw /get_node_range_hash_as_lists get_trimmed_tree_parent_name_hash/],
+        pre_calc_global => [qw /
+            get_node_range_hash_as_lists
+            get_trimmed_tree_parent_name_hash
+        /],
+        #    get_trimmed_tree_child_name_hash
+        #/],
         uses_nbr_lists  => 2,  #  how many lists it must have
         indices         => {
             PHYLO_RW_TURNOVER   => {
@@ -128,15 +133,16 @@ sub calc_phylo_rw_turnover {
     my ($a, $b, $c) = (0, 0, 0);
     
     my $parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
+    #my $child_name_hash  = $args{TRIMMED_TREE_CHILD_NAME_HASH};
     #my (%done_a, %done_b, %done_c);
-    my %done_a;
+    my %done;
 
 
     NODE:
     foreach my $node (keys %weights) {
         no autovivification;
 
-        next NODE if exists $done_a{$node};
+        next NODE if exists $done{$node};
 
         my $wt = $weights{$node};
 
@@ -159,22 +165,44 @@ sub calc_phylo_rw_turnover {
         if ($in_set1) {
             if ($in_set2) {  #  we are in both nbr sets, therefore so are our ancestors
                 $a += $wt;
-                $done_a{$node}++;
+                $done{$node}++;
                 my $pnode = $node;  #  initial parent node key
                 while (my $pnode = $parent_name_hash->{$pnode}) {
-                    last if exists $done_a{$pnode};
+                    last if exists $done{$pnode};
                     $a += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
-                    $done_a{$pnode}++;
+                    $done{$pnode}++;
                 }
             }
             else {
                 $b += $wt;
-                #$done_b{$node}++;
+                $done{$node}++;
+                #if (my $child_array = $child_name_hash->{$node}) {   
+                #    my @dnodes = grep {exists $weights{$_}} @$child_array;
+                #    while (defined (my $dnode = shift @dnodes)) {
+                #        next if exists $done{$dnode};
+                #        $b += $weights{$dnode};
+                #        $done{$dnode}++;
+                #        if ($child_array = $child_name_hash->{$dnode}) {
+                #            push @dnodes, grep {exists $weights{$_}} @$child_array;
+                #        }
+                #    }
+                #}
             }
         }
         elsif ($in_set2) {
             $c += $wt;
-            #$done_c{$node}++;
+            $done{$node}++;
+            #if (my $child_array = $child_name_hash->{$node}) {   
+            #    my @dnodes = grep {exists $weights{$_}} @$child_array;
+            #    while (defined (my $dnode = shift @dnodes)) {
+            #        next if exists $done{$dnode};
+            #        $c += $weights{$dnode};
+            #        $done{$dnode}++;
+            #        if ($child_array = $child_name_hash->{$dnode}) {
+            #            push @dnodes, grep {exists $weights{$_}} @$child_array;
+            #        }
+            #    }
+            #}
         }
     }
 
@@ -225,6 +253,47 @@ sub get_trimmed_tree_parent_name_hash {
 
     my %results = (
         TRIMMED_TREE_PARENT_NAME_HASH => \%parent_name_hash,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_trimmed_tree_child_name_hash {
+    my $self = shift;
+    
+    my %metadata = (
+        name            => 'get_trimmed_tree_child_name_hash',
+        description     => q{Get a hash where the values are arrays of the names of each node's children},
+        pre_calc_global => [qw /get_trimmed_tree/],
+        indices => {
+            TRIMMED_TREE_CHILD_NAME_HASH => {
+                description => 'hash of the descendant node names, indexed by node name',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_trimmed_tree_child_name_hash {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree = $args{trimmed_tree};
+
+    my $node_hash = $tree->get_node_hash;
+
+    my %name_hash;
+    while (my ($name, $ref) = each %$node_hash) {
+        my @names;
+        foreach my $child ($ref->get_children) {    
+            push @names, $child->get_name;
+        }
+        $name_hash{$name} = scalar @names ? \@names : undef;
+    }
+
+    my %results = (
+        TRIMMED_TREE_CHILD_NAME_HASH => \%name_hash,
     );
 
     return wantarray ? %results : \%results;

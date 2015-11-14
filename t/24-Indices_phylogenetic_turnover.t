@@ -25,7 +25,8 @@ my @calcs = qw/
     calc_phylo_abc
     calc_phylo_jaccard
     calc_phylo_s2
-    calc_phylo_sorenson    
+    calc_phylo_sorenson
+    calc_phylo_rw_turnover
 /;
 
 
@@ -74,6 +75,10 @@ __DATA__
     PHYLO_JACCARD              => '0.84379791173084',
     PHYLO_S2                   => 0,
     PHYLO_SORENSON             => '0.729801407809261',
+    PHYLO_RW_TURNOVER          => '0.548854155622542',
+    PHYLO_RW_TURNOVER_A        => '0.714202952209455',
+    PHYLO_RW_TURNOVER_B        => 0,
+    PHYLO_RW_TURNOVER_C        => '0.868883672903968',
 }
 
 

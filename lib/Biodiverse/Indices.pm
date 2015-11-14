@@ -37,6 +37,7 @@ use parent qw {
     Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
     Biodiverse::Indices::LabelCounts
+    Biodiverse::Indices::RWTurnover
     Biodiverse::Common
 };
 

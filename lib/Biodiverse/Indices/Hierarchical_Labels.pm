@@ -6,7 +6,7 @@ use warnings;
 use Scalar::Util qw /blessed/;
 use Biodiverse::Progress;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

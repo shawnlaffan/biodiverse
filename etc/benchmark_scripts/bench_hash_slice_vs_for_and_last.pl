@@ -44,11 +44,11 @@ foreach my $i (0 .. $m) {
     @len_hash{keys %hash} = values %hash;
 }
 
-use Test::LeakTrace;
-leaktrace {
-    my $x = inline_assign (\%path_arrays);
-    #say join ':', values %$x;
-} -verbose;
+#use Test::LeakTrace;
+#leaktrace {
+#    my $x = inline_assign (\%path_arrays);
+#    #say join ':', values %$x;
+#} -verbose;
 
 
 my $sliced = slice (\%path_hashes);
@@ -64,6 +64,7 @@ is_deeply ($sliced, \%len_hash, 'slice results are the same');
 is_deeply ($slice2, \%len_hash, 'slice2 results are the same');
 is_deeply ($forled, \%len_hash, 'forled results are the same');
 is_deeply ($inline, \%len_hash, 'inline results are the same');
+
 
 
 done_testing;
@@ -83,10 +84,11 @@ for (0..2) {
     cmpthese (
         -3,
         {
-            slice1 => sub {slice (\%path_hash_subset)},
-            slice2 => sub {slice_mk2 (\%path_hash_subset)},
-            forled => sub {for_last (\%path_array_subset)},
+            #slice1 => sub {slice (\%path_hash_subset)},
+            #slice2 => sub {slice_mk2 (\%path_hash_subset)},
+            #forled => sub {for_last (\%path_array_subset)},
             inline => sub {inline_assign (\%path_array_subset)},
+            inline_s => sub {inline_assign_with_slice (\%path_array_subset)},
         }
     );
     say '';
@@ -158,6 +160,20 @@ sub inline_assign {
     }
 
     copy_values_from (\%combined, \%len_hash);
+
+    return \%combined;
+}
+
+sub inline_assign_with_slice {
+    my $paths = shift;
+
+    my %combined;
+
+    foreach my $path (values %$paths) {
+        add_hash_keys_lastif (\%combined, $path);
+    }
+
+    @combined{keys %combined} = @len_hash{keys %combined};
 
     return \%combined;
 }

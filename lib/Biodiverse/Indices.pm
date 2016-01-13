@@ -17,7 +17,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 my $EMPTY_STRING = q{};
 
@@ -37,6 +37,7 @@ use parent qw {
     Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
     Biodiverse::Indices::LabelCounts
+    Biodiverse::Indices::RWTurnover
     Biodiverse::Common
 };
 
@@ -460,9 +461,11 @@ sub get_calculation_metadata_as_markdown {
                         #$formula .= "\n";
                         my $eqn = $element;
                         $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                        $eqn =~ s/^= /=/;
                         $formula_url .= "![$eqn]($codecogs_url";
                         $formula_url .= $eqn;
-                        $formula_url .= "%.png) ";
+                        #$formula_url .= "%.png) ";
+                        $formula_url .= ")";
                     }
                     $iter++;
                 }
@@ -499,10 +502,12 @@ sub get_calculation_metadata_as_markdown {
                         else {
                             my $eqn = $element;
                             $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                            $eqn =~ s/^= /=/;
                             $formula_url .= "![$eqn]($codecogs_url";
                             $formula_url .= $eqn;
-                            $formula_url .= '%.png) ';
+                            #$formula_url .= '%.png) ';
                             #$formula_url .= $codecogs_suffix;
+                            $formula_url .= ')'
                         }
                         $iter++;
                     }

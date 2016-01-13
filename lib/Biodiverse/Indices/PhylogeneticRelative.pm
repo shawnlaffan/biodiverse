@@ -3,6 +3,7 @@ package Biodiverse::Indices::PhylogeneticRelative;
 use strict;
 use warnings;
 use List::Util qw /sum/;
+use Data::Alias qw /alias/;
 
 use Carp;
 
@@ -115,12 +116,12 @@ sub calc_phylo_rpe1 {
     #  get the WE score for the set of terminal nodes in this neighbour set
     my $we;
     my $label_hash = $args{PHYLO_LABELS_ON_TRIMMED_TREE};
-    my $weights    = $args{ENDW_WTLIST};
+    alias my %weights = %{$args{ENDW_WTLIST}};
 
     foreach my $label (keys %$label_hash) {
-        next if ! exists $weights->{$label};  #  This should not happen.  Maybe should croak instead?
+        next if ! exists $weights{$label};  #  This should not happen.  Maybe should croak instead?
         #next if ! $tree->node_is_in_tree(node => $label);  #  list has already been filtered to trimmed tree
-        $we += $weights->{$label};
+        $we += $weights{$label};
     }
 
     my %results;
@@ -265,18 +266,18 @@ sub calc_phylo_rpe2 {
 
     #  Get the PE score assuming equal branch lengths
     #  This is simply the sum of the local ranges for each node.  
-    my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
-    my $node_ranges_global = $args{PE_RANGELIST};
-    my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
+    alias my %node_ranges_local  = %{$args{PE_LOCAL_RANGELIST}};
+    alias my %node_ranges_global = %{$args{PE_RANGELIST}};
+    alias my %null_node_len_hash = %{$args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH}};
     my $pe_null;
 
     my %results;
     {
-        foreach my $null_node (keys %$node_ranges_global) {
+        foreach my $null_node (keys %node_ranges_global) {
             #no autovivification;
-            $pe_null += $null_node_len_hash->{$null_node}
-                      * $node_ranges_local->{$null_node}
-                      / $node_ranges_global->{$null_node};
+            $pe_null += $null_node_len_hash{$null_node}
+                      * $node_ranges_local{$null_node}
+                      / $node_ranges_global{$null_node};
         }
 
         no warnings qw /numeric uninitialized/;

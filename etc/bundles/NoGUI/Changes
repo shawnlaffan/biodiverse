@@ -1,6 +1,9 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
-1.00012 2015-10-06
+1.10001 2015-10-23
+    - Add Data::Alias
+
+1.1 2015-10-09
     - Depend on Test::Lib in addition to rlib
 
 1.00011 2015-06-11

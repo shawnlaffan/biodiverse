@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -415,7 +415,7 @@ sub setup_tie_breaker_widgets {
 
         my $use_iter_minmax = 0;
         if (defined (my $minmax = $tie_breakers->[$k])) {
-            $use_iter_minmax = $minmax =~ /^min/ ? 0 : 1;
+            $use_iter_minmax = $minmax =~ /^max/ ? 0 : 1;
         }
         $combo_minmax->set_active ($use_iter_minmax || 0);
 

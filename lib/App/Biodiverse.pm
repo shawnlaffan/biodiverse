@@ -3,7 +3,7 @@ package App::Biodiverse;
 use strict;
 use warnings;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 1;
 

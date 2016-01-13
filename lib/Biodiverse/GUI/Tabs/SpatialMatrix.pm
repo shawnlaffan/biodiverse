@@ -5,7 +5,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 use Gtk2;
 use Carp;
@@ -449,10 +449,7 @@ sub on_grid_hover {
     if (defined $element) {
         #no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
 
-        my $val = $matrix_ref->get_value (
-            element1 => $element,
-            element2 => $self->{selected_element},
-        );
+        my $val = $matrix_ref->get_defined_value_aa ($element, $self->{selected_element});
 
         my $selected_el = $self->{selected_element} // '';
         $text = defined $val
@@ -596,10 +593,7 @@ sub recolour {
         return $self->get_excluded_cell_colour
           if !$matrix_ref->element_is_in_matrix (element => $elt);
 
-        my $val = $matrix_ref->get_value (
-            element1 => $elt,
-            element2 => $sel_element,
-        );
+        my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 
         return defined $val
             ? $grid->get_colour($val, $min, $max)

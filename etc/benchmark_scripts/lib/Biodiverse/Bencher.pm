@@ -89,13 +89,6 @@ void copy_values_from (SV* dest, SV* from) {
         // printf ("Found key %s\n", SvPV(sv_key, PL_na));
         hash_entry_from = hv_fetch_ent (hash_from, sv_key, 0, 0);
 
-        //  These few lines redundant now?
-        //  This will cause headaches with duplicate refs
-        //  sv_val_from = SvREFCNT_inc(HeVAL(hash_entry_from));
-        // sv_val_from = newSVsv(HeVAL(hash_entry_from));
-        // printf ("Using value '%s'\n", SvPV(sv_val_from, PL_na));
-        // HeVAL(hash_entry_dest) = sv_val_from;
-
         // need to decrement the current ref count before we overwrite it,
         // otherwise Test::LeakTrace notes unhappiness.
         SvREFCNT_dec(HeVAL(hash_entry_dest));
@@ -129,11 +122,12 @@ void add_hash_keys_lastif(SV* dest, SV* from) {
   //  so change one means change all.
   sv_fill_val = newSV(0);
 
-  //  should use a while loop with condition being the key does not exist in dest?
+  //  could use a while loop with condition being the key does not exist in dest?
   for (i = 0; i <= num_keys_from; i++) {
     SV **sv_key = av_fetch(arr_from, i, 0);  //  cargo culted from List::MoreUtils::insert_after
     // printf ("Checking key %s\n", SvPV(*sv_key, PL_na));
     if (hv_exists_ent (hash_dest, *sv_key, 0)) {
+        // printf ("Found key %s\n", SvPV(*sv_key, PL_na));
         break;
     }
     else {

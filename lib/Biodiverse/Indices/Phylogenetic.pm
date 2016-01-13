@@ -12,8 +12,9 @@ use Biodiverse::Progress;
 
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
+use Data::Alias qw /alias/;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -392,23 +393,24 @@ sub get_path_lengths_to_root_node {
     #  massive trees where we only need a subset.
     my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE_PER_TERMINAL')
       // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE_PER_TERMINAL => $c); $c};
+    alias my %path_cache_hash = %$path_cache;
 
     # get a hash of node refs
-    my $all_nodes = $tree_ref->get_node_hash;
+    alias my %all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
     my %path;
-    foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
+    foreach my $label (grep {exists $all_nodes{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
-        my $current_node = $all_nodes->{$label};
-        my $sub_path = $path_cache->{$current_node};
+        my $current_node = $all_nodes{$label};
+        my $sub_path = $path_cache_hash{$current_node};
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_to_root_node (cache => $cache);
             my @p = map {$_->get_name} @$sub_path;
             $sub_path = \@p;
-            $path_cache->{$current_node} = $sub_path;
+            $path_cache_hash{$current_node} = $sub_path;
         }
 
         #  This is a bottleneck for large data sets.
@@ -1210,9 +1212,9 @@ sub _calc_pe {
     my %args = @_;    
 
     my $tree_ref         = $args{trimmed_tree};
-    my $node_ranges      = $args{node_range};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     my $element_list_all = $args{element_list_all};
+    alias my %node_ranges = %{$args{node_range}};
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
@@ -1246,17 +1248,20 @@ sub _calc_pe {
             #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
 
+            #  Data::Alias avoids hash deref overheads below
+            alias my %node_lengths = %$nodes_in_path;
+
             #  loop over the nodes and run the calcs
           NODE:
-            while (my ($name, $length) = each %$nodes_in_path) {
+            foreach my $node_name (keys %node_lengths) {
                 # Not sure we even need to test for zero ranges.
                 # We should never suffer this given the pre_calcs.
-                my $range = $node_ranges->{$name}
+                my $range = $node_ranges{$node_name}
                   || next NODE;
-                my $wt     = $length / $range;
+                my $wt     = $node_lengths{$node_name} / $range;
                 $gp_score += $wt;
-                $gp_wts{$name}    = $wt;
-                $gp_ranges{$name} = $range;
+                $gp_wts{$node_name}    = $wt;
+                $gp_ranges{$node_name} = $range;
             }
 
             $results_this_gp = {
@@ -1282,17 +1287,16 @@ sub _calc_pe {
             @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
         }
         else {
-            my $hash_ref;
-
             # ranges are invariant, so can be crashed together
-            $hash_ref = $results_this_gp->{PE_RANGELIST};
+            my $hash_ref = $results_this_gp->{PE_RANGELIST};
             #  target for Panda::Lib merge_hash
             @ranges{keys %$hash_ref} = values %$hash_ref;
 
             # weights need to be summed
-            $hash_ref = $results_this_gp->{PE_WTLIST};
-            foreach my $node (keys %$hash_ref) {
-                $wts{$node} += $hash_ref->{$node};
+            # alias might be a nano-optimisation here...
+            alias my %wt_hash = %{$results_this_gp->{PE_WTLIST}};
+            foreach my $node (keys %wt_hash) {
+                $wts{$node} += $wt_hash{$node};
                 $local_ranges{$node}++;
             }
         }

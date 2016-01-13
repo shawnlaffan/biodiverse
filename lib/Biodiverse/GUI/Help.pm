@@ -16,7 +16,7 @@ use HTTP::Tiny;
 
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 ##############################################
 #  Web links.  

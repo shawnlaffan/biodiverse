@@ -18,7 +18,7 @@ use Data::Dumper;
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-our $VERSION = '1.0_002';
+our $VERSION = '1.1';
 
 my $TRUE  = 'TRUE';
 my $FALSE = 'FALSE';

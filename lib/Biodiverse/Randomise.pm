@@ -2339,11 +2339,14 @@ sub insert_into_sorted_list {
 }
 
 #  array args version - should reduce sub cleanup overheads
+#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
 sub insert_into_sorted_list_aa {
-    my ($self, $item, $list) = @_;
+    #my ($self, $item, $list) = @_;
 
-    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-    splice @$list, $idx, 0, $item;
+    #my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    #splice @$list, $idx, 0, $item;
+    my $idx  = binsearch_pos { $a cmp $b } $_[1], @{$_[2]};
+    splice @{$_[2]}, $idx, 0, $_[1];
 
     # skip the explicit return as a minor speedup for pre-5.20 systems
     $idx;

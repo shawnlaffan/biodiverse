@@ -1061,7 +1061,7 @@ sub get_metadata_rand_spatially_structured {
     my $spatial_condition_param = bless {
         name       => 'spatial_conditions_for_label_allocation',
         label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => '', #' ' x 30,  #  add spaces to get some widget width
+        default    => '', #' ' x 30,  #  we used to add spaces to get some widget width in the GUI
         type       => 'spatial_conditions',
         tooltip    => 'Labels will be assigned to groups within the specified '
                     . 'neighbourhood around a random seed location.  '
@@ -1074,8 +1074,8 @@ sub get_metadata_rand_spatially_structured {
         parameters  => \@parameters,
         description => "Randomly allocate labels to groups, selecting "
                      . "new locations as a function of one or more spatial conditions\n"
-                     . 'but keep the richness the same or within '
-                     . 'some multiplier factor.',
+                     . 'but keep the richness of each group the same within '
+                     . 'some tolerance.',
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -1103,7 +1103,7 @@ The target richness of each group in the randomised
 basedata will be its original richness plus this value.
 
 This is applied after the multiplier parameter so you have:
-    target_richness = orig * multiplier + addition.
+    target_richness = orig_richness * multiplier + addition.
 END_TOOLTIP_ADDN
 ;
 

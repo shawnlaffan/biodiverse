@@ -8,7 +8,7 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed/;
+use Scalar::Util qw /weaken blessed reftype/;
 use List::Util;
 use Time::HiRes qw /time/;
 
@@ -675,8 +675,8 @@ sub get_calculated_nbr_lists_for_element {
     my $element       = $args{element};
     my $use_nbrs_from = $args{use_nbrs_from};
     my $spatial_conditions_arr = $self->get_spatial_conditions;
-    my $sort_lists = $args{sort_lists};
- 
+    my $sort_lists    = $args{sort_lists};
+
     my @nbr_list;
     foreach my $i (0 .. $#$spatial_conditions_arr) {
         my $nbr_list_name = '_NBR_SET' . ($i+1);

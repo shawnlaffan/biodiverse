@@ -1203,13 +1203,13 @@ sub get_element_proximity {
     my %args = @_;
 
     my $gp = $args{basedata_ref}->get_groups_ref;
-    my $el_array1 = $gp->get_element_name_as_array(element => $args{element1});
-    my $el_array2 = $gp->get_element_name_as_array(element => $args{element2});
+    my $el_array1 = $gp->get_element_name_as_array_aa($args{element1});
+    my $el_array2 = $gp->get_element_name_as_array_aa($args{element2});
 
     my $dist = 0;
     foreach my $i (0 .. $#$el_array2) {
-        #  skip non-numeric
-        next if !(looks_like_number $el_array1->[$i]) || !(looks_like_number $el_array2->[$i]);
+        #  skip non-numeric?
+        #next if !(looks_like_number $el_array1->[$i]) || !(looks_like_number $el_array2->[$i]);
         $dist += ($el_array1->[$i] - $el_array2->[$i]) ** 2;
     }
 
@@ -1227,8 +1227,12 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
-    my $label_allocation_order = $args{label_allocation_order} || 'random';
-    my $sp_alloc_nbr_list_cache = {};
+    my $label_allocation_order  = $args{label_allocation_order} || 'random';
+    my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
+    if (!$sp_alloc_nbr_list_cache) {
+        $sp_alloc_nbr_list_cache = {};
+        $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
+    }
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1427,6 +1431,7 @@ my $did_process = 0;
                     #  should cache and clone these to avoid re-sorting the same data
                     my $sp_alloc_nbr_list = $sp_alloc_nbr_list_cache->{$to_groups[0]};
                     if (!$sp_alloc_nbr_list) {
+#say "Getting nbrs for $to_groups[0]";
                         #  avoid double sorting as proximity does its own
                         my $sort_lists = $label_allocation_order ne 'proximity';
                         $sp_alloc_nbr_list

@@ -13,7 +13,7 @@ use Data::Dumper qw { Dumper };
 use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
-use Scalar::Util qw { blessed };
+use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
 use List::MoreUtils qw /first_index/;
 use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
@@ -854,7 +854,7 @@ sub get_common_rand_metadata {
     );
     
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
-    @common = (
+    push @common, (
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',
@@ -1061,7 +1061,8 @@ sub get_metadata_rand_spatially_structured {
     my $spatial_condition_param = bless {
         name       => 'spatial_conditions_for_label_allocation',
         label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => '', #' ' x 30,  #  we used to add spaces to get some widget width in the GUI
+        default    => 'sp_select_all()',
+        #default    => 'sp_circle(radius => 300000)',
         type       => 'spatial_conditions',
         tooltip    => 'Labels will be assigned to groups within the specified '
                     . 'neighbourhood around a random seed location.  '
@@ -1069,6 +1070,17 @@ sub get_metadata_rand_spatially_structured {
                     . 'neighbours to select from.',
     }, $parameter_rand_metadata_class;
     push @parameters, $spatial_condition_param;
+
+    my $label_allocation_order = bless {
+        name       => 'label_allocation_order',
+        label_text => "Label allocation order",
+        default    => 1,
+        type       => 'choice',
+        choices => [qw /random proximity/],
+        tooltip    => 'The order labels will be allocated '
+                    . 'within the neighbourhood after the seed group.'
+    }, $parameter_rand_metadata_class;
+    push @parameters, $label_allocation_order;
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1155,6 +1167,55 @@ sub get_metadata_rand_structured {
     return $self->metadata_class->new(\%metadata);
 }
 
+sub sort_nbr_lists_by_proximity {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_element = $args{target_element};
+    my $nbr_lists      = $args{nbr_lists};
+    my $rand_object    = $args{rand_object};
+    my $bd = $args{basedata_ref};
+
+    my @proximity_sorted;
+    
+    foreach my $i (0 .. $#$nbr_lists) {
+        @{$proximity_sorted[$i]} =
+          map  { $_->[0] }
+          sort { $a->[1] <=> $b->[1] || $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0]}
+          map  { [$_,
+                  $self->get_element_proximity(
+                    element1     => $_,
+                    basedata_ref => $bd,
+                    element2     => $target_element,
+                  ),
+                  $rand_object->rand] #  fall back to random
+               }
+               @{$nbr_lists->[$i]};
+    }
+
+    return wantarray ? @proximity_sorted : \@proximity_sorted;
+}
+
+#  needs a lot more thought, and control over the axes to use
+#  should also shift into Spatial.pm
+sub get_element_proximity {
+    my $self = shift;
+    my %args = @_;
+
+    my $gp = $args{basedata_ref}->get_groups_ref;
+    my $el_array1 = $gp->get_element_name_as_array(element => $args{element1});
+    my $el_array2 = $gp->get_element_name_as_array(element => $args{element2});
+
+    my $dist = 0;
+    foreach my $i (0 .. $#$el_array2) {
+        #  skip non-numeric
+        next if !(looks_like_number $el_array1->[$i]) || !(looks_like_number $el_array2->[$i]);
+        $dist += ($el_array1->[$i] - $el_array2->[$i]) ** 2;
+    }
+
+    return sqrt $dist;
+}
+
 #  randomly allocate labels to groups, but keep the richness the same or within some multiplier
 sub rand_structured {
     my $self = shift;
@@ -1165,6 +1226,9 @@ sub rand_structured {
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
+
+    my $label_allocation_order = $args{label_allocation_order} || 'random';
+
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1335,10 +1399,11 @@ END_PROGRESS_TEXT
             @to_groups,
         );
 
-        my $use_new_seed_group = 1;
+        my $use_new_seed_group = 0;  #  needed for when spatial allocations fill a nbrhood - start from new nbrhood
+                                     #  but not yet used
 
-#my $should_process = scalar keys %tmp;
-#my $did_process = 0;
+my $should_process = scalar keys %tmp;
+my $did_process = 0;
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1348,7 +1413,7 @@ END_PROGRESS_TEXT
 #  Issue is that the algorithm might never land on a valid target
 #  group given the selection process is only unfilled groups without the label
 
-            if (!scalar @to_groups) {
+            if (!scalar @to_groups || $use_new_seed_group) {
                 #  select a group at random to assign to
                 my $j = int ($rand->rand (scalar @target_groups));
                 push @to_groups, $target_groups[$j];
@@ -1365,6 +1430,15 @@ END_PROGRESS_TEXT
                         element => $to_groups[0],
                         sort_lists => 1,  #  could later add a proximity sort
                     );
+                    if ($label_allocation_order eq 'proximity') {
+                        @sp_alloc_nbr_list_source = $self->sort_nbr_lists_by_proximity (
+                            target_element => $to_groups[0],
+                            basedata_ref   => $bd,
+                            rand_object    => $rand,
+                            nbr_lists      => \@sp_alloc_nbr_list_source,
+                        );
+                    }
+
                   NBR_LIST_REF:
                     foreach my $list_ref (@sp_alloc_nbr_list_source) {
                         my @sublist = grep
@@ -1374,17 +1448,25 @@ END_PROGRESS_TEXT
                            && $_ ne $to_groups[0]}
                           @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
-                        push @to_groups, @{$rand->shuffle (\@sublist)};
+                        push @to_groups,
+                            $label_allocation_order eq 'random'
+                                ? @{$rand->shuffle (\@sublist)}
+                                : @sublist;
                     }
                 }
             }
 
+#$did_process = 0;
+#$should_process = scalar @to_groups;
+#say "sho $label - $should_process";
+
             #  drop out criterion, occurs when $richness_multiplier < 1
             #  and we run out of groups to assign to
             last BY_GROUP if !scalar @to_groups;
-
+#say "ass $label = " . scalar @$tmp_rand_order;
             while (defined (my $to_group = shift @to_groups)) {
 
+#say "did $label: $did_process (last tmp_rand_order)" if !scalar @$tmp_rand_order;
                 last BY_GROUP if !scalar @$tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
 
@@ -1421,10 +1503,12 @@ END_PROGRESS_TEXT
                     delete $unfilled_groups{$to_group};
                     $last_filled = $to_group;
                 };
-
+#$did_process++;
+#say "did $label: $did_process (last \@target_groups)" if !scalar @target_groups;
                 #  move to next label if no more targets for this label
                 last BY_GROUP if !scalar @target_groups;
             }
+#say "did $label: $did_process";
         }
     }
 

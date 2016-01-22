@@ -1228,7 +1228,7 @@ sub rand_structured {
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
     my $label_allocation_order = $args{label_allocation_order} || 'random';
-
+    my $sp_alloc_nbr_list_cache = {};
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1425,22 +1425,31 @@ my $did_process = 0;
                 if ($sp_for_label_allocation) {
                     #  we need a copy
                     #  should cache and clone these to avoid re-sorting the same data
-                    my @sp_alloc_nbr_list_source
-                      = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
-                        element => $to_groups[0],
-                        sort_lists => 1,  #  could later add a proximity sort
-                    );
-                    if ($label_allocation_order eq 'proximity') {
-                        @sp_alloc_nbr_list_source = $self->sort_nbr_lists_by_proximity (
-                            target_element => $to_groups[0],
-                            basedata_ref   => $bd,
-                            rand_object    => $rand,
-                            nbr_lists      => \@sp_alloc_nbr_list_source,
+                    my $sp_alloc_nbr_list = $sp_alloc_nbr_list_cache->{$to_groups[0]};
+                    if (!$sp_alloc_nbr_list) {
+                        #  avoid double sorting as proximity does its own
+                        my $sort_lists = $label_allocation_order ne 'proximity';
+                        $sp_alloc_nbr_list
+                          = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
+                            element    => $to_groups[0],
+                            sort_lists => $sort_lists,
                         );
+                        if ($label_allocation_order eq 'proximity') {
+                            $sp_alloc_nbr_list = $self->sort_nbr_lists_by_proximity (
+                                target_element => $to_groups[0],
+                                basedata_ref   => $bd,
+                                rand_object    => $rand,
+                                nbr_lists      => $sp_alloc_nbr_list,
+                            );
+                        }
+                        $sp_alloc_nbr_list_cache->{$to_groups[0]} = $sp_alloc_nbr_list;
                     }
 
+                    #  We currently concatenate all lists into one.
+                    #  This won't work for the 'fill one, then the next' approaches
+                    #  with multiple nbr sets
                   NBR_LIST_REF:
-                    foreach my $list_ref (@sp_alloc_nbr_list_source) {
+                    foreach my $list_ref (@{$sp_alloc_nbr_list}) {
                         my @sublist = grep
                           {   exists $target_groups_hash{$_}
                            && !exists $filled_groups{$_}

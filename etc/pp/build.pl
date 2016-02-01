@@ -114,6 +114,7 @@ $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 my @cmd = (
     'pp',
     #$verbose,
+    '-u',
     '-B',
     '-z',
     9,

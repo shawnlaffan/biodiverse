@@ -867,10 +867,6 @@ sub import_data {
             )
             / $bytes_per_MB;
 
-        #  Get the header line, assumes no binary chars in it.
-        #  If there are then there is something really wrong with the file.
-        my $header = $file_handle->getline;
-
         #  for progress bar stuff
         my $size_comment
             = $file_size_Mb > 10
@@ -900,6 +896,10 @@ sub import_data {
             csv_object         => $in_csv,
         );
 
+        #  Get the header line, assumes no binary chars in it.
+        #  If there are then there is something really wrong with the file.
+        my $header = shift @$lines;
+
         #  parse the header line if we are using a matrix format file
         my $matrix_label_col_hash = {};
         if ($data_in_matrix_form) {
@@ -916,10 +916,7 @@ sub import_data {
             if (ref $label_end_col) {  
                 $label_end_col = $label_end_col->[-1];
             }
-            my $header_array = $self->csv2list (
-                csv_object => $in_csv,
-                string     => $header,
-            );
+            my $header_array = $header;
             $matrix_label_col_hash
                 = $self->get_label_columns_for_matrix_import  (
                     csv_object       => $out_csv,

@@ -362,6 +362,11 @@ sub run {
             my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
                 fname => $filename_utf8,
             );
+            
+            #  Sometimes we have \r as a separator which messes up the csv2list calls
+            #  We should really just use csv->get_line directly, but csv2list has other
+            #  error handling code
+            local $/ = $csv_obj->eol;
     
             my $line = <$fh>;
             @header  = $gui->get_project->csv2list(

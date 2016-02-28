@@ -123,6 +123,7 @@ sub new {
 
     foreach my $size (@$cell_sizes) {
         croak "Cell size $size is not numeric, you might need to check the locale\n"
+            . "(one that uses a . as the decimal place works best)\n"
             if ! looks_like_number ($size);
     }
 

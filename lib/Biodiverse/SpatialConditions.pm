@@ -598,6 +598,11 @@ sub verify {
     return wantarray ? %hash : \%hash;
 }
 
+my $locale_warning
+  =  "(this is often caused by locale issues - \n"
+   . "it is safest to run Biodiverse under a local that uses a . as the decimal place, e.g. 33.5 not 33,5)";
+
+
 #  calculate the distances between two sets of coords
 #  expects refs to two element arrays
 #  at the moment we are only calculating the distances
@@ -655,16 +660,16 @@ sub get_distances {
 
         my $coord1 = $element1[$i];
         croak
-            'coord1 value is not numeric (if you think it is numeric then check your locale): '
+            'coord1 value is not numeric: '
             . ( defined $coord1 ? $coord1 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
-            'coord2 value is not numeric (if you think it is numeric then check your locale): '
+            'coord2 value is not numeric: '
             . ( defined $coord2 ? $coord2 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord2);
 
         $d[$i] =

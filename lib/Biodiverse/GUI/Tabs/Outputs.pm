@@ -242,12 +242,10 @@ sub on_show {
     my $self = shift;
 
     my $selected = $self->get_selection();
-    
-    #  (was "return 0")
-    return if not defined $selected;
 
-    # If double-clicked basedata row, show labels
-    if ($selected->{type} eq 'basedata') {
+    # Show labels if double-clicked basedata row or we have nothing selected.
+    # The latter happens when new projects are loaded or data are imported into an empty project.
+    if (!defined $selected or $selected->{type} eq 'basedata') {
         my $labels = eval {Biodiverse::GUI::Tabs::Labels->new()};
         if ($EVAL_ERROR) {
             $self->{gui}->report_error ($EVAL_ERROR);
@@ -256,7 +254,7 @@ sub on_show {
     }
 
     # Otherwise, we only care about analysis rows
-    return if not defined $selected->{output_ref};
+    return if !defined $selected || !defined $selected->{output_ref};
 
     my $output_ref = $selected->{output_ref};
     my $analysis   = $selected->{analysis};

@@ -1115,6 +1115,11 @@ sub get_selected_phylogeny {
     return $self->get_param('SELECTED_PHYLOGENY');
 }
 
+sub get_selected_basedata {
+    my $self = shift;
+    return $self->get_selected_base_data;
+}
+
 sub get_selected_base_data {
     my $self = shift;
     return $self->get_param('SELECTED_BASEDATA');

@@ -93,12 +93,12 @@ sub get_glade_file {
 
 sub get_widget {
     my ($self, $id) = @_;
-    return $self->{gladexml}->get_widget($id);
+    return $self->{gladexml}->get_object($id);
 }
 
 sub get_status_bar {
     my $self = shift;
-    return $self->{gladexml}->get_widget('statusbar');
+    return $self->{gladexml}->get_object('statusbar');
 }
 
 sub get_notebook {
@@ -257,7 +257,7 @@ sub clear_progress_entry {
         #  We seem not to be able to detect when windows are minimised on Windows
         #  as state is always normal.
         #my $window = $self->{progress_bars}->{window};
-        #$window = $self->{gladexml}->get_widget('wndMain');
+        #$window = $self->{gladexml}->get_object('wndMain');
         #my $state = $window->get_state;
         #warn "State is $state\n";
         #$self->{progress_bars}->{window}->resize(1,1);
@@ -312,7 +312,7 @@ sub init {
     my $self = shift;
 
     # title
-    $self->{gladexml}->get_widget('wndMain')->set_title(
+    $self->{gladexml}->get_object('wndMain')->set_title(
         'Biodiverse '
         . $self->get_version
     );
@@ -326,7 +326,7 @@ sub init {
         \&on_switch_tab,
         $self,
     );
-    $self->{gladexml}->get_widget('vbox1')->pack_start(
+    $self->{gladexml}->get_object('vbox1')->pack_start(
         $self->{notebook},
         1,
         1,
@@ -415,7 +415,7 @@ sub init {
 sub init_combobox {
     my ($self, $id) = @_;
 
-    my $combo = $self->{gladexml}->get_widget($id);
+    my $combo = $self->{gladexml}->get_object($id);
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -434,7 +434,7 @@ sub close_project {
         if ($self->{project}->is_dirty()) {
             # Show "Save changes?" dialog
             my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgClose');
-            my $dlg = $dlgxml->get_widget('dlgClose');
+            my $dlg = $dlgxml->get_object('dlgClose');
             $dlg->set_transient_for( $self->get_widget('wndMain') );
             $dlg->set_modal(1);
             my $response = $dlg->run();
@@ -563,7 +563,7 @@ sub update_title_bar {
                 . '          '
                 . $name;
 
-    $self->{gladexml}->get_widget('wndMain')->set_title($title);
+    $self->{gladexml}->get_object('wndMain')->set_title($title);
 
     return;
 }
@@ -597,7 +597,7 @@ sub do_save_as {
                     . $self->get_version
                     . '          '
                     . $file;
-        $self->{gladexml}->get_widget('wndMain')->set_title($title);
+        $self->{gladexml}->get_object('wndMain')->set_title($title);
 
         $self->{project}->clear_dirty(); # Mark as having no changes
 
@@ -728,10 +728,10 @@ sub get_new_basedata_name {
     
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     # If it ends with $suffix followed by a number then increment it
@@ -846,10 +846,10 @@ sub do_basedata_attach_properties {
     # are we attaching groups or labels?
     my $gui = $self;  #  copied code from elsewhere
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgGroupsLabels');
-    my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    my $dlg = $dlgxml->get_object('dlgGroupsLabels');
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_modal(1);
-    my $label = $dlgxml->get_widget('label_dlg_groups_labels');
+    my $label = $dlgxml->get_object('label_dlg_groups_labels');
     $label->set_text ('Group or label properties?');
     $dlg->set_title('Attach properties');
     my $response = $dlg->run();
@@ -930,11 +930,11 @@ sub do_rename_basedata {
     
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Rename Basedata object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -977,11 +977,11 @@ sub do_rename_output {
     
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Rename output');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $object->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1036,11 +1036,11 @@ sub do_rename_matrix {
     
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Rename matrix object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $ref->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1064,11 +1064,11 @@ sub do_rename_phylogeny {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Rename tree object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $ref->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1280,10 +1280,10 @@ sub do_duplicate_basedata {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $object->get_param('NAME');
 
     # If ends with a number increment it
@@ -1367,13 +1367,13 @@ sub do_merge_basedatas {
     bless $param, 'Biodiverse::Metadata::Parameter';
 
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
-    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+    my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
     #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
     $param_dlg->set_title ('Select basedata');
     
     # Build widgets for parameters
-    my $param_table = $dlgxml->get_widget('tableImportParameters');
+    my $param_table = $dlgxml->get_object('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
@@ -1556,7 +1556,7 @@ sub set_basedata_model {
     my $self  = shift;
     my $model = shift;
     
-    $self->{gladexml}->get_widget('comboBasedata')->set_model($model);
+    $self->{gladexml}->get_object('comboBasedata')->set_model($model);
     
     return;
 }
@@ -1565,7 +1565,7 @@ sub set_matrix_model {
     my $self  = shift;
     my $model = shift;
     
-    my $widget = $self->{gladexml}->get_widget('comboMatrices')->set_model($model);
+    my $widget = $self->{gladexml}->get_object('comboMatrices')->set_model($model);
 
     return;
 }
@@ -1574,7 +1574,7 @@ sub set_phylogeny_model {
     my $self  = shift;
     my $model = shift;
 
-    $self->{gladexml}->get_widget('comboPhylogenies')->set_model($model);
+    $self->{gladexml}->get_object('comboPhylogenies')->set_model($model);
 
     return;
 }
@@ -1583,7 +1583,7 @@ sub set_basedata_iter {
     my $self = shift;
     my $iter = shift;
 
-    my $combo = $self->{gladexml}->get_widget('comboBasedata');
+    my $combo = $self->{gladexml}->get_object('comboBasedata');
     $combo->set_active_iter($iter);
     $self->{active_basedata} = $combo->get_model()->get_string_from_iter($iter);
     
@@ -1594,7 +1594,7 @@ sub set_matrix_iter {
     my $self = shift;
     my $iter = shift;
 
-    my $combo = $self->{gladexml}->get_widget('comboMatrices');
+    my $combo = $self->{gladexml}->get_object('comboMatrices');
     $combo->set_active_iter($iter);
     $self->{active_matrix} = $combo->get_model()->get_string_from_iter($iter);
     
@@ -1605,7 +1605,7 @@ sub set_phylogeny_iter {
     my $self = shift;
     my $iter = shift;
 
-    my $combo = $self->{gladexml}->get_widget('comboPhylogenies');
+    my $combo = $self->{gladexml}->get_object('comboPhylogenies');
     return if not $iter;
     croak "pyhlogeny iter undef\n" if not defined $iter;
     $combo->set_active_iter($iter);
@@ -1616,7 +1616,7 @@ sub set_phylogeny_iter {
 
 sub do_basedata_changed {
     my $self = shift;
-    my $combo = $self->{gladexml}->get_widget('comboBasedata');
+    my $combo = $self->{gladexml}->get_object('comboBasedata');
     my $iter = $combo->get_active_iter();
     
     return if ! defined $iter;  #  sometimes $iter is not defined when this sub is called.  
@@ -1643,10 +1643,10 @@ sub do_convert_labels_to_phylogeny {
     
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     # If ends with _T followed by a number then increment it
@@ -1710,10 +1710,10 @@ sub do_trim_matrix_to_basedata {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $mx->get_param('NAME');
 
     my $suffix = $args{suffix} || 'TRIMMED';
@@ -1791,10 +1791,10 @@ sub do_convert_matrix_to_phylogeny {
         
         # Show the Get Name dialog
         my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-        my $dlg = $dlgxml->get_widget('dlgDuplicate');
+        my $dlg = $dlgxml->get_object('dlgDuplicate');
         $dlg->set_transient_for( $self->get_widget('wndMain') );
     
-        my $txt_name = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_object('txtName');
         my $name = $matrix_ref->get_param('NAME');
     
         # If ends with _T followed by a number then increment it
@@ -1884,10 +1884,10 @@ sub do_convert_phylogeny_to_matrix {
     if ($response eq 'no') {  #  get a new one
         # Show the Get Name dialog
         my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-        my $dlg = $dlgxml->get_widget('dlgDuplicate');
+        my $dlg = $dlgxml->get_object('dlgDuplicate');
         $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-        my $txt_name = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_object('txtName');
         my $name = $phylogeny->get_param('NAME');
 
         # If ends with _AS_MX followed by a number then increment it
@@ -1976,10 +1976,10 @@ sub do_trim_tree_to_basedata {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'TRIMMED';
@@ -2054,10 +2054,10 @@ sub do_tree_equalise_branch_lengths {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'EQ';
@@ -2117,10 +2117,10 @@ sub do_tree_rescale_branch_lengths {
 
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'RS';
@@ -2155,13 +2155,13 @@ sub do_tree_rescale_branch_lengths {
     bless $param, 'Biodiverse::Metadata::Parameter';
 
     $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
-    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+    my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
     #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
     $param_dlg->set_title ('Rescale options');
     
     # Build widgets for parameters
-    my $param_table = $dlgxml->get_widget('tableImportParameters');
+    my $param_table = $dlgxml->get_object('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
@@ -2331,7 +2331,7 @@ sub do_trim_basedata {
 
 sub do_matrix_changed {
     my $self = shift;
-    my $combo = $self->{gladexml}->get_widget('comboMatrices');
+    my $combo = $self->{gladexml}->get_object('comboMatrices');
     my $iter = $combo->get_active_iter();
     #print "MATRIX CHANGE ITER IS $iter";
     #my ($text) = $combo->get_model->get($iter, 0);
@@ -2350,7 +2350,7 @@ sub do_matrix_changed {
 
 sub do_phylogeny_changed {
     my $self = shift;
-    my $combo = $self->{gladexml}->get_widget('comboPhylogenies');
+    my $combo = $self->{gladexml}->get_object('comboPhylogenies');
     my $iter = $combo->get_active_iter();
     #my ($text) = $combo->get_model->get($iter, 0);
 
@@ -2504,9 +2504,9 @@ sub show_index_dialog {
     #  we really should generate one from scratch...
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
     my $tooltip_group = Gtk2::Tooltips->new;
-    my $table = $dlgxml->get_widget('tableImportParameters');
+    my $table = $dlgxml->get_object('tableImportParameters');
 
-    my $dlg = $dlgxml->get_widget('dlgImportParameters');
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_title ('Set index sizes');
     
@@ -2633,8 +2633,8 @@ sub show_index_dialog {
     #$window->show_all;
 
     #  a kludge until we build the window and table ourselves
-    $dlgxml->get_widget('ImportParametersLabel')->hide;
-    $dlgxml->get_widget('lblDlgImportParametersNext')->set_label ('OK');
+    $dlgxml->get_object('ImportParametersLabel')->hide;
+    $dlgxml->get_object('lblDlgImportParametersNext')->set_label ('OK');
 
     RUN_DIALOG:
     my $response = $dlg->run();
@@ -2717,7 +2717,7 @@ sub show_index_dialog_orig {
     my $self = shift;
 
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgIndex');
-    my $dlg = $dlgxml->get_widget('dlgIndex');
+    my $dlg = $dlgxml->get_object('dlgIndex');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_modal(1);
         
@@ -2728,8 +2728,8 @@ sub show_index_dialog_orig {
     my $cell_sizes = $base_ref->get_cell_sizes;
 
     my $used_index = $base_ref->get_param('SPATIAL_INDEX');
-    $dlgxml->get_widget('chkIndex')->set_active ($used_index);
-    my $spin = $dlgxml->get_widget ('spinContains');
+    $dlgxml->get_object('chkIndex')->set_active ($used_index);
+    my $spin = $dlgxml->get_object ('spinContains');
     #my $step, $page) = $spin->get_increments;
     if ($used_index) {
         my $resolutions = $used_index->get_param('RESOLUTIONS');
@@ -2746,11 +2746,11 @@ sub show_index_dialog_orig {
     my $response = $dlg->run();
     if ($response eq 'ok') {
         
-        my $use_index = $dlgxml->get_widget('chkIndex')->get_active();
+        my $use_index = $dlgxml->get_object('chkIndex')->get_active();
         if ($use_index) {
 
-            #my $resolution = $dlgxml->get_widget('spinContains')->get_value_as_int;
-            my $resolution = $dlgxml->get_widget('spinContains')->get_value;
+            #my $resolution = $dlgxml->get_object('spinContains')->get_value_as_int;
+            my $resolution = $dlgxml->get_object('spinContains')->get_value;
             
             #  repeat the resolution for all cell sizes until the widget has more spinners
             my @resolutions = ($resolution) x scalar @$cell_sizes;

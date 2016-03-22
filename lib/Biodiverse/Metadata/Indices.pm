@@ -10,7 +10,7 @@ use parent qw /Biodiverse::Metadata/;
 
 our $VERSION = '1.1';
 
-Readonly my %methods_and_defaults = (
+Readonly my %methods_and_defaults => (
     name           => 'no_name',
     description    => 'no_description',
     uses_nbr_lists => 1,
@@ -32,7 +32,7 @@ __PACKAGE__->_make_access_methods (\%methods_and_defaults);
 
 
 
-Readonly my %dep_types = (
+Readonly my %dep_types => (
     pre_calc_global  => 1,
     pre_calc         => 1,
     post_calc        => 1,

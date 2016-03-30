@@ -83,23 +83,15 @@ my $eval_result = eval {
 
 
 my $gladefile = get_gladefile();
-# my $gladexml = eval {
-#     Gtk2::GladeXML->new( $gladefile, 'wndMain' );
-# };
-
-#Trial
-my $builder = Gtk2::Builder->new();
-$builder->add_from_file("/home/andersonku/biodiverse/bin/glade/biodiverse.ui"); 
+my $gladexml = eval {
+    Gtk2::GladeXML->new( $gladefile, 'wndMain' );
+};
 croak $EVAL_ERROR if $EVAL_ERROR;
-# $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
-my $user_data;
-$builder->connect_signals($user_data, 'Biodiverse::GUI::Callbacks');
+$gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
 
 # Initialise the GUI Manager object
 my $gui = Biodiverse::GUI::GUIManager->instance;
-#$gui->set_glade_xml($gladexml);
-
-$gui->set_glade_xml($builder);
+$gui->set_glade_xml($gladexml);
 $gui->set_glade_file($gladefile);
 $gui->init();
 

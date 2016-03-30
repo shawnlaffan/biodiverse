@@ -93,6 +93,10 @@ $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
 my $gui = Biodiverse::GUI::GUIManager->instance;
 $gui->set_glade_xml($gladexml);
 $gui->set_glade_file($gladefile);
+
+# TODO: Only support development path at the moment
+#       Should also support when app is packaged
+$gui->set_gtk_ui_path(Path::Class::file($Bin, 'ui')->stringify());
 $gui->init();
 
 if ( defined $filename ) {

@@ -91,6 +91,24 @@ sub get_glade_file {
     return $self->{gladefile};
 }
 
+sub set_gtk_ui_path {
+    my $self = shift;
+    my $gtk_ui_path = shift;
+    $self->{gtk_ui_path} = $gtk_ui_path;
+    return;
+}
+
+sub get_gtk_ui_path {
+    my $self = shift;
+    return $self->{gtk_ui_path};
+}
+
+sub get_gtk_ui_file {
+    my ($self, $file) = @_;
+    return Path::Class::file($self->{gtk_ui_path}, $file)->stringify();
+}
+
+# TODO: Glade -> GtkBuilder: Change to call get_object
 sub get_widget {
     my ($self, $id) = @_;
     return $self->{gladexml}->get_widget($id);

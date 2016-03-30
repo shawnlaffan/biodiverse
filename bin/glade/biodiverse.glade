@@ -1278,144 +1278,6 @@ Spreadsheet</property>
       </widget>
     </child>
   </widget>
-  <widget class="GtkDialog" id="dlgOpenWithName">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="title" translatable="yes">Import Matrix</property>
-    <property name="modal">True</property>
-    <property name="destroy_with_parent">True</property>
-    <property name="icon_name">gtk-add</property>
-    <property name="type_hint">dialog</property>
-    <child internal-child="vbox">
-      <widget class="GtkVBox" id="vbox13">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <child internal-child="action_area">
-          <widget class="GtkHButtonBox" id="hbuttonbox3">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <widget class="GtkButton" id="button19">
-                <property name="label">gtk-cancel</property>
-                <property name="response_id">-6</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_stock">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="button20">
-                <property name="label">gtk-ok</property>
-                <property name="response_id">-5</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_stock">True</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkVBox" id="vbox14">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <widget class="GtkHBox" id="hbox9">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <child>
-                  <widget class="GtkLabel" id="label75">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Name</property>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">False</property>
-                    <property name="padding">5</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkEntry" id="txtName">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
-                  </widget>
-                  <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">3</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkLabel" id="label76">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="ypad">7</property>
-                <property name="label" translatable="yes">Input File:</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkFileChooserWidget" id="filechooser">
-                <property name="width_request">550</property>
-                <property name="height_request">240</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-              </widget>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
-        </child>
-      </widget>
-    </child>
-  </widget>
   <widget class="GtkDialog" id="dlgReorderColumns">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -2282,7 +2144,7 @@ the filter</property>
                                           <widget class="GtkLabel" id="label5">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Regex 
+                                            <property name="label" translatable="yes">Regex
 modifiers:</property>
                                           </widget>
                                           <packing>
@@ -2821,7 +2683,7 @@ modifiers:</property>
                                     <property name="can_focus">False</property>
                                     <property name="has_tooltip">True</property>
                                     <property name="tooltip" translatable="yes">Exclude groups using a definition query.
-This is specified in the same manner 
+This is specified in the same manner
 as in the spatial analyses.  </property>
                                     <property name="label" translatable="yes">&lt;b&gt;Definition query&lt;/b&gt;</property>
                                     <property name="use_markup">True</property>
@@ -4117,8 +3979,8 @@ All non-zero values will be set to 1</property>
                       <widget class="GtkMenuItem" id="menu_attach_basedata_properties">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip" translatable="yes">Attach properties (e.g. species traits) to the groups or labels.  
-It will only work if your basedata has no analysis outputs, 
+                        <property name="tooltip" translatable="yes">Attach properties (e.g. species traits) to the groups or labels.
+It will only work if your basedata has no analysis outputs,
 as these might have used existing properties.
 If that is the case then randomisations would be invalidated for those analyses.  </property>
                         <property name="label" translatable="yes">Attach group or label properties</property>
@@ -4350,7 +4212,7 @@ Skips any matrices already in the project.</property>
                       <widget class="GtkMenuItem" id="convert_matrix_to_phylogeny">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip" translatable="yes">Runs a cluster analysis using link_average linkage function.  
+                        <property name="tooltip" translatable="yes">Runs a cluster analysis using link_average linkage function.
 Assumes a dissimilarity matrix, so take care.</property>
                         <property name="label" translatable="yes">Convert matrix to tree</property>
                         <property name="use_underline">True</property>
@@ -4532,7 +4394,7 @@ Creates a new tree.</property>
                       <widget class="GtkMenuItem" id="menu_ladderise_tree">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.  
+                        <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.
 This cannot be undone.  </property>
                         <property name="label" translatable="yes">Ladderise</property>
                         <property name="use_underline">True</property>
@@ -6223,7 +6085,7 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Set the width of the tree branches.
-Does not affect the vertical connectors. 
+Does not affect the vertical connectors.
 </property>
                                     <property name="label" translatable="yes">Set tree branch line widths</property>
                                     <property name="use_underline">True</property>
@@ -6399,7 +6261,7 @@ Does not affect the vertical connectors.
                                                         <property name="can_focus">False</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip" translatable="yes">Use this to run the analysis for only a subset of the groups.
-It will ignore groups that do not satisfy the query and they 
+It will ignore groups that do not satisfy the query and they
 will not be part of the results
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
@@ -6500,7 +6362,7 @@ set 1</property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <property name="has_tooltip">True</property>
-                                                        <property name="tooltip" translatable="yes">How should similarities between newly merged groups 
+                                                        <property name="tooltip" translatable="yes">How should similarities between newly merged groups
 and all other groups be calculated?</property>
                                                         <property name="xalign">0</property>
                                                         <property name="label" translatable="yes">Linkage</property>
@@ -6517,11 +6379,11 @@ and all other groups be calculated?</property>
                                                       <widget class="GtkLabel" id="label145">
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
-                                                        <property name="tooltip" translatable="yes">Specify a second set of neighbours to use in the analysis.  
+                                                        <property name="tooltip" translatable="yes">Specify a second set of neighbours to use in the analysis.
 Builds a second matrix that will be used when the first one is fully clustered.
-It is a good idea to set this to include all neighbours to ensure clustering will complete properly.  
-In this way each group has the full set of neighbours so therefore there is a balanced matrix for clustering.  
-An unbalanced set of matrices is not guaranteed to complete clustering due to missing dissimilarities. 
+It is a good idea to set this to include all neighbours to ensure clustering will complete properly.
+In this way each group has the full set of neighbours so therefore there is a balanced matrix for clustering.
+An unbalanced set of matrices is not guaranteed to complete clustering due to missing dissimilarities.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                         <property name="xalign">0</property>
@@ -6571,8 +6433,8 @@ set 2</property>
                                                           <widget class="GtkLabel" id="label_cluster_prng_seed">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
-                                                            <property name="tooltip" translatable="yes">Control the random number sequence 
-used in the event of a tie when more 
+                                                            <property name="tooltip" translatable="yes">Control the random number sequence
+used in the event of a tie when more
 than one pair of elements can be merged.   </property>
                                                             <property name="xalign">1</property>
                                                             <property name="label" translatable="yes">PRNG seed:  </property>
@@ -6657,7 +6519,7 @@ Select a set of indices to determine the ordering of clustering when there is mo
                                                             <property name="can_focus">False</property>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_no_cache_abc">
-                                                            <property name="label" translatable="yes">Do not 
+                                                            <property name="label" translatable="yes">Do not
 use caching </property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -6676,13 +6538,13 @@ but can slow down processing.</property>
                                                             </child>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_build_matrices_only">
-                                                            <property name="label" translatable="yes">Build matrices 
+                                                            <property name="label" translatable="yes">Build matrices
 and then stop</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Just build the matrices 
+                                                            <property name="tooltip" translatable="yes">Just build the matrices
 and don't actually cluster.</property>
                                                             <property name="draw_indicator">True</property>
                                                             </widget>
@@ -6694,7 +6556,7 @@ and don't actually cluster.</property>
                                                             </child>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_output_to_file">
-                                                            <property name="label" translatable="yes">Output matrices 
+                                                            <property name="label" translatable="yes">Output matrices
 direct to text files</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
@@ -6712,14 +6574,14 @@ Will not cluster if set and matrices will not be displayable via the project.</p
                                                             </child>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_output_gdm_format">
-                                                            <property name="label" translatable="yes">Output matrices 
-direct to GDM 
+                                                            <property name="label" translatable="yes">Output matrices
+direct to GDM
 compatible format</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Only if the "Output 
+                                                            <property name="tooltip" translatable="yes">Only if the "Output
 matrices to text files"
  option is checked.</property>
                                                             <property name="draw_indicator">True</property>
@@ -6732,13 +6594,13 @@ matrices to text files"
                                                             </child>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_keep_sp_nbrs_output">
-                                                            <property name="label" translatable="yes">Keep spatial 
+                                                            <property name="label" translatable="yes">Keep spatial
 neighbours output</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">The spatial output is used to define the set of 
+                                                            <property name="tooltip" translatable="yes">The spatial output is used to define the set of
 neighbouring groups used for matrix building.
 Use this if you want to better understand how
 your results were generated.</property>
@@ -6752,16 +6614,16 @@ your results were generated.</property>
                                                             </child>
                                                             <child>
                                                             <widget class="GtkCheckButton" id="chk_no_clone_matrices">
-                                                            <property name="label" translatable="yes">Do not clone matrices 
+                                                            <property name="label" translatable="yes">Do not clone matrices
 before clustering</property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">This will save memory, but you cannot then 
-view the matrix as it is destroyed as part 
+                                                            <property name="tooltip" translatable="yes">This will save memory, but you cannot then
+view the matrix as it is destroyed as part
 of clustering.  It will not be added to the BaseData object.
-Matrix exporting is also slowed, as the 
+Matrix exporting is also slowed, as the
 system must rebuild the matrices each time you export.</property>
                                                             <property name="draw_indicator">True</property>
                                                             </widget>
@@ -6779,9 +6641,9 @@ nodes from tree</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
                                                             <property name="has_tooltip">True</property>
-                                                            <property name="tooltip" translatable="yes">Singletons are terminal nodes 
+                                                            <property name="tooltip" translatable="yes">Singletons are terminal nodes
 connected directly to the root.
-Clearing them is useful 
+Clearing them is useful
 for RegionGrower analyses.  </property>
                                                             <property name="draw_indicator">True</property>
                                                             </widget>
@@ -8213,10 +8075,10 @@ but you can also set percentile ranges.</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Hue will display all hues (colours) from blue to red.
 
-Sat will display a single colour with saturation varying from 
+Sat will display a single colour with saturation varying from
 white to a maximum saturation at the selected colour.
 
-Grey will use grey scale. 
+Grey will use grey scale.
 
 Colours are scaled using percentiles defined in the colour stretch menu. </property>
                                     <property name="label" translatable="yes">Colour mode</property>
@@ -8565,7 +8427,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                                         <property name="can_focus">False</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip" translatable="yes">Use this to run the analysis for only a subset of the groups.
-Note that it will still search the full data set for neighbours. 
+Note that it will still search the full data set for neighbours.
 
 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                         <property name="xalign">0</property>
@@ -9198,7 +9060,7 @@ function</property>
                             <property name="can_focus">True</property>
                             <property name="tooltip" translatable="yes">Prefix used for resulting output lists.
 All parameters will be ignored if prefix is already in use.
-(They will be set to the original values used for this prefix). 
+(They will be set to the original values used for this prefix).
 The widget label will turn red if that is the case.</property>
                             <property name="text" translatable="yes">Rand1</property>
                             <property name="primary_icon_activatable">False</property>
@@ -9220,7 +9082,7 @@ The widget label will turn red if that is the case.</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip" translatable="yes">Prefix used for resulting output lists.
 All parameters will be ignored if prefix is already in use.
-(They will be set to the original values used for this prefix). 
+(They will be set to the original values used for this prefix).
 This text will turn red if that is the case.</property>
                             <property name="xalign">0</property>
                             <property name="label" translatable="yes">&lt;b&gt;List prefix&lt;/b&gt;</property>

@@ -8,7 +8,6 @@ use File::Basename;
 use File::BOM qw / :subs /;
 
 use Gtk2;
-use Gtk2::GladeXML;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;

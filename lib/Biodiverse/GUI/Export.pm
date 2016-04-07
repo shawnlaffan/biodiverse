@@ -11,7 +11,6 @@ use English ( -no_match_vars );
 
 use Glib;
 use Gtk2;
-use Gtk2::GladeXML;
 use Cwd;
 
 use List::MoreUtils qw /any none/;
@@ -47,17 +46,18 @@ sub Run {
 
     if (none {$_ eq $selected_format} @$format_choice_array) {
         #  get user preference if none passed as an arg
-        my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-        my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
+        
+        my $dlgxml = Gtk2::Builder->new();
+        $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
+        my $format_dlg = $dlgxml->get_object('dlgImportParameters');
 
-        #my $format_dlg = $dlgxml->get_widget('dlgExport');
         $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
         $format_dlg->set_title ('Export parameters');
 
         # Build widgets for parameters
-        my $format_table = $dlgxml->get_widget('tableImportParameters');
+        my $format_table = $dlgxml->get_object('tableImportParameters');
 
-        # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+        # (passing $dlgxml because generateFile uses existing widget on the dialog)
         my $parameters_table = Biodiverse::GUI::ParametersTable->new;
         my $format_extractors
             = $parameters_table->fill(
@@ -87,25 +87,26 @@ sub Run {
 
     #my $meta_params = $metadata->get_parameters;
     #my $params = $params->{$selected_format};  #  should be a method
-    my $params = $metadata->get_parameters_for_format (format => $selected_format);
+    my $params = $metadata->get_parameters_for_format(format => $selected_format);
 
     #####################
     #  and now get the params for the selected format
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
-    my $dlg = $dlgxml->get_widget('dlgExport');
+    my $dlg = $dlgxml->get_object('dlgExport');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
-    $dlg->set_title ("Export format: $selected_format");
-    $dlg->set_modal (1);
+    $dlg->set_title("Export format: $selected_format");
+    $dlg->set_modal(1);
 
-    my $chooser = $dlgxml->get_widget('filechooser');
+    my $chooser = $dlgxml->get_object('filechooser');
     $chooser->set_current_folder_uri(getcwd());
     # does not stop the keyboard events on open tabs
     #$chooser->signal_connect ('button-press-event' => sub {1});
 
     # Build widgets for parameters
-    my $table = $dlgxml->get_widget('tableParameters');
-    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $table = $dlgxml->get_object('tableParameters');
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $extractors
         = $parameters_table->fill(

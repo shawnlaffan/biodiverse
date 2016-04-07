@@ -9,7 +9,6 @@ use Scalar::Util qw /reftype/;
 use File::BOM qw / :subs /;
 
 use Gtk2;
-use Gtk2::GladeXML;
 
 our $VERSION = '1.1';
 

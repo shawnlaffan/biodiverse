@@ -3,7 +3,6 @@ package Biodiverse::GUI::Overlays;
 use strict;
 use warnings;
 use Gtk2;
-use Gtk2::GladeXML;
 use Data::Dumper;
 
 our $VERSION = '1.1';
@@ -19,9 +18,10 @@ sub show_dialog {
 
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'wndOverlays');
-    my $dlg = $dlgxml->get_widget('wndOverlays');
-    my $colour_button = $dlgxml->get_widget('colorbutton_overlays');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
+    my $dlg = $dlgxml->get_object('wndOverlays');
+    my $colour_button = $dlgxml->get_object('colorbutton_overlays');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
 
     $colour_button->set_color($last_selected_colour);
@@ -31,27 +31,27 @@ sub show_dialog {
     my $list = init_overlay_list($dlgxml, $model);
 
     # Connect buttons
-    $dlgxml->get_widget('btnAdd')->signal_connect(
+    $dlgxml->get_object('btnAdd')->signal_connect(
         clicked => \&on_add,
         [$list, $project],
     );
-    $dlgxml->get_widget('btnDelete')->signal_connect(
+    $dlgxml->get_object('btnDelete')->signal_connect(
         clicked => \&on_delete,
         [$list, $project],
     );
-    $dlgxml->get_widget('btnClear')->signal_connect(
+    $dlgxml->get_object('btnClear')->signal_connect(
         clicked => \&on_clear,
         [$list, $project, $grid, $dlg],
     );
-    $dlgxml->get_widget('btnSet')->signal_connect(
+    $dlgxml->get_object('btnSet')->signal_connect(
         clicked => \&on_set,
         [$list, $project, $grid, $dlg, $colour_button],
     );
-    $dlgxml->get_widget('btnOverlayCancel')->signal_connect(
+    $dlgxml->get_object('btnOverlayCancel')->signal_connect(
         clicked => \&on_cancel,
         $dlg,
     );
-    $dlgxml->get_widget('btn_overlay_set_default_colour')->signal_connect(
+    $dlgxml->get_object('btn_overlay_set_default_colour')->signal_connect(
         clicked => \&on_set_default_colour,
         $colour_button,
     );
@@ -66,7 +66,7 @@ sub show_dialog {
 sub init_overlay_list {
     my $dlgxml = shift;
     my $model = shift;
-    my $tree = $dlgxml->get_widget('treeOverlays');
+    my $tree = $dlgxml->get_object('treeOverlays');
 
     my $col_name = Gtk2::TreeViewColumn->new();
     my $name_renderer = Gtk2::CellRendererText->new();

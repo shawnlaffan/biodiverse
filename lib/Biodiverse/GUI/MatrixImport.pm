@@ -29,14 +29,14 @@ sub run {
 
     #########
     #  We are using the "normal" approach from here on
-    #  
+    #
     # 1. Get the matrix name & filename
     #########
 
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Import Matrix', ['csv', 'txt'], 'csv', 'txt', '*');
 
     return if ! ($filename && defined $name);
-    
+
     #  should we use a sparse or normal format
     my $response = run_combo_sparse_normal();
 
@@ -49,7 +49,7 @@ sub run {
       if $use_sparse_format;
 
 
-    
+
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
@@ -121,7 +121,7 @@ sub run {
     #########
     # 2. Get column types
     #########
-    
+
     my ($dlg, $col_widgets) = make_columns_dialog_normal(\@headers, $gui->get_widget('wndMain'));
     my ($column_settings);
 
@@ -154,7 +154,7 @@ sub run {
 
     return if !$column_settings;
 
-    
+
     #  do we need a remap table?
     my $remap;
     my $remap_response
@@ -290,7 +290,7 @@ sub make_columns_dialog_normal {
     $label->set_use_markup(1);
     $label->set_alignment(1, 0.5);
     $table->attach_defaults($label, 0, 1, 0, 1);
-    
+
     my $iter = 0;
     foreach my $type (@$type_options) {
         $iter ++;
@@ -421,12 +421,12 @@ sub import_sparse_format {
 
     $gui->get_project->add_matrix ($matrix_ref);
 
-    return $matrix_ref;    
+    return $matrix_ref;
 }
 
 
 sub run_combo_sparse_normal {
-    
+
     my $combo = Gtk2::ComboBox->new_text;
     $combo->append_text ('normal');
     $combo->append_text ('sparse');
@@ -449,14 +449,13 @@ sub run_combo_sparse_normal {
     $vbox->pack_start($combo, 0, 0, 0);
 
     $dlg->show_all;
-    
+
     my $response = $dlg->run();
     $dlg->destroy();
-    
+
     return if lc($response) ne 'ok';
-    
+
     return $combo->get_active_text;
 }
 
 1;
-

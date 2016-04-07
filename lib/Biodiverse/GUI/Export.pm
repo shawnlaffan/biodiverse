@@ -29,8 +29,8 @@ sub Run {
 
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted
-    return if ! defined $object;  
-    
+    return if ! defined $object;
+
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     #  stop keyboard events being applied to any open tabs
@@ -38,25 +38,25 @@ sub Run {
 
     # Get the Parameters metadata
     my $metadata = $object->get_metadata (sub => 'export');
-    
+
     ###################
     # get the selected format
-    
+
     my $format_choices = $metadata->get_format_choices;
     my $format_choice_array = $format_choices->[0]{choices};
-    
+
     if (none {$_ eq $selected_format} @$format_choice_array) {
         #  get user preference if none passed as an arg
         my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
         my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
-        
+
         #my $format_dlg = $dlgxml->get_widget('dlgExport');
         $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
         $format_dlg->set_title ('Export parameters');
-    
+
         # Build widgets for parameters
         my $format_table = $dlgxml->get_widget('tableImportParameters');
-        
+
         # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
         my $parameters_table = Biodiverse::GUI::ParametersTable->new;
         my $format_extractors
@@ -64,22 +64,22 @@ sub Run {
                 $format_choices,
                 $format_table,
                 $dlgxml,
-        ); 
-    
+        );
+
         # Show the dialog
         $format_dlg->show_all();
-    
+
       RUN_FORMAT_DIALOG:
         my $format_response = $format_dlg->run();
-        
+
         if ($format_response ne 'ok') {
             $format_dlg->destroy;
             return;
         }
-        
+
         my $formats
           = $parameters_table->extract($format_extractors);
-    
+
         $selected_format = $formats->[1];
 
         $format_dlg->destroy;
@@ -101,7 +101,7 @@ sub Run {
     my $chooser = $dlgxml->get_widget('filechooser');
     $chooser->set_current_folder_uri(getcwd());
     # does not stop the keyboard events on open tabs
-    #$chooser->signal_connect ('button-press-event' => sub {1});  
+    #$chooser->signal_connect ('button-press-event' => sub {1});
 
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
@@ -116,7 +116,7 @@ sub Run {
 
     # Show the dialog
     $dlg->show_all();
-    
+
 
   RUN_DIALOG:
     my $response = $dlg->run();
@@ -126,7 +126,7 @@ sub Run {
         $gui->activate_keyboard_snooper (1);
         return;
     }
-    
+
     # Export!
     $params = $parameters_table->extract($extractors);
     my $filename = $chooser->get_filename();
@@ -156,10 +156,9 @@ sub Run {
 
     $dlg->destroy;
     $gui->activate_keyboard_snooper (1);
-    
+
     return;
 }
 
 
 1;
-

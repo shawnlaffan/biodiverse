@@ -41,7 +41,7 @@ sub new {
     my $glade_file = $gui->get_glade_file;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
-    
+
     # Make object
     my $self = {
         label_widget => undef,
@@ -49,7 +49,7 @@ sub new {
         id => 0
     };
     bless $self, $class;
-    
+
     # from progress bar singleton in GUI, request a new progress
     # instance and grab references to the widgets
     $self->{id} = "$self";  #  Stringified ref as unique id (avoids circularity).
@@ -90,7 +90,7 @@ sub end_dialog {
     # gui display window
     my $gui = Biodiverse::GUI::GUIManager->instance;
     $gui->clear_progress_entry($self);
-    
+
     foreach my $key (keys %$self) {
         #say "$key $self->{$key}";
         $self->{$key} = undef;
@@ -100,7 +100,7 @@ sub end_dialog {
 sub destroy {
     my $self = shift;
     $self->end_dialog;
-    
+
     return;
 }
 
@@ -112,21 +112,21 @@ sub destroy_callback {
     return $self->destroy;
 }
 
-sub update {  
+sub update {
     my ($self, $text, $progress) = @_;
-    
+
     return if not defined $progress;  #  should croak?
-    
+
     if (not defined $text) {
         $text = join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
     }
-    
+
     if ($progress < 0 or $progress > 1) {
         Biodiverse::GUI::ProgressDialog::Bounds->throw(
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
         );
     }
-    
+
     # get widgets and check if window closed
     my $label_widget = $self->{label_widget};
     my $bar = $self->{progress_bar};
@@ -166,10 +166,10 @@ sub update {
 #  set the progress bar to pulse.  sets a timer which calls the actual pulse sub
 sub pulsate {
     my $self = shift;
-    my $text = shift; 
+    my $text = shift;
     my $progress = shift || 0.1; # fraction 0 .. 1
     return if not defined $progress;
-    
+
     if (not defined $text) {
         $text = $NULL_STRING;
     }
@@ -215,7 +215,7 @@ sub pulsate_stop {
     my $self = shift;
     #$self->{pulse} = FALSE;
     $self->{pulse} = 0;
-    
+
     return;
 }
 
@@ -223,23 +223,23 @@ sub pulse_progress_bar {
     #my $self = shift;
     #my $p_bar = $self->{dlgxml}->get_widget('progressbar');
     #my $p_bar = shift;
-    
+
     #print "  pulsing...\n";
     my $data = shift;
     my ($self, $p_bar) = @$data[0,1];
-    
+
     #print "$self->{pulse}\t$p_bar\n";
-    
+
     if ($self->{pulse} and defined $p_bar) {
         #print "     PULSING\n";
         #$p_bar->set_pulse_step (0.1);
         $p_bar->pulse;
         return TRUE;  #  keep going
     }
-    
+
     #print "[PROGRESS BAR] Stop pulsing\n";
-    
-    return FALSE;    
+
+    return FALSE;
 }
 
 1;

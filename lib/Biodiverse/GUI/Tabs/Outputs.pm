@@ -19,12 +19,12 @@ use parent qw {Biodiverse::GUI::Tabs::Tab};
 
 sub new {
     my $class = shift;
-    
+
     my $self = {gui => Biodiverse::GUI::GUIManager->instance};
     #weaken ($self->{gui}) if (not isweak ($self->{gui}));  #  avoid circular refs?
     bless $self, $class;
 
-    # Load _new_ widgets from glade 
+    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
     $self->{xmlPage}  = Gtk2::GladeXML->new(
         $self->{gui}->get_glade_file,
@@ -44,13 +44,13 @@ sub new {
     $self->{notebook}->prepend_page_menu($page, $label, $menu_label);
     $self->{page}       = $page;
     $self->{gui}->add_tab($self);
-    
+
 
     $self->set_tab_reorderable($page);
 
     # Initialise the tree
     my $tree = $self->{xmlPage}->get_widget('outputsTree');
-    
+
     #  what columns to add to the tree?
     my %columns_hash = (
         Basedata => MODEL_BASEDATA,
@@ -81,7 +81,7 @@ sub new {
 
     # Monitor for new rows, so that we can expand basedatas
     $model->signal_connect('row-inserted' => \&on_row_inserted, $self);
-    
+
     # Connect signals
     #$self->{xmlLabel}->get_widget("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::on_close, $self);
     my $xml_page = $self->{xmlPage};
@@ -90,9 +90,9 @@ sub new {
     $xml_page->get_widget('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
     $xml_page->get_widget('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
     $xml_page->get_widget('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
-    
-    
-    
+
+
+
     $tree->signal_connect_swapped('row-activated', \&on_row_activated, $self);
     $tree->get_selection->signal_connect_swapped(
         'changed',
@@ -116,9 +116,9 @@ sub get_selection {
 
     my $tree    = $self->{xmlPage}->get_widget('outputsTree');
     my $project = $self->{gui}->get_project;
-    
+
     return if not defined $project;
-    
+
     my $model = $project->get_base_data_output_model();
 
     my $selection = $tree->get_selection();
@@ -131,7 +131,7 @@ sub get_selection {
     my $parent = $model->iter_parent($iter);
     my $grandparent;
     $grandparent = $model->iter_parent($parent) if $parent;
-    
+
     if (defined $grandparent) {
         #print "[Outputs tab] Clicked on analysis row\n";
         # Click on analysis row
@@ -141,7 +141,7 @@ sub get_selection {
         $output_ref   = $model->get($parent,      MODEL_OBJECT);
         $tab          = $model->get($parent,      MODEL_TAB);
         $basedata_ref = $model->get($grandparent, MODEL_OBJECT);
-        
+
     }
     elsif (defined $parent) {
         #print "[Outputs tab] Clicked on output row\n";
@@ -160,7 +160,7 @@ sub get_selection {
 
         $basedata_ref = $model->get($iter, MODEL_OBJECT);
     }
-    
+
     my $hash_ref = {
         type         => $type,
         basedata_ref => $basedata_ref,
@@ -169,7 +169,7 @@ sub get_selection {
         tab          => $tab,
         iter         => $iter
     };
-    
+
     return $hash_ref;
 }
 
@@ -178,25 +178,25 @@ sub on_row_inserted {
 
     # If an output row has been added, we expand the parent (basedata row)
     my $iter_parent = $model->iter_parent($iter);
-    
+
     if ($iter_parent && ($model->get($iter_parent, MODEL_BASEDATA_ROW) == 1) ) {
         my $tree = $self->{xmlPage}->get_widget('outputsTree');
         $tree->expand_row($model->get_path($iter_parent), 0);
     }
-    
+
     return;
 }
 
 sub on_row_activated {
     my $self = shift;
-    
+
     eval {
         $self->on_show();
     };
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
     }
-    
+
     return;
 }
 
@@ -206,7 +206,7 @@ sub on_row_changed {
 
     my $selected = $self->get_selection();
     my $type = $selected->{type};
-    
+
     return if not defined $type;
 
     my $sensitive = $type eq 'output' || $type eq 'basedata';
@@ -214,26 +214,26 @@ sub on_row_changed {
     my $xml_page = $self->{xmlPage};
     my @widget_name_array
         = qw /btnOutputsExport btnOutputsDelete btnOutputsRename/;
-        
+
     foreach my $widget_name (@widget_name_array) {
         $xml_page->get_widget($widget_name)->set_sensitive($sensitive);
     }
-    
+
     # If clicked on basedata, select it
     if ($type eq 'basedata') {
         $self->{gui}->get_project->select_base_data($selected->{basedata_ref}) ;
     }
-    
+
     return;
 }
 
-#  resize the contents - this reclaims unused horizontal space 
+#  resize the contents - this reclaims unused horizontal space
 sub on_row_collapsed {
     my $self = shift;
     my $tree = $self->{xmlPage}->get_widget('outputsTree');
-    
+
     $tree->columns_autosize();
-    
+
     return;
 }
 
@@ -304,7 +304,7 @@ sub on_show {
     if (defined $analysis) {
         $tab->show_analysis($analysis);
     }
-    
+
     return;
 }
 
@@ -315,7 +315,7 @@ sub on_export {
     my $object;
     $selected->{type} //= '';
     if ($selected->{type} eq 'output') {
-        $object = $selected->{output_ref};    
+        $object = $selected->{output_ref};
         say "[Outputs tab] Exporting output " . $object->get_name;
     }
     elsif ($selected->{type} eq 'basedata') {
@@ -341,11 +341,11 @@ sub on_export {
         else {
             return; # closed dialog, or something
         }
-            
+
     }
 
     Biodiverse::GUI::Export::Run($object);
-    
+
     return;
 }
 
@@ -384,7 +384,7 @@ sub on_delete {
 
     my $selected = $self->get_selection();
     return 0 if not defined $selected;
-    
+
     my $basedata_ref = $selected->{basedata_ref};
     my $output_ref = $selected->{output_ref};
     my $tab = $selected->{tab};
@@ -394,9 +394,9 @@ sub on_delete {
         $selected = undef;
 
         my $name = $output_ref->get_param('NAME');
-        
+
         my $msg = "Delete output $name?";
-        
+
         if (blessed ($output_ref) =~ /Randomise/) {
             $msg .= "\n(This will remove all results in "
                     . "Spatial and Cluster outputs).\n";
@@ -422,7 +422,7 @@ sub on_delete {
             # delete from basedata
             eval {   #  let basedata handle it
                 $basedata_ref->delete_output (output => $output_ref)
-            };  
+            };
             if ($EVAL_ERROR) {
                 $self->{gui}->report_error ($EVAL_ERROR);
             }
@@ -445,12 +445,12 @@ sub on_delete {
             'yes-no',
             "Delete basedata $name?",
         );
-        
+
         my $response = $dialog->run;
         $dialog->destroy;
 
         if ($response eq 'yes') {
-            
+
             print "[Outputs tab] Deleting basedata $name\n";
             $self->{gui}->get_project->delete_base_data($basedata_ref);
 
@@ -469,4 +469,3 @@ sub on_delete {
 sub on_bare_key {}
 
 1;
-

@@ -239,7 +239,7 @@ sub find_selected_source {
     my $sources_model = shift;
     my $search_name = shift || return;
     my $iter = $sources_model->get_iter_first;
-    
+
     while ($iter) {
 
         my $name = $sources_model->get($iter, SOURCES_MODEL_NAME);
@@ -269,7 +269,7 @@ sub on_source_changed {
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
     $callback->($popup);
-    
+
     return;
 }
 
@@ -285,7 +285,7 @@ sub close_dialog {
     $g_dialogs{$element}->get_widget(DLG_NAME)->destroy();
     #print "[Popup] Dialogue destroyed\n";
     delete $g_dialogs{$element};
-    
+
     #  don't tell me about an undef in the eq check below.
     no warnings 'uninitialized';
 
@@ -293,7 +293,7 @@ sub close_dialog {
         $g_reuse_dlg     = undef;
         $g_reuse_element = undef;
     }
-    
+
     return;
 }
 
@@ -306,7 +306,7 @@ sub on_close_all {
     %g_dialogs = ();
     $g_reuse_dlg = undef;
     $g_reuse_element = undef;
-    
+
     return;
 }
 
@@ -336,7 +336,7 @@ sub on_reuse_toggled {
         #print "[Popup] Cleared re-use dialog\n";
         $g_last_reuse = 0;
     }
-    
+
     return;
 }
 
@@ -365,7 +365,7 @@ sub on_copy {
         );
     };
     warn $EVAL_ERROR if $EVAL_ERROR;
-    
+
     return;
 }
 
@@ -400,10 +400,10 @@ sub clipboard_get_func {
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         </head>
-        
+
         <body>
-        
-        <table>  
+
+        <table>
 END_HTML_HEADER
 ;
         $text .= "<tr><td>$listname</td><td>$element</td></tr>";
@@ -411,7 +411,7 @@ END_HTML_HEADER
     else {
         $text = "$listname\t$element\n";
     }
-    
+
     # Generate the text
     my $iter;
     eval {
@@ -466,4 +466,3 @@ sub clipboard_clear_func {
 
 
 1;
-

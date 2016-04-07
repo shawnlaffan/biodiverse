@@ -49,7 +49,7 @@ my $selected_list2_name = 'Col selected';
 
 sub new {
     my $class = shift;
-    
+
     my $self = {
         gui           => Biodiverse::GUI::GUIManager->instance(),
         selected_rows => [],
@@ -57,11 +57,11 @@ sub new {
     };
     $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
-    
+
     $self->set_default_params;
 
 
-    # Load _new_ widgets from glade 
+    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
     $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsPage');
     $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsLabel');
@@ -112,7 +112,7 @@ sub new {
     );
     $self->on_selected_matrix_changed();
 
-    #  this won't take long, so no cancel handler 
+    #  this won't take long, so no cancel handler
     $self->init_dendrogram();
     # Register callbacks when selected phylogeny is changed
     $self->{phylogeny_callback} = sub { $self->on_selected_phylogeny_changed(); };
@@ -246,7 +246,7 @@ sub init_matrix_grid {
 # For the phylogeny tree:
 sub init_dendrogram {
     my $self = shift;
-    
+
     my $frame      = $self->{xmlPage}->get_widget('phylogenyFrame');
     my $graph_frame = $self->{xmlPage}->get_widget('phylogenyGraphFrame');
     my $hscroll    = $self->{xmlPage}->get_widget('phylogenyHScroll');
@@ -259,7 +259,7 @@ sub init_dendrogram {
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure      = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
-    
+
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         main_frame  => $frame,
         graph_frame => $graph_frame,
@@ -277,10 +277,10 @@ sub init_dendrogram {
         basedata_ref    => $self->{base_ref},
     );
     $self->{dendrogram}->{page} = $self;
-    
+
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
-    
+
     return 1;
 }
 
@@ -291,7 +291,7 @@ sub init_dendrogram {
 sub add_column {
     my $self = shift;
     my %args = @_;
-    
+
     my $tree     = $args{tree};
     my $title    = $args{title};
     my $model_id = $args{model_id};
@@ -301,7 +301,7 @@ sub add_column {
 #$title = Glib::Markup::escape_text($title);
 #  Double the underscores so they display without acting as hints.
 #  Need to find out how to disable that hint setting.
-    $title =~ s/_/__/g;  
+    $title =~ s/_/__/g;
     $col->set_title($title);
     my $a = $col->get_title;
 #$col->set_sizing('fixed');
@@ -401,13 +401,13 @@ sub sort_by_column_numeric_labels {
 
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-        || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
+        || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));
 }
 
 #sub on_interactive_search {
 #    my $self = shift;
 #    my $id   = shift;
-#    
+#
 #    print "Interactive searching $id";
 #}
 
@@ -475,7 +475,7 @@ sub remove_selected_labels_from_list {
 
     my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
     my $treeview2 = $self->{xmlPage}->get_widget('listLabels2');
-    
+
     my $selection = $treeview1->get_selection;
     my @paths = $selection->get_selected_rows();
 
@@ -504,7 +504,7 @@ sub remove_selected_labels_from_list {
 
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
-    
+
     #  need to update the matrix if it is displayed
     #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
@@ -671,7 +671,7 @@ sub on_selected_phylogeny_changed {
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        $self->{dendrogram}->set_cluster(undef, 'length');  
+        $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
@@ -716,7 +716,7 @@ sub on_selected_matrix_changed {
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
     # matrix
-    $self->on_sorted(%args); # (this reloads the whole matrix anyway)    
+    $self->on_sorted(%args); # (this reloads the whole matrix anyway)
     $self->{matrix_grid}->zoom_fit();
 
     return;
@@ -825,7 +825,7 @@ sub on_selected_labels_changed {
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
 
-    
+
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
@@ -903,7 +903,7 @@ sub set_selected_list_cols {
 
 #print "[Labels] \n";
 
-    return;    
+    return;
 }
 
 
@@ -912,7 +912,7 @@ sub on_sorted {
     my %args;
     #  a massive bodge since we can be called as a
     #  gtk callback and it then has only one arg
-    if ((@_ % 2) == 0) {  
+    if ((@_ % 2) == 0) {
         %args = @_;
     }
 
@@ -994,7 +994,7 @@ sub get_label_count_in_matrix {
 
     return if !$self->{matrix_ref};
 
-#  should probably use List::MoreUtils::any 
+#  should probably use List::MoreUtils::any
     my %labels      = $self->{base_ref}->get_labels_ref->get_element_hash;
     my %mx_elements = $self->{matrix_ref}->get_elements;
     my $mx_count    = scalar keys %mx_elements;
@@ -1250,21 +1250,21 @@ sub on_phylogeny_popup {
     my $basedata_ref = $self->{base_ref};
     my ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
     Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
-    
+
     return;
 }
 
 sub on_use_highlight_path_changed {
     my $self = shift;
-    
+
     #  set to the complement
-    $self->{use_highlight_path} = not $self->{use_highlight_path};  
-    
+    $self->{use_highlight_path} = not $self->{use_highlight_path};
+
     #  clear any highlights
     if ($self->{dendrogram} and not $self->{use_highlight_path}) {
         $self->{dendrogram}->clear_highlights;
     }
-    
+
     return;
 }
 
@@ -1330,7 +1330,7 @@ sub show_list {
 
     $popup->set_value_column(1);
     $popup->set_list_model($model);
-    
+
     return;
 }
 
@@ -1363,7 +1363,7 @@ sub show_phylogeny_groups {
 
     $popup->set_list_model($model);
     $popup->set_value_column(1);
-    
+
     return;
 }
 
@@ -1384,7 +1384,7 @@ sub show_phylogeny_labels {
 
     $popup->set_list_model($model);
     $popup->set_value_column(1);
-    
+
     return;
 }
 
@@ -1430,13 +1430,13 @@ sub on_matrix_hover {
         # some bug in gtk2-perl stops me from just doing $hlabel = $hmodel->get($hiter, 0)
         #
         my ($hi, $vi) = ($hmodel->convert_iter_to_child_iter($hiter), $vmodel->convert_iter_to_child_iter($viter));
-    
+
         my $model = $self->{labels_model};
         my $hlabel = $model->get($hi, 0);
         my $vlabel = $model->get($vi, 0);
-    
+
         my $matrix_ref = $self->{matrix_ref};
-    
+
         if (not $matrix_ref) {
             $str = "<b>Matrix</b>: none selected";
         }
@@ -1530,7 +1530,7 @@ sub remove {
     $self->{notebook}->remove_page( $self->get_page_index );
     $self->{project}->delete_selection_callback('matrix', $self->{matrix_callback});
     $self->{project}->delete_selection_callback('phylogeny', $self->{phylogeny_callback});
-    
+
     return;
 }
 
@@ -1567,12 +1567,12 @@ sub choose_tool {
     $self->{grid}{drag_mode}        = $drag_modes{$tool};
     $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
     $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
-    
+
     $self->set_display_cursors ($tool);
 }
 
 
-#  no longer used?  
+#  no longer used?
 sub on_zoom_in {
     my $grid = shift;
     $grid->zoom_in();
@@ -1584,7 +1584,7 @@ sub on_zoom_out {
     my $grid = shift;
     $grid->zoom_out();
 say 'LB: Called on_zoom_out';
-    
+
     return;
 }
 
@@ -1601,7 +1601,7 @@ sub on_overlays {
     my $button = shift;
 
     Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
-    
+
     return;
 }
 
@@ -1619,7 +1619,7 @@ sub set_pane {
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Labels tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
-    
+
     return;
 }
 
@@ -1638,10 +1638,10 @@ sub queue_set_pane {
         \&Biodiverse::GUI::Tabs::Labels::set_pane_signal,
         [$self, $id],
     );
-    
+
     $self->{"set_pane_signalID$id"} = $sig_id;
     $self->{"set_panePos$id"} = $pos;
-    
+
     return;
 }
 
@@ -1664,7 +1664,7 @@ sub set_pane_signal {
     $pane->signal_handler_disconnect( $self->{"set_pane_signalID$id"} );
     delete $self->{"set_panePos$id"};
     delete $self->{"set_pane_signalID$id"};
-    
+
     return;
 }
 
@@ -1677,7 +1677,7 @@ sub update_export_menu {
     my $output_ref = $self->{base_ref};
 
     # Clear out old entries from menu so we can rebuild it.
-    # This will be useful when we add checks for which export methods are valid.  
+    # This will be useful when we add checks for which export methods are valid.
     my $export_menu = $self->{export_menu};
     if (!$export_menu) {
         $export_menu  = Gtk2::MenuItem->new_with_label('Export');
@@ -1740,7 +1740,7 @@ sub update_selection_menu {
     my $base_ref = $self->{base_ref};
 
     # Clear out old entries from menu so we can rebuild it.
-    # This will be useful when we add checks for which export methods are valid.  
+    # This will be useful when we add checks for which export methods are valid.
     my $selection_menu_item = $self->{selection_menu};
     if (!$selection_menu_item) {
         $selection_menu_item  = Gtk2::MenuItem->new_with_label('Selection');
@@ -1755,7 +1755,7 @@ sub update_selection_menu {
         Groups => $base_ref->get_groups_ref,
     );
 
-    #  export submenu 
+    #  export submenu
     my $export_menu_item = Gtk2::MenuItem->new_with_label('Export');
     my $export_submenu = Gtk2::Menu->new;
 
@@ -1865,7 +1865,7 @@ sub do_switch_selection {
     my $args = shift;
     my $self = $args->[0];
     my $ref  = $args->[1];
-    
+
     $self->switch_selection;
 
     return;
@@ -1917,7 +1917,7 @@ sub clipboard_get_func {
     }
 
     my $selected_labels = $self->get_selected_labels;
-    
+
     # Generate the text
     foreach my $label (@$selected_labels) {
         $text .= "$label\n";
@@ -1960,7 +1960,7 @@ sub do_selection_export {
 
     my $new_ref = $new_bd->get_groups_ref;
     if ($ref->get_param('TYPE') eq 'LABELS') {
-        $new_ref = $new_bd->get_labels_ref; 
+        $new_ref = $new_bd->get_labels_ref;
     }
 
     Biodiverse::GUI::Export::Run($new_ref, @rest_of_args);
@@ -1987,7 +1987,7 @@ sub do_new_basedata_from_selection {
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME') . ' SUBSET';
     $txt_name->set_text($name);
-    
+
     #  now pack in the options
     my $vbox = $dlg->get_content_area();
     my $hbox = Gtk2::HBox->new;
@@ -2003,7 +2003,7 @@ sub do_new_basedata_from_selection {
     $vbox->show_all;
 
     my $response = $dlg->run();
-    
+
     if (lc($response) ne 'ok') {
         $dlg->destroy;
         return;
@@ -2045,7 +2045,7 @@ sub do_delete_selected_basedata_records {
     my $count = scalar @$selected;
 
     return if !$count;
-    
+
     my $response = Biodiverse::GUI::YesNoCancel->run({
         header => "Delete $count selected labels?",
         hide_cancel => 1,
@@ -2135,7 +2135,7 @@ sub do_select_labels_regex {
     }
 
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-    my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml); 
+    my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml);
 
     $dlg->show_all;
     my $response = $dlg->run;
@@ -2170,7 +2170,7 @@ sub get_selection_mode {
 sub do_set_selection_mode {
     my ($args, $widget) = @_;
     my ($self, $mode) = @$args;
-    
+
     $self->set_selection_mode ($mode);
 }
 

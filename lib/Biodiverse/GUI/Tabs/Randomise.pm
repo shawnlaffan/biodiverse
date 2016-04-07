@@ -40,14 +40,14 @@ sub new {
     bless $self, $class;
 
     $self->{output_ref} = $output_ref;
-    
+
     #  create one for the function combo to use
-    if (not defined $output_ref) {  
+    if (not defined $output_ref) {
         my $object = Biodiverse::Randomise->new();
         $self->{output_placeholder_ref} = $object;
     }
 
-    # Load _new_ widgets from glade 
+    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example.
     # These have a different object/widgets)
     $self->{xmlPage}  = Gtk2::GladeXML->new(
@@ -67,7 +67,7 @@ sub new {
     my $label_text = $xml_label->get_widget('lblRandomiseName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
-    
+
     $self->{label_widget} = $xml_label->get_widget('lblRandomiseName');
     #$self->set_label_widget_tooltip;  not yet
 
@@ -131,13 +131,13 @@ sub new {
         $self->register_in_outputs_model ($output_ref, $self);
         $name = $output_ref->get_param ('NAME');
         $self->on_function_changed;
-        $self->set_button_sensitivity (0); 
+        $self->set_button_sensitivity (0);
     }
     else {
         $name = $bd->get_unique_randomisation_name;
         #$seed_widget->set_text (time);
     }
-    
+
     $xml_label->get_widget('lblRandomiseName')->set_text($name);
     $xml_page ->get_widget('randomise_results_list_name')->set_text ($name);
     $self->{tab_menu_label}->set_text($name );
@@ -164,11 +164,11 @@ sub new {
 
 sub get_table_widget {
     my $self = shift;
-    
+
     my $xml_page = $self->{xmlPage};
-    
+
     my $table = $xml_page->get_widget('table_randomise_setup');
-    
+
     return $table;
 }
 
@@ -179,31 +179,31 @@ sub add_row_to_table {
     my $row_count = $table->get('n-rows');
     $row_count ++;
     $table->set('n-rows' => $row_count + 1);
-    
+
     return $row_count;
 }
 
 sub add_save_checkpoint_to_table {
     my $self = shift;
-    
+
     my $table = $self->get_table_widget;
 
     my $label = Gtk2::Label->new("Checkpoint save\niterations");
-    
-    
+
+
     my $default = -1;
     my $incr    = 100;
-    
+
     my $adj = Gtk2::Adjustment->new($default, -1, 10000000, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
-    
+
     my $tooltip_group = Gtk2::Tooltips->new;
     my $tip_text = "Save every nth iteration.\n"
                    . '(Useful for evaluating results as they are run.)';
     $tooltip_group->set_tip($label, $tip_text, undef);
-    
+
     #  and now add the widgets
-    my $row_count = $self->add_row_to_table ($table);    
+    my $row_count = $self->add_row_to_table ($table);
     $table->attach ($label, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
     $table->attach ($spin,  1, 2, $row_count, $row_count + 1, 'fill', [], 0, 0);
 
@@ -220,11 +220,11 @@ sub add_iteration_count_to_table {
     my $output_ref = shift;
 
     my $xml_page = $self->{xmlPage};
-    
+
     my $table = $xml_page->get_widget('table_randomise_setup');
-    
-    my $row_count = $self->add_row_to_table ($table); 
-    
+
+    my $row_count = $self->add_row_to_table ($table);
+
     my $count = defined $output_ref
                 ? $output_ref->get_param ('TOTAL_ITERATIONS')
                 : 'nil';
@@ -232,7 +232,7 @@ sub add_iteration_count_to_table {
     #$label1->set_text ('Iterations so far: ');
     my $label2 = Gtk2::Label->new ();
     #$label2->set_justify('GTK_JUSTIFY_LEFT');
-    
+
     $self->{iterations_label} = $label2;
     $self->update_iterations_count_label ($count);
 
@@ -246,11 +246,11 @@ sub add_iteration_count_to_table {
 sub update_iterations_count_label {
     my $self = shift;
     my $count = shift || 'nil';
-    
+
     my $label = $self->{iterations_label};
-    
+
     $label->set_text ("Iterations so far: $count");
-    
+
     return;
 }
 
@@ -258,14 +258,14 @@ sub update_iterations_count_label {
 sub set_button_sensitivity {
     my $self = shift;
     my $sens = shift;
-    
+
     my @widgets = qw /
         randomise_results_list_name
         randomise_seed_value
         comboRandomiseBasedata
         comboFunction
     /;
-    
+
     my $xml_page = $self->{xmlPage};
     foreach my $widget (@widgets) {
         $xml_page->get_widget($widget)->set_sensitive ($sens);
@@ -306,11 +306,11 @@ sub init_basedata_combo {
     if (defined $selected) {
         $combo->set_active_iter($selected);
     }
-    
+
     $combo->set_sensitive (0); # if 1 then re-enable signal connect above
 
     $self->on_randomise_basedata_changed;  #  set a few things
-    
+
     return;
 }
 
@@ -321,7 +321,7 @@ sub init_basedata_combo {
 sub make_function_model {
     my $self = shift;
     my %args = @_;
-        
+
     $self->{function_model} = Gtk2::ListStore->new( 'Glib::String' ); # NAME
     my $model = $self->{function_model};
 
@@ -343,18 +343,18 @@ sub make_function_model {
         # Add to model
         my $iter = $model->append;
         $model->set($iter, 0, $name);
-        
+
     }
 
     $self->{selected_function_iter} = $model->get_iter_first;
-    
+
     return;
 }
 
 sub init_function_combo {
     my $self = shift;
     my %args = @_;
-        
+
     my $combo = $self->{xmlPage}->get_widget('comboFunction');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
@@ -366,11 +366,11 @@ sub init_function_combo {
     if ($self->{selected_function_iter}) {
         $combo->set_active_iter( $self->{selected_function_iter} );
     }
-        
+
     if ($self->{output_ref}) {
         $combo->set_sensitive (0);
     }
-    
+
     return;
 }
 
@@ -379,7 +379,7 @@ sub get_selected_function {
 
     my $combo = $self->{xmlPage}->get_widget('comboFunction');
     my $iter = $combo->get_active_iter;
-    
+
     return $self->{function_model}->get($iter, 0);
 }
 
@@ -388,15 +388,15 @@ sub on_function_changed {
 
     # Get the Parameters metadata
     my $func = $self->get_selected_function;
-    
+
     my $object = $self->{output_ref}
                  || $self->{output_placeholder_ref};
     my $metadata = $object->get_metadata (sub => $func);
-    
+
     my $params = $metadata->get_parameters;
 
     return if not defined $params;
-    
+
     #  set the parameter values if the output exists
     if ($self->{output_ref}) {
         my $args = $self->{output_ref}->get_param ('ARGS') || {};
@@ -408,7 +408,7 @@ sub on_function_changed {
                     my $choices = $parameter->get_choices;
                     $def_val = first_index {$_ eq $args->{$arg}} @$choices;
                     #  if no full match then get the first suffix match - allows for shorthand options
-                    if ($def_val < 0) {  
+                    if ($def_val < 0) {
                         $def_val = first_index {$_ =~ /$args->{$arg}$/} @$choices;
                     }
                 }
@@ -429,7 +429,7 @@ sub on_function_changed {
         $self->{param_extractors_added}{$p->get_name} ++;
     }
 
-    
+
     # Build widgets for parameters
     my $table = $self->{xmlPage}->get_widget('tableParams');
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
@@ -439,7 +439,7 @@ sub on_function_changed {
         $self->{param_extractors} = [];
     }
     push @{$self->{param_extractors}}, @$new_extractors;
-    
+
     return;
 }
 
@@ -488,7 +488,7 @@ sub on_randomise_basedata_changed {
     #}
 
     $self->update_randomise_button;
-    
+
     return;
 }
 
@@ -498,7 +498,7 @@ sub on_output_toggled {
     my $self = shift;
     my $model = $self->{outputs_model};
     my $path = shift;
-    
+
     my $iter = $model->get_iter_from_string($path);
 
     # Flip state
@@ -507,7 +507,7 @@ sub on_output_toggled {
     $model->set($iter, OUTPUT_CHECKED, $state);
 
     $self->update_randomise_button;
-    
+
     return;
 }
 
@@ -546,25 +546,25 @@ sub update_randomise_button {
     else {
         $self->{xmlPage}->get_widget('btnRandomise')->set_sensitive(0);
     }
-    
+
     return;
 }
 
 
 sub on_name_changed {
     my $self = shift;
-    
+
     my $widget = $self->{xmlPage}->get_widget('randomise_results_list_name');
     my $name = $widget->get_text();
-    
+
     $self->{xmlLabel}->get_widget('lblRandomiseName')->set_text($name);
-    
+
     my $label_widget = $self->{xmlPage}->get_widget('label_rand_list_name');
     my $label = $label_widget->get_label;
-    
+
     my $tab_menu_label = $self->{tab_menu_label};
     $tab_menu_label->set_text($name);
-    
+
     #  colour the label red if the list exists
     my $span_leader = '<span foreground="red">';
     my $span_ender  = ' <b>exists</b></span>';
@@ -585,10 +585,10 @@ sub on_name_changed {
 sub get_rand_output_exists {
     my $self = shift;
     my $name = shift;
-    
+
     croak "argument 'name' not specified\n"
         if ! defined $name;
-    
+
     my $bd = $self->{selected_basedata_ref};
 
     return defined $bd->get_randomisation_output_ref (name => $name);
@@ -621,9 +621,9 @@ sub on_run {
     $args{iterations}
         = $self->{xmlPage}->get_widget('spinIterations')->get_value_as_int;
     #$args{targets} = $targets;
-    
+
     $args{save_checkpoint} = $self->{save_checkpoint_button}->get_value;
-    
+
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_widget('randomise_results_list_name')->get_text;
     my $seed = $xml_page->get_widget('randomise_seed_value')->get_text;
@@ -681,7 +681,7 @@ sub on_run {
     }
     else {
         #  eval is prob not needed, as we trap pre-existing above
-        $output_ref = eval {  
+        $output_ref = eval {
             $basedata_ref->add_randomisation_output (name => $name);
         };
         if ($EVAL_ERROR) {
@@ -752,4 +752,3 @@ sub DESTROY {
 
 
 1;
-

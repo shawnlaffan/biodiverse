@@ -49,7 +49,7 @@ sub new {
     $self->{project} = $gui->get_project();
     bless $self, $class;
 
-    # Load _new_ widgets from glade 
+    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
     my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringPage');
@@ -153,7 +153,7 @@ sub new {
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY') //  $empty_string;
-        if (blessed $def_query_init1) { #  get the text if already an object 
+        if (blessed $def_query_init1) { #  get the text if already an object
             $def_query_init1 = $def_query_init1->get_conditions_unparsed();
             $defq_object     = $def_query_init1;
         }
@@ -251,7 +251,7 @@ sub new {
         clicked => \&on_close,
         $self,
     );
-    
+
     $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
 
     #$self->set_colour_stretch_widgets_and_signals;
@@ -302,7 +302,7 @@ sub new {
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
     }
 
-    
+
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
         #say $widget_name;
@@ -318,7 +318,7 @@ sub new {
     }
 
     $self->choose_tool('Select');
-    
+
     $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
     $self->update_export_menu;
     $self->init_colour_clusters;
@@ -459,7 +459,7 @@ sub set_colour_stretch_widgets_and_signals {
         };
 
         $widget->signal_connect_swapped(
-            activate => $sub, 
+            activate => $sub,
             $self,
         );
         $i++;
@@ -473,26 +473,26 @@ sub set_colour_stretch_widgets_and_signals {
 #  change the explanation text - does nothing yet
 sub on_combo_linkage_changed {
     my $self = shift;
-    
+
     my $widget = $self->{xmlPage}->get_widget('label_explain_linkage');
-    
+
     my $linkage = $self->get_selected_linkage;
-    
+
     return;
 };
 
 #  change the explanation text
 sub on_combo_metric_changed {
     my $self = shift;
-    
+
     my $widget = $self->{xmlPage}->get_widget('label_explain_metric');
-    
+
     my $metric = $self->get_selected_metric;
-    
+
     my $bd = $self->{basedata_ref} || $self->{project}->get_selected_base_data;
-    
+
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
-    
+
     my $source_sub = $indices_object->get_index_source (index => $metric);
     my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
@@ -625,7 +625,7 @@ sub show_legend {
 }
 
 #  for completeness with show_legend
-#  simple wrapper 
+#  simple wrapper
 sub hide_legend {
     my $self = shift;
     $self->{grid}->hide_legend;
@@ -759,7 +759,7 @@ sub on_combo_map_list_changed {
             warn "$widget_name not found\n";
             next;
         }
-        
+
         $widget->set_sensitive($sensitive);
     }
 
@@ -885,7 +885,7 @@ sub init_indices_combo {
     if ($self->{selected_index_iter}) {
         $combo->set_active_iter( $self->{selected_index_iter} );
     }
-    
+
     $self->on_combo_metric_changed;
 
     return;
@@ -921,7 +921,7 @@ sub set_pane {
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Clustering tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
-    
+
     return;
 }
 
@@ -942,7 +942,7 @@ sub queue_set_pane {
     );
     $self->{"set_paneSignalID$id"} = $sig_id;  #  ISSUE 417 ISSUES????
     $self->{"set_panePos$id"} = $pos;
-    
+
     return;
 }
 
@@ -957,7 +957,7 @@ sub set_pane_signal {
     $pane->signal_handler_disconnect( $self->{"set_paneSignalID$id"} );
     delete $self->{"set_panePos$id"};
     delete $self->{"set_paneSignalID$id"};
-    
+
     return;
 }
 
@@ -977,7 +977,7 @@ sub get_output_type {
 #sub on_close {
 #    my $self = shift;
 #    $self->{gui}->remove_tab($self);
-#    
+#
 #    return;
 #}
 
@@ -988,7 +988,7 @@ sub remove {
     eval {$self->{dendrogram}->destroy()};
 
     $self->SUPER::remove;
-    
+
     return;
 }
 
@@ -1006,7 +1006,7 @@ sub remove {
 #
 #sub get_build_matrices_only {
 #    my $self = shift;
-#    
+#
 #    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
 #
 #    return $widget->get_active;
@@ -1079,13 +1079,13 @@ sub get_prng_seed {
 
 sub get_tie_breakers {
     my $self = shift;
-    
+
     my $widgets = $self->{tie_breaker_widgets};
     my @choices;
     foreach my $widget (@$widgets) {
         push @choices, $widget->get_active_text;
     }
-    
+
     return wantarray ? @choices : \@choices;
 }
 
@@ -1100,29 +1100,29 @@ sub get_use_tie_breakers {
 
 sub get_output_file_handles {
     my $self = shift;
-    
+
     my $widget = $self->{xmlPage}->get_widget('chk_output_to_file');
-    
+
     return if not $widget->get_active;  #  undef if nothing set
-    
+
     #  get a file prefix and create as many handles
     #  as there are matrices to be created
     my @handles;
-    
-    my $file_chooser = Gtk2::FileChooserDialog->new ( 
+
+    my $file_chooser = Gtk2::FileChooserDialog->new (
         'Choose file prefix',
         undef,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok'
     );
-    
+
     #  need to base on output name
     $file_chooser->set_current_name($self->{output_name} . '_matrix');
 
     my $file_pfx;
 
-    if ('ok' eq $file_chooser->run){    
+    if ('ok' eq $file_chooser->run){
        $file_pfx = $file_chooser->get_filename;
        print "file prefix $file_pfx\n";
     }
@@ -1150,16 +1150,16 @@ sub get_output_file_handles {
         open my $fh, '>', $filename or croak "Unable to open $filename to write to\n";
         push @handles, $fh;
     }
-    
+
     return wantarray ? @handles : \@handles;
 }
 
 #sub close_output_file_handles {
 #    my $self = shift;
 #    my %args = @_;
-#    
+#
 #    my $handles = $args{file_handles};
-#    
+#
 #    foreach my $fh ()
 #}
 
@@ -1186,13 +1186,13 @@ sub get_selected_linkage {
 sub on_run {
     my $self = shift;
     my $button = shift;
-    
+
     return $self->on_run_analysis (@_);
 }
 
 sub get_overwrite_response {
     my ($self, $title, $text) = @_;
-    
+
     my $rerun_spatial_value = -20;
 
     my $dlg = Gtk2::Dialog->new(
@@ -1210,14 +1210,14 @@ sub get_overwrite_response {
 
     my $response = $dlg->run;
     $dlg->destroy;
-    
+
     if ($response eq 'delete-event') {
         $response = 'cancel';
     }
     if ($response eq $rerun_spatial_value) {
         $response = 'run_spatial_calculations';
     }
-    
+
     return $response;
 }
 
@@ -1236,7 +1236,7 @@ sub on_run_analysis {
     my $output_ref       = $self->{output_ref};
     my $pre_existing     = $self->{output_ref};
     my $new_analysis     = 1;
-    
+
     my $bd      = $self->{basedata_ref};
     my $project = $self->{project};
 
@@ -1271,7 +1271,7 @@ sub on_run_analysis {
             }
             #  Should really check if the analysis
             #  ran properly before setting this
-            $self->{project}->set_dirty;  
+            $self->{project}->set_dirty;
         }
 
         if ($new_analysis) {  #  we can simply rename it for now
@@ -1327,7 +1327,7 @@ sub on_run_analysis {
         $output_ref->run_analysis (
             %analysis_args,
             flatten_tree => 1,
-            
+
         )
     };
     if (Biodiverse::Cluster::MatrixExists->caught) {
@@ -1490,12 +1490,12 @@ sub on_grid_hover {
     if ($element) {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
-        
+
         my $node_ref = eval {$cluster_ref->get_node_ref (node => $element)};
         if ($self->{use_highlight_path} and $node_ref) {
             $self->{dendrogram}->highlight_path($node_ref);
         }
-        
+
         my $analysis_name = $self->{grid}{analysis};
         my $coloured_node = $self->get_coloured_node_for_element($element);
         if (defined $coloured_node && defined $analysis_name) {
@@ -1519,7 +1519,7 @@ sub on_grid_hover {
         $string = '';  #  clear the markup
     }
     $self->{xmlPage}->get_widget('lblMap')->set_markup($string);
-    
+
     return;
 }
 
@@ -1551,7 +1551,7 @@ sub on_grid_popup {
     };
 
     Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
-    
+
     return;
 }
 
@@ -1561,7 +1561,7 @@ sub on_dendrogram_popup {
     my $basedata_ref = $self->{basedata_ref};
     my ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
     Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
-    
+
     return;
 }
 
@@ -1754,7 +1754,7 @@ sub show_cluster_elements {
 
     $popup->set_list_model($model);
     $popup->set_value_column(1);
-    
+
     return;
 }
 
@@ -1769,17 +1769,17 @@ sub show_cluster_elements {
 #  like get_cluster_output_ref
 sub on_name_changed {
     my $self = shift;
-    
+
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_widget('txtClusterName')->get_text();
-    
+
     my $label_widget = $self->{xmlLabel}->get_widget('lblClusteringName');
     $label_widget->set_text($name);
-    
+
     my $tab_menu_label = $self->{tab_menu_label};
     $tab_menu_label->set_text($name);
 
-    
+
     my $param_widget
             = $xml_page->get_widget('lbl_parameter_clustering_name');
     $param_widget->set_markup("<b>Name</b>");
@@ -1787,7 +1787,7 @@ sub on_name_changed {
     my $bd = $self->{basedata_ref};
 
     my $name_in_use = $bd->get_cluster_output_ref (name => $name);
-    
+
     #  make things go red
     if ($name_in_use) {
         #  colour the label red if the list exists
@@ -1797,7 +1797,7 @@ sub on_name_changed {
 
         $label =  $span_leader . $label . $span_ender;
         $label_widget->set_markup ($label);
-        
+
         $param_widget->set_markup ("$span_leader <b>Name </b>$span_ender");
 
         return;
@@ -1820,7 +1820,7 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
+
     return;
 }
 
@@ -1879,7 +1879,7 @@ sub choose_tool {
 
     $self->{grid}->{drag_mode}       = $drag_modes{$tool};
     $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
-    
+
     $self->set_display_cursors ($tool);
 }
 
@@ -1896,7 +1896,7 @@ sub on_use_highlight_path_changed {
     my $self = shift;
 
     #  set to complement - should get widget check value
-    $self->{use_highlight_path} = not $self->{use_highlight_path};  
+    $self->{use_highlight_path} = not $self->{use_highlight_path};
 
     #  clear any highlights
     if ($self->{dendrogram} && ! $self->{use_highlight_path}) {
@@ -1958,13 +1958,13 @@ sub recolour {
 
 sub set_plot_min_max_values {
     my $self = shift;
-    
+
     #  nasty - should handle everything via this tab, not the dendrogram
     my $list  = $self->{dendrogram}->{analysis_list_name};
     my $index = $self->{dendrogram}->{analysis_list_index};
-    
+
     return if ! defined $list || ! defined $index;
-    
+
     my $stats = $self->{stats}{$list}{$index};
     if (not $stats) {
         $stats = $self->{output_ref}->get_list_stats (
@@ -1975,9 +1975,9 @@ sub set_plot_min_max_values {
 
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
-    
+
     $self->set_legend_ltgt_flags ($stats);
-    
+
     $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
 
     return;
@@ -2011,7 +2011,7 @@ sub on_menu_stretch_changed {
 sub on_stretch_changed {
     my $self = shift;
     my $sel  = shift || 'min-max';
-    
+
     if (blessed $sel) {
         #$sel = $sel->get_label;
         my $choice = $sel->get_active;

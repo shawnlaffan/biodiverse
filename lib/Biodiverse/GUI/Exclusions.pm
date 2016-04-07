@@ -119,7 +119,7 @@ sub show_dialog {
 
         $file_list_checkbox->signal_connect(toggled => $callback, $widget);
     }
-    
+
     #  and the groups def query
     my $specs = { name => 'Definition_query', type => 'spatial_conditions', default => '' };
     bless $specs, 'Biodiverse::Metadata::Parameter';
@@ -136,7 +136,7 @@ sub show_dialog {
         $dlg->destroy;
         return $ret;
     }
-    
+
     $ret = 1;
 
     # Set fields
@@ -149,7 +149,7 @@ sub show_dialog {
             my $value = $spinbutton->get_value();
             #  round any decimals to six places to avoid floating point issues.
             #  could cause trouble later on, but the GUI only allows two decimals now anyway...
-            $value = sprintf ("%.6f", $value) if $value =~ /\./;  
+            $value = sprintf ("%.6f", $value) if $value =~ /\./;
             $exclusions_hash->{$fields->[0]}{$fields->[1]} = $value;
         }
         else {
@@ -204,12 +204,12 @@ sub show_dialog {
     if (defined $defq) {
         $exclusions_hash->{GROUPS}{definition_query} = $defq;
     }
-    
+
     my $delete_empty_groups = $dlgxml->get_widget('chk_excl_delete_empty_groups')->get_active;
     my $delete_empty_labels = $dlgxml->get_widget('chk_excl_delete_empty_labels')->get_active;
     $exclusions_hash->{delete_empty_groups} = $delete_empty_groups || 0;
     $exclusions_hash->{delete_empty_labels} = $delete_empty_labels || 0;
-    
+
 
 
     $dlg->destroy();
@@ -224,4 +224,3 @@ sub on_toggled {
 
 
 1;
-

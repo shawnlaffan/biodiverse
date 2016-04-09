@@ -68,7 +68,7 @@ __PACKAGE__->_make_access_methods (\%methods_and_defaults);
 
 
 
-Readonly my %dep_types = (
+Readonly my %dep_types => (
     pre_calc_global  => 1,
     pre_calc         => 1,
     post_calc        => 1,

@@ -187,6 +187,9 @@ sub get_metadata_calc_chao2 {
             CHAO2_VARIANCE    => {
                 description => 'Variance of the Chao2 estimator',
             },
+            CHAO2_SE          => {
+                description => 'Standard error of the Chao2 estimator [= sqrt (variance)]',
+            },
             CHAO2_CI_LOWER    => {
                 description => 'Lower confidence interval for the Chao2 estimate',
             },
@@ -228,7 +231,8 @@ sub calc_chao2 {
     }
 
     my $richness = scalar keys %$label_hash;
-    my $correction = $R ? ($R - 1) / $R : 1;
+    my $c1 = $R ? ($R - 1) / $R : 1;
+    my $c2 = $c1 ** 2;
 
     my $chao_partial = 0;
     my $variance;
@@ -244,9 +248,9 @@ sub calc_chao2 {
         if ($Q2) {      #  one or more doubletons
             $chao_partial = $Q1 ** 2 / (2 * $Q2);
             my $Q12_ratio = $Q1 / $Q2;
-            $variance     = $Q2 * (  $Q12_ratio ** 2 * $correction / 2
-                                   + $Q12_ratio ** 3 * $correction ** 2
-                                   + $Q12_ratio ** 4 * $correction ** 2 / 4);
+            $variance     = $Q2 * (  $Q12_ratio ** 2 * $c1 / 2
+                                   + $Q12_ratio ** 3 * $c2
+                                   + $Q12_ratio ** 4 * $c2 / 4);
         }
         elsif ($Q1 > 1) {   #  no doubletons, but singletons
             $chao_partial = $Q1 * ($Q1 - 1) / 2;
@@ -259,13 +263,14 @@ sub calc_chao2 {
         #  if only one singleton and no doubletons then chao stays zero
     }
 
-    $chao_partial *= $correction;
+    $chao_partial *= $c1;
+
     my $chao = $richness + $chao_partial;
 
     if ($variance_uses_eq11) {
-        $variance = $correction      * ($Q1 * ($Q1 - 1)) / 2
-                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / 4
-                  - $correction ** 2 *  $Q1 ** 4 / (4 * $chao);
+        $variance = $c1 * ($Q1 * ($Q1 - 1)) / 2
+                  + $c2 * ($Q1 * (2 * $Q1 - 1) ** 2) / 4
+                  - $c2 *  $Q1 ** 4 / (4 * $chao);
     }
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
@@ -305,6 +310,7 @@ sub calc_chao2 {
         CHAO2_Q1_COUNT => $Q1,
         CHAO2_Q2_COUNT => $Q2,
         CHAO2_VARIANCE => $variance,
+        CHAO2_SE       => sqrt ($variance),
         CHAO2_UNDETECTED => $chao_partial,
         CHAO2_CI_LOWER => $ci_scores->{ci_lower},
         CHAO2_CI_UPPER => $ci_scores->{ci_upper},

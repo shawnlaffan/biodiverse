@@ -95,7 +95,8 @@ sub test_indices_1col {
         CHAO2_Q1_COUNT   => 8,
         CHAO2_Q2_COUNT   => 0,
         CHAO2_UNDETECTED => 0,
-        CHAO2_VARIANCE   => 0
+        CHAO2_VARIANCE   => 0,
+        CHAO2_SE         => 0,
     };
     # identical to overlay2 since we have only one group in the basedata
     my $results_overlay1 = {%$results_overlay2}; 
@@ -219,6 +220,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_Q2_COUNT   => 8,
     CHAO2_UNDETECTED => '2.04545454545455',
     CHAO2_VARIANCE   => '5.35769628099174',
+    CHAO2_SE         => '2.31467',
     ICE_SCORE        => '28.5012110113422'
 }
 
@@ -250,6 +252,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_Q2_COUNT   => 0,
     CHAO2_UNDETECTED => 0,
     CHAO2_VARIANCE   => 0,
+    CHAO2_SE         => 0,
     ICE_SCORE        => undef
 }
 

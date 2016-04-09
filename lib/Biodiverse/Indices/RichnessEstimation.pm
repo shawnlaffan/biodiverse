@@ -29,6 +29,9 @@ sub get_metadata_calc_chao1 {
             CHAO1_F2_COUNT    => {
                 description => 'Number of doubletons in the sample',
             },
+            CHAO1_SE => {
+                description => 'Standard error of the Chao1 estimator [= sqrt(variance)]',
+            },
             CHAO1_VARIANCE    => {
                 description => 'Variance of the Chao1 estimator',
             },
@@ -72,7 +75,9 @@ sub calc_chao1 {
     }
 
     my $richness = scalar keys %$label_hash;
-    my $correction = $n ? ($n - 1) / $n : 1;  #  avoid divide by zero issues with empty sets
+    #  correction factors
+    my $cn1 = $n ? ($n - 1) / $n : 1;  #  avoid divide by zero issues with empty sets
+    my $cn2 = $cn1 ** 2;
 
     my $chao_formula = 2;
     my $chao_partial = 0;
@@ -86,9 +91,9 @@ sub calc_chao1 {
         if ($f2) {      #  one or more doubletons
             $chao_partial = $f1 ** 2 / (2 * $f2);
             my $f12_ratio = $f1 / $f2;
-            $variance     = $f2 * (  $f12_ratio ** 2 / 2
-                                    + $f12_ratio ** 3
-                                    + $f12_ratio ** 4 / 4);
+            $variance     = $f2 * (   ($cn1 * $f12_ratio ** 2) / 2
+                                    +  $cn2 * $f12_ratio ** 3
+                                    + ($cn2 * $f12_ratio ** 4) / 4);
         }
         elsif ($f1 > 1) {   #  no doubletons, but singletons
             $chao_partial      = $f1 * ($f1 - 1) / 2;
@@ -101,14 +106,14 @@ sub calc_chao1 {
         }
     }
     
-    $chao_partial *= $correction;
+    $chao_partial *= $cn1;
 
     my $chao = $richness + $chao_partial;
     
     if ($variance_uses_eq7) {
-        $variance = $correction      * ($f1 * ($f1 - 1)) / 2
-                  + $correction ** 2 * ($f1 * (2 * $f1 - 1)) ** 2
-                  - $correction ** 2 *  $f1 ** 4 / (4 * $chao);
+        $variance = $cn1 * ($f1 * ($f1 - 1)) / 2
+                  + $cn2 * ($f1 * (2 * $f1 - 1)) ** 2
+                  - $cn2 *  $f1 ** 4 / (4 * $chao);
         $chao_formula = undef;
     }
     elsif ($variance_uses_eq8) {
@@ -148,6 +153,7 @@ sub calc_chao1 {
         CHAO1          => $chao,
         CHAO1_F1_COUNT => $f1,
         CHAO1_F2_COUNT => $f2,
+        CHAO1_SE       => sqrt ($variance),
         CHAO1_VARIANCE => $variance,
         CHAO1_UNDETECTED => $chao_partial,
         CHAO1_CI_LOWER => $ci_scores->{ci_lower},

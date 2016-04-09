@@ -72,8 +72,8 @@ sub test_indices_1col {
     
     my $results_overlay2 = {
         CHAO1          => '15.5555555555556',
-        CHAO1_CI_LOWER => '8.86819414903085',
-        CHAO1_CI_UPPER => '73.7530574432125',
+        CHAO1_CI_LOWER => '8.930474',
+        CHAO1_CI_UPPER => '69.351996',
         CHAO1_F1_COUNT => 4,
         CHAO1_F2_COUNT => 1,
         CHAO1_META     => {
@@ -82,7 +82,8 @@ sub test_indices_1col {
             VARIANCE_FORMULA => 6
         },
         CHAO1_UNDETECTED => '7.55555555555556',
-        CHAO1_VARIANCE   => 136,
+        CHAO1_VARIANCE   => 121.728395,
+        CHAO1_SE         => 11.033059,
         CHAO2            => 8,
         CHAO2_CI_LOWER   => undef,
         CHAO2_CI_UPPER   => undef,
@@ -194,8 +195,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 @@ RESULTS_2_NBR_LISTS
 {   ACE_SCORE      => '27.5917083918918',
     CHAO1          => '27.5951367781155',
-    CHAO1_CI_LOWER => '26.2156270330022',
-    CHAO1_CI_UPPER => '37.8002891635121',
+    CHAO1_CI_LOWER => '26.216304',
+    CHAO1_CI_UPPER => '37.763359',
     CHAO1_F1_COUNT => 4,
     CHAO1_F2_COUNT => 5,
     CHAO1_META     => {
@@ -204,7 +205,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
         VARIANCE_FORMULA => 6
     },
     CHAO1_UNDETECTED => '1.5951367781155',
-    CHAO1_VARIANCE   => '4.672',
+    CHAO1_VARIANCE   => '4.64849',
+    CHAO1_SE         => '2.156036',
     CHAO2            => '28.0454545454545',
     CHAO2_CI_LOWER   => '26.3450687940336',
     CHAO2_CI_UPPER   => '38.124783144296',
@@ -224,8 +226,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 @@ RESULTS_1_NBR_LISTS
 {   ACE_SCORE      => '10.6812069365561',
     CHAO1          => '15.5555555555556',
-    CHAO1_CI_LOWER => '8.86819414903085',
-    CHAO1_CI_UPPER => '73.7530574432125',
+    CHAO1_CI_LOWER => '8.930474',
+    CHAO1_CI_UPPER => '69.351996',
     CHAO1_F1_COUNT => 4,
     CHAO1_F2_COUNT => 1,
     CHAO1_META     => {
@@ -234,7 +236,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
         VARIANCE_FORMULA => 6
     },
     CHAO1_UNDETECTED => '7.55555555555556',
-    CHAO1_VARIANCE   => 136,
+    CHAO1_VARIANCE   => 121.728395,
+    CHAO1_SE         => 11.033059,
     CHAO2            => 8,
     CHAO2_CI_LOWER   => undef,
     CHAO2_CI_UPPER   => undef,

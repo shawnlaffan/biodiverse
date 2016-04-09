@@ -47,28 +47,23 @@ sub new {
         $self->{output_placeholder_ref} = $object;
     }
 
-    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example.
     # These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new(
-        $self->{gui}->get_glade_file,
-        'vboxRandomisePage',
-    );
-    $self->{xmlLabel} = Gtk2::GladeXML->new(
-        $self->{gui}->get_glade_file,
-        'hboxRandomiseLabel',
-    );
+    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('vboxRandomisePage.ui'));
+    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxRandomiseLabel.ui'));
 
     my $xml_page  = $self->{xmlPage};
     my $xml_label = $self->{xmlLabel};
 
-    my $page  = $xml_page ->get_widget('vboxRandomisePage');
-    my $label = $xml_label->get_widget('hboxRandomiseLabel');
-    my $label_text = $xml_label->get_widget('lblRandomiseName')->get_text;
+    my $page  = $xml_page ->get_object('vboxRandomisePage');
+    my $label = $xml_label->get_object('hboxRandomiseLabel');
+    my $label_text = $xml_label->get_object('lblRandomiseName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
-    $self->{label_widget} = $xml_label->get_widget('lblRandomiseName');
+    $self->{label_widget} = $xml_label->get_object('lblRandomiseName');
     #$self->set_label_widget_tooltip;  not yet
 
     # Add to notebook
@@ -106,7 +101,7 @@ sub new {
 
     # Initialise the tree
     # One column with a checkbox and the output name
-    #my $tree = $self->{xmlPage}->get_widget("treeOutputs");
+    #my $tree = $self->{xmlPage}->get_object("treeOutputs");
     #
     #my $colName = Gtk2::TreeViewColumn->new();
     #my $checkRenderer = Gtk2::CellRendererToggle->new();
@@ -125,7 +120,7 @@ sub new {
     $self->add_iteration_count_to_table ($output_ref);
 
     my $name;
-    my $seed_widget = $xml_page->get_widget('randomise_seed_value');
+    my $seed_widget = $xml_page->get_object('randomise_seed_value');
     if ($output_ref) {
         #$self->{project}->register_in_outputs_model ($output_ref, $self);
         $self->register_in_outputs_model ($output_ref, $self);
@@ -138,20 +133,20 @@ sub new {
         #$seed_widget->set_text (time);
     }
 
-    $xml_label->get_widget('lblRandomiseName')->set_text($name);
-    $xml_page ->get_widget('randomise_results_list_name')->set_text ($name);
+    $xml_label->get_object('lblRandomiseName')->set_text($name);
+    $xml_page ->get_object('randomise_results_list_name')->set_text ($name);
     $self->{tab_menu_label}->set_text($name );
 
     # Connect signals
-    $xml_label->get_widget('btnRandomiseClose')->signal_connect_swapped(
+    $xml_label->get_object('btnRandomiseClose')->signal_connect_swapped(
         clicked => \&on_close,
         $self,
     );
-    $xml_page->get_widget('btnRandomise')->signal_connect_swapped(
+    $xml_page->get_object('btnRandomise')->signal_connect_swapped(
         clicked => \&on_run,
         $self,
     );
-    $xml_page->get_widget('randomise_results_list_name')->signal_connect_swapped(
+    $xml_page->get_object('randomise_results_list_name')->signal_connect_swapped(
         changed => \&on_name_changed,
         $self,
     );
@@ -167,7 +162,7 @@ sub get_table_widget {
 
     my $xml_page = $self->{xmlPage};
 
-    my $table = $xml_page->get_widget('table_randomise_setup');
+    my $table = $xml_page->get_object('table_randomise_setup');
 
     return $table;
 }
@@ -221,7 +216,7 @@ sub add_iteration_count_to_table {
 
     my $xml_page = $self->{xmlPage};
 
-    my $table = $xml_page->get_widget('table_randomise_setup');
+    my $table = $xml_page->get_object('table_randomise_setup');
 
     my $row_count = $self->add_row_to_table ($table);
 
@@ -268,10 +263,10 @@ sub set_button_sensitivity {
 
     my $xml_page = $self->{xmlPage};
     foreach my $widget (@widgets) {
-        $xml_page->get_widget($widget)->set_sensitive ($sens);
+        $xml_page->get_object($widget)->set_sensitive ($sens);
     }
 
-    my $table = $self->{xmlPage}->get_widget('tableParams');
+    my $table = $self->{xmlPage}->get_object('tableParams');
     $table->set_sensitive ($sens);  #  comment out - don't do whole table
     #$self->on_function_changed;
 
@@ -287,7 +282,7 @@ sub init_basedata_combo {
     my $self = shift;
     my %args = @_;
 
-    my $combo = $self->{xmlPage}->get_widget('comboRandomiseBasedata');
+    my $combo = $self->{xmlPage}->get_object('comboRandomiseBasedata');
     my $renderer = Gtk2::CellRendererText->new();
 
     $combo->pack_start($renderer, 1);
@@ -355,7 +350,7 @@ sub init_function_combo {
     my $self = shift;
     my %args = @_;
 
-    my $combo = $self->{xmlPage}->get_widget('comboFunction');
+    my $combo = $self->{xmlPage}->get_object('comboFunction');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -377,7 +372,7 @@ sub init_function_combo {
 sub get_selected_function {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboFunction');
+    my $combo = $self->{xmlPage}->get_object('comboFunction');
     my $iter = $combo->get_active_iter;
 
     return $self->{function_model}->get($iter, 0);
@@ -431,7 +426,7 @@ sub on_function_changed {
 
 
     # Build widgets for parameters
-    my $table = $self->{xmlPage}->get_widget('tableParams');
+    my $table = $self->{xmlPage}->get_object('tableParams');
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $new_extractors
         = $parameters_table->fill(\@params_to_add, $table);
@@ -450,7 +445,7 @@ sub on_function_changed {
 ######################################################
 sub on_randomise_basedata_changed {
     my $self = shift;
-    my $combo = $self->{xmlPage}->get_widget('comboRandomiseBasedata');
+    my $combo = $self->{xmlPage}->get_object('comboRandomiseBasedata');
     my $basedata_iter = $combo->get_active_iter();
 
     # Get basedata object
@@ -541,10 +536,10 @@ sub update_randomise_button {
     my $selected     = $outputs_list;
 
     if (@{$selected}) {
-        $self->{xmlPage}->get_widget('btnRandomise')->set_sensitive(1);
+        $self->{xmlPage}->get_object('btnRandomise')->set_sensitive(1);
     }
     else {
-        $self->{xmlPage}->get_widget('btnRandomise')->set_sensitive(0);
+        $self->{xmlPage}->get_object('btnRandomise')->set_sensitive(0);
     }
 
     return;
@@ -554,12 +549,12 @@ sub update_randomise_button {
 sub on_name_changed {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('randomise_results_list_name');
+    my $widget = $self->{xmlPage}->get_object('randomise_results_list_name');
     my $name = $widget->get_text();
 
-    $self->{xmlLabel}->get_widget('lblRandomiseName')->set_text($name);
+    $self->{xmlLabel}->get_object('lblRandomiseName')->set_text($name);
 
-    my $label_widget = $self->{xmlPage}->get_widget('label_rand_list_name');
+    my $label_widget = $self->{xmlPage}->get_object('label_rand_list_name');
     my $label = $label_widget->get_label;
 
     my $tab_menu_label = $self->{tab_menu_label};
@@ -619,14 +614,14 @@ sub on_run {
     my %args;
     $args{function} = $self->get_selected_function;
     $args{iterations}
-        = $self->{xmlPage}->get_widget('spinIterations')->get_value_as_int;
+        = $self->{xmlPage}->get_object('spinIterations')->get_value_as_int;
     #$args{targets} = $targets;
 
     $args{save_checkpoint} = $self->{save_checkpoint_button}->get_value;
 
     my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_widget('randomise_results_list_name')->get_text;
-    my $seed = $xml_page->get_widget('randomise_seed_value')->get_text;
+    my $name = $xml_page->get_object('randomise_results_list_name')->get_text;
+    my $seed = $xml_page->get_object('randomise_seed_value')->get_text;
     $seed =~ s/\s//g;  #  strip any whitespace
     if (not defined $seed or length ($seed) == 0) {
         warn "[GUI Randomise] PRNG seed is not defined, using system default\n";
@@ -746,7 +741,7 @@ sub AUTOLOAD {
 sub DESTROY {
     #my $self = shift;
     #eval {
-    #    $self->{xmlPage}->get_widget('comboRandomiseBasedata')->destroy;
+    #    $self->{xmlPage}->get_object('comboRandomiseBasedata')->destroy;
     #}
 }  #  let the system handle destruction - need this for AUTOLOADER
 

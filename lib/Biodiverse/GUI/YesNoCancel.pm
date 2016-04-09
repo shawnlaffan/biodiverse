@@ -51,14 +51,16 @@ sub run {
     }
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new ($gui->get_glade_file, DLG_NAME);
-    my $dlg = $dlgxml->get_widget(DLG_NAME);
+
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgYesNoCancel.ui'));
+    my $dlg = $dlgxml->get_object(DLG_NAME);
 
     # Put it on top of main window
     $dlg->set_transient_for($gui->get_widget('wndMain'));
 
     # set the text
-    my $label = $dlgxml->get_widget('lblText');
+    my $label = $dlgxml->get_object('lblText');
 
     #  try with markup - need to escape all the bits
     eval { $label->set_markup($text) };
@@ -67,17 +69,17 @@ sub run {
     }
 
     if ($args->{hide_yes}) {
-        $dlgxml->get_widget('btnYes')->hide;
+        $dlgxml->get_object('btnYes')->hide;
     }
     if ($args->{hide_no}) {
-        $dlgxml->get_widget('btnNo')->hide;
+        $dlgxml->get_object('btnNo')->hide;
     }
     if ($args->{hide_cancel}) {
-        $dlgxml->get_widget('btnCancel')->hide;
+        $dlgxml->get_object('btnCancel')->hide;
     }
     #  not yet... should add an OK button and hide by default
     if ($args->{yes_is_ok}) {
-        $dlgxml->get_widget('btnYes')->set_label ('OK');
+        $dlgxml->get_object('btnYes')->set_label ('OK');
     }
     if ($args->{title}) {
         $dlg->set_title ($args->{title});

@@ -24,19 +24,14 @@ sub new {
     #weaken ($self->{gui}) if (not isweak ($self->{gui}));  #  avoid circular refs?
     bless $self, $class;
 
-    # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new(
-        $self->{gui}->get_glade_file,
-        'hboxOutputsPage',
-    );
-    $self->{xmlLabel} = Gtk2::GladeXML->new(
-        $self->{gui}->get_glade_file,
-        'hboxOutputsLabel',
-    );
+    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxOutputsPage.ui'));
+    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxOutputsLabel.ui'));
 
-    my $page  = $self->{xmlPage} ->get_widget('hboxOutputsPage');
-    my $label = $self->{xmlLabel}->get_widget('hboxOutputsLabel');
+    my $page  = $self->{xmlPage} ->get_object('hboxOutputsPage');
+    my $label = $self->{xmlLabel}->get_object('hboxOutputsLabel');
     my $menu_label = Gtk2::Label->new ('Outputs tab');
 
     # Add to notebook
@@ -49,7 +44,7 @@ sub new {
     $self->set_tab_reorderable($page);
 
     # Initialise the tree
-    my $tree = $self->{xmlPage}->get_widget('outputsTree');
+    my $tree = $self->{xmlPage}->get_object('outputsTree');
 
     #  what columns to add to the tree?
     my %columns_hash = (
@@ -83,13 +78,13 @@ sub new {
     $model->signal_connect('row-inserted' => \&on_row_inserted, $self);
 
     # Connect signals
-    #$self->{xmlLabel}->get_widget("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::on_close, $self);
+    #$self->{xmlLabel}->get_object("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::on_close, $self);
     my $xml_page = $self->{xmlPage};
-    $xml_page->get_widget('btnOutputsShow'  )->signal_connect_swapped(clicked => \&on_show,   $self);
-    $xml_page->get_widget('btnOutputsExport')->signal_connect_swapped(clicked => \&on_export, $self);
-    $xml_page->get_widget('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
-    $xml_page->get_widget('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
-    $xml_page->get_widget('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
+    $xml_page->get_object('btnOutputsShow'  )->signal_connect_swapped(clicked => \&on_show,   $self);
+    $xml_page->get_object('btnOutputsExport')->signal_connect_swapped(clicked => \&on_export, $self);
+    $xml_page->get_object('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
+    $xml_page->get_object('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
+    $xml_page->get_object('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
 
 
 
@@ -114,7 +109,7 @@ sub get_removable { return 0; } # output tab cannot be closed
 sub get_selection {
     my $self = shift;
 
-    my $tree    = $self->{xmlPage}->get_widget('outputsTree');
+    my $tree    = $self->{xmlPage}->get_object('outputsTree');
     my $project = $self->{gui}->get_project;
 
     return if not defined $project;
@@ -180,7 +175,7 @@ sub on_row_inserted {
     my $iter_parent = $model->iter_parent($iter);
 
     if ($iter_parent && ($model->get($iter_parent, MODEL_BASEDATA_ROW) == 1) ) {
-        my $tree = $self->{xmlPage}->get_widget('outputsTree');
+        my $tree = $self->{xmlPage}->get_object('outputsTree');
         $tree->expand_row($model->get_path($iter_parent), 0);
     }
 
@@ -216,7 +211,7 @@ sub on_row_changed {
         = qw /btnOutputsExport btnOutputsDelete btnOutputsRename/;
 
     foreach my $widget_name (@widget_name_array) {
-        $xml_page->get_widget($widget_name)->set_sensitive($sensitive);
+        $xml_page->get_object($widget_name)->set_sensitive($sensitive);
     }
 
     # If clicked on basedata, select it
@@ -230,7 +225,7 @@ sub on_row_changed {
 #  resize the contents - this reclaims unused horizontal space
 sub on_row_collapsed {
     my $self = shift;
-    my $tree = $self->{xmlPage}->get_widget('outputsTree');
+    my $tree = $self->{xmlPage}->get_object('outputsTree');
 
     $tree->columns_autosize();
 
@@ -322,8 +317,10 @@ sub on_export {
 
         # Show "Save changes?" dialog
         my $gui = $self->{gui};
-        my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgGroupsLabels');
-        my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
+        my $dlgxml = Gtk2::Builder->new();
+        $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgGroupsLabels.ui'));
+
+        my $dlg = $dlgxml->get_object('dlgGroupsLabels');
         $dlg->set_transient_for( $gui->get_widget('wndMain') );
         $dlg->set_modal(1);
         my $response = $dlg->run();

@@ -430,7 +430,7 @@ sub calc_ace {
         );
         return wantarray ? %results : \%results;
     }
-
+    
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
         next if !$f_rare{$i};
@@ -440,14 +440,24 @@ sub calc_ace {
 
     my $gamma_rare_hat_square;
     if ($calc_ice) {
-        #$gamma_rare_hat_square = ($S_rare  /  $C_ace)
-        #       * ($n_rare  / ($n_rare - 1))
-        #       * ($a1 /  $n_rare ** 2) 
-        #       - 1;
-        my $t = $args{EL_COUNT_ALL};
+        #  Correction factor for C_ace from
+        #  https://github.com/AnneChao/SpadeR::SpecInciModelh.R
+        #  Seems undocumented as it is not in the cited refs,
+        #  but we'll use it under the assumption that Chao's code is canonical.
+        my $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
+        my $A = 1;
+        if ($f_rare{1}) {
+            if ($f_rare{2}) {
+                $A = 2 * $f_rare{2} / (($t-1) * $f_rare{1} + 2 * $f_rare{2});
+            }
+            else {
+                $A = 2 / (($t-1) * ($f_rare{1} - 1) + 2);
+            }
+        }
+        $C_ace = 1 - ($f1 / $n_rare) * (1 - $A);
         $gamma_rare_hat_square
             = ($S_rare / $C_ace)
-               * $t / ($t - 1)
+               * $t  / ($t - 1)
                * $a1 / $a2 / ($a2 - 1)
                - 1;
     }
@@ -463,7 +473,7 @@ sub calc_ace {
               + $S_rare / $C_ace
               + $f1 / $C_ace * $gamma_rare_hat_square;
 
-my $cv = sqrt $gamma_rare_hat_square;
+    #my $cv = sqrt $gamma_rare_hat_square;
 
     my %results = (
         ACE_SCORE => $S_ace,

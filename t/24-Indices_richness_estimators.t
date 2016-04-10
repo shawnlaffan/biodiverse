@@ -194,7 +194,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   ACE_SCORE      => '27.5917083918918',
+{   ACE_SCORE      => '28.459957',
     CHAO1          => '27.5951367781155',
     CHAO1_CI_LOWER => '26.216304',
     CHAO1_CI_UPPER => '37.763359',
@@ -226,7 +226,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_1_NBR_LISTS
-{   ACE_SCORE      => '10.6812069365561',
+{   ACE_SCORE      => '11.711885',
     CHAO1          => '15.5555555555556',
     CHAO1_CI_LOWER => '8.930474',
     CHAO1_CI_UPPER => '69.351996',

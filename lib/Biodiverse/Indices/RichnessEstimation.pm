@@ -5,7 +5,7 @@ use Carp;
 
 use List::Util qw /max min/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '1.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -431,29 +431,39 @@ sub calc_ace {
         return wantarray ? %results : \%results;
     }
 
-    my $fnurble;  #  need to use a better name here...
-    for my $i (2 .. 10) {
+    my ($a1, $a2);  #  $a names from SpadeR
+    for my $i (1 .. 10) {
         next if !$f_rare{$i};
-        $fnurble += $i * ($i-1) * $f_rare{$i};
+        $a1 += $i * ($i-1) * $f_rare{$i};
+        $a2 += $i * $f_rare{$i};
     }
 
-    my $gamma;
+    my $gamma_rare_hat_square;
     if ($calc_ice) {
-        $gamma = ($S_rare  /  $C_ace)
-               * ($n_rare  / ($n_rare - 1))
-               * ($fnurble /  $n_rare ** 2) 
+        #$gamma_rare_hat_square = ($S_rare  /  $C_ace)
+        #       * ($n_rare  / ($n_rare - 1))
+        #       * ($a1 /  $n_rare ** 2) 
+        #       - 1;
+        my $t = $args{EL_COUNT_ALL};
+        $gamma_rare_hat_square
+            = ($S_rare / $C_ace)
+               * $t / ($t - 1)
+               * $a1 / $a2 / ($a2 - 1)
                - 1;
     }
     else {
-        $gamma = ($S_rare  /  $C_ace)
-               * ($fnurble / ($n_rare * ($n_rare - 1)))
+        $gamma_rare_hat_square
+            = ($S_rare / $C_ace)
+               * $a1 / $a2 / ($a2 - 1)
                - 1;
     }
-    $gamma = max ($gamma, 0);
+    $gamma_rare_hat_square = max ($gamma_rare_hat_square, 0);
 
     my $S_ace = $S_abundants
               + $S_rare / $C_ace
-              + $f1 / $C_ace * $gamma ** 2;
+              + $f1 / $C_ace * $gamma_rare_hat_square;
+
+my $cv = sqrt $gamma_rare_hat_square;
 
     my %results = (
         ACE_SCORE => $S_ace,
@@ -468,7 +478,7 @@ sub get_metadata_calc_ice {
         description     => 'Incidence Coverage-based Estimator of species richness',
         name            => 'ICE',
         type            => 'Richness estimators',
-        pre_calc        => 'calc_abc2',
+        pre_calc        => [qw /calc_abc2 calc_elements_used/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             ICE_SCORE => {

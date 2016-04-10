@@ -6,6 +6,8 @@ use List::Util qw /sum/;
 
 use Carp;
 
+our $VERSION = '1.99_001';
+
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_phylo_rpd1 {

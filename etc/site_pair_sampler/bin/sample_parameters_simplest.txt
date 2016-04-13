@@ -17,7 +17,7 @@
 #  Blank lines are also ignored.                                               #
 #                                                                              #
 #  Help is available at:                                                       #
-#    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
+#    https://purl.org/biodiverse/wiki/SitePairSampler                 #
 #                                                                              #
 #  Dan Rosauer	August 2013 to May 2014 	                               #
 ################################################################################

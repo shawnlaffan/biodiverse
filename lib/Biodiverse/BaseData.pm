@@ -22,10 +22,10 @@ use Spreadsheet::Read 0.60;
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)
-use Spreadsheet::ReadSXC qw //;
-use Spreadsheet::ParseExcel qw //;
-use Spreadsheet::ParseXLSX qw //;
-use Spreadsheet::XLSX qw //;
+require Spreadsheet::ReadSXC;
+require Spreadsheet::ParseExcel;
+require Spreadsheet::ParseXLSX;
+require Spreadsheet::XLSX;
 
 use English qw { -no_match_vars };
 

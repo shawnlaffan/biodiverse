@@ -2581,7 +2581,7 @@ sub get_polygons_from_shapefile {
 
     my $field_val = $args{field_val};
 
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
+    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field // $NULL_STRING), ($field_val // $NULL_STRING);
     my $cached     = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;

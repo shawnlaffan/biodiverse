@@ -63,11 +63,13 @@ sub new {
 
     # Load _new_ widgets from glade
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsPage');
-    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsLabel');
+    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsPage.ui'));
+    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsLabel.ui'));
 
-    my $page  = $self->{xmlPage}->get_widget('hboxLabelsPage');
-    my $label = $self->{xmlLabel}->get_widget('hboxLabelsLabel');
+    my $page  = $self->{xmlPage}->get_object('hboxLabelsPage');
+    my $label = $self->{xmlLabel}->get_object('hboxLabelsLabel');
     my $tab_menu_label = Gtk2::Label->new('Labels tab');
     $self->{tab_menu_label} = $tab_menu_label;
 
@@ -83,7 +85,7 @@ sub new {
     $self->{base_ref} = $self->{project}->get_selected_base_data();
 
     # Initialise widgets
-    my $label_widget = $self->{xmlLabel}->get_widget('lblLabelsName');
+    my $label_widget = $self->{xmlLabel}->get_object('lblLabelsName');
     my $text = 'Labels - ' . $self->{base_ref}->get_param('NAME');
     $label_widget->set_text($text);
     $self->{label_widget} = $label_widget;
@@ -136,12 +138,12 @@ sub new {
     # Connect signals
     my $xml = $self->{xmlPage};
 
-    $self->{xmlLabel}->get_widget('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
+    $self->{xmlLabel}->get_object('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
 
     # Connect signals for new side tool chooser
     my $sig_clicked = sub {
         my ($widget_name, $f) = @_;
-        my $widget = $self->{xmlPage}->get_widget($widget_name)
+        my $widget = $self->{xmlPage}->get_object($widget_name)
             // warn "Cannot find widget $widget_name";
         $widget->signal_connect_swapped(
             clicked => $f, $self
@@ -154,21 +156,21 @@ sub new {
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
-    $xml->get_widget('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
+    $xml->get_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
-    $self->{xmlPage}->get_widget("btnSelectToolVL")->set_active(1);
+    $self->{xmlPage}->get_object("btnSelectToolVL")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     #  plot length triggers depth and vice versa
-    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
-    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
-    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
-    $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
-    $xml->get_widget('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
+    $xml->get_object('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
+    $xml->get_object('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
+    $xml->get_object('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
+    $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
+    $xml->get_object('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
 
     $self->{use_highlight_path} = 1;
 
-    $self->{menubar} = $self->{xmlPage}->get_widget('menubarLabelsOptions');
+    $self->{menubar} = $self->{xmlPage}->get_object('menubarLabelsOptions');
     $self->update_selection_menu;
     $self->update_export_menu;
 
@@ -180,9 +182,9 @@ sub new {
 sub init_grid {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_widget('gridFrameViewLabels');
-    my $hscroll = $self->{xmlPage}->get_widget('gridHScrollViewLabels');
-    my $vscroll = $self->{xmlPage}->get_widget('gridVScrollViewLabels');
+    my $frame   = $self->{xmlPage}->get_object('gridFrameViewLabels');
+    my $hscroll = $self->{xmlPage}->get_object('gridHScrollViewLabels');
+    my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
 
     my $hover_closure  = sub { $self->on_grid_hover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
@@ -220,9 +222,9 @@ sub init_grid {
 sub init_matrix_grid {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_widget('matrixFrame');
-    my $hscroll = $self->{xmlPage}->get_widget('matrixHScroll');
-    my $vscroll = $self->{xmlPage}->get_widget('matrixVScroll');
+    my $frame   = $self->{xmlPage}->get_object('matrixFrame');
+    my $hscroll = $self->{xmlPage}->get_object('matrixHScroll');
+    my $vscroll = $self->{xmlPage}->get_object('matrixVScroll');
 
     my $hover_closure  = sub { $self->on_matrix_hover(@_); };
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
@@ -247,13 +249,13 @@ sub init_matrix_grid {
 sub init_dendrogram {
     my $self = shift;
 
-    my $frame      = $self->{xmlPage}->get_widget('phylogenyFrame');
-    my $graph_frame = $self->{xmlPage}->get_widget('phylogenyGraphFrame');
-    my $hscroll    = $self->{xmlPage}->get_widget('phylogenyHScroll');
-    my $vscroll    = $self->{xmlPage}->get_widget('phylogenyVScroll');
+    my $frame      = $self->{xmlPage}->get_object('phylogenyFrame');
+    my $graph_frame = $self->{xmlPage}->get_object('phylogenyGraphFrame');
+    my $hscroll    = $self->{xmlPage}->get_object('phylogenyHScroll');
+    my $vscroll    = $self->{xmlPage}->get_object('phylogenyVScroll');
 
-    my $list_combo  = $self->{xmlPage}->get_widget('comboPhylogenyLists');
-    my $index_combo = $self->{xmlPage}->get_widget('comboPhylogenyShow');
+    my $list_combo  = $self->{xmlPage}->get_object('comboPhylogenyLists');
+    my $index_combo = $self->{xmlPage}->get_object('comboPhylogenyShow');
 
     my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
@@ -320,7 +322,7 @@ sub add_column {
 sub init_list {
     my $self = shift;
     my $id   = shift;
-    my $tree = $self->{xmlPage}->get_widget($id);
+    my $tree = $self->{xmlPage}->get_object($id);
 
 
     my $labels_ref = $self->{base_ref}->get_labels_ref;
@@ -473,8 +475,8 @@ sub make_labels_model {
 sub remove_selected_labels_from_list {
     my $self = shift;
 
-    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
-    my $treeview2 = $self->{xmlPage}->get_widget('listLabels2');
+    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
+    my $treeview2 = $self->{xmlPage}->get_object('listLabels2');
 
     my $selection = $treeview1->get_selection;
     my @paths = $selection->get_selected_rows();
@@ -519,7 +521,7 @@ sub get_selected_labels {
     my $self = shift;
 
     # Get the current selection
-    my $selection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+    my $selection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
     my @paths = $selection->get_selected_rows();
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
@@ -541,7 +543,7 @@ sub get_selected_labels {
 sub switch_selection {
     my $self = shift;
 
-    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
 
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
@@ -592,7 +594,7 @@ sub select_using_regex {
         $regex = qr/\A$regex\z/;
     }
 
-    my $treeview1 = $self->{xmlPage}->get_widget('listLabels1');
+    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
 
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
@@ -656,7 +658,7 @@ sub set_phylogeny_options_sensitive {
             use_highlight_path_changed1
             menuitem_labels_set_tree_line_widths
         /) { #/
-        $page->get_widget($widget)->set_sensitive($enabled);
+        $page->get_object($widget)->set_sensitive($enabled);
     }
 }
 
@@ -674,7 +676,7 @@ sub on_selected_phylogeny_changed {
         $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
-        $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
+        $self->{xmlPage}->get_object('label_VL_tree')->set_markup($str);
     }
 
     return;
@@ -698,9 +700,9 @@ sub on_selected_matrix_changed {
     my $xml_page = $self->{xmlPage};
 
     #  hide the second list if no matrix selected
-    my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
+    my $list_window = $xml_page->get_object('scrolledwindow_labels2');
 
-    my $list = $xml_page->get_widget('listLabels1');
+    my $list = $xml_page->get_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
 
     if (! defined $matrix_ref) {
@@ -736,7 +738,7 @@ sub on_selected_labels_changed {
     #  convoluted, but allows caller subs to not know these details
     $id ||= 'listLabels1';
     if (!$selection) {
-        my $treeview1 = $self->{xmlPage}->get_widget($id);
+        my $treeview1 = $self->{xmlPage}->get_object($id);
         $selection = $treeview1->get_selection;
     }
 
@@ -849,7 +851,7 @@ sub set_selected_list_cols {
 
 # Select all terminal labels
 #my $model      = $self->{labels_model};
-#my $widget     = $self->{xmlPage}->get_widget($widget_name);
+#my $widget     = $self->{xmlPage}->get_object($widget_name);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -919,8 +921,8 @@ sub on_sorted {
     my $redraw = $args{redraw};
 
     my $xml_page = $self->{xmlPage};
-    my $hmodel   = $xml_page->get_widget('listLabels1')->get_model();
-    my $vmodel   = $xml_page->get_widget('listLabels2')->get_model();
+    my $hmodel   = $xml_page->get_object('listLabels1')->get_model();
+    my $vmodel   = $xml_page->get_object('listLabels2')->get_model();
     my $model    = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
 
@@ -949,7 +951,7 @@ sub on_sorted {
         );
     };
 
-    my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
+    my $label_widget = $self->{xmlPage}->get_object('lblMatrix');
     my $drawable = $self->{matrix_drawable};
     if ($matrix_ref) {
         if ($drawable) {
@@ -1015,7 +1017,7 @@ sub on_grid_hover {
     my $pfx = $self->get_grid_text_pfx;
 
     my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
-    $self->{xmlPage}->get_widget('label_VL_grid')->set_markup($text);
+    $self->{xmlPage}->get_object('label_VL_grid')->set_markup($text);
 
     my $tree = $self->{project}->get_selected_phylogeny;
     return if ! defined $tree;
@@ -1065,8 +1067,8 @@ sub on_grid_select {
         # Select all terminal labels
         my $xml_page = $self->{xmlPage};
         my $model = $self->{labels_model};
-        my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
-        my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
+        my $hmodel = $xml_page->get_object('listLabels1')->get_model();
+        my $hselection = $xml_page ->get_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 
@@ -1130,7 +1132,7 @@ sub on_phylogeny_plot_mode_changed {
 
     my $mode_string;
     while (my ($name, $string) = each %names_and_strings) {
-        my $widget = $xml_page->get_widget($name);
+        my $widget = $xml_page->get_object($name);
         if ($widget->get_active) {
             $mode_string = $string;
             last;
@@ -1175,7 +1177,7 @@ sub on_phylogeny_highlight {
 
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;
-        $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($text);
+        $self->{xmlPage}->get_object('label_VL_tree')->set_markup($text);
     }
 
     return;
@@ -1191,8 +1193,8 @@ sub on_phylogeny_click {
 
         # Select terminal labels as per the selection mode
         my $model      = $self->{labels_model};
-        my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
-        my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+        my $hmodel     = $self->{xmlPage}->get_object('listLabels1')->get_model();
+        my $hselection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 
@@ -1418,8 +1420,8 @@ sub on_matrix_hover {
     my $self = shift;
     my ($h, $v) = @_; # integer indices
 
-    my $hmodel = $self->{xmlPage}->get_widget('listLabels1')->get_model();
-    my $vmodel = $self->{xmlPage}->get_widget('listLabels2')->get_model();
+    my $hmodel = $self->{xmlPage}->get_object('listLabels1')->get_model();
+    my $vmodel = $self->{xmlPage}->get_object('listLabels2')->get_model();
 
     my ($hiter, $viter) = ($hmodel->iter_nth_child(undef,$h), $vmodel->iter_nth_child(undef,$v));
 
@@ -1452,7 +1454,7 @@ sub on_matrix_hover {
         $str = "<b>Matrix</b>: not in matrix";
     }
 
-    $self->{xmlPage}->get_widget('lblMatrix')->set_markup($str);
+    $self->{xmlPage}->get_object('lblMatrix')->set_markup($str);
 
     return;
 }
@@ -1472,8 +1474,8 @@ sub on_matrix_clicked {
         $v_start = Gtk2::TreePath->new_from_indices($v_start);
         $v_end   = Gtk2::TreePath->new_from_indices($v_end);
 
-        my $hlist = $self->{xmlPage}->get_widget('listLabels1');
-        my $vlist = $self->{xmlPage}->get_widget('listLabels2');
+        my $hlist = $self->{xmlPage}->get_object('listLabels1');
+        my $vlist = $self->{xmlPage}->get_object('listLabels2');
 
         my $hsel = $hlist->get_selection;
         my $vsel = $vlist->get_selection;
@@ -1555,9 +1557,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolVL");
+        my $widget = $self->{xmlPage}->get_object("btn${old_tool}ToolVL");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolVL");
+        my $new_widget = $self->{xmlPage}->get_object("btn${tool}ToolVL");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
@@ -1615,7 +1617,7 @@ sub set_pane {
     my $pos  = shift;
     my $id   = shift;
 
-    my $pane = $self->{xmlPage}->get_widget($id);
+    my $pane = $self->{xmlPage}->get_object($id);
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Labels tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
@@ -1630,7 +1632,7 @@ sub queue_set_pane {
     my $pos  = shift;
     my $id   = shift;
 
-    my $pane = $self->{xmlPage}->get_widget($id);
+    my $pane = $self->{xmlPage}->get_object($id);
 
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
@@ -1979,12 +1981,14 @@ sub do_new_basedata_from_selection {
 
     # Show the Get Name dialog
     my $gui = $self->{gui};
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgDuplicate.ui'));
+    my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Basedata object name');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME') . ' SUBSET';
     $txt_name->set_text($name);
 
@@ -2086,10 +2090,11 @@ sub do_select_labels_regex {
 
     my $gui = $self->{gui};
     #  Hijack the import daligue.  (We should really build our own).
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-    my $dlg    = $dlgxml->get_widget('dlgImportParameters');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgImportParameters.ui'));
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_title('Text selection');
-    my $table  = $dlgxml->get_widget ('tableImportParameters');
+    my $table  = $dlgxml->get_object ('tableImportParameters');
     my $table_params = [
         {
             name       => 'text',

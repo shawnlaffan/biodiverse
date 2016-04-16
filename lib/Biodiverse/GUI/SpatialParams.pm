@@ -210,7 +210,13 @@ sub get_validated_conditions {
     return $conditions;
 }
 
+# TODO when cleaning up glade
 sub get_widget {
+    my $self = shift;
+    return $self->{hbox};
+}
+
+sub get_object {
     my $self = shift;
     return $self->{hbox};
 }

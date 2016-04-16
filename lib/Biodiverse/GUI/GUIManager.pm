@@ -457,8 +457,9 @@ sub close_project {
 
         if ($self->{project}->is_dirty()) {
             # Show "Save changes?" dialog
-            my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgClose');
-            my $dlg = $dlgxml->get_widget('dlgClose');
+            my $dlgxml = Gtk2::Builder->new();
+            $dlgxml->add_from_file($self->get_gtk_ui_file('dlgClose.ui'));
+            my $dlg = $dlgxml->get_object('dlgClose');
             $dlg->set_transient_for( $self->get_widget('wndMain') );
             $dlg->set_modal(1);
             my $response = $dlg->run();
@@ -868,11 +869,12 @@ sub do_basedata_attach_properties {
 
     # are we attaching groups or labels?
     my $gui = $self;  #  copied code from elsewhere
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgGroupsLabels');
-    my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgGroupsLabels.ui'));
+    my $dlg = $dlgxml->get_object('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_modal(1);
-    my $label = $dlgxml->get_widget('label_dlg_groups_labels');
+    my $label = $dlgxml->get_object('label_dlg_groups_labels');
     $label->set_text ('Group or label properties?');
     $dlg->set_title('Attach properties');
     my $response = $dlg->run();
@@ -2741,7 +2743,7 @@ sub show_index_dialog_orig {
     my $self = shift;
 
     my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgIndex');
-    my $dlg = $dlgxml->get_widget('dlgIndex');
+    my $dlg = $dlgxml->get_object('dlgIndex');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_modal(1);
 
@@ -2752,8 +2754,8 @@ sub show_index_dialog_orig {
     my $cell_sizes = $base_ref->get_cell_sizes;
 
     my $used_index = $base_ref->get_param('SPATIAL_INDEX');
-    $dlgxml->get_widget('chkIndex')->set_active ($used_index);
-    my $spin = $dlgxml->get_widget ('spinContains');
+    $dlgxml->get_object('chkIndex')->set_active ($used_index);
+    my $spin = $dlgxml->get_object ('spinContains');
     #my $step, $page) = $spin->get_increments;
     if ($used_index) {
         my $resolutions = $used_index->get_param('RESOLUTIONS');
@@ -2770,11 +2772,11 @@ sub show_index_dialog_orig {
     my $response = $dlg->run();
     if ($response eq 'ok') {
 
-        my $use_index = $dlgxml->get_widget('chkIndex')->get_active();
+        my $use_index = $dlgxml->get_object('chkIndex')->get_active();
         if ($use_index) {
 
-            #my $resolution = $dlgxml->get_widget('spinContains')->get_value_as_int;
-            my $resolution = $dlgxml->get_widget('spinContains')->get_value;
+            #my $resolution = $dlgxml->get_object('spinContains')->get_value_as_int;
+            my $resolution = $dlgxml->get_object('spinContains')->get_value;
 
             #  repeat the resolution for all cell sizes until the widget has more spinners
             my @resolutions = ($resolution) x scalar @$cell_sizes;

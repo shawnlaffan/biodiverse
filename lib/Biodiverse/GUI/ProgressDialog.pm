@@ -10,7 +10,6 @@ use 5.010;
 
 use Glib qw (TRUE FALSE);
 use Gtk2;
-use Gtk2::GladeXML;
 use Carp;
 use Time::HiRes qw/tv_interval gettimeofday/;
 use Data::Dumper;

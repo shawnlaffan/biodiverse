@@ -27,7 +27,7 @@ which has arguments
 
 =item the GtkTable widget
 
-=item an optional GladeXML widget which contains a 'filechooser' widget
+=item an optional widget which contains a 'filechooser' widget
 This is used by the type='file' widget
 
 =back

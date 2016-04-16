@@ -1391,14 +1391,15 @@ sub do_merge_basedatas {
     };
     bless $param, 'Biodiverse::Metadata::Parameter';
 
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
-    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgImportParameters.ui'));
+    my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
-    #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
+    #$param_dlg->set_transient_for( $self->get_object('wndMain') );
     $param_dlg->set_title ('Select basedata');
 
     # Build widgets for parameters
-    my $param_table = $dlgxml->get_widget('tableImportParameters');
+    my $param_table = $dlgxml->get_object('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
@@ -2172,14 +2173,15 @@ sub do_tree_rescale_branch_lengths {
     };
     bless $param, 'Biodiverse::Metadata::Parameter';
 
-    $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
-    my $param_dlg = $dlgxml->get_widget('dlgImportParameters');
+    $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgImportParameters.ui'));
+    my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 
     #$param_dlg->set_transient_for( $self->get_widget('wndMain') );
     $param_dlg->set_title ('Rescale options');
 
     # Build widgets for parameters
-    my $param_table = $dlgxml->get_widget('tableImportParameters');
+    my $param_table = $dlgxml->get_object('tableImportParameters');
 
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
@@ -2520,11 +2522,15 @@ sub show_index_dialog {
 
     #  create the table and window
     #  we really should generate one from scratch...
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
-    my $tooltip_group = Gtk2::Tooltips->new;
-    my $table = $dlgxml->get_widget('tableImportParameters');
 
-    my $dlg = $dlgxml->get_widget('dlgImportParameters');
+
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgImportParameters.ui'));
+
+    my $tooltip_group = Gtk2::Tooltips->new;
+    my $table = $dlgxml->get_object('tableImportParameters');
+
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_title ('Set index sizes');
 
@@ -2651,8 +2657,8 @@ sub show_index_dialog {
     #$window->show_all;
 
     #  a kludge until we build the window and table ourselves
-    $dlgxml->get_widget('ImportParametersLabel')->hide;
-    $dlgxml->get_widget('lblDlgImportParametersNext')->set_label ('OK');
+    $dlgxml->get_object('ImportParametersLabel')->hide;
+    $dlgxml->get_object('lblDlgImportParametersNext')->set_label ('OK');
 
     RUN_DIALOG:
     my $response = $dlg->run();

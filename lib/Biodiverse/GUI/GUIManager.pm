@@ -751,11 +751,10 @@ sub get_new_basedata_name {
     my $bd = $self->{project}->get_selected_base_data();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     # If it ends with $suffix followed by a number then increment it
@@ -947,18 +946,24 @@ sub do_delete_basedata {
     return;
 }
 
+sub get_dlg_duplicate {
+    my $self = shift;
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgDuplicate.ui'));
+    return ($dlgxml, $dlgxml->get_object('dlgDuplicate'));
+}
+
 sub do_rename_basedata {
     #return;  # TEMP
     my $self = shift;
     my $bd = $self->{project}->get_selected_base_data();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_title ('Rename Basedata object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1000,12 +1005,11 @@ sub do_rename_output {
     my $object = $selection->{output_ref};
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_title ('Rename output');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $object->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1059,12 +1063,11 @@ sub do_rename_matrix {
     my $ref = $self->{project}->get_selected_matrix();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_title ('Rename matrix object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $ref->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1087,12 +1090,11 @@ sub do_rename_phylogeny {
     my $ref = $self->{project}->get_selected_phylogeny();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_title ('Rename tree object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $ref->get_param('NAME');
 
     $txt_name->set_text($name);
@@ -1303,11 +1305,10 @@ sub do_duplicate_basedata {
     my $object = $self->{project}->get_selected_base_data();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $object->get_param('NAME');
 
     # If ends with a number increment it
@@ -1666,11 +1667,10 @@ sub do_convert_labels_to_phylogeny {
     return if ! defined $bd;
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME');
 
     # If ends with _T followed by a number then increment it
@@ -1733,11 +1733,10 @@ sub do_trim_matrix_to_basedata {
     }
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $mx->get_param('NAME');
 
     my $suffix = $args{suffix} || 'TRIMMED';
@@ -1814,11 +1813,10 @@ sub do_convert_matrix_to_phylogeny {
     if ($response eq 'no') {  #  get a new one
 
         # Show the Get Name dialog
-        my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-        my $dlg = $dlgxml->get_widget('dlgDuplicate');
+        my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
         $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-        my $txt_name = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_object('txtName');
         my $name = $matrix_ref->get_param('NAME');
 
         # If ends with _T followed by a number then increment it
@@ -1907,11 +1905,10 @@ sub do_convert_phylogeny_to_matrix {
 
     if ($response eq 'no') {  #  get a new one
         # Show the Get Name dialog
-        my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-        my $dlg = $dlgxml->get_widget('dlgDuplicate');
+        my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
         $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-        my $txt_name = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_object('txtName');
         my $name = $phylogeny->get_param('NAME');
 
         # If ends with _AS_MX followed by a number then increment it
@@ -1999,11 +1996,10 @@ sub do_trim_tree_to_basedata {
     }
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'TRIMMED';
@@ -2077,11 +2073,10 @@ sub do_tree_equalise_branch_lengths {
     }
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'EQ';
@@ -2140,11 +2135,10 @@ sub do_tree_rescale_branch_lengths {
     }
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
-    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    my ($dlgxml, $dlg) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
-    my $txt_name = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_object('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'RS';

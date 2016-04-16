@@ -2116,52 +2116,6 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
             <property name="position">3</property>
           </packing>
         </child>
-        <child>
-          <widget class="GtkHBox" id="hboxClusteringLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <child>
-              <widget class="GtkLabel" id="lblClusteringName">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Cluster1</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkButton" id="btnClose">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="tooltip" translatable="yes">Close</property>
-                <property name="relief">none</property>
-                <property name="focus_on_click">False</property>
-                <child>
-                  <widget class="GtkImage" id="image48">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="stock">gtk-close</property>
-                    <property name="icon-size">1</property>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-          <packing>
-            <property name="position">3</property>
-            <property name="tab_fill">False</property>
-            <property name="type">tab</property>
-          </packing>
-        </child>
       </widget>
     </child>
   </widget>

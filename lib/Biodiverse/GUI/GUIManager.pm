@@ -2742,7 +2742,8 @@ sub on_index_dlg_change_all {
 sub show_index_dialog_orig {
     my $self = shift;
 
-    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgIndex');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($self->get_gtk_ui_file('dlgIndex.ui'));
     my $dlg = $dlgxml->get_object('dlgIndex');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_modal(1);

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp;
 
-use List::Util qw /max min/;
+use List::Util qw /max min sum/;
 
 our $VERSION = '1.99_001';
 
@@ -506,13 +506,172 @@ sub get_metadata_calc_ice {
 sub calc_ice {
     my $self = shift;
     my %args = @_;
-    
+
     my $tmp_results = $self->calc_ace (%args, calc_ice => 1);
     my %results = (
         ICE_SCORE => $tmp_results->{ACE_SCORE},
     );
-    
+
     return wantarray ? %results : \%results;
+}
+
+sub _get_ice_variance {
+    my $self = shift;
+    my %args = @_;
+
+    my $freq_counts = $args{freq_counts};
+
+    my $var_ice = 0;
+    foreach my $i (keys %$freq_counts) {
+        foreach my $j (keys %$freq_counts) {
+            my $partial
+                = $self->_get_ice_differential (%args, q => $i)
+                * $self->_get_ice_differential (%args, q => $j)
+                * $self->_get_ice_covq (%args, i => $i, j => $j);
+               $var_ice += $partial;
+        }
+    }
+
+    $var_ice ||= undef;
+
+    return $var_ice;
+}
+
+sub _get_ice_covq {
+    my $self = shift;
+    my %args = @_;
+    my ($i, $j, $s_ice) = @args{qw/i j s_ice/};
+    my $Q = $args{f_rare};
+
+    my $covq; 
+    if ($i == $j) {
+        $covq = $Q->{$i} * (1 - $Q->{$i} / $s_ice);
+    }
+    else {
+        $covq = -1 * $Q->{$i} * $Q->$j / $s_ice;
+    }     
+
+    return $covq;
+}
+
+
+sub _get_ice_differential {
+    my $self = shift;
+    my %args = @_;
+    
+    my $k = 10;  #  later we will make this an argument
+
+    my $q = $args{q};
+
+    return 1 if $q > $k;
+
+    my $CV_infreq_h = $args{cv};
+    my $freq_counts = $args{freq_counts};
+    my $n_infreq    = $args{n_infreq};
+    my $C_infreq    = $args{C_infreq};  #  get from gamma calcs
+    my $D_infreq    = $args{D_infreq};  #  richness of labels with sample counts < $k
+    my $Q           = $args{f_rare};
+    my $t           = $args{t};
+
+    my @u = (1..$k);
+
+    $n_infreq //=
+        sum
+        map  {$_ * $freq_counts->{$_}}
+        grep {$_ < $k}
+        keys %$freq_counts;
+
+    my $si = sum map {$_ * ($_-1) * $Q->{$_}} @u;
+
+    my ($Q1, $Q2) = @$Q{1,2};
+
+    my ($d, $dc_infreq);
+
+    if ($CV_infreq_h != 0) {
+        if ($q == 1) {
+            $dc_infreq =
+              -1 * (
+                    $n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
+                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                 )
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2)) ** 2;
+
+            $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq ** 2
+                + $t / ($t - 1)
+                  * ($C_infreq**2*$n_infreq*($n_infreq - 1)
+                        * ($D_infreq * $si + $Q1 * $si)
+                        - $Q1 * $D_infreq * $si *
+                        (2 * $C_infreq * $dc_infreq
+                         * $n_infreq * ($n_infreq - 1)
+                         + $C_infreq ** 2
+                         * ($n_infreq - 1)
+                         + $C_infreq ** 2
+                         * $n_infreq
+                         )
+                    ) / $C_infreq ** 4 / $n_infreq ** 2 / ($n_infreq - 1) ** 2
+                - ($C_infreq - $Q1 * $dc_infreq) / $C_infreq**2;
+        }
+        elsif ($q == 2){
+            $dc_infreq
+              = -( -($t - 1) * $Q1**2 *
+                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+                )
+                /
+                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+
+            $d = ($C_infreq - $D_infreq * $dc_infreq)
+                / $C_infreq**2
+              + $t / ($t - 1)
+              * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + 2 * $D_infreq) - $Q1 * $D_infreq * $si *
+                             (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1) + $C_infreq**2 * 2 * ($n_infreq - 1) + $C_infreq**2 * $n_infreq * 2)
+                )
+              / $C_infreq**4 / $n_infreq**2 / ($n_infreq - 1)**2
+              - ( -$Q1 * $dc_infreq) / $C_infreq**2;
+        }
+        else {
+            $dc_infreq =
+              - ( - ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+
+            $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2
+              + $t/($t - 1)
+              * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + $q * ($q - 1) * $D_infreq) - $Q1 * $D_infreq * $si
+                * (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1)
+                   + $C_infreq**2 * $q * ($n_infreq - 1)
+                   + $C_infreq**2 * $n_infreq * $q
+                  )
+              )
+              / $C_infreq**4 / $n_infreq**2 / ($n_infreq - 1)**2
+              - ( - $Q1 * $dc_infreq) / $C_infreq**2
+        }
+    }
+    else {
+        if ($q == 1) {
+            $dc_infreq
+              = -1 *
+                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
+                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                )
+              / ($n_infreq*(($t - 1)*$Q1 + 2 * $Q2))**2
+        }
+        elsif ($q == 2) {
+            $dc_infreq
+              = -1 *
+                ( -1 * ($t - 1) * $Q1**2 *
+                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+                )
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2
+        }
+        else {
+            $dc_infreq
+             =  -1 *
+                ( -1 * ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq*(($t - 1)*$Q1 + 2 * $Q2))**2
+        }
+        $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2;
+    }
+    
+    return $d;
 }
 
 
@@ -531,7 +690,9 @@ Biodiverse::Indices::EstimateS
 =head1 DESCRIPTION
 
 Species richness estimation indices for the Biodiverse system,
-based on the EstimateS software (L<http://purl.oclc.org/estimates>).
+based on the EstimateS (L<http://purl.oclc.org/estimates>)
+and SpadeR (L<https://github.com/AnneChao/SpadeR>) software.
+
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
 See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.

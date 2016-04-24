@@ -61,7 +61,7 @@ sub new {
     $self->set_default_params;
 
 
-    # Load _new_ widgets from glade
+    # Load _new_ widgets from Gtk Builder
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
     $self->{xmlPage} = Gtk2::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsPage.ui'));

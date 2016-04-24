@@ -55,7 +55,7 @@ use constant TYPE_TEXT => 1;
 use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
 
 
-#NOTE: we store the dialog's gladexml, not the actual widget
+#NOTE: we store the dialog's xml, not the actual widget
 my %g_dialogs;      # Maps cell -> dialog
 
 my $g_reuse_dlg;     # Dialog to be reused next

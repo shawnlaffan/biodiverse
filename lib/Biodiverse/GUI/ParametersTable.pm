@@ -295,7 +295,7 @@ sub generate_file {
     my ($self, $param, $dlgxml) = @_;
 
     # The dialog already has a filechooser widget. We just return an extractor function
-    my $chooser = $dlgxml->get_widget('filechooser');
+    my $chooser = $dlgxml->get_object('filechooser');
 
     use Cwd;
     $chooser->set_current_folder_uri(getcwd());
@@ -370,7 +370,7 @@ sub generate_spatial_conditions {
 
     $get_object_hash->{$param->get_name} = $sp;
 
-    return ($sp->get_widget, $extract);
+    return ($sp->get_object, $extract);
 }
 
 sub generate_text_one_line {

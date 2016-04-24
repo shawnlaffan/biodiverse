@@ -224,7 +224,7 @@ sub get_column_use {
 
     my ($dlg, $col_widgets) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
         header   => \@headers,
-        wnd_main => $gui->get_widget('wndMain'),
+        wnd_main => $gui->get_object('wndMain'),
         #other_props => [],
         column_overrides => $col_usages,
     );
@@ -333,7 +333,7 @@ sub get_remap_info {
         push @headers, $header if $header;
     }
 
-    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
+    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_object('wndMain'));
     my ($column_settings, $response);
     while (1) { # keep showing Dialog until have at least one Label & one matrix-start column
         $response = $dlg->run();

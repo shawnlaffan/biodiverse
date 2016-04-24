@@ -22,7 +22,7 @@ sub show_dialog {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
     my $dlg = $dlgxml->get_object('wndOverlays');
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
 
     $colour_button->set_color($last_selected_colour);
 

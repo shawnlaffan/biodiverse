@@ -108,12 +108,6 @@ sub get_gtk_ui_file {
     return Path::Class::file($self->{gtk_ui_path}, $file)->stringify();
 }
 
-# TODO: Glade -> GtkBuilder: Change to call get_object
-sub get_widget {
-    my ($self, $id) = @_;
-    return $self->{gladexml}->get_object($id);
-}
-
 # TODO: Temporary for conversion
 sub get_object {
     my ($self, $id) = @_;

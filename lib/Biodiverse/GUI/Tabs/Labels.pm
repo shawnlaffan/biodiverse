@@ -1986,7 +1986,7 @@ sub do_new_basedata_from_selection {
     $dlgxml->add_from_file($self->{gui}->get_gtk_ui_file('dlgDuplicate.ui'));
     my $dlg = $dlgxml->get_object('dlgDuplicate');
     $dlg->set_title ('Basedata object name');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name = $bd->get_param('NAME') . ' SUBSET';

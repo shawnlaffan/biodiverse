@@ -53,7 +53,7 @@ sub show_dialog {
     my $dlg = $dlgxml->get_object(DLG_NAME);
 
     # Put it on top of main window
-    $dlg->set_transient_for($gui->get_widget('wndMain'));
+    $dlg->set_transient_for($gui->get_object('wndMain'));
 
     # Init the widgets
     foreach my $name (keys %g_widget_map) {

@@ -1237,8 +1237,8 @@ sub manage_empty_model {
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (@$button_IDs) {
-        warn "$_\n" if ! defined $instance->get_widget($_);
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        warn "$_\n" if ! defined $instance->get_object($_);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 
@@ -1339,7 +1339,7 @@ sub set_matrix_buttons {
                 menu_trim_matrix_to_basedata
                 convert_matrix_to_phylogeny
                 /) {
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 
@@ -1365,7 +1365,7 @@ sub set_phylogeny_buttons {
                 menu_rescale_tree_branches2
                 menu_ladderise_tree
                 /) {
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 

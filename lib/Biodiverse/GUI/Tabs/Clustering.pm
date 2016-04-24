@@ -1197,7 +1197,7 @@ sub get_overwrite_response {
 
     my $dlg = Gtk2::Dialog->new(
         $title,
-        $self->{gui}->get_widget('wndMain'),
+        $self->{gui}->get_object('wndMain'),
         'modal',
         'gtk-yes' => 'ok',
         'gtk-no'  => 'no',

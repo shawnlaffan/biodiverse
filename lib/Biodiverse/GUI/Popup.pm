@@ -116,7 +116,7 @@ sub make_dialog {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
 
     # Put it on top of main window
-    $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_widget('wndMain'));
+    $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_object('wndMain'));
 
     # Set height to be 1/3 of screen
     #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);
@@ -183,7 +183,7 @@ sub load_dialog {
     $combo->set_active_iter($selected_source);
 
     # Set title
-    $g_dialogs{$element}->get_widget(DLG_NAME)->set_title("Data for $element");
+    $g_dialogs{$element}->get_object(DLG_NAME)->set_title("Data for $element");
 
     # Load first thing
     on_source_changed($combo, $popup);
@@ -284,7 +284,7 @@ sub on_source_changed {
 sub close_dialog {
     my $element = shift;
     #print "[Popup] Closing labels dialog for $element\n";
-    $g_dialogs{$element}->get_widget(DLG_NAME)->destroy();
+    $g_dialogs{$element}->get_object(DLG_NAME)->destroy();
     #print "[Popup] Dialogue destroyed\n";
     delete $g_dialogs{$element};
 
@@ -321,7 +321,7 @@ sub on_reuse_toggled {
         # Set to re-use
         # Clear old dialog's checkbox
         if (defined $g_reuse_dlg && $g_reuse_dlg != $dlgxml) {
-            $g_reuse_dlg->get_widget('chkReuse')->set_active(0);
+            $g_reuse_dlg->get_object('chkReuse')->set_active(0);
         }
 
         # Set this dialog to be re-use target

@@ -121,7 +121,7 @@ sub run {
     # 2. Get column types
     #########
 
-    my ($dlg, $col_widgets) = make_columns_dialog_normal(\@headers, $gui->get_widget('wndMain'));
+    my ($dlg, $col_widgets) = make_columns_dialog_normal(\@headers, $gui->get_object('wndMain'));
     my ($column_settings);
 
   GET_RESPONSE:

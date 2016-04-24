@@ -480,7 +480,7 @@ sub run {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
             header      => $col_names_for_dialog,
-            wnd_main    => $gui->get_widget('wndMain'),
+            wnd_main    => $gui->get_object('wndMain'),
             row_options => $col_options,
             file_list_text => $file_list_as_text,
             max_opt_rows   => $import_params{max_opt_cols},
@@ -1087,7 +1087,7 @@ sub make_reorder_dialog {
     my $dlgxml = Gtk2::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgReorderColumns.ui'));
     my $dlg = $dlgxml->get_object('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
 
     my $list_groups = setup_reorder_list('groups', $dlgxml, $columns->{groups});
     my $list_labels = setup_reorder_list('labels', $dlgxml, $columns->{labels});
@@ -1206,7 +1206,7 @@ sub make_filename_dialog {
     my $dlgxml = Gtk2::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImport1.ui'));
     my $dlg    = $dlgxml->get_object($import_dlg_name);
-    my $x = $gui->get_widget('wndMain');
+    my $x = $gui->get_object('wndMain');
     $dlg->set_transient_for( $x );
 
     # Initialise the basedatas combo
@@ -1701,7 +1701,7 @@ sub get_remap_info {
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
         header      => \@headers,
-        wnd_main    => $gui->get_widget('wndMain'),
+        wnd_main    => $gui->get_object('wndMain'),
         other_props => $other_properties,
         column_overrides => $column_overrides,
     );

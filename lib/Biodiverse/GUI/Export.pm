@@ -51,7 +51,7 @@ sub Run {
         $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
         my $format_dlg = $dlgxml->get_object('dlgImportParameters');
 
-        $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
+        $format_dlg->set_transient_for( $gui->get_object('wndMain') );
         $format_dlg->set_title ('Export parameters');
 
         # Build widgets for parameters
@@ -95,7 +95,7 @@ sub Run {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
     my $dlg = $dlgxml->get_object('dlgExport');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_title("Export format: $selected_format");
     $dlg->set_modal(1);
 

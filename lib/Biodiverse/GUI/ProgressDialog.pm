@@ -220,7 +220,7 @@ sub pulsate_stop {
 
 sub pulse_progress_bar {
     #my $self = shift;
-    #my $p_bar = $self->{dlgxml}->get_widget('progressbar');
+    #my $p_bar = $self->{dlgxml}->get_object('progressbar');
     #my $p_bar = shift;
 
     #print "  pulsing...\n";

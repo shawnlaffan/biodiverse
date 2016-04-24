@@ -1,266 +1,11 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment3">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment4">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkUIManager" id="uimanager1">
-    <child>
-      <object class="GtkActionGroup" id="actiongroup1">
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_display">
-            <property name="name">menuitem_spatial_display</property>
-            <property name="label" translatable="yes">Display</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_overlays">
-            <property name="name">menuitem_spatial_overlays</property>
-            <property name="label" translatable="yes">Overlays...</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menu_item_colour_stretch">
-            <property name="name">menu_item_colour_stretch</property>
-            <property name="tooltip" translatable="yes">Set the display stretch.
-                            Uses minimum to maximum by default
-                            but you can also set percentile ranges.</property>
-            <property name="label" translatable="yes">Colour stretch</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch0">
-            <property name="active">True</property>
-            <property name="name">radio_colour_stretch0</property>
-            <property name="label" translatable="yes">min-max</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch1">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch1</property>
-            <property name="label" translatable="yes">5-95</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch2">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch2</property>
-            <property name="label" translatable="yes">2.5-97.5</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch3">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch3</property>
-            <property name="label" translatable="yes">min-95</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch4">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch4</property>
-            <property name="label" translatable="yes">min-97.5</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch5">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch5</property>
-            <property name="label" translatable="yes">5-max</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="radio_colour_stretch6">
-            <property name="group">radio_colour_stretch0</property>
-            <property name="name">radio_colour_stretch6</property>
-            <property name="label" translatable="yes">2.5-max</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_colour_mode">
-            <property name="name">menuitem_spatial_colour_mode</property>
-            <property name="tooltip" translatable="yes">Hue will display all hues (colours) from blue to red.
-
-                            Sat will display a single colour with saturation varying from
-                            white to a maximum saturation at the selected colour.
-
-                            Grey will use grey scale.
-
-                            Colours are scaled using percentiles defined in the colour stretch menu. </property>
-            <property name="label" translatable="yes">Colour mode</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_spatial_colour_mode_hue">
-            <property name="name">menuitem_spatial_colour_mode_hue</property>
-            <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red.</property>
-            <property name="label" translatable="yes">Hue</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_spatial_colour_mode_sat">
-            <property name="group">menuitem_spatial_colour_mode_hue</property>
-            <property name="name">menuitem_spatial_colour_mode_sat</property>
-            <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.</property>
-            <property name="label" translatable="yes">Sat...</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_spatial_colour_mode_grey">
-            <property name="group">menuitem_spatial_colour_mode_hue</property>
-            <property name="name">menuitem_spatial_colour_mode_grey</property>
-            <property name="tooltip" translatable="yes">Display as grey scale.</property>
-            <property name="label" translatable="yes">Grey</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_nbr_highlighting">
-            <property name="name">menuitem_spatial_nbr_highlighting</property>
-            <property name="tooltip" translatable="yes">Control the highlighting of neighbours on the grid.</property>
-            <property name="label" translatable="yes">Nbr highlighting</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_nbr_highlight_all">
-            <property name="active">True</property>
-            <property name="name">menuitem_nbr_highlight_all</property>
-            <property name="label" translatable="yes">Both</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_nbr_highlight_set1">
-            <property name="group">menuitem_nbr_highlight_all</property>
-            <property name="name">menuitem_nbr_highlight_set1</property>
-            <property name="label" translatable="yes">Set1</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_nbr_highlight_set2">
-            <property name="group">menuitem_nbr_highlight_all</property>
-            <property name="name">menuitem_nbr_highlight_set2</property>
-            <property name="label" translatable="yes">Set2</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="menuitem_nbr_highlight_off">
-            <property name="group">menuitem_nbr_highlight_all</property>
-            <property name="name">menuitem_nbr_highlight_off</property>
-            <property name="label" translatable="yes">Off</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_excluded_cell_colour">
-            <property name="name">menuitem_spatial_excluded_cell_colour</property>
-            <property name="tooltip" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
-            <property name="label" translatable="yes">Set excluded cell colour</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_undef_cell_colour">
-            <property name="name">menuitem_spatial_undef_cell_colour</property>
-            <property name="tooltip" translatable="yes">Set the colour of cells when the index value is undefined.</property>
-            <property name="label" translatable="yes">Set undefined value colour</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_cell_outline_colour">
-            <property name="name">menuitem_spatial_cell_outline_colour</property>
-            <property name="tooltip" translatable="yes">Choose the colour used for the cell outlines</property>
-            <property name="label" translatable="yes">Set cell outline colour</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleAction" id="menuitem_spatial_cell_show_outline">
-            <property name="active">True</property>
-            <property name="name">menuitem_spatial_cell_show_outline</property>
-            <property name="tooltip" translatable="yes">Show or hide the cell outlines</property>
-            <property name="label" translatable="yes">Show cell outlines</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleAction" id="menuitem_spatial_show_legend">
-            <property name="active">True</property>
-            <property name="name">menuitem_spatial_show_legend</property>
-            <property name="tooltip" translatable="yes">Show or hide the legend</property>
-            <property name="label" translatable="yes">Show legend</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_spatial_set_tree_line_widths">
-            <property name="name">menuitem_spatial_set_tree_line_widths</property>
-            <property name="tooltip" translatable="yes">Set the width of the tree branches.
-                            Does not affect the vertical connectors.</property>
-            <property name="label" translatable="yes">Set tree branch line widths</property>
-          </object>
-        </child>
-      </object>
-    </child>
-    <ui>
-      <menubar name="menubar_spatial">
-        <menu action="menuitem_spatial_display">
-          <menuitem action="menuitem_spatial_overlays"/>
-          <separator/>
-          <menu action="menu_item_colour_stretch">
-            <menuitem action="radio_colour_stretch0"/>
-            <menuitem action="radio_colour_stretch1"/>
-            <menuitem action="radio_colour_stretch2"/>
-            <menuitem action="radio_colour_stretch3"/>
-            <menuitem action="radio_colour_stretch4"/>
-            <menuitem action="radio_colour_stretch5"/>
-            <menuitem action="radio_colour_stretch6"/>
-          </menu>
-          <menu action="menuitem_spatial_colour_mode">
-            <menuitem action="menuitem_spatial_colour_mode_hue"/>
-            <menuitem action="menuitem_spatial_colour_mode_sat"/>
-            <menuitem action="menuitem_spatial_colour_mode_grey"/>
-          </menu>
-          <menu action="menuitem_spatial_nbr_highlighting">
-            <menuitem action="menuitem_nbr_highlight_all"/>
-            <menuitem action="menuitem_nbr_highlight_set1"/>
-            <menuitem action="menuitem_nbr_highlight_set2"/>
-            <menuitem action="menuitem_nbr_highlight_off"/>
-          </menu>
-          <separator/>
-          <menuitem action="menuitem_spatial_excluded_cell_colour"/>
-          <menuitem action="menuitem_spatial_undef_cell_colour"/>
-          <menuitem action="menuitem_spatial_cell_outline_colour"/>
-          <menuitem action="menuitem_spatial_cell_show_outline"/>
-          <separator/>
-          <menuitem action="menuitem_spatial_show_legend"/>
-          <menuitem action="menuitem_spatial_set_tree_line_widths"/>
-        </menu>
-      </menubar>
-    </ui>
-  </object>
+  <!-- interface-requires gtk+ 2.6 -->
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkAdjustment" id="adjustment1"/>
+  <object class="GtkAdjustment" id="adjustment2"/>
+  <object class="GtkAdjustment" id="adjustment3"/>
+  <object class="GtkAdjustment" id="adjustment4"/>
   <object class="GtkHBox" id="hboxSpatialPage">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -276,14 +21,16 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
-            <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+            <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolSP">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <property name="tooltip_text" translatable="yes">Select (S or B)</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool">
                     <property name="visible">True</property>
@@ -303,14 +50,16 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
-            <property name="tooltip-text" translatable="yes">Pan (C)</property>
+            <property name="tooltip_text" translatable="yes">Pan (C)</property>
+            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolSP">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Pan (C)</property>
+                <property name="tooltip_text" translatable="yes">Pan (C)</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool">
                     <property name="visible">True</property>
@@ -329,14 +78,16 @@
           <object class="GtkToolItem" id="toolitemSpatialZoomSP">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
+            <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolSP">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
+                <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool">
                     <property name="visible">True</property>
@@ -355,14 +106,16 @@
           <object class="GtkToolItem" id="toolitemSpatialZoomOutSP">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
+            <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolSP">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
+                <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool">
                     <property name="visible">True</property>
@@ -381,14 +134,16 @@
           <object class="GtkToolItem" id="toolitemSpatialZoomFitSP">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolSP">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool">
                     <property name="visible">True</property>
@@ -416,11 +171,328 @@
           <object class="GtkToolItem" id="toolitem_spatial">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
             <child>
-              <object class="GtkMenuBar" constructor="uimanager1" id="menubar_spatial">
+              <object class="GtkMenuBar" id="menubar_spatial">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="pack_direction">ttb</property>
+                <child>
+                  <object class="GtkMenuItem" id="menuitem_spatial_display">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="label" translatable="yes">Display</property>
+                    <property name="use_underline">True</property>
+                    <child type="submenu">
+                      <object class="GtkMenu" id="menu_spatial_display">
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_overlays">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Overlays...</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparatorMenuItem" id="separatormenuitem4">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menu_item_colour_stretch">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Set the display stretch.
+                            Uses minimum to maximum by default
+                            but you can also set percentile ranges.</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Colour stretch</property>
+                            <property name="use_underline">True</property>
+                            <child type="submenu">
+                              <object class="GtkMenu" id="menu_colour_stretch">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch0">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">min-max</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">5-95</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">2.5-97.5</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch3">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">min-95</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch4">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">min-97.5</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch5">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">5-max</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radio_colour_stretch6">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">2.5-max</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radio_colour_stretch0</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_colour_mode">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Hue will display all hues (colours) from blue to red.
+
+                            Sat will display a single colour with saturation varying from
+                            white to a maximum saturation at the selected colour.
+
+                            Grey will use grey scale.
+
+                            Colours are scaled using percentiles defined in the colour stretch menu. </property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Colour mode</property>
+                            <property name="use_underline">True</property>
+                            <child type="submenu">
+                              <object class="GtkMenu" id="menu1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_hue">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Display all hues (colours) from blue to red.</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Hue</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_sat">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Sat...</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">menuitem_spatial_colour_mode_hue</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_grey">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Display as grey scale.</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Grey</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">menuitem_spatial_colour_mode_hue</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_nbr_highlighting">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Control the highlighting of neighbours on the grid.</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Nbr highlighting</property>
+                            <property name="use_underline">True</property>
+                            <child type="submenu">
+                              <object class="GtkMenu" id="menu_spatial_nbr_highlighting">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_all">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Both</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_set1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Set1</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">menuitem_nbr_highlight_all</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_set2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Set2</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">menuitem_nbr_highlight_all</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="menuitem_nbr_highlight_off">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="label" translatable="yes">Off</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">menuitem_nbr_highlight_all</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparatorMenuItem" id="separatormenuitem3">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_excluded_cell_colour">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Set excluded cell colour</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_undef_cell_colour">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Set undefined value colour</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_cell_outline_colour">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Choose the colour used for the cell outlines</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Set cell outline colour</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="menuitem_spatial_cell_show_outline">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Show or hide the cell outlines</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Show cell outlines</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="menuitem_spatial_show_legend">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Show or hide the legend</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Show legend</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_spatial_set_tree_line_widths">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Set the width of the tree branches.
+                            Does not affect the vertical connectors.</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="label" translatable="yes">Set tree branch line widths</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -526,7 +598,7 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="has_tooltip">True</property>
-                                                <property name="tooltip-text" translatable="yes">Define a second set of neighbours for use in the analyses.
+                                                <property name="tooltip_text" translatable="yes">Define a second set of neighbours for use in the analyses.
                                                 A typical use is for comparative analyses like species turnover.
 
                                                 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
@@ -593,7 +665,7 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="has_tooltip">True</property>
-                                                <property name="tooltip-text" translatable="yes">Use this to run the analysis for only a subset of the groups.
+                                                <property name="tooltip_text" translatable="yes">Use this to run the analysis for only a subset of the groups.
                                                 Note that it will still search the full data set for neighbours.
 
                                                 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
@@ -630,7 +702,7 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="has_tooltip">True</property>
-                                                <property name="tooltip-text" translatable="yes">Specify the first set of neighbours to use in the analysis.
+                                                <property name="tooltip_text" translatable="yes">Specify the first set of neighbours to use in the analysis.
 
                                                 Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                 <property name="xalign">0</property>
@@ -653,7 +725,7 @@
                                                   <object class="GtkEntry" id="txtSpatialName">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
-                                                    <property name="invisible_char">&#x25CF;</property>
+                                                    <property name="invisible_char">●</property>
                                                     <property name="activates_default">True</property>
                                                     <property name="text" translatable="yes">Spatial1</property>
                                                     <property name="primary_icon_activatable">False</property>
@@ -673,7 +745,8 @@
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">True</property>
                                                     <property name="has_tooltip">True</property>
-                                                    <property name="tooltip-text" translatable="yes">Set analysis options</property>
+                                                    <property name="tooltip_text" translatable="yes">Set analysis options</property>
+                                                    <property name="use_action_appearance">False</property>
                                                     <property name="image_position">right</property>
                                                     <child>
                                                       <object class="GtkImage" id="image2">
@@ -704,7 +777,7 @@
                                       <object class="GtkLabel" id="label6">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="tooltip-text" translatable="yes">show/hide the parameters section</property>
+                                        <property name="tooltip_text" translatable="yes">show/hide the parameters section</property>
                                         <property name="label" translatable="yes">Parameters</property>
                                       </object>
                                     </child>
@@ -732,8 +805,9 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">False</property>
-                                    <property name="tooltip-text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
+                                    <property name="tooltip_text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
                                     <property name="border_width">2</property>
+                                    <property name="use_action_appearance">False</property>
                                     <property name="use_underline">True</property>
                                   </object>
                                   <packing>
@@ -784,9 +858,6 @@
                         <property name="n_rows">2</property>
                         <property name="n_columns">2</property>
                         <child>
-                          <placeholder/>
-                        </child>
-                        <child>
                           <object class="GtkVScrollbar" id="gridVScroll">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -821,6 +892,9 @@
                             <property name="bottom_attach">2</property>
                             <property name="y_options">GTK_FILL</property>
                           </packing>
+                        </child>
+                        <child>
+                          <placeholder/>
                         </child>
                       </object>
                     </child>
@@ -1020,9 +1094,16 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Select tree to display</property>
+                <property name="tooltip_text" translatable="yes">Select tree to display</property>
+                <property name="model">liststore1</property>
                 <property name="active">0</property>
                 <property name="add_tearoffs">True</property>
+                <child>
+                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                  <attributes>
+                    <attribute name="text">0</attribute>
+                  </attributes>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -1044,5 +1125,11 @@
         <property name="position">1</property>
       </packing>
     </child>
+  </object>
+  <object class="GtkListStore" id="liststore1">
+    <columns>
+      <!-- column-name item text -->
+      <column type="gchararray"/>
+    </columns>
   </object>
 </interface>

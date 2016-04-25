@@ -129,8 +129,7 @@ sub calc_chao1 {
             $sums{$freq} ++;
         }
         my ($part1, $part2);
-        #while (my ($i, $f) = each %sums) {
-        foreach my $i (sort {$a <=> $b} keys %sums) {
+        foreach my $i (keys %sums) {
             my $f = $sums{$i};
             say "$i $f";
             $part1 += $f * (exp (-$i) - exp (-2 * $i));
@@ -388,13 +387,34 @@ sub get_metadata_calc_ace {
         type            => 'Richness estimators',
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many lists it must have
+        reference       => 'needed',
         indices         => {
             ACE_SCORE => {
                 description => 'ACE score',
-                reference   => 'NEEDED',
                 formula     => [],
             },
-            
+            ACE_SE => {
+                description => 'ACE standard error',
+                formula     => [],
+            },
+            ACE_VARIANCE => {
+                description => 'ACE variance',
+                formula     => [],
+            },
+            ACE_CI_UPPER => {
+                description => 'ACE upper confidence interval estimate',
+                formula     => [],
+            },
+            ACE_CI_LOWER => {
+                description => 'ACE lower confidence interval estimate',
+                formula     => [],
+            },
+            ACE_UNDETECTED  => {
+                description => 'Estimated number of undetected species',
+            },
+            ACE_INFREQUENT_COUNT => {
+                description => 'Count of infrequent species',
+            },
         },
     );
 
@@ -417,6 +437,7 @@ sub calc_ace {
     my $S_rare      = 0;
     my $f1     = 0;
     my $n_rare = 0;
+    my $richness = scalar keys %$label_hash;
 
     foreach my $freq (values %$label_hash) {
         if ($freq <= 10) {
@@ -435,12 +456,17 @@ sub calc_ace {
     my $C_ace = $n_rare ? (1 - $f1 / $n_rare) : undef;
 
     if (!$C_ace) {
-        my %results = (
-            ACE_SCORE => undef,
-        );
+        my %results;
+        @results{
+            qw /ACE_SCORE ACE_SE ACE_UNDETECTED
+                ACE_VARIANCE
+                ACE_CI_LOWER ACE_CI_UPPER
+                ACE_INFREQUENT_COUNT
+            /
+        } = undef;
         return wantarray ? %results : \%results;
     }
-    
+
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
         next if !$f_rare{$i};
@@ -483,10 +509,27 @@ sub calc_ace {
               + $S_rare / $C_ace
               + $f1 / $C_ace * $gamma_rare_hat_square;
 
-    #my $cv = sqrt $gamma_rare_hat_square;
+    my $cv = sqrt $gamma_rare_hat_square;
+    
+    my $variance = $self->_get_ace_variance (
+        freq_counts => \%f_rare,
+        f_rare      => \%f_rare,
+        cv     => $cv,
+        n_rare => $n_rare,
+        C_rare => $C_ace,
+        S_rare => $S_rare,
+        s_estimate => $S_ace,
+    );
+    my $se = sqrt $variance;
 
     my %results = (
         ACE_SCORE => $S_ace,
+        ACE_SE    => $se,
+        ACE_UNDETECTED => $S_ace - $richness,
+        ACE_VARIANCE   => $variance,
+        ACE_CI_LOWER   => undef,
+        ACE_CI_UPPER   => undef,
+        ACE_INFREQUENT_COUNT => $S_rare,
     );
 
     return wantarray ? %results : \%results;
@@ -518,11 +561,43 @@ sub calc_ice {
     my %args = @_;
 
     my $tmp_results = $self->calc_ace (%args, calc_ice => 1);
-    my %results = (
-        ICE_SCORE => $tmp_results->{ACE_SCORE},
-    );
+    my %results;
+    foreach my $ace_key (keys %$tmp_results) {
+        my $ice_key = $ace_key;
+        $ice_key =~ s/^ACE/ICE/;
+        $results{$ice_key} = $tmp_results->{$ace_key};
+    };
+
+#  for testing only
+%results = (
+    ICE_SCORE => $tmp_results->{ACE_SCORE},
+);
 
     return wantarray ? %results : \%results;
+}
+
+#  almost identical to _get_ice_variance but integrating the two 
+#  would prob result in more complex code
+sub _get_ace_variance {
+    my $self = shift;
+    my %args = @_;
+
+    my $freq_counts = $args{freq_counts};
+
+    my $var_ace = 0;
+    foreach my $i (keys %$freq_counts) {
+        foreach my $j (keys %$freq_counts) {
+            my $partial
+                = $self->_get_ace_differential (%args, f => $i)
+                * $self->_get_ace_differential (%args, f => $j)
+                * $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+               $var_ace += $partial;
+        }
+    }
+
+    $var_ace ||= undef;
+
+    return $var_ace;
 }
 
 sub _get_ice_variance {
@@ -537,7 +612,7 @@ sub _get_ice_variance {
             my $partial
                 = $self->_get_ice_differential (%args, q => $i)
                 * $self->_get_ice_differential (%args, q => $j)
-                * $self->_get_ice_covq (%args, i => $i, j => $j);
+                * $self->_get_ace_ice_covf (%args, i => $i, j => $j);
                $var_ice += $partial;
         }
     }
@@ -547,21 +622,22 @@ sub _get_ice_variance {
     return $var_ice;
 }
 
-sub _get_ice_covq {
+#  common to ACE and ICE
+sub _get_ace_ice_cov {
     my $self = shift;
     my %args = @_;
-    my ($i, $j, $s_ice) = @args{qw/i j s_ice/};
+    my ($i, $j, $s_ice) = @args{qw/i j s_estimate/};
     my $Q = $args{f_rare};
 
-    my $covq; 
+    my $covf;
     if ($i == $j) {
-        $covq = $Q->{$i} * (1 - $Q->{$i} / $s_ice);
+        $covf = $Q->{$i} * (1 - $Q->{$i} / $s_ice);
     }
     else {
-        $covq = -1 * $Q->{$i} * $Q->$j / $s_ice;
+        $covf = -1 * $Q->{$i} * $Q->{$j} / $s_ice;
     }     
 
-    return $covq;
+    return $covf;
 }
 
 
@@ -684,6 +760,91 @@ sub _get_ice_differential {
     return $d;
 }
 
+sub _get_ace_differential {
+    my $self = shift;
+    my %args = @_;
+    
+    my $k = 10;  #  later we will make this an argument
+
+    my $f = $args{f};
+
+    return 1 if $f > $k;
+
+    no autovivification;
+
+    my $cv_rare_h   = $args{cv};
+    my $freq_counts = $args{freq_counts};
+    my $n_rare      = $args{n_rare};
+    my $c_rare      = $args{C_rare};  #  get from gamma calcs
+    my $D_rare      = $args{S_rare};  #  richness of labels with sample counts < $k
+    my $F           = $args{freq_counts};
+    my $t           = $args{t};
+
+    my @u = (1..$k);
+
+    $n_rare //=
+        sum
+        map  {$_ * $freq_counts->{$_}}
+        grep {$_ < $k}
+        keys %$freq_counts;
+
+    my $si = sum map {$_ * ($_-1) * ($F->{$_} // 0)} @u;
+
+    my ($f1, $f2) = @$F{1,2};
+
+    my $d = 1;
+
+    if ($cv_rare_h   != 0) {
+        if ($f == 1) {
+            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
+                 / (1 - $f1/$n_rare)**2
+                +
+                (
+                 (1 - $f1/$n_rare)**2 * $n_rare * ($n_rare - 1)
+                   * ($D_rare * $si + $f1 * $si)
+                   - $f1 * $D_rare * $si
+                   * (-2 * (1 - $f1 / $n_rare) * ($n_rare - $f1) / $n_rare**2
+                      * $n_rare * ($n_rare - 1)
+                      + (1 - $f1/$n_rare)**2*(2*$n_rare - 1)
+                     )
+                )
+                / (1 - $f1/$n_rare)**4 / $n_rare**2 / ($n_rare - 1)**2
+                  - (1 - $f1 / $n_rare + $f1 * ($n_rare - $f1)
+                     / $n_rare**2)
+                  / (1 - $f1 / $n_rare)**2;
+        }
+        else {
+            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
+                     / (1 - $f1 / $n_rare)**2
+                  + (
+                     (1 - $f1 / $n_rare)**2
+                      * $n_rare * ($n_rare - 1) * $f1 *
+                      ($si + $D_rare * $f * ($f - 1))
+                      - $f1 * $D_rare * $si *
+                        (2 * (1 - $f1 / $n_rare) * $f1 * $f / $n_rare**2
+                         * $n_rare * ($n_rare - 1)
+                         + (1 - $f1 / $n_rare)**2 * $f * ($n_rare - 1)
+                         + (1 - $f1 / $n_rare)**2 * $n_rare * $f
+                        )
+                    )
+                  / (1 - $f1/$n_rare)**4 / ($n_rare)**2 / ($n_rare - 1)**2
+                  + ($f * $f1**2 / $n_rare**2)
+                  / (1 - $f1 / $n_rare)**2;
+        }
+    }
+    else {
+        if ($f == 1) {
+            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
+               / (1 - $f1 / $n_rare)**2 
+        }
+        elsif ($f == 2) {
+            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
+               / (1 - $f1 / $n_rare)**2
+        }
+    }
+
+    return $d;
+}
 
 1;
 

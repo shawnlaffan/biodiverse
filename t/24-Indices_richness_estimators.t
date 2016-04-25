@@ -380,6 +380,46 @@ sub test_chao2_no_Q1_no_Q2 {
     return;    
 }
 
+
+sub test_ACE {
+    my $bd = shift->clone;
+
+    ##  need to ensure there are no doubles
+    #foreach my $label ($bd->get_labels) {
+    #    if ($bd->get_label_sample_count(element => $label) == 2) {
+    #        $bd->add_element (group => $focal_gp, label => $label, count => 20);
+    #    }
+    #}
+
+    my $results2 = {
+        ACE_SCORE    => 28.459957,
+        ACE_SE       => 2.457,
+        ACE_VARIANCE => 6.036849,
+        ACE_CI_LOWER => 26.482,
+        ACE_CI_UPPER => 38.562,
+        ACE_UNDETECTED => 2.459957,
+        ACE_INFREQUENT_COUNT => 19,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE base',
+    );
+
+    return;    
+}
+
+
 sub get_basedata {
 
     my $data = get_data_section ('SAMPLE_DATA');
@@ -451,6 +491,12 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 @@ RESULTS_2_NBR_LISTS
 {   ACE_SCORE      => '28.459957',
+    ACE_SE => 2.457,
+    ACE_VARIANCE => 6.036849,
+    ACE_CI_LOWER => 26.482,
+    ACE_CI_UPPER => 38.562,
+    ACE_UNDETECTED => 2.459957,
+    ACE_INFREQUENT_COUNT => 19,
     CHAO1          => '27.5951367781155',
     CHAO1_CI_LOWER => '26.216312',
     CHAO1_CI_UPPER => '37.762927',
@@ -483,6 +529,12 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 @@ RESULTS_1_NBR_LISTS
 {   ACE_SCORE      => '11.711885',
+    ACE_SE => -1,
+    ACE_VARIANCE => -1,
+    ACE_CI_LOWER => -1,
+    ACE_CI_UPPER => -1,
+    ACE_UNDETECTED => -1,
+    ACE_INFREQUENT_COUNT => -1,
     CHAO1          => '15.5555555555556',
     CHAO1_CI_LOWER => '8.93051',
     CHAO1_CI_UPPER => '69.349636',

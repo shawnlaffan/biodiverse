@@ -14,8 +14,8 @@ my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 use Readonly;
 
-#Readonly my $z => 1.959964;  #  currently hard coded for 0.95
-Readonly my $z => 1.96;       #  should increase precision at some point
+Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
+#Readonly my $z_for_ci => 1.96;       #  should increase precision at some point
 
 sub get_metadata_calc_chao1 {
     my %metadata = (
@@ -349,7 +349,7 @@ sub _calc_chao_confidence_intervals {
         my $K;
         eval {
             no warnings qw /numeric uninitialized/;
-            $K = exp ($z * sqrt (log (1 + $variance / $T ** 2)));
+            $K = exp ($z_for_ci * sqrt (log (1 + $variance / $T ** 2)));
             $lower = $richness + $T / $K;
             $upper = $richness + $T * $K;
         };
@@ -367,7 +367,7 @@ sub _calc_chao_confidence_intervals {
             }
             $P /= $richness;
             my $part1 = $richness / (1 - $P);
-            my $part2 = $z * sqrt ($variance) / (1 - $P);
+            my $part2 = $z_for_ci * sqrt ($variance) / (1 - $P);
             $lower = max ($richness, $part1 - $part2);
             $upper = $part1 + $part2;
         }

@@ -8,6 +8,8 @@ local $| = 1;
 use rlib;
 use Test::Most;
 
+use Readonly;
+
 use Biodiverse::TestHelpers qw{
     :runners
     :basedata
@@ -18,12 +20,15 @@ use Devel::Symdump;
 my $obj = Devel::Symdump->rnew(__PACKAGE__); 
 my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
 
+#  a few package "constants"
+my $bd = get_basedata();
+Readonly my $focal_gp => 'Broad_Meadow_Brook';
+Readonly my @nbr_set2 => grep {$_ ne $focal_gp} $bd->get_groups;
+
 exit main( @ARGV );
 
 sub main {
     my @args  = @_;
-
-    my $bd = get_basedata();
 
     if (@args) {
         for my $name (@args) {
@@ -48,9 +53,6 @@ sub main {
 
 sub test_indices {
     my $bd = shift->clone;
-    
-    my $focal_gp = 'Broad_Meadow_Brook';
-    my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
 
     run_indices_test1 (
         calcs_to_test  => [qw/
@@ -62,8 +64,8 @@ sub test_indices {
         calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         descr_suffix       => 'main tests',
     );
 
@@ -73,9 +75,7 @@ sub test_indices {
 sub test_indices_1col {
     my $bd = shift->clone;
 
-    my $focal_gp = 'Broad_Meadow_Brook';
-    my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
-    $bd->delete_groups (groups => \@groups);
+    $bd->delete_groups (groups => \@nbr_set2);
     
     my $results_overlay2 = {
         CHAO1          => '15.5555555555556',
@@ -121,7 +121,7 @@ sub test_indices_1col {
         #calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
+        element_list1      => [$focal_gp],
         element_list2      => [],
         expected_results   => \%expected_results_overlay,
         descr_suffix       => 'one group',
@@ -135,8 +135,6 @@ sub test_indices_1col {
 sub test_chao1_F2_no_F1 {
     my $bd = shift->clone;
 
-    my $focal_gp = 'Broad_Meadow_Brook';
-
     #  need to ensure there are no uniques - bump their sample counts
     foreach my $label ($bd->get_labels) {
         if ($bd->get_label_sample_count(element => $label) == 1) {
@@ -144,8 +142,6 @@ sub test_chao1_F2_no_F1 {
         }
     }
     
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
-
     my $results2 = {
         CHAO1            => 26,        CHAO1_SE         => 0.8749986,
         CHAO1_F1_COUNT   => 0,         CHAO1_F2_COUNT   => 5,
@@ -166,8 +162,8 @@ sub test_chao1_F2_no_F1 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_F2_no_F1',
@@ -179,16 +175,12 @@ sub test_chao1_F2_no_F1 {
 sub test_chao1_F1_no_F2 {
     my $bd = shift->clone;
 
-    my $focal_gp = 'Broad_Meadow_Brook';
-
     #  need to ensure there are no doubles
     foreach my $label ($bd->get_labels) {
         if ($bd->get_label_sample_count(element => $label) == 2) {
             $bd->add_element (group => $focal_gp, label => $label, count => 20);
         }
     }
-
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
 
     my $results2 = {
         CHAO1            => 31.986014, CHAO1_SE         => 7.264041,
@@ -210,8 +202,8 @@ sub test_chao1_F1_no_F2 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_F1_no_F2',
@@ -223,8 +215,6 @@ sub test_chao1_F1_no_F2 {
 sub test_chao1_no_F1_no_F2 {
     my $bd = shift->clone;
 
-    my $focal_gp = 'Broad_Meadow_Brook';
-
     #  need to ensure there are no uniques or doubles - make them all occur everywhere
     foreach my $label ($bd->get_labels) {
         my $sc = $bd->get_label_sample_count (element => $label);
@@ -232,8 +222,6 @@ sub test_chao1_no_F1_no_F2 {
             $bd->add_element (group => $focal_gp, label => $label, count => 20);
         }
     }
-
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
 
     my $results2 = {
         CHAO1            => 26,        CHAO1_SE         => 0.43544849,
@@ -255,8 +243,8 @@ sub test_chao1_no_F1_no_F2 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_no_F1_no_F2',
@@ -276,9 +264,6 @@ sub test_chao2_Q2_no_Q1 {
             }
         }
     }
-    
-    my $focal_gp = 'Broad_Meadow_Brook';
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
 
     my $results2 = {
         CHAO2            => 26,        CHAO2_SE         => 0.629523,
@@ -300,8 +285,8 @@ sub test_chao2_Q2_no_Q1 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_Q2_no_Q1',
@@ -322,9 +307,6 @@ sub test_chao2_Q1_no_Q2 {
         }
     }
     
-    my $focal_gp = 'Broad_Meadow_Brook';
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
-
     my $results2 = {
         CHAO2            => 39.636364, CHAO2_SE         => 12.525204,
         CHAO2_Q1_COUNT   => 6,         CHAO2_Q2_COUNT   => 0,
@@ -345,8 +327,8 @@ sub test_chao2_Q1_no_Q2 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_Q1_no_Q2',
@@ -368,9 +350,6 @@ sub test_chao2_no_Q1_no_Q2 {
         }
     }
     
-    my $focal_gp = 'Broad_Meadow_Brook';
-    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
-
     my $results2 = {
         CHAO2            => 26,        CHAO2_SE         => 0.3696727,
         CHAO2_Q1_COUNT   => 0,         CHAO2_Q2_COUNT   => 0,
@@ -391,8 +370,8 @@ sub test_chao2_no_Q1_no_Q2 {
         /],
         sort_array_lists   => 1,
         basedata_ref       => $bd,
-        element_list1      => ['Broad_Meadow_Brook'],
-        element_list2      => \@nbr_groups,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_no_Q1_no_Q2',

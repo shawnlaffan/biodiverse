@@ -1,4 +1,7 @@
 package Biodiverse::Indices::RichnessEstimation;
+
+use 5.016;
+
 use strict;
 use warnings;
 use Carp;
@@ -9,6 +12,10 @@ our $VERSION = '1.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
+use Readonly;
+
+#Readonly my $z => 1.959964;  #  currently hard coded for 0.95
+Readonly my $z => 1.96;       #  should increase precision at some point
 
 sub get_metadata_calc_chao1 {
     my %metadata = (
@@ -102,7 +109,7 @@ sub calc_chao1 {
         else {
             #  if only one singleton and no doubletons then the estimate stays zero
             $variance_uses_eq8 = 1;
-            $chao_formula      = undef;
+            $chao_formula      = 0;
         }
     }
     
@@ -112,9 +119,9 @@ sub calc_chao1 {
     
     if ($variance_uses_eq7) {
         $variance = $cn1 * ($f1 * ($f1 - 1)) / 2
-                  + $cn2 * ($f1 * (2 * $f1 - 1)) ** 2
-                  - $cn2 *  $f1 ** 4 / (4 * $chao);
-        $chao_formula = undef;
+                  + $cn2 *  $f1 * (2 * $f1 - 1)**2 / 4
+                  - $cn2 *  $f1 ** 4 / 4 / $chao;
+        #$chao_formula = 0;
     }
     elsif ($variance_uses_eq8) {
         my %sums;
@@ -122,12 +129,15 @@ sub calc_chao1 {
             $sums{$freq} ++;
         }
         my ($part1, $part2);
-        while (my ($i, $f) = each %sums) {
-            $part1 += $f * (exp -$i - exp (-2 * $i));
+        #while (my ($i, $f) = each %sums) {
+        foreach my $i (sort {$a <=> $b} keys %sums) {
+            my $f = $sums{$i};
+            say "$i $f";
+            $part1 += $f * (exp (-$i) - exp (-2 * $i));
             $part2 += $i * exp (-$i) * $f;
         }
         $variance = $part1 - $part2 ** 2 / $n;
-        $chao_formula = undef;
+        $chao_formula = 0;
     }
 
     $variance = max (0, $variance);
@@ -339,7 +349,7 @@ sub _calc_chao_confidence_intervals {
         my $K;
         eval {
             no warnings qw /numeric uninitialized/;
-            $K = exp (1.96 * sqrt (log (1 + $variance / $T ** 2)));
+            $K = exp ($z * sqrt (log (1 + $variance / $T ** 2)));
             $lower = $richness + $T / $K;
             $upper = $richness + $T * $K;
         };
@@ -353,11 +363,11 @@ sub _calc_chao_confidence_intervals {
         #  set CIs to undefined if we only have singletons/uniques
         if (! (scalar keys %sums == 1 && exists $sums{1})) {
             while (my ($f, $count) = each %sums) {
-                $P += $count * exp -$f;
+                $P += $count * exp (-$f);
             }
             $P /= $richness;
             my $part1 = $richness / (1 - $P);
-            my $part2 = 1.96 * sqrt ($variance) / (1 - $P);
+            my $part2 = $z * sqrt ($variance) / (1 - $P);
             $lower = max ($richness, $part1 - $part2);
             $upper = $part1 + $part2;
         }

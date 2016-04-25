@@ -132,6 +132,142 @@ sub test_indices_1col {
 
 
 #  chao2 differs when q1 or q2 are zero
+sub test_chao1_F2_no_F1 {
+    my $bd = shift->clone;
+
+    my $focal_gp = 'Broad_Meadow_Brook';
+
+    #  need to ensure there are no uniques - bump their sample counts
+    foreach my $label ($bd->get_labels) {
+        if ($bd->get_label_sample_count(element => $label) == 1) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+    
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO1            => 26,        CHAO1_SE         => 0.8749986,
+        CHAO1_F1_COUNT   => 0,         CHAO1_F2_COUNT   => 5,
+        CHAO1_UNDETECTED => 0,         CHAO1_VARIANCE   => 0.7656226,
+        CHAO1_CI_LOWER   => 26,        CHAO1_CI_UPPER   => 28.680569,
+        CHAO1_META       => {
+            CHAO_FORMULA     => 0,
+            CI_FORMULA       => 14,
+            VARIANCE_FORMULA => 8,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao1
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao1_F2_no_F1',
+    );
+
+    return;    
+}
+
+sub test_chao1_F1_no_F2 {
+    my $bd = shift->clone;
+
+    my $focal_gp = 'Broad_Meadow_Brook';
+
+    #  need to ensure there are no doubles
+    foreach my $label ($bd->get_labels) {
+        if ($bd->get_label_sample_count(element => $label) == 2) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO1            => 31.986014, CHAO1_SE         => 7.264041,
+        CHAO1_F1_COUNT   => 4,         CHAO1_F2_COUNT   => 0,
+        CHAO1_UNDETECTED => 5.986014,  CHAO1_VARIANCE   => 52.766285,
+        CHAO1_CI_LOWER   => 26.9273497, CHAO1_CI_UPPER   => 64.6395356295,
+        CHAO1_META       => {
+            CHAO_FORMULA     => 2,
+            CI_FORMULA       => 13,
+            VARIANCE_FORMULA => 7,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao1
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao1_F1_no_F2',
+    );
+
+    return;    
+}
+
+sub test_chao1_no_F1_no_F2 {
+    my $bd = shift->clone;
+
+    my $focal_gp = 'Broad_Meadow_Brook';
+
+    #  need to ensure there are no uniques or doubles - make them all occur everywhere
+    foreach my $label ($bd->get_labels) {
+        my $sc = $bd->get_label_sample_count (element => $label);
+        if ($sc == 1 || $sc == 2) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO1            => 26,        CHAO1_SE         => 0.43544849,
+        CHAO1_F1_COUNT   => 0,         CHAO1_F2_COUNT   => 0,
+        CHAO1_UNDETECTED => 0,         CHAO1_VARIANCE   => 0.1896153894,
+        CHAO1_CI_LOWER   => 26,        CHAO1_CI_UPPER   => 27.0602293,
+        CHAO1_META       => {
+            CHAO_FORMULA     => 0,
+            CI_FORMULA       => 14,
+            VARIANCE_FORMULA => 8,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao1
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao1_no_F1_no_F2',
+    );
+
+    return;    
+}
+#  chao2 differs when q1 or q2 are zero
 sub test_chao2_Q2_no_Q1 {
     my $bd = shift->clone;
 

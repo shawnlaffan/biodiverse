@@ -777,6 +777,7 @@ sub run_indices_test1 {
     my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
     my $descr_suffix           = $args{descr_suffix} // '';
     my $processing_element     = $args{processing_element} // '3350000:850000';
+    my $skip_nbr_counts        = $args{skip_nbr_counts} // {};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -924,10 +925,13 @@ sub run_indices_test1 {
 
     my %results_by_nbr_list;
 
+  NBR_COUNT:
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
             delete $elements{element_list2};
         }
+
+        next NBR_COUNT if $skip_nbr_counts->{$nbr_list_count};
 
         my %indices_args = (
             calcs_to_test  => $calcs_to_test,

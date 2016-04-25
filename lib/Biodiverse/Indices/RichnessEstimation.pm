@@ -258,7 +258,7 @@ sub calc_chao2 {
         }
         elsif ($Q1) {
             $variance_uses_eq12 = 1;
-            $chao_formula       = undef;
+            $chao_formula       = 0;
         }
         #  if only one singleton and no doubletons then chao stays zero
     }
@@ -270,7 +270,7 @@ sub calc_chao2 {
     if ($variance_uses_eq11) {
         $variance = $c1 * ($Q1 * ($Q1 - 1)) / 2
                   + $c2 * ($Q1 * (2 * $Q1 - 1) ** 2) / 4
-                  - $c2 *  $Q1 ** 4 / (4 * $chao);
+                  - $c2 *  $Q1 ** 4 / 4 / $chao;
     }
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
@@ -283,7 +283,7 @@ sub calc_chao2 {
             $part2 += $i *  exp (-$i) * $Q;
         }
         $variance = $part1 - $part2 ** 2 / $R;
-        $chao_formula = undef;
+        $chao_formula = 0;
     }
 
     $variance = max (0, $variance);
@@ -334,7 +334,7 @@ sub _calc_chao_confidence_intervals {
 
     #  and now the confidence interval
     my ($lower, $upper);
-    if ($f1 && $f2) {
+    if (($f1 && $f2) || ($f1 > 1)) {
         my $T = $chao - $richness;
         my $K;
         eval {

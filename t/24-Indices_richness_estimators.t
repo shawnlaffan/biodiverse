@@ -14,6 +14,10 @@ use Biodiverse::TestHelpers qw{
 };
 use Data::Section::Simple qw(get_data_section);
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 exit main( @ARGV );
 
 sub main {
@@ -31,16 +35,19 @@ sub main {
         return 0;
     }
 
-    test_indices($bd);
-    test_indices_1col($bd);
-    
+
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->($bd);
+    }
+
     done_testing;
     return 0;
 }
 
 
 sub test_indices {
-    my $bd = shift;
+    my $bd = shift->clone;
     
     my $focal_gp = 'Broad_Meadow_Brook';
     my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
@@ -64,7 +71,7 @@ sub test_indices {
 }
 
 sub test_indices_1col {
-    my $bd = shift;
+    my $bd = shift->clone;
 
     my $focal_gp = 'Broad_Meadow_Brook';
     my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
@@ -123,6 +130,146 @@ sub test_indices_1col {
     return;
 }
 
+
+#  chao2 differs when q1 or q2 are zero
+sub test_chao2_Q2_no_Q1 {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no uniques - make them all occur everywhere
+    foreach my $label ($bd->get_labels) {
+        if ($bd->get_range(element => $label) == 1) {
+            foreach my $group ($bd->get_groups) {
+                $bd->add_element (group => $group, label => $label);
+            }
+        }
+    }
+    
+    my $focal_gp = 'Broad_Meadow_Brook';
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO2            => 26,        CHAO2_SE         => 0.629523,
+        CHAO2_Q1_COUNT   => 0,         CHAO2_Q2_COUNT   => 8,
+        CHAO2_UNDETECTED => 0,         CHAO2_VARIANCE   => 0.396299,
+        CHAO2_CI_LOWER   => 26.030028, CHAO2_CI_UPPER   => 28.623692,
+        CHAO2_META       => {
+            CHAO_FORMULA     => 0,
+            CI_FORMULA       => 14,
+            VARIANCE_FORMULA => 12,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao2
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao2_Q2_no_Q1',
+    );
+
+    return;    
+}
+
+sub test_chao2_Q1_no_Q2 {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no uniques - make them all occur everywhere
+    foreach my $label ($bd->get_labels) {
+        if ($bd->get_range(element => $label) == 2) {
+            foreach my $group ($bd->get_groups) {
+                $bd->add_element (group => $group, label => $label);
+            }
+        }
+    }
+    
+    my $focal_gp = 'Broad_Meadow_Brook';
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO2            => 39.636364, CHAO2_SE         => 12.525204,
+        CHAO2_Q1_COUNT   => 6,         CHAO2_Q2_COUNT   => 0,
+        CHAO2_UNDETECTED => 13.636364, CHAO2_VARIANCE   => 156.880734,
+        CHAO2_CI_LOWER   => 28.943875, CHAO2_CI_UPPER   => 89.165183,
+        CHAO2_META       => {
+            CHAO_FORMULA     => 4,
+            CI_FORMULA       => 13,
+            VARIANCE_FORMULA => 11,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao2
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao2_Q1_no_Q2',
+    );
+
+    return;    
+}
+
+sub test_chao2_no_Q1_no_Q2 {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no uniques or doubles - make them all occur everywhere
+    foreach my $label ($bd->get_labels) {
+        my $range = $bd->get_range(element => $label);
+        if ($range == 1 || $range == 2) {
+            foreach my $group ($bd->get_groups) {
+                $bd->add_element (group => $group, label => $label);
+            }
+        }
+    }
+    
+    my $focal_gp = 'Broad_Meadow_Brook';
+    my @nbr_groups = grep {$_ ne $focal_gp} $bd->get_groups;
+
+    my $results2 = {
+        CHAO2            => 26,        CHAO2_SE         => 0.3696727,
+        CHAO2_Q1_COUNT   => 0,         CHAO2_Q2_COUNT   => 0,
+        CHAO2_UNDETECTED => 0,         CHAO2_VARIANCE   => 0.1366579,
+        CHAO2_CI_LOWER   => 26,        CHAO2_CI_UPPER   => 26.910745,
+        CHAO2_META       => {
+            CHAO_FORMULA     => 0,
+            CI_FORMULA       => 14,
+            VARIANCE_FORMULA => 12,
+        },
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao2
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@nbr_groups,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        #generate_result_sets => 1,
+        descr_suffix       => 'test_chao2_no_Q1_no_Q2',
+    );
+
+    return;    
+}
 
 sub get_basedata {
 

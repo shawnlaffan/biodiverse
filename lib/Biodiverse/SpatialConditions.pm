@@ -2781,8 +2781,9 @@ sub get_example_sp_get_spatial_output_list_value {
 #  get the spatial results value for the current neighbour group
 # (or processing group if used as a def query)
 sp_get_spatial_output_list_value (
-    output  => 'sp1',
-    list    => 'SPATIAL_RESULTS',
+    output  => 'sp1',              #  using spatial output called sp1
+    list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
+    index   => 'PE_WE_P',          #  get index value for PE_WE_P
 )
 
 #  get the spatial results value for group 128:254
@@ -2790,6 +2791,7 @@ sp_get_spatial_output_list_value (
     output  => 'sp1',
     element => '128:254',
     list    => 'SPATIAL_RESULTS',
+    index   => 'PE_WE_P',
 )
 END_EXAMPLE_GSOLV
   ;

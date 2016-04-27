@@ -438,8 +438,10 @@ sub calc_ace {
     my $f1     = 0;
     my $n_rare = 0;
     my $richness = scalar keys %$label_hash;
+    my %all_freqs;  #  all taxa
 
     foreach my $freq (values %$label_hash) {
+        $all_freqs{$freq}++;
         if ($freq <= 10) {
             $f_rare{$freq} ++;
             $n_rare += $freq;
@@ -512,7 +514,7 @@ sub calc_ace {
     my $cv = sqrt $gamma_rare_hat_square;
     
     my $variance = $self->_get_ace_variance (
-        freq_counts => \%f_rare,
+        freq_counts => \%all_freqs,
         f_rare      => \%f_rare,
         cv     => $cv,
         n_rare => $n_rare,
@@ -521,14 +523,22 @@ sub calc_ace {
         s_estimate => $S_ace,
     );
     my $se = sqrt $variance;
+    
+    my $ci_vals = $self->_calc_ace_confidence_intervals (
+        freq_counts => \%all_freqs,
+        variance    => $variance,
+        s_estimate  => $S_ace,
+        richness    => $richness,
+        label_hash  => $label_hash,
+    );
 
     my %results = (
         ACE_SCORE => $S_ace,
         ACE_SE    => $se,
         ACE_UNDETECTED => $S_ace - $richness,
         ACE_VARIANCE   => $variance,
-        ACE_CI_LOWER   => undef,
-        ACE_CI_UPPER   => undef,
+        ACE_CI_LOWER   => $ci_vals->{ci_lower},
+        ACE_CI_UPPER   => $ci_vals->{ci_upper},
         ACE_INFREQUENT_COUNT => $S_rare,
     );
 
@@ -584,14 +594,24 @@ sub _get_ace_variance {
 
     my $freq_counts = $args{freq_counts};
 
+    #  precalculate the differentials and covariances
+    my (%diff, %cov);
+    foreach my $i (sort {$a <=> $b} keys %$freq_counts) {
+        $diff{$i} = $self->_get_ace_differential (%args, f => $i);
+#say "diff $i = $diff{$i}";
+        foreach my $j (sort {$a <=> $b} keys %$freq_counts) {
+            $cov{$i}{$j} = $cov{$j}{$i}
+              // $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+#say "cov $i,$j = $cov{$i}{$j}";
+        }
+    }
+
     my $var_ace = 0;
     foreach my $i (keys %$freq_counts) {
         foreach my $j (keys %$freq_counts) {
             my $partial
-                = $self->_get_ace_differential (%args, f => $i)
-                * $self->_get_ace_differential (%args, f => $j)
-                * $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-               $var_ace += $partial;
+                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
+            $var_ace += $partial;
         }
     }
 
@@ -627,7 +647,7 @@ sub _get_ace_ice_cov {
     my $self = shift;
     my %args = @_;
     my ($i, $j, $s_ice) = @args{qw/i j s_estimate/};
-    my $Q = $args{f_rare};
+    my $Q = $args{freq_counts};
 
     my $covf;
     if ($i == $j) {
@@ -846,6 +866,50 @@ sub _get_ace_differential {
     return $d;
 }
 
+
+sub _calc_ace_confidence_intervals {
+    
+my $self = shift;
+    my %args = @_;
+    
+    my $estimate = $args{s_estimate};
+    my $richness = $args{richness};
+    my $variance = $args{variance};
+    my $label_hash  = $args{label_hash};
+    my $freq_counts = $args{freq_counts};
+
+    #  and now the confidence interval
+    my ($lower, $upper);
+
+    #  SpadeR treats values this close to zero as zero
+    if (($estimate - $richness) >= 0.00001) {
+        my $T = $estimate - $richness;
+        my $K = exp ($z_for_ci * sqrt (log (1 + $variance / $T**2)));
+        $lower = $richness + $T / $K;
+        $upper = $richness + $T * $K;
+    }
+    else {
+        my ($part1, $part2, $P) = (0, 0, 0);
+        foreach my $f (keys %$freq_counts) {
+            $part1 += $freq_counts->{$f} * (exp(-$f) - exp(-2*$f));
+            $part2 += $f * exp (-$f) * $freq_counts->{$f};
+            $P     += $freq_counts->{$f} * exp (-$f) / $richness;
+        }
+        my $n = sum values %$label_hash;
+        my $var_obs = $part1 - $part2**2 / $n;  # should be passed as an arg?
+#say "var_obs is the same as the variance argument\n" if $var_obs == $variance;
+#say "$n $richness $P $var_obs $part1 $part2";
+        $lower = max($richness, $richness / (1 - $P) - $z_for_ci * sqrt($var_obs) / (1 - $P));
+        $upper = $richness / (1 - $P) + $z_for_ci * sqrt($var_obs) / (1 - $P);
+    }
+
+    my %results = (
+        ci_lower => $lower,
+        ci_upper => $upper,
+    );
+
+    return wantarray ? %results : \%results;
+}
 1;
 
 __END__

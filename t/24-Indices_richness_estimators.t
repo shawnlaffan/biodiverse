@@ -384,19 +384,12 @@ sub test_chao2_no_Q1_no_Q2 {
 sub test_ACE {
     my $bd = shift->clone;
 
-    ##  need to ensure there are no doubles
-    #foreach my $label ($bd->get_labels) {
-    #    if ($bd->get_label_sample_count(element => $label) == 2) {
-    #        $bd->add_element (group => $focal_gp, label => $label, count => 20);
-    #    }
-    #}
-
     my $results2 = {
         ACE_SCORE    => 28.459957,
-        ACE_SE       => 2.457,
-        ACE_VARIANCE => 6.036849,
-        ACE_CI_LOWER => 26.482,
-        ACE_CI_UPPER => 38.562,
+        ACE_SE       => 2.457292,
+        ACE_VARIANCE => 6.03828211669945,
+        ACE_CI_LOWER => 26.4817368287846,
+        ACE_CI_UPPER => 38.561607,
         ACE_UNDETECTED => 2.459957,
         ACE_INFREQUENT_COUNT => 19,
     };

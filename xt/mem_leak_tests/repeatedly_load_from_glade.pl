@@ -34,7 +34,7 @@ do {
             Gtk2::GladeXML->new( $gladefile, 'wndProgress' );
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
-        my $dlg = $gladexml->get_widget('wndProgress');
+        my $dlg = $gladexml->get_object('wndProgress');
 
 
         if ($i == 1) {

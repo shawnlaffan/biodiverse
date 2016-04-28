@@ -412,6 +412,84 @@ sub test_ACE {
     return;    
 }
 
+sub test_ACE_no_rares {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no rares
+    foreach my $label ($bd->get_labels) {
+        my $count = $bd->get_label_sample_count(element => $label);
+        if ($count && $count <= 10) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+
+    my $results2 = {
+        ACE_SCORE    => 26,
+        ACE_SE       => 0.002129,
+        ACE_VARIANCE => 5e-006,
+        ACE_CI_LOWER => 26,
+        ACE_CI_UPPER => 26.004177,
+        ACE_UNDETECTED => 0,
+        ACE_INFREQUENT_COUNT => 0,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE_no_rares',
+    );
+
+    return;
+}
+
+sub test_ACE_no_singletons {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no singletons
+    foreach my $label ($bd->get_labels) {
+        my $count = $bd->get_label_sample_count(element => $label);
+        if ($count == 1) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+
+    my $results2 = {
+        ACE_SCORE    => 26,
+        ACE_SE       => 0.874999,
+        ACE_VARIANCE => 0.765623,
+        ACE_CI_LOWER => 26,
+        ACE_CI_UPPER => 28.680536,
+        ACE_UNDETECTED => 0,
+        ACE_INFREQUENT_COUNT => 0,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE_no_singletons',
+    );
+
+    return;    
+}
+
 
 sub get_basedata {
 
@@ -483,11 +561,11 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   ACE_SCORE      => '28.459957',
-    ACE_SE => 2.457,
-    ACE_VARIANCE => 6.036849,
-    ACE_CI_LOWER => 26.482,
-    ACE_CI_UPPER => 38.562,
+{   ACE_SCORE    => '28.459957',
+    ACE_SE       => 2.457292,
+    ACE_VARIANCE => 6.038282,
+    ACE_CI_LOWER => 26.481737,
+    ACE_CI_UPPER => 38.561607,
     ACE_UNDETECTED => 2.459957,
     ACE_INFREQUENT_COUNT => 19,
     CHAO1          => '27.5951367781155',

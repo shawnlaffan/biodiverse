@@ -131,7 +131,7 @@ sub calc_chao1 {
         my ($part1, $part2);
         foreach my $i (keys %sums) {
             my $f = $sums{$i};
-            say "$i $f";
+            #say "$i $f";
             $part1 += $f * (exp (-$i) - exp (-2 * $i));
             $part2 += $i * exp (-$i) * $f;
         }
@@ -455,19 +455,34 @@ sub calc_ace {
         }
     }
 
-    my $C_ace = $n_rare ? (1 - $f1 / $n_rare) : undef;
-
-    if (!$C_ace) {
-        my %results;
-        @results{
-            qw /ACE_SCORE ACE_SE ACE_UNDETECTED
-                ACE_VARIANCE
-                ACE_CI_LOWER ACE_CI_UPPER
-                ACE_INFREQUENT_COUNT
-            /
-        } = undef;
+    #  if no rares or no singletons then use Chao1 or Chao2 as they handle such cases
+    if (!$n_rare || !$f_rare{1}) {
+        my $pfx = 'ACE';
+        my %results = (
+            ACE_INFREQUENT_COUNT => 0,
+        );
+        my $tmp_results;
+        if ($calc_ice) {
+            $tmp_results = $self->calc_chao2(%args);
+            $pfx = 'ICE';
+            $results{ICE_SCORE} = $tmp_results->{CHAO2};
+        }
+        else {
+            $tmp_results = $self->calc_chao1(%args);
+            $results{ACE_SCORE} = $tmp_results->{CHAO1};
+        }
+        foreach my $key (keys %$tmp_results) {
+            next if $key =~ /META/;
+            next if $key =~ /F[12]_COUNT$/;
+            next if $key =~ /^CHAO\d$/;
+            my $new_key = $key;
+            $new_key =~ s/^CHAO\d/$pfx/;
+            $results{$new_key} = $tmp_results->{$key};
+        }
         return wantarray ? %results : \%results;
     }
+
+    my $C_ace = 1 - $f1 / $n_rare;
 
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
@@ -493,9 +508,10 @@ sub calc_ace {
             }
         }
         $C_ace = 1 - ($f1 / $n_rare) * (1 - $A);
-        $gamma_rare_hat_square
-            = ($S_rare / $C_ace)
-               * $t  / ($t - 1)
+        $gamma_rare_hat_square = $t == 1
+             ? 0                   #  avoid divide by zero
+             : ($S_rare / $C_ace)
+               * $t  / ($t - 1)  
                * $a1 / $a2 / ($a2 - 1)
                - 1;
     }
@@ -598,11 +614,9 @@ sub _get_ace_variance {
     my (%diff, %cov);
     foreach my $i (sort {$a <=> $b} keys %$freq_counts) {
         $diff{$i} = $self->_get_ace_differential (%args, f => $i);
-#say "diff $i = $diff{$i}";
         foreach my $j (sort {$a <=> $b} keys %$freq_counts) {
             $cov{$i}{$j} = $cov{$j}{$i}
               // $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-#say "cov $i,$j = $cov{$i}{$j}";
         }
     }
 
@@ -793,7 +807,6 @@ sub _get_ace_differential {
     no autovivification;
 
     my $cv_rare_h   = $args{cv};
-    my $freq_counts = $args{freq_counts};
     my $n_rare      = $args{n_rare};
     my $c_rare      = $args{C_rare};  #  get from gamma calcs
     my $D_rare      = $args{S_rare};  #  richness of labels with sample counts < $k
@@ -804,17 +817,16 @@ sub _get_ace_differential {
 
     $n_rare //=
         sum
-        map  {$_ * $freq_counts->{$_}}
+        map  {$_ * $F->{$_}}
         grep {$_ < $k}
-        keys %$freq_counts;
+        keys %$F;
 
     my $si = sum map {$_ * ($_-1) * ($F->{$_} // 0)} @u;
 
-    my ($f1, $f2) = @$F{1,2};
+    my $f1 = $F->{1};
+    my $d;
 
-    my $d = 1;
-
-    if ($cv_rare_h   != 0) {
+    if ($cv_rare_h != 0) {
         if ($f == 1) {
             $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
                  / (1 - $f1/$n_rare)**2
@@ -855,11 +867,11 @@ sub _get_ace_differential {
     else {
         if ($f == 1) {
             $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2 
+               / (1 - $f1 / $n_rare)**2;
         }
-        elsif ($f == 2) {
+        else {
             $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2
+               / (1 - $f1 / $n_rare)**2;
         }
     }
 
@@ -867,11 +879,10 @@ sub _get_ace_differential {
 }
 
 
-sub _calc_ace_confidence_intervals {
-    
-my $self = shift;
+sub _calc_ace_confidence_intervals {    
+    my $self = shift;
     my %args = @_;
-    
+
     my $estimate = $args{s_estimate};
     my $richness = $args{richness};
     my $variance = $args{variance};

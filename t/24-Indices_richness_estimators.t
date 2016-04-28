@@ -78,7 +78,7 @@ sub test_indices_1col {
     $bd->delete_groups (groups => \@nbr_set2);
     
     my $results_overlay2 = {
-        CHAO1          => '15.5555555555556',
+        CHAO1_ESTIMATE => '15.5555555555556',
         CHAO1_CI_LOWER => '8.93051',
         CHAO1_CI_UPPER => '69.349636',
         CHAO1_F1_COUNT => 4,
@@ -91,7 +91,7 @@ sub test_indices_1col {
         CHAO1_UNDETECTED => '7.55555555555556',
         CHAO1_VARIANCE   => 121.728395,
         CHAO1_SE         => 11.033059,
-        CHAO2            => 8,
+        CHAO2_ESTIMATE   => 8,
         CHAO2_CI_LOWER   => undef,
         CHAO2_CI_UPPER   => undef,
         CHAO2_META       => {
@@ -143,7 +143,7 @@ sub test_chao1_F2_no_F1 {
     }
     
     my $results2 = {
-        CHAO1            => 26,        CHAO1_SE         => 0.8749986,
+        CHAO1_ESTIMATE   => 26,        CHAO1_SE         => 0.8749986,
         CHAO1_F1_COUNT   => 0,         CHAO1_F2_COUNT   => 5,
         CHAO1_UNDETECTED => 0,         CHAO1_VARIANCE   => 0.7656226,
         CHAO1_CI_LOWER   => 26,        CHAO1_CI_UPPER   => 28.680536,
@@ -183,7 +183,7 @@ sub test_chao1_F1_no_F2 {
     }
 
     my $results2 = {
-        CHAO1            => 31.986014, CHAO1_SE         => 7.264041,
+        CHAO1_ESTIMATE   => 31.986014, CHAO1_SE         => 7.264041,
         CHAO1_F1_COUNT   => 4,         CHAO1_F2_COUNT   => 0,
         CHAO1_UNDETECTED => 5.986014,  CHAO1_VARIANCE   => 52.766285,
         CHAO1_CI_LOWER   => 26.927382, CHAO1_CI_UPPER  => 64.638212,
@@ -224,7 +224,7 @@ sub test_chao1_no_F1_no_F2 {
     }
 
     my $results2 = {
-        CHAO1            => 26,        CHAO1_SE         => 0.43544849,
+        CHAO1_ESTIMATE   => 26,        CHAO1_SE         => 0.43544849,
         CHAO1_F1_COUNT   => 0,         CHAO1_F2_COUNT   => 0,
         CHAO1_UNDETECTED => 0,         CHAO1_VARIANCE   => 0.1896153894,
         CHAO1_CI_LOWER   => 26,        CHAO1_CI_UPPER   => 27.060214,
@@ -266,7 +266,7 @@ sub test_chao2_Q2_no_Q1 {
     }
 
     my $results2 = {
-        CHAO2            => 26,        CHAO2_SE         => 0.629523,
+        CHAO2_ESTIMATE   => 26,        CHAO2_SE         => 0.629523,
         CHAO2_Q1_COUNT   => 0,         CHAO2_Q2_COUNT   => 8,
         CHAO2_UNDETECTED => 0,         CHAO2_VARIANCE   => 0.396299,
         CHAO2_CI_LOWER   => 26.030051, CHAO2_CI_UPPER   => 28.623668,
@@ -308,7 +308,7 @@ sub test_chao2_Q1_no_Q2 {
     }
     
     my $results2 = {
-        CHAO2            => 39.636364, CHAO2_SE         => 12.525204,
+        CHAO2_ESTIMATE   => 39.636364, CHAO2_SE         => 12.525204,
         CHAO2_Q1_COUNT   => 6,         CHAO2_Q2_COUNT   => 0,
         CHAO2_UNDETECTED => 13.636364, CHAO2_VARIANCE   => 156.880734,
         CHAO2_CI_LOWER   => 28.943958, CHAO2_CI_UPPER   => 89.163404,
@@ -351,7 +351,7 @@ sub test_chao2_no_Q1_no_Q2 {
     }
     
     my $results2 = {
-        CHAO2            => 26,        CHAO2_SE         => 0.3696727,
+        CHAO2_ESTIMATE   => 26,        CHAO2_SE         => 0.3696727,
         CHAO2_Q1_COUNT   => 0,         CHAO2_Q2_COUNT   => 0,
         CHAO2_UNDETECTED => 0,         CHAO2_VARIANCE   => 0.1366579,
         CHAO2_CI_LOWER   => 26,        CHAO2_CI_UPPER   => 26.910731,
@@ -385,7 +385,7 @@ sub test_ACE {
     my $bd = shift->clone;
 
     my $results2 = {
-        ACE_SCORE    => 28.459957,
+        ACE_ESTIMATE    => 28.459957,
         ACE_SE       => 2.457292,
         ACE_VARIANCE => 6.03828211669945,
         ACE_CI_LOWER => 26.4817368287846,
@@ -424,7 +424,7 @@ sub test_ACE_no_rares {
     }
 
     my $results2 = {
-        ACE_SCORE    => 26,
+        ACE_ESTIMATE    => 26,
         ACE_SE       => 0.002129,
         ACE_VARIANCE => 5e-006,
         ACE_CI_LOWER => 26,
@@ -463,7 +463,7 @@ sub test_ACE_no_singletons {
     }
 
     my $results2 = {
-        ACE_SCORE    => 26,
+        ACE_ESTIMATE    => 26,
         ACE_SE       => 0.874999,
         ACE_VARIANCE => 0.765623,
         ACE_CI_LOWER => 26,
@@ -561,14 +561,14 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   ACE_SCORE    => '28.459957',
+{   ACE_ESTIMATE    => '28.459957',
     ACE_SE       => 2.457292,
     ACE_VARIANCE => 6.038282,
     ACE_CI_LOWER => 26.481737,
     ACE_CI_UPPER => 38.561607,
     ACE_UNDETECTED => 2.459957,
     ACE_INFREQUENT_COUNT => 19,
-    CHAO1          => '27.5951367781155',
+    CHAO1_ESTIMATE => '27.5951367781155',
     CHAO1_CI_LOWER => '26.216312',
     CHAO1_CI_UPPER => '37.762927',
     CHAO1_F1_COUNT => 4,
@@ -581,7 +581,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO1_UNDETECTED => '1.5951367781155',
     CHAO1_VARIANCE   => '4.64849',
     CHAO1_SE         => '2.156036',
-    CHAO2            => '28.0454545454545',
+    CHAO2_ESTIMATE   => '28.0454545454545',
     CHAO2_CI_LOWER   => '26.34508',
     CHAO2_CI_UPPER   => '38.124387',
     CHAO2_META       => {
@@ -594,19 +594,19 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_UNDETECTED => '2.04545454545455',
     CHAO2_VARIANCE   => '5.35769628099174',
     CHAO2_SE         => '2.31467',
-    ICE_SCORE        => '29.606691'
+    ICE_ESTIMATE        => '29.606691'
 }
 
 
 @@ RESULTS_1_NBR_LISTS
-{   ACE_SCORE      => '11.711885',
+{   ACE_ESTIMATE      => '11.711885',
     ACE_SE => -1,
     ACE_VARIANCE => -1,
     ACE_CI_LOWER => -1,
     ACE_CI_UPPER => -1,
     ACE_UNDETECTED => -1,
     ACE_INFREQUENT_COUNT => -1,
-    CHAO1          => '15.5555555555556',
+    CHAO1_ESTIMATE => '15.5555555555556',
     CHAO1_CI_LOWER => '8.93051',
     CHAO1_CI_UPPER => '69.349636',
     CHAO1_F1_COUNT => 4,
@@ -619,7 +619,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO1_UNDETECTED => '7.55555555555556',
     CHAO1_VARIANCE   => 121.728395,
     CHAO1_SE         => 11.033059,
-    CHAO2            => 8,
+    CHAO2_ESTIMATE   => 8,
     CHAO2_CI_LOWER   => undef,
     CHAO2_CI_UPPER   => undef,
     CHAO2_META       => {
@@ -632,7 +632,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_UNDETECTED => 0,
     CHAO2_VARIANCE   => 0,
     CHAO2_SE         => 0,
-    ICE_SCORE        => undef
+    ICE_ESTIMATE        => undef
 }
 
 

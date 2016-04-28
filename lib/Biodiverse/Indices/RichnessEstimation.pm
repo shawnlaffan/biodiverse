@@ -25,7 +25,7 @@ sub get_metadata_calc_chao1 {
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
-            CHAO1              => {
+            CHAO1_ESTIMATE  => {
                 description => 'Chao1 index',
                 reference   => 'NEEDED',
                 formula     => [],
@@ -159,7 +159,7 @@ sub calc_chao1 {
     };
 
     my %results = (
-        CHAO1          => $chao,
+        CHAO1_ESTIMATE => $chao,
         CHAO1_F1_COUNT => $f1,
         CHAO1_F2_COUNT => $f2,
         CHAO1_SE       => sqrt ($variance),
@@ -182,7 +182,7 @@ sub get_metadata_calc_chao2 {
         pre_calc        => 'calc_abc2',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
-            CHAO2              => {
+            CHAO2_ESTIMATE  => {
                 description => 'Chao2 index',
                 reference   => 'NEEDED',
                 formula     => [],
@@ -315,7 +315,7 @@ sub calc_chao2 {
     };
 
     my %results = (
-        CHAO2          => $chao,
+        CHAO2_ESTIMATE => $chao,
         CHAO2_Q1_COUNT => $Q1,
         CHAO2_Q2_COUNT => $Q2,
         CHAO2_VARIANCE => $variance,
@@ -389,7 +389,7 @@ sub get_metadata_calc_ace {
         uses_nbr_lists  => 1,  #  how many lists it must have
         reference       => 'needed',
         indices         => {
-            ACE_SCORE => {
+            ACE_ESTIMATE => {
                 description => 'ACE score',
                 formula     => [],
             },
@@ -457,24 +457,20 @@ sub calc_ace {
 
     #  if no rares or no singletons then use Chao1 or Chao2 as they handle such cases
     if (!$n_rare || !$f_rare{1}) {
-        my $pfx = 'ACE';
         my %results = (
             ACE_INFREQUENT_COUNT => 0,
         );
         my $tmp_results;
+        my $pfx = 'ACE';
         if ($calc_ice) {
             $tmp_results = $self->calc_chao2(%args);
             $pfx = 'ICE';
-            $results{ICE_SCORE} = $tmp_results->{CHAO2};
         }
         else {
             $tmp_results = $self->calc_chao1(%args);
-            $results{ACE_SCORE} = $tmp_results->{CHAO1};
         }
         foreach my $key (keys %$tmp_results) {
-            next if $key =~ /META/;
-            next if $key =~ /F[12]_COUNT$/;
-            next if $key =~ /^CHAO\d$/;
+            next if $key =~ /(?:META|F[12]_COUNT)$/;
             my $new_key = $key;
             $new_key =~ s/^CHAO\d/$pfx/;
             $results{$new_key} = $tmp_results->{$key};
@@ -549,7 +545,7 @@ sub calc_ace {
     );
 
     my %results = (
-        ACE_SCORE => $S_ace,
+        ACE_ESTIMATE => $S_ace,
         ACE_SE    => $se,
         ACE_UNDETECTED => $S_ace - $richness,
         ACE_VARIANCE   => $variance,
@@ -570,7 +566,7 @@ sub get_metadata_calc_ice {
         pre_calc        => [qw /calc_abc2 calc_elements_used/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
-            ICE_SCORE => {
+            ICE_ESTIMATE => {
                 description => 'ICE score',
                 reference   => 'NEEDED',
                 formula     => [],
@@ -596,7 +592,7 @@ sub calc_ice {
 
 #  for testing only
 %results = (
-    ICE_SCORE => $tmp_results->{ACE_SCORE},
+    ICE_ESTIMATE => $tmp_results->{ACE_ESTIMATE},
 );
 
     return wantarray ? %results : \%results;
@@ -818,7 +814,7 @@ sub _get_ace_differential {
     $n_rare //=
         sum
         map  {$_ * $F->{$_}}
-        grep {$_ < $k}
+        grep {$_ <= $k}
         keys %$F;
 
     my $si = sum map {$_ * ($_-1) * ($F->{$_} // 0)} @u;

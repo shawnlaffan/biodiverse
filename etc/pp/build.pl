@@ -60,7 +60,7 @@ my $using_64_bit = $bits == 64;
 my $script_fullname = Path::Class::file($script)->absolute;
 
 my $output_binary = basename ($script_fullname, '.pl', qr/\.[^.]*$/);
-$output_binary .= "_x$bits";
+#$output_binary .= "_x$bits";
 
 
 if (!-d $out_folder) {

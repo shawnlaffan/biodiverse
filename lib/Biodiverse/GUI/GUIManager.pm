@@ -105,7 +105,7 @@ sub get_gtk_ui_path {
 
 sub get_gtk_ui_file {
     my ($self, $file) = @_;
-    return Path::Class::file($self->{gtk_ui_path}, $file)->stringify();
+    return Path::Class::file($self->get_gtk_ui_path, $file)->stringify();
 }
 
 # TODO: Temporary for conversion

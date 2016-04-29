@@ -68,12 +68,9 @@ if (!-d $out_folder) {
 }
 
 
-#my @links;  #  seems not to work properly
+my @links;
 
 if ($OSNAME eq 'MSWin32') {
-    
-    #  needed for Windows exes
-    my $lib_expat = $using_64_bit  ? 'libexpat-1__.dll' : 'libexpat-1_.dll';
 
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
@@ -84,11 +81,10 @@ if ($OSNAME eq 'MSWin32') {
         my $fbase  = Path::Class::file ($fname)->basename;
         my $target = Path::Class::file ($out_folder, $fbase)->stringify;
 
-        copy ($source, $target) or die "Copy of $source to $target failed: $!";
-        say "Copied $source to $target";
+        #copy ($source, $target) or die "Copy of $source to $target failed: $!";
+        #say "Copied $source to $target";
         
-        #  does not really work
-        #push @links, '--lib', $source;
+        push @links, '--link', $source;
     }
 
     $output_binary .= '.exe';
@@ -121,7 +117,7 @@ my @cmd = (
     @ui_arg,
     @icon_file_arg,
     $execute,
-    #@links,
+    @links,
     @rest_of_pp_args,
     '-o',
     $output_binary_fullpath,
@@ -152,7 +148,7 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
 sub get_dll_list {
     my $folder = shift;
 
-    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 includes them now
+    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 onwards includes them
     my @dll_pfx = qw /
         libeay   libexpat libgif   libiconv
         libjpeg  liblzma  libpng   libpq 

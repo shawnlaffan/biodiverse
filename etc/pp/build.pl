@@ -95,11 +95,11 @@ if ($OSNAME eq 'MSWin32') {
 }
 
 
-#  clunky - should hunt for glade use in script?  
-my @glade_arg = ();
+#  clunky - should hunt for Gtk2 use in script?  
+my @ui_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
-    my $glade_folder = Path::Class::dir ($bin_folder, 'glade')->absolute;
-    @glade_arg = ('-a', "$glade_folder;glade");
+    my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
+    @ui_arg = ('-a', "$ui_dir;ui");
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -118,7 +118,7 @@ my @cmd = (
     '-B',
     '-z',
     9,
-    @glade_arg,
+    @ui_arg,
     @icon_file_arg,
     $execute,
     #@links,

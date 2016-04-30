@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 use strict;
 use warnings;
 use 5.016;
@@ -652,7 +650,7 @@ sub test_ACE_only_singletons {
         ACE_CI_LOWER => undef,
         ACE_CI_UPPER => undef,
         ACE_UNDETECTED => undef,
-        ACE_INFREQUENT_COUNT => 8,  #  trigger failure
+        ACE_INFREQUENT_COUNT => 8,
     };
 
     my %expected_results = (2 => $results2);
@@ -668,6 +666,122 @@ sub test_ACE_only_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_only_singletons',
+    );
+
+    return;    
+}
+
+sub test_ACE_empty_group {
+    my $bd = shift->clone;
+
+    #  empty $focal_gp
+    foreach my $label ($bd->get_labels_in_group(group => $focal_gp)) {
+        $bd->delete_sub_element (group => $focal_gp, label => $label);
+    }
+    $bd->add_element (group => $focal_gp, count => 0);
+
+    my $results2 = {
+        ACE_ESTIMATE => 0,
+        ACE_SE       => undef,
+        ACE_VARIANCE => undef,
+        ACE_CI_LOWER => undef,
+        ACE_CI_UPPER => undef,
+        ACE_UNDETECTED => undef,
+        ACE_INFREQUENT_COUNT => 0,  #  trigger failure
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => [],
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE_empty_group',
+    );
+
+    return;    
+}
+
+sub test_ICE_all_groups_empty {
+    my $bd = shift->clone;
+
+    foreach my $group ($bd->get_groups ) {
+        $bd->delete_group (group => $group);
+        $bd->add_element (group => $group, count => 0);
+    }
+
+    my $results2 = {
+        ICE_ESTIMATE => 0,
+        ICE_SE       => undef,
+        ICE_VARIANCE => undef,
+        ICE_CI_LOWER => undef,
+        ICE_CI_UPPER => undef,
+        ICE_UNDETECTED => undef,
+        ICE_INFREQUENT_COUNT => 0,
+        EL_COUNT_NONEMPTY_ALL => 0,
+        EL_COUNT_NONEMPTY_SET1 => 0,
+        EL_COUNT_NONEMPTY_SET2 => 0,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+            calc_nonempty_elements_used
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE_all_groups_empty',
+    );
+
+    return;    
+}
+
+
+sub test_ICE_additional_empty_group {
+    my $bd = shift->clone;
+
+    my $extra_gp_name = 'extra empty group';
+    $bd->add_element (group => $extra_gp_name, count => 0);
+
+    my $results2 = {
+        ICE_ESTIMATE    => 29.606691,
+        ICE_SE          => 3.130841,
+        ICE_VARIANCE    => 9.8021639498,
+        ICE_CI_LOWER    => 26.83023165,
+        ICE_CI_UPPER    => 41.668186,
+        ICE_UNDETECTED  => 3.606691,
+        ICE_INFREQUENT_COUNT => 24,
+        EL_COUNT_NONEMPTY_ALL => 11,
+        EL_COUNT_NONEMPTY_SET1 => 1,
+        EL_COUNT_NONEMPTY_SET2 => 10,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+            calc_nonempty_elements_used
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => [@nbr_set2, $extra_gp_name],
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE_additional_empty_group',
     );
 
     return;    

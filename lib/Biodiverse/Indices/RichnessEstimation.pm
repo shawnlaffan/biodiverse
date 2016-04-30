@@ -15,7 +15,6 @@ my $metadata_class = 'Biodiverse::Metadata::Indices';
 use Readonly;
 
 Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
-#Readonly my $z_for_ci => 1.96;       #  should increase precision at some point
 
 sub get_metadata_calc_chao1 {
     my %metadata = (
@@ -436,7 +435,7 @@ sub calc_ace {
     #  Only the gamma differs between the two
     #  (apart from the inputs)
     my $calc_ice = $args{calc_ice};
-    my $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
+    my $t = $args{EL_COUNT_NONEMPTY_ALL};
 
     my %f_rare;
     my $S_abundants = 0;
@@ -464,7 +463,7 @@ sub calc_ace {
     #  single sample loc for ICE 
     #  or ACE and all samples are singletons
     #  or no labels
-    if (!$richness || ($calc_ice && $t == 1) || (($f_rare{1} // 0) == $richness)) {
+    if (!$richness || ($calc_ice && $t <= 1) || (($f_rare{1} // 0) == $richness)) {
         my %results;
         @results{keys %ace_ice_remap} = undef;
         $results{ACE_INFREQUENT_COUNT} = $S_rare;
@@ -583,7 +582,7 @@ sub get_metadata_calc_ice {
         description     => 'Incidence Coverage-based Estimator of species richness',
         name            => 'ICE',
         type            => 'Richness estimators',
-        pre_calc        => [qw /calc_abc2 calc_elements_used/],
+        pre_calc        => [qw /calc_abc2 calc_nonempty_elements_used/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             ICE_ESTIMATE => {

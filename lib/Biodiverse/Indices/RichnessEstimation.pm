@@ -417,6 +417,16 @@ sub get_metadata_calc_ace {
 }
 
 
+my %ace_ice_remap = (
+    ACE_ESTIMATE   => 'ICE_ESTIMATE',
+    ACE_SE         => 'ICE_SE',
+    ACE_VARIANCE   => 'ICE_VARIANCE',
+    ACE_CI_UPPER   => 'ICE_CI_UPPER',
+    ACE_CI_LOWER   => 'ICE_CI_LOWER',
+    ACE_UNDETECTED => 'ICE_UNDETECTED',
+    ACE_INFREQUENT_COUNT => 'ICE_INFREQUENT_COUNT',
+);
+
 sub calc_ace {
     my $self = shift;
     my %args = @_;
@@ -426,6 +436,7 @@ sub calc_ace {
     #  Only the gamma differs between the two
     #  (apart from the inputs)
     my $calc_ice = $args{calc_ice};
+    my $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
 
     my %f_rare;
     my $S_abundants = 0;
@@ -450,10 +461,21 @@ sub calc_ace {
         }
     }
 
+    #  single sample loc for ICE 
+    #  or ACE and all samples are singletons
+    #  or no labels
+    if (!$richness || ($calc_ice && $t == 1) || (($f_rare{1} // 0) == $richness)) {
+        my %results;
+        @results{keys %ace_ice_remap} = undef;
+        $results{ACE_INFREQUENT_COUNT} = $S_rare;
+        $results{ACE_ESTIMATE} = $richness;
+        return wantarray ? %results : \%results;
+    }
+
     #  if no rares or no singletons then use Chao1 or Chao2 as they handle such cases
     if (!$n_rare || !$f_rare{1}) {
         my %results = (
-            ACE_INFREQUENT_COUNT => 0,
+            ACE_INFREQUENT_COUNT => $S_rare,
         );
         my $tmp_results;
         my $pfx = 'ACE';
@@ -465,7 +487,7 @@ sub calc_ace {
             $tmp_results = $self->calc_chao1(%args);
         }
         foreach my $key (keys %$tmp_results) {
-            next if $key =~ /(?:META|F[12]_COUNT)$/;
+            next if $key =~ /(?:META|[QF][12]_COUNT)$/;
             my $new_key = $key;
             $new_key =~ s/^CHAO\d/$pfx/;
             $results{$new_key} = $tmp_results->{$key};
@@ -483,13 +505,12 @@ sub calc_ace {
         $a2 += $i * $f_rare{$i};
     }
 
-    my ($gamma_rare_hat_square, $t);
+    my $gamma_rare_hat_square;
     if ($calc_ice) {
         #  Correction factor for C_ace from
         #  https://github.com/AnneChao/SpadeR::SpecInciModelh.R
         #  Seems undocumented as it is not in the cited refs,
         #  but we'll use it under the assumption that Chao's code is canonical.
-        $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
         my $A = 1;
         if ($f_rare{1}) {
             if ($f_rare{2}) {
@@ -779,7 +800,7 @@ sub _get_ice_differential {
                   )
               )
               / $C_infreq**4 / $n_infreq**2 / ($n_infreq - 1)**2
-              - ( - $Q1 * $dc_infreq) / $C_infreq**2
+              - ( - $Q1 * $dc_infreq) / $C_infreq**2;
         }
     }
     else {
@@ -789,7 +810,7 @@ sub _get_ice_differential {
                 ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
                  - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
                 )
-              / ($n_infreq*(($t - 1)*$Q1 + 2 * $Q2))**2
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
         }
         elsif ($q == 2) {
             $dc_infreq
@@ -797,13 +818,13 @@ sub _get_ice_differential {
                 ( -1 * ($t - 1) * $Q1**2 *
                   (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
                 )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
         }
         else {
             $dc_infreq
              =  -1 *
                 ( -1 * ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
-              / ($n_infreq*(($t - 1)*$Q1 + 2 * $Q2))**2
+              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
         }
         $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2;
     }

@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use 5.016;
 
 local $| = 1;
 
@@ -67,6 +68,7 @@ sub test_indices {
         element_list1      => [$focal_gp],
         element_list2      => \@nbr_set2,
         descr_suffix       => 'main tests',
+        #generate_result_sets => 1,
     );
 
     return;
@@ -412,6 +414,118 @@ sub test_ICE {
     return;    
 }
 
+sub test_ICE_no_singletons {
+    my $bd = shift->clone;
+
+    #  need to ensure there are no uniques - make them all occur everywhere
+    foreach my $label ($bd->get_labels) {
+        if ($bd->get_range(element => $label) == 1) {
+            foreach my $group ($bd->get_groups) {
+                $bd->add_element (group => $group, label => $label);
+            }
+        }
+    }
+
+    my $results2 = {
+        ICE_ESTIMATE    => 26,
+        ICE_SE          => 0.6295226,
+        ICE_VARIANCE    => 0.3962987,
+        ICE_CI_LOWER    => 26.0300513322865,
+        ICE_CI_UPPER    => 28.623668086166,
+        ICE_UNDETECTED  => 0,
+        ICE_INFREQUENT_COUNT => 18,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE_no_singletons',
+    );
+
+    return;    
+}
+
+sub test_ICE_one_group {
+    my $bd = shift->clone;
+
+    my $results2 = {
+        ICE_ESTIMATE    => 8,
+        ICE_SE          => undef,
+        ICE_VARIANCE    => undef,
+        ICE_CI_LOWER    => undef,
+        ICE_CI_UPPER    => undef,
+        ICE_UNDETECTED  => undef,
+        ICE_INFREQUENT_COUNT => 8,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => [],
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE_one_group',
+    );
+
+    return;    
+}
+
+#  should match the chao2 estimate in this case
+sub test_ICE_no_infrequents {
+    my $bd = shift->clone;
+
+    foreach my $label ($bd->get_labels) {
+        my $range = $bd->get_range(element => $label);
+        if ($range && $range <= 10) {
+            foreach my $group ($bd->get_groups) {
+                $bd->add_element (group => $group, label => $label);
+            }
+        }
+    }
+
+    my $results2 = {
+        ICE_ESTIMATE    => 26,
+        ICE_SE          => 0.020789,
+        ICE_VARIANCE    => 0.000432,
+        ICE_CI_LOWER    => 26,
+        ICE_CI_UPPER    => 26.04118,
+        ICE_UNDETECTED  => 0,
+        ICE_INFREQUENT_COUNT => 0,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE_no_infrequents',
+    );
+
+    return;    
+}
+
 
 sub test_ACE {
     my $bd = shift->clone;
@@ -457,11 +571,11 @@ sub test_ACE_no_rares {
 
     my $results2 = {
         ACE_ESTIMATE    => 26,
-        ACE_SE       => 0.002129,
-        ACE_VARIANCE => 5e-006,
-        ACE_CI_LOWER => 26,
-        ACE_CI_UPPER => 26.004177,
-        ACE_UNDETECTED => 0,
+        ACE_SE          => 0.002129,
+        ACE_VARIANCE    => 5e-006,
+        ACE_CI_LOWER    => 26,
+        ACE_CI_UPPER    => 26.004177,
+        ACE_UNDETECTED  => 0,
         ACE_INFREQUENT_COUNT => 0,
     };
 
@@ -501,7 +615,7 @@ sub test_ACE_no_singletons {
         ACE_CI_LOWER => 26,
         ACE_CI_UPPER => 28.680536,
         ACE_UNDETECTED => 0,
-        ACE_INFREQUENT_COUNT => 0,
+        ACE_INFREQUENT_COUNT => 15,
     };
 
     my %expected_results = (2 => $results2);
@@ -517,6 +631,43 @@ sub test_ACE_no_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_no_singletons',
+    );
+
+    return;    
+}
+
+sub test_ACE_only_singletons {
+    my $bd = shift->clone;
+
+    #  need to ensure there are only singletons in $focal_gp
+    foreach my $label ($bd->get_labels_in_group(group => $focal_gp)) {
+        $bd->delete_sub_element (group => $focal_gp, label => $label);
+        $bd->add_element (group => $focal_gp, label => $label, count => 1);
+    }
+
+    my $results2 = {
+        ACE_ESTIMATE => 8,
+        ACE_SE       => undef,
+        ACE_VARIANCE => undef,
+        ACE_CI_LOWER => undef,
+        ACE_CI_UPPER => undef,
+        ACE_UNDETECTED => undef,
+        ACE_INFREQUENT_COUNT => 8,  #  trigger failure
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => [],
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE_only_singletons',
     );
 
     return;    
@@ -593,90 +744,90 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   ACE_ESTIMATE    => '28.459957',
-    ACE_SE       => 2.457292,
-    ACE_VARIANCE => 6.038282,
-    ACE_CI_LOWER => 26.481737,
-    ACE_CI_UPPER => 38.561607,
-    ACE_UNDETECTED => 2.459957,
+{   ACE_CI_LOWER         => '26.4817368225888',
+    ACE_CI_UPPER         => '38.5616065911166',
+    ACE_ESTIMATE         => '28.4599570008062',
     ACE_INFREQUENT_COUNT => 19,
-    CHAO1_ESTIMATE => '27.5951367781155',
-    CHAO1_CI_LOWER => '26.216312',
-    CHAO1_CI_UPPER => '37.762927',
-    CHAO1_F1_COUNT => 4,
-    CHAO1_F2_COUNT => 5,
-    CHAO1_META     => {
+    ACE_SE               => '2.4572916222336',
+    ACE_UNDETECTED       => '2.45995700080623',
+    ACE_VARIANCE         => '6.03828211669945',
+    CHAO1_CI_LOWER       => '26.2163119159043',
+    CHAO1_CI_UPPER       => '37.7629272999573',
+    CHAO1_ESTIMATE       => '27.5951367781155',
+    CHAO1_F1_COUNT       => 4,
+    CHAO1_F2_COUNT       => 5,
+    CHAO1_META           => {
         CHAO_FORMULA     => 2,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 6
     },
+    CHAO1_SE         => '2.15603580378238',
     CHAO1_UNDETECTED => '1.5951367781155',
-    CHAO1_VARIANCE   => '4.64849',
-    CHAO1_SE         => '2.156036',
+    CHAO1_VARIANCE   => '4.64849038719155',
+    CHAO2_CI_LOWER   => '26.3450800735193',
+    CHAO2_CI_UPPER   => '38.1243868266594',
     CHAO2_ESTIMATE   => '28.0454545454545',
-    CHAO2_CI_LOWER   => '26.34508',
-    CHAO2_CI_UPPER   => '38.124387',
     CHAO2_META       => {
         CHAO_FORMULA     => 4,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 10
     },
-    CHAO2_Q1_COUNT   => 6,
-    CHAO2_Q2_COUNT   => 8,
-    CHAO2_UNDETECTED => '2.04545454545455',
-    CHAO2_VARIANCE   => '5.35769628099174',
-    CHAO2_SE         => '2.31467',
-    ICE_ESTIMATE        => '29.606691',
-            ICE_SE => undef,
-            ICE_VARIANCE => undef,
-            ICE_CI_UPPER => undef,
-            ICE_CI_LOWER => undef,
-            ICE_UNDETECTED  => undef,
-            ICE_INFREQUENT_COUNT => undef,
+    CHAO2_Q1_COUNT       => 6,
+    CHAO2_Q2_COUNT       => 8,
+    CHAO2_SE             => '2.31466979955927',
+    CHAO2_UNDETECTED     => '2.04545454545455',
+    CHAO2_VARIANCE       => '5.35769628099174',
+    ICE_CI_LOWER         => '26.8302316060467',
+    ICE_CI_UPPER         => '41.6681855466098',
+    ICE_ESTIMATE         => '29.6066913993576',
+    ICE_INFREQUENT_COUNT => 24,
+    ICE_SE               => '3.13084077363682',
+    ICE_UNDETECTED       => '3.60669139935755',
+    ICE_VARIANCE         => '9.80216394986679'
 }
 
 
 @@ RESULTS_1_NBR_LISTS
-{   ACE_ESTIMATE      => '11.711885',
-    ACE_SE => -1,
-    ACE_VARIANCE => -1,
-    ACE_CI_LOWER => -1,
-    ACE_CI_UPPER => -1,
-    ACE_UNDETECTED => -1,
-    ACE_INFREQUENT_COUNT => -1,
-    CHAO1_ESTIMATE => '15.5555555555556',
-    CHAO1_CI_LOWER => '8.93051',
-    CHAO1_CI_UPPER => '69.349636',
-    CHAO1_F1_COUNT => 4,
-    CHAO1_F2_COUNT => 1,
-    CHAO1_META     => {
+{   ACE_CI_LOWER         => '8.5996888836216',
+    ACE_CI_UPPER         => '30.9753940794084',
+    ACE_ESTIMATE         => '11.7118847539016',
+    ACE_INFREQUENT_COUNT => 8,
+    ACE_SE               => '4.35262370708667',
+    ACE_UNDETECTED       => '3.71188475390156',
+    ACE_VARIANCE         => '18.9453331354929',
+    CHAO1_CI_LOWER       => '8.93050951620995',
+    CHAO1_CI_UPPER       => '69.3496356121155',
+    CHAO1_ESTIMATE       => '15.5555555555556',
+    CHAO1_F1_COUNT       => 4,
+    CHAO1_F2_COUNT       => 1,
+    CHAO1_META           => {
         CHAO_FORMULA     => 2,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 6
     },
+    CHAO1_SE         => '11.0330591887168',
     CHAO1_UNDETECTED => '7.55555555555556',
-    CHAO1_VARIANCE   => 121.728395,
-    CHAO1_SE         => 11.033059,
-    CHAO2_ESTIMATE   => 8,
+    CHAO1_VARIANCE   => '121.728395061728',
     CHAO2_CI_LOWER   => undef,
     CHAO2_CI_UPPER   => undef,
+    CHAO2_ESTIMATE   => 8,
     CHAO2_META       => {
         CHAO_FORMULA     => 4,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 11
     },
-    CHAO2_Q1_COUNT   => 8,
-    CHAO2_Q2_COUNT   => 0,
-    CHAO2_UNDETECTED => 0,
-    CHAO2_VARIANCE   => 0,
-    CHAO2_SE         => 0,
-            ICE_ESTIMATE => undef,
-            ICE_SE => undef,
-            ICE_VARIANCE => undef,
-            ICE_CI_UPPER => undef,
-            ICE_CI_LOWER => undef,
-            ICE_UNDETECTED  => undef,
-            ICE_INFREQUENT_COUNT => undef,
+    CHAO2_Q1_COUNT       => 8,
+    CHAO2_Q2_COUNT       => 0,
+    CHAO2_SE             => '0',
+    CHAO2_UNDETECTED     => 0,
+    CHAO2_VARIANCE       => 0,
+    ICE_CI_LOWER         => undef,
+    ICE_CI_UPPER         => undef,
+    ICE_ESTIMATE         => 8,
+    ICE_INFREQUENT_COUNT => 8,
+    ICE_SE               => undef,
+    ICE_UNDETECTED       => undef,
+    ICE_VARIANCE         => undef
 }
 
 

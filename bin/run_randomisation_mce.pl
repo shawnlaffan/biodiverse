@@ -22,7 +22,7 @@ MCE::Loop::init {
 
 local $| = 1;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_001';
 
 use Biodiverse::Config;
 use Biodiverse::BaseData;

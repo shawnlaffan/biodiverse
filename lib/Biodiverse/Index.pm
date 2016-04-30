@@ -28,7 +28,7 @@ use List::Util;
 
 use Biodiverse::Progress;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_001';
 
 use parent qw /Biodiverse::Common/;
 

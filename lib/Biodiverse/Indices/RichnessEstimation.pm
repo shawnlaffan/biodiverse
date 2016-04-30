@@ -391,23 +391,18 @@ sub get_metadata_calc_ace {
         indices         => {
             ACE_ESTIMATE => {
                 description => 'ACE score',
-                formula     => [],
             },
             ACE_SE => {
                 description => 'ACE standard error',
-                formula     => [],
             },
             ACE_VARIANCE => {
                 description => 'ACE variance',
-                formula     => [],
             },
             ACE_CI_UPPER => {
                 description => 'ACE upper confidence interval estimate',
-                formula     => [],
             },
             ACE_CI_LOWER => {
                 description => 'ACE lower confidence interval estimate',
-                formula     => [],
             },
             ACE_UNDETECTED  => {
                 description => 'Estimated number of undetected species',
@@ -482,18 +477,19 @@ sub calc_ace {
 
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
+        no autovivification;
         next if !$f_rare{$i};
         $a1 += $i * ($i-1) * $f_rare{$i};
         $a2 += $i * $f_rare{$i};
     }
 
-    my $gamma_rare_hat_square;
+    my ($gamma_rare_hat_square, $t);
     if ($calc_ice) {
         #  Correction factor for C_ace from
         #  https://github.com/AnneChao/SpadeR::SpecInciModelh.R
         #  Seems undocumented as it is not in the cited refs,
         #  but we'll use it under the assumption that Chao's code is canonical.
-        my $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
+        $t = $args{EL_COUNT_ALL};  #  should use count of non-empty groups?
         my $A = 1;
         if ($f_rare{1}) {
             if ($f_rare{2}) {
@@ -525,7 +521,9 @@ sub calc_ace {
 
     my $cv = sqrt $gamma_rare_hat_square;
     
-    my $variance = $self->_get_ace_variance (
+    my $variance_method = $calc_ice ? '_get_ice_variance' : '_get_ace_variance';
+
+    my $variance = $self->$variance_method (
         freq_counts => \%all_freqs,
         f_rare      => \%f_rare,
         cv     => $cv,
@@ -533,6 +531,7 @@ sub calc_ace {
         C_rare => $C_ace,
         S_rare => $S_rare,
         s_estimate => $S_ace,
+        t      => $t,
     );
     my $se = sqrt $variance;
     
@@ -568,10 +567,25 @@ sub get_metadata_calc_ice {
         indices         => {
             ICE_ESTIMATE => {
                 description => 'ICE score',
-                reference   => 'NEEDED',
-                formula     => [],
             },
-            
+            ICE_SE => {
+                description => 'ICE standard error',
+            },
+            ICE_VARIANCE => {
+                description => 'ICE variance',
+            },
+            ICE_CI_UPPER => {
+                description => 'ICE upper confidence interval estimate',
+            },
+            ICE_CI_LOWER => {
+                description => 'ICE lower confidence interval estimate',
+            },
+            ICE_UNDETECTED  => {
+                description => 'Estimated number of undetected species',
+            },
+            ICE_INFREQUENT_COUNT => {
+                description => 'Count of infrequent species',
+            },            
         },
     );
 
@@ -589,11 +603,6 @@ sub calc_ice {
         $ice_key =~ s/^ACE/ICE/;
         $results{$ice_key} = $tmp_results->{$ace_key};
     };
-
-#  for testing only
-%results = (
-    ICE_ESTIMATE => $tmp_results->{ACE_ESTIMATE},
-);
 
     return wantarray ? %results : \%results;
 }
@@ -636,14 +645,22 @@ sub _get_ice_variance {
 
     my $freq_counts = $args{freq_counts};
 
+    #  precalculate the differentials and covariances
+    my (%diff, %cov);
+    foreach my $i (sort {$a <=> $b} keys %$freq_counts) {
+        $diff{$i} = $self->_get_ice_differential (%args, f => $i);
+        foreach my $j (sort {$a <=> $b} keys %$freq_counts) {
+            $cov{$i}{$j} = $cov{$j}{$i}
+              // $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+        }
+    }
+
     my $var_ice = 0;
     foreach my $i (keys %$freq_counts) {
         foreach my $j (keys %$freq_counts) {
             my $partial
-                = $self->_get_ice_differential (%args, q => $i)
-                * $self->_get_ice_differential (%args, q => $j)
-                * $self->_get_ace_ice_covf (%args, i => $i, j => $j);
-               $var_ice += $partial;
+                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
+            $var_ice += $partial;
         }
     }
 
@@ -675,17 +692,19 @@ sub _get_ice_differential {
     my $self = shift;
     my %args = @_;
     
+    no autovivification;
+    
     my $k = 10;  #  later we will make this an argument
 
-    my $q = $args{q};
+    my $q = $args{q} // $args{f};
 
     return 1 if $q > $k;
 
     my $CV_infreq_h = $args{cv};
     my $freq_counts = $args{freq_counts};
-    my $n_infreq    = $args{n_infreq};
-    my $C_infreq    = $args{C_infreq};  #  get from gamma calcs
-    my $D_infreq    = $args{D_infreq};  #  richness of labels with sample counts < $k
+    my $n_infreq    = $args{n_rare};
+    my $C_infreq    = $args{C_rare};  #  get from gamma calcs
+    my $D_infreq    = $args{S_rare};  #  richness of labels with sample counts < $k
     my $Q           = $args{f_rare};
     my $t           = $args{t};
 
@@ -697,9 +716,11 @@ sub _get_ice_differential {
         grep {$_ < $k}
         keys %$freq_counts;
 
-    my $si = sum map {$_ * ($_-1) * $Q->{$_}} @u;
+    my $si = sum map {$_ * ($_-1) * ($Q->{$_} // 0)} @u;
 
     my ($Q1, $Q2) = @$Q{1,2};
+    $Q1 //= 0;
+    $Q2 //= 0;
 
     my ($d, $dc_infreq);
 

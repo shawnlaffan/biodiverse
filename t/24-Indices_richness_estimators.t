@@ -381,6 +381,38 @@ sub test_chao2_no_Q1_no_Q2 {
 }
 
 
+sub test_ICE {
+    my $bd = shift->clone;
+
+    my $results2 = {
+        ICE_ESTIMATE    => 29.606691,
+        ICE_SE          => 3.130841,
+        ICE_VARIANCE    => 9.8021639498,
+        ICE_CI_LOWER    => 26.83023165,
+        ICE_CI_UPPER    => 41.668186,
+        ICE_UNDETECTED  => 3.606691,
+        ICE_INFREQUENT_COUNT => 24,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ice
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ICE base',
+    );
+
+    return;    
+}
+
+
 sub test_ACE {
     my $bd = shift->clone;
 
@@ -594,7 +626,13 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_UNDETECTED => '2.04545454545455',
     CHAO2_VARIANCE   => '5.35769628099174',
     CHAO2_SE         => '2.31467',
-    ICE_ESTIMATE        => '29.606691'
+    ICE_ESTIMATE        => '29.606691',
+            ICE_SE => undef,
+            ICE_VARIANCE => undef,
+            ICE_CI_UPPER => undef,
+            ICE_CI_LOWER => undef,
+            ICE_UNDETECTED  => undef,
+            ICE_INFREQUENT_COUNT => undef,
 }
 
 
@@ -632,7 +670,13 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_UNDETECTED => 0,
     CHAO2_VARIANCE   => 0,
     CHAO2_SE         => 0,
-    ICE_ESTIMATE        => undef
+            ICE_ESTIMATE => undef,
+            ICE_SE => undef,
+            ICE_VARIANCE => undef,
+            ICE_CI_UPPER => undef,
+            ICE_CI_LOWER => undef,
+            ICE_UNDETECTED  => undef,
+            ICE_INFREQUENT_COUNT => undef,
 }
 
 

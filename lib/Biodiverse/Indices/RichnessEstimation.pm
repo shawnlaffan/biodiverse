@@ -409,6 +409,10 @@ sub get_metadata_calc_ace {
             ACE_INFREQUENT_COUNT => {
                 description => 'Count of infrequent species',
             },
+            ACE_ESTIMATE_USED_CHAO => {
+                description => 'Set to 1 when ACE cannot be calculated '
+                             . 'and so Chao1 estimate is used',
+            }
         },
     );
 
@@ -424,6 +428,7 @@ my %ace_ice_remap = (
     ACE_CI_LOWER   => 'ICE_CI_LOWER',
     ACE_UNDETECTED => 'ICE_UNDETECTED',
     ACE_INFREQUENT_COUNT => 'ICE_INFREQUENT_COUNT',
+    ACE_ESTIMATE_USED_CHAO => 'ICE_ESTIMATE_USED_CHAO',
 );
 
 sub calc_ace {
@@ -431,6 +436,10 @@ sub calc_ace {
     my %args = @_;
 
     my $label_hash = $args{label_hash_all};
+
+    my %results = (
+        ACE_ESTIMATE_USED_CHAO => 0,
+    );
 
     #  Only the gamma differs between the two
     #  (apart from the inputs)
@@ -464,18 +473,17 @@ sub calc_ace {
     #  or ACE and all samples are singletons
     #  or no labels
     if (!$richness || ($calc_ice && $t <= 1) || (($f_rare{1} // 0) == $richness)) {
-        my %results;
         @results{keys %ace_ice_remap} = undef;
         $results{ACE_INFREQUENT_COUNT} = $S_rare;
         $results{ACE_ESTIMATE} = $richness;
+        $results{ACE_ESTIMATE_USED_CHAO} = 0;
         return wantarray ? %results : \%results;
     }
 
     #  if no rares or no singletons then use Chao1 or Chao2 as they handle such cases
     if (!$n_rare || !$f_rare{1}) {
-        my %results = (
-            ACE_INFREQUENT_COUNT => $S_rare,
-        );
+        $results{ACE_INFREQUENT_COUNT} = $S_rare;
+        $results{ACE_ESTIMATE_USED_CHAO} = 1;
         my $tmp_results;
         my $pfx = 'ACE';
         if ($calc_ice) {
@@ -563,7 +571,7 @@ sub calc_ace {
         label_hash  => $label_hash,
     );
 
-    my %results = (
+    my %partial_results = (
         ACE_ESTIMATE => $S_ace,
         ACE_SE    => $se,
         ACE_UNDETECTED => $S_ace - $richness,
@@ -572,6 +580,7 @@ sub calc_ace {
         ACE_CI_UPPER   => $ci_vals->{ci_upper},
         ACE_INFREQUENT_COUNT => $S_rare,
     );
+    @results{keys %partial_results} = values %partial_results;
 
     return wantarray ? %results : \%results;
 }
@@ -605,7 +614,12 @@ sub get_metadata_calc_ice {
             },
             ICE_INFREQUENT_COUNT => {
                 description => 'Count of infrequent species',
-            },            
+            },
+            ICE_ESTIMATE_USED_CHAO => {
+                description => 'Set to 1 when ICE cannot be calculated '
+                             . 'and so Chao2 estimate is used',
+            }
+
         },
     );
 

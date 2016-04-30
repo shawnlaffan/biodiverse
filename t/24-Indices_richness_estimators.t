@@ -392,6 +392,7 @@ sub test_ICE {
         ICE_CI_UPPER    => 41.668186,
         ICE_UNDETECTED  => 3.606691,
         ICE_INFREQUENT_COUNT => 24,
+        ICE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -432,6 +433,7 @@ sub test_ICE_no_singletons {
         ICE_CI_UPPER    => 28.623668086166,
         ICE_UNDETECTED  => 0,
         ICE_INFREQUENT_COUNT => 18,
+        ICE_ESTIMATE_USED_CHAO => 1,
     };
 
     my %expected_results = (2 => $results2);
@@ -463,6 +465,7 @@ sub test_ICE_one_group {
         ICE_CI_UPPER    => undef,
         ICE_UNDETECTED  => undef,
         ICE_INFREQUENT_COUNT => 8,
+        ICE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -504,6 +507,7 @@ sub test_ICE_no_infrequents {
         ICE_CI_UPPER    => 26.04118,
         ICE_UNDETECTED  => 0,
         ICE_INFREQUENT_COUNT => 0,
+        ICE_ESTIMATE_USED_CHAO => 1,
     };
 
     my %expected_results = (2 => $results2);
@@ -536,6 +540,7 @@ sub test_ACE {
         ACE_CI_UPPER => 38.561607,
         ACE_UNDETECTED => 2.459957,
         ACE_INFREQUENT_COUNT => 19,
+        ACE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -575,6 +580,7 @@ sub test_ACE_no_rares {
         ACE_CI_UPPER    => 26.004177,
         ACE_UNDETECTED  => 0,
         ACE_INFREQUENT_COUNT => 0,
+        ACE_ESTIMATE_USED_CHAO => 1,
     };
 
     my %expected_results = (2 => $results2);
@@ -614,6 +620,7 @@ sub test_ACE_no_singletons {
         ACE_CI_UPPER => 28.680536,
         ACE_UNDETECTED => 0,
         ACE_INFREQUENT_COUNT => 15,
+        ACE_ESTIMATE_USED_CHAO => 1,
     };
 
     my %expected_results = (2 => $results2);
@@ -651,6 +658,7 @@ sub test_ACE_only_singletons {
         ACE_CI_UPPER => undef,
         ACE_UNDETECTED => undef,
         ACE_INFREQUENT_COUNT => 8,
+        ACE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -687,7 +695,8 @@ sub test_ACE_empty_group {
         ACE_CI_LOWER => undef,
         ACE_CI_UPPER => undef,
         ACE_UNDETECTED => undef,
-        ACE_INFREQUENT_COUNT => 0,  #  trigger failure
+        ACE_INFREQUENT_COUNT => 0,
+        ACE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -727,6 +736,7 @@ sub test_ICE_all_groups_empty {
         EL_COUNT_NONEMPTY_ALL => 0,
         EL_COUNT_NONEMPTY_SET1 => 0,
         EL_COUNT_NONEMPTY_SET2 => 0,
+        ICE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -766,6 +776,7 @@ sub test_ICE_additional_empty_group {
         EL_COUNT_NONEMPTY_ALL => 11,
         EL_COUNT_NONEMPTY_SET1 => 1,
         EL_COUNT_NONEMPTY_SET2 => 10,
+        ICE_ESTIMATE_USED_CHAO => 0,
     };
 
     my %expected_results = (2 => $results2);
@@ -865,6 +876,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     ACE_SE               => '2.4572916222336',
     ACE_UNDETECTED       => '2.45995700080623',
     ACE_VARIANCE         => '6.03828211669945',
+    ACE_ESTIMATE_USED_CHAO => 0,
     CHAO1_CI_LOWER       => '26.2163119159043',
     CHAO1_CI_UPPER       => '37.7629272999573',
     CHAO1_ESTIMATE       => '27.5951367781155',
@@ -897,7 +909,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     ICE_INFREQUENT_COUNT => 24,
     ICE_SE               => '3.13084077363682',
     ICE_UNDETECTED       => '3.60669139935755',
-    ICE_VARIANCE         => '9.80216394986679'
+    ICE_VARIANCE         => '9.80216394986679',
+    ICE_ESTIMATE_USED_CHAO => 0,
 }
 
 
@@ -909,6 +922,7 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     ACE_SE               => '4.35262370708667',
     ACE_UNDETECTED       => '3.71188475390156',
     ACE_VARIANCE         => '18.9453331354929',
+    ACE_ESTIMATE_USED_CHAO => 0,
     CHAO1_CI_LOWER       => '8.93050951620995',
     CHAO1_CI_UPPER       => '69.3496356121155',
     CHAO1_ESTIMATE       => '15.5555555555556',
@@ -941,7 +955,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     ICE_INFREQUENT_COUNT => 8,
     ICE_SE               => undef,
     ICE_UNDETECTED       => undef,
-    ICE_VARIANCE         => undef
+    ICE_VARIANCE         => undef,
+    ICE_ESTIMATE_USED_CHAO => 0,
 }
 
 

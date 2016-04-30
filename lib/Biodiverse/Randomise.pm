@@ -1614,6 +1614,19 @@ sub swap_to_reach_richness_targets {
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
 
+    
+#  debugging
+#my %xx;
+#foreach my $lb (keys %unfilled_gps_without_label) {
+#    my $lref = $unfilled_gps_without_label{$lb};
+#    foreach my $gp (@$lref) {
+#        $xx{$gp}{$lb}++;
+#    }
+#}
+#use Test::More;
+#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
+
+
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 

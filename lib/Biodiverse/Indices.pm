@@ -38,6 +38,7 @@ use parent qw {
     Biodiverse::Indices::GroupProperties
     Biodiverse::Indices::LabelCounts
     Biodiverse::Indices::RWTurnover
+    Biodiverse::Indices::RichnessEstimation
     Biodiverse::Common
 };
 

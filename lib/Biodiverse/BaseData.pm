@@ -3186,7 +3186,7 @@ sub delete_groups {
     }
 
     foreach my $element (@$elements) {
-        $self->delete_element (type => 'GROUP', element => $element);
+        $self->delete_element (type => 'GROUPS', element => $element);
     }
 
     return;

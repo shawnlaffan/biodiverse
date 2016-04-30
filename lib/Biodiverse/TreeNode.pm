@@ -235,7 +235,7 @@ sub reset_total_length_below {
     
     my %descendents = $self->get_all_descendants;
     foreach my $child (values %descendents) {
-        $child->reset_total_length;
+        $child->reset_total_length_below;
     }
 
 }
@@ -814,7 +814,7 @@ sub get_terminal_elements {
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
     }
-    
+
     my %list;
 
     if ($self->is_terminal_node) {

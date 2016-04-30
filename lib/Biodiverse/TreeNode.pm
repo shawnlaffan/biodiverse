@@ -16,7 +16,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_001';
+our $VERSION = '1.99_002';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };

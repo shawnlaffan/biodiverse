@@ -472,7 +472,10 @@ sub calc_ace {
     #  single sample loc for ICE 
     #  or ACE and all samples are singletons
     #  or no labels
-    if (!$richness || ($calc_ice && $t <= 1) || (($f_rare{1} // 0) == $richness)) {
+    if (   !$richness
+        || ($calc_ice && $t <= 1)
+        || ($f1 == $richness)
+        ) {
         @results{keys %ace_ice_remap} = undef;
         $results{ACE_INFREQUENT_COUNT} = $S_rare;
         $results{ACE_ESTIMATE} = $richness;
@@ -480,8 +483,11 @@ sub calc_ace {
         return wantarray ? %results : \%results;
     }
 
-    #  if no rares or no singletons then use Chao1 or Chao2 as they handle such cases
-    if (!$n_rare || !$f_rare{1}) {
+    #  if no rares or no singletons or all rares are singletons
+    #  then use Chao1 or Chao2 as they handle such cases
+    #  while the ACE/ICE code does not (e.g divide by zero errors)
+    #  This is broadly consistent with EstimateS.
+    if (!$n_rare || !$f1 || $f1 == $n_rare) {
         $results{ACE_INFREQUENT_COUNT} = $S_rare;
         $results{ACE_ESTIMATE_USED_CHAO} = 1;
         my $tmp_results;
@@ -528,16 +534,17 @@ sub calc_ace {
             }
         }
         $C_ace = 1 - ($f1 / $n_rare) * (1 - $A);
-        $gamma_rare_hat_square = $t == 1
-             ? 0                   #  avoid divide by zero
+        $gamma_rare_hat_square = !$C_ace  #  avoid divide by zero
+             ? 0
              : ($S_rare / $C_ace)
                * $t  / ($t - 1)  
                * $a1 / $a2 / ($a2 - 1)
                - 1;
     }
     else {
-        $gamma_rare_hat_square
-            = ($S_rare / $C_ace)
+        $gamma_rare_hat_square = !$C_ace  #  avoid divide by zero
+            ? 0
+            : ($S_rare / $C_ace)
                * $a1 / $a2 / ($a2 - 1)
                - 1;
     }

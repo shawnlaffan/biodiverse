@@ -679,6 +679,45 @@ sub test_ACE_only_singletons {
     return;    
 }
 
+sub test_ACE_all_rares_are_singletons {
+    my $bd = shift->clone;
+
+    foreach my $label ($bd->get_labels) {
+        my $count = $bd->get_label_sample_count(element => $label);
+        if ($count > 1 && $count <= 10) {
+            $bd->add_element (group => $focal_gp, label => $label, count => 20);
+        }
+    }
+
+    my $results2 = {
+        ACE_ESTIMATE    => 31.990461,
+        ACE_SE          => 7.26915,
+        ACE_VARIANCE    => 52.840542,
+        ACE_CI_LOWER    => 26.928115,
+        ACE_CI_UPPER    => 64.665044,
+        ACE_UNDETECTED  => 5.990461,
+        ACE_INFREQUENT_COUNT => 4,
+        ACE_ESTIMATE_USED_CHAO => 1,
+    };
+
+    my %expected_results = (2 => $results2);
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_ace
+        /],
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => [$focal_gp],
+        element_list2      => \@nbr_set2,
+        expected_results   => \%expected_results,
+        skip_nbr_counts    => {1 => 1},
+        descr_suffix       => 'test_ACE_all_rares_are_singletons',
+    );
+
+    return;    
+}
+
 sub test_ACE_empty_group {
     my $bd = shift->clone;
 

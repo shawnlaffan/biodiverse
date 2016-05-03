@@ -119,7 +119,7 @@
           <object class="GtkAction" id="menuitem_labels_set_tree_line_widths">
             <property name="name">menuitem_labels_set_tree_line_widths</property>
             <property name="tooltip" translatable="yes">Set the width of the tree branches.
-                            Does not affect the vertical connectors. </property>
+Does not affect the vertical connectors. </property>
             <property name="label" translatable="yes">Set tree branch line widths</property>
           </object>
         </child>

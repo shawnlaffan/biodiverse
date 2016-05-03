@@ -159,7 +159,7 @@
           <object class="GtkAction" id="menu_basedata_reorder_axes">
             <property name="name">menu_basedata_reorder_axes</property>
             <property name="tooltip" translatable="yes">You forgot to set the correct order when importing, for example you have latitude as the x-axis, and longitude as the y-axis.
-                        This will create a new basedata with the corrected axis orders. </property>
+This will create a new basedata with the corrected axis orders. </property>
             <property name="label" translatable="yes">Duplicate with re-ordered axes</property>
             <signal handler="on_basedata_reorder_axes" name="activate"/>
           </object>
@@ -168,7 +168,7 @@
           <object class="GtkAction" id="menu_basedata_transpose">
             <property name="name">menu_basedata_transpose</property>
             <property name="tooltip" translatable="yes">Create a new basedata with the labels and groups transposed -
-                        labels become groups and groups become labels</property>
+labels become groups and groups become labels</property>
             <property name="label" translatable="yes">Transpose</property>
             <signal handler="on_transpose_basedata" name="activate"/>
           </object>
@@ -201,7 +201,7 @@
           <object class="GtkAction" id="menu_binarise_basedata_elements">
             <property name="name">menu_binarise_basedata_elements</property>
             <property name="tooltip" translatable="yes">Convert all sample counts to binary.
-                        All non-zero values will be set to 1</property>
+All non-zero values will be set to 1</property>
             <property name="label" translatable="yes">Binarise sample counts</property>
             <signal handler="on_binarise_basedata_elements" name="activate"/>
           </object>
@@ -210,9 +210,9 @@
           <object class="GtkAction" id="menu_attach_basedata_properties">
             <property name="name">menu_attach_basedata_properties</property>
             <property name="tooltip" translatable="yes">Attach properties (e.g. species traits) to the groups or labels.
-                        It will only work if your basedata has no analysis outputs,
-                        as these might have used existing properties.
-                        If that is the case then randomisations would be invalidated for those analyses.  </property>
+It will only work if your basedata has no analysis outputs,
+as these might have used existing properties.
+If that is the case then randomisations would be invalidated for those analyses.  </property>
             <property name="label" translatable="yes">Attach group or label properties</property>
             <signal handler="on_basedata_attach_properties" name="activate"/>
           </object>
@@ -221,7 +221,7 @@
           <object class="GtkAction" id="menu_attach_ranges_as_properties">
             <property name="name">menu_attach_ranges_as_properties</property>
             <property name="tooltip" translatable="yes">Attach the current label ranges as properties for each label.
-                        This is useful to maintain the overall ranges used in endemism calculations if you later delete groups using the Run Exclusions dialog.</property>
+This is useful to maintain the overall ranges used in endemism calculations if you later delete groups using the Run Exclusions dialog.</property>
             <property name="label" translatable="yes">Attach label ranges as properties</property>
             <signal handler="on_basedata_attach_ranges_as_properties" name="activate"/>
           </object>
@@ -230,7 +230,7 @@
           <object class="GtkAction" id="menu_attach_abundances_as_properties">
             <property name="name">menu_attach_abundances_as_properties</property>
             <property name="tooltip" translatable="yes">Attach the current label sample counts as abundance properties for each label.
-                        This is useful to maintain the overall abundances used in rarity calculations if you later delete groups using the Run Exclusions dialog.</property>
+This is useful to maintain the overall abundances used in rarity calculations if you later delete groups using the Run Exclusions dialog.</property>
             <property name="label" translatable="yes">Attach label abundances as properties</property>
             <signal handler="on_basedata_attach_label_abundances_as_properties" name="activate"/>
           </object>
@@ -246,7 +246,7 @@
           <object class="GtkAction" id="menu_extract_embedded_trees">
             <property name="name">menu_extract_embedded_trees</property>
             <property name="tooltip" translatable="yes">Extract any trees used as analysis args for this BaseData and add them to the project.
-                        Skips any trees already in the project.</property>
+Skips any trees already in the project.</property>
             <property name="label" translatable="yes">Extract embedded trees</property>
             <signal handler="on_basedata_extract_embedded_trees" name="activate"/>
           </object>
@@ -255,7 +255,7 @@
           <object class="GtkAction" id="menu_extract_embedded_matrices">
             <property name="name">menu_extract_embedded_matrices</property>
             <property name="tooltip" translatable="yes">Extract any matrices used as analysis args for this BaseData and add them to the project.
-                        Skips any matrices already in the project.</property>
+Skips any matrices already in the project.</property>
             <property name="label" translatable="yes">Extract embedded matrices</property>
             <signal handler="on_basedata_extract_embedded_matrices" name="activate"/>
           </object>
@@ -370,7 +370,7 @@
           <object class="GtkAction" id="convert_matrix_to_phylogeny">
             <property name="name">convert_matrix_to_phylogeny</property>
             <property name="tooltip" translatable="yes">Runs a cluster analysis using link_average linkage function.
-                        Assumes a dissimilarity matrix, so take care.</property>
+Assumes a dissimilarity matrix, so take care.</property>
             <property name="label" translatable="yes">Convert matrix to tree</property>
             <signal handler="on_convert_matrix_to_phylogeny" name="activate"/>
           </object>
@@ -471,7 +471,7 @@
           <object class="GtkAction" id="menu_range_weight_tree_branches">
             <property name="name">menu_range_weight_tree_branches</property>
             <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
-                        This can help interpret phylogenetic endemism and related analyses.  </property>
+This can help interpret phylogenetic endemism and related analyses.  </property>
             <property name="label" translatable="yes">Convert to range weighted branches</property>
             <signal handler="on_range_weight_tree" name="activate"/>
           </object>
@@ -480,7 +480,7 @@
           <object class="GtkAction" id="menu_equalise_tree_branches">
             <property name="name">menu_equalise_tree_branches</property>
             <property name="tooltip" translatable="yes">All non-zero branches will be assigned the same length.
-                        The sum of all branches will be the same as in the original tree. </property>
+The sum of all branches will be the same as in the original tree. </property>
             <property name="label" translatable="yes">Convert to equalised branch lengths</property>
             <signal handler="on_tree_equalise_branch_lengths" name="activate"/>
           </object>
@@ -489,7 +489,7 @@
           <object class="GtkAction" id="menu_rescale_tree_branches2">
             <property name="name">menu_rescale_tree_branches2</property>
             <property name="tooltip" translatable="yes">Rescale all branches by some factor.
-                        Creates a new tree.</property>
+Creates a new tree.</property>
             <property name="label" translatable="yes">Rescale branch lengths</property>
             <signal handler="on_tree_rescale_branch_lengths" name="activate"/>
           </object>
@@ -498,7 +498,7 @@
           <object class="GtkAction" id="menu_ladderise_tree">
             <property name="name">menu_ladderise_tree</property>
             <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.
-                        This cannot be undone.  </property>
+This cannot be undone.  </property>
             <property name="label" translatable="yes">Ladderise</property>
           </object>
         </child>

@@ -207,8 +207,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Set the display stretch.
-                            Uses minimum to maximum by default
-                            but you can also set percentile ranges.</property>
+Uses minimum to maximum by default
+but you can also set percentile ranges.</property>
                             <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Colour stretch</property>
                             <property name="use_underline">True</property>
@@ -302,12 +302,12 @@
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Hue will display all hues (colours) from blue to red.
 
-                            Sat will display a single colour with saturation varying from
-                            white to a maximum saturation at the selected colour.
+Sat will display a single colour with saturation varying from
+white to a maximum saturation at the selected colour.
 
-                            Grey will use grey scale.
+Grey will use grey scale.
 
-                            Colours are scaled using percentiles defined in the colour stretch menu. </property>
+Colours are scaled using percentiles defined in the colour stretch menu. </property>
                             <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Colour mode</property>
                             <property name="use_underline">True</property>
@@ -483,7 +483,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Set the width of the tree branches.
-                            Does not affect the vertical connectors.</property>
+Does not affect the vertical connectors.</property>
                             <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Set tree branch line widths</property>
                             <property name="use_underline">True</property>
@@ -599,9 +599,9 @@
                                                 <property name="can_focus">False</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">Define a second set of neighbours for use in the analyses.
-                                                A typical use is for comparative analyses like species turnover.
+A typical use is for comparative analyses like species turnover.
 
-                                                Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Neighbour set 2</property>
@@ -666,9 +666,9 @@
                                                 <property name="can_focus">False</property>
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">Use this to run the analysis for only a subset of the groups.
-                                                Note that it will still search the full data set for neighbours.
+Note that it will still search the full data set for neighbours.
 
-                                                Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Definition query</property>
@@ -704,7 +704,7 @@
                                                 <property name="has_tooltip">True</property>
                                                 <property name="tooltip_text" translatable="yes">Specify the first set of neighbours to use in the analysis.
 
-                                                Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                 <property name="xalign">0</property>
                                                 <property name="yalign">1</property>
                                                 <property name="label" translatable="yes">Neighbour set 1</property>

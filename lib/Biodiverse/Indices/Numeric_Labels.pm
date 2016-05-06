@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use 5.010;
 
-use List::Util qw /sum min/;
+use List::Util qw /sum min max/;
 #use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
@@ -497,15 +497,36 @@ sub _get_num_label_global_summary_stats {
         push @data, ($label) x $count;  # add as many as there are samples
     }
 
-    my $stats_object = $stats_package->new;
-    $stats_object->add_data (\@data);
+    #my $stats_object = $stats_package->new;
+    #$stats_object->add_data (\@data);
+    #
+    #my %stats_hash;
+    #foreach my $stat (qw /mean sum standard_deviation count/) { 
+    #    $stats_hash{$stat} = $stats_object->$stat;
+    #}
 
-    #$stats_object->sort_data;
-    
-    my %stats_hash;
-    foreach my $stat (qw /mean sum standard_deviation count/) { 
-        $stats_hash{$stat} = $stats_object->$stat;
+    my ($sumx, $sumxx, $n, $mean, $sd, $variance);
+    foreach my $label (@$labels) {
+        my $count = $lb->get_sample_count (element => $label);
+        $sumx  += $count * $label;
+        $sumxx += $count * $label**2;
+        $n     += $count;
     }
+    
+    if ($n) {
+        $mean     = $sumx / $n;
+        $variance = $sumxx - $n * $mean**2;
+        $variance /= $n - 1;  #  won't work for non-integer weights
+        $variance = max ($variance, 0);
+        $sd       = sqrt $variance;
+    }
+
+    my %stats_hash = (
+        mean  => $mean,
+        sum   => $sumx,
+        count => $n,
+        standard_deviation => $sd,
+    );
 
     my %results = (NUM_LABELS_GLOBAL_SUMMARY_STATS => \%stats_hash);
     return wantarray ? %results : \%results;

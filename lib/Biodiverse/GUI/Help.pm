@@ -13,7 +13,9 @@ use Browser::Open qw( open_browser );
 use English qw { -no_match_vars };
 #use LWP::Simple;
 use HTTP::Tiny;
-
+#  needed so HTTP::Tiny works with https under PAR::Packer
+require IO::Socket::SSL;
+    
 use Biodiverse::GUI::YesNoCancel;
 
 our $VERSION = '1.99_002';

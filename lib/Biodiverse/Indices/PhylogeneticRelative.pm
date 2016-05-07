@@ -7,6 +7,8 @@ use Data::Alias qw /alias/;
 
 use Carp;
 
+our $VERSION = '1.99_002';
+
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_phylo_rpd1 {

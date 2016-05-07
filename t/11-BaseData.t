@@ -617,6 +617,57 @@ sub test_import_null_labels {
 }
 
 
+sub test_import_cr_line_endings {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $e;
+
+    my $data = get_import_data_small();
+    my $data_cr = $data;
+    $data_cr =~ s/\R/\r/g;
+
+    #my $d1 = ($data =~ /\R/sg);
+    #my $dc = ($data_cr =~ /\n/sg);
+    isnt ($data_cr =~ /\n/sg, 'stripped all newlines from input file data');
+
+    my $tmp_file1 = write_data_to_temp_file ($data);
+    my $fname1 = $tmp_file1->filename;
+
+    my $tmp_file_cr = write_data_to_temp_file ($data_cr);
+    my $fname_cr = $tmp_file_cr->filename;
+    
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname1],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \n file endings with no exceptions raised');
+    
+    #  now the cr version
+    my $bd_cr = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_cr->import_data(
+            input_files   => [$fname_cr],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \r line endings with no exceptions raised');
+    
+    is ($bd_cr->get_group_count, $bd->get_group_count, 'group counts match');
+    is ($bd_cr->get_label_count, $bd->get_label_count, 'label counts match');
+    
+}
+
 #  can we reimport delimited text files after exporting and get the same answer
 sub test_roundtrip_delimited_text {
     my %bd_args = (

@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;

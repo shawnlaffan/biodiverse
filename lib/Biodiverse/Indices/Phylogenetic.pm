@@ -14,7 +14,7 @@ use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 use Data::Alias qw /alias/;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -41,7 +41,6 @@ say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 #  load Gtk
 use Gtk2 qw/-init/;
 
-use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
 
 # Load filename specified in the arguments
@@ -77,22 +76,32 @@ my $eval_result = eval {
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
 
+sub get_main_window
+{
+    my $gui = shift;
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndMain.ui'));
+    return $dlgxml;
+ 
+}
 
 ###########################
 # Create the UI
 
+my $gui = Biodiverse::GUI::GUIManager->instance;
 
-my $gladefile = get_gladefile();
-my $gladexml = eval {
-    Gtk2::GladeXML->new( $gladefile, 'wndMain' );
-};
+my $ui_dir = get_ui_path();
+$gui->set_gtk_ui_path($ui_dir);
+
+my $builder = eval { get_main_window($gui); };
 croak $EVAL_ERROR if $EVAL_ERROR;
-$gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
+
+my $user_data;
+$builder->connect_signals($user_data, 'Biodiverse::GUI::Callbacks');
 
 # Initialise the GUI Manager object
-my $gui = Biodiverse::GUI::GUIManager->instance;
-$gui->set_glade_xml($gladexml);
-$gui->set_glade_file($gladefile);
+$gui->set_glade_xml($builder);
+
 $gui->init();
 
 if ( defined $filename ) {
@@ -126,79 +135,36 @@ END_OF_USAGE
     exit();
 }
 
-sub get_gladefile {
-    my $gladefile;
+sub get_ui_path {
+    my $ui_path;
 
-    #  get the one we're compiled with (if we're a perlapp exe file)
-    if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp' ) {
-        my $eval_result = eval {
-            $gladefile = PerlApp::extract_bound_file('biodiverse.glade')
-        };
-        croak $EVAL_ERROR if $EVAL_ERROR;
-        say 'Using perlapp glade file';
-        return $gladefile;
-    }
-    elsif ($ENV{PAR_0}) {  #  we are running under PAR
-        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade');
-        my $gladefile_str = $gladefile->stringify;
-        if (-e $gladefile_str) {
-            say "Using PAR glade file $gladefile";
-            return $gladefile_str;
-        }
-        else {
-            #  manually unpack the glade folder contents
-            require Archive::Zip;
-
-            my $glade_folder = $gladefile->dir;
-            my $zip = Archive::Zip->new($ENV{PAR_PROGNAME}) or die "Unable to open $ENV{PAR_PROGNAME}";
-            my $glade_zipped = $zip->extractTree( 'glade', $glade_folder );
-
-            if (-e $gladefile && -s $gladefile_str) {
-                say "Using PAR glade file $gladefile";
-                return $gladefile_str;
-            }
-            else {
-                say '=============';
-                say "Cannot locate $gladefile";
-                say 'This can happen if your temp directory is cleaned while '
-                    . 'you are running Biodiverse.  Deleting the par temp directory '
-                    . 'should fix this issue. (e.g. Temp\par-123456789abcdef in the path above).';
-                say '=============';
-            }
-        }
+    #  get the one we're compiled with (if we're a PAR exe file)
+    if ($ENV{PAR_0}) {  #  we are running under PAR
+        $ui_path = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'ui');
+        my $ui_path_str = $ui_path->stringify;
+        say "Using PAR ui path: $ui_path";
+        return $ui_path_str;
     }
 
-    #  get the glade file from ./glade or ./bin/glade
-    $gladefile = Path::Class::file( $Bin, 'glade', 'biodiverse.glade' )->stringify;
-    if (! -e $gladefile) {
-        $gladefile = Path::Class::file( $Bin, 'bin', 'glade', 'biodiverse.glade' )->stringify;
-    }
-    if (! -e $gladefile) {  #  desperation
-        $gladefile = Path::Class::file( $Bin, 'biodiverse.glade' )->stringify;
+    #  get the ui path relative to $Bin 
+    $ui_path = Path::Class::file( $Bin, 'ui' )->stringify;
+    if (! -e $ui_path) {
+        $ui_path = Path::Class::file( $Bin, 'bin', 'ui', )->stringify;
     }
 
-    die 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+    die 'Cannot find glade the ui directory' if ! -d $ui_path;
 
-    say "Using $gladefile";
+    say "Using ui files in $ui_path";
 
-    return $gladefile;
+    return $ui_path;    
 }
+
 
 sub get_iconfile {
 
     my $icon;
 
-    if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp') {
-        my $eval_result = eval {
-            $icon = PerlApp::extract_bound_file('Biodiverse_icon.ico')
-        };
-        croak $EVAL_ERROR if $EVAL_ERROR;
-
-        say "Using perlapp icon file";
-
-        return $icon;
-    }
-    elsif ($ENV{PAR_0}) {  #  we are running under PAR
+    if ($ENV{PAR_0}) {  #  we are running under PAR
         $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico');
         my $icon_str = $icon->stringify;
         if (-e $icon_str) {

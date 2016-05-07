@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -55,6 +55,7 @@ use Exporter::Easy (
                 get_basedata_object
                 get_basedata_object_from_site_data
                 get_numeric_labels_basedata_object_from_site_data
+                get_basedata_object_from_mx_format
                 :utils
             ),
         ],
@@ -508,6 +509,27 @@ sub get_basedata_object {
     return $bd;
 }
 
+sub get_basedata_object_from_mx_format {
+    my %args = @_;
+
+    my $bd_f = get_basedata_import_data_file(@_);
+
+    print "Temp file is $bd_f\n";
+
+    my $bd = Biodiverse::BaseData->new(
+        CELL_SIZES => $args{CELL_SIZES},
+        NAME       => 'Test basedata',
+    );
+    $bd->import_data(
+        input_files   => [$bd_f],
+        label_columns => [],
+        group_columns => [0],
+        %args,
+    );
+
+    return $bd;
+}
+
 sub get_basedata_object_from_site_data {
     my %args = @_;
 
@@ -757,11 +779,13 @@ sub run_indices_test1 {
     my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
     my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
+    my $expected_results       = $args{expected_results} // {};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
     my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
     my $descr_suffix           = $args{descr_suffix} // '';
     my $processing_element     = $args{processing_element} // '3350000:850000';
+    my $skip_nbr_counts        = $args{skip_nbr_counts} // {};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -783,13 +807,14 @@ sub run_indices_test1 {
 
     my %bd_args = (%args, CELL_SIZES => $cell_sizes);
 
-    my $bd = $use_numeric_labels
-      ? get_numeric_labels_basedata_object_from_site_data (
-            %bd_args,
-        )
-      : get_basedata_object_from_site_data (
-            %bd_args,
-        );
+    my $bd = $args{basedata_ref};
+    $bd ||= $use_numeric_labels
+          ? get_numeric_labels_basedata_object_from_site_data (
+                %bd_args,
+            )
+          : get_basedata_object_from_site_data (
+                %bd_args,
+            );
 
     if ($args{nbr_set2_sp_select_all}) {
         #  get all groups, but ensure no overlap with NS1
@@ -908,10 +933,13 @@ sub run_indices_test1 {
 
     my %results_by_nbr_list;
 
+  NBR_COUNT:
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
             delete $elements{element_list2};
         }
+
+        next NBR_COUNT if $skip_nbr_counts->{$nbr_list_count};
 
         my %indices_args = (
             calcs_to_test  => $calcs_to_test,
@@ -929,9 +957,10 @@ sub run_indices_test1 {
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
-        my $expected = eval $dss->get_data_section(
-            "RESULTS_${nbr_list_count}_NBR_LISTS"
-        );
+        my $expected = $expected_results->{$nbr_list_count}
+                     // eval $dss->get_data_section(
+                            "RESULTS_${nbr_list_count}_NBR_LISTS"
+                        );
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
         if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};

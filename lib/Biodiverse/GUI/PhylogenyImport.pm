@@ -8,12 +8,11 @@ use File::Basename;
 use File::BOM qw / :subs /;
 
 use Gtk2;
-use Gtk2::GladeXML;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::GUI::Project;
 
@@ -70,16 +69,16 @@ sub run {
     my %import_params;
     my $call_remap;
     my %tabular_column_labels = (
-        TREENAME_COL       => 'Tree name', 
+        TREENAME_COL       => 'Tree name',
         LENGTHTOPARENT_COL => 'Length',
         NODENUM_COL        => 'Node number',
         NODENAME_COL       => 'Node name',
         PARENT_COL         => 'Parent node',
     );
 
-    # Process fields produced by get_column_use.  The key of each import_fields entry 
+    # Process fields produced by get_column_use.  The key of each import_fields entry
     # will be the label passed to get_column_use, ie the text display of each field.
-    # Create a different mapping from the identifier (eg NODENUM) to the column. 
+    # Create a different mapping from the identifier (eg NODENUM) to the column.
     my %field_map;
     my $import_fields;
     if ($use_tabular_format) {
@@ -114,7 +113,7 @@ sub run {
         #  now do something with them...
         my $remap;
 
-        ###### check if we need to call remap (eg if tabular, and no remapping?) 
+        ###### check if we need to call remap (eg if tabular, and no remapping?)
         if (defined $remap_data{file}) {
             $remap = Biodiverse::ElementProperties->new;
             $remap->import_data (
@@ -126,10 +125,10 @@ sub run {
             $import_params{use_element_properties} = undef;
         }
     }
-    
-    # process fields produced by get_column_use.  the key of each import_fields entry 
+
+    # process fields produced by get_column_use.  the key of each import_fields entry
     # will be the label passed to get_column_use, ie the text display of each field.
-    # create a different mapping from the identifier (eg NODENUM) to the column. 
+    # create a different mapping from the identifier (eg NODENUM) to the column.
     my %labels_to_columns = reverse %tabular_column_labels;
     #my %field_map;
     foreach my $field (keys %$import_fields) {
@@ -148,7 +147,7 @@ sub run {
     );
     if ($use_tabular_format) {
         #  Looks partly redundant, but ensures %import_params takes precedence over column_map - needed?
-        %import_args = (  
+        %import_args = (
             file       => $filename,
             column_map => \%field_map,
             %import_params,
@@ -162,7 +161,7 @@ sub run {
         $gui->report_error ($EVAL_ERROR);
         return;
     }
-    
+
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
 
     my $tree_count = scalar @$phylogeny_array;
@@ -218,14 +217,14 @@ sub get_column_use {
     my @headers;
     my $col_num = 0;
     foreach my $header (@headers_full) {
-        my $this_label = $header // "col$col_num"; 
+        my $this_label = $header // "col$col_num";
         $col_num++;
         push @headers, $this_label;
     }
 
     my ($dlg, $col_widgets) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(
         header   => \@headers,
-        wnd_main => $gui->get_widget('wndMain'),
+        wnd_main => $gui->get_object('wndMain'),
         #other_props => [],
         column_overrides => $col_usages,
     );
@@ -262,14 +261,14 @@ sub get_column_use {
                 $msg->destroy();
                 $column_settings = undef;
 
-                next RUN_DLG; 
+                next RUN_DLG;
             }
         }
         last RUN_DLG;
     }
     $dlg->destroy();
 
-    return $column_settings; 
+    return $column_settings;
 }
 
 sub explain_tabular_import_col_options {
@@ -324,7 +323,7 @@ sub get_remap_info {
         last if $line;
     }
     $fh->close;
-    
+
     my $sep = $gui->get_project->guess_field_separator (string => $line);
     my $eol = $gui->get_project->guess_eol (string => $line);
     my @headers_full = $gui->get_project->csv2list('string' => $line, sep_char => $sep, eol => $eol);
@@ -334,7 +333,7 @@ sub get_remap_info {
         push @headers, $header if $header;
     }
 
-    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
+    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_object('wndMain'));
     my ($column_settings, $response);
     while (1) { # keep showing Dialog until have at least one Label & one matrix-start column
         $response = $dlg->run();
@@ -409,7 +408,7 @@ sub make_columns_dialog {
 
     my $header = shift; # ref to column header array
     my $wnd_main = shift;
-    
+
     my $num_columns = @$header;
     print "[gui] generating make columns Dialog for $num_columns columns\n";
 
@@ -488,4 +487,3 @@ sub add_column {
 }
 
 1;
-

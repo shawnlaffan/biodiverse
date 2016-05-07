@@ -48,7 +48,7 @@ See http://shawnlaffan.github.io/biodiverse/#news
 
 This research has been supported by Australian Research Council Linkage Grant LP0562070 (Laffan and West) and UNSW FRGP funding to Laffan.
 
-Much of the original GUI coding was by Eugene Lubarsky.  Substantial contributions to the project by Michael Zhou and Anthony Knittel.  Ufortunately the code history does not show their contributions, with authorship detaoils lost as we transitioned from Google Code to GitHub.  
+Much of the original GUI coding was by Eugene Lubarsky.  Substantial contributions to the project have also been made by Michael Zhou and Anthony Knittel.  Unfortunately the code history does not show their contributions as authorship details were lost as we transitioned from Google Code to GitHub.  
 
 # Persistent URL 
 

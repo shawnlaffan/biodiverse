@@ -22,7 +22,7 @@ use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
@@ -598,6 +598,11 @@ sub verify {
     return wantarray ? %hash : \%hash;
 }
 
+my $locale_warning
+  =  "(this is often caused by locale issues - \n"
+   . "it is safest to run Biodiverse under a local that uses a . as the decimal place, e.g. 33.5 not 33,5)";
+
+
 #  calculate the distances between two sets of coords
 #  expects refs to two element arrays
 #  at the moment we are only calculating the distances
@@ -655,16 +660,16 @@ sub get_distances {
 
         my $coord1 = $element1[$i];
         croak
-            'coord1 value is not numeric (if you think it is numeric then check your locale): '
+            'coord1 value is not numeric: '
             . ( defined $coord1 ? $coord1 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
-            'coord2 value is not numeric (if you think it is numeric then check your locale): '
+            'coord2 value is not numeric: '
             . ( defined $coord2 ? $coord2 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord2);
 
         $d[$i] =
@@ -2576,7 +2581,7 @@ sub get_polygons_from_shapefile {
 
     my $field_val = $args{field_val};
 
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
+    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field // $NULL_STRING), ($field_val // $NULL_STRING);
     my $cached     = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;
@@ -2776,8 +2781,9 @@ sub get_example_sp_get_spatial_output_list_value {
 #  get the spatial results value for the current neighbour group
 # (or processing group if used as a def query)
 sp_get_spatial_output_list_value (
-    output  => 'sp1',
-    list    => 'SPATIAL_RESULTS',
+    output  => 'sp1',              #  using spatial output called sp1
+    list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
+    index   => 'PE_WE_P',          #  get index value for PE_WE_P
 )
 
 #  get the spatial results value for group 128:254
@@ -2785,6 +2791,7 @@ sp_get_spatial_output_list_value (
     output  => 'sp1',
     element => '128:254',
     list    => 'SPATIAL_RESULTS',
+    index   => 'PE_WE_P',
 )
 END_EXAMPLE_GSOLV
   ;

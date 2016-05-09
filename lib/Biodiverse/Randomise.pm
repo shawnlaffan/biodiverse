@@ -1369,6 +1369,7 @@ END_PROGRESS_TEXT
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
     #  and which do not exceed the richness threshold
+    #  (can be constrained by a spatial condition)
 
     my @target_groups = $bd->get_groups;
     my %all_target_groups
@@ -1405,7 +1406,7 @@ END_PROGRESS_TEXT
             || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
-        #  we don't need the values, and slice assignment is
+        #  we don't need the values, and slice assignment to undef is
         #  faster than straight copy (close to twice as fast)
         my %target_groups_hash;
         @target_groups_hash{keys %all_target_groups} = ();  
@@ -1441,8 +1442,8 @@ END_PROGRESS_TEXT
         #  and we need to start from new nbrhood
         my $use_new_seed_group = 0;  
 
-my $should_process = scalar keys %tmp;
-my $did_process = 0;
+#my $should_process = scalar keys %tmp;
+#my $did_process = 0;
 
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
@@ -1451,11 +1452,11 @@ my $did_process = 0;
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
 
-#  Should we always assign to the seed group?
-#  What if the seed group is not part of the nbr set?
-#  Issue is that the algorithm might never land on a valid target
-#  group given the selection process is only unfilled groups without the label
-#  For now we always assign to the seed group.
+            #  Should we always assign to the seed group?
+            #  What if the seed group is not part of the nbr set?
+            #  Issue is that the algorithm might never land on a valid target
+            #  group given the selection process is only unfilled groups without the label
+            #  For now we always assign to the seed group.
 
             if (!scalar @to_groups || $use_new_seed_group) {
                 #  select a group at random to assign to

@@ -1436,6 +1436,8 @@ END_PROGRESS_TEXT
 my $should_process = scalar keys %tmp;
 my $did_process = 0;
         my %alloc_iter_hash = ();
+        #  could generalise this name as it could be used for other cases 
+        my $using_random_walk = $label_allocation_order eq 'random_walk';
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1456,28 +1458,14 @@ my $did_process = 0;
                 splice (@target_groups, $j, 1);
 
                 if ($sp_for_label_allocation) {
-                    #  we need a copy
-                    #  should cache and clone these to avoid re-sorting the same data
-                    my $sp_alloc_nbr_list = $sp_alloc_nbr_list_cache->{$to_groups[0]};
-                    if (!$sp_alloc_nbr_list) {
-#say "Getting nbrs for $to_groups[0]";
-                        #  avoid double sorting as proximity does its own
-                        my $sort_lists = $label_allocation_order ne 'proximity';
-                        $sp_alloc_nbr_list
-                          = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
-                            element    => $to_groups[0],
-                            sort_lists => $sort_lists,
-                        );
-                        if ($label_allocation_order eq 'proximity') {
-                            $sp_alloc_nbr_list = $self->sort_nbr_lists_by_proximity (
-                                target_element => $to_groups[0],
-                                basedata_ref   => $bd,
-                                rand_object    => $rand,
-                                nbr_lists      => $sp_alloc_nbr_list,
-                            );
-                        }
-                        $sp_alloc_nbr_list_cache->{$to_groups[0]} = $sp_alloc_nbr_list;                        
-                    }
+                    my $sp_alloc_nbr_list = $self->get_sp_alloc_nbr_list (
+                        label_allocation_order  => $label_allocation_order,
+                        sp_for_label_allocation => $sp_for_label_allocation,
+                        target_element => $to_groups[0],
+                        cache          => $sp_alloc_nbr_list_cache,
+                        basedata_ref => $bd,
+                        rand_object  => $rand,
+                    );
 
                     #  We currently concatenate all lists into one.
                     #  This won't work for the 'fill one, then the next' approaches
@@ -1512,6 +1500,9 @@ my $did_process = 0;
 #say "did $label: $did_process (last tmp_rand_order)" if !scalar @$tmp_rand_order;
                 last BY_GROUP if !scalar @$tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
+                
+                #  avoid double allocations
+                next BY_GROUP if $using_random_walk && exists $assigned{$to_group};
 
                 my $from_group = shift @$tmp_rand_order;
                 my $count = $tmp{$from_group};
@@ -1624,6 +1615,40 @@ my $did_process = 0;
 
 
     return $new_bd;
+}
+
+sub get_sp_alloc_nbr_list {
+    my $self = shift;
+    my %args = @_;
+
+    my $target_element = $args{target_element};
+    my $sp_alloc_nbr_list_cache = $args{cache};
+    my $label_allocation_order  = $args{label_allocation_order};
+    my $sp_for_label_allocation = $args{sp_for_label_allocation};
+
+    #  we need a copy
+    #  should cache and clone these to avoid re-sorting the same data
+    my $sp_alloc_nbr_list = $sp_alloc_nbr_list_cache->{$target_element};
+    
+    return $sp_alloc_nbr_list if $sp_alloc_nbr_list;
+    
+    #  avoid double sorting as proximity does its own
+    my $sort_lists = $label_allocation_order ne 'proximity';
+    $sp_alloc_nbr_list
+      = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
+        element    => $target_element,
+        sort_lists => $sort_lists,
+    );
+    if ($label_allocation_order eq 'proximity') {
+        $sp_alloc_nbr_list = $self->sort_nbr_lists_by_proximity (
+            %args,
+            target_element => $target_element,
+            nbr_lists      => $sp_alloc_nbr_list,
+        );
+    }
+    $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;                        
+
+    return $sp_alloc_nbr_list;
 }
 
 

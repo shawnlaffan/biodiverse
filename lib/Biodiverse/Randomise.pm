@@ -1252,6 +1252,9 @@ sub rand_structured {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
+    my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
+    delete $args{rand_object};
+
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
     my $label_allocation_order  = $args{label_allocation_order} || 'random';
@@ -1260,11 +1263,16 @@ sub rand_structured {
         $sp_alloc_nbr_list_cache = {};
         $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
     }
+    #  avoid some duplication below
+    my %sp_alloc_nbr_list_args = (
+        cache          => $sp_alloc_nbr_list_cache,
+        basedata_ref   => $bd,
+        rand_object    => $rand,
+        label_allocation_order  => $label_allocation_order,
+        sp_for_label_allocation => $sp_for_label_allocation,
+    );
 
     my $progress_bar = Biodiverse::Progress->new();
-
-    my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
-    delete $args{rand_object};
 
     #  need to get these from the ARGS param if available - should also croak if negative
     my $multiplier = $args{richness_multiplier} // 1;
@@ -1417,7 +1425,8 @@ END_PROGRESS_TEXT
         }
         @target_groups = sort keys %target_groups_hash;
 
-        ###  get the remaining original groups containing the original label.  Make sure it's a copy
+        ###  get the remaining original groups containing the original label.
+        ###  Make sure it's a copy
         my %tmp
             = $cloned_bd->get_groups_with_label_as_hash (label => $label);
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
@@ -1429,15 +1438,15 @@ END_PROGRESS_TEXT
         );
 
         #  needed for when spatial allocations fill a nbrhood
-        #  - start from new nbrhood
-        #  but not yet used
+        #  and we need to start from new nbrhood
         my $use_new_seed_group = 0;  
 
 my $should_process = scalar keys %tmp;
 my $did_process = 0;
+
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
-        my $using_random_walk = $label_allocation_order eq 'random_walk';
+        my $using_random_propagation = $label_allocation_order eq 'random_propagation';
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1458,14 +1467,12 @@ my $did_process = 0;
                 splice (@target_groups, $j, 1);
 
                 if ($sp_for_label_allocation) {
-                    my $sp_alloc_nbr_list = $self->get_sp_alloc_nbr_list (
-                        label_allocation_order  => $label_allocation_order,
-                        sp_for_label_allocation => $sp_for_label_allocation,
-                        target_element => $to_groups[0],
-                        cache          => $sp_alloc_nbr_list_cache,
-                        basedata_ref => $bd,
-                        rand_object  => $rand,
-                    );
+                    my $sp_alloc_nbr_list
+                      = $sp_alloc_nbr_list_cache->{$to_groups[0]}
+                        // $self->get_sp_alloc_nbr_list (
+                            target_element => $to_groups[0],
+                            %sp_alloc_nbr_list_args,
+                        );
 
                     #  We currently concatenate all lists into one.
                     #  This won't work for the 'fill one, then the next' approaches
@@ -1476,8 +1483,8 @@ my $did_process = 0;
                           {   exists $target_groups_hash{$_}
                            && !exists $filled_groups{$_}
                            && !exists $assigned{$_}
-                           && $_ ne $to_groups[0]}
-                          @$list_ref;
+                           && $_ ne $to_groups[0]
+                          } @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
                         push @to_groups,
                             $label_allocation_order =~ /^random/
@@ -1502,7 +1509,7 @@ my $did_process = 0;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
                 
                 #  avoid double allocations
-                next BY_GROUP if $using_random_walk && exists $assigned{$to_group};
+                next BY_GROUP if $using_random_propagation && exists $assigned{$to_group};
 
                 my $from_group = shift @$tmp_rand_order;
                 my $count = $tmp{$from_group};
@@ -1519,7 +1526,7 @@ my $did_process = 0;
                 # Use array args version for speed.
                 $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
-                # book-keeping for debug
+                # book-keeping for debug - need to disable before production
                 $alloc_iter_hash{$label}++;
                 $sp_to_track_allocations->add_to_lists (
                     element          =>  $to_group,
@@ -1547,6 +1554,33 @@ my $did_process = 0;
 
 #$did_process++;
 #say "did $label: $did_process (last \@target_groups)" if !scalar @target_groups;
+
+                if ($using_random_propagation) {
+                    #  unshift the neighbours of $to_group onto the targets
+                    #  need to refactor this - it is mostly a duplicate of code from above
+                    my $sp_alloc_nbr_list
+                      = $sp_alloc_nbr_list_cache->{$to_group}
+                        // $self->get_sp_alloc_nbr_list (
+                            target_element => $to_group,
+                            %sp_alloc_nbr_list_args,
+                        );
+
+                    #  same concatenation probs as above
+                  NBR_LIST_REF:
+                    foreach my $list_ref (reverse @{$sp_alloc_nbr_list}) {
+                        my @sublist = grep
+                          {   exists $target_groups_hash{$_}
+                           && !exists $filled_groups{$_}
+                           && !exists $assigned{$_}
+                           && $_ ne $to_group
+                          } @$list_ref;
+                        next NBR_LIST_REF if !scalar @sublist;
+                        unshift @to_groups,
+                            $label_allocation_order =~ /^random/
+                                ? @{$rand->shuffle (\@sublist)}
+                                : @sublist;
+                    }
+                }
 
                 #  move to next label if no more targets for this label
                 last BY_GROUP if !scalar @target_groups;

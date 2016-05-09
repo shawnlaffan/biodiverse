@@ -1007,6 +1007,32 @@ sub rand_csr_by_group {
 }
 
 
+sub get_spatial_output_to_track_allocations {
+    my ($self, %args) = @_;
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+
+    my $sp = $self->get_param('SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS');
+
+    return $sp if $sp;
+
+    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations');
+
+    #  we need a "blank canvas"
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
+        calculations       => [],
+        override_valid_analysis_check => 1,
+        #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+    );
+
+    $bd->delete_output (output => $sp);
+    $self->set_param(SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS => $sp);
+
+    return $sp;
+}
+
 sub get_spatial_output_for_label_allocation {
     my ($self, %args) = @_;
     
@@ -1188,7 +1214,8 @@ sub sort_nbr_lists_by_proximity {
                     basedata_ref => $bd,
                     element2     => $target_element,
                   ),
-                  $rand_object->rand] #  fall back to random
+                  $rand_object->rand,  #  fall back to random
+                ]
                }
                @{$nbr_lists->[$i]};
     }
@@ -1262,6 +1289,9 @@ END_PROGRESS_TEXT
     $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
+    #  for debug - create using $bd but we override later and set it to $new_bd
+    my $sp_to_track_allocations = $self->get_spatial_output_to_track_allocations (%args);
+
     say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
         "$progress_text\n"
@@ -1330,8 +1360,7 @@ END_PROGRESS_TEXT
     #  algorithm:
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
-    #  and which do not exceed the richness threshold factor
-    #  (multiplied by the original richness)
+    #  and which do not exceed the richness threshold
 
     my @target_groups = $bd->get_groups;
     my %all_target_groups
@@ -1394,20 +1423,19 @@ END_PROGRESS_TEXT
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
         my (
-            %new_bd_additions,
-            %cloned_bd_deletions,
-            @sp_alloc_nbr_list,
-            $last_group_assigned,
-            %assigned,
-            %valid_nbrs,
-            @to_groups,
+            %new_bd_additions,    %cloned_bd_deletions, @sp_alloc_nbr_list,
+            $last_group_assigned, %assigned,
+            %valid_nbrs,          @to_groups,
         );
 
-        my $use_new_seed_group = 0;  #  needed for when spatial allocations fill a nbrhood - start from new nbrhood
-                                     #  but not yet used
+        #  needed for when spatial allocations fill a nbrhood
+        #  - start from new nbrhood
+        #  but not yet used
+        my $use_new_seed_group = 0;  
 
 my $should_process = scalar keys %tmp;
 my $did_process = 0;
+        my %alloc_iter_hash = ();
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1416,6 +1444,7 @@ my $did_process = 0;
 #  What if the seed group is not part of the nbr set?
 #  Issue is that the algorithm might never land on a valid target
 #  group given the selection process is only unfilled groups without the label
+#  For now we always assign to the seed group.
 
             if (!scalar @to_groups || $use_new_seed_group) {
                 #  select a group at random to assign to
@@ -1447,7 +1476,7 @@ my $did_process = 0;
                                 nbr_lists      => $sp_alloc_nbr_list,
                             );
                         }
-                        $sp_alloc_nbr_list_cache->{$to_groups[0]} = $sp_alloc_nbr_list;
+                        $sp_alloc_nbr_list_cache->{$to_groups[0]} = $sp_alloc_nbr_list;                        
                     }
 
                     #  We currently concatenate all lists into one.
@@ -1463,7 +1492,7 @@ my $did_process = 0;
                           @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
                         push @to_groups,
-                            $label_allocation_order eq 'random'
+                            $label_allocation_order =~ /^random/
                                 ? @{$rand->shuffle (\@sublist)}
                                 : @sublist;
                     }
@@ -1478,8 +1507,8 @@ my $did_process = 0;
             #  and we run out of groups to assign to
             last BY_GROUP if !scalar @to_groups;
 #say "ass $label = " . scalar @$tmp_rand_order;
-            while (defined (my $to_group = shift @to_groups)) {
 
+            while (defined (my $to_group = shift @to_groups)) {
 #say "did $label: $did_process (last tmp_rand_order)" if !scalar @$tmp_rand_order;
                 last BY_GROUP if !scalar @$tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
@@ -1499,6 +1528,13 @@ my $did_process = 0;
                 # Use array args version for speed.
                 $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
+                # book-keeping for debug
+                $alloc_iter_hash{$label}++;
+                $sp_to_track_allocations->add_to_lists (
+                    element          =>  $to_group,
+                    ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},
+                );
+
                 $assigned{$to_group}++;
 
                 #  now delete it from the list of candidates
@@ -1517,8 +1553,10 @@ my $did_process = 0;
                     delete $unfilled_groups{$to_group};
                     $last_filled = $to_group;
                 };
+
 #$did_process++;
 #say "did $label: $did_process (last \@target_groups)" if !scalar @target_groups;
+
                 #  move to next label if no more targets for this label
                 last BY_GROUP if !scalar @target_groups;
             }
@@ -1577,6 +1615,13 @@ my $did_process = 0;
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
+
+    $new_bd->add_spatial_output (
+        name => 'sp_to_track_allocations',
+        object => $sp_to_track_allocations,
+    );
+    $self->delete_param('SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS');
+
 
     return $new_bd;
 }

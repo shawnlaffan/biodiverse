@@ -326,12 +326,6 @@ sub test_rand_structured_does_not_swap {
 sub test_rand_structured_subset_richness_same_with_defq {
     my $defq = '$y > 1050000';
 
-    TODO: {
-        local $TODO = 'merging does not handle existing outputs';
-        ok (1, 'suspicious pass');
-    };
-    return;
-        
     my ($rand_object, $bd, $rand_bd_array) = test_rand_structured_subset_richness_same ($defq);
 
     my $sp = $rand_object->get_param ('SUBSET_SPATIAL_OUTPUT');
@@ -374,12 +368,6 @@ sub test_rand_structured_subset_richness_same_with_defq {
 
 sub test_rand_structured_subset_richness_same {
     my $def_query = shift;
-
-    TODO: {
-        local $TODO = 'merging does not handle existing outputs';
-        ok (1, 'suspicious pass');
-    };
-    return;
 
     my $c = 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
@@ -437,12 +425,6 @@ sub test_rand_structured_subset_richness_same {
 sub test_rand_labels_all_constant {
     my $c  = 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
-
-    TODO: {
-        local $TODO = 'merging does not handle existing outputs';
-        ok (1, 'suspicious pass');
-    };
-    return;
 
     #  add a couple of empty groups
     foreach my $i (1 .. 2) {

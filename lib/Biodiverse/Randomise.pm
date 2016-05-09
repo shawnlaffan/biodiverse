@@ -1100,9 +1100,9 @@ sub get_metadata_rand_spatially_structured {
     my $label_allocation_order = bless {
         name       => 'label_allocation_order',
         label_text => "Label allocation order",
-        default    => 1,
+        default    => 0,
         type       => 'choice',
-        choices => [qw /random proximity/],
+        choices => [qw /random_propagation random proximity/],
         tooltip    => 'The order labels will be allocated '
                     . 'within the neighbourhood after the seed group.'
     }, $parameter_rand_metadata_class;
@@ -1257,13 +1257,16 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
-    my $label_allocation_order  = $args{label_allocation_order} || 'random';
+    my $label_allocation_order       = $args{label_allocation_order} || 'random';
+    #  currently only for debugging as basedata merging does not support outputs
+    my $track_label_allocation_order = $args{track_label_allocation_order};
+
     my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
     if (!$sp_alloc_nbr_list_cache) {
         $sp_alloc_nbr_list_cache = {};
         $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
     }
-    #  avoid some duplication below
+    #  avoid some duplication below when used
     my %sp_alloc_nbr_list_args = (
         cache          => $sp_alloc_nbr_list_cache,
         basedata_ref   => $bd,
@@ -1271,6 +1274,7 @@ sub rand_structured {
         label_allocation_order  => $label_allocation_order,
         sp_for_label_allocation => $sp_for_label_allocation,
     );
+    
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -1298,7 +1302,10 @@ END_PROGRESS_TEXT
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
     #  for debug - create using $bd but we override later and set it to $new_bd
-    my $sp_to_track_allocations = $self->get_spatial_output_to_track_allocations (%args);
+    my $sp_to_track_label_allocation_order
+        = $track_label_allocation_order
+            ? $self->get_spatial_output_to_track_allocations (%args)
+            : undef;
 
     say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
@@ -1528,11 +1535,13 @@ END_PROGRESS_TEXT
                 $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
                 # book-keeping for debug - need to disable before production
-                $alloc_iter_hash{$label}++;
-                $sp_to_track_allocations->add_to_lists (
-                    element          =>  $to_group,
-                    ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},
-                );
+                if ($track_label_allocation_order) {
+                    $alloc_iter_hash{$label}++;
+                    $sp_to_track_label_allocation_order->add_to_lists (
+                        element          =>  $to_group,
+                        ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},
+                    );
+                }
 
                 $assigned{$to_group}++;
 
@@ -1642,10 +1651,12 @@ END_PROGRESS_TEXT
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
 
-    $new_bd->add_spatial_output (
-        name => 'sp_to_track_allocations',
-        object => $sp_to_track_allocations,
-    );
+    if ($track_label_allocation_order) {   
+        $new_bd->add_spatial_output (
+            name => 'sp_to_track_allocations',
+            object => $sp_to_track_label_allocation_order,
+        );
+    }
     $self->delete_param('SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS');
 
 

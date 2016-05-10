@@ -235,7 +235,7 @@ sub reset_total_length_below {
     
     my %descendents = $self->get_all_descendants;
     foreach my $child (values %descendents) {
-        $child->reset_total_length_below;
+        $child->reset_total_length;
     }
 
 }

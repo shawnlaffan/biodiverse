@@ -1107,7 +1107,7 @@ sub get_metadata_rand_spatially_structured {
                     . 'within the neighbourhood after the seed group.'
     }, $parameter_rand_metadata_class;
     push @parameters, $label_allocation_order;
-
+    
     my %metadata = (
         parameters  => \@parameters,
         description => "Randomly allocate labels to groups, selecting "
@@ -1175,6 +1175,16 @@ END_TOOLTIP_ADDN
         bless $_, $parameter_rand_metadata_class;
     }
     
+    
+    my $track_label_allocation_order = bless {
+        name       => 'track_label_allocation_order',
+        #label_text => "Label allocation order",
+        default    => 0,
+        type       => 'boolean',
+        tooltip    => '',
+    }, $parameter_rand_metadata_class;
+    push @parameters, $track_label_allocation_order;
+
     return wantarray ? @parameters : \@parameters;
 }
 

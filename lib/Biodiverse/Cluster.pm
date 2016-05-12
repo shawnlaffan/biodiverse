@@ -1947,7 +1947,7 @@ sub get_values_for_linkage {
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
 }
 
-#  calculate the linkages fom the ground up
+#  calculate the linkages from the ground up
 sub link_recalculate {
     my $self = shift;
     my %args = @_;
@@ -1996,8 +1996,9 @@ sub link_recalculate {
         $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name) ;
     }
     elsif ($node2_ref) {
-        $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name);
+        $label_hash1 = $node2_ref->get_cached_value ($node1_2_cache_name);
     }
+
     #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
         $el1_list = [];

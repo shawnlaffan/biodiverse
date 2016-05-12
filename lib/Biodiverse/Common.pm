@@ -553,6 +553,12 @@ sub get_cached_value {
     return $_[0]->{_cache}{$_[1]};
 }
 
+#  dor means defined or - too obscure?
+sub get_cached_value_dor_set_default_aa {
+    no autovivification;
+    $_[0]->{_cache}{$_[1]} //= $_[2];
+}
+
 sub get_cached_value_keys {
     my $self = shift;
     
@@ -1788,11 +1794,8 @@ sub get_metadata {
 sub get_cached_metadata {
     my $self = shift;
 
-    my $cache = $self->get_cached_value ('METADATA_CACHE');
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value (METADATA_CACHE => $cache)
-    }
+    my $cache
+      = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
     return $cache;
 }
 

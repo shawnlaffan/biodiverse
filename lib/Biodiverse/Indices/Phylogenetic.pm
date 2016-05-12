@@ -391,8 +391,8 @@ sub get_path_lengths_to_root_node {
     #  Avoid millions of subroutine calls below.
     #  We could use a global precalc, but that won't scale well with
     #  massive trees where we only need a subset.
-    my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE_PER_TERMINAL')
-      // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE_PER_TERMINAL => $c); $c};
+    my $path_cache
+      = $self->get_cached_value_dor_set_default_aa ('PATH_LENGTH_CACHE_PER_TERMINAL', {});
     alias my %path_cache_hash = %$path_cache;
 
     # get a hash of node refs
@@ -1594,8 +1594,7 @@ sub get_node_range {
     my $return_count = !wantarray && !$args{return_list};
 
     my $cache_name = 'NODE_RANGE_LISTS';
-    my $cache      = $self->get_cached_value($cache_name)
-                   // do {my $c = {}; $self->set_cached_value ($cache_name => $c); $c};
+    my $cache      = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
 
     my $node_name = $node_ref->get_name;
     my %groups;

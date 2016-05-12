@@ -1433,11 +1433,8 @@ sub get_rand_structured_subset {
     my @subset_basedatas;
     my $to_do = $bd->get_group_count;
 
-    my $cached_subset_basedatas = $self->get_cached_value ('SUBSET_BASEDATAS');
-    if (!$cached_subset_basedatas) {
-        $cached_subset_basedatas = {};
-        $self->set_cached_value (SUBSET_BASEDATAS => $cached_subset_basedatas);
-    }
+    my $cached_subset_basedatas
+      = $self->get_cached_value_dor_set_default_aa ('SUBSET_BASEDATAS', {});
 
     my $failed_def_query = $sp->get_groups_that_failed_def_query;
     my $bd_failed_def_query = $cached_subset_basedatas->{failed_def_query};

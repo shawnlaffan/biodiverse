@@ -31,6 +31,7 @@ my @calcs_to_test = qw/
     calc_phylo_rpd1
     calc_phylo_rpe2
     calc_phylo_rpd2
+    calc_phylo_rpe_central
     calc_labels_on_trimmed_tree
     calc_labels_not_on_trimmed_tree
 /;
@@ -41,7 +42,12 @@ my @calcs_for_debug = qw /
     calc_endemism_whole
 /;
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 exit main( @ARGV );
+
 
 sub main {
     my @args  = @_;
@@ -56,16 +62,17 @@ sub main {
         return 0;
     }
 
-    test_standard();
-    test_extra_labels_in_basedata();
-    test_extra_labels_on_tree();
-    test_sum_to_pd();
-
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
+    
     done_testing;
     return 0;
 }
 
-sub test_standard {
+
+sub test_indices1 {
     run_indices_test1 (
         calcs_to_test      => [@calcs_to_test],
         calc_topic_to_test => 'Phylogenetic Indices (relative)',
@@ -266,6 +273,110 @@ sub test_sum_to_pd {
 
 }
 
+
+sub test_rpe_central {
+
+    my @calcs = qw/
+        calc_phylo_rpe2
+        calc_phylo_rpe_central
+    /;
+
+    my %list_indices_to_check;
+
+    foreach my $key (qw /PHYLO_RPEC PHYLO_RPE_NULLC PHYLO_RPE_DIFFC/) {
+        my $comp = $key;
+        $comp =~ s/C$/2/;
+        $list_indices_to_check{$comp} = $key;
+    }
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    $bd->build_spatial_index(resolutions => $cell_sizes);
+
+    #  should add a def query since we don't need the full set of results
+    my $sp1 = $bd->add_spatial_output (name => 'RPE2');
+    $sp1->run_analysis (
+        calculations       => ['calc_phylo_rpe2'],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+    my $sp1c = $bd->add_spatial_output (name => 'RPEC');
+    $sp1c->run_analysis (
+        calculations       => ['calc_phylo_rpe_central'],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+
+
+    subtest 'RPE2 and RPEC' => sub {
+        foreach my $elt (sort $sp1->get_element_list) {
+            my $rpe2 = $sp1->get_list_ref(element => $elt, list => 'SPATIAL_RESULTS');
+            my $rpec = $sp1c->get_list_ref(element => $elt, list => 'SPATIAL_RESULTS');
+            my @arr_exp = map {sprintf '%.12f', $_}  @$rpe2{keys %list_indices_to_check};
+            my @arr_obs = map {sprintf '%.12f', $_}  @$rpec{values %list_indices_to_check};
+
+            is_deeply (
+                \@arr_obs,
+                \@arr_exp,
+                "RPE2 and RPEC same for $elt",
+            );
+        }
+    };
+
+    my $sp2 = $bd->add_spatial_output (name => 'RPE2 2nbrs');
+    $sp2->run_analysis (
+        calculations       => ['calc_phylo_rpe2', 'calc_local_range_lists'],
+        spatial_conditions => ['sp_self_only()', 'sp_circle (radius => 400000)'],
+        tree_ref           => $tree,
+    );
+    my $sp2c = $bd->add_spatial_output (name => 'RPEC 2nbrs');
+    $sp2c->run_analysis (
+        calculations       => ['calc_phylo_rpe_central', 'calc_local_range_lists'],
+        spatial_conditions => ['sp_self_only()', 'sp_circle (radius => 400000)'],
+        tree_ref           => $tree,
+    );
+
+
+    subtest 'RPE2 and RPEC for two nbr sets' => sub {
+        foreach my $elt (sort $sp2->get_element_list) {
+            my $rpe2 = $sp2->get_list_ref(element => $elt, list => 'SPATIAL_RESULTS');
+            my $rpec = $sp2c->get_list_ref(element => $elt, list => 'SPATIAL_RESULTS');
+            my @exp = map {sprintf '%.12f', $_}  @$rpe2{keys %list_indices_to_check};
+            my @obs = map {sprintf '%.12f', $_}  @$rpec{values %list_indices_to_check};
+
+            my $labels_set1 = $sp2->get_list_ref (element => $elt, list => 'ABC2_LABELS_SET1');
+            my $labels_all  = $sp2->get_list_ref (element => $elt, list => 'ABC2_LABELS_ALL');
+
+            #  expectation differs if no additional labels in set 2
+            my $key_count = scalar (keys %$labels_set1);
+            my $no_new_labels
+                = $key_count == scalar (keys %$labels_all)
+                    && $key_count == scalar grep {exists $labels_all->{$_}} keys %$labels_set1;
+
+            if ($no_new_labels) {
+                is_deeply (
+                    \@exp,
+                    \@obs,
+                    "RPE2 and RPEC when nbr set 2 has no additional labels, $elt",
+                );
+            }
+            else {
+                isnt_deeply (
+                    \@exp,
+                    \@obs,
+                    "RPE2 and RPEC not same when additional labels in nbr set 2, $elt",
+                );
+            }
+        }
+    };
+
+    return;
+}
+
+
+
 done_testing;
 
 1;
@@ -303,7 +414,10 @@ __DATA__
     PHYLO_RPE_DIFF1 => '-0.11230094661341',
     PHYLO_RPE_DIFF2 => '0.10166982174441',
     PHYLO_RPE_NULL1 => '0.080038155159857',
-    PHYLO_RPE_NULL2 => '0.0699367330171586'
+    PHYLO_RPE_NULL2 => '0.0699367330171586',
+    PHYLO_RPEC      => '1.052091',
+    PHYLO_RPE_DIFFC => '0.035362',
+    PHYLO_RPE_NULLC => '0.032048',
 }
 
 
@@ -326,7 +440,10 @@ __DATA__
     PHYLO_RPE_DIFF1 => '-0.0418298080345157',
     PHYLO_RPE_DIFF2 => '0.0327854504533351',
     PHYLO_RPE_NULL1 => '0.014336917562724',
-    PHYLO_RPE_NULL2 => '0.0108143792736999'
+    PHYLO_RPE_NULL2 => '0.0108143792736999',
+    PHYLO_RPEC      => '1.14312240745805',
+    PHYLO_RPE_DIFFC => '0.0327854504533351',
+    PHYLO_RPE_NULLC => '0.0108143792736999',
 }
 
 

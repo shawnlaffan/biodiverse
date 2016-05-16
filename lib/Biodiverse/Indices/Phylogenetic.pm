@@ -2403,7 +2403,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
             PE_CWE => {
                 description  => $descr,
                 reference    => '',
-                formula      => ['PE_WE / PD'],
+                formula      => ['PE\_WE / PD'],
             },
         },
     );

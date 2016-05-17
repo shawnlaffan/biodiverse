@@ -78,7 +78,7 @@ sub fill {
     $get_innards_hash //= {};
 
     # Ask object for parameters metadata
-    my @extract_closures;
+    my (@extract_closures, @widgets);
 
     my $tooltip_group = Gtk2::Tooltips->new;
 
@@ -97,6 +97,7 @@ sub fill {
 
         if ($extractor) {
             push @extract_closures, $extractor;
+            push @widgets, $widget;
         }
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
@@ -183,6 +184,7 @@ sub fill {
     $tooltip_group->enable();
 
     $self->{extractors} = \@extract_closures;
+    $self->{widgets}    = \@widgets;
     return $self->{extractors};
 }
 

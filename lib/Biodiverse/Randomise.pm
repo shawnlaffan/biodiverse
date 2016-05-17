@@ -850,11 +850,13 @@ sub get_common_rand_metadata {
             increment  => 1,
             tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
             always_sensitive => 1,
+            mutable    => 1,
         }, $parameter_metadata_class),
     );
     
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     @common = (
+        @common,  #  DEBUG
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',

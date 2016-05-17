@@ -1,5 +1,6 @@
 package Biodiverse::GUI::Tabs::Randomise;
 
+use 5.016;
 use strict;
 use warnings;
 use Carp;
@@ -267,7 +268,7 @@ sub set_button_sensitivity {
     }
 
     my $table = $self->{xmlPage}->get_object('tableParams');
-    $table->set_sensitive ($sens);  #  comment out - don't do whole table
+    #$table->set_sensitive ($sens);  #  comment out - don't do whole table
     #$self->on_function_changed;
 
     #  no - keep this modifiable
@@ -408,14 +409,14 @@ sub on_function_changed {
                     }
                 }
                 $parameter->set_default ($def_val);
-                if (!$parameter->get_always_sensitive) {
-                    $parameter->set_sensitive (0);  #  cannot change the value
-                }
+                #  cannot only some params for an existing output
+                $parameter->set_sensitive ($parameter->get_mutable // 0);
             }
         }
     }
 
     #  keep a track of what we've already added
+    #  - desperately needs an overhaul
     my @params_to_add;
     foreach my $p (@$params) {
         if (! exists $self->{param_extractors_added}{$p->get_name}) {
@@ -424,16 +425,28 @@ sub on_function_changed {
         $self->{param_extractors_added}{$p->get_name} ++;
     }
 
-
     # Build widgets for parameters
     my $table = $self->{xmlPage}->get_object('tableParams');
     my $parameters_table = Biodiverse::GUI::ParametersTable->new;
     my $new_extractors
         = $parameters_table->fill(\@params_to_add, $table);
-    if (! defined $self->{param_extractors}) {
-        $self->{param_extractors} = [];
-    }
+    
+    $self->{param_extractors} //= [];
     push @{$self->{param_extractors}}, @$new_extractors;
+
+    $self->{widgets} //= [];
+    my $widget_array = $self->{widgets};
+    my $new_widgets = $parameters_table->{widgets};
+    push @$widget_array, @$new_widgets;
+
+    #  sensitise or not - delicate due to poss array mismatch
+    if ($self->{output_ref}) {
+        my $i = -1;
+        foreach my $p (@$params) {
+            $i++;
+            $widget_array->[$i]->set_sensitive($p->get_sensitive);
+        }
+    }
 
     return;
 }
@@ -699,6 +712,7 @@ sub on_run {
     #if ($success) {
         #$self->{project}->register_in_outputs_model ($output_ref, $self);
         $self->register_in_outputs_model ($output_ref, $self);
+        $self->on_function_changed;  #  disable some widgets
     #}
     if (not $success) {  # dropped out for some reason, eg no valid analyses.
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances

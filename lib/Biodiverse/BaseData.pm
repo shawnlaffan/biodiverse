@@ -4400,8 +4400,10 @@ sub get_unique_randomisation_name {
     
     my $max = 0;
     foreach my $name (@names) {
-        my $num = $name =~ /$prefix(\d+)$/;
-        $max = $num if $num > $max;
+        if ($name =~ /^$prefix(\d+)$/) {
+            my $num = $1;
+            $max = $num if $num > $max;
+        }
     }
 
     my $unique_name = $prefix . ($max + 1);

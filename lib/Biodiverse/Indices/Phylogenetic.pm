@@ -2362,6 +2362,7 @@ sub _calc_phylo_abc_lists {
         el_list  => [keys %{$args{element_list2}}],
     );
 
+    #  Panda hash merge candidate
     my %A = (%$nodes_in_path1, %$nodes_in_path2); 
 
     # create a new hash %B for nodes in label hash 1 but not 2

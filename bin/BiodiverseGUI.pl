@@ -76,14 +76,6 @@ my $eval_result = eval {
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
 
-sub get_main_window
-{
-    my $gui = shift;
-    my $dlgxml = Gtk2::Builder->new();
-    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndMain.ui'));
-    return $dlgxml;
- 
-}
 
 ###########################
 # Create the UI
@@ -121,6 +113,13 @@ croak $EVAL_ERROR if $EVAL_ERROR;
 exit;
 
 ################################################################################
+
+sub get_main_window {
+    my $gui = shift;
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndMain.ui'));
+    return $dlgxml;
+}
 
 sub usage {
     print STDERR << "END_OF_USAGE";

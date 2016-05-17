@@ -1771,7 +1771,7 @@ sub get_metadata {
     
     #  Some metadata depends on given arguments,
     #  and these could change across the life of an object.
-    if ($use_cache) {
+    if (blessed ($self) && $use_cache) {
         $cache = $self->get_cached_metadata;
         $metadata = $cache->{$subname};
     }

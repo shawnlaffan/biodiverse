@@ -343,14 +343,21 @@ sub run_randomisation {
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
 
-    #  load any predefined args - overriding user specified ones
-    my $ref = $self->get_param ('ARGS');
-    if (defined $ref) {
+    #  load any predefined args, overriding user specified ones
+    #  unless they are flagged as mutable.
+    if (my $ref = $self->get_param ('ARGS')) {
+        my $metadata = $self->get_metadata (sub => $function);
+        my $params = $metadata->get_parameters;
+        my %mutables;
+        foreach my $p (@$params) {
+            next if !$p->get_mutable;
+            my $name = $p->get_name;
+            $mutables{$name} = $args{$name};
+        }
         %args = %$ref;
+        @args{keys %mutables} = values %mutables;
     }
-    else {
-        $self->set_param (ARGS => \%args);
-    }
+    $self->set_param (ARGS => \%args);
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -849,14 +856,13 @@ sub get_common_rand_metadata {
             default    => 0,
             increment  => 1,
             tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
-            always_sensitive => 1,
             mutable    => 1,
         }, $parameter_metadata_class),
     );
     
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     @common = (
-        @common,  #  DEBUG
+        #@common,  #  DEBUG
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',

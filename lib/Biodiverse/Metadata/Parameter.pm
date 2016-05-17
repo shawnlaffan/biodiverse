@@ -37,6 +37,7 @@ my %methods_and_defaults = (
     digits      => undef,
     increment   => 1,
     always_sensitive => undef,
+    mutable     => 0,
     box_group   => undef,
 );
 

@@ -1954,13 +1954,7 @@ sub sp_select_sequence {
     $self->set_cached_value( $cache_last_coord_id_name => $coord_id1 );
     $self->set_cached_value( $cache_offset_name        => $offset );
 
-    my $cached_nbrs = $self->get_cached_value($cache_nbr_name);
-    if ( not $cached_nbrs ) {
-
-        #  cache this regardless - what matters is where it is used
-        $cached_nbrs = {};
-        $self->set_cached_value( $cache_nbr_name => $cached_nbrs );
-    }
+    my $cached_nbrs = $self->get_cached_value_dor_set_default_aa($cache_nbr_name, {});
 
     my $nbrs;
     if (    $use_cache
@@ -2538,11 +2532,7 @@ sub get_cache_points_in_shapepoly {
     my %args = @_;
 
     my $cache_name = 'cache_' . $args{file};
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
     return $cache;
 }
 
@@ -2550,11 +2540,7 @@ sub get_cache_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value($cache_name, {});
     return $cache;
 }
 
@@ -2562,11 +2548,7 @@ sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa($cache_name, {});
     return $cache;
 }
 

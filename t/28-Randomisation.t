@@ -9,6 +9,7 @@ use Carp;
 use FindBin qw/$Bin/;
 use Test::Lib;
 use List::Util qw /first sum0/;
+use List::MoreUtils qw /any_u/;
 
 use Test::More;
 use Test::Deep;
@@ -56,6 +57,57 @@ sub main {
     return 0;
 }
 
+
+sub test_mutable_parameters {
+    my $target_arg = 'add_basedatas_to_project';
+    my $metadata   = Biodiverse::Randomise->get_metadata (sub => 'rand_csr_by_group');
+    my $params     = $metadata->get_parameters;
+    my $has_target = any_u {$_->get_name eq $target_arg} @$params;
+
+    SKIP: {
+        skip "missing mutable target $target_arg", 2
+          if !$has_target;
+
+        my $c = 300000;
+        my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+    
+        my $sp = $bd->add_spatial_output(name => 'sp_to_test_mutables');
+        $sp->run_analysis (
+            calculations => ['calc_richness'],
+            spatial_conditions => ['sp_self_only()'],
+        );
+        my $rand = $bd->add_randomisation_output (name => 'test_mutable_params');
+        
+    
+        my %analysis_args = (
+            function => 'rand_csr_by_group',
+            iterations => 1,
+            $target_arg => 1,  #  need a better one to test
+        );
+    
+        $rand->run_analysis(%analysis_args);
+    
+        my $args = $rand->get_param('ARGS');
+    
+        $rand->run_analysis(
+            %analysis_args,
+            $target_arg => 10,
+        );
+        is (
+            $args->{add_basedatas_to_project},
+            1,
+            "mutable arg $target_arg set as expected on first iter",
+        );
+    
+        $args = $rand->get_param('ARGS');
+        
+        is (
+            $args->{add_basedatas_to_project},
+            10,
+            "mutable arg $target_arg changed as expected",
+        );
+    };
+}
 
 sub test_rand_structured_richness_same {
     my $c = 100000;

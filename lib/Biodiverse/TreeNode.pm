@@ -551,8 +551,7 @@ sub group_nodes_below {
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
-    my $cache_hash = $self->get_cached_value ($cache_key) //
-        do {my $c = {}; $self->set_cached_value ($cache_key => $c); $c};
+    my $cache_hash = $self->get_cached_value_dor_set_default_aa ($cache_key, {});
     my $cache_val = $target_value // $groups_needed;
     if (my $cached_result = $cache_hash->{$cache_val}) {
         return wantarray ? %$cached_result : $cached_result;

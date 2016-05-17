@@ -1321,6 +1321,10 @@ sub import_data_raster {
         #  avoid repeated array lookups below
         my ($tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5) = @tf;
 
+        #  does not allow for rotations, but not sure that it should sinec Biodiverse doesn't either.  
+        $cellsize_e ||= abs $tf_1;
+        $cellsize_n ||= abs $tf_5;
+
         # iterate over each band
         foreach my $b (1 .. $data->{RasterCount}) {
             my $band = $data->Band($b);
@@ -4396,9 +4400,10 @@ sub get_unique_randomisation_name {
     
     my $max = 0;
     foreach my $name (@names) {
-        $name =~ /$prefix(\d+)$/;
-        my $num = $1;
-        $max = $num if $num > $max;
+        if ($name =~ /^$prefix(\d+)$/) {
+            my $num = $1;
+            $max = $num if $num > $max;
+        }
     }
 
     my $unique_name = $prefix . ($max + 1);

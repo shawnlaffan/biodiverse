@@ -794,11 +794,10 @@ sub get_nbrs_for_element {
                             progress => $progr,
                         );
                         $progr = undef;
-                        my $cached_arr = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
-                        if (!$cached_arr) {
-                            $cached_arr = [];
-                            $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $cached_arr);
-                        }
+                        my $cached_arr
+                          = $self->get_cached_value_dor_set_default_aa(
+                              'NBRS_FROM_ALWAYS_SAME', []
+                            );
 
                         $cached_arr->[$i] = $tmp;
                         my %tmp2 = %$tmp;

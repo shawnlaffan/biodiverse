@@ -857,12 +857,12 @@ sub get_common_rand_metadata {
             increment  => 1,
             tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
             mutable    => 1,
+            box_group  => 'Debug',
         }, $parameter_metadata_class),
     );
     
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     push @common, (
-        #@common,  #  DEBUG
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',
@@ -1115,7 +1115,7 @@ sub get_metadata_rand_spatially_structured {
                     . 'within the neighbourhood after the seed group.'
     }, $parameter_rand_metadata_class;
     push @parameters, $label_allocation_order;
-    
+
     my %metadata = (
         parameters  => \@parameters,
         description => "Randomly allocate labels to groups, selecting "
@@ -1186,10 +1186,12 @@ END_TOOLTIP_ADDN
     
     my $track_label_allocation_order = bless {
         name       => 'track_label_allocation_order',
-        #label_text => "Label allocation order",
+        label_text => "Track the label allocation order?",
         default    => 0,
         type       => 'boolean',
-        tooltip    => '',
+        tooltip    => 'Allows one to see the order in which labels were assigned to groups '
+                    . '(before any swapping is applied to reach any richness targets).',
+        box_group  => 'Debug',
     }, $parameter_rand_metadata_class;
     push @parameters, $track_label_allocation_order;
 

@@ -427,7 +427,7 @@ sub on_function_changed {
 
     # Build widgets for parameters
     my $table = $self->{xmlPage}->get_object('tableParams');
-    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $parameters_table = $self->get_parameters_table;
     my $new_extractors
         = $parameters_table->fill(\@params_to_add, $table);
     
@@ -451,7 +451,11 @@ sub on_function_changed {
     return;
 }
 
-
+sub get_parameters_table {
+    my $self = shift;
+    $self->{parameters_table} //= Biodiverse::GUI::ParametersTable->new;
+    return $self->{parameters_table};
+}
 
 ######################################################
 ## The basedata/outputs selection

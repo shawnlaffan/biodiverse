@@ -289,6 +289,17 @@ sub get_randomisation_functions {
     return wantarray ? %analyses : \%analyses;
 }
 
+sub get_randomisation_functions_as_array {
+    my $self = shift || __PACKAGE__;
+
+    my @analyses = $self->get_subs_with_prefix_as_array (
+        prefix => 'rand_',
+        class => __PACKAGE__,
+    );
+
+    return wantarray ? @analyses : \@analyses;
+}
+
 sub check_rand_function_is_valid {
     my $self = shift;
     my %args = @_;
@@ -1191,6 +1202,7 @@ END_TOOLTIP_ADDN
         type       => 'boolean',
         tooltip    => 'Allows one to see the order in which labels were assigned to groups '
                     . '(before any swapping is applied to reach any richness targets).',
+        mutable    => 1,
         box_group  => 'Debug',
     }, $parameter_rand_metadata_class;
     push @parameters, $track_label_allocation_order;

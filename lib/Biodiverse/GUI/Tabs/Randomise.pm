@@ -81,10 +81,12 @@ sub new {
         $function = $output_ref->get_param ('FUNCTION');
     }
 
+    $self->init_parameters_table;
+
     # Initialise randomisation function combo
     $self->make_function_model (selected_function => $function);
     $self->init_function_combo;
-
+    
     # Make model for the outputs tree
     my $model = Gtk2::TreeStore->new(
         'Glib::Boolean',       # Checked?
@@ -322,7 +324,7 @@ sub make_function_model {
     my $model = $self->{function_model};
 
     # Add each randomisation function
-    my $functions = Biodiverse::Randomise::get_randomisation_functions;
+    my $functions = Biodiverse::Randomise->get_randomisation_functions;
         my %functions = %$functions;
         my @funcs;
         #  SWL: put the selected one first
@@ -382,69 +384,59 @@ sub get_selected_function {
 sub on_function_changed {
     my $self = shift;
 
+    my $widget_hash = ($self->{widget_hash} //= {});
+    my $params_hash = ($self->{params_hash} //= {});
+    my $metadata_cache = $self->{metadata_cache} // croak 'metadata_cache not yet built';
+
     # Get the Parameters metadata
     my $func = $self->get_selected_function;
 
     my $object = $self->{output_ref}
                  || $self->{output_placeholder_ref};
-    my $metadata = $object->get_metadata (sub => $func);
 
-    my $params = $metadata->get_parameters;
+    my $metadata = $metadata_cache->{$func};
+    my $params   = $metadata->get_parameters;
 
+    #  needed?
     return if not defined $params;
 
-    #  set the parameter values if the output exists
+    #  need to set the parameter values if the output exists
+    my $args_hash = {};
+    my $use_args_hash = 0;
+    my $sensitise = 1;
     if ($self->{output_ref}) {
-        my $args = $self->{output_ref}->get_param ('ARGS') || {};
-        foreach my $arg (keys %$args) {
-            foreach my $parameter (@$params) {
-                next if $parameter->get_name ne $arg;
-                my $def_val = $args->{$arg};
-                if ($parameter->get_type eq 'choice') {
-                    my $choices = $parameter->get_choices;
-                    $def_val = first_index {$_ eq $args->{$arg}} @$choices;
-                    #  if no full match then get the first suffix match - allows for shorthand options
-                    if ($def_val < 0) {
-                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @$choices;
-                    }
+        $args_hash = $self->{output_ref}->get_param ('ARGS') // {};
+        $use_args_hash = scalar keys %$args_hash;
+        $sensitise = 0;
+    }
+    my %func_p_hash = map {$_->get_name => $_} @$params;
+
+    P_NAME:
+    foreach my $p_name (keys %$widget_hash) {
+
+        my $parameter = $params_hash->{$p_name};
+
+        if ($use_args_hash) {
+            my $val = $args_hash->{$p_name};
+            if ($parameter->get_type eq 'choice') {
+                my $choices = $parameter->get_choices;
+                $val = first_index {$_ eq $args_hash->{$p_name}} @$choices;
+                #  if no full match then get the first suffix match - allows for shorthand options
+                if ($val < 0) {
+                    $val = first_index {$_ =~ /$args_hash->{$p_name}$/} @$choices;
                 }
-                $parameter->set_default ($def_val);
-                #  cannot only some params for an existing output
-                $parameter->set_sensitive ($parameter->get_mutable // 0);
             }
+            $parameter->set_default ($val);
         }
-    }
 
-    #  keep a track of what we've already added
-    #  - desperately needs an overhaul
-    my @params_to_add;
-    foreach my $p (@$params) {
-        if (! exists $self->{param_extractors_added}{$p->get_name}) {
-            push (@params_to_add, $p) ;
+        if (exists $func_p_hash{$p_name}) {
+            #  desensitise by default, but mutable params can always be changed
+            my $sens = $parameter->get_mutable // $sensitise;
+            $parameter->set_sensitive ($sens);  #  needed now?
+            $widget_hash->{$p_name}->set_sensitive($sens);
         }
-        $self->{param_extractors_added}{$p->get_name} ++;
-    }
-
-    # Build widgets for parameters
-    my $table = $self->{xmlPage}->get_object('tableParams');
-    my $parameters_table = $self->get_parameters_table;
-    my $new_extractors
-        = $parameters_table->fill(\@params_to_add, $table);
-    
-    $self->{param_extractors} //= [];
-    push @{$self->{param_extractors}}, @$new_extractors;
-
-    $self->{widgets} //= [];
-    my $widget_array = $self->{widgets};
-    my $new_widgets = $parameters_table->{widgets};
-    push @$widget_array, @$new_widgets;
-
-    #  sensitise or not - delicate due to poss array mismatch
-    if ($self->{output_ref}) {
-        my $i = -1;
-        foreach my $p (@$params) {
-            $i++;
-            $widget_array->[$i]->set_sensitive($p->get_sensitive);
+        else {
+            $widget_hash->{$p_name}->set_sensitive(0);
         }
     }
 
@@ -455,6 +447,50 @@ sub get_parameters_table {
     my $self = shift;
     $self->{parameters_table} //= Biodiverse::GUI::ParametersTable->new;
     return $self->{parameters_table};
+}
+
+sub init_parameters_table {
+    my $self = shift;
+
+    my $functions = Biodiverse::Randomise->get_randomisation_functions_as_array;
+    my @metadata;
+    my (@params_list, %params_hash, %metadata_cache);
+    foreach my $func (sort @$functions) {
+        my $metadata = Biodiverse::Randomise->get_metadata (sub => $func);
+        $metadata_cache{$func} = $metadata;
+        my $params = $metadata->get_parameters;
+        foreach my $p (@$params) {
+            my $name = $p->get_name;
+            next if exists $params_hash{$name};
+            push @params_list, $p;
+            $params_hash{$name} = $p;
+        }
+    }
+
+    $self->{params_hash}    = \%params_hash;
+    $self->{metadata_cache} = \%metadata_cache;
+
+    # Build widgets for parameters
+    my $table = $self->{xmlPage}->get_object('tableParams');
+    my $parameters_table = $self->get_parameters_table;
+    my $new_extractors
+        = $parameters_table->fill(\@params_list, $table);
+
+    $self->{param_extractors} //= [];
+    push @{$self->{param_extractors}}, @$new_extractors;
+
+    $self->{widgets} //= [];
+    my $widget_array = $self->{widgets};
+    my $new_widgets = $parameters_table->{widgets};
+    push @$widget_array, @$new_widgets;
+
+    my $widget_hash = ($self->{widget_hash} //= {});
+    foreach my $i (0..$#params_list) {
+        my $name = $params_list[$i]->get_name;
+        $widget_hash->{$name} = $widget_array->[$i];
+    }
+
+    return;    
 }
 
 ######################################################

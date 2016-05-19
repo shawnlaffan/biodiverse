@@ -199,7 +199,7 @@ sub extract {
         #print "\n";
         push @params, $extractor->();
     }
-    return \@params;
+    return wantarray ? @params : \@params;
 }
 
 # Generates widget + extractor for some parameter

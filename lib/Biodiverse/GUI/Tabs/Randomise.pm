@@ -329,7 +329,7 @@ sub on_function_changed {
 
     my $widget_hash = ($self->{widget_hash} //= {});
     my $params_hash = ($self->{params_hash} //= {});
-    my $metadata_cache = $self->{metadata_cache} // croak 'metadata_cache not yet built';
+    my $metadata_cache = $self->get_metadata_cache;
 
     # Get the Parameters metadata
     my $func = $self->get_selected_function;
@@ -359,19 +359,6 @@ sub on_function_changed {
 
         my $parameter = $params_hash->{$p_name};
 
-        if ($use_args_hash) {
-            my $val = $args_hash->{$p_name};
-            if ($parameter->get_type eq 'choice') {
-                my $choices = $parameter->get_choices;
-                $val = first_index {$_ eq $args_hash->{$p_name}} @$choices;
-                #  if no full match then get the first suffix match - allows for shorthand options
-                if ($val < 0) {
-                    $val = first_index {$_ =~ /$args_hash->{$p_name}$/} @$choices;
-                }
-            }
-            $parameter->set_default ($val);
-        }
-
         if (exists $func_p_hash{$p_name}) {
             #  desensitise by default, but mutable params can always be changed
             my $sens = $parameter->get_mutable // $sensitise;
@@ -392,8 +379,47 @@ sub get_parameters_table {
     return $self->{parameters_table};
 }
 
-sub init_parameters_table {
+#  if we have an existing output then we need to use its values
+sub update_default_parameter_values {
     my $self = shift;
+    
+    my $params_hash = ($self->{params_hash} //= {});
+    my $metadata_cache = $self->get_metadata_cache;
+
+    return if not $self->{output_ref};
+
+    #  need to set the parameter values if the output exists
+    my $args_hash = $self->{output_ref}->get_param ('ARGS') // {};
+
+    P_NAME:
+    foreach my $p_name (keys %$params_hash) {
+
+        my $parameter = $params_hash->{$p_name};
+
+        if (exists $args_hash->{$p_name}) {
+            my $val = $args_hash->{$p_name};
+            if ($parameter->get_type eq 'choice') {
+                my $choices = $parameter->get_choices;
+                my $arg_name = $args_hash->{$p_name};
+                $val = first_index {$_ eq $arg_name} @$choices;
+                #  if no full match then get the first suffix match - allows for shorthand options
+                if ($val < 0) {
+                    $val = first_index {$_ =~ /$arg_name$/} @$choices;
+                }
+            }
+            $parameter->set_default ($val);
+        }
+    }
+
+    return;
+}
+
+#  need to extract the params hash stuff into its own sub
+sub get_metadata_cache {
+    my $self = shift;
+
+    return $self->{metadata_cache}
+      if $self->{metadata_cache};
 
     my $functions = Biodiverse::Randomise->get_randomisation_functions_as_array;
     my @metadata;
@@ -410,14 +436,24 @@ sub init_parameters_table {
         }
     }
 
+    $self->{params_list}    = \@params_list;
     $self->{params_hash}    = \%params_hash;
-    $self->{metadata_cache} = \%metadata_cache;
+    $self->{metadata_cache} = \%metadata_cache;    
+}
+
+sub init_parameters_table {
+    my $self = shift;
+
+    $self->get_metadata_cache;
+    $self->update_default_parameter_values;
+    
+    my $params_list = $self->{params_list};
 
     # Build widgets for parameters
     my $table = $self->{xmlPage}->get_object('tableParams');
     my $parameters_table = $self->get_parameters_table;
     my $new_extractors
-        = $parameters_table->fill(\@params_list, $table);
+        = $parameters_table->fill($params_list, $table);
 
     $self->{param_extractors} //= [];
     push @{$self->{param_extractors}}, @$new_extractors;
@@ -428,8 +464,8 @@ sub init_parameters_table {
     push @$widget_array, @$new_widgets;
 
     my $widget_hash = ($self->{widget_hash} //= {});
-    foreach my $i (0..$#params_list) {
-        my $name = $params_list[$i]->get_name;
+    foreach my $i (0..$#$params_list) {
+        my $name = $params_list->[$i]->get_name;
         $widget_hash->{$name} = $widget_array->[$i];
     }
 
@@ -575,18 +611,23 @@ sub on_run {
         $seed = undef;
     }
 
-    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
-    my $param_hash = $parameters_table->extract (
-        $self->{param_extractors}
-    );
+    #  need to get the parameters for this function given the metadata
+    #my $parameters_table = $self->get_parameters_table;
+    #my $param_hash = $parameters_table->extract (
+    #    $self->{param_extractors}
+    #);
+    my $param_hash = $self->get_parameter_settings_for_func ($args{function});
+    
     %args = (
         %args,
         seed => $seed,
-        @$param_hash,
+        %$param_hash,
     );
 
+    #  is this still needed?
     my $str_args;  #  for user feedback
-    while (my ($arg, $value) = each %args) {
+    foreach my $arg (sort keys %args) {
+        my $value = $args{$arg};
         if (! ref $value) {
             $value //= "undef";
             $str_args .= "\t$arg\t= $value\n" ;
@@ -605,7 +646,7 @@ sub on_run {
     my $output_ref = $basedata_ref->get_randomisation_output_ref (name => $name);
     if (defined $output_ref) {  #  warn it is an existing output, quit if user specifies
         my $text =
-            "Randomisation $name already exists.\n\n"
+            "Randomisation $name already exists in this BaseData.\n\n"
             . "Running more iterations will add to the existing results.\n"
             . "The PRNG sequence will also continue on from the last iteration.\n\n"
             . "If you have typed an existing list name then any "
@@ -665,6 +706,30 @@ sub on_run {
     return;
 }
 
+#  get the current parameter values for a function
+sub get_parameter_settings_for_func {
+    my ($self, $func) = @_;
+
+    defined $func or croak "function argument not specified\n";
+
+    my $parameters_table = $self->get_parameters_table;
+    my %param_hash = $parameters_table->extract (
+        $self->{param_extractors}
+    );
+
+    my $metadata = $self->{metadata_cache}->{$func};
+    croak "Metadata cache not filled\n"
+      if !defined $metadata;
+
+    my @needed_params = map {$_->get_name} @{$metadata->get_parameters};
+
+    #say join ' ', @needed_params;
+
+    my %p_subset;
+    @p_subset{@needed_params} = @param_hash{@needed_params};
+
+    return wantarray ? %p_subset : \%p_subset;
+}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

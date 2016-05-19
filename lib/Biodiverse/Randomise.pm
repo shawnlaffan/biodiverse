@@ -860,17 +860,7 @@ sub get_common_rand_metadata {
     my $self = shift;
 
     my @common = (
-        bless ({
-            name       => 'add_basedatas_to_project',
-            label_text => 'How many basedatas to add to the project',
-            type       => 'integer',
-            default    => 0,
-            increment  => 1,
-            tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
-            mutable    => 1,
-            box_group  => 'Debug',
-        }, $parameter_metadata_class),
-        bless ({
+         bless ({
             name       => 'save_checkpoint',
             label_text => 'Save checkpoints',
             type       => 'integer',
@@ -883,8 +873,17 @@ sub get_common_rand_metadata {
                         . 'Set to -1 to not use it.',
             mutable    => 1,
             box_group  => 'Debug',
-        }, $parameter_metadata_class),            
-            
+        }, $parameter_metadata_class),
+        bless ({
+            name       => 'add_basedatas_to_project',
+            label_text => 'How many basedatas to add to the project',
+            type       => 'integer',
+            default    => 0,
+            increment  => 1,
+            tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
+            mutable    => 1,
+            box_group  => 'Debug',
+        }, $parameter_metadata_class),    
     );
 
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.

@@ -870,8 +870,23 @@ sub get_common_rand_metadata {
             mutable    => 1,
             box_group  => 'Debug',
         }, $parameter_metadata_class),
+        bless ({
+            name       => 'save_checkpoint',
+            label_text => 'Save checkpoints',
+            type       => 'integer',
+            default    => -1,
+            min        => -1,
+            increment  =>  1,
+            tooltip    => 'Any iteration ending in this number will be saved to disk as a bds file.  '
+                        . 'Useful to check convergence if the randomisations are very slow or '
+                        . 'to restart from a known point if the system crashes due to lack of memory. '
+                        . 'Set to -1 to not use it.',
+            mutable    => 1,
+            box_group  => 'Debug',
+        }, $parameter_metadata_class),            
+            
     );
-    
+
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     push @common, (
         bless ({

@@ -102,24 +102,6 @@ sub new {
     #  and needed if it is undef
     $bd = $self->{selected_basedata_ref};
 
-    # Initialise the tree
-    # One column with a checkbox and the output name
-    #my $tree = $self->{xmlPage}->get_object("treeOutputs");
-    #
-    #my $colName = Gtk2::TreeViewColumn->new();
-    #my $checkRenderer = Gtk2::CellRendererToggle->new();
-    #my $nameRenderer = Gtk2::CellRendererText->new();
-    #$checkRenderer->signal_connect_swapped(toggled => \&on_output_toggled, $self);
-    #
-    #$colName->pack_start($checkRenderer, 0);
-    #$colName->pack_start($nameRenderer, 1);
-    #$colName->add_attribute($checkRenderer, active => OUTPUT_CHECKED);
-    #$colName->add_attribute($nameRenderer,  text => OUTPUT_NAME);
-
-    #$tree->insert_column($colName, -1);
-    #$tree->set_model( $model );
-
-    $self->add_save_checkpoint_to_table ($output_ref);
     $self->add_iteration_count_to_table ($output_ref);
 
     my $name;
@@ -181,38 +163,6 @@ sub add_row_to_table {
     return $row_count;
 }
 
-sub add_save_checkpoint_to_table {
-    my $self = shift;
-
-    my $table = $self->get_table_widget;
-
-    my $label = Gtk2::Label->new("Checkpoint save\niterations");
-
-
-    my $default = -1;
-    my $incr    = 100;
-
-    my $adj = Gtk2::Adjustment->new($default, -1, 10000000, $incr, $incr * 10, 0);
-    my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
-
-    my $tooltip_group = Gtk2::Tooltips->new;
-    my $tip_text = "Save every nth iteration.\n"
-                   . '(Useful for evaluating results as they are run.)';
-    $tooltip_group->set_tip($label, $tip_text, undef);
-
-    #  and now add the widgets
-    my $row_count = $self->add_row_to_table ($table);
-    $table->attach ($label, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
-    $table->attach ($spin,  1, 2, $row_count, $row_count + 1, 'fill', [], 0, 0);
-
-    $label->show;
-    $spin->show;
-
-    $self->{save_checkpoint_button} = $spin;
-
-    return;
-}
-
 sub add_iteration_count_to_table {
     my $self = shift;
     my $output_ref = shift;
@@ -270,13 +220,6 @@ sub set_button_sensitivity {
     }
 
     my $table = $self->{xmlPage}->get_object('tableParams');
-    #$table->set_sensitive ($sens);  #  comment out - don't do whole table
-    #$self->on_function_changed;
-
-    #  no - keep this modifiable
-    #if (defined $self->{save_checkpoint_button}) {
-    #    $self->{save_checkpoint_button}->set_sensitive ($sens);
-    #}
 
     return;
 }
@@ -510,30 +453,6 @@ sub on_randomise_basedata_changed {
         );
     }
     $self->{selected_basedata_ref} = $basedata_ref;
-    #print "[Randomise page] Basedata ref is $basedata_ref\n";
-
-    #  NOT DOING THIS NOW
-    ## Set up the tree with outputs
-    #my $outputs_model = $self->{outputs_model};
-    #$outputs_model->clear;
-    #
-    #my $outputs_list = $self->{gui}->get_project->get_basedata_outputs($basedata_ref);
-    #if (not @{$outputs_list}) {
-    #    #print "[Randomise page] output_list empty\n";
-    #}
-    #else {
-    #
-    #    foreach my $output_ref (@{$outputs_list}) {
-    #        my $iter = $outputs_model->append(undef);
-    #        $outputs_model->set(
-    #            $iter,
-    #            OUTPUT_CHECKED, 1,
-    #            OUTPUT_REF,     $output_ref,
-    #            OUTPUT_NAME,    $output_ref->get_param('NAME')
-    #        );
-    #    }
-    #
-    #}
 
     $self->update_randomise_button;
 
@@ -559,24 +478,6 @@ sub on_output_toggled {
     return;
 }
 
-# Get list of outputs that have been checked - (all of them these days)
-sub get_selected_outputs {
-    my $self = shift;
-    #my $model = $self->{outputs_model};
-    #my $iter = $model->get_iter_first;
-    #my @array;
-    #
-    #while ($iter) {
-    #    my ($checked, $ref) = $model->get($iter, OUTPUT_CHECKED, OUTPUT_REF);
-    #    if ($checked) {
-    #        unshift @array, $ref;
-    #    }
-    #    $iter = $model->iter_next($iter);
-    #}
-    #return \@array;
-    #
-    return $self->{gui}->get_project->get_basedata_outputs($self->{selected_basedata_ref});
-}
 
 # Disables "Randomise" button if no outputs selected
 sub update_randomise_button {
@@ -652,25 +553,14 @@ sub on_run {
 
     my $basedata_ref = $self->{selected_basedata_ref};
     my $basedata_name = $basedata_ref->get_param('NAME');
-    my $targets = $self->get_selected_outputs;
-
-    if (not @{$targets}) {
-        croak "[Randomise page] ERROR - button shouldn't be clicked "
-              . "when no targets selected!!\n";
-    }
 
     $self->set_button_sensitivity (0);
-
-    print "[Randomise page] Targets: @{$targets}\n";
 
     # Fill in parameters
     my %args;
     $args{function} = $self->get_selected_function;
     $args{iterations}
         = $self->{xmlPage}->get_object('spinIterations')->get_value_as_int;
-    #$args{targets} = $targets;
-
-    $args{save_checkpoint} = $self->{save_checkpoint_button}->get_value;
 
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_object('randomise_results_list_name')->get_text;

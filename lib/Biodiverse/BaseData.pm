@@ -25,7 +25,7 @@ use Spreadsheet::Read 0.60;
 require Spreadsheet::ReadSXC;
 require Spreadsheet::ParseExcel;
 require Spreadsheet::ParseXLSX;
-require Spreadsheet::XLSX;
+#require Spreadsheet::XLSX;  latest version does not install
 
 use English qw { -no_match_vars };
 

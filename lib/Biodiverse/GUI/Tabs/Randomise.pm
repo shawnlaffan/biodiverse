@@ -268,23 +268,29 @@ sub make_function_model {
 
     # Add each randomisation function
     my $functions = Biodiverse::Randomise->get_randomisation_functions;
-        my %functions = %$functions;
-        my @funcs;
-        #  SWL: put the selected one first
-        #  - should really manipulate GTK iters to just select it
-        if (defined $args{selected_function}) {
-            #delete $functions{$args{selected_function}};
-            #@funcs = ($args{selected_function}, sort keys %functions);
-            @funcs = ($args{selected_function});  #  only allow the previously used function
+    my %functions = %$functions;
+    my @funcs;
+    #  SWL: put the selected one first
+    #  - should really manipulate GTK iters to just select it
+    if (defined $args{selected_function}) {
+        #delete $functions{$args{selected_function}};
+        #@funcs = ($args{selected_function}, sort keys %functions);
+        @funcs = ($args{selected_function});  #  only allow the previously used function
+    }
+    else {
+        my $default = Biodiverse::Randomise->get_default_rand_function;
+        if (exists $functions->{$default}) {
+            push @funcs, $default;
+            push @funcs, grep {$_ ne $default} sort keys %{$functions};
         }
         else {
-            @funcs = sort keys %{$functions};
+            push @funcs, sort keys %{$functions};
         }
+    }
     foreach my $name (@funcs) {
         # Add to model
         my $iter = $model->append;
         $model->set($iter, 0, $name);
-
     }
 
     $self->{selected_function_iter} = $model->get_iter_first;

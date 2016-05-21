@@ -277,6 +277,10 @@ sub export_prng_current_state {
     return;
 }
 
+sub get_default_rand_function {
+    return 'rand_structured';
+}
+
 #  get a list of the all the publicly available randomisations.
 sub get_randomisation_functions {
     my $self = shift || __PACKAGE__;

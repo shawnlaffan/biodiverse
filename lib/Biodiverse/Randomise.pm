@@ -1697,7 +1697,30 @@ END_PROGRESS_TEXT
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
 
-    if ($track_label_allocation_order) {   
+    if ($track_label_allocation_order) {
+        #  negate any swapped out labels and set any swapped in labels to 0
+        no autovivification;
+        my $sp = $sp_to_track_label_allocation_order;  #  shorthand
+        EL:
+        foreach my $el ($sp->get_element_list) {
+            my $list_ref   = $sp->get_list_ref(
+                list => 'ALLOCATION_ORDER',
+                element => $el,
+            );
+            my $label_hash = $bd->get_labels_in_group_as_hash_aa($el);
+            my %combined = (%$list_ref, %$label_hash);
+            next EL if scalar (keys %combined) == scalar (keys %$list_ref)
+                    && scalar (keys %combined) == scalar (keys %$label_hash); 
+            foreach my $label (keys %combined) {
+                if (exists $list_ref->{$label} && !exists $label_hash->{$label}) {
+                    $list_ref->{$label} *= -1;  #  negate - we were swapped out
+                }
+                elsif (!exists $list_ref->{$label} && exists $label_hash->{$label}) {
+                    $list_ref->{$label} = 0;    #  set to zero
+                }
+            }
+        }
+        #  now add it to the basedata
         $new_bd->add_spatial_output (
             name => 'sp_to_track_allocations',
             object => $sp_to_track_label_allocation_order,

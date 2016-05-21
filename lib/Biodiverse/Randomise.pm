@@ -1707,6 +1707,7 @@ END_PROGRESS_TEXT
         my $sp = $sp_to_track_label_allocation_order;  #  shorthand
         EL:
         foreach my $el ($sp->get_element_list) {
+            next;  #  debug
             my $list_ref   = $sp->get_list_ref(
                 list => 'ALLOCATION_ORDER',
                 element => $el,

@@ -268,6 +268,135 @@ sub test_rand_spatially_structured {
     return;
 }
 
+sub test_random_propagation {
+    my $c  = 1;
+    my $c3 = $c * 1;
+    my $c6 = $c * 2;
+    my $c9 = $c * 3;
+    my $bd_size = 21;
+
+    my $prng_seed = 2345;
+    
+    #my $prng = Math::Random::MT::Auto->new;
+    
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'bd_test_random_propagation',
+        CELL_SIZES => [$c, $c],
+        CELL_ORIGINS => [$c/2, $c/2],
+    );
+    
+    my @labels = qw /a b c/;
+    my $k = 0;
+    foreach my $i (0 .. $bd_size) {
+        foreach my $j (0 .. $bd_size) {
+            my $group = "$i:$j";
+            $bd->add_element (group => $group);
+            my $label = $labels[$i % 3];
+            $bd->add_element (group => $group, label => $label, count => $k);
+            $k++;
+        }
+    }
+
+    $bd->build_spatial_index(resolutions => [$c, $c]);
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_square (size => 3)'],
+        calculations => [qw /calc_element_lists_used/],
+    );
+
+    my $rand_name = 'test_random_propagation';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_spatially_structured',
+        iterations => 1,  #  reset to 3 later
+        seed       => $prng_seed,
+        richness_addition   => 30,  #  make sure we can put our three labels anywhere
+        richness_multiplier => 1,
+        spatial_conditions_for_label_allocation => [
+            'sp_square (size => 3)',
+        ],
+        return_rand_bd_array => 1,
+        retain_outputs => 1,
+        label_allocation_order => 'random_propagation',
+        track_label_allocation_order => 1,
+    );
+
+    is ($rand->get_param('SWAP_OUT_COUNT'), 0,
+        'Did not swap out in spatially structured random_propagation ',
+    );
+    is ($rand->get_param('SWAP_INSERT_COUNT'), 0,
+        'Did not swap insert in spatially structured random_propagation ',
+    );
+
+    subtest 'range scores match' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $label (sort $rand_bd->get_labels) {
+                is ($rand_bd->get_range (element => $label),
+                    $bd->get_range (element => $label),
+                    "range for $label matches",
+                );
+            }
+        }
+    };
+
+    my $sp_alloc_name = 'sp_to_track_allocations';
+    #  check the local ranges
+    subtest 'no isolated cases' => sub {
+        no autovivification;
+        my $i = 0;
+        foreach my $rand_bd (@$rand_bd_array) {
+            $i++;
+            my $output
+              = $rand_bd->get_spatial_output_ref(name => "sp Randomise $i");
+            my $alloc_output
+              = $rand_bd->get_spatial_output_ref(name => $sp_alloc_name);
+
+            foreach my $group (sort $output->get_element_list) {
+                next if !$rand_bd->get_richness(element => $group);
+                my $labels = $rand_bd->get_labels_in_group (group => $group);
+                my $el_list = $output->get_list_ref (
+                    element => $group,
+                    list    => 'EL_LIST_SET1',
+                );
+                my $alloc_list = $alloc_output->get_list_ref (
+                    element => $group,
+                    list    => 'ALLOCATION_ORDER',
+                );
+              LABEL:
+                foreach my $label (sort @$labels) {
+                    my $alloc_num = $alloc_list->{$label};
+                    next LABEL if $alloc_num == $bd->get_range(element => $label);
+                    my @alloc_nbrs;
+                  NBR:
+                    foreach my $nbr (keys %$el_list) {
+                        next if $group eq $nbr;
+                        my $nbr_alloc_list = $alloc_output->get_list_ref (
+                            element => $nbr,
+                            list    => 'ALLOCATION_ORDER',
+                        );
+                        my $nbr_alloc_num = $nbr_alloc_list->{$label} // -1;
+                        push @alloc_nbrs, $nbr_alloc_num;
+                    }
+                    my $count_one_higher = grep {($_-1) == $alloc_num} @alloc_nbrs;
+                    my $lt = grep {$_ < $alloc_num} @alloc_nbrs;
+                    if ($lt != (scalar @alloc_nbrs)) {
+                        is ($count_one_higher, 1,
+                            "next allocation is one higher, $label, $alloc_num",
+                        );
+                    }
+                    #  we could test that the preceding allocation is one less,
+                    #  but that does not allow for backtracking
+                }
+            }
+        }
+    };
+
+    return;
+}
+
 
 sub test_rand_structured_richness_multiplier_and_addition {
     my $c = 100000;

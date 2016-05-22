@@ -243,7 +243,7 @@ See http://www.purl.org/biodiverse for more details.
 
 =head1 AUTHOR
 
-Shawn Laffan, Eugene Lubarsky and Dan Rosauer
+Shawn Laffan, Eugene Lubarsky, Dan Rosauer, Anthony Knittel, Michael Zhou, Anderson Ku
 
 =head1 LICENSE
 

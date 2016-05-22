@@ -171,8 +171,6 @@ sub add_iteration_count_to_table {
 
     my $table = $xml_page->get_object('table_randomise_setup');
 
-    my $row_count = $self->add_row_to_table ($table);
-
     my $count = defined $output_ref
                 ? $output_ref->get_param ('TOTAL_ITERATIONS')
                 : 'nil';
@@ -180,12 +178,17 @@ sub add_iteration_count_to_table {
     #$label1->set_text ('Iterations so far: ');
     my $label2 = Gtk2::Label->new ();
     #$label2->set_justify('GTK_JUSTIFY_LEFT');
+    $label2->set_alignment(0, 0.5);
 
     $self->{iterations_label} = $label2;
     $self->update_iterations_count_label ($count);
 
+    #my $row_count = $self->add_row_to_table ($table);
     #$table->attach ($label1, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
-    $table->attach ($label2, 1, 2, $row_count, $row_count + 1, 'expand', [], 0, 0);
+    #$table->attach ($label2, 1, 4, $row_count, $row_count + 1, 'expand', [], 0, 0);
+    $table->attach ($label2, 3, 4, 0, 1, ['fill'], [], 0, 0);
+    #$table->attach ($label2, 3, 4, 0, 1, [], [], 0, 0);
+
     #$label1->show;
     $label2->show;
     return;
@@ -197,7 +200,8 @@ sub update_iterations_count_label {
 
     my $label = $self->{iterations_label};
 
-    $label->set_text ("Iterations so far: $count");
+    #$label->set_text ("Iterations so far: $count");
+    $label->set_text ($count);
 
     return;
 }

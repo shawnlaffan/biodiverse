@@ -15,7 +15,7 @@ use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
-use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index uniq/;
 use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
@@ -1124,7 +1124,7 @@ sub get_metadata_rand_spatially_structured {
     my $spatial_condition_param = bless {
         name       => 'spatial_conditions_for_label_allocation',
         label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => 'sp_select_all()',
+        default    => 'sp_square_cell (size => 3)',
         #default    => 'sp_circle(radius => 300000)',
         type       => 'spatial_conditions',
         tooltip    => 'Labels will be assigned to groups within the specified '
@@ -1139,11 +1139,27 @@ sub get_metadata_rand_spatially_structured {
         label_text => "Label allocation order",
         default    => 0,
         type       => 'choice',
-        choices => [qw /random_propagation random proximity/],
+        choices => [qw /diffusion random_walk random proximity/],
         tooltip    => 'The order labels will be allocated '
-                    . 'within the neighbourhood after the seed group.'
+                    . 'within the neighbourhood after the seed group.',
+        box_group  => 'Label allocations',
     }, $parameter_rand_metadata_class;
-    push @parameters, $label_allocation_order;
+
+    my $backtracking = bless {
+        name       => 'label_allocation_backtracking',
+        label_text => "Backtracking",
+        default    => 0,
+        type       => 'choice',
+        choices => [qw /from_end from_start random/],
+        tooltip    => 'Go back to a previously assigned group when no neighbours '
+                    . 'can be assigned to. '
+                    . '"from_end" goes back in reverse order of assignment, '
+                    . '"from_start" goes back to the start of the sequence, while '
+                    . '"random" selects randomly from the previously assigned groups.',
+        box_group  => 'Label allocations',
+    }, $parameter_rand_metadata_class;
+
+    push @parameters, ($label_allocation_order, $backtracking);
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1307,7 +1323,8 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
-    my $label_allocation_order       = $args{label_allocation_order} || 'random';
+    my $label_allocation_order   = $args{label_allocation_order} || 'random';
+    my $label_alloc_backtracking = $args{label_allocation_backtracking} || 'from_end';
     #  currently only for debugging as basedata merging does not support outputs
     my $track_label_allocation_order = $args{track_label_allocation_order};
 
@@ -1499,12 +1516,9 @@ END_PROGRESS_TEXT
         #  and we need to start from new nbrhood
         my $use_new_seed_group = 0;  
 
-#my $should_process = scalar keys %tmp;
-#my $did_process = 0;
-
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
-        my $using_random_propagation = $label_allocation_order eq 'random_propagation';
+        my $using_random_propagation = ($label_allocation_order =~ /^(?:random_walk|diffusion)$/);
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1552,17 +1566,12 @@ END_PROGRESS_TEXT
                 }
             }
 
-#$did_process = 0;
-#$should_process = scalar @to_groups;
-#say "sho $label - $should_process";
-
             #  drop out criterion, occurs when $richness_multiplier < 1
             #  and we run out of groups to assign to
             last BY_GROUP if !scalar @to_groups;
-#say "ass $label = " . scalar @$tmp_rand_order;
 
             while (defined (my $to_group = shift @to_groups)) {
-#say "did $label: $did_process (last tmp_rand_order)" if !scalar @$tmp_rand_order;
+
                 last BY_GROUP if !scalar @$tmp_rand_order;
                 #last BY_GROUP if not defined $to_group;  #  likely now?
                 
@@ -1612,12 +1621,9 @@ END_PROGRESS_TEXT
                     $last_filled = $to_group;
                 };
 
-#$did_process++;
-#say "did $label: $did_process (last \@target_groups)" if !scalar @target_groups;
-
                 if ($using_random_propagation) {
-                    #  unshift the neighbours of $to_group onto the targets
-                    #  need to refactor this - it is mostly a duplicate of code from above
+                    #  unshift or push the neighbours of $to_group onto the targets
+                    #  need to refactor this as there is duplication of code from above
                     my $sp_alloc_nbr_list
                       = $sp_alloc_nbr_list_cache->{$to_group}
                         // $self->get_sp_alloc_nbr_list (
@@ -1626,8 +1632,13 @@ END_PROGRESS_TEXT
                         );
 
                     #  same concatenation probs as above
+                    my $valid_nbr_count = 0;
+                    my @nbr_sets = @{$sp_alloc_nbr_list};
+                    if ($label_alloc_backtracking ne 'from_start') {
+                        @nbr_sets = reverse @nbr_sets;
+                    }
                   NBR_LIST_REF:
-                    foreach my $list_ref (reverse @{$sp_alloc_nbr_list}) {
+                    foreach my $list_ref (@nbr_sets) {
                         my @sublist = grep
                           {   exists $target_groups_hash{$_}
                            && !exists $filled_groups{$_}
@@ -1635,17 +1646,36 @@ END_PROGRESS_TEXT
                            && $_ ne $to_group
                           } @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
-                        unshift @to_groups,
-                            $label_allocation_order =~ /^random/
-                                ? @{$rand->shuffle (\@sublist)}
-                                : @sublist;
+                        $valid_nbr_count += scalar @sublist;
+                        my $sublist_ref = \@sublist;
+                        if ($label_allocation_order =~ /^random/) {
+                            $rand->shuffle ($sublist_ref);
+                        }
+                        if ($label_alloc_backtracking eq 'from_start') {
+                            push @to_groups, @$sublist_ref;          
+                        }
+                        else {
+                            unshift @to_groups, @$sublist_ref;
+                        }
+                    }
+                    #  We found no valid nbrs so we need to backtrack.
+                    #  By default we will work backwards,
+                    #  but if we are using random backtracking then we
+                    #  need to select one and push it to the front.
+                    if (    $label_allocation_order eq 'diffusion'
+                        || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
+                        #  uniq ensures it is equal probability for each group
+                        @to_groups = uniq @to_groups;
+                        my $k = int $rand->rand(scalar @to_groups);
+                        my $target = $to_groups[$k];
+                        splice @to_groups, $k, 1;
+                        unshift @to_groups, $target;
                     }
                 }
 
                 #  move to next label if no more targets for this label
                 last BY_GROUP if !scalar @target_groups;
             }
-#say "did $label: $did_process";
         }
     }
 
@@ -1707,12 +1737,12 @@ END_PROGRESS_TEXT
         my $sp = $sp_to_track_label_allocation_order;  #  shorthand
         EL:
         foreach my $el ($sp->get_element_list) {
-            next;  #  debug
+            #next;  #  debug
             my $list_ref   = $sp->get_list_ref(
                 list => 'ALLOCATION_ORDER',
                 element => $el,
             );
-            my $label_hash = $bd->get_labels_in_group_as_hash_aa($el);
+            my $label_hash = $new_bd->get_labels_in_group_as_hash_aa($el);
             my %combined = (%$list_ref, %$label_hash);
             next EL if scalar (keys %combined) == scalar (keys %$list_ref)
                     && scalar (keys %combined) == scalar (keys %$label_hash); 

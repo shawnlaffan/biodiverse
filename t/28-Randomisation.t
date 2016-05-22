@@ -320,7 +320,7 @@ sub test_random_propagation {
         ],
         return_rand_bd_array => 1,
         retain_outputs => 1,
-        label_allocation_order => 'random_propagation',
+        label_allocation_order => 'random_walk',
         track_label_allocation_order => 1,
     );
 
@@ -344,7 +344,7 @@ sub test_random_propagation {
 
     my $sp_alloc_name = 'sp_to_track_allocations';
     #  check the local ranges
-    subtest 'no isolated cases' => sub {
+    subtest 'allocation order is sequential' => sub {
         no autovivification;
         my $i = 0;
         foreach my $rand_bd (@$rand_bd_array) {

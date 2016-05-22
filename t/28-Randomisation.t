@@ -277,8 +277,6 @@ sub test_random_propagation {
 
     my $prng_seed = 2345;
     
-    #my $prng = Math::Random::MT::Auto->new;
-    
     my $bd = Biodiverse::BaseData->new (
         NAME => 'bd_test_random_propagation',
         CELL_SIZES => [$c, $c],
@@ -853,28 +851,114 @@ sub check_order_is_same_given_same_prng {
 }
 
 
-#  Should get same result for two iterations run in one go as we do for
-#  two run sequentially (first, pause, second)
-#  Need to rename this sub
+#  Should get the same result for two iterations run in one go
+#  as we do for two run sequentially (first, pause, second)
 sub test_same_results_given_same_prng_seed {
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-
-    #  name is short for test_rand_calc_per_node_uses_orig_bd
-    my $sp = $bd->add_spatial_output (name => 'sp');
+    my $c = 200000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+    my $sp //= $bd->add_spatial_output (name => 'sp');
+    
+    my $r_spatially_structured_cond = "sp_circle (radius => $c)";
     
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
         calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
     );
 
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_csr_by_group',
+    );
+    
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_structured',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+    );
+    
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'proximity',
+        prefix => 'rand_spatially_structured proximity',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'random_walk',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        prefix => 'rand_spatially_structured random_walk',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'random_walk',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        label_allocation_backtracking => 'from_end',
+        prefix => 'rand_spatially_structured random_walk from_end',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'random_walk',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        label_allocation_backtracking => 'from_start',
+        prefix => 'rand_spatially_structured random_walk from_start',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'random_walk',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        label_allocation_backtracking => 'random',
+        prefix => 'rand_spatially_structured random_walk random',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_spatially_structured',
+        label_allocation_order => 'diffusion',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        prefix => 'rand_spatially_structured diffusion',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_nochange',
+    );
+
+}
+
+
+
+sub check_same_results_given_same_prng_seed {
+    my %args = @_;
+
+    my $rand_function = $args{function} // croak "function argument not passed";
+    my $prefix = $args{prefix} // $rand_function;
+
+    my $bd = $args{bd} // get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $sp = $bd->get_spatial_output_ref (name => 'sp');
+
     my $prng_seed = 2345;
 
-    my $rand_name_2in1 = '2in1';
-    my $rand_name_1x1 = '1x1';
+    my $rand_name_2in1 = $prefix . "_2in1";
+    my $rand_name_1x1  = $prefix . "_1x1";
 
     my $rand_2in1 = $bd->add_randomisation_output (name => $rand_name_2in1);
     $rand_2in1->run_analysis (
-        function   => 'rand_csr_by_group',
+        %args,
         iterations => 3,
         seed       => $prng_seed,
     );
@@ -882,7 +966,7 @@ sub test_same_results_given_same_prng_seed {
     my $rand_1x1 = $bd->add_randomisation_output (name => $rand_name_1x1);
     for my $i (0..2) {
         $rand_1x1->run_analysis (
-            function   => 'rand_csr_by_group',
+            %args,
             iterations => 1,
             seed       => $prng_seed,
         );
@@ -895,12 +979,12 @@ sub test_same_results_given_same_prng_seed {
     is_deeply (
         $table_2in1,
         $table_1x1,
-        'Results same when init PRNG seed same and iteration counts same'
+        "$prefix: Results same when init PRNG seed same and iteration counts same"
     );
 
     #  now we should see a difference if we run another
     $rand_1x1->run_analysis (
-        function   => 'rand_csr_by_group',
+        %args,
         iterations => 1,
         seed       => $prng_seed,
     );
@@ -910,13 +994,13 @@ sub test_same_results_given_same_prng_seed {
             $table_2in1,
             $table_1x1,
         ),
-        'Results different when init PRNG seed same but iteration counts differ',
+        "$prefix: Results different when init PRNG seed same but iteration counts differ",
     );
 
     #  Now catch up the other one, but change some more args.
     #  Most should be ignored.
     $rand_2in1->run_analysis (
-        function   => 'rand_nochange',
+        %args,
         iterations => 1,
         seed       => $prng_seed,
     );
@@ -925,7 +1009,7 @@ sub test_same_results_given_same_prng_seed {
     is_deeply (
         $table_2in1,
         $table_1x1,
-        'Changed function arg ignored in analysis with an iter completed'
+        "$prefix: Changed function arg ignored in analysis with an iter completed"
     );
     
     return;

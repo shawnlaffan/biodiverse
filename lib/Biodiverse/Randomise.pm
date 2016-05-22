@@ -1134,28 +1134,35 @@ sub get_metadata_rand_spatially_structured {
     }, $parameter_rand_metadata_class;
     push @parameters, $spatial_condition_param;
 
+    #  need a better name as label alocation order could
+    #  imply the order labels are selected for allocation
     my $label_allocation_order = bless {
         name       => 'label_allocation_order',
         label_text => "Label allocation order",
         default    => 0,
         type       => 'choice',
-        choices => [qw /diffusion random_walk random proximity/],
+        choices    => [qw /diffusion random_walk random proximity/],
         tooltip    => 'The order labels will be allocated '
                     . 'within the neighbourhood after the seed group.',
         box_group  => 'Label allocations',
     }, $parameter_rand_metadata_class;
+
+    my $bk_text = <<'EOB'
+The random_walk model will go back to a previously
+assigned group when no neighbours can be assigned to. 
+"from_end" goes back in reverse order of assignment, 
+"from_start" goes back to the start of the sequence, while 
+"random" selects randomly from the previously assigned groups.
+EOB
+  ;
 
     my $backtracking = bless {
         name       => 'label_allocation_backtracking',
         label_text => "Backtracking",
         default    => 0,
         type       => 'choice',
-        choices => [qw /from_end from_start random/],
-        tooltip    => 'Go back to a previously assigned group when no neighbours '
-                    . 'can be assigned to. '
-                    . '"from_end" goes back in reverse order of assignment, '
-                    . '"from_start" goes back to the start of the sequence, while '
-                    . '"random" selects randomly from the previously assigned groups.',
+        choices    => [qw /from_end from_start random/],
+        tooltip    => $bk_text,
         box_group  => 'Label allocations',
     }, $parameter_rand_metadata_class;
 

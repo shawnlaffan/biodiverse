@@ -399,6 +399,11 @@ sub print_params {
     return;
 }
 
+sub increment_param {
+    my ($self, $param, $value) = @_;
+    $self->{PARAMS}{$param} += $value;
+}
+
 #  Load a hash of any user defined default params
 our %user_defined_params;
 BEGIN {

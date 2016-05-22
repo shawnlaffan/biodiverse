@@ -2008,6 +2008,14 @@ sub swap_to_reach_richness_targets {
     my %args = @_;
 
     my $cloned_bd       = $args{cloned_bd};
+
+    #  avoid needless looping below.
+    if (!$cloned_bd->get_label_count) {
+        $self->increment_param (SWAP_OUT_COUNT    => 0);
+        $self->increment_param (SWAP_INSERT_COUNT => 0);
+        return;
+    }
+    
     my $new_bd          = $args{new_bd};
     my %filled_groups   = %{$args{filled_groups}};  #  values are the richnesses - we use them to track empties
     my %unfilled_groups = %{$args{unfilled_groups}};
@@ -2077,19 +2085,6 @@ sub swap_to_reach_richness_targets {
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
-
-    
-#  debugging
-#my %xx;
-#foreach my $lb (keys %unfilled_gps_without_label) {
-#    my $lref = $unfilled_gps_without_label{$lb};
-#    foreach my $gp (@$lref) {
-#        $xx{$gp}{$lb}++;
-#    }
-#}
-#use Test::More;
-#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
-
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
@@ -2401,21 +2396,8 @@ sub swap_to_reach_richness_targets {
         }
     }
 
-    my $sc_ref = $self->get_param_as_ref ('SWAP_OUT_COUNT');
-    if (defined $sc_ref) {
-        $$sc_ref += $swap_out_count;
-    }
-    else {
-        $self->set_param (SWAP_OUT_COUNT => $swap_out_count);
-    }
-    $sc_ref = $self->get_param_as_ref ('SWAP_INSERT_COUNT');
-    if (defined $sc_ref) {
-        $$sc_ref += $swap_insert_count;
-    }
-    else {
-        $self->set_param (SWAP_INSERT_COUNT => $swap_insert_count);
-    }
-    
+    $self->increment_param (SWAP_OUT_COUNT    => $swap_out_count);
+    $self->increment_param (SWAP_INSERT_COUNT => $swap_insert_count);
 
     say "[Randomise structured] Final swap count is $swap_out_count";
 

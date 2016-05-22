@@ -318,7 +318,7 @@ sub test_random_propagation {
         ],
         return_rand_bd_array => 1,
         retain_outputs => 1,
-        label_allocation_order => 'random_walk',
+        spatial_allocation_order => 'random_walk',
         track_label_allocation_order => 1,
     );
 
@@ -885,7 +885,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'proximity',
+        spatial_allocation_order => 'proximity',
         prefix => 'rand_spatially_structured proximity',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
     );
@@ -893,7 +893,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'random_walk',
+        spatial_allocation_order => 'random_walk',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         prefix => 'rand_spatially_structured random_walk',
     );
@@ -901,7 +901,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'random_walk',
+        spatial_allocation_order => 'random_walk',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         label_allocation_backtracking => 'from_end',
         prefix => 'rand_spatially_structured random_walk from_end',
@@ -910,7 +910,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'random_walk',
+        spatial_allocation_order => 'random_walk',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         label_allocation_backtracking => 'from_start',
         prefix => 'rand_spatially_structured random_walk from_start',
@@ -919,7 +919,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'random_walk',
+        spatial_allocation_order => 'random_walk',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         label_allocation_backtracking => 'random',
         prefix => 'rand_spatially_structured random_walk random',
@@ -928,7 +928,7 @@ sub test_same_results_given_same_prng_seed {
     check_same_results_given_same_prng_seed (
         bd => $bd,
         function => 'rand_spatially_structured',
-        label_allocation_order => 'diffusion',
+        spatial_allocation_order => 'diffusion',
         spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
         prefix => 'rand_spatially_structured diffusion',
     );

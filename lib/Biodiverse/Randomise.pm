@@ -1134,17 +1134,15 @@ sub get_metadata_rand_spatially_structured {
     }, $parameter_rand_metadata_class;
     push @parameters, $spatial_condition_param;
 
-    #  need a better name as label alocation order could
-    #  imply the order labels are selected for allocation
-    my $label_allocation_order = bless {
-        name       => 'label_allocation_order',
-        label_text => "Label allocation order",
+    my $spatial_allocation_order = bless {
+        name       => 'spatial_allocation_order',
+        label_text => "Spatial allocation order",
         default    => 0,
         type       => 'choice',
         choices    => [qw /diffusion random_walk random proximity/],
-        tooltip    => 'The order labels will be allocated '
-                    . 'within the neighbourhood after the seed group.',
-        box_group  => 'Label allocations',
+        tooltip    => 'The order labels will be allocated within the neighbourhoods '
+                    . 'after it is first allocated to the seed group.',
+        box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
 
     my $bk_text = <<'EOB'
@@ -1163,10 +1161,10 @@ EOB
         type       => 'choice',
         choices    => [qw /from_end from_start random/],
         tooltip    => $bk_text,
-        box_group  => 'Label allocations',
+        box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
 
-    push @parameters, ($label_allocation_order, $backtracking);
+    push @parameters, ($spatial_allocation_order, $backtracking);
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1330,7 +1328,7 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
-    my $label_allocation_order   = $args{label_allocation_order} || 'random';
+    my $spatial_allocation_order   = $args{spatial_allocation_order} || 'random';
     my $label_alloc_backtracking = $args{label_allocation_backtracking} || 'from_end';
     #  currently only for debugging as basedata merging does not support outputs
     my $track_label_allocation_order = $args{track_label_allocation_order};
@@ -1345,7 +1343,7 @@ sub rand_structured {
         cache          => $sp_alloc_nbr_list_cache,
         basedata_ref   => $bd,
         rand_object    => $rand,
-        label_allocation_order  => $label_allocation_order,
+        spatial_allocation_order  => $spatial_allocation_order,
         sp_for_label_allocation => $sp_for_label_allocation,
     );
     
@@ -1525,7 +1523,7 @@ END_PROGRESS_TEXT
 
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
-        my $using_random_propagation = ($label_allocation_order =~ /^(?:random_walk|diffusion)$/);
+        my $using_random_propagation = ($spatial_allocation_order =~ /^(?:random_walk|diffusion)$/);
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1566,7 +1564,7 @@ END_PROGRESS_TEXT
                           } @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
                         push @to_groups,
-                            $label_allocation_order =~ /^random/
+                            $spatial_allocation_order =~ /^random/
                                 ? @{$rand->shuffle (\@sublist)}
                                 : @sublist;
                     }
@@ -1655,7 +1653,7 @@ END_PROGRESS_TEXT
                         next NBR_LIST_REF if !scalar @sublist;
                         $valid_nbr_count += scalar @sublist;
                         my $sublist_ref = \@sublist;
-                        if ($label_allocation_order =~ /^random/) {
+                        if ($spatial_allocation_order =~ /^random/) {
                             $rand->shuffle ($sublist_ref);
                         }
                         if ($label_alloc_backtracking eq 'from_start') {
@@ -1669,7 +1667,7 @@ END_PROGRESS_TEXT
                     #  By default we will work backwards,
                     #  but if we are using random backtracking then we
                     #  need to select one and push it to the front.
-                    if (    $label_allocation_order eq 'diffusion'
+                    if (    $spatial_allocation_order eq 'diffusion'
                         || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
                         #  uniq ensures it is equal probability for each group
                         @to_groups = uniq @to_groups;
@@ -1780,7 +1778,7 @@ sub get_sp_alloc_nbr_list {
 
     my $target_element = $args{target_element};
     my $sp_alloc_nbr_list_cache = $args{cache};
-    my $label_allocation_order  = $args{label_allocation_order};
+    my $spatial_allocation_order  = $args{spatial_allocation_order};
     my $sp_for_label_allocation = $args{sp_for_label_allocation};
 
     #  we need a copy
@@ -1790,13 +1788,13 @@ sub get_sp_alloc_nbr_list {
     return $sp_alloc_nbr_list if $sp_alloc_nbr_list;
     
     #  avoid double sorting as proximity does its own
-    my $sort_lists = $label_allocation_order ne 'proximity';
+    my $sort_lists = $spatial_allocation_order ne 'proximity';
     $sp_alloc_nbr_list
       = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
         element    => $target_element,
         sort_lists => $sort_lists,
     );
-    if ($label_allocation_order eq 'proximity') {
+    if ($spatial_allocation_order eq 'proximity') {
         $sp_alloc_nbr_list = $self->sort_nbr_lists_by_proximity (
             %args,
             target_element => $target_element,

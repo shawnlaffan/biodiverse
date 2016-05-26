@@ -13,7 +13,7 @@ our $VERSION = '1.1';
 use parent qw /Biodiverse::Metadata/;
 
 
-Readonly my %methods_and_defaults = (
+Readonly my %methods_and_defaults => (
     parameters     => {},
     format_choices => [],
     format_labels  => {},

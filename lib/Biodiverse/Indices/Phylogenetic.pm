@@ -1,7 +1,7 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
 package Biodiverse::Indices::Phylogenetic;
-use 5.010;
+use 5.016;
 use strict;
 use warnings;
 
@@ -14,7 +14,8 @@ use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 use Data::Alias qw /alias/;
 
-use Biodiverse::Utils qw /add_hash_keys_last_if_exists copy_values_from/;
+use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+#use Biodiverse::Utils qw /add_hash_keys_last_if_exists copy_values_from/;
 
 our $VERSION = '1.1';
 
@@ -414,15 +415,39 @@ sub get_path_lengths_to_root_node {
             $path_cache->{$current_node} = $sub_path;
         }
 
-        #  This is a bottleneck for large data sets, so use an XSUB.
-        add_hash_keys_last_if_exists ($path_hash, $sub_path);
+        #  This is a bottleneck for large data sets,
+        #  so use an XSUB if possible.
+        if (HAVE_BD_UTILS) {
+            Biodiverse::Utils::add_hash_keys_last_if_exists (
+                $path_hash,
+                $sub_path,
+            );
+        }
+        else {
+            #  The last-if approach is faster than a straight slice,
+            #  but we should (might) be able to get even more speedup with XS code.  
+            if (!scalar keys %$path_hash) {
+                #  target for Panda::Lib merge_hash
+                @$path_hash{@$sub_path} = ();
+            }
+            else {
+                foreach my $node_name (@$sub_path) {
+                    last if exists $path_hash->{$node_name};
+                    $path_hash->{$node_name} = undef;
+                }
+            }
+        }
     }
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
-    #@path{keys %path} = @$len_hash{keys %path};
-    copy_values_from ($path_hash, $len_hash);
+    if (HAVE_BD_UTILS) {
+        Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
+    }
+    else {
+        @$path_hash{keys %$path_hash} = @$len_hash{keys %$path_hash};
+    }
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};

@@ -1,9 +1,10 @@
 package Biodiverse::Indices::PhylogeneticRelative;
-
+use 5.016;
 use strict;
 use warnings;
 use List::Util qw /sum/;
 use Data::Alias qw /alias/;
+use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
 use Biodiverse::Utils qw /get_rpe_null/;
 
@@ -275,7 +276,20 @@ sub calc_phylo_rpe2 {
 
     my %results;
     {
-        $pe_null = get_rpe_null ($null_node_len_hash, $node_ranges_local, $node_ranges_global);
+        if (HAVE_BD_UTILS) {
+            $pe_null = Biodiverse::Utils::get_rpe_null (
+                $null_node_len_hash,
+                $node_ranges_local,
+                $node_ranges_global,
+            );
+        }
+        else {
+            foreach my $null_node (keys %$node_ranges_global) {
+                $pe_null += $null_node_len_hash->{$null_node}
+                          * $node_ranges_local->{$null_node}
+                          / $node_ranges_global->{$null_node};
+            }
+        }
 
         no warnings qw /numeric uninitialized/;
 

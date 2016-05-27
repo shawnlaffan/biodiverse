@@ -18,8 +18,6 @@ our $VERSION = '1.99_002';
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 #use Biodiverse::Utils qw /add_hash_keys_last_if_exists copy_values_from/;
 
-our $VERSION = '1.1';
-
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
 

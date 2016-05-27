@@ -1184,6 +1184,7 @@ sub csv2list {
         return wantarray ? @Fld : \@Fld;
     }
     else {
+        $string //= '';
         if (length $string > 50) {
             $string = substr $string, 0, 50;
             $string .= '...';

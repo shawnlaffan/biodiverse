@@ -385,11 +385,13 @@ sub run {
             }
 
             # check data, if additional lines in data, append in column list.
-            my $line2 = <$fh>;
-            @line2_cols  = $gui->get_project->csv2list(
-                string      => $line2,
-                csv_object  => $csv_obj,
-            );
+            if (!$fh->eof) {  #  handle files with headers only
+                my $line2 = <$fh>;
+                @line2_cols  = $gui->get_project->csv2list(
+                    string      => $line2,
+                    csv_object  => $csv_obj,
+                );
+            }
 
             close $fh;
         }
@@ -726,9 +728,33 @@ sub run {
     }
 
     if ($success) {
+        if (    $use_new
+            && !$one_basedata_per_file
+            && !$basedata_ref->get_label_count
+            && !$basedata_ref->get_group_count
+            ) {
+            #  we are empty!
+            my $message = "No valid records were imported into this basedata.\n"
+                        . 'do you want to add it to the project anyway?';
+            my $response = Biodiverse::GUI::YesNoCancel->run({header => $message});
+            return if $response ne 'yes';
+        }
+
         if ($use_new || $one_basedata_per_file) {
+            #  warn if they are all empty
+            my $sum = 0;
+            foreach my $bd (values %multiple_brefs) {
+                $sum += $bd->get_group_count + $bd->get_label_count;
+                last if $sum;
+            }
+            if (!$sum) {
+                my $message = "No valid records were imported into any basedata.\n"
+                            . 'do you want to add them to the project anyway?';
+                my $response = Biodiverse::GUI::YesNoCancel->run({header => $message});
+                return if $response ne 'yes';
+            }
             foreach my $file (keys %multiple_brefs) {
-                next if (! $multiple_is_new{$file});
+                next if !$multiple_is_new{$file};
                 $gui->get_project->add_base_data($multiple_brefs{$file});
             }
         }

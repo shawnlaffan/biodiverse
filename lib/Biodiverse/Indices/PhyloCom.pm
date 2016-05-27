@@ -11,7 +11,8 @@ use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
-use constant HAVE_PANDA_LIB => eval 'require Panda::Lib';
+use constant HAVE_PANDA_LIB
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 
 our $VERSION = '1.99_002';

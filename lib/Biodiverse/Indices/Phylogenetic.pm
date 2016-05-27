@@ -1306,7 +1306,7 @@ sub _calc_pe {
             # ranges are invariant, so can be crashed together
             my $hash_ref = $results_this_gp->{PE_RANGELIST};
             if (HAVE_PANDA_LIB) {
-                Panda::Lib::merge_hash (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
+                Panda::Lib::hash_merge (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
             }
             else {
                 @ranges{keys %$hash_ref} = values %$hash_ref;
@@ -1624,7 +1624,7 @@ sub get_node_range {
     if (  !$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
         if (HAVE_PANDA_LIB) {
-            Panda::Lib::merge_hash (\%groups, $gp_list, Panda::Lib::MERGE_LAZY());
+            Panda::Lib::hash_merge (\%groups, $gp_list, Panda::Lib::MERGE_LAZY());
         }
         else {
             @groups{keys %$gp_list} = undef;
@@ -1639,7 +1639,7 @@ sub get_node_range {
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
                 if (HAVE_PANDA_LIB) {
-                    Panda::Lib::merge_hash (\%groups, $c, Panda::Lib::MERGE_LAZY());
+                    Panda::Lib::hash_merge (\%groups, $c, Panda::Lib::MERGE_LAZY());
                 }
                 else {
                     @groups{@$c} = undef;
@@ -1647,7 +1647,7 @@ sub get_node_range {
             }
             else {
                 if (HAVE_PANDA_LIB) {
-                    Panda::Lib::merge_hash (\%groups, $cached_list, Panda::Lib::MERGE_LAZY());
+                    Panda::Lib::hash_merge (\%groups, $cached_list, Panda::Lib::MERGE_LAZY());
                 }
                 else {    
                     @groups{keys %$cached_list} = undef;
@@ -2398,8 +2398,8 @@ sub _calc_phylo_abc_lists {
 
     my %A;
     if (HAVE_PANDA_LIB) {
-        Panda::Lib::merge_hash (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
-        Panda::Lib::merge_hash (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
+        Panda::Lib::hash_merge (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
+        Panda::Lib::hash_merge (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
     }
     else {
         %A = (%$nodes_in_path1, %$nodes_in_path2);

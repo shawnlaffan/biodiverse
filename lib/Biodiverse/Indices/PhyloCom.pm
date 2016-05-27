@@ -319,7 +319,7 @@ sub _calc_phylo_mpd_mntd {
                         %args,
                     );
                     if (HAVE_PANDA_LIB) {
-                        Panda::Lib::merge_hash (\%path, $sub_path, Panda::Lib::MERGE_LAZY());
+                        Panda::Lib::hash_merge (\%path, $sub_path, Panda::Lib::MERGE_LAZY());
                     }
                     else {
                         @path{keys %$sub_path} = values %$sub_path;

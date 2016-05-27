@@ -38,7 +38,7 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 my $EMPTY_STRING = q{};
 
@@ -343,14 +343,21 @@ sub run_randomisation {
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
 
-    #  load any predefined args - overriding user specified ones
-    my $ref = $self->get_param ('ARGS');
-    if (defined $ref) {
+    #  load any predefined args, overriding user specified ones
+    #  unless they are flagged as mutable.
+    if (my $ref = $self->get_param ('ARGS')) {
+        my $metadata = $self->get_metadata (sub => $function);
+        my $params = $metadata->get_parameters;
+        my %mutables;
+        foreach my $p (@$params) {
+            next if !$p->get_mutable;
+            my $name = $p->get_name;
+            $mutables{$name} = $args{$name};
+        }
         %args = %$ref;
+        @args{keys %mutables} = values %mutables;
     }
-    else {
-        $self->set_param (ARGS => \%args);
-    }
+    $self->set_param (ARGS => \%args);
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -849,12 +856,13 @@ sub get_common_rand_metadata {
             default    => 0,
             increment  => 1,
             tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
-            always_sensitive => 1,
+            mutable    => 1,
         }, $parameter_metadata_class),
     );
     
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
     @common = (
+        #@common,  #  DEBUG
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',
@@ -1433,11 +1441,8 @@ sub get_rand_structured_subset {
     my @subset_basedatas;
     my $to_do = $bd->get_group_count;
 
-    my $cached_subset_basedatas = $self->get_cached_value ('SUBSET_BASEDATAS');
-    if (!$cached_subset_basedatas) {
-        $cached_subset_basedatas = {};
-        $self->set_cached_value (SUBSET_BASEDATAS => $cached_subset_basedatas);
-    }
+    my $cached_subset_basedatas
+      = $self->get_cached_value_dor_set_default_aa ('SUBSET_BASEDATAS', {});
 
     my $failed_def_query = $sp->get_groups_that_failed_def_query;
     my $bd_failed_def_query = $cached_subset_basedatas->{failed_def_query};
@@ -1613,6 +1618,19 @@ sub swap_to_reach_richness_targets {
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
+
+    
+#  debugging
+#my %xx;
+#foreach my $lb (keys %unfilled_gps_without_label) {
+#    my $lref = $unfilled_gps_without_label{$lb};
+#    foreach my $gp (@$lref) {
+#        $xx{$gp}{$lb}++;
+#    }
+#}
+#use Test::More;
+#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
+
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 

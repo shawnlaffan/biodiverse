@@ -5,7 +5,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Gtk2;
 use Carp;
@@ -38,7 +38,7 @@ sub new {
 
     croak "argument matrix_ref not specified\n" if !$matrix_ref;
     croak "Unable to display.  Matrix has no elements\n" if !$matrix_ref->get_element_count;
-    
+
     my $self = {gui => Biodiverse::GUI::GUIManager->instance()};
     $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
@@ -49,26 +49,27 @@ sub new {
     $self->{output_ref}   = $matrix_ref;
     $self->{groups_ref}   = $groups_ref;
     $self->{output_name}  = $matrix_ref->get_param('NAME');
-    
+
     # handle pre v0.16 basestructs that didn't have this ref
     if (! $groups_ref->get_param('BASEDATA_REF')) {
         $groups_ref->set_param(BASEDATA_REF => $bd);
         $groups_ref->weaken_basedata_ref;
     }
 
-    # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialPage');
-    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialLabel');
+    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialPage.ui'));
+    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
-    my $page  = $self->{xmlPage}->get_widget('hboxSpatialPage');
-    my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
-    my $label_text   = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
+    my $page  = $self->{xmlPage}->get_object('hboxSpatialPage');
+    my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
+    my $label_text   = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Set up options menu
-    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
+    $self->{toolbar_menu} = $self->{xmlPage}->get_object('menu_spatial_data');
 
     # Add to notebook
     $self->add_to_notebook (
@@ -86,7 +87,7 @@ sub new {
 
     # Register as a tab for this output
     $self->register_in_outputs_model($matrix_ref, $self);
-    
+
     $elt_count = $groups_ref->get_element_count;
     $completed = $groups_ref->get_param ('COMPLETED');
     $completed //= 1;  #  backwards compatibility - old versions did not have this flag
@@ -104,8 +105,8 @@ sub new {
 
 
     # Initialise widgets
-    $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
-    $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
+    $self->{title_widget} = $self->{xmlPage} ->get_object('txtSpatialName');
+    $self->{label_widget} = $self->{xmlLabel}->get_object('lblSpatialName');
 
     $self->{title_widget}->set_text($self->{output_name} );
     $self->{label_widget}->set_text($self->{output_name} );
@@ -125,7 +126,7 @@ sub new {
     }
 
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
+    $self->{xmlLabel}->get_object('btnSpatialClose')->signal_connect_swapped(
         clicked => \&on_close, $self
     );
     my %widgets_and_signals = (
@@ -162,7 +163,7 @@ sub new {
   WIDGET:
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
-        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        my $widget = $self->{xmlPage}->get_object($widget_name);
         if (!$widget) {
             warn "$widget_name cannot be found\n";
             next WIDGET;
@@ -189,13 +190,13 @@ sub new {
         menuitem_spatial_nbr_highlighting
     /;
     foreach my $w_name (@to_hide) {
-        my $w = $self->{xmlPage}->get_widget($w_name);
+        my $w = $self->{xmlPage}->get_object($w_name);
         next if !defined $w;
         $w->hide;
     }
-    
+
     #  override a label
-    my $combo_label_widget = $self->{xmlPage}->get_widget('label_spatial_combos');
+    my $combo_label_widget = $self->{xmlPage}->get_object('label_spatial_combos');
     $combo_label_widget->set_text ('Index group:  ');
 
     $self->init_output_indices_combo();
@@ -209,12 +210,12 @@ sub new {
     };
 
     $self->choose_tool('Select');
-    
+
     $self->setup_dendrogram;
 
     say '[SpatialMatrix tab] - Loaded tab';
 
-    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_spatial');
+    $self->{menubar} = $self->{xmlPage}->get_object('menubar_spatial');
     $self->update_export_menu;
 
     #  debug stuff
@@ -232,9 +233,9 @@ sub on_show_hide_parameters {
 
 sub init_grid {
     my $self = shift;
-    my $frame   = $self->{xmlPage}->get_widget('gridFrame');
-    my $hscroll = $self->{xmlPage}->get_widget('gridHScroll');
-    my $vscroll = $self->{xmlPage}->get_widget('gridVScroll');
+    my $frame   = $self->{xmlPage}->get_object('gridFrame');
+    my $hscroll = $self->{xmlPage}->get_object('gridHScroll');
+    my $vscroll = $self->{xmlPage}->get_object('gridVScroll');
 
 #print "Initialising grid\n";
 
@@ -329,7 +330,7 @@ sub make_output_indices_model {
 }
 
 # Generates ComboBox model with analyses
-#  hidden 
+#  hidden
 sub make_lists_model {
     my $self = shift;
     my $output_ref = $self->{output_ref};
@@ -405,13 +406,13 @@ sub on_cell_selected {
 
     $self->{selected_element} = $element;
 
-    my $combo = $self->{xmlPage}->get_widget('comboIndices');
+    my $combo = $self->{xmlPage}->get_object('comboIndices');
     $combo->set_model($self->{output_indices_model});  #  already have this?
 
     # Select the previous analysis (or the first one)
     my $iter = $self->{output_indices_model}->get_iter_first();
     my $selected = $iter;
-    
+
   BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_indices_model}->get($iter, 0);
@@ -449,10 +450,7 @@ sub on_grid_hover {
     if (defined $element) {
         #no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
 
-        my $val = $matrix_ref->get_value (
-            element1 => $element,
-            element2 => $self->{selected_element},
-        );
+        my $val = $matrix_ref->get_defined_value_aa ($element, $self->{selected_element});
 
         my $selected_el = $self->{selected_element} // '';
         $text = defined $val
@@ -463,7 +461,7 @@ sub on_grid_hover {
                 $self->format_number_for_display (number => $val),
               ) # round to 4 d.p.
             : "<b>Selected element: $selected_el</b>";
-        $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
+        $self->{xmlPage}->get_object('lblOutput')->set_markup($text);
 
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
@@ -500,7 +498,7 @@ sub show_analysis {
     my $self = shift;
     my $name = shift;
 
-    # Reinitialising is a cheap way of showing 
+    # Reinitialising is a cheap way of showing
     # the SPATIAL_RESULTS list (the default), and
     # selecting what we want
 
@@ -514,7 +512,7 @@ sub show_analysis {
 sub on_active_index_changed {
     my $self  = shift;
     my $combo = shift
-              ||  $self->{xmlPage}->get_widget('comboIndices');
+              ||  $self->{xmlPage}->get_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
     my $element = $self->{output_indices_model}->get($iter, 0);
@@ -522,8 +520,8 @@ sub on_active_index_changed {
     $self->{selected_element} = $element;
 
     #  This is redundant when only changing the element,
-    #  but doesn't take long and makes stretch changes easier.  
-    $self->set_plot_min_max_values;  
+    #  but doesn't take long and makes stretch changes easier.
+    $self->set_plot_min_max_values;
 
     $self->recolour();
 
@@ -596,19 +594,16 @@ sub recolour {
         return $self->get_excluded_cell_colour
           if !$matrix_ref->element_is_in_matrix (element => $elt);
 
-        my $val = $matrix_ref->get_value (
-            element1 => $elt,
-            element2 => $sel_element,
-        );
+        my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 
         return defined $val
             ? $grid->get_colour($val, $min, $max)
-            : undef;    
+            : undef;
     };
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max($min, $max);
-    
+
     return;
 }
 

@@ -12,7 +12,7 @@ use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

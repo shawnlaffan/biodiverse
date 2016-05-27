@@ -4,11 +4,10 @@ use warnings;
 
 use 5.016;
 use Carp;
-use Readonly;
 use Scalar::Util qw /reftype/;
 use Readonly;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use parent qw /Biodiverse::Metadata/;
 
@@ -51,6 +50,9 @@ sub get_sub_name_from_format {
     no autovivification;
 
     my $check_name = $args{format_label} // $args{format};
+    croak "neither 'format_label' nor 'format' argument is not defined\n"
+      if !defined $check_name;
+      
     my $check_sub_name = "export_$check_name";
 
     my $format_labels = $self->get_format_labels;

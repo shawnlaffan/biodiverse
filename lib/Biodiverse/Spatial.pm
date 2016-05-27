@@ -12,7 +12,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -769,11 +769,10 @@ sub get_nbrs_for_element {
                             progress => $progr,
                         );
                         $progr = undef;
-                        my $cached_arr = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
-                        if (!$cached_arr) {
-                            $cached_arr = [];
-                            $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $cached_arr);
-                        }
+                        my $cached_arr
+                          = $self->get_cached_value_dor_set_default_aa(
+                              'NBRS_FROM_ALWAYS_SAME', []
+                            );
 
                         $cached_arr->[$i] = $tmp;
                         my %tmp2 = %$tmp;

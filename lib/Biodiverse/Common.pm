@@ -40,7 +40,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 my $EMPTY_STRING = q{};
 
@@ -551,6 +551,12 @@ sub set_cached_values {
 sub get_cached_value {
     return if ! exists $_[0]->{_cache}{$_[1]};
     return $_[0]->{_cache}{$_[1]};
+}
+
+#  dor means defined or - too obscure?
+sub get_cached_value_dor_set_default_aa {
+    no autovivification;
+    $_[0]->{_cache}{$_[1]} //= $_[2];
 }
 
 sub get_cached_value_keys {
@@ -1765,7 +1771,7 @@ sub get_metadata {
     
     #  Some metadata depends on given arguments,
     #  and these could change across the life of an object.
-    if ($use_cache) {
+    if (blessed ($self) && $use_cache) {
         $cache = $self->get_cached_metadata;
         $metadata = $cache->{$subname};
     }
@@ -1788,11 +1794,8 @@ sub get_metadata {
 sub get_cached_metadata {
     my $self = shift;
 
-    my $cache = $self->get_cached_value ('METADATA_CACHE');
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value (METADATA_CACHE => $cache)
-    }
+    my $cache
+      = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
     return $cache;
 }
 

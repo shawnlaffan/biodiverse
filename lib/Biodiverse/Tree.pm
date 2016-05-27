@@ -13,7 +13,7 @@ use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 our $AUTOLOAD;
 
@@ -2237,7 +2237,12 @@ sub reset_total_length {
     #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
     $self->delete_cached_value('TOTAL_LENGTH');
-    $self->reset_total_length_below;
+    
+    #  avoid recursive recursion and its quadratic nastiness
+    #$self->reset_total_length_below;
+    foreach my $node ($self->get_node_refs) {
+        $node->reset_total_length;
+    }
 
     return;
 }
@@ -2340,7 +2345,7 @@ sub clone_tree_with_equalised_branch_lengths {
 
     #  reset all the total length values
     $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    #$new_tree->reset_total_length_below;
 
     foreach my $node ($new_tree->get_node_refs) {
         my $len = $node->get_length ? $non_zero_len : 0;

@@ -27,7 +27,7 @@ which has arguments
 
 =item the GtkTable widget
 
-=item an optional GladeXML widget which contains a 'filechooser' widget
+=item an optional widget which contains a 'filechooser' widget
 This is used by the type='file' widget
 
 =back
@@ -60,7 +60,7 @@ use Gtk2;
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
@@ -78,12 +78,12 @@ sub fill {
     $get_innards_hash //= {};
 
     # Ask object for parameters metadata
-    my @extract_closures;
+    my (@extract_closures, @widgets);
 
     my $tooltip_group = Gtk2::Tooltips->new;
 
     my $row = 0;
-    
+
     #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
@@ -97,6 +97,7 @@ sub fill {
 
         if ($extractor) {
             push @extract_closures, $extractor;
+            push @widgets, $widget;
         }
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
@@ -183,6 +184,7 @@ sub fill {
     $tooltip_group->enable();
 
     $self->{extractors} = \@extract_closures;
+    $self->{widgets}    = \@widgets;
     return $self->{extractors};
 }
 
@@ -225,7 +227,7 @@ sub generate_widget {
     croak "Unsupported parameter type $type\n"
         if ! exists $valid_choices_hash{$type};
 
-    
+
     #return if $type eq 'comment';  #  no callback in this case
 
     my $sub_name = 'generate_' . $type;
@@ -295,7 +297,7 @@ sub generate_file {
     my ($self, $param, $dlgxml) = @_;
 
     # The dialog already has a filechooser widget. We just return an extractor function
-    my $chooser = $dlgxml->get_widget('filechooser');
+    my $chooser = $dlgxml->get_object('filechooser');
 
     use Cwd;
     $chooser->set_current_folder_uri(getcwd());
@@ -333,7 +335,7 @@ sub generate_integer {
 
 sub generate_float {
     my ($self, $param) = @_;
-    
+
     my $default = $param->get_default || 0;
     my $digits  = $param->get_digits  || 2;
     my $incr    = $param->get_increment || 0.1;
@@ -349,7 +351,7 @@ sub generate_boolean {
     my ($self, $param) = @_;
 
     my $default = $param->get_default || 0;
-    
+
     my $checkbox = Gtk2::CheckButton->new;
     $checkbox->set(active => $default);
 
@@ -367,10 +369,10 @@ sub generate_spatial_conditions {
     my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
-    
+
     $get_object_hash->{$param->get_name} = $sp;
 
-    return ($sp->get_widget, $extract);
+    return ($sp->get_object, $extract);
 }
 
 sub generate_text_one_line {
@@ -378,7 +380,7 @@ sub generate_text_one_line {
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
-    
+
     # Text view
     $text_buffer->set_text($default);
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
@@ -399,7 +401,7 @@ sub generate_text {
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
-    
+
     # Text view
     $text_buffer->set_text($default);
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
@@ -422,4 +424,3 @@ sub generate_text {
 
 
 1;
-

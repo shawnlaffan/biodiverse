@@ -14,6 +14,7 @@ use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 use Data::Alias qw /alias/;
 
+our $VERSION = '1.99_002';
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 #use Biodiverse::Utils qw /add_hash_keys_last_if_exists copy_values_from/;
 
@@ -394,8 +395,8 @@ sub get_path_lengths_to_root_node {
     #  Avoid millions of subroutine calls below.
     #  We could use a global precalc, but that won't scale well with
     #  massive trees where we only need a subset.
-    my $path_cache = $self->get_cached_value ('PATH_LENGTH_CACHE_PER_TERMINAL')
-      // do {my $c = {}; $self->set_cached_value (PATH_LENGTH_CACHE_PER_TERMINAL => $c); $c};
+    my $path_cache
+      = $self->get_cached_value_dor_set_default_aa ('PATH_LENGTH_CACHE_PER_TERMINAL', {});
 
     # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
@@ -1609,8 +1610,7 @@ sub get_node_range {
     my $return_count = !wantarray && !$args{return_list};
 
     my $cache_name = 'NODE_RANGE_LISTS';
-    my $cache      = $self->get_cached_value($cache_name)
-                   // do {my $c = {}; $self->set_cached_value ($cache_name => $c); $c};
+    my $cache      = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
 
     my $node_name = $node_ref->get_name;
     my %groups;
@@ -2378,6 +2378,7 @@ sub _calc_phylo_abc_lists {
         el_list  => [keys %{$args{element_list2}}],
     );
 
+    #  Panda hash merge candidate
     my %A = (%$nodes_in_path1, %$nodes_in_path2); 
 
     # create a new hash %B for nodes in label hash 1 but not 2
@@ -2419,7 +2420,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
             PE_CWE => {
                 description  => $descr,
                 reference    => '',
-                formula      => ['PE_WE / PD'],
+                formula      => ['PE\_WE / PD'],
             },
         },
     );

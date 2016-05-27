@@ -17,7 +17,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use parent qw /Biodiverse::Common/;
 
@@ -598,6 +598,7 @@ sub parse_newick {
     my $node_count      = $args{node_count} // croak 'node_count arg not passed (must be scalar ref)';
     my $translate_hash  = $args{translate_hash}
                         || $self->get_param ('TRANSLATE_HASH');
+    #  clunky that we need to do this - was convenient once, but not now
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
     my $element_properties     = $use_element_properties
       ? ($args{element_properties} || $self->get_param ('ELEMENT_PROPERTIES'))
@@ -613,7 +614,7 @@ sub parse_newick {
 
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
-        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
+        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /,(/
         $est_node_count ||= 1;
         #say "Estimated node count is $est_node_count";
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);

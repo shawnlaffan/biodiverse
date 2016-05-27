@@ -1,0 +1,1316 @@
+<?xml version="1.0"?>
+<interface>
+  <object class="GtkUIManager" id="uimanager1">
+    <child>
+      <object class="GtkActionGroup" id="actiongroup1">
+        <child>
+          <object class="GtkAction" id="menu_file">
+            <property name="name">menu_file</property>
+            <property name="label" translatable="yes">_File</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_new">
+            <property name="stock_id">gtk-new</property>
+            <property name="name">menu_new</property>
+            <property name="label">New project</property>
+            <signal handler="on_new_activate" name="activate"/>
+          </object>
+          <accelerator key="n" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_open">
+            <property name="stock_id">gtk-open</property>
+            <property name="name">menu_open</property>
+            <property name="label">Open project</property>
+            <signal handler="on_open_activate" name="activate"/>
+          </object>
+          <accelerator key="o" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_save">
+            <property name="stock_id">gtk-save</property>
+            <property name="name">menu_save</property>
+            <property name="tooltip" translatable="yes">Save the project to file (all basedatas, trees and matrices)</property>
+            <property name="label">Save project</property>
+            <signal handler="on_save_activate" name="activate"/>
+          </object>
+          <accelerator key="s" modifiers="GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_save_as">
+            <property name="stock_id">gtk-save-as</property>
+            <property name="name">menu_save_as</property>
+            <property name="tooltip" translatable="yes">Save the project to a new file (all basedatas, trees and matrices)</property>
+            <property name="label">Save project as</property>
+            <signal handler="on_save_as_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_set_working_directory">
+            <property name="name">menu_set_working_directory</property>
+            <property name="tooltip" translatable="yes">Set the directory to use for default file loading and saving</property>
+            <property name="label" translatable="yes">Set _Working Directory</property>
+            <signal handler="on_set_working_directory_activate" name="activate"/>
+          </object>
+          <accelerator key="w" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_quit">
+            <property name="stock_id">gtk-quit</property>
+            <property name="name">menu_quit</property>
+            <signal handler="on_quit_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata">
+            <property name="name">menu_basedata</property>
+            <property name="tooltip" translatable="yes">Manipulate basedata objects</property>
+            <property name="label" translatable="yes">_Basedata</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_view_labels">
+            <property name="name">menu_view_labels</property>
+            <property name="label" translatable="yes">View _Labels</property>
+            <signal handler="on_view_labels_activate" name="activate"/>
+          </object>
+          <accelerator key="v" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_run_exclusions">
+            <property name="name">menu_run_exclusions</property>
+            <property name="tooltip" translatable="yes">Exclude groups and labels using simple criteria</property>
+            <property name="label" translatable="yes">Run _exclusions</property>
+            <signal handler="on_run_exclusions_activate" name="activate"/>
+          </object>
+          <accelerator key="e" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_import">
+            <property name="name">menu_import</property>
+            <property name="tooltip" translatable="yes">Import data onto a new or existing basedata object</property>
+            <property name="label" translatable="yes">_Import</property>
+            <signal handler="on_basedata_import" name="activate"/>
+          </object>
+          <accelerator key="i" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_open1">
+            <property name="name">menu_basedata_open1</property>
+            <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+            <property name="label" translatable="yes">_Open</property>
+            <signal handler="on_basedata_open" name="activate"/>
+          </object>
+          <accelerator key="o" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_delete">
+            <property name="name">menu_basedata_delete</property>
+            <property name="tooltip" translatable="yes">Delete selected basedata from project</property>
+            <property name="label" translatable="yes">_Delete</property>
+            <signal handler="on_basedata_delete" name="activate"/>
+          </object>
+          <accelerator key="d" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_save">
+            <property name="name">menu_basedata_save</property>
+            <property name="tooltip" translatable="yes">Save selected basedata to external Biodiverse format file</property>
+            <property name="label" translatable="yes">_Save as</property>
+            <signal handler="on_basedata_save" name="activate"/>
+          </object>
+          <accelerator key="s" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_describe">
+            <property name="name">menu_basedata_describe</property>
+            <property name="tooltip" translatable="yes">Basic descriptors of the selected BaseData</property>
+            <property name="label" translatable="yes">Describe</property>
+            <signal handler="on_basedata_describe" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_rename">
+            <property name="name">menu_basedata_rename</property>
+            <property name="tooltip" translatable="yes">Rename the selected basedata object</property>
+            <property name="label" translatable="yes">_Rename</property>
+            <signal handler="on_basedata_rename" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_duplicate">
+            <property name="name">menu_basedata_duplicate</property>
+            <property name="tooltip" translatable="yes">Duplicate the basedata object, including outputs</property>
+            <property name="label" translatable="yes">Du_plicate</property>
+            <signal handler="on_basedata_duplicate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_duplicate_no_outputs">
+            <property name="name">menu_basedata_duplicate_no_outputs</property>
+            <property name="tooltip" translatable="yes">Duplicate the basedata object, without the outputs</property>
+            <property name="label" translatable="yes">Duplicate without outputs</property>
+            <signal handler="on_basedata_duplicate_no_outputs" name="activate"/>
+          </object>
+          <accelerator key="p" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_reorder_axes">
+            <property name="name">menu_basedata_reorder_axes</property>
+            <property name="tooltip" translatable="yes">You forgot to set the correct order when importing, for example you have latitude as the x-axis, and longitude as the y-axis.
+This will create a new basedata with the corrected axis orders. </property>
+            <property name="label" translatable="yes">Duplicate with re-ordered axes</property>
+            <signal handler="on_basedata_reorder_axes" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_transpose">
+            <property name="name">menu_basedata_transpose</property>
+            <property name="tooltip" translatable="yes">Create a new basedata with the labels and groups transposed -
+labels become groups and groups become labels</property>
+            <property name="label" translatable="yes">Transpose</property>
+            <signal handler="on_transpose_basedata" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_merge_basedatas">
+            <property name="name">menu_merge_basedatas</property>
+            <property name="tooltip" translatable="yes">Merge groups and labels from another basedata into the selected basedata.</property>
+            <property name="label" translatable="yes">Merge into</property>
+            <signal handler="on_merge_basedatas" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_rename_basedata_labels">
+            <property name="name">menu_rename_basedata_labels</property>
+            <property name="tooltip" translatable="yes">Rename basedata labels.  WIll not work if basedata has existing outputs. </property>
+            <property name="label" translatable="yes">Rename labels</property>
+            <signal handler="on_rename_basedata_labels" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_rename_basedata_groups">
+            <property name="name">menu_rename_basedata_groups</property>
+            <property name="tooltip" translatable="yes">Rename basedata groups.  WIll not work if basedata has existing outputs. </property>
+            <property name="label" translatable="yes">Rename groups</property>
+            <signal handler="on_rename_basedata_groups" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_binarise_basedata_elements">
+            <property name="name">menu_binarise_basedata_elements</property>
+            <property name="tooltip" translatable="yes">Convert all sample counts to binary.
+All non-zero values will be set to 1</property>
+            <property name="label" translatable="yes">Binarise sample counts</property>
+            <signal handler="on_binarise_basedata_elements" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_attach_basedata_properties">
+            <property name="name">menu_attach_basedata_properties</property>
+            <property name="tooltip" translatable="yes">Attach properties (e.g. species traits) to the groups or labels.
+It will only work if your basedata has no analysis outputs,
+as these might have used existing properties.
+If that is the case then randomisations would be invalidated for those analyses.  </property>
+            <property name="label" translatable="yes">Attach group or label properties</property>
+            <signal handler="on_basedata_attach_properties" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_attach_ranges_as_properties">
+            <property name="name">menu_attach_ranges_as_properties</property>
+            <property name="tooltip" translatable="yes">Attach the current label ranges as properties for each label.
+This is useful to maintain the overall ranges used in endemism calculations if you later delete groups using the Run Exclusions dialog.</property>
+            <property name="label" translatable="yes">Attach label ranges as properties</property>
+            <signal handler="on_basedata_attach_ranges_as_properties" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_attach_abundances_as_properties">
+            <property name="name">menu_attach_abundances_as_properties</property>
+            <property name="tooltip" translatable="yes">Attach the current label sample counts as abundance properties for each label.
+This is useful to maintain the overall abundances used in rarity calculations if you later delete groups using the Run Exclusions dialog.</property>
+            <property name="label" translatable="yes">Attach label abundances as properties</property>
+            <signal handler="on_basedata_attach_label_abundances_as_properties" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_convert_labels_to_phylogeny">
+            <property name="name">menu_basedata_convert_labels_to_phylogeny</property>
+            <property name="label" translatable="yes">Create tree from labels</property>
+            <signal handler="on_convert_labels_to_phylogeny" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_extract_embedded_trees">
+            <property name="name">menu_extract_embedded_trees</property>
+            <property name="tooltip" translatable="yes">Extract any trees used as analysis args for this BaseData and add them to the project.
+Skips any trees already in the project.</property>
+            <property name="label" translatable="yes">Extract embedded trees</property>
+            <signal handler="on_basedata_extract_embedded_trees" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_extract_embedded_matrices">
+            <property name="name">menu_extract_embedded_matrices</property>
+            <property name="tooltip" translatable="yes">Extract any matrices used as analysis args for this BaseData and add them to the project.
+Skips any matrices already in the project.</property>
+            <property name="label" translatable="yes">Extract embedded matrices</property>
+            <signal handler="on_basedata_extract_embedded_matrices" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_basedata_to_match_tree">
+            <property name="name">menu_trim_basedata_to_match_tree</property>
+            <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected tree</property>
+            <property name="label" translatable="yes">Trim to match tree nodes</property>
+            <signal handler="on_basedata_trim_to_match_tree" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_basedata_to_match_matrix">
+            <property name="name">menu_trim_basedata_to_match_matrix</property>
+            <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected matrix</property>
+            <property name="label" translatable="yes">Trim to match matrix elements</property>
+            <signal handler="on_basedata_trim_to_match_matrix" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_basedata_using_tree">
+            <property name="name">menu_trim_basedata_using_tree</property>
+            <property name="tooltip" translatable="yes">Trim BaseData labels that occur as nodes in the tree</property>
+            <property name="label" translatable="yes">Trim using tree nodes</property>
+            <signal handler="on_basedata_trim_using_tree" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_basedata_using_matrix">
+            <property name="name">menu_trim_basedata_using_matrix</property>
+            <property name="tooltip" translatable="yes">Trim BaseData labels that occur as elements in the matrix</property>
+            <property name="label" translatable="yes">Trim using matrix elements</property>
+            <signal handler="on_basedata_trim_using_matrix" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_export_groups">
+            <property name="name">menu_basedata_export_groups</property>
+            <property name="tooltip" translatable="yes">Export the groups to a file, eg site by species matrix</property>
+            <property name="label" translatable="yes">Export _groups</property>
+            <signal handler="on_basedata_export_groups" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_basedata_export_labels">
+            <property name="name">menu_basedata_export_labels</property>
+            <property name="tooltip" translatable="yes">Export the groups to a file, eg species by site matrix</property>
+            <property name="label" translatable="yes">Export _labels</property>
+            <signal handler="on_basedata_export_labels" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrices">
+            <property name="name">menu_matrices</property>
+            <property name="tooltip" translatable="yes">Manipulate similarity matrices</property>
+            <property name="label" translatable="yes">_Matrices</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_import">
+            <property name="name">menu_matrix_import</property>
+            <property name="tooltip" translatable="yes">Import a matrix from a supported format</property>
+            <property name="label" translatable="yes">_Import</property>
+            <signal handler="on_matrix_import" name="activate"/>
+          </object>
+          <accelerator key="i" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_open">
+            <property name="name">menu_matrix_open</property>
+            <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+            <property name="label" translatable="yes">_Open</property>
+            <signal handler="on_matrix_open" name="activate"/>
+          </object>
+          <accelerator key="o" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_delete">
+            <property name="name">menu_matrix_delete</property>
+            <property name="label" translatable="yes">_Delete</property>
+            <signal handler="on_matrix_delete" name="activate"/>
+          </object>
+          <accelerator key="d" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_save">
+            <property name="name">menu_matrix_save</property>
+            <property name="tooltip" translatable="yes">Save selected matrix to external Biodiverse format file</property>
+            <property name="label" translatable="yes">_Save as</property>
+            <signal handler="on_matrix_save" name="activate"/>
+          </object>
+          <accelerator key="s" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_describe">
+            <property name="name">menu_matrix_describe</property>
+            <property name="tooltip" translatable="yes">Basic descriptors of the selected matrix</property>
+            <property name="label" translatable="yes">Describe</property>
+            <signal handler="on_matrix_describe" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_rename">
+            <property name="name">menu_matrix_rename</property>
+            <property name="tooltip" translatable="yes">Rename the selected matrix</property>
+            <property name="label" translatable="yes">Rename</property>
+            <signal handler="on_matrix_rename" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="convert_matrix_to_phylogeny">
+            <property name="name">convert_matrix_to_phylogeny</property>
+            <property name="tooltip" translatable="yes">Runs a cluster analysis using link_average linkage function.
+Assumes a dissimilarity matrix, so take care.</property>
+            <property name="label" translatable="yes">Convert matrix to tree</property>
+            <signal handler="on_convert_matrix_to_phylogeny" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_matrix_to_basedata">
+            <property name="name">menu_trim_matrix_to_basedata</property>
+            <property name="tooltip" translatable="yes">Remove any elements not found in the selected basedata</property>
+            <property name="label" translatable="yes">Trim to match basedata</property>
+            <signal handler="on_trim_matrix_to_basedata" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_export">
+            <property name="name">menu_matrix_export</property>
+            <property name="label" translatable="yes">Export matrix</property>
+            <signal handler="on_matrix_export" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogenies">
+            <property name="name">menu_phylogenies</property>
+            <property name="tooltip" translatable="yes">Manipulate trees</property>
+            <property name="label" translatable="yes">_Trees</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_import">
+            <property name="name">menu_phylogeny_import</property>
+            <property name="tooltip" translatable="yes">Import a phylogeny from a supported format (eg nexus)</property>
+            <property name="label" translatable="yes">_Import</property>
+            <signal handler="on_phylogeny_import" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_open">
+            <property name="name">menu_phylogeny_open</property>
+            <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+            <property name="label" translatable="yes">_Open</property>
+            <signal handler="on_phylogeny_open" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_delete">
+            <property name="name">menu_phylogeny_delete</property>
+            <property name="label" translatable="yes">_Delete</property>
+            <signal handler="on_phylogeny_delete" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_save">
+            <property name="name">menu_phylogeny_save</property>
+            <property name="tooltip" translatable="yes">Save selected tree to external Biodiverse format file</property>
+            <property name="label" translatable="yes">_Save as</property>
+            <signal handler="on_phylogeny_save" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_describe">
+            <property name="name">menu_phylogeny_describe</property>
+            <property name="tooltip" translatable="yes">Basic descriptors of the selected tree</property>
+            <property name="label" translatable="yes">Describe</property>
+            <signal handler="on_phylogeny_describe" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_rename">
+            <property name="name">menu_phylogeny_rename</property>
+            <property name="tooltip" translatable="yes">Rename the selected tree</property>
+            <property name="label" translatable="yes">Rename</property>
+            <signal handler="on_phylogeny_rename" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_delete_cached_values">
+            <property name="name">menu_phylogeny_delete_cached_values</property>
+            <property name="tooltip" translatable="yes">Clear any values cached on the tree.  Can reduce memory usage for large trees.</property>
+            <property name="label" translatable="yes">Clear cached values</property>
+            <signal handler="on_phylogeny_delete_cached_values" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_convert_phylogeny_to_matrix">
+            <property name="name">menu_convert_phylogeny_to_matrix</property>
+            <property name="label" translatable="yes">Convert tree to matrix</property>
+            <signal handler="on_convert_phylogeny_to_matrix" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_trim_tree_to_basedata">
+            <property name="name">menu_trim_tree_to_basedata</property>
+            <property name="tooltip" translatable="yes">Delete tree nodes not in the selected basedata object</property>
+            <property name="label" translatable="yes">Trim to match basedata</property>
+            <signal handler="on_trim_tree_to_basedata" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_range_weight_tree_branches">
+            <property name="name">menu_range_weight_tree_branches</property>
+            <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
+This can help interpret phylogenetic endemism and related analyses.  </property>
+            <property name="label" translatable="yes">Convert to range weighted branches</property>
+            <signal handler="on_range_weight_tree" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_equalise_tree_branches">
+            <property name="name">menu_equalise_tree_branches</property>
+            <property name="tooltip" translatable="yes">All non-zero branches will be assigned the same length.
+The sum of all branches will be the same as in the original tree. </property>
+            <property name="label" translatable="yes">Convert to equalised branch lengths</property>
+            <signal handler="on_tree_equalise_branch_lengths" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_rescale_tree_branches2">
+            <property name="name">menu_rescale_tree_branches2</property>
+            <property name="tooltip" translatable="yes">Rescale all branches by some factor.
+Creates a new tree.</property>
+            <property name="label" translatable="yes">Rescale branch lengths</property>
+            <signal handler="on_tree_rescale_branch_lengths" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_ladderise_tree">
+            <property name="name">menu_ladderise_tree</property>
+            <property name="tooltip" translatable="yes">Re-sort branches so they are in order of their total number of descendents.
+This cannot be undone.  </property>
+            <property name="label" translatable="yes">Ladderise</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_phylogeny_export">
+            <property name="name">menu_phylogeny_export</property>
+            <property name="tooltip" translatable="yes">Export the tree to other supported format</property>
+            <property name="label" translatable="yes">Export tree</property>
+            <signal handler="on_phylogeny_export" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_analysis">
+            <property name="name">menu_analysis</property>
+            <property name="tooltip" translatable="yes">Run analyses on the selected Basedata object</property>
+            <property name="label" translatable="yes">_Analyses</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_spatial">
+            <property name="name">menu_spatial</property>
+            <property name="tooltip" translatable="yes">Run a moving window analysis on the selected basedata object</property>
+            <property name="label" translatable="yes">_Spatial</property>
+            <signal handler="on_spatial_activate" name="activate"/>
+          </object>
+          <accelerator key="s" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_cluster">
+            <property name="name">menu_cluster</property>
+            <property name="tooltip" translatable="yes">Run a cluster analysis on the selected basedata object</property>
+            <property name="label" translatable="yes">_Cluster</property>
+            <signal handler="on_cluster_activate" name="activate"/>
+          </object>
+          <accelerator key="c" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_regiongrower">
+            <property name="name">menu_regiongrower</property>
+            <property name="tooltip" translatable="yes">Run a region grower analysis on the selected basedata object</property>
+            <property name="label" translatable="yes">Region _Grower</property>
+            <signal handler="on_region_grower_activate" name="activate"/>
+          </object>
+          <accelerator key="g" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_randomisation">
+            <property name="name">menu_randomisation</property>
+            <property name="tooltip" translatable="yes">Run a randomisation analysis using cluster and spatial results in the  selected Basedata object</property>
+            <property name="label" translatable="yes">_Randomisation</property>
+            <signal handler="on_randomise_activate" name="activate"/>
+          </object>
+          <accelerator key="r" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_index">
+            <property name="name">menu_index</property>
+            <property name="tooltip" translatable="yes">Build a spatial index for the selected BaseData</property>
+            <property name="label" translatable="yes">Build Spatial _Index...</property>
+            <signal handler="on_index_activate" name="activate"/>
+          </object>
+          <accelerator key="i" modifiers="GDK_MOD1_MASK"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_delete_index">
+            <property name="name">menu_delete_index</property>
+            <property name="tooltip" translatable="yes">Delete the spatial index in the selected BaseData</property>
+            <property name="label" translatable="yes">Delete Spatial Index</property>
+            <signal handler="on_index_delete" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_help">
+            <property name="name">menu_help</property>
+            <property name="label" translatable="yes">_Help</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="help_viewer">
+            <property name="stock_id">gtk-help</property>
+            <property name="name">help_viewer</property>
+            <property name="tooltip" translatable="yes">Go to the main online help</property>
+            <signal handler="on_help_viewer_activate" name="activate"/>
+          </object>
+          <accelerator key="F1"/>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_list_calculations_and_indices">
+            <property name="name">menu_list_calculations_and_indices</property>
+            <property name="tooltip" translatable="yes">List the available calculations and indices (uses selected BaseData) </property>
+            <property name="label" translatable="yes">List calculations and indices</property>
+            <signal handler="on_menu_list_calculations_and_indices_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_list_spatial_conditions_activate">
+            <property name="name">menu_list_spatial_conditions_activate</property>
+            <property name="tooltip" translatable="yes">How to specify spatial conditions</property>
+            <property name="label" translatable="yes">Specifying spatial conditions</property>
+            <signal handler="on_menu_list_spatial_conditions_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_release_notes">
+            <property name="name">menu_release_notes</property>
+            <property name="tooltip" translatable="yes">View the release notes (online)</property>
+            <property name="label" translatable="yes">Release Notes</property>
+            <signal handler="on_menu_release_notes_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="help_show_mailing_list">
+            <property name="name">help_show_mailing_list</property>
+            <property name="tooltip" translatable="yes">Go to the Google Groups mailing list</property>
+            <property name="label" translatable="yes">Mailing list</property>
+            <signal handler="on_menu_mailing_list_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="help_show_blog">
+            <property name="name">help_show_blog</property>
+            <property name="tooltip" translatable="yes">Go to the Biodiverse blog</property>
+            <property name="label" translatable="yes">Blog</property>
+            <signal handler="on_menu_blog_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_help_citation">
+            <property name="name">menu_help_citation</property>
+            <property name="tooltip" translatable="yes">Citation details if you use Biodiverse.  </property>
+            <property name="label" translatable="yes">How to cite Biodiverse</property>
+            <signal handler="on_menu_help_citation_activate" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="on_menu_check_for_updates">
+            <property name="name">on_menu_check_for_updates</property>
+            <property name="tooltip" translatable="yes">Check online for updates</property>
+            <property name="label" translatable="yes">Check for updates</property>
+            <signal handler="on_menu_check_for_updates" name="activate"/>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_about">
+            <property name="stock_id">gtk-about</property>
+            <property name="name">menu_about</property>
+            <signal handler="on_about_activate" name="activate"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <ui>
+      <menubar name="menubar1">
+        <menu action="menu_file">
+          <menuitem action="menu_new"/>
+          <menuitem action="menu_open"/>
+          <menuitem action="menu_save"/>
+          <menuitem action="menu_save_as"/>
+          <separator/>
+          <menuitem action="menu_set_working_directory"/>
+          <separator/>
+          <menuitem action="menu_quit"/>
+        </menu>
+        <menu action="menu_basedata">
+          <menuitem action="menu_view_labels"/>
+          <menuitem action="menu_run_exclusions"/>
+          <separator/>
+          <menuitem action="menu_import"/>
+          <menuitem action="menu_basedata_open1"/>
+          <menuitem action="menu_basedata_delete"/>
+          <menuitem action="menu_basedata_save"/>
+          <separator/>
+          <menuitem action="menu_basedata_describe"/>
+          <menuitem action="menu_basedata_rename"/>
+          <menuitem action="menu_basedata_duplicate"/>
+          <menuitem action="menu_basedata_duplicate_no_outputs"/>
+          <menuitem action="menu_basedata_reorder_axes"/>
+          <menuitem action="menu_basedata_transpose"/>
+          <menuitem action="menu_merge_basedatas"/>
+          <menuitem action="menu_rename_basedata_labels"/>
+          <menuitem action="menu_rename_basedata_groups"/>
+          <menuitem action="menu_binarise_basedata_elements"/>
+          <menuitem action="menu_attach_basedata_properties"/>
+          <menuitem action="menu_attach_ranges_as_properties"/>
+          <menuitem action="menu_attach_abundances_as_properties"/>
+          <separator/>
+          <menuitem action="menu_basedata_convert_labels_to_phylogeny"/>
+          <menuitem action="menu_extract_embedded_trees"/>
+          <menuitem action="menu_extract_embedded_matrices"/>
+          <separator/>
+          <menuitem action="menu_trim_basedata_to_match_tree"/>
+          <menuitem action="menu_trim_basedata_to_match_matrix"/>
+          <menuitem action="menu_trim_basedata_using_tree"/>
+          <menuitem action="menu_trim_basedata_using_matrix"/>
+          <separator/>
+          <menuitem action="menu_basedata_export_groups"/>
+          <menuitem action="menu_basedata_export_labels"/>
+        </menu>
+        <menu action="menu_matrices">
+          <menuitem action="menu_matrix_import"/>
+          <menuitem action="menu_matrix_open"/>
+          <menuitem action="menu_matrix_delete"/>
+          <menuitem action="menu_matrix_save"/>
+          <separator/>
+          <menuitem action="menu_matrix_describe"/>
+          <menuitem action="menu_matrix_rename"/>
+          <separator/>
+          <menuitem action="convert_matrix_to_phylogeny"/>
+          <menuitem action="menu_trim_matrix_to_basedata"/>
+          <separator/>
+          <menuitem action="menu_matrix_export"/>
+        </menu>
+        <menu action="menu_phylogenies">
+          <menuitem action="menu_phylogeny_import"/>
+          <menuitem action="menu_phylogeny_open"/>
+          <menuitem action="menu_phylogeny_delete"/>
+          <menuitem action="menu_phylogeny_save"/>
+          <separator/>
+          <menuitem action="menu_phylogeny_describe"/>
+          <menuitem action="menu_phylogeny_rename"/>
+          <menuitem action="menu_phylogeny_delete_cached_values"/>
+          <separator/>
+          <menuitem action="menu_convert_phylogeny_to_matrix"/>
+          <menuitem action="menu_trim_tree_to_basedata"/>
+          <menuitem action="menu_range_weight_tree_branches"/>
+          <menuitem action="menu_equalise_tree_branches"/>
+          <menuitem action="menu_rescale_tree_branches2"/>
+          <menuitem action="menu_ladderise_tree"/>
+          <separator/>
+          <menuitem action="menu_phylogeny_export"/>
+        </menu>
+        <menu action="menu_analysis">
+          <menuitem action="menu_spatial"/>
+          <menuitem action="menu_cluster"/>
+          <menuitem action="menu_regiongrower"/>
+          <menuitem action="menu_randomisation"/>
+          <separator/>
+          <menuitem action="menu_index"/>
+          <menuitem action="menu_delete_index"/>
+        </menu>
+        <menu action="menu_help">
+          <menuitem action="help_viewer"/>
+          <menuitem action="menu_list_calculations_and_indices"/>
+          <menuitem action="menu_list_spatial_conditions_activate"/>
+          <menuitem action="menu_release_notes"/>
+          <separator/>
+          <menuitem action="help_show_mailing_list"/>
+          <menuitem action="help_show_blog"/>
+          <menuitem action="menu_help_citation"/>
+          <menuitem action="on_menu_check_for_updates"/>
+          <separator/>
+          <menuitem action="menu_about"/>
+        </menu>
+      </menubar>
+    </ui>
+  </object>
+  <object class="GtkWindow" id="wndMain">
+    <property name="width_request">1000</property>
+    <property name="height_request">600</property>
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Biodiverse</property>
+    <property name="destroy_with_parent">True</property>
+    <signal handler="on_wnd_main_delete_event" name="delete_event"/>
+    <child>
+      <object class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <child>
+          <object class="GtkMenuBar" constructor="uimanager1" id="menubar1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkToolbar" id="toolbar2">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="toolbar_style">both-horiz</property>
+            <child>
+              <object class="GtkToolItem" id="toolitem4">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="label9">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">Basedata</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem13">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkComboBox" id="comboBasedata">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <signal handler="on_combo_basedata_changed" name="changed"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem10">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnBasedataDelete">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Delete selected BaseData</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_basedata_delete" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image4">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-delete</property>
+                        <property name="icon-size">2</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem40">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnBasedataSave">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Save selected BaseData to Biodiverse format</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_basedata_save" name="clicked"/>
+                    <child>
+                      <object class="GtkEventBox" id="eventbox1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkImage" id="image24">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-save</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem42">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnBasedataOpen">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Add new BaseData from Biodiverse format file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_basedata_open" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image26">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-open</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem28">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnBasedataImport">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Import new BaseData from file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_basedata_import" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image23">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-add</property>
+                        <property name="icon-size">2</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="separatortoolitem3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem5">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="label10">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">Matrix</property>
+                    <property name="use_markup">True</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem14">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkComboBox" id="comboMatrices">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <signal handler="on_combo_matrices_changed" name="changed"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem12">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnMatrixDelete">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Delete matrix</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_matrix_delete" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image6">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Delete selected matrix</property>
+                        <property name="stock">gtk-delete</property>
+                        <property name="icon-size">2</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem41">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnMatrixSave">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Save selected matrix to Biodiverse format</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_matrix_save" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image25">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-save</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem43">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnMatrixOpen">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Add new matrix from Biodiverse format file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_matrix_open" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image27">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-open</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem9">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnMatrixAdd">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Import new matrix from file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_matrix_import" name="clicked"/>
+                    <child>
+                      <object class="GtkAlignment" id="alignment6">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xscale">0</property>
+                        <property name="yscale">0</property>
+                        <child>
+                          <object class="GtkHBox" id="hbox1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="spacing">2</property>
+                            <child>
+                              <object class="GtkImage" id="image3">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-add</property>
+                                <property name="icon-size">2</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label33">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkSeparatorToolItem" id="separatortoolitem12">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem79">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="label134">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">Tree</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem76">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkComboBox" id="comboPhylogenies">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <signal handler="on_combo_phylogenies_changed" name="changed"/>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem77">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnPhylogenyDelete">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Delete tree</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_phylogeny_delete" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image88">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Delete selected tree</property>
+                        <property name="stock">gtk-delete</property>
+                        <property name="icon-size">2</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem88">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnPhylogenySave">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Save selected tree to Biodiverse format</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_phylogeny_save" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image101">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-save</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem89">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnPhylogenyOpen">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Add new tree from Biodiverse format file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_phylogeny_open" name="clicked"/>
+                    <child>
+                      <object class="GtkImage" id="image102">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="stock">gtk-open</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolitem78">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkButton" id="btnPhylogenyAdd">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip-text" translatable="yes">Import tree(s) from file</property>
+                    <property name="relief">none</property>
+                    <signal handler="on_phylogeny_import" name="clicked"/>
+                    <child>
+                      <object class="GtkAlignment" id="alignment54">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="xscale">0</property>
+                        <property name="yscale">0</property>
+                        <child>
+                          <object class="GtkHBox" id="hbox23">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="spacing">2</property>
+                            <child>
+                              <object class="GtkImage" id="image89">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-add</property>
+                                <property name="icon-size">2</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label133">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

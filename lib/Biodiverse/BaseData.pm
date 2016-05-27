@@ -22,10 +22,10 @@ use Spreadsheet::Read 0.60;
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)
-use Spreadsheet::ReadSXC qw //;
-use Spreadsheet::ParseExcel qw //;
-use Spreadsheet::ParseXLSX qw //;
-use Spreadsheet::XLSX qw //;
+require Spreadsheet::ReadSXC;
+require Spreadsheet::ParseExcel;
+require Spreadsheet::ParseXLSX;
+#require Spreadsheet::XLSX;  latest version does not install
 
 use English qw { -no_match_vars };
 
@@ -46,7 +46,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.1';
+our $VERSION = '1.99_002';
 
 use parent qw {Biodiverse::Common};
 
@@ -123,6 +123,7 @@ sub new {
 
     foreach my $size (@$cell_sizes) {
         croak "Cell size $size is not numeric, you might need to check the locale\n"
+            . "(one that uses a . as the decimal place works best)\n"
             if ! looks_like_number ($size);
     }
 
@@ -867,10 +868,6 @@ sub import_data {
             )
             / $bytes_per_MB;
 
-        #  Get the header line, assumes no binary chars in it.
-        #  If there are then there is something really wrong with the file.
-        my $header = $file_handle->getline;
-
         #  for progress bar stuff
         my $size_comment
             = $file_size_Mb > 10
@@ -900,6 +897,10 @@ sub import_data {
             csv_object         => $in_csv,
         );
 
+        #  Get the header line, assumes no binary chars in it.
+        #  If there are then there is something really wrong with the file.
+        my $header = shift @$lines;
+
         #  parse the header line if we are using a matrix format file
         my $matrix_label_col_hash = {};
         if ($data_in_matrix_form) {
@@ -916,10 +917,7 @@ sub import_data {
             if (ref $label_end_col) {  
                 $label_end_col = $label_end_col->[-1];
             }
-            my $header_array = $self->csv2list (
-                csv_object => $in_csv,
-                string     => $header,
-            );
+            my $header_array = $header;
             $matrix_label_col_hash
                 = $self->get_label_columns_for_matrix_import  (
                     csv_object       => $out_csv,
@@ -1322,6 +1320,10 @@ sub import_data_raster {
         say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";  #  $tf[5] is negative to allow for line order
         #  avoid repeated array lookups below
         my ($tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5) = @tf;
+
+        #  does not allow for rotations, but not sure that it should sinec Biodiverse doesn't either.  
+        $cellsize_e ||= abs $tf_1;
+        $cellsize_n ||= abs $tf_5;
 
         # iterate over each band
         foreach my $b (1 .. $data->{RasterCount}) {
@@ -3188,7 +3190,7 @@ sub delete_groups {
     }
 
     foreach my $element (@$elements) {
-        $self->delete_element (type => 'GROUP', element => $element);
+        $self->delete_element (type => 'GROUPS', element => $element);
     }
 
     return;
@@ -4398,8 +4400,10 @@ sub get_unique_randomisation_name {
     
     my $max = 0;
     foreach my $name (@names) {
-        my $num = $name =~ /$prefix(\d+)$/;
-        $max = $num if $num > $max;
+        if ($name =~ /^$prefix(\d+)$/) {
+            my $num = $1;
+            $max = $num if $num > $max;
+        }
     }
 
     my $unique_name = $prefix . ($max + 1);

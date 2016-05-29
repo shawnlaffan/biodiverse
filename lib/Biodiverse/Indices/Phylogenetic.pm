@@ -420,7 +420,7 @@ sub get_path_lengths_to_root_node {
         #  This is a bottleneck for large data sets,
         #  so use an XSUB if possible.
         if (HAVE_BD_UTILS) {
-            Biodiverse::Utils::add_hash_keys_last_if_exists (
+            Biodiverse::Utils::add_hash_keys_until_exists (
                 $path_hash,
                 $sub_path,
             );
@@ -2394,35 +2394,48 @@ sub _calc_phylo_abc_lists {
         el_list  => [keys %{$args{element_list2}}],
     );
 
-    #  this could all be XSified?
-
-    my %A;
-    if (HAVE_PANDA_LIB) {
-        Panda::Lib::hash_merge (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
-        Panda::Lib::hash_merge (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
+    my %results;
+    #  one day we can clean this all up
+    if (HAVE_BD_UTILS) {
+        my $res = Biodiverse::Utils::get_hash_shared_and_unique (
+            $nodes_in_path1,
+            $nodes_in_path2,
+        );
+        %results = (
+            PHYLO_A_LIST => $res->{a},
+            PHYLO_B_LIST => $res->{b},
+            PHYLO_C_LIST => $res->{c},
+        );
     }
     else {
-        %A = (%$nodes_in_path1, %$nodes_in_path2);
+        my %A;
+        if (HAVE_PANDA_LIB) {
+            Panda::Lib::hash_merge (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
+            Panda::Lib::hash_merge (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
+        }
+        else {
+            %A = (%$nodes_in_path1, %$nodes_in_path2);
+        }
+    
+        # create a new hash %B for nodes in label hash 1 but not 2
+        # then get length of B
+        my %B = %A;
+        delete @B{keys %$nodes_in_path2};
+    
+        # create a new hash %C for nodes in label hash 2 but not 1
+        # then get length of C
+        my %C = %A;
+        delete @C{keys %$nodes_in_path1};
+    
+        # get length of %A = branches not in %B or %C
+        delete @A{keys %B, keys %C};
+    
+         %results = (
+            PHYLO_A_LIST => \%A,
+            PHYLO_B_LIST => \%B,
+            PHYLO_C_LIST => \%C,
+        );
     }
-
-    # create a new hash %B for nodes in label hash 1 but not 2
-    # then get length of B
-    my %B = %A;
-    delete @B{keys %$nodes_in_path2};
-
-    # create a new hash %C for nodes in label hash 2 but not 1
-    # then get length of C
-    my %C = %A;
-    delete @C{keys %$nodes_in_path1};
-
-    # get length of %A = branches not in %B or %C
-    delete @A{keys %B, keys %C};
-
-    my %results = (
-        PHYLO_A_LIST => \%A,
-        PHYLO_B_LIST => \%B,
-        PHYLO_C_LIST => \%C,
-    );
 
     return wantarray ? %results : \%results;
 }

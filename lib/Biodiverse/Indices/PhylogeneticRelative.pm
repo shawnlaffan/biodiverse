@@ -6,7 +6,7 @@ use List::Util qw /sum/;
 use Data::Alias qw /alias/;
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
-use Biodiverse::Utils qw /get_rpe_null/;
+#use Biodiverse::Utils qw /get_rpe_null/;
 
 use Carp;
 

@@ -289,11 +289,11 @@ sub get_param_as_ref {
     return if ! $self->exists_param ($param);
 
     my $value = $self->get_param ($param);
-    my $test_value = $value;  #  for debug
+    #my $test_value = $value;  #  for debug
     if (not ref $value) {
         $value = \$self->{PARAMS}{$param};  #  create a ref if it is not one already
         #  debug checker
-        carp "issues in get_param_as_ref $value $test_value\n" if $$value ne $test_value;
+        #carp "issues in get_param_as_ref $value $test_value\n" if $$value ne $test_value;
     }
 
     return $value;

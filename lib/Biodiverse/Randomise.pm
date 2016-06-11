@@ -880,11 +880,11 @@ sub get_common_rand_metadata {
         }, $parameter_metadata_class),
         bless ({
             name       => 'add_basedatas_to_project',
-            label_text => 'How many basedatas to add to the project',
+            label_text => 'Add basedatas to project',
             type       => 'integer',
             default    => 0,
             increment  => 1,
-            tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
+            tooltip    => 'Add the first "n" randomised basedatas and their outputs to the project',
             mutable    => 1,
             box_group  => 'Debug',
         }, $parameter_metadata_class),    
@@ -1236,7 +1236,7 @@ END_TOOLTIP_ADDN
     
     my $track_label_allocation_order = bless {
         name       => 'track_label_allocation_order',
-        label_text => "Track the label allocation order?",
+        label_text => "Track label allocation order?",
         default    => 0,
         type       => 'boolean',
         tooltip    => 'Allows one to see the order in which labels were assigned to groups '

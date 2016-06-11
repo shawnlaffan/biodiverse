@@ -904,6 +904,115 @@ sub get_common_rand_metadata {
     return wantarray ? @common : \@common;
 }
 
+
+sub get_common_rand_structured_metadata {
+    my $self = shift;
+
+    my $tooltip_mult =<<'END_TOOLTIP_MULT'
+The target richness of each group in the randomised
+basedata will be its original richness multiplied
+by this value.
+END_TOOLTIP_MULT
+;
+
+    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
+The target richness of each group in the randomised
+basedata will be its original richness plus this value.
+
+This is applied after the multiplier parameter so you have:
+    target_richness = orig_richness * multiplier + addition.
+END_TOOLTIP_ADDN
+;
+
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $common_metadata  = $self->get_common_rand_metadata;
+    
+    my @parameters = (
+        @$subset_parameters,
+        {name       => 'richness_multiplier',
+         type       => 'float',
+         default    => 1,
+         increment  => 1,
+         tooltip    => $tooltip_mult,
+         box_group  => 'Richness constraints',
+        },
+        {name       => 'richness_addition',
+         type       => 'float',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_addn,
+         box_group  => 'Richness constraints',
+         },
+        $group_props_parameters,
+        $tree_shuffle_parameters,
+        @$common_metadata,
+    );
+    for (@parameters) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
+    
+    
+    my $track_label_allocation_order = bless {
+        name       => 'track_label_allocation_order',
+        label_text => "Track label allocation order?",
+        default    => 0,
+        type       => 'boolean',
+        tooltip    => 'Allows one to see the order in which labels were assigned to groups '
+                    . '(before any swapping is applied to reach any richness targets).',
+        mutable    => 1,
+        box_group  => 'Debug',
+    }, $parameter_rand_metadata_class;
+    push @parameters, $track_label_allocation_order;
+
+    return wantarray ? @parameters : \@parameters;
+}
+
+sub get_spatial_allocation_sp_condition_metadata {
+    my $self = shift;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_conditions_for_label_allocation',
+        label_text => "Spatial condition\nto define target groups\naround a seed location",
+        default    => 'sp_square_cell (size => 3)',
+        #default    => 'sp_circle(radius => 300000)',
+        type       => 'spatial_conditions',
+        tooltip    => 'Labels will be assigned to groups within the specified '
+                    . 'neighbourhood around a random seed location.  '
+                    . 'A new seed location is selected when there are no more '
+                    . 'neighbours to select from.',
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
+sub get_random_walk_backtracking_metadata {
+    my $self = shift;
+
+    my $bk_text = <<'EOB'
+The random_walk model will go back to a previously
+assigned group when no neighbours can be assigned to. 
+"from_end" goes back in reverse order of assignment, 
+"from_start" goes back to the start of the sequence, while 
+"random" selects randomly from the previously assigned groups.
+EOB
+  ;
+
+    my $backtracking = bless {
+        name       => 'label_allocation_backtracking',
+        label_text => "Backtracking",
+        default    => 0,
+        type       => 'choice',
+        choices    => [qw /from_end from_start random/],
+        tooltip    => $bk_text,
+        box_group  => 'Spatial allocations',
+    }, $parameter_rand_metadata_class;
+
+    return $backtracking;
+}
+
 sub get_metadata_rand_nochange {
     my $self = shift;
     
@@ -1117,22 +1226,68 @@ sub get_spatial_output_for_label_allocation {
     return $sp;
 }
 
+sub get_metadata_rand_random_walk {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+    push @parameters, $self->get_random_walk_backtracking_metadata;
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, using a "
+                     . "random walk model from a seed location\n"
+                     . 'but keep the richness of each group the same within '
+                     . "some tolerance.\n"
+                     . "Actually just a special case of the rand_spatially_structured "
+                     . "model that always uses the random_walk allocation method.",
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_random_walk {
+    my $self = shift;
+    my %args = @_;
+    $args{spatial_allocation_order} = 'random_walk';  #  override
+    $args{backtracking} //= 'from_end';
+    return $self->rand_structured (%args);
+}
+
+sub get_metadata_rand_diffusion {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, using a "
+                     . "diffusion model from a seed location\n"
+                     . 'but keep the richness of each group the same within '
+                     . "some tolerance.\n"
+                     . "Actually just a special case of the rand_spatially_structured "
+                     . "model that always uses the diffusion allocation method.",
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_diffusion {
+    my $self = shift;
+    my %args = @_;
+    $args{spatial_allocation_order} = 'diffusion';  #  override
+    return $self->rand_structured (%args);
+}
+
 sub get_metadata_rand_spatially_structured {
     my $self = shift;
 
     my @parameters = $self->get_common_rand_structured_metadata;
-    my $spatial_condition_param = bless {
-        name       => 'spatial_conditions_for_label_allocation',
-        label_text => "Spatial condition\nto define target groups\naround a seed location",
-        default    => 'sp_square_cell (size => 3)',
-        #default    => 'sp_circle(radius => 300000)',
-        type       => 'spatial_conditions',
-        tooltip    => 'Labels will be assigned to groups within the specified '
-                    . 'neighbourhood around a random seed location.  '
-                    . 'A new seed location is selected when there are no more '
-                    . 'neighbours to select from.',
-    }, $parameter_rand_metadata_class;
-    push @parameters, $spatial_condition_param;
+
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
 
     my $spatial_allocation_order = bless {
         name       => 'spatial_allocation_order',
@@ -1145,24 +1300,7 @@ sub get_metadata_rand_spatially_structured {
         box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
 
-    my $bk_text = <<'EOB'
-The random_walk model will go back to a previously
-assigned group when no neighbours can be assigned to. 
-"from_end" goes back in reverse order of assignment, 
-"from_start" goes back to the start of the sequence, while 
-"random" selects randomly from the previously assigned groups.
-EOB
-  ;
-
-    my $backtracking = bless {
-        name       => 'label_allocation_backtracking',
-        label_text => "Backtracking",
-        default    => 0,
-        type       => 'choice',
-        choices    => [qw /from_end from_start random/],
-        tooltip    => $bk_text,
-        box_group  => 'Spatial allocations',
-    }, $parameter_rand_metadata_class;
+    my $backtracking = $self->get_random_walk_backtracking_metadata;
 
     push @parameters, ($spatial_allocation_order, $backtracking);
 
@@ -1182,71 +1320,6 @@ sub rand_spatially_structured {
     my $self = shift;
     my %args = @_;
     return $self->rand_structured (%args);
-}
-
-sub get_common_rand_structured_metadata {
-    my $self = shift;
-
-    my $tooltip_mult =<<'END_TOOLTIP_MULT'
-The target richness of each group in the randomised
-basedata will be its original richness multiplied
-by this value.
-END_TOOLTIP_MULT
-;
-
-    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
-The target richness of each group in the randomised
-basedata will be its original richness plus this value.
-
-This is applied after the multiplier parameter so you have:
-    target_richness = orig_richness * multiplier + addition.
-END_TOOLTIP_ADDN
-;
-
-    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
-    my $group_props_parameters  = $self->get_group_prop_metadata;
-    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
-    my $common_metadata  = $self->get_common_rand_metadata;
-    
-    my @parameters = (
-        @$subset_parameters,
-        {name       => 'richness_multiplier',
-         type       => 'float',
-         default    => 1,
-         increment  => 1,
-         tooltip    => $tooltip_mult,
-         box_group  => 'Richness constraints',
-        },
-        {name       => 'richness_addition',
-         type       => 'float',
-         default    => 0,
-         increment  => 1,
-         tooltip    => $tooltip_addn,
-         box_group  => 'Richness constraints',
-         },
-        $group_props_parameters,
-        $tree_shuffle_parameters,
-        @$common_metadata,
-    );
-    for (@parameters) {
-        next if blessed $_;
-        bless $_, $parameter_rand_metadata_class;
-    }
-    
-    
-    my $track_label_allocation_order = bless {
-        name       => 'track_label_allocation_order',
-        label_text => "Track label allocation order?",
-        default    => 0,
-        type       => 'boolean',
-        tooltip    => 'Allows one to see the order in which labels were assigned to groups '
-                    . '(before any swapping is applied to reach any richness targets).',
-        mutable    => 1,
-        box_group  => 'Debug',
-    }, $parameter_rand_metadata_class;
-    push @parameters, $track_label_allocation_order;
-
-    return wantarray ? @parameters : \@parameters;
 }
 
 sub get_metadata_rand_structured {

@@ -88,7 +88,7 @@ function</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="y_options"/>
+                                <property name="y_options">GTK_SHRINK</property>
                               </packing>
                             </child>
                             <child>
@@ -239,6 +239,7 @@ Set to undef or leave blank to use system seed.</property>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
+                                <property name="y_options"/>
                               </packing>
                             </child>
                           </object>

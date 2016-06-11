@@ -99,9 +99,11 @@ sub fill {
         }
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
+        
+        my $param_name = $param->{name};
 
         # Make the label
-        my $label_text = $param->{label_text} || $param->{name};
+        my $label_text = $param->{label_text} // $param_name;
         chomp $label_text;
         my $label = Gtk2::Label->new ($label_text);
         $label->set_line_wrap(30);
@@ -120,7 +122,7 @@ sub fill {
             $widget = Gtk2::HBox->new;
         }
 
-        $label_widget_pairs{$label_text} = [$label, $widget];
+        $label_widget_pairs{$param_name} = [$label, $widget];
 
         my $rows = $table->get('n-rows');
 
@@ -156,7 +158,6 @@ sub fill {
             $table->set('n-rows' => $rows);
             $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
             $table->attach($widget, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
-            $label_widget_pairs{$label_text} = [$label, $widget];
         }
 
         # Add a tooltip

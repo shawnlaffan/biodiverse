@@ -340,6 +340,8 @@ sub on_function_changed {
     my $widget_hash = ($self->{widget_hash} //= {});
     my $params_hash = ($self->{params_hash} //= {});
     my $metadata_cache = $self->get_metadata_cache;
+    my $params_table = $self->get_parameters_table;
+    my $label_widget_pairs_hash = $params_table->get_label_widget_pairs_hash;
 
     # Get the Parameters metadata
     my $func = $self->get_selected_function;
@@ -365,18 +367,27 @@ sub on_function_changed {
     my %func_p_hash = map {$_->get_name => $_} @$params;
 
     P_NAME:
-    foreach my $p_name (keys %$widget_hash) {
+    foreach my $p_name (keys %$label_widget_pairs_hash) {
+        no autovivification;
 
         my $parameter = $params_hash->{$p_name};
+        my $show_hide = 'show';
+        my $lw = $label_widget_pairs_hash->{$p_name};
+        my ($label, $widget) = @$lw;
 
         if (exists $func_p_hash{$p_name}) {
             #  desensitise by default, but mutable params can always be changed
             my $sens = $parameter->get_mutable // $sensitise;
             $parameter->set_sensitive ($sens);  #  needed now?
-            $widget_hash->{$p_name}->set_sensitive($sens);
+            $widget->set_sensitive($sens);
         }
         else {
-            $widget_hash->{$p_name}->set_sensitive(0);
+            $widget->set_sensitive(0);
+            $show_hide = 'hide';
+        }
+        foreach my $w ($label, $widget) {
+            next if !$w;
+            $w->$show_hide;
         }
     }
 

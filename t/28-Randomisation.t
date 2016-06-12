@@ -212,6 +212,7 @@ sub test_rand_spatially_structured {
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
         function   => 'rand_spatially_structured',
+        spatial_allocation_order => 'random',
         iterations => 1,  #  reset to 3 later
         seed       => $prng_seed,
         richness_addition   => 30,  #  make sure we can put our three labels anywhere

@@ -1435,8 +1435,8 @@ sub rand_structured {
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
-    my $spatial_allocation_order   = $args{spatial_allocation_order} || 'random';
-    my $label_alloc_backtracking = $args{label_allocation_backtracking} || 'from_end';
+    my $spatial_allocation_order = $args{spatial_allocation_order} // '';
+    my $label_alloc_backtracking = $args{label_allocation_backtracking} // '';
     #  currently only for debugging as basedata merging does not support outputs
     my $track_label_allocation_order = $args{track_label_allocation_order};
 
@@ -1884,9 +1884,10 @@ sub get_sp_alloc_nbr_list {
     my %args = @_;
 
     my $target_element = $args{target_element};
-    my $sp_alloc_nbr_list_cache = $args{cache};
-    my $spatial_allocation_order  = $args{spatial_allocation_order};
-    my $sp_for_label_allocation = $args{sp_for_label_allocation};
+    my $sp_alloc_nbr_list_cache  = $args{cache};
+    my $spatial_allocation_order = $args{spatial_allocation_order};
+    my $sp_for_label_allocation  = $args{sp_for_label_allocation}
+      // croak "sp_for_label_allocation is undefined\n";
 
     #  we need a copy
     #  should cache and clone these to avoid re-sorting the same data

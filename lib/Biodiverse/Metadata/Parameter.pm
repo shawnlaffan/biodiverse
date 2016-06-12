@@ -49,7 +49,7 @@ __PACKAGE__->_make_access_methods (\%methods_and_defaults);
 
 
 #  choice type returns an index, not the actual value
-sub get_default_value {
+sub get_default_param_value {
     my $self = shift;
 
     my $val = $self->get_default;

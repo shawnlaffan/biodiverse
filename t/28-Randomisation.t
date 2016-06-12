@@ -1055,7 +1055,7 @@ sub test_default_args_assigned {
             foreach my $p (@$parameters) {
                 my $p_name = $p->get_name;
                 ok exists $args_hash->{$p_name}, "$p_name exists";
-                my $default = $p->get_default_value;
+                my $default = $p->get_default_param_value;
                 is_deeply $args_hash->{$p_name}, $default, "$p_name was set to default value";
             }
         }

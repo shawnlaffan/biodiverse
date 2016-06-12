@@ -345,7 +345,7 @@ sub set_default_args {
     foreach my $p (@$params) {
         my $p_name = $p->get_name;
         if (!exists $args_hash->{$p_name}) {
-            my $default = $p->get_default_value;
+            my $default = $p->get_default_param_value;
             $args_hash->{$p_name} = $default;
         }
     }
@@ -1759,15 +1759,15 @@ END_PROGRESS_TEXT
                           } @$list_ref;
                         next NBR_LIST_REF if !scalar @sublist;
                         $valid_nbr_count += scalar @sublist;
-                        my $sublist_ref = \@sublist;
+                        #my $sublist_ref = \@sublist;
                         if ($spatial_allocation_order =~ /^random/) {
-                            $rand->shuffle ($sublist_ref);
+                            $rand->shuffle (\@sublist);
                         }
                         if ($label_alloc_backtracking eq 'from_start') {
-                            push @to_groups, @$sublist_ref;          
+                            push @to_groups, @sublist;          
                         }
                         else {
-                            unshift @to_groups, @$sublist_ref;
+                            unshift @to_groups, @sublist;
                         }
                     }
                     #  We found no valid nbrs so we need to backtrack.
@@ -1777,6 +1777,8 @@ END_PROGRESS_TEXT
                     if (    $spatial_allocation_order eq 'diffusion'
                         || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
                         #  uniq ensures it is equal probability for each group
+                        #  needs to be faster, but we need to retain the order
+                        #  for the random walk
                         @to_groups = uniq @to_groups;
                         my $k = int $rand->rand(scalar @to_groups);
                         my $target = $to_groups[$k];

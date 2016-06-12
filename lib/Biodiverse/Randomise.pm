@@ -322,6 +322,37 @@ sub check_rand_function_is_valid {
     return 1;
 }
 
+sub get_analysis_args {
+    my $self = shift;
+    return $self->get_param('ARGS');
+}
+
+sub set_analysis_args {
+    my ($self, $args) = @_;
+    $self->set_param (ARGS => $args);
+}
+
+#  set any defaults if the user has not specified them as arg hash keys
+sub set_default_args {
+    my ($self, %args) = @_;
+
+    my $function  = $args{function} || $self->get_param('FUNCTION');
+    my $args_hash = $args{args_hash} // {};
+    
+    my $metadata = $self->get_metadata(sub => $function);
+    
+    my $params = $metadata->get_parameters;
+    foreach my $p (@$params) {
+        my $p_name = $p->get_name;
+        if (!exists $args_hash->{$p_name}) {
+            my $default = $p->get_default_value;
+            $args_hash->{$p_name} = $default;
+        }
+    }
+
+    return $args_hash;
+}
+
 #####################################################################
 #
 #  run the randomisation analysis for a set number of iterations,
@@ -360,7 +391,7 @@ sub run_randomisation {
 
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
-    if (my $ref = $self->get_param ('ARGS')) {
+    if (my $ref = $self->get_analysis_args) {
         my $metadata = $self->get_metadata (sub => $function);
         my $params = $metadata->get_parameters;
         my %mutables;
@@ -372,7 +403,10 @@ sub run_randomisation {
         %args = %$ref;
         @args{keys %mutables} = values %mutables;
     }
-    $self->set_param (ARGS => \%args);
+    else {
+        $self->set_default_args (function => $function, args_hash => \%args);
+    }
+    $self->set_analysis_args (\%args);
 
     my $rand_object = $self->initialise_rand (%args);
 

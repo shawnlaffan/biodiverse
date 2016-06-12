@@ -841,6 +841,8 @@ sub check_randomisation_results_differ {
     
 }
 
+
+#  obsolete now?
 #  need to implement this for randomisations
 sub check_order_is_same_given_same_prng {
     my %args = @_;
@@ -935,6 +937,20 @@ sub test_same_results_given_same_prng_seed {
 
     check_same_results_given_same_prng_seed (
         bd => $bd,
+        function => 'rand_random_walk',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        prefix => 'rand_random_walk',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_diffusion',
+        spatial_conditions_for_label_allocation => [$r_spatially_structured_cond],
+        prefix => 'rand_diffusion',
+    );
+
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
         function => 'rand_nochange',
     );
 
@@ -1015,6 +1031,35 @@ sub check_same_results_given_same_prng_seed {
     return;
 }
 
+#  check that default args are assigned using the function metadata
+sub test_default_args_assigned {
+    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [1,1], NAME => 'test_default_args_assigned');
+    $bd->add_element (group => '0.5:0.5', label => 'fnort');
+    
+    my $sp = $bd->add_spatial_output (name => 'sp_placeholder');
+    $sp->run_analysis (calculations => ['calc_richness'], spatial_conditions => ['sp_self_only()']);
+
+    #  no need to do all of them
+    foreach my $function (qw /rand_diffusion rand_nochange rand_csr_by_group/) {
+
+        my $rand = $bd->add_randomisation_output (name => "$function check defaults assigned");
+        $rand->run_analysis (function => $function, iterations => 1);
+
+        my $args_hash = $rand->get_param('ARGS');
+
+        my $metadata   = $rand->get_metadata(sub => $function);
+        my $parameters = $metadata->get_parameters;
+
+        subtest "Parameters for $function" => sub {
+            foreach my $p (@$parameters) {
+                my $p_name = $p->get_name;
+                ok exists $args_hash->{$p_name}, "$p_name exists";
+                my $default = $p->get_default_value;
+                is_deeply $args_hash->{$p_name}, $default, "$p_name was set to default value";
+            }
+        }
+    }
+}
 
 
 sub test_rand_calc_per_node_uses_orig_bd {

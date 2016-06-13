@@ -32,7 +32,11 @@ my %conditions = (
         #'$d[0] <= ##4 && $d[0] >= -##4 && $D <= ##4' => 49,  #  exercise the spatial index offset search
     },
     square => {
-        'sp_square (size => ##3)' => 9,
+        'sp_square (size => ##1)'    => 1,
+        'sp_square_cell (size => 1)' => 1,
+        'sp_square (size => ##2)'    => 9,
+        'sp_square_cell (size => 2)' => 9,
+        'sp_square (size => ##3)'    => 9,
         'sp_square_cell (size => 3)' => 9,
     },
     selectors => {

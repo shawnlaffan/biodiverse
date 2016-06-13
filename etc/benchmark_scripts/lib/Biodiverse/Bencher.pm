@@ -130,12 +130,7 @@ void add_hash_keys_lastif(SV* dest, SV* from) {
         // printf ("Found key %s\n", SvPV(*sv_key, PL_na));
         break;
     }
-    else {
-        // hv_store_ent(hash_dest, *sv_key, newSV(0), 0);
-        //  possible mem leakage?
-        hv_store_ent(hash_dest, *sv_key, SvREFCNT_inc(sv_fill_val), 0);
-        // hv_store_ent(hash_dest, *sv_key, sv_fill_val, 0);
-    }
+    hv_store_ent(hash_dest, *sv_key, SvREFCNT_inc(sv_fill_val), 0);
   }
   SvREFCNT_dec (sv_fill_val);  // avoid mem leak?
   return;

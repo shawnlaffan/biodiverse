@@ -672,11 +672,12 @@ sub get_distances {
             . "\n$locale_warning"
             if !looks_like_number($coord2);
 
-        $d[$i] =
+        my $d_val = 
             eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
 
-        $D[$i] = abs $d[$i];
-        $sum_D_sqr += $d[$i]**2;
+        $d[$i] = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $D[$i] = 0 + $self->set_precision_aa (abs $d_val, '%.10f');
+        $sum_D_sqr += $d_val**2;
 
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
@@ -686,9 +687,10 @@ sub get_distances {
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
                 if $cellsize[$i] <= 0;
 
-            $c[$i] = eval { $d[$i] / $cellsize[$i] };
-            $C[$i] = eval { abs $c[$i] };
-            $sum_C_sqr += eval { $c[$i]**2 } || 0;
+            my $c_val = eval { $d_val / $cellsize[$i] };
+            $c[$i] = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $C[$i] = 0 + $self->set_precision_aa (eval { abs $c_val }, '%.10f');
+            $sum_C_sqr += eval { $c_val**2 } || 0;
         }
     }
 
@@ -702,8 +704,8 @@ sub get_distances {
         : undef;
 
     my %hash = (
-        d_list => \@d,
-        D_list => \@D,
+        d_list => [map {0 + $self->set_precision_aa ($_)} @d],
+        D_list => [map {0 + $self->set_precision_aa ($_)} @D],
         D      => $D,
         Dsqr   => $sum_D_sqr,
         C      => $C,
@@ -1241,8 +1243,12 @@ sub sp_square {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{D_list} }; 
+    foreach my $dist (@{ $h->{dists}{D_list} }) {
+        warn "$dist, $size"
+          if    $args{size} == 0.2
+             && (abs ($size - $dist) < 0.00001)
+             && (abs ($size - $dist) > 0);
         return 0 if $dist > $size;
     }
 
@@ -1253,6 +1259,16 @@ sub get_metadata_sp_square_cell {
     my $self = shift;
     my %args = @_;
 
+    my $index_max_dist;
+    my $bd = eval {$self->get_basedata_ref};
+    if (defined $args{size} && $bd) {
+        my $cellsizes = $bd->get_cell_sizes;
+        my @u = uniq @$cellsizes;
+        if (@u == 1 && looks_like_number $u[0]) {
+            $index_max_dist = $args{size} * $u[0] / 2;
+        }
+    }
+
     my $description =
       'A square assessed against all dimensions '
       . "(more properly called a hypercube).\n"
@@ -1261,6 +1277,7 @@ sub get_metadata_sp_square_cell {
     my %metadata = (
         description => $description,
         use_cell_distance => 1,    #  need all the distances
+        index_max_dist    => $index_max_dist,
         required_args => ['size'],
         result_type   => 'square',
         example       => 'sp_square_cell (size => 3)',
@@ -1277,8 +1294,8 @@ sub sp_square_cell {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{C_list} };
+    foreach my $dist (@{ $h->{dists}{C_list} }) {
         return 0 if $dist > $size;
     }
 

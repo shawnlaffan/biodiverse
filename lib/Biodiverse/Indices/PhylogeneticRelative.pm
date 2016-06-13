@@ -1,9 +1,12 @@
 package Biodiverse::Indices::PhylogeneticRelative;
-
+use 5.016;
 use strict;
 use warnings;
 use List::Util qw /sum/;
 use Data::Alias qw /alias/;
+use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+
+#use Biodiverse::Utils qw /get_rpe_null/;
 
 use Carp;
 
@@ -324,20 +327,28 @@ sub calc_phylo_rpe2 {
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
 
+    my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
+    my $node_ranges_global = $args{PE_RANGELIST};
+    my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
+    
     #  Get the PE score assuming equal branch lengths
-    #  This is simply the sum of the local ranges for each node.  
-    alias my %node_ranges_local  = %{$args{PE_LOCAL_RANGELIST}};
-    alias my %node_ranges_global = %{$args{PE_RANGELIST}};
-    alias my %null_node_len_hash = %{$args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH}};
     my $pe_null;
 
     my %results;
     {
-        foreach my $null_node (keys %node_ranges_global) {
-            #no autovivification;
-            $pe_null += $null_node_len_hash{$null_node}
-                      * $node_ranges_local{$null_node}
-                      / $node_ranges_global{$null_node};
+        if (HAVE_BD_UTILS) {
+            $pe_null = Biodiverse::Utils::get_rpe_null (
+                $null_node_len_hash,
+                $node_ranges_local,
+                $node_ranges_global,
+            );
+        }
+        else {
+            foreach my $null_node (keys %$node_ranges_global) {
+                $pe_null += $null_node_len_hash->{$null_node}
+                          * $node_ranges_local->{$null_node}
+                          / $node_ranges_global->{$null_node};
+            }
         }
 
         no warnings qw /numeric uninitialized/;

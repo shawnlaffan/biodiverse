@@ -1,7 +1,7 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
 package Biodiverse::Indices::Phylogenetic;
-use 5.010;
+use 5.016;
 use strict;
 use warnings;
 
@@ -15,6 +15,11 @@ use Scalar::Util qw /blessed/;
 use Data::Alias qw /alias/;
 
 our $VERSION = '1.99_002';
+
+use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+
+use constant HAVE_PANDA_LIB
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -393,37 +398,44 @@ sub get_path_lengths_to_root_node {
     #  massive trees where we only need a subset.
     my $path_cache
       = $self->get_cached_value_dor_set_default_aa ('PATH_LENGTH_CACHE_PER_TERMINAL', {});
-    alias my %path_cache_hash = %$path_cache;
 
     # get a hash of node refs
-    alias my %all_nodes = $tree_ref->get_node_hash;
+    my $all_nodes = $tree_ref->get_node_hash;
 
     #  now loop through the labels and get the path to the root node
-    my %path;
-    foreach my $label (grep {exists $all_nodes{$_}} keys %$label_list) {
+    my $path_hash = {};
+    foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
-        my $current_node = $all_nodes{$label};
-        my $sub_path = $path_cache_hash{$current_node};
+        my $current_node = $all_nodes->{$label};
+        my $sub_path = $path_cache->{$current_node};
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_to_root_node (cache => $cache);
             my @p = map {$_->get_name} @$sub_path;
             $sub_path = \@p;
-            $path_cache_hash{$current_node} = $sub_path;
+            $path_cache->{$current_node} = $sub_path;
         }
 
-        #  This is a bottleneck for large data sets.
-        #  The last-if approach is faster than a straight slice,
-        #  but we should (might) be able to get even more speedup with XS code.  
-        if (!scalar keys %path) {
-            #  target for Panda::Lib merge_hash
-            @path{@$sub_path} = ();
+        #  This is a bottleneck for large data sets,
+        #  so use an XSUB if possible.
+        if (HAVE_BD_UTILS) {
+            Biodiverse::Utils::add_hash_keys_until_exists (
+                $path_hash,
+                $sub_path,
+            );
         }
         else {
-            foreach my $node_name (@$sub_path) {
-                last if exists $path{$node_name};
-                $path{$node_name} = undef;
+            #  The last-if approach is faster than a straight slice,
+            #  but we should (might) be able to get even more speedup with XS code.  
+            if (!scalar keys %$path_hash) {
+                @$path_hash{@$sub_path} = ();
+            }
+            else {
+                foreach my $node_name (@$sub_path) {
+                    last if exists $path_hash->{$node_name};
+                    $path_hash->{$node_name} = undef;
+                }
             }
         }
     }
@@ -431,16 +443,20 @@ sub get_path_lengths_to_root_node {
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
     my $len_hash = $tree_ref->get_node_length_hash;
-    @path{keys %path} = @$len_hash{keys %path};
-    #@path{@path_array} = @$len_hash{@path_array};
+    if (HAVE_BD_UTILS) {
+        Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
+    }
+    else {
+        @$path_hash{keys %$path_hash} = @$len_hash{keys %$path_hash};
+    }
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
         #my @el_list = @$el_list;  #  can only have one item
-        $cache_h->{$el_list->[0]} = \%path;
+        $cache_h->{$el_list->[0]} = $path_hash;
     }
 
-    return wantarray ? %path : \%path;
+    return wantarray ? %$path_hash : $path_hash;
 }
 
 
@@ -1289,8 +1305,12 @@ sub _calc_pe {
         else {
             # ranges are invariant, so can be crashed together
             my $hash_ref = $results_this_gp->{PE_RANGELIST};
-            #  target for Panda::Lib merge_hash
-            @ranges{keys %$hash_ref} = values %$hash_ref;
+            if (HAVE_PANDA_LIB) {
+                Panda::Lib::hash_merge (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
+            }
+            else {
+                @ranges{keys %$hash_ref} = values %$hash_ref;
+            }
 
             # weights need to be summed
             # alias might be a nano-optimisation here...
@@ -1603,8 +1623,12 @@ sub get_node_range {
 
     if (  !$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
-        #  target for Panda::Lib merge_hash
-        @groups{keys %$gp_list} = undef;
+        if (HAVE_PANDA_LIB) {
+            Panda::Lib::hash_merge (\%groups, $gp_list, Panda::Lib::MERGE_LAZY());
+        }
+        else {
+            @groups{keys %$gp_list} = undef;
+        }
     }
     if (scalar @$children && $max_group_count != keys %groups) {
       CHILD:
@@ -1614,12 +1638,20 @@ sub get_node_range {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                #  target for Panda::Lib merge_hash
-                @groups{@$c} = undef;
+                if (HAVE_PANDA_LIB) {
+                    Panda::Lib::hash_merge (\%groups, $c, Panda::Lib::MERGE_LAZY());
+                }
+                else {
+                    @groups{@$c} = undef;
+                }
             }
             else {
-                #  target for Panda::Lib merge_hash
-                @groups{keys %$cached_list} = undef;
+                if (HAVE_PANDA_LIB) {
+                    Panda::Lib::hash_merge (\%groups, $cached_list, Panda::Lib::MERGE_LAZY());
+                }
+                else {    
+                    @groups{keys %$cached_list} = undef;
+                }
             }
             last CHILD if $max_group_count == keys %groups;
         }
@@ -2362,27 +2394,48 @@ sub _calc_phylo_abc_lists {
         el_list  => [keys %{$args{element_list2}}],
     );
 
-    #  Panda hash merge candidate
-    my %A = (%$nodes_in_path1, %$nodes_in_path2); 
-
-    # create a new hash %B for nodes in label hash 1 but not 2
-    # then get length of B
-    my %B = %A;
-    delete @B{keys %$nodes_in_path2};
-
-    # create a new hash %C for nodes in label hash 2 but not 1
-    # then get length of C
-    my %C = %A;
-    delete @C{keys %$nodes_in_path1};
-
-    # get length of %A = branches not in %B or %C
-    delete @A{keys %B, keys %C};
-
-    my %results = (
-        PHYLO_A_LIST => \%A,
-        PHYLO_B_LIST => \%B,
-        PHYLO_C_LIST => \%C,
-    );
+    my %results;
+    #  one day we can clean this all up
+    if (HAVE_BD_UTILS) {
+        my $res = Biodiverse::Utils::get_hash_shared_and_unique (
+            $nodes_in_path1,
+            $nodes_in_path2,
+        );
+        %results = (
+            PHYLO_A_LIST => $res->{a},
+            PHYLO_B_LIST => $res->{b},
+            PHYLO_C_LIST => $res->{c},
+        );
+    }
+    else {
+        my %A;
+        if (HAVE_PANDA_LIB) {
+            Panda::Lib::hash_merge (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
+            Panda::Lib::hash_merge (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
+        }
+        else {
+            %A = (%$nodes_in_path1, %$nodes_in_path2);
+        }
+    
+        # create a new hash %B for nodes in label hash 1 but not 2
+        # then get length of B
+        my %B = %A;
+        delete @B{keys %$nodes_in_path2};
+    
+        # create a new hash %C for nodes in label hash 2 but not 1
+        # then get length of C
+        my %C = %A;
+        delete @C{keys %$nodes_in_path1};
+    
+        # get length of %A = branches not in %B or %C
+        delete @A{keys %B, keys %C};
+    
+         %results = (
+            PHYLO_A_LIST => \%A,
+            PHYLO_B_LIST => \%B,
+            PHYLO_C_LIST => \%C,
+        );
+    }
 
     return wantarray ? %results : \%results;
 }

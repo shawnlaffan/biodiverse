@@ -11,6 +11,9 @@ use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
+use constant HAVE_PANDA_LIB
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
+
 
 our $VERSION = '1.99_002';
 
@@ -316,8 +319,12 @@ sub _calc_phylo_mpd_mntd {
                         ancestral_node => $last_ancestor,
                         %args,
                     );
-                    #  Panda::Lib merge_hash target
-                    @path{keys %$sub_path} = values %$sub_path;
+                    if (HAVE_PANDA_LIB) {
+                        Panda::Lib::hash_merge (\%path, $sub_path, Panda::Lib::MERGE_LAZY());
+                    }
+                    else {
+                        @path{keys %$sub_path} = values %$sub_path;
+                    }
                 }
                 delete $path{$last_ancestor->get_name()};
                 $path_length = sum values %path;

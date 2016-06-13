@@ -86,7 +86,7 @@ for (0..2) {
         {
             #slice1 => sub {slice (\%path_hash_subset)},
             #slice2 => sub {slice_mk2 (\%path_hash_subset)},
-            #forled => sub {for_last (\%path_array_subset)},
+            forled => sub {for_last (\%path_array_subset)},
             inline => sub {inline_assign (\%path_array_subset)},
             inline_s => sub {inline_assign_with_slice (\%path_array_subset)},
         }
@@ -153,15 +153,16 @@ sub for_last {
 sub inline_assign {
     my $paths = shift;
 
-    my %combined;
+    my $combo = {};
 
     foreach my $path (values %$paths) {
-        add_hash_keys_lastif (\%combined, $path);
+        #print $path;
+        add_hash_keys_lastif ($combo, $path);
     }
 
-    copy_values_from (\%combined, \%len_hash);
+    copy_values_from ($combo, \%len_hash);
 
-    return \%combined;
+    return $combo;
 }
 
 sub inline_assign_with_slice {

@@ -1241,8 +1241,8 @@ sub sp_square {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{D_list} }; 
+    foreach my $dist (@{ $h->{dists}{D_list} }) {
         return 0 if $dist > $size;
     }
 
@@ -1277,8 +1277,8 @@ sub sp_square_cell {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{C_list} };
+    foreach my $dist (@{ $h->{dists}{C_list} }) {
         return 0 if $dist > $size;
     }
 

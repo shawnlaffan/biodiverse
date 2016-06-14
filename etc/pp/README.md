@@ -8,23 +8,25 @@ This patch means DLLs will be extracted with their original names instead of CRC
 and is needed for GTK modules to work properly.  This is not a perfect approach,
 hence the next step. 
 
-The following lines also need to inserted before the open is attempted
-(should make a patch file for this).
+The following lines also need to inserted before the open is attempted.
 This avoids duplicate DLL file names for non-Gtk modules, as otherwise those
 with the same ending would all refer to the same file,
 e.g. List::BinarySearch::XS, YAML::XS and URI::Escape::XS would
 all try to use XS.dll.
 
-near line 153, before the line:
-```perl
-open $fh, '>', $filename or die $!;
-```
+Insert the code between START HACK and END HACK near line 153
+ (should make a patch file for this).
 
 ```perl
-### DIRTY HACK 
+        ($filename) = $filename =~ /^([\x20-\xff]+)$/;
+
+### START HACK 
 if (-e $filename && not $filename =~ /Glib|Gtk2|Gnome|Pango|Cairo/) {
     $filename .= $member->crc32String; #  kludge workaround
 }
+### END HACK
+
+        open $fh, '>', $filename or die $!;
 ```
 
 ## Icon ##

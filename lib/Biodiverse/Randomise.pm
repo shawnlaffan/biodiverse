@@ -1839,8 +1839,9 @@ END_PROGRESS_TEXT
         receiver => $new_bd
     );
 
-    my $time_taken = sprintf "%d", tv_interval ($start_time);
-    say "[RANDOMISE] Time taken for rand_structured: $time_taken seconds";
+    my $time_taken = sprintf "%.3f", tv_interval ($start_time);
+    my $function_name = $self->get_param('FUNCTION') // 'rand_structured';
+    say "[RANDOMISE] Time taken for $function_name: $time_taken seconds";
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;

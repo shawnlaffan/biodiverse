@@ -630,27 +630,27 @@ sub calc_pe_central_lists {
     my $self = shift;
     my %args = @_;
 
-    my %wt_list = %{$args{PE_WTLIST}};    #  need a copy since we will delete from it
+    my $base_wt_list = $args{PE_WTLIST};
     my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
     my $a_list  =   $args{PHYLO_A_LIST};
     my $b_list  =   $args{PHYLO_B_LIST};
-    my (%local_range_list_c, %global_range_list_c);
+    my (%wt_list, %local_range_list_c, %global_range_list_c);
 
     my $local_range_list  = $args{PE_LOCAL_RANGELIST};
     my $global_range_list = $args{PE_RANGELIST};
 
     #  avoid copies and slices if there are no nodes found only in nbr set 2
     if (scalar keys %$c_list) {
-        #  remove the PE component found only in nbr set 2
-        #  (assuming c_list is shorter than a+b, so this will be the faster approach)
-        delete @wt_list{keys %$c_list};
-
         #  Keep any node found in nbr set 1
+        @wt_list{keys %$b_list} = @{$base_wt_list}{keys %$b_list};
+        @wt_list{keys %$a_list} = @{$base_wt_list}{keys %$a_list};
+
         my @keepers = keys %wt_list;
         @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
         @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
     }
     else {
+        %wt_list = %$base_wt_list;
         %local_range_list_c  = %$local_range_list;
         %global_range_list_c = %$global_range_list;
     }

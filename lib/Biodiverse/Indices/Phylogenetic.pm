@@ -462,22 +462,37 @@ sub get_path_lengths_to_root_node {
 
 sub get_metadata_calc_pe {
 
+    my $formula = [
+        'PE = \sum_{\lambda \in \Lambda } L_{\lambda}\frac{r_\lambda}{R_\lambda}',
+        ' where ',
+        '\Lambda', ' is the set of branches found across neighbour sets 1 and 2, ',
+        'L_\lambda', ' is the length of branch ',       '\lambda', ', ',
+        'r_\lambda', ' is the local range of branch ',  '\lambda',
+            '(the number of groups in neighbour sets 1 and 2 containing it), and ',
+        'R_\lambda', ' is the global range of branch ', '\lambda',
+            ' (the number of groups across the entire data set containing it).',
+    ];
+    
     my %metadata = (
-        description     => 'Phylogenetic endemism (PE).'
-                            . 'Uses labels in both neighbourhoods and '
+        description     => 'Phylogenetic endemism (PE). '
+                            . 'Uses labels across both neighbourhoods and '
                             . 'trims the tree to exclude labels not in the '
                             . 'BaseData object.',
         name            => 'Phylogenetic Endemism',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x'
+                         . '; Laity et al. (2015) http://dx.doi.org/10.1016/j.scitotenv.2015.04.113'
+                         . '; Laffan et al. (2016) http://dx.doi.org/10.1111/2041-210X.12513',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,  #  how many lists it must have
+        formula         => $formula,
         indices         => {
             PE_WE           => {
                 description => 'Phylogenetic endemism'
             },
             PE_WE_P         => {
-                description => 'Phylogenetic weighted endemism as a proportion of the total tree length'
+                description => 'Phylogenetic weighted endemism as a proportion of the total tree length',
+                formula     => ['PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree'],
             },
         },
     );
@@ -538,13 +553,24 @@ sub calc_pe_lists {
 sub get_metadata_calc_pe_central {
 
     my $desc = <<'END_PEC_DESC'
-Phylogenetic endemism (PE).
-Uses labels from neighbour set one but local ranges from across
-both neighbour sets.
-Trims the tree to exclude labels not in the BaseData object.
+A variant of Phylogenetic endemism (PE) that uses labels
+from neighbour set 1 but local ranges from across
+both neighbour sets 1 and 2.  Identical to PE if only
+one neighbour set is specified.
 END_PEC_DESC
   ;
 
+    my $formula = [
+        'PEC = \sum_{\lambda \in \Lambda } L_{\lambda}\frac{r_\lambda}{R_\lambda}',
+        ' where ',
+        '\Lambda', ' is the set of branches found across neighbour set 1 only, ',
+        'L_\lambda', ' is the length of branch ',       '\lambda', ', ',
+        'r_\lambda', ' is the local range of branch ',  '\lambda',
+            '(the number of groups in neighbour sets 1 and 2 containing it), and ',
+        'R_\lambda', ' is the global range of branch ', '\lambda',
+            ' (the number of groups across the entire data set containing it).',
+    ];
+    
     my %metadata = (
         description     => $desc,
         name            => 'Phylogenetic Endemism central',
@@ -553,6 +579,7 @@ END_PEC_DESC
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
+        formula         => $formula,
         indices         => {
             PEC_WE           => {
                 description => 'Phylogenetic endemism, central variant'
@@ -1083,8 +1110,26 @@ sub _calc_pd_pe_clade_loss_ancestral {
 
 sub get_metadata_calc_pe_single {
 
+    my $formula = [
+        'PE\_SINGLE = \sum_{\lambda \in \Lambda } L_{\lambda}\frac{1}{R_\lambda}',
+        ' where ',
+        '\Lambda', ' is the set of branches found across neighbour sets 1 and 2, ',
+        'L_\lambda', ' is the length of branch ',       '\lambda', ', ',
+        'R_\lambda', ' is the global range of branch ', '\lambda',
+            ' (the number of groups across the entire data set containing it).',
+    ];
+    
+    my $description = <<'EOD'
+PE scores, but not weighted by local ranges.
+This is the strict interpretation of the formula given in
+Rosauer et al. (2009), although the approach has always been
+implemented as the fraction of each branch's geographic range
+that is found in the sample window (see formula for PE_WE).
+EOD
+  ;
+
     my %metadata = (
-        description     => 'PE scores, but not weighted by local ranges.',
+        description     => $description,
         name            => 'Phylogenetic Endemism single',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',

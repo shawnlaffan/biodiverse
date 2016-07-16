@@ -183,6 +183,8 @@ sub import_phylip {
     #  lazy split - does not allow for quoted semicolons
     my @newicks = split /;/, $data;
 
+    my $progress = Biodiverse::Progress->new;
+    my $target_count = scalar @newicks;
     my $i = 0;
 
     foreach my $nwk (@newicks) {
@@ -190,6 +192,9 @@ sub import_phylip {
 
         my $tree_name = 'anonymous_' . $i;
         my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+
+        $i++;
+        $progress->update("Tree $i of $target_count\n$tree_name", $i / $target_count);
 
         my $count = 0;
         my $node_count = \$count;
@@ -209,8 +214,6 @@ sub import_phylip {
         }
 
         $self->add_tree (tree => $tree);
-
-        $i ++;
     }
     
     
@@ -320,8 +323,13 @@ sub import_nexus {
     }
 
     $self->set_param (TRANSLATE_HASH => \%translate);  #  store for future use
+    
+    my $progress = Biodiverse::Progress->new;
+    my $target_count = scalar @newicks;
+    my $i = 0;
 
     foreach my $nwk (@newicks) {
+            $i++;
 
             #  remove trailing semi-colon
             $nwk =~ s/;$//;
@@ -350,6 +358,7 @@ sub import_nexus {
             $tree_name =~ s/\s+$//;  #  trim trailing whitespace
 
             print "[ReadNexus] Processing tree $tree_name\n";
+            $progress->update ("Tree $i of $target_count\n$tree_name", $i / $target_count);
 
             my $tree = Biodiverse::Tree->new (NAME => $tree_name);
             #$tree->set_param ()

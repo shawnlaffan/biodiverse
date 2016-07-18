@@ -2942,8 +2942,8 @@ sub report_error {
     if (! defined $title) {
         $title = 'PROCESSING ERRORS';
     }
-    use Data::Dumper;
-    print Dumper($error);
+    #use Data::Dumper;
+    #print Dumper($error);
     my $e = $error;  # keeps a copy of the object
 
     #  messy - should check for $error->isa('Exception::Class')

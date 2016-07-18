@@ -1335,12 +1335,14 @@ sub highlight_node {
 
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
-    my $line = $self->{node_lines}->{$node_name};
-    my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
-    $line->set(fill_color_gdk => $colour_ref);
-    #$line->set(width_pixels => HIGHLIGHT_WIDTH);
-    $line->raise_to_top;
-    push @{$self->{highlighted_lines}}, $line;
+    #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
+    if (my $line = $self->{node_lines}->{$node_name}) {  
+        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref);
+        #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+        $line->raise_to_top;
+        push @{$self->{highlighted_lines}}, $line;
+    }
 
     return;
 }

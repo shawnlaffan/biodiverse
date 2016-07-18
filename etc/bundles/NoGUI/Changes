@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.10002 2016-07-18
+    - Added Getopt::Long::Descriptive
+
 1.10001 2015-10-23
     - Add Data::Alias
 

@@ -63,6 +63,7 @@ WriteMakefile(
         "Spreadsheet::ParseXLSX" => "0",
         "Spreadsheet::XLSX" => "0",
         "Data::Alias" => "0",
+        "Getopt::Long::Descriptive" => "0",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

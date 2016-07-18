@@ -12,6 +12,7 @@ use warnings;
 use Data::Dumper;
 use Carp;
 use Scalar::Util qw /blessed/;
+use List::Util qw /min max/;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -725,15 +726,27 @@ sub load_shapefile {
     # Get shapes within visible region - allow for cell extents
     my @shapes;
     @shapes = $shapefile->shapes_in_area (@rect);
+    #  issue #257
     #  try to get all, but canvas ignores those outside the area...
     #@shapes = $shapefile->shapes_in_area ($shapefile->bounds);
     
-    my $num = @shapes;
-    say "[Grid] Shapes within plot area: $num";
+    my $shapes_in_plot_area = @shapes;
+    say "[Grid] Shapes within plot area: $shapes_in_plot_area";
+    
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    if (!$shapes_in_plot_area) {
+        $gui->report_error (
+            'No shapes overlap the plot area',
+            'No shapes to plot',
+        );
+        return;
+    }
 
     my $unit_multiplier_x = CELL_SIZE_X / $cell_x;
     my $unit_multiplier_y = $self->{cell_size_y} / $cell_y;
-    my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
+    #my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
+    
+    my @bnd_extrema = (1e20, 1e20, -1e20, -1e20);
 
     # Put it into a group so that it can be deleted more easily
     my $shapefile_group = Gnome2::Canvas::Item->new (
@@ -750,6 +763,13 @@ sub load_shapefile {
     foreach my $shapeid (@shapes) {
         my $shape = $shapefile->get_shp_record($shapeid);
 
+        #  track the bound extents so we can warn if they will be tiny
+        my @bnds = $shape->bounds;
+        $bnd_extrema[0] = min ($bnd_extrema[0], $bnds[0]);
+        $bnd_extrema[1] = min ($bnd_extrema[1], $bnds[1]);
+        $bnd_extrema[2] = max ($bnd_extrema[2], $bnds[2]);
+        $bnd_extrema[3] = max ($bnd_extrema[3], $bnds[3]);
+        
         # Make polygon from each "part"
         BY_PART:
         foreach my $part (1 .. $shape->num_parts) {
@@ -768,7 +788,9 @@ sub load_shapefile {
                 );
             }
 
-            #  get the end of the line
+            #  Get the end of the line.
+            #  Do we need this?  It will turn lines into polygons.
+            #  Could do if @plot_points == 1, since that is another effect.
             my $current_vertex = $segments[-1];
             push @plot_points, (
                 ($current_vertex->[1]->{X} - $min_x) * $unit_multiplier_x,
@@ -785,6 +807,38 @@ sub load_shapefile {
                 );
             }
         }
+    }
+
+    my $x_extent = $max_x - $min_x;
+    my $y_extent = $max_y - $min_y;
+    my $x_ratio = ($bnd_extrema[2] - $bnd_extrema[0]) / $x_extent;
+    my $y_ratio = ($bnd_extrema[3] - $bnd_extrema[1]) / $y_extent;
+    if ($x_ratio < 0.005 && $y_ratio < 0.005) {
+        my $bd_bnds  = "($min_x, $min_y), ($max_x, $max_y)";
+        my $shp_bnds = "($bnd_extrema[0], $bnd_extrema[1]), ($bnd_extrema[2], $bnd_extrema[3])";
+ 
+        my $error = <<"END_OF_ERROR"
+Warning: Shapes might not be visible.
+
+The extent of the $shapes_in_plot_area shapes overlapping the
+plot area is very small.  They might not be visible as a result.
+
+One possible cause is that the shapefile coordinate system does
+not match that of the BaseData, for example your BaseData
+is in a UTM coordinate system but the shapefile is in
+decimal degrees.  If this is the case then the shapefile
+can be reprojected using a GIS.
+
+Respective bounds are (minx, miny), (maxx, maxy):
+BaseData: $bd_bnds
+Shapefile: $shp_bnds
+END_OF_ERROR
+  ;
+
+        $gui->report_error (
+            $error,
+            'Small extent',
+        );
     }
 
     return;
@@ -1893,9 +1947,9 @@ sub reposition {
     return;
 }
 
-sub max {
-    return ($_[0] > $_[1]) ? $_[0] : $_[1];
-}
+#sub max {
+#    return ($_[0] > $_[1]) ? $_[0] : $_[1];
+#}
 
 sub on_scroll {
     my $self = shift;

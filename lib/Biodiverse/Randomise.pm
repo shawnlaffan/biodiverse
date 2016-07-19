@@ -1026,11 +1026,11 @@ sub get_random_walk_backtracking_metadata {
     my $self = shift;
 
     my $bk_text = <<'EOB'
-The random_walk model will go back to a previously
-assigned group when no neighbours can be assigned to. 
+The spatially structured models will go back to a previously
+assigned group when no neighbours of the current group can be assigned to. 
 "from_end" goes back in reverse order of assignment, 
-"from_start" goes back to the start of the sequence, while 
-"random" selects randomly from the previously assigned groups.
+"from_start" goes back to the start of the sequence and works
+forward, while "random" selects randomly from the previously assigned groups.
 EOB
   ;
 
@@ -1329,8 +1329,8 @@ sub get_metadata_rand_spatially_structured {
         default    => 0,
         type       => 'choice',
         choices    => [qw /diffusion random_walk random proximity/],
-        tooltip    => 'The order labels will be allocated within the neighbourhoods '
-                    . 'after it is first allocated to the seed group.',
+        tooltip    => 'The order label occurrencess will be allocated within the neighbourhoods '
+                    . 'after first being allocated to the seed group.',
         box_group  => 'Spatial allocations',
     }, $parameter_rand_metadata_class;
 
@@ -1951,6 +1951,8 @@ sub get_metadata_get_rand_structured_subset {
         default    => '', #' ' x 30,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
         tooltip    => 'Controls the spatial subsets used in the randomisation.  '
+                    . 'Each subset is randomised independently, with the results '
+                    . 'stitched back together before the analyses are run.'
                     . 'Subsets are forced to be non-overlapping, so conditions '
                     . 'such as sp_circle() will probably not work as desired.',
     }, $parameter_rand_metadata_class;

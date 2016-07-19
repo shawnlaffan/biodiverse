@@ -1031,6 +1031,7 @@ assigned group when no neighbours of the current group can be assigned to.
 "from_end" goes back in reverse order of assignment, 
 "from_start" goes back to the start of the sequence and works
 forward, while "random" selects randomly from the previously assigned groups.
+Has no effect on the proximity allocation model.
 EOB
   ;
 
@@ -1045,6 +1046,27 @@ EOB
     }, $parameter_rand_metadata_class;
 
     return $backtracking;
+}
+
+sub get_spatial_allocation_reseed_metadata {
+    
+    my $reseed = bless {
+        name       => 'spatial_allocation_reseed_prob',
+        label_text => "Reseed probability",
+        default    => 0,
+        type       => 'float',
+        min        => 0,
+        max        => 1,
+        increment  => 0.001,
+        digits     => 4,
+        tooltip    => 'Probability of restarting the allocation process from a new seed location. '
+                    . 'Evaluated after each label occurrence allocation, '
+                    . 'with values drawn from a uniform random distribution. '
+                    . 'Leave as 0 for it to have no effect.',
+        box_group  => 'Spatial allocations',        
+    }, $parameter_rand_metadata_class;
+
+    return $reseed;
 }
 
 sub get_metadata_rand_nochange {
@@ -1266,6 +1288,7 @@ sub get_metadata_rand_random_walk {
     my @parameters = $self->get_common_rand_structured_metadata;
     push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
     push @parameters, $self->get_random_walk_backtracking_metadata;
+    push @parameters, $self->get_spatial_allocation_reseed_metadata;
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1294,6 +1317,7 @@ sub get_metadata_rand_diffusion {
 
     my @parameters = $self->get_common_rand_structured_metadata;
     push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+    push @parameters, $self->get_spatial_allocation_reseed_metadata;
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1335,8 +1359,9 @@ sub get_metadata_rand_spatially_structured {
     }, $parameter_rand_metadata_class;
 
     my $backtracking = $self->get_random_walk_backtracking_metadata;
+    my $reseed       = $self->get_spatial_allocation_reseed_metadata;
 
-    push @parameters, ($spatial_allocation_order, $backtracking);
+    push @parameters, ($spatial_allocation_order, $backtracking, $reseed);
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1439,6 +1464,11 @@ sub rand_structured {
     my $label_alloc_backtracking = $args{label_allocation_backtracking} // '';
     #  currently only for debugging as basedata merging does not support outputs
     my $track_label_allocation_order = $args{track_label_allocation_order};
+
+    my $reseed_prob;
+    if ($sp_for_label_allocation) {
+        $reseed_prob = $args{spatial_allocation_reseed_prob} || 0;
+    }
 
     my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
     if (!$sp_alloc_nbr_list_cache) {
@@ -1626,7 +1656,7 @@ END_PROGRESS_TEXT
 
         #  needed for when spatial allocations fill a nbrhood
         #  and we need to start from new nbrhood
-        my $use_new_seed_group = 0;  
+        my $use_new_seed_group = 0;
 
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
@@ -1634,7 +1664,7 @@ END_PROGRESS_TEXT
         my %to_groups_hash;  #  used in the spatial allocations
 
       BY_GROUP:
-        while (scalar @$tmp_rand_order) {
+        while (scalar @$tmp_rand_order && scalar @target_groups) {
 
             #  Should we always assign to the seed group?
             #  What if the seed group is not part of the nbr set?
@@ -1643,6 +1673,9 @@ END_PROGRESS_TEXT
             #  For now we always assign to the seed group.
 
             if (!scalar @to_groups || $use_new_seed_group) {
+                @to_groups = ();  #  clear any existing
+                $use_new_seed_group = 0;  #  reset
+
                 #  select a group at random to assign to
                 my $j = int ($rand->rand (scalar @target_groups));
                 push @to_groups, $target_groups[$j];
@@ -1691,6 +1724,7 @@ END_PROGRESS_TEXT
             #  and we run out of groups to assign to
             last BY_GROUP if !scalar @to_groups;
 
+          TO_GROUP_ITERATION:
             while (defined (my $to_group = shift @to_groups)) {
 
                 last BY_GROUP if !scalar @$tmp_rand_order;
@@ -1742,6 +1776,13 @@ END_PROGRESS_TEXT
                     $last_filled = $to_group;
                 };
 
+                #  should we start from a new seed group?
+                if ($reseed_prob && $rand->rand < $reseed_prob) {
+                    $use_new_seed_group = 1;
+                    last TO_GROUP_ITERATION;
+                }
+
+                #  should we find more local neighbours? 
                 if ($using_random_propagation) {
                     #  unshift or push the neighbours of $to_group onto the targets
                     #  need to refactor this as there is duplication of code from above
@@ -1908,7 +1949,8 @@ sub get_sp_alloc_nbr_list {
     my $self = shift;
     my %args = @_;
 
-    my $target_element = $args{target_element};
+    my $target_element = $args{target_element}
+      // croak "target_element argument is undefined\n";
     my $sp_alloc_nbr_list_cache  = $args{cache};
     my $spatial_allocation_order = $args{spatial_allocation_order};
     my $sp_for_label_allocation  = $args{sp_for_label_allocation}

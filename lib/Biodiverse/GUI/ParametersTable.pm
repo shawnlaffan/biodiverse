@@ -370,8 +370,10 @@ sub generate_float {
     my $default = $param->get_default || 0;
     my $digits  = $param->get_digits  || 2;
     my $incr    = $param->get_increment || 0.1;
+    my $min     = $param->get_min // 0;
+    my $max     = $param->get_max // 10000000;
 
-    my $adj = Gtk2::Adjustment->new($default,0, 10000000, $incr, $incr * 10, 0);
+    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, $digits);
 
     my $extract = sub { return ($param->get_name, $spin->get_value); };

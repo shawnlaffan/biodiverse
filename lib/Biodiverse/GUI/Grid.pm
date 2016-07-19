@@ -788,9 +788,8 @@ sub load_shapefile {
                 );
             }
 
-            #  Get the end of the line.
-            #  Do we need this?  It will turn lines into polygons.
-            #  Could do if @plot_points == 1, since that is another effect.
+            #  Get the end of the line, otherwise we don't plot the last vertex.
+            #  (Segments are stored as start-end pairs of vertices).
             my $current_vertex = $segments[-1];
             push @plot_points, (
                 ($current_vertex->[1]->{X} - $min_x) * $unit_multiplier_x,

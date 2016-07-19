@@ -1631,6 +1631,7 @@ END_PROGRESS_TEXT
         my %alloc_iter_hash = ();
         #  could generalise this name as it could be used for other cases 
         my $using_random_propagation = ($spatial_allocation_order =~ /^(?:random_walk|diffusion)$/);
+        my %to_groups_hash;  #  used in the spatial allocations
 
       BY_GROUP:
         while (scalar @$tmp_rand_order) {
@@ -1669,7 +1670,15 @@ END_PROGRESS_TEXT
                            && !exists $assigned{$_}
                            && $_ ne $to_groups[0]
                           } @$list_ref;
+
+                        if ($spatial_allocation_order eq 'diffusion') {
+                            #  need uniques only for uniform random selection
+                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                        }
+
                         next NBR_LIST_REF if !scalar @sublist;
+
+                        @to_groups_hash{@sublist} = undef;
                         push @to_groups,
                             $spatial_allocation_order =~ /^random/
                                 ? @{$rand->shuffle (\@sublist)}
@@ -1757,9 +1766,18 @@ END_PROGRESS_TEXT
                            && !exists $assigned{$_}
                            && $_ ne $to_group
                           } @$list_ref;
+
+                        if ($spatial_allocation_order eq 'diffusion') {
+                            #  need to ensure one entry for each group
+                            #  for uniform random selection
+                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                        }
+
                         next NBR_LIST_REF if !scalar @sublist;
+
                         $valid_nbr_count += scalar @sublist;
-                        #my $sublist_ref = \@sublist;
+                        @to_groups_hash{@sublist} = undef;
+
                         if ($spatial_allocation_order =~ /^random/) {
                             $rand->shuffle (\@sublist);
                         }
@@ -1776,10 +1794,14 @@ END_PROGRESS_TEXT
                     #  need to select one and push it to the front.
                     if (    $spatial_allocation_order eq 'diffusion'
                         || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
+
+                        if ($spatial_allocation_order ne 'diffusion') {
                         #  uniq ensures it is equal probability for each group
-                        #  needs to be faster, but we need to retain the order
+                        #  Needs to be faster, but we need to retain the order
                         #  for the random walk
-                        @to_groups = uniq @to_groups;
+                            @to_groups = uniq @to_groups;
+                        }
+
                         my $k = int $rand->rand(scalar @to_groups);
                         my $target = $to_groups[$k];
                         splice @to_groups, $k, 1;

@@ -826,8 +826,8 @@ plot area is very small.  They might not be visible as a result.
 One possible cause is that the shapefile coordinate system does
 not match that of the BaseData, for example your BaseData
 is in a UTM coordinate system but the shapefile is in
-decimal degrees.  If this is the case then the shapefile
-can be reprojected using a GIS.
+decimal degrees.  If this is the case then your shapefile
+can be reprojected to match your spatial data using GIS software.
 
 Respective bounds are (minx, miny), (maxx, maxy):
 BaseData: $bd_bnds

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Gtk2;
 use Data::Dumper;
+use Geo::ShapeFile;
 
 our $VERSION = '1.99_002';
 
@@ -157,9 +158,11 @@ sub on_add {
 
     my $filename;
     if ($open->run() eq 'ok') {
-
         $filename = $open->get_filename();
+    }
+    $open->destroy;
 
+    if (!_shp_type_is_point($filename)) {
         my $iter = $list->get_model->append;
         $list->get_model->set($iter, 0, $filename);
         my $sel = $list->get_selection;
@@ -167,9 +170,27 @@ sub on_add {
 
         $project->add_overlay($filename);
     }
-    $open->destroy();
+    else {  #  warn about points - one day we will fix this
+        my $error = "Selected shapefile is a point type.";
+        $error .= "\n\nBiodiverse currently only supports polygon and polyline overlays.";
+        my $gui = Biodiverse::GUI::GUIManager->instance;
+        $gui->report_error (
+            $error,
+            'Unsupported file type',
+        );
+    }
 
     return;
+}
+
+#  needed until we plot points
+sub _shp_type_is_point {
+    my $name = shift;
+    
+    my $shpfile = Geo::ShapeFile->new ($name);
+    my $type = $shpfile->shape_type_text;
+    
+    return $type =~/point/i;
 }
 
 sub on_delete {
@@ -208,9 +229,7 @@ sub on_set {
 
     $dlg->destroy;
 
-    if (not $filename) {
-        return;
-    }
+    return if not $filename;
 
     print "[Overlay] Setting overlay to $filename\n";
     $grid->set_overlay( $project->get_overlay($filename), $colour );

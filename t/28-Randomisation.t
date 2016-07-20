@@ -25,6 +25,8 @@ use Test::Exception;
 use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
 use Biodiverse::Cluster;
 
+use Biodiverse::Randomise;
+
 use Math::Random::MT::Auto;
 
 my $default_prng_seed = 2345;
@@ -1639,6 +1641,158 @@ sub check_duplicates {
 
 
 
+
+#######
+#  Do we get exact replicates given the default args and a set PRNG seed?
+#  Initial version only checks defaults - should probably add some permutations
+#  based on metadata.
+sub test_function_stability {
+    my $c  = 1;
+    my $c2 = $c / 2;
+    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [$c, $c], NAME => 'test_replicates');
+
+    #  we just need some groups and labels
+    my %labels = (1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd');
+    foreach my $x (1 .. 4) {
+        foreach my $y (1 .. 4) {
+          LABEL_ID:
+            foreach my $label_id (keys %labels) {
+                next LABEL_ID if $label_id < $x;
+                my $label = $labels{$label_id};
+                my $gp = ($x + $c2 . ':' . ($y + $c2));
+                $bd->add_element (label => $label, group => $gp, count => $x * $y);
+            }
+        }
+    }
+    #  and add a row of empties
+    foreach my $x (1 .. 4) {
+        my $y = 0;
+        my $gp = ($x + $c2 . ':' . ($y + $c2));
+        $bd->add_element (group => $gp, count => 0);
+    }
+
+    my $prng_seed = 2345;
+    
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+    my $sp //= $bd->add_spatial_output (name => 'sp');
+    
+    my $r_spatially_structured_cond = "sp_circle (radius => $c)";
+    
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
+    );
+
+    use Biodiverse::Randomise;
+    my @functions = Biodiverse::Randomise->get_randomisation_functions_as_array;
+    
+    foreach my $function (@functions) {
+        my $rand = $bd->add_randomisation_output (name => $function);
+        
+        my %rand_func_args = (
+            function   => $function,
+            iterations => 1,
+            seed       => $prng_seed,
+            return_rand_bd_array => 1,
+        );
+
+        my $metadata = $rand->get_metadata (sub => $function);
+        my $parameters = $metadata->get_parameters;
+        my $uses_spatial_allocation
+          = grep {$_->get_name eq 'spatial_conditions_for_label_allocation'}
+            @$parameters;
+        if ($uses_spatial_allocation) {
+            $rand_func_args{spatial_conditions_for_label_allocation}
+              = $r_spatially_structured_cond;
+        }
+
+        my $rand_bd_array = $rand->run_analysis (%rand_func_args);
+        my $rand_bd = $rand_bd_array->[0];
+
+        my %got;
+        foreach my $gp_name ($rand_bd->get_groups) {
+            $got{$gp_name} = $rand_bd->get_labels_in_group_as_hash(group => $gp_name);
+        }
+
+        my $generate_result_sets = 0;
+        my $expected = {};  #  make sure we fail if generation is left on
+
+        if ($generate_result_sets) {
+            my $fh = get_randomisation_result_set_fh($function);
+            print_randomisation_result_set_to_fh($fh, \%got, $function);
+        }
+        else {
+            my $data_section_name = "RAND_RESULTS_$function";
+            my $exp_data = get_data_section ($data_section_name);
+            $expected = eval $exp_data;
+        }
+
+        is_deeply (\%got, $expected, "Stability check: Expected results for $function");
+    }
+
+    return;
+}
+
+#  put the results sets into a file
+#  returns null if not needed
+sub get_randomisation_result_set_fh {
+    return if !@_;
+
+    my $function = shift;
+    
+    my $file_name = $0;
+    $file_name =~ s/\.t$/\./;
+    $file_name .= $function . '.results';
+    open(my $fh, '>', $file_name) or die "Unable to open $file_name to write results sets to";
+    
+    return $fh;
+}
+
+
+# Used for acquiring randomisation results for stability checks
+sub print_randomisation_result_set_to_fh {
+    my ($fh, $results_hash, $function) = @_;
+
+    return if !$fh;
+
+    use Perl::Tidy;
+    use Data::Dumper;
+
+    local $Data::Dumper::Purity    = 1;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Sortkeys  = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+    #say '#' x 20;
+
+    my $source_string = Dumper($results_hash);
+    my $dest_string;
+    my $stderr_string;
+    my $errorfile_string;
+    my $argv = "-npro";   # Ignore any .perltidyrc at this site
+    $argv .= " -pbp";     # Format according to perl best practices
+    $argv .= " -nst";     # Must turn off -st in case -pbp is specified
+    $argv .= " -se";      # -se appends the errorfile to stderr
+    $argv .= " -no-log";  # Don't write the log file
+
+    my $error = Perl::Tidy::perltidy(
+        argv        => $argv,
+        source      => \$source_string,
+        destination => \$dest_string,
+        stderr      => \$stderr_string,
+        errorfile   => \$errorfile_string,    # ignored when -se flag is set
+        ##phasers   => 'stun',                # uncomment to trigger an error
+    );
+
+    say   {$fh} "@@ RAND_RESULTS_${function}";
+    say   {$fh} $dest_string;
+    print {$fh} "\n";
+    #say '#' x 20;
+
+    return;   
+}
+
+
 1;
 
 __DATA__
@@ -1971,3 +2125,436 @@ __DATA__
     0,            0,            0,            -1,
     0,            -1,           0,            0
 ]
+
+@@ RAND_RESULTS_rand_csr_by_group
+{   '1.5:0.5' => {},
+    '1.5:1.5' => { d => 8 },
+    '1.5:2.5' => {},
+    '1.5:3.5' => {
+        c => 3,
+        d => 3
+    },
+    '1.5:4.5' => {},
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        c => 9,
+        d => 9
+    },
+    '2.5:2.5' => {
+        c => 6,
+        d => 6
+    },
+    '2.5:3.5' => {
+        a => 3,
+        b => 3,
+        c => 3,
+        d => 3
+    },
+    '2.5:4.5' => {
+        c => 12,
+        d => 12
+    },
+    '3.5:0.5' => {
+        b => 8,
+        c => 8,
+        d => 8
+    },
+    '3.5:1.5' => {
+        a => 4,
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '3.5:2.5' => {
+        a => 2,
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '3.5:3.5' => { d => 12 },
+    '3.5:4.5' => {
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '4.5:0.5' => {
+        a => 1,
+        b => 1,
+        c => 1,
+        d => 1
+    },
+    '4.5:1.5' => { d => 16 },
+    '4.5:2.5' => {
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '4.5:3.5' => { d => 4 },
+    '4.5:4.5' => {
+        b => 6,
+        c => 6,
+        d => 6
+    }
+}
+
+
+@@ RAND_RESULTS_rand_diffusion
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 3,
+        b => 4,
+        c => 3,
+        d => 3
+    },
+    '1.5:2.5' => {
+        a => 1,
+        b => 3,
+        c => 8,
+        d => 9
+    },
+    '1.5:3.5' => {
+        a => 2,
+        b => 2,
+        c => 1,
+        d => 6
+    },
+    '1.5:4.5' => {
+        a => 4,
+        b => 6,
+        c => 6,
+        d => 2
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 8,
+        c => 3,
+        d => 16
+    },
+    '2.5:2.5' => {
+        b => 2,
+        c => 4,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 1,
+        c => 9,
+        d => 8
+    },
+    '2.5:4.5' => {
+        b => 4,
+        c => 6,
+        d => 6
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 2,
+        d => 12
+    },
+    '3.5:2.5' => {
+        c => 2,
+        d => 12
+    },
+    '3.5:3.5' => {
+        c => 4,
+        d => 8
+    },
+    '3.5:4.5' => {
+        c => 12,
+        d => 4
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 4 },
+    '4.5:2.5' => { d => 3 },
+    '4.5:3.5' => { d => 1 },
+    '4.5:4.5' => { d => 2 }
+}
+
+
+@@ RAND_RESULTS_rand_nochange
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 1,
+        b => 1,
+        c => 1,
+        d => 1
+    },
+    '1.5:2.5' => {
+        a => 2,
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '1.5:3.5' => {
+        a => 3,
+        b => 3,
+        c => 3,
+        d => 3
+    },
+    '1.5:4.5' => {
+        a => 4,
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '2.5:2.5' => {
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 6,
+        c => 6,
+        d => 6
+    },
+    '2.5:4.5' => {
+        b => 8,
+        c => 8,
+        d => 8
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 3,
+        d => 3
+    },
+    '3.5:2.5' => {
+        c => 6,
+        d => 6
+    },
+    '3.5:3.5' => {
+        c => 9,
+        d => 9
+    },
+    '3.5:4.5' => {
+        c => 12,
+        d => 12
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 4 },
+    '4.5:2.5' => { d => 8 },
+    '4.5:3.5' => { d => 12 },
+    '4.5:4.5' => { d => 16 }
+}
+
+
+@@ RAND_RESULTS_rand_random_walk
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 3,
+        b => 1,
+        c => 3,
+        d => 9
+    },
+    '1.5:2.5' => {
+        a => 4,
+        b => 4,
+        c => 3,
+        d => 2
+    },
+    '1.5:3.5' => {
+        a => 2,
+        b => 3,
+        c => 1,
+        d => 6
+    },
+    '1.5:4.5' => {
+        a => 1,
+        b => 2,
+        c => 6,
+        d => 3
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 4,
+        c => 6,
+        d => 12
+    },
+    '2.5:2.5' => {
+        b => 8,
+        c => 8,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 2,
+        c => 4,
+        d => 16
+    },
+    '2.5:4.5' => {
+        b => 6,
+        c => 2,
+        d => 4
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 12,
+        d => 4
+    },
+    '3.5:2.5' => {
+        c => 4,
+        d => 3
+    },
+    '3.5:3.5' => {
+        c => 2,
+        d => 12
+    },
+    '3.5:4.5' => {
+        c => 9,
+        d => 8
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 1 },
+    '4.5:2.5' => { d => 8 },
+    '4.5:3.5' => { d => 2 },
+    '4.5:4.5' => { d => 6 }
+}
+
+
+@@ RAND_RESULTS_rand_spatially_structured
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 3,
+        b => 4,
+        c => 3,
+        d => 3
+    },
+    '1.5:2.5' => {
+        a => 1,
+        b => 3,
+        c => 8,
+        d => 9
+    },
+    '1.5:3.5' => {
+        a => 2,
+        b => 2,
+        c => 1,
+        d => 6
+    },
+    '1.5:4.5' => {
+        a => 4,
+        b => 6,
+        c => 6,
+        d => 2
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 8,
+        c => 3,
+        d => 16
+    },
+    '2.5:2.5' => {
+        b => 2,
+        c => 4,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 1,
+        c => 9,
+        d => 8
+    },
+    '2.5:4.5' => {
+        b => 4,
+        c => 6,
+        d => 6
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 2,
+        d => 12
+    },
+    '3.5:2.5' => {
+        c => 2,
+        d => 12
+    },
+    '3.5:3.5' => {
+        c => 4,
+        d => 8
+    },
+    '3.5:4.5' => {
+        c => 12,
+        d => 4
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 4 },
+    '4.5:2.5' => { d => 3 },
+    '4.5:3.5' => { d => 1 },
+    '4.5:4.5' => { d => 2 }
+}
+
+
+@@ RAND_RESULTS_rand_structured
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 3,
+        b => 2,
+        c => 3,
+        d => 3
+    },
+    '1.5:2.5' => {
+        a => 4,
+        b => 8,
+        c => 4,
+        d => 8
+    },
+    '1.5:3.5' => {
+        a => 2,
+        b => 1,
+        c => 6,
+        d => 6
+    },
+    '1.5:4.5' => {
+        a => 1,
+        b => 3,
+        c => 2,
+        d => 4
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 2,
+        c => 12,
+        d => 4
+    },
+    '2.5:2.5' => {
+        b => 6,
+        c => 8,
+        d => 12
+    },
+    '2.5:3.5' => {
+        b => 4,
+        c => 6,
+        d => 4
+    },
+    '2.5:4.5' => {
+        b => 4,
+        c => 3,
+        d => 16
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 9,
+        d => 6
+    },
+    '3.5:2.5' => {
+        c => 4,
+        d => 2
+    },
+    '3.5:3.5' => {
+        c => 2,
+        d => 1
+    },
+    '3.5:4.5' => {
+        c => 1,
+        d => 8
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 9 },
+    '4.5:2.5' => { d => 3 },
+    '4.5:3.5' => { d => 2 },
+    '4.5:4.5' => { d => 12 }
+}
+
+

@@ -1733,6 +1733,83 @@ sub test_function_stability {
     return;
 }
 
+#  a todo test until we resolve issue #588
+sub test_spatial_allocation_order_fails {
+    #  this needs refactoring
+    my $c  = 1;
+    my $c2 = $c / 2;
+    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [$c, $c], NAME => 'test_replicates');
+
+    #  we just need some groups and labels
+    my %labels = (1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd');
+    foreach my $x (1 .. 4) {
+        foreach my $y (1 .. 4) {
+          LABEL_ID:
+            foreach my $label_id (keys %labels) {
+                next LABEL_ID if $label_id < $x;
+                my $label = $labels{$label_id};
+                my $gp = ($x + $c2 . ':' . ($y + $c2));
+                $bd->add_element (label => $label, group => $gp, count => $x * $y);
+            }
+        }
+    }
+    #  and add a row of empties
+    foreach my $x (1 .. 4) {
+        my $y = 0;
+        my $gp = ($x + $c2 . ':' . ($y + $c2));
+        $bd->add_element (group => $gp, count => 0);
+    }
+    
+    my $prng_seed = 2345;
+    
+    #$bd->build_spatial_index (resolutions => [$c, $c]);
+    my $sp //= $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness/],
+    );
+
+    use Biodiverse::Randomise;
+    my $rand = $bd->add_randomisation_output (name => 'alloc_order_should_not_exist');
+
+    my %rand_func_args = (
+        function   => 'rand_spatially_structured',
+        iterations => 1,
+        seed       => $prng_seed,
+        return_rand_bd_array => 1,
+        retain_outputs       => 1,
+        track_label_allocation_order => 1,
+        spatial_conditions_for_label_allocation => 'sp_circle (radius => 1)',
+    );
+
+    my $rand_bd_array = $rand->run_analysis (
+        %rand_func_args,
+        spatial_condition => '$x == $nbr_x',
+    );
+    my $rand_bd = $rand_bd_array->[0];
+
+    my $spatial_outputs = $rand_bd->get_spatial_output_names;
+    my $has_label_alloc_sp = grep {$_ eq 'sp_to_track_allocations'} @$spatial_outputs;
+
+    {
+        local $TODO = 'Issue #588';
+        ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation involves mergers');
+    }
+    
+    #  this one should have such an output
+    $rand = $bd->add_randomisation_output (name => 'alloc_order_should_exist');
+    $rand_bd_array = $rand->run_analysis (
+        %rand_func_args,
+    );
+    $rand_bd = $rand_bd_array->[0];
+
+    $spatial_outputs = $rand_bd->get_spatial_output_names;
+    $has_label_alloc_sp = grep {$_ eq 'sp_to_track_allocations'} @$spatial_outputs;
+
+    ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation does not involve mergers');
+}
+
 #  put the results sets into a file
 #  returns null if not needed
 sub get_randomisation_result_set_fh {

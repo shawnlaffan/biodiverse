@@ -994,8 +994,10 @@ END_TOOLTIP_ADDN
         label_text => "Track label allocation order?",
         default    => 0,
         type       => 'boolean',
-        tooltip    => 'Allows one to see the order in which labels were assigned to groups '
-                    . '(before any swapping is applied to reach any richness targets).',
+        tooltip    => 'Allows one to see the order in which labels were assigned to groups. '
+                    . 'Negative values were swapped out after allocation, '
+                    . "zero values were assigned via the swapping process used to reach the richness targets.\n"
+                    . 'Has no effect if a subset spatial condition is used (see issue #588 for details).',
         mutable    => 1,
         box_group  => 'Debug',
     }, $parameter_rand_metadata_class;

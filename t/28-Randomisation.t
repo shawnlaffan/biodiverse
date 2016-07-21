@@ -582,7 +582,7 @@ sub test_rand_structured_subset_richness_same {
         iterations => 3,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
-        spatial_condition => 'sp_block(size => 1000000)',
+        spatial_condition_for_subsets => 'sp_block(size => 1000000)',
         definition_query     => $def_query,
     );
 
@@ -638,7 +638,7 @@ sub test_rand_labels_all_constant {
         iterations => 2,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
-        #spatial_condition => 'sp_block(size => 1000000)',
+        #spatial_conditions_for_subset => 'sp_block(size => 1000000)',
         labels_not_to_randomise => $labels_not_to_randomise,
     );
 
@@ -691,7 +691,7 @@ sub test_rand_labels_constant {
         iterations => 2,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
-        spatial_condition => 'sp_block(size => 1000000)',
+        spatial_conditions_for_subset => 'sp_block(size => 1000000)',
         labels_not_to_randomise => $labels_not_to_randomise,
     );
 
@@ -755,7 +755,7 @@ sub test_rand_constant_labels_differing_input_methods {
         iterations => 1,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
-        spatial_condition => 'sp_block(size => 1000000)',
+        spatial_conditions_for_subset => 'sp_block(size => 1000000)',
     );
 
     my $rand_object_a = $bd->add_randomisation_output (name => $rand_name . '_a');
@@ -1172,7 +1172,7 @@ sub node_calcs_gave_expected_results {
 
 sub test_group_properties_reassigned_subset_rand {
     my %args = (
-        spatial_condition => 'sp_block (size => 1000000)',
+        spatial_conditions_for_subset => 'sp_block (size => 1000000)',
     );
 
     #  get a basedata aftr we have run some tests on it first
@@ -1223,7 +1223,11 @@ sub test_group_properties_reassigned {
 
     $sp->run_analysis (
         calculations => [qw /calc_gpprop_stats/],
-        spatial_conditions => [$args{spatial_condition} // 'sp_self_only()'],
+        spatial_conditions => [
+               $args{spatial_condition}
+            // $args{spatial_conditions_for_subset}
+            // 'sp_self_only()'
+        ],
     );
 
     my %prop_handlers = (
@@ -1264,7 +1268,7 @@ sub test_group_properties_reassigned {
 }
 
 sub test_label_properties_reassigned_with_condition {
-    test_label_properties_reassigned (spatial_condition => 'sp_block (size => 300000)');
+    test_label_properties_reassigned (spatial_conditions_for_subset => 'sp_block (size => 300000)');
 }
 
 sub test_label_properties_reassigned {
@@ -1292,7 +1296,11 @@ sub test_label_properties_reassigned {
 
     $sp->run_analysis (
         calculations => [qw /calc_lbprop_stats/],
-        spatial_conditions => [$args{spatial_condition} // 'sp_self_only()'],
+        spatial_conditions => [
+               $args{spatial_condition}
+            // $args{spatial_conditions_for_subset}
+            // 'sp_self_only()',
+        ],
     );
 
     my %prop_handlers = (
@@ -1785,7 +1793,7 @@ sub test_spatial_allocation_order_fails {
 
     my $rand_bd_array = $rand->run_analysis (
         %rand_func_args,
-        spatial_condition => '$x == $nbr_x',
+        spatial_conditions_for_subset => '$x == $nbr_x',
     );
     my $rand_bd = $rand_bd_array->[0];
 

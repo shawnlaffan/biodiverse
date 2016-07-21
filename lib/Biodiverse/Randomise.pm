@@ -407,6 +407,11 @@ sub run_randomisation {
         $self->set_default_args (function => $function, args_hash => \%args);
     }
     $self->set_analysis_args (\%args);
+    
+    #  dirty hack for short term back compat
+    #$args{spatial_conditions_for_subset} //= $args{spatial_condition};
+    croak "spatial_condition argument is deprecated - use spatial_conditions_for_subset\n"
+      if defined $args{spatial_condition};
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -736,7 +741,7 @@ sub _get_randomised_basedata {
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     #  do we have one or more valid conditions which imply a subset is needed?
-    my $check = join '', map {$_ // ''} ($args{spatial_conditions}, $args{definition_query}, $args{spatial_condition});
+    my $check = join '', map {$_ // ''} ($args{spatial_conditions_for_subset}, $args{definition_query});
     $check =~ s/\s//g;
 
     if (length $check) {
@@ -1990,7 +1995,7 @@ sub get_metadata_get_rand_structured_subset {
     my $parameters = [];
 
     my $spatial_condition_param = bless {
-        name       => 'spatial_condition',
+        name       => 'spatial_conditions_for_subset',
         label_text => "Spatial condition\nto define subsets",
         default    => '', #' ' x 30,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
@@ -2037,9 +2042,12 @@ sub get_rand_structured_subset {
     if (!$sp) {
         my $name = "get nbrs for rand_structured_subset, $time" . $self->get_name;
         $sp = $bd->add_spatial_output (name => $name);
-        
-        my $sp_conditions = $args{spatial_conditions} || [$args{spatial_condition}];
-    
+
+        my $sp_conditions = $args{spatial_conditions_for_subset};
+        if (ref ($sp_conditions // '') ne 'ARRAY') {
+            $sp_conditions = [$sp_conditions];
+        }
+
         #  Check the sp conditions
         #  If we get only whitespace and comments then default to selecting all groups
         my $sp_check_text = $sp_conditions->[0];

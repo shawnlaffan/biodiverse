@@ -78,13 +78,11 @@ sub fill {
     $get_innards_hash //= {};
 
     # Ask object for parameters metadata
-    my (@extract_closures, @widgets);
+    my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
     my $tooltip_group = Gtk2::Tooltips->new;
 
     my $row = 0;
-
-    #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
     foreach my $param (@$params) {
@@ -101,9 +99,11 @@ sub fill {
         }
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
+        
+        my $param_name = $param->{name};
 
         # Make the label
-        my $label_text = $param->{label_text} || $param->{name};
+        my $label_text = $param->{label_text} // $param_name;
         chomp $label_text;
         my $label = Gtk2::Label->new ($label_text);
         $label->set_line_wrap(30);
@@ -122,6 +122,8 @@ sub fill {
             $widget = Gtk2::HBox->new;
         }
 
+        $label_widget_pairs{$param_name} = [$label, $widget];
+
         my $rows = $table->get('n-rows');
 
         my $box_group_name = $param->get_box_group;
@@ -133,16 +135,23 @@ sub fill {
                 $table->set('n-rows' => $rows);
                 $added_hbox_row++;
                 $hbox = $self->{box_groups}{$box_group_name} = Gtk2::HBox->new;
-                my $l = Gtk2::Label->new ($box_group_name);
-                $l->set_alignment(0, 0.5);
-                $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-                $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
-                $l->show;
+                if ($box_group_name eq 'Debug') {
+                    $debug_hbox //= $hbox;
+                }
+                else {
+                    my $l = Gtk2::Label->new ($box_group_name);
+                    $l->set_alignment(0, 0.5);
+                    $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+                    $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
+                    $l->show;
+                }
             }
             $hbox //= $self->{box_groups}{$box_group_name};
             $hbox->pack_start($label, 0, 0, 0);
             $hbox->pack_start($widget, 0, 0, 0);
-            $hbox->show_all;
+            if ($box_group_name ne 'Debug'){
+                $hbox->show_all;
+            }
         }
         else {
             $rows++;
@@ -166,6 +175,22 @@ sub fill {
         }
     }
 
+    #  hack - make sure debug hbox is last in table
+    if ($debug_hbox) {
+        #$table->remove($debug_hbox);
+        my $label = Gtk2::Label->new ('Debug');
+        $label->set_line_wrap(30);
+        $label->set_alignment(0, 0.5);
+
+        my $rows = $table->get('n-rows');
+        $rows++;
+        $table->set('n-rows' => $rows);
+        $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+        $table->attach($debug_hbox, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        $label->show;
+        $debug_hbox->show_all;
+    }
+
     #  hack for spatial conditions widgets so we don't show both edit views
     foreach my $object (values %$get_innards_hash) {
         next if !blessed $object;
@@ -185,7 +210,13 @@ sub fill {
 
     $self->{extractors} = \@extract_closures;
     $self->{widgets}    = \@widgets;
+    $self->{label_widget_pairs} = \%label_widget_pairs;
     return $self->{extractors};
+}
+
+sub get_label_widget_pairs_hash {
+    my $self = shift;
+    return $self->{label_widget_pairs};
 }
 
 sub extract {
@@ -199,7 +230,7 @@ sub extract {
         #print "\n";
         push @params, $extractor->();
     }
-    return \@params;
+    return wantarray ? @params : \@params;
 }
 
 # Generates widget + extractor for some parameter
@@ -339,8 +370,10 @@ sub generate_float {
     my $default = $param->get_default || 0;
     my $digits  = $param->get_digits  || 2;
     my $incr    = $param->get_increment || 0.1;
+    my $min     = $param->get_min // 0;
+    my $max     = $param->get_max // 10000000;
 
-    my $adj = Gtk2::Adjustment->new($default,0, 10000000, $incr, $incr * 10, 0);
+    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, $digits);
 
     my $extract = sub { return ($param->get_name, $spin->get_value); };

@@ -13,9 +13,9 @@ use Data::Dumper qw { Dumper };
 use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
-use Scalar::Util qw { blessed };
+use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
-use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index uniq/;
 use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
@@ -277,6 +277,10 @@ sub export_prng_current_state {
     return;
 }
 
+sub get_default_rand_function {
+    return 'rand_structured';
+}
+
 #  get a list of the all the publicly available randomisations.
 sub get_randomisation_functions {
     my $self = shift || __PACKAGE__;
@@ -287,6 +291,17 @@ sub get_randomisation_functions {
     );
     
     return wantarray ? %analyses : \%analyses;
+}
+
+sub get_randomisation_functions_as_array {
+    my $self = shift || __PACKAGE__;
+
+    my @analyses = $self->get_subs_with_prefix_as_array (
+        prefix => 'rand_',
+        class => __PACKAGE__,
+    );
+
+    return wantarray ? @analyses : \@analyses;
 }
 
 sub check_rand_function_is_valid {
@@ -305,6 +320,37 @@ sub check_rand_function_is_valid {
       if !$valid;
 
     return 1;
+}
+
+sub get_analysis_args {
+    my $self = shift;
+    return $self->get_param('ARGS');
+}
+
+sub set_analysis_args {
+    my ($self, $args) = @_;
+    $self->set_param (ARGS => $args);
+}
+
+#  set any defaults if the user has not specified them as arg hash keys
+sub set_default_args {
+    my ($self, %args) = @_;
+
+    my $function  = $args{function} || $self->get_param('FUNCTION');
+    my $args_hash = $args{args_hash} // {};
+    
+    my $metadata = $self->get_metadata(sub => $function);
+    
+    my $params = $metadata->get_parameters;
+    foreach my $p (@$params) {
+        my $p_name = $p->get_name;
+        if (!exists $args_hash->{$p_name}) {
+            my $default = $p->get_default_param_value;
+            $args_hash->{$p_name} = $default;
+        }
+    }
+
+    return $args_hash;
 }
 
 #####################################################################
@@ -345,7 +391,7 @@ sub run_randomisation {
 
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
-    if (my $ref = $self->get_param ('ARGS')) {
+    if (my $ref = $self->get_analysis_args) {
         my $metadata = $self->get_metadata (sub => $function);
         my $params = $metadata->get_parameters;
         my %mutables;
@@ -357,7 +403,10 @@ sub run_randomisation {
         %args = %$ref;
         @args{keys %mutables} = values %mutables;
     }
-    $self->set_param (ARGS => \%args);
+    else {
+        $self->set_default_args (function => $function, args_hash => \%args);
+    }
+    $self->set_analysis_args (\%args);
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -849,20 +898,34 @@ sub get_common_rand_metadata {
     my $self = shift;
 
     my @common = (
+         bless ({
+            name       => 'save_checkpoint',
+            label_text => 'Save checkpoints',
+            type       => 'integer',
+            default    => -1,
+            min        => -1,
+            increment  =>  1,
+            tooltip    => 'Any iteration ending in this number will be saved to disk as a bds file.  '
+                        . 'Useful to check convergence if the randomisations are very slow or '
+                        . 'to restart from a known point if the system crashes due to lack of memory. '
+                        . 'Set to -1 to not use it.',
+            mutable    => 1,
+            box_group  => 'Debug',
+        }, $parameter_metadata_class),
         bless ({
             name       => 'add_basedatas_to_project',
-            label_text => 'How many basedatas to add to the project',
+            label_text => 'Add basedatas to project',
             type       => 'integer',
             default    => 0,
             increment  => 1,
-            tooltip    => 'Add the first n randomised basedatas and their outputs to the project',
+            tooltip    => 'Add the first "n" randomised basedatas and their outputs to the project',
             mutable    => 1,
-        }, $parameter_metadata_class),
+            box_group  => 'Debug',
+        }, $parameter_metadata_class),    
     );
-    
+
     #@common = ();  #  override until we allow some args to be overridden on subsequent runs.
-    @common = (
-        #@common,  #  DEBUG
+    push @common, (
         bless ({
             name       => 'labels_not_to_randomise',
             label_text => 'Labels to not randomise',
@@ -873,6 +936,139 @@ sub get_common_rand_metadata {
     );
 
     return wantarray ? @common : \@common;
+}
+
+
+sub get_common_rand_structured_metadata {
+    my $self = shift;
+
+    my $tooltip_mult =<<'END_TOOLTIP_MULT'
+The target richness of each group in the randomised
+basedata will be its original richness multiplied
+by this value.
+END_TOOLTIP_MULT
+;
+
+    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
+The target richness of each group in the randomised
+basedata will be its original richness plus this value.
+
+This is applied after the multiplier parameter so you have:
+    target_richness = orig_richness * multiplier + addition.
+END_TOOLTIP_ADDN
+;
+
+    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+    my $common_metadata  = $self->get_common_rand_metadata;
+    
+    my @parameters = (
+        @$subset_parameters,
+        {name       => 'richness_multiplier',
+         type       => 'float',
+         default    => 1,
+         increment  => 1,
+         tooltip    => $tooltip_mult,
+         box_group  => 'Richness constraints',
+        },
+        {name       => 'richness_addition',
+         type       => 'float',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_addn,
+         box_group  => 'Richness constraints',
+         },
+        $group_props_parameters,
+        $tree_shuffle_parameters,
+        @$common_metadata,
+    );
+    for (@parameters) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
+    
+    
+    my $track_label_allocation_order = bless {
+        name       => 'track_label_allocation_order',
+        label_text => "Track label allocation order?",
+        default    => 0,
+        type       => 'boolean',
+        tooltip    => 'Allows one to see the order in which labels were assigned to groups. '
+                    . 'Negative values were swapped out after allocation, '
+                    . "zero values were assigned via the swapping process used to reach the richness targets.\n"
+                    . 'Has no effect if a subset spatial condition is used (see issue #588 for details).',
+        mutable    => 1,
+        box_group  => 'Debug',
+    }, $parameter_rand_metadata_class;
+    push @parameters, $track_label_allocation_order;
+
+    return wantarray ? @parameters : \@parameters;
+}
+
+sub get_spatial_allocation_sp_condition_metadata {
+    my $self = shift;
+
+    my $spatial_condition_param = bless {
+        name       => 'spatial_conditions_for_label_allocation',
+        label_text => "Spatial condition\nto define target groups\naround a seed location",
+        default    => 'sp_square_cell (size => 3)',
+        #default    => 'sp_circle(radius => 300000)',
+        type       => 'spatial_conditions',
+        tooltip    => 'Labels will be assigned to groups within the specified '
+                    . 'neighbourhood around a random seed location.  '
+                    . 'A new seed location is selected when there are no more '
+                    . 'neighbours to select from.',
+    }, $parameter_rand_metadata_class;
+
+    return $spatial_condition_param;
+}
+
+sub get_random_walk_backtracking_metadata {
+    my $self = shift;
+
+    my $bk_text = <<'EOB'
+The spatially structured models will go back to a previously
+assigned group when no neighbours of the current group can be assigned to. 
+"from_end" goes back in reverse order of assignment, 
+"from_start" goes back to the start of the sequence and works
+forward, while "random" selects randomly from the previously assigned groups.
+Has no effect on the proximity allocation model.
+EOB
+  ;
+
+    my $backtracking = bless {
+        name       => 'label_allocation_backtracking',
+        label_text => "Backtracking",
+        default    => 0,
+        type       => 'choice',
+        choices    => [qw /from_end from_start random/],
+        tooltip    => $bk_text,
+        box_group  => 'Spatial allocations',
+    }, $parameter_rand_metadata_class;
+
+    return $backtracking;
+}
+
+sub get_spatial_allocation_reseed_metadata {
+    
+    my $reseed = bless {
+        name       => 'spatial_allocation_reseed_prob',
+        label_text => "Reseed probability",
+        default    => 0,
+        type       => 'float',
+        min        => 0,
+        max        => 1,
+        increment  => 0.001,
+        digits     => 4,
+        tooltip    => 'Probability of restarting the allocation process from a new seed location. '
+                    . 'Evaluated after each label occurrence allocation, '
+                    . 'with values drawn from a uniform random distribution. '
+                    . 'Leave as 0 for it to have no effect.',
+        box_group  => 'Spatial allocations',        
+    }, $parameter_rand_metadata_class;
+
+    return $reseed;
 }
 
 sub get_metadata_rand_nochange {
@@ -1014,54 +1210,183 @@ sub rand_csr_by_group {
     return $new_bd;
 }
 
+
+sub get_spatial_output_to_track_allocations {
+    my ($self, %args) = @_;
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+
+    my $sp = $self->get_param('SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS');
+
+    return $sp if $sp;
+
+    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations');
+
+    #  we need a "blank canvas"
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
+        calculations       => [],
+        override_valid_analysis_check => 1,
+        #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+    );
+
+    $bd->delete_output (output => $sp);
+    $self->set_param(SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS => $sp);
+
+    return $sp;
+}
+
+sub get_spatial_output_for_label_allocation {
+    my ($self, %args) = @_;
+    
+    my $sp_conditions = $args{spatial_conditions_for_label_allocation};
+    
+    return if !defined $sp_conditions;
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    
+    #  GUI only handles one until we can generate a compound widget
+    if (!ref $sp_conditions || blessed $sp_conditions) {
+        $sp_conditions = [$sp_conditions];
+    }
+
+    #  Check the sp conditions
+    #  If we get only whitespace and comments then default to selecting all groups
+    my $sp_check_text = $sp_conditions->[0];
+    $sp_check_text //= '';
+    if (blessed ($sp_check_text)) {
+        $sp_check_text = $sp_check_text->get_conditions_unparsed;
+    }
+    $sp_check_text =~ s/[\s\r\n]//g;  #  clear any whitespace
+    $sp_check_text =~ s/^\s*#.*$//g;     #  and any comments
+
+    return if !length $sp_check_text; #  all we had was whitespace and comments
+
+    my $sp = $self->get_param('SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION');
+    
+    return $sp if $sp;
+
+    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation');
+
+    #  we only want the neighbour sets
+    $sp->run_analysis (
+        spatial_conditions => $sp_conditions,
+        #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
+        calculations       => [],
+        override_valid_analysis_check => 1,
+        calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+    );
+
+    $bd->delete_output (output => $sp);
+    $self->set_param(SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION => $sp);
+
+    return $sp;
+}
+
+sub get_metadata_rand_random_walk {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+    push @parameters, $self->get_random_walk_backtracking_metadata;
+    push @parameters, $self->get_spatial_allocation_reseed_metadata;
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, using a "
+                     . "random walk model from a seed location\n"
+                     . 'but keep the richness of each group the same within '
+                     . "some tolerance.\n"
+                     . "Actually just a special case of the rand_spatially_structured "
+                     . "model that always uses the random_walk allocation method.",
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_random_walk {
+    my $self = shift;
+    my %args = @_;
+    $args{spatial_allocation_order} = 'random_walk';  #  override
+    $args{backtracking} //= 'from_end';
+    return $self->rand_structured (%args);
+}
+
+sub get_metadata_rand_diffusion {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+    push @parameters, $self->get_spatial_allocation_reseed_metadata;
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, using a "
+                     . "diffusion model from a seed location\n"
+                     . 'but keep the richness of each group the same within '
+                     . "some tolerance.\n"
+                     . "Actually just a special case of the rand_spatially_structured "
+                     . "model that always uses the diffusion allocation method.",
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_diffusion {
+    my $self = shift;
+    my %args = @_;
+    $args{spatial_allocation_order} = 'diffusion';  #  override
+    return $self->rand_structured (%args);
+}
+
+sub get_metadata_rand_spatially_structured {
+    my $self = shift;
+
+    my @parameters = $self->get_common_rand_structured_metadata;
+
+    push @parameters, $self->get_spatial_allocation_sp_condition_metadata;
+
+    my $spatial_allocation_order = bless {
+        name       => 'spatial_allocation_order',
+        label_text => "Spatial allocation order",
+        default    => 0,
+        type       => 'choice',
+        choices    => [qw /diffusion random_walk random proximity/],
+        tooltip    => 'The order label occurrencess will be allocated within the neighbourhoods '
+                    . 'after first being allocated to the seed group.',
+        box_group  => 'Spatial allocations',
+    }, $parameter_rand_metadata_class;
+
+    my $backtracking = $self->get_random_walk_backtracking_metadata;
+    my $reseed       = $self->get_spatial_allocation_reseed_metadata;
+
+    push @parameters, ($spatial_allocation_order, $backtracking, $reseed);
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly allocate labels to groups, selecting "
+                     . "new locations as a function of one or more spatial conditions\n"
+                     . 'but keep the richness of each group the same within '
+                     . 'some tolerance.',
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+#  just a wrapper method to simplify the metadata for rand_structured, and thus the GUI
+sub rand_spatially_structured {
+    my $self = shift;
+    my %args = @_;
+    return $self->rand_structured (%args);
+}
+
 sub get_metadata_rand_structured {
     my $self = shift;
 
-    my $tooltip_mult =<<'END_TOOLTIP_MULT'
-The target richness of each group in the randomised
-basedata will be its original richness multiplied
-by this value.
-END_TOOLTIP_MULT
-;
-
-    my $tooltip_addn =<<'END_TOOLTIP_ADDN'
-The target richness of each group in the randomised
-basedata will be its original richness plus this value.
-
-This is applied after the multiplier parameter so you have:
-    target_richness = orig * multiplier + addition.
-END_TOOLTIP_ADDN
-;
-
-    my $subset_parameters = $self->get_metadata_get_rand_structured_subset;
-    my $group_props_parameters  = $self->get_group_prop_metadata;
-    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
-    my $common_metadata  = $self->get_common_rand_metadata;
-    
-    my @parameters = (
-        @$subset_parameters,
-        {name       => 'richness_multiplier',
-         type       => 'float',
-         default    => 1,
-         increment  => 1,
-         tooltip    => $tooltip_mult,
-         box_group  => 'Richness constraints',
-        },
-        {name       => 'richness_addition',
-         type       => 'float',
-         default    => 0,
-         increment  => 1,
-         tooltip    => $tooltip_addn,
-         box_group  => 'Richness constraints',
-         },        
-        $group_props_parameters,
-        $tree_shuffle_parameters,
-        @$common_metadata,
-    );
-    for (@parameters) {
-        next if blessed $_;
-        bless $_, $parameter_rand_metadata_class;
-    }
+    my @parameters = $self->get_common_rand_structured_metadata;
 
     my %metadata = (
         parameters  => \@parameters,
@@ -1073,6 +1398,56 @@ END_TOOLTIP_ADDN
     return $self->metadata_class->new(\%metadata);
 }
 
+sub sort_nbr_lists_by_proximity {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_element = $args{target_element};
+    my $nbr_lists      = $args{nbr_lists};
+    my $rand_object    = $args{rand_object};
+    my $bd = $args{basedata_ref};
+
+    my @proximity_sorted;
+    
+    foreach my $i (0 .. $#$nbr_lists) {
+        @{$proximity_sorted[$i]} =
+          map  { $_->[0] }
+          sort { $a->[1] <=> $b->[1] || $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0]}
+          map  { [$_,
+                  $self->get_element_proximity(
+                    element1     => $_,
+                    basedata_ref => $bd,
+                    element2     => $target_element,
+                  ),
+                  $rand_object->rand,  #  fall back to random
+                ]
+               }
+               @{$nbr_lists->[$i]};
+    }
+
+    return wantarray ? @proximity_sorted : \@proximity_sorted;
+}
+
+#  needs a lot more thought, and control over the axes to use
+#  should also shift into Spatial.pm
+sub get_element_proximity {
+    my $self = shift;
+    my %args = @_;
+
+    my $gp = $args{basedata_ref}->get_groups_ref;
+    my $el_array1 = $gp->get_element_name_as_array_aa($args{element1});
+    my $el_array2 = $gp->get_element_name_as_array_aa($args{element2});
+
+    my $dist = 0;
+    foreach my $i (0 .. $#$el_array2) {
+        #  skip non-numeric?
+        #next if !(looks_like_number $el_array1->[$i]) || !(looks_like_number $el_array2->[$i]);
+        $dist += ($el_array1->[$i] - $el_array2->[$i]) ** 2;
+    }
+
+    return sqrt $dist;
+}
+
 #  randomly allocate labels to groups, but keep the richness the same or within some multiplier
 sub rand_structured {
     my $self = shift;
@@ -1082,13 +1457,40 @@ sub rand_structured {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
-    my $progress_bar = Biodiverse::Progress->new();
-
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
 
+    my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
+
+    my $spatial_allocation_order = $args{spatial_allocation_order} // '';
+    my $label_alloc_backtracking = $args{label_allocation_backtracking} // '';
+    #  currently only for debugging as basedata merging does not support outputs
+    my $track_label_allocation_order = $args{track_label_allocation_order};
+
+    my $reseed_prob;
+    if ($sp_for_label_allocation) {
+        $reseed_prob = $args{spatial_allocation_reseed_prob} || 0;
+    }
+
+    my $sp_alloc_nbr_list_cache = $self->get_cached_value ('sp_alloc_nbr_list_cache');
+    if (!$sp_alloc_nbr_list_cache) {
+        $sp_alloc_nbr_list_cache = {};
+        $self->set_cached_value (sp_alloc_nbr_list_cache => $sp_alloc_nbr_list_cache);
+    }
+    #  avoid some duplication below when used
+    my %sp_alloc_nbr_list_args = (
+        cache          => $sp_alloc_nbr_list_cache,
+        basedata_ref   => $bd,
+        rand_object    => $rand,
+        spatial_allocation_order  => $spatial_allocation_order,
+        sp_for_label_allocation => $sp_for_label_allocation,
+    );
+    
+
+    my $progress_bar = Biodiverse::Progress->new();
+
     #  need to get these from the ARGS param if available - should also croak if negative
-    my $multiplier = $args{richness_multiplier} || 1;
+    my $multiplier = $args{richness_multiplier} // 1;
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');
 
@@ -1109,6 +1511,12 @@ END_PROGRESS_TEXT
     #  pre-assign the hash buckets to avoid rehashing larger structures
     $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
+    #  for debug - create using $bd but we override later and set it to $new_bd
+    my $sp_to_track_label_allocation_order
+        = $track_label_allocation_order
+            ? $self->get_spatial_output_to_track_allocations (%args)
+            : undef;
 
     say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
@@ -1132,7 +1540,7 @@ END_PROGRESS_TEXT
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand->shuffle ([@sorted_labels]);
 
-    printf "[RANDOMISE] Richness Shuffling %s labels from %s groups\n",
+    printf "[RANDOMISE] Spatially structured shuffling %s labels from %s groups\n",
        scalar @sorted_labels, scalar @sorted_groups;
 
     #  generate a hash with the target richness values
@@ -1178,8 +1586,8 @@ END_PROGRESS_TEXT
     #  algorithm:
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
-    #  and which do not exceed the richness threshold factor
-    #  (multiplied by the original richness)
+    #  and which do not exceed the richness threshold
+    #  (can be constrained by a spatial condition)
 
     my @target_groups = $bd->get_groups;
     my %all_target_groups
@@ -1216,7 +1624,7 @@ END_PROGRESS_TEXT
             || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
-        #  we don't need the values, and slice assignment is
+        #  we don't need the values, and slice assignment to undef is
         #  faster than straight copy (close to twice as fast)
         my %target_groups_hash;
         @target_groups_hash{keys %all_target_groups} = ();  
@@ -1236,55 +1644,217 @@ END_PROGRESS_TEXT
         }
         @target_groups = sort keys %target_groups_hash;
 
-        ###  get the remaining original groups containing the original label.  Make sure it's a copy
+        ###  get the remaining original groups containing the original label.
+        ###  Make sure it's a copy
         my %tmp
             = $cloned_bd->get_groups_with_label_as_hash (label => $label);
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
-        my (%new_bd_additions, %cloned_bd_deletions);
+        my (
+            %new_bd_additions,    %cloned_bd_deletions, @sp_alloc_nbr_list,
+            $last_group_assigned, %assigned,
+            %valid_nbrs,          @to_groups,
+        );
 
-        BY_GROUP:
-        foreach my $from_group (@$tmp_rand_order) {
-            my $count = $tmp{$from_group};
+        #  needed for when spatial allocations fill a nbrhood
+        #  and we need to start from new nbrhood
+        my $use_new_seed_group = 0;
 
-            #  select a group at random to assign to
-            my $j = int ($rand->rand (scalar @target_groups));
-            my $to_group = $target_groups[$j];
-            #  make sure we don't select this group again
-            #  for this label this time round
-            splice (@target_groups, $j, 1);
+        my %alloc_iter_hash = ();
+        #  could generalise this name as it could be used for other cases 
+        my $using_random_propagation = ($spatial_allocation_order =~ /^(?:random_walk|diffusion)$/);
+        my %to_groups_hash;  #  used in the spatial allocations
+
+      BY_GROUP:
+        while (scalar @$tmp_rand_order && scalar @target_groups) {
+
+            #  Should we always assign to the seed group?
+            #  What if the seed group is not part of the nbr set?
+            #  Issue is that the algorithm might never land on a valid target
+            #  group given the selection process is only unfilled groups without the label
+            #  For now we always assign to the seed group.
+
+            if (!scalar @to_groups || $use_new_seed_group) {
+                @to_groups = ();  #  clear any existing
+                $use_new_seed_group = 0;  #  reset
+
+                #  select a group at random to assign to
+                my $j = int ($rand->rand (scalar @target_groups));
+                push @to_groups, $target_groups[$j];
+
+                #  make sure we don't select this group again
+                #  for this label this time round
+                splice (@target_groups, $j, 1);
+
+                if ($sp_for_label_allocation) {
+                    my $sp_alloc_nbr_list
+                      = $sp_alloc_nbr_list_cache->{$to_groups[0]}
+                        // $self->get_sp_alloc_nbr_list (
+                            target_element => $to_groups[0],
+                            %sp_alloc_nbr_list_args,
+                        );
+
+                    #  We currently concatenate all lists into one.
+                    #  This won't work for the 'fill one, then the next' approaches
+                    #  with multiple nbr sets
+                  NBR_LIST_REF:
+                    foreach my $list_ref (@{$sp_alloc_nbr_list}) {
+                        my @sublist = grep
+                          {   exists $target_groups_hash{$_}
+                           && !exists $filled_groups{$_}
+                           && !exists $assigned{$_}
+                           && $_ ne $to_groups[0]
+                          } @$list_ref;
+
+                        if ($spatial_allocation_order eq 'diffusion') {
+                            #  need uniques only for uniform random selection
+                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                        }
+
+                        next NBR_LIST_REF if !scalar @sublist;
+
+                        @to_groups_hash{@sublist} = undef;
+                        push @to_groups,
+                            $spatial_allocation_order =~ /^random/
+                                ? @{$rand->shuffle (\@sublist)}
+                                : @sublist;
+                    }
+                }
+            }
 
             #  drop out criterion, occurs when $richness_multiplier < 1
-            last BY_GROUP if not defined $to_group;  
+            #  and we run out of groups to assign to
+            last BY_GROUP if !scalar @to_groups;
 
-            warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
-                 . "$filled_groups{$to_group}, $target_richness{$to_group}, "
-                 . "$check $check2 :: $i\n"
-                    if defined $to_group and exists $filled_groups{$to_group};
+          TO_GROUP_ITERATION:
+            while (defined (my $to_group = shift @to_groups)) {
 
-            # Assign this label to its new group.
-            # Use array args version for speed.
-            $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
+                last BY_GROUP if !scalar @$tmp_rand_order;
+                #last BY_GROUP if not defined $to_group;  #  likely now?
+                
+                #  avoid double allocations
+                next BY_GROUP if $using_random_propagation && exists $assigned{$to_group};
 
-            #  now delete it from the list of candidates
-            $cloned_bd->delete_sub_element_aa ($label, $from_group);
-            delete $tmp{$from_group};
+                my $from_group = shift @$tmp_rand_order;
+                my $count = $tmp{$from_group};
 
-            #  increment richness and then check if we've filled this group.
-            my $richness = ++$new_bd_richness{$to_group};
+                delete $target_groups_hash{$to_group};
+                $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
 
-            if ($richness >= $target_richness{$to_group}) {
+                warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
+                     . "$filled_groups{$to_group}, $target_richness{$to_group}, "
+                     . "$check $check2 :: $i\n"
+                        if defined $to_group and exists $filled_groups{$to_group};
+                
+                # Assign this label to its new group.
+                # Use array args version for speed.
+                $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
-                warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
-                  if ($richness > $target_richness{$to_group});
+                # book-keeping for debug - need to disable before production
+                if ($track_label_allocation_order) {
+                    $alloc_iter_hash{$label}++;
+                    $sp_to_track_label_allocation_order->add_to_lists (
+                        element          =>  $to_group,
+                        ALLOCATION_ORDER => {$label => $alloc_iter_hash{$label}},
+                    );
+                }
 
-                $filled_groups{$to_group} = $richness;
-                delete $unfilled_groups{$to_group};
-                $last_filled = $to_group;
-            };
+                $assigned{$to_group}++;
 
-            #  move to next label if no more targets for this label
-            last BY_GROUP if !scalar @target_groups;  
+                #  now delete it from the list of candidates
+                $cloned_bd->delete_sub_element_aa ($label, $from_group);
+                delete $tmp{$from_group};
+
+                #  increment richness and then check if we've filled this group.
+                my $richness = ++$new_bd_richness{$to_group};
+
+                if ($richness >= $target_richness{$to_group}) {
+
+                    warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
+                      if ($richness > $target_richness{$to_group});
+
+                    $filled_groups{$to_group} = $richness;
+                    delete $unfilled_groups{$to_group};
+                    $last_filled = $to_group;
+                };
+
+                #  should we start from a new seed group?
+                if ($reseed_prob && $rand->rand < $reseed_prob) {
+                    $use_new_seed_group = 1;
+                    last TO_GROUP_ITERATION;
+                }
+
+                #  should we find more local neighbours? 
+                if ($using_random_propagation) {
+                    #  unshift or push the neighbours of $to_group onto the targets
+                    #  need to refactor this as there is duplication of code from above
+                    my $sp_alloc_nbr_list
+                      = $sp_alloc_nbr_list_cache->{$to_group}
+                        // $self->get_sp_alloc_nbr_list (
+                            target_element => $to_group,
+                            %sp_alloc_nbr_list_args,
+                        );
+
+                    #  same concatenation probs as above
+                    my $valid_nbr_count = 0;
+                    my @nbr_sets = @{$sp_alloc_nbr_list};
+                    if ($label_alloc_backtracking ne 'from_start') {
+                        @nbr_sets = reverse @nbr_sets;
+                    }
+                  NBR_LIST_REF:
+                    foreach my $list_ref (@nbr_sets) {
+                        my @sublist = grep
+                          {   exists $target_groups_hash{$_}
+                           && !exists $filled_groups{$_}
+                           && !exists $assigned{$_}
+                           && $_ ne $to_group
+                          } @$list_ref;
+
+                        if ($spatial_allocation_order eq 'diffusion') {
+                            #  need to ensure one entry for each group
+                            #  for uniform random selection
+                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                        }
+
+                        next NBR_LIST_REF if !scalar @sublist;
+
+                        $valid_nbr_count += scalar @sublist;
+                        @to_groups_hash{@sublist} = undef;
+
+                        if ($spatial_allocation_order =~ /^random/) {
+                            $rand->shuffle (\@sublist);
+                        }
+                        if ($label_alloc_backtracking eq 'from_start') {
+                            push @to_groups, @sublist;          
+                        }
+                        else {
+                            unshift @to_groups, @sublist;
+                        }
+                    }
+                    #  We found no valid nbrs so we need to backtrack.
+                    #  By default we will work backwards,
+                    #  but if we are using random backtracking then we
+                    #  need to select one and push it to the front.
+                    if (    $spatial_allocation_order eq 'diffusion'
+                        || (!$valid_nbr_count && $label_alloc_backtracking eq 'random')) {
+
+                        if ($spatial_allocation_order ne 'diffusion') {
+                        #  uniq ensures it is equal probability for each group
+                        #  Needs to be faster, but we need to retain the order
+                        #  for the random walk
+                            @to_groups = uniq @to_groups;
+                        }
+
+                        my $k = int $rand->rand(scalar @to_groups);
+                        my $target = $to_groups[$k];
+                        splice @to_groups, $k, 1;
+                        unshift @to_groups, $target;
+                    }
+                }
+
+                #  move to next label if no more targets for this label
+                last BY_GROUP if !scalar @target_groups;
+            }
         }
     }
 
@@ -1334,13 +1904,83 @@ END_PROGRESS_TEXT
         receiver => $new_bd
     );
 
-    my $time_taken = sprintf "%d", tv_interval ($start_time);
-    say "[RANDOMISE] Time taken for rand_structured: $time_taken seconds";
+    my $time_taken = sprintf "%.3f", tv_interval ($start_time);
+    my $function_name = $self->get_param('FUNCTION') // 'rand_structured';
+    say "[RANDOMISE] Time taken for $function_name: $time_taken seconds";
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
 
+    if ($track_label_allocation_order) {
+        #  negate any swapped out labels and set any swapped in labels to 0
+        no autovivification;
+        my $sp = $sp_to_track_label_allocation_order;  #  shorthand
+        EL:
+        foreach my $el ($sp->get_element_list) {
+            #next;  #  debug
+            my $list_ref   = $sp->get_list_ref(
+                list => 'ALLOCATION_ORDER',
+                element => $el,
+            );
+            my $label_hash = $new_bd->get_labels_in_group_as_hash_aa($el);
+            my %combined = (%$list_ref, %$label_hash);
+            next EL if scalar (keys %combined) == scalar (keys %$list_ref)
+                    && scalar (keys %combined) == scalar (keys %$label_hash); 
+            foreach my $label (keys %combined) {
+                if (exists $list_ref->{$label} && !exists $label_hash->{$label}) {
+                    $list_ref->{$label} *= -1;  #  negate - we were swapped out
+                }
+                elsif (!exists $list_ref->{$label} && exists $label_hash->{$label}) {
+                    $list_ref->{$label} = 0;    #  set to zero
+                }
+            }
+        }
+        #  now add it to the basedata
+        $new_bd->add_spatial_output (
+            name => 'sp_to_track_allocations',
+            object => $sp_to_track_label_allocation_order,
+        );
+    }
+    $self->delete_param('SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS');
+
+
     return $new_bd;
+}
+
+sub get_sp_alloc_nbr_list {
+    my $self = shift;
+    my %args = @_;
+
+    my $target_element = $args{target_element}
+      // croak "target_element argument is undefined\n";
+    my $sp_alloc_nbr_list_cache  = $args{cache};
+    my $spatial_allocation_order = $args{spatial_allocation_order};
+    my $sp_for_label_allocation  = $args{sp_for_label_allocation}
+      // croak "sp_for_label_allocation is undefined\n";
+
+    #  we need a copy
+    #  should cache and clone these to avoid re-sorting the same data
+    my $sp_alloc_nbr_list = $sp_alloc_nbr_list_cache->{$target_element};
+    
+    return $sp_alloc_nbr_list if $sp_alloc_nbr_list;
+    
+    #  avoid double sorting as proximity does its own
+    my $sort_lists = $spatial_allocation_order ne 'proximity';
+    $sp_alloc_nbr_list
+      = $sp_for_label_allocation->get_calculated_nbr_lists_for_element (
+        element    => $target_element,
+        sort_lists => $sort_lists,
+    );
+    if ($spatial_allocation_order eq 'proximity') {
+        $sp_alloc_nbr_list = $self->sort_nbr_lists_by_proximity (
+            %args,
+            target_element => $target_element,
+            nbr_lists      => $sp_alloc_nbr_list,
+        );
+    }
+    $sp_alloc_nbr_list_cache->{$target_element} = $sp_alloc_nbr_list;                        
+
+    return $sp_alloc_nbr_list;
 }
 
 
@@ -1355,6 +1995,8 @@ sub get_metadata_get_rand_structured_subset {
         default    => '', #' ' x 30,  #  add spaces to get some widget width
         type       => 'spatial_conditions',
         tooltip    => 'Controls the spatial subsets used in the randomisation.  '
+                    . 'Each subset is randomised independently, with the results '
+                    . 'stitched back together before the analyses are run.'
                     . 'Subsets are forced to be non-overlapping, so conditions '
                     . 'such as sp_circle() will probably not work as desired.',
     }, $parameter_rand_metadata_class;
@@ -1550,6 +2192,14 @@ sub swap_to_reach_richness_targets {
     my %args = @_;
 
     my $cloned_bd       = $args{cloned_bd};
+
+    #  avoid needless looping below.
+    if (!$cloned_bd->get_label_count) {
+        $self->increment_param (SWAP_OUT_COUNT    => 0);
+        $self->increment_param (SWAP_INSERT_COUNT => 0);
+        return;
+    }
+    
     my $new_bd          = $args{new_bd};
     my %filled_groups   = %{$args{filled_groups}};  #  values are the richnesses - we use them to track empties
     my %unfilled_groups = %{$args{unfilled_groups}};
@@ -1582,7 +2232,8 @@ sub swap_to_reach_richness_targets {
         say "[RANDOMISE] Swapping labels to reach richness targets";
     }
 
-    my $swap_count = 0;
+    my $swap_out_count = 0;
+    my $swap_insert_count = 0;
     my $last_filled = $EMPTY_STRING;
 
     #  Track the labels in the unfilled groups.
@@ -1619,19 +2270,6 @@ sub swap_to_reach_richness_targets {
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
 
-    
-#  debugging
-#my %xx;
-#foreach my $lb (keys %unfilled_gps_without_label) {
-#    my $lref = $unfilled_gps_without_label{$lb};
-#    foreach my $gp (@$lref) {
-#        $xx{$gp}{$lb}++;
-#    }
-#}
-#use Test::More;
-#Test::More::is_deeply (\%xx, \%unfilled_gps_without_label_by_gp, 'match');
-
-
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
@@ -1650,7 +2288,7 @@ sub swap_to_reach_richness_targets {
                 (scalar keys %filled_groups),
                 $target_label_count,
                 $target_group_count,
-                $swap_count,
+                $swap_out_count,
                 $last_filled;
 
         my $progress_i = scalar keys %filled_groups;
@@ -1849,6 +2487,7 @@ sub swap_to_reach_richness_targets {
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
+                $swap_insert_count++;
 
                 my $new_richness = $new_bd->get_richness (
                     element => $return_gp,
@@ -1893,10 +2532,10 @@ sub swap_to_reach_richness_targets {
                 }
             }
 
-            $swap_count ++;
+            $swap_out_count ++;
 
-            if (!($swap_count % 5000)) {
-                say "Swap count $swap_count";
+            if (!($swap_out_count % 5000)) {
+                say "Swap count $swap_out_count";
             }
         }
 
@@ -1907,6 +2546,7 @@ sub swap_to_reach_richness_targets {
             count => $add_count,
             csv_object => $csv_object,
         );
+        $swap_insert_count++;
         if (my $aref = $groups_without_labels_a{$add_label}) {
             $self->delete_from_sorted_list_aa ($target_group, $aref);
             if (!scalar @$aref) {
@@ -1940,7 +2580,10 @@ sub swap_to_reach_richness_targets {
         }
     }
 
-    say "[Randomise structured] Final swap count is $swap_count";
+    $self->increment_param (SWAP_OUT_COUNT    => $swap_out_count);
+    $self->increment_param (SWAP_INSERT_COUNT => $swap_insert_count);
+
+    say "[Randomise structured] Final swap count is $swap_out_count";
 
     return;
 }
@@ -2190,11 +2833,14 @@ sub insert_into_sorted_list {
 }
 
 #  array args version - should reduce sub cleanup overheads
+#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
 sub insert_into_sorted_list_aa {
-    my ($self, $item, $list) = @_;
+    #my ($self, $item, $list) = @_;
 
-    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-    splice @$list, $idx, 0, $item;
+    #my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    #splice @$list, $idx, 0, $item;
+    my $idx  = binsearch_pos { $a cmp $b } $_[1], @{$_[2]};
+    splice @{$_[2]}, $idx, 0, $_[1];
 
     # skip the explicit return as a minor speedup for pre-5.20 systems
     $idx;
@@ -2216,12 +2862,15 @@ sub delete_from_sorted_list {
 }
 
 #  array args version to reduce sub and args hash cleanup overheads
+#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
 sub delete_from_sorted_list_aa {
-    my ($self, $item, $list) = @_;
+    #my ($self, $item, $list) = @_;
 
-    my $idx  = binsearch { $a cmp $b } $item, @$list;
+    #my $idx  = binsearch { $a cmp $b } $item, @$list;
+    my $idx  = binsearch { $a cmp $b } $_[1], @{$_[2]};
     if (defined $idx) {
-        splice @$list, $idx, 1;
+        #splice @$list, $idx, 1;
+        splice @{$_[2]}, $idx, 1;
     }
 
     # skip the explicit return as a minor speedup for pre-5.20 systems

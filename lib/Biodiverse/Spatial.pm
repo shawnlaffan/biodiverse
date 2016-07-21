@@ -8,7 +8,7 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed/;
+use Scalar::Util qw /weaken blessed reftype/;
 use List::Util;
 use Time::HiRes qw /time/;
 
@@ -667,7 +667,32 @@ sub sp_calc {
     return 1;
 }
 
+#  assumes they have already been calculated
+sub get_calculated_nbr_lists_for_element {
+    my $self = shift;
+    my %args = @_;
 
+    my $element       = $args{element};
+    my $use_nbrs_from = $args{use_nbrs_from};
+    my $spatial_conditions_arr = $self->get_spatial_conditions;
+    my $sort_lists    = $args{sort_lists};
+
+    my @nbr_list;
+    foreach my $i (0 .. $#$spatial_conditions_arr) {
+        my $nbr_list_name = '_NBR_SET' . ($i+1);
+        my $nbr_list = $self->get_list_ref (
+            element => $element,
+            list    => $nbr_list_name,
+            autovivify => 0,
+        );
+        my $copy = $sort_lists ? [sort @$nbr_list] : [@$nbr_list];
+        push @nbr_list, $copy;
+    }
+    
+    return wantarray ? @nbr_list : \@nbr_list;
+}
+
+#  should probably be calculate_nbrs_for_element
 sub get_nbrs_for_element {
     my $self = shift;
     my %args = @_;

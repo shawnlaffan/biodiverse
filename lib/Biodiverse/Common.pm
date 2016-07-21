@@ -399,6 +399,11 @@ sub print_params {
     return;
 }
 
+sub increment_param {
+    my ($self, $param, $value) = @_;
+    $self->{PARAMS}{$param} += $value;
+}
+
 #  Load a hash of any user defined default params
 our %user_defined_params;
 BEGIN {
@@ -2009,6 +2014,7 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
+#  not sure why we return a hash - history is long ago...
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;
@@ -2021,6 +2027,13 @@ sub get_subs_with_prefix {
     my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;
+}
+
+sub get_subs_with_prefix_as_array {
+    my $self = shift;
+    my $subs = $self->get_subs_with_prefix(@_);
+    my @subs = keys %$subs;
+    return wantarray ? @subs : \@subs;
 }
 
 #  initialise the PRNG with an array of values, start from where we left off,

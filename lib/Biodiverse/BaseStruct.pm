@@ -2398,6 +2398,12 @@ sub get_element_hash {
     return wantarray ? %$elements : $elements;
 }
 
+sub get_element_name_as_array_aa {
+    my ($self, $element) = @_;
+
+    return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
+}
+
 sub get_element_name_as_array {
     my $self = shift;
     my %args = @_;
@@ -2955,6 +2961,28 @@ sub get_hash_list_values {
         ? %{$self->{ELEMENTS}{$element}{$list}}
         : $self->{ELEMENTS}{$element}{$list};
 }
+
+#  array args version for speed
+sub get_array_list_values_aa {
+    my ($self, $element, $list) = @_;
+
+    no autovivification;
+
+    #$element // croak "Element not specified\n";
+    #$list    // croak "List not specified\n";
+
+    my $list_ref = $self->{ELEMENTS}{$element}{$list}
+      // Biodiverse::BaseStruct::ListDoesNotExist->throw (
+            message => "Element $element does not exist or does not have a list ref for $list\n",
+        );
+
+    #  does this need to be tested for?  Maybe caller beware is needed?
+    croak "List is not an array\n"
+      if reftype ($list_ref) ne 'ARRAY';
+
+    return wantarray ? @$list_ref : $list_ref;
+}
+
 
 sub get_array_list_values {
     my $self = shift;

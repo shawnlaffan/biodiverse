@@ -294,58 +294,6 @@ sub convert_comparisons_to_significances {
     return 1;
 }
 
-#  should be shifted to common
-sub get_significance_from_comp_results {
-    my $self = shift;
-    my %args = @_;
-    
-    #  could alias this
-    my $comp_list_ref    = $args{comp_list_ref}
-      // croak "comp_list_ref argument not specified\n";
-
-    my $results_list_ref = $args{results_list_ref} // {};
-
-    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
-    my @thresholds   = (0.01, 0.05);
-    my @sig_thresh_lo_1t = map {$_} @thresholds;
-    my @sig_thresh_hi_1t = map {1 - $_} @thresholds;
-    my @sig_thresh_lo_2t = map {$_ / 2} @thresholds;
-    my @sig_thresh_hi_2t = map {1 - ($_ / 2)} @thresholds;
-
-    foreach my $p_key (grep {$_ =~ /^P_/} keys %$comp_list_ref) {
-        no autovivification;
-        (my $index_name = $p_key) =~ s/^P_//;
-
-        my $c_key = 'C_' . $index_name;
-        my $t_key = 'T_' . $index_name;
-        my $q_key = 'Q_' . $index_name;
-
-        #  proportion observed higher than random
-        my $p_high = $comp_list_ref->{$p_key};
-        #  proportion observed lower than random 
-        my $p_low
-          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
-            /  $comp_list_ref->{$q_key};
-
-        #  this can be improved once working to reduce calls
-        #  (e.g. if sighi, then cannot be siglo)
-        my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t;
-        my $sig_lo_1t = first {$p_low  < $_} @sig_thresh_lo_1t;
-        my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t;
-        my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t;
-
-        $results_list_ref->{'SIG_1TAIL_' . $index_name}
-          =   defined ($sig_hi_1t) ? 1 - $sig_hi_1t
-            : defined ($sig_lo_1t) ? -$sig_lo_1t
-            : undef;
-        $results_list_ref->{'SIG_2TAIL_' . $index_name}
-          =   defined ($sig_hi_2t) ?  2 * (1 - $sig_hi_2t)
-            : defined ($sig_lo_2t) ? -2 * $sig_lo_2t
-            : undef;
-    }
-
-    return wantarray ? %$results_list_ref : $results_list_ref;
-}
             
 sub find_list_indices_across_elements {
     my $self = shift;

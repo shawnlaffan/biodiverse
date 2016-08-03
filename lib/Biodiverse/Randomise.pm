@@ -623,7 +623,6 @@ sub run_randomisation {
             }
         }
         
-
         #  save incremental basedata file
         if (   defined $args{save_checkpoint}
             && $$total_iterations =~ /$args{save_checkpoint}$/
@@ -649,6 +648,14 @@ sub run_randomisation {
             $target->clear_lists_across_elements_cache;
         }
         $target->delete_cached_value ('METADATA_CACHE');  #  avoid export issues in the GUI
+    }
+    
+    #  now update the sig thresholds
+    foreach my $target (@targets) {
+        next if !$target->can('convert_comparisons_to_significances');
+        $target->convert_comparisons_to_significances (
+            result_list_name => $results_list_name,
+        );
     }
 
     #  and keep a track of the randomisation state,

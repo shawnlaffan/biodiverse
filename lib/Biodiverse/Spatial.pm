@@ -9,7 +9,8 @@ use English qw { -no_match_vars };
 
 use Data::Dumper;
 use Scalar::Util qw /weaken blessed reftype/;
-use List::Util;
+use List::MoreUtils qw /firstidx lastidx/;
+use List::Util qw /first/;
 use Time::HiRes qw /time/;
 
 our $VERSION = '1.99_002';
@@ -176,6 +177,176 @@ sub compare {
     return 1;
 }
 
+#  convert the results of a compare run to significance thresholds
+#  need a better sub name
+sub convert_comparisons_to_significances {
+    my $self = shift;
+    my %args = @_;
+    
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
+
+    #my $bd = $self->get_param ('BASEDATA_REF');
+
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
+    # find all the relevant lists for this target name
+    #my %base_list_indices = $self->find_list_indices_across_elements;
+    my @target_list_names
+      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+        $self->get_lists_across_elements;
+
+    my $to_do = $self->get_element_count;
+    my $i = 0;
+    
+    #  maybe should make this an argument - recycle_if_possible -
+    #  and let the caller do the checks, as we don't have $comparison in here
+    my $recycled_results
+      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+    #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
+    #    $recycled_results = $args{no_recycle};
+    #}
+
+    my %done_base;
+    if ($recycled_results) {  #  set up some lists
+        foreach my $list_name (@target_list_names) {
+            $done_base{$list_name} = {};
+        }
+    }
+
+    COMP_BY_ELEMENT:
+    foreach my $element ($self->get_element_list) {
+        $i++;
+
+        $progress->update (
+            $progress_text . "(element $i / $to_do)",
+            $i / $to_do,
+        );
+
+        #  now loop over the list indices
+        BY_LIST:
+        foreach my $list_name (@target_list_names) {
+
+            next BY_LIST
+                if    $recycled_results
+                   && $done_base{$list_name}{$element};
+
+            my $comp_ref = $self->get_list_ref (
+                element     => $element,
+                list        => $list_name,
+                autovivify  => 0,
+            );
+
+            next BY_LIST if !$comp_ref; #  nothing to compare with...
+            next BY_LIST if (ref $comp_ref) =~ /ARRAY/;  #  skip arrays
+
+            my $result_list_name = $list_name;
+            $result_list_name =~ s/>>/>>sig>>/;
+
+            my $result_list_ref = $self->get_list_ref (
+                element => $element,
+                list    => $result_list_name,
+            );
+
+            $self->get_significance_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+
+            #  if results from both base and comp
+            #  are recycled then we can recycle the comparisons
+            if ($recycled_results) {
+                my $nbrs = $self->get_list_ref (
+                    element => $element,
+                    list    => 'RESULTS_SAME_AS',
+                );
+
+                my $results_ref = $self->get_list_ref (
+                    element => $element,
+                    list    => $result_list_name,
+                );
+
+                BY_RECYCLED_NBR:
+                foreach my $nbr (keys %$nbrs) {
+                    $self->add_to_lists (
+                        element           => $nbr,
+                        $result_list_name => $results_ref,
+                        use_ref           => 1,
+                    );
+                }
+                my $done_base_hash = $done_base{$list_name};
+                @{$done_base_hash}{keys %$nbrs}
+                    = values %$nbrs;
+            }
+        }
+
+    }
+
+    $self->set_last_update_time;
+
+    return 1;
+}
+
+#  should be shifted to common
+sub get_significance_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref    = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    my @thresholds   = (0.01, 0.05);
+    my @sig_thresh_lo_1t = map {$_} @thresholds;
+    my @sig_thresh_hi_1t = map {1 - $_} @thresholds;
+    my @sig_thresh_lo_2t = map {$_ / 2} @thresholds;
+    my @sig_thresh_hi_2t = map {1 - ($_ / 2)} @thresholds;
+
+    foreach my $p_key (grep {$_ =~ /^P_/} keys %$comp_list_ref) {
+        no autovivification;
+        (my $index_name = $p_key) =~ s/^P_//;
+
+        my $c_key = 'C_' . $index_name;
+        my $t_key = 'T_' . $index_name;
+        my $q_key = 'Q_' . $index_name;
+
+        #  proportion observed higher than random
+        my $p_high = $comp_list_ref->{$p_key};
+        #  proportion observed lower than random 
+        my $p_low
+          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            /  $comp_list_ref->{$q_key};
+
+        #  this can be improved once working to reduce calls
+        #  (e.g. if sighi, then cannot be siglo)
+        my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t;
+        my $sig_lo_1t = first {$p_low  < $_} @sig_thresh_lo_1t;
+        my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t;
+        my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t;
+
+        $results_list_ref->{'SIG_1TAIL_' . $index_name}
+          =   defined ($sig_hi_1t) ? 1 - $sig_hi_1t
+            : defined ($sig_lo_1t) ? -$sig_lo_1t
+            : undef;
+        $results_list_ref->{'SIG_2TAIL_' . $index_name}
+          =   defined ($sig_hi_2t) ?  2 * (1 - $sig_hi_2t)
+            : defined ($sig_lo_2t) ? -2 * $sig_lo_2t
+            : undef;
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+            
 sub find_list_indices_across_elements {
     my $self = shift;
     my %args = @_;

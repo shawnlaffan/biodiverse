@@ -3070,8 +3070,7 @@ sub add_to_hash_list {
 
     delete @args{qw /list element/};
     #  create it if not already there
-    $self->{ELEMENTS}{$element}{$list} = {}
-      if ! exists $self->{ELEMENTS}{$element}{$list};
+    $self->{ELEMENTS}{$element}{$list} //= {};
 
     #  now add to it
     $self->{ELEMENTS}{$element}{$list}

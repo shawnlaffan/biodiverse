@@ -1818,6 +1818,98 @@ sub test_spatial_allocation_order_fails {
     ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation does not involve mergers');
 }
 
+
+#  do we correctly calculate significance?
+#  issue #607
+sub test_significance_thresholds {
+    #  the basedata generation desperately needs refactoring - it is used in too many places
+    my $c  = 1;
+    my $c2 = $c / 2;
+    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [$c, $c], NAME => 'test_replicates');
+
+    #  we just need some groups and labels
+    my %labels = (1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd');
+    foreach my $x (1 .. 4) {
+        foreach my $y (1 .. 4) {
+          LABEL_ID:
+            foreach my $label_id (keys %labels) {
+                next LABEL_ID if $label_id < $x;
+                my $label = $labels{$label_id};
+                my $gp = ($x + $c2 . ':' . ($y + $c2));
+                $bd->add_element (label => $label, group => $gp, count => $x * $y);
+            }
+        }
+    }
+    #  and add a row of empties
+    foreach my $x (1 .. 4) {
+        my $y = 0;
+        my $gp = ($x + $c2 . ':' . ($y + $c2));
+        $bd->add_element (group => $gp, count => 0);
+    }
+    
+    my $prng_seed = 2345;
+    
+    #$bd->build_spatial_index (resolutions => [$c, $c]);
+    my $sp //= $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+    );
+    
+    my $rand = $bd->add_randomisation_output (name => 'rr');
+
+    my %rand_func_args = (
+        function   => 'rand_csr_by_group',
+        iterations => 9,
+        seed       => $prng_seed,
+        #return_rand_bd_array => 1,
+        #retain_outputs       => 1,
+    );
+    $rand->run_analysis (%rand_func_args);
+
+    my @valid_vals = (-0.05, -0.01, 0.01, 0.05);
+
+    subtest 'sig_thresh results valid' => sub {    
+        foreach my $gp ($sp->get_element_list) {
+            my $sig_listref = $sp->get_list_ref (
+                element    => $gp,
+                list       => "rr>>sig>>SPATIAL_RESULTS",
+                autovivify => 0,
+            );
+            my $rand_listref = $sp->get_list_ref (
+                element    => $gp,
+                list       => "rr>>SPATIAL_RESULTS",
+                autovivify => 0,
+            );
+            my %expected_keys;
+            foreach my $key (keys %$rand_listref) {
+                $key =~ s/^\w_//;
+                $expected_keys{"SIG_1TAIL_$key"}++;
+                $expected_keys{"SIG_2TAIL_$key"}++;
+            }
+            is_deeply (
+                [sort keys %$sig_listref],
+                [sort keys %expected_keys],
+                "got expected keys for $gp",
+            );
+            #  values are undef for non-sig, or the sig thresh passed (low is negated) 
+            foreach my $key (sort keys %$sig_listref) {
+                use List::MoreUtils qw /firstidx/;
+                my $value = $sig_listref->{$key};
+                if (defined $value) {
+                    cmp_ok (abs($value), '<', 0.05, "$key in correct interval, $gp");
+                    #  use eq, not ==, due to floating point issues with 0.1
+                    my $idx = firstidx {$_ eq $value} @valid_vals;
+                    ok ($idx != -1, "$value in valid set ($key, $idx), $gp");
+                }
+            }
+        }
+    };
+}
+
+
+
 #  put the results sets into a file
 #  returns null if not needed
 sub get_randomisation_result_set_fh {

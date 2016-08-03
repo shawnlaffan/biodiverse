@@ -1851,10 +1851,14 @@ sub test_significance_thresholds {
     
     #$bd->build_spatial_index (resolutions => [$c, $c]);
     my $sp //= $bd->add_spatial_output (name => 'sp');
-
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
         calculations => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+    );
+    #  we want a set of calcs per node
+    my $cl //= $bd->add_cluster_output (name => 'cl');
+    $cl->run_analysis (
+        spatial_calculations => [qw /calc_endemism_whole/],
     );
     
     my $rand = $bd->add_randomisation_output (name => 'rr');
@@ -1870,7 +1874,7 @@ sub test_significance_thresholds {
 
     my @valid_vals = (-0.05, -0.01, 0.01, 0.05);
 
-    subtest 'sig_thresh results valid' => sub {    
+    subtest 'sig_thresh results valid for spatial object' => sub {
         foreach my $gp ($sp->get_element_list) {
             my $sig_listref = $sp->get_list_ref (
                 element    => $gp,
@@ -1902,6 +1906,42 @@ sub test_significance_thresholds {
                     #  use eq, not ==, due to floating point issues with 0.1
                     my $idx = firstidx {$_ eq $value} @valid_vals;
                     ok ($idx != -1, "$value in valid set ($key, $idx), $gp");
+                }
+            }
+        }
+    };
+
+    subtest 'sig_thresh results valid for cluster object' => sub {
+        foreach my $node ($cl->get_node_refs) {
+            my $node_name = $node->get_name;
+            my $sig_listref = $node->get_list_ref (
+                list       => "rr>>sig>>SPATIAL_RESULTS",
+                autovivify => 0,
+            );
+            my $rand_listref = $node->get_list_ref (
+                list       => "rr>>SPATIAL_RESULTS",
+                autovivify => 0,
+            );
+            my %expected_keys;
+            foreach my $key (keys %$rand_listref) {
+                $key =~ s/^\w_//;
+                $expected_keys{"SIG_1TAIL_$key"}++;
+                $expected_keys{"SIG_2TAIL_$key"}++;
+            }
+            is_deeply (
+                [sort keys %$sig_listref],
+                [sort keys %expected_keys],
+                "got expected keys for $node_name",
+            );
+            #  values are undef for non-sig, or the sig thresh passed (low is negated) 
+            foreach my $key (sort keys %$sig_listref) {
+                use List::MoreUtils qw /firstidx/;
+                my $value = $sig_listref->{$key};
+                if (defined $value) {
+                    cmp_ok (abs($value), '<', 0.05, "$key in correct interval, $node_name");
+                    #  use eq, not ==, due to floating point issues with 0.1
+                    my $idx = firstidx {$_ eq $value} @valid_vals;
+                    ok ($idx != -1, "$value in valid set ($key, $idx), $node_name");
                 }
             }
         }

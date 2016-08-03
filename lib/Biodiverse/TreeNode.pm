@@ -1887,9 +1887,15 @@ sub add_to_lists {
     my $self = shift;
     my %args = @_;
     
+    my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
+    delete $args{use_ref};  #  should it be in its own sub?
+    
     #  create the list if not already there and then add to it
-    while (my ($list, $values) = each %args) {    
-        if ((ref $values) =~ /HASH/) {
+    while (my ($list, $values) = each %args) {
+        if ($use_ref) {
+            $self->{$list} = $values;
+        }
+        elsif ((ref $values) =~ /HASH/) {
             $self->{$list} = {} if ! exists $self->{$list};
             next if ! scalar keys %$values;
             @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
@@ -1900,8 +1906,7 @@ sub add_to_lists {
             push @{$self->{$list}}, @$values;
         }
         else {
-            carp "add_to_lists warning, no valid list ref passed\n";
-            return;
+            croak "add_to_lists warning, no valid list ref passed\n";
         }
     }
     

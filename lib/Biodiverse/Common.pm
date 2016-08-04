@@ -2265,17 +2265,25 @@ sub get_significance_from_comp_results {
     my %args = @_;
     
     #  could alias this
-    my $comp_list_ref    = $args{comp_list_ref}
+    my $comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
+    my (@sig_thresh_lo_1t, @sig_thresh_hi_1t, @sig_thresh_lo_2t, @sig_thresh_hi_2t);
     #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
-    my @thresholds   = (0.01, 0.05);
-    my @sig_thresh_lo_1t = map {$_} @thresholds;
-    my @sig_thresh_hi_1t = map {1 - $_} @thresholds;
-    my @sig_thresh_lo_2t = map {$_ / 2} @thresholds;
-    my @sig_thresh_hi_2t = map {1 - ($_ / 2)} @thresholds;
+    if ($args{thresholds}) {
+        @sig_thresh_lo_1t = sort {$a <=> $b} @{$args{thresholds}};
+        @sig_thresh_hi_1t = map {1 - $_} @sig_thresh_lo_1t;
+        @sig_thresh_lo_2t = map {$_ / 2} @sig_thresh_lo_1t;
+        @sig_thresh_hi_2t = map {1 - ($_ / 2)} @sig_thresh_lo_1t;    
+    }
+    else {
+        @sig_thresh_lo_1t = (0.01, 0.05);
+        @sig_thresh_hi_1t = (0.99, 0.95);
+        @sig_thresh_lo_2t = (0.005, 0.025);
+        @sig_thresh_hi_2t = (0.995, 0.975);
+    }
 
     foreach my $p_key (grep {$_ =~ /^P_/} keys %$comp_list_ref) {
         no autovivification;
@@ -2284,6 +2292,8 @@ sub get_significance_from_comp_results {
         my $c_key = 'C_' . $index_name;
         my $t_key = 'T_' . $index_name;
         my $q_key = 'Q_' . $index_name;
+        my $sig_1t_name = 'SIG_1TAIL_' . $index_name;
+        my $sig_2t_name = 'SIG_2TAIL_' . $index_name;
 
         #  proportion observed higher than random
         my $p_high = $comp_list_ref->{$p_key};
@@ -2292,21 +2302,21 @@ sub get_significance_from_comp_results {
           =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
             /  $comp_list_ref->{$q_key};
 
-        #  this can be improved once working to reduce calls
-        #  (e.g. if sighi, then cannot be siglo)
-        my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t;
-        my $sig_lo_1t = first {$p_low  < $_} @sig_thresh_lo_1t;
-        my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t;
-        my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t;
-
-        $results_list_ref->{'SIG_1TAIL_' . $index_name}
-          =   defined ($sig_hi_1t) ? 1 - $sig_hi_1t
-            : defined ($sig_lo_1t) ? -$sig_lo_1t
-            : undef;
-        $results_list_ref->{'SIG_2TAIL_' . $index_name}
-          =   defined ($sig_hi_2t) ?  2 * (1 - $sig_hi_2t)
-            : defined ($sig_lo_2t) ? -2 * $sig_lo_2t
-            : undef;
+        $results_list_ref->{$sig_1t_name} = undef;
+        $results_list_ref->{$sig_2t_name} = undef;
+        
+        if (my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t) {
+            $results_list_ref->{$sig_1t_name} = 1 - $sig_hi_1t;
+            if (my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t) {
+                $results_list_ref->{$sig_2t_name} = 2 * (1 - $sig_hi_2t);
+            }
+        }
+        elsif (my $sig_lo_1t = first {$p_low  < $_} @sig_thresh_lo_1t) {
+            $results_list_ref->{$sig_1t_name} = -$sig_lo_1t;
+            if (my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t) {
+                $results_list_ref->{$sig_2t_name} = -2 * $sig_lo_2t;
+            }
+        }
     }
 
     return wantarray ? %$results_list_ref : $results_list_ref;

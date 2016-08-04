@@ -1821,6 +1821,7 @@ sub test_spatial_allocation_order_fails {
 
 #  do we correctly calculate significance?
 #  issue #607
+#  a bit clunky in the testing
 sub test_significance_thresholds {
     #  the basedata generation desperately needs refactoring - it is used in too many places
     my $c  = 1;
@@ -1875,6 +1876,7 @@ sub test_significance_thresholds {
     my @valid_vals = (-0.05, -0.01, 0.01, 0.05);
 
     subtest 'sig_thresh results valid for spatial object' => sub {
+        my $defined_count = 0;
         foreach my $gp ($sp->get_element_list) {
             my $sig_listref = $sp->get_list_ref (
                 element    => $gp,
@@ -1902,17 +1904,20 @@ sub test_significance_thresholds {
                 use List::MoreUtils qw /firstidx/;
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
-                    cmp_ok (abs($value), '<', 0.05, "$key in correct interval, $gp");
+                    $defined_count++;
+                    cmp_ok (abs($value), '<=', 0.05, "$key in correct interval, $gp");
                     #  use eq, not ==, due to floating point issues with 0.1
                     my $idx = firstidx {$_ eq $value} @valid_vals;
                     ok ($idx != -1, "$value in valid set ($key, $idx), $gp");
                 }
             }
         }
+        ok ($defined_count, "At least some spatial sig values were defined (got $defined_count)");
     };
 
     subtest 'sig_thresh results valid for cluster object' => sub {
-        foreach my $node ($cl->get_node_refs) {
+        my $defined_count = 0;
+        foreach my $node ($cl->get_node_refs) {    
             my $node_name = $node->get_name;
             my $sig_listref = $node->get_list_ref (
                 list       => "rr>>sig>>SPATIAL_RESULTS",
@@ -1938,13 +1943,15 @@ sub test_significance_thresholds {
                 use List::MoreUtils qw /firstidx/;
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
-                    cmp_ok (abs($value), '<', 0.05, "$key in correct interval, $node_name");
+                    $defined_count++;
+                    cmp_ok (abs($value), '<=', 0.05, "$key in correct interval, $node_name");
                     #  use eq, not ==, due to floating point issues with 0.1
                     my $idx = firstidx {$_ eq $value} @valid_vals;
                     ok ($idx != -1, "$value in valid set ($key, $idx), $node_name");
                 }
             }
         }
+        ok ($defined_count, "At least some cluster node sig values were defined (got $defined_count)");
     };
 }
 

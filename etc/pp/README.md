@@ -31,7 +31,7 @@ Adapt this code as needed (from http://www.zewaren.net/site/?q=node/116).
 It is for a makefile, but seemed to have no effect when run independently using dmake.
 Running each command in sequence did work, though (tweaking as appropriate).
 
-
+```
 PERL_DIR = C:\strawberry_51613_x64\perl
 PAR_PACKER_SRC = C:\strawberry_51613_x64\cpan\build\PAR-Packer-1.018-XUXam8
 
@@ -44,7 +44,7 @@ all:
     cd /D $(PAR_PACKER_SRC)\myldr\ && dmake Static.pm
     attrib -R $(PERL_DIR)\site\lib\PAR\StrippedPARL\Static.pm
     copy /Y $(PAR_PACKER_SRC)\myldr\Static.pm $(PERL_DIR)\site\lib\PAR\StrippedPARL\Static.pm
-    
+```    
 
 
 ## Redundant ##

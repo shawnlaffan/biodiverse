@@ -15,7 +15,7 @@ use Cwd;
 
 use List::MoreUtils qw /any none/;
 
-our $VERSION = '1.99_002';
+our $VERSION = '1.99_003';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;

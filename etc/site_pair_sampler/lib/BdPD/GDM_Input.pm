@@ -16,7 +16,7 @@ use File::Spec;  #  for the cat_file sub
 use Scalar::Util qw /reftype/;
 use List::Util qw[min max];
 
-our $VERSION = '1.99_003';
+our $VERSION = '1.99_004';
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;  #  for remaps

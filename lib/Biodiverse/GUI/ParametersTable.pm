@@ -60,7 +60,7 @@ use Gtk2;
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '1.99_003';
+our $VERSION = '1.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;

@@ -7,7 +7,7 @@ use Readonly;
 use Scalar::Util qw /reftype/;
 use Clone qw /clone/;
 
-our $VERSION = '1.99_003';
+our $VERSION = '1.99_004';
 
 use parent qw /Biodiverse::Metadata/;
 

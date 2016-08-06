@@ -22,7 +22,7 @@ use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_003';
+our $VERSION = '1.99_004';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;

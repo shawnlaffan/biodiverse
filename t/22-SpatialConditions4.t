@@ -8,7 +8,7 @@ use English qw{
     -no_match_vars
 };
 
-use rlib;
+use Test::Lib;
 use Test::More;
 
 use Biodiverse::BaseData;

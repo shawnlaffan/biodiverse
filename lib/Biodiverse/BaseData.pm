@@ -22,10 +22,10 @@ use Spreadsheet::Read 0.60;
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)
-use Spreadsheet::ReadSXC qw //;
-use Spreadsheet::ParseExcel qw //;
-use Spreadsheet::ParseXLSX qw //;
-use Spreadsheet::XLSX qw //;
+require Spreadsheet::ReadSXC;
+require Spreadsheet::ParseExcel;
+require Spreadsheet::ParseXLSX;
+#require Spreadsheet::XLSX;  latest version does not install
 
 use English qw { -no_match_vars };
 
@@ -46,7 +46,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use parent qw {Biodiverse::Common};
 
@@ -123,6 +123,7 @@ sub new {
 
     foreach my $size (@$cell_sizes) {
         croak "Cell size $size is not numeric, you might need to check the locale\n"
+            . "(one that uses a . as the decimal place works best)\n"
             if ! looks_like_number ($size);
     }
 
@@ -867,10 +868,6 @@ sub import_data {
             )
             / $bytes_per_MB;
 
-        #  Get the header line, assumes no binary chars in it.
-        #  If there are then there is something really wrong with the file.
-        my $header = $file_handle->getline;
-
         #  for progress bar stuff
         my $size_comment
             = $file_size_Mb > 10
@@ -900,6 +897,10 @@ sub import_data {
             csv_object         => $in_csv,
         );
 
+        #  Get the header line, assumes no binary chars in it.
+        #  If there are then there is something really wrong with the file.
+        my $header = shift @$lines;
+
         #  parse the header line if we are using a matrix format file
         my $matrix_label_col_hash = {};
         if ($data_in_matrix_form) {
@@ -916,10 +917,7 @@ sub import_data {
             if (ref $label_end_col) {  
                 $label_end_col = $label_end_col->[-1];
             }
-            my $header_array = $self->csv2list (
-                csv_object => $in_csv,
-                string     => $header,
-            );
+            my $header_array = $header;
             $matrix_label_col_hash
                 = $self->get_label_columns_for_matrix_import  (
                     csv_object       => $out_csv,
@@ -1031,7 +1029,7 @@ sub import_data {
                 if ($cell_sizes[$i] >= 0) {
                     next BYLINE
                       if $skip_lines_with_undef_groups
-                         && (!defined $coord || $coord eq 'NA');
+                         && (!defined $coord || $coord eq 'NA' || $coord eq '');
 
                     if ($cell_is_lat_array[$i]) {
                         my $lat_args = {
@@ -1322,6 +1320,10 @@ sub import_data_raster {
         say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";  #  $tf[5] is negative to allow for line order
         #  avoid repeated array lookups below
         my ($tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5) = @tf;
+
+        #  does not allow for rotations, but not sure that it should sinec Biodiverse doesn't either.  
+        $cellsize_e ||= abs $tf_1;
+        $cellsize_n ||= abs $tf_5;
 
         # iterate over each band
         foreach my $b (1 .. $data->{RasterCount}) {
@@ -2578,6 +2580,42 @@ sub add_element {  #  run some calls to the sub hashes
     return;
 }
 
+#  add groups and labels without any of the options in add_element,
+#  array args version for speed
+sub add_element_simple_aa {
+    my ($self, $label, $group, $count, $csv_object) = @_;
+
+    $count //= 1;
+
+    my $gp_ref = $self->get_groups_ref;
+    if (not defined $label) {  #  one of these will break if neither label nor group is defined
+        $gp_ref->add_element (
+            element    => $group,
+            csv_object => $csv_object,
+        );
+        return;
+    }
+
+    my $lb_ref = $self->get_labels_ref;
+    if (not defined $group) {
+        $lb_ref->add_element (
+            element    => $label,
+            csv_object => $csv_object,
+        );
+        return;
+    }
+
+    if ($count) {
+        #  add the labels and groups as element and subelement
+        #  labels is the transpose of groups
+        $gp_ref->add_sub_element_aa ($group, $label, $count, $csv_object);
+        $lb_ref->add_sub_element_aa ($label, $group, $count, $csv_object);
+    }
+
+    1;
+}
+
+
 #  add elements from a collated hash
 #  assumes {gps}{labels}{counts}
 sub add_elements_collated {
@@ -2813,6 +2851,9 @@ sub transfer_element_properties {
         );
         $count ++;
     }
+
+    #  scorched earth approach
+    $to_elements_ref->delete_cached_values; # (keys => ['ELEMENT_PROPERTY_KEYS']);
 
     return $count;
 }
@@ -3149,7 +3190,7 @@ sub delete_groups {
     }
 
     foreach my $element (@$elements) {
-        $self->delete_element (type => 'GROUP', element => $element);
+        $self->delete_element (type => 'GROUPS', element => $element);
     }
 
     return;
@@ -3162,7 +3203,7 @@ sub delete_label {
     
     my $label = $args{label} // croak "Argument 'label' not defined\n";
     
-    return $self->delete_element (type => 'LABELS', element => $label);
+    return $self->delete_element (%args, type => 'LABELS', element => $label);
 }
 
 sub delete_group {
@@ -3171,7 +3212,7 @@ sub delete_group {
     
     my $group = $args{group} // croak "Argument 'group' not defined\n";
     
-    return $self->delete_element (type => 'GROUPS', element => $group);
+    return $self->delete_element (%args, type => 'GROUPS', element => $group);
 }
 
 
@@ -3240,24 +3281,97 @@ sub delete_sub_element {
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
 
-    $labels_ref->delete_sub_element_aa ($label, $group);
-    $groups_ref->delete_sub_element_aa ($group, $label);
+    my $labels_remaining = $labels_ref->delete_sub_element_aa ($label, $group) // 1;
+    my $groups_remaining = $groups_ref->delete_sub_element_aa ($group, $label) // 1;
 
     #  clean up if labels or groups are now empty
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
 
-    if ($delete_empty_gps && !$groups_ref->get_variety_aa ($group)) {
+    if ($delete_empty_gps && !$groups_remaining) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && !$labels_ref->get_variety_aa ($label)) {
+    if ($delete_empty_lbs && !$labels_remaining) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
         );
+    }
+
+    1;
+}
+
+#  Array args version of delete_sub_element.
+#  Always deletes elements if they are empty.
+sub delete_sub_element_aa {
+    my ($self, $label, $group) = @_;
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    #  return value of delete_sub_element_aa is the number of subelements remaining,
+    #  or undef if no subelements list
+
+    if (!($labels_ref->delete_sub_element_aa ($label, $group) // 1)) {
+        $self->delete_element (
+            type    => 'LABELS',
+            element => $label,
+        );
+    }
+
+    if (!($groups_ref->delete_sub_element_aa ($group, $label) // 1)) {
+        $self->delete_element (
+            type    => 'GROUPS',
+            element => $group,
+        );
+    }
+
+    1;
+}
+
+sub delete_sub_elements_collated_by_group {
+    my $self = shift;
+    my %args = @_;
+    my $gp_lb_hash = $args{data};
+
+    #  clean up if labels or groups are now empty
+    my $delete_empty_gps = $args{delete_empty_groups} // 1;
+    my $delete_empty_lbs = $args{delete_empty_labels} // 1;
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    my %labels_processed;
+
+    foreach my $group (keys %$gp_lb_hash) {
+        my $label_subhash = $gp_lb_hash->{$group};
+        foreach my $label (keys %$label_subhash) {
+            $labels_processed{$label}++;
+            $labels_ref->delete_sub_element_aa ($label, $group);
+            $groups_ref->delete_sub_element_aa ($group, $label);
+        }
+    }
+
+    if ($delete_empty_gps) {
+        foreach my $group (keys %$gp_lb_hash) {
+            next if $groups_ref->get_variety_aa ($group);
+            $self->delete_element (
+                type => 'GROUPS',
+                element => $group,
+            );
+        }
+    }
+    if ($delete_empty_lbs) {
+        foreach my $label (%labels_processed) {
+            next if $labels_ref->get_variety_aa ($label);
+            $self->delete_element (
+                type => 'LABELS',
+                element => $label,
+            );
+        }
     }
 
     1;
@@ -3505,11 +3619,19 @@ sub get_labels_in_group {  #  get a list of the labels that occur in $group
     return $self->get_groups_ref->get_sub_element_list(element => $args{group});
 }
 
-sub get_labels_in_group_as_hash {  #  get a hash of the labels that occur in $group
+#  get a hash of the labels that occur in $group
+sub get_labels_in_group_as_hash {
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
-    return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
+    #return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
+    $self->get_groups_ref->get_sub_element_hash_aa($args{group});
+}
+
+#  get a hash of the labels that occur in $group
+sub get_labels_in_group_as_hash_aa {
+    my ($self, $group) = @_;
+    $self->get_groups_ref->get_sub_element_hash_aa($group);
 }
 
 #  get the complement of the labels in a group
@@ -4278,8 +4400,10 @@ sub get_unique_randomisation_name {
     
     my $max = 0;
     foreach my $name (@names) {
-        my $num = $name =~ /$prefix(\d+)$/;
-        $max = $num if $num > $max;
+        if ($name =~ /^$prefix(\d+)$/) {
+            my $num = $1;
+            $max = $num if $num > $max;
+        }
     }
 
     my $unique_name = $prefix . ($max + 1);
@@ -4577,7 +4701,7 @@ sub merge {
     );
 
     foreach my $group ($from_bd->get_groups) {
-        my $tmp = $from_bd->get_labels_in_group_as_hash (group => $group);
+        my $tmp = $from_bd->get_labels_in_group_as_hash_aa ($group);
 
         if (!scalar keys %$tmp) {
             #  make sure we get any empty groups

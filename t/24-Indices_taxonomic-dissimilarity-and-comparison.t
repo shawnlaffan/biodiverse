@@ -5,7 +5,7 @@ use warnings;
 
 local $| = 1;
 
-use rlib;
+use Test::Lib;
 use Test::Most;
 
 use Biodiverse::TestHelpers qw{
@@ -24,6 +24,7 @@ run_indices_test1 (
         calc_simpson_shannon
         calc_sorenson
         calc_kulczynski2
+        calc_rw_turnover
     /],
     calc_topic_to_test => 'Taxonomic Dissimilarity and Comparison',
 );
@@ -70,7 +71,11 @@ __DATA__
         'Genus:sp30' => '0.0120481927710843',
         'Genus:sp5'  => '0.0120481927710843'
     },
-    TX_RAO_TN => 196
+    TX_RAO_TN => 196,
+    RW_TURNOVER   => '0.552184906870684',
+    RW_TURNOVER_A => '1.11111111111111',
+    RW_TURNOVER_B => 0,
+    RW_TURNOVER_C => '1.37007169884446'
 }
 
 

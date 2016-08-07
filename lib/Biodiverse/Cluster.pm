@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -1148,16 +1148,10 @@ sub get_most_similar_pair_using_tie_breaker {
 
     my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
     my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-    my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
-    if (!$tie_breaker_cache) {
-        $tie_breaker_cache = {};
-        $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
-    }
-    my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
-    if (!$tie_breaker_cmp_cache) {
-        $tie_breaker_cmp_cache = {};
-        $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
-    }
+    my $tie_breaker_cache
+      = $self->get_cached_value_dor_set_default_aa ('TIEBREAKER_CACHE', {});
+    my $tie_breaker_cmp_cache
+      = $self->get_cached_value_dor_set_default_aa ('TIEBREAKER_CMP_CACHE', {});
 
     my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
     my $breaker_keys   = $breaker_pairs->[0];
@@ -1715,6 +1709,8 @@ sub cluster {
         $root_node->set_value (MATRIX_ITER_USED => undef);
     }
 
+    $root_node->ladderise;
+
     if ($args{clear_cached_values}) {
         $root_node->delete_cached_values_below;
     }
@@ -1945,7 +1941,7 @@ sub get_values_for_linkage {
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
 }
 
-#  calculate the linkages fom the ground up
+#  calculate the linkages from the ground up
 sub link_recalculate {
     my $self = shift;
     my %args = @_;
@@ -1994,8 +1990,9 @@ sub link_recalculate {
         $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name) ;
     }
     elsif ($node2_ref) {
-        $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name);
+        $label_hash1 = $node2_ref->get_cached_value ($node1_2_cache_name);
     }
+
     #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
         $el1_list = [];

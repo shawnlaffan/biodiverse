@@ -26,7 +26,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -2398,6 +2398,12 @@ sub get_element_hash {
     return wantarray ? %$elements : $elements;
 }
 
+sub get_element_name_as_array_aa {
+    my ($self, $element) = @_;
+
+    return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
+}
+
 sub get_element_name_as_array {
     my $self = shift;
     my %args = @_;
@@ -2551,6 +2557,21 @@ sub get_sub_element_hash {
     #  End result is ~30% faster for this line, although that might not
     #  translate to much in real terms when it works at millions of iterations per second
     #  (hence the lack of further optimisations on this front for now).
+    wantarray ? %$hash : $hash;
+}
+
+sub get_sub_element_hash_aa {
+    my ($self, $element) = @_;
+
+    no autovivification;
+
+    croak "argument 'element' not specified\n"
+      if !defined $element;
+
+    #  Ideally we should throw an exception, but at the moment too many other
+    #  things need a result and we aren't testing for them.
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS} // {};
+
     wantarray ? %$hash : $hash;
 }
 
@@ -2801,9 +2822,10 @@ sub delete_sub_element_aa {
     croak "element not specified\n" if !defined $element;
     croak "subelement not specified\n" if !defined $sub_element;
 
-    return if ! exists $self->{ELEMENTS}{$element};
+    no autovivification;
 
-    my $href = $self->{ELEMENTS}{$element};
+    my $href = $self->{ELEMENTS}{$element}
+     // return;
 
     if (exists $href->{BASE_STATS}) {
         delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
@@ -2812,11 +2834,9 @@ sub delete_sub_element_aa {
             $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
         }
     }
-    if (exists $href->{SUBELEMENTS}) {
-        delete $href->{SUBELEMENTS}{$sub_element};
-    }
+    delete $href->{SUBELEMENTS}{$sub_element};
 
-    1;
+    scalar keys %{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {
@@ -2942,6 +2962,28 @@ sub get_hash_list_values {
         : $self->{ELEMENTS}{$element}{$list};
 }
 
+#  array args version for speed
+sub get_array_list_values_aa {
+    my ($self, $element, $list) = @_;
+
+    no autovivification;
+
+    #$element // croak "Element not specified\n";
+    #$list    // croak "List not specified\n";
+
+    my $list_ref = $self->{ELEMENTS}{$element}{$list}
+      // Biodiverse::BaseStruct::ListDoesNotExist->throw (
+            message => "Element $element does not exist or does not have a list ref for $list\n",
+        );
+
+    #  does this need to be tested for?  Maybe caller beware is needed?
+    croak "List is not an array\n"
+      if reftype ($list_ref) ne 'ARRAY';
+
+    return wantarray ? @$list_ref : $list_ref;
+}
+
+
 sub get_array_list_values {
     my $self = shift;
     my %args = @_;
@@ -3028,8 +3070,7 @@ sub add_to_hash_list {
 
     delete @args{qw /list element/};
     #  create it if not already there
-    $self->{ELEMENTS}{$element}{$list} = {}
-      if ! exists $self->{ELEMENTS}{$element}{$list};
+    $self->{ELEMENTS}{$element}{$list} //= {};
 
     #  now add to it
     $self->{ELEMENTS}{$element}{$list}
@@ -3163,7 +3204,9 @@ sub get_list_value_stats {
 
 sub clear_lists_across_elements_cache {
     my $self = shift;
-    $self->set_param (LISTS_ACROSS_ELEMENTS => undef);
+    my $keys = $self->get_cached_value_keys;
+    my @keys_to_delete = grep {$_ =~ /^LISTS_ACROSS_ELEMENTS/} @$keys;
+    $self->delete_cached_values (keys => \@keys_to_delete);
     return;
 }
 
@@ -3343,8 +3386,9 @@ sub get_hash_list_keys_across_elements {
             @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster
         }
     }
-
-    return wantarray ? keys %hash_keys : [keys %hash_keys];
+    my @sorted_keys = sort keys %hash_keys;
+    
+    return wantarray ? @sorted_keys : [@sorted_keys];
 }
 
 #  return a reference to the specified list

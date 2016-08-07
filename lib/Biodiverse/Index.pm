@@ -28,7 +28,7 @@ use List::Util;
 
 use Biodiverse::Progress;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use parent qw /Biodiverse::Common/;
 
@@ -734,6 +734,8 @@ CHANGES NEEDED
 
 =head1 Methods
 
+THIS IS COMPLETELY OUT OF DATE. 
+
 These assume you have declared an object called $self of a type that
 inherits these methods, normally:
 
@@ -746,15 +748,9 @@ inherits these methods, normally:
 
 =over 5
 
-=item $self->build_index ('contains' => 4);
+=item $self->build (resolutions => [1, 1]);
 
-Builds the index.
-
-The C<contains> argument is the average number of base
-elements to be contained in each index key, and controls the resolutions
-of the index axes.  If not specified then the default is 4.
-
-Specifying different values may (or may not) speed up your processing.
+Builds the index.  The size of the resolution array must match your input data.
 
 =item  $self->delete_index;
 

@@ -8,7 +8,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Gtk2;
 
@@ -254,22 +254,21 @@ sub show_all_labels {
     my $bd      = $data->get_param ('BASEDATA_REF') || $data;
 
     if (not $popup->{labels_model}) {
-        my %labels = $bd->get_labels_in_group_as_hash (group => $element);
+        my $labels_hash = $bd->get_labels_in_group_as_hash_aa ($element);
 
         my $smp_counts_are_floats = eval {$bd->sample_counts_are_floats};
         my $num_type = $smp_counts_are_floats
             ? 'Glib::Double'
             : 'Glib::Int';
-        
 
         my $model = Gtk2::ListStore->new(
             'Glib::String',
             $num_type,
         );
 
-        foreach my $label (sort keys %labels) {
+        foreach my $label (sort keys %$labels_hash) {
 
-            my $count = $labels{$label};
+            my $count = $labels_hash->{$label};
             my $iter  = $model->append;
             $model->set(
                 $iter,

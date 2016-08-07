@@ -5,7 +5,7 @@ package Biodiverse::GUI::Tabs::RegionGrower;
 use strict;
 use warnings;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use parent qw /
     Biodiverse::GUI::Tabs::Clustering
@@ -21,7 +21,7 @@ sub new {
     
     #  now add some additional stuff
     my $xml_page = $self->{xmlPage};
-    my $hbox = $xml_page->get_widget('hbox_cluster_metric');
+    my $hbox = $xml_page->get_object('hbox_cluster_metric');
     
     my $label_widget = Gtk2::Label->new('Objective function: ');
     my $combo_minmax = Gtk2::ComboBox->new_text();
@@ -33,7 +33,7 @@ sub new {
     $hbox->show_all;
 
     #  remove singletons by default 
-    my $singleton_widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+    my $singleton_widget = $self->{xmlPage}->get_object('chk_clear_singletons');
     $singleton_widget->set_active(1);
 
     $self->{combo_minmax} = $combo_minmax;

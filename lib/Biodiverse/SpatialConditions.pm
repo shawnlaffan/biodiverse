@@ -22,7 +22,7 @@ use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
@@ -598,6 +598,11 @@ sub verify {
     return wantarray ? %hash : \%hash;
 }
 
+my $locale_warning
+  =  "(this is often caused by locale issues - \n"
+   . "it is safest to run Biodiverse under a local that uses a . as the decimal place, e.g. 33.5 not 33,5)";
+
+
 #  calculate the distances between two sets of coords
 #  expects refs to two element arrays
 #  at the moment we are only calculating the distances
@@ -655,23 +660,24 @@ sub get_distances {
 
         my $coord1 = $element1[$i];
         croak
-            'coord1 value is not numeric (if you think it is numeric then check your locale): '
+            'coord1 value is not numeric: '
             . ( defined $coord1 ? $coord1 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
-            'coord2 value is not numeric (if you think it is numeric then check your locale): '
+            'coord2 value is not numeric: '
             . ( defined $coord2 ? $coord2 : 'undef' )
-            . "\n"
+            . "\n$locale_warning"
             if !looks_like_number($coord2);
 
-        $d[$i] =
+        my $d_val = 
             eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
 
-        $D[$i] = abs $d[$i];
-        $sum_D_sqr += $d[$i]**2;
+        $d[$i] = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $D[$i] = 0 + $self->set_precision_aa (abs $d_val, '%.10f');
+        $sum_D_sqr += $d_val**2;
 
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
@@ -681,9 +687,10 @@ sub get_distances {
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
                 if $cellsize[$i] <= 0;
 
-            $c[$i] = eval { $d[$i] / $cellsize[$i] };
-            $C[$i] = eval { abs $c[$i] };
-            $sum_C_sqr += eval { $c[$i]**2 } || 0;
+            my $c_val = eval { $d_val / $cellsize[$i] };
+            $c[$i] = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $C[$i] = 0 + $self->set_precision_aa (eval { abs $c_val }, '%.10f');
+            $sum_C_sqr += eval { $c_val**2 } || 0;
         }
     }
 
@@ -697,8 +704,8 @@ sub get_distances {
         : undef;
 
     my %hash = (
-        d_list => \@d,
-        D_list => \@D,
+        d_list => [map {0 + $self->set_precision_aa ($_)} @d],
+        D_list => [map {0 + $self->set_precision_aa ($_)} @D],
         D      => $D,
         Dsqr   => $sum_D_sqr,
         C      => $C,
@@ -1236,8 +1243,12 @@ sub sp_square {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{D_list} }; 
+    foreach my $dist (@{ $h->{dists}{D_list} }) {
+        warn "$dist, $size"
+          if    $args{size} == 0.2
+             && (abs ($size - $dist) < 0.00001)
+             && (abs ($size - $dist) > 0);
         return 0 if $dist > $size;
     }
 
@@ -1248,6 +1259,16 @@ sub get_metadata_sp_square_cell {
     my $self = shift;
     my %args = @_;
 
+    my $index_max_dist;
+    my $bd = eval {$self->get_basedata_ref};
+    if (defined $args{size} && $bd) {
+        my $cellsizes = $bd->get_cell_sizes;
+        my @u = uniq @$cellsizes;
+        if (@u == 1 && looks_like_number $u[0]) {
+            $index_max_dist = $args{size} * $u[0] / 2;
+        }
+    }
+
     my $description =
       'A square assessed against all dimensions '
       . "(more properly called a hypercube).\n"
@@ -1256,6 +1277,7 @@ sub get_metadata_sp_square_cell {
     my %metadata = (
         description => $description,
         use_cell_distance => 1,    #  need all the distances
+        index_max_dist    => $index_max_dist,
         required_args => ['size'],
         result_type   => 'square',
         example       => 'sp_square_cell (size => 3)',
@@ -1272,8 +1294,8 @@ sub sp_square_cell {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{C_list} };
+    foreach my $dist (@{ $h->{dists}{C_list} }) {
         return 0 if $dist > $size;
     }
 
@@ -1362,9 +1384,10 @@ sub get_metadata_sp_ellipse {
 
     my $description =
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
-      . q{which are used (default is [0,1]).  The default rotate_angle is pi/2.};
+      . q{which are used (default is [0,1]).  The default rotate_angle is 0, }
+      . q{such that the major axis is east-west.};
     my $example = <<'END_ELLIPSE_EX'
-# East west aligned ellipse
+# North-south aligned ellipse
 sp_ellipse (
     major_radius => 300000,
     minor_radius => 100000,
@@ -1421,12 +1444,12 @@ sub sp_ellipse {
     my $major_radius = $args{major_radius};    #  longest axis
     my $minor_radius = $args{minor_radius};    #  shortest axis
 
-    #  set the default offset as north in radians, anticlockwise 1.57 is north
-    my $rotate_angle =
-        defined $args{rotate_angle} ? $args{rotate_angle} : Math::Trig::pi2;
+    #  set the default offset as east-west in radians (anticlockwise 1.57 is north)
+    my $rotate_angle = $args{rotate_angle};
     if ( defined $args{rotate_angle_deg} and not defined $rotate_angle ) {
-        $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
+            $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
     }
+    $rotate_angle //= 0;
 
     my $d0 = $d[ $axes->[0] ];
     my $d1 = $d[ $axes->[1] ];
@@ -1948,13 +1971,7 @@ sub sp_select_sequence {
     $self->set_cached_value( $cache_last_coord_id_name => $coord_id1 );
     $self->set_cached_value( $cache_offset_name        => $offset );
 
-    my $cached_nbrs = $self->get_cached_value($cache_nbr_name);
-    if ( not $cached_nbrs ) {
-
-        #  cache this regardless - what matters is where it is used
-        $cached_nbrs = {};
-        $self->set_cached_value( $cache_nbr_name => $cached_nbrs );
-    }
+    my $cached_nbrs = $self->get_cached_value_dor_set_default_aa($cache_nbr_name, {});
 
     my $nbrs;
     if (    $use_cache
@@ -2532,11 +2549,7 @@ sub get_cache_points_in_shapepoly {
     my %args = @_;
 
     my $cache_name = 'cache_' . $args{file};
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
     return $cache;
 }
 
@@ -2544,11 +2557,7 @@ sub get_cache_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value($cache_name, {});
     return $cache;
 }
 
@@ -2556,11 +2565,7 @@ sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa($cache_name, {});
     return $cache;
 }
 
@@ -2575,7 +2580,7 @@ sub get_polygons_from_shapefile {
 
     my $field_val = $args{field_val};
 
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
+    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field // $NULL_STRING), ($field_val // $NULL_STRING);
     my $cached     = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;
@@ -2718,7 +2723,7 @@ sub get_metadata_sp_in_label_range {
     my %args = @_;
 
     my %metadata = (
-        description   => "Is a label within a group's range?",
+        description   => "Is a group within a label's range?",
         required_args => ['label'],
         optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
@@ -2728,6 +2733,7 @@ sub get_metadata_sp_in_label_range {
         example       =>
               qq{# Are we in the range of label called Genus:Sp1?\n}
             . q{sp_in_label_range(label => 'Genus:Sp1')}
+            . q{#  The type argument determines is the processing or neighbour group is assessed}
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2755,7 +2761,7 @@ sub sp_in_label_range {
 
     my $bd  = $h->{basedata};
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
+    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     my $exists = exists $labels_in_group->{$label};
 
@@ -2774,8 +2780,9 @@ sub get_example_sp_get_spatial_output_list_value {
 #  get the spatial results value for the current neighbour group
 # (or processing group if used as a def query)
 sp_get_spatial_output_list_value (
-    output  => 'sp1',
-    list    => 'SPATIAL_RESULTS',
+    output  => 'sp1',              #  using spatial output called sp1
+    list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
+    index   => 'PE_WE_P',          #  get index value for PE_WE_P
 )
 
 #  get the spatial results value for group 128:254
@@ -2783,6 +2790,7 @@ sp_get_spatial_output_list_value (
     output  => 'sp1',
     element => '128:254',
     list    => 'SPATIAL_RESULTS',
+    index   => 'PE_WE_P',
 )
 END_EXAMPLE_GSOLV
   ;

@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -49,20 +49,20 @@ sub new {
     $self->{project} = $gui->get_project();
     bless $self, $class;
 
-    # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
-    my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringPage');
-    my $xml_label = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringLabel');
+    my $xml_page = Gtk2::Builder->new();
+    $xml_page->add_from_file($gui->get_gtk_ui_file('hboxClusteringPage.ui'));
+    my $xml_label = Gtk2::Builder->new();
+    $xml_label->add_from_file($gui->get_gtk_ui_file('hboxClusteringLabel.ui'));
 
     $self->{xmlPage}  = $xml_page;
     $self->{xmlLabel} = $xml_label;
 
-    my $page  = $xml_page->get_widget('hboxClusteringPage');
-    my $label = $xml_label->get_widget('hboxClusteringLabel');
+    my $page  = $xml_page->get_object('hboxClusteringPage');
+    my $label = $xml_label->get_object('hboxClusteringLabel');
 
-
-    my $label_text = $self->{xmlLabel}->get_widget('lblClusteringName')->get_text;
+    my $label_text = $self->{xmlLabel}->get_object('lblClusteringName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
@@ -116,8 +116,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneClustering');
         $self->{existing} = 0;
-        $xml_page->get_widget('toolbarClustering')->hide;
-        $xml_page->get_widget('toolbar_clustering_bottom')->hide;
+        $xml_page->get_object('toolbarClustering')->hide;
+        $xml_page->get_object('toolbar_clustering_bottom')->hide;
     }
     else {  # We're being called to show an EXISTING output
 
@@ -153,12 +153,12 @@ sub new {
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY') //  $empty_string;
-        if (blessed $def_query_init1) { #  get the text if already an object 
+        if (blessed $def_query_init1) { #  get the text if already an object
             $def_query_init1 = $def_query_init1->get_conditions_unparsed();
             $defq_object     = $def_query_init1;
         }
         if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
-            my $spin_widget = $xml_page->get_widget('spinbutton_cluster_prng_seed');
+            my $spin_widget = $xml_page->get_object('spinbutton_cluster_prng_seed');
             $spin_widget->set_value ($prng_seed);
         }
     }
@@ -168,12 +168,12 @@ sub new {
     $self->setup_tie_breaker_widgets($cluster_ref);
 
     # Initialise widgets
-    $xml_page ->get_widget('txtClusterName')->set_text( $self->{output_name} );
-    $xml_label->get_widget('lblClusteringName')->set_text($self->{output_name} );
+    $xml_page ->get_object('txtClusterName')->set_text( $self->{output_name} );
+    $xml_label->get_object('lblClusteringName')->set_text($self->{output_name} );
     $self->{tab_menu_label}->set_text($self->{output_name});
 
-    $self->{title_widget} = $xml_page ->get_widget('txtClusterName');
-    $self->{label_widget} = $xml_label->get_widget('lblClusteringName');
+    $self->{title_widget} = $xml_page ->get_object('txtClusterName');
+    $self->{label_widget} = $xml_label->get_object('lblClusteringName');
     $self->set_label_widget_tooltip;
 
 
@@ -181,8 +181,8 @@ sub new {
         initial_text => $sp_initial1,
         condition_object => $spatial_conditions[0],
     );
-    $xml_page->get_widget('frameClusterSpatialParams1')->add(
-        $self->{spatialParams1}->get_widget,
+    $xml_page->get_object('frameClusterSpatialParams1')->add(
+        $self->{spatialParams1}->get_object,
     );
 
     my $start_hidden = not (length $sp_initial2);
@@ -191,8 +191,8 @@ sub new {
         start_hidden => $start_hidden,
         condition_object => $spatial_conditions[1],
     );
-    $xml_page->get_widget('frameClusterSpatialParams2')->add(
-        $self->{spatialParams2}->get_widget
+    $xml_page->get_object('frameClusterSpatialParams2')->add(
+        $self->{spatialParams2}->get_object
     );
 
     $start_hidden = not (length $def_query_init1);
@@ -202,12 +202,12 @@ sub new {
         is_def_query => 'is_def_query',
         condition_object => $defq_object,
     );
-    $xml_page->get_widget('frameClusterDefinitionQuery1')->add(
-        $self->{definition_query1}->get_widget
+    $xml_page->get_object('frameClusterDefinitionQuery1')->add(
+        $self->{definition_query1}->get_object
     );
 
-    $xml_page->get_widget('plot_length') ->set_active(1);
-    $xml_page->get_widget('group_length')->set_active(1);
+    $xml_page->get_object('plot_length') ->set_active(1);
+    $xml_page->get_object('group_length')->set_active(1);
     $self->{plot_mode}  = 'length';
     $self->{group_mode} = 'length';
 
@@ -242,17 +242,17 @@ sub new {
         );
 
     Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
-        $xml_page->get_widget('treeSpatialCalculations'),
+        $xml_page->get_object('treeSpatialCalculations'),
         $self->{calculations_model}
     );
 
     # Connect signals
-    $xml_label->get_widget('btnClose')->signal_connect_swapped(
+    $xml_label->get_object('btnClose')->signal_connect_swapped(
         clicked => \&on_close,
         $self,
     );
-    
-    $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
+
+    $self->{xmlPage}->get_object('chk_output_gdm_format')->set_sensitive (0);
 
     #$self->set_colour_stretch_widgets_and_signals;
 
@@ -302,11 +302,11 @@ sub new {
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
     }
 
-    
+
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
         #say $widget_name;
-        my $widget = $xml_page->get_widget($widget_name);
+        my $widget = $xml_page->get_object($widget_name);
         if (!defined $widget) {
             warn "$widget_name not found";
             next;
@@ -319,9 +319,7 @@ sub new {
 
     $self->choose_tool('Select');
 
-    $self->set_frame_label_widget;
-    
-    $self->{menubar} = $self->{xmlPage}->get_widget('menubar_clustering');
+    $self->{menubar} = $self->{xmlPage}->get_object('menubar_clustering');
     $self->update_export_menu;
     $self->init_colour_clusters;
 
@@ -349,10 +347,10 @@ sub init_colour_clusters {
 sub on_chk_output_to_file_changed {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('chk_output_to_file');
+    my $widget = $self->{xmlPage}->get_object('chk_output_to_file');
     my $active = $widget->get_active;
 
-    my $gdm_widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+    my $gdm_widget = $self->{xmlPage}->get_object('chk_output_gdm_format');
     $gdm_widget->set_sensitive($active);
 
     return;
@@ -364,7 +362,7 @@ sub setup_tie_breaker_widgets {
 
     my $xml_page = $self->{xmlPage};
     my $hbox_name = 'hbox_cluster_tie_breakers';
-    my $breaker_hbox = $xml_page->get_widget($hbox_name);
+    my $breaker_hbox = $xml_page->get_object($hbox_name);
 
     my ($tie_breakers, $bd);
     if ($existing) {
@@ -417,7 +415,7 @@ sub setup_tie_breaker_widgets {
 
         my $use_iter_minmax = 0;
         if (defined (my $minmax = $tie_breakers->[$k])) {
-            $use_iter_minmax = $minmax =~ /^min/ ? 0 : 1;
+            $use_iter_minmax = $minmax =~ /^max/ ? 0 : 1;
         }
         $combo_minmax->set_active ($use_iter_minmax || 0);
 
@@ -447,7 +445,7 @@ sub set_colour_stretch_widgets_and_signals {
     my $i = 0;
     foreach my $stretch (qw /min-max 5-95 2.5-97.5 min-95 min-97.5 5-max 2.5-max/) {
         my $widget_name = "radio_dendro_colour_stretch$i";
-        my $widget = $xml_page->get_widget($widget_name);
+        my $widget = $xml_page->get_object($widget_name);
 
         my $sub = sub {
             my $self = shift;
@@ -461,7 +459,7 @@ sub set_colour_stretch_widgets_and_signals {
         };
 
         $widget->signal_connect_swapped(
-            activate => $sub, 
+            activate => $sub,
             $self,
         );
         $i++;
@@ -475,26 +473,26 @@ sub set_colour_stretch_widgets_and_signals {
 #  change the explanation text - does nothing yet
 sub on_combo_linkage_changed {
     my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('label_explain_linkage');
-    
+
+    my $widget = $self->{xmlPage}->get_object('label_explain_linkage');
+
     my $linkage = $self->get_selected_linkage;
-    
+
     return;
 };
 
 #  change the explanation text
 sub on_combo_metric_changed {
     my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('label_explain_metric');
-    
+
+    my $widget = $self->{xmlPage}->get_object('label_explain_metric');
+
     my $metric = $self->get_selected_metric;
-    
+
     my $bd = $self->{basedata_ref} || $self->{project}->get_selected_base_data;
-    
+
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
-    
+
     my $source_sub = $indices_object->get_index_source (index => $metric);
     my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
@@ -506,34 +504,14 @@ sub on_combo_metric_changed {
 };
 
 
-sub set_frame_label_widget {
-    my $self = shift;
-    
-    my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget->show;
-
-    my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
-    $frame->set_label_widget ($widget);
-    
-    $widget->signal_connect_swapped (
-        clicked => \&on_show_hide_parameters,
-        $self,
-    );
-    $widget->set_active (0);
-    $widget->set_has_tooltip (1);
-    $widget->set_tooltip_text ('show/hide the parameters section');
-
-    return;
-}
-
 sub on_show_hide_parameters {
     my $self = shift;
 
-    my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
+    my $frame = $self->{xmlPage}->get_object('frame_cluster_parameters');
     my $widget = $frame->get_label_widget;
     my $active = $widget->get_active;
 
-    my $table = $self->{xmlPage}->get_widget('tbl_cluster_parameters');
+    my $table = $self->{xmlPage}->get_object('tbl_cluster_parameters');
 
     my $method = $active ? 'hide' : 'show';
     $table->$method;
@@ -544,9 +522,9 @@ sub on_show_hide_parameters {
 sub init_map {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_widget('mapFrame');
-    my $hscroll = $self->{xmlPage}->get_widget('mapHScroll');
-    my $vscroll = $self->{xmlPage}->get_widget('mapVScroll');
+    my $frame   = $self->{xmlPage}->get_object('mapFrame');
+    my $hscroll = $self->{xmlPage}->get_object('mapHScroll');
+    my $vscroll = $self->{xmlPage}->get_object('mapVScroll');
 
     my $click_closure = sub { $self->on_grid_popup(@_); };
     my $hover_closure = sub { $self->on_grid_hover(@_); };
@@ -578,13 +556,13 @@ sub init_map {
 sub init_dendrogram {
     my $self = shift;
 
-    my $frame       =  $self->{xmlPage}->get_widget('clusterFrame');
-    my $graph_frame =  $self->{xmlPage}->get_widget('graphFrame');
-    my $hscroll     =  $self->{xmlPage}->get_widget('clusterHScroll');
-    my $vscroll     =  $self->{xmlPage}->get_widget('clusterVScroll');
-    my $list_combo  =  $self->{xmlPage}->get_widget('comboMapList');
-    my $index_combo =  $self->{xmlPage}->get_widget('comboMapShow');
-    my $spinbutton  =  $self->{xmlPage}->get_widget('spinClusters');
+    my $frame       =  $self->{xmlPage}->get_object('clusterFrame');
+    my $graph_frame =  $self->{xmlPage}->get_object('graphFrame');
+    my $hscroll     =  $self->{xmlPage}->get_object('clusterHScroll');
+    my $vscroll     =  $self->{xmlPage}->get_object('clusterVScroll');
+    my $list_combo  =  $self->{xmlPage}->get_object('comboMapList');
+    my $index_combo =  $self->{xmlPage}->get_object('comboMapShow');
+    my $spinbutton  =  $self->{xmlPage}->get_object('spinClusters');
 
     my $hover_closure       = sub { $self->on_dendrogram_hover(@_); };
     my $highlight_closure   = sub { $self->on_dendrogram_highlight(@_); };
@@ -639,7 +617,7 @@ sub init_dendrogram {
 #  only show the legend if the menuitem says we can
 sub show_legend {
     my $self = shift;
-    my $widget = $self->{xmlPage}->get_widget('menuitem_cluster_show_legend');
+    my $widget = $self->{xmlPage}->get_object('menuitem_cluster_show_legend');
 
     if ($widget->get_active) {
         $self->{grid}->show_legend;
@@ -647,7 +625,7 @@ sub show_legend {
 }
 
 #  for completeness with show_legend
-#  simple wrapper 
+#  simple wrapper
 sub hide_legend {
     my $self = shift;
     $self->{grid}->hide_legend;
@@ -697,7 +675,7 @@ sub on_map_list_changed {
     };
     my $sensitive = defined $list;
     foreach my $widget (@widgets) {
-        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+        $self->{xmlPage}->get_object($widget)->set_sensitive($sensitive);
     }
 }
 
@@ -723,7 +701,7 @@ sub on_map_index_changed {
 sub init_map_show_combo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboMapShow');
+    my $combo = $self->{xmlPage}->get_object('comboMapShow');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, markup => 0);
@@ -734,7 +712,7 @@ sub init_map_show_combo {
 sub init_map_list_combo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboMapList');
+    my $combo = $self->{xmlPage}->get_object('comboMapList');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, markup => 0);
@@ -749,7 +727,7 @@ sub init_map_list_combo {
 sub on_combo_map_list_changed {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboMapList');
+    my $combo = $self->{xmlPage}->get_object('comboMapList');
 
     my $iter = $combo->get_active_iter;
     return if ! defined $iter; # this can occur if we are a new cluster output
@@ -776,17 +754,17 @@ sub on_combo_map_list_changed {
         menuitem_cluster_colour_mode_grey
     };
     foreach my $widget_name (@widgets) {
-        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        my $widget = $self->{xmlPage}->get_object($widget_name);
         if (!$widget) {
             warn "$widget_name not found\n";
             next;
         }
-        
+
         $widget->set_sensitive($sensitive);
     }
 
     #  don't show the indices options if there is no list
-    my $combo_widget = $self->{xmlPage}->get_widget('comboMapShow');
+    my $combo_widget = $self->{xmlPage}->get_object('comboMapShow');
     if ($sensitive) {
         $combo_widget->show;
     }
@@ -898,7 +876,7 @@ sub make_linkage_model {
 sub init_indices_combo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboMetric');
+    my $combo = $self->{xmlPage}->get_object('comboMetric');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => MODEL_NAME);
@@ -907,7 +885,7 @@ sub init_indices_combo {
     if ($self->{selected_index_iter}) {
         $combo->set_active_iter( $self->{selected_index_iter} );
     }
-    
+
     $self->on_combo_metric_changed;
 
     return;
@@ -916,7 +894,7 @@ sub init_indices_combo {
 sub init_linkage_combo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboLinkage');
+    my $combo = $self->{xmlPage}->get_object('comboLinkage');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => MODEL_NAME);
@@ -939,11 +917,11 @@ sub set_pane {
     my $pos  = shift;
     my $id   = shift;
 
-    my $pane = $self->{xmlPage}->get_widget($id);
+    my $pane = $self->{xmlPage}->get_object($id);
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Clustering tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
-    
+
     return;
 }
 
@@ -954,7 +932,7 @@ sub queue_set_pane {
     my $pos = shift;
     my $id = shift;
 
-    my $pane = $self->{xmlPage}->get_widget($id);
+    my $pane = $self->{xmlPage}->get_object($id);
 
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
@@ -964,7 +942,7 @@ sub queue_set_pane {
     );
     $self->{"set_paneSignalID$id"} = $sig_id;  #  ISSUE 417 ISSUES????
     $self->{"set_panePos$id"} = $pos;
-    
+
     return;
 }
 
@@ -979,7 +957,7 @@ sub set_pane_signal {
     $pane->signal_handler_disconnect( $self->{"set_paneSignalID$id"} );
     delete $self->{"set_panePos$id"};
     delete $self->{"set_paneSignalID$id"};
-    
+
     return;
 }
 
@@ -999,7 +977,7 @@ sub get_output_type {
 #sub on_close {
 #    my $self = shift;
 #    $self->{gui}->remove_tab($self);
-#    
+#
 #    return;
 #}
 
@@ -1010,7 +988,7 @@ sub remove {
     eval {$self->{dendrogram}->destroy()};
 
     $self->SUPER::remove;
-    
+
     return;
 }
 
@@ -1021,15 +999,15 @@ sub remove {
 #sub get_no_cache_abc_value {
 #    my $self = shift;
 #
-#    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
+#    my $widget = $self->{xmlPage}->get_object('chk_no_cache_abc');
 #
 #    return $widget->get_active;
 #}
 #
 #sub get_build_matrices_only {
 #    my $self = shift;
-#    
-#    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
+#
+#    my $widget = $self->{xmlPage}->get_object('chk_build_matrices_only');
 #
 #    return $widget->get_active;
 #}
@@ -1037,7 +1015,7 @@ sub remove {
 #sub get_output_gdm_format {
 #    my $self = shift;
 #
-#    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+#    my $widget = $self->{xmlPage}->get_object('chk_output_gdm_format');
 #
 #    return $widget->get_active;
 #}
@@ -1045,7 +1023,7 @@ sub remove {
 #sub get_keep_spatial_nbrs_output {
 #    my $self = shift;
 #
-#    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
+#    my $widget = $self->{xmlPage}->get_object('chk_keep_spatial_nbrs_output');
 #
 #    return $widget->get_active;
 #}
@@ -1053,7 +1031,7 @@ sub remove {
 #sub get_no_clone_matrices {
 #    my $self = shift;
 #
-#    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
+#    my $widget = $self->{xmlPage}->get_object('chk_no_clone_matrices');
 #
 #    return $widget->get_active;
 #}
@@ -1061,7 +1039,7 @@ sub remove {
 #sub get_clear_singletons {
 #    my $self = shift;
 #
-#    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+#    my $widget = $self->{xmlPage}->get_object('chk_clear_singletons');
 #
 #    return $widget->get_active;
 #}
@@ -1082,7 +1060,7 @@ sub get_flag_widget_values {
 
     foreach my $flag_name (@chk_flags) {
         my $widget_name = 'chk_' . $flag_name;
-        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        my $widget = $self->{xmlPage}->get_object($widget_name);
         $flag_hash{$flag_name} = $widget->get_active;
     }
 
@@ -1092,7 +1070,7 @@ sub get_flag_widget_values {
 sub get_prng_seed {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('spinbutton_cluster_prng_seed');
+    my $widget = $self->{xmlPage}->get_object('spinbutton_cluster_prng_seed');
 
     my $value = $widget->get_value;
 
@@ -1101,13 +1079,13 @@ sub get_prng_seed {
 
 sub get_tie_breakers {
     my $self = shift;
-    
+
     my $widgets = $self->{tie_breaker_widgets};
     my @choices;
     foreach my $widget (@$widgets) {
         push @choices, $widget->get_active_text;
     }
-    
+
     return wantarray ? @choices : \@choices;
 }
 
@@ -1122,29 +1100,29 @@ sub get_use_tie_breakers {
 
 sub get_output_file_handles {
     my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('chk_output_to_file');
-    
+
+    my $widget = $self->{xmlPage}->get_object('chk_output_to_file');
+
     return if not $widget->get_active;  #  undef if nothing set
-    
+
     #  get a file prefix and create as many handles
     #  as there are matrices to be created
     my @handles;
-    
-    my $file_chooser = Gtk2::FileChooserDialog->new ( 
+
+    my $file_chooser = Gtk2::FileChooserDialog->new (
         'Choose file prefix',
         undef,
         'save',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok'
     );
-    
+
     #  need to base on output name
     $file_chooser->set_current_name($self->{output_name} . '_matrix');
 
     my $file_pfx;
 
-    if ('ok' eq $file_chooser->run){    
+    if ('ok' eq $file_chooser->run){
        $file_pfx = $file_chooser->get_filename;
        print "file prefix $file_pfx\n";
     }
@@ -1172,23 +1150,23 @@ sub get_output_file_handles {
         open my $fh, '>', $filename or croak "Unable to open $filename to write to\n";
         push @handles, $fh;
     }
-    
+
     return wantarray ? @handles : \@handles;
 }
 
 #sub close_output_file_handles {
 #    my $self = shift;
 #    my %args = @_;
-#    
+#
 #    my $handles = $args{file_handles};
-#    
+#
 #    foreach my $fh ()
 #}
 
 sub get_selected_metric {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboMetric');
+    my $combo = $self->{xmlPage}->get_object('comboMetric');
     my $iter = $combo->get_active_iter;
     my $index = $self->{indices_model}->get($iter, MODEL_NAME);
     $index =~ s{\s.*}{};  #  remove anything after the first whitespace
@@ -1199,7 +1177,7 @@ sub get_selected_metric {
 sub get_selected_linkage {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboLinkage');
+    my $combo = $self->{xmlPage}->get_object('comboLinkage');
     my $iter = $combo->get_active_iter;
     return $self->{linkage_model}->get($iter, MODEL_NAME);
 }
@@ -1208,18 +1186,18 @@ sub get_selected_linkage {
 sub on_run {
     my $self = shift;
     my $button = shift;
-    
+
     return $self->on_run_analysis (@_);
 }
 
 sub get_overwrite_response {
     my ($self, $title, $text) = @_;
-    
+
     my $rerun_spatial_value = -20;
 
     my $dlg = Gtk2::Dialog->new(
         $title,
-        $self->{gui}->get_widget('wndMain'),
+        $self->{gui}->get_object('wndMain'),
         'modal',
         'gtk-yes' => 'ok',
         'gtk-no'  => 'no',
@@ -1232,14 +1210,14 @@ sub get_overwrite_response {
 
     my $response = $dlg->run;
     $dlg->destroy;
-    
+
     if ($response eq 'delete-event') {
         $response = 'cancel';
     }
     if ($response eq $rerun_spatial_value) {
         $response = 'run_spatial_calculations';
     }
-    
+
     return $response;
 }
 
@@ -1253,12 +1231,12 @@ sub on_run_analysis {
     return if $self->{definition_query1}->syntax_check('no_ok') ne 'ok';
 
     # Load settings...
-    my $output_name      = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    my $output_name      = $self->{xmlPage}->get_object('txtClusterName')->get_text();
     $self->{output_name} = $output_name;
     my $output_ref       = $self->{output_ref};
     my $pre_existing     = $self->{output_ref};
     my $new_analysis     = 1;
-    
+
     my $bd      = $self->{basedata_ref};
     my $project = $self->{project};
 
@@ -1293,7 +1271,7 @@ sub on_run_analysis {
             }
             #  Should really check if the analysis
             #  ran properly before setting this
-            $self->{project}->set_dirty;  
+            $self->{project}->set_dirty;
         }
 
         if ($new_analysis) {  #  we can simply rename it for now
@@ -1349,7 +1327,7 @@ sub on_run_analysis {
         $output_ref->run_analysis (
             %analysis_args,
             flatten_tree => 1,
-            
+
         )
     };
     if (Biodiverse::Cluster::MatrixExists->caught) {
@@ -1422,8 +1400,8 @@ sub on_run_analysis {
     }
 
     if (Biodiverse::GUI::YesNoCancel->run({header => 'display results?'}) eq 'yes') {
-        $self->{xmlPage}->get_widget('toolbar_clustering_bottom')->show;
-        $self->{xmlPage}->get_widget('toolbarClustering')->show;
+        $self->{xmlPage}->get_object('toolbar_clustering_bottom')->show;
+        $self->{xmlPage}->get_object('toolbarClustering')->show;
 
         if (defined $output_ref) {
             $self->{dendrogram}->set_cluster($output_ref, $self->{plot_mode});
@@ -1464,8 +1442,8 @@ sub on_dendrogram_hover {
          $node->get_value ('TERMINAL_NODE_LAST'),
     );
 
-    $self->{xmlPage}->get_widget('lblMap')->set_markup($map_text);
-    $self->{xmlPage}->get_widget('lblDendrogram')->set_markup($dendro_text);
+    $self->{xmlPage}->get_object('lblMap')->set_markup($map_text);
+    $self->{xmlPage}->get_object('lblDendrogram')->set_markup($dendro_text);
 
     return;
 }
@@ -1512,12 +1490,12 @@ sub on_grid_hover {
     if ($element) {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
-        
+
         my $node_ref = eval {$cluster_ref->get_node_ref (node => $element)};
         if ($self->{use_highlight_path} and $node_ref) {
             $self->{dendrogram}->highlight_path($node_ref);
         }
-        
+
         my $analysis_name = $self->{grid}{analysis};
         my $coloured_node = $self->get_coloured_node_for_element($element);
         if (defined $coloured_node && defined $analysis_name) {
@@ -1540,8 +1518,8 @@ sub on_grid_hover {
         $self->{dendrogram}->clear_highlights();
         $string = '';  #  clear the markup
     }
-    $self->{xmlPage}->get_widget('lblMap')->set_markup($string);
-    
+    $self->{xmlPage}->get_object('lblMap')->set_markup($string);
+
     return;
 }
 
@@ -1573,7 +1551,7 @@ sub on_grid_popup {
     };
 
     Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
-    
+
     return;
 }
 
@@ -1583,7 +1561,7 @@ sub on_dendrogram_popup {
     my $basedata_ref = $self->{basedata_ref};
     my ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
     Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
-    
+
     return;
 }
 
@@ -1742,9 +1720,9 @@ sub show_cluster_labels {
     # For each element, get its labels and put into %total_labels
     my %total_labels;
     foreach my $element (sort keys %{$elements}) {
-        my %labels = $basedata_ref->get_labels_in_group_as_hash(group => $element);
+        my $labels = $basedata_ref->get_labels_in_group_as_hash_aa($element);
         #print Data::Dumper::Dumper(\%labels);
-        @total_labels{keys %labels} = undef;
+        @total_labels{keys %$labels} = undef;
     }
 
     # Add each label into the model
@@ -1776,7 +1754,7 @@ sub show_cluster_elements {
 
     $popup->set_list_model($model);
     $popup->set_value_column(1);
-    
+
     return;
 }
 
@@ -1791,25 +1769,25 @@ sub show_cluster_elements {
 #  like get_cluster_output_ref
 sub on_name_changed {
     my $self = shift;
-    
+
     my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_widget('txtClusterName')->get_text();
-    
-    my $label_widget = $self->{xmlLabel}->get_widget('lblClusteringName');
+    my $name = $xml_page->get_object('txtClusterName')->get_text();
+
+    my $label_widget = $self->{xmllabel}->get_object('lblClusteringName');
     $label_widget->set_text($name);
-    
+
     my $tab_menu_label = $self->{tab_menu_label};
     $tab_menu_label->set_text($name);
 
-    
+
     my $param_widget
-            = $xml_page->get_widget('lbl_parameter_clustering_name');
+            = $xml_page->get_object('lbl_parameter_clustering_name');
     $param_widget->set_markup("<b>Name</b>");
 
     my $bd = $self->{basedata_ref};
 
     my $name_in_use = $bd->get_cluster_output_ref (name => $name);
-    
+
     #  make things go red
     if ($name_in_use) {
         #  colour the label red if the list exists
@@ -1819,7 +1797,7 @@ sub on_name_changed {
 
         $label =  $span_leader . $label . $span_ender;
         $label_widget->set_markup ($label);
-        
+
         $param_widget->set_markup ("$span_leader <b>Name </b>$span_ender");
 
         return;
@@ -1842,13 +1820,13 @@ sub on_name_changed {
         $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
-    
+
     return;
 }
 
 sub on_clusters_changed {
     my $self = shift;
-    my $spinbutton = $self->{xmlPage}->get_widget('spinClusters');
+    my $spinbutton = $self->{xmlPage}->get_object('spinClusters');
     $self->{dendrogram}->set_num_clusters($spinbutton->get_value_as_int);
 }
 
@@ -1890,9 +1868,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolCL");
+        my $widget = $self->{xmlPage}->get_object("btn${old_tool}ToolCL");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolCL");
+        my $new_widget = $self->{xmlPage}->get_object("btn${tool}ToolCL");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
@@ -1901,7 +1879,7 @@ sub choose_tool {
 
     $self->{grid}->{drag_mode}       = $drag_modes{$tool};
     $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
-    
+
     $self->set_display_cursors ($tool);
 }
 
@@ -1918,7 +1896,7 @@ sub on_use_highlight_path_changed {
     my $self = shift;
 
     #  set to complement - should get widget check value
-    $self->{use_highlight_path} = not $self->{use_highlight_path};  
+    $self->{use_highlight_path} = not $self->{use_highlight_path};
 
     #  clear any highlights
     if ($self->{dendrogram} && ! $self->{use_highlight_path}) {
@@ -1941,7 +1919,7 @@ sub on_menu_use_slider_to_select_nodes {
 
 sub set_cell_outline_menuitem_active {
     my ($self, $active) = @_;
-    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active($active);
+    $self->{xmlPage}->get_object('menu_cluster_cell_show_outline')->set_active($active);
 }
 
 
@@ -1980,13 +1958,13 @@ sub recolour {
 
 sub set_plot_min_max_values {
     my $self = shift;
-    
+
     #  nasty - should handle everything via this tab, not the dendrogram
     my $list  = $self->{dendrogram}->{analysis_list_name};
     my $index = $self->{dendrogram}->{analysis_list_index};
-    
+
     return if ! defined $list || ! defined $index;
-    
+
     my $stats = $self->{stats}{$list}{$index};
     if (not $stats) {
         $stats = $self->{output_ref}->get_list_stats (
@@ -1997,9 +1975,9 @@ sub set_plot_min_max_values {
 
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
-    
+
     $self->set_legend_ltgt_flags ($stats);
-    
+
     $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
 
     return;
@@ -2033,7 +2011,7 @@ sub on_menu_stretch_changed {
 sub on_stretch_changed {
     my $self = shift;
     my $sel  = shift || 'min-max';
-    
+
     if (blessed $sel) {
         #$sel = $sel->get_label;
         my $choice = $sel->get_active;

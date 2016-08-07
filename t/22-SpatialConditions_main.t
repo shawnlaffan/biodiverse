@@ -6,7 +6,7 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use rlib;
+use Test::Lib;
 use Scalar::Util qw /looks_like_number/;
 use Data::Dumper qw /Dumper/;
 #use Test::More tests => 255;
@@ -31,6 +31,14 @@ my %conditions = (
         '$D <= ##4' => 49,
         #'$d[0] <= ##4 && $d[0] >= -##4 && $D <= ##4' => 49,  #  exercise the spatial index offset search
     },
+    square => {
+        'sp_square (size => ##1)'    => 1,
+        'sp_square_cell (size => 1)' => 1,
+        'sp_square (size => ##2)'    => 9,
+        'sp_square_cell (size => 2)' => 9,
+        'sp_square (size => ##3)'    => 9,
+        'sp_square_cell (size => 3)' => 9,
+    },
     selectors => {
         'sp_select_all()' => 900,
         'sp_self_only()'  => 1,
@@ -48,7 +56,9 @@ my %conditions = (
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => 0)'   => 159,
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pi)'   => 159,
         'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip2)' => 159,
-        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4)' => 153,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4); #radflag' => 153,
+        #  degrees
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle_deg => 45); #degflag' => 153,
     },
     block => {
         'sp_block (size => ##3)' => 9,
@@ -65,11 +75,35 @@ sub main {
     my @res_pairs = get_sp_cond_res_pairs_to_use (@args);
     my %conditions_to_run = get_sp_conditions_to_run (\%conditions, @args);
 
+    my %results;
     foreach my $key (sort keys %conditions_to_run) {
         #diag $key;
-        test_sp_cond_res_pairs ($conditions{$key}, @res_pairs);
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
+    }
+
+    test_ellipse_angles_match(\%results);
+
+    #  zero the resolution for a bit of paranoia
+    foreach my $key (sort keys %conditions_to_run) {
+        next if not $key =~ 'circle';
+        $results{$key} = test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs, 1);  
     }
 
     done_testing;
     return 0;
+}
+
+sub test_ellipse_angles_match {
+    my $results = shift;
+    my $ellipse_results = $results->{ellipse};
+    foreach my $res_combo (sort keys %$ellipse_results) {
+        my $sub_hash = $ellipse_results->{$res_combo};
+        my @targets = grep {/flag$/} sort keys %$sub_hash;
+
+        is_deeply (
+            $sub_hash->{$targets[0]},
+            $sub_hash->{$targets[1]},
+            "ellipse nbr set matches for rotate_angle_deg and rotate_angle, $res_combo",
+        );
+    }
 }

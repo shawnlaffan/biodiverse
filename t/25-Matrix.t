@@ -6,7 +6,7 @@ use strict;
 use warnings;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 use Scalar::Util qw /blessed/;
 use File::Compare;
 

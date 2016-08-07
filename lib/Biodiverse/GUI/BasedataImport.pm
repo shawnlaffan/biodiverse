@@ -8,11 +8,10 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use File::Basename;
 use Gtk2;
-use Gtk2::GladeXML;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
@@ -34,7 +33,7 @@ my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 #  A few name setups for a change-over that never happened,
 #  so the the $import_n part is actually redundant.
-#  The other import dialogue (#3) is no longer in the glade file.  
+#  The other import dialogue (#3) is no longer in the xml file.
 my $import_n = ''; #  use "" for orig, 3 for the one with embedded params table
 my $import_dlg_name    = "dlgImport1";
 my $chk_new            = "chkNew$import_n";
@@ -47,13 +46,13 @@ my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
 my $combo_import_basedatas     = "comboImportBasedatas$import_n";
 my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
 
-my $text_idx      = 0;  # index in combo box 
+my $text_idx      = 0;  # index in combo box
 my $raster_idx    = 1;  # index in combo box of raster format
-my $shapefile_idx = 2;  # index in combo box 
+my $shapefile_idx = 2;  # index in combo box
 
 # maintain reference for these, to allow referring when import method changes
-my $txtcsv_filter; 
-my $allfiles_filter;  
+my $txtcsv_filter;
+my $allfiles_filter;
 my $shapefiles_filter;
 my $spreadsheets_filter;
 
@@ -85,34 +84,34 @@ sub run {
     #########
     my ($dlgxml, $dlg) = make_filename_dialog($gui);
     my $response = $dlg->run();
-    
+
     if ($response ne 'ok') {  #  clean up and drop out
         $dlg->destroy;
         return;
     }
-    
+
     my ($use_new, $basedata_ref);
     my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
-    my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
+    my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
     my @file_names_tmp = @filenames;
     if (scalar @filenames > 5) {
         @file_names_tmp = @filenames[0..5];
         push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';
     }
     my $file_list_as_text = join ("\n", @file_names_tmp);
-    my @def_cellsizes = (100000,100000);    
-    
-    $use_new = $dlgxml->get_widget($chk_new)->get_active();
+    my @def_cellsizes = (100000,100000);
+
+    $use_new = $dlgxml->get_object($chk_new)->get_active();
 
     #  do we want to import each file into its own basedata?
-    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
+    my $w = $dlgxml->get_object($chk_import_one_bd_per_file);
     my $one_basedata_per_file = $w->get_active();
     my %multiple_brefs;  # mapping from basedata name (eg from shortened file) to basedata ref
     my %multiple_file_lists;  # mapping from basedata name to array (ref) of files
     my %multiple_is_new;  # mapping from basedata name to flag indicating if new (vs existing) basedata ref
-    
+
     if ($one_basedata_per_file) {
         # create a new basedata for each file
         # get existing basedatas (in tree form), to check if given name exists
@@ -129,13 +128,13 @@ sub run {
                 my($name, $dir, $suffix) = fileparse($file, qr/\.[^.]*/);
                 $dispname = $name;
 
-                # if use_new flag is not set, check if basedata exists with given file 
+                # if use_new flag is not set, check if basedata exists with given file
                 # name, if so add to existing.  if not found, a new basedata will be created
                 if (! $use_new) {
                     foreach my $existing_bdref (@$basedata_list) {
                         if ($existing_bdref->get_param('NAME') eq $dispname) {
                             $existing = 1;
-                            $basedata_ref = $existing_bdref; 
+                            $basedata_ref = $existing_bdref;
                             last;
                         }
                     }
@@ -153,9 +152,9 @@ sub run {
             $multiple_file_lists{$file} = [$file];
             $multiple_is_new{$file}     = ! $existing;
         }
-    } 
+    }
     elsif ($use_new) {
-        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
+        my $basedata_name = $dlgxml->get_object($txt_import_new)->get_text();
 
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
@@ -167,7 +166,7 @@ sub run {
     }
     else {
         # Get selected basedata
-        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
+        my $selected = $dlgxml->get_object($combo_import_basedatas)->get_active_iter();
         $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
         my $basedata_name = $basedata_ref->get_param ('NAME');
         $multiple_brefs{$basedata_name} = $basedata_ref;
@@ -175,16 +174,17 @@ sub run {
     }
 
     # interpret if raster, text etc depending on format box
-    my $read_format = lc $dlgxml->get_widget($file_format)->get_active_text;
-    
+    my $read_format = lc $dlgxml->get_object($file_format)->get_active_text;
+
     $dlg->destroy();
 
     #########
     # 1a. Get parameters to use
     #########
-    $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-    $dlg = $dlgxml->get_widget('dlgImportParameters');
-    
+    $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
+    $dlg = $dlgxml->get_object('dlgImportParameters');
+
     #  add file name labels to display
     my $vbox = Gtk2::VBox->new (0, 0);
     my $file_title = Gtk2::Label ->new('<b>Files:</b>');
@@ -195,7 +195,7 @@ sub run {
     my $file_list_label = Gtk2::Label->new($file_list_as_text . "\n\n");
     $file_list_label->set_alignment (0, 1);
     $vbox->pack_start ($file_list_label, 0, 0, 0);
-    my $import_vbox = $dlgxml->get_widget('import_parameters_vbox');
+    my $import_vbox = $dlgxml->get_object('import_parameters_vbox');
     $import_vbox->pack_start($vbox, 0, 0, 0);
     $import_vbox->reorder_child($vbox, 0);  #  move to start
 
@@ -203,16 +203,16 @@ sub run {
     # Get the Parameters metadata
     # start with common parameters
     my %args = $basedata_ref->get_args (sub => 'import_data_common');
-    
+
     # set visible fields in import dialog
     if ($read_format eq 'text') {
         my %text_args = $basedata_ref->get_args (sub => 'import_data_text');
-        
+
         # add new params to args
-        push @{$args{parameters}}, @{$text_args{parameters}};         
+        push @{$args{parameters}}, @{$text_args{parameters}};
     }
     elsif ($read_format eq 'raster') {
-        my %raster_args = $basedata_ref->get_args (sub => 'import_data_raster');        
+        my %raster_args = $basedata_ref->get_args (sub => 'import_data_raster');
 
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
@@ -268,34 +268,35 @@ sub run {
             $thisp->set_default ($cell_origins[0]) if ($thisp->get_name eq 'raster_origin_e');
             $thisp->set_default ($cell_origins[1]) if ($thisp->get_name eq 'raster_origin_n');
             $thisp->set_default ($cell_sizes[0])   if ($thisp->get_name eq 'raster_cellsize_e');
-            $thisp->set_default ($cell_sizes[1])   if ($thisp->get_name eq 'raster_cellsize_n');        
+            $thisp->set_default ($cell_sizes[1])   if ($thisp->get_name eq 'raster_cellsize_n');
         }
     }
 
     # Build widgets for parameters
-    my $table = $dlgxml->get_widget ('tableImportParameters');
-    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
+    my $table = $dlgxml->get_object ('tableImportParameters');
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill ($table_params, $table, $dlgxml);
 
     $dlg->show_all;
     $response = $dlg->run;
     $dlg->destroy;
 
-    if ($response ne 'ok') {  
+    if ($response ne 'ok') {
         #  clean up and drop out
         cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
             if $use_new || $one_basedata_per_file;
         return;
     }
-    my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    my $import_params = $parameters_table->extract ($extractors);
     %import_params = @$import_params;
-    
+
     # next stage, if we are reading as raster, just call import function here and exit.
-    # for shapefile and text, find columns and ask how to interpret 
+    # for shapefile and text, find columns and ask how to interpret
     my $col_names_for_dialog;
     my $col_options = undef;
     my $use_matrix;
-    
+
     # (no pre-processing needed for raster)
 
     if ($read_format eq 'raster') {
@@ -329,7 +330,7 @@ sub run {
 
         #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
         #  these will then be fed into make_columns_dialog
-        my $fld_names = $shapefile->get_dbf_field_names // [];  
+        my $fld_names = $shapefile->get_dbf_field_names // [];
         push @field_names, @$fld_names;
 
         $col_names_for_dialog = \@field_names;
@@ -343,7 +344,7 @@ sub run {
         my (@line2_cols, @header);
 
         if ($read_format eq 'text') {
-            
+
             my $fh;
 
             # have unicode filename issues - see https://github.com/shawnlaffan/biodiverse/issues/272
@@ -357,17 +358,22 @@ sub run {
                 $msg .= "\n";
                 croak $msg;
             }
-    
+
             my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
                 fname => $filename_utf8,
             );
-    
+
+            #  Sometimes we have \r as a separator which messes up the csv2list calls
+            #  We should really just use csv->get_line directly, but csv2list has other
+            #  error handling code
+            local $/ = $csv_obj->eol;
+
             my $line = <$fh>;
             @header  = $gui->get_project->csv2list(
                 string      => $line,
                 csv_object  => $csv_obj,
             );
-    
+
             #  R data frames are saved missing the first field in the header
             my $is_r_data_frame = check_if_r_data_frame (
                 file       => $filenames[0],
@@ -379,11 +385,13 @@ sub run {
             }
 
             # check data, if additional lines in data, append in column list.
-            my $line2 = <$fh>;
-            @line2_cols  = $gui->get_project->csv2list(
-                string      => $line2,
-                csv_object  => $csv_obj,
-            );
+            if (!$fh->eof) {  #  handle files with headers only
+                my $line2 = <$fh>;
+                @line2_cols  = $gui->get_project->csv2list(
+                    string      => $line2,
+                    csv_object  => $csv_obj,
+                );
+            }
 
             close $fh;
         }
@@ -397,7 +405,7 @@ sub run {
             my @sheet_names = sort {$sheets->{$a} <=> $sheets->{$b}} keys %$sheets;
             #  need to find which one they want
             my $sheet_id = 1;
-            
+
             my $param = bless {
                 type    => 'choice',
                 choices => \@sheet_names,
@@ -406,11 +414,13 @@ sub run {
             }, $parameter_metadata_class;
 
             #  get the sheet ID - need to refactor this code
-            my $s_dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-            $dlg = $s_dlgxml->get_widget('dlgImportParameters');
-            my $table = $s_dlgxml->get_widget ('tableImportParameters');
-            # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-            my $extractors = Biodiverse::GUI::ParametersTable::fill ([$param], $table, $s_dlgxml); 
+            my $s_dlgxml = Gtk2::Builder->new();
+            $s_dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
+            $dlg = $s_dlgxml->get_object('dlgImportParameters');
+            my $table = $s_dlgxml->get_object ('tableImportParameters');
+            # (passing $dlgxml because generateFile uses existing widget on the dialog)
+            my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+            my $extractors = $parameters_table->fill ([$param], $table, $s_dlgxml);
 
             $dlg->show_all;
             $response = $dlg->run;
@@ -418,7 +428,7 @@ sub run {
 
             return if $response ne 'ok';
 
-            my $chosen_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+            my $chosen_params = $parameters_table->extract ($extractors);
             my %chosen_params = @$chosen_params;
             $sheet_id = $sheets->{$chosen_params{'sheet_id'}};
 
@@ -429,7 +439,7 @@ sub run {
 
             #  avoid the need to re-read the file,
             #  as import_data_spreadsheet can handle books as file args
-            $filenames[0] = $book;  
+            $filenames[0] = $book;
         }
 
         # Check for empty fields in header.
@@ -444,7 +454,7 @@ sub run {
         }
         while($col_num <= $#line2_cols) {
             $header[$col_num] = "col_$col_num";
-            $col_num++;         
+            $col_num++;
         }
 
         $use_matrix = $import_params{data_in_matrix_form};
@@ -453,7 +463,7 @@ sub run {
 
         if ($use_matrix) {
             $col_options = [qw /
-                Ignore  
+                Ignore
                 Group
                 Text_group
                 Label_start_col
@@ -472,20 +482,20 @@ sub run {
         my $row_widgets;
         ($dlg, $row_widgets) = make_columns_dialog (
             header      => $col_names_for_dialog,
-            wnd_main    => $gui->get_widget('wndMain'),
+            wnd_main    => $gui->get_object('wndMain'),
             row_options => $col_options,
             file_list_text => $file_list_as_text,
             max_opt_rows   => $import_params{max_opt_cols},
             gp_axis_precision => $import_params{gp_axis_precision},
         );
-        
+
         GET_COLUMN_TYPES:
         while (1) { # Keep showing dialog until have at least one label & group
             $response = $dlg->run();
-    
+
             last GET_COLUMN_TYPES
               if $response ne 'help' && $response ne 'ok';
-    
+
             if ($response eq 'help') {
                 #  do stuff
                 #print "hjelp me!\n";
@@ -504,13 +514,13 @@ sub run {
                 else {
                     $num_labels = scalar @{$column_settings->{labels}};
                 }
-    
+
                 last GET_COLUMN_TYPES if $num_groups && $num_labels;
-    
+
                 my $text = $use_matrix
                      ? 'Please select at least one group and the label start column'
                      : 'Please select at least one label and one group column';
-                
+
                 my $msg = Gtk2::MessageDialog->new (
                     undef,
                     'modal',
@@ -518,14 +528,14 @@ sub run {
                     'ok',
                     $text
                 );
-                
+
                 $msg->run();
                 $msg->destroy();
                 $column_settings = undef;
             }
         }
         $dlg->destroy();
-        
+
         if (not $column_settings) {  #  clean up and drop out
             cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
                 if ($use_new || $one_basedata_per_file);
@@ -543,18 +553,18 @@ sub run {
             $column_settings->{labels}
                 = [{name => 'From file', id => 0}];
         }
-        
+
         ($dlgxml, $dlg) = make_reorder_dialog($gui, $column_settings);
         $response = $dlg->run();
-        
+
         $reorder_params = fill_params($dlgxml);
         $dlg->destroy();
-    
+
         if ($response ne 'ok') {  #  clean up and drop out
             cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui) if ($use_new || $one_basedata_per_file);
             return;
         }
-    
+
         if ($use_matrix) {
             $column_settings->{labels} = $old_labels_array;
         }
@@ -568,9 +578,9 @@ sub run {
     #########
     my %other_properties = (
         label => [qw /range sample_count/],
-        group => ['sample_count'],    
+        group => ['sample_count'],
     );
-    
+
     foreach my $type (qw /label group/) {
         if ($import_params{"use_$type\_properties"}) {
             my %remap_data = get_remap_info (
@@ -609,31 +619,31 @@ sub run {
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
-    #    not reordered while fill_params deals with the re-ordering.  
+    #    not reordered while fill_params deals with the re-ordering.
     my @sample_count_columns;
     foreach my $index (@{$column_settings->{sample_counts}}) {
         push @sample_count_columns, $index->{id};
     }
-    
+
     my @include_columns;
     foreach my $index (@{$column_settings->{include_columns}}) {
         push @include_columns, $index->{id};
     }
-    
+
     my @exclude_columns;
     foreach my $index (@{$column_settings->{exclude_columns}}) {
         push @exclude_columns, $index->{id};
     }
-    
+
     my %rest_of_options;
     my %checked_already;
     my @tmp = qw/sample_counts exclude_columns include_columns groups labels/;
     @checked_already{@tmp} = (1) x scalar @tmp;  #  clunky
-    
+
     COLUMN_SETTING:
     foreach my $key (keys %$column_settings) {
         next COLUMN_SETTING if exists $checked_already{$key};
-        
+
         my $array_ref = [];
         foreach my $index (@{$column_settings->{$key}}) {
             push @$array_ref, $index->{id};
@@ -642,7 +652,7 @@ sub run {
         $rest_of_options{$key} = $array_ref;
     }
 
-    #  get the various columns    
+    #  get the various columns
     my %gp_lb_cols;
     while (my ($key, $value) = each %$reorder_params) {
         next if $key =~ /^CELL_(?:SIZE|ORIGINS)/;
@@ -692,7 +702,7 @@ sub run {
                 )
             };
         }
-    } 
+    }
     elsif ($read_format eq 'text') {
         foreach my $bdata (keys %multiple_file_lists) {
             $success &&= eval {
@@ -708,7 +718,7 @@ sub run {
             };
         }
     }
-    
+
     if ($EVAL_ERROR) {
         my $text = $EVAL_ERROR;
         if (not $use_new) {
@@ -718,9 +728,33 @@ sub run {
     }
 
     if ($success) {
+        if (    $use_new
+            && !$one_basedata_per_file
+            && !$basedata_ref->get_label_count
+            && !$basedata_ref->get_group_count
+            ) {
+            #  we are empty!
+            my $message = "No valid records were imported into this basedata.\n"
+                        . 'do you want to add it to the project anyway?';
+            my $response = Biodiverse::GUI::YesNoCancel->run({header => $message});
+            return if $response ne 'yes';
+        }
+
         if ($use_new || $one_basedata_per_file) {
+            #  warn if they are all empty
+            my $sum = 0;
+            foreach my $bd (values %multiple_brefs) {
+                $sum += $bd->get_group_count + $bd->get_label_count;
+                last if $sum;
+            }
+            if (!$sum) {
+                my $message = "No valid records were imported into any basedata.\n"
+                            . 'do you want to add them to the project anyway?';
+                my $response = Biodiverse::GUI::YesNoCancel->run({header => $message});
+                return if $response ne 'yes';
+            }
             foreach my $file (keys %multiple_brefs) {
-                next if (! $multiple_is_new{$file});
+                next if !$multiple_is_new{$file};
                 $gui->get_project->add_base_data($multiple_brefs{$file});
             }
         }
@@ -746,10 +780,10 @@ sub cleanup_new_basedatas {
 
 sub check_if_r_data_frame {
     my %args = @_;
-    
+
     my $package = 'Biodiverse::Common';
     my $csv = $args{csv_object} // $package->get_csv_object (@_);
-    
+
     my $fh;
     open ($fh, '<:via(File::BOM)', $args{file})
         || croak "Unable to open file $args{file}\n";
@@ -772,7 +806,7 @@ sub check_if_r_data_frame {
             last;
         }
     }
-    
+
     return $is_r_style;
 }
 
@@ -855,11 +889,11 @@ sub get_column_settings {
             # initialise
             if (not exists $rest_of_options{$type}
                 or reftype ($rest_of_options{$type}) eq 'ARRAY'
-                ) {  
+                ) {
                 $rest_of_options{$type} = [];
             }
             my $array_ref = $rest_of_options{$type};
-            
+
             my $hash_ref = {
                 name    => $headers->[$i],
                 id      => $i,
@@ -876,7 +910,7 @@ sub get_column_settings {
         include_columns => \@include_columns,
         %rest_of_options,
     );
-    
+
     return wantarray ? %results : \%results;
 }
 
@@ -884,8 +918,8 @@ sub get_column_settings {
 sub fill_params {
     my $dlgxml = shift;
 
-    my $labels_model = $dlgxml->get_widget('labels')->get_model();
-    my $groups_model = $dlgxml->get_widget('groups')->get_model();
+    my $labels_model = $dlgxml->get_object('labels')->get_model();
+    my $groups_model = $dlgxml->get_object('groups')->get_model();
     my $iter;
 
     my %params = (
@@ -903,7 +937,7 @@ sub fill_params {
         my $info = $labels_model->get($iter, 1);
 
         push (@{$params{'LABEL_COLUMNS'}}, $info->{id});
-    
+
         $iter = $labels_model->iter_next($iter);
     }
 
@@ -929,7 +963,7 @@ sub fill_params {
 sub explain_import_col_options {
     my $parent     = shift;
     my $use_matrix = shift;
-    
+
     my %explain = (
         Ignore          => 'There is no setting for this column.  '
                          . 'It will be ignored or used depending on your other settings.',
@@ -1076,10 +1110,11 @@ sub make_reorder_dialog {
     my $gui = shift;
     my $columns = shift;
 
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgReorderColumns');
-    my $dlg = $dlgxml->get_widget('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
-    
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgReorderColumns.ui'));
+    my $dlg = $dlgxml->get_object('dlgReorderColumns');
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
+
     my $list_groups = setup_reorder_list('groups', $dlgxml, $columns->{groups});
     my $list_labels = setup_reorder_list('labels', $dlgxml, $columns->{labels});
 
@@ -1094,11 +1129,11 @@ sub make_reorder_dialog {
     );
 
     # Connect up/down buttons
-    $dlgxml->get_widget('btnUp')->signal_connect(
+    $dlgxml->get_object('btnUp')->signal_connect(
         clicked => \&on_up_down,
         ['up', $list_groups, $list_labels],
     );
-    $dlgxml->get_widget('btnDown')->signal_connect(
+    $dlgxml->get_object('btnDown')->signal_connect(
         clicked => \&on_up_down,
         ['down', $list_groups, $list_labels],
     );
@@ -1119,21 +1154,21 @@ sub setup_reorder_list {
         $model->set($iter, 0, $column->{name});
         $model->set($iter, 1, $column);
     }
-    
+
     # Initialise the list
-    my $list = $dlgxml->get_widget($type);
-    
+    my $list = $dlgxml->get_object($type);
+
     my $col_name = Gtk2::TreeViewColumn->new();
     my $name_renderer = Gtk2::CellRendererText->new();
     $col_name->set_sizing('fixed');
     $col_name->pack_start($name_renderer, 1);
     $col_name->add_attribute($name_renderer,  text => 0);
-    
+
     $list->insert_column($col_name, -1);
     $list->set_headers_visible(0);
     $list->set_reorderable(1);
     $list->set_model( $model );
-    
+
     return $list;
 }
 
@@ -1146,7 +1181,7 @@ sub unselect_other {
     if ($selection->count_selected_rows() > 0) {
         $other_list->get_selection->unselect_all();
     }
-    
+
     return;
 }
 
@@ -1183,44 +1218,44 @@ sub on_up_down {
     elsif ($btn eq 'down') {
         $model->move_after($iter, $model->iter_next($iter));
     }
-    
+
     return;
 }
 
 ##################################################
 # First (choose filename) dialog
 ##################################################
-    
+
 sub make_filename_dialog {
     my $gui = shift;
-    #my $object = shift || return;
 
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $import_dlg_name);
-    my $dlg    = $dlgxml->get_widget($import_dlg_name);
-    my $x = $gui->get_widget('wndMain');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImport1.ui'));
+    my $dlg    = $dlgxml->get_object($import_dlg_name);
+    my $x = $gui->get_object('wndMain');
     $dlg->set_transient_for( $x );
 
     # Initialise the basedatas combo
-    $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
+    $dlgxml->get_object($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
     my $selected = $gui->get_project->get_selected_base_data_iter();
     if (defined $selected) {
-        $dlgxml->get_widget($combo_import_basedatas)->set_active_iter($selected);
+        $dlgxml->get_object($combo_import_basedatas)->set_active_iter($selected);
     }
 
     # If there are no basedatas, force "New" checkbox on
     if (not $selected) {
-        $dlgxml->get_widget($chk_new)->set_sensitive(0);
-        $dlgxml->get_widget($btn_next)->set_sensitive(0);
+        $dlgxml->get_object($chk_new)->set_sensitive(0);
+        $dlgxml->get_object($btn_next)->set_sensitive(0);
     }
 
     # Default to new
-    $dlgxml->get_widget($chk_new)->set_active(1);
-    $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    $dlgxml->get_object($chk_new)->set_active(1);
+    $dlgxml->get_object($combo_import_basedatas)->set_sensitive(0);
 
 
     # Init the file chooser
-    my $filechooser = $dlgxml->get_widget($filechooser_input);
-    
+    my $filechooser = $dlgxml->get_object($filechooser_input);
+
     use Cwd;
     $filechooser->set_current_folder_uri(getcwd());
 
@@ -1251,19 +1286,19 @@ sub make_filename_dialog {
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
-    $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
-    $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
+    $dlgxml->get_object($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
+    $dlgxml->get_object($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
 
-    $dlgxml->get_widget($chk_import_one_bd_per_file)->signal_connect(
+    $dlgxml->get_object($chk_import_one_bd_per_file)->signal_connect(
         toggled => \&on_separate_toggled, [$gui, $dlgxml],
     );
 
-    $dlgxml->get_widget($file_format)->set_active(0);
-    $dlgxml->get_widget($importmethod_combo)->signal_connect(
+    $dlgxml->get_object($file_format)->set_active(0);
+    $dlgxml->get_object($importmethod_combo)->signal_connect(
         changed => \&on_import_method_changed,
         [$gui, $dlgxml],
     );
-    
+
     return ($dlgxml, $dlg);
 }
 
@@ -1272,10 +1307,10 @@ sub on_import_method_changed {
     my $format_combo = shift;
     my $args         = shift;
     my ($gui, $dlgxml) = @$args;
-    
+
     my $active_choice = lc $format_combo->get_active_text;
-    my $f_widget      = $dlgxml->get_widget($filechooser_input);
-    
+    my $f_widget      = $dlgxml->get_object($filechooser_input);
+
     # find which is selected
     if ($active_choice eq 'text') {
         $f_widget->set_filter($txtcsv_filter);
@@ -1297,7 +1332,7 @@ sub on_file_changed {
     my $chooser = shift;
     my $dlgxml  = shift;
 
-    my $text = $dlgxml->get_widget("txtImportNew$import_n");
+    my $text = $dlgxml->get_object("txtImportNew$import_n");
     my @filenames = $chooser->get_filenames();
 
     # Default name to selected filename
@@ -1311,7 +1346,7 @@ sub on_file_changed {
             $text->set_text($name);
         }
     }
-    
+
     return;
 }
 
@@ -1323,17 +1358,17 @@ sub on_new_changed {
     my $name = $text->get_text();
     if ($name ne "") {
 
-        $dlgxml->get_widget($btn_next)->set_sensitive(1);
+        $dlgxml->get_object($btn_next)->set_sensitive(1);
     }
     else {
 
         # Disable Next if have no basedatas
         my $selected = $gui->get_project->get_selected_base_data_iter();
         if (not $selected) {
-            $dlgxml->get_widget($btn_next)->set_sensitive(0);
+            $dlgxml->get_object($btn_next)->set_sensitive(0);
         }
     }
-    
+
     return;
 }
 
@@ -1343,16 +1378,16 @@ sub on_new_toggled {
     my ($gui, $dlgxml) = @$args;
 
     # if we are doing multiple files as separate, keep basedata selection and new filename
-    # fields as disabled 
-    if ($dlgxml->get_widget($chk_import_one_bd_per_file)->get_active) {
-        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
-    } 
+    # fields as disabled
+    if ($dlgxml->get_object($chk_import_one_bd_per_file)->get_active) {
+        $dlgxml->get_object($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_object($combo_import_basedatas)->set_sensitive(0);
+    }
     else {
         #  if true then new, else must select existing
         my $sens_val = $checkbox->get_active;
-        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
+        $dlgxml->get_object($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_object($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
@@ -1365,15 +1400,15 @@ sub on_separate_toggled {
 
     if ($checkbox->get_active) {
         # separate chosen
-        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+        $dlgxml->get_object($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_object($combo_import_basedatas)->set_sensitive(0);
     }
     else {
         # de-selected use of separate.  set sensitivity of import_new and import_basedata
         # according to selection of new
-        my $sens_val = $dlgxml->get_widget($chk_new)->get_active;
-        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
+        my $sens_val = $dlgxml->get_object($chk_new)->get_active;
+        $dlgxml->get_object($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_object($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
@@ -1442,7 +1477,7 @@ sub make_columns_dialog {
     $label->set_alignment(0.5, 1);
     $label->set_use_markup(1);
     $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 0, 0);
-    
+
     $col++;
     $label = Gtk2::Label->new('<b>Column</b>');
     $label->set_alignment(0, 1);
@@ -1469,7 +1504,7 @@ sub make_columns_dialog {
     $label->set_has_tooltip(1);
     $label->set_tooltip_text ('Origin of this axis.\nGroup corners will be offset by this amount.');
     $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 50, 0);
-    
+
     $col++;
     $label = Gtk2::Label->new("Data in\ndegrees?");
     $label->set_alignment(0.5, 1);
@@ -1483,7 +1518,7 @@ sub make_columns_dialog {
     foreach my $i (0..($num_columns - 1)) {
         my $row_label_text = $header->[$i] // q{};
         add_row($row_widgets, $table, $i, $row_label_text, $row_options, $gp_axis_prec);
-        #last if $i >= $max_opt_rows;  
+        #last if $i >= $max_opt_rows;
     }
 
     $dlg->set_resizable(1);
@@ -1524,7 +1559,7 @@ sub add_row {
 
     $header = Glib::Markup::escape_text ($header);
 
-    # Column header    
+    # Column header
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_alignment(0.5, 1);
     $label->set_use_markup(1);
@@ -1591,7 +1626,7 @@ sub add_row {
 sub on_type_combo_changed {
     my $spins = shift;
     my $combo = shift;
-    
+
     # show/hide other widgets depending on if selected is to be a group column
     my $selected = $combo->get_active_text;
     my $show_or_hide = $selected eq 'Group' ? 'show' : 'hide';
@@ -1639,23 +1674,25 @@ sub get_remap_info {
     my $params = $remap_args->{parameters};
 
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
-    my $dlg = $dlgxml->get_widget('dlgImportParameters');
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgImportParameters.ui'));
+    my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_title(ucfirst "$type property file options");
-    
+
     # Build widgets for parameters
     my $table_name = 'tableImportParameters';
-    my $table = $dlgxml->get_widget ($table_name );
-    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-    my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
-    
+    my $table = $dlgxml->get_object ($table_name );
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill ($params, $table, $dlgxml);
+
     $dlg->show_all;
     my $response = $dlg->run;
     $dlg->destroy;
-    
+
     return wantarray ? () : {} if $response ne 'ok';
 
-    my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    my $properties_params = $parameters_table->extract ($extractors);
     my %properties_params = @$properties_params;
 
     # Get header columns
@@ -1690,7 +1727,7 @@ sub get_remap_info {
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
         header      => \@headers,
-        wnd_main    => $gui->get_widget('wndMain'),
+        wnd_main    => $gui->get_object('wndMain'),
         other_props => $other_properties,
         column_overrides => $column_overrides,
     );
@@ -1733,9 +1770,9 @@ sub get_remap_info {
     $dlg->destroy();
 
     #Input_label Remapped_label Range
-    
+
     my (@in_cols, @out_cols, @include_cols, @exclude_cols);
-    
+
     my $in_ref = $column_settings->{Input_element};
     foreach my $i (@$in_ref) {
         push @in_cols, $i->{id};
@@ -1809,7 +1846,7 @@ sub make_remap_columns_dialog {
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
-    # Make table    
+    # Make table
     my $table = Gtk2::Table->new($num_columns + 1, 8);
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
@@ -1866,7 +1903,7 @@ sub get_remap_column_settings {
         # widgets[0] - combo
 
         my $type = $widgets->[0]->get_active_text;
-        
+
         #  sweep up all those we should not ignore
         if ($type ne "Ignore") {
             $results{$type} = [] if ! defined $results{$type};
@@ -1916,4 +1953,3 @@ sub add_remap_row {
 
 
 1;
-

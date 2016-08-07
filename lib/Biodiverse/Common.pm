@@ -15,6 +15,7 @@ use YAML::Syck;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
+use List::Util qw /first/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
@@ -40,7 +41,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -289,11 +290,11 @@ sub get_param_as_ref {
     return if ! $self->exists_param ($param);
 
     my $value = $self->get_param ($param);
-    my $test_value = $value;  #  for debug
+    #my $test_value = $value;  #  for debug
     if (not ref $value) {
         $value = \$self->{PARAMS}{$param};  #  create a ref if it is not one already
         #  debug checker
-        carp "issues in get_param_as_ref $value $test_value\n" if $$value ne $test_value;
+        #carp "issues in get_param_as_ref $value $test_value\n" if $$value ne $test_value;
     }
 
     return $value;
@@ -397,6 +398,11 @@ sub print_params {
     print Data::Dumper::Dumper ($self->{PARAMS});
 
     return;
+}
+
+sub increment_param {
+    my ($self, $param, $value) = @_;
+    $self->{PARAMS}{$param} += $value;
 }
 
 #  Load a hash of any user defined default params
@@ -551,6 +557,12 @@ sub set_cached_values {
 sub get_cached_value {
     return if ! exists $_[0]->{_cache}{$_[1]};
     return $_[0]->{_cache}{$_[1]};
+}
+
+#  dor means defined or - too obscure?
+sub get_cached_value_dor_set_default_aa {
+    no autovivification;
+    $_[0]->{_cache}{$_[1]} //= $_[2];
 }
 
 sub get_cached_value_keys {
@@ -1178,6 +1190,7 @@ sub csv2list {
         return wantarray ? @Fld : \@Fld;
     }
     else {
+        $string //= '';
         if (length $string > 50) {
             $string = substr $string, 0, 50;
             $string .= '...';
@@ -1765,7 +1778,7 @@ sub get_metadata {
     
     #  Some metadata depends on given arguments,
     #  and these could change across the life of an object.
-    if ($use_cache) {
+    if (blessed ($self) && $use_cache) {
         $cache = $self->get_cached_metadata;
         $metadata = $cache->{$subname};
     }
@@ -1788,11 +1801,8 @@ sub get_metadata {
 sub get_cached_metadata {
     my $self = shift;
 
-    my $cache = $self->get_cached_value ('METADATA_CACHE');
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value (METADATA_CACHE => $cache)
-    }
+    my $cache
+      = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
     return $cache;
 }
 
@@ -2005,6 +2015,7 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
+#  not sure why we return a hash - history is long ago...
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;
@@ -2017,6 +2028,13 @@ sub get_subs_with_prefix {
     my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;
+}
+
+sub get_subs_with_prefix_as_array {
+    my $self = shift;
+    my $subs = $self->get_subs_with_prefix(@_);
+    my @subs = keys %$subs;
+    return wantarray ? @subs : \@subs;
 }
 
 #  initialise the PRNG with an array of values, start from where we left off,
@@ -2216,7 +2234,7 @@ sub compare_lists_by_item {
 
         #  make sure it gets a value of 0 if false
         my $increment = 0;
-        if (eval {$base > $comp}) {
+        if ($base > $comp) {
             $increment = 1;
         }
 
@@ -2240,6 +2258,70 @@ sub compare_lists_by_item {
     
     return $results;
 }
+
+
+sub get_significance_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my (@sig_thresh_lo_1t, @sig_thresh_hi_1t, @sig_thresh_lo_2t, @sig_thresh_hi_2t);
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    if ($args{thresholds}) {
+        @sig_thresh_lo_1t = sort {$a <=> $b} @{$args{thresholds}};
+        @sig_thresh_hi_1t = map {1 - $_} @sig_thresh_lo_1t;
+        @sig_thresh_lo_2t = map {$_ / 2} @sig_thresh_lo_1t;
+        @sig_thresh_hi_2t = map {1 - ($_ / 2)} @sig_thresh_lo_1t;    
+    }
+    else {
+        @sig_thresh_lo_1t = (0.01, 0.05);
+        @sig_thresh_hi_1t = (0.99, 0.95);
+        @sig_thresh_lo_2t = (0.005, 0.025);
+        @sig_thresh_hi_2t = (0.995, 0.975);
+    }
+
+    foreach my $p_key (grep {$_ =~ /^P_/} keys %$comp_list_ref) {
+        no autovivification;
+        (my $index_name = $p_key) =~ s/^P_//;
+
+        my $c_key = 'C_' . $index_name;
+        my $t_key = 'T_' . $index_name;
+        my $q_key = 'Q_' . $index_name;
+        my $sig_1t_name = 'SIG_1TAIL_' . $index_name;
+        my $sig_2t_name = 'SIG_2TAIL_' . $index_name;
+
+        #  proportion observed higher than random
+        my $p_high = $comp_list_ref->{$p_key};
+        #  proportion observed lower than random 
+        my $p_low
+          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            /  $comp_list_ref->{$q_key};
+
+        $results_list_ref->{$sig_1t_name} = undef;
+        $results_list_ref->{$sig_2t_name} = undef;
+        
+        if (my $sig_hi_1t = first {$p_high > $_} @sig_thresh_hi_1t) {
+            $results_list_ref->{$sig_1t_name} = 1 - $sig_hi_1t;
+            if (my $sig_hi_2t = first {$p_high > $_} @sig_thresh_hi_2t) {
+                $results_list_ref->{$sig_2t_name} = 2 * (1 - $sig_hi_2t);
+            }
+        }
+        elsif (my $sig_lo_1t = first {$p_low  < $_} @sig_thresh_lo_1t) {
+            $results_list_ref->{$sig_1t_name} = -$sig_lo_1t;
+            if (my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t) {
+                $results_list_ref->{$sig_2t_name} = -2 * $sig_lo_2t;
+            }
+        }
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
 
 #  use Devel::Symdump to hunt within a whole package
 #sub find_circular_refs_in_package {

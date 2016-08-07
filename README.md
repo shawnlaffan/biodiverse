@@ -41,30 +41,14 @@ Installation instructions can be accessed through the [Installation](https://pur
 
 # News 
 
-**20-Apr-2015** -- Biodiverse version 1.0 has been released.  https://purl.org/biodiverse/wiki/Downloads
-
-The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-1
-
-
-**27-Oct-2014** -- A new development release is now available.  It can be downloaded from https://purl.org/biodiverse/wiki/Downloads 
-
-The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-099_005
-
-
-**27-Oct-2014** -- A new blog post describing some of the new features in the upcoming 1.0 release is available.  http://biodiverse-analysis-software.blogspot.com.au/2014_10_01_archive.html
-
-**18-Sep-2014** -- A new development release is now available.  It can be downloaded from https://purl.org/biodiverse/wiki/Downloads 
-
-The summary of changes is at https://purl.org/biodiverse/wiki/ReleaseNotes#version-099_004
-
-**13-Aug-2014** -- A Biodiverse pipeline for the CANAPE (Categorical Analysis of Neo and Palaeo Endemism) analyses described in [Mishler et al. (2014)](http://dx.doi.org/10.1038/ncomms5473) is now available.  See https://github.com/NunzioKnerr/biodiverse_pipeline 
-
+See http://shawnlaffan.github.io/biodiverse/#news
 
 
 # Acknowledgements 
 
 This research has been supported by Australian Research Council Linkage Grant LP0562070 (Laffan and West) and UNSW FRGP funding to Laffan.
 
+Much of the original GUI coding was by Eugene Lubarsky.  Substantial contributions to the project have also been made by Michael Zhou and Anthony Knittel.  Unfortunately the code history does not show their contributions as authorship details were lost as we transitioned from Google Code to GitHub.  
 
 # Persistent URL 
 

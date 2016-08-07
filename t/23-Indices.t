@@ -5,7 +5,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use rlib;
+use Test::Lib;
 
 use Test::More;
 use Test::Exception;

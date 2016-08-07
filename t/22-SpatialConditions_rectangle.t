@@ -6,7 +6,7 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use rlib;
+use Test::Lib;
 use Scalar::Util qw /looks_like_number/;
 use Data::Dumper qw /Dumper/;
 #use Test::More tests => 255;
@@ -45,7 +45,7 @@ sub main {
 
     foreach my $key (sort keys %conditions_to_run) {
         #diag $key;
-        test_sp_cond_res_pairs ($conditions{$key}, @res_pairs);
+        test_sp_cond_res_pairs ($conditions{$key}, \@res_pairs);
     }
 
     done_testing;

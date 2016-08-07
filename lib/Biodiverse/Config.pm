@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -211,6 +211,9 @@ if ($ENV{BDV_PP_BUILDING}) {
     open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
+    
+    #  more File::BOM issues
+    require encoding;
 
     #  exercise the unicode regexp matching - needed for the spatial conditions
     use 5.016;

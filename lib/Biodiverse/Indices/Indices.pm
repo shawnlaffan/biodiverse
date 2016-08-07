@@ -10,7 +10,7 @@ use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -1455,7 +1455,7 @@ sub get_metadata_calc_elements_used {
             },
             EL_COUNT_ALL  => {
                 description    => 'Count of elements in both neighbour sets',
-                uses_nbr_lists => 2,
+                uses_nbr_lists => 1,
                 lumper      => 1,
             },
         },
@@ -1479,6 +1479,66 @@ sub calc_elements_used {
             ? %results
             : \%results;
 
+}
+
+sub get_metadata_calc_nonempty_elements_used {
+    my $self = shift;
+
+    my %metadata = (
+        name            => 'Non-empty element counts',
+        description     => "Counts of non-empty elements in neighbour sets 1 and 2.\n",
+        type            => 'Lists and Counts',
+        pre_calc        => 'calc_abc',
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices         => {
+            EL_COUNT_NONEMPTY_SET1 => {
+                description    => 'Count of non-empty elements in neighbour set 1',
+                lumper      => 0,
+            },
+            EL_COUNT_NONEMPTY_SET2 => {
+                description    => 'Count of non-empty elements in neighbour set 2',
+                uses_nbr_lists => 2,
+                lumper      => 0,
+            },
+            EL_COUNT_NONEMPTY_ALL  => {
+                description    => 'Count of non-empty elements in both neighbour sets',
+                uses_nbr_lists => 1,
+                lumper      => 1,
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_nonempty_elements_used {
+    my $self = shift;
+    my %args = @_;  #  rest of args into a hash
+
+    #  should run a precalc_gobal to check if the
+    #  basedata has empty groups as then we can shortcut
+    my $bd   = $self->get_basedata_ref;
+    my $list = $args{element_list_all};
+
+    my %nonempty;
+    foreach my $gp (@$list) {
+        my $ref = $bd->get_labels_in_group_as_hash (group => $gp);
+        next if !scalar keys %$ref;
+        $nonempty{$gp}++;
+    }
+    my $non_empty_all  = scalar keys %nonempty;
+    my $non_empty_set1 = grep {exists $nonempty{$_}} keys %{$args{element_list1} // {}};
+    my $non_empty_set2 = $args{element_list2}
+        ? grep {exists $nonempty{$_}} keys %{$args{element_list2}}
+        : undef;
+
+    my %results = (
+        EL_COUNT_NONEMPTY_SET1 => $non_empty_set1,
+        EL_COUNT_NONEMPTY_SET2 => $non_empty_set2,
+        EL_COUNT_NONEMPTY_ALL  => $non_empty_all,
+    );
+
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_element_lists_used {
@@ -1644,7 +1704,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
         ELEMENT:
         foreach my $element (@$el_listref) {
-            my $sublist = $bd->get_labels_in_group_as_hash (group => $element);
+            my $sublist = $bd->get_labels_in_group_as_hash_aa ($element);
             push @label_list, %$sublist;
             push @checked_elements, $element;
         }

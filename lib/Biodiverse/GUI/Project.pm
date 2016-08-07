@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -1115,6 +1115,11 @@ sub get_selected_phylogeny {
     return $self->get_param('SELECTED_PHYLOGENY');
 }
 
+sub get_selected_basedata {
+    my $self = shift;
+    return $self->get_selected_base_data;
+}
+
 sub get_selected_base_data {
     my $self = shift;
     return $self->get_param('SELECTED_BASEDATA');
@@ -1232,8 +1237,8 @@ sub manage_empty_model {
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (@$button_IDs) {
-        warn "$_\n" if ! defined $instance->get_widget($_);
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        warn "$_\n" if ! defined $instance->get_object($_);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 
@@ -1268,11 +1273,13 @@ sub manage_empty_basedatas {
         menu_trim_basedata_using_tree
         menu_trim_basedata_using_matrix
         menu_rename_basedata_labels
+        menu_rename_basedata_groups
         menu_attach_basedata_properties
         menu_basedata_reorder_axes
         menu_binarise_basedata_elements
         menu_attach_ranges_as_properties
         menu_attach_abundances_as_properties
+        menu_merge_basedatas
     /];
     $self->manage_empty_model(
         model   => $model,
@@ -1332,14 +1339,15 @@ sub set_matrix_buttons {
                 menu_trim_matrix_to_basedata
                 convert_matrix_to_phylogeny
                 /) {
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 
 # enable/disable buttons
+# Really need to loop through the menu and operate on all but import and open
 sub set_phylogeny_buttons {
     my ($self, $sensitive) = @_;
-    #foreach ('btnPhylogenyDelete') {
+
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (qw /
                 btnPhylogenyDelete
@@ -1354,8 +1362,10 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
                 menu_equalise_tree_branches
+                menu_rescale_tree_branches2
+                menu_ladderise_tree
                 /) {
-        $instance->get_widget($_)->set_sensitive($sensitive);
+        $instance->get_object($_)->set_sensitive($sensitive);
     }
 }
 

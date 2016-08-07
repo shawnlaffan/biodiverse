@@ -8,11 +8,10 @@ use strict;
 use warnings;
 use File::Basename;
 use Gtk2;
-use Gtk2::GladeXML;
 
 use Cwd;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::GUI::GUIManager;
 
@@ -27,15 +26,16 @@ sub Run {
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    # Load the widgets from Glade's XML
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgOpenWithName');
-    my $dlg = $dlgxml->get_widget('dlgOpenWithName');
-    $dlg->set_transient_for( $gui->get_widget('wndMain') );
+    my $builder = Gtk2::Builder->new();
+    $builder->add_from_file($gui->get_gtk_ui_file('OpenWithName.ui'));
+    my $dlg = $builder->get_object('dlgOpenWithName');
+
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename
-    my $chooser = $dlgxml->get_widget('filechooser');
-    $chooser->signal_connect('selection-changed' => \&on_file_selection, $dlgxml);
+    my $chooser = $builder->get_object('filechooser');
+    $chooser->signal_connect('selection-changed' => \&on_file_selection, $builder);
     $chooser->set_current_folder_uri(getcwd());
     $chooser->set_action('GTK_FILE_CHOOSER_ACTION_OPEN');
 
@@ -64,7 +64,7 @@ sub Run {
     my ($name, $filename);
     if ($response eq "ok") {
         # Save settings
-        $name = $dlgxml->get_widget('txtName')->get_text();
+        $name = $builder->get_object('txtName')->get_text();
         $filename = $chooser->get_filename();
     }
 
@@ -76,14 +76,14 @@ sub Run {
 # Automatically update name based on filename
 sub on_file_selection {
     my $chooser = shift;
-    my $dlgxml = shift;
+    my $builder = shift;
 
     my $filename = $chooser->get_filename();
     if ($filename && -f $filename) {
     
         my($name, $dir, $suffix) = fileparse($filename, qr/\.[^.]*/);
         
-        $dlgxml->get_widget('txtName')->set_text($name);
+        $builder->get_object('txtName')->set_text($name);
     }
 }
 

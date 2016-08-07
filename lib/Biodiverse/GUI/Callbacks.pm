@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Browser::Open qw( open_browser );  #  needed for the about dialogue
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -327,6 +327,9 @@ my %data_funcs = (
     },
     on_tree_rescale_branch_lengths => {
         METHOD => 'do_tree_rescale_branch_lengths',
+    },
+    on_tree_ladderise => {
+        METHOD => 'do_tree_ladderise',
     },
     on_matrix_export => {
         METHOD => 'do_export_matrix',

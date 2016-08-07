@@ -13,10 +13,12 @@ use Browser::Open qw( open_browser );
 use English qw { -no_match_vars };
 #use LWP::Simple;
 use HTTP::Tiny;
-
+#  needed so HTTP::Tiny works with https under PAR::Packer
+require IO::Socket::SSL;
+    
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 ##############################################
 #  Web links.  
@@ -107,7 +109,7 @@ END_LINK_TEXT
     
     my $dlg = Gtk2::Dialog->new(
         'Help link',
-        $gui->get_widget('wndMain'),
+        $gui->get_object('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );
@@ -156,7 +158,7 @@ sub help_show_check_for_updates {
 
     my $dlg = Gtk2::Dialog->new(
         'Check for updates',
-        $gui->get_widget('wndMain'),
+        $gui->get_object('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );

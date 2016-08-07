@@ -3,13 +3,13 @@
 
 ### need to test for basedatas with empty groups
 
-require 5.010;
+use 5.016;
 use strict;
 use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 
 use Test::More;
 
@@ -286,6 +286,101 @@ sub test_recycling {
 
 }
 
+sub get_element_proximity {
+    my ($el1, $el2) = @_;
+    my @e1 = split ':', $el1;
+    my @e2 = split ':', $el2;
+    
+    sqrt (($e1[0] - $e2[0]) ** 2 + ($e1[1] - $e2[1]) ** 2);
+}
+
+sub test_get_calculated_nbr_lists_for_element {
+    my $cell_sizes = [1, 1];
+    my $bd1 = get_basedata_object (x_max => 15, y_max => 15, CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+    
+    my $target_element = '8.5:8.5';
+
+    my $sp = $bd1->add_spatial_output(name => 'blongk');
+    $sp->run_analysis (
+        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        definition_query   => "sp_select_element (element => '$target_element')",
+    );
+
+    #  no sort option
+    my $lists_unsorted = $sp->get_calculated_nbr_lists_for_element (
+        element => $target_element,
+    );
+
+    my $lists_sorted = $sp->get_calculated_nbr_lists_for_element (
+        element    => $target_element,
+        sort_lists => 1,
+    );
+    
+    foreach my $i (0 .. $#$lists_sorted) {
+        is_deeply (
+            [sort @{$lists_unsorted->[$i]}],
+            $lists_sorted->[$i],
+            "sorted and unsorted lists have same elements, nbr list $i",
+        );
+    }
+
+    #  now try with a more complex sort to do proximity in first two dimensions
+    my $lists_sorted_proximity = [];
+    foreach my $i (0 .. $#$lists_sorted) {
+        @{$lists_sorted_proximity->[$i]} =
+          map  { $_->[0] }
+          sort { $a->[1] <=> $b->[1] || $a->[0] cmp $b->[0]}
+          map  { [$_, get_element_proximity($target_element, $_)] }
+               @{$lists_sorted->[$i]};
+    }
+
+    foreach my $i (0 .. $#$lists_sorted) {
+        is_deeply (
+            [sort @{$lists_sorted->[$i]}],
+            [sort @{$lists_sorted_proximity->[$i]}],
+            "text and proximity sorted lists have same elements, nbr list $i",
+        );
+        isnt_deeply (
+            $lists_sorted->[$i],
+            $lists_sorted_proximity->[$i],
+            "text and proximity sorted lists have different orders, nbr list $i",
+        );
+    }
+    
+    is_deeply (
+        get_expected_proximity_sorted_nbr_lists(),
+        $lists_sorted_proximity,
+        'Got expected proximity sorted nbr lists',
+    );
+
+    #  and now with a random tie breaker
+    srand(2345);
+    my $lists_sorted_proximity_rand = [];
+    foreach my $i (0 .. $#$lists_sorted) {
+        @{$lists_sorted_proximity_rand->[$i]} =
+          map  { $_->[0] }
+          sort { $a->[1] <=> $b->[1] || $a->[2] <=> $b->[2] || $a->[0] cmp $b->[0]}
+          map  { [$_, get_element_proximity($target_element, $_), rand()] }
+               @{$lists_sorted->[$i]};
+    }
+
+    foreach my $i (0 .. $#$lists_sorted) {
+        is_deeply (
+            [sort @{$lists_sorted_proximity->[$i]}],
+            [sort @{$lists_sorted_proximity_rand->[$i]}],
+            "proximity and proximity/rand sorted lists have same elements, nbr list $i",
+        );
+        isnt_deeply (
+            $lists_sorted_proximity->[$i],
+            $lists_sorted_proximity_rand->[$i],
+            "proximity and proximity/rand sorted lists have different orders, nbr list $i",
+        );
+    }
+
+}
+
 
 done_testing;
 
@@ -353,4 +448,42 @@ sub get_expected_list_for_defq_y_gt_1550000 {
             3950000:1750000
     /);
     return wantarray ? @data_for_defq : \@data_for_defq;
+}
+
+sub get_expected_proximity_sorted_nbr_lists {
+    [
+        [
+            '8.5:8.5',
+            '7.5:8.5',
+            '8.5:7.5',
+            '8.5:9.5',
+            '9.5:8.5',
+            '7.5:7.5',
+            '7.5:9.5',
+            '9.5:7.5',
+            '9.5:9.5'
+          ],
+          [
+            '10.5:8.5',
+            '6.5:8.5',
+            '8.5:10.5',
+            '8.5:6.5',
+            '10.5:7.5',
+            '10.5:9.5',
+            '6.5:7.5',
+            '6.5:9.5',
+            '7.5:10.5',
+            '7.5:6.5',
+            '9.5:10.5',
+            '9.5:6.5',
+            '10.5:10.5',
+            '10.5:6.5',
+            '6.5:10.5',
+            '6.5:6.5',
+            '11.5:8.5',
+            '5.5:8.5',
+            '8.5:11.5',
+            '8.5:5.5'
+          ]
+    ];
 }

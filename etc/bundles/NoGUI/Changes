@@ -1,5 +1,19 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.99003 2016-08-05
+    - Remove Spreadsheet::XLSX
+    - Bump required version for autovivification to 0.16
+      (might as well have the latest)
+
+1.10002 2016-07-18
+    - Added Getopt::Long::Descriptive
+
+1.10001 2015-10-23
+    - Add Data::Alias
+
+1.1 2015-10-09
+    - Depend on Test::Lib in addition to rlib
+
 1.00011 2015-06-11
     - Fix a copy-paste error in the makefile which resulted in neither of
       Spreadsheet::ParseXLSX and Spreadsheet::XLSX being installed.

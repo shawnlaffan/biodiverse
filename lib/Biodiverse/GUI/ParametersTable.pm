@@ -27,7 +27,7 @@ which has arguments
 
 =item the GtkTable widget
 
-=item an optional GladeXML widget which contains a 'filechooser' widget
+=item an optional widget which contains a 'filechooser' widget
 This is used by the type='file' widget
 
 =back
@@ -60,26 +60,29 @@ use Gtk2;
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
 use Data::Dumper;
 
+
+sub new {
+    my ($class, %args) = @_;
+    my $self = bless {}, $class;
+    return $self;
+}
+
 sub fill {
-    my $params = shift;
-    my $table  = shift;
-    my $dlgxml = shift;
-    my $get_innards_hash = shift // {};
+    my ($self, $params, $table, $dlgxml, $get_innards_hash) = @_;
+    $get_innards_hash //= {};
 
     # Ask object for parameters metadata
-    my @extract_closures;
+    my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
     my $tooltip_group = Gtk2::Tooltips->new;
 
     my $row = 0;
-    
-    #my $label_wrapper = Text::Wrapper->new(columns => 30);
 
   PARAM:
     foreach my $param (@$params) {
@@ -87,46 +90,72 @@ sub fill {
         #
         # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
-#  debug
-#use Scalar::Util qw /blessed/;
-#if (!blessed $param) {
-#    warn "Param not blessed";
-#}
-        my ($widget, $extractor) = generate_widget($param, $dlgxml, $get_innards_hash);
+
+        my ($widget, $extractor) = $self->generate_widget($param, $dlgxml, $get_innards_hash);
 
         if ($extractor) {
             push @extract_closures, $extractor;
+            push @widgets, $widget;
         }
 
         next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
-
-        # Add an extra row
-        my ($rows) = $table->get('n-rows');
-        $rows++;
-        $table->set('n-rows' => $rows);
+        
+        my $param_name = $param->{name};
 
         # Make the label
-        my $label = Gtk2::Label->new;
+        my $label_text = $param->{label_text} // $param_name;
+        chomp $label_text;
+        my $label = Gtk2::Label->new ($label_text);
         $label->set_line_wrap(30);
         #my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
-        my $label_text = $param->{label_text} || $param->{name};
-        chomp $label_text;
         $label->set_alignment(0, 0.5);
-        $label->set_text( $label_text );
+        #$label->set_text( $label_text );
 
         my $fill_flags = 'fill';
         if ($param->{type} =~ 'text') {
             $fill_flags = ['expand', 'fill']
         }
-
         if ($param->{type} eq 'comment') {
             #  reflow the label text
             $label_text =~ s/(?<=\w)\n(?!\n)/ /g;
             $label->set_text( $label_text );
+            $widget = Gtk2::HBox->new;
+        }
 
-            $table->attach($label,  0, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        $label_widget_pairs{$param_name} = [$label, $widget];
+
+        my $rows = $table->get('n-rows');
+
+        my $box_group_name = $param->get_box_group;
+        my ($hbox, $added_hbox_row);
+        if (defined $box_group_name) {
+            if (!$self->{box_groups}{$box_group_name}) {
+                # Add an extra row
+                $rows++;
+                $table->set('n-rows' => $rows);
+                $added_hbox_row++;
+                $hbox = $self->{box_groups}{$box_group_name} = Gtk2::HBox->new;
+                if ($box_group_name eq 'Debug') {
+                    $debug_hbox //= $hbox;
+                }
+                else {
+                    my $l = Gtk2::Label->new ($box_group_name);
+                    $l->set_alignment(0, 0.5);
+                    $table->attach($l,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+                    $table->attach($hbox, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
+                    $l->show;
+                }
+            }
+            $hbox //= $self->{box_groups}{$box_group_name};
+            $hbox->pack_start($label, 0, 0, 0);
+            $hbox->pack_start($widget, 0, 0, 0);
+            if ($box_group_name ne 'Debug'){
+                $hbox->show_all;
+            }
         }
         else {
+            $rows++;
+            $table->set('n-rows' => $rows);
             $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
             $table->attach($widget, 1, 2, $rows, $rows + 1, $fill_flags, [], 0, 0);
         }
@@ -146,6 +175,22 @@ sub fill {
         }
     }
 
+    #  hack - make sure debug hbox is last in table
+    if ($debug_hbox) {
+        #$table->remove($debug_hbox);
+        my $label = Gtk2::Label->new ('Debug');
+        $label->set_line_wrap(30);
+        $label->set_alignment(0, 0.5);
+
+        my $rows = $table->get('n-rows');
+        $rows++;
+        $table->set('n-rows' => $rows);
+        $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+        $table->attach($debug_hbox, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        $label->show;
+        $debug_hbox->show_all;
+    }
+
     #  hack for spatial conditions widgets so we don't show both edit views
     foreach my $object (values %$get_innards_hash) {
         next if !blessed $object;
@@ -162,11 +207,21 @@ sub fill {
     }
 
     $tooltip_group->enable();
-    return \@extract_closures;
+
+    $self->{extractors} = \@extract_closures;
+    $self->{widgets}    = \@widgets;
+    $self->{label_widget_pairs} = \%label_widget_pairs;
+    return $self->{extractors};
+}
+
+sub get_label_widget_pairs_hash {
+    my $self = shift;
+    return $self->{label_widget_pairs};
 }
 
 sub extract {
-    my $extractors = shift;
+    my ($self, $extractors) = @_;
+    $extractors //= $self->{extractors};
 
     # We call all the extractor closures which get values from the widgets
     my @params;
@@ -175,13 +230,14 @@ sub extract {
         #print "\n";
         push @params, $extractor->();
     }
-    return \@params;
+    return wantarray ? @params : \@params;
 }
 
 # Generates widget + extractor for some parameter
 sub generate_widget {
-    my $param = $_[0];
+    my ($self, @args) = @_;
 
+    my $param = $args[0];
     my $type = $param->get_type;
 
     my @valid_choices = qw {
@@ -202,19 +258,19 @@ sub generate_widget {
     croak "Unsupported parameter type $type\n"
         if ! exists $valid_choices_hash{$type};
 
-    
+
     #return if $type eq 'comment';  #  no callback in this case
 
     my $sub_name = 'generate_' . $type;
 
-    my @results = eval "$sub_name (\@_)";
+    my @results = $self->$sub_name (@args);
     croak "Unsupported parameter type $type \n$EVAL_ERROR\n" if $EVAL_ERROR;
 
     return @results;
 }
 
 sub generate_choice {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $combo = Gtk2::ComboBox->new_text;
 
@@ -242,7 +298,7 @@ sub generate_choice {
 
 #  we want the index, not the text
 sub generate_choice_index {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $combo = Gtk2::ComboBox->new_text;
 
@@ -269,11 +325,10 @@ sub generate_choice_index {
 }
 
 sub generate_file {
-    my $param  = shift;
-    my $dlgxml = shift;
+    my ($self, $param, $dlgxml) = @_;
 
     # The dialog already has a filechooser widget. We just return an extractor function
-    my $chooser = $dlgxml->get_widget('filechooser');
+    my $chooser = $dlgxml->get_object('filechooser');
 
     use Cwd;
     $chooser->set_current_folder_uri(getcwd());
@@ -283,8 +338,7 @@ sub generate_file {
 }
 
 sub generate_comment {
-    my $param  = shift;
-    #my $dlgxml = shift;
+    my ($self, $param) = @_;
 
     #  just a placeholder
     my $label = Gtk2::Label->new;
@@ -296,7 +350,7 @@ sub generate_comment {
 
 
 sub generate_integer {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $default = $param->get_default || 0;
     my $incr    = $param->get_increment || 1;
@@ -311,13 +365,15 @@ sub generate_integer {
 }
 
 sub generate_float {
-    my $param = shift;
-    
+    my ($self, $param) = @_;
+
     my $default = $param->get_default || 0;
     my $digits  = $param->get_digits  || 2;
     my $incr    = $param->get_increment || 0.1;
+    my $min     = $param->get_min // 0;
+    my $max     = $param->get_max // 10000000;
 
-    my $adj = Gtk2::Adjustment->new($default,0, 10000000, $incr, $incr * 10, 0);
+    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, $digits);
 
     my $extract = sub { return ($param->get_name, $spin->get_value); };
@@ -325,10 +381,10 @@ sub generate_float {
 }
 
 sub generate_boolean {
-    my $param = shift;
+    my ($self, $param) = @_;
 
     my $default = $param->get_default || 0;
-    
+
     my $checkbox = Gtk2::CheckButton->new;
     $checkbox->set(active => $default);
 
@@ -338,7 +394,7 @@ sub generate_boolean {
 }
 
 sub generate_spatial_conditions {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $get_object_hash = pop;  # clunky way of getting the object back
 
     my $default = $param->get_default || '';
@@ -346,18 +402,18 @@ sub generate_spatial_conditions {
     my $sp = Biodiverse::GUI::SpatialParams->new(initial_text => $default);
 
     my $extract = sub { return ($param->{name}, $sp->get_text); };
-    
+
     $get_object_hash->{$param->get_name} = $sp;
 
-    return ($sp->get_widget, $extract);
+    return ($sp->get_object, $extract);
 }
 
 sub generate_text_one_line {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
-    
+
     # Text view
     $text_buffer->set_text($default);
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
@@ -374,11 +430,11 @@ sub generate_text_one_line {
 }
 
 sub generate_text {
-    my $param = shift;
+    my ($self, $param) = @_;
     my $default = $param->get_default // '';
 
     my $text_buffer = Gtk2::TextBuffer->new;
-    
+
     # Text view
     $text_buffer->set_text($default);
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
@@ -401,4 +457,3 @@ sub generate_text {
 
 
 1;
-

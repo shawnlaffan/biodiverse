@@ -8,11 +8,12 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed/;
-use List::Util;
+use Scalar::Util qw /weaken blessed reftype/;
+use List::MoreUtils qw /firstidx lastidx/;
+use List::Util qw /first/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -176,6 +177,124 @@ sub compare {
     return 1;
 }
 
+#  convert the results of a compare run to significance thresholds
+#  need a better sub name
+sub convert_comparisons_to_significances {
+    my $self = shift;
+    my %args = @_;
+    
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
+
+    #my $bd = $self->get_param ('BASEDATA_REF');
+
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
+    # find all the relevant lists for this target name
+    #my %base_list_indices = $self->find_list_indices_across_elements;
+    my @target_list_names
+      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+        $self->get_lists_across_elements;
+
+    my $to_do = $self->get_element_count;
+    my $i = 0;
+    
+    #  maybe should make this an argument - recycle_if_possible -
+    #  and let the caller do the checks, as we don't have $comparison in here
+    my $recycled_results
+      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+    #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
+    #    $recycled_results = $args{no_recycle};
+    #}
+
+    my %done_base;
+    if ($recycled_results) {  #  set up some lists
+        foreach my $list_name (@target_list_names) {
+            $done_base{$list_name} = {};
+        }
+    }
+
+    COMP_BY_ELEMENT:
+    foreach my $element ($self->get_element_list) {
+        $i++;
+
+        $progress->update (
+            $progress_text . "(element $i / $to_do)",
+            $i / $to_do,
+        );
+
+        #  now loop over the list indices
+        BY_LIST:
+        foreach my $list_name (@target_list_names) {
+
+            next BY_LIST
+                if    $recycled_results
+                   && $done_base{$list_name}{$element};
+
+            my $comp_ref = $self->get_list_ref (
+                element     => $element,
+                list        => $list_name,
+                autovivify  => 0,
+            );
+
+            next BY_LIST if !$comp_ref; #  nothing to compare with...
+            next BY_LIST if (ref $comp_ref) =~ /ARRAY/;  #  skip arrays
+
+            my $result_list_name = $list_name;
+            $result_list_name =~ s/>>/>>sig>>/;
+
+            my $result_list_ref = $self->get_list_ref (
+                element => $element,
+                list    => $result_list_name,
+            );
+
+            $self->get_significance_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+
+            #  if results from both base and comp
+            #  are recycled then we can recycle the comparisons
+            if ($recycled_results) {
+                my $nbrs = $self->get_list_ref (
+                    element => $element,
+                    list    => 'RESULTS_SAME_AS',
+                );
+
+                my $results_ref = $self->get_list_ref (
+                    element => $element,
+                    list    => $result_list_name,
+                );
+
+                BY_RECYCLED_NBR:
+                foreach my $nbr (keys %$nbrs) {
+                    $self->add_to_lists (
+                        element           => $nbr,
+                        $result_list_name => $results_ref,
+                        use_ref           => 1,
+                    );
+                }
+                my $done_base_hash = $done_base{$list_name};
+                @{$done_base_hash}{keys %$nbrs}
+                    = values %$nbrs;
+            }
+        }
+
+    }
+
+    $self->set_last_update_time;
+
+    return 1;
+}
+
+            
 sub find_list_indices_across_elements {
     my $self = shift;
     my %args = @_;
@@ -667,7 +786,32 @@ sub sp_calc {
     return 1;
 }
 
+#  assumes they have already been calculated
+sub get_calculated_nbr_lists_for_element {
+    my $self = shift;
+    my %args = @_;
 
+    my $element       = $args{element};
+    my $use_nbrs_from = $args{use_nbrs_from};
+    my $spatial_conditions_arr = $self->get_spatial_conditions;
+    my $sort_lists    = $args{sort_lists};
+
+    my @nbr_list;
+    foreach my $i (0 .. $#$spatial_conditions_arr) {
+        my $nbr_list_name = '_NBR_SET' . ($i+1);
+        my $nbr_list = $self->get_list_ref (
+            element => $element,
+            list    => $nbr_list_name,
+            autovivify => 0,
+        );
+        my $copy = $sort_lists ? [sort @$nbr_list] : [@$nbr_list];
+        push @nbr_list, $copy;
+    }
+    
+    return wantarray ? @nbr_list : \@nbr_list;
+}
+
+#  should probably be calculate_nbrs_for_element
 sub get_nbrs_for_element {
     my $self = shift;
     my %args = @_;
@@ -769,11 +913,10 @@ sub get_nbrs_for_element {
                             progress => $progr,
                         );
                         $progr = undef;
-                        my $cached_arr = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
-                        if (!$cached_arr) {
-                            $cached_arr = [];
-                            $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $cached_arr);
-                        }
+                        my $cached_arr
+                          = $self->get_cached_value_dor_set_default_aa(
+                              'NBRS_FROM_ALWAYS_SAME', []
+                            );
 
                         $cached_arr->[$i] = $tmp;
                         my %tmp2 = %$tmp;

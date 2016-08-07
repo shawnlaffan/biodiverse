@@ -16,7 +16,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -516,7 +516,7 @@ sub delete_children {
 sub get_children {
     my $self = shift;
     return if not defined $self->{_CHILDREN};
-    my @children = @{$self->{_CHILDREN}}; #  messy, but seeing if we can avoid mem leaks
+    my @children = @{$self->{_CHILDREN}};
     return wantarray ? @children : \@children;
 }
 
@@ -551,8 +551,7 @@ sub group_nodes_below {
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
-    my $cache_hash = $self->get_cached_value ($cache_key) //
-        do {my $c = {}; $self->set_cached_value ($cache_key => $c); $c};
+    my $cache_hash = $self->get_cached_value_dor_set_default_aa ($cache_key, {});
     my $cache_val = $target_value // $groups_needed;
     if (my $cached_result = $cache_hash->{$cache_val}) {
         return wantarray ? %$cached_result : $cached_result;
@@ -697,6 +696,35 @@ sub flatten_tree {
     return wantarray ? @empty_nodes : \@empty_nodes;
 }
 
+sub ladderise {
+    my ($self, %args) = @_;
+    
+    my %nodes = $self->get_all_descendants_and_self;
+    foreach my $node (values %nodes) {
+        $node->sort_children;
+    }
+
+    return;
+}
+
+sub sort_children {
+    my ($self, %args) = @_;
+    my $children = $self->{_CHILDREN};
+    return if scalar @$children <= 1;
+
+    #  could use Sort::Maker if this turns out to be slow
+    my $sort_func = $args{sort_func}
+      // sub {$b->get_descendent_count <=> $a->get_descendent_count || $a->get_name cmp $b->get_name};
+
+    my @sorted = $args{reverse}
+        ? reverse sort $sort_func @$children
+        : sort $sort_func @$children;
+
+    $self->{_CHILDREN} = \@sorted;
+
+    return;
+}
+
 #  raise any zero length children to be children of the parents (siblings of this node).
 #  return a hash containing the count of the children raised and an array of any now empty nodes
 sub raise_zerolength_children {
@@ -785,7 +813,7 @@ sub get_terminal_elements {
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
     }
-    
+
     my %list;
 
     if ($self->is_terminal_node) {
@@ -1859,9 +1887,15 @@ sub add_to_lists {
     my $self = shift;
     my %args = @_;
     
+    my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
+    delete $args{use_ref};  #  should it be in its own sub?
+    
     #  create the list if not already there and then add to it
-    while (my ($list, $values) = each %args) {    
-        if ((ref $values) =~ /HASH/) {
+    while (my ($list, $values) = each %args) {
+        if ($use_ref) {
+            $self->{$list} = $values;
+        }
+        elsif ((ref $values) =~ /HASH/) {
             $self->{$list} = {} if ! exists $self->{$list};
             next if ! scalar keys %$values;
             @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
@@ -1872,8 +1906,7 @@ sub add_to_lists {
             push @{$self->{$list}}, @$values;
         }
         else {
-            carp "add_to_lists warning, no valid list ref passed\n";
-            return;
+            croak "add_to_lists warning, no valid list ref passed\n";
         }
     }
     

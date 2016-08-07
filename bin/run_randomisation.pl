@@ -16,7 +16,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Config;
 use Biodiverse::BaseData;
@@ -121,8 +121,8 @@ printf "Time taken: %s %s\n", $time_taken, $units;
 croak "Analysis not successful\n"
   if ! $success;
 
-#  $success==2 means nothing ran
-if ($success == 1) {
+
+if ($success) {
     eval {
         $bd->save (filename => $in_file);
         #die "checking";

@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 use List::Util qw /first sum/;
 
 use Test::More;
@@ -196,6 +196,53 @@ sub test_trim_tree_after_adding_extras {
         'trimmed and original tree same after trimming extra added nodes'
     );
 
+}
+
+
+sub test_ladderise {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+    my $tree2 = $tree1->clone();
+    $tree2->ladderise;
+    
+    ok (
+        $tree1->trees_are_same(comparison => $tree2),
+        'ladderised tree has same topology as original',
+    );
+
+    #  check node order is different and follows expected,
+    #  as we might change the default sort one day and then we'd have "issues"
+    my %nodes = $tree1->get_all_descendants_and_self;
+    subtest "Node orders as expected" => sub {
+      NODE_NAME:
+        foreach my $node_name (keys %nodes) {
+            my $node1 = $tree1->get_node_ref (node => $node_name);
+            my $node2 = $tree2->get_node_ref (node => $node_name);
+
+            my @children1 = $node1->get_children;
+            my @children2 = $node2->get_children;
+
+            is (scalar @children2, scalar @children1, "Child counts match for $node_name");
+
+            next NODE_NAME if scalar @children1 <= 1;
+
+            my @counts2 = map {$_->get_descendent_count} @children2;
+            my @counts1 = map {$_->get_descendent_count} @children1;
+            my $check1 = join ' ', @counts1;
+            my $check2 = join ' ', @counts2;
+
+            foreach my $i (1 .. $#children2) {
+                my $j = $i-1;
+                cmp_ok (
+                    $counts2[$i],
+                    '<=',
+                    $counts2[$j],
+                    "Child $i has fewer descendents than child $j, parent node "
+                    . $node2->get_name
+                    . "  in: $check1, out: $check2",
+                );
+            }
+        }
+    }
 }
 
 sub check_trimmings {

@@ -11,7 +11,7 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
 
-use rlib;
+use Test::Lib;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -617,6 +617,57 @@ sub test_import_null_labels {
 }
 
 
+sub test_import_cr_line_endings {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $e;
+
+    my $data = get_import_data_small();
+    my $data_cr = $data;
+    $data_cr =~ s/\R/\r/g;
+
+    #my $d1 = ($data =~ /\R/sg);
+    #my $dc = ($data_cr =~ /\n/sg);
+    isnt ($data_cr =~ /\n/sg, 'stripped all newlines from input file data');
+
+    my $tmp_file1 = write_data_to_temp_file ($data);
+    my $fname1 = $tmp_file1->filename;
+
+    my $tmp_file_cr = write_data_to_temp_file ($data_cr);
+    my $fname_cr = $tmp_file_cr->filename;
+    
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname1],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \n file endings with no exceptions raised');
+    
+    #  now the cr version
+    my $bd_cr = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_cr->import_data(
+            input_files   => [$fname_cr],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \r line endings with no exceptions raised');
+    
+    is ($bd_cr->get_group_count, $bd->get_group_count, 'group counts match');
+    is ($bd_cr->get_label_count, $bd->get_label_count, 'label counts match');
+    
+}
+
 #  can we reimport delimited text files after exporting and get the same answer
 sub test_roundtrip_delimited_text {
     my %bd_args = (
@@ -849,6 +900,122 @@ sub test_roundtrip_raster {
                 is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
             }
         };
+
+        $i++;
+    }
+    
+}
+
+
+sub test_raster_zero_cellsize {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+    say "testing filename $fname";
+    my $e;
+
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
+
+    # the raster data file won't specify the origin and cell size info, so pass as
+    # parameters.
+    # assume export was in format labels_as_bands = 0
+    my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
+    my @cell_origins    = $bd->get_cell_origins;    
+    my %in_options_hash = (
+        labels_as_bands   => 0,
+        raster_origin_e   => $cell_origins[0],
+        raster_origin_n   => $cell_origins[1], 
+        raster_cellsize_e => $cell_sizes[0],
+        raster_cellsize_n => $cell_sizes[1],
+    );
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        my $format = $out_options_hash->{format};
+
+        #  need to use a better approach for the name
+        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $fname_base = $format; 
+        my $suffix = '';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => [0, 0],
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        
+        use URI::Escape::XS qw/uri_unescape/;
+
+        # each band was written to a separate file, load each in turn and add to
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
+        foreach my $this_file (@exported_files) {
+            # find label name from file name
+#say $this_file;
+            my $this_label = Path::Class::File->new($this_file)->basename();
+            $this_label =~ s/.*${fname_base}_//; 
+            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
+            $this_label = uri_unescape($this_label);
+            note "got label $this_label\n";
+
+            $success = eval {
+                $new_bd->import_data_raster (
+                    input_files => [$this_file],
+                    %in_options_hash,
+                    #labels_as_bands => 1,
+                    given_label => $this_label,
+                );
+            };
+            $e = $EVAL_ERROR;
+            ok (!$e, "no exceptions importing $fname");
+            diag $e if $e;
+        }
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        
+        is_deeply ($new_bd->get_group_count, $bd->get_group_count, 'got expected group count');
 
         $i++;
     }

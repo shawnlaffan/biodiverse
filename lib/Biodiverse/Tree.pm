@@ -13,7 +13,7 @@ use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '1.0_001';
+our $VERSION = '1.99_004';
 
 our $AUTOLOAD;
 
@@ -1899,6 +1899,74 @@ sub compare {
     return scalar keys %found_perfect_match;
 }
 
+sub convert_comparisons_to_significances {
+    my $self = shift;
+    my %args = @_;
+    
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
+    
+    # find all the relevant lists for this target name
+    my @target_list_names
+      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+        $self->get_hash_list_names_across_nodes;
+
+    my $i = 0;
+  BASE_NODE:
+    foreach my $base_node ($self->get_node_refs) {
+
+        $i++;
+        #$progress->update ($progress_text . "(node $i / $to_do)", $i / $to_do);
+
+      BY_INDEX_LIST:
+        foreach my $list_name (@target_list_names) {
+            my $result_list_name = $list_name;
+            $result_list_name =~ s/>>/>>sig>>/;
+
+            my $comp_ref = $base_node->get_list_ref (
+                list => $list_name,
+            );
+            next BY_INDEX_LIST if ! defined $comp_ref;
+
+            #  this will autovivify it
+            my $result_list_ref = $base_node->get_list_ref (
+                list => $result_list_name,
+            );
+            if (!$result_list_ref) {
+                $result_list_ref = {};
+                $base_node->add_to_lists (
+                    $result_list_name => $result_list_ref,
+                    use_ref => 1,
+                );
+            }
+
+            $self->get_significance_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+        }
+    }
+}
+
+sub get_hash_list_names_across_nodes {
+    my $self = shift;
+
+    my %list_names;
+    foreach my $node ($self->get_node_refs) {
+        my $lists = $node->get_hash_lists;
+        @list_names{@$lists} = ();
+    }
+
+    my @names = sort keys %list_names;
+
+    return wantarray ? @names : \@names; 
+}
+
 sub trees_are_same {
     my $self = shift;
     my %args = @_;
@@ -2237,7 +2305,12 @@ sub reset_total_length {
     #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
     $self->delete_cached_value('TOTAL_LENGTH');
-    $self->reset_total_length_below;
+    
+    #  avoid recursive recursion and its quadratic nastiness
+    #$self->reset_total_length_below;
+    foreach my $node ($self->get_node_refs) {
+        $node->reset_total_length;
+    }
 
     return;
 }
@@ -2340,7 +2413,7 @@ sub clone_tree_with_equalised_branch_lengths {
 
     #  reset all the total length values
     $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    #$new_tree->reset_total_length_below;
 
     foreach my $node ($new_tree->get_node_refs) {
         my $len = $node->get_length ? $non_zero_len : 0;

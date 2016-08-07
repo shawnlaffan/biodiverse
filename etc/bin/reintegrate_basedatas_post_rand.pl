@@ -30,7 +30,7 @@ foreach my $from_file (@files) {
     say "Reintegrating from $from_file";
 
     my $from_bd = Biodiverse::BaseData->new(file => $from_file);
-    $first_bd->reintegrate_after_parallel_randomisations (
+    $bd->reintegrate_after_parallel_randomisations (
         from => $from_bd,
     );
     

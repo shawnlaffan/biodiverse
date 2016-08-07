@@ -1497,9 +1497,9 @@ sub test_reintegrate_after_separate_randomisations {
         );
         $prng_seed++;
         $rand2->run_analysis (
-            function => 'rand_csr_by_group',
+            function   => 'rand_csr_by_group',
             iterations => 2,
-            seed => $prng_seed,
+            seed       => $prng_seed,
         );
     }
 
@@ -1571,7 +1571,8 @@ sub test_reintegrate_after_separate_randomisations {
         my $a = $rand_ref->get_prng_init_total_counts_array;
         is_deeply ($a, [2, 2], "got expected total iteration counts array when reintegrations ignored, $name");
     }
-
+    
+    return;
 }
 
 sub check_randomisation_integration_skipped {
@@ -1581,7 +1582,7 @@ sub check_randomisation_integration_skipped {
     subtest 'randomisation lists incremented correctly when integration should be skipped (i.e. no integration was done)' => sub {
         my $gp_list = $sp_integr->get_element_list;
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
-        my @rand_lists = grep {$_ =~ />>/} @$list_names;
+        my @rand_lists = grep {$_ !~ />>sig>>/ and $_ =~ />>/} @$list_names;
         foreach my $group (@$gp_list) {
             foreach my $list_name (@rand_lists) {
                 my %l_args = (element => $group, list => $list_name);
@@ -1593,16 +1594,17 @@ sub check_randomisation_integration_skipped {
     };
 }
 
-
-
 sub check_randomisation_lists_incremented_correctly {
     my %args = @_;
     my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig from integr/};
-    
+
+    my @valid_sig_vals = (-0.05, -0.01, 0.01, 0.05);
+
     subtest 'randomisation lists incremented correctly' => sub {
         my $gp_list = $sp_integr->get_element_list;
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
-        my @rand_lists = grep {$_ =~ />>/} @$list_names;
+        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>sig>>/} @$list_names;
+        my @sig_lists  = grep {$_ =~ />>sig>>/} @$list_names;
         foreach my $group (@$gp_list) {
             foreach my $list_name (@rand_lists) {
                 my %l_args = (element => $group, list => $list_name);
@@ -1625,6 +1627,21 @@ sub check_randomisation_lists_incremented_correctly {
                             ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
                             "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
                         );
+                    }
+                }
+            }
+
+            foreach my $sig_list_name (@sig_lists) {
+                #  we only care if they are in the valid set
+                my %l_args = (element => $group, list => $sig_list_name);
+                my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                foreach my $key (sort keys %$lr_integr) {
+                    use List::MoreUtils qw /firstidx/;
+                    my $value = $lr_integr->{$key};
+                    if (defined $value) {
+                        #  use eq, not ==, due to floating point issues with 0.1
+                        my $idx = firstidx {$_ eq $value} @valid_sig_vals;
+                        ok ($idx != -1, "sig cat $value in valid set ($key, $idx), $group");
                     }
                 }
             }

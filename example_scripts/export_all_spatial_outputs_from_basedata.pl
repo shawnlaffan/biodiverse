@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use 5.010;
 
+local $| = 1;
+
 use rlib;
 
 use Carp;

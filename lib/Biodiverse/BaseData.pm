@@ -4821,16 +4821,20 @@ sub reintegrate_after_parallel_randomisations {
                 my %all_keys;
                 #  get all the keys due to ties not being tracked in all cases
                 @all_keys{keys %$lr_from, keys %$lr_to} = undef;
-                foreach my $key (keys %all_keys) {
+                my %p_keys;
+                @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
+
+                #  we need to update the C_ and Q_ keys first,
+                #  then recalculate the P_ keys
+                foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
                     no autovivification;  #  don't pollute the from data set
-                    if ($key =~ /^P_/) {
-                        my $index = $key;
-                        $index =~ s/^P_//;
-                        $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
-                    }
-                    else {
-                        $lr_to->{$key} += ($lr_from->{$key} // 0);
-                    }
+                    $lr_to->{$key} += ($lr_from->{$key} // 0),
+                }
+                foreach my $key (keys %p_keys) {
+                    no autovivification;  #  don't pollute the from data set
+                    my $index = $key;
+                    $index =~ s/^P_//;
+                    $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
                 }
             }
             $to->convert_comparisons_to_significances (

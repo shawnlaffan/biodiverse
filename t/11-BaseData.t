@@ -1475,7 +1475,6 @@ sub test_reintegrate_after_separate_randomisations {
     $bd1->add_element (group => '0.5:0.5', label => 'extra1');
     $bd1->add_element (group => '1.5:0.5', label => 'extra1');
 
-
     my $sp = $bd1->add_spatial_output (name => 'analysis1');
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 1)'],
@@ -1484,6 +1483,7 @@ sub test_reintegrate_after_separate_randomisations {
 
     my $bd2 = $bd1->clone;
     my $bd3 = $bd1->clone;
+    my $bd_base = $bd1->clone;
 
     my $prng_seed = 2345;
     foreach my $bd ($bd1, $bd2, $bd3) { 
@@ -1571,8 +1571,97 @@ sub test_reintegrate_after_separate_randomisations {
         my $a = $rand_ref->get_prng_init_total_counts_array;
         is_deeply ($a, [2, 2], "got expected total iteration counts array when reintegrations ignored, $name");
     }
-    
+
+        
     return;
+}
+
+sub test_reintegration_updates_p_indices {
+    #  we need to run some serious numbers to exercise a test failure
+    #  could be excessive numbers...
+    
+    #  use a small basedata for test speed purposes
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 5,
+        y_max       => 5,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd_base = get_basedata_object (%args);
+    
+    #  need some extra labels so the randomisations have something to do
+    $bd_base->add_element (group => '0.5:0.5', label => 'extra1');
+    $bd_base->add_element (group => '1.5:0.5', label => 'extra1');
+
+    my $sp = $bd_base->add_spatial_output (name => 'analysis1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_endemism_central/],
+    );
+
+    my $prng_seed = 234587654;
+    
+    my $check_name = 'rand_check_p';
+    my @basedatas;
+    for my $i (1 .. 5) {
+        my $bdx = $bd_base->clone;
+        my $randx = $bdx->add_randomisation_output (name => $check_name);
+        $prng_seed++;
+        $randx->run_analysis (
+            function   => 'rand_structured',
+            iterations => 9,
+            seed       => $prng_seed,
+        );
+        push @basedatas, $bdx;
+    }
+    
+    my $list_name = $check_name . '>>SPATIAL_RESULTS';
+
+
+    my $bd_into = shift @basedatas;
+    my $sp_integr = $bd_into->get_spatial_output_ref (name => 'analysis1');
+
+    #  make sure some of the p scores are wrong so they get overridden 
+    foreach my $group ($sp_integr->get_element_list) {
+        my %l_args = (element => $group, list => $list_name);
+        my $lr_integr = $sp_integr->get_list_ref (%l_args);
+        foreach my $key (grep {$_ =~ /^P_/} keys %$lr_integr) {
+            #say $lr_integr->{$key};
+            $lr_integr->{$key} /= 2;
+            #say $lr_integr->{$key};
+        }
+    }
+
+    #  now integrate them
+    foreach my $bdx (@basedatas) {
+        $bd_into->reintegrate_after_parallel_randomisations (
+            from => $bdx,
+        );
+    }
+    
+    
+    subtest 'P_ scores updated after reintegration' => sub {
+        my $gp_list = $bd_into->get_groups;
+        foreach my $group (@$gp_list) {
+            my %l_args = (element => $group, list => $list_name);
+            my $lr_integr = $sp_integr->get_list_ref (%l_args);
+            
+            foreach my $key (sort grep {$_ =~ /P_/} keys %$lr_integr) {
+                no autovivification;
+                my $index = $key;
+                $index =~ s/^P_//;
+                is ($lr_integr->{$key},
+                    $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
+                    "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
+                );
+            }
+        }
+    };
+
 }
 
 sub check_randomisation_integration_skipped {

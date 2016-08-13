@@ -1170,29 +1170,6 @@ sub import_data_raster {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
 
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
-    # QUESTION- do we need to do more than this with the properties?
-
     say "[BASEDATA] Loading from files as GDAL "
             . join (q{ }, @{$args{input_files}});
 
@@ -1463,29 +1440,7 @@ sub import_data_shapefile {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
     my $progress_bar = Biodiverse::Progress->new();
-    # QUESTION- do we need to do more than this with the properties?
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
@@ -1692,29 +1647,6 @@ sub import_data_spreadsheet {
     my $data_in_matrix_form  = $args{data_in_matrix_form};
     my $allow_empty_groups   = $args{allow_empty_groups};
     my $allow_empty_labels   = $args{allow_empty_labels};
-
-
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
 
     my $progress_bar = Biodiverse::Progress->new();
 

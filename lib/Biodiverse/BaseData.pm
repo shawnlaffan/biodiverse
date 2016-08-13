@@ -2015,6 +2015,7 @@ sub _attach_label_ranges_or_counts_as_properties {
     }
 
     my $lb = $self->get_labels_ref;
+    $lb->delete_cached_values;
 
   LABEL:
     foreach my $label ($args{target_labels} || $self->get_labels) {

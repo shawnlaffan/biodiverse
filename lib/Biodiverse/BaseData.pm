@@ -560,26 +560,11 @@ sub get_metadata_import_data_common {
     my $self = shift;
     
     my @parameters = (
-        { name       => 'use_label_properties',
-          label_text => 'Set label properties and remap?',
-          tooltip    => "Change label names, \n"
-                      . "set range, sample count,\n"
-                      . "set exclude and include flags at the label level etc.",
-          type       => 'boolean',
-          default    => 0,
-        },
-        { name       => 'use_group_properties',
-          label_text => 'Set group properties and remap?',
-          tooltip    => "Change group names, \n"
-                      . "set exclude and include flags at the group level etc.",
-          type       => 'boolean',
-          default    => 0,
-        },
         { name       => 'allow_empty_labels',
          label_text  => 'Allow labels with no groups?',
          tooltip     => "Retain labels with no groups.\n"
                       . "Requires a sample count column with value zero\n"
-                      . "(undef is treated as 1).",
+                      . "(undef/empty is treated as 1).",
          type        => 'boolean',
          default     => 0,
         },
@@ -587,7 +572,7 @@ sub get_metadata_import_data_common {
           label_text => 'Allow empty groups?',
           tooltip    => "Retain groups with no labels.\n"
                       . "Requires a sample count column with value zero\n"
-                      . "(undef is treated as 1).",
+                      . "(undef/empty is treated as 1).",
           type       => 'boolean',
           default    => 0,
         },
@@ -754,28 +739,6 @@ sub import_data {
 
     $args{sample_count_columns} //= [];
     
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
-
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -834,10 +797,6 @@ sub import_data {
         sample_count_columns => \@sample_count_columns,
         exclude_columns      => $exclude_columns,
         include_columns      => $include_columns,
-        label_properties     => $label_properties,
-        use_label_properties => $use_label_properties,
-        group_properties     => $group_properties,
-        use_group_properties => $use_group_properties,
         allow_empty_groups   => $allow_empty_groups,
         allow_empty_labels   => $allow_empty_labels,
     );
@@ -1100,27 +1059,6 @@ sub import_data {
                     element => $group,
                     quote_char => $quotes,
                 );
-            }
-
-            #  remap it if needed
-            if ($use_group_properties) {
-                my $remapped = $group_properties->get_element_remapped (
-                    element => $group,
-                );
-
-                #  test exclude and include before remapping
-                next BYLINE
-                  if $group_properties->get_element_exclude (
-                    element => $group,
-                  );
-
-                my $include = $group_properties->get_element_include (element => $group)
-                              // 1;
-                next BYLINE if !$include;
-
-                if (defined $remapped) {
-                    $group = $remapped;
-                }
             }
 
             my %elements;
@@ -2378,22 +2316,6 @@ sub get_labels_from_line {
         list => \@tmp,
         csv_object => $csv_object,
     );
-    
-    #  remap it if needed
-    if ($use_label_properties) {
-        my $remapped
-            = $label_properties->get_element_remapped (element => $label);
-
-        #  test include and exclude before remapping
-        return if $label_properties->get_element_exclude (element => $label);
-
-        my $include = $label_properties->get_element_include (element => $label);    
-
-        return if defined $include and not $include;
-
-        $label = $remapped if defined $remapped;
-    }
-
 
     #  get the sample count
     my $sample_count;
@@ -2483,19 +2405,6 @@ sub get_label_columns_for_matrix_import {
             csv_object => $csv_object,
         );
 
-        #  remap it if needed
-        if ($use_label_properties) {
-            my $remapped = $label_properties->get_element_remapped (element => $label);
-            
-            #  text include and exclude before remapping
-            next if $label_properties->get_element_exclude (element => $label);
-            my $include = $label_properties->get_element_include (element => $label);
-            if (defined $include) {
-                next LABEL_COLS unless $include;
-            }
-
-            $label = $remapped if defined $remapped;
-        }
         $label_hash{$label} = $i;
     }
     

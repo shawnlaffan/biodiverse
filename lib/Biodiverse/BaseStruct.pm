@@ -2484,7 +2484,10 @@ sub generate_element_coords {
                 $element_coord->[$i] = $element_array->[$i];
             }
             else {
-                $element_coord->[$i] = $self->get_text_axis_as_coord (axis => $i, text => $element_array->[$i]);
+                $element_coord->[$i] = $self->get_text_axis_as_coord (
+                    axis => $i,
+                    text => $element_array->[$i] // '',
+                );
             }
         }
         $self->{ELEMENTS}{$element}{_ELEMENT_COORD} = $element_coord;
@@ -2498,6 +2501,7 @@ sub get_text_axis_as_coord {
     my %args = @_;
     my $axis = $args{axis};
     my $text = $args{text};
+    croak 'Argument "text" is undefined' if !defined $text;
 
     #  store the axes as an array of hashes with value being the coord
     my $lists = $self->get_param ('AXIS_LIST_ORDER') || [];
@@ -2510,7 +2514,7 @@ sub get_text_axis_as_coord {
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
         my $axes = $self->get_element_name_as_array (element => $element);
-        $this_axis{$axes->[$axis]}++;
+        $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
     @this_axis{reverse sort keys %this_axis} = (0 .. scalar keys %this_axis);

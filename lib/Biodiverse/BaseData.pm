@@ -654,18 +654,26 @@ sub get_metadata_import_data_text {
 sub get_metadata_import_data_raster {
     my $self = shift;
     
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (q{,}, 'tab', q{;}, 'space', q{:});
-    my @input_sep_chars = ('guess', @sep_chars);
-    
-    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
-    my @input_quote_chars = ('guess', @quote_chars);
+    #my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+    #              ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+    #              : (q{,}, 'tab', q{;}, 'space', q{:});
+    #my @input_sep_chars = ('guess', @sep_chars);
+    #
+    #my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    #my @input_quote_chars = ('guess', @quote_chars);
     
     my @parameters = (
         { name       => 'labels_as_bands',
           label_text => 'Read bands as labels?',
-          tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
+          tooltip    => 'When reading raster data, does each band represent a '
+                      . 'label (eg species)?',
+          type       => 'boolean',
+          default    => 1,
+        },
+        { name       => 'strip_file_extensions_from_names',
+          label_text => 'Strip file extensions from names?',
+          tooltip    => 'Strip any file extensions from label names when treating '
+                      . 'band names as labels',
           type       => 'boolean',
           default    => 1,
         },
@@ -1161,6 +1169,10 @@ sub import_data_raster {
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
     my $labels_as_bands = exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
+    my $strip_file_extensions_from_names
+      = exists $args{strip_file_extensions_from_names}
+        ? $args{strip_file_extensions_from_names}
+        : 1;
     my $cellorigin_e    = $args{raster_origin_e};
     my $cellorigin_n    = $args{raster_origin_n};
     my $cellsize_e      = $args{raster_cellsize_e};
@@ -1252,10 +1264,13 @@ sub import_data_raster {
             if (defined $given_label) {
                 $this_label = $given_label;
             }
-            elsif ($labels_as_bands) { 
+            elsif ($labels_as_bands) {
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
                     $this_label = Path::Class::File->new($file->stringify)->basename();
+                    if ($strip_file_extensions_from_names) {
+                        $this_label =~ s/\.\w+$//;  #  should use fileparse?
+                    }
                 }
                 else {
                     $this_label = "band$b";

@@ -813,11 +813,10 @@ sub test_roundtrip_raster {
 
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
-    # assume export was in format labels_as_bands = 0
     my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
     my @cell_origins    = $bd->get_cell_origins;    
     my %in_options_hash = (
-        labels_as_bands   => 0,
+        labels_as_bands   => 1,
         raster_origin_e   => $cell_origins[0],
         raster_origin_n   => $cell_origins[1], 
         raster_cellsize_e => $cell_sizes[0],
@@ -835,7 +834,7 @@ sub test_roundtrip_raster {
 
         #  need to use a better approach for the name
         my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-        my $fname_base = $format; 
+        my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;
@@ -870,19 +869,25 @@ sub test_roundtrip_raster {
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
-            $this_label =~ s/.*${fname_base}_//; 
-            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
-            $this_label = uri_unescape($this_label);
-            note "got label $this_label\n";
+            $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
+            my $target_name = $this_label;
+            $target_name =~ s/.*${fname_base}_//; 
+            $target_name = uri_unescape($target_name);
+            #note "Working on $target_name, $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
                     input_files => [$this_file],
                     %in_options_hash,
-                    #labels_as_bands => 1,
-                    given_label => $this_label,
+                    labels_as_bands => 1,
+                    #given_label => $this_label,
                 );
             };
+            #  cope with the export name including the format
+            $new_bd->rename_label (
+                label    => $this_label,
+                new_name => $target_name,
+            );
             $e = $EVAL_ERROR;
             ok (!$e, "no exceptions importing $fname");
             diag $e if $e;

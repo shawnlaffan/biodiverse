@@ -2288,20 +2288,20 @@ sub _get_shp_examples {
 sp_point_in_poly_shape (
     file  => 'c:\biodiverse\data\coastline_lamberts',
     point => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a shapefile's second polygon (counting from 1)?
 sp_point_in_poly_shape (
     file      => 'c:\biodiverse\data\coastline_lamberts',
     field_val => 2,
     point     => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
 sp_point_in_poly_shape (
-    file      => 'c:\biodiverse\data\coastline_lamberts',
-    field     => 'OBJECT_ID',
-    field_val => 2,
-    point     => \@nbrcoord,
-)
+    file       => 'c:\biodiverse\data\coastline_lamberts',
+    field_name => 'OBJECT_ID',
+    field_val  => 2,
+    point      => \@nbrcoord,
+);
 END_OF_SHP_EXAMPLES
   ;
     return $examples;
@@ -2530,8 +2530,8 @@ sub get_cache_name_sp_point_in_poly_shape {
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
-        ($args{field_name} || $NULL_STRING),
-        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+        ($args{field_name} // $NULL_STRING),
+        ($args{field_val}  // $NULL_STRING);
     return $cache_name;
 }
 
@@ -2576,19 +2576,23 @@ sub get_polygons_from_shapefile {
     my $file = $args{file};
     $file =~ s/\.(shp|shx|dbf)$//;
 
-    my $field = $args{field_name};
+    my $field_name = $args{field_name};
+    my $field_val  = $args{field_val};
 
-    my $field_val = $args{field_val};
-
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field // $NULL_STRING), ($field_val // $NULL_STRING);
-    my $cached     = $self->get_cached_value($cache_name);
+    my $cache_name
+        = join ':',
+          'SHAPEPOLYS',
+          $file,
+          ($field_name // $NULL_STRING),
+          ($field_val  // $NULL_STRING);
+    my $cached = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;
 
     my $shapefile = Geo::ShapeFile->new($file);
 
     my @shapes;
-    if ((!defined $field || $field eq 'FID') && defined $field_val) {
+    if ((!defined $field_name || $field_name eq 'FID') && defined $field_val) {
         my $shape = $shapefile->get_shp_record($field_val);
         push @shapes, $shape;
     }
@@ -2606,15 +2610,15 @@ sub get_polygons_from_shapefile {
             );
 
             #  get the lot
-            if ((!defined $field || $field eq 'FID') && !defined $field_val) {
+            if ((!defined $field_name || $field_name eq 'FID') && !defined $field_val) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 next REC;
             }
 
             #  get all that satisfy the condition
             my %db = $shapefile->get_dbf_record($rec);
-            my $is_num = looks_like_number ($db{$field});
-            if ($is_num ? $field_val == $db{$field} : $field_val eq $db{$field}) {
+            my $is_num = looks_like_number ($db{$field_name});
+            if ($is_num ? $field_val == $db{$field_name} : $field_val eq $db{$field_name}) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 #last REC;
             }

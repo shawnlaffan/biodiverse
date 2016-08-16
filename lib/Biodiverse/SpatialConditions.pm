@@ -811,7 +811,9 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-    say "PARSED CONDITIONS:  $conditions";
+    if (!$self->get_param('NO_PRINT_CONDITIONS_AFTER_PARSING')) {
+        say "PARSED CONDITIONS:  $conditions";
+    }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;

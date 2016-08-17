@@ -27,6 +27,7 @@ my ($opt, $usage) = describe_options(
   [ 'icon_file|i=s',          'The location of the icon file to use'],
   [ 'verbose|v!',             'Verbose building?', ],
   [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
+  [ 'gd!',                    'We are packing GD, get the relevant dlls'],
   [ '-', 'Any arguments after this will be passed through to pp'],
   [],
   [ 'help|?',       "print usage message and exit" ],
@@ -41,6 +42,7 @@ my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? $opt->verbose : q{};
 my $execute    = $opt->execute ? '-x' : q{};
+my $PACKING_GD = $opt->gd;
 my @rest_of_pp_args = @ARGV;
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
@@ -154,7 +156,14 @@ sub get_dll_list {
         libjpeg  liblzma  libpng   libpq 
         libtiff  libxml2  ssleay32 zlib1
     /;
+    if ($PACKING_GD) {
+        my @extras = qw /
+            libfreetype libgd libXpm
+        /;
+        push @dll_pfx, @extras;
+    }
 
+    #  maybe we should just pack the lot?
     my @files     = glob "$folder\\*.dll";
     my $regstr    = join '|', @dll_pfx;
     my $regmatch  = qr /$regstr/;

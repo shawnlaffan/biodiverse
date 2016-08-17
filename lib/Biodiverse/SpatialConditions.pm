@@ -78,6 +78,7 @@ sub new {
     $self->set_params(
         CONDITIONS    => $conditions,
         WARNING_COUNT => 0,
+        NO_LOG        => $args{no_log},
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
 
@@ -811,7 +812,7 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-    if (!$self->get_param('NO_PRINT_CONDITIONS_AFTER_PARSING')) {
+    if (!$self->get_param('NO_LOG')) {
         say "PARSED CONDITIONS:  $conditions";
     }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;

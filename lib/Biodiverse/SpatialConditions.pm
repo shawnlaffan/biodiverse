@@ -673,13 +673,13 @@ sub get_distances {
             . "\n$locale_warning"
             if !looks_like_number($coord2);
 
-        my $d_val = 
-            eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
-
-        $d[$i] = 0 + $self->set_precision_aa ($d_val, '%.10f');
-        $D[$i] = 0 + $self->set_precision_aa (abs $d_val, '%.10f');
+        #  trap errors from non-numeric coords
+        my $d_val   = eval { $coord2 - $coord1 }; 
         $sum_D_sqr += $d_val**2;
-
+        $d_val = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $d[$i] = $d_val;
+        $D[$i] = abs $d_val;
+        
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
             or scalar keys %{ $params->{use_cell_distances} } )
@@ -688,10 +688,11 @@ sub get_distances {
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
                 if $cellsize[$i] <= 0;
 
-            my $c_val = eval { $d_val / $cellsize[$i] };
-            $c[$i] = 0 + $self->set_precision_aa ($c_val, '%.10f');
-            $C[$i] = 0 + $self->set_precision_aa (eval { abs $c_val }, '%.10f');
+            my $c_val   = eval { $d_val / $cellsize[$i] };
             $sum_C_sqr += eval { $c_val**2 } || 0;
+            $c_val = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $c[$i] = $c_val;
+            $C[$i] = abs $c_val;
         }
     }
 

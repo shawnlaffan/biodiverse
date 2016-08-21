@@ -705,8 +705,8 @@ sub get_distances {
         : undef;
 
     my %hash = (
-        d_list => [map {0 + $self->set_precision_aa ($_)} @d],
-        D_list => [map {0 + $self->set_precision_aa ($_)} @D],
+        d_list => \@d,
+        D_list => \@D,
         D      => $D,
         Dsqr   => $sum_D_sqr,
         C      => $C,

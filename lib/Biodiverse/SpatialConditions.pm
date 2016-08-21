@@ -662,14 +662,14 @@ sub get_distances {
         my $coord1 = $element1[$i];
         croak
             'coord1 value is not numeric: '
-            . ( defined $coord1 ? $coord1 : 'undef' )
+            . ( $coord1 // 'undef' )
             . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
             'coord2 value is not numeric: '
-            . ( defined $coord2 ? $coord2 : 'undef' )
+            . ( $coord2 // 'undef' )
             . "\n$locale_warning"
             if !looks_like_number($coord2);
 

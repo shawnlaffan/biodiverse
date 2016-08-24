@@ -1882,7 +1882,7 @@ sub test_significance_thresholds {
         foreach my $gp ($sp->get_element_list) {
             my $sig_listref = $sp->get_list_ref (
                 element    => $gp,
-                list       => "rr>>sig>>SPATIAL_RESULTS",
+                list       => "rr>>p_rank>>SPATIAL_RESULTS",
                 autovivify => 0,
             );
             my $rand_listref = $sp->get_list_ref (
@@ -1920,7 +1920,7 @@ sub test_significance_thresholds {
         foreach my $node ($cl->get_node_refs) {    
             my $node_name = $node->get_name;
             my $sig_listref = $node->get_list_ref (
-                list       => "rr>>sig>>SPATIAL_RESULTS",
+                list       => "rr>>p_rank>>SPATIAL_RESULTS",
                 autovivify => 0,
             );
             my $rand_listref = $node->get_list_ref (
@@ -1954,6 +1954,69 @@ sub test_significance_thresholds {
 }
 
 
+
+
+sub test_p_rank_calcs {
+    my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
+    
+    #  set things up in one go for clarity, then subdivide
+    my %setup = (
+        # these are middle of the field
+        'fail2_0.95'  => undef,  'C_fail2_0.95'  =>  600,
+        'fail2_0.05'  => undef,  'C_fail2_0.05'  =>  400,    
+        #  these fail lower thresholds due to ties
+        'failt1_0.05' => undef,  'C_failt1_0.05' =>   49, 'T_failt1_0.05' => 1,
+        'failt2_0.05' => undef,  'C_failt2_0.05' =>   40, 'T_failt2_0.05' => 10,
+        'failt3_0.05' => undef,  'C_failt3_0.05' =>   0,  'T_failt3_0.05' => 50,
+    );
+
+    #  create data for either side of boundaries
+    my $prev_thresh = undef;
+    foreach my $thresh (0.95, 0.975, 0.99, 0.995) {
+        $setup{'pass_' . $thresh} = $thresh;
+        $setup{'C_pass_' . $thresh} = $thresh * 1000 + 1;
+        $setup{'fail_' . $thresh} = $prev_thresh;
+        $setup{'C_fail_' . $thresh} = $thresh * 1000;        
+        $prev_thresh = $thresh;
+    }
+    $prev_thresh = undef;
+    foreach my $thresh (0.05, 0.025, 0.01, 0.005) {
+        $setup{'pass_' . $thresh} = $thresh;
+        $setup{'C_pass_' . $thresh} = $thresh * 1000 - 1;
+        $setup{'fail_' . $thresh} = $prev_thresh;
+        $setup{'C_fail_' . $thresh} = $thresh * 1000;        
+        $prev_thresh = $thresh;
+    }
+    
+    my %expected
+        = map {$_ => $setup{$_}}
+          grep {$_ =~ /^(pass|fail)/}
+          keys %setup;
+
+    my %check_hash = %setup;
+    delete @check_hash{keys %expected};
+
+    #  mind the P_ and Q_ scores    
+    foreach my $key (grep {$_ =~ /^C_/} keys %check_hash) {
+        my $Q_key = $key;
+        $Q_key =~ s/^C/Q/;
+        $check_hash{$Q_key} = 1000;
+        my $P_key = $key;
+        $P_key =~ s/^C/P/;
+        $check_hash{$P_key} = $check_hash{$key} / 1000;
+    }
+    
+    my $p_rank = $bd->get_sig_rank_threshold_from_comp_results (
+        comp_list_ref => \%check_hash,
+    );
+    
+    is_deeply ($p_rank, \%expected, 'got expected p-ranks');
+    
+    #use Data::Dumper qw/Dumper/;
+    #local $Data::Dumper::Sortkeys = 1;
+    #say Dumper \%check_hash;
+    #say Dumper $p_rank;
+}
 
 #  put the results sets into a file
 #  returns null if not needed

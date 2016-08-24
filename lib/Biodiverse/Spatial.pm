@@ -248,7 +248,7 @@ sub convert_comparisons_to_significances {
             next BY_LIST if (ref $comp_ref) =~ /ARRAY/;  #  skip arrays
 
             my $result_list_name = $list_name;
-            $result_list_name =~ s/>>/>>sig>>/;
+            $result_list_name =~ s/>>/>>p_rank>>/;
 
             my $result_list_ref = $self->get_list_ref (
                 element => $element,

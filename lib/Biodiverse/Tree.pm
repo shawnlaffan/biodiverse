@@ -1926,7 +1926,7 @@ sub convert_comparisons_to_significances {
       BY_INDEX_LIST:
         foreach my $list_name (@target_list_names) {
             my $result_list_name = $list_name;
-            $result_list_name =~ s/>>/>>sig>>/;
+            $result_list_name =~ s/>>/>>p_rank>>/;
 
             my $comp_ref = $base_node->get_list_ref (
                 list => $list_name,

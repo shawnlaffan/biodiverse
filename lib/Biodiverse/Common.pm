@@ -2344,13 +2344,14 @@ sub get_sig_rank_threshold_from_comp_results {
         @sig_thresh_hi = (0.995, 0.99, 0.975, 0.95);
     }
 
-    foreach my $p_key (grep {$_ =~ /^P_/} keys %$comp_list_ref) {
+    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
         no autovivification;
-        (my $index_name = $p_key) =~ s/^P_//;
+        (my $index_name = $key) =~ s/^C_//;
 
         my $c_key = 'C_' . $index_name;
         my $t_key = 'T_' . $index_name;
         my $q_key = 'Q_' . $index_name;
+        my $p_key = 'P_' . $index_name;
 
         #  proportion observed higher than random
         my $p_high = $comp_list_ref->{$p_key};

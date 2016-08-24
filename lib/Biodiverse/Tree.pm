@@ -1945,7 +1945,7 @@ sub convert_comparisons_to_significances {
                 );
             }
 
-            $self->get_significance_from_comp_results (
+            $self->get_sig_rank_threshold_from_comp_results (
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,  #  do it in-place
             );

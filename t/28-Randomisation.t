@@ -1873,8 +1873,10 @@ sub test_significance_thresholds {
     );
     $rand->run_analysis (%rand_func_args);
 
-    my @valid_vals = (-0.05, -0.01, 0.01, 0.05);
-
+    my @valid_vals_1tail = (0.01,  0.05,  0.95,  0.99);
+    my @valid_vals_2tail = (0.005, 0.025, 0.975, 0.995);
+    my @valid_vals = (@valid_vals_1tail, @valid_vals_2tail);
+    
     subtest 'sig_thresh results valid for spatial object' => sub {
         my $defined_count = 0;
         foreach my $gp ($sp->get_element_list) {
@@ -1891,8 +1893,7 @@ sub test_significance_thresholds {
             my %expected_keys;
             foreach my $key (keys %$rand_listref) {
                 $key =~ s/^\w_//;
-                $expected_keys{"SIG_1TAIL_$key"}++;
-                $expected_keys{"SIG_2TAIL_$key"}++;
+                $expected_keys{$key}++;
             }
             is_deeply (
                 [sort keys %$sig_listref],
@@ -1905,7 +1906,6 @@ sub test_significance_thresholds {
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
                     $defined_count++;
-                    cmp_ok (abs($value), '<=', 0.05, "$key in correct interval, $gp");
                     #  use eq, not ==, due to floating point issues with 0.1
                     my $idx = firstidx {$_ eq $value} @valid_vals;
                     ok ($idx != -1, "$value in valid set ($key, $idx), $gp");
@@ -1930,8 +1930,7 @@ sub test_significance_thresholds {
             my %expected_keys;
             foreach my $key (keys %$rand_listref) {
                 $key =~ s/^\w_//;
-                $expected_keys{"SIG_1TAIL_$key"}++;
-                $expected_keys{"SIG_2TAIL_$key"}++;
+                $expected_keys{$key}++;
             }
             is_deeply (
                 [sort keys %$sig_listref],
@@ -1944,7 +1943,6 @@ sub test_significance_thresholds {
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
                     $defined_count++;
-                    cmp_ok (abs($value), '<=', 0.05, "$key in correct interval, $node_name");
                     #  use eq, not ==, due to floating point issues with 0.1
                     my $idx = firstidx {$_ eq $value} @valid_vals;
                     ok ($idx != -1, "$value in valid set ($key, $idx), $node_name");

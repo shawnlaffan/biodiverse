@@ -97,6 +97,46 @@ sub main {
 }
 
 
+sub test_rename_outputs {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [1,1],
+        x_max => 10,
+        y_max => 10,
+    );
+
+    #  spatial
+    my $sp = $bd->add_spatial_output (name => 'sp_n1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+    );
+    $bd->rename_output (new_name => 'sp_n2', output => $sp);
+    is $sp->get_name, 'sp_n2', 'renamed spatial output';
+    
+    #  cluster
+    my $cl = $bd->add_cluster_output (name => 'cl_n1');
+    $cl->run_analysis (
+        spatial_calculations => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+    );
+    $bd->rename_output (new_name => 'cl_n2', output => $cl);
+    is $cl->get_name, 'cl_n2', 'renamed cluster output';
+    
+    my $mx = $cl->get_matrix_ref;
+    $bd->rename_output (new_name => 'mx_n2', output => $mx);
+    is $mx->get_name, 'mx_n2', 'renamed matrix output';
+    
+    
+    my $rand = $bd->add_randomisation_output (name => 'rd_n1');
+    $rand->run_analysis (
+        function   => 'rand_nochange',
+        iterations => 1,
+    );
+    eval {
+        $bd->rename_output (new_name => 'rd_n2', output => $rand);
+    };
+    is $rand->get_name, 'rd_n2', 'renamed randomisation output';
+}
+
 sub test_remapped_labels_when_stringified_and_numeric {
     my $label_numeric1 = 10;
     my $label_numeric2 = 20;

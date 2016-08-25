@@ -211,36 +211,34 @@ sub rename_output {
     my %args = @_;
     
     my $object   = $args{output};
+    croak 'Argument "output" not defined'
+      if !defined $object;
+
     my $new_name = $args{new_name};
-    my $name     = $object->get_param ('NAME');
-    my $hash_ref;
-    
-    if ((blessed $object) =~ /Spatial/) {
-        print "[BASEDATA] Renaming spatial output $name to $new_name\n";
-        $hash_ref = $self->{SPATIAL_OUTPUTS};
-    }
-    elsif ((blessed $object) =~ /Cluster|RegionGrower|Tree/) {
-        print "[BASEDATA] Renaming cluster output $name to $new_name\n";
-        $hash_ref = $self->{CLUSTER_OUTPUTS};
-        
-    }
-    elsif ((blessed $object) =~ /Matrix/) {
-        print "[BASEDATA] Renaming matrix output $name to $new_name\n";
-        $hash_ref = $self->{MATRIX_OUTPUTS};
-    }
-    else {
-        croak "[BASEDATA] Cannot rename this type of output: ",
-                blessed ($object) || $EMPTY_STRING,
-                "\n";
-    }
+    my $name     = $object->get_name;
+
+    my $class = (blessed $object) // $EMPTY_STRING;
+
+    my $o_type
+      = $class =~ /Spatial/                   ? 'SPATIAL_OUTPUTS'
+      : $class =~ /Cluster|RegionGrower|Tree/ ? 'CLUSTER_OUTPUTS'
+      : $class =~ /Matrix/                    ? 'MATRIX_OUTPUTS'
+      : undef;
+
+    my $hash_ref = $self->{$o_type};
+
+    croak "[BASEDATA] Cannot rename this type of output: $class\n"
+      if !$hash_ref;
+
+    my $type = blessed $object;
+    $type =~ s/.*://;
+    say "[BASEDATA] Renaming output $name to $new_name, type is $type,";
 
     # only if it exists in this basedata
     if (exists $hash_ref->{$name}) {
-        my $type = blessed $object;
-        $type =~ s/.*://;
 
         croak "Cannot rename $type output $name to $new_name.  Name is already in use\n"
-            if exists $hash_ref->{$new_name};
+          if exists $hash_ref->{$new_name};
 
         $hash_ref->{$new_name} = $object;
         $hash_ref->{$name} = undef;

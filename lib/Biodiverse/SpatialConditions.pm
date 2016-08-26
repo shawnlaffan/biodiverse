@@ -17,10 +17,15 @@ use Geo::ShapeFile;
 use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed reftype/;
+use List::MoreUtils qw /uniq/;
+use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
+
+my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
+use Biodiverse::Metadata::SpatialConditions;
 
 our $NULL_STRING = q{};
 
@@ -73,6 +78,7 @@ sub new {
     $self->set_params(
         CONDITIONS    => $conditions,
         WARNING_COUNT => 0,
+        NO_LOG        => $args{no_log},
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
 
@@ -86,6 +92,14 @@ sub new {
 
 sub get_type {return 'spatial conditions'};
 
+sub metadata_class {
+    return $metadata_class;
+}
+
+sub get_metadata {
+    my $self = shift;
+    return $self->SUPER::get_metadata (@_, no_use_cache => 1);
+}
 
 sub get_conditions {
     my $self = shift;
@@ -161,7 +175,7 @@ sub parse_distances {
     $conditions .= "\n";
     $conditions =~ s/$RE_COMMENT//g;
 
-    my %params;
+    my %uses_distances;
     my %missing_args;
     my %missing_opt_args;
     my %invalid_args;
@@ -181,54 +195,62 @@ sub parse_distances {
     my @nbrcoord = @d;
     my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
 
-    $params{use_euc_distance} = undef;
+
+    my @dist_scalar_flags = qw /
+        use_euc_distance
+        use_cell_distance
+    /;
+    my @dist_list_flags = qw /
+        use_euc_distances
+        use_abs_euc_distances
+        use_cell_distances
+        use_abs_cell_distances
+    /;
+
+    #  initialise the params hash items
+    foreach my $key (@dist_scalar_flags) {
+        $uses_distances{$key} = undef;
+    }
+    foreach my $key (@dist_list_flags) {
+        $uses_distances{$key} = {};
+    }
 
     #  match $D with no trailing subscript, any amount of whitespace
     #  check all possible matches
     foreach my $match ( $conditions =~ /\$D\b\s*\W/g ) {
         next if ( $match =~ /\[/ );
-        $params{use_euc_distance} = 1;
+        $uses_distances{use_euc_distance} = 1;
         last;    # drop out if found
     }
-
-    $params{use_cell_distance} = undef;
 
     #  match $C with no trailing subscript, any amount of whitespace
     #  check all possible matches
     foreach my $match ( $conditions =~ /\$C\b\s*\W/g ) {
         next if ( $match =~ /\[/ );
-        $params{use_cell_distance} = 1;
+        $uses_distances{use_cell_distance} = 1;
         last;
     }
-
-    $params{use_euc_distances} = {};
 
     #  matches $d[0], $d[1] etc.  Loops over any subscripts present
     foreach my $dist ( $conditions =~ /\$d\[\s*($RE_INT)\]/g ) {
 
         #  hash indexed by distances used
-        $params{use_euc_distances}{$dist}++;
+        $uses_distances{use_euc_distances}{$dist}++;
     }
-
-    $params{use_abs_euc_distances} = {};
 
     #  matches $D[0], $D[1] etc.
     foreach my $dist ( $conditions =~ /\$D\[\s*($RE_INT)\]/g ) {
-        $params{use_abs_euc_distances}{$dist}++;
+        $uses_distances{use_abs_euc_distances}{$dist}++;
     }
-
-    $params{use_cell_distances} = {};
 
     #  matches $c[0], $c[1] etc.
     foreach my $dist ( $conditions =~ /\$c\[\s*($RE_INT)\]/g ) {
-        $params{use_cell_distances}{$dist}++;
+        $uses_distances{use_cell_distances}{$dist}++;
     }
-
-    $params{use_abs_cell_distances} = {};
 
     #  matches $C[0], $C[1] etc.
     foreach my $dist ( $conditions =~ /\$C\[\s*($RE_INT)\]/g ) {
-        $params{use_abs_cell_distances}{$dist}++;
+        $uses_distances{use_abs_cell_distances}{$dist}++;
     }
 
     #  match $nbr_z==5, $nbrcoord[1]<=10 etc
@@ -247,6 +269,8 @@ sub parse_distances {
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
     my $re_sub_names      = qr /$re_sub_names_text/xsm;
+    
+    my %shape_hash;
 
     my $str_len = length $conditions;
     pos($conditions) = 0;
@@ -302,76 +326,64 @@ sub parse_distances {
                 $invalid_args{$sub_name_and_args} = $invalid;
             }
 
-            my %res = $self->get_args( sub => $sub, %hash_1 );
+            my $metadata = $self->get_metadata ( sub => $sub, %hash_1 );
 
-            foreach my $key ( keys %res ) {
-
-                #  what params do we need?
-                #  (handle the use_euc_distances flags etc)
-                #  just use the ones we care about
-                if ( exists $params{$key} ) {
-                    if ( ref( $res{$key} ) =~ /HASH/ ) {
-                        my $h = $res{$key};
-                        foreach my $dist ( keys %$h ) {
-                            $params{$key}{$dist}++;
-                        }
-                    }
-                    elsif ( ref( $res{$key} ) =~ /ARRAY/ ) {
-                        my $a = $res{$key};
-                        foreach my $dist (@$a) {
-                            $params{$key}{$dist}++;
-                        }
-                    }
-                    else {  #  get the max of all the inputs, assuming numeric
-                        $params{$key} =
-                            max( $res{$key} || 0, $params{$key} || 0 );
-                    }
-                }
-
-                #  check required args are present (but not that they are valid)
-                if ( $key eq 'required_args' ) {
-                    foreach my $req ( @{ $res{$key} } ) {
-                        if ( not exists $hash_1{$req} ) {
-                            $missing_args{$sub_name_and_args}{$req}++;
-                        }
-                    }
-                }
-
-                #  check which optional args are missing (but not that they are valid)
-                if ( $key eq 'optional_args' ) {
-                    foreach my $req ( @{ $res{$key} } ) {
-                        if ( not exists $hash_1{$req} ) {
-                            $missing_opt_args{$sub_name_and_args}{$req}++;
-                        }
-                    }
-                }
-
-                #  REALLY BAD CODE - does not allow for other
-                #  functions and operators
-                elsif ( $key eq 'result_type' ) {
-                    $results_types .= " $res{$key}";
-                }
-
-                #  need to handle -ve values to turn off the index
-                elsif (     $key eq 'index_max_dist'
-                        and defined $res{$key}
-                        and not $index_max_dist_off )
-                {
-                    $index_max_dist =
-                      defined $index_max_dist
-                        ? max( $index_max_dist, $res{$key} )
-                        : $res{$key};
-                    if ( $res{$key} < 0 ) {
-                        $index_max_dist_off = 1;
-                        $index_max_dist     = undef;
-                    }
-                }
-
-                #  should we not use a spatial index?
-                elsif ( $key eq 'index_no_use' and $res{$key} ) {
-                    $index_no_use = 1;
+            #  what params do we need?
+            #  (handle the use_euc_distances flags etc)
+            #  just use the ones we care about
+            foreach my $key ( @dist_scalar_flags ) {
+                my $method = "get_$key";
+                $uses_distances{$key} ||= $metadata->$method;
+            }
+            foreach my $key ( @dist_list_flags ) {
+                my $method = "get_$key";
+                my $a = $metadata->$method;
+                croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
+                  if not reftype $a eq 'ARRAY';
+                foreach my $dist (@$a) {
+                    $uses_distances{$key}{$dist}++;
                 }
             }
+            
+            #  check required args are present (but not that they are valid)
+            my $required_args = $metadata->get_required_args;
+            foreach my $req ( @$required_args ) {
+                if ( not exists $hash_1{$req} ) {
+                    $missing_args{$sub_name_and_args}{$req}++;
+                }
+            }
+
+            #  check which optional args are missing (but not that they are valid)
+            my $optional_args = $metadata->get_optional_args;
+            foreach my $req ( @$optional_args ) {
+                if ( not exists $hash_1{$req} ) {
+                    $missing_opt_args{$sub_name_and_args}{$req}++;
+                }
+            }
+
+            #  REALLY BAD CODE - does not allow for other
+            #  functions and operators
+            $results_types .= ' ' . $metadata->get_result_type;
+
+            #  need to handle -ve values to turn off the index
+            my $this_index_max_dist = $metadata->get_index_max_dist;
+            if (defined $this_index_max_dist && !$index_max_dist_off ) {
+                if ( $this_index_max_dist < 0 ) {
+                    $index_max_dist_off = 1;
+                    $index_max_dist     = undef;
+                }
+                else {
+                    $index_max_dist //= $this_index_max_dist;
+                    $index_max_dist = max( $index_max_dist, $this_index_max_dist );
+                }
+            }
+            
+            my $shape = $metadata->get_shape_type;
+            $shape_hash{$shape} ++;
+
+            #  Should we not use a spatial index?  True if any of the conditions say so
+            $index_no_use ||= $metadata->get_index_no_use;
+
         }
         else {    #  bumpalong by one
             $conditions =~ m/ \G (.) /xgcs;
@@ -386,12 +398,12 @@ sub parse_distances {
     $self->set_param( INVALID_ARGS   => \%invalid_args );
     $self->set_param( INCORRECT_ARGS => \%incorrect_args );
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
-    $self->set_param( USES           => \%params );
-
+    $self->set_param( USES             => \%uses_distances );
+    $self->set_param( SHAPE_TYPES      => join ' ', sort keys %shape_hash);
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
-    foreach my $value ( values %params ) {
+    foreach my $value ( values %uses_distances ) {
 
         if ( ref $value ) {        #  assuming hash here
             my $count = scalar keys %$value;
@@ -407,7 +419,7 @@ sub parse_distances {
 
     }
 
-    #  add $self -> to each condition that does not have it
+    #  prepend $self-> to all the sp_xx sub calls
     my $re_object_call = qr {
                 (
                   (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
@@ -416,8 +428,6 @@ sub parse_distances {
                   (?:$re_sub_names)  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
-
-    #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
 
@@ -434,10 +444,11 @@ sub get_invalid_args_for_sub_call {
 
     my %called_args_hash = %{$args{args}};
 
-    my %metadata = $self->get_args (sub => $args{sub});
+    my $metadata = $self->get_metadata (sub => $args{sub});
 
     foreach my $key (qw /required_args optional_args/) {
-        my $list = $metadata{$key} || [];
+        my $method = "get_$key";
+        my $list = $metadata->$method;
         delete @called_args_hash{@$list};
     }
 
@@ -588,6 +599,11 @@ sub verify {
     return wantarray ? %hash : \%hash;
 }
 
+my $locale_warning
+  =  "(this is often caused by locale issues - \n"
+   . "it is safest to run Biodiverse under a local that uses a . as the decimal place, e.g. 33.5 not 33,5)";
+
+
 #  calculate the distances between two sets of coords
 #  expects refs to two element arrays
 #  at the moment we are only calculating the distances
@@ -645,24 +661,25 @@ sub get_distances {
 
         my $coord1 = $element1[$i];
         croak
-            'coord1 value is not numeric (if you think it is numeric then check your locale): '
-            . ( defined $coord1 ? $coord1 : 'undef' )
-            . "\n"
+            'coord1 value is not numeric: '
+            . ( $coord1 // 'undef' )
+            . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
-            'coord2 value is not numeric (if you think it is numeric then check your locale): '
-            . ( defined $coord2 ? $coord2 : 'undef' )
-            . "\n"
+            'coord2 value is not numeric: '
+            . ( $coord2 // 'undef' )
+            . "\n$locale_warning"
             if !looks_like_number($coord2);
 
-        $d[$i] =
-            eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
-
-        $D[$i] = abs $d[$i];
-        $sum_D_sqr += $d[$i]**2;
-
+        #  trap errors from non-numeric coords
+        my $d_val   = eval { $coord2 - $coord1 }; 
+        $sum_D_sqr += $d_val**2;
+        $d_val = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $d[$i] = $d_val;
+        $D[$i] = abs $d_val;
+        
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
             or scalar keys %{ $params->{use_cell_distances} } )
@@ -671,9 +688,11 @@ sub get_distances {
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
                 if $cellsize[$i] <= 0;
 
-            $c[$i] = eval { $d[$i] / $cellsize[$i] };
-            $C[$i] = eval { abs $c[$i] };
-            $sum_C_sqr += eval { $c[$i]**2 } || 0;
+            my $c_val   = eval { $d_val / $cellsize[$i] };
+            $sum_C_sqr += eval { $c_val**2 } || 0;
+            $c_val = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $c[$i] = $c_val;
+            $C[$i] = abs $c_val;
         }
     }
 
@@ -794,7 +813,9 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-    say "PARSED CONDITIONS:  $conditions";
+    if (!$self->get_param('NO_LOG')) {
+        say "PARSED CONDITIONS:  $conditions";
+    }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;
@@ -907,6 +928,10 @@ sub get_index_max_dist {
     #  or restructure the get_result_type to find both at once
 }
 
+sub get_shape_type {
+    my $self = shift;
+    return $self->get_param('SHAPE_TYPES') // '';
+}
 
 ################################################################################
 #  now for a set of shortcut subs so people don't have to learn so much perl syntax,
@@ -918,24 +943,33 @@ sub get_metadata_sp_circle {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my $example = <<'END_CIRC_EX'
+#  A circle of radius 1000 across all axes
+sp_circle (radius => 1000)
+
+#  use only axes 0 and 3
+sp_circle (radius => 1000, axes => [0, 3])
+END_CIRC_EX
+  ;
+
+    my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses group (map) distances.',
-        use_euc_distances => $args{axes},
-        use_euc_distance  => $args{axes}
-        ? undef
-        : 1,    #  don't need $D if we're using a subset
+        use_abs_euc_distances => ($args{axes} // []),
+        #  don't need $D if we're using a subset
+        use_euc_distance      => !$args{axes},
                 #  flag index dist if easy to determine
         index_max_dist =>
             ( looks_like_number $args{radius} ? $args{radius} : undef ),
         required_args => ['radius'],
         optional_args => [qw /axes/],
         result_type   => 'circle',
+        example       => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a circle (or hypersphere for n-dimensions)
@@ -974,20 +1008,29 @@ sub get_metadata_sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my $example = <<'END_CIRC_CELL_EX'
+#  A circle of radius 3 cells across all axes
+sp_circle (radius => 3)
+
+#  use only axes 0 and 3
+sp_circle_cell (radius => 3, axes => [0, 3])
+END_CIRC_CELL_EX
+  ;
+
+    my %metadata = (
         description =>
             "A circle.  Assessed against all dimensions by default (more properly called a hypersphere)\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses cell distances.',
-        use_cell_distances => $args{axes},
-        use_cell_distance  => $args{axes}
-                            ? undef
-                            : 1,    #  don't need $C if we're using a subset
+        use_abs_cell_distances => ($args{axes} // []),
+        #  don't need $C if we're using a subset
+        use_cell_distance      => !$args{axes},    
         required_args => ['radius'],
         result_type   => 'circle',
+        example       => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  cell based circle.
@@ -1020,10 +1063,17 @@ sub sp_circle_cell {
 
 
 my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
-#  A rectangle of equal size on the first two axes, and 100 on the third.
+#  A rectangle of equal size on the first two axes,
+#  and 100 on the third.
 sp_rectangle (sizes => [100000, 100000, 100])
-#  The same, but with the axes reordered (an example of using the axes argument)
-sp_rectangle (sizes => [100000, 100, 100000], axes => [0,2,1])
+
+#  The same, but with the axes reordered
+#  (an example of using the axes argument)
+sp_rectangle (
+    sizes => [100000, 100, 100000],
+    axes  => [0, 2, 1],
+)
+
 #  Use only the first an third axes
 sp_rectangle (sizes => [100000, 100000], axes => [0,2])
 END_RECTANGLE_EXAMPLE
@@ -1033,7 +1083,23 @@ sub get_metadata_sp_rectangle {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my $shape_type = 'rectangle';
+
+    #  sometimes complex conditions are passed, not just numeric scalars
+    my @unique_axis_vals = uniq @{$args{sizes}};
+    my $non_numeric_axis_count = grep {!looks_like_number $_} @unique_axis_vals;
+    my ($largest_axis, $axis_count);
+    $axis_count = 0;
+    if ($non_numeric_axis_count == 0) {
+        $largest_axis = max @unique_axis_vals;
+        $axis_count   = scalar @{$args{sizes}};
+    }
+
+    if ($axis_count > 1 && scalar @unique_axis_vals == 1) {
+        $shape_type = 'square';
+    }
+
+    my %metadata = (
         description =>
               'A rectangle.  Assessed against all dimensions by default '
             . "(more properly called a hyperbox)\n"
@@ -1044,9 +1110,11 @@ sub get_metadata_sp_rectangle {
         optional_args => [qw /axes/],
         result_type   => 'circle',  #  centred on processing group, so leave as type circle
         example       => $rectangle_example,
+        index_max_dist => $largest_axis,
+        shape_type     => $shape_type,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a circle (or hypersphere for n-dimensions)
@@ -1084,12 +1152,12 @@ sub get_metadata_sp_annulus {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "An annulus.  Assessed against all dimensions by default\n"
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses group (map) distances.',
-        use_euc_distances => $args{axes},
+        use_abs_euc_distances => ($args{axes} // []),
             #  don't need $D if we're using a subset
         use_euc_distance  => $args{axes} ? undef : 1,    
             #  flag index dist if easy to determine
@@ -1103,7 +1171,7 @@ sub get_metadata_sp_annulus {
             . q{sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])},
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run an annulus
@@ -1142,8 +1210,17 @@ sub sp_annulus {
 sub get_metadata_sp_square {
     my $self = shift;
     my %args = @_;
+    
+    my $example = <<'END_SQR_EX'
+#  An overlapping square, cube or hypercube
+#  depending on the number of axes
+#   Note - you cannot yet specify which axes to use
+#   so it will be square on all sides
+sp_square (size => 300000)
+END_SQR_EX
+  ;
 
-    my %args_r = (
+    my %metadata = (
         description =>
             "An overlapping square assessed against all dimensions (more properly called a hypercube).\n"
             . 'Uses group (map) distances.',
@@ -1153,14 +1230,11 @@ sub get_metadata_sp_square {
             ( looks_like_number $args{size} ? $args{size} : undef ),
         required_args => ['size'],
         result_type   => 'square',
-        example =>
-            q{#  an overlapping square, cube or hypercube depending on the number of axes}
-            . q{#    note - you cannot yet specify which axes to use }
-            . q{#    so it will be square on all sides}
-            . q{sp_square (size => 300000)},
+        shape_type    => 'square',
+        example       =>  $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  sub to run a square (or hypercube for n-dimensions)
@@ -1173,8 +1247,12 @@ sub sp_square {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{D_list} }; 
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{D_list} }; 
+    foreach my $dist (@{ $h->{dists}{D_list} }) {
+        warn "$dist, $size"
+          if    $args{size} == 0.2
+             && (abs ($size - $dist) < 0.00001)
+             && (abs ($size - $dist) > 0);
         return 0 if $dist > $size;
     }
 
@@ -1185,20 +1263,31 @@ sub get_metadata_sp_square_cell {
     my $self = shift;
     my %args = @_;
 
+    my $index_max_dist;
+    my $bd = eval {$self->get_basedata_ref};
+    if (defined $args{size} && $bd) {
+        my $cellsizes = $bd->get_cell_sizes;
+        my @u = uniq @$cellsizes;
+        if (@u == 1 && looks_like_number $u[0]) {
+            $index_max_dist = $args{size} * $u[0] / 2;
+        }
+    }
+
     my $description =
       'A square assessed against all dimensions '
       . "(more properly called a hypercube).\n"
       . q{Uses 'cell' distances.};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         use_cell_distance => 1,    #  need all the distances
+        index_max_dist    => $index_max_dist,
         required_args => ['size'],
         result_type   => 'square',
         example       => 'sp_square_cell (size => 3)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_square_cell {
@@ -1209,8 +1298,8 @@ sub sp_square_cell {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{dists}{C_list} };
-    foreach my $dist (@x) {
+    #my @x = @{ $h->{dists}{C_list} };
+    foreach my $dist (@{ $h->{dists}{C_list} }) {
         return 0 if $dist > $size;
     }
 
@@ -1222,21 +1311,28 @@ sub get_metadata_sp_block {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my $shape_type = 'complex';
+    if (looks_like_number $args{size} && !defined $args{origin}) {
+        $shape_type = 'square';
+    }
+    
+    my $index_max_dist = looks_like_number $args{size} ? $args{size} : undef;
+
+    my %metadata = (
         description =>
             'A non-overlapping block.  Set an axis to undef to ignore it.',
-        index_max_dist =>
-            ( looks_like_number $args{size} ? $args{size} : undef ),
-        required_args => ['size'],
-        optional_args => ['origin'],
-        result_type   => 'non_overlapping'
+        index_max_dist => $index_max_dist,
+        shape_type     => $shape_type,
+        required_args  => ['size'],
+        optional_args  => ['origin'],
+        result_type    => 'non_overlapping'
         , #  we can recycle results for this (but it must contain the processing group)
           #  need to add optionals for origin and axes_to_use
         example => "sp_block (size => 3)\n"
             . 'sp_block (size => [3,undef,5]) #  rectangular block, ignores second axis',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  non-overlapping block, cube or hypercube
@@ -1292,9 +1388,20 @@ sub get_metadata_sp_ellipse {
 
     my $description =
         q{A two dimensional ellipse.  Use the 'axes' argument to control }
-      . q{which are used (default is [0,1]).  The default rotate_angle is pi/2.};
+      . q{which are used (default is [0,1]).  The default rotate_angle is 0, }
+      . q{such that the major axis is east-west.};
+    my $example = <<'END_ELLIPSE_EX'
+# North-south aligned ellipse
+sp_ellipse (
+    major_radius => 300000,
+    minor_radius => 100000,
+    axes => [0,1],
+    rotate_angle => 1.5714,
+)
+END_ELLIPSE_EX
+  ;
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         use_euc_distances => $axes,
         use_euc_distance  => $axes ? undef : 1,
@@ -1308,14 +1415,10 @@ sub get_metadata_sp_ellipse {
         required_args => [qw /major_radius minor_radius/],
         optional_args => [qw /axes rotate_angle rotate_angle_deg/],
         result_type   => 'ellipse',
-        example       =>
-              '# East west aligned ellipse'
-            . 'sp_ellipse (major_radius => 300000, '
-            . 'minor_radius => 100000, axes => [0,1], '
-            . 'rotate_angle => 1.5714)',
+        example       => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  a two dimensional ellipse -
@@ -1345,12 +1448,12 @@ sub sp_ellipse {
     my $major_radius = $args{major_radius};    #  longest axis
     my $minor_radius = $args{minor_radius};    #  shortest axis
 
-    #  set the default offset as north in radians, anticlockwise 1.57 is north
-    my $rotate_angle =
-        defined $args{rotate_angle} ? $args{rotate_angle} : Math::Trig::pi2;
+    #  set the default offset as east-west in radians (anticlockwise 1.57 is north)
+    my $rotate_angle = $args{rotate_angle};
     if ( defined $args{rotate_angle_deg} and not defined $rotate_angle ) {
-        $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
+            $rotate_angle = deg2rad ( $args{rotate_angle_deg} );
     }
+    $rotate_angle //= 0;
 
     my $d0 = $d[ $axes->[0] ];
     my $d1 = $d[ $axes->[1] ];
@@ -1374,35 +1477,18 @@ sub sp_ellipse {
     return $test;
 }
 
-#sub _sp_random_select {
-#    my %args = @_;
-#
-#    ARGS: if ($args{get_args}) {
-#        my %args_r = (
-#                    description => "Randomly select a set of neighbours",
-#                    #  flag index dist if easy to determine
-#                    index_max_dist => undef,
-#                    required_args => [qw //],
-#                    optional_args => [qw //],
-#                    result_type => "random",
-#                    );
-#        return wantarray ? %args_r : \%args_r;
-#    }
-#
-#}
-
 sub get_metadata_sp_select_all {
     my $self = shift;
     my %args = @_;
 
-    my %args_r = (
+    my %metadata = (
         description    => 'Select all elements as neighbours',
         result_type    => 'always_true',
         example        => 'sp_select_all() #  select every group',
         index_max_dist => -1,  #  search whole index if using this in a complex condition
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_all {
@@ -1415,14 +1501,14 @@ sub sp_select_all {
 sub get_metadata_sp_self_only {
     my $self = shift;
 
-    my %args_r = (
+    my %metadata = (
         description    => 'Select only the processing group',
         result_type    => 'self_only',
         index_max_dist => 0,    #  search only self if using index
         example        => 'sp_self_only() #  only use the proceessing cell',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_self_only {
@@ -1444,7 +1530,7 @@ sp_select_element (element => 'Biome1:savannah forest')
 END_SP_SELECT_ELEMENT
   ;
 
-    my %args_r = (
+    my %metadata = (
         description => 'Select a specific element.  Basically the same as sp_match_text, but with optimisations enabled',
         index_max_dist => undef,
 
@@ -1459,7 +1545,7 @@ END_SP_SELECT_ELEMENT
         example => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_element {
@@ -1494,7 +1580,7 @@ sp_match_text (text => 'NK', axis => 2, type => 'proc')
 END_SP_MT_EX
   ;
 
-    my %args_r = (
+    my %metadata = (
         description        => 'Select all neighbours matching a text string',
         index_max_dist => undef,
 
@@ -1511,7 +1597,7 @@ END_SP_MT_EX
         example => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_match_text {
@@ -1548,7 +1634,7 @@ END_RE_EXAMPLE
     my $description = 'Select all neighbours with an axis matching '
         . 'a regular expresion';
 
-    my %args_r = (
+    my %metadata = (
         description        => $description,
         index_max_dist => undef,
 
@@ -1564,7 +1650,7 @@ END_RE_EXAMPLE
         example      => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_match_regex {
@@ -1630,7 +1716,7 @@ sub get_metadata_sp_is_left_of {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1641,7 +1727,7 @@ sub get_metadata_sp_is_left_of {
               'sp_is_left_of (vector_angle => 1.5714)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1667,7 +1753,7 @@ sub get_metadata_sp_is_right_of {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1678,7 +1764,7 @@ sub get_metadata_sp_is_right_of {
               'sp_is_right_of (vector_angle => 1.5714)',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1704,7 +1790,7 @@ sub get_metadata_sp_in_line_with {
       . q{Use the 'axes' argument to control }
       . q{which are used (default is [0,1])};
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
 
         #  flag the index dist if easy to determine
@@ -1715,7 +1801,7 @@ sub get_metadata_sp_in_line_with {
               'sp_in_line_with (vector_angle => Math::Trig::pip2) #  pi/2 = 90 degree angle',
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -1797,7 +1883,24 @@ sub _sp_side {
 sub get_metadata_sp_select_sequence {
     my $self = shift;
 
-    my %args_r = (
+    my $example = <<'END_SEL_SEQ_EX'
+# Select every tenth group (groups are sorted alphabetically)
+sp_select_sequence (frequency => 10)
+
+#  Select every tenth group, starting from the third
+sp_select_sequence (frequency => 10, first_offset => 2)
+
+#  Select every tenth group, starting from the third last 
+#  and working backwards
+sp_select_sequence (
+    frequency     => 10,
+    first_offset  =>  2,
+    reverse_order =>  1,
+)
+END_SEL_SEQ_EX
+  ;
+
+    my %metadata = (
         description =>
             'Select a subset of all available neighbours based on a sample sequence '
             . '(note that groups are sorted south-west to north-east)',
@@ -1814,16 +1917,10 @@ sub get_metadata_sp_select_sequence {
         ],
         index_no_use => 1,          #  turn the index off
         result_type  => 'subset',
-        example =>
-            "# Select every tenth group (groups are sorted alphabetically)\n"
-            . q{sp_select_sequence (frequency => 10)}
-            . "#  Select every tenth group, starting from the third\n"
-            . q{sp_select_sequence (frequency => 10, first_offset => 2)}
-            . "#  Select every tenth group, starting from the third last and working backwards\n"
-            . q{sp_select_sequence (frequency => 10, first_offset => 2, reverse_order => 1)},
+        example      => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_sequence {
@@ -1878,13 +1975,7 @@ sub sp_select_sequence {
     $self->set_cached_value( $cache_last_coord_id_name => $coord_id1 );
     $self->set_cached_value( $cache_offset_name        => $offset );
 
-    my $cached_nbrs = $self->get_cached_value($cache_nbr_name);
-    if ( not $cached_nbrs ) {
-
-        #  cache this regardless - what matters is where it is used
-        $cached_nbrs = {};
-        $self->set_cached_value( $cache_nbr_name => $cached_nbrs );
-    }
+    my $cached_nbrs = $self->get_cached_value_dor_set_default_aa($cache_nbr_name, {});
 
     my $nbrs;
     if (    $use_cache
@@ -1993,6 +2084,22 @@ sub clear_cached_subset_nbrs {
 sub get_metadata_sp_select_block {
     my $self = shift;
     my %args = @_;
+    
+    my $example = <<'END_SPSB_EX'
+# Select up to two groups per block with each block being 5 groups
+on a side where the group size is 100
+sp_select_block (size => 500, count => 2)
+
+#  Now do it non-randomly and start from the lower right
+sp_select_block (size => 500, count => 10, random => 0, reverse => 1)
+
+#  Rectangular block with user specified PRNG starting seed
+sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)
+
+# Lower memory footprint (but longer running times for neighbour searches)
+sp_select_block (size => 500, count => 2, clear_cache => 1)
+END_SPSB_EX
+  ;
 
     my %metadata = (
         description =>
@@ -2005,29 +2112,17 @@ sub get_metadata_sp_select_block {
             'size',           #  size of the block
         ],    
         optional_args => [
-            'count',      #  how many groups per block?
+            'count',          #  how many groups per block?
             'use_cache',      #  a boolean flag, defaults to 1
             'reverse_order',  #  work from the other end
             'random',         #  randomise within blocks?
             'prng_seed',      #  seed for the PRNG
         ],
-        #index_no_use => 1,          #  turn the index off
-        #result_type  => 'subset',
-        #result_type  => 'non_overlapping',
         result_type  => 'complex',  #  need to make it a subset, but that part needs work
-        example =>
-            '# Select up to two groups per block with each block being 5 groups '
-            . "on a side where the group size is 100\n"
-            . q{sp_select_block (size => 500, count => 2)}
-            . "#  Now do it non-randomly and start from the lower right\n"
-            . q{sp_select_block (size => 500, count => 10, random => 0, reverse => 1)}
-            . "#  Rectangular block with user specified PRNG starting seed\n"
-            . q{sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)}
-            . "# Lower memory footprint (but longer running times for neighbour searches)\n"
-            . q{sp_select_block (size => 500, count => 2, clear_cache => 1)}
+        example      => $example,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_select_block {
@@ -2037,7 +2132,7 @@ sub sp_select_block {
     #  do stuff here
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $bd        = $args{caller_object} || $h->{basedata};
+    my $bd        = $args{caller_object} || $h->{basedata} || $self->get_basedata_ref;
     my $coord_id1 = $h->{coord_id1};
     my $coord_id2 = $h->{coord_id2};
 
@@ -2119,7 +2214,7 @@ sub get_spatial_output_sp_select_block {
 
     my $size = $args{size};
 
-    my $bd = $args{basedata_ref};
+    my $bd = $args{basedata_ref} // $self->get_basedata_ref;
     my $sp = $bd->add_spatial_output (name => 'get nbrs for sp_select_block ' . time());
     $bd->delete_output(output => $sp, delete_basedata_ref => 0);
 
@@ -2145,10 +2240,21 @@ sub get_metadata_sp_point_in_poly {
     my $self = shift;
     
     my %args = @_;
+    
+    my $example = <<'END_SP_PINPOLY'
+# Is the neighbour coord in a square polygon?
+sp_point_in_poly (
+    polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]],
+    point   => \@nbrcoord,
+)
+
+END_SP_PINPOLY
+  ;
 
     my %metadata = (
         description =>
-            'Select groups that occur within a user-defined polygon',
+            "Select groups that occur within a user-defined polygon \n"
+            . '(see sp_point_in_poly_shape for an altrnative)',
         required_args      => [
             'polygon',           #  array of vertices, or a Math::Polygon object
         ],
@@ -2157,12 +2263,10 @@ sub get_metadata_sp_point_in_poly {
         ],
         index_no_use => 1,
         result_type  => 'always_same',
-        example =>
-              q{# Is the neighbour coord in a square polygon?}
-            . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
+        example      => $example,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2188,20 +2292,20 @@ sub _get_shp_examples {
 sp_point_in_poly_shape (
     file  => 'c:\biodiverse\data\coastline_lamberts',
     point => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a shapefile's second polygon (counting from 1)?
 sp_point_in_poly_shape (
     file      => 'c:\biodiverse\data\coastline_lamberts',
     field_val => 2,
     point     => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
 sp_point_in_poly_shape (
-    file      => 'c:\biodiverse\data\coastline_lamberts',
-    field     => 'OBJECT_ID',
-    field_val => 2,
-    point     => \@nbrcoord,
-)
+    file       => 'c:\biodiverse\data\coastline_lamberts',
+    field_name => 'OBJECT_ID',
+    field_val  => 2,
+    point      => \@nbrcoord,
+);
 END_OF_SHP_EXAMPLES
   ;
     return $examples;
@@ -2227,7 +2331,7 @@ sub get_metadata_sp_point_in_poly_shape {
         example => $examples,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2322,7 +2426,7 @@ sub get_metadata_sp_points_in_same_poly_shape {
         example => $examples,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2430,8 +2534,8 @@ sub get_cache_name_sp_point_in_poly_shape {
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
-        ($args{field_name} || $NULL_STRING),
-        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+        ($args{field_name} // $NULL_STRING),
+        ($args{field_val}  // $NULL_STRING);
     return $cache_name;
 }
 
@@ -2449,11 +2553,7 @@ sub get_cache_points_in_shapepoly {
     my %args = @_;
 
     my $cache_name = 'cache_' . $args{file};
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
     return $cache;
 }
 
@@ -2461,11 +2561,7 @@ sub get_cache_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value($cache_name, {});
     return $cache;
 }
 
@@ -2473,11 +2569,7 @@ sub get_cache_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
-    my $cache = $self->get_cached_value($cache_name);
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value($cache_name => $cache);
-    }
+    my $cache = $self->get_cached_value_dor_set_default_aa($cache_name, {});
     return $cache;
 }
 
@@ -2488,19 +2580,23 @@ sub get_polygons_from_shapefile {
     my $file = $args{file};
     $file =~ s/\.(shp|shx|dbf)$//;
 
-    my $field = $args{field_name};
+    my $field_name = $args{field_name};
+    my $field_val  = $args{field_val};
 
-    my $field_val = $args{field_val};
-
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
-    my $cached     = $self->get_cached_value($cache_name);
+    my $cache_name
+        = join ':',
+          'SHAPEPOLYS',
+          $file,
+          ($field_name // $NULL_STRING),
+          ($field_val  // $NULL_STRING);
+    my $cached = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;
 
     my $shapefile = Geo::ShapeFile->new($file);
 
     my @shapes;
-    if ((!defined $field || $field eq 'FID') && defined $field_val) {
+    if ((!defined $field_name || $field_name eq 'FID') && defined $field_val) {
         my $shape = $shapefile->get_shp_record($field_val);
         push @shapes, $shape;
     }
@@ -2518,15 +2614,15 @@ sub get_polygons_from_shapefile {
             );
 
             #  get the lot
-            if ((!defined $field || $field eq 'FID') && !defined $field_val) {
+            if ((!defined $field_name || $field_name eq 'FID') && !defined $field_val) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 next REC;
             }
 
             #  get all that satisfy the condition
             my %db = $shapefile->get_dbf_record($rec);
-            my $is_num = looks_like_number ($db{$field});
-            if ($is_num ? $field_val == $db{$field} : $field_val eq $db{$field}) {
+            my $is_num = looks_like_number ($db{$field_name});
+            if ($is_num ? $field_val == $db{$field_name} : $field_val eq $db{$field_name}) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 #last REC;
             }
@@ -2587,23 +2683,30 @@ sub get_metadata_sp_group_not_empty {
     
     my %args = @_;
 
+    my $example = <<'END_GP_NOT_EMPTY_EX'
+# Restrict calculations to those non-empty groups.
+#  Will use the processing group if a def query,
+#  the neighbour group otherwise.
+sp_group_not_empty ()
+
+# The same as above, but being specific about which group (element) to test.
+#  This is probably best used in cases where the element
+#  to check is varied spatially.}
+sp_group_not_empty (element => '5467:9876')
+END_GP_NOT_EMPTY_EX
+  ;
+
     my %metadata = (
-        description   => 'Is an element non-empty?',
+        description   => 'Is a basedata group non-empty? (i.e. contains one or more labels)',
         required_args => [],
         optional_args => [
             'element',      #  which element to use 
         ],
         result_type   => $NULL_STRING,
-        example       =>
-              q{# Restrict calculations to those non-empty groups.}
-            . q{#  Will use the processing group if a def query, the neighbour group otherwise.}
-            . q{sp_group_not_empty ()}
-            . q{# The same as above, but being specific about which group (element) to test.}
-            . q{#  This is probably best used in cases where the element to check is varied spatially.}
-            . q{sp_group_not_empty (element => '5467:9876')},
+        example       => $example,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 sub sp_group_not_empty {
@@ -2628,7 +2731,7 @@ sub get_metadata_sp_in_label_range {
     my %args = @_;
 
     my %metadata = (
-        description   => "Is a label within a group's range?",
+        description   => "Is a group within a label's range?",
         required_args => ['label'],
         optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
@@ -2636,11 +2739,12 @@ sub get_metadata_sp_in_label_range {
         result_type   => 'always_same',
         index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       =>
-              q{# Are we in the range of label called Genus:Sp1?}
+              qq{# Are we in the range of label called Genus:Sp1?\n}
             . q{sp_in_label_range(label => 'Genus:Sp1')}
+            . q{#  The type argument determines is the processing or neighbour group is assessed}
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $self->metadata_class->new (\%metadata);
 }
 
 
@@ -2665,7 +2769,7 @@ sub sp_in_label_range {
 
     my $bd  = $h->{basedata};
 
-    my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
+    my $labels_in_group = $bd->get_labels_in_group_as_hash_aa ($group);
 
     my $exists = exists $labels_in_group->{$label};
 
@@ -2674,8 +2778,8 @@ sub sp_in_label_range {
 
 
 
-sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
-sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
+#sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
+#sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 
 
 sub get_example_sp_get_spatial_output_list_value {
@@ -2684,8 +2788,9 @@ sub get_example_sp_get_spatial_output_list_value {
 #  get the spatial results value for the current neighbour group
 # (or processing group if used as a def query)
 sp_get_spatial_output_list_value (
-    output  => 'sp1',
-    list    => 'SPATIAL_RESULTS',
+    output  => 'sp1',              #  using spatial output called sp1
+    list    => 'SPATIAL_RESULTS',  #  from the SPATIAL_RESULTS list
+    index   => 'PE_WE_P',          #  get index value for PE_WE_P
 )
 
 #  get the spatial results value for group 128:254
@@ -2693,6 +2798,7 @@ sp_get_spatial_output_list_value (
     output  => 'sp1',
     element => '128:254',
     list    => 'SPATIAL_RESULTS',
+    index   => 'PE_WE_P',
 )
 END_EXAMPLE_GSOLV
   ;
@@ -2710,7 +2816,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
 
     my $example = $self->get_example_sp_get_spatial_output_list_value;
 
-    my %args_r = (
+    my %metadata = (
         description => $description,
         index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
         required_args  => [qw /output index/],
@@ -2719,7 +2825,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
         example        => $example,
     );
 
-    return wantarray ? %args_r : \%args_r;
+    return $self->metadata_class->new (\%metadata);
 }
 
 #  get the value from another spatial output
@@ -2734,8 +2840,8 @@ sub sp_get_spatial_output_list_value {
 
     my $default_element
       = eval {$self->is_def_query}
-      ? $h->{coord_id1}
-      : $h->{coord_id2};
+        ? $h->{coord_id1}
+        : $h->{coord_id2};  #?
 
     my $element = $args{element} // $default_element;
 
@@ -2757,6 +2863,57 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+
+sub get_conditions_metadata_as_markdown {
+    my $self = shift;
+
+    my $condition_subs = $self->get_subs_with_prefix (prefix => 'sp_');
+
+    #my @keys_of_interest = qw /
+    #    description
+    #    required_args
+    #    optional_args
+    #    example
+    #/;
+    #  also need to know if it uses the index, disables it or has no effect
+
+    my $md;
+
+    foreach my $sub_name (sort keys %$condition_subs) {
+        say $sub_name;
+        my $metadata = $self->get_metadata (sub => $sub_name);
+        #say join ' ', sort keys %$metadata;
+        my @md_this_sub;
+        push @md_this_sub, "### $sub_name ###";
+        push @md_this_sub, $metadata->get_description;
+
+        my $required_args = $metadata->get_required_args;
+        if (!scalar @$required_args) {
+            $required_args = ['*none*'];
+        }
+        push @md_this_sub, '**Required args:**  ' . join ', ', sort @$required_args;
+
+        my $optional_args = $metadata->get_optional_args;
+        if (!scalar @$optional_args) {
+            $optional_args = ['*none*'];
+        }
+        push @md_this_sub, '**Optional args:**  ' . join ', ', sort @$optional_args;
+
+        my $example = $metadata->get_example;
+        my @ex = split "\n", $example;
+        my @len_check = grep {length ($_) > 78} @ex;
+        croak (join "\n", $sub_name, @len_check) if scalar @len_check;
+        croak "$sub_name has no example" if !$example || $example eq 'no_example';
+
+        push @md_this_sub, "**Example:**\n```perl\n$example\n```";
+
+        $md .= join "\n\n", @md_this_sub;
+        $md .= "\n\n";
+
+    }
+    
+    return $md;
+}
 
 
 

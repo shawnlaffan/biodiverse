@@ -9,8 +9,9 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Data::Dumper;
+use Path::Class;
 
-use rlib;
+use Test::Lib;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -95,6 +96,278 @@ sub main {
     return 0;
 }
 
+
+sub test_rename_outputs {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [1,1],
+        x_max => 5,
+        y_max => 2,
+    );
+    
+    my $sp_calcs = [qw /calc_endemism_whole calc_endemism_whole_lists/];
+
+    #  spatial
+    my $sp = $bd->add_spatial_output (name => 'sp_n1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => $sp_calcs,
+    );
+    my $spx = $bd->add_spatial_output (name => 'sp_n1x');
+    $spx->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => $sp_calcs,
+    );
+    $bd->rename_output (new_name => 'sp_n2', output => $sp);
+    is $sp->get_name,  'sp_n2',  'renamed spatial output';
+    is $spx->get_name, 'sp_n1x', 'did not rename other spatial output';
+
+    my @sp_names = $bd->get_spatial_output_names;
+    is_deeply \@sp_names, [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
+
+    #  cluster
+    my $cl = $bd->add_cluster_output (name => 'cl_n1');
+    $cl->run_analysis (
+        spatial_calculations => $sp_calcs,
+    );
+    my $clx = $bd->add_cluster_output (name => 'cl_n1x');
+    $clx->run_analysis (
+        spatial_calculations => $sp_calcs,
+    );
+    $bd->rename_output (new_name => 'cl_n2', output => $cl);
+    is $cl->get_name,  'cl_n2',  'renamed cluster output';
+    is $clx->get_name, 'cl_n1x', 'did not rename other cluster output';
+
+    my @cl_names = $bd->get_cluster_output_names;
+    is_deeply \@cl_names, [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
+
+    my $mx = $cl->get_matrix_ref;
+    $bd->rename_output (new_name => 'mx_n2', output => $mx);
+    is $mx->get_name, 'mx_n2', 'renamed matrix output';
+
+    my @mx_names = $bd->get_matrix_output_names;
+    is_deeply \@mx_names, [qw 'mx_n2'], 'basedata matrix names match';
+
+    my $rand = $bd->add_randomisation_output (name => 'rd_n1');
+    eval {
+        $rand->run_analysis (
+            function   => 'rand_nochange',
+            iterations => 1,
+        );
+    };
+    diag $@ if $@;
+    my $randx = $bd->add_randomisation_output (name => 'rd_n1x');
+    $randx->run_analysis (
+        function   => 'rand_nochange',
+        iterations => 1,
+    );
+
+    my @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_orig = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    my @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_orig = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+
+    eval {
+        $bd->rename_output (new_name => 'rd_n2', output => $rand);
+    };
+    diag $@ if $@;
+
+    is $rand->get_name, 'rd_n2', 'renamed randomisation output';
+
+    @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_new = grep {$_ =~ '^rd_n2>>'} @sp_lists;
+    is $sp_named_lists_new, $sp_named_lists_orig, 'same number of new named lists as old, sp';
+    $sp_named_lists_orig   = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    is $sp_named_lists_orig, 0, 'no lists found with old name, sp';
+
+    @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_new = grep {$_ =~ '^rd_n2'} @cl_lists;
+    is $cl_named_lists_new, $cl_named_lists_orig, 'same number of new named lists as old, cl';
+    $cl_named_lists_orig   = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+    is $cl_named_lists_orig, 0, 'no lists found with old name, cl';
+
+    my @rand_names = $bd->get_randomisation_output_names;
+    is_deeply \@rand_names, [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
+
+    return;
+}
+
+sub test_remapped_labels_when_stringified_and_numeric {
+    my $label_numeric1 = 10;
+    my $label_numeric2 = 20;
+    my $label_text1    = 'barry the wonder dog';
+    my $label_text2    = 'barry the non-wonder dog';
+
+    my $bd1 = Biodiverse::BaseData->new (CELL_SIZES => [2, 2]);
+    $bd1->add_element (label => $label_numeric1, group => '5:5');
+    $bd1->add_element (label => $label_numeric1, group => '55:1150');
+    my $bd2 = $bd1->clone;
+
+    ok ($bd1->labels_are_numeric, 'Labels are numeric');
+    ok ($bd2->labels_are_numeric, 'Labels are numeric, cloned');
+
+    my $remap = Biodiverse::ElementProperties->new ();
+    $remap->add_element (element => $label_numeric1);
+    my $remap_hash = {REMAP => $label_text1};
+    $remap->add_lists (element => $label_numeric1, PROPERTIES => $remap_hash);
+
+    $bd1->rename_labels (remap => $remap);
+    ok (!$bd1->labels_are_numeric, 'Labels are no longer numeric after rename_labels');
+
+    #  now we try with a single rename
+    $bd2->rename_label (label => $label_numeric1, new_name => $label_text1);
+    ok (!$bd2->labels_are_numeric, 'Labels are no longer numeric after rename_label');
+
+    my $bd3 = Biodiverse::BaseData->new (CELL_SIZES => [2, 2]);
+    $bd3->add_element (label => $label_text1,  group => '5:5');
+    $bd3->add_element (label => $label_text2, group => '55:1150');
+    my $bd4 = $bd3->clone;
+    my $bd5 = $bd3->clone;
+
+    ok (!$bd3->labels_are_numeric, 'Text labels are not numeric');
+
+    my $remap_text2num = Biodiverse::ElementProperties->new ();
+    $remap_text2num->add_element (element => $label_text1);
+    $remap_text2num->add_lists   (element => $label_text1, PROPERTIES => {REMAP => $label_numeric1});
+
+    $bd3->rename_labels (remap => $remap_text2num);
+    ok (!$bd1->labels_are_numeric, 'Text labels still not numeric after one label renamed');
+
+    $remap_text2num->add_element (element => $label_text2);
+    $remap_text2num->add_lists   (element => $label_text2, PROPERTIES => {REMAP => $label_numeric2});
+
+    $bd3->rename_labels (remap => $remap_text2num);
+    ok ($bd3->labels_are_numeric, 'Text labels are now numeric, done one at a time');
+
+    $bd4->rename_labels (remap => $remap_text2num);
+    ok ($bd4->labels_are_numeric, 'Text labels are now numeric, all done at once');
+
+    #  now we try with all text labels mapped to one numeric label
+    $remap_text2num->add_lists   (element => $label_text2, PROPERTIES => {REMAP => $label_numeric1});
+    $bd5->rename_labels (remap => $remap_text2num);
+    ok ($bd5->labels_are_numeric, 'Text labels are now numeric, all remapped into one number');
+}
+
+
+#  Try a variety of cell and index sizes.
+#  Should check the error messages to ensure we get the expected error.
+#  Should also test the index behaves as expected,
+#  but it is also exercised in the spatial conditions tests.
+sub test_spatial_index_build_exceptions {
+    my $label_name = 'blah';  #  only need one of these
+
+    my $bd = Biodiverse::BaseData->new (CELL_SIZES => [10, 100]);
+    $bd->add_element (label => $label_name, group => '5:150');
+    $bd->add_element (label => $label_name, group => '55:1150');
+    
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [10, 100])},
+        'build index with resolution same as bd',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 400])},
+        'build index with resolution double bd',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 100])},
+        'build index with resolution double/same as bd',
+    );
+    
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+        "won't build index with resolution smaller than bd",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 0])},
+        "won't build index with resolution smaller than bd, one zero",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [0, 100])},
+        "won't build index with resolution smaller than bd, one zero",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [20, 10])},
+        "won't build index with one axis resolution smaller than bd",
+    );
+
+    #  now check a basedata with a text axis    
+    $bd = Biodiverse::BaseData->new (CELL_SIZES => [-1, 2, 2]);
+    $bd->add_element (label => $label_name, group => 'x:5:151');
+    $bd->add_element (label => $label_name, group => 'y:55:1151');
+    
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 2, 2])},
+        'build index with resolution same as bd (text axis)',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 4, 4])},
+        'build index with resolution double bd (text axis)',
+    );
+    lives_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 4, 2])},
+        'build index with resolution double/same as bd (text axis)',
+    );
+    
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+        "won't build index with fewer axes than basedata (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 2, 0])},
+        "won't build index with resolution smaller than bd, one zero (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [0, 0, 100])},
+        "won't build index with resolution smaller than bd, one zero (text axis)",
+    );
+    dies_ok (
+        sub {$bd->build_spatial_index (resolutions => [-1, 1, 10])},
+        "won't build index with text axis resolution smaller than bd",
+    );    
+}
+
+sub test_spatial_index_density {
+    my $bd1 = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    my $join_char = $bd1->get_param('JOIN_CHAR');
+    #  completely filled;
+    foreach my $x (0 .. 49) {
+        foreach my $y (0 .. 49) {
+            my $gp = join $join_char, $x+0.5, $y+0.5;
+            $bd1->add_element (group => $gp, label => 'a');
+        }
+    }
+
+    my ($index, $density);
+
+    $index = $bd1->build_spatial_index(resolutions => [1, 1]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 1, 'index density is 1');
+
+    $index = $bd1->build_spatial_index(resolutions => [2, 2]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 4, 'index density is 4');
+
+    #  dirty, hackish cheat to get a text axis
+    $bd1->set_param(CELL_SIZES => [1, -1]);
+    $bd1->get_groups_ref->set_param(CELL_SIZES => [1, -1]);
+    $index = $bd1->build_spatial_index(resolutions => [2, 0]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 100, 'index density is 100, one text axis');    
+
+    my $bd2 = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    $join_char = $bd2->get_param('JOIN_CHAR');
+    #  half filled;
+    foreach my $x (0 .. 49) {
+        next if $x % 2 == 0;
+        foreach my $y (0 .. 49) {
+            my $gp = join $join_char, $x+0.5, $y+0.5;
+            $bd2->add_element (group => $gp, label => 'a');
+        }
+    }
+
+    $index = $bd2->build_spatial_index(resolutions => [2, 2]);
+    $density = $index->get_item_density_across_all_poss_index_elements;
+    is ($density, 2, 'index density is 2 when only half the groups exist');
+}
 
 sub test_binarise_sample_counts {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
@@ -438,6 +711,57 @@ sub test_import_null_labels {
 }
 
 
+sub test_import_cr_line_endings {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $e;
+
+    my $data = get_import_data_small();
+    my $data_cr = $data;
+    $data_cr =~ s/\R/\r/g;
+
+    #my $d1 = ($data =~ /\R/sg);
+    #my $dc = ($data_cr =~ /\n/sg);
+    isnt ($data_cr =~ /\n/sg, 'stripped all newlines from input file data');
+
+    my $tmp_file1 = write_data_to_temp_file ($data);
+    my $fname1 = $tmp_file1->filename;
+
+    my $tmp_file_cr = write_data_to_temp_file ($data_cr);
+    my $fname_cr = $tmp_file_cr->filename;
+    
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname1],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \n file endings with no exceptions raised');
+    
+    #  now the cr version
+    my $bd_cr = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_cr->import_data(
+            input_files   => [$fname_cr],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import \r line endings with no exceptions raised');
+    
+    is ($bd_cr->get_group_count, $bd->get_group_count, 'group counts match');
+    is ($bd_cr->get_label_count, $bd->get_label_count, 'label counts match');
+    
+}
+
 #  can we reimport delimited text files after exporting and get the same answer
 sub test_roundtrip_delimited_text {
     my %bd_args = (
@@ -583,11 +907,10 @@ sub test_roundtrip_raster {
 
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
-    # assume export was in format labels_as_bands = 0
     my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
     my @cell_origins    = $bd->get_cell_origins;    
     my %in_options_hash = (
-        labels_as_bands   => 0,
+        labels_as_bands   => 1,
         raster_origin_e   => $cell_origins[0],
         raster_origin_n   => $cell_origins[1], 
         raster_cellsize_e => $cell_sizes[0],
@@ -605,7 +928,7 @@ sub test_roundtrip_raster {
 
         #  need to use a better approach for the name
         my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-        my $fname_base = $format; 
+        my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;
@@ -640,6 +963,136 @@ sub test_roundtrip_raster {
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
+            $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
+            my $target_name = $this_label;
+            $target_name =~ s/.*${fname_base}_//; 
+            $target_name = uri_unescape($target_name);
+            #note "Working on $target_name, $this_label\n";
+
+            $success = eval {
+                $new_bd->import_data_raster (
+                    input_files => [$this_file],
+                    %in_options_hash,
+                    labels_as_bands => 1,
+                    #given_label => $this_label,
+                );
+            };
+            #  cope with the export name including the format
+            $new_bd->rename_label (
+                label    => $this_label,
+                new_name => $target_name,
+            );
+            $e = $EVAL_ERROR;
+            ok (!$e, "no exceptions importing $fname");
+            diag $e if $e;
+        }
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $format" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
+            }
+        };
+
+        $i++;
+    }
+    
+}
+
+
+sub test_raster_zero_cellsize {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+    say "testing filename $fname";
+    my $e;
+
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
+
+    # the raster data file won't specify the origin and cell size info, so pass as
+    # parameters.
+    # assume export was in format labels_as_bands = 0
+    my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
+    my @cell_origins    = $bd->get_cell_origins;    
+    my %in_options_hash = (
+        labels_as_bands   => 0,
+        raster_origin_e   => $cell_origins[0],
+        raster_origin_n   => $cell_origins[1], 
+        raster_cellsize_e => $cell_sizes[0],
+        raster_cellsize_n => $cell_sizes[1],
+    );
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        my $format = $out_options_hash->{format};
+
+        #  need to use a better approach for the name
+        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $fname_base = $format; 
+        my $suffix = '';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => [0, 0],
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        
+        use URI::Escape::XS qw/uri_unescape/;
+
+        # each band was written to a separate file, load each in turn and add to
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
+        foreach my $this_file (@exported_files) {
+            # find label name from file name
+#say $this_file;
+            my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; 
             $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
@@ -660,16 +1113,8 @@ sub test_roundtrip_raster {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
-
-        my $new_lb = $new_bd->get_labels_ref;
-        subtest "sample counts match for $format" => sub {
-            foreach my $label (sort $bd->get_labels) {
-                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
-                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
-
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
-            }
-        };
+        
+        is_deeply ($new_bd->get_group_count, $bd->get_group_count, 'got expected group count');
 
         $i++;
     }
@@ -799,6 +1244,8 @@ sub test_roundtrip_shapefile {
     }
     
 }
+
+
 
 sub test_attach_ranges_and_sample_counts {
     my $bd = get_small_bd();
@@ -965,63 +1412,94 @@ sub test_multidimensional_import {
     is (0, 1, 'need to test multidimensional data import, including text axes');
 }
 
-#  rename labels
+sub test_rename_groups {
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    $bd = $bd->transpose;
+    
+    _test_rename_labels_or_groups('groups', $bd);
+}
+
 sub test_rename_labels {
     my $bd = get_basedata_object_from_site_data(
         CELL_SIZES => [100000, 100000],
     );
     
+    _test_rename_labels_or_groups('labels', $bd);
+}
+
+#  rename labels
+sub _test_rename_labels_or_groups {
+    my ($type, $bd) = @_;
+
+    $bd //= get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    
     my $tmp_remap_file = write_data_to_temp_file (get_label_remap_data());
     my $fname = $tmp_remap_file->filename;
-    my %lbprops_args = (
+    my %rename_props_args = (
         input_element_cols    => [1,2],
         remapped_element_cols => [3,4],
     );
 
-    my $lb_props = Biodiverse::ElementProperties->new;
-    my $success = eval { $lb_props->import_data(%lbprops_args, file => $fname) };    
+    my $rename_props = Biodiverse::ElementProperties->new;
+    my $success = eval { $rename_props->import_data(%rename_props_args, file => $fname) };    
     diag $EVAL_ERROR if $EVAL_ERROR;
     
-    ok ($success == 1, 'import label remap without error');
+    ok ($success == 1, "import $type remap without error");
 
-    my $lb = $bd->get_labels_ref;
+    my $other_type_method = $type eq 'labels'
+        ? 'get_groups_ref'
+        : 'get_labels_ref'; # /
+
+    my $type_method = "get_${type}_ref";
+    my $lbgp = $bd->$type_method;
     my %lb_expected_counts = (
         'Genus:sp1' => undef,
-        'nominal_new_name:' => $lb->get_sample_count (element => 'Genus:sp11'),
+        'nominal_new_name:' => $lbgp->get_sample_count (element => 'Genus:sp11'),
     );
+
+    my $hash_method = $type eq 'labels'
+        ? 'get_groups_with_label_as_hash'
+        : 'get_labels_in_group_as_hash';
+    my $el_type = $type eq 'labels' ? 'label' : 'group';
 
     my %expected_groups_with_labels = (
         'Genus:sp2' => {},
-        'nominal_new_name:' => {$bd->get_groups_with_label_as_hash (label => 'Genus:sp11')},
+        'nominal_new_name:' => {$bd->$hash_method ($el_type => 'Genus:sp11')},
     );
 
     foreach my $label (qw /Genus:sp1 Genus:sp2 Genus:sp18/) {
-        $lb_expected_counts{'Genus:sp2'} += $lb->get_sample_count (element => $label);
+        $lb_expected_counts{'Genus:sp2'} += $lbgp->get_sample_count (element => $label);
 
-        my %gps_with_label = $bd->get_groups_with_label_as_hash (label => $label);
+        my %gps_with_label = $bd->$hash_method ($el_type => $label);
         my $hashref = $expected_groups_with_labels{'Genus:sp2'};
         while (my ($gp, $count) = each %gps_with_label) {
             $hashref->{$gp} += $count;
         }
     }
 
-    my $gp = $bd->get_groups_ref;
+    my $gp = $bd->$other_type_method;
     my %gp_expected;
     foreach my $group ($gp->get_element_list) {
         $gp_expected{$group} = $gp->get_sample_count (element => $group);
     }
     
+    my $rename_method = "rename_$type";
     eval {
-        $bd->rename_labels (
-            remap => $lb_props,
+        $bd->$rename_method (
+            remap => $rename_props,
         );
     };
     my $e = $EVAL_ERROR;
-    isnt ($e, undef, 'no eval errors assigning label properties');
+    diag $e if $e;
+    ok (!$e, 'no eval errors assigning label properties');
 
 
     foreach my $label (sort keys %lb_expected_counts) {
-        my $count = $lb->get_sample_count (element => $label);
+        my $count = $lbgp->get_sample_count (element => $label);
         is ($count, $lb_expected_counts{$label}, "Got expected count for $label");
     }
 
@@ -1033,15 +1511,15 @@ sub test_rename_labels {
     
     subtest 'Renamed labels are in expected groups' => sub {
         while (my ($label, $hash) = each %expected_groups_with_labels) {
-            my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
+            my %observed_hash = $bd->$hash_method($el_type => $label);
             is_deeply ($hash, \%observed_hash, $label);
         }
     };
     
     subtest 'Rename label element arrays are updated' => sub {
-        my $lb = $bd->get_labels_ref;
+        my $lbgp = $bd->get_labels_ref;
         foreach my $label (reverse sort $bd->get_labels) {
-            my $el_array = $lb->get_element_name_as_array (element => $label);
+            my $el_array = $lbgp->get_element_name_as_array (element => $label);
             foreach my $el (@$el_array) {
                 ok ($label =~ /$el/, "Label $label contains $el");
             }
@@ -1049,6 +1527,7 @@ sub test_rename_labels {
     }
     
 }
+
 
 #  reordering of axes
 sub test_reorder_axes {
@@ -1074,6 +1553,125 @@ sub test_reorder_axes {
 
     ok (defined $new_bd,    "Reordered axes");
 
+}
+
+
+sub test_merge {
+    my $e;
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 10,
+        y_max       => 10,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd1 = get_basedata_object (%args);
+
+    my $bd2 = $bd1->clone;
+
+    $bd1->merge (from => $bd2);
+
+    is ($bd1->get_group_count, $bd2->get_group_count, 'merged group count constant');
+    is ($bd1->get_label_count, $bd2->get_label_count, 'merged label count constant');
+
+    #  now we check the sample counts - they should have doubled
+    subtest 'merge: sample counts have doubled' => sub {
+        foreach my $label ($bd1->get_labels) {
+            my $c1 = $bd1->get_label_sample_count (label => $label);
+            my $c2 = $bd2->get_label_sample_count (label => $label);
+            is ($c1, 2 * $c2, "expected sample count, $label");
+        }
+    };
+
+    #  now run an analysis and croak when the merge is called
+    my $sp = $bd1->add_spatial_output (name => 'bongo');
+
+    eval {$bd1->merge (from => $bd2)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with outputs and got exception');
+
+    my $bd3 = get_basedata_object (%args, CELL_SIZES => [2, 2]);
+    eval {$bd1->merge (from => $bd3)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with different cell sizes and got exception');
+
+    $bd3 = get_basedata_object (%args, CELL_ORIGINS => [2, 2]);
+    eval {$bd1->merge (from => $bd3)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with different cell origins and got exception');
+
+    #  now one with no overlap so we get double the groups and labels
+    my $bd_x0 = get_basedata_object (%args);
+    my $bd_x1 = $bd_x0->clone;
+    my $bd_x2 = get_basedata_object (
+        %args,
+        x_max       => 30,
+        y_max       => 30,
+        x_min       => 21,
+        y_min       => 21,
+    );
+
+    $bd_x1->merge (from => $bd_x2);
+
+    is (
+        $bd_x0->get_group_count * 2,
+        $bd_x1->get_group_count,
+        'merge: group count has doubled when no overlap',
+    );
+    is (
+        $bd_x0->get_label_count * 2,
+        $bd_x1->get_label_count,
+        'merge: label count has doubled when no overlap',
+    );
+
+    #  now we check the sample counts
+    subtest 'merge: sample counts are unchanged when no overlap' => sub {
+        foreach my $bd_xx ($bd_x0, $bd_x2) {
+            foreach my $label ($bd_xx->get_labels) {
+                my $c1 = $bd_x1->get_label_sample_count (label => $label);
+                my $c2 = $bd_xx->get_label_sample_count (label => $label);
+                is ($c1, $c2, "expected sample count, $label");
+            }
+        }
+    };
+
+    #  need to check the element arrays
+    #  - we were getting issues with groups not having correct _ELEMENT_ARRAYS
+    #  due to an incorrectly specified csv object
+    subtest 'merge: group element arrays are valid when no overlap' => sub {
+        my $gp = $bd_x1->get_groups_ref;
+        foreach my $group ($bd_x1->get_groups) {
+            my $c1 = $gp->get_element_name_as_array (element => $group);
+            is (scalar @$c1, 2, "element array has 2 axes, $group");
+        }
+    };
+    subtest 'merge: label element arrays are valid when no overlap' => sub {
+        my $lb = $bd_x1->get_labels_ref;
+        foreach my $label ($bd_x1->get_labels) {
+            my $c1 = $lb->get_element_name_as_array (element => $label);
+            is (scalar @$c1, 1, "element array has 1 axis, $label");
+        }
+    };
+
+
+    $bd_x1 = $bd_x0->clone;
+    $bd_x2 = $bd_x0->clone;
+    $bd_x2->add_element (label => 'bongo_dog_band');
+    $bd_x2->add_element (group => '100:100');
+
+    $bd_x1->merge (from => $bd_x2);
+    ok ($bd_x1->exists_label (label => 'bongo_dog_band'), 'label with no groups exists');
+    ok ($bd_x1->exists_group (group => '100:100'),        'group without labels exists');
+
+    #  we cannot merge into ourselves
+    eval {$bd_x0->merge (from => $bd_x0)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'exception raised when merging into self');
+
+    return;
 }
 
 

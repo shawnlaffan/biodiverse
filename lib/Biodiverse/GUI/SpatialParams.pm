@@ -21,7 +21,7 @@ use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Glib;
 use Gtk2;
@@ -180,7 +180,7 @@ sub on_syntax_check {
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(
-            $gui->get_widget('wndMain'),
+            $gui->get_object('wndMain'),
             'destroy-with-parent',
             $result_hash->{type},
             'ok',
@@ -210,7 +210,7 @@ sub get_validated_conditions {
     return $conditions;
 }
 
-sub get_widget {
+sub get_object {
     my $self = shift;
     return $self->{hbox};
 }

@@ -1,10 +1,16 @@
 package Biodiverse::Indices::PhylogeneticRelative;
-
+use 5.016;
 use strict;
 use warnings;
 use List::Util qw /sum/;
+use Data::Alias qw /alias/;
+use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+
+#use Biodiverse::Utils qw /get_rpe_null/;
 
 use Carp;
+
+our $VERSION = '1.99_004';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -115,12 +121,12 @@ sub calc_phylo_rpe1 {
     #  get the WE score for the set of terminal nodes in this neighbour set
     my $we;
     my $label_hash = $args{PHYLO_LABELS_ON_TRIMMED_TREE};
-    my $weights    = $args{ENDW_WTLIST};
+    alias my %weights = %{$args{ENDW_WTLIST}};
 
     foreach my $label (keys %$label_hash) {
-        next if ! exists $weights->{$label};  #  This should not happen.  Maybe should croak instead?
+        next if ! exists $weights{$label};  #  This should not happen.  Maybe should croak instead?
         #next if ! $tree->node_is_in_tree(node => $label);  #  list has already been filtered to trimmed tree
-        $we += $weights->{$label};
+        $we += $weights{$label};
     }
 
     my %results;
@@ -152,7 +158,10 @@ sub get_metadata_calc_phylo_rpd2 {
         reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_pd_node_list/],
-        pre_calc_global => ['get_tree_with_equalised_branch_lengths'],  #  should just use node counts in the original tree
+        pre_calc_global => [qw/
+            get_tree_with_equalised_branch_lengths
+            get_tree_zero_length_branch_count
+        /],
         required_args   => ['tree_ref'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -188,13 +197,18 @@ sub calc_phylo_rpd2 {
     #  Allow for zero length nodes, as we keep them as zero.
     #  The grep in scalar context is a fast way of counting the number of non-zero branches.
     #  %$included_nodes is for the original tree
-    my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
+    my $pd_score_eq_branch_lengths;
+    if ($args{TREE_ZERO_LENGTH_BRANCH_COUNT}) {
+        $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
+    }
+    else {
+        $pd_score_eq_branch_lengths = scalar keys %$included_nodes;
+    }
 
     my %results;
     {
         no warnings qw /numeric uninitialized/;
 
-        #my $n    = $tree_ref->get_terminal_element_count;
         my $null = eval {$pd_score_eq_branch_lengths / $null_total_tree_length};
         my $phylo_rpd2 = eval {$pd_p_score / $null};
 
@@ -206,6 +220,64 @@ sub calc_phylo_rpd2 {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_phylo_rpe_central {
+
+    my %metadata = (
+        description     => 'Relative Phylogenetic Endemism (RPE).  '
+                         . 'The ratio of the tree\'s PE to a null model where '
+                         . 'PE is calculated using a tree where all branches '
+                         . 'are of equal length.  '
+                         . 'Same as RPE2 except it only uses the branches in the '
+                         . 'first neighbour set when more than one is set.',
+        name            => 'Relative Phylogenetic Endemism, central',
+        reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
+        type            => 'Phylogenetic Indices (relative)',
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists/],
+        pre_calc_global => [qw /
+            get_trimmed_tree
+            get_trimmed_tree_with_equalised_branch_lengths
+            get_trimmed_tree_eq_branch_lengths_node_length_hash
+        /],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PHYLO_RPEC       => {
+                description => 'Relative Phylogenetic Endemism score, central',
+            },
+            PHYLO_RPE_NULLC  => {
+                description => 'Null score used as the denominator in the PHYLO_RPEC calculations',
+            },
+            PHYLO_RPE_DIFFC  => {
+                description => 'How much more or less PE is there than expected, in original tree units.',
+                formula     => ['= tree\_length \times (PE\_WEC\_P - PHYLO\_RPE\_NULLC)'],
+            }
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_phylo_rpe_central {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->calc_phylo_rpe2 (
+        %args,
+        PE_WE_P => $args{PEC_WE_P},
+        PE_WE   => $args{PEC_WE},
+        PE_RANGELIST       => $args{PEC_RANGELIST},
+        PE_LOCAL_RANGELIST => $args{PEC_LOCAL_RANGELIST},
+    );
+
+    my %results2;
+    foreach my $key (keys %results) {
+        my $new_key = $key;
+        #  will need to be changed if we rename the RPE indices
+        $new_key =~ s/2$/C/;
+        $results2{$new_key} = $results{$key};
+    }
+
+    return wantarray ? %results2 : \%results2;
+}
 
 
 sub get_metadata_calc_phylo_rpe2 {
@@ -234,7 +306,7 @@ sub get_metadata_calc_phylo_rpe2 {
             },
             PHYLO_RPE_DIFF2  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
-                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL2)'],
             }
         },
     );
@@ -255,22 +327,28 @@ sub calc_phylo_rpe2 {
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
 
-    #  Get the PE score assuming equal branch lengths
-    #  This is simply the sum of the local ranges for each node.  
     my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
     my $node_ranges_global = $args{PE_RANGELIST};
     my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
+    
+    #  Get the PE score assuming equal branch lengths
     my $pe_null;
 
     my %results;
     {
-        foreach my $null_node (keys %$node_ranges_global) {
-            no autovivification;
-            #my $null_node_ref = $null_tree_ref->get_node_ref_aa($null_node);
-            #$pe_null += $null_node_ref->get_length
-            $pe_null += $null_node_len_hash->{$null_node}
-                      * $node_ranges_local->{$null_node}
-                      / $node_ranges_global->{$null_node};
+        if (HAVE_BD_UTILS) {
+            $pe_null = Biodiverse::Utils::get_rpe_null (
+                $null_node_len_hash,
+                $node_ranges_local,
+                $node_ranges_global,
+            );
+        }
+        else {
+            foreach my $null_node (keys %$node_ranges_global) {
+                $pe_null += $null_node_len_hash->{$null_node}
+                          * $node_ranges_local->{$null_node}
+                          / $node_ranges_global->{$null_node};
+            }
         }
 
         no warnings qw /numeric uninitialized/;
@@ -413,6 +491,36 @@ sub get_labels_not_on_trimmed_tree {
 
     my %results = (labels_not_on_trimmed_tree => \%hash);
 
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_tree_zero_length_branch_count {
+    my $self = shift;
+
+    my %metadata = (
+        name            => 'get_tree_zero_length_branch_count',
+        description     => 'Flag for if the tree has zero length branches',
+        required_args   => ['tree_ref'],
+        indices         => {
+            TREE_ZERO_LENGTH_BRANCH_COUNT => {
+                description => 'Zero length branch flag',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_tree_zero_length_branch_count {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{tree_ref};
+    
+    my $count = grep {!$_->get_length} $tree->get_node_refs;
+    
+    my %results = (TREE_ZERO_LENGTH_BRANCH_COUNT => $count);
+    
     return wantarray ? %results : \%results;
 }
 

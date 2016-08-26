@@ -16,7 +16,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Config;
 use Biodiverse::BaseData;
@@ -32,7 +32,7 @@ my $iterations = 10;
 GetOptions (
     "basedata|bd=s"  => \$in_file,
     "rand_name|r=s"  => \$rand_name,
-    "bd_name|=s"     => \$bd_name,
+    "bd_name=s"     => \$bd_name,
     "iterations|iters|i:i" => \$iterations,
     "args:s{,}"      => \%rest_of_args,
     "help|h" => \$print_usage,
@@ -94,7 +94,7 @@ my $time = time();
 
 my $success = eval {
     $rand->run_analysis (
-        save_checkpoint => 99,
+        save_checkpoint => -1,
         iterations      => $iterations,
         %rest_of_args,
     );
@@ -121,8 +121,8 @@ printf "Time taken: %s %s\n", $time_taken, $units;
 croak "Analysis not successful\n"
   if ! $success;
 
-#  $success==2 means nothing ran
-if ($success == 1) {
+
+if ($success) {
     eval {
         $bd->save (filename => $in_file);
         #die "checking";

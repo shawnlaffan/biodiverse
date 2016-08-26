@@ -10,13 +10,19 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Exception;
 
 my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';
 my $normal_class   = 'Biodiverse::Matrix';
+
+use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 #  check if the matrix contains an element with any pair
 sub element_is_in_matrix { 
@@ -823,20 +829,21 @@ sub get_metadata_export {
         item => 'Delimited text'
     );
 
-    my %args = (
+    my $format_choice = bless {
+        name        => 'format',
+        label_text  => 'Format to use',
+        type        => 'choice',
+        choices     => \@formats,
+        default     => 0
+    }, $parameter_metadata_class;
+
+    my %metadata = (
         parameters     => \%params_per_sub,
-        format_choices => [{
-                name        => 'format',
-                label_text  => 'Format to use',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0
-            },
-        ],
+        format_choices => [$format_choice],
         format_labels  => \%format_labels,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 sub export {
@@ -844,12 +851,9 @@ sub export {
     my %args = @_;
     
     #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
-    
-    my $format = $args{format};
-    my $sub_to_use
-        = $metadata{format_labels}{$format}
-            || croak "Argument 'format => $format' not valid\n";
+    my $metadata = $self->get_metadata (sub => 'export');
+
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
     
     eval {$self->$sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -902,59 +906,64 @@ sub get_metadata_export_delimited_text {
     
     my @formats = qw /normal sparse gdm/;
     
+    my @parameters = (
+        {
+            name       => 'file',  # GUI supports just one of these
+            type       => 'file'
+        }, 
+        {
+            name       => 'type',
+            label_text => 'output format',
+            type       => 'choice',
+            tooltip    => $self->get_tooltip_sparse_normal,
+            choices    => \@formats,
+            default    => 0
+        },
+        {
+            name       => 'symmetric',
+            label_text => 'Force output to be symmetric',
+            type       => 'boolean',
+            default    => 1
+        },
+        {
+            name       => 'lower_left',
+            label_text => 'Print lower left only',
+            tooltip    => 'print lower left matrix',
+            type       => 'boolean',
+            default    => 0
+        },
+        {
+            name       => 'upper_right',
+            label_text => 'Print upper right only',
+            tooltip    => 'print upper right matrix',
+            type       => 'boolean',
+            default    => 0
+        },
+        {
+            name       => 'sep_char',
+            label_text => 'Field separator',
+            type       => 'choice',
+            tooltip    => 'for text outputs',
+            choices    => \@sep_chars,
+            default    => 0,
+        },
+        {
+            name       => 'quote_char',
+            label_text => 'Quote character',
+            type       => 'choice',
+            tooltip    => 'for text outputs',
+            choices    => \@quote_chars,
+            default    => 0,
+        },
+    );
+
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
 
     my %args = (
         format => 'Delimited text',
-        parameters => [
-            {
-                name       => 'file',  # GUI supports just one of these
-                type       => 'file'
-            }, 
-            {
-                name       => 'type',
-                label_text => 'output format',
-                type       => 'choice',
-                tooltip    => $self->get_tooltip_sparse_normal,
-                choices    => \@formats,
-                default    => 0
-            },
-            {
-                name       => 'symmetric',
-                label_text => 'Force output to be symmetric',
-                type       => 'boolean',
-                default    => 1
-            },
-            {
-                name       => 'lower_left',
-                label_text => 'Print lower left only',
-                tooltip    => 'print lower left matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'upper_right',
-                label_text => 'Print upper right only',
-                tooltip    => 'print upper right matrix',
-                type       => 'boolean',
-                default    => 0
-            },
-            {
-                name       => 'sep_char',
-                label_text => 'Field separator',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@sep_chars,
-                default    => 0,
-            },
-            {
-                name       => 'quote_char',
-                label_text => 'Quote character',
-                type       => 'choice',
-                tooltip    => 'for text outputs',
-                choices    => \@quote_chars,
-                default    => 0,
-            },
-        ]
+        parameters => \@parameters,
     );
     
     return wantarray ? %args : \%args;

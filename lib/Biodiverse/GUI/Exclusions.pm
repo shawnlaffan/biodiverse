@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -48,16 +48,17 @@ sub show_dialog {
     my $exclusions_hash = shift;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, DLG_NAME);
-    my $dlg = $dlgxml->get_widget(DLG_NAME);
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgRunExclusions.ui'));
+    my $dlg = $dlgxml->get_object(DLG_NAME);
 
     # Put it on top of main window
-    $dlg->set_transient_for($gui->get_widget('wndMain'));
+    $dlg->set_transient_for($gui->get_object('wndMain'));
 
     # Init the widgets
     foreach my $name (keys %g_widget_map) {
-        my $checkbox = $dlgxml->get_widget('chk' . $name);
-        my $spinbutton = $dlgxml->get_widget('spin' . $name);
+        my $checkbox = $dlgxml->get_object('chk' . $name);
+        my $spinbutton = $dlgxml->get_object('spin' . $name);
 
         # Load initial value
         my $fields = $g_widget_map{$name};
@@ -76,7 +77,7 @@ sub show_dialog {
     }
 
     #  and the text matching
-    my $label_filter_checkbox = $dlgxml->get_widget('chk_enable_label_exclusion_regex');
+    my $label_filter_checkbox = $dlgxml->get_object('chk_enable_label_exclusion_regex');
     my @label_filter_widget_names = qw /
         Entry_label_exclusion_regex
         chk_label_exclusion_regex
@@ -84,7 +85,7 @@ sub show_dialog {
     /;
 
     foreach my $widget_name (@label_filter_widget_names) {
-        my $widget = $dlgxml->get_widget($widget_name);
+        my $widget = $dlgxml->get_object($widget_name);
 
         $widget->set_sensitive(0);
 
@@ -97,14 +98,14 @@ sub show_dialog {
     }
 
     #  and the file list
-    my $file_list_checkbox = $dlgxml->get_widget('chk_label_exclude_use_file');
+    my $file_list_checkbox = $dlgxml->get_object('chk_label_exclude_use_file');
     my @file_list_filter_widget_names = qw /
         chk_label_exclusion_label_file
         filechooserbutton_exclusions
     /;
 
     foreach my $widget_name (@file_list_filter_widget_names ) {
-        my $widget = $dlgxml->get_widget($widget_name);
+        my $widget = $dlgxml->get_object($widget_name);
 
         $widget->set_sensitive(0);
         if ($widget_name =~ /chooser/) {  #  kludge
@@ -119,11 +120,13 @@ sub show_dialog {
 
         $file_list_checkbox->signal_connect(toggled => $callback, $widget);
     }
-    
+
     #  and the groups def query
     my $specs = { name => 'Definition_query', type => 'spatial_conditions', default => '' };
-    my ($defq_widget, $defq_extractor) = Biodiverse::GUI::ParametersTable::generate_widget ($specs);
-    my $groups_vbox = $dlgxml->get_widget('vbox_group_exclusions_defq');
+    bless $specs, 'Biodiverse::Metadata::Parameter';
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my ($defq_widget, $defq_extractor) = $parameters_table->generate_widget ($specs);
+    my $groups_vbox = $dlgxml->get_object('vbox_group_exclusions_defq');
     $groups_vbox->pack_start ($defq_widget, 0, 0, 0);
 
     # Show the dialog
@@ -134,20 +137,20 @@ sub show_dialog {
         $dlg->destroy;
         return $ret;
     }
-    
+
     $ret = 1;
 
     # Set fields
     foreach my $name (keys %g_widget_map) {
-        my $checkbox   = $dlgxml->get_widget('chk' . $name);
-        my $spinbutton = $dlgxml->get_widget('spin' . $name);
+        my $checkbox   = $dlgxml->get_object('chk' . $name);
+        my $spinbutton = $dlgxml->get_object('spin' . $name);
 
         my $fields = $g_widget_map{$name};
         if ($checkbox->get_active()) {
             my $value = $spinbutton->get_value();
             #  round any decimals to six places to avoid floating point issues.
             #  could cause trouble later on, but the GUI only allows two decimals now anyway...
-            $value = sprintf ("%.6f", $value) if $value =~ /\./;  
+            $value = sprintf ("%.6f", $value) if $value =~ /\./;
             $exclusions_hash->{$fields->[0]}{$fields->[1]} = $value;
         }
         else {
@@ -155,14 +158,14 @@ sub show_dialog {
         }
     }
 
-    my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
+    my $regex_widget = $dlgxml->get_object('Entry_label_exclusion_regex');
     my $regex        = $regex_widget->get_text;
     if ($label_filter_checkbox->get_active && length $regex) {
 
-        my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
+        my $regex_negate_widget = $dlgxml->get_object('chk_label_exclusion_regex');
         my $regex_negate        = $regex_negate_widget->get_active;
 
-        my $regex_modifiers_widget = $dlgxml->get_widget('Entry_label_exclusion_regex_modifiers');
+        my $regex_modifiers_widget = $dlgxml->get_object('Entry_label_exclusion_regex_modifiers');
         my $regex_modifiers        = $regex_modifiers_widget->get_text;
 
         $exclusions_hash->{LABELS}{regex}{regex}  = $regex;
@@ -170,9 +173,9 @@ sub show_dialog {
     }
 
     if ($file_list_checkbox->get_active) {
-        my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
+        my $negate_widget = $dlgxml->get_object('chk_label_exclusion_label_file');
         my $negate        = $negate_widget->get_active;
-        my $file_widget   = $dlgxml->get_widget('filechooserbutton_exclusions');
+        my $file_widget   = $dlgxml->get_object('filechooserbutton_exclusions');
         my $filename      = $file_widget->get_filename;
 
         #  This has the side-effect of prompting the user for a filename if one was not specified.
@@ -202,12 +205,12 @@ sub show_dialog {
     if (defined $defq) {
         $exclusions_hash->{GROUPS}{definition_query} = $defq;
     }
-    
-    my $delete_empty_groups = $dlgxml->get_widget('chk_excl_delete_empty_groups')->get_active;
-    my $delete_empty_labels = $dlgxml->get_widget('chk_excl_delete_empty_labels')->get_active;
+
+    my $delete_empty_groups = $dlgxml->get_object('chk_excl_delete_empty_groups')->get_active;
+    my $delete_empty_labels = $dlgxml->get_object('chk_excl_delete_empty_labels')->get_active;
     $exclusions_hash->{delete_empty_groups} = $delete_empty_groups || 0;
     $exclusions_hash->{delete_empty_labels} = $delete_empty_labels || 0;
-    
+
 
 
     $dlg->destroy();
@@ -222,4 +225,3 @@ sub on_toggled {
 
 
 1;
-

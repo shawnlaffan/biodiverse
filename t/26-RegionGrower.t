@@ -7,7 +7,7 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 use List::Util qw /first/;
 
 use English qw / -no_match_vars /;
@@ -135,136 +135,133 @@ sub test_matrix_recycling {
 #  No - let user do so explicitly using sp_select_all() as final condition.
 sub test_two_spatial_conditions {
     my %args = @_;
-    
-    TODO: {
-        local $TODO = 'Tests not implemented yet for region grower';
 
-        my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-        my $tie_breaker = [ENDW_WE => 'max'];
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = [ENDW_WE => 'max'];
+
+    my %analysis_args = (
+        cache_abc          => 0,
+        index              => 'RICHNESS_ALL',
+        #linkage_function   => 'link_average',
+        cluster_tie_breaker => $tie_breaker,
+    );
+
+    my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
+    my $spatial_conditions1 = [$cond1];
+    my $spatial_conditions2 = [
+        $cond1,
+        'sp_select_all()',
+    ];
+
+    #  run cl2 before cl1 for debugging purposes
+    my $cl2 = $bd->add_output (name => 'cl2', type => 'Biodiverse::RegionGrower');
+    #$cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl2->set_param (CACHE_ABC => 0);
+    $cl2->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions2,
+    );
+
+
+    my $cl1 = $bd->add_output (name => 'cl1', type => 'Biodiverse::RegionGrower');
+    #$cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl1->set_param (CACHE_ABC => 0);
+    $cl1->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions1,
+    );
+
+    ok (
+        $cl1->contains_tree (comparison => $cl1),
+        'contains_tree works - cluster 1 contains itself'
+    );
+
+    #  Ignore the root node since it can have a different length
+    #  and thus won't always match.
+    ok (
+        $cl2->contains_tree (comparison => $cl1, ignore_root => 1),
+        'Cluster with two conditions contains cluster with one condition '
+        . 'when first spatial condition is same'
+    );
+
+    my $block_cond = 'sp_block (size => 400000)';
+    my $spatial_conditions3 = [$block_cond];
+    my $spatial_conditions4 = [$block_cond, 'sp_select_all()'];
     
-        my %analysis_args = (
-            cache_abc          => 0,
-            index              => 'RICHNESS_ALL',
-            #linkage_function   => 'link_average',
-            cluster_tie_breaker => $tie_breaker,
-        );
+    my $cl3 = $bd->add_output (name => 'cl3', type => 'Biodiverse::RegionGrower');
+    #$cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl3->set_param (CACHE_ABC => 0);
+    $cl3->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions3,
+    );
     
-        my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
-        my $spatial_conditions1 = [$cond1];
-        my $spatial_conditions2 = [
-            $cond1,
-            'sp_select_all()',
-        ];
+    my $cl4 = $bd->add_output (name => 'cl4', type => 'Biodiverse::RegionGrower');
+    #$cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl4->set_param (CACHE_ABC => 0);
+    $cl4->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions4,
+    );
     
-        #  run cl2 before cl1 for debugging purposes
-        my $cl2 = $bd->add_output (name => 'cl2', type => 'Biodiverse::RegionGrower');
-        #$cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl2->set_param (CACHE_ABC => 0);
-        $cl2->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions2,
-        );
+    ok (
+        $cl3->contains_tree (comparison => $cl3),
+        'contains_tree works for sp_block - cluster 3 contains itself'
+    );
+    my $cl3_root_child_count = $cl3->get_child_count;
+
+    #  Ignore the root node and its immediate children
+    #  since they can have different lengths
+    #  and thus won't always match.
+    ok (
+        $cl4->contains_tree (
+            comparison  => $cl3,
+            ignore_root => 1,
+            correction  => -$cl3_root_child_count,
+        ),
+        'Cluster with two conditions contains cluster with condition '
+        . 'when first spatial condition is same (sp_block)'
+    );
+
+
+    my $spatial_conditions5 = [$block_cond, $cond1];
+    my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
     
+    my $cl5 = $bd->add_output (name => 'cl5', type => 'Biodiverse::RegionGrower');
+    #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl5->set_param (CACHE_ABC => 0);
+    $cl5->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions5,
+    );
+
+    my $cl6 = $bd->add_output (name => 'cl6', type => 'Biodiverse::RegionGrower');
+    #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl6->set_param (CACHE_ABC => 0);
+    $cl6->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions6,
+    );
     
-        my $cl1 = $bd->add_output (name => 'cl1', type => 'Biodiverse::RegionGrower');
-        #$cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl1->set_param (CACHE_ABC => 0);
-        $cl1->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions1,
-        );
-    
-        ok (
-            $cl1->contains_tree (comparison => $cl1),
-            'contains_tree works - cluster 1 contains itself'
-        );
-    
-        #  Ignore the root node since it can have a different length
-        #  and thus won't always match.
-        ok (
-            $cl2->contains_tree (comparison => $cl1, ignore_root => 1),
-            'Cluster with two conditions contains cluster with one condition '
-            . 'when first spatial condition is same'
-        );
-    
-        my $block_cond = 'sp_block (size => 400000)';
-        my $spatial_conditions3 = [$block_cond];
-        my $spatial_conditions4 = [$block_cond, 'sp_select_all()'];
-        
-        my $cl3 = $bd->add_output (name => 'cl3', type => 'Biodiverse::RegionGrower');
-        #$cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl3->set_param (CACHE_ABC => 0);
-        $cl3->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions3,
-        );
-        
-        my $cl4 = $bd->add_output (name => 'cl4', type => 'Biodiverse::RegionGrower');
-        #$cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl4->set_param (CACHE_ABC => 0);
-        $cl4->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions4,
-        );
-        
-        ok (
-            $cl3->contains_tree (comparison => $cl3),
-            'contains_tree works for sp_block - cluster 3 contains itself'
-        );
-        my $cl3_root_child_count = $cl3->get_child_count;
-    
-        #  Ignore the root node and its immediate children
-        #  since they can have different lengths
-        #  and thus won't always match.
-        ok (
-            $cl4->contains_tree (
-                comparison  => $cl3,
-                ignore_root => 1,
-                correction  => -$cl3_root_child_count,
-            ),
-            'Cluster with two conditions contains cluster with condition '
-            . 'when first spatial condition is same (sp_block)'
-        );
-    
-    
-        my $spatial_conditions5 = [$block_cond, $cond1];
-        my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
-        
-        my $cl5 = $bd->add_output (name => 'cl5', type => 'Biodiverse::RegionGrower');
-        #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl5->set_param (CACHE_ABC => 0);
-        $cl5->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions5,
-        );
-    
-        my $cl6 = $bd->add_output (name => 'cl6', type => 'Biodiverse::RegionGrower');
-        #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-        $cl6->set_param (CACHE_ABC => 0);
-        $cl6->run_analysis (
-            %analysis_args,
-            spatial_conditions => $spatial_conditions6,
-        );
-        
-        ok (
-            $cl6->contains_tree (comparison => $cl6),
-            'contains_tree works for triple conditions'
-        );
-        my $cl5_root_child_count = $cl5->get_child_count;
-    
-        #  Ignore the root node and its immediate children
-        #  since they can have different lengths
-        #  and thus won't always match.
-        ok (
-            $cl6->contains_tree (
-                comparison  => $cl5,
-                ignore_root => 1,
-                correction  => -$cl5_root_child_count,
-            ),
-            'Cluster with three conditions contains cluster with two conditions'
-        );
-    
-    }
+    ok (
+        $cl6->contains_tree (comparison => $cl6),
+        'contains_tree works for triple conditions'
+    );
+    my $cl5_root_child_count = $cl5->get_child_count;
+
+    #  Ignore the root node and its immediate children
+    #  since they can have different lengths
+    #  and thus won't always match.
+    ok (
+        $cl6->contains_tree (
+            comparison  => $cl5,
+            ignore_root => 1,
+            correction  => -$cl5_root_child_count,
+        ),
+        'Cluster with three conditions contains cluster with two conditions'
+    );
+
 }
 
 ######################################

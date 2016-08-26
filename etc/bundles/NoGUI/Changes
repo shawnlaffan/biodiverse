@@ -1,5 +1,39 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.99003 2016-08-05
+    - Remove Spreadsheet::XLSX
+    - Bump required version for autovivification to 0.16
+      (might as well have the latest)
+
+1.10002 2016-07-18
+    - Added Getopt::Long::Descriptive
+
+1.10001 2015-10-23
+    - Add Data::Alias
+
+1.1 2015-10-09
+    - Depend on Test::Lib in addition to rlib
+
+1.00011 2015-06-11
+    - Fix a copy-paste error in the makefile which resulted in neither of
+      Spreadsheet::ParseXLSX and Spreadsheet::XLSX being installed.
+
+1.0001 2015-06-08
+    - Update for 1.0001 dev release, but don't use a dev version for the task file.
+    - Add Spreadsheet::Read, Spreadsheet::ReadSXC, Spreadsheet::ParseExcel,
+      Spreadsheet::ParseXLSX and Spreadsheet::XLSX
+
+1.0 2015-04-19
+    - Update for version 1.0 release.
+    - Set minimum versions
+        - List::Util => 1.41
+        - YAML:Syck  => 1.29  
+        - List::MoreUtils    => 0.410
+        - autovivification   => 0.14
+        - List::BinarySearch => 0.25
+        - List::BinarySearch::XS  => 0.09
+        - Statistics::Descriptive => 3.0608
+
 0.99002 2014-08-12
     - Update for Biodiverse 0.99_002 development release.  Don't use a dev version number for the Task distro, though. 
     - Add List::BinarySearch
@@ -17,7 +51,7 @@ Revision history for Perl module Task::Biodiverse::NoGUI
     - Added several new dependencies (rlib, Class::Inspector, List::MoreUtils)
     - Removed redundant dependencies (Pad::Walker, MRO::Compat, Devel::SymDump)
     - Min version is now 5.010
-    
+
 0.17001 2012-07-28
     - Set Math::Random::MT::Auto minimum version to 6.19 to handle crashes
       when initialised with state vectors from different architectures

@@ -16,7 +16,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -172,7 +172,7 @@ sub set_length {
     my $self = shift;
     my %args = @_;
     #croak 'length argument missing' if not exists ($args{length});
-    $self->{NODE_VALUES}{LENGTH} = $args{length} // $default_length;
+    $self->{NODE_VALUES}{LENGTH} = 0 + ($args{length} // $default_length);
 
     return;
 }
@@ -516,7 +516,7 @@ sub delete_children {
 sub get_children {
     my $self = shift;
     return if not defined $self->{_CHILDREN};
-    my @children = @{$self->{_CHILDREN}}; #  messy, but seeing if we can avoid mem leaks
+    my @children = @{$self->{_CHILDREN}};
     return wantarray ? @children : \@children;
 }
 
@@ -551,8 +551,7 @@ sub group_nodes_below {
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
-    my $cache_hash = $self->get_cached_value ($cache_key) //
-        do {my $c = {}; $self->set_cached_value ($cache_key => $c); $c};
+    my $cache_hash = $self->get_cached_value_dor_set_default_aa ($cache_key, {});
     my $cache_val = $target_value // $groups_needed;
     if (my $cached_result = $cache_hash->{$cache_val}) {
         return wantarray ? %$cached_result : $cached_result;
@@ -697,6 +696,35 @@ sub flatten_tree {
     return wantarray ? @empty_nodes : \@empty_nodes;
 }
 
+sub ladderise {
+    my ($self, %args) = @_;
+    
+    my %nodes = $self->get_all_descendants_and_self;
+    foreach my $node (values %nodes) {
+        $node->sort_children;
+    }
+
+    return;
+}
+
+sub sort_children {
+    my ($self, %args) = @_;
+    my $children = $self->{_CHILDREN};
+    return if scalar @$children <= 1;
+
+    #  could use Sort::Maker if this turns out to be slow
+    my $sort_func = $args{sort_func}
+      // sub {$b->get_descendent_count <=> $a->get_descendent_count || $a->get_name cmp $b->get_name};
+
+    my @sorted = $args{reverse}
+        ? reverse sort $sort_func @$children
+        : sort $sort_func @$children;
+
+    $self->{_CHILDREN} = \@sorted;
+
+    return;
+}
+
 #  raise any zero length children to be children of the parents (siblings of this node).
 #  return a hash containing the count of the children raised and an array of any now empty nodes
 sub raise_zerolength_children {
@@ -785,7 +813,7 @@ sub get_terminal_elements {
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
     }
-    
+
     my %list;
 
     if ($self->is_terminal_node) {
@@ -870,6 +898,16 @@ sub get_all_descendants_and_self {
     return wantarray ? %descendents : \%descendents;
 }
 
+sub get_names_of_all_descendants_and_self {
+    my $self = shift;
+
+    my %descendents = $self->get_names_of_all_descendants(@_);
+    my $name = $self->get_name;
+    $descendents{$name} = $self->get_child_count;
+    
+    return wantarray ? %descendents : \%descendents;
+}
+
 #  a left over - here just in case 
 sub get_all_children {
     my $self = shift;
@@ -886,7 +924,7 @@ sub get_descendent_count {
 sub get_all_descendants {
     my $self = shift;
     my %args = (
-        cache => 1, #  cache unless told otherwise
+        cache => 0, #  no cache unless told otherwise
         @_,
     );
 
@@ -914,11 +952,51 @@ sub get_all_descendants {
     foreach my $node (@a_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
-        weaken $list{$name};
+        weaken $list{$name} if !isweak $list{$name};
     }
 
     if ($args{cache}) {
         $self->set_cached_value(DESCENDENTS => \%list);
+    }
+
+    #  make sure we return copies to avoid pollution by other subs
+    return wantarray ? %list : {%list};
+}
+
+
+#  get all the nodes (whether terminal or not) which are descendants of a node
+sub get_names_of_all_descendants {
+    my $self = shift;
+    my %args = (
+        cache => 1, #  cache unless told otherwise
+        @_,
+    );
+
+    #  empty hash by default
+    return wantarray ? () : {} if ($self->is_terminal_node);
+
+    #  we have cached values from a previous pass - return them unless told not to
+    if ($args{cache}) {
+        my $cached_hash = $self->get_cached_value('DESCENDANT_NAMES');
+        if ($cached_hash) {  # return copies to avoid any later pollution
+            return wantarray ? %$cached_hash : {%$cached_hash};
+        }
+    }
+
+    my @a_list;
+    push @a_list, $self->get_children;
+    foreach my $child (@a_list) {
+        push @a_list, $child->get_children;
+    }
+
+    my %list;
+    foreach my $node (@a_list) {
+        my $name = $node->get_name;
+        $list{$name} = $node->get_child_count;
+    }
+
+    if ($args{cache}) {
+        $self->set_cached_value(DESCENDANT_NAMES => \%list);
     }
 
     #  make sure we return copies to avoid pollution by other subs
@@ -951,6 +1029,7 @@ sub get_path_to_root_node {
     my $node = $self;
     while ($node) {  #  undef when root node
         push @$path, $node;
+        weaken $path->[-1] if !isweak $path->[-1];  #  paranoia - should not be weak
         $node = $node->get_parent;
     }
 
@@ -1808,9 +1887,15 @@ sub add_to_lists {
     my $self = shift;
     my %args = @_;
     
+    my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
+    delete $args{use_ref};  #  should it be in its own sub?
+    
     #  create the list if not already there and then add to it
-    while (my ($list, $values) = each %args) {    
-        if ((ref $values) =~ /HASH/) {
+    while (my ($list, $values) = each %args) {
+        if ($use_ref) {
+            $self->{$list} = $values;
+        }
+        elsif ((ref $values) =~ /HASH/) {
             $self->{$list} = {} if ! exists $self->{$list};
             next if ! scalar keys %$values;
             @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
@@ -1821,8 +1906,7 @@ sub add_to_lists {
             push @{$self->{$list}}, @$values;
         }
         else {
-            carp "add_to_lists warning, no valid list ref passed\n";
-            return;
+            croak "add_to_lists warning, no valid list ref passed\n";
         }
     }
     
@@ -1844,6 +1928,28 @@ sub delete_lists {
         delete $self->{$list};
     }
     
+    return;
+}
+
+#  rename a list in this node
+sub rename_list {
+    my $self = shift;
+    my %args = @_;
+    
+    my $list = $args{list};
+    my $new_name = $args{new_name};
+    
+    croak "Argument 'list' not defined"
+      if !defined $list;
+    croak "Argument 'new_name' is not defined"
+      if !defined $new_name;
+
+    #croak "element $element does not contain a list called $list"
+    return if !exists $self->{$list};
+
+    $self->{$new_name} = $self->{$list};
+    delete $self->{$list};
+
     return;
 }
 

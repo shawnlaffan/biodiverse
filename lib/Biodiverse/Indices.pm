@@ -17,7 +17,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -37,6 +37,8 @@ use parent qw {
     Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
     Biodiverse::Indices::LabelCounts
+    Biodiverse::Indices::RWTurnover
+    Biodiverse::Indices::RichnessEstimation
     Biodiverse::Common
 };
 
@@ -67,6 +69,10 @@ sub new {
     return $self;
 }
 
+sub metadata_class {
+    return $metadata_class;
+}
+
 sub reset_results {
     my $self = shift;
     my %args = @_;
@@ -78,43 +84,6 @@ sub reset_results {
     return;
 }
 
-sub get_metadata {
-    my $self = shift;
-    my %args = @_;
-
-    croak 'get_metadata called in list context'
-      if wantarray;
-    
-    #  Is caching a good idea?  Some metadata depends on given arguments,
-    #  and these could change across the life of an object.
-    my $cache   = $self->get_cached_metadata;
-    my $subname = $args{sub};
-
-    my $metadata = $cache->{$subname};
-
-    if (!$metadata) {
-        $metadata = $self->get_args(@_);
-
-        if (not blessed $metadata) {
-            warn "metadata for $args{sub} is not blessed, blessing into $metadata_class";
-            $metadata = $metadata_class->new ($metadata);
-        }
-        $cache->{$subname} = $metadata;
-    }
-
-    return $metadata;
-}
-    
-sub get_cached_metadata {
-    my $self = shift;
-
-    my $cache = $self->get_cached_value ('METADATA_CACHE');
-    if (!$cache) {
-        $cache = {};
-        $self->set_cached_value (METADATA_CACHE => $cache)
-    }
-    return $cache;
-}
 
 ###########################
 #
@@ -374,14 +343,11 @@ sub get_calculation_metadata_as_markdown {
     my %calculations = $self->get_calculations (@_);
 
     #  the html version
-    my @header = (  
-        #"Name",
-        #"Analysis description",
-        #"Subroutine",
+    my @header = (
         'Index #',
         'Index',
         'Index description',
-        'Valid cluster metric?',
+        'Grouping metric?',
         'Minimum number of neighbour sets',
         'Formula',
         'Reference',
@@ -438,6 +404,7 @@ sub get_calculation_metadata_as_markdown {
     #my $codecogs_suffix
     #    #= q{"/>};
     #    = ' />';
+    my %region_grower_indices = $self->get_valid_region_grower_indices;
 
     #loop through the types
   BY_TYPE:
@@ -495,10 +462,11 @@ sub get_calculation_metadata_as_markdown {
                         #$formula .= "\n";
                         my $eqn = $element;
                         $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                        $eqn =~ s/^= /=/;
                         $formula_url .= "![$eqn]($codecogs_url";
                         $formula_url .= $eqn;
-                        $formula_url .= "%.png)";
-                        #$formula_url .= $codecogs_suffix;
+                        #$formula_url .= "%.png) ";
+                        $formula_url .= ")";
                     }
                     $iter++;
                 }
@@ -535,10 +503,12 @@ sub get_calculation_metadata_as_markdown {
                         else {
                             my $eqn = $element;
                             $eqn =~ s/\\/\\\\/g;  #  need to escape the backslashes for github to work
+                            $eqn =~ s/^= /=/;
                             $formula_url .= "![$eqn]($codecogs_url";
                             $formula_url .= $eqn;
-                            $formula_url .= '%.png)';
+                            #$formula_url .= '%.png) ';
                             #$formula_url .= $codecogs_suffix;
+                            $formula_url .= ')'
                         }
                         $iter++;
                     }
@@ -555,7 +525,10 @@ sub get_calculation_metadata_as_markdown {
                 #$description =~ s/\*/`\*`/;  #  avoid needless bolding
                 push @line, $description;
 
-                push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;
+                my $clus_text = $ref->get_index_is_cluster_metric ($index) ? "cluster metric"
+                              : exists ($region_grower_indices{$index})    ? 'region grower'
+                              : $SPACE;
+                push @line, $clus_text;
                 push @line, $ref->get_index_uses_nbr_lists ($index) || $ref->get_uses_nbr_lists || $SPACE;
                 push @line, $formula_url;
                 my $reference = $ref->get_index_reference ($index);

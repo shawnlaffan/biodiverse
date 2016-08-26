@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Browser::Open qw( open_browser );  #  needed for the about dialogue
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -231,6 +231,9 @@ my %data_funcs = (
     on_rename_basedata_labels => {
         METHOD => 'do_rename_basedata_labels',
     },
+    on_rename_basedata_groups => {
+        METHOD => 'do_rename_basedata_groups',
+    },
     on_binarise_basedata_elements => {
         METHOD => 'do_binarise_basedata_elements',
     },
@@ -267,6 +270,9 @@ my %data_funcs = (
     },
     on_basedata_attach_ranges_as_properties => {
         METHOD => 'do_basedata_attach_label_ranges_as_properties',
+    },
+    on_merge_basedatas => {
+        METHOD => 'do_merge_basedatas',
     },
     on_matrix_save => {
         METHOD => 'do_save_matrix',
@@ -318,6 +324,12 @@ my %data_funcs = (
     },
     on_tree_equalise_branch_lengths => {
         METHOD => 'do_tree_equalise_branch_lengths',
+    },
+    on_tree_rescale_branch_lengths => {
+        METHOD => 'do_tree_rescale_branch_lengths',
+    },
+    on_tree_ladderise => {
+        METHOD => 'do_tree_ladderise',
     },
     on_matrix_export => {
         METHOD => 'do_export_matrix',

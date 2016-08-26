@@ -5,7 +5,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use rlib;
+use Test::Lib;
 
 use Test::More;
 use Test::Exception;
@@ -242,9 +242,9 @@ sub test_metadata {
             not scalar keys %subs_with_no_indices,
             'All calc metadata subs specify their indices',
         );
-        if (scalar keys %subs_with_no_indices) {
-            diag 'Indices with no subs are: ' . join ' ', sort keys %subs_with_no_indices;
-        }
+        #if (scalar keys %subs_with_no_indices) {
+        #    diag 'Indices with no subs are: ' . join ' ', sort keys %subs_with_no_indices;
+        #}
     }
 
     #diag 'Metadata keys are ' . join ' ', sort keys %meta_keys;
@@ -267,3 +267,41 @@ sub check_duplicates {
     }    
     
 }
+
+
+
+sub test_non_numeric_returns_no_results {
+    my @calcs_to_test = qw /
+        calc_numeric_label_data
+        calc_numeric_label_dissimilarity
+        calc_numeric_label_other_means
+        calc_numeric_label_quantiles
+        calc_numeric_label_stats
+        calc_num_labels_gistar
+    /;
+
+    my %bd_args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 3,
+        y_max       => 3,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd = get_basedata_object (%bd_args);
+    my $sp = $bd->add_spatial_output (name => 'sp_non_numeric');
+    my $success = eval {
+        $sp->run_analysis (
+            spatial_conditions => ['sp_self_only'],
+            calculations => \@calcs_to_test,
+        );
+    };
+    my $e = $@;
+    
+    ok (!$success, "No numeric labels calculations run when given non-numeric data");
+
+    ok ($e =~ 'No valid analyses, dropping out', 'Analysis threw no valid calculations error');
+}
+

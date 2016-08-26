@@ -13,12 +13,18 @@ use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 our $AUTOLOAD;
 
 use Statistics::Descriptive;
 my $stats_class = 'Biodiverse::Statistics';
+
+use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
@@ -113,6 +119,7 @@ sub _describe {
     push @description, "Root node count: "     . scalar @{$self->get_root_node_refs};
 
     push @description, "Sum of branch lengths: " . sprintf "%.6g", $self->get_total_tree_length;
+    push @description, "Longest path: "          . sprintf "%.6g", $self->get_longest_path_to_tip;
 
     my $description = join "\n", @description;
 
@@ -267,6 +274,13 @@ sub get_tree_length {  # need ref to the root node
 
 #  this is going to supersede get_tree_length because it is a better name
 sub get_length_to_tip {
+    my $self = shift;
+
+    return $self->get_tree_length;
+}
+
+#  an even better name than get_length_to_tip given what this does
+sub get_longest_path_to_tip {
     my $self = shift;
 
     return $self->get_tree_length;
@@ -689,14 +703,14 @@ sub export {
             || length ($args{file}) == 0;
 
     #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
+    my $metadata = $self->get_metadata (sub => 'export');
 
-    my $sub_to_use = $metadata{format_labels}{$args{format}}
-      || croak "Argument 'format' not specified\n";
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
 
     #  remap the format name if needed - part of the matrices kludge
-    if ($metadata{component_map}{$args{format}}) {
-        $args{format} = $metadata{component_map}{$args{format}};
+    my $component_map = $metadata->get_component_map;
+    if ($component_map->{$args{format}}) {
+        $args{format} = $component_map->{$args{format}};
     }
 
     eval {
@@ -762,22 +776,22 @@ sub get_metadata_export {
         item => 'Nexus'
     );
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
         format_choices => [
-            {
+            bless ({
                 name        => 'format',
                 label_text  => 'Format to use',
                 type        => 'choice',
                 choices     => \@formats,
                 default     => 0
-            },
+            }, $parameter_metadata_class),
         ],
         format_labels  => \%format_labels,
         component_map  => \%component_map,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 sub get_lists_for_export {
@@ -801,25 +815,30 @@ sub get_lists_for_export {
 sub get_metadata_export_nexus {
     my $self = shift;
 
+    my @parameters = (
+        {
+            name        => 'use_internal_names',
+            label_text  => 'Label internal nodes',
+            tooltip     => 'Should the internal node labels be included?',
+            type        => 'boolean',
+            default     => 1,
+        },
+        {
+            name        => 'no_translate_block',
+            label_text  => 'Do not use a translate block',
+            tooltip     => 'read.nexus in the R ape package mishandles '
+                         . 'named internal nodes if there is a translate block',
+            type        => 'boolean',
+            default     => 0,
+        },
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %args = (
         format => 'Nexus',
-        parameters => [
-            {
-                name        => 'use_internal_names',
-                label_text  => 'Label internal nodes',
-                tooltip     => 'Should the internal node labels be included?',
-                type        => 'boolean',
-                default     => 1,
-            },
-            {
-                name        => 'no_translate_block',
-                label_text  => 'Do not use a translate block',
-                tooltip     => 'read.nexus in the R ape package mishandles '
-                             . 'named internal nodes if there is a translate block',
-                type        => 'boolean',
-                default     => 0,
-            },
-        ],
+        parameters => \@parameters,
     );
 
     return wantarray ? %args : \%args;
@@ -848,17 +867,19 @@ sub export_nexus {
 sub get_metadata_export_newick {
     my $self = shift;
 
+    my @parameters = (
+        bless ({
+            name        => 'use_internal_names',
+            label_text  => 'Label internal nodes',
+            tooltip     => 'Should the internal node labels be included?',
+            type        => 'boolean',
+            default     => 1,
+        }, $parameter_metadata_class),
+    );
+
     my %args = (
         format => 'Newick',
-        parameters => [
-            {
-                name        => 'use_internal_names',
-                label_text  => 'Label internal nodes',
-                tooltip     => 'Should the internal node labels be included?',
-                type        => 'boolean',
-                default     => 1,
-            },
-        ],
+        parameters => \@parameters,
     );
 
     return wantarray ? %args : \%args;
@@ -882,40 +903,44 @@ sub export_newick {
 sub get_metadata_export_shapefile {
     my $self = shift;
 
+    my @parameters = (
+        {
+            name        => 'plot_left_to_right',
+            label_text  => 'Plot left to right',
+            tooltip     => 'Should terminals be to the right of the root node? '
+                         . '(default is to the left, with the root node at the right).',
+            type        => 'boolean',
+            default     => 0,
+            tooltip     =>
+                  'Should terminals be to the right of the root node? '
+                . '(default is to the left, with the root node at the right).',
+        },
+        {
+            name        => 'vertical_scale_factor',
+            label_text  => 'Vertical scale factor',
+            type        => 'float',
+            default     => 0,
+            tooltip     =>
+                  'Control the tree plot height relative to its width '
+                . '(longest path from root to tip).  '
+                . 'A zero value will make the height equal the width.',
+        },
+        {
+            type => 'comment',
+            label_text =>
+                  'Note: To attach any lists you will need to run a second '
+                . 'export to the delimited text format and then join them.  '
+                . 'This is needed because shapefiles do not have an undefined value '
+                . 'and field names can only be 11 characters long.',
+        }
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %args = (
         format => 'Shapefile',
-        parameters => [
-            {
-                name        => 'plot_left_to_right',
-                label_text  => 'Plot left to right',
-                tooltip     => 'Should terminals be to the right of the root node? '
-                             . '(default is to the left, with the root node at the right).',
-                type        => 'boolean',
-                default     => 0,
-                tooltip     =>
-                      'Should terminals be to the right of the root node? '
-                    . '(default is to the left, with the root node at the right).',
-                
-            },
-            {
-                name        => 'vertical_scale_factor',
-                label_text  => 'Vertical scale factor',
-                type        => 'float',
-                default     => 0,
-                tooltip     =>
-                      'Control the tree plot height relative to its width '
-                    . '(longest path from root to tip).  '
-                    . 'A zero value will make the height equal the width.',
-            },
-            {
-                type => 'comment',
-                label_text =>
-                      'Note: To attach any lists you will need to run a second '
-                    . 'export to the delimited text format and then join them.  '
-                    . 'This is needed because shapefiles do not have an undefined value '
-                    . 'and field names can only be 11 characters long.',
-            }
-        ],
+        parameters => \@parameters,
     );
 
     return wantarray ? %args : \%args;
@@ -998,33 +1023,39 @@ sub export_shapefile {
 sub get_metadata_export_tabular_tree {
     my $self = shift;
 
+    my @parameters = (
+        $self->get_lists_export_metadata(),
+        $self->get_table_export_metadata(),
+        {
+            name        => 'include_plot_coords',
+            label_text  => 'Add plot coords',
+            tooltip     => 'Allows the subsequent creation of, for example, shapefile versions of the dendrogram',
+            type        => 'boolean',
+            default     => 1,
+        },
+        {
+            name        => 'plot_coords_scale_factor',
+            label_text  => 'Plot coords scale factor',
+            tooltip     => 'Scales the y-axis to fit the x-axis.  Leave as 0 for default (equalises axes)',
+            type        => 'float',
+            default     => 0,
+        },
+        {
+            name        => 'plot_coords_left_to_right',
+            label_text  => 'Plot tree from left to right',
+            tooltip     => 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
+            type        => 'boolean',
+            default     => 0,
+        },
+    );
+    
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %args = (
         format => 'Tabular tree',
-        parameters => [
-            $self->get_lists_export_metadata(),
-            $self->get_table_export_metadata(),
-            {
-                name        => 'include_plot_coords',
-                label_text  => 'Add plot coords',
-                tooltip     => 'Allows the subsequent creation of, for example, shapefile versions of the dendrogram',
-                type        => 'boolean',
-                default     => 1,
-            },
-            {
-                name        => 'plot_coords_scale_factor',
-                label_text  => 'Plot coords scale factor',
-                tooltip     => 'Scales the y-axis to fit the x-axis.  Leave as 0 for default (equalises axes)',
-                type        => 'float',
-                default     => 0,
-            },
-            {
-                name        => 'plot_coords_left_to_right',
-                label_text  => 'Plot tree from left to right',
-                tooltip     => 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
-                type        => 'boolean',
-                default     => 0,
-            },
-        ],
+        parameters => \@parameters,
     );
 
     return wantarray ? %args : \%args;
@@ -1059,73 +1090,79 @@ sub export_tabular_tree {
 sub get_metadata_export_table_grouped {
     my $self = shift;
 
+    my @parameters = (
+        $self->get_lists_export_metadata(),
+        {
+            name        => 'num_clusters',
+            label_text  => 'Number of groups',
+            type        => 'integer',
+            default     => 5
+        },
+        {
+            name        => 'use_target_value',
+            label_text  => "Set number of groups\nusing a cutoff value",
+            tooltip     => 'Overrides the "Number of groups" setting.  Uses length by default.',
+            type        => 'boolean',
+            default     => 0,
+        },
+        {
+            name        => 'target_value',
+            label_text  => 'Value for cutoff',
+            tooltip     => 'Group the nodes using some threshold value.  '
+                         . 'This is analogous to the grouping when using '
+                         . 'the slider bar on the dendrogram plots.',
+            type        => 'float',
+            default     => 0,
+        },
+        {
+            name        => 'group_by_depth',
+            label_text  => "Group clusters by depth\n(default is by length)",
+            tooltip     => 'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.',
+            type        => 'boolean',
+            default     => 0,
+        },
+        {
+            name        => 'symmetric',
+            label_text  => 'Force output table to be symmetric',
+            type        => 'boolean',
+            default     => 1,
+        },
+        {
+            name        => 'one_value_per_line',
+            label_text  => 'One value per line',
+            tooltip     => 'Sparse matrix format',
+            type        => 'boolean',
+            default     => 0,
+        },
+        {
+            name        => 'include_node_data',
+            label_text  => "Include node data\n(child counts etc)",
+            type        => 'boolean',
+            default     => 1,
+        },
+        {
+            name        => 'sort_array_lists',
+            label_text  => 'Sort array lists',
+            tooltip     => 'Should any array list results be sorted before exprting?  Turn this off if the original order is important.',
+            type        => 'boolean',
+            default     => 1,
+        },
+        {
+            name        => 'terminals_only',
+            label_text  => 'Export data for terminal nodes only',
+            type        => 'boolean',
+            default     => 1,
+        },
+        $self->get_table_export_metadata(),
+    );
+
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+        
     my %args = (
         format => 'Table grouped',
-        parameters => [
-            $self->get_lists_export_metadata(),
-            {
-                name        => 'num_clusters',
-                label_text  => 'Number of groups',
-                type        => 'integer',
-                default     => 5
-            },
-            {
-                name        => 'use_target_value',
-                label_text  => "Set number of groups\nusing a cutoff value",
-                tooltip     => 'Overrides the "Number of groups" setting.  Uses length by default.',
-                type        => 'boolean',
-                default     => 0,
-            },
-            {
-                name        => 'target_value',
-                label_text  => 'Value for cutoff',
-                tooltip     => 'Group the nodes using some threshold value.  '
-                             . 'This is analogous to the grouping when using '
-                             . 'the slider bar on the dendrogram plots.',
-                type        => 'float',
-                default     => 0,
-            },
-            {
-                name        => 'group_by_depth',
-                label_text  => "Group clusters by depth\n(default is by length)",
-                tooltip     => 'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.',
-                type        => 'boolean',
-                default     => 0,
-            },
-            {
-                name        => 'symmetric',
-                label_text  => 'Force output table to be symmetric',
-                type        => 'boolean',
-                default     => 1,
-            },
-            {
-                name        => 'one_value_per_line',
-                label_text  => 'One value per line',
-                tooltip     => 'Sparse matrix format',
-                type        => 'boolean',
-                default     => 0,
-            },
-            {
-                name        => 'include_node_data',
-                label_text  => "Include node data\n(child counts etc)",
-                type        => 'boolean',
-                default     => 1,
-            },
-            {
-                name        => 'sort_array_lists',
-                label_text  => 'Sort array lists',
-                tooltip     => 'Should any array list results be sorted before exprting?  Turn this off if the original order is important.',
-                type        => 'boolean',
-                default     => 1,
-            },
-            {
-                name        => 'terminals_only',
-                label_text  => 'Export data for terminal nodes only',
-                type        => 'boolean',
-                default     => 1,
-            },
-            $self->get_table_export_metadata(),
-        ],
+        parameters => \@parameters,        
     );
 
     return wantarray ? %args : \%args;
@@ -1161,11 +1198,14 @@ sub get_metadata_export_range_table {
     my $format = defined $bd ? 'Range table' : $EMPTY_STRING;
     $format = $EMPTY_STRING; # no, just hide from GUI for now
 
+    my @parameters = $self->get_table_export_metadata();
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %metadata = (
         format => $format,
-        parameters => [
-            $self->get_table_export_metadata()
-        ],
+        parameters => \@parameters,
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -1250,6 +1290,9 @@ sub get_lists_export_metadata {
             default     => $default_idx,
         }
     ];
+    for (@$metadata) {
+        bless $_, $parameter_metadata_class;
+    }
 
     return wantarray ? @$metadata : $metadata;    
 }
@@ -1285,7 +1328,10 @@ sub get_table_export_metadata {
             choices    => \@quote_chars,
             default    => 0
         },
-     ];
+    ];
+    for (@$table_metadata_defaults) {
+        bless $_, $parameter_metadata_class;
+    }
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
 }
@@ -1853,6 +1899,74 @@ sub compare {
     return scalar keys %found_perfect_match;
 }
 
+sub convert_comparisons_to_significances {
+    my $self = shift;
+    my %args = @_;
+    
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
+    
+    # find all the relevant lists for this target name
+    my @target_list_names
+      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+        $self->get_hash_list_names_across_nodes;
+
+    my $i = 0;
+  BASE_NODE:
+    foreach my $base_node ($self->get_node_refs) {
+
+        $i++;
+        #$progress->update ($progress_text . "(node $i / $to_do)", $i / $to_do);
+
+      BY_INDEX_LIST:
+        foreach my $list_name (@target_list_names) {
+            my $result_list_name = $list_name;
+            $result_list_name =~ s/>>/>>sig>>/;
+
+            my $comp_ref = $base_node->get_list_ref (
+                list => $list_name,
+            );
+            next BY_INDEX_LIST if ! defined $comp_ref;
+
+            #  this will autovivify it
+            my $result_list_ref = $base_node->get_list_ref (
+                list => $result_list_name,
+            );
+            if (!$result_list_ref) {
+                $result_list_ref = {};
+                $base_node->add_to_lists (
+                    $result_list_name => $result_list_ref,
+                    use_ref => 1,
+                );
+            }
+
+            $self->get_significance_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+        }
+    }
+}
+
+sub get_hash_list_names_across_nodes {
+    my $self = shift;
+
+    my %list_names;
+    foreach my $node ($self->get_node_refs) {
+        my $lists = $node->get_hash_lists;
+        @list_names{@$lists} = ();
+    }
+
+    my @names = sort keys %list_names;
+
+    return wantarray ? @names : \@names; 
+}
+
 sub trees_are_same {
     my $self = shift;
     my %args = @_;
@@ -1925,7 +2039,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendants;  #  make sure we use a copy
+            my %children    = $node->get_names_of_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none of the descendents are in the keep list then we can trim this node.
@@ -2000,7 +2114,7 @@ sub trim {
 
             #  need to ignore any cached descendants (and we cleanup the cache lower down)
             my $children = $node->get_all_descendants (cache => 0);
-          DESCENDENT:
+          DESCENDANT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
                 next NODE if ! $child_node->is_internal_node;
@@ -2020,12 +2134,13 @@ sub trim {
 
     #  now some cleanup
     if ($deleted_internal_count || $deleted_count) {
-        $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
+        $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up in old trees
         $self->delete_cached_values;
         #  This avoids circular refs in the ones that were deleted
         foreach my $node (values %tree_node_hash) {
             $node->delete_cached_values;
         }
+        $self->delete_cached_values_below;  #  and clear the remaining node caches
     }
     $keep = undef;  #  was leaking - not sure it matters, though
 
@@ -2190,7 +2305,12 @@ sub reset_total_length {
     #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
     $self->delete_cached_value('TOTAL_LENGTH');
-    $self->reset_total_length_below;
+    
+    #  avoid recursive recursion and its quadratic nastiness
+    #$self->reset_total_length_below;
+    foreach my $node ($self->get_node_refs) {
+        $node->reset_total_length;
+    }
 
     return;
 }
@@ -2293,7 +2413,7 @@ sub clone_tree_with_equalised_branch_lengths {
 
     #  reset all the total length values
     $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    #$new_tree->reset_total_length_below;
 
     foreach my $node ($new_tree->get_node_refs) {
         my $len = $node->get_length ? $non_zero_len : 0;
@@ -2309,6 +2429,37 @@ sub clone_tree_with_equalised_branch_lengths {
     return $new_tree;
 }
 
+sub clone_tree_with_rescaled_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' RS');
+
+    my $new_length = $args{new_length} || 1;
+
+    my $scale_factor = $args{scale_factor};
+    $scale_factor //= $new_length / ($self->get_longest_path_length_to_terminals || 1);
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;    
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length * $scale_factor;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        #my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
 
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {

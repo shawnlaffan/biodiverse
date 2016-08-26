@@ -8,9 +8,14 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
+
+
 
 our %PARAMS = (  #  default parameters to load.  These will be overwritten if needed.
     OUTPFX            =>  "BIODIVERSE_PROPERTIES",
@@ -35,24 +40,31 @@ sub get_metadata_import_data {
     my @input_quote_chars = ('guess', @quote_chars);
     
     #  these parameters are only for the GUI, so are not a full set
-    #  add options for range etc?  
+    #  add options for range etc?
+    my @parameters = (
+        {
+            name       => 'input_sep_char',
+            label_text => "Input field separator",
+            tooltip    => "Select character",
+            type       => 'choice',
+            choices    => \@input_sep_chars,
+            default   => 0,
+        },
+        {
+            name       => 'input_quote_char',
+            label_text => "Input quote character",
+            tooltip    => "Select character",
+            type       => 'choice',
+            choices    => \@input_quote_chars,
+            default    => 0,
+        },
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %arg_hash = (
-        parameters => [
-            {name       => 'input_sep_char',
-             label_text => "Input field separator",
-             tooltip    => "Select character",
-             type       => 'choice',
-             choices    => \@input_sep_chars,
-             default   => 0,
-            },
-            {name       => 'input_quote_char',
-             label_text => "Input quote character",
-             tooltip    => "Select character",
-             type       => 'choice',
-             choices    => \@input_quote_chars,
-             default    => 0,
-             },                                    
-        ]
+        parameters => \@parameters,
     ); 
 
     return wantarray ? %arg_hash : \%arg_hash;

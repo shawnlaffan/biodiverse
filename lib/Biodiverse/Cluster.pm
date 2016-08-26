@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -77,24 +77,26 @@ sub get_valid_indices_sub {
 
 #  the master export sub is in Biodiverse::Tree
 #  this is just to handle the matrices used in clustering
+#  We should really turn this off, as the matrices have been
+#  added to the basedata for quote some time now.  
 sub get_metadata_export_matrices {
     my $self = shift;
 
-    my %args;
+    my $metadata;
 
-    my $matrices = $self->get_param ('ORIGINAL_MATRICES');
+    my $matrices = $self->get_orig_matrices;
     eval {
-        %args = $matrices->[0]->get_args (sub => 'export')
+        $metadata = $matrices->[0]->get_metadata (sub => 'export')
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     #  override matrix setting
-    #  could casue grief if matrices allow more than delimited text
-    if (! defined $args{format} || $args{format} ne 'Matrices') {
-        $args{format} = 'Matrices';
+    #  could cause grief if matrices allow more than delimited text
+    if (! defined $metadata->{format} || $metadata->{format} ne 'Matrices') {
+        $metadata->{format} = 'Matrices';
     }
 
-    return wantarray ? %args : \%args;
+    return $metadata;
 }
 
 #  export the matrices used in any clustering
@@ -139,7 +141,6 @@ sub export_matrices {
     }
     if (scalar @$matrices > 1) {  #  only need the shadow (combined) matrix if more than one was used
         my $filename = $file;
-        #$filename =~ s/(\.\S+$)/_shadowmatrix$1/;
         $filename .= "_shadowmatrix$suffix";
         $shadow_matrix->export (
             @_,
@@ -1147,16 +1148,10 @@ sub get_most_similar_pair_using_tie_breaker {
 
     my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
     my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-    my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
-    if (!$tie_breaker_cache) {
-        $tie_breaker_cache = {};
-        $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
-    }
-    my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
-    if (!$tie_breaker_cmp_cache) {
-        $tie_breaker_cmp_cache = {};
-        $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
-    }
+    my $tie_breaker_cache
+      = $self->get_cached_value_dor_set_default_aa ('TIEBREAKER_CACHE', {});
+    my $tie_breaker_cmp_cache
+      = $self->get_cached_value_dor_set_default_aa ('TIEBREAKER_CMP_CACHE', {});
 
     my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
     my $breaker_keys   = $breaker_pairs->[0];
@@ -1641,12 +1636,14 @@ sub cluster {
 
     #  This should only be used when the user wants it,
     #  but it only triggers in certain circumstances
-    eval {
-        my $max_poss_value = $self->get_max_poss_matrix_value (
-            matrix => $matrix_for_nodes,
-        );
-        $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
-    };
+    if ($self->can('get_max_poss_matrix_value')) {
+        eval {
+            my $max_poss_value = $self->get_max_poss_matrix_value (
+                matrix => $matrix_for_nodes,
+            );
+            $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
+        };
+    }
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
@@ -1711,6 +1708,8 @@ sub cluster {
     if (!defined $root_node->get_value('MATRIX_ITER_USED')) {
         $root_node->set_value (MATRIX_ITER_USED => undef);
     }
+
+    $root_node->ladderise;
 
     if ($args{clear_cached_values}) {
         $root_node->delete_cached_values_below;
@@ -1942,7 +1941,7 @@ sub get_values_for_linkage {
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
 }
 
-#  calculate the linkages fom the ground up
+#  calculate the linkages from the ground up
 sub link_recalculate {
     my $self = shift;
     my %args = @_;
@@ -1991,8 +1990,9 @@ sub link_recalculate {
         $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name) ;
     }
     elsif ($node2_ref) {
-        $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name);
+        $label_hash1 = $node2_ref->get_cached_value ($node1_2_cache_name);
     }
+
     #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
         $el1_list = [];

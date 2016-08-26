@@ -24,10 +24,11 @@ use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
 use Scalar::Util qw /blessed reftype/;
+use List::Util;
 
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use parent qw /Biodiverse::Common/;
 
@@ -81,18 +82,17 @@ sub build {
     my $blessed = blessed $element_hash->{$keys[0]};
 
     #  get the bounds and the list of unique element columns
-    my (%count, %bounds, %ihash);
+    my (%count, %bounds);
 
     #  get the coord bounds
     foreach my $element (@keys) {
 
         my $coord_array     #  will blow up if no such method
             = eval {$element_hash->{$element}->get_coord_array}  
-            || $element_hash->{$element};
+              || $element_hash->{$element};
 
         foreach my $i (0 .. $#resolutions) {
             #print "COLUMNS: $column, $i\n";
-            $ihash{$i}++;
             $count{$i}{$coord_array->[$i]}++;
             if ($resolutions[$i] == 0) {
                 $bounds{max}[$i] = 0;
@@ -133,6 +133,56 @@ sub get_element_count {
     my $self = shift;
     my $el_hash = $self->{ELEMENTS};
     return scalar keys %$el_hash;
+}
+
+#  observed item count across all possible items
+sub get_item_density_across_all_poss_index_elements {
+    my $self = shift;
+
+    my $cache_key = 'ITEM_DENSITY_ACROSS_ALL_POSS_INDEX_ELEMENTS';
+
+    my $val = $self->get_cached_value ($cache_key);
+    return $val if defined $val;
+
+    $val = $self->get_indexed_item_count
+      / $self->get_poss_index_key_count;
+
+    $self->set_cached_value ($cache_key => $val);
+
+    return $val;
+}
+
+sub get_poss_index_key_count {
+    my $self = shift;
+
+    my $maxima = $self->get_param('MAXIMA');
+    my $minima = $self->get_param('MINIMA');
+    my $resolutions = $self->get_param('RESOLUTIONS');
+    
+    my $count = 1;
+    foreach my $i (0 .. $#$maxima) {
+        my $multipler = 1 + ($maxima->[$i] - $minima->[$i]) / ($resolutions->[$i] || 1);
+        $count *= $multipler;
+    }
+
+    return $count;
+}
+
+sub get_indexed_item_count {
+    my $self = shift;
+
+    my $count;
+    my $keys = $self->get_index_keys;
+    
+  ELT:
+    foreach my $element (@$keys) {
+        no autovivification;
+        my $elref = $self->{ELEMENTS}{$element}
+          // next ELT;
+        $count += keys %$elref;
+    }
+    
+    return $count;
 }
 
 sub snap_to_index {
@@ -246,7 +296,7 @@ sub get_index_elements {
 
     if (defined $offset) {  #  we have been given an index element with an offset, so return the elements from the offset
 
-        my $csv_object = $self->get_cached_value ('CSV_OBJECT');
+        my $csv_object = $args{csv_object} // $self->get_cached_value ('CSV_OBJECT');
         #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
         if (!defined $csv_object || !exists $csv_object->{quote_binary}) {  #  second condition is dirty and underhanded
             my $sep = $self->get_param('JOIN_CHAR');
@@ -314,18 +364,18 @@ sub get_index_elements {
         }
     }
 
-    return wantarray ? () : {}  #  check this after any offset is applied
-      if !$self->element_exists (element => $element);
-
-    my $elref = $self->{ELEMENTS}{$element};
-    return wantarray ? %$elref : $elref;
+    no autovivification;
+    my $elref = $self->{ELEMENTS}{$element} // {};
+    #  no explicit return for small speedup on pre-5.20 perls
+    wantarray ? %$elref : $elref;
 }
 
 sub get_index_elements_as_array {
     my $self = shift;
     my $tmp_ref = eval {$self->get_index_elements (@_)};
     croak $EVAL_ERROR if $EVAL_ERROR;
-    return wantarray ? keys %{$tmp_ref} : [keys %{$tmp_ref}];
+    #  no explicit return for small speedup on pre-5.20 perls
+    wantarray ? keys %{$tmp_ref} : [keys %{$tmp_ref}];
 }
 
 #  snap a set of coords (or a single value) to the index
@@ -343,8 +393,7 @@ sub round_up_to_resolution {
         $values = [($values) x scalar @$resolutions];
     }
     
-    my $multipliers = $args{multipliers};
-    $multipliers = 1 if not defined $multipliers;
+    my $multipliers = $args{multipliers} // 1;
     if ((ref $multipliers) !~ /ARRAY/) {  
         $multipliers = [($multipliers) x scalar @$resolutions];
     }
@@ -398,7 +447,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $minima    = $self->get_param('MINIMA');
     my $maxima    = $self->get_param('MAXIMA');
     my $cellsizes = $args{cellsizes};  #  needs to be passed if used
-    my $poss_elements_ref;
+    my $poss_offset_array;
+    my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  get the decimal precision of the index resolution (we get floating point to string problems lower down)
     #  also generate an array of the index ranges
@@ -412,6 +462,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     }
 
     my $subset_search_offsets;
+    my $extreme_elements_ref;
     my $use_subset_search = $args{index_use_subset_search};
     my $using_cell_units  = undef;
     my $subset_dist       = $args{index_search_dist};
@@ -426,11 +477,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         say "Done (and what's more I cheated)";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
-
-    if (my $i_dist = $spatial_conditions->get_index_max_dist) {
-        print "[INDEX] Max search dist is $i_dist - using shortcut\n";
-        $use_subset_search = 1;
-        my $max_off = $self->round_up_to_resolution (values => $i_dist);
+    
+    my $index_max_search_dist = $spatial_conditions->get_index_max_dist;
+    if ($index_max_search_dist) {
+        my $max_off = $self->round_up_to_resolution (values => $index_max_search_dist);
         my $min_off = [];
         foreach my $i (0 .. $#$max_off) {
             #  snap to range of data - avoids crashes
@@ -441,40 +491,51 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             # minima will be the negated max, so we can get ranges like -2..2.
             $min_off->[$i] = -1 * $max_off->[$i];
         }
-        my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
-        my $offsets = $self->get_poss_elements (
+        $poss_offset_array = $self->get_poss_elements (
             minima      => $min_off,
             maxima      => $max_off,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
-            sep_char    => $sep_char,
+            #sep_char    => $sep_char,
         );
-        my %offsets;
-        foreach my $offset (@$offsets) {
-            $offsets{$offset} = [split $sep_char, $offset];
+        if (   $spatial_conditions->get_shape_type ne 'square'
+            && $index_max_search_dist > 2 * List::Util::min (@$index_resolutions)
+            && $spatial_conditions->get_result_type ne 'complex') {
+            #  should add a shape parameter to the spatial conditions as we can skip to the else if it is a box/block
+            #  check the offsets - threshold needs tuning
+            my @span = map {$max_off->[$_] - $min_off->[$_]} (0..$#$max_off);
+            $extreme_elements_ref = $self->get_poss_elements (
+                minima      => $min_off,
+                maxima      => $max_off,
+                resolutions => \@span,
+                precision   => \@index_res_precision,
+            );
         }
-        #@offsets{@$offsets} = @$offsets;
-        return wantarray ? %offsets : \%offsets;
+        else {  #  just use a box of offsets
+            say "[INDEX] Max search dist is $index_max_search_dist - using shortcut";
+            my %offsets;
+            foreach my $offset (@$poss_offset_array) {
+                $offsets{$offset} = [split $sep_char, $offset];
+            }
+            return wantarray ? %offsets : \%offsets;
+        }
     }
-
-    #  no need to recheck invalid offsets in these cases  (wrong - comment out)
-    #  my $no_recheck_invalid_offsets = $spatial_conditions->get_result_type eq 'side';
-    
-    #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
-    $poss_elements_ref = $self->get_poss_elements (
-        minima      => $minima,
-        maxima      => $maxima,
-        resolutions => $index_resolutions,
-        precision   => \@index_res_precision,
-    );
-
-    #  generate the extrema
-    my $extreme_elements_ref = $self->get_poss_elements (
-        minima      => $minima,
-        maxima      => $maxima,
-        resolutions => \@ranges,
-        precision   => \@index_res_precision,
-    );
+    else {
+        #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
+        $poss_offset_array = $self->get_poss_elements (
+            minima      => $minima,
+            maxima      => $maxima,
+            resolutions => $index_resolutions,
+            precision   => \@index_res_precision,
+        );
+        #  generate the extrema
+        $extreme_elements_ref = $self->get_poss_elements (
+            minima      => $minima,
+            maxima      => $maxima,
+            resolutions => \@ranges,
+            precision   => \@index_res_precision,
+        );
+    }
 
     #  now we grab the first order neighbours around each of the extrema
     #  these will be used to check the index offsets
@@ -499,33 +560,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $element_search_list{$element}   = $nbrs_ref;
         $element_search_arrays{$element} = $element_array;
 
-        if ($use_subset_search) {  #  only want to search a few nearby index cells
-            #  do we want to go up or down?
-            my @target;
-
-            my $i = 0;
-            foreach my $axis (@$element_array) {
-                
-                if ($axis == $minima->[$i]) {
-                    $target[$i] = $minima->[$i] + $subset_search_offsets->[$i] + $index_resolutions->[$i];
-                }
-                else {
-                    $target[$i] = $maxima->[$i] - $subset_search_offsets->[$i] - $index_resolutions->[$i];
-                }
-                $i++;
-            }
-
-            my $x = $self->get_poss_elements (
-                minima => $element_array,
-                maxima => \@target,
-                resolutions => $index_resolutions,
-                precision => \@index_res_precision,
-            );
-            $index_elements_to_search{$element} = $x;
-        }
-        else {
-            $index_elements_to_search{$element} = $poss_elements_ref;
-        }
+        $index_elements_to_search{$element} = $poss_offset_array;
 
         $total_elements_to_search += scalar @$nbrs_ref;
         $corner_case_count ++;
@@ -633,11 +668,23 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             }  #  :COMPARE
         }
     }
+
+    #  we found too many offsets - stick to the i_dist box estimate if we have one
+    if ($index_max_search_dist && scalar keys %valid_index_offsets > scalar @$poss_offset_array) {
+        my %offsets;
+        foreach my $offset (@$poss_offset_array) {
+            $offsets{$offset} = [split $sep_char, $offset];
+        }
+        say "\nDone - using box of offsets ($index_max_search_dist based)";
+        return wantarray ? %offsets : \%offsets;
+    }
+
     #print Data::Dumper::Dumper(\%valid_index_offsets);
     #print Data::Dumper::Dumper (\@min_offset);
     #print Data::Dumper::Dumper (\@max_offset);
+    #say 'Using ', scalar keys %valid_index_offsets, ' of ', scalar @$poss_offset_array, ' i_dist is ', ($index_max_search_dist // 'undef')
+    #  if $index_max_search_dist;
     say "\nDone";
-
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }
 
@@ -687,6 +734,8 @@ CHANGES NEEDED
 
 =head1 Methods
 
+THIS IS COMPLETELY OUT OF DATE. 
+
 These assume you have declared an object called $self of a type that
 inherits these methods, normally:
 
@@ -699,15 +748,9 @@ inherits these methods, normally:
 
 =over 5
 
-=item $self->build_index ('contains' => 4);
+=item $self->build (resolutions => [1, 1]);
 
-Builds the index.
-
-The C<contains> argument is the average number of base
-elements to be contained in each index key, and controls the resolutions
-of the index axes.  If not specified then the default is 4.
-
-Specifying different values may (or may not) speed up your processing.
+Builds the index.  The size of the resolution array must match your input data.
 
 =item  $self->delete_index;
 

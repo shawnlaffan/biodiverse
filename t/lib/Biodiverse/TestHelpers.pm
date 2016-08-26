@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -55,6 +55,7 @@ use Exporter::Easy (
                 get_basedata_object
                 get_basedata_object_from_site_data
                 get_numeric_labels_basedata_object_from_site_data
+                get_basedata_object_from_mx_format
                 :utils
             ),
         ],
@@ -62,6 +63,7 @@ use Exporter::Easy (
             qw(
                 get_element_properties_test_data
                 get_group_properties_site_data_object
+                get_label_properties_site_data_object
                 :utils
             ),
         ],
@@ -507,6 +509,27 @@ sub get_basedata_object {
     return $bd;
 }
 
+sub get_basedata_object_from_mx_format {
+    my %args = @_;
+
+    my $bd_f = get_basedata_import_data_file(@_);
+
+    print "Temp file is $bd_f\n";
+
+    my $bd = Biodiverse::BaseData->new(
+        CELL_SIZES => $args{CELL_SIZES},
+        NAME       => 'Test basedata',
+    );
+    $bd->import_data(
+        input_files   => [$bd_f],
+        label_columns => [],
+        group_columns => [0],
+        %args,
+    );
+
+    return $bd;
+}
+
 sub get_basedata_object_from_site_data {
     my %args = @_;
 
@@ -711,6 +734,13 @@ sub get_group_properties_site_data_object {
     return $props;
 }
 
+sub get_label_properties_site_data_object {
+    my $data  = get_label_properties_site_data;
+    my $props = element_properties_from_string($data);
+
+    return $props;
+}
+
 sub element_properties_from_string {
     my ($data, ) = @_;
     my $file = write_data_to_temp_file($data);
@@ -749,11 +779,13 @@ sub run_indices_test1 {
     my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
     my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
+    my $expected_results       = $args{expected_results} // {};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
     my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
     my $descr_suffix           = $args{descr_suffix} // '';
     my $processing_element     = $args{processing_element} // '3350000:850000';
+    my $skip_nbr_counts        = $args{skip_nbr_counts} // {};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -775,13 +807,14 @@ sub run_indices_test1 {
 
     my %bd_args = (%args, CELL_SIZES => $cell_sizes);
 
-    my $bd = $use_numeric_labels
-      ? get_numeric_labels_basedata_object_from_site_data (
-            %bd_args,
-        )
-      : get_basedata_object_from_site_data (
-            %bd_args,
-        );
+    my $bd = $args{basedata_ref};
+    $bd ||= $use_numeric_labels
+          ? get_numeric_labels_basedata_object_from_site_data (
+                %bd_args,
+            )
+          : get_basedata_object_from_site_data (
+                %bd_args,
+            );
 
     if ($args{nbr_set2_sp_select_all}) {
         #  get all groups, but ensure no overlap with NS1
@@ -900,10 +933,13 @@ sub run_indices_test1 {
 
     my %results_by_nbr_list;
 
+  NBR_COUNT:
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
             delete $elements{element_list2};
         }
+
+        next NBR_COUNT if $skip_nbr_counts->{$nbr_list_count};
 
         my %indices_args = (
             calcs_to_test  => $calcs_to_test,
@@ -921,9 +957,10 @@ sub run_indices_test1 {
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
-        my $expected = eval $dss->get_data_section(
-            "RESULTS_${nbr_list_count}_NBR_LISTS"
-        );
+        my $expected = $expected_results->{$nbr_list_count}
+                     // eval $dss->get_data_section(
+                            "RESULTS_${nbr_list_count}_NBR_LISTS"
+                        );
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
         if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};
@@ -1195,17 +1232,20 @@ sub run_sp_cond_tests {
     my $conditions = $args{conditions};
     my $index_version = $args{index_version};
 
-    my $res = $bd->get_param('CELL_SIZES');
+    my $res = $args{resolution} || $bd->get_param('CELL_SIZES');
+
     my ($index, $index_offsets);
     my $index_text = ' (no spatial index)';
+    
+    my %results;
 
-    foreach my $i (0 .. 2) {
+    my $nbrs_from_no_index;
+    my @index_res_multipliers = (0, 1, 2);
+
+    foreach my $i (sort {$a <=> $b} @index_res_multipliers) {
 
         if ($i) {
-            my @index_res;
-            foreach my $r (@$res) {
-                push @index_res, $r * $i;
-            }
+            my @index_res = map {$_ * $i} @$res;
             $index = $bd->build_spatial_index (
                 resolutions => [@index_res],
                 version     => $index_version,
@@ -1229,14 +1269,14 @@ sub run_sp_cond_tests {
             #diag $cond;
 
             my $sp_conditions = Biodiverse::SpatialConditions->new (
-                conditions => $cond,
+                conditions   => $cond,
+                basedata_ref => $bd,
             );
-            
+
             if ($index) {
                 $index_offsets = $index->predict_offsets (
                     spatial_conditions => $sp_conditions,
                     cellsizes          => $bd->get_param ('CELL_SIZES'),
-                    #progress_text_pfx => $progress_text_pfx,
                 );
             }
 
@@ -1250,18 +1290,26 @@ sub run_sp_cond_tests {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            is (keys %$nbrs, $expected, $cond . $index_text);
+            is (keys %$nbrs, $expected, "Nbr count: $cond$index_text");
+            if ($nbrs_from_no_index->{$condition}) {
+                is_deeply ($nbrs, $nbrs_from_no_index->{$condition}, "Nbr hash: $cond$index_text")
+            }
+            else {
+                $nbrs_from_no_index->{$condition} = $nbrs;
+                $results{$cond} = $nbrs;
+            }
         }
-
     }
 
-    return;
+    return wantarray ? %results : \%results;
 }
 
 
 sub test_sp_cond_res_pairs {
-    my $conditions = shift;
-    my @res_pairs  = @_;
+    my ($conditions, $res_pairs, $zero_cell_sizes) = @_;
+    my @res_pairs  = @$res_pairs;
+    
+    my %results;
 
     SKIP:
     {
@@ -1278,20 +1326,27 @@ sub test_sp_cond_res_pairs {
                 x_min      => $x[0],
                 y_min      => $y[0],
             );
+            my $key = join (':', @$res, @x);
 
             #  should sub this - get centre_group or something
             my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
             my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
             my $element = join ":", $element_x, $element_y;
+            
+            if ($zero_cell_sizes) {
+                $bd->set_param(CELL_SIZES => [0,0]);
+            }
     
-            run_sp_cond_tests (
+            $results{$key} = run_sp_cond_tests (
                 basedata   => $bd,
                 element    => $element,
                 conditions => $conditions,
                 index_version => undef,  #  this arg is for debug
+                resolution => $res,
             );
         }
     }
+    return wantarray ? %results : \%results;
 }
 
 sub get_sp_conditions_to_run {

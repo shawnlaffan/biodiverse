@@ -1,5 +1,11 @@
 Revision history for Perl module Task::Biodiverse
 
+1.0001 2015-06-08
+    - Bump required version for Task::Biodiverse::NoGUI to 1.0001
+
+1.0  2015-04-19
+    - Update for version 1.0 release.
+
 0.19 2013-10-28
     - Explicitly depends on 0.19 of Task::Biodiverse::NoGUI
     - Add BUILD_REQUIRES content

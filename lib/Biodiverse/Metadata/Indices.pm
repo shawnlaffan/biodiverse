@@ -6,18 +6,11 @@ use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '0.99_008';
+use parent qw /Biodiverse::Metadata/;
 
-sub new {
-    my ($class, $data) = @_;
-    $data //= {};
-    
-    my $self = bless $data, $class;
-    return $self;
-}
+our $VERSION = '1.99_004';
 
-
-my %methods_and_defaults = (
+Readonly my %methods_and_defaults => (
     name           => 'no_name',
     description    => 'no_description',
     uses_nbr_lists => 1,
@@ -30,45 +23,16 @@ my %methods_and_defaults = (
 );
 
 
-sub _make_access_methods {
-    my ($pkg, $methods) = @_;
-
-    no strict 'refs';
-    foreach my $key (keys %$methods) {
-        *{$pkg . '::' . 'get_' . $key} =
-            do {
-                sub {
-                    my $self = shift;
-                    return $self->{$key} // $self->get_default ($key);
-                };
-            };
-    }
-
-    return;
+sub _get_method_default_hash {
+    return wantarray ? %methods_and_defaults : {%methods_and_defaults};
 }
 
-sub get_default {
-    my ($self, $key) = @_;
-
-    #  set defaults - make sure they are new each time
-    my $default = $methods_and_defaults{$key};
-
-    return $default if !defined $default or !reftype $default;
-
-    if (reftype ($default) eq 'ARRAY') {
-        $default = [];
-    }
-    elsif (reftype ($default) eq 'HASH') {
-        $default = {};
-    }
-    return $default;
-}
 
 __PACKAGE__->_make_access_methods (\%methods_and_defaults);
 
 
 
-Readonly my %dep_types = (
+Readonly my %dep_types => (
     pre_calc_global  => 1,
     pre_calc         => 1,
     post_calc        => 1,

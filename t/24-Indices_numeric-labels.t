@@ -5,26 +5,64 @@ use warnings;
 
 local $| = 1;
 
-use rlib;
+use Test::Lib;
 use Test::Most;
 
 use Biodiverse::TestHelpers qw{
     :runners
+    :basedata
 };
 
-run_indices_test1 (
-    calcs_to_test  => [qw/
-        calc_numeric_label_data
-        calc_numeric_label_dissimilarity
-        calc_numeric_label_other_means
-        calc_numeric_label_quantiles
-        calc_numeric_label_stats
-        calc_num_labels_gistar
-    /],
-    calc_topic_to_test => 'Numeric Labels',
-    use_numeric_labels => 1,
-    #generate_result_sets => 1,
-);
+my @calcs_to_test = qw /
+    calc_numeric_label_data
+    calc_numeric_label_dissimilarity
+    calc_numeric_label_other_means
+    calc_numeric_label_quantiles
+    calc_numeric_label_stats
+    calc_num_labels_gistar
+/;
+
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+#
+#use Class::Inspector;
+#my @subs = Class::Inspector->functions ('main::');
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (@subs) {
+        no strict 'refs';
+        $sub->();
+    }
+    
+    done_testing;
+    return 0;
+}
+
+
+sub test_indices {
+    run_indices_test1 (
+        calcs_to_test  => \@calcs_to_test,
+        calc_topic_to_test => 'Numeric Labels',
+        use_numeric_labels => 1,
+        #generate_result_sets => 1,
+    );
+}
+
 
 done_testing;
 

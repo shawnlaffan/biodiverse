@@ -3,7 +3,7 @@ package Biodiverse::Indices::LabelCounts;
 use strict;
 use warnings;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Statistics;
 
@@ -114,7 +114,7 @@ sub calc_label_count_quantile_position {
     my $bd = $self->get_basedata_ref;
     my $processing_element = $args{processing_element};
 
-    my $proc_labels = $bd->get_labels_in_group_as_hash (group => $processing_element);
+    my $proc_labels = $bd->get_labels_in_group_as_hash_aa ($processing_element);
 
     #  nbr sets might not include processing group, so make sure we get all labels
     my %labels_to_check = (%{$args{label_hash_all}}, %$proc_labels);
@@ -126,7 +126,7 @@ sub calc_label_count_quantile_position {
 
   ELEMENT:  #  don't include the processing group
     foreach my $el (grep {$_ ne $processing_element} @$el_array) {
-        my $label_hash = $bd->get_labels_in_group_as_hash (group => $el);
+        my $label_hash = $bd->get_labels_in_group_as_hash_aa ($el);
 
         foreach my $label (keys %label_count_arrays) {
             no autovivification;

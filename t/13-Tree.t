@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use rlib;
+use Test::Lib;
 use List::Util qw /first sum/;
 
 use Test::More;
@@ -196,6 +196,53 @@ sub test_trim_tree_after_adding_extras {
         'trimmed and original tree same after trimming extra added nodes'
     );
 
+}
+
+
+sub test_ladderise {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+    my $tree2 = $tree1->clone();
+    $tree2->ladderise;
+    
+    ok (
+        $tree1->trees_are_same(comparison => $tree2),
+        'ladderised tree has same topology as original',
+    );
+
+    #  check node order is different and follows expected,
+    #  as we might change the default sort one day and then we'd have "issues"
+    my %nodes = $tree1->get_all_descendants_and_self;
+    subtest "Node orders as expected" => sub {
+      NODE_NAME:
+        foreach my $node_name (keys %nodes) {
+            my $node1 = $tree1->get_node_ref (node => $node_name);
+            my $node2 = $tree2->get_node_ref (node => $node_name);
+
+            my @children1 = $node1->get_children;
+            my @children2 = $node2->get_children;
+
+            is (scalar @children2, scalar @children1, "Child counts match for $node_name");
+
+            next NODE_NAME if scalar @children1 <= 1;
+
+            my @counts2 = map {$_->get_descendent_count} @children2;
+            my @counts1 = map {$_->get_descendent_count} @children1;
+            my $check1 = join ' ', @counts1;
+            my $check2 = join ' ', @counts2;
+
+            foreach my $i (1 .. $#children2) {
+                my $j = $i-1;
+                cmp_ok (
+                    $counts2[$i],
+                    '<=',
+                    $counts2[$j],
+                    "Child $i has fewer descendents than child $j, parent node "
+                    . $node2->get_name
+                    . "  in: $check1, out: $check2",
+                );
+            }
+        }
+    }
 }
 
 sub check_trimmings {
@@ -575,6 +622,82 @@ sub test_equalise_branch_lengths {
 
     is ($tree->get_node_count, $eq_tree->get_node_count, 'node counts match');
 }
+
+
+sub test_rescale_by_longest_path {
+    my $tree = get_site_data_as_tree();
+
+    my $longest_path = $tree->get_longest_path_length_to_terminals;
+    my $total_length = $tree->get_total_length;
+
+    my $target_name = '1950000:1350000';
+    my $target_node = $tree->get_node_ref (node => $target_name);
+    $target_node->set_length (length => 100);
+
+    $tree->delete_cached_values;
+    $tree->delete_cached_values_below;
+
+    my $new_longest_path = $tree->get_longest_path_length_to_terminals;
+
+    #  some sanity checks
+    is (
+        $new_longest_path,
+        $longest_path + 100,
+        'Longest path is 100 units longer',
+    );
+    is ($total_length + 100,
+        $tree->get_total_length,
+        'new tree is 100 units longer',
+    );
+
+    #  now we rescale things
+    my $rescaled_tree
+      = $tree->clone_tree_with_rescaled_branch_lengths (scale_factor => 0.01);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        $new_longest_path / 100,
+        'New longest path is 0.01 of the original',
+    );
+    is (
+        $rescaled_tree->get_total_length,
+        $tree->get_total_length / 100,
+        'New total tree length is 0.01 of the original',
+    );
+
+    #  now check we can go back
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (scale_factor => 100);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        $new_longest_path,
+        'New longest path is same as the original after rescaling by 100',
+    );
+    is (
+        $rescaled_tree->get_total_length,
+        $tree->get_total_length,
+        'New total tree length is same as the original after rescaling by 100',
+    );
+    
+    #  now check new_length
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (new_length => 5);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        5,
+        'New length is 5 when arg new_length=>5',
+    );
+    
+    #  now check new_length
+    $rescaled_tree
+      = $rescaled_tree->clone_tree_with_rescaled_branch_lengths (new_length => 0.25);
+    is (
+        $rescaled_tree->get_longest_path_length_to_terminals,
+        0.25,
+        'New length is 0.25 when arg new_length=>0.25',
+    );
+    
+}
+
 
 sub test_depth {
     my $tree = Biodiverse::Tree->new (NAME => 'test depth');

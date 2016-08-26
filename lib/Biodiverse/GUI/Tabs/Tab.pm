@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -13,6 +13,8 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
 
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub add_to_notebook {
     my $self = shift;
@@ -822,8 +824,10 @@ sub on_set_tree_line_widths {
                     . 'Does not affect the vertical connectors',
         tooltip    => 'Set to zero to let the system calculate a default',
     };
+    bless $props, $parameter_metadata_class;
 
-    my ($spinner, $extractor) = Biodiverse::GUI::ParametersTable::generate_integer ($props);
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my ($spinner, $extractor) = $parameters_table->generate_integer ($props);
 
     my $dlg = Gtk2::Dialog->new_with_buttons (
         'Set branch width',
@@ -837,7 +841,7 @@ sub on_set_tree_line_widths {
     my $label = Gtk2::Label->new($props->{label_text});
     $hbox->pack_start($label,   0, 0, 1);
     $hbox->pack_start($spinner, 0, 0, 1);
-    $spinner->set_tooltip_text ($props->{tooltip});
+    $spinner->set_tooltip_text ($props->get_tooltip);
 
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start($hbox, 0, 0, 10);
@@ -933,8 +937,8 @@ sub update_export_menu {
     else {
         my $submenu = Gtk2::Menu->new;
         # Get the Parameters metadata
-        my %args = $output_ref->get_args (sub => 'export');
-        my $format_labels = $args{format_labels};
+        my $metadata = $output_ref->get_metadata (sub => 'export');
+        my $format_labels = $metadata->get_format_labels;
         foreach my $label (sort keys %$format_labels) {
             next if !$label;
             my $menu_item = Gtk2::MenuItem->new($label);

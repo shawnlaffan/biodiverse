@@ -10,7 +10,7 @@ local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $generate_result_sets = 0;
 
-use rlib;
+use Test::Lib;
 use Test::Most;
 use List::Util qw /sum/;
 
@@ -49,7 +49,12 @@ my @calcs = qw/
     calc_phylo_corrected_weighted_rarity
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
+    calc_phylo_abundance
 /;
+
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
 
 
 exit main( @ARGV );
@@ -67,11 +72,10 @@ sub main {
         return 0;
     }
 
-    test_indices();
-    test_extra_labels_in_bd();
-    test_sum_to_pd();
-    test_pe_with_extra_nodes_in_tree();
-    test_pe_central_and_whole();
+    foreach my $sub (@test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
     
     done_testing;
     return 0;
@@ -80,12 +84,70 @@ sub main {
 sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
-        calc_topic_to_test => ['Phylogenetic Indices', 'Phylogenetic Endemism'],
+        calc_topic_to_test => ['Phylogenetic Indices', 'Phylogenetic Endemism Indices'],
         generate_result_sets => $generate_result_sets,
     );
 }
 
 
+sub test_phylo_abundance_binarised {
+    
+    my @calcs = qw/
+        calc_phylo_abundance
+        calc_labels_on_tree
+    /;
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd->binarise_sample_counts;
+    
+    my $tree = get_tree_object_from_sample_data();
+    #  binarise - need to also do the zero length nodes, hence we don't use the tree method
+    $tree->delete_cached_values;
+    foreach my $node ($tree->get_node_refs) {  
+        $node->set_length (length => 1);
+        $node->delete_cached_values;
+    }
+    #  reset all the total length values
+    $tree->reset_total_length;
+    $tree->reset_total_length_below;
+
+    my $sp = $bd->add_spatial_output (name => 'abundances should equal branch counts');
+    $sp->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+
+    my $elts = $sp->get_element_list;
+    subtest 'abundances should equal branch counts' => sub {
+        foreach my $elt (@$elts) {
+            my $results_list = $sp->get_list_ref (
+                list    => 'SPATIAL_RESULTS',
+                element => $elt,
+            );
+            my $abundance = $results_list->{PHYLO_ABUNDANCE};
+
+            my $branch_list = $sp->get_list_ref (
+                list    => 'PHYLO_ABUNDANCE_BRANCH_HASH',
+                element => $elt,
+            );
+            my $b_sum = sum values %$branch_list;
+            
+            is ($abundance, $b_sum, "Got $abundance for $elt");
+
+            #  should check all named descendants, but the test data only have named terminals
+            subtest 'branch abundance matches terminal element count' => sub {
+                foreach my $branch (keys %$branch_list) {
+                    my $node_ref = $tree->get_node_ref(node => $branch);
+                    my $descendants = $node_ref->get_terminal_elements;
+                    my @descendants_in_sample = grep {exists $branch_list->{$_}} keys %$descendants;
+                    is ($branch_list->{$branch}, scalar @descendants_in_sample, "$branch, $elt");
+                }
+            }
+        }
+    }
+}
 
 sub test_pe_central_and_whole {
     my @calcs = qw/
@@ -1246,6 +1308,43 @@ __DATA__
         'Genus:sp30' => '0.020703933747412',
         'Genus:sp5'  => '0.06'
     },
+    PHYLO_ABUNDANCE      => '82.3998461538462',
+    PHYLO_ABUNDANCE_BRANCH_HASH => {
+        '30___'      => '0.077662337662338',
+        '31___'      => '1.87558441558442',
+        '32___'      => '2.1340095668845',
+        '33___'      => '2.05329986739324',
+        '34___'      => '6.14518062181475',
+        '35___'      => '1.78169595843294',
+        '36___'      => '0.153953332214202',
+        '37___'      => '1.34988904169232',
+        '38___'      => '0.463049369498789',
+        '39___'      => '4.3174073165117',
+        '41___'      => '1.89669156484345',
+        '42___'      => '4.5421116498837',
+        '44___'      => '0.265221710543839',
+        '45___'      => '2.11174106386544',
+        '49___'      => '1.63418277057384',
+        '50___'      => '0.0972190741097648',
+        '51___'      => '2.18978299070211',
+        '52___'      => '0.241623416944879',
+        '58___'      => '0.824226660809659',
+        '59___'      => 0,
+        'Genus:sp1'  => '4.63157894736842',
+        'Genus:sp10' => '12.549805056105',
+        'Genus:sp11' => '4.37490347490347',
+        'Genus:sp12' => '5.00663470224446',
+        'Genus:sp15' => '6.36842105263158',
+        'Genus:sp20' => 6,
+        'Genus:sp23' => '0.869565217391304',
+        'Genus:sp24' => '0.5',
+        'Genus:sp25' => '0.25',
+        'Genus:sp26' => 3,
+        'Genus:sp27' => '0.666666666666667',
+        'Genus:sp29' => '2.99295569787373',
+        'Genus:sp30' => '0.434782608695652',
+        'Genus:sp5'  => '0.6'
+    },
     PHYLO_AED_LIST => {
         'Genus:sp1'  => '0.0107499482131097',
         'Genus:sp10' => '0.00545225560494617',
@@ -1488,7 +1587,7 @@ __DATA__
     },
     PD_P                => '0.0704726738019399',
     PD_P_per_taxon      => '0.0352363369009699',
-    PD_per_taxon        => '0.746384615384616',
+    PD_per_taxon        => '0.746384615384615',
     PEC_CWE             => '0.175417769804783',
     PEC_CWE_PD          => '1.49276923076923',
     PEC_LOCAL_RANGELIST => {
@@ -1636,7 +1735,7 @@ __DATA__
         'Genus:sp20' => '0.0555555555555556',
         'Genus:sp26' => '0.166666666666667'
     },
-    PE_CWE             => '0.175417769804782',
+    PE_CWE             => '0.175417769804783',
     PE_LOCAL_RANGELIST => {
         '34___'      => 1,
         '35___'      => 1,
@@ -1679,6 +1778,20 @@ __DATA__
         '59___'      => 0,
         'Genus:sp20' => '0.0555555555555556',
         'Genus:sp26' => '0.166666666666667'
+    },
+    PHYLO_ABUNDANCE      => '5.95661538461539',
+    PHYLO_ABUNDANCE_BRANCH_HASH => {
+        '34___'      => '2.04839354060492',
+        '35___'      => '0.19796621760366',
+        '42___'      => '0.344970505054458',
+        '45___'      => '0.158380579789908',
+        '49___'      => '0.122563707793038',
+        '50___'      => '0.00729143055823236',
+        '52___'      => '0.0174667530321599',
+        '58___'      => '0.0595826501790115',
+        '59___'      => 0,
+        'Genus:sp20' => 2,
+        'Genus:sp26' => 1
     },
     PHYLO_AED_LIST => {
         'Genus:sp20' => '0.0252759553987262',

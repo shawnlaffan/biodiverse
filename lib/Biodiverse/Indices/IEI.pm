@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -253,7 +253,7 @@ sub get_iei_data_for_elements {
             #  get it if not cached
             if (! exists $hash_cache->{$element}) {
                 my %labels
-                    = $bd -> get_labels_in_group_as_hash (group => $element);
+                    = $bd -> get_labels_in_group_as_hash_aa ($element);
                 my @sorted_labels = sort numerically keys %labels;
 
                 #  add to the cache

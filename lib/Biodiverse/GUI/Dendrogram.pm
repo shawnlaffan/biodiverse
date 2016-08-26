@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -934,10 +934,15 @@ sub recolour_cluster_lines {
         $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
         $line = $self->{node_lines}->{$node_name};
-        $line->set(fill_color_gdk => $colour_ref);
+        if ($line) {
+            $line->set(fill_color_gdk => $colour_ref);
+        }
 
         # And also colour all nodes below
-        foreach my $child_ref (values %{$node_ref->get_all_descendants}) {
+        # - don't cache on the tree as we can get recursion stack blow-outs
+        # - https://github.com/shawnlaffan/biodiverse/issues/549
+        # We could cache on $self if it were needed.
+        foreach my $child_ref (values %{$node_ref->get_all_descendants (cache => 0)}) {
             $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
@@ -977,7 +982,10 @@ sub colour_line {
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
-    $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    my $line = $self->{node_lines}->{$name};
+    if ($line) {
+        $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    }
     $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
     return;
@@ -1296,10 +1304,9 @@ sub clear_highlights {
     return if !$self->{highlighted_lines};
 
     my @nodes_remaining
-      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
+      = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
 
-    foreach my $node (@nodes_remaining) {
-        my $node_name = $node->get_name;
+    foreach my $node_name (@nodes_remaining) {
         # assume node has associated line
         my $line = $self->{node_lines}->{$node_name};
         next if !$line;
@@ -1317,10 +1324,10 @@ sub highlight_node {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
-        foreach my $node (@nodes_remaining) {
+          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+        foreach my $node_name (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};
+            my $line = $self->{node_lines}->{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
@@ -1328,12 +1335,14 @@ sub highlight_node {
 
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
-    my $line = $self->{node_lines}->{$node_name};
-    my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
-    $line->set(fill_color_gdk => $colour_ref);
-    #$line->set(width_pixels => HIGHLIGHT_WIDTH);
-    $line->raise_to_top;
-    push @{$self->{highlighted_lines}}, $line;
+    #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
+    if (my $line = $self->{node_lines}->{$node_name}) {  
+        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref);
+        #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+        $line->raise_to_top;
+        push @{$self->{highlighted_lines}}, $line;
+    }
 
     return;
 }
@@ -1345,10 +1354,10 @@ sub highlight_path {
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
         my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
-        foreach my $node (@nodes_remaining) {
+          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+        foreach my $node_name (@nodes_remaining) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};
+            my $line = $self->{node_lines}->{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }

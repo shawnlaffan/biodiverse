@@ -27,6 +27,7 @@ my ($opt, $usage) = describe_options(
   [ 'icon_file|i=s',          'The location of the icon file to use'],
   [ 'verbose|v!',             'Verbose building?', ],
   [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
+  [ 'gd!',                    'We are packing GD, get the relevant dlls'],
   [ '-', 'Any arguments after this will be passed through to pp'],
   [],
   [ 'help|?',       "print usage message and exit" ],
@@ -41,6 +42,7 @@ my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? $opt->verbose : q{};
 my $execute    = $opt->execute ? '-x' : q{};
+my $PACKING_GD = $opt->gd;
 my @rest_of_pp_args = @ARGV;
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
@@ -60,7 +62,7 @@ my $using_64_bit = $bits == 64;
 my $script_fullname = Path::Class::file($script)->absolute;
 
 my $output_binary = basename ($script_fullname, '.pl', qr/\.[^.]*$/);
-$output_binary .= "_x$bits";
+#$output_binary .= "_x$bits";
 
 
 if (!-d $out_folder) {
@@ -68,12 +70,9 @@ if (!-d $out_folder) {
 }
 
 
-#my @links;  #  seems not to work properly
+my @links;
 
 if ($OSNAME eq 'MSWin32') {
-    
-    #  needed for Windows exes
-    my $lib_expat = $using_64_bit  ? 'libexpat-1__.dll' : 'libexpat-1_.dll';
 
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
@@ -84,22 +83,21 @@ if ($OSNAME eq 'MSWin32') {
         my $fbase  = Path::Class::file ($fname)->basename;
         my $target = Path::Class::file ($out_folder, $fbase)->stringify;
 
-        copy ($source, $target) or die "Copy of $source to $target failed: $!";
-        say "Copied $source to $target";
+        #copy ($source, $target) or die "Copy of $source to $target failed: $!";
+        #say "Copied $source to $target";
         
-        #  does not really work
-        #push @links, '--lib', $source;
+        push @links, '--link', $source;
     }
 
     $output_binary .= '.exe';
 }
 
 
-#  clunky - should hunt for glade use in script?  
-my @glade_arg = ();
+#  clunky - should hunt for Gtk2 use in script?  
+my @ui_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
-    my $glade_folder = Path::Class::dir ($bin_folder, 'glade')->absolute;
-    @glade_arg = ('-a', "$glade_folder;glade");
+    my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
+    @ui_arg = ('-a', "$ui_dir;ui");
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -114,13 +112,14 @@ $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 my @cmd = (
     'pp',
     #$verbose,
+    '-u',
     '-B',
     '-z',
     9,
-    @glade_arg,
+    @ui_arg,
     @icon_file_arg,
     $execute,
-    #@links,
+    @links,
     @rest_of_pp_args,
     '-o',
     $output_binary_fullpath,
@@ -151,13 +150,20 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
 sub get_dll_list {
     my $folder = shift;
 
-    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 includes them now
+    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 onwards includes them
     my @dll_pfx = qw /
         libeay   libexpat libgif   libiconv
         libjpeg  liblzma  libpng   libpq 
         libtiff  libxml2  ssleay32 zlib1
     /;
+    if ($PACKING_GD) {
+        my @extras = qw /
+            libfreetype libgd libXpm
+        /;
+        push @dll_pfx, @extras;
+    }
 
+    #  maybe we should just pack the lot?
     my @files     = glob "$folder\\*.dll";
     my $regstr    = join '|', @dll_pfx;
     my $regmatch  = qr /$regstr/;

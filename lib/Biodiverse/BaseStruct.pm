@@ -26,7 +26,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -34,6 +34,15 @@ use parent qw /Biodiverse::Common/; #  access the common functions as methods
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
+
+my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
+use Biodiverse::Metadata::BaseStruct;
+
+use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub new {
     my $class = shift;
@@ -75,6 +84,10 @@ sub new {
     $self->weaken_basedata_ref;
 
     return $self;
+}
+
+sub metadata_class {
+    return $metadata_class;
 }
 
 sub rename {
@@ -203,21 +216,24 @@ sub get_metadata_export {
         list => \@formats,
         item => 'Delimited text'
     );
+    
+    my $format_choice = bless
+        {
+            name        => 'format',
+            label_text  => 'Format to use',
+            type        => 'choice',
+            choices     => \@formats,
+            default     => 0
+        },
+        $parameter_metadata_class;
 
-    my %args = (
+    my %metadata = (
         parameters     => \%params_per_sub,
-        format_choices => [{
-                name        => 'format',
-                label_text  => 'Format to use',
-                type        => 'choice',
-                choices     => \@formats,
-                default     => 0
-            },
-        ],
+        format_choices => [$format_choice],
         format_labels  => \%format_labels,
     ); 
 
-    return wantarray ? %args : \%args;
+    return $export_metadata_class->new (\%metadata);
 }
 
 # export to a file
@@ -225,23 +241,21 @@ sub export {
     my $self = shift;
     my %args = @_;
 
-    #  get our own metadata...
-    my %metadata = $self->get_args (sub => 'export');
-
-    my %valid_subs = reverse %{$metadata{format_labels}};
-    my $format     = $args{format};
-
-    my $sub_to_use = exists $valid_subs{$format} ? $format : $metadata{format_labels}{$format};
-    croak "Argument 'format=>$format' not specified or not valid\n"
-      if !$sub_to_use;
+    #  get our own metadata...  Much of the following can be shifted into the export metadata package
+    my $metadata   = $self->get_metadata (sub => 'export');
+    my $sub_to_use = $metadata->get_sub_name_from_format (%args);
 
     #  convert no_data_values if appropriate
     if (defined $args{no_data_value}) {
         if ($args{no_data_value} eq 'undef') {
             $args{no_data_value} = undef;
         }
-        elsif ($args{no_data_value} =~ /^[-+]?\d+\*\*\d+$/) {  #  e.g. -2**128
-            $args{no_data_value} = eval $args{no_data_value};
+        elsif ($args{no_data_value} =~ /^([-+]?)(\d+)\*\*(\d+)$/) {  #  e.g. -2**128
+            my $val = $2 ** $3;
+            if ($1 eq '-') {
+                $val *= -1;
+            };
+            $args{no_data_value} = $val;
         }
     }
 
@@ -275,6 +289,9 @@ sub get_common_export_metadata {
             default     => $default_idx,
         },
     ];
+    foreach (@$metadata) {
+        bless $_, $parameter_metadata_class;
+    }
 
     return wantarray ? @$metadata : $metadata;
 }
@@ -346,6 +363,9 @@ sub get_table_export_metadata {
             default    => 0,
         },
     ];
+    for (@$table_metadata_defaults) {
+        bless $_, $parameter_metadata_class;
+    }
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
 }
@@ -353,12 +373,17 @@ sub get_table_export_metadata {
 sub get_metadata_export_table_delimited_text {
     my $self = shift;
 
+    my @parameters = (
+        $self->get_common_export_metadata(),
+        $self->get_table_export_metadata(),
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
     my %args = (
         format => 'Delimited text',
-        parameters => [
-            $self->get_common_export_metadata(),
-            $self->get_table_export_metadata(),
-        ],
+        parameters => \@parameters,
     ); 
 
     return wantarray ? %args : \%args;
@@ -469,19 +494,22 @@ sub get_nodata_export_metadata {
 
     my @no_data_values = $self->get_nodata_values;
 
-    my $table_metadata_defaults = [ 
+    my $metadata = [ 
         {
             name        => 'no_data_value',
             label_text  => 'NoData value',
             tooltip     => 'Zero is not a safe value to use for nodata in most '
-                        . 'cases, so be warned',
+                         . 'cases, so be warned',
             type        => 'choice',
             choices     => \@no_data_values,
             default     => 0
         },   
     ];
+    foreach (@$metadata) {
+        bless $_, $parameter_metadata_class;
+    }
 
-    return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
+    return wantarray ? @$metadata : $metadata;
 }
 
 
@@ -643,35 +671,40 @@ sub get_metadata_export_shapefile {
     #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
-    my %args = (
-        format => 'Shapefile',
-        parameters => [
-            {  # GUI supports just one of these
-                name => 'file',
-                type => 'file'
-            },
-            {
-                name        => 'list',
-                label_text  => 'List to export',
-                type        => 'choice',
-                choices     => \@lists,
-                default     => 0,
-            },
-            {
-                name        => 'shapetype',
-                label_text  => 'Shape type',
-                type        => 'choice',
-                choices     => [qw /POLYGON POINT/],
-                default     => 0,
-            },
-            @nodata_meta,
-            {
-                type        => 'comment',
-                label_text  => $shape_export_comment_text,
-            },
-        ],
+    my @parameters = (
+        {  # GUI supports just one of these
+            name => 'file',
+            type => 'file'
+        },
+        {
+            name        => 'list',
+            label_text  => 'List to export',
+            type        => 'choice',
+            choices     => \@lists,
+            default     => 0,
+        },
+        {
+            name        => 'shapetype',
+            label_text  => 'Shape type',
+            type        => 'choice',
+            choices     => [qw /POLYGON POINT/],
+            default     => 0,
+        },
+        @nodata_meta,
+        {
+            type        => 'comment',
+            label_text  => $shape_export_comment_text,
+        },
     );
+    foreach (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
 
+    my %args = (
+        format     => 'Shapefile',
+        parameters => \@parameters,
+    );
+    
     return wantarray ? %args : \%args;
 }
 
@@ -689,7 +722,7 @@ sub export_shapefile {
 
     my $nodata = $args{nodata_value};
     if (!looks_like_number $nodata) {
-        $nodata = -2**128;
+        $nodata = -1 * 2**128;
     }
 
     # we are writing as 2D or 3D points or polygons,
@@ -1129,6 +1162,14 @@ sub to_table_sym {
     else {
         push @header, @quoted_print_order;
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char";
+        }
+    }
+
     push @data, \@header;
     
     #  now add the data to the array
@@ -1222,7 +1263,17 @@ sub to_table_asym {  #  get the data as an asymmetric table
     else {
         push @header, "Value";
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char" ;
+        }
+    }
+
     push @data, \@header;
+    
+    
 
     foreach my $element (@elements) {
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
@@ -1338,6 +1389,14 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     else {
         push @header, @quoted_print_order;
     }
+
+    if ($quote_el_names) {
+        for (@header) {
+            next if $_ =~ /^$quote_char/;  #  already quoted
+            $_ = "$quote_char$_$quote_char" ;
+        }
+    }
+
     push @data, \@header;
     
     print "[BASESTRUCT] Processing elements...\n";
@@ -2296,20 +2355,19 @@ sub get_element_count {
 
 sub get_element_list {
     my $self = shift;
-    return wantarray
-            ? keys %{$self->{ELEMENTS}}
-            : [keys %{$self->{ELEMENTS}}];
+    my $el_hash = $self->{ELEMENTS};
+    return wantarray ? keys %$el_hash : [keys %$el_hash];
 }
 
 sub sort_by_axes {
     my $self = shift;
-    my $a = shift;
-    my $b = shift;
+    my $item_a = shift;
+    my $item_b = shift;
 
     my $axes = $self->get_cell_sizes;
     my $res = 0;
-    my $a_array = $self->get_element_name_as_array (element => $a);
-    my $b_array = $self->get_element_name_as_array (element => $b);
+    my $a_array = $self->get_element_name_as_array (element => $item_a);
+    my $b_array = $self->get_element_name_as_array (element => $item_b);
     foreach my $i (0 .. $#$axes) {
         $res = $axes->[$i] < 0
             ? $a_array->[$i] cmp $b_array->[$i]
@@ -2338,6 +2396,12 @@ sub get_element_hash {
     my $elements = $self->{ELEMENTS};
 
     return wantarray ? %$elements : $elements;
+}
+
+sub get_element_name_as_array_aa {
+    my ($self, $element) = @_;
+
+    return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
 }
 
 sub get_element_name_as_array {
@@ -2420,7 +2484,10 @@ sub generate_element_coords {
                 $element_coord->[$i] = $element_array->[$i];
             }
             else {
-                $element_coord->[$i] = $self->get_text_axis_as_coord (axis => $i, text => $element_array->[$i]);
+                $element_coord->[$i] = $self->get_text_axis_as_coord (
+                    axis => $i,
+                    text => $element_array->[$i] // '',
+                );
             }
         }
         $self->{ELEMENTS}{$element}{_ELEMENT_COORD} = $element_coord;
@@ -2434,6 +2501,7 @@ sub get_text_axis_as_coord {
     my %args = @_;
     my $axis = $args{axis};
     my $text = $args{text};
+    croak 'Argument "text" is undefined' if !defined $text;
 
     #  store the axes as an array of hashes with value being the coord
     my $lists = $self->get_param ('AXIS_LIST_ORDER') || [];
@@ -2446,7 +2514,7 @@ sub get_text_axis_as_coord {
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
         my $axes = $self->get_element_name_as_array (element => $element);
-        $this_axis{$axes->[$axis]}++;
+        $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
     @this_axis{reverse sort keys %this_axis} = (0 .. scalar keys %this_axis);
@@ -2496,6 +2564,21 @@ sub get_sub_element_hash {
     wantarray ? %$hash : $hash;
 }
 
+sub get_sub_element_hash_aa {
+    my ($self, $element) = @_;
+
+    no autovivification;
+
+    croak "argument 'element' not specified\n"
+      if !defined $element;
+
+    #  Ideally we should throw an exception, but at the moment too many other
+    #  things need a result and we aren't testing for them.
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS} // {};
+
+    wantarray ? %$hash : $hash;
+}
+
 sub get_subelement_count {
     my $self = shift;
 
@@ -2522,7 +2605,7 @@ sub _set_elements_hash_key_count {
 
     #  do nothing if undef, zero or negative
     croak "Invalid count argument $count\n"
-      if !$count || !looks_like_number $count || $count < 0;
+      if !looks_like_number $count || $count < 0;
 
     my $href = $self->{ELEMENTS};
 
@@ -2592,6 +2675,32 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     #}
 
     $elts_ref->{$element}{SUBELEMENTS}{$sub_element} += $args{count};
+
+    return;
+}
+
+#  array args version for high frequency callers
+sub add_sub_element_aa {
+    my ($self, $element, $sub_element, $count, $csv_object) = @_;
+
+    #no autovivification;
+
+    croak "element not specified\n"    if !defined $element;
+    croak "subelement not specified\n" if !defined $sub_element;
+
+    my $elts_ref = $self->{ELEMENTS};
+
+    if (! exists $elts_ref->{$element}) {
+        $self->add_element (
+            element    => $element,
+            csv_object => $csv_object,
+        );
+    }
+
+    #  previous base_stats invalid - clear them if needed
+    delete $elts_ref->{$element}{BASE_STATS};
+
+    $elts_ref->{$element}{SUBELEMENTS}{$sub_element} += ($count // 1);
 
     return;
 }
@@ -2717,9 +2826,10 @@ sub delete_sub_element_aa {
     croak "element not specified\n" if !defined $element;
     croak "subelement not specified\n" if !defined $sub_element;
 
-    return if ! exists $self->{ELEMENTS}{$element};
+    no autovivification;
 
-    my $href = $self->{ELEMENTS}{$element};
+    my $href = $self->{ELEMENTS}{$element}
+     // return;
 
     if (exists $href->{BASE_STATS}) {
         delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
@@ -2728,11 +2838,9 @@ sub delete_sub_element_aa {
             $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
         }
     }
-    if (exists $href->{SUBELEMENTS}) {
-        delete $href->{SUBELEMENTS}{$sub_element};
-    }
+    delete $href->{SUBELEMENTS}{$sub_element};
 
-    1;
+    scalar keys %{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {
@@ -2858,6 +2966,28 @@ sub get_hash_list_values {
         : $self->{ELEMENTS}{$element}{$list};
 }
 
+#  array args version for speed
+sub get_array_list_values_aa {
+    my ($self, $element, $list) = @_;
+
+    no autovivification;
+
+    #$element // croak "Element not specified\n";
+    #$list    // croak "List not specified\n";
+
+    my $list_ref = $self->{ELEMENTS}{$element}{$list}
+      // Biodiverse::BaseStruct::ListDoesNotExist->throw (
+            message => "Element $element does not exist or does not have a list ref for $list\n",
+        );
+
+    #  does this need to be tested for?  Maybe caller beware is needed?
+    croak "List is not an array\n"
+      if reftype ($list_ref) ne 'ARRAY';
+
+    return wantarray ? @$list_ref : $list_ref;
+}
+
+
 sub get_array_list_values {
     my $self = shift;
     my %args = @_;
@@ -2871,7 +3001,7 @@ sub get_array_list_values {
     #  if ! exists $self->{ELEMENTS}{$element};
 
 #if (!$self->{ELEMENTS}{$element}{$list}) {
-#    print "PRIBLEMS";
+#    print "PRIBLEMS with list $list in element $element";
 #    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
 #}
 
@@ -2944,8 +3074,7 @@ sub add_to_hash_list {
 
     delete @args{qw /list element/};
     #  create it if not already there
-    $self->{ELEMENTS}{$element}{$list} = {}
-      if ! exists $self->{ELEMENTS}{$element}{$list};
+    $self->{ELEMENTS}{$element}{$list} //= {};
 
     #  now add to it
     $self->{ELEMENTS}{$element}{$list}
@@ -3079,7 +3208,9 @@ sub get_list_value_stats {
 
 sub clear_lists_across_elements_cache {
     my $self = shift;
-    $self->set_param (LISTS_ACROSS_ELEMENTS => undef);
+    my $keys = $self->get_cached_value_keys;
+    my @keys_to_delete = grep {$_ =~ /^LISTS_ACROSS_ELEMENTS/} @$keys;
+    $self->delete_cached_values (keys => \@keys_to_delete);
     return;
 }
 
@@ -3259,8 +3390,9 @@ sub get_hash_list_keys_across_elements {
             @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster
         }
     }
-
-    return wantarray ? keys %hash_keys : [keys %hash_keys];
+    my @sorted_keys = sort keys %hash_keys;
+    
+    return wantarray ? @sorted_keys : [@sorted_keys];
 }
 
 #  return a reference to the specified list
@@ -3290,6 +3422,28 @@ sub get_list_ref {
         $el->{$list} = {};  #  should we default to a hash?
     }
     return $el->{$list};
+}
+
+sub rename_list {
+    my $self = shift;
+    my %args = @_;
+
+    no autovivification;
+
+    my $list = $args{list};
+    my $new_name = $args{new_name};
+    my $element  = $args{element};
+    
+    my $el = $self->{ELEMENTS}{$element}
+      // croak "Element $args{element} does not exist\n";
+
+    #croak "element $element does not contain a list called $list"
+    return if !exists $el->{$list};
+
+    $el->{$new_name} = $el->{$list};
+    delete $el->{$list};
+
+    return;
 }
 
 sub get_sample_count {
@@ -3414,9 +3568,9 @@ sub get_metadata_get_base_stats {
         : 'Uint';
 
     my $types = [
-        {VARIETY       => 'Int'},
-        {SAMPLES       => $sample_type},
-        {REDUNDANCY    => 'Double'},
+        {VARIETY    => 'Int'},
+        {SAMPLES    => $sample_type},
+        {REDUNDANCY => 'Double'},
     ];
 
     my $property_keys = $self->get_element_property_keys;
@@ -3424,7 +3578,7 @@ sub get_metadata_get_base_stats {
         push @$types, {$property => 'Double'};
     }
 
-    return wantarray ? @$types : $types;
+    return $self->metadata_class->new({types => $types});
 }
 
 sub get_base_stats {  #  calculate basestats for a single element
@@ -3629,3 +3783,4 @@ GNU General Public License for more details.
 For a full copy of the license see <http://www.gnu.org/licenses/>.
 
 =cut
+

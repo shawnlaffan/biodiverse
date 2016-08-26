@@ -2,9 +2,6 @@
 use strict;
 use warnings;
 
-
-use rlib;
-
 use File::Temp;
 
 local $| = 1;

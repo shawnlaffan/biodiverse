@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use English ( -no_match_vars );
 
@@ -366,12 +366,12 @@ sub get_summary_stats {
 
     my $values_hash = $self->{BYVALUE};
     BY_VALUE:
-    foreach my $value (sort numerically keys %$values_hash) {
-        my $hash = $values_hash->{$value};
+    foreach my $value (sort {$a <=> $b} keys %$values_hash) {
+        my $hash      = $values_hash->{$value};
         my $sub_count = scalar keys %$hash;
-        $sumx += $value * $sub_count;
+        $sumx     += $value * $sub_count;
         $sumx_sqr += ($value ** 2) * $sub_count;
-        $count += $sub_count;
+        $count    += $sub_count;
 
         FIND_PCTL:
         foreach my $target (@percentile_target_counts) {
@@ -386,16 +386,16 @@ sub get_summary_stats {
     my $min = $self->get_min_value;
 
     my %stats = (
-        MAX => $self->get_max_value,
-        MIN => $self->get_min_value,
+        MAX => $max,
+        MIN => $min,
         MEAN   => $sumx / $n,
         #SD     => undef,
-        PCT025 => defined $percentile_hash{'2.5'}  ? $percentile_hash{'2.5'}  : $min,
-        PCT975 => defined $percentile_hash{'97.5'} ? $percentile_hash{'97.5'} : $max,
-        PCT05  => defined $percentile_hash{'5'}    ? $percentile_hash{'5'}    : $min,
-        PCT95  => defined $percentile_hash{'95'}   ? $percentile_hash{'95'}   : $max,
+        PCT025 => ($percentile_hash{'2.5'}  // $min),
+        PCT975 => ($percentile_hash{'97.5'} // $max),
+        PCT05  => ($percentile_hash{'5'}    // $min),
+        PCT95  => ($percentile_hash{'95'}   // $max),
     );
-    
+
     return wantarray ? %stats : \%stats;
 }
 

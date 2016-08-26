@@ -17,7 +17,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use parent qw /Biodiverse::Common/;
 
@@ -183,6 +183,8 @@ sub import_phylip {
     #  lazy split - does not allow for quoted semicolons
     my @newicks = split /;/, $data;
 
+    my $progress = Biodiverse::Progress->new;
+    my $target_count = scalar @newicks;
     my $i = 0;
 
     foreach my $nwk (@newicks) {
@@ -190,6 +192,9 @@ sub import_phylip {
 
         my $tree_name = 'anonymous_' . $i;
         my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+
+        $i++;
+        $progress->update("Tree $i of $target_count\n$tree_name", $i / $target_count);
 
         my $count = 0;
         my $node_count = \$count;
@@ -209,8 +214,6 @@ sub import_phylip {
         }
 
         $self->add_tree (tree => $tree);
-
-        $i ++;
     }
     
     
@@ -320,8 +323,13 @@ sub import_nexus {
     }
 
     $self->set_param (TRANSLATE_HASH => \%translate);  #  store for future use
+    
+    my $progress = Biodiverse::Progress->new;
+    my $target_count = scalar @newicks;
+    my $i = 0;
 
     foreach my $nwk (@newicks) {
+            $i++;
 
             #  remove trailing semi-colon
             $nwk =~ s/;$//;
@@ -350,6 +358,7 @@ sub import_nexus {
             $tree_name =~ s/\s+$//;  #  trim trailing whitespace
 
             print "[ReadNexus] Processing tree $tree_name\n";
+            $progress->update ("Tree $i of $target_count\n$tree_name", $i / $target_count);
 
             my $tree = Biodiverse::Tree->new (NAME => $tree_name);
             #$tree->set_param ()
@@ -576,7 +585,9 @@ sub read_whole_file {
       || croak "[READNEXUS] cannot open $file for reading\n";
 
     local $/ = undef;
-    my $text = <$fh>;  #  suck the whole thing in
+    my $text = eval {<$fh>};  #  suck the whole thing in
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
     $fh->close || croak "Cannot close $file\n";
 
     return $text;
@@ -596,6 +607,7 @@ sub parse_newick {
     my $node_count      = $args{node_count} // croak 'node_count arg not passed (must be scalar ref)';
     my $translate_hash  = $args{translate_hash}
                         || $self->get_param ('TRANSLATE_HASH');
+    #  clunky that we need to do this - was convenient once, but not now
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
     my $element_properties     = $use_element_properties
       ? ($args{element_properties} || $self->get_param ('ELEMENT_PROPERTIES'))
@@ -611,7 +623,7 @@ sub parse_newick {
 
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
-        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
+        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /,(/
         $est_node_count ||= 1;
         #say "Estimated node count is $est_node_count";
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);

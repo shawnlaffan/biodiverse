@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.99_008';
+our $VERSION = '1.99_004';
 
 use English qw { -no_match_vars };
 
@@ -55,7 +55,7 @@ use constant TYPE_TEXT => 1;
 use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
 
 
-#NOTE: we store the dialog's gladexml, not the actual widget
+#NOTE: we store the dialog's xml, not the actual widget
 my %g_dialogs;      # Maps cell -> dialog
 
 my $g_reuse_dlg;     # Dialog to be reused next
@@ -111,22 +111,24 @@ sub show_popup {
 
 sub make_dialog {
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, DLG_NAME);
+
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
 
     # Put it on top of main window
-    $dlgxml->get_widget(DLG_NAME)->set_transient_for($gui->get_widget('wndMain'));
+    $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_object('wndMain'));
 
     # Set height to be 1/3 of screen
-    #$dlgxml->get_widget(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);
+    #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);
 
     # Set up the combobox
-    my $combo = $dlgxml->get_widget('comboSources');
+    my $combo = $dlgxml->get_object('comboSources');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
 
     # Set up the list
-    my $list = $dlgxml->get_widget('lstData');
+    my $list = $dlgxml->get_object('lstData');
 
     my $name_renderer = Gtk2::CellRendererText->new();
     my $value_renderer = Gtk2::CellRendererText->new();
@@ -162,7 +164,7 @@ sub load_dialog {
     my $popup = {};
     bless $popup, 'Biodiverse::GUI::PopupObject';
 
-    $popup->{list}    = $dlgxml->get_widget('lstData');
+    $popup->{list}    = $dlgxml->get_object('lstData');
     $popup->{element} = $element;
     $popup->{sources_ref} = $sources_ref;
 
@@ -171,7 +173,7 @@ sub load_dialog {
     #print "[Popup] Made source model\n";
 
     # Set up the combobox
-    my $combo = $dlgxml->get_widget('comboSources');
+    my $combo = $dlgxml->get_object('comboSources');
     $combo->set_model($sources_model);
 
     my $selected_source =
@@ -181,31 +183,31 @@ sub load_dialog {
     $combo->set_active_iter($selected_source);
 
     # Set title
-    $g_dialogs{$element}->get_widget(DLG_NAME)->set_title("Data for $element");
+    $g_dialogs{$element}->get_object(DLG_NAME)->set_title("Data for $element");
 
     # Load first thing
     on_source_changed($combo, $popup);
 
     # Disconnect signals (dialog might be being reused)
-    $dlgxml->get_widget('comboSources')->signal_handlers_disconnect_by_func(\&on_source_changed);
-    $dlgxml->get_widget('btnClose')->signal_handlers_disconnect_by_func(\&close_dialog);
-    $dlgxml->get_widget(DLG_NAME)->signal_handlers_disconnect_by_func(\&close_dialog);
-    $dlgxml->get_widget('btnCloseAll')->signal_handlers_disconnect_by_func(\&on_close_all);
-    $dlgxml->get_widget('btnCopy')->signal_handlers_disconnect_by_func(\&on_copy);
-    $dlgxml->get_widget('chkReuse')->signal_handlers_disconnect_by_func(\&on_reuse_toggled);
+    $dlgxml->get_object('comboSources')->signal_handlers_disconnect_by_func(\&on_source_changed);
+    $dlgxml->get_object('btnClose')->signal_handlers_disconnect_by_func(\&close_dialog);
+    $dlgxml->get_object(DLG_NAME)->signal_handlers_disconnect_by_func(\&close_dialog);
+    $dlgxml->get_object('btnCloseAll')->signal_handlers_disconnect_by_func(\&on_close_all);
+    $dlgxml->get_object('btnCopy')->signal_handlers_disconnect_by_func(\&on_copy);
+    $dlgxml->get_object('chkReuse')->signal_handlers_disconnect_by_func(\&on_reuse_toggled);
 
     # Connect signals
-    $dlgxml->get_widget('comboSources')->signal_connect(changed => \&on_source_changed, $popup);
-    $dlgxml->get_widget('btnClose')->signal_connect_swapped(clicked => \&close_dialog, $element);
-    $dlgxml->get_widget(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, $element);
-    $dlgxml->get_widget('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all);
-    $dlgxml->get_widget('btnCopy')->signal_connect_swapped(clicked => \&on_copy, $popup);
+    $dlgxml->get_object('comboSources')->signal_connect(changed => \&on_source_changed, $popup);
+    $dlgxml->get_object('btnClose')->signal_connect_swapped(clicked => \&close_dialog, $element);
+    $dlgxml->get_object(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, $element);
+    $dlgxml->get_object('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all);
+    $dlgxml->get_object('btnCopy')->signal_connect_swapped(clicked => \&on_copy, $popup);
 
     # Set to last re-use state
     #print "[Popup] last reuse = $g_last_reuse\n";
-    $dlgxml->get_widget('chkReuse')->set_active($g_last_reuse);
-    $dlgxml->get_widget('chkReuse')->signal_connect(toggled => \&on_reuse_toggled, [$element, $dlgxml]);
-    on_reuse_toggled($dlgxml->get_widget('chkReuse'),  [$element, $dlgxml]);
+    $dlgxml->get_object('chkReuse')->set_active($g_last_reuse);
+    $dlgxml->get_object('chkReuse')->signal_connect(toggled => \&on_reuse_toggled, [$element, $dlgxml]);
+    on_reuse_toggled($dlgxml->get_object('chkReuse'),  [$element, $dlgxml]);
 }
 
 ##########################################################
@@ -239,7 +241,7 @@ sub find_selected_source {
     my $sources_model = shift;
     my $search_name = shift || return;
     my $iter = $sources_model->get_iter_first;
-    
+
     while ($iter) {
 
         my $name = $sources_model->get($iter, SOURCES_MODEL_NAME);
@@ -269,7 +271,7 @@ sub on_source_changed {
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
     $callback->($popup);
-    
+
     return;
 }
 
@@ -282,10 +284,10 @@ sub on_source_changed {
 sub close_dialog {
     my $element = shift;
     #print "[Popup] Closing labels dialog for $element\n";
-    $g_dialogs{$element}->get_widget(DLG_NAME)->destroy();
+    $g_dialogs{$element}->get_object(DLG_NAME)->destroy();
     #print "[Popup] Dialogue destroyed\n";
     delete $g_dialogs{$element};
-    
+
     #  don't tell me about an undef in the eq check below.
     no warnings 'uninitialized';
 
@@ -293,20 +295,20 @@ sub close_dialog {
         $g_reuse_dlg     = undef;
         $g_reuse_element = undef;
     }
-    
+
     return;
 }
 
 sub on_close_all {
     print "[Popup] Closing all labels dialogs\n";
     while ( (my $element, my $dlgxml) = each %g_dialogs) {
-        $dlgxml->get_widget(DLG_NAME)->destroy();
+        $dlgxml->get_object(DLG_NAME)->destroy();
     }
 
     %g_dialogs = ();
     $g_reuse_dlg = undef;
     $g_reuse_element = undef;
-    
+
     return;
 }
 
@@ -319,7 +321,7 @@ sub on_reuse_toggled {
         # Set to re-use
         # Clear old dialog's checkbox
         if (defined $g_reuse_dlg && $g_reuse_dlg != $dlgxml) {
-            $g_reuse_dlg->get_widget('chkReuse')->set_active(0);
+            $g_reuse_dlg->get_object('chkReuse')->set_active(0);
         }
 
         # Set this dialog to be re-use target
@@ -336,7 +338,7 @@ sub on_reuse_toggled {
         #print "[Popup] Cleared re-use dialog\n";
         $g_last_reuse = 0;
     }
-    
+
     return;
 }
 
@@ -365,7 +367,7 @@ sub on_copy {
         );
     };
     warn $EVAL_ERROR if $EVAL_ERROR;
-    
+
     return;
 }
 
@@ -400,10 +402,10 @@ sub clipboard_get_func {
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         </head>
-        
+
         <body>
-        
-        <table>  
+
+        <table>
 END_HTML_HEADER
 ;
         $text .= "<tr><td>$listname</td><td>$element</td></tr>";
@@ -411,7 +413,7 @@ END_HTML_HEADER
     else {
         $text = "$listname\t$element\n";
     }
-    
+
     # Generate the text
     my $iter;
     eval {
@@ -466,4 +468,3 @@ sub clipboard_clear_func {
 
 
 1;
-

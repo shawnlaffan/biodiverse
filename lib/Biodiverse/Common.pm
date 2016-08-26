@@ -144,17 +144,17 @@ sub load_sereal_file {
     croak "[BASEDATA] File $file does not have the correct suffix\n"
        if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
 
-    my $string;
-    {
-        local $/ = undef;
-        open(my $fh, '<', $file) or die 'Cannot open $file';
-        $string = <$fh>;
-    }
     #  load data from sereal file, ignores rest of the args
     use Sereal::Decoder;
     my $decoder = Sereal::Decoder->new();
 
-    #  need to use a substring methinks for perls<5.20 since they lack COW
+    my $string;
+
+    open my $fh, '<', $file or die 'Cannot open $file, $!';
+    $fh->binmode;
+    read $fh, $string, 100;  #  get first 100 chars for testing
+    $fh->close;
+
     my $type = $decoder->looks_like_sereal($string);
     if ($type eq '') {
         say "Not a Sereal document";
@@ -166,6 +166,13 @@ sub load_sereal_file {
     }
     else {
         say "Sereal document version $type";
+    }
+
+    #  now get the whole file
+    {
+        local $/ = undef;
+        open my $fh, '<', $file or die 'Cannot open $file';
+        $string = <$fh>;
     }
 
     my $structure;

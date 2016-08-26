@@ -75,6 +75,28 @@ sub new {
     return $self;
 }
 
+sub rename {
+    my $self = shift;
+    my %args = @_;
+
+    my $new_name = $args{new_name};
+
+    croak "[Randomise] Argument 'new_name' not defined\n"
+      if !defined $new_name;
+
+    #  Handle the lists in other outputs first
+    #  as that depends on our current name
+    my $bd = $self->get_basedata_ref;
+    $bd->do_rename_randomisation_lists (%args, output => $self);
+
+    #  Now rename ourselves
+    $self->set_param (NAME => $new_name);
+
+    return;
+}
+
+
+
 sub metadata_class {
     return $metadata_class;
 }
@@ -430,7 +452,7 @@ sub run_randomisation {
     my $scalar_args = $EMPTY_STRING;
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
-        $val = 'undef' if not defined $val;
+        $val //= 'undef';
         if (not ref ($val)) {
             $scalar_args .= "$key=>$val,";
         }
@@ -836,6 +858,9 @@ sub get_analysis_args_from_object {
         $p_key = $key;
         last ARGS_PARAM if defined $analysis_args;
     }
+
+    croak 'Unable to find analysis args for output ' . $object->get_name
+      if !$analysis_args;
 
     my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
 

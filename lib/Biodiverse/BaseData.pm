@@ -223,16 +223,18 @@ sub rename_output {
       = $class =~ /Spatial/                   ? 'SPATIAL_OUTPUTS'
       : $class =~ /Cluster|RegionGrower|Tree/ ? 'CLUSTER_OUTPUTS'
       : $class =~ /Matrix/                    ? 'MATRIX_OUTPUTS'
+      : $class =~ /Randomise/                 ? 'RANDOMISATION_OUTPUTS'
       : undef;
 
+    croak "[BASEDATA] Cannot rename this type of output: $class\n"
+      if !$o_type;
+  
     my $hash_ref = $self->{$o_type};
 
-    croak "[BASEDATA] Cannot rename this type of output: $class\n"
-      if !$hash_ref;
 
-    my $type = blessed $object;
+    my $type = $class;
     $type =~ s/.*://;
-    say "[BASEDATA] Renaming output $name to $new_name, type is $type,";
+    say "[BASEDATA] Renaming output $name to $new_name, type is $type";
 
     # only if it exists in this basedata
     if (exists $hash_ref->{$name}) {
@@ -257,6 +259,65 @@ sub rename_output {
     return;
 }
 
+#  deletion of randomisations is more complex than spatial and cluster outputs
+sub do_rename_randomisation_lists {
+    my $self = shift;
+    my %args = @_;
+    
+    my $object = $args{output};
+    my $name   = $object->get_name;
+    my $new_name = $args{new_name};
+    
+    croak "Argument new_name not defined\n"
+      if !defined $new_name;
+
+    #  loop over the spatial outputs and rename the lists
+  BY_SPATIAL_OUTPUT:
+    foreach my $sp_output ($self->get_spatial_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $sp_output->get_lists_across_elements;
+
+        foreach my $list (@lists) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name>>/$new_name>>/;
+            foreach my $element ($sp_output->get_element_list) {
+                $sp_output->rename_list (
+                    list     => $list,
+                    element  => $element,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $sp_output->delete_cached_values;
+    }
+    
+    #  and now the cluster outputs
+    my @node_lists = (
+        $name,
+        $name . '_ID_LDIFFS',
+        $name . '_DATA',
+    );
+
+  BY_CLUSTER_OUTPUT:
+    foreach my $cl_output ($self->get_cluster_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $cl_output->get_list_names_below;
+        my @lists_to_rename = (@node_lists, @lists);
+
+        foreach my $list (@lists_to_rename) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name/$new_name/;
+
+            foreach my $node_ref ($cl_output->get_node_refs) {
+                $node_ref->rename_list (
+                    list     => $list,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $cl_output->delete_cached_values;
+    }
+    
+    return;
+}
 
 #  define our own clone method for more control over what is cloned.
 #  use the SUPER method (should be from Biodiverse::Common) for the components.
@@ -3670,7 +3731,8 @@ sub delete_output {
     my $object = $args{output};
     my $name = $object->get_param('NAME');
 
-    my $type = blessed $object;
+    my $class = blessed ($object) || $EMPTY_STRING;
+    my $type  = $class;
     $type =~ s/.*://; #  get the last part
     print "[BASEDATA] Deleting $type output $name\n";
     
@@ -3688,15 +3750,13 @@ sub delete_output {
         delete $self->{MATRIX_OUTPUTS}{$name};
     }
     elsif ($type =~ /Randomise/) {
-        $self->do_delete_randomisation (@_);
+        $self->do_delete_randomisation_lists (@_);
     }
     else {
-        croak "[BASEDATA] Cannot delete this type of output: ",
-              blessed ($object) || $EMPTY_STRING,
-              "\n";
+        croak "[BASEDATA] Cannot delete this type of output: $class\n";
     }
     
-    if (!defined $args{delete_basedata_ref} || $args{delete_basedata_ref}) {
+    if ($args{delete_basedata_ref} // 1) {
         $object->set_param (BASEDATA_REF => undef);  #  free its parent ref
     }
     $object = undef;  #  clear it
@@ -3705,15 +3765,15 @@ sub delete_output {
 }
 
 #  deletion of these is more complex than spatial and cluster outputs
-sub do_delete_randomisation {
+sub do_delete_randomisation_lists {
     my $self = shift;
     my %args = @_;
     
     my $object = $args{output};
-    my $name = $object->get_param('NAME');
-    
-    print "[BASEDATA] Deleting randomisation output $name\n";
-    
+    my $name = $object->get_name;
+
+    say "[BASEDATA] Deleting randomisation output $name";
+
     #  loop over the spatial outputs and clear the lists
     BY_SPATIAL_OUTPUT:
     foreach my $sp_output ($self->get_spatial_output_refs) {

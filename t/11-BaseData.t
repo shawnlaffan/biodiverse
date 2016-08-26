@@ -100,41 +100,95 @@ sub main {
 sub test_rename_outputs {
     my $bd = get_basedata_object (
         CELL_SIZES => [1,1],
-        x_max => 10,
-        y_max => 10,
+        x_max => 5,
+        y_max => 2,
     );
+    
+    my $sp_calcs = [qw /calc_endemism_whole calc_endemism_whole_lists/];
 
     #  spatial
     my $sp = $bd->add_spatial_output (name => 'sp_n1');
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
-        calculations       => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+        calculations       => $sp_calcs,
+    );
+    my $spx = $bd->add_spatial_output (name => 'sp_n1x');
+    $spx->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => $sp_calcs,
     );
     $bd->rename_output (new_name => 'sp_n2', output => $sp);
-    is $sp->get_name, 'sp_n2', 'renamed spatial output';
-    
+    is $sp->get_name,  'sp_n2',  'renamed spatial output';
+    is $spx->get_name, 'sp_n1x', 'did not rename other spatial output';
+
+    my @sp_names = $bd->get_spatial_output_names;
+    is_deeply \@sp_names, [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
+
     #  cluster
     my $cl = $bd->add_cluster_output (name => 'cl_n1');
     $cl->run_analysis (
-        spatial_calculations => [qw /calc_endemism_whole calc_endemism_whole_lists/],
+        spatial_calculations => $sp_calcs,
+    );
+    my $clx = $bd->add_cluster_output (name => 'cl_n1x');
+    $clx->run_analysis (
+        spatial_calculations => $sp_calcs,
     );
     $bd->rename_output (new_name => 'cl_n2', output => $cl);
-    is $cl->get_name, 'cl_n2', 'renamed cluster output';
-    
+    is $cl->get_name,  'cl_n2',  'renamed cluster output';
+    is $clx->get_name, 'cl_n1x', 'did not rename other cluster output';
+
+    my @cl_names = $bd->get_cluster_output_names;
+    is_deeply \@cl_names, [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
+
     my $mx = $cl->get_matrix_ref;
     $bd->rename_output (new_name => 'mx_n2', output => $mx);
     is $mx->get_name, 'mx_n2', 'renamed matrix output';
-    
-    
+
+    my @mx_names = $bd->get_matrix_output_names;
+    is_deeply \@mx_names, [qw 'mx_n2'], 'basedata matrix names match';
+
     my $rand = $bd->add_randomisation_output (name => 'rd_n1');
-    $rand->run_analysis (
+    eval {
+        $rand->run_analysis (
+            function   => 'rand_nochange',
+            iterations => 1,
+        );
+    };
+    diag $@ if $@;
+    my $randx = $bd->add_randomisation_output (name => 'rd_n1x');
+    $randx->run_analysis (
         function   => 'rand_nochange',
         iterations => 1,
     );
+
+    my @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_orig = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    my @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_orig = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+
     eval {
         $bd->rename_output (new_name => 'rd_n2', output => $rand);
     };
+    diag $@ if $@;
+
     is $rand->get_name, 'rd_n2', 'renamed randomisation output';
+
+    @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_new = grep {$_ =~ '^rd_n2>>'} @sp_lists;
+    is $sp_named_lists_new, $sp_named_lists_orig, 'same number of new named lists as old, sp';
+    $sp_named_lists_orig   = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    is $sp_named_lists_orig, 0, 'no lists found with old name, sp';
+
+    @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_new = grep {$_ =~ '^rd_n2'} @cl_lists;
+    is $cl_named_lists_new, $cl_named_lists_orig, 'same number of new named lists as old, cl';
+    $cl_named_lists_orig   = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+    is $cl_named_lists_orig, 0, 'no lists found with old name, cl';
+
+    my @rand_names = $bd->get_randomisation_output_names;
+    is_deeply \@rand_names, [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
+
+    return;
 }
 
 sub test_remapped_labels_when_stringified_and_numeric {

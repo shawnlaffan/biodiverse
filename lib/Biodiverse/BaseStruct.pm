@@ -3424,6 +3424,28 @@ sub get_list_ref {
     return $el->{$list};
 }
 
+sub rename_list {
+    my $self = shift;
+    my %args = @_;
+
+    no autovivification;
+
+    my $list = $args{list};
+    my $new_name = $args{new_name};
+    my $element  = $args{element};
+    
+    my $el = $self->{ELEMENTS}{$element}
+      // croak "Element $args{element} does not exist\n";
+
+    #croak "element $element does not contain a list called $list"
+    return if !exists $el->{$list};
+
+    $el->{$new_name} = $el->{$list};
+    delete $el->{$list};
+
+    return;
+}
+
 sub get_sample_count {
     my $self = shift;
     my %args = @_;

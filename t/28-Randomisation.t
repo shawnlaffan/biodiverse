@@ -1353,7 +1353,6 @@ sub test_randomise_tree_ref_args {
     my $tree2 = $tree->clone;
     $tree2->shuffle_terminal_names;  # just to make it different
     $tree2->rename (new_name => 'tree2');
-
     
     #  name is short for sub name
     my $sp_self_only = $bd->add_spatial_output (name => 'self_only');

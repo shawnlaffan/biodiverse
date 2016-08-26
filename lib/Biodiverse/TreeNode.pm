@@ -1931,6 +1931,28 @@ sub delete_lists {
     return;
 }
 
+#  rename a list in this node
+sub rename_list {
+    my $self = shift;
+    my %args = @_;
+    
+    my $list = $args{list};
+    my $new_name = $args{new_name};
+    
+    croak "Argument 'list' not defined"
+      if !defined $list;
+    croak "Argument 'new_name' is not defined"
+      if !defined $new_name;
+
+    #croak "element $element does not contain a list called $list"
+    return if !exists $self->{$list};
+
+    $self->{$new_name} = $self->{$list};
+    delete $self->{$list};
+
+    return;
+}
+
 #  delete a set of lists at this node, and all its descendents
 sub delete_lists_below {
     my $self = shift;

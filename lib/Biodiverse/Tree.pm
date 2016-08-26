@@ -60,8 +60,8 @@ sub new {
 
     my %PARAMS = (  #  default params
         TYPE => 'TREE',
-        OUTSUFFIX => 'bts',
-        OUTSUFFIX_YAML => 'bty',
+        OUTSUFFIX => __PACKAGE__->get_file_suffix,
+        OUTSUFFIX_YAML => __PACKAGE__->get_file_suffix_yaml,
         CACHE_TREE_AS_MATRIX => 1,
     );
     $self->set_params (%PARAMS, %args);
@@ -74,6 +74,14 @@ sub new {
     $self->weaken_basedata_ref;  
 
     return $self;
+}
+
+sub get_file_suffix {
+    return 'bts';
+}
+
+sub get_file_suffix_yaml {
+    return 'bty';
 }
 
 sub rename {

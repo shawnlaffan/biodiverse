@@ -91,6 +91,17 @@ BEGIN {
     }
 }
 
+#  Check for installed dependencies and warn if not present.
+#  Useful when users are running off the source code install
+#  and aren't tracking announcements.
+BEGIN {
+    if (not eval {require Sereal}) {
+        die "Cannot locate the Sereal package.  You probably need to install it using, for example:\n"
+        . "cpanm Sereal\n"
+        . "at the command prompt.\n"
+        . "See https://metacpan.org/release/Sereal for more details about what it does.";
+    }
+}
 
 #  add biodiverse lib paths so we get all the extensions
 sub add_lib_paths {

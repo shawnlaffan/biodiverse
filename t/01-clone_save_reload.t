@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 
-#  Tests for basedata save and reload.
+#  Tests for object clone, save and reload.
 #  Assures us that the data can be serialised, saved out and then reloaded
-#  without throwing an exception.
+#  validly.
 
 use 5.010;
 use strict;
@@ -20,7 +20,7 @@ use Test::Exception;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::TestHelpers qw /:basedata :matrix :tree/;
 
 exit main( @ARGV );
 
@@ -28,25 +28,37 @@ sub main {
     my @args = @_;
     
     my $bd = get_basedata_object_for_save_and_reload_tests();
-    
+
+    my %objects_to_test = (
+        basedata => $bd,
+        matrix   => get_matrix_object_from_sample_data(),
+        tree     => get_tree_object_from_sample_data(),
+    );
+
     if (@args) {
         for my $name (@args) {
             die "No test method $name\n"
-                if not my $func = (__PACKAGE__->can( 'test_' . $name ) or __PACKAGE__->can( $name ));
-            $func->($bd);
+              if not my $func = (__PACKAGE__->can( 'test_' . $name ) or __PACKAGE__->can( $name ));
+            foreach my $type (sort keys %objects_to_test) {
+                my $object = $objects_to_test{$type};
+                $func->($object);
+            }
         }
         done_testing;
         return 0;
     }
 
-    #  do we get a consistent clone/saved version?
-    test_save_and_reload($bd);
-    test_clone($bd);
-    
     test_save_and_reload_no_suffix ($bd);
-    test_save_and_reload_non_existent_folder ($bd);
-    
-    test_save_and_reload_yaml ($bd);
+
+    #  do we get a consistent clone/saved version?
+    foreach my $type (sort keys %objects_to_test) {
+        #diag "Testing $type\n";
+        my $object = $objects_to_test{$type};
+        test_save_and_reload ($object);
+        test_clone ($object);
+        test_save_and_reload_non_existent_folder ($object);
+        test_save_and_reload_yaml ($object);
+    }
 
     done_testing;
     return 0;
@@ -94,6 +106,14 @@ sub get_basedata_object_for_save_and_reload_tests {
         definition_query => $defq,
     );
     
+    my $rand = $bd->add_randomisation_output (
+        name => 'Rand',
+    );
+    $rand->run_analysis (
+        function   => 'rand_nochange',
+        iterations => 1,
+    );
+
     return $bd;
 }
 
@@ -102,7 +122,7 @@ sub get_basedata_object_for_save_and_reload_tests {
 
 sub test_save_and_reload {
     my $bd = shift;
-    my $suffix = shift // '.bds';
+    my $suffix = shift // $bd->get_file_suffix;
 
     my $class = blessed $bd;
 
@@ -124,7 +144,7 @@ sub test_save_and_reload {
         $new_bd = eval {$class->new (file => $fname)}
     } "Opened without exception thrown, suffix is $suffix_feedback";
     
-    is_deeply ($new_bd, $bd, "basedatas are the same for suffix $suffix");
+    is_deeply ($new_bd, $bd, "structures are the same for suffix $suffix");
     
     unlink $fname;
 }
@@ -133,8 +153,9 @@ sub test_clone {
     my $bd = shift;
 
     #my $new_bd = eval {$bd->clone (no_elements => 1)};
-    
-    lives_ok { my $new_bd = eval {$bd->clone} } 'Cloned without exception thrown';
+    my $new_bd;
+    lives_ok { $new_bd = eval {$bd->clone} } 'Cloned without exception thrown';
+    is_deeply ($new_bd, $bd, "Cloned object matches");
 }
 
 sub test_save_and_reload_no_suffix {
@@ -144,13 +165,13 @@ sub test_save_and_reload_no_suffix {
 
 sub test_save_and_reload_yaml {
     my $bd = shift;
-    test_save_and_reload ($bd, 'bdy');
+    test_save_and_reload ($bd, $bd->get_file_suffix_yaml);
 }
 
 
 sub test_save_and_reload_non_existent_folder {
     my $bd = shift;
-    my $suffix = shift // '.bds';
+    my $suffix = shift // $bd->get_file_suffix;
 
     my $class = blessed $bd;
 

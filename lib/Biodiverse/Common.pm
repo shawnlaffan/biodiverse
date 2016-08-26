@@ -11,8 +11,8 @@ use English ( -no_match_vars );
 
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
-#use YAML::Syck;
-use YAML::XS;
+use YAML::Syck;
+#use YAML::XS;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
@@ -106,11 +106,17 @@ sub load_file {
     croak "File $args{file} does not exist or is not readable\n"
       if !-r $args{file};
 
+    my $suffix = $args{file} =~ /\..+?$/;
+
+    my @importer_funcs
+      = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
+      : $suffix =~ /y$/ ? qw /load_yaml_file/
+      : qw /load_sereal_file load_storable_file load_yaml_file/;
+
     my $object;
-    foreach my $type (qw /sereal storable yaml/) {
-        my $func = "load_$type\_file";
+    foreach my $func (@importer_funcs) {
         $object = eval {$self->$func (%args)};
-        warn $EVAL_ERROR if $EVAL_ERROR;
+        #warn $EVAL_ERROR if $EVAL_ERROR;
         last if defined $object;
     }
 
@@ -121,18 +127,22 @@ sub load_sereal_file {
     my $self = shift;  #  gets overwritten if the file passes the tests
     my %args = @_;
 
-    croak "argument 'file' not defined\n"  if ! defined ($args{file});
+    croak "argument 'file' not defined\n"
+      if !defined ($args{file});
 
-    my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
+    #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
+    my $expected_suffix
+        =  $args{suffix}
+        // $self->get_param('OUTSUFFIX')
+        // eval {$self->get_file_suffix}
+        // $EMPTY_STRING;
 
     my $file = Path::Class::file($args{file})->absolute;
-    if (! -e $file) {
-        croak "[BASEDATA] File $file does not exist\n";
-    }
+    croak "[BASEDATA] File $file does not exist\n"
+      if !-e $file;
 
-    if (!$args{ignore_suffix} && ($file !~ /$suffix$/)) {
-        croak "[BASEDATA] File $file does not have the correct suffix\n";
-    }
+    croak "[BASEDATA] File $file does not have the correct suffix\n"
+       if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
 
     my $string;
     {
@@ -229,9 +239,10 @@ sub load_yaml_file {
     return if ! -e $args{file};
     return if ! ($args{file} =~ /$suffix$/);
 
-    my $loaded = YAML::XS::LoadFile ($args{file});
+    #my $loaded = YAML::XS::LoadFile ($args{file});
+    my $loaded = YAML::Syck::LoadFile ($args{file});
 
-    #  yaml does not handle waek refs, so we need to put them back in
+    #  yaml does not handle weak refs, so we need to put them back in
     foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
         if ($loaded->can($fn)) {
             say $fn;
@@ -240,7 +251,7 @@ sub load_yaml_file {
                 1;
             };
             warn $EVAL_ERROR if $EVAL_ERROR;
-	}
+        }
         #$self->$fn if $self->can($fn);
     }
 
@@ -862,7 +873,7 @@ sub save_to_yaml {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    eval {YAML::XS::DumpFile ($file, $self)};
+    eval {YAML::Syck::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $file;
@@ -901,10 +912,10 @@ sub dump_to_yaml {
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
         print "WRITING TO FILE $file\n";
-        YAML::XS::DumpFile ($file, $data);
+        YAML::Syck::DumpFile ($file, $data);
     }
     else {
-        print YAML::XS::Dump ($data);
+        print YAML::Syck::Dump ($data);
         print "...\n";
     }
 

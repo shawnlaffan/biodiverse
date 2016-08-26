@@ -40,8 +40,8 @@ sub new {
 
     my %PARAMS = (
         OUTPFX               => 'BIODIVERSE',
-        OUTSUFFIX            => 'bms',
-        OUTSUFFIX_YAML       => 'bmy',
+        OUTSUFFIX            => __PACKAGE__->get_file_suffix,
+        OUTSUFFIX_YAML       => __PACKAGE__->get_file_suffix_yaml,
         TYPE                 => undef,
         QUOTES               => q{'},
         JOIN_CHAR            => q{:},  #  used for labels
@@ -63,6 +63,14 @@ sub new {
         if ! defined $self->get_param('NAME');
 
     return $self;
+}
+
+sub get_file_suffix {
+    return 'bms';
+}
+
+sub get_file_suffix_yaml {
+    return 'bmy';
 }
 
 sub rename {

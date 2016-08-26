@@ -100,9 +100,9 @@ sub new {
                     #  These will be overwritten if needed.
                     #  those commented out are redundant
         #NAME  =>  "BASEDATA",
-        OUTSUFFIX           => 'bds',
+        OUTSUFFIX           => __PACKAGE__->get_file_suffix,
         #OUTSUFFIX_XML      => 'bdx',
-        OUTSUFFIX_YAML      => 'bdy',
+        OUTSUFFIX_YAML      => __PACKAGE__->get_file_suffix_yaml,
         INPFX               => q{.},
         QUOTES              => q{'},  #  for Dan
         OUTPUT_QUOTE_CHAR   => q{"},
@@ -157,6 +157,13 @@ sub new {
     return $self;
 }
 
+sub get_file_suffix {
+    return 'bds';
+}
+
+sub get_file_suffix_yaml {
+    return 'bdy';
+}
 
 sub binarise_sample_counts {
     my $self = shift;

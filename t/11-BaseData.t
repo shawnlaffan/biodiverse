@@ -122,7 +122,7 @@ sub test_rename_outputs {
     is $spx->get_name, 'sp_n1x', 'did not rename other spatial output';
 
     my @sp_names = $bd->get_spatial_output_names;
-    is_deeply \@sp_names, [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
+    is_deeply [sort @sp_names], [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
 
     #  cluster
     my $cl = $bd->add_cluster_output (name => 'cl_n1');
@@ -138,14 +138,14 @@ sub test_rename_outputs {
     is $clx->get_name, 'cl_n1x', 'did not rename other cluster output';
 
     my @cl_names = $bd->get_cluster_output_names;
-    is_deeply \@cl_names, [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
+    is_deeply [sort @cl_names], [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
 
     my $mx = $cl->get_matrix_ref;
     $bd->rename_output (new_name => 'mx_n2', output => $mx);
     is $mx->get_name, 'mx_n2', 'renamed matrix output';
 
     my @mx_names = $bd->get_matrix_output_names;
-    is_deeply \@mx_names, [qw 'mx_n2'], 'basedata matrix names match';
+    is_deeply [sort @mx_names], [qw 'mx_n2'], 'basedata matrix names match';
 
     my $rand = $bd->add_randomisation_output (name => 'rd_n1');
     eval {
@@ -186,7 +186,7 @@ sub test_rename_outputs {
     is $cl_named_lists_orig, 0, 'no lists found with old name, cl';
 
     my @rand_names = $bd->get_randomisation_output_names;
-    is_deeply \@rand_names, [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
+    is_deeply [sort @rand_names], [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
 
     return;
 }

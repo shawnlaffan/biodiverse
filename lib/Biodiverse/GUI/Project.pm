@@ -122,19 +122,15 @@ sub init {
 sub save {
     my $self = shift;
     my %args = @_;
-    #my $type = shift;
 
-    # Got to make sure the callbacks/models/iterator hashes aren't saved - store pointers to memory!
-    # Also don't save the huge shapefiles
-    my $callbacks = $self->{callbacks};
-    my $iters = $self->{iters};
-    my $models = $self->{models};
-    my $overlays = $self->{overlay_objects};
-    delete $self->{callbacks};
-    delete $self->{iters};
-    delete $self->{models};
-    delete $self->{overlay_objects};
-    
+    # Make sure the callbacks/models/iterator hashes aren't saved
+    # - they store pointers to memory!
+    # Also don't save the shapefiles
+    delete local $self->{callbacks};
+    delete local $self->{iters};
+    delete local $self->{models};
+    delete local $self->{overlay_objects};
+
     #  make a copy so we don't interfere with the current display settings
     #  not needed if the code de-refs work properly
     #my $copy = $self->clone;
@@ -143,11 +139,6 @@ sub save {
     #  SWL: now using a generic save method
     #    that handles all types
     my $file = $copy->save_to (%args);
-    
-    $self->{callbacks} = $callbacks;
-    $self->{iters} = $iters;
-    $self->{models} = $models;
-    $self->{overlay_objects} = $overlays;
         
     return $file;
 }

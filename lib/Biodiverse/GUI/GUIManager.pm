@@ -609,7 +609,7 @@ sub do_save_as {
 
         my $file = $self->{project}->save (filename => $filename);
 
-        print "[GUI] Saved Biodiverse project to $file\n";
+        say "[GUI] Saved Biodiverse project to $file";
         $self->{filename} = $file;
 
         my $title = 'Biodiverse '

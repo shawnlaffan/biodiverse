@@ -602,12 +602,32 @@ sub do_new {
 
 sub do_save_as {
     # Show the file selection dialogbox (if no existing filename)
-    my $self = shift;
-    my $filename = shift || $self->show_save_dialog('Save Project', 'bps');
+    my ($self, $filename) = @_;
+
+    my $format;
+    my $method = 'save_to_sereal';
+
+    if (!defined $filename) {
+        my @formats = ('new file format', 'old file format');
+        if ($self->get_last_file_serialisation_format eq 'storable') {
+            @formats = reverse @formats;
+        }
+        ($filename, $format) = $self->show_save_dialog(
+            'Save Project',
+            ['bps', 'bps'],
+            \@formats,
+        );
+        if ($format =~ /old/) {
+            $method = 'save_to_storable';
+        }
+    }
 
     if (defined $filename) {
 
-        my $file = $self->{project}->save (filename => $filename);
+        my $file = $self->{project}->save (
+            filename => $filename,
+            method   => $method,
+        );
 
         print "[GUI] Saved Biodiverse project to $file\n";
         $self->{filename} = $file;
@@ -630,7 +650,7 @@ sub do_save {
     my $self = shift;
 
     return $self->do_save_as($self->{filename})
-        if (exists $self->{filename} );
+      if exists $self->{filename};
 
     return $self->do_save_as()
 }
@@ -1530,20 +1550,37 @@ sub save_object {
     my $self = shift;
     my $object = shift;
 
-    my $suffix_str = $object->get_param('OUTSUFFIX');
-    #my $suffix_xml = $object->get_param('OUTSUFFIX_XML');
+    my $suffix_str  = $object->get_param('OUTSUFFIX');
     my $suffix_yaml = $object->get_param('OUTSUFFIX_YAML');
-    my $filename = $self->show_save_dialog('Save Object', $suffix_str, $suffix_yaml);
+
+    my $method = 'save_to_sereal';
+
+    my @formats = ('new file format', 'old file format');
+    if ($object->get_last_file_serialisation_format eq 'storable') {
+        @formats = reverse @formats;
+    }
+
+    my ($filename, $format) = $self->show_save_dialog(
+        'Save Object',
+        [$suffix_str, $suffix_str, $suffix_yaml],
+        [@formats, 'yaml format'],
+    );
+
+    if ($format =~ /^old /) {
+        $method = 'save_to_storable';
+    }
+    elsif ($format =~ /^yaml /) {
+        $method = 'save_to_yaml';
+    }
 
     if (defined $filename) {
 
-        my ($prefix, $suffix) = $filename =~ /(.*?)\.(...)$/;
-        if (not defined $prefix) {
-            $prefix = $filename;
-        }
+        my ($prefix, $suffix) = $filename =~ /(.*?)\.(.+?)$/;
+        $prefix //= $filename;
+
         $object->set_param('OUTPFX', $prefix);
 
-        $object->save (filename => $filename);
+        $object->save (filename => $filename, method => $method);
     }
 
     return;
@@ -2848,29 +2885,39 @@ sub do_run_exclusions {
 
 
 sub show_save_dialog {
-    my $self = shift;
-    my $title = shift;
-    my @suffixes = @_;
+    my ($self, $title, $suffixes, $explanations) = @_;
+    my @suffixes = @$suffixes;
+    my @explanations = @{$explanations // []};
 
-    my $dlg = Gtk2::FileChooserDialog->new($title, undef, "save", "gtk-cancel", "cancel", "gtk-ok", 'ok');
+    my $dlg = Gtk2::FileChooserDialog->new(
+        $title,
+         undef,
+        'save',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
 
-    foreach my $suffix (@suffixes) {
+    foreach my $i (0 .. $#suffixes) {
+        my $suffix = $suffixes[$i];
+        my $expl   = $explanations[$i] // "$suffix files";
         my $filter = Gtk2::FileFilter->new();
         $filter->add_pattern("*.$suffix");
-        $filter->set_name("$suffix files");
+        $filter->set_name($expl);
         $dlg->add_filter($filter);
     }
 
     $dlg->set_modal(1);
     eval { $dlg->set_do_overwrite_confirmation(1); }; # GTK < 2.8 doesn't have this
 
-    my $filename;
+    my ($filename, $format);
     if ($dlg->run() eq 'ok') {
-        $filename = $dlg->get_filename();
+        my $filter = $dlg->get_filter;
+        $format    = $filter->get_name;
+        $filename  = $dlg->get_filename();
     }
     $dlg->destroy();
 
-    return $filename;
+    return ($filename, $format);
 }
 
 #FIXME merge with above

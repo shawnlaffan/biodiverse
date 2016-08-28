@@ -793,9 +793,11 @@ sub save_to {
     #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
     my $method = $args{method};
     if (!defined $method) {
-        $method = $suffix eq $yaml_suffix                         ? 'save_to_yaml'
-        : $self->get_last_file_serialisation_format eq 'storable' ? 'save_to_storable' 
-        : 'save_to_sereal';
+        my $last_fmt = $self->get_last_file_serialisation_format eq 'storable';
+        $method
+          = $suffix eq $yaml_suffix ? 'save_to_yaml'
+          : $last_fmt               ? 'save_to_storable' 
+          : 'save_to_storable';
     }
 
     croak "Invalid save method name $method\n"
@@ -825,7 +827,7 @@ sub save_to_sereal {
     }
     $file = Path::Class::file($file)->absolute;
 
-    say "[COMMON] WRITING TO FILE $file";
+    say "[COMMON] WRITING TO SEREAL FORMAT FILE $file";
 
     use Sereal::Encoder;
 
@@ -857,7 +859,7 @@ sub save_to_storable {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO STORABLE FORMAT FILE $file\n";
 
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
@@ -881,7 +883,7 @@ sub save_to_xml {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO XML FORMAT FILE $file\n";
 
     open (my $fh, '>', $file);
     print $fh dump_xml ($self);
@@ -903,7 +905,7 @@ sub save_to_yaml {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO YAML FORMAT FILE $file\n";
 
     eval {YAML::Syck::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -923,7 +925,7 @@ sub save_to_data_dumper {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file\n";
 
     use Data::Dumper;
     open (my $fh, '>', $file);
@@ -943,7 +945,7 @@ sub dump_to_yaml {
 
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO FILE $file\n";
+        print "WRITING TO YAML FORMAT FILE $file\n";
         YAML::Syck::DumpFile ($file, $data);
     }
     else {
@@ -963,7 +965,7 @@ sub dump_to_xml {
     my $file = $args{filename};
     if (defined $file) {
         $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO FILE $file\n";
+        print "WRITING TO XML FORMAT FILE $file\n";
         open (my $fh, '>', $file);
         print $fh dump_xml ($data);
         $fh->close;

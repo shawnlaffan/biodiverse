@@ -103,6 +103,7 @@ sub new {
         OUTSUFFIX           => __PACKAGE__->get_file_suffix,
         #OUTSUFFIX_XML      => 'bdx',
         OUTSUFFIX_YAML      => __PACKAGE__->get_file_suffix_yaml,
+        LAST_FILE_SERIALISATION_FORMAT => undef,
         INPFX               => q{.},
         QUOTES              => q{'},  #  for Dan
         OUTPUT_QUOTE_CHAR   => q{"},

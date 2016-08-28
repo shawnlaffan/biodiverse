@@ -178,6 +178,8 @@ sub load_sereal_file {
     my $structure;
     $self = $decoder->decode($string, $structure);
 
+    $self->set_last_file_serialisation_format ('sereal');
+
     return $self;
 }
 
@@ -210,6 +212,7 @@ sub load_storable_file {
             $self -> $fn if $self->can($fn);
         }
     }
+    $self->set_last_file_serialisation_format ('storable');
 
     return $self;
 }
@@ -744,6 +747,20 @@ sub update_log {
 #  for backwards compatibility
 *write = \&save_to;
 
+sub set_last_file_serialisation_format {
+    my ($self, $format) = @_;
+
+    croak "Invalid serialisation format name passed"
+      if not ($format // '') =~ /^(?:sereal|storable)$/;
+
+    return $self->set_param(LAST_FILE_SERIALISATION_FORMAT => $format);
+}
+
+sub get_last_file_serialisation_format {
+    my $self = shift;
+    return $self->get_param('LAST_FILE_SERIALISATION_FORMAT') // 'sereal';
+}
+
 #  some objects have save methods, some do not
 *save =  \&save_to;
 
@@ -774,7 +791,15 @@ sub save_to {
     my $tmp_file_name = $file_name . '.tmp';
 
     #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
-    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_sereal';
+    my $method = $args{method};
+    if (!defined $method) {
+        $method = $suffix eq $yaml_suffix                         ? 'save_to_yaml'
+        : $self->get_last_file_serialisation_format eq 'storable' ? 'save_to_storable' 
+        : 'save_to_sereal';
+    }
+
+    croak "Invalid save method name $method\n"
+      if not $method =~ /^save_to_\w+$/;
 
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -789,7 +814,7 @@ sub save_to {
 }
 
 #  Dump the whole object to a Sereal file.
-sub save_to_sereal {  
+sub save_to_sereal {
     my $self = shift;
     my %args = @_;
 

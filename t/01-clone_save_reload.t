@@ -54,6 +54,7 @@ sub main {
     foreach my $type (sort keys %objects_to_test) {
         #diag "Testing $type\n";
         my $object = $objects_to_test{$type};
+        test_save_and_reload_storable ($object);
         test_save_and_reload ($object);
         test_clone ($object);
         test_save_and_reload_non_existent_folder ($object);
@@ -117,12 +118,12 @@ sub get_basedata_object_for_save_and_reload_tests {
     return $bd;
 }
 
-## only testing for errors at the moment (2013-06-10).
-## need to develop more stringent tests, e.g. has same outputs, same groups etc
-
 sub test_save_and_reload {
     my $object = shift;
-    my $suffix = shift // $object->get_file_suffix;
+    my %args = @_;
+
+    $args{suffix} //= $object->get_file_suffix;
+    my $suffix = $args{suffix};
 
     my $class = blessed $object;
 
@@ -130,20 +131,29 @@ sub test_save_and_reload {
     my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX', SUFFIX => ".$suffix");
     my $fname = $tmp_obj->filename;
     $tmp_obj->close;
-    
-    #$fname .= ".$suffix";
-    
+
     my $suffix_feedback = $suffix || 'a null string';
 
     lives_ok {
-        $fname = $object->save_to (filename => $fname)
+        $fname = $object->save_to (filename => $fname, %args)
     } "Saved to file, suffix is $suffix_feedback";
 
     my $new_object;
     lives_ok {
         $new_object = eval {$class->new (file => $fname)}
     } "Opened without exception thrown, suffix is $suffix_feedback";
+
+    #  if we are using storable then check it is set as the last serialisation format
+    if (($args{method} // '') =~ /storable/) {
+        is $new_object->get_last_file_serialisation_format,
+            'storable',
+            'set last serialisation format parameter correctly';    
+    }
     
+    #  override a parameter that is set on file load
+    $object->set_last_file_serialisation_format;
+    $new_object->set_last_file_serialisation_format;    
+
     is_deeply ($new_object, $object, "structures are the same for suffix $suffix");
     
     unlink $fname;
@@ -159,18 +169,25 @@ sub test_clone {
 
 sub test_save_and_reload_no_suffix {
     my $object = shift;
-    test_save_and_reload ($object, '');
+    test_save_and_reload ($object, suffix => '');
 }
 
 sub test_save_and_reload_yaml {
     my $object = shift;
-    test_save_and_reload ($object, $object->get_file_suffix_yaml);
+    test_save_and_reload ($object, suffix => $object->get_file_suffix_yaml);
 }
 
+sub test_save_and_reload_storable {
+    my $object = shift;
+    test_save_and_reload ($object, method => 'save_to_storable');
+}
 
 sub test_save_and_reload_non_existent_folder {
     my $object = shift;
-    my $suffix = shift // $object->get_file_suffix;
+    my %args = @_;
+
+    $args{suffix} //= $object->get_file_suffix;
+    my $suffix = $args{suffix};
 
     my $class = blessed $object;
 
@@ -179,13 +196,12 @@ sub test_save_and_reload_non_existent_folder {
     my $fname = $tmp_obj->filename;
     $tmp_obj->close;
     
-    
     $fname = "$fname/" . 'fnargle' . (int rand() * 1000);  #  should use Path::Class
 
     my $suffix_feedback = $suffix || 'a null string';
 
     dies_ok {
-        $fname = $object->save_to (filename => $fname)
+        $fname = $object->save_to (filename => $fname, %args)
     } "Did not save to file in non-existent directory, suffix is $suffix_feedback";
     
 }

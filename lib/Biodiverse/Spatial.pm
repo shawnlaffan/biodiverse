@@ -200,7 +200,7 @@ sub convert_comparisons_to_significances {
     # find all the relevant lists for this target name
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
-      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+      = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_lists_across_elements;
 
     my $to_do = $self->get_element_count;
@@ -255,7 +255,7 @@ sub convert_comparisons_to_significances {
                 list    => $result_list_name,
             );
 
-            $self->get_sig_rank_threshold_from_comp_results (
+            $self->get_sig_rank_from_comp_results (
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,  #  do it in-place
             );

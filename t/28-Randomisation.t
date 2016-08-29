@@ -1822,7 +1822,7 @@ sub test_spatial_allocation_order_fails {
 #  do we correctly calculate significance?
 #  issue #607
 #  a bit clunky in the testing
-sub test_significance_thresholds {
+sub test_p_ranks  {
     #  the basedata generation desperately needs refactoring - it is used in too many places
     my $c  = 1;
     my $c2 = $c / 2;
@@ -1866,17 +1866,21 @@ sub test_significance_thresholds {
 
     my %rand_func_args = (
         function   => 'rand_csr_by_group',
-        iterations => 9,
+        iterations => 8,
         seed       => $prng_seed,
         #return_rand_bd_array => 1,
         #retain_outputs       => 1,
     );
     $rand->run_analysis (%rand_func_args);
+    # need one more iteration to be sure we don't add extra lists
+    $rand->run_analysis (iterations => 1);  
 
-    my @valid_vals_1tail = (0.01,  0.05,  0.95,  0.99);
-    my @valid_vals_2tail = (0.005, 0.025, 0.975, 0.995);
-    my @valid_vals = (@valid_vals_1tail, @valid_vals_2tail);
+    my @lists_across_elements = $sp->get_lists_across_elements;
+    my $count = grep {$_ =~ /p_rank>>p_rank>>/} @lists_across_elements;
+    is ($count, 0, 'no doubled p_rank lists');
     
+    my @bounds = (0.05, 0.95);
+
     subtest 'sig_thresh results valid for spatial object' => sub {
         my $defined_count = 0;
         foreach my $gp ($sp->get_element_list) {
@@ -1902,13 +1906,10 @@ sub test_significance_thresholds {
             );
             #  values are undef for non-sig, or the sig thresh passed (low is negated) 
             foreach my $key (sort keys %$sig_listref) {
-                use List::MoreUtils qw /firstidx/;
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
                     $defined_count++;
-                    #  use eq, not ==, due to floating point issues with 0.1
-                    my $idx = firstidx {$_ eq $value} @valid_vals;
-                    ok ($idx != -1, "$value in valid set ($key, $idx), $gp");
+                    ok ($value < $bounds[0] || $value > $bounds[1], "$value in valid interval ($key), $gp");
                 }
             }
         }
@@ -1939,13 +1940,11 @@ sub test_significance_thresholds {
             );
             #  values are undef for non-sig, or the sig thresh passed (low is negated) 
             foreach my $key (sort keys %$sig_listref) {
-                use List::MoreUtils qw /firstidx/;
                 my $value = $sig_listref->{$key};
                 if (defined $value) {
                     $defined_count++;
                     #  use eq, not ==, due to floating point issues with 0.1
-                    my $idx = firstidx {$_ eq $value} @valid_vals;
-                    ok ($idx != -1, "$value in valid set ($key, $idx), $node_name");
+                    ok ($value < $bounds[0] || $value > $bounds[1], "$value in valid interval ($key), $node_name");
                 }
             }
         }
@@ -1955,8 +1954,8 @@ sub test_significance_thresholds {
 
 
 
-
-sub test_p_rank_calcs {
+#  not used currently - still need to test?
+sub test_p_rank_thresh_calcs {
     my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
     
     #  set things up in one go for clarity, then subdivide
@@ -2007,6 +2006,69 @@ sub test_p_rank_calcs {
     }
     
     my $p_rank = $bd->get_sig_rank_threshold_from_comp_results (
+        comp_list_ref => \%check_hash,
+    );
+    
+    is_deeply ($p_rank, \%expected, 'got expected p-rank thresholds');
+    
+    #use Data::Dumper qw/Dumper/;
+    #local $Data::Dumper::Sortkeys = 1;
+    #say Dumper \%check_hash;
+    #say Dumper $p_rank;
+}
+
+sub test_p_rank_calcs {
+    my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
+    
+    #  set things up in one go for clarity, then subdivide
+    my %setup = (
+        # these are middle of the field
+        'fail2_0.95'  => undef,  'C_fail2_0.95'  =>  600,
+        'fail2_0.05'  => undef,  'C_fail2_0.05'  =>  400,    
+        #  these fail lower thresholds due to ties
+        'failt1_0.05' => undef,  'C_failt1_0.05' =>   49, 'T_failt1_0.05' => 1,
+        'failt2_0.05' => undef,  'C_failt2_0.05' =>   40, 'T_failt2_0.05' => 10,
+        'failt3_0.05' => undef,  'C_failt3_0.05' =>   0,  'T_failt3_0.05' => 50,
+    );
+
+    #  create data for either side of boundaries
+    #  loop is a left-over from when it was testing multiple thresholds
+    my $prev_thresh = undef;
+    foreach my $thresh (0.95) {
+        $setup{'pass_' . $thresh} = 0.951;
+        $setup{'C_pass_' . $thresh} = $thresh * 1000 + 1;
+        $setup{'fail_' . $thresh} = $prev_thresh;
+        $setup{'C_fail_' . $thresh} = $thresh * 1000;        
+        $prev_thresh = $thresh;
+    }
+    $prev_thresh = undef;
+    foreach my $thresh (0.05) {
+        $setup{'pass_' . $thresh} = 0.049;
+        $setup{'C_pass_' . $thresh} = $thresh * 1000 - 1;
+        $setup{'fail_' . $thresh} = $prev_thresh;
+        $setup{'C_fail_' . $thresh} = $thresh * 1000;        
+        $prev_thresh = $thresh;
+    }
+    
+    my %expected
+        = map {$_ => $setup{$_}}
+          grep {$_ =~ /^(pass|fail)/}
+          keys %setup;
+
+    my %check_hash = %setup;
+    delete @check_hash{keys %expected};
+
+    #  mind the P_ and Q_ scores    
+    foreach my $key (grep {$_ =~ /^C_/} keys %check_hash) {
+        my $Q_key = $key;
+        $Q_key =~ s/^C/Q/;
+        $check_hash{$Q_key} = 1000;
+        my $P_key = $key;
+        $P_key =~ s/^C/P/;
+        $check_hash{$P_key} = $check_hash{$key} / 1000;
+    }
+    
+    my $p_rank = $bd->get_sig_rank_from_comp_results (
         comp_list_ref => \%check_hash,
     );
     

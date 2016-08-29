@@ -1913,7 +1913,7 @@ sub convert_comparisons_to_significances {
     
     # find all the relevant lists for this target name
     my @target_list_names
-      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+      = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_hash_list_names_across_nodes;
 
     my $i = 0;
@@ -1926,7 +1926,7 @@ sub convert_comparisons_to_significances {
       BY_INDEX_LIST:
         foreach my $list_name (@target_list_names) {
             my $result_list_name = $list_name;
-            $result_list_name =~ s/>>/>>sig>>/;
+            $result_list_name =~ s/>>/>>p_rank>>/;
 
             my $comp_ref = $base_node->get_list_ref (
                 list => $list_name,
@@ -1945,7 +1945,7 @@ sub convert_comparisons_to_significances {
                 );
             }
 
-            $self->get_significance_from_comp_results (
+            $self->get_sig_rank_from_comp_results (
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,  #  do it in-place
             );

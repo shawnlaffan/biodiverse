@@ -735,7 +735,7 @@ sub update_log {
     if ($self -> get_param ('RUN_FROM_GUI')) {
 
         $args{type} = 'update_log';
-        $self -> dump_to_yaml (data => \%args);
+        $self->dump_to_yaml (data => \%args);
     }
     else {
         print $args{text};
@@ -945,12 +945,37 @@ sub dump_to_yaml {
 
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO YAML FORMAT FILE $file\n";
+        say "WRITING TO YAML FORMAT FILE $file";
         YAML::Syck::DumpFile ($file, $data);
     }
     else {
         print YAML::Syck::Dump ($data);
         print "...\n";
+    }
+
+    return $args{filename};
+}
+
+#  dump a data structure to a yaml file.
+sub dump_to_json {  
+    my $self = shift;
+    my %args = @_;
+
+    #use Cpanel::JSON::XS;
+    use JSON::MaybeXS;
+
+    my $data = $args{data};
+
+    if (defined $args{filename}) {
+        my $file = Path::Class::file($args{filename})->absolute;
+        say "WRITING TO JSON FILE $file";
+        open (my $fh, '>', $file)
+          or croak "Cannot open $file to write to, $!\n";
+        print {$fh} JSON::MaybeXS::encode_json ($data);
+        $fh->close;
+    }
+    else {
+        print JSON::MaybeXS::encode_json ($data);
     }
 
     return $args{filename};
@@ -965,7 +990,7 @@ sub dump_to_xml {
     my $file = $args{filename};
     if (defined $file) {
         $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO XML FORMAT FILE $file\n";
+        say "WRITING TO XML FORMAT FILE $file";
         open (my $fh, '>', $file);
         print $fh dump_xml ($data);
         $fh->close;
@@ -1072,6 +1097,9 @@ sub write_table {
     }
     elsif ($suffix =~ /yml/i) {
         $self->write_table_yaml (%args);
+    }
+    elsif ($suffix =~ /json/i) {
+        $self->write_table_json (%args);
     }
     #elsif ($suffix =~ /shp/) {
     #    $self->write_table_shapefile (%args);
@@ -1252,14 +1280,33 @@ sub write_table_yaml {  #  dump the table to a YAML file.
     my $self = shift;
     my %args = @_;
 
-    my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
-    my $file = $args{file} || croak "file arg not specified\n";
+    my $data = $args{data} // croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
 
     eval {
-        $self -> dump_to_yaml (
+        $self->dump_to_yaml (
             %args,
-            filename => $file
+            filename => $file,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+sub write_table_json {  #  dump the table to a JSON file.
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} // croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
+
+    eval {
+        $self->dump_to_json (
+            %args,
+            filename => $file,
         )
     };
     croak $EVAL_ERROR if $EVAL_ERROR;

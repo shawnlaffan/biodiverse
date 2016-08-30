@@ -427,7 +427,7 @@ sub export_table_html {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self->to_table (%args, symmetric => 1);
+    my $table = $self->to_table (symmetric => 1, %args);
 
     $self->write_table_html (%args, data => $table);
 
@@ -452,7 +452,7 @@ sub export_table_xml {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self->to_table (%args, symmetric => 1);
+    my $table = $self->to_table (symmetric => 1, %args);
 
     $self->write_table_xml (%args, data => $table);
 
@@ -477,9 +477,34 @@ sub export_table_yaml {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self->to_table (%args, symmetric => 1);
+    my $table = $self->to_table (symmetric => 1, %args);
 
     $self->write_table_yaml (%args, data => $table);
+
+    return;
+}
+
+sub get_metadata_export_table_json {
+    my $self = shift;
+
+    my %args = (
+        format => 'JSON table',
+        parameters => [
+            $self->get_common_export_metadata(),
+            $self->get_table_export_metadata()
+        ],
+    ); 
+
+    return wantarray ? %args : \%args;    
+}
+
+sub export_table_json {
+    my $self = shift;
+    my %args = @_;
+
+    my $table = $self->to_table (symmetric => 1, %args);
+
+    $self->write_table_json (%args, data => $table);
 
     return;
 }
@@ -1220,7 +1245,7 @@ sub to_table_sym {
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
-                print { $fh } $string . "\n";
+                say { $fh } $string;
             }
         }
     }
@@ -1324,7 +1349,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
-                print { $fh } $string . "\n";
+                say { $fh } $string;
             }
         }
     }
@@ -1436,7 +1461,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
-                print { $fh } $string . "\n";
+                say { $fh } $string;
             }
         }
     }

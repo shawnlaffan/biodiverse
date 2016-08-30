@@ -1630,15 +1630,17 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
 sub to_basestruct_group_nodes {
     my $self = shift;
     my %args = @_;
-    
-    delete $args{target_value} if ! $args{use_target_value};
-    
+
+    delete $args{target_value} if !$args{use_target_value};
+
     $self->number_nodes if ! defined $self->get_value ('NODE_NUMBER');  #  assign unique labels to nodes if needed
-    
+
     my $num_classes = $args{use_target_value} ? q{} : $args{num_clusters};
 
     croak "One of args num_classes or use_target_value must be specified\n"
         if ! ($num_classes || $args{use_target_value});
+
+    my $sub_list = $args{sub_list} // '';
 
     # build a BaseStruct object and set it up to contain the terminal elements
     my $bs = Biodiverse::BaseStruct->new (
@@ -1651,33 +1653,30 @@ sub to_basestruct_group_nodes {
         $bs->add_element (element => $element);
     }
 
-    #print "[TREE] Writing $num_classes clusters, grouped by "
-    #      . $args{group_by_depth} ? "depth." : "length.";
-
     if (defined $args{target_value}) {
-        print "  Target value is $args{target_value}.  " ;
+        say "Target value is $args{target_value}.";
     }
-    print "\n";
 
     my %target_nodes = $self->group_nodes_below (
         %args,
         num_clusters => $num_classes
     );
-    
+
     if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
-        print "[TREE] Adding values from sub list $args{sub_list} to each node\n";
+        say "[TREE] Adding values from sub list $args{sub_list} to each node";
     } 
 
-    print "[TREE] Actual number of groups identified is " . scalar (keys %target_nodes) . "\n";
+    say "[TREE] Actual number of groups identified is " . scalar (keys %target_nodes);
 
-    my $max_sublist_digits
-        = defined $args{sub_list}
-            ? length (
-                $self->get_max_list_length_below (
-                    list => $args{sub_list}
-                ) - 1
-            )
-            : undef;
+    my $max_sublist_digits;
+    if (defined $sub_list) {
+        $max_sublist_digits
+          = length
+              $self->get_max_list_length_below (
+                list => $args{sub_list}
+              );
+        --$max_sublist_digits;
+    }
 
     # we have what we need, so flesh out the BaseStruct object
     foreach my $node (values %target_nodes) {
@@ -1697,21 +1696,18 @@ sub to_basestruct_group_nodes {
 
         #  get the additional list data if requested
         #  should really allow arrays here - convert to hashes?
-        if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
-            my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});
-            if (defined $sub_list_ref) {
-                if ((ref $sub_list_ref) =~ /ARRAY/) {
-                    $sub_list_ref = $self->array_to_hash_values (
-                        list => $sub_list_ref,
-                        prefix => $args{sub_list},
-                        num_digits => $max_sublist_digits,
-                        sort_array_lists => $args{sort_array_lists},
-                    );
-                }
-                if ((ref $sub_list_ref) =~ /HASH/) {
-                    @data{keys %$sub_list_ref} = (values %$sub_list_ref);
-                }
-                
+        if ($sub_list !~ /(no list)/) {
+            my $sub_list_ref = $node->get_list_ref (list => $sub_list) // '';
+            if ((ref $sub_list_ref) =~ /ARRAY/) {
+                $sub_list_ref = $self->array_to_hash_values (
+                    list   => $sub_list_ref,
+                    prefix => $sub_list,
+                    num_digits => $max_sublist_digits,
+                    sort_array_lists => $args{sort_array_lists},
+                );
+            }
+            if ((ref $sub_list_ref) =~ /HASH/) {
+                @data{keys %$sub_list_ref} = (values %$sub_list_ref);
             }
         }
 

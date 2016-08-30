@@ -2504,6 +2504,114 @@ sub get_significance_from_comp_results {
     return wantarray ? %$results_list_ref : $results_list_ref;
 }
 
+#  almost the same as get_significance_from_comp_results
+sub get_sig_rank_threshold_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my (@sig_thresh_lo, @sig_thresh_hi);
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    if ($args{thresholds}) {
+        @sig_thresh_lo = sort {$a <=> $b} @{$args{thresholds}};
+        @sig_thresh_hi = map  {1 - $_}    @sig_thresh_lo;        
+    }
+    else {
+        @sig_thresh_lo = (0.005, 0.01, 0.025, 0.05);
+        @sig_thresh_hi = (0.995, 0.99, 0.975, 0.95);
+    }
+
+    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+        no autovivification;
+        (my $index_name = $key) =~ s/^C_//;
+
+        my $c_key = 'C_' . $index_name;
+        my $t_key = 'T_' . $index_name;
+        my $q_key = 'Q_' . $index_name;
+        my $p_key = 'P_' . $index_name;
+
+        #  proportion observed higher than random
+        my $p_high = $comp_list_ref->{$p_key};
+        #  proportion observed lower than random 
+        my $p_low
+          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            /  $comp_list_ref->{$q_key};
+
+        if (   my $sig_hi = first {$p_high > $_} @sig_thresh_hi) {
+            $results_list_ref->{$index_name} = $sig_hi;
+        }
+        elsif (my $sig_lo = first {$p_low  < $_} @sig_thresh_lo) {
+            $results_list_ref->{$index_name} = $sig_lo;
+        }
+        else {
+            $results_list_ref->{$index_name} = undef;
+        }
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
+sub get_sig_rank_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my ($sig_thresh_lo, $sig_thresh_hi);
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    if ($args{threshold}) {
+        $sig_thresh_lo = $args{threshold};
+        $sig_thresh_hi = 1 - $$sig_thresh_lo;
+    }
+    else {
+        $sig_thresh_lo = 0.05;
+        $sig_thresh_hi = 0.95;
+    }
+
+    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+        no autovivification;
+        
+        (my $index_name = $key) =~ s/^C_//;
+
+        if (!defined $comp_list_ref->{$key}) {
+            $results_list_ref->{$index_name} = undef;
+            next;
+        }
+
+        #  proportion observed higher than random
+        my $p_key  = 'P_' . $index_name;
+        my $p_high = $comp_list_ref->{$p_key};
+
+        if (   $p_high > $sig_thresh_hi) {
+            $results_list_ref->{$index_name} = $p_high;
+        }
+        else {
+            my $c_key = 'C_' . $index_name;
+            my $t_key = 'T_' . $index_name;
+            my $q_key = 'Q_' . $index_name;
+
+            #  proportion observed lower than random 
+            my $p_low
+              =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+                /  $comp_list_ref->{$q_key};
+
+            $results_list_ref->{$index_name}
+              = $p_low  < $sig_thresh_lo ? $p_low : undef;
+        }
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
 
 #  use Devel::Symdump to hunt within a whole package
 #sub find_circular_refs_in_package {

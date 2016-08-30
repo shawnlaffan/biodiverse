@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 
-require 5.010;
+require 5.016;
 
 WriteMakefile(
     'NAME' => 'Task::Biodiverse::NoGUI',
@@ -64,6 +64,8 @@ WriteMakefile(
         "Data::Alias" => "0",
         "Getopt::Long::Descriptive" => "0",
         "Sereal" => "3",
+        "Cpanel::JSON::XS" => 3,
+        "JSON::MaybeXS" => 1.003,
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

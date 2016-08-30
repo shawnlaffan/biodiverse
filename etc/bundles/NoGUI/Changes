@@ -1,5 +1,9 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.990041 2016-08-30
+    - Add JSON::MaybeXS and Cpanel::JSON::XS
+    - Set minimum Perl version to 5.16
+
 1.99004 2016-08-30
     - Add Sereal
 

@@ -4665,7 +4665,7 @@ sub reintegrate_after_parallel_randomisations {
 
     croak "Cannot merge into self" if $self eq $bd_from;
 
-    croak "cannot merge into basedata with different cell sizes and offsets"
+    croak "Cannot merge into basedata with different cell sizes and offsets"
       if !$self->cellsizes_and_origins_match (%args);
 
     croak "No point reintegrating into basedata with no outputs"
@@ -4681,46 +4681,49 @@ sub reintegrate_after_parallel_randomisations {
     
     croak "Cannot reintegrate when number of outputs differs"
       if scalar @outputs_to != scalar @outputs_from;
-    
+
     foreach my $i (0 .. $#outputs_to) {
         croak "mismatch of output names"
           if $outputs_to[$i]->get_name ne $outputs_from[$i]->get_name;
         #  need to check # of elements etc
     }
 
-    my @randomisations_from_to_use;
+    my @randomisations_to_reintegrate;
+    use Data::Compare ();
+    my $c = Data::Compare->new;
+
   RAND_FROM:
     foreach my $rand_from (@randomisations_from) {
         my $name_from  = $rand_from->get_name;
-        my $rand_to = $self->get_randomisation_output_ref (name => $name_from);
-        my $init_state_to   = $rand_to->get_param('RAND_INIT_STATE');
-        my $init_state_from = $rand_from->get_param('RAND_INIT_STATE');
+        my $rand_to    = $self->get_randomisation_output_ref (name => $name_from);
+        my $init_states_to   = $rand_to->get_prng_init_states_array;
+        my $init_states_from = $rand_from->get_prng_init_states_array;
 
-        use Data::Dumper;
-        local $Data::Dumper::Sortkeys = 1;
-        my $init_state_to_str   = Data::Dumper::Dumper ($init_state_to);
-        my $init_state_from_str = Data::Dumper::Dumper ($init_state_from);
-        next RAND_FROM if $init_state_to_str eq $init_state_from_str;
-
-        my $prng_init_states = $rand_to->get_prng_init_states_array;
-        foreach my $integrated_init_state (@$prng_init_states) {
-            my $state_str = Data::Dumper::Dumper ($integrated_init_state);
-            next RAND_FROM if $state_str eq $init_state_from_str;
+        # avoid double reintegration
+        foreach my $init_state_to (@$init_states_to) {
+            foreach my $init_state_from (@$init_states_from) {
+                croak 'Attempt to reintegrate randomisation '
+                     .'when its initial PRNG state has already been used'
+                  if $c->Cmp ($init_state_to, $init_state_from);
+            }
         }
-        push @randomisations_from_to_use, $name_from;
-        # We are going to add this one, so add its init state to the list
-        #  and track the number of iters it provided.
-        #  -- should also track the end state 
-        push @$prng_init_states, $init_state_from;
-        my $prng_total_counts_array = $rand_to->get_prng_init_total_counts_array;
 
-        my $iterations_from = $rand_from->get_param ('TOTAL_ITERATIONS');
-        push @$prng_total_counts_array, $iterations_from;
-        my $total_iterations = $rand_to->get_param_as_ref ('TOTAL_ITERATIONS');
-        $$total_iterations += $iterations_from;
+        push @randomisations_to_reintegrate, $name_from;
+
+        # We are going to add this one, so update the
+        # init and end states, and the iteration counts 
+        push @$init_states_to, @$init_states_from;
+
+        my $prng_total_counts_array   = $rand_to->get_prng_total_counts_array;
+        push @$prng_total_counts_array, $rand_from->get_prng_total_counts_array;
+        my $prng_end_states_array   = $rand_to->get_prng_end_states_array;
+        push @$prng_end_states_array, $rand_from->get_prng_end_states_array;
+
+        my $total_iters = sum (@$prng_total_counts_array);
+        $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
     }
 
-    my $rand_list_re_text  = '^(?:' . join ('|', @randomisations_from_to_use) . ')>>(?!sig>>)';
+    my $rand_list_re_text  = '^(?:' . join ('|', @randomisations_to_reintegrate) . ')>>(?!p_rank>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     #  now we can finally get some work done

@@ -2921,30 +2921,57 @@ sub delete_from_sorted_list_aa {
 
 sub get_prng_init_states_array {
     my $self = shift;
-    my $state_data = $self->get_prng_init_state_data;
-    my $states = ($state_data->{STATES_ARRAY} //= []);
+    my $state_data = $self->get_prng_state_data;
+    my $states = ($state_data->{INIT_STATES} //= []);
+    # should perhaps do this in the main code,
+    # but we only need it for basedata reintegration
+    if (!scalar @$states) {
+        if (my $init_state = $self->get_param('RAND_INIT_STATE')) {
+            push @$states, $init_state;
+        }
+    }
     return wantarray ? @$states : $states;
 }
 
-sub get_prng_init_total_counts_array {
+sub get_prng_end_states_array {
     my $self = shift;
-    my $state_data = $self->get_prng_init_state_data;
-    my $counts = ($state_data->{TOTAL_COUNTS_ARRAY} //= []);
+    my $state_data = $self->get_prng_state_data;
+    my $states = ($state_data->{END_STATES} //= []);
+    # should perhaps do this in the main code,
+    # but we only need it for basedata reintegration
+    if (!scalar @$states) {
+        if (my $state = $self->get_param('RAND_LAST_STATE')) {
+            push @$states, $state;
+        }
+    }
+    return wantarray ? @$states : $states;
+}
+
+sub get_prng_total_counts_array {
+    my $self = shift;
+    my $state_data = $self->get_prng_state_data;
+    my $counts = ($state_data->{TOTAL_ITERATIONS} //= []);
+    if (!scalar @$counts) {
+        if (my $iters = $self->get_param('TOTAL_ITERATIONS')) {
+            push @$counts, $iters;
+        }
+    }
     return wantarray ? @$counts : $counts;
 }
 
-sub get_prng_init_state_data {
+sub get_prng_state_data {
     my $self = shift;
-    my $state_data = $self->get_param ('RAND_INIT_STATE_DATA');
+    my $state_data = $self->get_param ('RAND_STATE_DATA');
     if (!defined $state_data) {
         $state_data = {
-            STATES_ARRAY       => [],
-            TOTAL_COUNTS_ARRAY => [],
+            INIT_STATES      => [],
+            END_STATES       => [],
+            TOTAL_ITERATIONS => [],
         };
-        $self->set_param (RAND_INIT_STATE_DATA => $state_data);
+        $self->set_param (RAND_STATE_DATA => $state_data);
     }
 
-    return wantarray ? @$state_data : $state_data;
+    return $state_data;
 }
 
 

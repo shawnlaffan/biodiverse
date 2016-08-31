@@ -22,7 +22,7 @@ use List::Util qw /min max/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
@@ -78,6 +78,7 @@ sub new {
     $self->set_params(
         CONDITIONS    => $conditions,
         WARNING_COUNT => 0,
+        NO_LOG        => $args{no_log},
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
 
@@ -661,24 +662,24 @@ sub get_distances {
         my $coord1 = $element1[$i];
         croak
             'coord1 value is not numeric: '
-            . ( defined $coord1 ? $coord1 : 'undef' )
+            . ( $coord1 // 'undef' )
             . "\n$locale_warning"
             if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
             'coord2 value is not numeric: '
-            . ( defined $coord2 ? $coord2 : 'undef' )
+            . ( $coord2 // 'undef' )
             . "\n$locale_warning"
             if !looks_like_number($coord2);
 
-        my $d_val = 
-            eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
-
-        $d[$i] = 0 + $self->set_precision_aa ($d_val, '%.10f');
-        $D[$i] = 0 + $self->set_precision_aa (abs $d_val, '%.10f');
+        #  trap errors from non-numeric coords
+        my $d_val   = eval { $coord2 - $coord1 }; 
         $sum_D_sqr += $d_val**2;
-
+        $d_val = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $d[$i] = $d_val;
+        $D[$i] = abs $d_val;
+        
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
             or scalar keys %{ $params->{use_cell_distances} } )
@@ -687,10 +688,11 @@ sub get_distances {
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
                 if $cellsize[$i] <= 0;
 
-            my $c_val = eval { $d_val / $cellsize[$i] };
-            $c[$i] = 0 + $self->set_precision_aa ($c_val, '%.10f');
-            $C[$i] = 0 + $self->set_precision_aa (eval { abs $c_val }, '%.10f');
+            my $c_val   = eval { $d_val / $cellsize[$i] };
             $sum_C_sqr += eval { $c_val**2 } || 0;
+            $c_val = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $c[$i] = $c_val;
+            $C[$i] = abs $c_val;
         }
     }
 
@@ -704,8 +706,8 @@ sub get_distances {
         : undef;
 
     my %hash = (
-        d_list => [map {0 + $self->set_precision_aa ($_)} @d],
-        D_list => [map {0 + $self->set_precision_aa ($_)} @D],
+        d_list => \@d,
+        D_list => \@D,
         D      => $D,
         Dsqr   => $sum_D_sqr,
         C      => $C,
@@ -811,7 +813,9 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-    say "PARSED CONDITIONS:  $conditions";
+    if (!$self->get_param('NO_LOG')) {
+        say "PARSED CONDITIONS:  $conditions";
+    }
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;
@@ -2288,20 +2292,20 @@ sub _get_shp_examples {
 sp_point_in_poly_shape (
     file  => 'c:\biodiverse\data\coastline_lamberts',
     point => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a shapefile's second polygon (counting from 1)?
 sp_point_in_poly_shape (
     file      => 'c:\biodiverse\data\coastline_lamberts',
     field_val => 2,
     point     => \@nbrcoord,
-)
+);
 # Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
 sp_point_in_poly_shape (
-    file      => 'c:\biodiverse\data\coastline_lamberts',
-    field     => 'OBJECT_ID',
-    field_val => 2,
-    point     => \@nbrcoord,
-)
+    file       => 'c:\biodiverse\data\coastline_lamberts',
+    field_name => 'OBJECT_ID',
+    field_val  => 2,
+    point      => \@nbrcoord,
+);
 END_OF_SHP_EXAMPLES
   ;
     return $examples;
@@ -2530,8 +2534,8 @@ sub get_cache_name_sp_point_in_poly_shape {
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
-        ($args{field_name} || $NULL_STRING),
-        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+        ($args{field_name} // $NULL_STRING),
+        ($args{field_val}  // $NULL_STRING);
     return $cache_name;
 }
 
@@ -2576,19 +2580,23 @@ sub get_polygons_from_shapefile {
     my $file = $args{file};
     $file =~ s/\.(shp|shx|dbf)$//;
 
-    my $field = $args{field_name};
+    my $field_name = $args{field_name};
+    my $field_val  = $args{field_val};
 
-    my $field_val = $args{field_val};
-
-    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field // $NULL_STRING), ($field_val // $NULL_STRING);
-    my $cached     = $self->get_cached_value($cache_name);
+    my $cache_name
+        = join ':',
+          'SHAPEPOLYS',
+          $file,
+          ($field_name // $NULL_STRING),
+          ($field_val  // $NULL_STRING);
+    my $cached = $self->get_cached_value($cache_name);
 
     return (wantarray ? @$cached : $cached) if $cached;
 
     my $shapefile = Geo::ShapeFile->new($file);
 
     my @shapes;
-    if ((!defined $field || $field eq 'FID') && defined $field_val) {
+    if ((!defined $field_name || $field_name eq 'FID') && defined $field_val) {
         my $shape = $shapefile->get_shp_record($field_val);
         push @shapes, $shape;
     }
@@ -2606,15 +2614,15 @@ sub get_polygons_from_shapefile {
             );
 
             #  get the lot
-            if ((!defined $field || $field eq 'FID') && !defined $field_val) {
+            if ((!defined $field_name || $field_name eq 'FID') && !defined $field_val) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 next REC;
             }
 
             #  get all that satisfy the condition
             my %db = $shapefile->get_dbf_record($rec);
-            my $is_num = looks_like_number ($db{$field});
-            if ($is_num ? $field_val == $db{$field} : $field_val eq $db{$field}) {
+            my $is_num = looks_like_number ($db{$field_name});
+            if ($is_num ? $field_val == $db{$field_name} : $field_val eq $db{$field_name}) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 #last REC;
             }

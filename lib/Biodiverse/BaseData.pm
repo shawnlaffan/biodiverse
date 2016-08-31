@@ -46,7 +46,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 use parent qw {Biodiverse::Common};
 
@@ -100,9 +100,10 @@ sub new {
                     #  These will be overwritten if needed.
                     #  those commented out are redundant
         #NAME  =>  "BASEDATA",
-        OUTSUFFIX           => 'bds',
+        OUTSUFFIX           => __PACKAGE__->get_file_suffix,
         #OUTSUFFIX_XML      => 'bdx',
-        OUTSUFFIX_YAML      => 'bdy',
+        OUTSUFFIX_YAML      => __PACKAGE__->get_file_suffix_yaml,
+        LAST_FILE_SERIALISATION_FORMAT => undef,
         INPFX               => q{.},
         QUOTES              => q{'},  #  for Dan
         OUTPUT_QUOTE_CHAR   => q{"},
@@ -157,6 +158,13 @@ sub new {
     return $self;
 }
 
+sub get_file_suffix {
+    return 'bds';
+}
+
+sub get_file_suffix_yaml {
+    return 'bdy';
+}
 
 sub binarise_sample_counts {
     my $self = shift;
@@ -211,36 +219,36 @@ sub rename_output {
     my %args = @_;
     
     my $object   = $args{output};
+    croak 'Argument "output" not defined'
+      if !defined $object;
+
     my $new_name = $args{new_name};
-    my $name     = $object->get_param ('NAME');
-    my $hash_ref;
-    
-    if ((blessed $object) =~ /Spatial/) {
-        print "[BASEDATA] Renaming spatial output $name to $new_name\n";
-        $hash_ref = $self->{SPATIAL_OUTPUTS};
-    }
-    elsif ((blessed $object) =~ /Cluster|RegionGrower|Tree/) {
-        print "[BASEDATA] Renaming cluster output $name to $new_name\n";
-        $hash_ref = $self->{CLUSTER_OUTPUTS};
-        
-    }
-    elsif ((blessed $object) =~ /Matrix/) {
-        print "[BASEDATA] Renaming matrix output $name to $new_name\n";
-        $hash_ref = $self->{MATRIX_OUTPUTS};
-    }
-    else {
-        croak "[BASEDATA] Cannot rename this type of output: ",
-                blessed ($object) || $EMPTY_STRING,
-                "\n";
-    }
+    my $name     = $object->get_name;
+
+    my $class = (blessed $object) // $EMPTY_STRING;
+
+    my $o_type
+      = $class =~ /Spatial/                   ? 'SPATIAL_OUTPUTS'
+      : $class =~ /Cluster|RegionGrower|Tree/ ? 'CLUSTER_OUTPUTS'
+      : $class =~ /Matrix/                    ? 'MATRIX_OUTPUTS'
+      : $class =~ /Randomise/                 ? 'RANDOMISATION_OUTPUTS'
+      : undef;
+
+    croak "[BASEDATA] Cannot rename this type of output: $class\n"
+      if !$o_type;
+  
+    my $hash_ref = $self->{$o_type};
+
+
+    my $type = $class;
+    $type =~ s/.*://;
+    say "[BASEDATA] Renaming output $name to $new_name, type is $type";
 
     # only if it exists in this basedata
     if (exists $hash_ref->{$name}) {
-        my $type = blessed $object;
-        $type =~ s/.*://;
 
         croak "Cannot rename $type output $name to $new_name.  Name is already in use\n"
-            if exists $hash_ref->{$new_name};
+          if exists $hash_ref->{$new_name};
 
         $hash_ref->{$new_name} = $object;
         $hash_ref->{$name} = undef;
@@ -259,6 +267,65 @@ sub rename_output {
     return;
 }
 
+#  deletion of randomisations is more complex than spatial and cluster outputs
+sub do_rename_randomisation_lists {
+    my $self = shift;
+    my %args = @_;
+    
+    my $object = $args{output};
+    my $name   = $object->get_name;
+    my $new_name = $args{new_name};
+    
+    croak "Argument new_name not defined\n"
+      if !defined $new_name;
+
+    #  loop over the spatial outputs and rename the lists
+  BY_SPATIAL_OUTPUT:
+    foreach my $sp_output ($self->get_spatial_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $sp_output->get_lists_across_elements;
+
+        foreach my $list (@lists) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name>>/$new_name>>/;
+            foreach my $element ($sp_output->get_element_list) {
+                $sp_output->rename_list (
+                    list     => $list,
+                    element  => $element,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $sp_output->delete_cached_values;
+    }
+    
+    #  and now the cluster outputs
+    my @node_lists = (
+        $name,
+        $name . '_ID_LDIFFS',
+        $name . '_DATA',
+    );
+
+  BY_CLUSTER_OUTPUT:
+    foreach my $cl_output ($self->get_cluster_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $cl_output->get_list_names_below;
+        my @lists_to_rename = (@node_lists, @lists);
+
+        foreach my $list (@lists_to_rename) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name/$new_name/;
+
+            foreach my $node_ref ($cl_output->get_node_refs) {
+                $node_ref->rename_list (
+                    list     => $list,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $cl_output->delete_cached_values;
+    }
+    
+    return;
+}
 
 #  define our own clone method for more control over what is cloned.
 #  use the SUPER method (should be from Biodiverse::Common) for the components.
@@ -560,26 +627,11 @@ sub get_metadata_import_data_common {
     my $self = shift;
     
     my @parameters = (
-        { name       => 'use_label_properties',
-          label_text => 'Set label properties and remap?',
-          tooltip    => "Change label names, \n"
-                      . "set range, sample count,\n"
-                      . "set exclude and include flags at the label level etc.",
-          type       => 'boolean',
-          default    => 0,
-        },
-        { name       => 'use_group_properties',
-          label_text => 'Set group properties and remap?',
-          tooltip    => "Change group names, \n"
-                      . "set exclude and include flags at the group level etc.",
-          type       => 'boolean',
-          default    => 0,
-        },
         { name       => 'allow_empty_labels',
          label_text  => 'Allow labels with no groups?',
          tooltip     => "Retain labels with no groups.\n"
                       . "Requires a sample count column with value zero\n"
-                      . "(undef is treated as 1).",
+                      . "(undef/empty is treated as 1).",
          type        => 'boolean',
          default     => 0,
         },
@@ -587,7 +639,7 @@ sub get_metadata_import_data_common {
           label_text => 'Allow empty groups?',
           tooltip    => "Retain groups with no labels.\n"
                       . "Requires a sample count column with value zero\n"
-                      . "(undef is treated as 1).",
+                      . "(undef/empty is treated as 1).",
           type       => 'boolean',
           default    => 0,
         },
@@ -669,18 +721,26 @@ sub get_metadata_import_data_text {
 sub get_metadata_import_data_raster {
     my $self = shift;
     
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (q{,}, 'tab', q{;}, 'space', q{:});
-    my @input_sep_chars = ('guess', @sep_chars);
-    
-    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
-    my @input_quote_chars = ('guess', @quote_chars);
+    #my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+    #              ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+    #              : (q{,}, 'tab', q{;}, 'space', q{:});
+    #my @input_sep_chars = ('guess', @sep_chars);
+    #
+    #my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    #my @input_quote_chars = ('guess', @quote_chars);
     
     my @parameters = (
         { name       => 'labels_as_bands',
           label_text => 'Read bands as labels?',
-          tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
+          tooltip    => 'When reading raster data, does each band represent a '
+                      . 'label (eg species)?',
+          type       => 'boolean',
+          default    => 1,
+        },
+        { name       => 'strip_file_extensions_from_names',
+          label_text => 'Strip file extensions from names?',
+          tooltip    => 'Strip any file extensions from label names when treating '
+                      . 'band names as labels',
           type       => 'boolean',
           default    => 1,
         },
@@ -754,28 +814,6 @@ sub import_data {
 
     $args{sample_count_columns} //= [];
     
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
-
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -834,10 +872,6 @@ sub import_data {
         sample_count_columns => \@sample_count_columns,
         exclude_columns      => $exclude_columns,
         include_columns      => $include_columns,
-        label_properties     => $label_properties,
-        use_label_properties => $use_label_properties,
-        group_properties     => $group_properties,
-        use_group_properties => $use_group_properties,
         allow_empty_groups   => $allow_empty_groups,
         allow_empty_labels   => $allow_empty_labels,
     );
@@ -1102,27 +1136,6 @@ sub import_data {
                 );
             }
 
-            #  remap it if needed
-            if ($use_group_properties) {
-                my $remapped = $group_properties->get_element_remapped (
-                    element => $group,
-                );
-
-                #  test exclude and include before remapping
-                next BYLINE
-                  if $group_properties->get_element_exclude (
-                    element => $group,
-                  );
-
-                my $include = $group_properties->get_element_include (element => $group)
-                              // 1;
-                next BYLINE if !$include;
-
-                if (defined $remapped) {
-                    $group = $remapped;
-                }
-            }
-
             my %elements;
             if ($data_in_matrix_form) {
                 %elements =
@@ -1223,6 +1236,10 @@ sub import_data_raster {
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
     my $labels_as_bands = exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
+    my $strip_file_extensions_from_names
+      = exists $args{strip_file_extensions_from_names}
+        ? $args{strip_file_extensions_from_names}
+        : 1;
     my $cellorigin_e    = $args{raster_origin_e};
     my $cellorigin_n    = $args{raster_origin_n};
     my $cellsize_e      = $args{raster_cellsize_e};
@@ -1231,29 +1248,6 @@ sub import_data_raster {
 
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
-
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
-    # QUESTION- do we need to do more than this with the properties?
 
     say "[BASEDATA] Loading from files as GDAL "
             . join (q{ }, @{$args{input_files}});
@@ -1337,10 +1331,13 @@ sub import_data_raster {
             if (defined $given_label) {
                 $this_label = $given_label;
             }
-            elsif ($labels_as_bands) { 
+            elsif ($labels_as_bands) {
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
                     $this_label = Path::Class::File->new($file->stringify)->basename();
+                    if ($strip_file_extensions_from_names) {
+                        $this_label =~ s/\.\w+$//;  #  should use fileparse?
+                    }
                 }
                 else {
                     $this_label = "band$b";
@@ -1525,29 +1522,7 @@ sub import_data_shapefile {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
     my $progress_bar = Biodiverse::Progress->new();
-    # QUESTION- do we need to do more than this with the properties?
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
@@ -1754,29 +1729,6 @@ sub import_data_spreadsheet {
     my $data_in_matrix_form  = $args{data_in_matrix_form};
     my $allow_empty_groups   = $args{allow_empty_groups};
     my $allow_empty_labels   = $args{allow_empty_labels};
-
-
-    #  load the properties tables from the args, or use the ones we already have
-    #  labels first
-    my $label_properties;
-    my $use_label_properties = $args{use_label_properties};
-    if ($use_label_properties) {  # twisted - FIXFIXFIX
-        $label_properties = $args{label_properties}
-                            || $self->get_param ('LABEL_PROPERTIES');
-        if ($args{label_properties}) {
-            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
-        }
-    }
-    #  then groups
-    my $group_properties;
-    my $use_group_properties = $args{use_group_properties};
-    if ($use_group_properties) {
-        $group_properties = $args{group_properties}
-                            || $self->get_param ('GROUP_PROPERTIES');
-        if ($args{group_properties}) {
-            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
-        }
-    }
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -2145,6 +2097,7 @@ sub _attach_label_ranges_or_counts_as_properties {
     }
 
     my $lb = $self->get_labels_ref;
+    $lb->delete_cached_values;
 
   LABEL:
     foreach my $label ($args{target_labels} || $self->get_labels) {
@@ -2378,22 +2331,6 @@ sub get_labels_from_line {
         list => \@tmp,
         csv_object => $csv_object,
     );
-    
-    #  remap it if needed
-    if ($use_label_properties) {
-        my $remapped
-            = $label_properties->get_element_remapped (element => $label);
-
-        #  test include and exclude before remapping
-        return if $label_properties->get_element_exclude (element => $label);
-
-        my $include = $label_properties->get_element_include (element => $label);    
-
-        return if defined $include and not $include;
-
-        $label = $remapped if defined $remapped;
-    }
-
 
     #  get the sample count
     my $sample_count;
@@ -2483,19 +2420,6 @@ sub get_label_columns_for_matrix_import {
             csv_object => $csv_object,
         );
 
-        #  remap it if needed
-        if ($use_label_properties) {
-            my $remapped = $label_properties->get_element_remapped (element => $label);
-            
-            #  text include and exclude before remapping
-            next if $label_properties->get_element_exclude (element => $label);
-            my $include = $label_properties->get_element_include (element => $label);
-            if (defined $include) {
-                next LABEL_COLS unless $include;
-            }
-
-            $label = $remapped if defined $remapped;
-        }
         $label_hash{$label} = $i;
     }
     
@@ -3815,7 +3739,8 @@ sub delete_output {
     my $object = $args{output};
     my $name = $object->get_param('NAME');
 
-    my $type = blessed $object;
+    my $class = blessed ($object) || $EMPTY_STRING;
+    my $type  = $class;
     $type =~ s/.*://; #  get the last part
     print "[BASEDATA] Deleting $type output $name\n";
     
@@ -3833,15 +3758,13 @@ sub delete_output {
         delete $self->{MATRIX_OUTPUTS}{$name};
     }
     elsif ($type =~ /Randomise/) {
-        $self->do_delete_randomisation (@_);
+        $self->do_delete_randomisation_lists (@_);
     }
     else {
-        croak "[BASEDATA] Cannot delete this type of output: ",
-              blessed ($object) || $EMPTY_STRING,
-              "\n";
+        croak "[BASEDATA] Cannot delete this type of output: $class\n";
     }
     
-    if (!defined $args{delete_basedata_ref} || $args{delete_basedata_ref}) {
+    if ($args{delete_basedata_ref} // 1) {
         $object->set_param (BASEDATA_REF => undef);  #  free its parent ref
     }
     $object = undef;  #  clear it
@@ -3850,15 +3773,15 @@ sub delete_output {
 }
 
 #  deletion of these is more complex than spatial and cluster outputs
-sub do_delete_randomisation {
+sub do_delete_randomisation_lists {
     my $self = shift;
     my %args = @_;
     
     my $object = $args{output};
-    my $name = $object->get_param('NAME');
-    
-    print "[BASEDATA] Deleting randomisation output $name\n";
-    
+    my $name = $object->get_name;
+
+    say "[BASEDATA] Deleting randomisation output $name";
+
     #  loop over the spatial outputs and clear the lists
     BY_SPATIAL_OUTPUT:
     foreach my $sp_output ($self->get_spatial_output_refs) {

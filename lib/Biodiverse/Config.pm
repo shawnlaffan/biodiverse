@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -91,6 +91,30 @@ BEGIN {
     }
 }
 
+#  Check for installed dependencies and warn if not present.
+#  Useful when users are running off the source code install
+#  and aren't tracking announcements.
+#  Should loop this.
+BEGIN {
+    if (not eval {require Sereal}) {
+        die "Cannot locate the Sereal package.  You probably need to install it using, for example:\n"
+        . "cpanm Sereal\n"
+        . "at the command prompt.\n"
+        . "See https://metacpan.org/release/Sereal for more details about what it does.";
+    }
+    if (not eval {require JSON::MaybeXS}) {
+        die "Cannot locate the JSON::MaybeXS package.  You probably need to install it using, for example:\n"
+        . "cpanm JSON::MaybeXS\n"
+        . "at the command prompt.\n"
+        . "See https://metacpan.org/release/JSON-MaybeXS for more details about what it does.";
+    }
+    if (not eval {require Cpanel::JSON::XS}) {
+        die "Cannot locate the Cpanel::JSON::XS package.  You probably need to install it using, for example:\n"
+        . "cpanm Cpanel::JSON::XS\n"
+        . "at the command prompt.\n"
+        . "See https://metacpan.org/release/Cpanel-JSON-XS for more details about what it does.";
+    }
+}
 
 #  add biodiverse lib paths so we get all the extensions
 sub add_lib_paths {

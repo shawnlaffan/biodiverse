@@ -13,7 +13,7 @@ use List::MoreUtils qw /firstidx lastidx/;
 use List::Util qw /first/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -200,7 +200,7 @@ sub convert_comparisons_to_significances {
     # find all the relevant lists for this target name
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
-      = grep {$_ =~ /^$result_list_pfx>>(?!sig>>)/}
+      = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_lists_across_elements;
 
     my $to_do = $self->get_element_count;
@@ -248,14 +248,14 @@ sub convert_comparisons_to_significances {
             next BY_LIST if (ref $comp_ref) =~ /ARRAY/;  #  skip arrays
 
             my $result_list_name = $list_name;
-            $result_list_name =~ s/>>/>>sig>>/;
+            $result_list_name =~ s/>>/>>p_rank>>/;
 
             my $result_list_ref = $self->get_list_ref (
                 element => $element,
                 list    => $result_list_name,
             );
 
-            $self->get_significance_from_comp_results (
+            $self->get_sig_rank_from_comp_results (
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,  #  do it in-place
             );

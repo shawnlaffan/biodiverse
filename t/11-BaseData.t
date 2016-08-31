@@ -97,6 +97,100 @@ sub main {
 }
 
 
+sub test_rename_outputs {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [1,1],
+        x_max => 5,
+        y_max => 2,
+    );
+    
+    my $sp_calcs = [qw /calc_endemism_whole calc_endemism_whole_lists/];
+
+    #  spatial
+    my $sp = $bd->add_spatial_output (name => 'sp_n1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => $sp_calcs,
+    );
+    my $spx = $bd->add_spatial_output (name => 'sp_n1x');
+    $spx->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => $sp_calcs,
+    );
+    $bd->rename_output (new_name => 'sp_n2', output => $sp);
+    is $sp->get_name,  'sp_n2',  'renamed spatial output';
+    is $spx->get_name, 'sp_n1x', 'did not rename other spatial output';
+
+    my @sp_names = $bd->get_spatial_output_names;
+    is_deeply [sort @sp_names], [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
+
+    #  cluster
+    my $cl = $bd->add_cluster_output (name => 'cl_n1');
+    $cl->run_analysis (
+        spatial_calculations => $sp_calcs,
+    );
+    my $clx = $bd->add_cluster_output (name => 'cl_n1x');
+    $clx->run_analysis (
+        spatial_calculations => $sp_calcs,
+    );
+    $bd->rename_output (new_name => 'cl_n2', output => $cl);
+    is $cl->get_name,  'cl_n2',  'renamed cluster output';
+    is $clx->get_name, 'cl_n1x', 'did not rename other cluster output';
+
+    my @cl_names = $bd->get_cluster_output_names;
+    is_deeply [sort @cl_names], [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
+
+    my $mx = $cl->get_matrix_ref;
+    $bd->rename_output (new_name => 'mx_n2', output => $mx);
+    is $mx->get_name, 'mx_n2', 'renamed matrix output';
+
+    my @mx_names = $bd->get_matrix_output_names;
+    is_deeply [sort @mx_names], [qw 'mx_n2'], 'basedata matrix names match';
+
+    my $rand = $bd->add_randomisation_output (name => 'rd_n1');
+    eval {
+        $rand->run_analysis (
+            function   => 'rand_nochange',
+            iterations => 1,
+        );
+    };
+    diag $@ if $@;
+    my $randx = $bd->add_randomisation_output (name => 'rd_n1x');
+    $randx->run_analysis (
+        function   => 'rand_nochange',
+        iterations => 1,
+    );
+
+    my @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_orig = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    my @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_orig = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+
+    eval {
+        $bd->rename_output (new_name => 'rd_n2', output => $rand);
+    };
+    diag $@ if $@;
+
+    is $rand->get_name, 'rd_n2', 'renamed randomisation output';
+
+    @sp_lists = $sp->get_lists_across_elements;
+    my $sp_named_lists_new = grep {$_ =~ '^rd_n2>>'} @sp_lists;
+    is $sp_named_lists_new, $sp_named_lists_orig, 'same number of new named lists as old, sp';
+    $sp_named_lists_orig   = grep {$_ =~ '^rd_n1>>'} @sp_lists;
+    is $sp_named_lists_orig, 0, 'no lists found with old name, sp';
+
+    @cl_lists = $cl->get_list_names_below;
+    my $cl_named_lists_new = grep {$_ =~ '^rd_n2'} @cl_lists;
+    is $cl_named_lists_new, $cl_named_lists_orig, 'same number of new named lists as old, cl';
+    $cl_named_lists_orig   = grep {$_ =~ '^rd_n1(?!x)'} @cl_lists;
+    is $cl_named_lists_orig, 0, 'no lists found with old name, cl';
+
+    my @rand_names = $bd->get_randomisation_output_names;
+    is_deeply [sort @rand_names], [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
+
+    return;
+}
+
 sub test_remapped_labels_when_stringified_and_numeric {
     my $label_numeric1 = 10;
     my $label_numeric2 = 20;
@@ -813,11 +907,10 @@ sub test_roundtrip_raster {
 
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
-    # assume export was in format labels_as_bands = 0
     my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
     my @cell_origins    = $bd->get_cell_origins;    
     my %in_options_hash = (
-        labels_as_bands   => 0,
+        labels_as_bands   => 1,
         raster_origin_e   => $cell_origins[0],
         raster_origin_n   => $cell_origins[1], 
         raster_cellsize_e => $cell_sizes[0],
@@ -835,7 +928,7 @@ sub test_roundtrip_raster {
 
         #  need to use a better approach for the name
         my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-        my $fname_base = $format; 
+        my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;
@@ -870,19 +963,25 @@ sub test_roundtrip_raster {
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
-            $this_label =~ s/.*${fname_base}_//; 
-            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
-            $this_label = uri_unescape($this_label);
-            note "got label $this_label\n";
+            $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
+            my $target_name = $this_label;
+            $target_name =~ s/.*${fname_base}_//; 
+            $target_name = uri_unescape($target_name);
+            #note "Working on $target_name, $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
                     input_files => [$this_file],
                     %in_options_hash,
-                    #labels_as_bands => 1,
-                    given_label => $this_label,
+                    labels_as_bands => 1,
+                    #given_label => $this_label,
                 );
             };
+            #  cope with the export name including the format
+            $new_bd->rename_label (
+                label    => $this_label,
+                new_name => $target_name,
+            );
             $e = $EVAL_ERROR;
             ok (!$e, "no exceptions importing $fname");
             diag $e if $e;

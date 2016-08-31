@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 use File::Basename;
 use Gtk2;
@@ -573,37 +573,6 @@ sub run {
         @cell_origins = @{$reorder_params->{CELL_ORIGINS}};
     }
 
-    #########
-    # 3a. Load the label and group properties
-    #########
-    my %other_properties = (
-        label => [qw /range sample_count/],
-        group => ['sample_count'],
-    );
-
-    foreach my $type (qw /label group/) {
-        if ($import_params{"use_$type\_properties"}) {
-            my %remap_data = get_remap_info (
-                gui  => $gui,
-                type => $type,
-                get_dir_from     => $filenames[0],
-                other_properties => $other_properties{$type},
-                max_cols_to_show => $import_params{max_opt_cols},
-            );
-
-            #  now do something with them...
-            my $remap;
-            if ($remap_data{file}) {
-                #my $file = $remap_data{file};
-                $remap = Biodiverse::ElementProperties->new;
-                $remap->import_data (%remap_data);
-            }
-            $import_params{"$type\_properties"} = $remap;
-            if (not defined $remap) {
-                $import_params{"use_$type\_properties"} = undef;
-            }
-        }
-    }
 
     #########
     # 4. Load the data

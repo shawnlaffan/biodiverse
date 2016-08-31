@@ -6,6 +6,8 @@ use Data::Alias qw /alias/;
 
 use Carp;
 
+our $VERSION = '1.99_005';
+
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_rw_turnover {

@@ -12,6 +12,7 @@ use English ( -no_match_vars );
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
+#use YAML::XS;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
@@ -41,7 +42,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -105,17 +106,83 @@ sub load_file {
     croak "File $args{file} does not exist or is not readable\n"
       if !-r $args{file};
 
+    my $suffix = $args{file} =~ /\..+?$/;
+
+    my @importer_funcs
+      = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
+      : $suffix =~ /y$/ ? qw /load_yaml_file/
+      : qw /load_sereal_file load_storable_file load_yaml_file/;
+
     my $object;
-    foreach my $type (qw /storable yaml/) {
-        my $func = "load_$type\_file";
+    foreach my $func (@importer_funcs) {
         $object = eval {$self->$func (%args)};
-        #croak $EVAL_ERROR if $EVAL_ERROR;
-        #warn $@ if $@;
+        #warn $EVAL_ERROR if $EVAL_ERROR;
         last if defined $object;
     }
 
     return $object;
 }
+
+sub load_sereal_file {
+    my $self = shift;  #  gets overwritten if the file passes the tests
+    my %args = @_;
+
+    croak "argument 'file' not defined\n"
+      if !defined ($args{file});
+
+    #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
+    my $expected_suffix
+        =  $args{suffix}
+        // $self->get_param('OUTSUFFIX')
+        // eval {$self->get_file_suffix}
+        // $EMPTY_STRING;
+
+    my $file = Path::Class::file($args{file})->absolute;
+    croak "[BASEDATA] File $file does not exist\n"
+      if !-e $file;
+
+    croak "[BASEDATA] File $file does not have the correct suffix\n"
+       if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
+
+    #  load data from sereal file, ignores rest of the args
+    use Sereal::Decoder;
+    my $decoder = Sereal::Decoder->new();
+
+    my $string;
+
+    open my $fh, '<', $file or die 'Cannot open $file, $!';
+    $fh->binmode;
+    read $fh, $string, 100;  #  get first 100 chars for testing
+    $fh->close;
+
+    my $type = $decoder->looks_like_sereal($string);
+    if ($type eq '') {
+        say "Not a Sereal document";
+        croak "$file is not a Sereal document";
+    }
+    elsif ($type eq '0') {
+        say "Possibly utf8 encoded Sereal document";
+        croak "Won't open $file as a Sereal document";
+    }
+    else {
+        say "Sereal document version $type";
+    }
+
+    #  now get the whole file
+    {
+        local $/ = undef;
+        open my $fh, '<', $file or die 'Cannot open $file';
+        $string = <$fh>;
+    }
+
+    my $structure;
+    $self = $decoder->decode($string, $structure);
+
+    $self->set_last_file_serialisation_format ('sereal');
+
+    return $self;
+}
+
 
 sub load_storable_file {
     my $self = shift;  #  gets overwritten if the file passes the tests
@@ -145,6 +212,7 @@ sub load_storable_file {
             $self -> $fn if $self->can($fn);
         }
     }
+    $self->set_last_file_serialisation_format ('storable');
 
     return $self;
 }
@@ -181,14 +249,49 @@ sub load_yaml_file {
     return if ! -e $args{file};
     return if ! ($args{file} =~ /$suffix$/);
 
-    $self = YAML::Syck::LoadFile ($args{file});
+    #my $loaded = YAML::XS::LoadFile ($args{file});
+    my $loaded = YAML::Syck::LoadFile ($args{file});
+
+    #  yaml does not handle weak refs, so we need to put them back in
+    foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
+        if ($loaded->can($fn)) {
+            say $fn;
+            eval {
+                $loaded->$fn;
+                1;
+            };
+            warn $EVAL_ERROR if $EVAL_ERROR;
+        }
+        #$self->$fn if $self->can($fn);
+    }
+
+    return $loaded;
+}
+
+sub load_data_dumper_file {
+    my $self = shift;  #  gets overwritten if the file passes the tests
+    my %args = @_;
+
+    return if ! defined ($args{file});
+    #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
+
+    return if ! -e $args{file};
+    #return if ! ($args{file} =~ /$suffix$/);
+
+    my $data;
+    {
+        local $/ = undef;
+        open(my $fh, '<', $args{file}) or die "Cannot open $args{file}\n";
+        $data = <$fh>;
+    }
+    $self = eval $data;
 
     #  yaml does not handle waek refs, so we need to put them back in
-    foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self -> $fn if $self->can($fn);
-    }
-    return $self;
+    #foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
+    #    $self -> $fn if $self->can($fn);
+    #}
 
+    return $self;
 }
 
 sub set_basedata_ref {
@@ -632,7 +735,7 @@ sub update_log {
     if ($self -> get_param ('RUN_FROM_GUI')) {
 
         $args{type} = 'update_log';
-        $self -> dump_to_yaml (data => \%args);
+        $self->dump_to_yaml (data => \%args);
     }
     else {
         print $args{text};
@@ -643,6 +746,20 @@ sub update_log {
 
 #  for backwards compatibility
 *write = \&save_to;
+
+sub set_last_file_serialisation_format {
+    my ($self, $format) = @_;
+
+    croak "Invalid serialisation format name passed"
+      if not ($format // '') =~ /^(?:sereal|storable)$/;
+
+    return $self->set_param(LAST_FILE_SERIALISATION_FORMAT => $format);
+}
+
+sub get_last_file_serialisation_format {
+    my $self = shift;
+    return $self->get_param('LAST_FILE_SERIALISATION_FORMAT') // 'sereal';
+}
 
 #  some objects have save methods, some do not
 *save =  \&save_to;
@@ -673,7 +790,18 @@ sub save_to {
 
     my $tmp_file_name = $file_name . '.tmp';
 
-    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+    #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+    my $method = $args{method};
+    if (!defined $method) {
+        my $last_fmt = $self->get_last_file_serialisation_format eq 'storable';
+        $method
+          = $suffix eq $yaml_suffix ? 'save_to_yaml'
+          : $last_fmt               ? 'save_to_storable' 
+          : 'save_to_storable';
+    }
+
+    croak "Invalid save method name $method\n"
+      if not $method =~ /^save_to_\w+$/;
 
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -686,6 +814,37 @@ sub save_to {
 
     return $file_name;
 }
+
+#  Dump the whole object to a Sereal file.
+sub save_to_sereal {
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{filename};
+    if (! defined $file) {
+        my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
+        $file = Path::Class::file($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
+    }
+    $file = Path::Class::file($file)->absolute;
+
+    say "[COMMON] WRITING TO SEREAL FORMAT FILE $file";
+
+    use Sereal::Encoder;
+
+    my $encoder = Sereal::Encoder->new();
+    my $out = $encoder->encode($self);
+
+    open (my $fh, '>', $file) or die "Cannot open $file";
+    print {$fh} $out;
+    my $e = $EVAL_ERROR;
+
+    $fh->close;
+
+    croak $e if $e;
+
+    return $file;
+}
+
 
 #  Dump the whole object to a Storable file.
 #  Get the prefix from $self{PARAMS}, or some other default.
@@ -700,7 +859,7 @@ sub save_to_storable {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO STORABLE FORMAT FILE $file\n";
 
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
@@ -724,11 +883,11 @@ sub save_to_xml {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO XML FORMAT FILE $file\n";
 
     open (my $fh, '>', $file);
     print $fh dump_xml ($self);
-    $fh -> close;
+    $fh->close;
 
     return $file;
 }
@@ -746,13 +905,36 @@ sub save_to_yaml {
     }
     $file = Path::Class::file($file)->absolute;
 
-    print "[COMMON] WRITING TO FILE $file\n";
+    print "[COMMON] WRITING TO YAML FORMAT FILE $file\n";
 
     eval {YAML::Syck::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $file;
 }
+
+sub save_to_data_dumper {  
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{filename};
+    if (! defined $file) {
+        my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
+        my $suffix = $self->get_param('OUTSUFFIX') || 'data_dumper';
+        $file = Path::Class::file($file || ($prefix . '.' . $suffix));
+    }
+    $file = Path::Class::file($file)->absolute;
+
+    print "[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file\n";
+
+    use Data::Dumper;
+    open (my $fh, '>', $file);
+    print {$fh} Dumper ($self);
+    $fh->close;
+
+    return $file;
+}
+
 
 #  dump a data structure to a yaml file.
 sub dump_to_yaml {  
@@ -763,12 +945,37 @@ sub dump_to_yaml {
 
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO FILE $file\n";
+        say "WRITING TO YAML FORMAT FILE $file";
         YAML::Syck::DumpFile ($file, $data);
     }
     else {
         print YAML::Syck::Dump ($data);
         print "...\n";
+    }
+
+    return $args{filename};
+}
+
+#  dump a data structure to a yaml file.
+sub dump_to_json {  
+    my $self = shift;
+    my %args = @_;
+
+    #use Cpanel::JSON::XS;
+    use JSON::MaybeXS;
+
+    my $data = $args{data};
+
+    if (defined $args{filename}) {
+        my $file = Path::Class::file($args{filename})->absolute;
+        say "WRITING TO JSON FILE $file";
+        open (my $fh, '>', $file)
+          or croak "Cannot open $file to write to, $!\n";
+        print {$fh} JSON::MaybeXS::encode_json ($data);
+        $fh->close;
+    }
+    else {
+        print JSON::MaybeXS::encode_json ($data);
     }
 
     return $args{filename};
@@ -783,7 +990,7 @@ sub dump_to_xml {
     my $file = $args{filename};
     if (defined $file) {
         $file = Path::Class::file($args{filename})->absolute;
-        print "WRITING TO FILE $file\n";
+        say "WRITING TO XML FORMAT FILE $file";
         open (my $fh, '>', $file);
         print $fh dump_xml ($data);
         $fh->close;
@@ -890,6 +1097,9 @@ sub write_table {
     }
     elsif ($suffix =~ /yml/i) {
         $self->write_table_yaml (%args);
+    }
+    elsif ($suffix =~ /json/i) {
+        $self->write_table_json (%args);
     }
     #elsif ($suffix =~ /shp/) {
     #    $self->write_table_shapefile (%args);
@@ -1070,14 +1280,33 @@ sub write_table_yaml {  #  dump the table to a YAML file.
     my $self = shift;
     my %args = @_;
 
-    my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
-    my $file = $args{file} || croak "file arg not specified\n";
+    my $data = $args{data} // croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
 
     eval {
-        $self -> dump_to_yaml (
+        $self->dump_to_yaml (
             %args,
-            filename => $file
+            filename => $file,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+sub write_table_json {  #  dump the table to a JSON file.
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} // croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    my $file = $args{file} // croak "file arg not specified\n";
+
+    eval {
+        $self->dump_to_json (
+            %args,
+            filename => $file,
         )
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -2316,6 +2545,114 @@ sub get_significance_from_comp_results {
             if (my $sig_lo_2t = first {$p_low  < $_} @sig_thresh_lo_2t) {
                 $results_list_ref->{$sig_2t_name} = -2 * $sig_lo_2t;
             }
+        }
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
+#  almost the same as get_significance_from_comp_results
+sub get_sig_rank_threshold_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my (@sig_thresh_lo, @sig_thresh_hi);
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    if ($args{thresholds}) {
+        @sig_thresh_lo = sort {$a <=> $b} @{$args{thresholds}};
+        @sig_thresh_hi = map  {1 - $_}    @sig_thresh_lo;        
+    }
+    else {
+        @sig_thresh_lo = (0.005, 0.01, 0.025, 0.05);
+        @sig_thresh_hi = (0.995, 0.99, 0.975, 0.95);
+    }
+
+    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+        no autovivification;
+        (my $index_name = $key) =~ s/^C_//;
+
+        my $c_key = 'C_' . $index_name;
+        my $t_key = 'T_' . $index_name;
+        my $q_key = 'Q_' . $index_name;
+        my $p_key = 'P_' . $index_name;
+
+        #  proportion observed higher than random
+        my $p_high = $comp_list_ref->{$p_key};
+        #  proportion observed lower than random 
+        my $p_low
+          =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+            /  $comp_list_ref->{$q_key};
+
+        if (   my $sig_hi = first {$p_high > $_} @sig_thresh_hi) {
+            $results_list_ref->{$index_name} = $sig_hi;
+        }
+        elsif (my $sig_lo = first {$p_low  < $_} @sig_thresh_lo) {
+            $results_list_ref->{$index_name} = $sig_lo;
+        }
+        else {
+            $results_list_ref->{$index_name} = undef;
+        }
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
+sub get_sig_rank_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+    
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my ($sig_thresh_lo, $sig_thresh_hi);
+    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
+    if ($args{threshold}) {
+        $sig_thresh_lo = $args{threshold};
+        $sig_thresh_hi = 1 - $$sig_thresh_lo;
+    }
+    else {
+        $sig_thresh_lo = 0.05;
+        $sig_thresh_hi = 0.95;
+    }
+
+    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+        no autovivification;
+        
+        (my $index_name = $key) =~ s/^C_//;
+
+        if (!defined $comp_list_ref->{$key}) {
+            $results_list_ref->{$index_name} = undef;
+            next;
+        }
+
+        #  proportion observed higher than random
+        my $p_key  = 'P_' . $index_name;
+        my $p_high = $comp_list_ref->{$p_key};
+
+        if (   $p_high > $sig_thresh_hi) {
+            $results_list_ref->{$index_name} = $p_high;
+        }
+        else {
+            my $c_key = 'C_' . $index_name;
+            my $t_key = 'T_' . $index_name;
+            my $q_key = 'Q_' . $index_name;
+
+            #  proportion observed lower than random 
+            my $p_low
+              =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
+                /  $comp_list_ref->{$q_key};
+
+            $results_list_ref->{$index_name}
+              = $p_low  < $sig_thresh_lo ? $p_low : undef;
         }
     }
 

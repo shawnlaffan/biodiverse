@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use 5.010;
 
-use English ( -no_match_vars );
+use English qw / -no_match_vars /;
 
 #use Devel::Symdump;
 use Data::Dumper qw { Dumper };
@@ -38,7 +38,7 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 my $EMPTY_STRING = q{};
 
@@ -74,6 +74,28 @@ sub new {
 
     return $self;
 }
+
+sub rename {
+    my $self = shift;
+    my %args = @_;
+
+    my $new_name = $args{new_name};
+
+    croak "[Randomise] Argument 'new_name' not defined\n"
+      if !defined $new_name;
+
+    #  Handle the lists in other outputs first
+    #  as that depends on our current name
+    my $bd = $self->get_basedata_ref;
+    $bd->do_rename_randomisation_lists (%args, output => $self);
+
+    #  Now rename ourselves
+    $self->set_param (NAME => $new_name);
+
+    return;
+}
+
+
 
 sub metadata_class {
     return $metadata_class;
@@ -430,7 +452,7 @@ sub run_randomisation {
     my $scalar_args = $EMPTY_STRING;
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
-        $val = 'undef' if not defined $val;
+        $val //= 'undef';
         if (not ref ($val)) {
             $scalar_args .= "$key=>$val,";
         }
@@ -836,6 +858,9 @@ sub get_analysis_args_from_object {
         $p_key = $key;
         last ARGS_PARAM if defined $analysis_args;
     }
+
+    croak 'Unable to find analysis args for output ' . $object->get_name
+      if !$analysis_args;
 
     my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
 
@@ -2484,17 +2509,16 @@ sub swap_to_reach_richness_targets {
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups
-                my $unfilled_tmp = $unfilled_gps_without_label{$remove_label} // [];
+                my $unfilled_aref = $unfilled_gps_without_label{$remove_label} // [];
 
+                #  We could directly croak instead of getting an array ref,
+                #  but what if we are given an empty ref?
                 croak "ISSUES WITH RETURN GROUPS\n"
-                  if !scalar @$unfilled_tmp;
+                  if !scalar @$unfilled_aref;
 
-                #  and get one of them at random
-                #$i = int $rand->rand (scalar keys %$unfilled_tmp);
-                #my @tmp = sort keys %$unfilled_tmp;
-                #my $return_gp = $tmp[$i];
-                $i = int $rand->rand (scalar @$unfilled_tmp);
-                my $return_gp = $unfilled_tmp->[$i];
+                #  get one of the unfilled groups at random
+                $i = int $rand->rand (scalar @$unfilled_aref);
+                my $return_gp = $unfilled_aref->[$i];
 
                 $new_bd->add_element   (
                     label => $remove_label,
@@ -2512,9 +2536,11 @@ sub swap_to_reach_richness_targets {
                   if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
-                $self->delete_from_sorted_list_aa (
-                    $return_gp, $unfilled_gps_without_label{$remove_label}
-                );
+                #$self->delete_from_sorted_list_aa (
+                #    $return_gp, $unfilled_gps_without_label{$remove_label}
+                #);
+                #  no need to go looking for the index using a binary search - we already have it
+                splice @$unfilled_aref, $i, 1;
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     $self->delete_from_sorted_list_aa ($return_gp, $aref);

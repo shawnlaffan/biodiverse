@@ -10,7 +10,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
-
+use List::Util 1.45 qw /uniq/;
 use Test::Lib;
 
 use Data::Section::Simple qw(
@@ -1647,6 +1647,27 @@ sub test_reintegrate_after_separate_randomisations {
         $bd3->get_spatial_output_ref (name => 'sp1'),
         'spatial results differ after randomisation, bd1 & bd3',
     );
+    isnt_deeply (
+        $bd1->get_cluster_output_ref (name => 'cl1'),
+        $bd2->get_cluster_output_ref (name => 'cl1'),
+        'cluster results differ after randomisation, bd1 & bd2',
+    );
+    isnt_deeply (
+        $bd1->get_cluster_output_ref (name => 'cl1'),
+        $bd3->get_cluster_output_ref (name => 'cl1'),
+        'cluster results differ after randomisation, bd1 & bd3',
+    );
+    isnt_deeply (
+        $bd1->get_cluster_output_ref (name => 'rg1'),
+        $bd2->get_cluster_output_ref (name => 'rg1'),
+        'region grower differ after randomisation, bd1 & bd2',
+    );
+    isnt_deeply (
+        $bd1->get_cluster_output_ref (name => 'rg1'),
+        $bd3->get_cluster_output_ref (name => 'rg1'),
+        'region grower results differ after randomisation, bd1 & bd3',
+    );
+    
 
     my $bd_orig;
 
@@ -1656,10 +1677,20 @@ sub test_reintegrate_after_separate_randomisations {
         $bd1->reintegrate_after_parallel_randomisations (
             from => $bd_from,
         );
-        check_randomisation_lists_incremented_correctly (
+        check_randomisation_lists_incremented_correctly_spatial (
             orig   => $bd_orig->get_spatial_output_ref (name => 'sp1'),
-            integr => $bd1->get_spatial_output_ref (name => 'sp1'),
+            integr => $bd1->get_spatial_output_ref     (name => 'sp1'),
             from   => $bd_from->get_spatial_output_ref (name => 'sp1')
+        );
+        check_randomisation_lists_incremented_correctly_cluster (
+            orig   => $bd_orig->get_cluster_output_ref (name => 'cl1'),
+            integr => $bd1->get_cluster_output_ref     (name => 'cl1'),
+            from   => $bd_from->get_cluster_output_ref (name => 'cl1')
+        );
+        check_randomisation_lists_incremented_correctly_cluster (
+            orig   => $bd_orig->get_cluster_output_ref (name => 'rg1'),
+            integr => $bd1->get_cluster_output_ref     (name => 'rg1'),
+            from   => $bd_from->get_cluster_output_ref (name => 'rg1')
         );
     }
 
@@ -1859,13 +1890,13 @@ sub check_randomisation_integration_skipped {
     };
 }
 
-sub check_randomisation_lists_incremented_correctly {
+sub check_randomisation_lists_incremented_correctly_spatial {
     my %args = @_;
     my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig from integr/};
 
-    #my @valid_sig_vals = (-0.05, -0.01, 0.01, 0.05);
+    my $object_name = $sp_integr->get_name;
 
-    subtest 'randomisation lists incremented correctly' => sub {
+    subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
         my $gp_list = $sp_integr->get_element_list;
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
         my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>p_rank>>/} @$list_names;
@@ -1908,6 +1939,91 @@ sub check_randomisation_lists_incremented_correctly {
                         );
                     }
                 }
+            }
+        }
+    };
+}
+
+
+sub check_randomisation_lists_incremented_correctly_cluster {
+    my %args = @_;
+    my ($cl_orig, $cl_from, $cl_integr) = @args{qw /orig from integr/};
+    
+    my $object_name = $cl_integr->get_name;
+
+    subtest "randomisation cluster lists incremented correctly, $object_name" => sub {
+        my $to_nodes   = $cl_integr->get_node_refs;
+        my $list_names = $cl_integr->get_hash_list_names_across_nodes;
+        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>p_rank>>/} @$list_names;
+        my @sig_lists  = grep {$_ =~ />>p_rank>>/} @$list_names;
+        my @rand_names = uniq (map {my $xx = $_; $xx =~ s/>>.+$//; $xx} @sig_lists);
+        foreach my $to_node (sort {$a->get_name cmp $b->get_name} @$to_nodes) {
+            my $node_name = $to_node->get_name;
+            my $from_node = $cl_from->get_node_ref (node => $node_name);
+            my $orig_node = $cl_orig->get_node_ref (node => $node_name);
+            foreach my $list_name (@rand_lists) {
+                my %l_args = (list => $list_name);
+                my $lr_orig   = $orig_node->get_list_ref (%l_args);
+                my $lr_integr = $to_node->get_list_ref (%l_args);
+                my $lr_from   = $from_node->get_list_ref (%l_args);
+
+                #  should refactor this - it duplicates the spatial variant
+                foreach my $key (sort keys %$lr_integr) {
+                    no autovivification;
+                    if ($key =~ /^P_/) {
+                        my $index = $key;
+                        $index =~ s/^P_//;
+                        is ($lr_integr->{$key},
+                            $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
+                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
+                        );
+                    }
+                    else {
+                        is ($lr_integr->{$key},
+                            ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
+                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
+                        );
+                    }
+                }
+            }
+
+            foreach my $sig_list_name (@sig_lists) {
+                #  we only care if they are in the valid set
+                my %l_args = (list => $sig_list_name);
+                my $lr_integr = $to_node->get_list_ref (%l_args);
+                foreach my $key (sort keys %$lr_integr) {
+                    my $value = $lr_integr->{$key};
+                    if (defined $value) {
+                        ok ($value < 0.05 || $value > 0.95,
+                            "p-rank $value in valid interval ($key), $node_name",
+                        );
+                    }
+                }
+            }
+            #  now the data and stats
+            foreach my $rand_name (@rand_names) {
+                foreach my $suffix (qw/_DATA _ID_LDIFFS/) {
+                    my $data_list_name = $rand_name . $suffix;
+                    my $to_data_list   = $to_node->get_list_ref (list => $data_list_name);
+                    my $from_data_list = $from_node->get_list_ref (list => $data_list_name);
+                    my $orig_data_list = $orig_node->get_list_ref (list => $data_list_name);
+                    is_deeply (
+                        $to_data_list,
+                        [@$orig_data_list, @$from_data_list],
+                        "expected data list for $node_name, $data_list_name",
+                    );
+                }
+                #  stats are more difficult - check the mean for now
+                my $stats_list_name = $rand_name;
+                my $to_stats   = $to_node->get_list_ref (list => $stats_list_name);
+                my $from_stats = $from_node->get_list_ref (list => $stats_list_name);
+                my $orig_stats = $orig_node->get_list_ref (list => $stats_list_name);
+                #  avoid precision issues
+                my $got = sprintf "%.10f", $to_stats->{MEAN};
+                my $sum = $from_stats->{MEAN} * $from_stats->{COMPARISONS}
+                        + $orig_stats->{MEAN} * $orig_stats->{COMPARISONS};
+                my $expected = sprintf "%.10f", $sum / ($orig_stats->{COMPARISONS} + $from_stats->{COMPARISONS});
+                is ($got, $expected, "got expected mean for $object_name: $node_name, $stats_list_name");
             }
         }
     };

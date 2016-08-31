@@ -4662,29 +4662,15 @@ sub reintegrate_after_parallel_randomisations {
     my $self = shift;
     my %args = @_;
     
-    my $bd_from = $args{from} || croak "from argument is undefined\n";
+    my $bd_from = $args{from} || croak "'from' argument is undefined\n";
 
     croak "Cannot merge into self" if $self eq $bd_from;
-
     croak "Cannot merge into basedata with different cell sizes and offsets"
       if !$self->cellsizes_and_origins_match (%args);
-
     croak "No point reintegrating into basedata with no outputs"
       if !$self->get_output_ref_count;
 
     my $comp = Data::Compare->new;
-
-    #  Check groups and labels unless told otherwise
-    #  (e.g. we have control of the process so they will always match)
-    if (!$args{no_check_groups_and_labels}) {
-        my $gp_to   = $self->get_groups_ref;
-        my $gp_from = $bd_from->get_groups_ref;
-        croak "Group and/or label mismatch"
-          if !$comp->Cmp (
-            scalar $gp_to->get_element_hash,
-            scalar $gp_from->get_element_hash,
-          );
-    }
 
     my @randomisations_to   = $self->get_randomisation_output_refs;
     my @randomisations_from = $bd_from->get_randomisation_output_refs;
@@ -4700,7 +4686,18 @@ sub reintegrate_after_parallel_randomisations {
     foreach my $i (0 .. $#outputs_to) {
         croak "mismatch of output names"
           if $outputs_to[$i]->get_name ne $outputs_from[$i]->get_name;
-        #  need to check # of elements etc
+    }
+
+    #  Check groups and labels unless told otherwise
+    #  (e.g. we have control of the process so they will always match)
+    if (!$args{no_check_groups_and_labels}) {
+        my $gp_to   = $self->get_groups_ref;
+        my $gp_from = $bd_from->get_groups_ref;
+        croak "Group and/or label mismatch"
+          if !$comp->Cmp (
+            scalar $gp_to->get_element_hash,
+            scalar $gp_from->get_element_hash,
+          );
     }
 
     my @randomisations_to_reintegrate;
@@ -4726,11 +4723,10 @@ sub reintegrate_after_parallel_randomisations {
         # We are going to add this one, so update the
         # init and end states, and the iteration counts 
         push @$init_states_to, @$init_states_from;
-
         my $prng_total_counts_array   = $rand_to->get_prng_total_counts_array;
         push @$prng_total_counts_array, $rand_from->get_prng_total_counts_array;
-        my $prng_end_states_array   = $rand_to->get_prng_end_states_array;
-        push @$prng_end_states_array, $rand_from->get_prng_end_states_array;
+        my $prng_end_states_array     = $rand_to->get_prng_end_states_array;
+        push @$prng_end_states_array,   $rand_from->get_prng_end_states_array;
 
         my $total_iters = sum (@$prng_total_counts_array);
         $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);

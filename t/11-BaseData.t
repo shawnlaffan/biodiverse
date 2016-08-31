@@ -1588,13 +1588,19 @@ sub test_reintegrate_after_separate_randomisations {
 
     my $bd2 = $bd1->clone;
     my $bd3 = $bd1->clone;
-    my $bd4 = $bd1->clone;
+    my $bd4 = $bd1->clone;  #  used lower down to check recursive reintegration
+    my $bd5 = $bd1->clone;  #  used to check for different groups/labels
+    
+    $bd5->add_element (group => '0.5:0.5', label => 'blort');
+    
     my $bd_base = $bd1->clone;
 
     my $prng_seed = 2345;
     my $i = 0;
-    foreach my $bd ($bd1, $bd2, $bd3, $bd4) { 
+    foreach my $bd ($bd1, $bd2, $bd3, $bd4, $bd5) { 
+        $i %= 3;  #  max out at 3
         $i++;
+
         my $rand1 = $bd->add_randomisation_output (name => 'random1');
         my $rand2 = $bd->add_randomisation_output (name => 'random2');
         $prng_seed++;
@@ -1637,7 +1643,7 @@ sub test_reintegrate_after_separate_randomisations {
         );
     }
 
-    _test_reintegrated_basedata_unchanged ($bd1);
+    _test_reintegrated_basedata_unchanged ($bd1, 'reintegrated correctly');
     
     #  now check that we don't double reintegrate
     $bd_orig = $bd1->clone;
@@ -1654,7 +1660,10 @@ sub test_reintegrate_after_separate_randomisations {
         );
     }
 
-    _test_reintegrated_basedata_unchanged ($bd1);
+    _test_reintegrated_basedata_unchanged (
+        $bd1,
+        'no integration when already done',
+    );
 
     #  now check that we don't double reintegrate a case like a&b&c with d&b&c
     $bd_orig = $bd1->clone;
@@ -1672,38 +1681,55 @@ sub test_reintegrate_after_separate_randomisations {
         integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
     );
 
-    _test_reintegrated_basedata_unchanged ($bd1);
+    _test_reintegrated_basedata_unchanged (
+        $bd1,
+        'no integration when already done (embedded double)',
+    );
 
+    eval {
+        $bd1->reintegrate_after_parallel_randomisations (
+            from => $bd5,
+        );
+    };
+    ok ($@, 'we threw an error for label/group mismatch');
+    _test_reintegrated_basedata_unchanged ($bd1, 'no integration for group/label mismatch');
+
+    
     return;
 }
 
 sub _test_reintegrated_basedata_unchanged {
-    my $bd1 = shift;
+    my ($bd1, $sub_name) = @_;
+
+    $sub_name //= 'test_reintegrated_basedata_unchanged';
 
     my @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
-    foreach my $rand_ref (@names) {
-        my $name = $rand_ref->get_name;
-        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
-            6,
-            "Total iterations is correct after reintegration ignored, $name",
-        );
-        my $prng_init_states = $rand_ref->get_prng_init_states_array;
-        is (scalar @$prng_init_states,
-            3,
-            "Got 3 init states when reintegrations ignored, $name",
-        );
-        my $prng_end_states = $rand_ref->get_prng_end_states_array;
-        is (scalar @$prng_end_states,
-            3,
-            "Got 3 end states when reintegrations ignored, $name",
-        );
-        my $a_ref = $rand_ref->get_prng_total_counts_array;
-        is_deeply (
-            $a_ref,
-            [1, 2, 3],
-            "got expected total iteration counts array when reintegrations ignored, $name",
-        );
-    }
+    
+    subtest $sub_name => sub {
+        foreach my $rand_ref (@names) {
+            my $name = $rand_ref->get_name;
+            is ($rand_ref->get_param('TOTAL_ITERATIONS'),
+                6,
+                "Total iterations is correct after reintegration ignored, $name",
+            );
+            my $prng_init_states = $rand_ref->get_prng_init_states_array;
+            is (scalar @$prng_init_states,
+                3,
+                "Got 3 init states when reintegrations ignored, $name",
+            );
+            my $prng_end_states = $rand_ref->get_prng_end_states_array;
+            is (scalar @$prng_end_states,
+                3,
+                "Got 3 end states when reintegrations ignored, $name",
+            );
+            my $a_ref = $rand_ref->get_prng_total_counts_array;
+            is_deeply (
+                $a_ref,
+                [1, 2, 3],
+                "got expected total iteration counts array when reintegrations ignored, $name",
+            );
+        }
+    };
 
     return;
 }

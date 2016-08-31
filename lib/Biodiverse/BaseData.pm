@@ -16,6 +16,7 @@ use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
+use Data::Compare ();
 
 use Spreadsheet::Read 0.60;
 
@@ -4671,6 +4672,20 @@ sub reintegrate_after_parallel_randomisations {
     croak "No point reintegrating into basedata with no outputs"
       if !$self->get_output_ref_count;
 
+    my $comp = Data::Compare->new;
+
+    #  Check groups and labels unless told otherwise
+    #  (e.g. we have control of the process so they will always match)
+    if (!$args{no_check_groups_and_labels}) {
+        my $gp_to   = $self->get_groups_ref;
+        my $gp_from = $bd_from->get_groups_ref;
+        croak "Group and/or label mismatch"
+          if !$comp->Cmp (
+            scalar $gp_to->get_element_hash,
+            scalar $gp_from->get_element_hash,
+          );
+    }
+
     my @randomisations_to   = $self->get_randomisation_output_refs;
     my @randomisations_from = $bd_from->get_randomisation_output_refs;
 
@@ -4689,8 +4704,6 @@ sub reintegrate_after_parallel_randomisations {
     }
 
     my @randomisations_to_reintegrate;
-    use Data::Compare ();
-    my $c = Data::Compare->new;
 
   RAND_FROM:
     foreach my $rand_from (@randomisations_from) {
@@ -4704,7 +4717,7 @@ sub reintegrate_after_parallel_randomisations {
             foreach my $init_state_from (@$init_states_from) {
                 croak 'Attempt to reintegrate randomisation '
                      .'when its initial PRNG state has already been used'
-                  if $c->Cmp ($init_state_to, $init_state_from);
+                  if $comp->Cmp ($init_state_to, $init_state_from);
             }
         }
 

@@ -1574,10 +1574,30 @@ sub test_reintegrate_after_separate_randomisations {
     $bd1->add_element (group => '0.5:0.5', label => 'extra1');
     $bd1->add_element (group => '1.5:0.5', label => 'extra1');
 
-    my $sp = $bd1->add_spatial_output (name => 'analysis1');
+    my $sp = $bd1->add_spatial_output (name => 'sp1');
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 1)'],
         calculations => [
+          qw /
+            calc_endemism_central
+            calc_endemism_central_lists
+            calc_element_lists_used
+          /
+        ],
+    );
+    my $cl = $bd1->add_cluster_output (name => 'cl1');
+    $cl->run_analysis (
+        spatial_calculations => [
+          qw /
+            calc_endemism_central
+            calc_endemism_central_lists
+            calc_element_lists_used
+          /
+        ],
+    );
+    my $rg = $bd1->add_cluster_output (name => 'rg1', type => 'Biodiverse::RegionGrower');
+    $rg->run_analysis (
+        spatial_calculations => [
           qw /
             calc_endemism_central
             calc_endemism_central_lists
@@ -1618,13 +1638,13 @@ sub test_reintegrate_after_separate_randomisations {
     }
 
     isnt_deeply (
-        $bd1->get_spatial_output_ref (name => 'analysis1'),
-        $bd2->get_spatial_output_ref (name => 'analysis1'),
+        $bd1->get_spatial_output_ref (name => 'sp1'),
+        $bd2->get_spatial_output_ref (name => 'sp1'),
         'spatial results differ after randomisation, bd1 & bd2',
     );
     isnt_deeply (
-        $bd1->get_spatial_output_ref (name => 'analysis1'),
-        $bd3->get_spatial_output_ref (name => 'analysis1'),
+        $bd1->get_spatial_output_ref (name => 'sp1'),
+        $bd3->get_spatial_output_ref (name => 'sp1'),
         'spatial results differ after randomisation, bd1 & bd3',
     );
 
@@ -1637,9 +1657,9 @@ sub test_reintegrate_after_separate_randomisations {
             from => $bd_from,
         );
         check_randomisation_lists_incremented_correctly (
-            orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-            integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
-            from   => $bd_from->get_spatial_output_ref (name => 'analysis1')
+            orig   => $bd_orig->get_spatial_output_ref (name => 'sp1'),
+            integr => $bd1->get_spatial_output_ref (name => 'sp1'),
+            from   => $bd_from->get_spatial_output_ref (name => 'sp1')
         );
     }
 
@@ -1655,8 +1675,8 @@ sub test_reintegrate_after_separate_randomisations {
         };
         ok ($@, 'we threw an error');
         check_randomisation_integration_skipped (
-            orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-            integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
+            orig   => $bd_orig->get_spatial_output_ref (name => 'sp1'),
+            integr => $bd1->get_spatial_output_ref (name => 'sp1'),
         );
     }
 
@@ -1677,8 +1697,8 @@ sub test_reintegrate_after_separate_randomisations {
     };
     ok ($@, 'we threw an error');
     check_randomisation_integration_skipped (
-        orig   => $bd_orig->get_spatial_output_ref (name => 'analysis1'),
-        integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
+        orig   => $bd_orig->get_spatial_output_ref (name => 'sp1'),
+        integr => $bd1->get_spatial_output_ref (name => 'sp1'),
     );
 
     _test_reintegrated_basedata_unchanged (

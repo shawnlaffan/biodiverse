@@ -4737,11 +4737,14 @@ sub reintegrate_after_parallel_randomisations {
 
     #  now we can finally get some work done
     #  working on spatial only for now
+  OUTPUT:
     foreach my $i (0 .. $#outputs_to) {
         my $to   = $outputs_to[$i];
         my $from = $outputs_from[$i];
 
-        next if !(blessed ($to) =~ /Spatial/);  #  not a generic enough check
+        #  this is not a generic enough check
+        next OUTPUT
+          if not blessed ($to) =~ /Spatial|Cluster|RegionGrower|Tree/;  
 
         $to->reintegrate_after_parallel_randomisations (
             from => $from,

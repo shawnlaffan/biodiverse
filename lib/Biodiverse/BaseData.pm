@@ -9,7 +9,7 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
-use List::Util 1.33 qw /max min sum any all none notall pairs/;
+use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
@@ -4732,7 +4732,7 @@ sub reintegrate_after_parallel_randomisations {
         $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
     }
 
-    my $rand_list_re_text  = '^(?:' . join ('|', @randomisations_to_reintegrate) . ')>>(?!p_rank>>)';
+    my $rand_list_re_text  = '^(?:' . join ('|', uniq @randomisations_to_reintegrate) . ')>>(?!p_rank>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     #  now we can finally get some work done
@@ -4742,40 +4742,13 @@ sub reintegrate_after_parallel_randomisations {
         my $from = $outputs_from[$i];
 
         next if !(blessed ($to) =~ /Spatial/);  #  not a generic enough check
-        
-        my $gp_list = $to->get_element_list;
-        my @rand_lists =
-            grep {$_ =~ $re_rand_list_names}
-            $to->get_lists_across_elements;
 
-        foreach my $list_name (@rand_lists) {
-            foreach my $group (@$gp_list) {
-                my %l_args = (element => $group, list => $list_name);
-                my $lr_to   = $to->get_list_ref (%l_args);
-                my $lr_from = $from->get_list_ref (%l_args);
-                my %all_keys;
-                #  get all the keys due to ties not being tracked in all cases
-                @all_keys{keys %$lr_from, keys %$lr_to} = undef;
-                my %p_keys;
-                @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
+        $to->reintegrate_after_parallel_randomisations (
+            from => $from,
+            no_check_groups_and_labels => 1,
+            randomisations_to_reintegrate => \@randomisations_to_reintegrate,
+        );
 
-                #  we need to update the C_ and Q_ keys first,
-                #  then recalculate the P_ keys
-                foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
-                    no autovivification;  #  don't pollute the from data set
-                    $lr_to->{$key} += ($lr_from->{$key} // 0),
-                }
-                foreach my $key (keys %p_keys) {
-                    no autovivification;  #  don't pollute the from data set
-                    my $index = $key;
-                    $index =~ s/^P_//;
-                    $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
-                }
-            }
-            $to->convert_comparisons_to_significances (
-                result_list_name => $list_name,
-            );
-        }
     }
 
     return;

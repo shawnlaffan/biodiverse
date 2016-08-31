@@ -8,7 +8,7 @@ use Scalar::Util qw /reftype/;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 Readonly my %methods_and_defaults => (
     name           => 'no_name',

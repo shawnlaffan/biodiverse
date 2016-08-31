@@ -12,7 +12,7 @@ use Scalar::Util qw /reftype/;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 #sub new {
 #    my ($class, $data) = @_;

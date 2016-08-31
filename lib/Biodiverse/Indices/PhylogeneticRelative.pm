@@ -10,7 +10,7 @@ use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
 use Carp;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

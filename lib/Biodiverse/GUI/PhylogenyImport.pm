@@ -12,7 +12,7 @@ use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '1.99_004';
+our $VERSION = '1.99_005';
 
 use Biodiverse::GUI::Project;
 

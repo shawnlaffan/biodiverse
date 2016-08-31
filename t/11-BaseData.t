@@ -1592,19 +1592,21 @@ sub test_reintegrate_after_separate_randomisations {
     my $bd_base = $bd1->clone;
 
     my $prng_seed = 2345;
+    my $i = 0;
     foreach my $bd ($bd1, $bd2, $bd3, $bd4) { 
+        $i++;
         my $rand1 = $bd->add_randomisation_output (name => 'random1');
         my $rand2 = $bd->add_randomisation_output (name => 'random2');
         $prng_seed++;
         $rand1->run_analysis (
             function   => 'rand_csr_by_group',
-            iterations => 2,
+            iterations => $i,
             seed       => $prng_seed,
         );
         $prng_seed++;
         $rand2->run_analysis (
             function   => 'rand_csr_by_group',
-            iterations => 2,
+            iterations => $i,
             seed       => $prng_seed,
         );
     }
@@ -1698,7 +1700,7 @@ sub _test_reintegrated_basedata_unchanged {
         my $a_ref = $rand_ref->get_prng_total_counts_array;
         is_deeply (
             $a_ref,
-            [2, 2, 2],
+            [1, 2, 3],
             "got expected total iteration counts array when reintegrations ignored, $name",
         );
     }

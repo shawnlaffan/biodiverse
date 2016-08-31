@@ -1635,21 +1635,7 @@ sub test_reintegrate_after_separate_randomisations {
         );
     }
 
-    my @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
-    foreach my $rand_ref (@names) {
-        my $name = $rand_ref->get_name;
-        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
-            6,
-            "Total iterations is correct after reintegration, $name",
-        );
-        my $prng_init_states = $rand_ref->get_prng_init_states_array;
-        is (scalar @$prng_init_states,
-            3,
-            "Got 3 init states from reintegrations, $name",
-        );
-        my $a_ref = $rand_ref->get_prng_total_counts_array;
-        is_deeply ($a_ref, [2, 2, 2], "got expected total iteration counts array, $name");
-    }
+    _test_reintegrated_basedata_unchanged ($bd1);
     
     #  now check that we don't double reintegrate
     $bd_orig = $bd1->clone;
@@ -1666,30 +1652,7 @@ sub test_reintegrate_after_separate_randomisations {
         );
     }
 
-    @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
-    foreach my $rand_ref (@names) {
-        my $name = $rand_ref->get_name;
-        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
-            6,
-            "Total iterations is correct after reintegration ignored, $name",
-        );
-        my $prng_init_states = $rand_ref->get_prng_init_states_array;
-        is (scalar @$prng_init_states,
-            3,
-            "Got 3 init states when reintegrations ignored, $name",
-        );
-        my $prng_end_states = $rand_ref->get_prng_end_states_array;
-        is (scalar @$prng_end_states,
-            3,
-            "Got 3 end states when reintegrations ignored, $name",
-        );
-        my $a_ref = $rand_ref->get_prng_total_counts_array;
-        is_deeply (
-            $a_ref,
-            [2, 2, 2],
-            "got expected total iteration counts array when reintegrations ignored, $name",
-        );
-    }
+    _test_reintegrated_basedata_unchanged ($bd1);
 
     #  now check that we don't double reintegrate a case like a&b&c with d&b&c
     $bd_orig = $bd1->clone;
@@ -1707,38 +1670,15 @@ sub test_reintegrate_after_separate_randomisations {
         integr => $bd1->get_spatial_output_ref (name => 'analysis1'),
     );
 
-    @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
-    foreach my $rand_ref (@names) {
-        my $name = $rand_ref->get_name;
-        is ($rand_ref->get_param('TOTAL_ITERATIONS'),
-            6,
-            "Total iterations is correct after reintegration ignored, $name",
-        );
-        my $prng_init_states = $rand_ref->get_prng_init_states_array;
-        is (scalar @$prng_init_states,
-            3,
-            "Got 3 init states when reintegrations ignored, $name",
-        );
-        my $prng_end_states = $rand_ref->get_prng_end_states_array;
-        is (scalar @$prng_end_states,
-            3,
-            "Got 3 end states when reintegrations ignored, $name",
-        );
-        my $a_ref = $rand_ref->get_prng_total_counts_array;
-        is_deeply (
-            $a_ref,
-            [2, 2, 2],
-            "got expected total iteration counts array when reintegrations ignored, $name",
-        );
-    }
+    _test_reintegrated_basedata_unchanged ($bd1);
 
     return;
 }
 
-sub _test_reintagrated_basedata_unchanged {
+sub _test_reintegrated_basedata_unchanged {
     my $bd1 = shift;
 
-    @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
+    my @names = sort {$a->get_name cmp $b->get_name} $bd1->get_randomisation_output_refs;
     foreach my $rand_ref (@names) {
         my $name = $rand_ref->get_name;
         is ($rand_ref->get_param('TOTAL_ITERATIONS'),

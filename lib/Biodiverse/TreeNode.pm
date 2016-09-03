@@ -168,6 +168,10 @@ sub get_name {
       // croak "name parameter missing or undefined\n";
 }
 
+sub get_node_values {
+    wantarray ? %{$_[0]->{NODE_VALUES}} : $_[0]->{NODE_VALUES};
+}
+
 sub set_length {
     my $self = shift;
     my %args = @_;
@@ -1494,6 +1498,19 @@ sub assign_plot_coords_inner {
     return;    
 }
 
+sub get_terminal_node_first_number {
+    my $self = shift;
+    no autovivification;
+    my $values = $self->get_node_values;
+    return $values->{TERMINAL_NODE_FIRST};
+}
+
+sub get_terminal_node_last_number {
+    my $self = shift;
+    no autovivification;
+    my $values = $self->get_node_values;
+    return $values->{TERMINAL_NODE_LAST};
+}
 
 #  number the nodes below this one based on the terminal nodes
 #  this allows us to export to CSV and retain some of the topology

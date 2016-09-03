@@ -542,7 +542,8 @@ sub get_palette {
         # ed: actually don't - adjacent clusters may get wildly different hues
         # because the hashes are randomly sorted...
         #my $hue_slice = 180 / $num_clusters;
-        @colourset = (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;  #  saves looping over them all
+        @colourset = (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;
+        #  saves looping over them all
     }
 
     my @colours = @colourset[0 .. $num_clusters - 1]; #  return the relevant slice
@@ -661,7 +662,8 @@ sub do_colour_nodes_below {
         @colour_nodes = values %node_hash;
         #print "[Dendrogram] Done Grouping...\n";
 
-        # FIXME: why loop instead of just grouping with num_clusters => $self->get_palette_max_colours
+        # FIXME: why loop instead of just grouping with
+        # num_clusters => $self->get_palette_max_colours
         #  make sure we don't exceed the maximum number of colours
         while (scalar @colour_nodes > $self->get_palette_max_colours) {  
             $excess_flag = 1;

@@ -173,7 +173,7 @@ sub new {
     # Process changes for the map
     if ($map_index_combo) {
         $map_index_combo->signal_connect_swapped(
-            changed => \&on_map_index_combo_changed,
+            changed => \&on_combo_map_index_changed,
             $self,
         );
     }
@@ -738,7 +738,7 @@ sub assign_cluster_palette_colours {
         my %sort_by_firstnode;
         my $i = 0;  #  in case we dont have numbered nodes
         foreach my $node_ref (@$cluster_nodes) {
-            my $firstnode = $node_ref->get_value ('TERMINAL_NODE_FIRST');
+            my $firstnode = ($node_ref->get_terminal_node_first_number // $i);
             $sort_by_firstnode{$firstnode} = $node_ref;
             $i++;
         }
@@ -1071,10 +1071,14 @@ sub setup_map_list_model {
         $model->set($iter, 0, $list);
     }
 
+    #  add the sequential selector
+    $iter = $model->insert(0);
+    $model->set($iter, 0, '<i>Cloister</i>');
+    
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
     $model->set($iter, 0, '<i>Cluster</i>');
-
+    
     if ($combo) {
         $combo->set_model($model);
         $combo->set_active_iter($iter);
@@ -1146,25 +1150,34 @@ sub on_map_list_combo_changed {
     my $self = shift;
     my $combo = shift || $self->{map_list_combo};
 
-    my $iter = $combo->get_active_iter;
+    my $iter  = $combo->get_active_iter;
     my $model = $combo->get_model;
-    my $list = $model->get($iter, 0);
+    my $list  = $model->get($iter, 0);
+
+    $self->{analysis_list_name}  = undef;
+    $self->{analysis_list_index} = undef;
+    $self->{analysis_min}        = undef;
+    $self->{analysis_max}        = undef;
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
         #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
 
-        $self->{analysis_list_name}  = undef;
-        $self->{analysis_list_index} = undef;
-        $self->{analysis_min}        = undef;
-        $self->{analysis_max}        = undef;
+        $self->{cluster_colour_mode} = 'palette';
+        $self->recolour_cluster_elements();
+        $self->recolour_cluster_lines($self->{processed_nodes});
+
+        # blank out the index combo
+        $self->setup_map_index_model(undef);
+    }
+    elsif ($list eq '<i>Cloister</i>') {
+        # Selected sequential palette allocation mode
 
         $self->{cluster_colour_mode} = 'palette';
         $self->recolour_cluster_elements();
-
         $self->recolour_cluster_lines($self->{processed_nodes});
 
-        # blank out the other combo
+        # blank out the index combo
         $self->setup_map_index_model(undef);
     }
     else {
@@ -1172,45 +1185,14 @@ sub on_map_list_combo_changed {
         $self->{analysis_list_name} = $list;
 
         $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
-        $self->on_map_index_combo_changed();
+        $self->on_combo_map_index_changed();
     }
 
     return;
 }
 
-# Called by the tab to indicate the user has changed the desired list to
-# display on the map.
-# Can either be the Cluster "list" (coloured by node, indicated by undef) or a
-# spatial analysis list
-# Update our display accordingly.
-sub select_map_list {
-    my ($self, $list) = @_;
-
-    if (not defined $list) {
-        # Selected cluster-palette-colouring mode
-        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
-
-        $self->{analysis_list_name}  = undef;
-        $self->{analysis_list_index} = undef;
-        $self->{analysis_min}        = undef;
-        $self->{analysis_max}        = undef;
-
-        $self->{cluster_colour_mode} = 'palette';
-        $self->recolour_cluster_elements();
-
-        $self->recolour_cluster_lines($self->{processed_nodes});
-
-        # blanking out the other combo left to tab
-    }
-    else {
-        # Selected analysis-colouring mode
-        $self->{analysis_list_name} = $list;
-
-        # updating the map index menu left to tab
-    }
-}
-
-sub on_map_index_combo_changed {
+#  this should be controlled by the parent tab, not the dendrogram
+sub on_combo_map_index_changed {
     my $self = shift;
     my $combo = shift || $self->{map_index_combo};
 

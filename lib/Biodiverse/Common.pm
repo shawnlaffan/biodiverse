@@ -831,11 +831,15 @@ sub save_to_sereal {
 
     use Sereal::Encoder;
 
-    my $encoder = Sereal::Encoder->new();
-    my $out = $encoder->encode($self);
+    my $encoder = Sereal::Encoder->new({
+        undef_unknown => 1,  #  strip any code refs
+    });
 
     open (my $fh, '>', $file) or die "Cannot open $file";
-    print {$fh} $out;
+
+    eval {
+        print {$fh} $encoder->encode($self);
+    };
     my $e = $EVAL_ERROR;
 
     $fh->close;

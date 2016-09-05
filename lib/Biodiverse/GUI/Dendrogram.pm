@@ -12,7 +12,7 @@ use Time::HiRes qw /gettimeofday time/;
 use Scalar::Util qw /weaken blessed/;
 use List::Util qw /min/;
 use List::MoreUtils qw /firstidx/;
-use Tie::RefHash;
+#use Tie::RefHash;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -115,7 +115,7 @@ sub new {
     bless $self, $class;
     
     #  also initialises it
-    $self->increment_sequential_selection_colour;
+    $self->increment_sequential_selection_colour(1);
 
     #  clean up if we are a refresh
     if (my $child = $main_frame->get_child) {
@@ -933,16 +933,17 @@ sub get_current_sequential_colour {
     my $colour;
     eval {
         my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
-        $colour = $widget->get_color;
+        $colour    = $widget->get_color;
     };
-    croak $@ if $@;
+    #croak $@ if $@;
     return $colour;
 }
 
 sub increment_sequential_selection_colour {
     my $self = shift;
+    my $force_increment = shift;
     
-    return if !$self->{cluster_colour_mode} eq 'sequential';
+    return if !$force_increment && $self->{cluster_colour_mode} ne 'sequential';
 
     my $colour = $self->get_current_sequential_colour;
 
@@ -963,7 +964,7 @@ sub increment_sequential_selection_colour {
         my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
         $widget->set_color ($colour);
     };
-    croak $@ if $@;
+    #croak $@ if $@;
     
     $self->{last_sequential_colour} = $colour;
     
@@ -1002,8 +1003,6 @@ sub recolour_cluster_lines {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($colour_mode eq 'sequential') {
-            #  should get the colour ref already in use,
-            #  or the one we're assigning
             $colour_ref = $self->get_current_sequential_colour || COLOUR_RED;
         }
         elsif ($colour_mode eq 'list-values') {
@@ -1041,26 +1040,27 @@ sub recolour_cluster_lines {
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured
     }
 
-    #print Data::Dumper::Dumper(keys %coloured_nodes);
-
-    if ($self->{recolour_nodes}
-        && $colour_mode ne 'sequential'
-        ) {
-        #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
-        # uncolour previously coloured nodes that aren't being coloured this time
-      NODE:
-        foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
-
-            next NODE if exists $coloured_nodes{$node_name};
-
-            #my $name = $node->get_name;
-            $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-            $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
+    if ($colour_mode ne 'sequential') {
+        if ($self->{recolour_nodes}) {
+            #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
+            # uncolour previously coloured nodes that aren't being coloured this time
+          NODE:
+            foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
+    
+                next NODE if exists $coloured_nodes{$node_name};
+    
+                $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+                $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
+            }
+            #print "[Dendrogram] Recoloured nodes\n";
         }
-        #print "[Dendrogram] Recoloured nodes\n";
-    }
 
-    $self->{recolour_nodes} = \%coloured_nodes;
+        $self->{recolour_nodes} = \%coloured_nodes;
+    }
+    #else {
+    #    my $href = $self->{recolour_nodes} //= {};
+    #    @$href{keys %coloured_nodes} = values %coloured_nodes;
+    #}
 
     return;
 }
@@ -1279,6 +1279,10 @@ sub on_map_list_combo_changed {
         $self->{cluster_colour_mode} = 'sequential';
         $self->recolour_cluster_elements;
         $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        if ($self->{recolour_nodes}) {
+            $self->increment_sequential_selection_colour;
+        }
 
         # blank out the index combo
         $self->setup_map_index_model(undef);

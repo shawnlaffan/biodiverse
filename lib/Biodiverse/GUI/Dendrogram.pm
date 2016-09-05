@@ -457,9 +457,9 @@ sub on_slider_event {
 #  should we highlight it or not?
 #  by default we switch the setting
 sub set_use_highlight_func {
-    my $self = shift;
+    my $self  = shift;
     my $value = shift;
-    $value = not $self->{use_highlight_func} if ! defined $value;
+    $value //= !$self->{use_highlight_func};
     $self->{use_highlight_func} = $value;
 
     return;
@@ -508,6 +508,24 @@ sub get_cluster_node_for_element {
     return $self->{element_to_cluster}{$element};
 }
 
+sub get_palette_colorbrewer9 {
+    # Set1 colour scheme from www.colorbrewer2.org
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#E41A1C #377EB8 #4DAF4A #984EA3
+                #FF7F00 #FFFF33 #A65628 #F781BF
+                #999999';
+}
+
+sub get_palette_colorbrewer13 {
+    # Paired colour scheme from colorbrewer, plus a dark grey
+    #  note - this works poorly when 9 or fewer groups are selected
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#A6CEE3 #1F78B4 #B2DF8A #33A02C
+                #FB9A99 #E31A1C #FDBF6F #FF7F00
+                #CAB2D6 #6A3D9A #FFFF99 #B15928
+                #4B4B4B';
+}
+
 # Returns a list of colours to use for colouring however-many clusters
 # returns STRING COLOURS
 sub get_palette {
@@ -515,40 +533,18 @@ sub get_palette {
     my $num_clusters = shift;
     #print "Choosing colour palette for $num_clusters clusters\n";
 
-    return (wantarray ? () : []) if $num_clusters <= 0;  # trap bad numclusters
+    return wantarray ? () : []
+      if $num_clusters <= 0;  # trap bad numclusters
 
-    my @colourset;
+    my @colourset
+        = $num_clusters <=  9 ? get_palette_colorbrewer9
+        : $num_clusters <= 13 ? get_palette_colorbrewer13
+        : (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;
 
-    if ($num_clusters <= 9) {
-        # Set1 colour scheme from www.colorbrewer.org
-        no warnings 'qw';  #  we know the hashes in this list are not comments
-        @colourset = qw '#E41A1C #377EB8 #4DAF4A #984EA3
-                         #FF7F00 #FFFF33 #A65628 #F781BF
-                         #999999';
+    #  return the relevant slice
+    my @colours = @colourset[0 .. $num_clusters - 1]; 
 
-    }
-    elsif ($num_clusters <= 13) {
-        # Paired colour scheme from the same place, plus a dark grey
-        #  note - this works poorly when 9 or fewer groups are selected
-        no warnings 'qw';
-        @colourset = qw '#A6CEE3 #1F78B4 #B2DF8A #33A02C
-                         #FB9A99 #E31A1C #FDBF6F #FF7F00
-                         #CAB2D6 #6A3D9A #FFFF99 #B15928
-                         #4B4B4B';
-
-    }
-    else {
-        # If more than get_palette_max_colours, separate by hue
-        # ed: actually don't - adjacent clusters may get wildly different hues
-        # because the hashes are randomly sorted...
-        #my $hue_slice = 180 / $num_clusters;
-        @colourset = (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;
-        #  saves looping over them all
-    }
-
-    my @colours = @colourset[0 .. $num_clusters - 1]; #  return the relevant slice
-
-    return (wantarray ? @colours : \@colours);
+    return wantarray ? @colours : \@colours;
 }
 
 sub get_palette_max_colours {
@@ -560,7 +556,7 @@ sub get_palette_max_colours {
         return $self->{cluster}->get_param ('MAX_COLOURS');
     }
 
-    return 13;  #  modify if more are added above.
+    return 13;  #  modify if more are added to the palettes.
 }
 
 # Finds which nodes the slider intersected and selects them for analysis
@@ -649,6 +645,8 @@ sub do_colour_nodes_below {
     my $num_clusters = $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
     my $excess_flag = 0;
+    my $terminal_element_hash_ref;
+
     my @colour_nodes;
 
     if (defined $start_node) {
@@ -677,6 +675,12 @@ sub do_colour_nodes_below {
             @colour_nodes = values %node_hash;
         }
         $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
+        
+        if ($self->{cluster_colour_mode} eq 'sequential') {
+            #  we need a hash of the terminals
+            # (sequential only has one node)
+            $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
+        }
 
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
@@ -707,7 +711,7 @@ sub do_colour_nodes_below {
     $self->assign_cluster_palette_colours(\@colour_nodes);
     $self->map_elements_to_clusters(\@colour_nodes);
 
-    $self->recolour_cluster_elements();
+    $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->recolour_cluster_lines(\@colour_nodes);
     $self->set_processed_nodes(\@colour_nodes);
 
@@ -807,6 +811,7 @@ sub set_branch_line_width {
 # Colours the element map with colours for the established clusters
 sub recolour_cluster_elements {
     my $self = shift;
+    my $terminal_element_subset = shift;
 
     my $map = $self->{map};
     return if not defined $map;
@@ -819,6 +824,7 @@ sub recolour_cluster_elements {
     
     my $parent_tab = $self->{parent_tab};
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
+    my $colour_for_sequential = $self->get_current_sequential_colour;
 
     # sets colours according to palette
     my $palette_colour_func = sub {
@@ -827,7 +833,7 @@ sub recolour_cluster_elements {
 
         if ($cluster_node) {
             my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-            return $colour_ref ? $colour_ref : COLOUR_PALETTE_OVERFLOW;
+            return $colour_ref || COLOUR_PALETTE_OVERFLOW;
         }
         else {
             return exists $terminal_elements->{$elt}
@@ -836,6 +842,22 @@ sub recolour_cluster_elements {
         }
 
         die "how did I get here?\n";
+    };
+
+    # sets colours according to sequential palette
+    my $sequential_colour_func = sub {
+        my $elt = shift;
+        
+        return -1
+          if    $terminal_element_subset
+             && !exists $terminal_element_subset->{$elt};
+        
+        
+        my $cluster_node = $self->{element_to_cluster}{$elt};
+        
+        return if !$cluster_node;
+
+        return $colour_for_sequential || COLOUR_PALETTE_OVERFLOW;
     };
 
     # sets colours according to (usually spatial) list value for the element's cluster
@@ -866,15 +888,17 @@ sub recolour_cluster_elements {
 
     #print Data::Dumper::Dumper(keys %{$self->{element_to_cluster}});
 
-    if ($self->{cluster_colour_mode} eq 'palette') {
+    my $cluster_colour_mode = $self->{cluster_colour_mode};
 
+    if ($cluster_colour_mode eq 'palette') {
         $map->colour($palette_colour_func);
-        #FIXME: should hide the legend (currently broken - legend never shows up again)
         $map->set_legend_min_max(0, 0);
-
     }
-    elsif ($self->{cluster_colour_mode} eq 'list-values') {
-
+    elsif ($cluster_colour_mode eq 'sequential') {
+        $map->colour($sequential_colour_func);
+        $map->set_legend_min_max(0, 0);
+    }
+    elsif ($cluster_colour_mode eq 'list-values') {
         $map->colour($list_value_colour_func);
         $map->set_legend_min_max($analysis_min, $analysis_max);
     }
@@ -882,6 +906,19 @@ sub recolour_cluster_elements {
         die "bad cluster colouring mode: " . $self->{cluster_colour_mode};
     }
 
+}
+
+sub get_current_sequential_colour {
+    my $self = shift;
+    
+    my $widget_name = 'selector_colorbutton';
+    my $colour;
+    eval {
+        my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
+        $colour = $widget->get_color;
+    };
+    croak $@ if $@;
+    return $colour;
 }
 
 
@@ -908,15 +945,21 @@ sub recolour_cluster_lines {
     my $list_index   = $self->{analysis_list_index};
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
+    my $colour_mode  = $self->{cluster_colour_mode};
 
     foreach my $node_ref (@$cluster_nodes) {
 
         my $node_name = $node_ref->get_name;
 
-        if ($self->{cluster_colour_mode} eq 'palette') {
+        if ($colour_mode eq 'palette') {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
-        elsif ($self->{cluster_colour_mode} eq 'list-values') {
+        elsif ($colour_mode eq 'sequential') {
+            #  should get the colour ref already in use,
+            #  or the one we're assigning
+            $colour_ref = $self->get_current_sequential_colour || COLOUR_RED;
+        }
+        elsif ($colour_mode eq 'list-values') {
 
             $list_ref = $node_ref->get_list_ref (list => $list_name);
             $val = defined $list_ref
@@ -931,11 +974,11 @@ sub recolour_cluster_lines {
             die "unknown colouring mode";
         }
 
-        #$node_ref->set_cached_value(__gui_colour => $colour_ref);
         $self->{node_colours_cache}{$node_name} = $colour_ref;
-        $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
+        # if colour undef then we're clearing back to default
+        $colour_ref ||= DEFAULT_LINE_COLOUR; 
 
-        $line = $self->{node_lines}->{$node_name};
+        $line = $self->{node_lines}{$node_name};
         if ($line) {
             $line->set(fill_color_gdk => $colour_ref);
         }
@@ -953,7 +996,9 @@ sub recolour_cluster_lines {
 
     #print Data::Dumper::Dumper(keys %coloured_nodes);
 
-    if ($self->{recolour_nodes}) {
+    if ($self->{recolour_nodes}
+        && $colour_mode ne 'sequential'
+        ) {
         #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
         # uncolour previously coloured nodes that aren't being coloured this time
       NODE:
@@ -963,7 +1008,6 @@ sub recolour_cluster_lines {
 
             my $name = $node->get_name;
             $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-            #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
             $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
         }
         #print "[Dendrogram] Recoloured nodes\n";
@@ -979,8 +1023,6 @@ sub recolour_cluster_lines {
 sub colour_line {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
-    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
-    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
@@ -993,11 +1035,10 @@ sub colour_line {
     return;
 }
 
+
 sub colour_lines {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
-    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
-    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
@@ -1029,6 +1070,11 @@ sub restore_line_colours {
     }
 
     return;
+}
+
+sub get_processed_nodes {
+    my $self = shift;
+    return $self->{processed_nodes};
 }
 
 sub set_processed_nodes {
@@ -1147,7 +1193,7 @@ sub setup_map_index_model {
 # Change of list to display on the map
 # Can either be the Cluster "list" (coloured by node) or a spatial analysis list
 sub on_map_list_combo_changed {
-    my $self = shift;
+    my $self  = shift;
     my $combo = shift || $self->{map_list_combo};
 
     my $iter  = $combo->get_active_iter;
@@ -1159,33 +1205,44 @@ sub on_map_list_combo_changed {
     $self->{analysis_min}        = undef;
     $self->{analysis_max}        = undef;
 
+    if (   $list ne '<i>Cloister>/i>'
+        && $self->{cluster_colour_mode} ne 'sequential') {
+        #  clear the full set?
+        
+    }
+
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
         #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
+        $self->{parent_tab}->on_clusters_changed;
 
         $self->{cluster_colour_mode} = 'palette';
-        $self->recolour_cluster_elements();
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->recolour_cluster_elements;
+        $self->recolour_cluster_lines($self->get_processed_nodes);
 
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
     elsif ($list eq '<i>Cloister</i>') {
+        #  should call on_clusters_changed??
         # Selected sequential palette allocation mode
+        $self->set_num_clusters (1);
 
-        $self->{cluster_colour_mode} = 'palette';
-        $self->recolour_cluster_elements();
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->{cluster_colour_mode} = 'sequential';
+        $self->recolour_cluster_elements;
+        $self->recolour_cluster_lines($self->get_processed_nodes);
 
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
     else {
+        $self->{parent_tab}->on_clusters_changed;
+
         # Selected analysis-colouring mode
         $self->{analysis_list_name} = $list;
 
         $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
-        $self->on_combo_map_index_changed();
+        $self->on_combo_map_index_changed;
     }
 
     return;
@@ -1193,11 +1250,11 @@ sub on_map_list_combo_changed {
 
 #  this should be controlled by the parent tab, not the dendrogram
 sub on_combo_map_index_changed {
-    my $self = shift;
+    my $self  = shift;
     my $combo = shift || $self->{map_index_combo};
 
     my $index = undef;
-    my $iter = $combo->get_active_iter;
+    my $iter  = $combo->get_active_iter;
 
     if ($iter) {
 
@@ -1214,7 +1271,7 @@ sub on_combo_map_index_changed {
         $self->{cluster_colour_mode} = 'list-values';
         $self->recolour_cluster_elements();
 
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->get_processed_nodes);
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1242,7 +1299,7 @@ sub select_map_index {
         $self->{cluster_colour_mode} = 'list-values';
         $self->recolour_cluster_elements();
 
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->get_processed_nodes);
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1584,7 +1641,7 @@ sub set_cluster {
     $self->{selected_list_index} = {};
     $self->{cluster_colour_mode} = 'palette';
     $self->{recolour_nodes} = undef;
-    $self->{processed_nodes} = undef;
+    $self->set_processed_nodes (undef);
 
     #  number the nodes if needed
     if (! defined $self->{tree_node}->get_value ('TERMINAL_NODE_FIRST')) {

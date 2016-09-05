@@ -671,7 +671,7 @@ sub on_combo_map_list_changed {
     my $list  = $model->get($iter, 0);
 
     my $sensitive = 1;
-    if ($list eq '<i>Cluster</i>') {
+    if ($list eq '<i>Cluster</i>' || $list eq '<i>Cloister</i>') {
         $sensitive = 0;
         $self->hide_legend;
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);

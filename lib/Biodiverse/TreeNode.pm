@@ -2041,7 +2041,8 @@ sub get_list_ref {
     my $self = shift;
     my %args = @_;
     my $list = $args{list};
-    exists $self->{$list} ? $self->{$list} : undef;
+    no autovivification;
+    defined $list ? $self->{$list} : undef;
 }
 
 sub get_node_range {

@@ -859,6 +859,9 @@ sub colour {
         next CELL if !defined $cell->[INDEX_RECT];
 
         my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // $colour_none;
+        
+        next CELL if $colour_ref eq '-1';
+        
         $cell->[INDEX_COLOUR] = $colour_ref;
 
         eval {

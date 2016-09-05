@@ -722,10 +722,14 @@ sub do_colour_nodes_below {
             }
         }
     }
-    else {
+    elsif ($self->{cluster_colour_mode} ne 'sequential') {
         say "[Dendrogram] Clearing colouring";
     }
 
+    #  Don't clear if we are multi-select - allows for mis-hits when
+    #  selecting branches.
+    return if !$start_node && $self->{cluster_colour_mode} eq 'sequential';
+    
     # Set up colouring
     #print "num clusters = $num_clusters\n";
     $self->assign_cluster_palette_colours(\@colour_nodes);

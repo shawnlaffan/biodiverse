@@ -841,7 +841,7 @@ sub recolour_cluster_elements {
     my $analysis_min      = $self->{analysis_min};
     my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
-    
+
     my $parent_tab = $self->{parent_tab};
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
 
@@ -986,7 +986,6 @@ sub recolour_cluster_lines {
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
-    tie %coloured_nodes, 'Tie::RefHash';
 
     my $map = $self->{map};
     my $list_name    = $self->{analysis_list_name};
@@ -1019,12 +1018,12 @@ sub recolour_cluster_lines {
               : undef;
         }
         else {
-            die "unknown colouring mode";
+            die "unknown colouring mode $colour_mode\n";
         }
 
         $self->{node_colours_cache}{$node_name} = $colour_ref;
-        # if colour undef then we're clearing back to default
-        $colour_ref ||= DEFAULT_LINE_COLOUR; 
+        # if colour is undef then we're clearing back to default
+        $colour_ref ||= DEFAULT_LINE_COLOUR;
 
         $line = $self->{node_lines}{$node_name};
         if ($line) {
@@ -1039,7 +1038,7 @@ sub recolour_cluster_lines {
             $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
-        $coloured_nodes{$node_ref} = (); # mark as coloured
+        $coloured_nodes{$node_name} = $node_ref; # mark as coloured
     }
 
     #print Data::Dumper::Dumper(keys %coloured_nodes);
@@ -1050,13 +1049,13 @@ sub recolour_cluster_lines {
         #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
         # uncolour previously coloured nodes that aren't being coloured this time
       NODE:
-        foreach my $node (keys %{ $self->{recolour_nodes} }) {
+        foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
 
-            next NODE if exists $coloured_nodes{$node};
+            next NODE if exists $coloured_nodes{$node_name};
 
-            my $name = $node->get_name;
-            $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-            $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
+            #my $name = $node->get_name;
+            $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+            $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
         }
         #print "[Dendrogram] Recoloured nodes\n";
     }
@@ -1078,7 +1077,7 @@ sub colour_line {
     if ($line) {
         $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     }
-    $coloured_nodes->{ $node_ref } = (); # mark as coloured
+    $coloured_nodes->{ $name } = $node_ref; # mark as coloured
 
     return;
 }
@@ -1091,7 +1090,7 @@ sub colour_lines {
     $self->{node_colours_cache}{$name} = $colour_ref;
 
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
-    $coloured_nodes->{ $node_ref } = (); # mark as coloured
+    $coloured_nodes->{ $name } = $node_ref; # mark as coloured
 
     foreach my $child_ref ($node_ref->get_children) {
         $self->colour_lines($child_ref, $colour_ref, $coloured_nodes);
@@ -1107,13 +1106,14 @@ sub restore_line_colours {
     if ($self->{recolour_nodes}) {
 
         my $colour_ref;
-        foreach my $node_ref (keys %{ $self->{recolour_nodes} }) {
+        foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
 
-            $colour_ref = $self->{node_palette_colours}{$node_ref->get_name};
-            $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
+            $colour_ref
+               = $self->{node_palette_colours}{$node_name}
+              // DEFAULT_LINE_COLOUR;
+            # if colour is undef then we're clearing back to default
 
-            $self->{node_lines}->{$node_ref->get_name}->set(fill_color_gdk => $colour_ref);
-
+            $self->{node_lines}->{$node_name}->set(fill_color_gdk => $colour_ref);
         }
     }
 
@@ -1685,10 +1685,10 @@ sub set_cluster {
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
 
-    $self->{element_to_cluster} = {};
+    $self->{element_to_cluster}  = {};
     $self->{selected_list_index} = {};
     $self->{cluster_colour_mode} = 'palette';
-    $self->{recolour_nodes} = undef;
+    $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
 
     #  number the nodes if needed

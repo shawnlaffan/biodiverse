@@ -681,6 +681,20 @@ sub on_combo_map_list_changed {
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     }
 
+    #  show/hide some widgets 
+    my @cluster_widgets  = qw /label_cluster_spin_button spinClusters/;
+    my @cloister_widgets = qw /label_selector_colour selector_colorbutton/;
+    my $m1 = $list eq '<i>Cloister</i>' ? 'hide' : 'show';
+    my $m2 = $list eq '<i>Cloister</i>' ? 'show' : 'hide';
+    foreach my $widget_name (@cluster_widgets) {
+        my $widget = $self->{xmlPage}->get_object ($widget_name);
+        $widget->$m1;
+    }
+    foreach my $widget_name (@cloister_widgets) {
+        my $widget = $self->{xmlPage}->get_object ($widget_name);
+        $widget->$m2;
+    }
+    
     my @widgets = qw {
         comboMapShow
         menuitem_cluster_colour_mode_hue

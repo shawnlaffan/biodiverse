@@ -11,6 +11,7 @@ use Time::HiRes qw /gettimeofday time/;
 
 use Scalar::Util qw /weaken blessed/;
 use List::Util qw /min/;
+use List::MoreUtils qw /firstidx/;
 use Tie::RefHash;
 
 use Gtk2;
@@ -112,6 +113,9 @@ sub new {
     $self->{sp_list}  = undef;
     $self->{sp_index} = undef;
     bless $self, $class;
+    
+    #  also initialises it
+    $self->increment_sequential_selection_colour;
 
     #  clean up if we are a refresh
     if (my $child = $main_frame->get_child) {
@@ -526,6 +530,22 @@ sub get_palette_colorbrewer13 {
                 #4B4B4B';
 }
 
+sub get_gdk_colors_colorbrewer9 {
+    my $self = shift;
+    my @colours
+        = map {Gtk2::Gdk::Color->parse ($_)}
+          $self->get_palette_colorbrewer9;
+    return @colours;
+}
+
+sub get_gdk_colors_colorbrewer13 {
+    my $self = shift;
+    my @colours
+        = map {Gtk2::Gdk::Color->parse ($_)}
+          $self->get_palette_colorbrewer13;
+    return @colours;
+}
+
 # Returns a list of colours to use for colouring however-many clusters
 # returns STRING COLOURS
 sub get_palette {
@@ -921,6 +941,36 @@ sub get_current_sequential_colour {
     return $colour;
 }
 
+sub increment_sequential_selection_colour {
+    my $self = shift;
+    
+    return if !$self->{cluster_colour_mode} eq 'sequential';
+
+    my $colour = $self->get_current_sequential_colour;
+
+    my @colours = $self->get_gdk_colors_colorbrewer9;
+
+    if (my $last_colour = $self->{last_sequential_colour}) {
+        my $i = firstidx {$last_colour->equal($_)} @colours;
+        $i++;
+        $i %= scalar @colours;
+        $colour = $colours[$i];
+    }
+    else {
+        $colour = $colours[0];
+    }
+
+    my $widget_name = 'selector_colorbutton';
+    eval {
+        my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
+        $widget->set_color ($colour);
+    };
+    croak $@ if $@;
+    
+    $self->{last_sequential_colour} = $colour;
+    
+    return;
+}
 
 sub get_colour_not_in_tree {
     my $self = shift;
@@ -2073,16 +2123,17 @@ sub on_event {
                 $f = $self->{ctrl_click_func};
                 $f->($node);
             }
-        # Just click - colour nodes
         }
+        # Left click - colour nodes
         elsif ($event->button == 1) {
             $self->do_colour_nodes_below($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
                 $f->($node);
             }
-        # Right click - set marks semi-permanently
+            $self->increment_sequential_selection_colour;
         }
+        # Right click - set marks semi-permanently
         elsif ($event->button == 3) {
 
             # Restore previously clicked/hovered line

@@ -613,6 +613,24 @@ Does not affect the vertical connectors.
                                             <property name="column_spacing">2</property>
                                             <property name="row_spacing">4</property>
                                             <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
                                               <object class="GtkHBox" id="hbox_cluster_metric">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
@@ -1481,7 +1499,7 @@ This setting has no effect on the slider bar.</property>
                   <object class="GtkLabel" id="label_selector_colour">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Colour</property>
+                    <property name="label" translatable="yes">Next colour</property>
                   </object>
                 </child>
               </object>

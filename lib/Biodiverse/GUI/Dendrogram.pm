@@ -844,88 +844,86 @@ sub recolour_cluster_elements {
     
     my $parent_tab = $self->{parent_tab};
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
-    my $colour_for_sequential = $self->get_current_sequential_colour;
-
-    # sets colours according to palette
-    my $palette_colour_func = sub {
-        my $elt = shift;
-        my $cluster_node = $self->{element_to_cluster}{$elt};
-
-        if ($cluster_node) {
-            my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-            return $colour_ref || COLOUR_PALETTE_OVERFLOW;
-        }
-        else {
-            return exists $terminal_elements->{$elt}
-                ? COLOUR_OUTSIDE_SELECTION
-                : $self->get_colour_not_in_tree;
-        }
-
-        die "how did I get here?\n";
-    };
-
-    # sets colours according to sequential palette
-    my $sequential_colour_func = sub {
-        my $elt = shift;
-        
-        return -1
-          if    $terminal_element_subset
-             && !exists $terminal_element_subset->{$elt};
-        
-        
-        my $cluster_node = $self->{element_to_cluster}{$elt};
-        
-        return if !$cluster_node;
-
-        return $colour_for_sequential || COLOUR_PALETTE_OVERFLOW;
-    };
-
-    # sets colours according to (usually spatial) list value for the element's cluster
-    my $list_value_colour_func = sub {
-        my $elt = shift;
-
-        my $cluster_node = $self->{element_to_cluster}{$elt};
-
-        if ($cluster_node) {
-            no autovivification;
-
-            my $list_ref = $cluster_node->get_list_ref (list => $list_name)
-              // return $colour_for_undef;
-
-            my $val = $list_ref->{$list_index}
-              // return $colour_for_undef;
-
-            return $map->get_colour ($val, $analysis_min, $analysis_max);
-        }
-        else {
-            return exists $terminal_elements->{$elt}
-              ? COLOUR_OUTSIDE_SELECTION
-              : $self->get_colour_not_in_tree;
-        }
-
-        die "how did I get here?\n";
-    };
-
-    #print Data::Dumper::Dumper(keys %{$self->{element_to_cluster}});
 
     my $cluster_colour_mode = $self->{cluster_colour_mode};
+    my $colour_callback;
 
     if ($cluster_colour_mode eq 'palette') {
-        $map->colour($palette_colour_func);
-        $map->set_legend_min_max(0, 0);
+        # sets colours according to palette
+        $colour_callback = sub {
+            my $elt = shift;
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+    
+            if ($cluster_node) {
+                my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
+                return $colour_ref || COLOUR_PALETTE_OVERFLOW;
+            }
+            else {
+                return exists $terminal_elements->{$elt}
+                    ? COLOUR_OUTSIDE_SELECTION
+                    : $self->get_colour_not_in_tree;
+            }
+    
+            die "how did I get here?\n";
+        };
     }
     elsif ($cluster_colour_mode eq 'sequential') {
-        $map->colour($sequential_colour_func);
-        $map->set_legend_min_max(0, 0);
+        my $colour_for_sequential = $self->get_current_sequential_colour;
+
+        # sets colours according to sequential palette
+        $colour_callback = sub {
+            my $elt = shift;
+
+            return -1
+              if    $terminal_element_subset
+                 && !exists $terminal_element_subset->{$elt};
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            return if !$cluster_node;
+
+            return $colour_for_sequential || COLOUR_PALETTE_OVERFLOW;
+        };
     }
     elsif ($cluster_colour_mode eq 'list-values') {
-        $map->colour($list_value_colour_func);
+        # sets colours according to (usually spatial)
+        # list value for the element's cluster
+        $colour_callback = sub {
+            my $elt = shift;
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            if ($cluster_node) {
+                no autovivification;
+
+                my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+                  // return $colour_for_undef;
+
+                my $val = $list_ref->{$list_index}
+                  // return $colour_for_undef;
+
+                return $map->get_colour ($val, $analysis_min, $analysis_max);
+            }
+            else {
+                return exists $terminal_elements->{$elt}
+                  ? COLOUR_OUTSIDE_SELECTION
+                  : $self->get_colour_not_in_tree;
+            }
+
+            die "how did I get here?\n";
+        };
+    }
+    
+    die "Invalid cluster colour mode $cluster_colour_mode\n"
+      if !defined $colour_callback;
+
+    $map->colour ($colour_callback);
+
+    if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
     }
-    else {
-        die "bad cluster colouring mode: " . $self->{cluster_colour_mode};
-    }
 
+    return;
 }
 
 sub get_current_sequential_colour {

@@ -683,7 +683,7 @@ sub on_combo_map_list_changed {
 
     #  show/hide some widgets 
     my @cluster_widgets  = qw /label_cluster_spin_button spinClusters/;
-    my @cloister_widgets = qw /label_selector_colour selector_colorbutton/;
+    my @cloister_widgets = qw /label_selector_colour selector_colorbutton selector_toggle/;
     my $m1 = $list eq '<i>Cloister</i>' ? 'hide' : 'show';
     my $m2 = $list eq '<i>Cloister</i>' ? 'show' : 'hide';
     foreach my $widget_name (@cluster_widgets) {

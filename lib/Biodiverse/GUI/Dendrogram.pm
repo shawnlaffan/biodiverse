@@ -114,6 +114,13 @@ sub new {
     $self->{sp_index} = undef;
     bless $self, $class;
     
+    foreach my $widget_name (qw /selector_toggle selector_colorbutton/) {
+        eval {
+            $self->{$widget_name}
+              = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
+        };
+    }
+
     #  also initialises it
     $self->increment_sequential_selection_colour(1);
 
@@ -886,7 +893,8 @@ sub recolour_cluster_elements {
 
             return if !$cluster_node;
 
-            return $colour_for_sequential || COLOUR_PALETTE_OVERFLOW;
+            return $colour_for_sequential || COLOUR_OUTSIDE_SELECTION;
+            #COLOUR_PALETTE_OVERFLOW;
         };
     }
     elsif ($cluster_colour_mode eq 'list-values') {
@@ -932,14 +940,14 @@ sub recolour_cluster_elements {
 
 sub get_current_sequential_colour {
     my $self = shift;
-    
-    my $widget_name = 'selector_colorbutton';
+
     my $colour;
     eval {
-        my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
-        $colour    = $widget->get_color;
+        $colour = !$self->{selector_toggle}->get_active
+          ? $self->{selector_colorbutton}->get_color
+          : undef;
     };
-    #croak $@ if $@;
+
     return $colour;
 }
 
@@ -947,7 +955,12 @@ sub increment_sequential_selection_colour {
     my $self = shift;
     my $force_increment = shift;
     
-    return if !$force_increment && $self->{cluster_colour_mode} ne 'sequential';
+    return if !$force_increment
+            && $self->{cluster_colour_mode} ne 'sequential';
+
+    return 
+      if    $self->{selector_toggle}
+         && $self->{selector_toggle}->get_active;
 
     my $colour = $self->get_current_sequential_colour;
 
@@ -963,12 +976,9 @@ sub increment_sequential_selection_colour {
         $colour = $colours[0];
     }
 
-    my $widget_name = 'selector_colorbutton';
     eval {
-        my $widget = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
-        $widget->set_color ($colour);
+        $self->{selector_colorbutton}->set_color ($colour);
     };
-    #croak $@ if $@;
     
     $self->{last_sequential_colour} = $colour;
     
@@ -1007,7 +1017,7 @@ sub recolour_cluster_lines {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($colour_mode eq 'sequential') {
-            $colour_ref = $self->get_current_sequential_colour || COLOUR_RED;
+            $colour_ref = $self->get_current_sequential_colour || COLOUR_BLACK;
         }
         elsif ($colour_mode eq 'list-values') {
 

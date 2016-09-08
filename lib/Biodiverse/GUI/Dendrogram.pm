@@ -973,7 +973,9 @@ sub clear_sequential_colours_from_plot {
 #  later we can get this from a cached value on the tree object
 sub get_sequential_colour_store {
     my $self = shift;
-    my $store = ($self->{sequential_colour_store} //= []);
+    my $tree = $self->get_tree_object;
+    my $store = $tree->get_cached_value_dor_set_default_aa ('GUI_MULTISELECT_COLOUR_STORE', []);
+    #my $store = ($self->{sequential_colour_store} //= []);
     return $store;
 }
 
@@ -1383,7 +1385,8 @@ sub on_map_list_combo_changed {
     elsif ($list eq '<i>Cloister</i>') {
         #  clear current colouring
         $self->recolour_cluster_elements;
-        $self->recolour_cluster_lines($self->get_processed_nodes);
+        #$self->recolour_cluster_lines($self->get_processed_nodes);
+        $self->recolour_cluster_lines;
 
         $self->set_num_clusters (1);
         $self->{cluster_colour_mode} = 'sequential';

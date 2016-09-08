@@ -10,9 +10,8 @@ use Carp;
 use Time::HiRes qw /gettimeofday time/;
 
 use Scalar::Util qw /weaken blessed/;
-use List::Util qw /min/;
+use List::Util 1.29 qw /min pairs/;
 use List::MoreUtils qw /firstidx/;
-#use Tie::RefHash;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -200,6 +199,12 @@ sub new {
     # Labels::initMatrixGrid will set $self->{page} (hacky}
 
     return $self;
+}
+
+
+sub get_tree_object {
+    my $self = shift;
+    return $self->{cluster};
 }
 
 #  
@@ -879,7 +884,7 @@ sub recolour_cluster_elements {
             die "how did I get here?\n";
         };
     }
-    elsif ($cluster_colour_mode eq 'sequential') {
+    elsif ($self->in_multiselect_mode) {
         my $colour_for_sequential = $self->get_current_sequential_colour;
 
         # sets colours according to sequential palette
@@ -892,7 +897,7 @@ sub recolour_cluster_elements {
 
             my $cluster_node = $self->{element_to_cluster}{$elt};
 
-            return if !$cluster_node;
+            return -1 if !$cluster_node;
 
             return $colour_for_sequential || COLOUR_OUTSIDE_SELECTION;
             #COLOUR_PALETTE_OVERFLOW;
@@ -944,6 +949,69 @@ sub in_multiselect_mode {
     return $self->{cluster_colour_mode} eq 'sequential';
 }
 
+
+sub clear_sequential_colours_from_plot {
+    my $self = shift;
+
+    return if !$self->in_multiselect_mode;
+
+    #  temp override, as sequential colour mode has side effects
+    local $self->{cluster_colour_mode} = 'palette';
+    
+    my $colour_store = $self->get_sequential_colour_store;
+    if (@$colour_store) {
+        my $tree = $self->get_tree_object;
+        my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
+        #  clear current colouring
+        #$self->recolour_cluster_elements;
+        $self->recolour_cluster_lines (\@coloured_nodes);
+    }
+
+    return;
+}
+
+#  later we can get this from a cached value on the tree object
+sub get_sequential_colour_store {
+    my $self = shift;
+    my $store = ($self->{sequential_colour_store} //= []);
+    return $store;
+}
+
+sub store_sequential_colour {
+    my $self = shift;
+    my @pairs = @_;  #  usually get only one name/colour pair
+
+    my $store = $self->get_sequential_colour_store;
+
+  PAIR:
+    foreach my $pair (pairs @pairs) {
+        #  don't store refs
+        if (blessed $pair->[0]) {
+            $pair->[0] = $pair->[0]->get_name;
+        }
+        #  don't store Gdk objects due to serialisation issues
+        if (blessed $pair->[1]) {
+            $pair->[1] = $pair->[1]->to_string;
+        }
+
+        #  we get double triggers for some reason due to a
+        #  higher sub being called twice for each colour event
+        if (!scalar @$store) {
+            push @$store, $pair;
+            next PAIR;
+        }
+        
+        #  clear pre-existing (assumes we don't insert dups from other code locations)
+        my $idx = firstidx {$_->[0] eq $pair->[0]} @$store;
+        if ($idx != -1) {
+            splice @$store, $idx, 1;
+        }
+        push @$store, $pair;
+    }
+
+    return;
+}
+
 sub get_current_sequential_colour {
     my $self = shift;
 
@@ -952,6 +1020,22 @@ sub get_current_sequential_colour {
         if (!$self->{selector_toggle}->get_active) {
             $colour = $self->{selector_colorbutton}->get_color;
         }
+    };
+
+    return $colour;
+}
+
+sub set_current_sequential_colour {
+    my $self   = shift;
+    my $colour = shift;
+
+    return if !defined $colour;  #  should we croak?
+
+    eval {
+        if ((blessed $colour // '') !~ /Gtk2::Gdk::Color/) {
+            $colour = Gtk2::Gdk::Color->parse  ($colour);
+        }
+        $colour = $self->{selector_colorbutton}->set_color ($colour);
     };
 
     return $colour;
@@ -1024,6 +1108,9 @@ sub recolour_cluster_lines {
         }
         elsif ($self->in_multiselect_mode) {
             $colour_ref = $self->get_current_sequential_colour || COLOUR_BLACK;
+            if ($colour_ref) {  #  should always be true, but just in case...
+                $self->store_sequential_colour ($node_name, $colour_ref);
+            }
         }
         elsif ($colour_mode eq 'list-values') {
 
@@ -1281,10 +1368,12 @@ sub on_map_list_combo_changed {
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
-        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
-        $self->{parent_tab}->on_clusters_changed;
+        $self->clear_sequential_colours_from_plot;
 
         $self->{cluster_colour_mode} = 'palette';
+
+        $self->{parent_tab}->on_clusters_changed;
+
         $self->recolour_cluster_elements;
         $self->recolour_cluster_lines($self->get_processed_nodes);
 
@@ -1292,13 +1381,37 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     elsif ($list eq '<i>Cloister</i>') {
-        #  should call on_clusters_changed??
-        # Selected sequential palette allocation mode
-        $self->set_num_clusters (1);
-
-        $self->{cluster_colour_mode} = 'sequential';
+        #  clear current colouring
         $self->recolour_cluster_elements;
         $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        $self->set_num_clusters (1);
+        $self->{cluster_colour_mode} = 'sequential';
+
+        my $colour_store = $self->get_sequential_colour_store;
+
+        if (@$colour_store) {
+            my $tree = $self->get_tree_object;
+            #  copy to avoid infinite recursion,
+            #  as the ref is appended in one of the called subs
+            my @pairs = @$colour_store;
+
+            #  ensure recolouring works
+            $self->map_elements_to_clusters ([map {$tree->get_node_ref (node => $_->[0])} @pairs]);
+
+            foreach my $pair (@pairs) {
+                my $node_ref = $tree->get_node_ref (node => $pair->[0]);
+                $self->set_current_sequential_colour ($pair->[1]);
+                my $elements = $node_ref->get_terminal_elements;
+                $self->recolour_cluster_elements ($elements);
+                $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
+                $self->recolour_cluster_lines($self->get_processed_nodes);
+            }
+        }
+        else {
+            $self->recolour_cluster_elements;
+            $self->recolour_cluster_lines($self->get_processed_nodes);
+        }
 
         if ($self->{recolour_nodes}) {
             $self->increment_sequential_selection_colour;
@@ -1308,6 +1421,8 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     else {
+        $self->clear_sequential_colours_from_plot;
+
         $self->{parent_tab}->on_clusters_changed;
 
         # Selected analysis-colouring mode

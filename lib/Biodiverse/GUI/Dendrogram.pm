@@ -667,6 +667,11 @@ sub toggle_use_slider_to_select_nodes {
 sub do_colour_nodes_below {
     my $self = shift;
     my $start_node = shift;
+
+    #  Don't clear if we are multi-select - allows for mis-hits when
+    #  selecting branches.
+    return if !$start_node && $self->in_multiselect_mode;
+
     $self->{colour_start_node} = $start_node;
 
     my $num_clusters = $self->get_num_clusters;
@@ -703,7 +708,7 @@ sub do_colour_nodes_below {
         }
         $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
         
-        if ($self->{cluster_colour_mode} eq 'sequential') {
+        if ($self->in_multiselect_mode) {
             #  we need a hash of the terminals
             # (sequential only has one node)
             $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
@@ -729,13 +734,9 @@ sub do_colour_nodes_below {
             }
         }
     }
-    elsif ($self->{cluster_colour_mode} ne 'sequential') {
+    elsif (!$self->in_multiselect_mode) {
         say "[Dendrogram] Clearing colouring";
     }
-
-    #  Don't clear if we are multi-select - allows for mis-hits when
-    #  selecting branches.
-    return if !$start_node && $self->{cluster_colour_mode} eq 'sequential';
     
     # Set up colouring
     #print "num clusters = $num_clusters\n";
@@ -938,14 +939,19 @@ sub recolour_cluster_elements {
     return;
 }
 
+sub in_multiselect_mode {
+    my $self = shift;
+    return $self->{cluster_colour_mode} eq 'sequential';
+}
+
 sub get_current_sequential_colour {
     my $self = shift;
 
     my $colour;
     eval {
-        $colour = !$self->{selector_toggle}->get_active
-          ? $self->{selector_colorbutton}->get_color
-          : undef;
+        if (!$self->{selector_toggle}->get_active) {
+            $colour = $self->{selector_colorbutton}->get_color;
+        }
     };
 
     return $colour;
@@ -956,7 +962,7 @@ sub increment_sequential_selection_colour {
     my $force_increment = shift;
     
     return if !$force_increment
-            && $self->{cluster_colour_mode} ne 'sequential';
+            && !$self->in_multiselect_mode;
 
     return 
       if    $self->{selector_toggle}
@@ -1016,7 +1022,7 @@ sub recolour_cluster_lines {
         if ($colour_mode eq 'palette') {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
-        elsif ($colour_mode eq 'sequential') {
+        elsif ($self->in_multiselect_mode) {
             $colour_ref = $self->get_current_sequential_colour || COLOUR_BLACK;
         }
         elsif ($colour_mode eq 'list-values') {
@@ -1054,7 +1060,7 @@ sub recolour_cluster_lines {
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured
     }
 
-    if ($colour_mode ne 'sequential') {
+    if (!$self->in_multiselect_mode) {
         if ($self->{recolour_nodes}) {
             #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
             # uncolour previously coloured nodes that aren't being coloured this time
@@ -1268,7 +1274,7 @@ sub on_map_list_combo_changed {
     $self->{analysis_max}        = undef;
 
     if (   $list ne '<i>Cloister>/i>'
-        && $self->{cluster_colour_mode} ne 'sequential') {
+        && !$self->in_multiselect_mode) {
         #  clear the full set?
         
     }

@@ -1023,18 +1023,14 @@ sub store_sequential_colour {
             $pair->[1] = $pair->[1]->to_string;
         }
 
-        ##  we get double triggers for some reason due to a
+        ##  Don't store sequential duplicates.
+        ##  We get double triggers for some reason due to a
         ##  higher sub being called twice for each colour event
-        #if (!scalar @$store) {
-        #    push @$store, $pair;
-        #    next PAIR;
-        #}
-        #
-        #  clear pre-existing (assumes we don't insert dups from other code locations)
-        #my $idx = firstidx {$_->[0] eq $pair->[0]} @$store;
-        #if ($idx != -1) {
-        #    splice @$store, $idx, 1;
-        #}
+        next PAIR
+          if scalar @$store
+            &&  $store->[-1][0] eq $pair->[0]
+            && ($store->[-1][1] // '') eq ($pair->[1] // '');
+
         push @$store, $pair;
     }
 

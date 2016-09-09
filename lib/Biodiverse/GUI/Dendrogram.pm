@@ -965,13 +965,15 @@ sub in_multiselect_clear_mode {
 }
 
 sub enter_multiselect_clear_mode {
-    my $self = shift;
+    my ($self, $no_store) = @_;
     eval {$self->{selector_toggle}->set_active (1)};
+    $self->{sequential_select_no_store} = !!$no_store;
 }
 
 sub leave_multiselect_clear_mode {
     my $self = shift;
     eval {$self->{selector_toggle}->set_active (0)};
+    #$self->{sequential_select_no_store} = 0;
 }
 
 sub clear_sequential_colours_from_plot {
@@ -1007,6 +1009,8 @@ sub store_sequential_colour {
     my $self = shift;
     my @pairs = @_;  #  usually get only one name/colour pair
 
+    return if $self->{sequential_select_no_store};
+
     my $store = $self->get_sequential_colour_store;
 
   PAIR:
@@ -1020,18 +1024,18 @@ sub store_sequential_colour {
             $pair->[1] = $pair->[1]->to_string;
         }
 
-        #  we get double triggers for some reason due to a
-        #  higher sub being called twice for each colour event
-        if (!scalar @$store) {
-            push @$store, $pair;
-            next PAIR;
-        }
-        
+        ##  we get double triggers for some reason due to a
+        ##  higher sub being called twice for each colour event
+        #if (!scalar @$store) {
+        #    push @$store, $pair;
+        #    next PAIR;
+        #}
+        #
         #  clear pre-existing (assumes we don't insert dups from other code locations)
-        my $idx = firstidx {$_->[0] eq $pair->[0]} @$store;
-        if ($idx != -1) {
-            splice @$store, $idx, 1;
-        }
+        #my $idx = firstidx {$_->[0] eq $pair->[0]} @$store;
+        #if ($idx != -1) {
+        #    splice @$store, $idx, 1;
+        #}
         push @$store, $pair;
     }
 
@@ -1134,8 +1138,8 @@ sub recolour_cluster_lines {
         }
         elsif ($self->in_multiselect_mode) {
             $colour_ref = $self->get_current_sequential_colour;  # || COLOUR_BLACK;
-            if ($colour_ref) {
-                $self->store_sequential_colour ($node_name, $colour_ref);
+            if ($colour_ref || $self->in_multiselect_clear_mode) {
+                $self->store_sequential_colour ($node_name => $colour_ref);
             }
         }
         elsif ($colour_mode eq 'list-values') {
@@ -1418,41 +1422,47 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     elsif ($list eq '<i>Cloister</i>') {
-        
-        #$self->{cluster_colour_mode} = 'sequential';
-
+        #   The next bit of code probably does too much
+        #   but getting it to work was not simple
         my $tree = $self->get_tree_object;
-        #my $node_ref_array = $tree->get_node_refs;
         my $node_ref_array = $tree->get_root_node_refs;
-        #$self->map_elements_to_clusters ($node_ref_array);
 
         #  clear current colouring
-$self->{element_to_cluster}  = {};
-$self->{recolour_nodes}      = undef;
-$self->set_processed_nodes (undef);
-        #$self->set_current_sequential_colour (COLOUR_BLACK);
-        #$self->recolour_cluster_lines;
-        #$self->set_current_sequential_colour (COLOUR_WHITE);
-        $self->recolour_cluster_elements;
-        #$self->recolour_cluster_lines($self->get_processed_nodes);
-$self->{cluster_colour_mode} = 'sequential';
+        $self->{element_to_cluster}  = {};
+        $self->{recolour_nodes}      = undef;
+        $self->set_processed_nodes (undef);
 
-my $was_in_clear_mode = $self->in_multiselect_clear_mode;
-$self->enter_multiselect_clear_mode;
-$self->map_elements_to_clusters ($node_ref_array);
-$self->recolour_cluster_lines ($node_ref_array);
-if (!$was_in_clear_mode) {
-    $self->leave_multiselect_clear_mode;
-}
+#$self->_dump_line_colours;
+
+        $self->recolour_cluster_elements;
+        $self->{cluster_colour_mode} = 'sequential';
+        
+#$self->_dump_line_colours;
+
+        #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
+        my $old_seq_sel_no_store = $self->{sequential_select_no_store};
+        $self->{sequential_select_no_store} = 1;
+        $self->enter_multiselect_clear_mode ('no_store');
+        $self->map_elements_to_clusters ($node_ref_array);
+        $self->recolour_cluster_lines ($node_ref_array);
+        #if (!$was_in_clear_mode) {
+            $self->leave_multiselect_clear_mode;
+        #}
+        $self->{sequential_select_no_store} = $old_seq_sel_no_store;
 
         $self->set_num_clusters (1, 'no_recolour');
 
+#$self->_dump_line_colours;
+
         my $colour_store = $self->get_sequential_colour_store;
 
+        #  refactor into a replay sub
         if (@$colour_store) {
-            #  copy to avoid infinite recursion,
-            #  as the ref is appended in one of the called subs
+            #  use a copy to avoid infinite recursion, as the
+            #  ref is appended to in one of the called subs
             my @pairs = @$colour_store;
+            #  this might be sufficient now
+            #local $self->{sequential_select_no_store} = 1;
 
             #  ensure recolouring works
             $self->map_elements_to_clusters (
@@ -1460,22 +1470,26 @@ if (!$was_in_clear_mode) {
             );
 
             foreach my $pair (@pairs) {
+                $self->{sequential_select_no_store} = 1;
+                my $was_in_clear_mode = 0;
                 my $node_ref = $tree->get_node_ref (node => $pair->[0]);
                 $self->set_current_sequential_colour ($pair->[1]);
                 my $elements = $node_ref->get_terminal_elements;
+                if (!defined $pair->[1]) {
+                    $was_in_clear_mode = 1;
+                    $self->enter_multiselect_clear_mode;
+                }
                 $self->recolour_cluster_elements ($elements);
                 $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
                 $self->recolour_cluster_lines($self->get_processed_nodes);
+                if ($was_in_clear_mode) {
+                    $self->leave_multiselect_clear_mode;
+                }
             }
+            $self->{sequential_select_no_store} = $old_seq_sel_no_store;
         }
-        #else {
-        #    $self->recolour_cluster_elements;
-        #    $self->recolour_cluster_lines($self->get_processed_nodes);
-        #}
 
-        #if ($self->{recolour_nodes}) {
-        #    $self->increment_sequential_selection_colour;
-        #}
+#$self->_dump_line_colours;
 
         # blank out the index combo
         $self->setup_map_index_model(undef);

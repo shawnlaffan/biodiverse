@@ -967,7 +967,7 @@ sub in_multiselect_clear_mode {
 sub enter_multiselect_clear_mode {
     my ($self, $no_store) = @_;
     eval {$self->{selector_toggle}->set_active (1)};
-    $self->{sequential_select_no_store} = !!$no_store;
+    #$self->{sequential_select_no_store} = !!$no_store;
 }
 
 sub leave_multiselect_clear_mode {

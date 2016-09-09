@@ -48,6 +48,7 @@ use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
 use constant DEFAULT_LINE_COLOUR_VERT => Gtk2::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
+use constant HOVER_CURSOR_CLEAR_MODE => 'gumby';  # cross or circle?
 
 ##########################################################
 # Construction
@@ -491,10 +492,13 @@ sub get_num_clusters {
 }
 
 sub set_num_clusters {
-    my $self = shift;
-    $self->{num_clusters} = shift || 1;
+    my ($self, $number, $no_recolour) = @_;
+    
+    $self->{num_clusters} = $number || 1;
     # apply new setting
-    $self->recolour();
+    if (!$no_recolour) {
+        $self->recolour();
+    }
     return;
 }
 
@@ -509,9 +513,11 @@ sub set_group_mode {
 
 sub recolour {
     my $self = shift;
+
     if ($self->{colour_start_node}) {
         $self->do_colour_nodes_below($self->{colour_start_node});
     }
+
     return;
 }
 
@@ -887,6 +893,9 @@ sub recolour_cluster_elements {
     elsif ($self->in_multiselect_mode) {
         my $colour_for_sequential = $self->get_current_sequential_colour;
 
+        #my $string_colour = eval {$colour_for_sequential->to_string} // '';
+        #say "RECOLOUR ELEMENTS: $string_colour";
+
         # sets colours according to sequential palette
         $colour_callback = sub {
             my $elt = shift;
@@ -949,6 +958,21 @@ sub in_multiselect_mode {
     return $self->{cluster_colour_mode} eq 'sequential';
 }
 
+sub in_multiselect_clear_mode {
+    my $self = shift;
+    return ($self->{cluster_colour_mode} // '')  eq 'sequential'
+      && eval {$self->{selector_toggle}->get_active};
+}
+
+sub enter_multiselect_clear_mode {
+    my $self = shift;
+    eval {$self->{selector_toggle}->set_active (1)};
+}
+
+sub leave_multiselect_clear_mode {
+    my $self = shift;
+    eval {$self->{selector_toggle}->set_active (0)};
+}
 
 sub clear_sequential_colours_from_plot {
     my $self = shift;
@@ -1017,11 +1041,13 @@ sub store_sequential_colour {
 sub get_current_sequential_colour {
     my $self = shift;
 
+    return if $self->in_multiselect_clear_mode;
+
     my $colour;
     eval {
-        if (!$self->{selector_toggle}->get_active) {
+        #if (!$self->{selector_toggle}->get_active) {
             $colour = $self->{selector_colorbutton}->get_color;
-        }
+        #}
     };
 
     return $colour;
@@ -1050,9 +1076,7 @@ sub increment_sequential_selection_colour {
     return if !$force_increment
             && !$self->in_multiselect_mode;
 
-    return 
-      if    $self->{selector_toggle}
-         && $self->{selector_toggle}->get_active;
+    return if $self->in_multiselect_clear_mode;
 
     my $colour = $self->get_current_sequential_colour;
 
@@ -1109,8 +1133,8 @@ sub recolour_cluster_lines {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->in_multiselect_mode) {
-            $colour_ref = $self->get_current_sequential_colour || COLOUR_BLACK;
-            if ($colour_ref) {  #  should always be true, but just in case...
+            $colour_ref = $self->get_current_sequential_colour;  # || COLOUR_BLACK;
+            if ($colour_ref) {
                 $self->store_sequential_colour ($node_name, $colour_ref);
             }
         }
@@ -1347,6 +1371,23 @@ sub setup_map_index_model {
     return;
 }
 
+sub _dump_line_colours {
+    my ($self, $node_name) = @_;
+    $node_name //= "120___";
+
+    if (exists $self->{node_colours_cache}{$node_name}) {
+        my $caller = ( caller(1) )[3];
+        my $caller_line = ( caller(1) )[2];
+        $caller =~ s/Biodiverse::GUI::Dendrogram:://;
+        print "$node_name ($caller, $caller_line): ";
+        eval {
+            say $self->{node_colours_cache}{$node_name}->to_string,
+                ' ',
+                $self->{node_lines}{$node_name}->get_property ('fill-color-gdk')->to_string;
+        };
+    }
+}
+
 # Change of list to display on the map
 # Can either be the Cluster "list" (coloured by node) or a spatial analysis list
 sub on_map_list_combo_changed {
@@ -1361,12 +1402,6 @@ sub on_map_list_combo_changed {
     $self->{analysis_list_index} = undef;
     $self->{analysis_min}        = undef;
     $self->{analysis_max}        = undef;
-
-    if (   $list ne '<i>Cloister>/i>'
-        && !$self->in_multiselect_mode) {
-        #  clear the full set?
-        
-    }
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
@@ -1383,24 +1418,46 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     elsif ($list eq '<i>Cloister</i>') {
+        
+        #$self->{cluster_colour_mode} = 'sequential';
+
+        my $tree = $self->get_tree_object;
+        #my $node_ref_array = $tree->get_node_refs;
+        my $node_ref_array = $tree->get_root_node_refs;
+        #$self->map_elements_to_clusters ($node_ref_array);
+
         #  clear current colouring
+$self->{element_to_cluster}  = {};
+$self->{recolour_nodes}      = undef;
+$self->set_processed_nodes (undef);
+        #$self->set_current_sequential_colour (COLOUR_BLACK);
+        #$self->recolour_cluster_lines;
+        #$self->set_current_sequential_colour (COLOUR_WHITE);
         $self->recolour_cluster_elements;
         #$self->recolour_cluster_lines($self->get_processed_nodes);
-        $self->recolour_cluster_lines;
+$self->{cluster_colour_mode} = 'sequential';
 
-        $self->set_num_clusters (1);
-        $self->{cluster_colour_mode} = 'sequential';
+my $was_in_clear_mode = $self->in_multiselect_clear_mode;
+$self->enter_multiselect_clear_mode;
+$self->map_elements_to_clusters ($node_ref_array);
+$self->recolour_cluster_lines ($node_ref_array);
+if (!$was_in_clear_mode) {
+    $self->leave_multiselect_clear_mode;
+}
+
+        $self->set_num_clusters (1, 'no_recolour');
 
         my $colour_store = $self->get_sequential_colour_store;
 
         if (@$colour_store) {
-            my $tree = $self->get_tree_object;
             #  copy to avoid infinite recursion,
             #  as the ref is appended in one of the called subs
             my @pairs = @$colour_store;
 
             #  ensure recolouring works
-            $self->map_elements_to_clusters ([map {$tree->get_node_ref (node => $_->[0])} @pairs]);
+            $self->map_elements_to_clusters (
+                [map {$tree->get_node_ref (node => $_->[0])} @pairs]
+            );
 
             foreach my $pair (@pairs) {
                 my $node_ref = $tree->get_node_ref (node => $pair->[0]);
@@ -1411,14 +1468,14 @@ sub on_map_list_combo_changed {
                 $self->recolour_cluster_lines($self->get_processed_nodes);
             }
         }
-        else {
-            $self->recolour_cluster_elements;
-            $self->recolour_cluster_lines($self->get_processed_nodes);
-        }
+        #else {
+        #    $self->recolour_cluster_elements;
+        #    $self->recolour_cluster_lines($self->get_processed_nodes);
+        #}
 
-        if ($self->{recolour_nodes}) {
-            $self->increment_sequential_selection_colour;
-        }
+        #if ($self->{recolour_nodes}) {
+        #    $self->increment_sequential_selection_colour;
+        #}
 
         # blank out the index combo
         $self->setup_map_index_model(undef);
@@ -2230,7 +2287,13 @@ sub on_event {
 
         # Change the cursor if we are in select mode
         if (!$self->{cursor}) {
-            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            my $cursor;
+            if ($self->in_multiselect_clear_mode) {
+                $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR_CLEAR_MODE);
+            }
+            else {
+                $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            }
             $self->{canvas}->window->set_cursor($cursor);
         }
     }

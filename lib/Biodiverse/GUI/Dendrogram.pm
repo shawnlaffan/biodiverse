@@ -1406,6 +1406,11 @@ sub on_map_list_combo_changed {
     $self->{analysis_list_index} = undef;
     $self->{analysis_min}        = undef;
     $self->{analysis_max}        = undef;
+    
+    #  multiselect hides it
+    if ($self->{slider}) {
+        $self->{slider}->show;
+    }
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
@@ -1422,6 +1427,10 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     elsif ($list eq '<i>Cloister</i>') {
+        if ($self->{slider}) {
+            $self->{slider}->hide;
+        }
+
         #   The next bit of code probably does too much
         #   but getting it to work was not simple
         my $tree = $self->get_tree_object;

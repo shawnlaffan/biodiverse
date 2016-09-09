@@ -48,7 +48,6 @@ use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
 use constant DEFAULT_LINE_COLOUR_VERT => Gtk2::Gdk::Color->parse('#7F7F7F');  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
-use constant HOVER_CURSOR_CLEAR_MODE => 'gumby';  # cross or circle?
 
 ##########################################################
 # Construction
@@ -2312,7 +2311,7 @@ sub on_event {
         if (!$self->{cursor}) {
             my $cursor;
             if ($self->in_multiselect_clear_mode) {
-                $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR_CLEAR_MODE);
+                $cursor = $self->get_hover_clear_cursor;
             }
             else {
                 $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
@@ -2768,6 +2767,29 @@ sub post_zoom {
     return;
 }
 
+
+sub get_hover_clear_cursor {
+    my $self = shift;
+
+    my $cursor = $self->{cursor_hover_clear};
+    return $cursor if $cursor;
+
+    my $icon_name = 'edit-clear';
+
+    my $ic = Gtk2::IconTheme->new();
+    my $pixbuf = eval {$ic->load_icon($icon_name, 16, 'no-svg')};
+    if ($@) {
+        warn $@;
+    }
+    else {
+        my $window  = $self->{canvas}->window;
+        my $display = $window->get_display;
+        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+        $self->{cursor_hover_clear} = $cursor;
+    }
+
+    return $cursor;
+}
 
 ##########################################################
 # Misc

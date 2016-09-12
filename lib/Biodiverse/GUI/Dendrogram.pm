@@ -1414,6 +1414,7 @@ sub on_map_list_combo_changed {
     #  multiselect hides it
     if ($self->{slider}) {
         $self->{slider}->show;
+        $self->{graph_slider}->show;
     }
 
     if ($list eq '<i>Cluster</i>') {
@@ -1433,6 +1434,7 @@ sub on_map_list_combo_changed {
     elsif ($list eq '<i>Cloister</i>') {
         if ($self->{slider}) {
             $self->{slider}->hide;
+            $self->{graph_slider}->hide;
         }
 
         $self->{cluster_colour_mode} = 'sequential';

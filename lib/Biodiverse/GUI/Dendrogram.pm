@@ -725,7 +725,7 @@ sub do_colour_nodes_below {
         
         if ($self->in_multiselect_mode) {
             #  we need a hash of the terminals
-            # (sequential only has one node)
+            # (multiselect only has one node)
             $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
         }
 
@@ -900,7 +900,7 @@ sub recolour_cluster_elements {
         #my $string_colour = eval {$colour_for_sequential->to_string} // '';
         #say "RECOLOUR ELEMENTS: $string_colour";
 
-        # sets colours according to sequential palette
+        # sets colours according to multiselect palette
         $colour_callback = sub {
             my $elt = shift;
 
@@ -959,36 +959,36 @@ sub recolour_cluster_elements {
 
 sub in_multiselect_mode {
     my $self = shift;
-    return $self->{cluster_colour_mode} eq 'sequential';
+    return $self->{cluster_colour_mode} eq 'multiselect';
 }
 
 sub in_multiselect_clear_mode {
     my $self = shift;
-    return ($self->{cluster_colour_mode} // '')  eq 'sequential'
+    return ($self->{cluster_colour_mode} // '')  eq 'multiselect'
       && eval {$self->{selector_toggle}->get_active};
 }
 
 sub enter_multiselect_clear_mode {
     my ($self, $no_store) = @_;
     eval {$self->{selector_toggle}->set_active (1)};
-    #$self->{sequential_select_no_store} = !!$no_store;
+    #$self->{multiselect_no_store} = !!$no_store;
 }
 
 sub leave_multiselect_clear_mode {
     my $self = shift;
     eval {$self->{selector_toggle}->set_active (0)};
-    #$self->{sequential_select_no_store} = 0;
+    #$self->{multiselect_no_store} = 0;
 }
 
-sub clear_sequential_colours_from_plot {
+sub clear_multiselect_colours_from_plot {
     my $self = shift;
 
     return if !$self->in_multiselect_mode;
 
-    #  temp override, as sequential colour mode has side effects
+    #  temp override, as multiselect colour mode has side effects
     local $self->{cluster_colour_mode} = 'palette';
     
-    my $colour_store = $self->get_sequential_colour_store;
+    my $colour_store = $self->get_multiselect_colour_store;
     if (@$colour_store) {
         my $tree = $self->get_tree_object;
         my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
@@ -1001,11 +1001,13 @@ sub clear_sequential_colours_from_plot {
 }
 
 #  later we can get this from a cached value on the tree object
-sub get_sequential_colour_store {
+sub get_multiselect_colour_store {
     my $self = shift;
     my $tree = $self->get_tree_object;
-    my $store = $tree->get_cached_value_dor_set_default_aa ('GUI_MULTISELECT_COLOUR_STORE', []);
-    #my $store = ($self->{sequential_colour_store} //= []);
+    my $store
+      = $tree->get_cached_value_dor_set_default_aa (
+        GUI_MULTISELECT_COLOUR_STORE => [],
+    );
     return $store;
 }
 
@@ -1013,9 +1015,9 @@ sub store_sequential_colour {
     my $self = shift;
     my @pairs = @_;  #  usually get only one name/colour pair
 
-    return if $self->{sequential_select_no_store};
+    return if $self->{multiselect_no_store};
 
-    my $store = $self->get_sequential_colour_store;
+    my $store = $self->get_multiselect_colour_store;
 
   PAIR:
     foreach my $pair (pairs @pairs) {
@@ -1028,7 +1030,7 @@ sub store_sequential_colour {
             $pair->[1] = $pair->[1]->to_string;
         }
 
-        ##  Don't store sequential duplicates.
+        ##  Don't store duplicates.
         ##  We get double triggers for some reason due to a
         ##  higher sub being called twice for each colour event
         next PAIR
@@ -1053,9 +1055,7 @@ sub get_current_sequential_colour {
 
     my $colour;
     eval {
-        #if (!$self->{selector_toggle}->get_active) {
-            $colour = $self->{selector_colorbutton}->get_color;
-        #}
+        $colour = $self->{selector_colorbutton}->get_color;
     };
 
     return $colour;
@@ -1082,7 +1082,7 @@ sub increment_sequential_selection_colour {
     my $force_increment = shift;
     
     return if !$force_increment
-            && !$self->in_multiselect_mode;
+           && !$self->in_multiselect_mode;
 
     return if $self->in_multiselect_clear_mode;
 
@@ -1090,7 +1090,7 @@ sub increment_sequential_selection_colour {
 
     my @colours = $self->get_gdk_colors_colorbrewer9;
 
-    if (my $last_colour = $self->{last_sequential_colour}) {
+    if (my $last_colour = $self->{last_multiselect_colour}) {
         my $i = firstidx {$last_colour->equal($_)} @colours;
         $i++;
         $i %= scalar @colours;
@@ -1104,7 +1104,7 @@ sub increment_sequential_selection_colour {
         $self->{selector_colorbutton}->set_color ($colour);
     };
     
-    $self->{last_sequential_colour} = $colour;
+    $self->{last_multiselect_colour} = $colour;
     
     return;
 }
@@ -1141,7 +1141,7 @@ sub recolour_cluster_lines {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->in_multiselect_mode) {
-            $colour_ref = $self->get_current_sequential_colour;  # || COLOUR_BLACK;
+            $colour_ref = $self->get_current_sequential_colour;
             if ($colour_ref || $self->in_multiselect_clear_mode) {
                 $self->store_sequential_colour ($node_name => $colour_ref);
             }
@@ -1306,10 +1306,10 @@ sub setup_map_list_model {
         $model->set($iter, 0, $list);
     }
 
-    #  add the sequential selector
+    #  add the multiselect selector
     $iter = $model->insert(0);
-    $model->set($iter, 0, '<i>Cloister</i>');
-    
+    $model->set($iter, 0, '<i>Multiselect</i>');
+
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
     $model->set($iter, 0, '<i>Cluster</i>');
@@ -1419,7 +1419,7 @@ sub on_map_list_combo_changed {
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
-        $self->clear_sequential_colours_from_plot;
+        $self->clear_multiselect_colours_from_plot;
 
         $self->{cluster_colour_mode} = 'palette';
 
@@ -1431,13 +1431,13 @@ sub on_map_list_combo_changed {
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
-    elsif ($list eq '<i>Cloister</i>') {
+    elsif ($list eq '<i>Multiselect</i>') {
         if ($self->{slider}) {
             $self->{slider}->hide;
             $self->{graph_slider}->hide;
         }
 
-        $self->{cluster_colour_mode} = 'sequential';
+        $self->{cluster_colour_mode} = 'multiselect';
 
         $self->set_num_clusters (1, 'no_recolour');
 
@@ -1447,7 +1447,7 @@ sub on_map_list_combo_changed {
         $self->setup_map_index_model(undef);
     }
     else {
-        $self->clear_sequential_colours_from_plot;
+        $self->clear_multiselect_colours_from_plot;
 
         $self->get_parent_tab->on_clusters_changed;
 
@@ -1547,14 +1547,14 @@ sub get_plot_min_max_values {
 sub reset_multiselect_undone_stack {
     my $self = shift;
     $self->get_tree_object->set_cached_value (
-        MULTI_SELECT_UNDONE_STACK => [],
+        GUI_MULTISELECT_UNDONE_STACK => [],
     );
 }
 
 sub get_multiselect_undone_stack {
     my $self = shift;
     my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
-        MULTI_SELECT_UNDONE_STACK => [],
+        GUI_MULTISELECT_UNDONE_STACK => [],
     );
     return $undone_stack;
 }
@@ -1570,7 +1570,7 @@ sub undo_multiselect_click {
     croak "offset value should not be negative (got $offset)\n"
       if $offset < 0;
 
-    my $colour_store = $self->get_sequential_colour_store;
+    my $colour_store = $self->get_multiselect_colour_store;
 
     #  don't splice an empty array
     return if !@$colour_store;
@@ -1603,7 +1603,7 @@ sub redo_multiselect_click {
     #  nothing to redo
     return if !@$undone_stack;
 
-    my $colour_store = $self->get_sequential_colour_store;
+    my $colour_store = $self->get_multiselect_colour_store;
 
     my @undone = splice @$undone_stack, 0, min ($offset, scalar @$undone_stack);
 
@@ -1626,7 +1626,7 @@ sub replay_multiselect_store {
     $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
     $self->recolour_cluster_elements;
-    $self->{cluster_colour_mode} = 'sequential';
+    $self->{cluster_colour_mode} = 'multiselect';
 
     #   The next bit of code probably does too much
     #   but getting it to work was not simple
@@ -1634,18 +1634,18 @@ sub replay_multiselect_store {
     my $node_ref_array = $tree->get_root_node_refs;
 
     #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
-    my $old_seq_sel_no_store = $self->{sequential_select_no_store};
-    $self->{sequential_select_no_store} = 1;
+    my $old_seq_sel_no_store = $self->{multiselect_no_store};
+    $self->{multiselect_no_store} = 1;
     $self->enter_multiselect_clear_mode ('no_store');
     $self->map_elements_to_clusters ($node_ref_array);
     $self->recolour_cluster_lines ($node_ref_array);
     #if (!$was_in_clear_mode) {
         $self->leave_multiselect_clear_mode;
     #}
-    $self->{sequential_select_no_store} = $old_seq_sel_no_store;
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
 
 
-    my $colour_store = $self->get_sequential_colour_store;
+    my $colour_store = $self->get_multiselect_colour_store;
 
     return if !@$colour_store;
 
@@ -1659,7 +1659,7 @@ sub replay_multiselect_store {
     );
 
     foreach my $pair (@pairs) {
-        $self->{sequential_select_no_store} = 1;
+        $self->{multiselect_no_store} = 1;
         my $was_in_clear_mode = 0;
         my $node_ref = $tree->get_node_ref (node => $pair->[0]);
         $self->set_current_sequential_colour ($pair->[1]);
@@ -1675,7 +1675,7 @@ sub replay_multiselect_store {
             $self->leave_multiselect_clear_mode;
         }
     }
-    $self->{sequential_select_no_store} = $old_seq_sel_no_store;
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
 
 }
 

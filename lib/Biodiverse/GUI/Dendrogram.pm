@@ -1426,12 +1426,6 @@ sub on_map_list_combo_changed {
             $self->{slider}->hide;
         }
 
-        #  clear current colouring
-        $self->{element_to_cluster}  = {};
-        $self->{recolour_nodes}      = undef;
-        $self->set_processed_nodes (undef);
-
-        $self->recolour_cluster_elements;
         $self->{cluster_colour_mode} = 'sequential';
 
         $self->set_num_clusters (1, 'no_recolour');
@@ -1539,9 +1533,48 @@ sub get_plot_min_max_values {
     return wantarray ? @minmax : \@minmax;
 }
 
+sub undo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+      if $offset < 0;
+
+    my $colour_store = $self->get_sequential_colour_store;
+
+    #  don't splice an empty array
+    return if !@$colour_store;
+
+    #  splice off the end of colour store, assuming we are in undo mode
+    my @undone = splice @$colour_store, -$offset;
+
+    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
+        multiselect_undone_stack => [],
+    );
+    push @$undone_stack, @undone;
+    
+    $self->replay_multiselect_store;
+}
+
 
 sub replay_multiselect_store {
     my $self = shift;
+    #my %args = @_;
+    
+    return if !$self->in_multiselect_mode;
+
+    #  clear current colouring of elements
+    #  this is a mess - we should not have to switch to palette mode for this to work
+    $self->{cluster_colour_mode} = 'palette';
+    $self->{element_to_cluster}  = {};
+    $self->{recolour_nodes}      = undef;
+    $self->set_processed_nodes (undef);
+    $self->recolour_cluster_elements;
+    $self->{cluster_colour_mode} = 'sequential';
 
     #   The next bit of code probably does too much
     #   but getting it to work was not simple
@@ -1562,36 +1595,35 @@ sub replay_multiselect_store {
 
     my $colour_store = $self->get_sequential_colour_store;
 
-    #  refactor into a replay sub
-    if (@$colour_store) {
-        #  use a copy to avoid infinite recursion, as the
-        #  ref can be appended to in one of the called subs
-        my @pairs = @$colour_store;
+    return if !@$colour_store;
 
-        #  ensure recolouring works
-        $self->map_elements_to_clusters (
-            [map {$tree->get_node_ref (node => $_->[0])} @pairs]
-        );
+    #  use a copy to avoid infinite recursion, as the
+    #  ref can be appended to in one of the called subs
+    my @pairs = @$colour_store;
 
-        foreach my $pair (@pairs) {
-            $self->{sequential_select_no_store} = 1;
-            my $was_in_clear_mode = 0;
-            my $node_ref = $tree->get_node_ref (node => $pair->[0]);
-            $self->set_current_sequential_colour ($pair->[1]);
-            my $elements = $node_ref->get_terminal_elements;
-            if (!defined $pair->[1]) {
-                $was_in_clear_mode = 1;
-                $self->enter_multiselect_clear_mode;
-            }
-            $self->recolour_cluster_elements ($elements);
-            $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
-            $self->recolour_cluster_lines($self->get_processed_nodes);
-            if ($was_in_clear_mode) {
-                $self->leave_multiselect_clear_mode;
-            }
+    #  ensure recolouring works
+    $self->map_elements_to_clusters (
+        [map {$tree->get_node_ref (node => $_->[0])} @pairs]
+    );
+
+    foreach my $pair (@pairs) {
+        $self->{sequential_select_no_store} = 1;
+        my $was_in_clear_mode = 0;
+        my $node_ref = $tree->get_node_ref (node => $pair->[0]);
+        $self->set_current_sequential_colour ($pair->[1]);
+        my $elements = $node_ref->get_terminal_elements;
+        if (!defined $pair->[1]) {
+            $was_in_clear_mode = 1;
+            $self->enter_multiselect_clear_mode;
         }
-        $self->{sequential_select_no_store} = $old_seq_sel_no_store;
+        $self->recolour_cluster_elements ($elements);
+        $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
+        $self->recolour_cluster_lines($self->get_processed_nodes);
+        if ($was_in_clear_mode) {
+            $self->leave_multiselect_clear_mode;
+        }
     }
+    $self->{sequential_select_no_store} = $old_seq_sel_no_store;
 
 }
 

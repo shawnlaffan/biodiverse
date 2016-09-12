@@ -1988,6 +1988,34 @@ sub on_overlays {
     return;
 }
 
+sub undo_multiselect_click {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return $dendrogram->undo_multiselect_click;
+}
+
+my %key_tool_map = (
+    U => 'undo_multiselect_click',
+);
+
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+
+    no autovivification;
+
+    my $tool = $key_tool_map{$keyval};
+
+    return $self->SUPER::on_bare_key ($keyval)
+      if not defined $tool;
+
+    my $active_pane = $self->{active_pane};
+
+    return if !defined $active_pane;
+
+    $self->$tool;
+}
+
+
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::
 our $AUTOLOAD;

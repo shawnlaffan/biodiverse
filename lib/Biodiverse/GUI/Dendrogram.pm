@@ -9,7 +9,7 @@ use Carp;
 
 use Time::HiRes qw /gettimeofday time/;
 
-use Scalar::Util qw /weaken blessed/;
+use Scalar::Util qw /weaken isweak blessed/;
 use List::Util 1.29 qw /min pairs/;
 use List::MoreUtils qw /firstidx/;
 
@@ -101,7 +101,7 @@ sub new {
     }
 
     if (defined $self->{parent_tab}) {
-        weaken $self->{parent_tab};
+        weaken $self->{parent_tab} if !isweak ($self->{parent_tab});
         #  fixme
         #  there is too much back-and-forth between the tab and the tree
         $self->{parent_tab}->set_undef_cell_colour(COLOUR_LIST_UNDEF);  
@@ -116,7 +116,7 @@ sub new {
     foreach my $widget_name (qw /selector_toggle selector_colorbutton/) {
         eval {
             $self->{$widget_name}
-              = $self->{parent_tab}->{xmlPage}->get_object($widget_name);
+              = $self->get_parent_tab->{xmlPage}->get_object($widget_name);
         };
     }
 
@@ -205,6 +205,11 @@ sub new {
 sub get_tree_object {
     my $self = shift;
     return $self->{cluster};
+}
+
+sub get_parent_tab {
+    my $self = shift;
+    return $self->{parent_tab};
 }
 
 #  
@@ -1036,7 +1041,7 @@ sub store_sequential_colour {
 
     #  reset the redo stack
     $self->reset_multiselect_undone_stack;
-    $self->{parent_tab}->set_project_dirty;
+    $self->get_parent_tab->set_project_dirty;
 
     return;
 }
@@ -1107,7 +1112,7 @@ sub increment_sequential_selection_colour {
 sub get_colour_not_in_tree {
     my $self = shift;
     
-    my $colour = eval {$self->{parent_tab}->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
+    my $colour = eval {$self->get_parent_tab->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
 
     return $colour;
 }
@@ -1417,7 +1422,7 @@ sub on_map_list_combo_changed {
 
         $self->{cluster_colour_mode} = 'palette';
 
-        $self->{parent_tab}->on_clusters_changed;
+        $self->get_parent_tab->on_clusters_changed;
 
         $self->recolour_cluster_elements;
         $self->recolour_cluster_lines($self->get_processed_nodes);
@@ -1442,7 +1447,7 @@ sub on_map_list_combo_changed {
     else {
         $self->clear_sequential_colours_from_plot;
 
-        $self->{parent_tab}->on_clusters_changed;
+        $self->get_parent_tab->on_clusters_changed;
 
         # Selected analysis-colouring mode
         $self->{analysis_list_name} = $list;
@@ -1467,7 +1472,7 @@ sub on_combo_map_index_changed {
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->on_colour_mode_changed;
+        $self->get_parent_tab->on_colour_mode_changed;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
@@ -1495,7 +1500,7 @@ sub select_map_index {
     if (defined $index) {
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->recolour;
+        $self->get_parent_tab->recolour;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
@@ -1529,7 +1534,7 @@ sub get_plot_min_max_values {
     
     my ($min, $max) = ($self->{analysis_min}, $self->{analysis_max});
     if (not defined $min or not defined $max) {
-        ($min, $max) = $self->{parent_tab}->get_plot_min_max_values;
+        ($min, $max) = $self->get_parent_tab->get_plot_min_max_values;
     }
     
     my @minmax = ($min, $max);
@@ -1577,7 +1582,7 @@ sub undo_multiselect_click {
     unshift @$undone_stack, reverse @undone;
     
     $self->replay_multiselect_store;
-    $self->{parent_tab}->set_project_dirty;
+    $self->get_parent_tab->set_project_dirty;
 }
 
 sub redo_multiselect_click {
@@ -1603,7 +1608,7 @@ sub redo_multiselect_click {
     push @$colour_store, @undone;
     
     $self->replay_multiselect_store;
-    $self->{parent_tab}->set_project_dirty;
+    $self->get_parent_tab->set_project_dirty;
 }
 
 sub replay_multiselect_store {

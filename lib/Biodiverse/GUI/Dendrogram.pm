@@ -1034,6 +1034,9 @@ sub store_sequential_colour {
         push @$store, $pair;
     }
 
+    #  reset the redo stack
+    $self->reset_multiselect_undone_stack;
+
     return;
 }
 
@@ -1533,6 +1536,21 @@ sub get_plot_min_max_values {
     return wantarray ? @minmax : \@minmax;
 }
 
+sub reset_multiselect_undone_stack {
+    my $self = shift;
+    $self->get_tree_object->set_cached_value (
+        MULTI_SELECT_UNDONE_STACK => [],
+    );
+}
+
+sub get_multiselect_undone_stack {
+    my $self = shift;
+    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
+        MULTI_SELECT_UNDONE_STACK => [],
+    );
+    return $undone_stack;
+}
+
 sub undo_multiselect_click {
     my ($self, $offset) = @_;
 
@@ -1552,14 +1570,38 @@ sub undo_multiselect_click {
     #  splice off the end of colour store, assuming we are in undo mode
     my @undone = splice @$colour_store, -$offset;
 
-    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
-        multiselect_undone_stack => [],
-    );
-    push @$undone_stack, @undone;
+    my $undone_stack = $self->get_multiselect_undone_stack;
+    
+    #  store in reverse order
+    unshift @$undone_stack, reverse @undone;
     
     $self->replay_multiselect_store;
 }
 
+sub redo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+      if $offset < 0;
+
+    my $undone_stack = $self->get_multiselect_undone_stack;
+
+    #  nothing to redo
+    return if !@$undone_stack;
+
+    my $colour_store = $self->get_sequential_colour_store;
+
+    my @undone = splice @$undone_stack, 0, min ($offset, scalar @$undone_stack);
+
+    push @$colour_store, @undone;
+    
+    $self->replay_multiselect_store;
+}
 
 sub replay_multiselect_store {
     my $self = shift;

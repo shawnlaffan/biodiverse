@@ -1994,8 +1994,15 @@ sub undo_multiselect_click {
     return $dendrogram->undo_multiselect_click;
 }
 
+sub redo_multiselect_click {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return $dendrogram->redo_multiselect_click;
+}
+
 my %key_tool_map = (
     U => 'undo_multiselect_click',
+    R => 'redo_multiselect_click',
 );
 
 sub on_bare_key {

@@ -1219,7 +1219,7 @@ sub on_run_analysis {
             }
             #  Should really check if the analysis
             #  ran properly before setting this
-            $self->{project}->set_dirty;
+            $self->set_project_dirty;
         }
 
         if ($new_analysis) {  #  we can simply rename it for now

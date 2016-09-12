@@ -1036,6 +1036,7 @@ sub store_sequential_colour {
 
     #  reset the redo stack
     $self->reset_multiselect_undone_stack;
+    $self->{parent_tab}->set_project_dirty;
 
     return;
 }
@@ -1576,6 +1577,7 @@ sub undo_multiselect_click {
     unshift @$undone_stack, reverse @undone;
     
     $self->replay_multiselect_store;
+    $self->{parent_tab}->set_project_dirty;
 }
 
 sub redo_multiselect_click {
@@ -1601,6 +1603,7 @@ sub redo_multiselect_click {
     push @$colour_store, @undone;
     
     $self->replay_multiselect_store;
+    $self->{parent_tab}->set_project_dirty;
 }
 
 sub replay_multiselect_store {

@@ -111,6 +111,13 @@ sub remove {
     return;
 }
 
+sub set_project_dirty {
+    my $self = shift;
+    if ($self->{project}) {
+        $self->{project}->set_dirty;
+    }
+}
+
 sub set_tab_reorderable {
     my $self = shift;
     my $page = shift || $self->{page};

@@ -113,7 +113,7 @@ sub new {
     $self->{sp_index} = undef;
     bless $self, $class;
     
-    foreach my $widget_name (qw /selector_toggle selector_colorbutton/) {
+    foreach my $widget_name (qw /selector_toggle selector_colorbutton autoincrement_toggle/) {
         eval {
             $self->{$widget_name}
               = $self->get_parent_tab->{xmlPage}->get_object($widget_name);
@@ -971,13 +971,16 @@ sub in_multiselect_clear_mode {
 sub enter_multiselect_clear_mode {
     my ($self, $no_store) = @_;
     eval {$self->{selector_toggle}->set_active (1)};
-    #$self->{multiselect_no_store} = !!$no_store;
 }
 
 sub leave_multiselect_clear_mode {
     my $self = shift;
     eval {$self->{selector_toggle}->set_active (0)};
-    #$self->{multiselect_no_store} = 0;
+}
+
+sub in_multiselect_autoincrement_colour_mode {
+    my $self = shift;
+    eval {$self->{autoincrement_toggle}->get_active};
 }
 
 sub clear_multiselect_colours_from_plot {
@@ -1085,6 +1088,7 @@ sub increment_sequential_selection_colour {
            && !$self->in_multiselect_mode;
 
     return if $self->in_multiselect_clear_mode;
+    return if !$self->in_multiselect_autoincrement_colour_mode;
 
     my $colour = $self->get_current_sequential_colour;
 

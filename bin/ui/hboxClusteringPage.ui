@@ -1392,6 +1392,7 @@ for RegionGrower analyses.  </property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="toolbar_style">both-horiz</property>
+            <property name="icon_size">2</property>
             <child>
               <object class="GtkToolItem" id="toolitem1">
                 <property name="visible">True</property>
@@ -1524,6 +1525,22 @@ This setting has no effect on the slider bar.</property>
               <packing>
                 <property name="expand">False</property>
                 <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="autoincrement_toggle">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Autoincrement the colour on click.
+Deselect to keep using the same colour
+or only change when you want to. </property>
+                <property name="label" translatable="yes">autoincrement</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-refresh</property>
+                <property name="active">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
               </packing>
             </child>
             <child>

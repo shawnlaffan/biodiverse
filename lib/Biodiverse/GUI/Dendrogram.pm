@@ -121,7 +121,7 @@ sub new {
     }
 
     #  also initialises it
-    $self->increment_sequential_selection_colour(1);
+    $self->increment_multiselect_colour(1);
 
     #  clean up if we are a refresh
     if (my $child = $main_frame->get_child) {
@@ -895,10 +895,7 @@ sub recolour_cluster_elements {
         };
     }
     elsif ($self->in_multiselect_mode) {
-        my $colour_for_sequential = $self->get_current_sequential_colour;
-
-        #my $string_colour = eval {$colour_for_sequential->to_string} // '';
-        #say "RECOLOUR ELEMENTS: $string_colour";
+        my $multiselect_colour = $self->get_current_multiselect_colour;
 
         # sets colours according to multiselect palette
         $colour_callback = sub {
@@ -912,7 +909,7 @@ sub recolour_cluster_elements {
 
             return -1 if !$cluster_node;
 
-            return $colour_for_sequential || COLOUR_OUTSIDE_SELECTION;
+            return $multiselect_colour || COLOUR_OUTSIDE_SELECTION;
             #COLOUR_PALETTE_OVERFLOW;
         };
     }
@@ -1014,7 +1011,7 @@ sub get_multiselect_colour_store {
     return $store;
 }
 
-sub store_sequential_colour {
+sub store_multiselect_colour {
     my $self = shift;
     my @pairs = @_;  #  usually get only one name/colour pair
 
@@ -1051,7 +1048,7 @@ sub store_sequential_colour {
     return;
 }
 
-sub get_current_sequential_colour {
+sub get_current_multiselect_colour {
     my $self = shift;
 
     return if $self->in_multiselect_clear_mode;
@@ -1064,7 +1061,7 @@ sub get_current_sequential_colour {
     return $colour;
 }
 
-sub set_current_sequential_colour {
+sub set_current_multiselect_colour {
     my $self   = shift;
     my $colour = shift;
 
@@ -1080,7 +1077,7 @@ sub set_current_sequential_colour {
     return $colour;
 }
 
-sub increment_sequential_selection_colour {
+sub increment_multiselect_colour {
     my $self = shift;
     my $force_increment = shift;
     
@@ -1090,7 +1087,7 @@ sub increment_sequential_selection_colour {
     return if $self->in_multiselect_clear_mode;
     return if !$self->in_multiselect_autoincrement_colour_mode;
 
-    my $colour = $self->get_current_sequential_colour;
+    my $colour = $self->get_current_multiselect_colour;
 
     my @colours = $self->get_gdk_colors_colorbrewer9;
 
@@ -1145,9 +1142,9 @@ sub recolour_cluster_lines {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->in_multiselect_mode) {
-            $colour_ref = $self->get_current_sequential_colour;
+            $colour_ref = $self->get_current_multiselect_colour;
             if ($colour_ref || $self->in_multiselect_clear_mode) {
-                $self->store_sequential_colour ($node_name => $colour_ref);
+                $self->store_multiselect_colour ($node_name => $colour_ref);
             }
         }
         elsif ($colour_mode eq 'list-values') {
@@ -1666,7 +1663,7 @@ sub replay_multiselect_store {
         $self->{multiselect_no_store} = 1;
         my $was_in_clear_mode = 0;
         my $node_ref = $tree->get_node_ref (node => $pair->[0]);
-        $self->set_current_sequential_colour ($pair->[1]);
+        $self->set_current_multiselect_colour ($pair->[1]);
         my $elements = $node_ref->get_terminal_elements;
         if (!defined $pair->[1]) {
             $was_in_clear_mode = 1;
@@ -2437,7 +2434,7 @@ sub on_event {
                 $f = $self->{click_func};
                 $f->($node);
             }
-            $self->increment_sequential_selection_colour;
+            $self->increment_multiselect_colour;
         }
         # Right click - set marks semi-permanently
         elsif ($event->button == 3) {

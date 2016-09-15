@@ -15,7 +15,7 @@ use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

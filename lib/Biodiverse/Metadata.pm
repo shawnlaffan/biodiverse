@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 sub new {
     my ($class, $data) = @_;

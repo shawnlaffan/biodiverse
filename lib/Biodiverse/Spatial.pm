@@ -13,7 +13,7 @@ use List::MoreUtils qw /firstidx lastidx/;
 use List::Util qw /first/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;

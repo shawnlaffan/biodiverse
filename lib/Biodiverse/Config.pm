@@ -114,6 +114,12 @@ BEGIN {
         . "at the command prompt.\n"
         . "See https://metacpan.org/release/Cpanel-JSON-XS for more details about what it does.";
     }
+    if (not eval {require Sort::Naturally}) {
+        die "Cannot locate the Sort::Naturally package.  You probably need to install it using, for example:\n"
+        . "cpanm Sort::Naturally\n"
+        . "at the command prompt.\n"
+        . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
+    }
 }
 
 #  add biodiverse lib paths so we get all the extensions

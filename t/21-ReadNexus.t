@@ -154,13 +154,41 @@ sub test_tabular_tree_unix_line_endings {
     }
 }
 
-sub test_tabular_tree_empty_data {
+sub test_tabular_tree_file_no_exists {
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
-    #  Messy.  Need to use temp files which are cleaned up on scope exit.
-    use FindBin;
-    #my $read_file   = $FindBin::Bin . '/tabular_export.csv';
-    my $output_file = $FindBin::Bin . '/test_tabular_export.csv';
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'bd_should_not_exist_XXXX', SUFFIX => ".txt");
+    my $temp_file = $tmp_obj->filename;
+    $tmp_obj->close;
+    unlink $temp_file;
+
+    ok (!-e $temp_file, 'Temp file no longer exists');
+
+    # define map to read sample file
+    my $column_map = {
+        TREENAME_COL       => 6, 
+        LENGTHTOPARENT_COL => 2,
+        NODENUM_COL        => 4,
+        NODENAME_COL       => 3,
+        PARENT_COL         => 5,
+    };
+
+    # import tree from file
+    
+    my $result = eval {
+        $phylogeny_ref->import_tabular_tree (
+            file       => $temp_file,
+            column_map => $column_map
+        );
+    };
+    my $e = $EVAL_ERROR;
+    #diag $e if $e;
+    ok ($e, 'import tabular tree throws exception for non-existent file');
+    ok (!$result, 'import tabular tree fails for non-existent file');
+}
+
+sub test_tabular_tree_empty_data {
+    my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
     my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
     my $read_file = $tmp_obj->filename;

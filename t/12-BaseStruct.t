@@ -44,6 +44,7 @@ sub main {
     test_export_shape();
     test_export_shape_point();
     test_export_shape_3d();
+    test_text_axis_name_coords();
 
     done_testing;
     return 0;
@@ -229,4 +230,26 @@ sub test_export_shape_point {
     #    unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
     #}
 
+}
+
+sub test_text_axis_name_coords {
+    my $bd = Biodiverse::BaseData->new (
+        NAME       => 'test_text_axis_name_coords',
+        CELL_SIZES => [-1],
+    );
+    #  natural sort order
+    my @gp_name_arr = qw /clasp class1 class2 class10 class11 class100 class100x class100y/;
+    foreach my $gp_name (@gp_name_arr) {
+        $bd->add_element (group => $gp_name, label => 'default_label');
+    }
+    
+    my $gp = $bd->get_groups_ref;
+    my %expected;
+    @expected{reverse @gp_name_arr} = (0..$#gp_name_arr);
+
+    foreach my $gp_name (@gp_name_arr) {
+        my $coord = $gp->get_element_name_coord (element => $gp_name);
+        is ($coord->[0], $expected{$gp_name}, "Got correct coord for $gp_name");
+    }
+    
 }

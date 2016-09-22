@@ -386,16 +386,15 @@ sub import_tabular_tree {
     my $self = shift;
     my %args = @_;
 
+    $args{data} //= $self->read_whole_file (file => $args{file});
     my $data = $args{data};
-    if (! defined $data) {
-        $data = $self->read_whole_file (file => $args{file});
-        $args{data} = $data; # ?
-    }
     
-    my $column_map = $args{column_map} // {};
+    croak "No data provided or read from a file"
+      if !length ($data);
 
     # get column map from arguments 
-    my %columns = %{$args{column_map} // {}};
+    my $column_map = $args{column_map} // {};
+    my %columns = %$column_map;
 
     my @data   = split ($/, $data);
     my $header = shift @data;
@@ -582,11 +581,14 @@ sub read_whole_file {
     #  now we open the file and suck it al in
     my $fh;
     open ($fh, '<:via(File::BOM)', $file)
-      || croak "[READNEXUS] cannot open $file for reading\n";
+      or croak "[READNEXUS] cannot open $file for reading, $!\n";
 
-    local $/ = undef;
-    my $text = eval {<$fh>};  #  suck the whole thing in
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    my $text;
+    {
+        local $/ = undef;
+        $text = eval {<$fh>};  #  suck the whole thing in
+        croak $EVAL_ERROR if $EVAL_ERROR;
+    }
 
     $fh->close || croak "Cannot close $file\n";
 

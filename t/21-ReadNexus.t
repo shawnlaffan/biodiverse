@@ -37,8 +37,41 @@ sub is_between
 
 our $tol = 1E-13;
 
+
+
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
+    
+    done_testing;
+    return 0;
+}
+
+
+
 #  clean read of 'neat' nexus file
-{
+sub test_neat_nexus_file {
     my $nex_tree = get_nexus_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -60,7 +93,7 @@ our $tol = 1E-13;
 
 
 #  clean read of working newick file
-{
+sub test_clean_read_of_working_newick_file {
     my $data = get_newick_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -79,7 +112,7 @@ our $tol = 1E-13;
     run_tests ($tree);
 }
 
-{
+sub test_tabular_tree {
     my $data = get_tabular_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -101,7 +134,7 @@ our $tol = 1E-13;
     run_tests ($tree);
 }
 
-{
+sub test_tabular_tree_unix_line_endings {
     my $data = get_tabular_tree_data_x2();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -121,7 +154,7 @@ our $tol = 1E-13;
     }
 }
 
-{
+sub test_tabular_tree_from_file {
     my $data = get_tabular_tree_data();
 
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
@@ -220,36 +253,38 @@ our $tol = 1E-13;
 
 
 #  read of a 'messy' nexus file with no newlines
-SKIP:
-{
-    skip 'No system parses nexus trees with no newlines', 2;
-    my $data = get_nexus_tree_data();
-
-    #  eradicate newlines
-    $data =~ s/[\r\n]+//gs;
-    #print $data;
-  TODO:
+sub test_nexus_with_no_newlines  {
+    SKIP:
     {
-        local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
-
-        my $trees = Biodiverse::ReadNexus->new;
-        my $result = eval {
-            $trees->import_data (data => $data);
-        };
+        skip 'No system parses nexus trees with no newlines', 2;
+        my $data = get_nexus_tree_data();
     
-        is ($result, 1, 'import nexus trees, no newlines, no remap');
+        #  eradicate newlines
+        $data =~ s/[\r\n]+//gs;
+        #print $data;
+      TODO:
+        {
+            local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
     
-        my @trees = $trees->get_tree_array;
+            my $trees = Biodiverse::ReadNexus->new;
+            my $result = eval {
+                $trees->import_data (data => $data);
+            };
+        
+            is ($result, 1, 'import nexus trees, no newlines, no remap');
+        
+            my @trees = $trees->get_tree_array;
+        
+            is (scalar @trees, 2, 'two trees extracted');
+        
+            my $tree = $trees[0];
     
-        is (scalar @trees, 2, 'two trees extracted');
-    
-        my $tree = $trees[0];
-
-        #run_tests ($tree);
+            #run_tests ($tree);
+        }
     }
 }
 
-done_testing();
+#done_testing();
 
 
 sub run_tests {

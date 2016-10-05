@@ -9,6 +9,8 @@ use Time::HiRes qw /time/;
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
+use Sort::Naturally qw /nsort/;
+
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
@@ -754,8 +756,7 @@ sub make_indices_model {
     my $default_index = $self->get_output_type->get_default_cluster_index;
     my $default_iter;
     # Add each analysis-function (eg: Jaccard, Endemism) row
-    foreach my $name (sort keys %indices) {
-    #while (my ($name, $description) = each %indices) {
+    foreach my $name (nsort keys %indices) {
 
         # Add to model
         my $iter = $model->append;

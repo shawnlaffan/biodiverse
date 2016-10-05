@@ -11,6 +11,7 @@ use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr/;
 use Time::HiRes;
+use Sort::Naturally qw /nsort/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -658,7 +659,7 @@ sub make_output_indices_model {
     if (scalar keys %analyses_tmp) {
         @analyses = $numeric
             ? sort {$a <=> $b} keys %analyses_tmp   #  numeric
-            : sort {$a cmp $b} keys %analyses_tmp;  #  text
+            : nsort keys %analyses_tmp;  #  natural sort
     }
 
 #print "Making ouput analysis model\n";

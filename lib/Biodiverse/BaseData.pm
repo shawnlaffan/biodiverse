@@ -1859,8 +1859,9 @@ sub import_data_spreadsheet {
             # Needs to process the data in the same way as for text imports - refactoring is in order.
             my @group_field_vals = @db_rec{@group_field_names};
             my @gp_fields;
-            my $i = 0;
+            my $i = -1;
             foreach my $val (@group_field_vals) {
+                $i++;
                 if (!defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";

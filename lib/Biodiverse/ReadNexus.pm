@@ -406,12 +406,6 @@ sub import_tabular_tree {
     my $header = $csv->getline ($io);
     $csv->column_names (@$header);
 
-    #  clunk - need to rework code below to read directly
-    my @data;
-    while (my $line = $csv->getline($io)) {
-        push @data, $line;
-    }
-
     my $node_hash = {};
 
     my @trees;
@@ -432,6 +426,8 @@ sub import_tabular_tree {
         say "Param $param col $columns{$param}";
     }
 
+    #  read first line to get an initial default tree name
+    my @data = ($csv->getline($io));
     my @line_arr = @{$data[0]};
 
     # note use of $args{NAME} will only work if name col is not provided
@@ -444,10 +440,8 @@ sub import_tabular_tree {
 
     #  process the data and generate the nodes
   LINE:
-    foreach my $line_array (@data) {
-        #$csv->parse ($line);
-        #my @line_array = $csv->fields;
-        #my @line_array = @$line;
+    while (my $line_array = shift @data) {
+        push @data, $csv->getline ($io);
         my %line_hash;
 
         # check all necessary values are defined (?)
@@ -485,7 +479,8 @@ sub import_tabular_tree {
 
         my $node_number = $line_hash{NODENUM_COL};
         next if !defined $node_number;
-        $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
+        # store as reference to duplicate of line_hash (instead of \%line_hash directly);
+        $node_hash->{$node_number} = {%line_hash}; 
     }
 
     $self->assign_parents_for_tabular_tree_import (

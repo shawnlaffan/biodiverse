@@ -1452,10 +1452,13 @@ sub import_data_raster {
                             if ($new_gp) {
                                 #  build a new group name if needed
                                 #  no need to dequote since these will always be numbers
-                                $grpstring = $self->list2csv (
-                                    list        => [$grpe, $grpn],
-                                    csv_object  => $out_csv,
-                                );
+                                #$grpstring = $self->list2csv (
+                                #    list        => [$grpe, $grpn],
+                                #    csv_object  => $out_csv,
+                                #);
+                                #  no need to even use the csv object to stick them together
+                                #  (this was a bottleneck due to all the csv calls)
+                                $grpstring = join $el_sep, ($grpe, $grpn);
                             }
 
                             # set label if determined at cell level

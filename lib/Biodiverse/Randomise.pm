@@ -1257,7 +1257,8 @@ sub get_spatial_output_to_track_allocations {
 
     return $sp if $sp;
 
-    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations');
+    my $time = sprintf "%.3f", time();
+    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations_' . $time);
 
     #  we need a "blank canvas"
     $sp->run_analysis (
@@ -1304,7 +1305,8 @@ sub get_spatial_output_for_label_allocation {
     
     return $sp if $sp;
 
-    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation');
+    my $time = sprintf "%.3f", time;
+    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation_' . $time);
 
     #  we only want the neighbour sets
     $sp->run_analysis (

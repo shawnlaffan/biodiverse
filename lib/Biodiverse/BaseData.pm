@@ -1231,6 +1231,7 @@ sub import_data_raster {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
+    my $progress_bar_files = Biodiverse::Progress->new(gui_only => 1);
     my $progress_bar = Biodiverse::Progress->new(gui_only => 0);
 
     croak "Input files array not provided\n"
@@ -1290,7 +1291,19 @@ sub import_data_raster {
     
     # load each file, using same arguments/parameters
     #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
-    foreach my $file (@{$args{input_files}}) {
+    my $file_iter = 0;
+    my $input_file_arr = $args{input_files};
+    my $file_count = scalar @$input_file_arr;
+
+    foreach my $file (@$input_file_arr) {
+        $file_iter++;
+        if (scalar @$input_file_arr > 1) {
+            $progress_bar_files->update(
+                "Raster file $file_iter of $file_count\n",
+                $file_iter / $file_count,
+            );
+        }
+
         $file = Path::Class::file($file)->absolute;
         my $file_base = Path::Class::File->new($file)->basename();
         say "[BASEDATA] INPUT FILE: $file";

@@ -1261,15 +1261,21 @@ sub get_spatial_output_to_track_allocations {
     $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations_' . $time);
 
     #  we need a "blank canvas"
-    $sp->run_analysis (
-        spatial_conditions => ['sp_self_only()'],
-        #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
-        calculations       => [],
-        override_valid_analysis_check => 1,
-        #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
-    );
-
+    eval {
+        $sp->run_analysis (
+            spatial_conditions => ['sp_self_only()'],
+            #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
+            calculations       => [],
+            override_valid_analysis_check => 1,
+            #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+        );
+    };
+    my $e = $EVAL_ERROR;
+    
     $bd->delete_output (output => $sp);
+    
+    croak $e if $e;
+
     $self->set_param(SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS => $sp);
 
     return $sp;
@@ -1309,15 +1315,21 @@ sub get_spatial_output_for_label_allocation {
     $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation_' . $time);
 
     #  we only want the neighbour sets
-    $sp->run_analysis (
-        spatial_conditions => $sp_conditions,
-        #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
-        calculations       => [],
-        override_valid_analysis_check => 1,
-        calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
-    );
+    eval {
+        $sp->run_analysis (
+            spatial_conditions => $sp_conditions,
+            #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
+            calculations       => [],
+            override_valid_analysis_check => 1,
+            calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+        );
+    };
+    my $e = $EVAL_ERROR;
 
     $bd->delete_output (output => $sp);
+    
+    croak $e if $e;
+
     $self->set_param(SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION => $sp);
 
     return $sp;

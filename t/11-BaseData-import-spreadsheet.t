@@ -255,8 +255,58 @@ sub _test_import_spreadsheet {
             my $el_arr = $gp_text->get_element_name_as_array (element => $gp_name);
             is ($el_arr->[2], 'Genus', "got correct coord val for text group, $gp_name");
         }
-    }
+    };
 
+    my $bd_arg_order = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_arg_order->import_data_spreadsheet(
+            input_files   => [$fname],
+            #sheet_ids     => ['Example_site_data'],
+            group_field_names => [qw /y x/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    #ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
+
+    subtest 'imported transposed basedata correctly, col names' => sub {
+        my $gp_ref_arg_order = $bd_arg_order->get_groups_ref;
+        my $gp_ref_bd1 = $bd1->get_groups_ref;
+        my $join_char  = $bd1->get_param ('JOIN_CHAR');
+
+        foreach my $gp_name ($bd_arg_order->get_groups) {
+            my $gp_arr = $gp_ref_arg_order->get_element_name_as_array (element => $gp_name);
+            my $bd1_gp_name = join $join_char, reverse @$gp_arr;
+            ok ($bd1->exists_group (group => $bd1_gp_name), "Got reverse of $gp_name");
+        }
+    };
+
+    #$bd_arg_order = Biodiverse::BaseData->new (%bd_args);
+    #eval {
+    #    $bd_arg_order->import_data_spreadsheet(
+    #        input_files   => [$fname],
+    #        #sheet_ids     => ['Example_site_data'],
+    #        #group_field_names => [qw /y x/],
+    #        group_field_names
+    #        label_field_names => [qw /genus species/],
+    #    );
+    #};
+    #$e = $EVAL_ERROR;
+    #note $e if $e;
+    ##ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
+    #
+    #subtest 'imported transposed basedata correctly, col nums' => sub {
+    #    my $gp_ref_arg_order = $bd_arg_order->get_groups_ref;
+    #    my $gp_ref_bd1 = $bd1->get_groups_ref;
+    #    my $join_char  = $bd1->get_param ('JOIN_CHAR');
+    #
+    #    foreach my $gp_name ($bd_arg_order->get_groups) {
+    #        my $gp_arr = $gp_ref_arg_order->get_element_name_as_array (element => $gp_name);
+    #        my $bd1_gp_name = join $join_char, reverse @$gp_arr;
+    #        ok ($bd1->exists_group (group => $bd1_gp_name), "Got reverse of $gp_name");
+    #    }
+    #};
 }
 
 sub _test_import_spreadsheet_matrix_form {

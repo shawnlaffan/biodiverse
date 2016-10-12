@@ -9,12 +9,17 @@ use 5.010;
 use English qw / -no_match_vars /;
 
 #  a little debug
-#my $binsearch_gives_undef = 0;
-#END {
-#    say " ===== ";
-#    say "BINSEARCH WAS UNDEF:  $binsearch_gives_undef";
-#    say " ===== ";
-#}
+use constant DEBUG => 0;
+my $binsearch_gives_undef = 0;
+my %binsearch_callers;
+END {
+    if (DEBUG) {
+        say " ===== ";
+        say "BINSEARCH WAS UNDEF:  $binsearch_gives_undef";
+        say Data::Dumper::Dumper \%binsearch_callers;
+        say " ===== ";
+    }
+}
 
 
 #use Devel::Symdump;
@@ -1745,6 +1750,7 @@ END_PROGRESS_TEXT
                 #  make sure we don't select this group again
                 #  for this label this time round
                 splice (@target_groups, $j, 1);
+                delete $target_groups_hash{$to_groups[-1]};
 
                 if ($sp_for_label_allocation) {
                     my $sp_alloc_nbr_list
@@ -2367,7 +2373,7 @@ sub swap_to_reach_richness_targets {
             $progress,
         );
 
-        if ($target_label_count == 0) {
+        if (!$target_label_count) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
             say "[Randomise structured] No more labels to assign";
@@ -2375,7 +2381,8 @@ sub swap_to_reach_richness_targets {
         }
 
         #  select an unassigned label and group pair
-        my @labels = sort $cloned_bd->get_labels;
+        my $lb_arr = $cloned_bd->get_labels;
+        my @labels = sort {$a cmp $b} @$lb_arr;
         my $i = int $rand->rand (scalar @labels);
         my $add_label = $labels[$i];
         
@@ -2914,9 +2921,6 @@ sub delete_from_sorted_list {
     if (defined $idx) {
         splice @$list, $idx, 1;
     }
-    #else {
-    #    $binsearch_gives_undef++;
-    #}
 
     # skip the explicit return as a minor speedup for pre-5.20 systems
     $idx;
@@ -2932,6 +2936,11 @@ sub delete_from_sorted_list_aa {
     if (defined $idx) {
         #splice @$list, $idx, 1;
         splice @{$_[2]}, $idx, 1;
+    }
+    elsif (DEBUG) {
+        my @caller = caller();
+        $binsearch_gives_undef++;
+        $binsearch_callers{join ' ', @caller[0,2]}++;
     }
 
     # skip the explicit return as a minor speedup for pre-5.20 systems

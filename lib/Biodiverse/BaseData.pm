@@ -3337,6 +3337,10 @@ sub get_richness {
     return $self->get_groups_ref->get_variety(@_);
 }
 
+sub get_richness_aa {
+    $_[0]->get_groups_ref->get_variety_aa($_[1]);
+}
+
 sub get_label_sample_count {
     my ($self, %args) = @_;
 
@@ -3494,7 +3498,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
 
     if (! defined $args{use_elements}) {
         #  takes care of the wantarray stuff this way
-        return $self->get_labels_ref->get_sub_element_hash (element => $args{label});
+        return $self->get_labels_ref->get_sub_element_hash_aa ($args{label});
     }
 
     #  Not sure why the rest is here - is it used anywhere?
@@ -3512,6 +3516,10 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     delete @results{keys %sub_results};
 
     return wantarray ? %results : \%results;
+}
+
+sub get_groups_with_label_as_hash_aa {
+    $_[0]->get_labels_ref->get_sub_element_hash_aa ($_[1]);
 }
 
 #  get the complement of the labels in a group

@@ -52,14 +52,17 @@ sub clone {
     my %args = @_;  #  only works with argument 'data' for now
 
     my ($cloneref, $e);
-    my $encoder = Sereal::Encoder->new({
-        undef_unknown => 1,  #  strip any code refs
-    });
-    my $decoder = Sereal::Decoder->new();
 
     if ((scalar keys %args) == 0) {
         #$cloneref = dclone($self);
         #$cloneref = Clone::clone ($self);
+        #  Use Sereal because we are hitting CLone size limits
+        #  https://rt.cpan.org/Public/Bug/Display.html?id=97525
+        #  could use Sereal::Dclone for brevity
+        my $encoder = Sereal::Encoder->new({
+            undef_unknown => 1,  #  strip any code refs
+        });
+        my $decoder = Sereal::Decoder->new();
         eval {
             $decoder->decode ($encoder->encode($self), $cloneref);
         };
@@ -67,6 +70,7 @@ sub clone {
     }
     else {
         #$cloneref = dclone ($args{data});
+        # Should also use Sereal here
         $cloneref = Clone::clone ($args{data});
     }
     

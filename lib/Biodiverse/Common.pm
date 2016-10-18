@@ -51,16 +51,26 @@ sub clone {
     my $self = shift;
     my %args = @_;  #  only works with argument 'data' for now
 
-    my $cloneref;
+    my ($cloneref, $e);
+    my $encoder = Sereal::Encoder->new({
+        undef_unknown => 1,  #  strip any code refs
+    });
+    my $decoder = Sereal::Decoder->new();
 
     if ((scalar keys %args) == 0) {
         #$cloneref = dclone($self);
-        $cloneref = Clone::clone ($self);
+        #$cloneref = Clone::clone ($self);
+        eval {
+            $decoder->decode ($encoder->encode($self), $cloneref);
+        };
+        $e = $EVAL_ERROR;
     }
     else {
         #$cloneref = dclone ($args{data});
         $cloneref = Clone::clone ($args{data});
     }
+    
+    croak $e if $e;
 
     return $cloneref;
 }
@@ -793,10 +803,10 @@ sub save_to {
     #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
     my $method = $args{method};
     if (!defined $method) {
-        my $last_fmt = $self->get_last_file_serialisation_format eq 'storable';
+        my $last_fmt_is_sereal = $self->get_last_file_serialisation_format eq 'sereal';
         $method
           = $suffix eq $yaml_suffix ? 'save_to_yaml'
-          : $last_fmt               ? 'save_to_storable' 
+          : $last_fmt_is_sereal     ? 'save_to_sereal' 
           : 'save_to_storable';
     }
 

@@ -2600,6 +2600,31 @@ sub add_elements_collated {
     return;
 }
 
+#  simplified array args version for speed
+sub add_elements_collated_simple_aa {
+    my ($self, $gp_lb_hash, $csv_object, $allow_empty_groups) = @_;
+
+    croak "csv_object arg not passed\n"
+      if !$csv_object;
+
+    #  now add the collated data
+    foreach my $gp_lb_pair (pairs %$gp_lb_hash) {
+        my ($gp, $lb_hash) = @$gp_lb_pair;
+
+        if ($allow_empty_groups && !scalar %$lb_hash) {
+            $self->add_element (undef, $gp, 0, $csv_object);
+        }
+        else {
+            foreach my $lb_count_pair (pairs %$lb_hash) {
+                my ($lb, $count) = @$lb_count_pair;
+                $self->add_element_simple_aa ($lb, $gp, $count, $csv_object);
+            }
+        }
+    }
+
+    return;
+}
+
 sub add_elements_collated_by_label {
     my $self = shift;
     my %args = @_;
@@ -4653,6 +4678,7 @@ sub merge {
 
         if (!scalar keys %$tmp) {
             #  make sure we get any empty groups
+            #  - needed?  should be handled in add_elements_collated call
             $self->add_element(
                 group      => $group,
                 count      => 0,
@@ -4660,10 +4686,7 @@ sub merge {
                 allow_empty_groups => 1,
             );
         }
-        $self->add_elements_collated (
-            data => {$group => $tmp},
-            csv_object => $csv_object,
-        );
+        $self->add_elements_collated_simple_aa ({$group => $tmp},  $csv_object);
     }
     #  make sure we get any labels without groups
     foreach my $label ($from_bd->get_labels) {

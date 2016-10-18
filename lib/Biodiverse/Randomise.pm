@@ -2250,6 +2250,7 @@ sub get_rand_structured_subset {
         #  Also shifts off the def query if one exists
         while (scalar @subset_basedatas) {
             my $subset = shift @subset_basedatas;
+            say 'Merging basedata ' . $subset->get_name . ' into ' . $new_bd->get_name;
             $new_bd->merge (from => $subset);
         }
 

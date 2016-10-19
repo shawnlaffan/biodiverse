@@ -189,8 +189,9 @@ sub load_sereal_file {
         $string = <$fh>;
     }
 
-    my $structure;
-    $self = $decoder->decode($string, $structure);
+    #my $structure;
+    #$self = $decoder->decode($string, $structure);
+    $decoder->decode($string, $self);
 
     $self->set_last_file_serialisation_format ('sereal');
 
@@ -850,6 +851,7 @@ sub save_to_sereal {
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";
+    binmode $fh;
 
     eval {
         print {$fh} $encoder->encode($self);

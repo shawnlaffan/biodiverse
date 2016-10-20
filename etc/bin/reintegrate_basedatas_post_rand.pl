@@ -39,5 +39,5 @@ foreach my $from_file (@files) {
     
 }
 
-$bd->save_to (filename => $opfx);
+$bd->save_to (filename => $opfx, method => 'save_to_sereal');
 

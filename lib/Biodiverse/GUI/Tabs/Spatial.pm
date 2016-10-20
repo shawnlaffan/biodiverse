@@ -173,6 +173,7 @@ sub new {
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
         my $cell_x = $cell_sizes->[0];
+        $cell_x =~ s/,/\./;  #  convert radix char to c-locale used in rest of the system
         $initial_sp1 = 'sp_self_only ()';
         $initial_sp2 = $cell_x > 0 ? "sp_circle (radius => $cell_x)" : '';
     }

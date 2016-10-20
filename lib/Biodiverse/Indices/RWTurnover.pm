@@ -131,22 +131,22 @@ sub calc_phylo_rw_turnover {
     my $node_ranges = $args{node_range_hash};
     #my $weights     = $args{PE_WTLIST};
     #  use an alias to avoid deref overheads with large data sets
-    alias my %weights = %{$args{PE_WTLIST}};
+    #alias my %weights = %{$args{PE_WTLIST}};
+    #  reinstate alias approach when perl 5.22
+    #  is the min perl version and we can use refalias
+    my $weights = $args{PE_WTLIST};
     my ($a, $b, $c) = (0, 0, 0);
     
     my $parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
-    #my $child_name_hash  = $args{TRIMMED_TREE_CHILD_NAME_HASH};
-    #my (%done_a, %done_b, %done_c);
     my %done;
 
-
     NODE:
-    foreach my $node (keys %weights) {
+    foreach my $node (keys %$weights) {
         no autovivification;
 
         next NODE if exists $done{$node};
 
-        my $wt = $weights{$node};
+        my $wt = $weights->{$node};
 
         my $range_hash = $node_ranges->{$node};
 
@@ -171,40 +171,18 @@ sub calc_phylo_rw_turnover {
                 my $pnode = $node;  #  initial parent node key
                 while (my $pnode = $parent_name_hash->{$pnode}) {
                     last if exists $done{$pnode};
-                    $a += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
+                    $a += $weights->{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
                     $done{$pnode}++;
                 }
             }
             else {
                 $b += $wt;
                 $done{$node}++;
-                #if (my $child_array = $child_name_hash->{$node}) {   
-                #    my @dnodes = grep {exists $weights{$_}} @$child_array;
-                #    while (defined (my $dnode = shift @dnodes)) {
-                #        next if exists $done{$dnode};
-                #        $b += $weights{$dnode};
-                #        $done{$dnode}++;
-                #        if ($child_array = $child_name_hash->{$dnode}) {
-                #            push @dnodes, grep {exists $weights{$_}} @$child_array;
-                #        }
-                #    }
-                #}
             }
         }
         elsif ($in_set2) {
             $c += $wt;
             $done{$node}++;
-            #if (my $child_array = $child_name_hash->{$node}) {   
-            #    my @dnodes = grep {exists $weights{$_}} @$child_array;
-            #    while (defined (my $dnode = shift @dnodes)) {
-            #        next if exists $done{$dnode};
-            #        $c += $weights{$dnode};
-            #        $done{$dnode}++;
-            #        if ($child_array = $child_name_hash->{$dnode}) {
-            #            push @dnodes, grep {exists $weights{$_}} @$child_array;
-            #        }
-            #    }
-            #}
         }
     }
 

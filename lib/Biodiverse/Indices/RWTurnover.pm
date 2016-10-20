@@ -2,7 +2,6 @@ package Biodiverse::Indices::RWTurnover;
 use strict;
 use warnings;
 use autovivification;
-use Data::Alias qw /alias/;
 
 use Carp;
 

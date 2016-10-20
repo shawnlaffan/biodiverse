@@ -3,10 +3,11 @@ use 5.016;
 use strict;
 use warnings;
 use List::Util qw /sum/;
-use Data::Alias qw /alias/;
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
 #use Biodiverse::Utils qw /get_rpe_null/;
+
+use parent qw /Biodiverse::Indices::PhylogeneticRelative::DataAlias/;
 
 use Carp;
 
@@ -118,16 +119,10 @@ sub calc_phylo_rpe1 {
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
 
-    #  get the WE score for the set of terminal nodes in this neighbour set
-    my $we;
-    my $label_hash = $args{PHYLO_LABELS_ON_TRIMMED_TREE};
-    alias my %weights = %{$args{ENDW_WTLIST}};
-
-    foreach my $label (keys %$label_hash) {
-        next if ! exists $weights{$label};  #  This should not happen.  Maybe should croak instead?
-        #next if ! $tree->node_is_in_tree(node => $label);  #  list has already been filtered to trimmed tree
-        $we += $weights{$label};
-    }
+    my $we = $self->_calc_phylo_rpe1_inner (
+        ENDW_WTLIST => $args{ENDW_WTLIST},
+        PHYLO_LABELS_ON_TRIMMED_TREE => $args{PHYLO_LABELS_ON_TRIMMED_TREE},
+    );
 
     my %results;
     {

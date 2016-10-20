@@ -2,12 +2,21 @@ package Biodiverse::Indices::PhylogeneticRelative;
 use 5.016;
 use strict;
 use warnings;
+
+use English qw /-no_match_vars/;
+
 use List::Util qw /sum/;
+
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
-#use Biodiverse::Utils qw /get_rpe_null/;
-
-use parent qw /Biodiverse::Indices::PhylogeneticRelative::DataAlias/;
+BEGIN {
+    if ($PERL_VERSION lt '5.22') {
+        eval 'use parent qw /Biodiverse::Indices::PhylogeneticRelative::DataAlias/';
+    }
+    else {
+        eval 'use parent qw /Biodiverse::Indices::PhylogeneticRelative::RefAlias/';
+    }
+}
 
 use Carp;
 

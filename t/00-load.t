@@ -27,8 +27,10 @@ sub Wanted {
     return if $filename !~ m/Biodiverse/;
     return if $filename =~ m/Task/;    #  ignore Task files
     return if $filename =~ m/Bundle/;  #  ignore Bundle files
-    return if $ENV{BD_NO_TEST_GUI} && $filename =~ m/GUI/;  #  ignore GUI files
-
+    #  avoid ref/data alias as only one works at a time
+    return if $filename =~ m/(?:Data|Ref)Alias\.pm$/;
+    #  ignore GUI files
+    return if $ENV{BD_NO_TEST_GUI} && $filename =~ m/GUI/;
 
     $filename =~ s/\.pm$//;
     if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {

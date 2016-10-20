@@ -6,6 +6,8 @@ use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 
 sub _calc_pe {
     my $self = shift;
@@ -14,7 +16,7 @@ sub _calc_pe {
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     my $element_list_all = $args{element_list_all};
-    my \%node_ranges = $args{node_range};
+    \my %node_ranges = $args{node_range};
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
@@ -49,7 +51,7 @@ sub _calc_pe {
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
 
             #  Data::Alias avoids hash deref overheads below
-            my \%node_lengths = $nodes_in_path;
+            \my %node_lengths = $nodes_in_path;
 
             #  loop over the nodes and run the calcs
           NODE:
@@ -98,7 +100,7 @@ sub _calc_pe {
 
             # weights need to be summed
             # refalias might be a nano-optimisation here...
-            my \%wt_hash = $results_this_gp->{PE_WTLIST};
+            \my %wt_hash = $results_this_gp->{PE_WTLIST};
             foreach my $node (keys %wt_hash) {
                 $wts{$node} += $wt_hash{$node};
                 $local_ranges{$node}++;

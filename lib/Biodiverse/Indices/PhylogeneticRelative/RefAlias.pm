@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
 
 sub _calc_phylo_rpe1_inner {
     my ($self, %args) = @_;
@@ -10,7 +11,7 @@ sub _calc_phylo_rpe1_inner {
     #  get the WE score for the set of terminal nodes in this neighbour set
     my $we;
     my $label_hash = $args{PHYLO_LABELS_ON_TRIMMED_TREE};
-    my \%weights = $args{ENDW_WTLIST};
+    \my %weights = $args{ENDW_WTLIST};
 
     foreach my $label (keys %$label_hash) {
         next if ! exists $weights{$label};  #  This should not happen.  Maybe should croak instead?

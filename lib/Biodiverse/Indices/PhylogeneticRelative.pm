@@ -10,7 +10,7 @@ use List::Util qw /sum/;
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
 BEGIN {
-    if ($PERL_VERSION lt '5.22') {
+    if ($PERL_VERSION lt 'v5.22.0') {
         eval 'use parent qw /Biodiverse::Indices::PhylogeneticRelative::DataAlias/';
     }
     else {

@@ -21,7 +21,7 @@ use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 BEGIN {
-    if ($PERL_VERSION lt '5.22') {
+    if ($PERL_VERSION lt 'v5.22.0') {
         eval 'use parent qw /Biodiverse::Indices::Phylogenetic::DataAlias/';
     }
     else {

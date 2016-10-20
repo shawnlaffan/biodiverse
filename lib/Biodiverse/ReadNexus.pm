@@ -17,7 +17,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use parent qw /Biodiverse::Common/;
 
@@ -386,24 +386,25 @@ sub import_tabular_tree {
     my $self = shift;
     my %args = @_;
 
+    #  inefficient - should just open a file handle on $args{data} or $args{file}
+    $args{data} //= $self->read_whole_file (file => $args{file});
     my $data = $args{data};
-    if (! defined $data) {
-        $data = $self->read_whole_file (file => $args{file});
-        $args{data} = $data; # ?
-    }
     
-    my $column_map = $args{column_map} // {};
+    croak "No data provided or read from a file"
+      if !length ($data);
 
     # get column map from arguments 
-    my %columns = %{$args{column_map} // {}};
-
-    my @data   = split ($/, $data);
-    my $header = shift @data;
+    my $column_map = $args{column_map} // {};
+    my %columns = %$column_map;
 
     my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
-    $csv->parse($header);
-    my @header = $csv->fields;
-    $csv->column_names (@header);
+
+    #  use scalar asaa file handle
+    open my $io, '<', \$data
+      or croak "Could not open scalar variable \$data as a file handle\n";
+
+    my $header = $csv->getline ($io);
+    $csv->column_names (@$header);
 
     my $node_hash = {};
 
@@ -412,7 +413,7 @@ sub import_tabular_tree {
     # set up columns to grab relevant data.  if any were not passed as args,
     # look for values with given names in header. (just add to args map)
     my %header_cols; 
-    @header_cols{@header} = (0..$#header);
+    @header_cols{@$header} = (0..$#$header);
     $columns{TREENAME_COL}       //= $header_cols{TREENAME};
     $columns{LENGTHTOPARENT_COL} //= $header_cols{LENGTHTOPARENT};
     $columns{NODENUM_COL}        //= $header_cols{NODE_NUMBER};
@@ -425,27 +426,30 @@ sub import_tabular_tree {
         say "Param $param col $columns{$param}";
     }
 
-    $csv->parse ($data[0]);
-    my @line_arr = $csv->fields;
-    #my %line_h;
-    #@line_h{@header} = @line_arr;
-    my $tree_name = $args{NAME} || $line_arr[$columns{TREENAME_COL}] || 'TABULAR_TREE'; # note use of $args{NAME} will only work if name col is not provided
+    #  read first line to get an initial default tree name
+    my @data = ($csv->getline($io));
+    my @line_arr = @{$data[0]};
+
+    # note use of $args{NAME} will only work if name col is not provided
+    # ?? really?
+    my $tree_name = $args{NAME}
+                 // $line_arr[$columns{TREENAME_COL}]
+                 // 'TABULAR_TREE'; 
     my $tree = Biodiverse::Tree->new (NAME => $tree_name);
     push @trees, $tree;
 
     #  process the data and generate the nodes
   LINE:
-    foreach my $line (@data) {
-        $csv->parse ($line);
-        my @line_array = $csv->fields;
+    while (my $line_array = shift @data) {
+        push @data, $csv->getline ($io);
         my %line_hash;
 
         # check all necessary values are defined (?)
         foreach my $col_name (keys %columns) {
             #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
             #  skip line if we don't have sufficient values - safe in all cases?
-            next LINE if $columns{$col_name} > $#line_array;
-            $line_hash{$col_name} = $line_array[$columns{$col_name}]
+            next LINE if $columns{$col_name} > $#$line_array;
+            $line_hash{$col_name} = $line_array->[$columns{$col_name}]
         }
 
         if (defined($line_hash{TREENAME_COL}) && $line_hash{TREENAME_COL} ne $tree_name) {  # we have started a new tree
@@ -475,7 +479,8 @@ sub import_tabular_tree {
 
         my $node_number = $line_hash{NODENUM_COL};
         next if !defined $node_number;
-        $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
+        # store as reference to duplicate of line_hash (instead of \%line_hash directly);
+        $node_hash->{$node_number} = {%line_hash}; 
     }
 
     $self->assign_parents_for_tabular_tree_import (
@@ -582,11 +587,14 @@ sub read_whole_file {
     #  now we open the file and suck it al in
     my $fh;
     open ($fh, '<:via(File::BOM)', $file)
-      || croak "[READNEXUS] cannot open $file for reading\n";
+      or croak "[READNEXUS] cannot open $file for reading, $!\n";
 
-    local $/ = undef;
-    my $text = eval {<$fh>};  #  suck the whole thing in
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    my $text;
+    {
+        local $/ = undef;
+        $text = eval {<$fh>};  #  suck the whole thing in
+        croak $EVAL_ERROR if $EVAL_ERROR;
+    }
 
     $fh->close || croak "Cannot close $file\n";
 

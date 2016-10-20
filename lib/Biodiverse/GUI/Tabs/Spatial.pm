@@ -5,12 +5,13 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr/;
 use Time::HiRes;
+use Sort::Naturally qw /nsort/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -172,6 +173,7 @@ sub new {
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
         my $cell_x = $cell_sizes->[0];
+        $cell_x =~ s/,/\./;  #  convert radix char to c-locale used in rest of the system
         $initial_sp1 = 'sp_self_only ()';
         $initial_sp2 = $cell_x > 0 ? "sp_circle (radius => $cell_x)" : '';
     }
@@ -658,7 +660,7 @@ sub make_output_indices_model {
     if (scalar keys %analyses_tmp) {
         @analyses = $numeric
             ? sort {$a <=> $b} keys %analyses_tmp   #  numeric
-            : sort {$a cmp $b} keys %analyses_tmp;  #  text
+            : nsort keys %analyses_tmp;  #  natural sort
     }
 
 #print "Making ouput analysis model\n";

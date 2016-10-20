@@ -8,6 +8,20 @@ use 5.010;
 
 use English qw / -no_match_vars /;
 
+#  a little debug
+use constant DEBUG => 0;
+my $binsearch_gives_undef = 0;
+my %binsearch_callers;
+END {
+    if (DEBUG) {
+        say " ===== ";
+        say "BINSEARCH WAS UNDEF:  $binsearch_gives_undef";
+        say Data::Dumper::Dumper \%binsearch_callers;
+        say " ===== ";
+    }
+}
+
+
 #use Devel::Symdump;
 use Data::Dumper qw { Dumper };
 use Carp;
@@ -38,7 +52,7 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 my $EMPTY_STRING = q{};
 
@@ -734,7 +748,7 @@ sub get_randomised_basedata {
     @const_label_hash{@$constant_labels} = undef;
     for my $label ($bd->get_labels) {
         no autovivification;
-        my $groups = $bd->get_groups_with_label_as_hash (label => $label);
+        my $groups = $bd->get_groups_with_label_as_hash_aa ($label);
 
         #  we should cache the constant BD
         my $target_bd = exists $const_label_hash{$label} ? $const_bd : $non_const_bd;
@@ -1257,18 +1271,25 @@ sub get_spatial_output_to_track_allocations {
 
     return $sp if $sp;
 
-    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations');
+    my $time = sprintf "%.3f", time();
+    $sp = $bd->add_spatial_output(name => 'spatial_output_to_track_allocations_' . $time);
 
     #  we need a "blank canvas"
-    $sp->run_analysis (
-        spatial_conditions => ['sp_self_only()'],
-        #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
-        calculations       => [],
-        override_valid_analysis_check => 1,
-        #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
-    );
-
+    eval {
+        $sp->run_analysis (
+            spatial_conditions => ['sp_self_only()'],
+            #calculations       => ['calc_richness'],  #  dummy run to avoid grief later
+            calculations       => [],
+            override_valid_analysis_check => 1,
+            #calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+        );
+    };
+    my $e = $EVAL_ERROR;
+    
     $bd->delete_output (output => $sp);
+    
+    croak $e if $e;
+
     $self->set_param(SPATIAL_OUTPUT_TO_TRACK_ALLOCATIONS => $sp);
 
     return $sp;
@@ -1304,18 +1325,25 @@ sub get_spatial_output_for_label_allocation {
     
     return $sp if $sp;
 
-    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation');
+    my $time = sprintf "%.3f", time;
+    $sp = $bd->add_spatial_output(name => 'spatial_output_for_label_allocation_' . $time);
 
     #  we only want the neighbour sets
-    $sp->run_analysis (
-        spatial_conditions => $sp_conditions,
-        #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
-        calculations       => [],
-        override_valid_analysis_check => 1,
-        calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
-    );
+    eval {
+        $sp->run_analysis (
+            spatial_conditions => $sp_conditions,
+            #definition_query   => $def_query,  #  do we want a def query for this?  Prob not.  
+            calculations       => [],
+            override_valid_analysis_check => 1,
+            calc_only_elements_to_calc    => 1,  #  really need to rename this undocumented arg
+        );
+    };
+    my $e = $EVAL_ERROR;
 
     $bd->delete_output (output => $sp);
+    
+    croak $e if $e;
+
     $self->set_param(SPATIAL_OUTPUT_FOR_LABEL_ALLOCATION => $sp);
 
     return $sp;
@@ -1657,7 +1685,7 @@ END_PROGRESS_TEXT
         ###  - no point aiming for those that have it already
         ###  call will croak if label does not exist, so default to a blank hash
         my $new_bd_has_label
-            = eval {$new_bd->get_groups_with_label_as_hash (label => $label)}
+            = eval {$new_bd->get_groups_with_label_as_hash_aa ($label)}
             || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
@@ -1684,7 +1712,7 @@ END_PROGRESS_TEXT
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
         my %tmp
-            = $cloned_bd->get_groups_with_label_as_hash (label => $label);
+            = $cloned_bd->get_groups_with_label_as_hash_aa ($label);
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp]);
 
         my (
@@ -1722,6 +1750,7 @@ END_PROGRESS_TEXT
                 #  make sure we don't select this group again
                 #  for this label this time round
                 splice (@target_groups, $j, 1);
+                delete $target_groups_hash{$to_groups[-1]};
 
                 if ($sp_for_label_allocation) {
                     my $sp_alloc_nbr_list
@@ -1775,8 +1804,12 @@ END_PROGRESS_TEXT
                 my $from_group = shift @$tmp_rand_order;
                 my $count = $tmp{$from_group};
 
-                delete $target_groups_hash{$to_group};
-                $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
+                #  profiling suggests we get many $to_groups that are not in these lists,
+                #  so avoid some sub calls to save time 
+                if (exists $target_groups_hash{$to_group}) {
+                    $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
+                    delete $target_groups_hash{$to_group};
+                }
 
                 warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                      . "$filled_groups{$to_group}, $target_richness{$to_group}, "
@@ -2217,6 +2250,7 @@ sub get_rand_structured_subset {
         #  Also shifts off the def query if one exists
         while (scalar @subset_basedatas) {
             my $subset = shift @subset_basedatas;
+            say 'Merging basedata ' . $subset->get_name . ' into ' . $new_bd->get_name;
             $new_bd->merge (from => $subset);
         }
 
@@ -2340,7 +2374,7 @@ sub swap_to_reach_richness_targets {
             $progress,
         );
 
-        if ($target_label_count == 0) {
+        if (!$target_label_count) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
             say "[Randomise structured] No more labels to assign";
@@ -2348,17 +2382,18 @@ sub swap_to_reach_richness_targets {
         }
 
         #  select an unassigned label and group pair
-        my @labels = sort $cloned_bd->get_labels;
+        my $lb_arr = $cloned_bd->get_labels;
+        my @labels = sort {$a cmp $b} @$lb_arr;
         my $i = int $rand->rand (scalar @labels);
         my $add_label = $labels[$i];
         
         
-        my $from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
-            label => $add_label,
-        );
+        my $from_groups_hash
+          = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
+
         my $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label};
         if (!$from_cloned_groups_tmp_a  || !scalar @$from_cloned_groups_tmp_a) {
-            my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash (label => $add_label);
+            my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
             $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label} = [sort keys %$gps_tmp];
         };
 
@@ -2469,18 +2504,14 @@ sub swap_to_reach_richness_targets {
                 #  (Just use the first one).
                 my $old_gps_with_remove_label = $orig_bd_groups_with_label_a{$remove_label};
                 if (!$old_gps_with_remove_label) {  #  These do not change so access and cache.  Sort is for repeatability.
-                    my $gps = $bd->get_groups_with_label_as_hash (
-                        label => $remove_label,
-                    );
+                    my $gps = $bd->get_groups_with_label_as_hash_aa ($remove_label);
                     my @gps = sort keys %$gps;
                     $old_gps_with_remove_label = \@gps;
                     $orig_bd_groups_with_label_a{$remove_label} = $old_gps_with_remove_label;
                 }
 
                 my $cloned_self_gps_with_label
-                    = $cloned_bd->get_groups_with_label_as_hash (
-                        label => $remove_label,
-                    );
+                    = $cloned_bd->get_groups_with_label_as_hash_aa ($remove_label);
 
                 #  make sure it does not add to an existing case
                 #delete @old_groups{keys %$cloned_self_gps_with_label};
@@ -2520,17 +2551,13 @@ sub swap_to_reach_richness_targets {
                 $i = int $rand->rand (scalar @$unfilled_aref);
                 my $return_gp = $unfilled_aref->[$i];
 
-                $new_bd->add_element   (
-                    label => $remove_label,
-                    group => $return_gp,
-                    count => $removed_count,
-                    csv_object => $csv_object,
+                $new_bd->add_element_simple_aa (
+                    $remove_label,  $return_gp,
+                    $removed_count, $csv_object,
                 );
                 $swap_insert_count++;
 
-                my $new_richness = $new_bd->get_richness (
-                    element => $return_gp,
-                );
+                my $new_richness = $new_bd->get_richness_aa ($return_gp);
 
                 warn "ISSUES WITH RETURN $return_gp\n"
                   if $new_richness > $target_richness{$return_gp};
@@ -2575,17 +2602,15 @@ sub swap_to_reach_richness_targets {
 
             $swap_out_count ++;
 
-            if (!($swap_out_count % 5000)) {
+            if (!($swap_out_count % 10000)) {
                 say "Swap count $swap_out_count";
             }
         }
 
         #  add the new label to new_bd
-        $new_bd->add_element (
-            label => $add_label,
-            group => $target_group,
-            count => $add_count,
-            csv_object => $csv_object,
+        $new_bd->add_element_simple_aa (
+            $add_label, $target_group,
+            $add_count, $csv_object,
         );
         $swap_insert_count++;
         if (my $aref = $groups_without_labels_a{$add_label}) {
@@ -2601,7 +2626,7 @@ sub swap_to_reach_richness_targets {
         }
 
         #  check if we've filled this group, if nothing was swapped out
-        my $new_richness = $new_bd->get_richness (element => $target_group) // 0;
+        my $new_richness = $new_bd->get_richness_aa ($target_group) // 0;
 
         warn "ISSUES WITH TARGET $target_group\n"
           if $new_richness > $target_richness{$target_group};
@@ -2912,6 +2937,11 @@ sub delete_from_sorted_list_aa {
     if (defined $idx) {
         #splice @$list, $idx, 1;
         splice @{$_[2]}, $idx, 1;
+    }
+    elsif (DEBUG) {
+        my @caller = caller();
+        $binsearch_gives_undef++;
+        $binsearch_callers{join ' ', @caller[0,2]}++;
     }
 
     # skip the explicit return as a minor speedup for pre-5.20 systems

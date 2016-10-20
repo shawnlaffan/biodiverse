@@ -37,8 +37,41 @@ sub is_between
 
 our $tol = 1E-13;
 
+
+
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (sort @subs) {
+        no strict 'refs';
+        $sub->();
+    }
+    
+    done_testing;
+    return 0;
+}
+
+
+
 #  clean read of 'neat' nexus file
-{
+sub test_neat_nexus_file {
     my $nex_tree = get_nexus_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -60,7 +93,7 @@ our $tol = 1E-13;
 
 
 #  clean read of working newick file
-{
+sub test_clean_read_of_working_newick_file {
     my $data = get_newick_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -79,7 +112,7 @@ our $tol = 1E-13;
     run_tests ($tree);
 }
 
-{
+sub test_tabular_tree {
     my $data = get_tabular_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -101,7 +134,7 @@ our $tol = 1E-13;
     run_tests ($tree);
 }
 
-{
+sub test_tabular_tree_unix_line_endings {
     my $data = get_tabular_tree_data_x2();
 
     my $trees = Biodiverse::ReadNexus->new;
@@ -121,31 +154,108 @@ our $tol = 1E-13;
     }
 }
 
-{
-    my $data = get_tabular_tree_data();
-
+sub test_tabular_tree_file_no_exists {
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
-    #  Messy.  Need to use temp files which are cleaned up on scope exit.
-    use FindBin;
-    my $read_file   = $FindBin::Bin . '/tabular_export.csv';
-    my $output_file = $FindBin::Bin . '/test_tabular_export.csv';
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'bd_should_not_exist_XXXX', SUFFIX => ".txt");
+    my $temp_file = $tmp_obj->filename;
+    $tmp_obj->close;
+    unlink $temp_file;
+
+    ok (!-e $temp_file, 'Temp file no longer exists');
 
     # define map to read sample file
-    my $field_map = {
-        TREENAME_COL       => 9, 
-        LENGTHTOPARENT_COL => 3,
-        NODENUM_COL        => 5,
-        NODENAME_COL       => 4,
-        PARENT_COL         => 6,
+    my $column_map = {
+        TREENAME_COL       => 6, 
+        LENGTHTOPARENT_COL => 2,
+        NODENUM_COL        => 4,
+        NODENAME_COL       => 3,
+        PARENT_COL         => 5,
     };
 
     # import tree from file
     
     my $result = eval {
         $phylogeny_ref->import_tabular_tree (
-            file => $read_file,
-            column_map => $field_map
+            file       => $temp_file,
+            column_map => $column_map
+        );
+    };
+    my $e = $EVAL_ERROR;
+    #diag $e if $e;
+    ok ($e, 'import tabular tree throws exception for non-existent file');
+    ok (!$result, 'import tabular tree fails for non-existent file');
+}
+
+sub test_tabular_tree_empty_data {
+    my $phylogeny_ref = Biodiverse::ReadNexus->new;
+
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
+    my $read_file = $tmp_obj->filename;
+    $tmp_obj->close;
+
+
+    # define map to read sample file
+    my $column_map = {
+        TREENAME_COL       => 6, 
+        LENGTHTOPARENT_COL => 2,
+        NODENUM_COL        => 4,
+        NODENAME_COL       => 3,
+        PARENT_COL         => 5,
+    };
+
+    # import tree from file
+    
+    my $result = eval {
+        $phylogeny_ref->import_tabular_tree (
+            file       => $read_file,
+            column_map => $column_map
+        );
+    };
+    my $e = $EVAL_ERROR;
+    #diag $e if $e;
+    ok ($e, 'import tabular tree throws exception for empty file');
+    ok (!$result, 'import tabular tree fails for empty file');
+    
+    $result = eval {
+        $phylogeny_ref->import_tabular_tree (
+            data       => undef,
+            column_map => $column_map
+        );
+    };
+    $e = $EVAL_ERROR;
+    #diag $e if $e;
+    ok ($e, 'import tabular tree throws exception for empty data');
+    ok (!$result, 'import tabular tree fails for empty data');
+    
+}
+
+sub test_tabular_tree_from_file {
+    my $data = get_tabular_tree_data();
+
+    my $phylogeny_ref = Biodiverse::ReadNexus->new;
+
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
+    my $initial_tabular_file = $tmp_obj->filename;
+    print {$tmp_obj} $data;
+    $tmp_obj->close;
+
+
+    # define map to read sample file
+    my $column_map = {
+        TREENAME_COL       => 6, 
+        LENGTHTOPARENT_COL => 2,
+        NODENUM_COL        => 4,
+        NODENAME_COL       => 3,
+        PARENT_COL         => 5,
+    };
+
+    # import tree from file
+    
+    my $result = eval {
+        $phylogeny_ref->import_tabular_tree (
+            file       => $initial_tabular_file,
+            column_map => $column_map
         );
     };
     diag $EVAL_ERROR if $EVAL_ERROR;
@@ -163,13 +273,17 @@ our $tol = 1E-13;
     }
 
     # perform export
+    $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
+    my $exported_tabular_file = $tmp_obj->filename;
+    $tmp_obj->close;
+    
     my $export_tree = $phylogeny_array->[0]; 
     $result = eval {
-        $export_tree->export_tabular_tree(file => $output_file);
+        $export_tree->export_tabular_tree(file => $exported_tabular_file);
     };
     my $e = $EVAL_ERROR;
     diag $e if $e;
-    is ($result, 1, 'export tabular tree without an exception');
+    ok (!$e, 'export tabular tree without an exception');
 
     # re-import
     my $reimport_ref = Biodiverse::ReadNexus->new;
@@ -183,21 +297,21 @@ our $tol = 1E-13;
 
     $result = eval {
         $reimport_ref->import_tabular_tree (
-            file => $output_file,
+            file       => $exported_tabular_file,
             column_map => $reimport_map,
         );
     };
     $e = $EVAL_ERROR;
     diag $e if $e;
-    is ($result, 1, 're-import tabular tree without an exception');
+    ok (!$e, 're-import tabular tree without an exception');
 
     # check re-import properties    
     my $reimport_array = $reimport_ref->get_tree_array;    
     $tree_count = scalar @$reimport_array;
-    is ($tree_count, 1, 're-import tabular tree, count trees');
+    is ($tree_count, 1, 're-import tabular tree, tree count');
 
     foreach my $tree (@$reimport_array) {
-        is ($tree->get_param ('NAME'), 'Example_tree', 'Check tree name');
+        is ($tree->get_name, 'Example_tree', 'Check tree name');
     }
 
     # compare re-imported tree with exported one
@@ -213,43 +327,46 @@ our $tol = 1E-13;
     is ($result, 1, 'perform tree compare');
     is ($trees_compare, 1, 'tabular trip round-trip comparison');
     
-    unlink $output_file;
+    unlink $exported_tabular_file;
+    unlink $initial_tabular_file;
 }
 
 
 
 
 #  read of a 'messy' nexus file with no newlines
-SKIP:
-{
-    skip 'No system parses nexus trees with no newlines', 2;
-    my $data = get_nexus_tree_data();
-
-    #  eradicate newlines
-    $data =~ s/[\r\n]+//gs;
-    #print $data;
-  TODO:
+sub test_nexus_with_no_newlines  {
+    SKIP:
     {
-        local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
-
-        my $trees = Biodiverse::ReadNexus->new;
-        my $result = eval {
-            $trees->import_data (data => $data);
-        };
+        skip 'No system parses nexus trees with no newlines', 2;
+        my $data = get_nexus_tree_data();
     
-        is ($result, 1, 'import nexus trees, no newlines, no remap');
+        #  eradicate newlines
+        $data =~ s/[\r\n]+//gs;
+        #print $data;
+      TODO:
+        {
+            local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
     
-        my @trees = $trees->get_tree_array;
+            my $trees = Biodiverse::ReadNexus->new;
+            my $result = eval {
+                $trees->import_data (data => $data);
+            };
+        
+            is ($result, 1, 'import nexus trees, no newlines, no remap');
+        
+            my @trees = $trees->get_tree_array;
+        
+            is (scalar @trees, 2, 'two trees extracted');
+        
+            my $tree = $trees[0];
     
-        is (scalar @trees, 2, 'two trees extracted');
-    
-        my $tree = $trees[0];
-
-        #run_tests ($tree);
+            #run_tests ($tree);
+        }
     }
 }
 
-done_testing();
+#done_testing();
 
 
 sub run_tests {

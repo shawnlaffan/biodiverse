@@ -9,15 +9,15 @@ use Carp;
 
 use Time::HiRes qw /gettimeofday time/;
 
-use Scalar::Util qw /weaken blessed/;
-use List::Util qw /min/;
-use Tie::RefHash;
+use Scalar::Util qw /weaken isweak blessed/;
+use List::Util 1.29 qw /min pairs/;
+use List::MoreUtils qw /firstidx/;
 
 use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -101,7 +101,7 @@ sub new {
     }
 
     if (defined $self->{parent_tab}) {
-        weaken $self->{parent_tab};
+        weaken $self->{parent_tab} if !isweak ($self->{parent_tab});
         #  fixme
         #  there is too much back-and-forth between the tab and the tree
         $self->{parent_tab}->set_undef_cell_colour(COLOUR_LIST_UNDEF);  
@@ -112,6 +112,16 @@ sub new {
     $self->{sp_list}  = undef;
     $self->{sp_index} = undef;
     bless $self, $class;
+    
+    foreach my $widget_name (qw /selector_toggle selector_colorbutton autoincrement_toggle/) {
+        eval {
+            $self->{$widget_name}
+              = $self->get_parent_tab->{xmlPage}->get_object($widget_name);
+        };
+    }
+
+    #  also initialises it
+    $self->increment_multiselect_colour(1);
 
     #  clean up if we are a refresh
     if (my $child = $main_frame->get_child) {
@@ -173,7 +183,7 @@ sub new {
     # Process changes for the map
     if ($map_index_combo) {
         $map_index_combo->signal_connect_swapped(
-            changed => \&on_map_index_combo_changed,
+            changed => \&on_combo_map_index_changed,
             $self,
         );
     }
@@ -189,6 +199,17 @@ sub new {
     # Labels::initMatrixGrid will set $self->{page} (hacky}
 
     return $self;
+}
+
+
+sub get_tree_object {
+    my $self = shift;
+    return $self->{cluster};
+}
+
+sub get_parent_tab {
+    my $self = shift;
+    return $self->{parent_tab};
 }
 
 #  
@@ -457,9 +478,9 @@ sub on_slider_event {
 #  should we highlight it or not?
 #  by default we switch the setting
 sub set_use_highlight_func {
-    my $self = shift;
+    my $self  = shift;
     my $value = shift;
-    $value = not $self->{use_highlight_func} if ! defined $value;
+    $value //= !$self->{use_highlight_func};
     $self->{use_highlight_func} = $value;
 
     return;
@@ -475,10 +496,13 @@ sub get_num_clusters {
 }
 
 sub set_num_clusters {
-    my $self = shift;
-    $self->{num_clusters} = shift || 1;
+    my ($self, $number, $no_recolour) = @_;
+    
+    $self->{num_clusters} = $number || 1;
     # apply new setting
-    $self->recolour();
+    if (!$no_recolour) {
+        $self->recolour();
+    }
     return;
 }
 
@@ -493,9 +517,11 @@ sub set_group_mode {
 
 sub recolour {
     my $self = shift;
+
     if ($self->{colour_start_node}) {
         $self->do_colour_nodes_below($self->{colour_start_node});
     }
+
     return;
 }
 
@@ -508,6 +534,40 @@ sub get_cluster_node_for_element {
     return $self->{element_to_cluster}{$element};
 }
 
+sub get_palette_colorbrewer9 {
+    # Set1 colour scheme from www.colorbrewer2.org
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#E41A1C #377EB8 #4DAF4A #984EA3
+                #FF7F00 #FFFF33 #A65628 #F781BF
+                #999999';
+}
+
+sub get_palette_colorbrewer13 {
+    # Paired colour scheme from colorbrewer, plus a dark grey
+    #  note - this works poorly when 9 or fewer groups are selected
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#A6CEE3 #1F78B4 #B2DF8A #33A02C
+                #FB9A99 #E31A1C #FDBF6F #FF7F00
+                #CAB2D6 #6A3D9A #FFFF99 #B15928
+                #4B4B4B';
+}
+
+sub get_gdk_colors_colorbrewer9 {
+    my $self = shift;
+    my @colours
+        = map {Gtk2::Gdk::Color->parse ($_)}
+          $self->get_palette_colorbrewer9;
+    return @colours;
+}
+
+sub get_gdk_colors_colorbrewer13 {
+    my $self = shift;
+    my @colours
+        = map {Gtk2::Gdk::Color->parse ($_)}
+          $self->get_palette_colorbrewer13;
+    return @colours;
+}
+
 # Returns a list of colours to use for colouring however-many clusters
 # returns STRING COLOURS
 sub get_palette {
@@ -515,39 +575,18 @@ sub get_palette {
     my $num_clusters = shift;
     #print "Choosing colour palette for $num_clusters clusters\n";
 
-    return (wantarray ? () : []) if $num_clusters <= 0;  # trap bad numclusters
+    return wantarray ? () : []
+      if $num_clusters <= 0;  # trap bad numclusters
 
-    my @colourset;
+    my @colourset
+        = $num_clusters <=  9 ? get_palette_colorbrewer9
+        : $num_clusters <= 13 ? get_palette_colorbrewer13
+        : (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;
 
-    if ($num_clusters <= 9) {
-        # Set1 colour scheme from www.colorbrewer.org
-        no warnings 'qw';  #  we know the hashes in this list are not comments
-        @colourset = qw '#E41A1C #377EB8 #4DAF4A #984EA3
-                         #FF7F00 #FFFF33 #A65628 #F781BF
-                         #999999';
+    #  return the relevant slice
+    my @colours = @colourset[0 .. $num_clusters - 1]; 
 
-    }
-    elsif ($num_clusters <= 13) {
-        # Paired colour scheme from the same place, plus a dark grey
-        #  note - this works poorly when 9 or fewer groups are selected
-        no warnings 'qw';
-        @colourset = qw '#A6CEE3 #1F78B4 #B2DF8A #33A02C
-                         #FB9A99 #E31A1C #FDBF6F #FF7F00
-                         #CAB2D6 #6A3D9A #FFFF99 #B15928
-                         #4B4B4B';
-
-    }
-    else {
-        # If more than get_palette_max_colours, separate by hue
-        # ed: actually don't - adjacent clusters may get wildly different hues
-        # because the hashes are randomly sorted...
-        #my $hue_slice = 180 / $num_clusters;
-        @colourset = (DEFAULT_LINE_COLOUR_RGB) x $num_clusters;  #  saves looping over them all
-    }
-
-    my @colours = @colourset[0 .. $num_clusters - 1]; #  return the relevant slice
-
-    return (wantarray ? @colours : \@colours);
+    return wantarray ? @colours : \@colours;
 }
 
 sub get_palette_max_colours {
@@ -559,7 +598,7 @@ sub get_palette_max_colours {
         return $self->{cluster}->get_param ('MAX_COLOURS');
     }
 
-    return 13;  #  modify if more are added above.
+    return 13;  #  modify if more are added to the palettes.
 }
 
 # Finds which nodes the slider intersected and selects them for analysis
@@ -643,11 +682,18 @@ sub toggle_use_slider_to_select_nodes {
 sub do_colour_nodes_below {
     my $self = shift;
     my $start_node = shift;
+
+    #  Don't clear if we are multi-select - allows for mis-hits when
+    #  selecting branches.
+    return if !$start_node && $self->in_multiselect_mode;
+
     $self->{colour_start_node} = $start_node;
 
     my $num_clusters = $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
     my $excess_flag = 0;
+    my $terminal_element_hash_ref;
+
     my @colour_nodes;
 
     if (defined $start_node) {
@@ -661,7 +707,8 @@ sub do_colour_nodes_below {
         @colour_nodes = values %node_hash;
         #print "[Dendrogram] Done Grouping...\n";
 
-        # FIXME: why loop instead of just grouping with num_clusters => $self->get_palette_max_colours
+        # FIXME: why loop instead of just grouping with
+        # num_clusters => $self->get_palette_max_colours
         #  make sure we don't exceed the maximum number of colours
         while (scalar @colour_nodes > $self->get_palette_max_colours) {  
             $excess_flag = 1;
@@ -675,6 +722,12 @@ sub do_colour_nodes_below {
             @colour_nodes = values %node_hash;
         }
         $num_clusters = scalar @colour_nodes;  #not always the same, so make them equal now
+        
+        if ($self->in_multiselect_mode) {
+            #  we need a hash of the terminals
+            # (multiselect only has one node)
+            $terminal_element_hash_ref = $colour_nodes[0]->get_terminal_elements;
+        }
 
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
@@ -696,16 +749,16 @@ sub do_colour_nodes_below {
             }
         }
     }
-    else {
+    elsif (!$self->in_multiselect_mode) {
         say "[Dendrogram] Clearing colouring";
     }
-
+    
     # Set up colouring
     #print "num clusters = $num_clusters\n";
     $self->assign_cluster_palette_colours(\@colour_nodes);
     $self->map_elements_to_clusters(\@colour_nodes);
 
-    $self->recolour_cluster_elements();
+    $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->recolour_cluster_lines(\@colour_nodes);
     $self->set_processed_nodes(\@colour_nodes);
 
@@ -736,7 +789,7 @@ sub assign_cluster_palette_colours {
         my %sort_by_firstnode;
         my $i = 0;  #  in case we dont have numbered nodes
         foreach my $node_ref (@$cluster_nodes) {
-            my $firstnode = $node_ref->get_value ('TERMINAL_NODE_FIRST');
+            my $firstnode = ($node_ref->get_terminal_node_first_number // $i);
             $sort_by_firstnode{$firstnode} = $node_ref;
             $i++;
         }
@@ -805,6 +858,7 @@ sub set_branch_line_width {
 # Colours the element map with colours for the established clusters
 sub recolour_cluster_elements {
     my $self = shift;
+    my $terminal_element_subset = shift;
 
     my $map = $self->{map};
     return if not defined $map;
@@ -814,79 +868,252 @@ sub recolour_cluster_elements {
     my $analysis_min      = $self->{analysis_min};
     my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
-    
+
     my $parent_tab = $self->{parent_tab};
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
 
-    # sets colours according to palette
-    my $palette_colour_func = sub {
-        my $elt = shift;
-        my $cluster_node = $self->{element_to_cluster}{$elt};
+    my $cluster_colour_mode = $self->{cluster_colour_mode};
+    my $colour_callback;
 
-        if ($cluster_node) {
-            my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-            return $colour_ref ? $colour_ref : COLOUR_PALETTE_OVERFLOW;
-        }
-        else {
-            return exists $terminal_elements->{$elt}
-                ? COLOUR_OUTSIDE_SELECTION
-                : $self->get_colour_not_in_tree;
-        }
-
-        die "how did I get here?\n";
-    };
-
-    # sets colours according to (usually spatial) list value for the element's cluster
-    my $list_value_colour_func = sub {
-        my $elt = shift;
-
-        my $cluster_node = $self->{element_to_cluster}{$elt};
-
-        if ($cluster_node) {
-            no autovivification;
-
-            my $list_ref = $cluster_node->get_list_ref (list => $list_name)
-              // return $colour_for_undef;
-
-            my $val = $list_ref->{$list_index}
-              // return $colour_for_undef;
-
-            return $map->get_colour ($val, $analysis_min, $analysis_max);
-        }
-        else {
-            return exists $terminal_elements->{$elt}
-              ? COLOUR_OUTSIDE_SELECTION
-              : $self->get_colour_not_in_tree;
-        }
-
-        die "how did I get here?\n";
-    };
-
-    #print Data::Dumper::Dumper(keys %{$self->{element_to_cluster}});
-
-    if ($self->{cluster_colour_mode} eq 'palette') {
-
-        $map->colour($palette_colour_func);
-        #FIXME: should hide the legend (currently broken - legend never shows up again)
-        $map->set_legend_min_max(0, 0);
-
+    if ($cluster_colour_mode eq 'palette') {
+        # sets colours according to palette
+        $colour_callback = sub {
+            my $elt = shift;
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+    
+            if ($cluster_node) {
+                my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
+                return $colour_ref || COLOUR_PALETTE_OVERFLOW;
+            }
+            else {
+                return exists $terminal_elements->{$elt}
+                    ? COLOUR_OUTSIDE_SELECTION
+                    : $self->get_colour_not_in_tree;
+            }
+    
+            die "how did I get here?\n";
+        };
     }
-    elsif ($self->{cluster_colour_mode} eq 'list-values') {
+    elsif ($self->in_multiselect_mode) {
+        my $multiselect_colour = $self->get_current_multiselect_colour;
 
-        $map->colour($list_value_colour_func);
+        # sets colours according to multiselect palette
+        $colour_callback = sub {
+            my $elt = shift;
+
+            return -1
+              if    $terminal_element_subset
+                 && !exists $terminal_element_subset->{$elt};
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            return -1 if !$cluster_node;
+
+            return $multiselect_colour || COLOUR_OUTSIDE_SELECTION;
+            #COLOUR_PALETTE_OVERFLOW;
+        };
+    }
+    elsif ($cluster_colour_mode eq 'list-values') {
+        # sets colours according to (usually spatial)
+        # list value for the element's cluster
+        $colour_callback = sub {
+            my $elt = shift;
+
+            my $cluster_node = $self->{element_to_cluster}{$elt};
+
+            if ($cluster_node) {
+                no autovivification;
+
+                my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+                  // return $colour_for_undef;
+
+                my $val = $list_ref->{$list_index}
+                  // return $colour_for_undef;
+
+                return $map->get_colour ($val, $analysis_min, $analysis_max);
+            }
+            else {
+                return exists $terminal_elements->{$elt}
+                  ? COLOUR_OUTSIDE_SELECTION
+                  : $self->get_colour_not_in_tree;
+            }
+
+            die "how did I get here?\n";
+        };
+    }
+    
+    die "Invalid cluster colour mode $cluster_colour_mode\n"
+      if !defined $colour_callback;
+
+    $map->colour ($colour_callback);
+
+    if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
     }
-    else {
-        die "bad cluster colouring mode: " . $self->{cluster_colour_mode};
-    }
 
+    return;
 }
 
+sub in_multiselect_mode {
+    my $self = shift;
+    return $self->{cluster_colour_mode} eq 'multiselect';
+}
+
+sub in_multiselect_clear_mode {
+    my $self = shift;
+    return ($self->{cluster_colour_mode} // '')  eq 'multiselect'
+      && eval {$self->{selector_toggle}->get_active};
+}
+
+sub enter_multiselect_clear_mode {
+    my ($self, $no_store) = @_;
+    eval {$self->{selector_toggle}->set_active (1)};
+}
+
+sub leave_multiselect_clear_mode {
+    my $self = shift;
+    eval {$self->{selector_toggle}->set_active (0)};
+}
+
+sub in_multiselect_autoincrement_colour_mode {
+    my $self = shift;
+    eval {$self->{autoincrement_toggle}->get_active};
+}
+
+sub clear_multiselect_colours_from_plot {
+    my $self = shift;
+
+    return if !$self->in_multiselect_mode;
+
+    #  temp override, as multiselect colour mode has side effects
+    local $self->{cluster_colour_mode} = 'palette';
+    
+    my $colour_store = $self->get_multiselect_colour_store;
+    if (@$colour_store) {
+        my $tree = $self->get_tree_object;
+        my @coloured_nodes = map {$tree->get_node_ref (node => $_->[0])} @$colour_store;
+        #  clear current colouring
+        #$self->recolour_cluster_elements;
+        $self->recolour_cluster_lines (\@coloured_nodes);
+    }
+
+    return;
+}
+
+#  later we can get this from a cached value on the tree object
+sub get_multiselect_colour_store {
+    my $self = shift;
+    my $tree = $self->get_tree_object;
+    my $store
+      = $tree->get_cached_value_dor_set_default_aa (
+        GUI_MULTISELECT_COLOUR_STORE => [],
+    );
+    return $store;
+}
+
+sub store_multiselect_colour {
+    my $self = shift;
+    my @pairs = @_;  #  usually get only one name/colour pair
+
+    return if $self->{multiselect_no_store};
+
+    my $store = $self->get_multiselect_colour_store;
+
+  PAIR:
+    foreach my $pair (pairs @pairs) {
+        #  don't store refs
+        if (blessed $pair->[0]) {
+            $pair->[0] = $pair->[0]->get_name;
+        }
+        #  don't store Gdk objects due to serialisation issues
+        if (blessed $pair->[1]) {
+            $pair->[1] = $pair->[1]->to_string;
+        }
+
+        ##  Don't store duplicates.
+        ##  We get double triggers for some reason due to a
+        ##  higher sub being called twice for each colour event
+        next PAIR
+          if scalar @$store
+            &&  $store->[-1][0] eq $pair->[0]
+            && ($store->[-1][1] // '') eq ($pair->[1] // '');
+
+        push @$store, $pair;
+    }
+
+    #  reset the redo stack
+    $self->reset_multiselect_undone_stack;
+    $self->get_parent_tab->set_project_dirty;
+
+    return;
+}
+
+sub get_current_multiselect_colour {
+    my $self = shift;
+
+    return if $self->in_multiselect_clear_mode;
+
+    my $colour;
+    eval {
+        $colour = $self->{selector_colorbutton}->get_color;
+    };
+
+    return $colour;
+}
+
+sub set_current_multiselect_colour {
+    my $self   = shift;
+    my $colour = shift;
+
+    return if !defined $colour;  #  should we croak?
+
+    eval {
+        if ((blessed $colour // '') !~ /Gtk2::Gdk::Color/) {
+            $colour = Gtk2::Gdk::Color->parse  ($colour);
+        }
+        $colour = $self->{selector_colorbutton}->set_color ($colour);
+    };
+
+    return $colour;
+}
+
+sub increment_multiselect_colour {
+    my $self = shift;
+    my $force_increment = shift;
+    
+    return if !$force_increment
+           && !$self->in_multiselect_mode;
+
+    return if $self->in_multiselect_clear_mode;
+    return if !$self->in_multiselect_autoincrement_colour_mode;
+
+    my $colour = $self->get_current_multiselect_colour;
+
+    my @colours = $self->get_gdk_colors_colorbrewer9;
+
+    if (my $last_colour = $self->{last_multiselect_colour}) {
+        my $i = firstidx {$last_colour->equal($_)} @colours;
+        $i++;
+        $i %= scalar @colours;
+        $colour = $colours[$i];
+    }
+    else {
+        $colour = $colours[0];
+    }
+
+    eval {
+        $self->{selector_colorbutton}->set_color ($colour);
+    };
+    
+    $self->{last_multiselect_colour} = $colour;
+    
+    return;
+}
 
 sub get_colour_not_in_tree {
     my $self = shift;
     
-    my $colour = eval {$self->{parent_tab}->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
+    my $colour = eval {$self->get_parent_tab->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
 
     return $colour;
 }
@@ -899,22 +1126,28 @@ sub recolour_cluster_lines {
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
-    tie %coloured_nodes, 'Tie::RefHash';
 
     my $map = $self->{map};
     my $list_name    = $self->{analysis_list_name};
     my $list_index   = $self->{analysis_list_index};
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
+    my $colour_mode  = $self->{cluster_colour_mode};
 
     foreach my $node_ref (@$cluster_nodes) {
 
         my $node_name = $node_ref->get_name;
 
-        if ($self->{cluster_colour_mode} eq 'palette') {
+        if ($colour_mode eq 'palette') {
             $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
-        elsif ($self->{cluster_colour_mode} eq 'list-values') {
+        elsif ($self->in_multiselect_mode) {
+            $colour_ref = $self->get_current_multiselect_colour;
+            if ($colour_ref || $self->in_multiselect_clear_mode) {
+                $self->store_multiselect_colour ($node_name => $colour_ref);
+            }
+        }
+        elsif ($colour_mode eq 'list-values') {
 
             $list_ref = $node_ref->get_list_ref (list => $list_name);
             $val = defined $list_ref
@@ -926,14 +1159,14 @@ sub recolour_cluster_lines {
               : undef;
         }
         else {
-            die "unknown colouring mode";
+            die "unknown colouring mode $colour_mode\n";
         }
 
-        #$node_ref->set_cached_value(__gui_colour => $colour_ref);
         $self->{node_colours_cache}{$node_name} = $colour_ref;
-        $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
+        # if colour is undef then we're clearing back to default
+        $colour_ref ||= DEFAULT_LINE_COLOUR;
 
-        $line = $self->{node_lines}->{$node_name};
+        $line = $self->{node_lines}{$node_name};
         if ($line) {
             $line->set(fill_color_gdk => $colour_ref);
         }
@@ -946,28 +1179,30 @@ sub recolour_cluster_lines {
             $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
-        $coloured_nodes{$node_ref} = (); # mark as coloured
+        $coloured_nodes{$node_name} = $node_ref; # mark as coloured
     }
 
-    #print Data::Dumper::Dumper(keys %coloured_nodes);
-
-    if ($self->{recolour_nodes}) {
-        #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
-        # uncolour previously coloured nodes that aren't being coloured this time
-      NODE:
-        foreach my $node (keys %{ $self->{recolour_nodes} }) {
-
-            next NODE if exists $coloured_nodes{$node};
-
-            my $name = $node->get_name;
-            $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-            #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
-            $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
+    if (!$self->in_multiselect_mode) {
+        if ($self->{recolour_nodes}) {
+            #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
+            # uncolour previously coloured nodes that aren't being coloured this time
+          NODE:
+            foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
+    
+                next NODE if exists $coloured_nodes{$node_name};
+    
+                $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+                $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
+            }
+            #print "[Dendrogram] Recoloured nodes\n";
         }
-        #print "[Dendrogram] Recoloured nodes\n";
-    }
 
-    $self->{recolour_nodes} = \%coloured_nodes;
+        $self->{recolour_nodes} = \%coloured_nodes;
+    }
+    #else {
+    #    my $href = $self->{recolour_nodes} //= {};
+    #    @$href{keys %coloured_nodes} = values %coloured_nodes;
+    #}
 
     return;
 }
@@ -977,8 +1212,6 @@ sub recolour_cluster_lines {
 sub colour_line {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
-    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
-    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
@@ -986,21 +1219,20 @@ sub colour_line {
     if ($line) {
         $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     }
-    $coloured_nodes->{ $node_ref } = (); # mark as coloured
+    $coloured_nodes->{ $name } = $node_ref; # mark as coloured
 
     return;
 }
 
+
 sub colour_lines {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
-    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
-    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
-    $coloured_nodes->{ $node_ref } = (); # mark as coloured
+    $coloured_nodes->{ $name } = $node_ref; # mark as coloured
 
     foreach my $child_ref ($node_ref->get_children) {
         $self->colour_lines($child_ref, $colour_ref, $coloured_nodes);
@@ -1016,17 +1248,23 @@ sub restore_line_colours {
     if ($self->{recolour_nodes}) {
 
         my $colour_ref;
-        foreach my $node_ref (keys %{ $self->{recolour_nodes} }) {
+        foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
 
-            $colour_ref = $self->{node_palette_colours}{$node_ref->get_name};
-            $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
+            $colour_ref
+               = $self->{node_palette_colours}{$node_name}
+              // DEFAULT_LINE_COLOUR;
+            # if colour is undef then we're clearing back to default
 
-            $self->{node_lines}->{$node_ref->get_name}->set(fill_color_gdk => $colour_ref);
-
+            $self->{node_lines}->{$node_name}->set(fill_color_gdk => $colour_ref);
         }
     }
 
     return;
+}
+
+sub get_processed_nodes {
+    my $self = shift;
+    return $self->{processed_nodes};
 }
 
 sub set_processed_nodes {
@@ -1069,10 +1307,14 @@ sub setup_map_list_model {
         $model->set($iter, 0, $list);
     }
 
+    #  add the multiselect selector
+    $iter = $model->insert(0);
+    $model->set($iter, 0, '<i>Multiselect</i>');
+
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
     $model->set($iter, 0, '<i>Cluster</i>');
-
+    
     if ($combo) {
         $combo->set_model($model);
         $combo->set_active_iter($iter);
@@ -1138,89 +1380,102 @@ sub setup_map_index_model {
     return;
 }
 
+sub _dump_line_colours {
+    my ($self, $node_name) = @_;
+    $node_name //= "120___";
+
+    if (exists $self->{node_colours_cache}{$node_name}) {
+        my $caller = ( caller(1) )[3];
+        my $caller_line = ( caller(1) )[2];
+        $caller =~ s/Biodiverse::GUI::Dendrogram:://;
+        print "$node_name ($caller, $caller_line): ";
+        eval {
+            say $self->{node_colours_cache}{$node_name}->to_string,
+                ' ',
+                $self->{node_lines}{$node_name}->get_property ('fill-color-gdk')->to_string;
+        };
+    }
+}
+
 # Change of list to display on the map
 # Can either be the Cluster "list" (coloured by node) or a spatial analysis list
 sub on_map_list_combo_changed {
-    my $self = shift;
+    my $self  = shift;
     my $combo = shift || $self->{map_list_combo};
 
-    my $iter = $combo->get_active_iter;
+    my $iter  = $combo->get_active_iter;
     my $model = $combo->get_model;
-    my $list = $model->get($iter, 0);
+    my $list  = $model->get($iter, 0);
+
+    $self->{analysis_list_name}  = undef;
+    $self->{analysis_list_index} = undef;
+    $self->{analysis_min}        = undef;
+    $self->{analysis_max}        = undef;
+    
+    #  multiselect hides it
+    if ($self->{slider}) {
+        $self->{slider}->show;
+        $self->{graph_slider}->show;
+    }
 
     if ($list eq '<i>Cluster</i>') {
         # Selected cluster-palette-colouring mode
-        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
-
-        $self->{analysis_list_name}  = undef;
-        $self->{analysis_list_index} = undef;
-        $self->{analysis_min}        = undef;
-        $self->{analysis_max}        = undef;
+        $self->clear_multiselect_colours_from_plot;
 
         $self->{cluster_colour_mode} = 'palette';
-        $self->recolour_cluster_elements();
 
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->get_parent_tab->on_clusters_changed;
 
-        # blank out the other combo
+        $self->recolour_cluster_elements;
+        $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        # blank out the index combo
+        $self->setup_map_index_model(undef);
+    }
+    elsif ($list eq '<i>Multiselect</i>') {
+        if ($self->{slider}) {
+            $self->{slider}->hide;
+            $self->{graph_slider}->hide;
+        }
+
+        $self->{cluster_colour_mode} = 'multiselect';
+
+        $self->set_num_clusters (1, 'no_recolour');
+
+        $self->replay_multiselect_store;
+
+        # blank out the index combo
         $self->setup_map_index_model(undef);
     }
     else {
+        $self->clear_multiselect_colours_from_plot;
+
+        $self->get_parent_tab->on_clusters_changed;
+
         # Selected analysis-colouring mode
         $self->{analysis_list_name} = $list;
 
         $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
-        $self->on_map_index_combo_changed();
+        $self->on_combo_map_index_changed;
     }
 
     return;
 }
 
-# Called by the tab to indicate the user has changed the desired list to
-# display on the map.
-# Can either be the Cluster "list" (coloured by node, indicated by undef) or a
-# spatial analysis list
-# Update our display accordingly.
-sub select_map_list {
-    my ($self, $list) = @_;
-
-    if (not defined $list) {
-        # Selected cluster-palette-colouring mode
-        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
-
-        $self->{analysis_list_name}  = undef;
-        $self->{analysis_list_index} = undef;
-        $self->{analysis_min}        = undef;
-        $self->{analysis_max}        = undef;
-
-        $self->{cluster_colour_mode} = 'palette';
-        $self->recolour_cluster_elements();
-
-        $self->recolour_cluster_lines($self->{processed_nodes});
-
-        # blanking out the other combo left to tab
-    }
-    else {
-        # Selected analysis-colouring mode
-        $self->{analysis_list_name} = $list;
-
-        # updating the map index menu left to tab
-    }
-}
-
-sub on_map_index_combo_changed {
-    my $self = shift;
+#  this should be controlled by the parent tab, not the dendrogram
+sub on_combo_map_index_changed {
+    my $self  = shift;
     my $combo = shift || $self->{map_index_combo};
 
     my $index = undef;
-    my $iter = $combo->get_active_iter;
+    my $iter  = $combo->get_active_iter;
 
     if ($iter) {
 
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->on_colour_mode_changed;
+        $self->get_parent_tab->on_colour_mode_changed;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
@@ -1230,7 +1485,7 @@ sub on_map_index_combo_changed {
         $self->{cluster_colour_mode} = 'list-values';
         $self->recolour_cluster_elements();
 
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->get_processed_nodes);
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1248,7 +1503,7 @@ sub select_map_index {
     if (defined $index) {
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->recolour;
+        $self->get_parent_tab->recolour;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
@@ -1258,7 +1513,7 @@ sub select_map_index {
         $self->{cluster_colour_mode} = 'list-values';
         $self->recolour_cluster_elements();
 
-        $self->recolour_cluster_lines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->get_processed_nodes);
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1282,7 +1537,7 @@ sub get_plot_min_max_values {
     
     my ($min, $max) = ($self->{analysis_min}, $self->{analysis_max});
     if (not defined $min or not defined $max) {
-        ($min, $max) = $self->{parent_tab}->get_plot_min_max_values;
+        ($min, $max) = $self->get_parent_tab->get_plot_min_max_values;
     }
     
     my @minmax = ($min, $max);
@@ -1290,7 +1545,140 @@ sub get_plot_min_max_values {
     return wantarray ? @minmax : \@minmax;
 }
 
+sub reset_multiselect_undone_stack {
+    my $self = shift;
+    $self->get_tree_object->set_cached_value (
+        GUI_MULTISELECT_UNDONE_STACK => [],
+    );
+}
 
+sub get_multiselect_undone_stack {
+    my $self = shift;
+    my $undone_stack = $self->get_tree_object->get_cached_value_dor_set_default_aa (
+        GUI_MULTISELECT_UNDONE_STACK => [],
+    );
+    return $undone_stack;
+}
+
+sub undo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+      if $offset < 0;
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    #  don't splice an empty array
+    return if !@$colour_store;
+
+    #  splice off the end of colour store, assuming we are in undo mode
+    my @undone = splice @$colour_store, -$offset;
+
+    my $undone_stack = $self->get_multiselect_undone_stack;
+    
+    #  store in reverse order
+    unshift @$undone_stack, reverse @undone;
+    
+    $self->replay_multiselect_store;
+    $self->get_parent_tab->set_project_dirty;
+}
+
+sub redo_multiselect_click {
+    my ($self, $offset) = @_;
+
+    return if !$self->in_multiselect_mode;
+
+    #  convert zero to 1, or should we make noise?
+    $offset ||= 1;
+
+    croak "offset value should not be negative (got $offset)\n"
+      if $offset < 0;
+
+    my $undone_stack = $self->get_multiselect_undone_stack;
+
+    #  nothing to redo
+    return if !@$undone_stack;
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    my @undone = splice @$undone_stack, 0, min ($offset, scalar @$undone_stack);
+
+    push @$colour_store, @undone;
+    
+    $self->replay_multiselect_store;
+    $self->get_parent_tab->set_project_dirty;
+}
+
+sub replay_multiselect_store {
+    my $self = shift;
+    #my %args = @_;
+    
+    return if !$self->in_multiselect_mode;
+
+    #  clear current colouring of elements
+    #  this is a mess - we should not have to switch to palette mode for this to work
+    $self->{cluster_colour_mode} = 'palette';
+    $self->{element_to_cluster}  = {};
+    $self->{recolour_nodes}      = undef;
+    $self->set_processed_nodes (undef);
+    $self->recolour_cluster_elements;
+    $self->{cluster_colour_mode} = 'multiselect';
+
+    #   The next bit of code probably does too much
+    #   but getting it to work was not simple
+    my $tree = $self->get_tree_object;
+    my $node_ref_array = $tree->get_root_node_refs;
+
+    #my $was_in_clear_mode = $self->in_multiselect_clear_mode;
+    my $old_seq_sel_no_store = $self->{multiselect_no_store};
+    $self->{multiselect_no_store} = 1;
+    $self->enter_multiselect_clear_mode ('no_store');
+    $self->map_elements_to_clusters ($node_ref_array);
+    $self->recolour_cluster_lines ($node_ref_array);
+    #if (!$was_in_clear_mode) {
+        $self->leave_multiselect_clear_mode;
+    #}
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
+
+
+    my $colour_store = $self->get_multiselect_colour_store;
+
+    return if !@$colour_store;
+
+    #  use a copy to avoid infinite recursion, as the
+    #  ref can be appended to in one of the called subs
+    my @pairs = @$colour_store;
+
+    #  ensure recolouring works
+    $self->map_elements_to_clusters (
+        [map {$tree->get_node_ref (node => $_->[0])} @pairs]
+    );
+
+    foreach my $pair (@pairs) {
+        $self->{multiselect_no_store} = 1;
+        my $was_in_clear_mode = 0;
+        my $node_ref = $tree->get_node_ref (node => $pair->[0]);
+        $self->set_current_multiselect_colour ($pair->[1]);
+        my $elements = $node_ref->get_terminal_elements;
+        if (!defined $pair->[1]) {
+            $was_in_clear_mode = 1;
+            $self->enter_multiselect_clear_mode;
+        }
+        $self->recolour_cluster_elements ($elements);
+        $self->set_processed_nodes ([$node_ref]);  #  clunky - poss needed because we call get_processed_nodes below?
+        $self->recolour_cluster_lines($self->get_processed_nodes);
+        if ($was_in_clear_mode) {
+            $self->leave_multiselect_clear_mode;
+        }
+    }
+    $self->{multiselect_no_store} = $old_seq_sel_no_store;
+
+}
 
 ##########################################################
 # Highlighting a path up the tree
@@ -1596,11 +1984,11 @@ sub set_cluster {
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
 
-    $self->{element_to_cluster} = {};
+    $self->{element_to_cluster}  = {};
     $self->{selected_list_index} = {};
     $self->{cluster_colour_mode} = 'palette';
-    $self->{recolour_nodes} = undef;
-    $self->{processed_nodes} = undef;
+    $self->{recolour_nodes}      = undef;
+    $self->set_processed_nodes (undef);
 
     #  number the nodes if needed
     if (! defined $self->{tree_node}->get_value ('TERMINAL_NODE_FIRST')) {
@@ -1999,7 +2387,13 @@ sub on_event {
 
         # Change the cursor if we are in select mode
         if (!$self->{cursor}) {
-            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            my $cursor;
+            if ($self->in_multiselect_clear_mode) {
+                $cursor = $self->get_hover_clear_cursor;
+            }
+            else {
+                $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            }
             $self->{canvas}->window->set_cursor($cursor);
         }
     }
@@ -2032,16 +2426,17 @@ sub on_event {
                 $f = $self->{ctrl_click_func};
                 $f->($node);
             }
-        # Just click - colour nodes
         }
+        # Left click - colour nodes
         elsif ($event->button == 1) {
             $self->do_colour_nodes_below($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
                 $f->($node);
             }
-        # Right click - set marks semi-permanently
+            $self->increment_multiselect_colour;
         }
+        # Right click - set marks semi-permanently
         elsif ($event->button == 3) {
 
             # Restore previously clicked/hovered line
@@ -2450,6 +2845,29 @@ sub post_zoom {
     return;
 }
 
+
+sub get_hover_clear_cursor {
+    my $self = shift;
+
+    my $cursor = $self->{cursor_hover_clear};
+    return $cursor if $cursor;
+
+    my $icon_name = 'edit-clear';
+
+    my $ic = Gtk2::IconTheme->new();
+    my $pixbuf = eval {$ic->load_icon($icon_name, 16, 'no-svg')};
+    if ($@) {
+        warn $@;
+    }
+    else {
+        my $window  = $self->{canvas}->window;
+        my $display = $window->get_display;
+        $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+        $self->{cursor_hover_clear} = $cursor;
+    }
+
+    return $cursor;
+}
 
 ##########################################################
 # Misc

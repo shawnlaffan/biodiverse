@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -109,6 +109,13 @@ sub remove {
     }
 
     return;
+}
+
+sub set_project_dirty {
+    my $self = shift;
+    if ($self->{project}) {
+        $self->{project}->set_dirty;
+    }
 }
 
 sub set_tab_reorderable {

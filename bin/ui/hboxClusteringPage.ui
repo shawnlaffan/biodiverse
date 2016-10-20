@@ -2,6 +2,7 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkIconFactory" id="iconfactory1"/>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">10000000000</property>
     <property name="step_increment">1</property>
@@ -33,7 +34,6 @@
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
             <property name="tooltip_text" translatable="yes">Select (S or B)</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolCL">
                 <property name="visible">True</property>
@@ -41,7 +41,6 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Select (S or B)</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool2">
                     <property name="visible">True</property>
@@ -62,7 +61,6 @@
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
             <property name="tooltip_text" translatable="yes">Pan (C)</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolCL">
                 <property name="visible">True</property>
@@ -70,7 +68,6 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Pan (C)</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool2">
                     <property name="visible">True</property>
@@ -90,7 +87,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolCL">
                 <property name="visible">True</property>
@@ -98,7 +94,6 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool2">
                     <property name="visible">True</property>
@@ -118,7 +113,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolCL">
                 <property name="visible">True</property>
@@ -126,7 +120,6 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool2">
                     <property name="visible">True</property>
@@ -146,7 +139,6 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolCL">
                 <property name="visible">True</property>
@@ -154,7 +146,6 @@
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
                 <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool2">
                     <property name="visible">True</property>
@@ -182,7 +173,6 @@
           <object class="GtkToolItem" id="toolitem_clustering">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="use_action_appearance">False</property>
             <child>
               <object class="GtkMenuBar" id="menubar_clustering">
                 <property name="visible">True</property>
@@ -192,7 +182,6 @@
                   <object class="GtkMenuItem" id="menuitem_clustering_display">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Display</property>
                     <property name="use_underline">True</property>
                     <child type="submenu">
@@ -202,7 +191,6 @@
                           <object class="GtkMenuItem" id="menuitem_cluster_overlays">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Overlays...</property>
                             <property name="use_underline">True</property>
                           </object>
@@ -218,7 +206,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Sets the colour stretch for analysis results.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Colour stretch</property>
                             <property name="use_underline">True</property>
                             <child type="submenu">
@@ -229,7 +216,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch0">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">min-max</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
@@ -240,7 +226,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">5-95</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -251,7 +236,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">2.5-97.5</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">radio_dendro_colour_stretch0</property>
@@ -261,7 +245,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">min-95</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -272,7 +255,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">min-97.5</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -283,7 +265,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">5-max</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -294,7 +275,6 @@
                                   <object class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">2.5-max</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -310,7 +290,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">This is only settable when the plot has continuous values (i.e. not the cluster option)</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Colour mode</property>
                             <property name="use_underline">True</property>
                             <child type="submenu">
@@ -324,7 +303,6 @@
                                     <property name="tooltip_text" translatable="yes">Display all hues (colours) from blue to red
 
 Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Hue</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -337,7 +315,6 @@ Colours are scaled relative to all index values across all nodes in the dendrogr
                                     <property name="tooltip_text" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
 
 Colours are currently taken from the outer ring.</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Sat...</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -348,7 +325,6 @@ Colours are currently taken from the outer ring.</property>
                                   <object class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Grey</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_as_radio">True</property>
@@ -370,7 +346,6 @@ Colours are currently taken from the outer ring.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Set the colour for cells that were excluded from the analysis, typically using a definition query.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Set excluded cell colour</property>
                             <property name="use_underline">True</property>
                           </object>
@@ -380,7 +355,6 @@ Colours are currently taken from the outer ring.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Set the colour of cells when the index value is undefined.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Set undefined value colour</property>
                             <property name="use_underline">True</property>
                           </object>
@@ -390,7 +364,6 @@ Colours are currently taken from the outer ring.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Set the outline colour of the grid cells.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Set cell outline colour</property>
                             <property name="use_underline">True</property>
                           </object>
@@ -400,7 +373,6 @@ Colours are currently taken from the outer ring.</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Show or hide cell outlines.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Show cell outlines</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
@@ -416,7 +388,6 @@ Colours are currently taken from the outer ring.</property>
                           <object class="GtkMenuItem" id="plot_by1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Plot by</property>
                             <property name="use_underline">True</property>
                             <child type="submenu">
@@ -426,7 +397,6 @@ Colours are currently taken from the outer ring.</property>
                                   <object class="GtkRadioMenuItem" id="plot_length">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Length</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
@@ -437,7 +407,6 @@ Colours are currently taken from the outer ring.</property>
                                   <object class="GtkRadioMenuItem" id="plot_depth">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Depth</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">plot_length</property>
@@ -457,7 +426,6 @@ Colours are currently taken from the outer ring.</property>
 This allows decoupling of node selection from the tree display so trees with many reversals can be more easily plotted by depth, but selections still use the branch lengths.
 
 This setting has no effect on the slider bar.  It always groups using the plot method, selecting whichever branches it crosses.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Group by</property>
                             <property name="use_underline">True</property>
                             <child type="submenu">
@@ -467,7 +435,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                   <object class="GtkRadioMenuItem" id="group_length">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Length</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
@@ -478,7 +445,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                   <object class="GtkRadioMenuItem" id="group_depth">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="label" translatable="yes">Depth</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">group_length</property>
@@ -494,7 +460,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Highlight groups under this node when hovering over the node</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Highlight groups on map?</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
@@ -506,7 +471,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Highlight paths on the tree associated with groups on the map when you hover the mouse over them</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Highlight node paths for groups?</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
@@ -518,7 +482,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">When deselected, the slider bar will not change the display colours.</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Use the slider bar to select nodes for colouring?</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
@@ -530,7 +493,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Show or hide the legend
                             (continous values only)</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Show legend</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
@@ -543,7 +505,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                             <property name="tooltip_text" translatable="yes">Set the width of the tree branches.
 Does not affect the vertical connectors.
                             </property>
-                            <property name="use_action_appearance">False</property>
                             <property name="label" translatable="yes">Set tree branch line widths</property>
                             <property name="use_underline">True</property>
                           </object>
@@ -651,6 +612,24 @@ Does not affect the vertical connectors.
                                             <property name="n_columns">3</property>
                                             <property name="column_spacing">2</property>
                                             <property name="row_spacing">4</property>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
+                                            <child>
+                                              <placeholder/>
+                                            </child>
                                             <child>
                                               <object class="GtkHBox" id="hbox_cluster_metric">
                                                 <property name="visible">True</property>
@@ -976,7 +955,6 @@ use caching </property>
                                                         <property name="tooltip_text" translatable="yes">Don't use caching when building the matrix.
 This reduces memory requirements
 but can slow down processing.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -995,7 +973,6 @@ and then stop</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip_text" translatable="yes">Just build the matrices
 and don't actually cluster.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1014,7 +991,6 @@ direct to text files</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip_text" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
 Will not cluster if set and matrices will not be displayable via the project.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1035,7 +1011,6 @@ compatible format</property>
                                                         <property name="tooltip_text" translatable="yes">Only if the "Output
 matrices to text files"
 option is checked.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1056,7 +1031,6 @@ neighbours output</property>
 neighbouring groups used for matrix building.
 Use this if you want to better understand how
 your results were generated.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1078,7 +1052,6 @@ view the matrix as it is destroyed as part
 of clustering.  It will not be added to the BaseData object.
 Matrix exporting is also slowed, as the
 system must rebuild the matrices each time you export.</property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1099,7 +1072,6 @@ nodes from tree</property>
 connected directly to the root.
 Clearing them is useful
 for RegionGrower analyses.  </property>
-                                                        <property name="use_action_appearance">False</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1124,24 +1096,6 @@ for RegionGrower analyses.  </property>
                                                 <property name="bottom_attach">8</property>
                                                 <property name="x_options">GTK_FILL</property>
                                               </packing>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
-                                            </child>
-                                            <child>
-                                              <placeholder/>
                                             </child>
                                             <child>
                                               <placeholder/>
@@ -1184,7 +1138,6 @@ for RegionGrower analyses.  </property>
                                     <property name="receives_default">False</property>
                                     <property name="tooltip_text" translatable="yes">Generates a new output, or overwrites an existing one (CTRL-G)</property>
                                     <property name="border_width">2</property>
-                                    <property name="use_action_appearance">False</property>
                                     <property name="use_underline">True</property>
                                   </object>
                                   <packing>
@@ -1257,6 +1210,9 @@ for RegionGrower analyses.  </property>
                                 <property name="n_rows">2</property>
                                 <property name="n_columns">2</property>
                                 <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
                                   <object class="GtkVScrollbar" id="mapVScroll">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -1291,9 +1247,6 @@ for RegionGrower analyses.  </property>
                                     <property name="bottom_attach">2</property>
                                     <property name="y_options">GTK_FILL</property>
                                   </packing>
-                                </child>
-                                <child>
-                                  <placeholder/>
                                 </child>
                               </object>
                               <packing>
@@ -1438,12 +1391,12 @@ for RegionGrower analyses.  </property>
           <object class="GtkToolbar" id="toolbar_clustering_bottom">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="toolbar_style">both</property>
+            <property name="toolbar_style">both-horiz</property>
+            <property name="icon_size">2</property>
             <child>
               <object class="GtkToolItem" id="toolitem1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkComboBox" id="comboMapList">
                     <property name="visible">True</property>
@@ -1469,7 +1422,6 @@ for RegionGrower analyses.  </property>
               <object class="GtkToolItem" id="toolitem2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkComboBox" id="comboMapShow">
                     <property name="visible">True</property>
@@ -1496,7 +1448,6 @@ for RegionGrower analyses.  </property>
               <object class="GtkToolItem" id="toolitem3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkLabel" id="label_cluster_spin_button">
                     <property name="visible">True</property>
@@ -1513,7 +1464,6 @@ for RegionGrower analyses.  </property>
               <object class="GtkToolItem" id="toolitem_clustering_spin_clusters">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <child>
                   <object class="GtkSpinButton" id="spinClusters">
                     <property name="visible">True</property>
@@ -1537,6 +1487,71 @@ This setting has no effect on the slider bar.</property>
                     <property name="numeric">True</property>
                   </object>
                 </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkLabel" id="label_selector_colour">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Next colour</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolItem" id="toolbutton2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkColorButton" id="selector_colorbutton">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="color">#000000000000</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="autoincrement_toggle">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Autoincrement the colour on click.
+Deselect to keep using the same colour
+or only change when you want to. </property>
+                <property name="label" translatable="yes">autoincrement</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-refresh</property>
+                <property name="active">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToggleToolButton" id="selector_toggle">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="has_tooltip">True</property>
+                <property name="tooltip_text" translatable="yes">When selected, clicking on 
+a branch will reset it to uncoloured.</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-clear</property>
               </object>
               <packing>
                 <property name="expand">False</property>

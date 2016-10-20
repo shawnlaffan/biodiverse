@@ -97,7 +97,6 @@ sub main {
 }
 
 
-
 sub test_import_spreadsheet {
     my %bd_args = (
         NAME => 'test import spreadsheet',
@@ -143,6 +142,7 @@ sub test_import_spreadsheet {
 
     _test_import_spreadsheet_matrix_form ();
 }
+
 
 sub _test_import_spreadsheet {
     my ($fname, $feedback) = @_;
@@ -233,6 +233,80 @@ sub _test_import_spreadsheet {
     ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
     
     is_deeply ($bd3, $bd1, "data matches for sheet id as name and number, $feedback");
+
+    my $bd_text = Biodiverse::BaseData->new (%bd_args, CELL_SIZES => [100000, 100000, -1]);
+    eval {
+        $bd_text->import_data_spreadsheet(
+            input_files   => [$fname],
+            sheet_ids     => [1],
+            group_field_names => [qw /x y genus/],
+            label_field_names => [qw /species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "no errors for import spreadsheet with text group, $feedback");
+    
+    is ($bd_text->get_group_count, 19, "Group count is correct, $feedback");
+
+    subtest 'text group axis' => sub {
+        my $gp_text = $bd_text->get_groups_ref;
+        foreach my $gp_name ($gp_text->get_element_list) {
+            my $el_arr = $gp_text->get_element_name_as_array (element => $gp_name);
+            is ($el_arr->[2], 'Genus', "got correct coord val for text group, $gp_name");
+        }
+    };
+
+    my $bd_arg_order = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_arg_order->import_data_spreadsheet(
+            input_files   => [$fname],
+            #sheet_ids     => ['Example_site_data'],
+            group_field_names => [qw /y x/],
+            label_field_names => [qw /genus species/],
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    #ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
+
+    subtest 'imported transposed basedata correctly, col names' => sub {
+        my $gp_ref_arg_order = $bd_arg_order->get_groups_ref;
+        my $gp_ref_bd1 = $bd1->get_groups_ref;
+        my $join_char  = $bd1->get_param ('JOIN_CHAR');
+
+        foreach my $gp_name ($bd_arg_order->get_groups) {
+            my $gp_arr = $gp_ref_arg_order->get_element_name_as_array (element => $gp_name);
+            my $bd1_gp_name = join $join_char, reverse @$gp_arr;
+            ok ($bd1->exists_group (group => $bd1_gp_name), "Got reverse of $gp_name");
+        }
+    };
+
+    #$bd_arg_order = Biodiverse::BaseData->new (%bd_args);
+    #eval {
+    #    $bd_arg_order->import_data_spreadsheet(
+    #        input_files   => [$fname],
+    #        #sheet_ids     => ['Example_site_data'],
+    #        #group_field_names => [qw /y x/],
+    #        group_field_names
+    #        label_field_names => [qw /genus species/],
+    #    );
+    #};
+    #$e = $EVAL_ERROR;
+    #note $e if $e;
+    ##ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
+    #
+    #subtest 'imported transposed basedata correctly, col nums' => sub {
+    #    my $gp_ref_arg_order = $bd_arg_order->get_groups_ref;
+    #    my $gp_ref_bd1 = $bd1->get_groups_ref;
+    #    my $join_char  = $bd1->get_param ('JOIN_CHAR');
+    #
+    #    foreach my $gp_name ($bd_arg_order->get_groups) {
+    #        my $gp_arr = $gp_ref_arg_order->get_element_name_as_array (element => $gp_name);
+    #        my $bd1_gp_name = join $join_char, reverse @$gp_arr;
+    #        ok ($bd1->exists_group (group => $bd1_gp_name), "Got reverse of $gp_name");
+    #    }
+    #};
 }
 
 sub _test_import_spreadsheet_matrix_form {

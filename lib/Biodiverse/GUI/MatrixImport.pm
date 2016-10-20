@@ -10,7 +10,7 @@ use File::BOM qw / :subs /;
 
 use Gtk2;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport;  #  needed for the remap dialogue - should shift that to its own package

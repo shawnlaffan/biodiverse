@@ -16,7 +16,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -166,6 +166,10 @@ sub set_name {
 sub get_name {
     $_[0]->{NODE_VALUES}{NAME}
       // croak "name parameter missing or undefined\n";
+}
+
+sub get_node_values {
+    wantarray ? %{$_[0]->{NODE_VALUES}} : $_[0]->{NODE_VALUES};
 }
 
 sub set_length {
@@ -1494,6 +1498,19 @@ sub assign_plot_coords_inner {
     return;    
 }
 
+sub get_terminal_node_first_number {
+    my $self = shift;
+    no autovivification;
+    my $values = $self->get_node_values;
+    return $values->{TERMINAL_NODE_FIRST};
+}
+
+sub get_terminal_node_last_number {
+    my $self = shift;
+    no autovivification;
+    my $values = $self->get_node_values;
+    return $values->{TERMINAL_NODE_LAST};
+}
 
 #  number the nodes below this one based on the terminal nodes
 #  this allows us to export to CSV and retain some of the topology
@@ -2024,7 +2041,8 @@ sub get_list_ref {
     my $self = shift;
     my %args = @_;
     my $list = $args{list};
-    exists $self->{$list} ? $self->{$list} : undef;
+    no autovivification;
+    defined $list ? $self->{$list} : undef;
 }
 
 sub get_node_range {

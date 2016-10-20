@@ -8,7 +8,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Gtk2;
 

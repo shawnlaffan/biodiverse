@@ -26,7 +26,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 my $EMPTY_STRING = q{};
 
@@ -2542,7 +2542,9 @@ sub get_text_axis_as_coord {
         $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
-    @this_axis{reverse sort keys %this_axis} = (0 .. scalar keys %this_axis);
+    use Sort::Naturally;
+    @this_axis{reverse nsort keys %this_axis}
+      = (0 .. scalar keys %this_axis);
     $lists->[$axis] = \%this_axis;
 
     $self->set_param (AXIS_LIST_ORDER => $lists);

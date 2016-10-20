@@ -9,6 +9,8 @@ use Time::HiRes qw /time/;
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
+use Sort::Naturally qw /nsort/;
+
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
@@ -21,7 +23,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -632,72 +634,6 @@ sub hide_legend {
 }
 
 
-sub on_map_list_changed {
-    my ($self, $menu_item) = @_;
-    #print "on_map_list_changed called\n";
-    #print "Widget: ", $menu_item->get_label(), "\n";
-    #print "Active: ", $menu_item->get_active(), "\n";
-
-    # Just got the signal for the deselected option. Wait for signal for
-    # selected one.
-    if (!$menu_item->get_active()) {
-        return;
-    }
-
-    # Got signal for newly selected option.
-    my $list = $menu_item->get_label();
-    $list =~ s/__/_/g;
-    if ($list eq '(Cluster)') {
-        undef $list;
-    }
-
-    if (not defined $list) {
-        $self->hide_legend;
-    }
-    else {
-        $self->show_legend;  #  more control via $self
-    }
-
-    $self->{dendrogram}->select_map_list($list);
-
-    my $indices = $self->{dendrogram}->get_map_indices();
-
-    # Default to the first in the list, if it exists
-    if (@$indices) {
-        $self->{dendrogram}->select_map_index($indices->[0]);
-    }
-
-    # Desensitise some options if (Cluster) is selected.
-    my @widgets = qw{
-        menuitem_cluster_colour_mode_hue
-        menuitem_cluster_colour_mode_sat
-        menuitem_cluster_colour_mode_grey
-    };
-    my $sensitive = defined $list;
-    foreach my $widget (@widgets) {
-        $self->{xmlPage}->get_object($widget)->set_sensitive($sensitive);
-    }
-}
-
-
-sub on_map_index_changed {
-    my ($self, $menu_item) = @_;
-
-    # Just got the signal for the deselected option. Wait for signal for
-    # selected one.
-    return if !$menu_item->get_active();
-
-    # Got signal for newly selected option.
-    my $index = $menu_item->get_label();
-    $index =~ s/__/_/g;
-
-    print "on_map_index_changed to $index\n";
-
-    # Pass it on to the dendrogram.
-    $self->{dendrogram}->select_map_index($index);
-}
-
-
 sub init_map_show_combo {
     my $self = shift;
 
@@ -737,7 +673,7 @@ sub on_combo_map_list_changed {
     my $list  = $model->get($iter, 0);
 
     my $sensitive = 1;
-    if ($list eq '<i>Cluster</i>') {
+    if ($list eq '<i>Cluster</i>' || $list eq '<i>Multiselect</i>') {
         $sensitive = 0;
         $self->hide_legend;
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);
@@ -747,6 +683,20 @@ sub on_combo_map_list_changed {
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     }
 
+    #  show/hide some widgets 
+    my @cluster_widgets  = qw /label_cluster_spin_button spinClusters/;
+    my @cloister_widgets = qw /label_selector_colour selector_colorbutton selector_toggle autoincrement_toggle/;
+    my $m1 = $list eq '<i>Multiselect</i>' ? 'hide' : 'show';
+    my $m2 = $list eq '<i>Multiselect</i>' ? 'show' : 'hide';
+    foreach my $widget_name (@cluster_widgets) {
+        my $widget = $self->{xmlPage}->get_object ($widget_name);
+        $widget->$m1;
+    }
+    foreach my $widget_name (@cloister_widgets) {
+        my $widget = $self->{xmlPage}->get_object ($widget_name);
+        $widget->$m2;
+    }
+    
     my @widgets = qw {
         comboMapShow
         menuitem_cluster_colour_mode_hue
@@ -806,8 +756,7 @@ sub make_indices_model {
     my $default_index = $self->get_output_type->get_default_cluster_index;
     my $default_iter;
     # Add each analysis-function (eg: Jaccard, Endemism) row
-    foreach my $name (sort keys %indices) {
-    #while (my ($name, $description) = each %indices) {
+    foreach my $name (nsort keys %indices) {
 
         # Add to model
         my $iter = $model->append;
@@ -1271,7 +1220,7 @@ sub on_run_analysis {
             }
             #  Should really check if the analysis
             #  ran properly before setting this
-            $self->{project}->set_dirty;
+            $self->set_project_dirty;
         }
 
         if ($new_analysis) {  #  we can simply rename it for now
@@ -2039,6 +1988,41 @@ sub on_overlays {
 
     return;
 }
+
+sub undo_multiselect_click {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return $dendrogram->undo_multiselect_click;
+}
+
+sub redo_multiselect_click {
+    my $self = shift;
+    my $dendrogram = $self->{dendrogram};
+    return $dendrogram->redo_multiselect_click;
+}
+
+my %key_tool_map = (
+    U => 'undo_multiselect_click',
+    R => 'redo_multiselect_click',
+);
+
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+
+    no autovivification;
+
+    my $tool = $key_tool_map{$keyval};
+
+    return $self->SUPER::on_bare_key ($keyval)
+      if not defined $tool;
+
+    my $active_pane = $self->{active_pane};
+
+    return if !defined $active_pane;
+
+    $self->$tool;
+}
+
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

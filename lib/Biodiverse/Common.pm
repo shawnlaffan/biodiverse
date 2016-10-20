@@ -42,7 +42,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 my $EMPTY_STRING = q{};
 
@@ -51,16 +51,30 @@ sub clone {
     my $self = shift;
     my %args = @_;  #  only works with argument 'data' for now
 
-    my $cloneref;
+    my ($cloneref, $e);
 
     if ((scalar keys %args) == 0) {
         #$cloneref = dclone($self);
-        $cloneref = Clone::clone ($self);
+        #$cloneref = Clone::clone ($self);
+        #  Use Sereal because we are hitting CLone size limits
+        #  https://rt.cpan.org/Public/Bug/Display.html?id=97525
+        #  could use Sereal::Dclone for brevity
+        my $encoder = Sereal::Encoder->new({
+            undef_unknown => 1,  #  strip any code refs
+        });
+        my $decoder = Sereal::Decoder->new();
+        eval {
+            $decoder->decode ($encoder->encode($self), $cloneref);
+        };
+        $e = $EVAL_ERROR;
     }
     else {
         #$cloneref = dclone ($args{data});
+        # Should also use Sereal here
         $cloneref = Clone::clone ($args{data});
     }
+    
+    croak $e if $e;
 
     return $cloneref;
 }
@@ -175,8 +189,9 @@ sub load_sereal_file {
         $string = <$fh>;
     }
 
-    my $structure;
-    $self = $decoder->decode($string, $structure);
+    #my $structure;
+    #$self = $decoder->decode($string, $structure);
+    $decoder->decode($string, $self);
 
     $self->set_last_file_serialisation_format ('sereal');
 
@@ -793,10 +808,10 @@ sub save_to {
     #my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
     my $method = $args{method};
     if (!defined $method) {
-        my $last_fmt = $self->get_last_file_serialisation_format eq 'storable';
+        my $last_fmt_is_sereal = $self->get_last_file_serialisation_format eq 'sereal';
         $method
           = $suffix eq $yaml_suffix ? 'save_to_yaml'
-          : $last_fmt               ? 'save_to_storable' 
+          : $last_fmt_is_sereal     ? 'save_to_sereal' 
           : 'save_to_storable';
     }
 
@@ -831,11 +846,16 @@ sub save_to_sereal {
 
     use Sereal::Encoder;
 
-    my $encoder = Sereal::Encoder->new();
-    my $out = $encoder->encode($self);
+    my $encoder = Sereal::Encoder->new({
+        undef_unknown => 1,  #  strip any code refs
+    });
 
     open (my $fh, '>', $file) or die "Cannot open $file";
-    print {$fh} $out;
+    binmode $fh;
+
+    eval {
+        print {$fh} $encoder->encode($self);
+    };
     my $e = $EVAL_ERROR;
 
     $fh->close;

@@ -6,6 +6,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
+use Sort::Naturally qw /nsort ncmp/;
 
 use List::MoreUtils qw /firstidx/;
 
@@ -20,7 +21,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -387,7 +388,7 @@ sub sort_by_column {
 
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-        || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
+        || $label_order * ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
 }
 
 sub sort_by_column_numeric_labels {
@@ -446,11 +447,15 @@ sub make_labels_model {
     $self->{labels_model} = Gtk2::ListStore->new(@types);
     my $model = $self->{labels_model};
 
-    my @labels = $base_ref->get_labels();
+    my $labels = $base_ref->get_labels();
 
-    my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : sub {$a cmp $b};
+    #my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : \&ncmp;
+    my @sorted_labels = $base_ref->labels_are_numeric
+        ? sort {$a <=> $b} @$labels
+        : nsort @$labels;
 
-    foreach my $label (sort $sort_func @labels) {
+    #foreach my $label (sort $sort_func @labels) {
+    foreach my $label (@sorted_labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 

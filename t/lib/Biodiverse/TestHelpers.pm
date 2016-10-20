@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 
 use Data::Section::Simple qw(get_data_section);

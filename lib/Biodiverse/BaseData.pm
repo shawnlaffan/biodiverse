@@ -47,7 +47,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use parent qw {Biodiverse::Common};
 
@@ -1232,6 +1232,7 @@ sub import_data_raster {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
+    my $progress_bar_files = Biodiverse::Progress->new(gui_only => 1);
     my $progress_bar = Biodiverse::Progress->new(gui_only => 0);
 
     croak "Input files array not provided\n"
@@ -1291,7 +1292,19 @@ sub import_data_raster {
     
     # load each file, using same arguments/parameters
     #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
-    foreach my $file (@{$args{input_files}}) {
+    my $file_iter = 0;
+    my $input_file_arr = $args{input_files};
+    my $file_count = scalar @$input_file_arr;
+
+    foreach my $file (@$input_file_arr) {
+        $file_iter++;
+        if (scalar @$input_file_arr > 1) {
+            $progress_bar_files->update(
+                "Raster file $file_iter of $file_count\n",
+                $file_iter / $file_count,
+            );
+        }
+
         $file = Path::Class::file($file)->absolute;
         my $file_base = Path::Class::File->new($file)->basename();
         say "[BASEDATA] INPUT FILE: $file";
@@ -1453,10 +1466,13 @@ sub import_data_raster {
                             if ($new_gp) {
                                 #  build a new group name if needed
                                 #  no need to dequote since these will always be numbers
-                                $grpstring = $self->list2csv (
-                                    list        => [$grpe, $grpn],
-                                    csv_object  => $out_csv,
-                                );
+                                #$grpstring = $self->list2csv (
+                                #    list        => [$grpe, $grpn],
+                                #    csv_object  => $out_csv,
+                                #);
+                                #  no need to even use the csv object to stick them together
+                                #  (this was a bottleneck due to all the csv calls)
+                                $grpstring = join $el_sep, ($grpe, $grpn);
                             }
 
                             # set label if determined at cell level
@@ -1860,8 +1876,9 @@ sub import_data_spreadsheet {
             # Needs to process the data in the same way as for text imports - refactoring is in order.
             my @group_field_vals = @db_rec{@group_field_names};
             my @gp_fields;
-            my $i = 0;
+            my $i = -1;
             foreach my $val (@group_field_vals) {
+                $i++;
                 if (!defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";
@@ -2577,6 +2594,31 @@ sub add_elements_collated {
                     count      => $count,
                     csv_object => $csv_object,
                 );
+            }
+        }
+    }
+
+    return;
+}
+
+#  simplified array args version for speed
+sub add_elements_collated_simple_aa {
+    my ($self, $gp_lb_hash, $csv_object, $allow_empty_groups) = @_;
+
+    croak "csv_object arg not passed\n"
+      if !$csv_object;
+
+    #  now add the collated data
+    foreach my $gp_lb_pair (pairs %$gp_lb_hash) {
+        my ($gp, $lb_hash) = @$gp_lb_pair;
+
+        if ($allow_empty_groups && !scalar %$lb_hash) {
+            $self->add_element (undef, $gp, 0, $csv_object);
+        }
+        else {
+            foreach my $lb_count_pair (pairs %$lb_hash) {
+                my ($lb, $count) = @$lb_count_pair;
+                $self->add_element_simple_aa ($lb, $gp, $count, $csv_object);
             }
         }
     }
@@ -3321,6 +3363,10 @@ sub get_richness {
     return $self->get_groups_ref->get_variety(@_);
 }
 
+sub get_richness_aa {
+    $_[0]->get_groups_ref->get_variety_aa($_[1]);
+}
+
 sub get_label_sample_count {
     my ($self, %args) = @_;
 
@@ -3478,7 +3524,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
 
     if (! defined $args{use_elements}) {
         #  takes care of the wantarray stuff this way
-        return $self->get_labels_ref->get_sub_element_hash (element => $args{label});
+        return $self->get_labels_ref->get_sub_element_hash_aa ($args{label});
     }
 
     #  Not sure why the rest is here - is it used anywhere?
@@ -3496,6 +3542,10 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     delete @results{keys %sub_results};
 
     return wantarray ? %results : \%results;
+}
+
+sub get_groups_with_label_as_hash_aa {
+    $_[0]->get_labels_ref->get_sub_element_hash_aa ($_[1]);
 }
 
 #  get the complement of the labels in a group
@@ -4629,6 +4679,7 @@ sub merge {
 
         if (!scalar keys %$tmp) {
             #  make sure we get any empty groups
+            #  - needed?  should be handled in add_elements_collated call
             $self->add_element(
                 group      => $group,
                 count      => 0,
@@ -4636,10 +4687,7 @@ sub merge {
                 allow_empty_groups => 1,
             );
         }
-        $self->add_elements_collated (
-            data => {$group => $tmp},
-            csv_object => $csv_object,
-        );
+        $self->add_elements_collated_simple_aa ({$group => $tmp},  $csv_object);
     }
     #  make sure we get any labels without groups
     foreach my $label ($from_bd->get_labels) {

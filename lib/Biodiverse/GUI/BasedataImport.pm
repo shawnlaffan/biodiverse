@@ -6,9 +6,8 @@ use warnings;
 use English ( -no_match_vars );
 
 use Carp;
-use List::Util qw /min/;
 
-our $VERSION = '1.99_005';
+our $VERSION = '1.99_006';
 
 use File::Basename;
 use Gtk2;
@@ -17,7 +16,8 @@ use Text::Wrapper;
 use File::BOM qw / :subs /;
 use Scalar::Util qw /reftype looks_like_number blessed/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
-use List::Util qw /all/;
+use List::Util qw /all min/;
+use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -561,7 +561,8 @@ sub run {
         $dlg->destroy();
 
         if ($response ne 'ok') {  #  clean up and drop out
-            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui) if ($use_new || $one_basedata_per_file);
+            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
+              if $use_new || $one_basedata_per_file;
             return;
         }
 
@@ -623,8 +624,9 @@ sub run {
 
     #  get the various columns
     my %gp_lb_cols;
-    while (my ($key, $value) = each %$reorder_params) {
+    foreach my $key (keys %$reorder_params) {
         next if $key =~ /^CELL_(?:SIZE|ORIGINS)/;
+        my $value = $reorder_params->{$key};
         $gp_lb_cols{lc $key} = $value;
     }
 
@@ -647,16 +649,28 @@ sub run {
     elsif ($read_format eq 'shapefile' or $read_format eq 'spreadsheet') {
         #  shapefiles and spreadsheets import based on names, so extract them
         my (@group_col_names, @label_col_names);
-        foreach my $specs (@{$column_settings->{labels}}) {
-            push @label_col_names, $specs->{name};
+
+        my $lb_col_order = $gp_lb_cols{label_columns};
+        my $lb_specs = $column_settings->{labels};
+        foreach my $col (@$lb_col_order) {
+            my $idx = first_index {$col eq $_->{id}} @$lb_specs;
+            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            push @label_col_names, $lb_specs->[$idx]{name};
         }
-        foreach my $specs (@{$column_settings->{groups}}) {
-            push @group_col_names, $specs->{name};
+
+        my $gp_col_order = $gp_lb_cols{group_columns};
+        my $gp_specs = $column_settings->{groups};
+        foreach my $col (@$gp_col_order) {
+            my $idx = first_index {$col eq $_->{id}} @$gp_specs;
+            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            push @group_col_names, $gp_specs->[$idx]{name};
         }
+        
         my @sample_count_col_names;
         foreach my $specs (@{$column_settings->{sample_counts}}) {
             push @sample_count_col_names, $specs->{name};
         }
+        
         my $import_method = "import_data_$read_format";
         # process data
         foreach my $bdata (keys %multiple_file_lists) {

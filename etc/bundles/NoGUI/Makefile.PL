@@ -66,6 +66,7 @@ WriteMakefile(
         "Sereal" => "3",
         "Cpanel::JSON::XS" => 3,
         "JSON::MaybeXS" => 1.003,
+        "Sort::Naturally" => 0,
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

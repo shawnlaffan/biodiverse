@@ -7,6 +7,7 @@ use warnings;
 use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
+use Sort::Naturally qw /nsort/;
 
 our $VERSION = '1.99_006';
 
@@ -224,7 +225,7 @@ sub make_neighbours_model {
     my $label_hash_all = $neighbours->{label_hash_all};
     my ($in1, $in2);
 
-    foreach my $label (sort keys %{$label_hash_all}) {
+    foreach my $label (nsort keys %{$label_hash_all}) {
 
         $in1 = exists $label_hash1->{$label} ? 1 : 0;
         $in2 = exists $label_hash2->{$label} ? 1 : 0;
@@ -252,6 +253,7 @@ sub show_all_labels {
     my $element = shift;
     my $data    = shift;
     my $bd      = $data->get_param ('BASEDATA_REF') || $data;
+    my $labels_are_numeric = $bd->labels_are_numeric;
 
     if (not $popup->{labels_model}) {
         my $labels_hash = $bd->get_labels_in_group_as_hash_aa ($element);
@@ -265,8 +267,12 @@ sub show_all_labels {
             'Glib::String',
             $num_type,
         );
+        
+        my @labels = $labels_are_numeric
+            ? sort {$a <=> $b} keys %$labels_hash
+            : nsort keys %$labels_hash;
 
-        foreach my $label (sort keys %$labels_hash) {
+        foreach my $label (@labels) {
 
             my $count = $labels_hash->{$label};
             my $iter  = $model->append;
@@ -310,7 +316,7 @@ sub show_properties {
             'Glib::String',
         );
 
-        foreach my $prop (sort keys %properties) {
+        foreach my $prop (nsort keys %properties) {
 
             my $count = $properties{$prop};
             my $iter  = $model->append;
@@ -353,11 +359,15 @@ sub show_output_list {
                 last;
             }
         }
-        my $sort_sub = sub {$a cmp $b};
-        if ($numeric) {
-            $sort_sub = sub {$a <=> $b};
-        }
-        my @keys = sort $sort_sub keys %$list_ref;
+        #my $sort_sub = sub {$a cmp $b};
+        #if ($numeric) {
+        #    $sort_sub = sub {$a <=> $b};
+        #}
+        #my @keys = sort $sort_sub keys %$list_ref;
+        
+        my @keys = $numeric
+            ? sort {$a <=> $b} keys %$list_ref
+            : nsort keys %$list_ref;
 
         foreach my $key (@keys) {
             my $val = $list_ref->{$key} // "";  #  zeros are valid values
@@ -374,12 +384,15 @@ sub show_output_list {
                 last;
             }
         }
-        my $sort_sub = sub {$a cmp $b};
-        if ($numeric) {
-            $sort_sub = sub {$a <=> $b};
-        }
-
-        my @keys = sort $sort_sub @$list_ref;
+        #my $sort_sub = sub {$a cmp $b};
+        #if ($numeric) {
+        #    $sort_sub = sub {$a <=> $b};
+        #}
+        #my @keys = sort $sort_sub @$list_ref;
+        
+        my @keys = $numeric
+            ? sort {$a <=> $b} @$list_ref
+            : nsort keys @$list_ref;
 
         foreach my $elt (@keys) {
             #print "[Cell popup] Adding output array entry $elt\n";
@@ -402,7 +415,8 @@ sub show_output_list {
 sub is_neighbours_mode {
     my $data = shift;
 
-    return (ref $data) =~ /Spatial/;
+    return $data->isa('Biodiverse::Spatial');
+    #return (ref $data) =~ /Spatial/;
 }
 
 sub find_neighbours {

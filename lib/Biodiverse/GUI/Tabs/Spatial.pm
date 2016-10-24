@@ -985,7 +985,7 @@ sub show_phylogeny_groups {
 
     # For each element, get its groups and put into %total_groups
     my %total_groups;
-    foreach my $element (sort keys %{$elements}) {
+    foreach my $element (nsort keys %{$elements}) {
         my $ref = eval {$basedata_ref->get_groups_with_label_as_hash(label => $element)};
 
         next if !$ref || !scalar keys %$ref;
@@ -1015,7 +1015,7 @@ sub show_phylogeny_labels {
     my $elements = $node_ref->get_terminal_elements;
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    foreach my $element (sort keys %{$elements}) {
+    foreach my $element (nsort keys %{$elements}) {
         my $count = $elements->{$element};
         my $iter = $model->append;
         $model->set($iter, 0,$element,  1, $count);
@@ -1037,7 +1037,7 @@ sub show_phylogeny_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (sort keys %$node_hash) {
+    foreach my $element (nsort keys %$node_hash) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

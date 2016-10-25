@@ -8,6 +8,8 @@ use 5.010;
 
 use English qw / -no_match_vars /;
 
+use Sort::Naturally qw /nsort ncmp/;
+
 #  a little debug
 use constant DEBUG => 0;
 my $binsearch_gives_undef = 0;
@@ -459,7 +461,7 @@ sub run_randomisation {
                    $bd->get_spatial_output_refs,
                    );
     delete $args{targets};
-    @targets = sort {$a->get_param('NAME') cmp $b->get_param('NAME')} @targets;
+    @targets = sort {ncmp ($a->get_name, $b->get_name)} @targets;
 
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation

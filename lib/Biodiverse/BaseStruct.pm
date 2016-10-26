@@ -1494,7 +1494,6 @@ sub write_table_asciigrid {
     my @min_ids   = @{$r->{MIN_IDS}};
     my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1594,7 +1593,6 @@ sub write_table_floatgrid {
     my @min_ids   = @{$r->{MIN_IDS}};
     my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1699,7 +1697,6 @@ sub write_table_divagis {
     my @min_ids   = @{$r->{MIN_IDS}};
     my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1833,7 +1830,6 @@ sub write_table_geotiff {
     my @min_ids   = @{$r->{MIN_IDS}};
     my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1931,7 +1927,6 @@ sub write_table_ers {
     my @min_ids   = @{$r->{MIN_IDS}};
     my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1958,7 +1953,6 @@ sub write_table_ers {
         foreach my $band (@band_cols) {
             $ncols = 0;
 
-            #for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
             foreach my $x ($min_ids[0] .. $max_ids[1]) {
 
                 my $ID = "$x:$y";
@@ -2183,43 +2177,6 @@ sub raster_export_process_table {
         $data_hash{join (':', $cell_idx, $cell_idy)} = $line;
     }
 
-    my @precision = (0, 0);
-    #  check the first 1000 for precision
-    #  - hopefully enough to allow for alternating 1, 1.5, 2 etc
-    my $lines_to_check = $#$data < 1000 ? $#$data : 1000;
-
-    LINE:
-    foreach my $line (@$data[0 .. $lines_to_check]) {  
-
-        my @coord = @$line[@coord_cols];
-
-        COORD:
-        foreach my $i (0 .. $#coord) {
-            $coord[$i] =~ /\.(\d+)$/;
-            my $val = $1;
-            next COORD if !defined $val;
-
-            my $len = length ($val);
-            if ($precision[$i] < $len) {
-                $precision[$i] = $len;
-            }
-        }
-    }
-
-    #print "[BASESTRUCT] Data bounds are $min[0], $min[1], $max[0], $max[1]\n";
-    #print "[BASESTRUCT] Resolutions are $res[0], $res[1]\n";
-    #print "[BASESTRUCT] Coordinate precisions are $precision[0], $precision[1]\n";
-    
-    #  determine how many rows and columns
-    #my @dimensions;
-    #for my $i (0, 1) {
-    #    my $prec_fmt = "%.$precision[$i]f";
-    #    my $count = 0;
-    #    for (my $c = $min[$i]; $c <= $max[$i]; $c = sprintf ($prec_fmt, $c + $res[$i])) {
-    #        $count ++;
-    #    }
-    #    $dimensions[$i] = $count;
-    #}
     my @dimensions = ($max_ids[0] - $min_ids[0] + 1, $max_ids[1] - $min_ids[1] + 1);
 
     my %results = (
@@ -2228,7 +2185,6 @@ sub raster_export_process_table {
         MIN_IDS    => \@min_ids,
         MAX_IDS    => \@max_ids,
         DATA_HASH  => \%data_hash,
-        PRECISION  => \@precision,
         DIMENSIONS => \@dimensions,
     );
 

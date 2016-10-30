@@ -321,13 +321,18 @@ sub reintegrate_after_parallel_randomisations {
     my $gp_list = $to->get_element_list;
     my @rand_lists =
         grep {$_ =~ $re_rand_list_names}
-        $to->get_lists_across_elements;
+        $to->get_hash_list_names_across_elements;
 
     foreach my $list_name (@rand_lists) {
         foreach my $group (@$gp_list) {
-            my %l_args = (element => $group, list => $list_name);
-            my $lr_to   = $to->get_list_ref (%l_args);
-            my $lr_from = $from->get_list_ref (%l_args);
+            my $lr_to   = $to->get_list_ref (
+                element => $group,
+                list => $list_name,
+            );
+            my $lr_from = $from->get_list_ref (
+                element => $group,
+                list => $list_name,
+            );
             my %all_keys;
             #  get all the keys due to ties not being tracked in all cases
             @all_keys{keys %$lr_from, keys %$lr_to} = undef;

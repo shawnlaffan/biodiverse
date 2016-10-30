@@ -4792,7 +4792,7 @@ sub reintegrate_after_parallel_randomisations {
 
         #  this is not a generic enough check
         next OUTPUT
-          if not blessed ($to) =~ /Spatial|Cluster|RegionGrower|Tree/;  
+          if not blessed ($to) =~ /Spatial|Cluster|RegionGrower|Tree/;
 
         $to->reintegrate_after_parallel_randomisations (
             from => $from,

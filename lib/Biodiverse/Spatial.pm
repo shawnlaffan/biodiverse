@@ -201,7 +201,7 @@ sub convert_comparisons_to_significances {
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
       = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
-        $self->get_lists_across_elements;
+        $self->get_hash_list_names_across_elements;
 
     my $to_do = $self->get_element_count;
     my $i = 0;

@@ -201,7 +201,7 @@ sub convert_comparisons_to_significances {
       = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_hash_list_names_across_elements;
 
-#  some 
+#  some more debugging
 say "Prefix is $result_list_pfx";
 say "Target list names are: " . join ' ', @target_list_names;
 
@@ -353,11 +353,13 @@ sub reintegrate_after_parallel_randomisations {
                 $lr_to->{$key} = $lr_to->{"C$index"} / $lr_to->{"Q$index"};
             }
         }
+    }
+    #  could do directly, but convert_comparisons_to_significances handles recycling 
+    foreach my $rand_name (@randomisations_to_reintegrate) {
         $to->convert_comparisons_to_significances (
-            result_list_name => $list_name,
+            result_list_name => $rand_name,
         );
     }
-    
     return;
 }
 

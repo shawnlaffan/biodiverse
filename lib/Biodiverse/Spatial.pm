@@ -347,9 +347,8 @@ sub reintegrate_after_parallel_randomisations {
             }
             foreach my $key (keys %p_keys) {
                 no autovivification;  #  don't pollute the from data set
-                my $index = $key;
-                $index =~ s/^P_//;
-                $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
+                my $index = substr $key, 1; # faster than s///;
+                $lr_to->{$key} = $lr_to->{"C$index"} / $lr_to->{"Q$index"};
             }
         }
         $to->convert_comparisons_to_significances (

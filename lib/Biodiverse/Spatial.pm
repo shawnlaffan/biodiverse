@@ -187,21 +187,22 @@ sub convert_comparisons_to_significances {
     croak qq{Argument 'result_list_name' not specified\n}
         if !defined $result_list_pfx;
 
-    my $progress = Biodiverse::Progress->new();
-    my $progress_text = "Calculating significances";
-    $progress->update ($progress_text, 0);
-
-    #my $bd = $self->get_param ('BASEDATA_REF');
-
     #  drop out if no elements to compare with
     my $e_list = $self->get_element_list;
     return 1 if not scalar @$e_list;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
 
     # find all the relevant lists for this target name
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
       = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_hash_list_names_across_elements;
+
+#  some debug
+say "Target list names are: " . join ' ', @target_list_names;
 
     my $to_do = $self->get_element_count;
     my $i = 0;

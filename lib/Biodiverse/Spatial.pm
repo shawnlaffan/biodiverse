@@ -201,7 +201,8 @@ sub convert_comparisons_to_significances {
       = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
         $self->get_hash_list_names_across_elements;
 
-#  some debug
+#  some 
+say "Prefix is $result_list_pfx";
 say "Target list names are: " . join ' ', @target_list_names;
 
     my $to_do = $self->get_element_count;

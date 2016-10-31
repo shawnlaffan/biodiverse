@@ -1044,7 +1044,7 @@ sub write_table {
     return;
 }
 
-#  control whether a file is written symetrically or not
+#  control whether a file is written symmetrically or not
 sub to_table {
     my $self = shift;
     my %args = @_;

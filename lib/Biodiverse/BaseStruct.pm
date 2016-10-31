@@ -22,7 +22,7 @@ use List::Util qw /min max sum/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
-use POSIX qw /fmod/;
+use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
@@ -1491,8 +1491,9 @@ sub write_table_asciigrid {
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
+    my @min_ids   = @{$r->{MIN_IDS}};
+    my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1530,15 +1531,10 @@ sub write_table_asciigrid {
     }
 
     my %coords;
-    my @default_line = ($no_data x scalar @$header);
+    #my @default_line = ($no_data x scalar @$header);
 
-    my $prec_fmt_y = "%.$precision[1]f";
-    my $prec_fmt_x = "%.$precision[0]f";
-
-    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
-
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
-
+    for my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        for my $x ($min_ids[0] .. $max_ids[0]) {
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) {
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
@@ -1594,8 +1590,9 @@ sub write_table_floatgrid {
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
+    my @min_ids   = @{$r->{MIN_IDS}};
+    my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1646,14 +1643,10 @@ sub write_table_floatgrid {
     }
 
     my %coords;
-    my @default_line = ($no_data x scalar @$header);
+    #my @default_line = ($no_data x scalar @$header);
 
-    my $prec_fmt_y = "%.$precision[1]f";
-    my $prec_fmt_x = "%.$precision[0]f";
-
-    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
-
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+    foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        foreach my $x ($min_ids[0] .. $max_ids[0]) {
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
@@ -1701,8 +1694,9 @@ sub write_table_divagis {
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
+    my @min_ids   = @{$r->{MIN_IDS}};
+    my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1780,14 +1774,10 @@ DIVA_HDR
     }
 
     my %coords;
-    my @default_line = ($no_data x scalar @$header);
+    #my @default_line = ($no_data x scalar @$header);
 
-    my $prec_fmt_y = "%.$precision[1]f";
-    my $prec_fmt_x = "%.$precision[0]f";
-
-    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
-
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+    foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        foreach my $x ($min_ids[0] .. $max_ids[0]) {
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
@@ -1837,8 +1827,9 @@ sub write_table_geotiff {
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
+    my @min_ids   = @{$r->{MIN_IDS}};
+    my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1875,20 +1866,15 @@ END_TFW
     }
 
     my %coords;
-    #my @default_line = ($no_data x scalar @$header);
-
-    my $prec_fmt_y = "%.$precision[1]f";
-    my $prec_fmt_x = "%.$precision[0]f";
-
     my @bands;
-    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+    foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        foreach my $x ($min_ids[0] .. $max_ids[0]) {
 
-            my $coord_name = join (':', $x, $y);
+            my $coord_id = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = $data_hash{$coord_name}[$i] // $no_data;
+                my $value = $data_hash{$coord_id}[$i] // $no_data;
                 $bands[$i] .= pack 'f', $value;
             }
         }
@@ -1938,8 +1924,9 @@ sub write_table_ers {
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
+    my @min_ids   = @{$r->{MIN_IDS}};
+    my @max_ids   = @{$r->{MAX_IDS}};
     my %data_hash = %{$r->{DATA_HASH}};
-    my @precision = @{$r->{PRECISION}};
     my @band_cols = @{$r->{BAND_COLS}};
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
@@ -1959,24 +1946,14 @@ sub write_table_ers {
     binmode $ofh;
 
     my ($ncols, $nrows) = (0, 0);
-    for (my $y = $max[1]; $y >= $min[1]; $y -= $res[1]) {
 
-        $y = $self->set_precision (
-            precision => "%.$precision[1]f",
-            value     => $y,
-        );
+    foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
 
         $nrows ++;
         foreach my $band (@band_cols) {
             $ncols = 0;
 
-            for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
-
-                #$x = sprintf "%.$precision[0]f", $x;
-                $x = $self->set_precision (
-                    precision => "%.$precision[0]f",
-                    value     => $x,
-                );
+            foreach my $x ($min_ids[0] .. $max_ids[1]) {
 
                 my $ID = "$x:$y";
                 my $value = $data_hash{$ID}[$band] // $no_data;
@@ -2181,6 +2158,8 @@ sub raster_export_process_table {
     #  as well as converting the array to a hash
     my @min = ( 10e20, 10e20);
     my @max = (-10e20,-10e20);
+    my @min_ids = ( 10e20, 10e20);
+    my @max_ids = (-10e20,-10e20);
     my %data_hash;
     foreach my $line (@$data) {
         my @coord = @$line[@coord_cols];
@@ -2188,52 +2167,24 @@ sub raster_export_process_table {
         $min[1] = min ($min[1], $coord[1]);
         $max[0] = max ($max[0], $coord[0]);
         $max[1] = max ($max[1], $coord[1]);
-        $data_hash{join (':', @coord)} = $line;
+        my $cell_idx = floor ($coord[0] / $res[0]);
+        my $cell_idy = floor ($coord[1] / $res[1]);
+        $min_ids[0] = min ($min_ids[0], $cell_idx);
+        $min_ids[1] = min ($min_ids[1], $cell_idy);
+        $max_ids[0] = max ($max_ids[0], $cell_idx);
+        $max_ids[1] = max ($max_ids[1], $cell_idy);
+        
+        $data_hash{join (':', $cell_idx, $cell_idy)} = $line;
     }
 
-    my @precision = (0, 0);
-    #  check the first 1000 for precision
-    #  - hopefully enough to allow for alternating 1, 1.5, 2 etc
-    my $lines_to_check = $#$data < 1000 ? $#$data : 1000;
-
-    LINE:
-    foreach my $line (@$data[0 .. $lines_to_check]) {  
-
-        my @coord = @$line[@coord_cols];
-
-        COORD:
-        foreach my $i (0 .. $#coord) {
-            $coord[$i] =~ /\.(\d+)$/;
-            my $val = $1;
-            next COORD if !defined $val;
-
-            my $len = length ($val);
-            if ($precision[$i] < $len) {
-                $precision[$i] = $len;
-            }
-        }
-    }
-
-    print "[BASESTRUCT] Data bounds are $min[0], $min[1], $max[0], $max[1]\n";
-    print "[BASESTRUCT] Resolutions are $res[0], $res[1]\n";
-    print "[BASESTRUCT] Coordinate precisions are $precision[0], $precision[1]\n";
-    
-    #  determine how many rows and columns
-    my @dimensions;
-    for my $i (0, 1) {
-        my $prec_fmt = "%.$precision[$i]f";
-        my $count = 0;
-        for (my $c = $min[$i]; $c <= $max[$i]; $c = sprintf ($prec_fmt, $c + $res[$i])) {
-            $count ++;
-        }
-        $dimensions[$i] = $count;
-    }
+    my @dimensions = ($max_ids[0] - $min_ids[0] + 1, $max_ids[1] - $min_ids[1] + 1);
 
     my %results = (
         MIN        => \@min,
         MAX        => \@max,
+        MIN_IDS    => \@min_ids,
+        MAX_IDS    => \@max_ids,
         DATA_HASH  => \%data_hash,
-        PRECISION  => \@precision,
         DIMENSIONS => \@dimensions,
     );
 

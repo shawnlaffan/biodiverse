@@ -1617,7 +1617,7 @@ sub show_cluster_labelsABC2 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (sort keys %{$total_labels}) {
+    foreach my $label (nsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, $total_labels->{$label});
     }
@@ -1646,7 +1646,7 @@ sub show_cluster_labelsABC3 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (sort keys %{$total_labels}) {
+    foreach my $label (nsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter,    0,$label ,  1,$total_labels->{$label});
     }
@@ -1676,7 +1676,7 @@ sub show_cluster_labels {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
-    foreach my $label (sort keys %total_labels) {
+    foreach my $label (nsort keys %total_labels) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
     }

@@ -5,6 +5,7 @@ use warnings;
 
 use Data::Dumper;
 use Carp;
+use Sort::Naturally qw/nsort/;
 
 use Gtk2;
 

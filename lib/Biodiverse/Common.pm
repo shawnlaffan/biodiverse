@@ -186,6 +186,7 @@ sub load_sereal_file {
     {
         local $/ = undef;
         open my $fh, '<', $file or die 'Cannot open $file';
+        binmode $fh;
         $string = <$fh>;
     }
 

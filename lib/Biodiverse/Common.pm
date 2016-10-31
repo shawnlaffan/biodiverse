@@ -2672,7 +2672,7 @@ sub get_sig_rank_from_comp_results {
                 /  $comp_list_ref->{$q_key};
 
             $results_list_ref->{$index_name}
-              = $p_low  < $sig_thresh_lo ? $p_low : undef;
+              = ($p_low < $sig_thresh_lo) ? $p_low : undef;
         }
     }
 

@@ -4718,8 +4718,6 @@ sub reintegrate_after_parallel_randomisations {
     croak "No point reintegrating into basedata with no outputs"
       if !$self->get_output_ref_count;
 
-    my $comp = Data::Compare->new;
-
     my @randomisations_to   = $self->get_randomisation_output_refs;
     my @randomisations_from = $bd_from->get_randomisation_output_refs;
 
@@ -4738,6 +4736,7 @@ sub reintegrate_after_parallel_randomisations {
 
     #  Check groups and labels unless told otherwise
     #  (e.g. we have control of the process so they will always match)
+    my $comp = Data::Compare->new;
     if (!$args{no_check_groups_and_labels}) {
         my $gp_to   = $self->get_groups_ref;
         my $gp_from = $bd_from->get_groups_ref;
@@ -4753,7 +4752,9 @@ sub reintegrate_after_parallel_randomisations {
   RAND_FROM:
     foreach my $rand_from (@randomisations_from) {
         my $name_from  = $rand_from->get_name;
-        my $rand_to    = $self->get_randomisation_output_ref (name => $name_from);
+        my $rand_to    = $self->get_randomisation_output_ref (
+            name => $name_from,
+        );
         my $init_states_to   = $rand_to->get_prng_init_states_array;
         my $init_states_from = $rand_from->get_prng_init_states_array;
 
@@ -4780,7 +4781,10 @@ sub reintegrate_after_parallel_randomisations {
         $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
     }
 
-    my $rand_list_re_text  = '^(?:' . join ('|', uniq @randomisations_to_reintegrate) . ')>>(?!p_rank>>)';
+    my $rand_list_re_text
+      = '^(?:'
+      . join ('|', uniq @randomisations_to_reintegrate)
+      . ')>>(?!p_rank>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     #  now we can finally get some work done

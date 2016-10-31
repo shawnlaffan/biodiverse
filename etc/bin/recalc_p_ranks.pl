@@ -40,7 +40,7 @@ foreach my $from_file (@files) {
         next if not $output_ref->isa ('Biodiverse::Spatial');
         foreach my $rand_name (@rand_names) {
             $output_ref->convert_comparisons_to_significances (
-                result_list_name => 
+                result_list_name => $rand_name,
             );
         }
     }

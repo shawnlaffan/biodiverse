@@ -3363,6 +3363,13 @@ sub get_list_names_across_elements {
 
     no autovivification;
 
+    #  turn off caching for now - we need to update it when we analyse the data
+    #my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
+    #my $cached_lists = $self->get_cached_value ($cache_name);
+    #
+    #return wantarray ? %$cached_lists : $cached_lists
+    #  if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    
     my %list_reftypes;
     my $elements_hash = $self->{ELEMENTS};
 
@@ -3378,6 +3385,10 @@ sub get_list_names_across_elements {
               = reftype ($elt_ref->{$list_name}) // 'NOT A REF';
         }
     }
+
+    #if (!$args{no_cache}) {
+    #    $self->set_cached_value ($cache_name => \%list_reftypes);
+    #}
 
     return wantarray ? %list_reftypes : \%list_reftypes;
 }

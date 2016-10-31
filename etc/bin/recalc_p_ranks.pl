@@ -10,7 +10,7 @@ my ($opt, $usage) = describe_options(
   '%c <arguments>',
   [ 'glob=s',     'glob to find files', { required => 1 } ],
   #[ 'output_prefix|opfx=s', 'The output prefix for exported files', {required => 1}],
-  [ 'no_verify|n!', 'do not verify that the basedatas match', { default => 1} ],
+  #[ 'no_verify|n!', 'do not verify that the basedatas match', { default => 1} ],
   [],
   [ 'help',       "print usage message and exit" ],
 );
@@ -18,12 +18,11 @@ my ($opt, $usage) = describe_options(
 
 my $glob = $opt->glob;
 #my $opfx = $opt->output_prefix;
-my $no_verify = $opt->no_verify;
+#my $no_verify = $opt->no_verify;
 
 my @files = glob $glob;
 
 die "No files found using $glob" if !@files;
-die "Only one file found using $glob ($files[0])" if @files == 1;
 
 
 foreach my $from_file (@files) {

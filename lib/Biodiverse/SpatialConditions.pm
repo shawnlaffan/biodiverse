@@ -2863,6 +2863,81 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+sub get_metadata_sp_spatial_output_passed_defq {
+    my $self = shift;
+    my %args = @_;
+
+    my $description =
+        q{Returns 1 if an element passed the definition query for a previously calculated spatial output.};
+
+    #my $example = $self->get_example_sp_get_spatial_output_list_value;
+
+    my %metadata = (
+        description => $description,
+        index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
+        #required_args  => [qw /output/],
+        optional_args  => [qw /element output/],
+        result_type    => 'always_same',
+        #example        => $example,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+#  get the value from another spatial output
+sub sp_spatial_output_passed_defq {
+    my $self = shift;
+    my %args = @_;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $default_element
+      = eval {$self->is_def_query}
+        ? $h->{coord_id1}
+        : $h->{coord_id2};  #?
+
+    my $element = $args{element} // $default_element;
+
+    my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $sp_name = $args{output};
+    my $sp;
+    if (defined $sp_name) {
+        $sp = $bd->get_spatial_output_ref (name => $sp_name)
+            or croak 'Spatial output $sp_name does not exist in basedata '
+                . $bd->get_name
+                . "\n";
+    }
+    else {
+        $sp = $self->get_caller_spatial_output_ref;
+        return 1
+          if !eval {$self->is_def_query} && $self->get_param('VERIFYING');
+    }
+
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+          if !defined $sp;;
+
+    croak "element $element is not in spatial output\n"
+      if not $sp->exists_element (element => $element);
+
+    no autovivification;
+
+    my $passed_defq = $sp->get_param('PASS_DEF_QUERY');
+    return 1 if !$passed_defq;
+
+    return exists $passed_defq->{$element};
+}
+
+sub set_caller_spatial_output_ref {
+    my ($self, $ref) = @_;
+    $self->set_param (SPATIAL_OUTPUT_CALLER_REF => $ref);
+    $self->weaken_param ('SPATIAL_OUTPUT_CALLER_REF');
+}
+
+sub get_caller_spatial_output_ref {
+    my $self = shift;
+    return $self->get_param ('SPATIAL_OUTPUT_CALLER_REF');
+}
 
 sub get_conditions_metadata_as_markdown {
     my $self = shift;

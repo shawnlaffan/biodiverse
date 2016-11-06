@@ -471,8 +471,55 @@ sub init_dendrogram {
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
 
+    $self->init_branch_colouring_combo;
+    
     return 1;
 }
+
+sub init_branch_colouring_combo {
+    my $self = shift;
+
+return if !defined $self->{output_ref};
+
+    my $xml_page = $self->{xmlPage};
+    my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
+    
+    my $combo = $self->{branch_colouring_combobox};
+
+    if (!$combo) {
+        my $model = Gtk2::ListStore->new('Glib::String');
+        $combo = Gtk2::ComboBox->new_with_model ($model);
+        $self->{branch_colouring_combobox} = $combo;
+
+        my $label = Gtk2::Label->new('Branch colouring: ');
+
+        my $renderer = Gtk2::CellRendererText->new();
+        $combo->pack_start($renderer, 1);
+        $combo->add_attribute($renderer, markup => 0);
+
+        my $iter = $model->append();
+        $model->set ( $iter, 0, '<i>Turnover</i>' );
+        $combo->set_active(0);
+
+        my $list_names
+          = $self->{output_ref}->get_hash_lists_across_elements;
+        foreach my $list_name (@$list_names) {
+            next if $list_name =~ /SPATIAL_RESULTS$/;
+            next if $list_name eq 'RECYCLED_SET';
+            
+            my $iter = $model->append();
+            $model->set ( $iter, 0, $list_name );
+        }
+        
+        $bottom_hbox->pack_start ($label, 0, 0, 0);
+        $bottom_hbox->pack_start ($combo, 0, 0, 0);
+        $label->show;
+        $combo->show;
+    }
+
+    return 1;
+}
+
 
 sub init_grid {
     my $self = shift;
@@ -1332,7 +1379,7 @@ sub on_grid_hover {
             @labels2{keys %$this_labels} = values %$this_labels;
         }
 
-        $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2]);
+        $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
@@ -1357,8 +1404,17 @@ my @dendro_highlight_branch_colours
   = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
-    my $self = shift;
-    my $hashrefs = shift;
+    my ($self, $hashrefs, $group) = @_;
+
+    if (my $combo = $self->{branch_colouring_combobox}) {
+        my $selected_text = $combo->get_active_text;
+        if ($selected_text ne '<i>Turnover</i>') {
+            return $self->colour_branches_on_dendrogram (
+                list_name => $selected_text,
+                group     => $group,
+            );
+        }
+    }
 
     my $tree = $self->get_current_tree;
 
@@ -1401,6 +1457,43 @@ sub highlight_paths_on_dendrogram {
     }
 
     return;
+}
+
+sub colour_branches_on_dendrogram {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree       = $self->get_current_tree;
+    my $list_name  = $args{list_name};
+    my $dendrogram = $self->{dendrogram};
+    my $output_ref = $self->{output_ref};
+
+    my %done;
+
+    my $listref = $output_ref->get_list_ref (
+        list    => $list_name,
+        element => $args{group},
+    );
+
+    my $node_ref;
+
+my $xx = -1;
+
+  LABEL:
+    foreach my $label (keys %$listref) {
+        # Might not match some or all nodes
+        my $success = eval {
+            $node_ref = $tree->get_node_ref (node => $label);
+        };
+        next LABEL if !$success;
+$xx++;
+$xx %= 3;
+
+        my $colour_ref = $dendro_highlight_branch_colours[0];
+
+        $dendrogram->highlight_node ($node_ref, $colour_ref);
+    }
+    
 }
 
 sub on_end_grid_hover {

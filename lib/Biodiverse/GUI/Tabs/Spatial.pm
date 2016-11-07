@@ -1468,30 +1468,47 @@ sub colour_branches_on_dendrogram {
     my $dendrogram = $self->{dendrogram};
     my $output_ref = $self->{output_ref};
 
-    my %done;
-
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
         element => $args{group},
     );
 
     my $node_ref;
+    my %done;
+    my $colour_ref;
 
-my $xx = -1;
-
+###  need to climb up the tree and assign black when the branch is not in the list
   LABEL:
     foreach my $label (keys %$listref) {
+        next LABEL if $done{$label};
+
         # Might not match some or all nodes
         my $success = eval {
             $node_ref = $tree->get_node_ref (node => $label);
         };
-        next LABEL if !$success;
-$xx++;
-$xx %= 3;
+        if (!$success) {
+            $colour_ref = COLOUR_BLACK;
+            $dendrogram->highlight_node ($node_ref, $colour_ref);
+            $done{$label}++;
+            next LABEL;
+        }
 
-        my $colour_ref = $dendro_highlight_branch_colours[0];
+      NODE:
+        while ($node_ref) {
+            my $node_name = $node_ref->get_name;
+            last NODE if $done{$node_name};
 
-        $dendrogram->highlight_node ($node_ref, $colour_ref);
+            $colour_ref
+              = exists $listref->{$node_name}
+              ? $dendro_highlight_branch_colours[0]
+              : COLOUR_BLACK;
+
+            $dendrogram->highlight_node ($node_ref, $colour_ref);
+
+            $done{$node_name}++;
+
+            $node_ref = $node_ref->get_parent;
+        }
     }
     
 }

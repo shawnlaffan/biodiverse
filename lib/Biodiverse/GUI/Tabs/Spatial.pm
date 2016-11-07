@@ -511,8 +511,11 @@ return if !defined $self->{output_ref};
             $model->set ( $iter, 0, $list_name );
         }
         
+        my $separator = Gtk2::SeparatorToolItem->new;
+        $bottom_hbox->pack_start ($separator, 0, 0, 0);
         $bottom_hbox->pack_start ($label, 0, 0, 0);
         $bottom_hbox->pack_start ($combo, 0, 0, 0);
+        $separator->show;
         $label->show;
         $combo->show;
     }
@@ -1476,7 +1479,7 @@ sub colour_branches_on_dendrogram {
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
 
-    #  log scale as a temprary measure
+    #  log scale as a temporary measure
     my $logmin = log ($minmax->[0] + 1);
     my $logmax = log ($minmax->[1] + 1);
 

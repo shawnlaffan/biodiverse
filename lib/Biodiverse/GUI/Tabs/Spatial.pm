@@ -1472,12 +1472,18 @@ sub colour_branches_on_dendrogram {
         list    => $list_name,
         element => $args{group},
     );
+    
+    my $minmax
+      = $self->get_index_min_max_values_across_full_list ($list_name);
+
+    #  log scale as a temprary measure
+    my $logmin = log ($minmax->[0] + 1);
+    my $logmax = log ($minmax->[1] + 1);
 
     my $node_ref;
     my %done;
     my $colour_ref;
 
-###  need to climb up the tree and assign black when the branch is not in the list
   LABEL:
     foreach my $label (keys %$listref) {
         next LABEL if $done{$label};
@@ -1498,10 +1504,16 @@ sub colour_branches_on_dendrogram {
             my $node_name = $node_ref->get_name;
             last NODE if $done{$node_name};
 
-            $colour_ref
-              = exists $listref->{$node_name}
-              ? $dendro_highlight_branch_colours[0]
-              : COLOUR_BLACK;
+            if (!exists $listref->{$node_name}) {
+                $colour_ref = COLOUR_BLACK;
+            }
+            else {
+                #my $rescaled_value = ($listref->{$node_name} - $minmax->[0]) / $range;
+                #$colour_ref = $dendro_highlight_branch_colours[0];
+                my $val = log $listref->{$node_name} + 1;
+                $colour_ref
+                  = $self->{grid}->get_colour_hue ($val, $logmin, $logmax);
+            }
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
 
@@ -1742,6 +1754,36 @@ sub on_active_index_changed {
     return;
 }
 
+#  bad name - we want all values across all lists of name $listname across all elements
+sub get_index_min_max_values_across_full_list {
+    my ($self, $list_name) = @_;
+
+    my $output_ref = $self->{output_ref};
+
+    use List::MoreUtils qw /minmax/;
+    my $stats = $self->{list_minmax_across_all_elements}{$list_name};
+    
+    return $stats if $stats;
+
+    my @minmax;
+    foreach my $element ($output_ref->get_element_list) {
+        my $list_ref = $output_ref->get_list_ref (
+            element    => $element,
+            list       => $list_name,
+            autovivify => 0,
+        );
+        next if !defined $list_ref;
+        next if !scalar keys %$list_ref;
+
+        @minmax = minmax (grep {defined $_}  values %$list_ref, @minmax);
+    }
+    
+    $stats = \@minmax;
+
+    $self->{list_minmax_across_all_elements}{$list_name} = $stats;  #  store it
+
+    return $stats;
+}
 
 sub set_plot_min_max_values {
     my $self = shift;

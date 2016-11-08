@@ -486,7 +486,7 @@ return if !defined $self->{output_ref};
     
     my $combo = $self->{branch_colouring_combobox};
 
-    if (!$combo) {
+    if (!$combo && not (blessed ($self) =~ /Matrix/)) {
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;

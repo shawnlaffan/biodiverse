@@ -1551,6 +1551,8 @@ sub import_data_shapefile {
     my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
     my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
+    my $is_lat_field = $args{is_lat_field};
+    my $is_lon_field = $args{is_lon_field};
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1660,8 +1662,10 @@ sub import_data_shapefile {
                 # Needs to process the data in the same way as for text imports - refactoring is in order.
                 my @group_field_vals = @db_rec{@group_field_names};
                 my @gp_fields;
-                my $i = 0;
+                my $i = -1;
                 foreach my $val (@group_field_vals) {
+                    $i++;
+
                     if ($val eq '-1.79769313486232e+308') {
                         next SHAPE if $skip_lines_with_undef_groups;
                         croak "record $cnt has an undefined coordinate\n";
@@ -1670,13 +1674,26 @@ sub import_data_shapefile {
                     my $origin = $group_origins[$i];
                     my $g_size = $group_sizes[$i];
 
-                    if ($g_size > 0) {
-                        my $cell       = floor (($val - $origin) / $g_size); 
-                        my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
-                        push @gp_fields, $grp_centre;
-                    }
-                    else {
-                        push @gp_fields, $val;
+                    #  refactor this - duplicated from spreadsheet read
+                    if ($g_size >= 0) {
+                        if ($is_lat_field && $is_lat_field->{$group_field_names[$i]}) {
+                            $val = dms2dd ({value => $val, is_lat => 1});
+                        }
+                        elsif ($is_lon_field && $is_lon_field->{$group_field_names[$i]}) {
+                            $val = dms2dd ({value => $val, is_lon => 1});
+                        }
+                        
+                        croak "$val is not numeric\n"
+                          if !looks_like_number $val;
+        
+                        if ($g_size > 0) {
+                            my $cell       = floor (($val - $origin) / $g_size); 
+                            my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
+                            push @gp_fields, $grp_centre;
+                        }
+                        else {
+                            push @gp_fields, $val;
+                        }
                     }
                 }
                 my $grpstring = $self->list2csv (

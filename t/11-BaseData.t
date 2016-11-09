@@ -1121,6 +1121,43 @@ sub test_raster_zero_cellsize {
     
 }
 
+sub test_import_shapefile_dms_coords {
+    my %bd_args = (
+        NAME => 'test import shapefile DMS',
+        CELL_SIZES => [0,0],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    my $fname = Path::Class::File->new (
+        Path::Class::File->new($0)->dir,
+        "dms_latlon.shp",
+    );
+    $fname = $fname->stringify;
+    say "testing filename $fname";
+    
+    eval {
+        $bd1->import_data_shapefile(
+            input_files   => [$fname],
+            group_field_names => [qw /dms_lon dms_lat/],
+            label_field_names => [qw /KEY/],
+            is_lat_field => {dms_lat => 1},
+            is_lon_field => {dms_lon => 1},
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, 'import spreadsheet with DMS coords produced no error');
+
+    my @gp_names = $bd1->get_groups;
+    is_deeply (\@gp_names,
+               ['134.506111111111:-23.5436111111111'],
+               'got correct group names',
+    );
+    
+}
+
 #can we reimport shapefiles after exporting and get the same answer
 sub test_roundtrip_shapefile {
     my %bd_args = (

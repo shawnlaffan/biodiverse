@@ -649,6 +649,8 @@ sub run {
     elsif ($read_format eq 'shapefile' or $read_format eq 'spreadsheet') {
         #  shapefiles and spreadsheets import based on names, so extract them
         my (@group_col_names, @label_col_names);
+        #  these should stay undef if not used 
+        my ($is_lat_field, $is_lon_field);  
 
         my $lb_col_order = $gp_lb_cols{label_columns};
         my $lb_specs = $column_settings->{labels};
@@ -660,10 +662,21 @@ sub run {
 
         my $gp_col_order = $gp_lb_cols{group_columns};
         my $gp_specs = $column_settings->{groups};
+        my $i = -1;
         foreach my $col (@$gp_col_order) {
+            $i ++;
             my $idx = first_index {$col eq $_->{id}} @$gp_specs;
             croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
-            push @group_col_names, $gp_specs->[$idx]{name};
+            my $name = $gp_specs->[$idx]{name};
+            push @group_col_names, $name;
+            if ($gp_lb_cols{cell_is_lat}[$i]) {
+                $is_lat_field //= {};
+                $is_lat_field->{$name} = 1;
+            }
+            elsif ($gp_lb_cols{cell_is_lon}[$i]) {
+                $is_lon_field //= {};
+                $is_lon_field->{$name} = 1;
+            }
         }
         
         my @sample_count_col_names;
@@ -682,6 +695,8 @@ sub run {
                     group_fields            => \@group_col_names,
                     label_fields            => \@label_col_names,
                     sample_count_col_names  => \@sample_count_col_names,
+                    is_lat_field            => $is_lat_field,
+                    is_lon_field            => $is_lon_field,
                 )
             };
         }

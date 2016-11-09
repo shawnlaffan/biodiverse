@@ -1085,7 +1085,7 @@ sub import_data {
                         };
                         croak $EVAL_ERROR if $EVAL_ERROR;
                     }
-                    elsif (! looks_like_number ($coord)) {
+                    if (! looks_like_number ($coord)) {
                         #next BYLINE if $skip_lines_with_undef_groups;
                         croak "[BASEDATA] Non-numeric group field in column $column"
                              . " ($coord), check your data or cellsize arguments.\n"
@@ -1885,20 +1885,28 @@ sub import_data_spreadsheet {
                     croak "record $count has an undefined coordinate\n";
                 }
 
-                if ($is_lat_field && $is_lat_field->{$group_field_names[$i]}) {
-                    $val = dms2dd ({value => $val, is_lat => 1});
-                }
-                elsif ($is_lon_field && $is_lon_field->{$group_field_names[$i]}) {
-                    $val = dms2dd ({value => $val, is_lon => 1});
-                }
-
                 my $origin = $group_origins[$i];
                 my $g_size = $group_sizes[$i];
 
-                if ($g_size > 0) {
-                    my $cell       = floor (($val - $origin) / $g_size); 
-                    my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
-                    push @gp_fields, $grp_centre;
+                if ($g_size >= 0) {
+                    if ($is_lat_field && $is_lat_field->{$group_field_names[$i]}) {
+                        $val = dms2dd ({value => $val, is_lat => 1});
+                    }
+                    elsif ($is_lon_field && $is_lon_field->{$group_field_names[$i]}) {
+                        $val = dms2dd ({value => $val, is_lon => 1});
+                    }
+                    
+                    croak "$val is not numeric\n"
+                      if !looks_like_number $val;
+    
+                    if ($g_size > 0) {
+                        my $cell       = floor (($val - $origin) / $g_size); 
+                        my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
+                        push @gp_fields, $grp_centre;
+                    }
+                    else {
+                        push @gp_fields, $val;
+                    }
                 }
                 else {
                     push @gp_fields, $val;

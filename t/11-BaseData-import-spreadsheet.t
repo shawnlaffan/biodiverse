@@ -97,6 +97,43 @@ sub main {
 }
 
 
+sub test_import_spreadsheet_dms_coords {
+    my %bd_args = (
+        NAME => 'test import spreadsheet DMS',
+        CELL_SIZES => [0,0],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    my $fname = Path::Class::File->new (
+        Path::Class::File->new($0)->dir,
+        "test_spreadsheet_import_dms_coords.xlsx",
+    );
+    $fname = $fname->stringify;
+    say "testing filename $fname";
+    
+    eval {
+        $bd1->import_data_spreadsheet(
+            input_files   => [$fname],
+            group_field_names => [qw /x y/],
+            label_field_names => [qw /genus species/],
+            is_lat_field => {y => 1},
+            is_lon_field => {x => 1},
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, 'import spreadsheet with DMS coords produced no error');
+
+    my @gp_names = $bd1->get_groups;
+    is_deeply (\@gp_names,
+               ['134.506111111111:-23.5436111111111'],
+               'got correct group names',
+    );
+    
+}
+
 sub test_import_spreadsheet {
     my %bd_args = (
         NAME => 'test import spreadsheet',

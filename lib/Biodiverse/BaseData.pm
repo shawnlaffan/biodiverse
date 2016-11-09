@@ -1759,6 +1759,8 @@ sub import_data_spreadsheet {
     my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
     my @label_field_names = @{$data_in_matrix_form ? [] : $args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
+    my $is_lat_field = $args{is_lat_field};
+    my $is_lon_field = $args{is_lon_field};
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1881,6 +1883,13 @@ sub import_data_spreadsheet {
                 if (!defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";
+                }
+
+                if ($is_lat_field && $is_lat_field->{$group_field_names[$i]}) {
+                    $val = dms2dd ({value => $val, is_lat => 1});
+                }
+                elsif ($is_lon_field && $is_lon_field->{$group_field_names[$i]}) {
+                    $val = dms2dd ({value => $val, is_lon => 1});
                 }
 
                 my $origin = $group_origins[$i];

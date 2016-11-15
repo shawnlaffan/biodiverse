@@ -17,6 +17,15 @@ no warnings 'once';
 use English qw { -no_match_vars };
 our $VERSION = '1.99_006';
 
+BEGIN {
+    # export environmental variables required by pixbuf on OS X.
+    if ($OSNAME eq 'darwin') {
+        my $par_temp = $ENV{PAR_TEMP} // 'Not defined';
+        $ENV{GDK_PIXBUF_MODULE_FILE} = "$par_temp/inc/loaders.cache";
+        $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
+    }
+}
+
 local $OUTPUT_AUTOFLUSH = 1;
 
 #use File::Basename;

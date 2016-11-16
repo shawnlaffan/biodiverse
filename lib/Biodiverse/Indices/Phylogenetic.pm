@@ -984,14 +984,14 @@ sub _calc_pd_pe_clade_loss {
         #  skip if we have already done this one
         next NODE if defined $loss_score{$node_ref->get_name};
 
-        my $terminal_count = $node_ref->get_terminal_element_count;
         my @ancestors = ($node_ref->get_name);
 
-        #  find the ancestors with no children outside this clade
+        #  Find the ancestors with no children outside this clade
+        #  We are using a subtree, so the node only needs one sibling
       PARENT:
         while (my $parent = $node_ref->get_parent) {
             last PARENT
-              if $parent->get_terminal_element_count > $terminal_count;
+              if $parent->get_child_count > 1;
 
             push @ancestors, $parent->get_name;
             $node_ref = $parent;

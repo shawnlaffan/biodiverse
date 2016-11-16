@@ -246,7 +246,7 @@ sub exists_node {
             $name = $args{node_ref}->get_name;
         }
         else {
-            croak 'niether name nor node_ref argument passed';  
+            croak 'neither name nor node_ref argument passed';  
         }
     }
     return exists $self->{TREE_BY_NAME}{$name};

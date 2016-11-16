@@ -801,17 +801,25 @@ sub _calc_pd_pe_clade_contributions {
     my $contr_p = {};
     my $clade_score = {};
 
-  NODE_NAME:
-    foreach my $node_name (keys %$wt_list) {
-        next if defined $contr->{$node_name};
+    #  should make a copy?
+    my $node_refs = $sub_tree->get_node_refs;
+    my @by_depth
+      = map {$_->[0]}
+        sort {$b->[1] <=> $a->[1]}
+        map {[$_, $_->get_depth]}
+        @$node_refs;
 
-        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
+  NODE_REF:
+    foreach my $node_ref (@by_depth) {
+        no autovivification;
 
-        #  Possibly inefficient as we are not caching by node
-        #  but at least the descendants are cached and perhaps that
-        #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $descendant_names = $node_ref->get_names_of_all_descendants_and_self;
-        my $wt_sum = sum @$wt_list{keys %$descendant_names};
+        my $node_name = $node_ref->get_name;
+
+        my $wt_sum = $wt_list->{$node_ref->get_name};
+        foreach my $child_ref ($node_ref->get_children) {
+            my $child_name = $child_ref->get_name;
+            $wt_sum += $clade_score->{$child_name};
+        }
 
         #  round off to avoid spurious spatial variation.
         $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;
@@ -1811,7 +1819,12 @@ sub get_sub_tree {
         while (my $parent = $node_ref->get_parent()) {
 
             my $parent_name = $parent->get_name;
-            my $st_parent = eval {$subtree->get_node_ref (node => $parent_name)};
+            my $st_parent;
+            if ($subtree->exists_node (name => $parent_name)) {
+                $st_parent = eval {
+                    $subtree->get_node_ref (node => $parent_name);
+                };
+            }
             my $last = defined $st_parent;  #  we have the rest of the path in this case
 
             if (!$last) {

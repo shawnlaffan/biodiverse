@@ -1,6 +1,6 @@
 use 5.016;
 
-use rlib;
+use rlib '..';
 
 use Biodiverse::BaseData;
 

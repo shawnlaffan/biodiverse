@@ -23,11 +23,6 @@ my $add_files;
 my @libs;
 my $include_lib = "";
 
-# Move all of these to
-# command line options.
-#my $dyld_library_path = "DYLD_LIBRARY_PATH=inc/usr/local/opt/*/lib/:/usr/local/opt/*/lib";
-#my $ld_library_path = "LD_LIBRARY_PATH=inc/usr/local/opt/*/lib/:/usr/local/opt/*/lib";
-#my $perl_location = "/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl";
 my $perl_location = `which perl`;
 chomp $perl_location;
 
@@ -82,7 +77,7 @@ sub find_dylibs {
     @files =  File::Find::Rule->file()
     ->extras({ follow => 1,follow_skip => 2 })
     ->name( @libs )
-    ->in( $dir );
+    ->in( @libraries );
     return @files;
 }
 
@@ -139,8 +134,10 @@ sub create_command_line_string() {
 }
 
 sub run_build_mac_version() {
-    #exec ($run_command_first_part $include_lib $add_files);
-    print "$run_command_first_part $include_lib $add_files\n";
+    my @args = ( "$run_command_first_part $include_lib $add_files" );
+    exec { $args[0] } @args;
+    #exec ($run_command_first_part $include_lib $add_files) or print STDERR "couldn't exec foo: $!";
+    #print "$run_command_first_part $include_lib $add_files\n";
 }
 
 if ($remove){

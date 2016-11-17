@@ -6,6 +6,13 @@ use 5.010;
 use Getopt::Long qw(GetOptions);
 use Pod::Usage;
 
+# Check to see if we are running on OS X.
+# and exit if we aren't.
+BEGIN {
+    my $osname = $^O;
+    if ($osname ne 'darwin') {die "Requires OS X to run." };
+}
+
 my $man = 0;
 my $help = 0;
 my $output  = "../builds/Biodiverse.dmg";
@@ -25,7 +32,8 @@ GetOptions(
 pod2usage(1) if $help;
 pod2usage(-exitval => 0, -verbose => 2) if $man;
 
-# Mounted the supplied read/write dmg image. Default is ~/Documents/Biodiverse.dmg
+# Mounted the supplied read/write dmg image. 
+# Default is ../images/Biodiverse.dmg
 print "mounting $input\n";
 my @mount_args = ("hdiutil", "attach", "$input");
 system(@mount_args) == 0
@@ -37,13 +45,15 @@ my @remove_app_args = ("rm", "-fR", "mounted/Biodiverse.app");
 system(@remove_app_args) == 0
     or die "system @remove_app_args failed: $?";
 
-# Removes the old read only dmg image. Default is ~/Biodiverse.dmg.
+# Removes the old read only dmg image. 
+# Default is ../images/Biodiverse.dmg.
 print "removing old $output\n";
 my @remove_dmg_args = ("rm", "-fR", "$output");
 system(@remove_dmg_args) == 0
     or die "system @remove_dmg_args failed: $?";
 
-# Copies the new Biodiverse.app to the mounted read/write dmg image.
+# Copies the new Biodiverse.app to the mounted read/write dmg image. 
+# Default is ../builds/Biodiverse.app.
 print "copy new Biodiverse.app to dmg image\n";
 my @copy_app_args = ("cp", "-r", "$app" , "$mounted");
 system(@copy_app_args) == 0
@@ -97,11 +107,11 @@ Location of the output read only dmg image.
 
 =item B<-input>
 
-Location of the input dmg image.
+Location of the read/write input dmg image.
 
 =item B<-app>
 
-Location of Biodivers.app to be included in the new dmg image.
+Location of Biodiverse.app to be included in the new dmg image.
 
 =item B<-mounted>
 

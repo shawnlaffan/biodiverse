@@ -23,7 +23,7 @@ libgmodule-2.0.0.dylib
 libssl.1.0.0.dylib
 libcrypto.1.0.0.dylib
 libgdal.20.dylib
-libproj.dylib
+libproj.12.dylib
 libjson-c.2.dylib
 libfreexl.1.dylib
 libgeos_c.1.dylib
@@ -39,4 +39,3 @@ libsqlite3.0.dylib
 libgnomecanvas-2.0.dylib
 libart_lgpl_2.2.dylib
 libgailutil.18.dylib
-libgailutil.23.dylib

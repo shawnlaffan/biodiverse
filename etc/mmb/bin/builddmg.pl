@@ -1,17 +1,15 @@
-#!/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 use 5.010;
 use Getopt::Long qw(GetOptions);
 use Pod::Usage;
+use English qw { -no_match_vars };
 
 # Check to see if we are running on OS X.
 # and exit if we aren't.
-BEGIN {
-    my $osname = $^O;
-    if ($osname ne 'darwin') {die "Requires OS X to run." };
-}
+if ($OSNAME ne 'darwin') {die "error: requires darwin (OSX)."};
 
 my $man = 0;
 my $help = 0;
@@ -40,32 +38,32 @@ system(@mount_args) == 0
     or die "system @mount_args failed: $?";
 
 # Removes Biodiverse.app for the mounted read/write dmg image
-print "removing old Biodiverse.app from mounted image\n";
+print "removing Biodiverse.app from $input\n";
 my @remove_app_args = ("rm", "-fR", "mounted/Biodiverse.app");
 system(@remove_app_args) == 0
     or die "system @remove_app_args failed: $?";
 
 # Removes the old read only dmg image. 
 # Default is ../images/Biodiverse.dmg.
-print "removing old $output\n";
+print "removing  $output\n";
 my @remove_dmg_args = ("rm", "-fR", "$output");
 system(@remove_dmg_args) == 0
     or die "system @remove_dmg_args failed: $?";
 
 # Copies the new Biodiverse.app to the mounted read/write dmg image. 
 # Default is ../builds/Biodiverse.app.
-print "copy new Biodiverse.app to dmg image\n";
+print "copy $app into $input\n";
 my @copy_app_args = ("cp", "-r", "$app" , "$mounted");
 system(@copy_app_args) == 0
     or die "system @copy_app_args failed: $?";
 
 # Unmounts the read/write dmg image.
-print "unmounting Biodiverse.dmg\n";
+print "unmounting $input\n";
 my @detach_mounted_args = ("hdiutil", "detach", "$mounted");
 system(@detach_mounted_args) == 0
     or die "system @detach_mounted_args failed: $?";
 
-# Creates a new read only Biodiverse dmg image and saves it. Default is ~/Biodiverse.dmg.
+# Creates a new read only Biodiverse dmg image and saves it. Default is ../builds/Biodiverse.dmg.
 print "creating $output as read only\n";
 my @convert_args = ("hdiutil", "convert", "-format", "UDRO", "-o", "$output", "$input" );
 system(@convert_args) == 0

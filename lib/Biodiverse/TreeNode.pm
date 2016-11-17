@@ -1348,6 +1348,8 @@ sub set_parent {
     my $parent = $args{parent}
       // croak "argument 'parent' not specified\n";
 
+    return if $self->{_PARENT} && $parent eq $self->{_PARENT};
+
     croak 'parent Reference not same type as child (' . blessed ($self) . ")\n"
         if blessed($parent) ne blessed($self);
 

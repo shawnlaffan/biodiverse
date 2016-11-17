@@ -139,15 +139,19 @@ sub _describe {
 sub set_parents_below {
     my $self = shift;
 
-    my @root_nodes = $self->get_root_node_refs;
-
-    foreach my $root_node ($self->get_root_node_refs) {
-        next if ! $root_node->is_root_node;  #  may have been fixed on a previous iteration, so skip it
-        $root_node->set_parents_below;
+    #my @root_nodes = $self->get_root_node_refs;
+    #
+    #foreach my $root_node ($self->get_root_node_refs) {
+    #    next if ! $root_node->is_root_node;  #  may have been fixed on a previous iteration, so skip it
+    #    $root_node->set_parents_below;
+    #}
+    
+    foreach my $node ($self->get_node_refs) {
+        foreach my $child ($node->get_children) {
+            $child->set_parent (parent => $node);
+        }
     }
 
-    #my @root_nodes2 = $self->get_root_node_refs;
-    #print "";
     return;
 }
 

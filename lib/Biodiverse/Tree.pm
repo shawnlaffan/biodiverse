@@ -342,12 +342,13 @@ sub get_node_ref {
     my $self = shift;
     my %args = @_;
 
+    
     my $node = $args{node} //
       croak "node not specified in call to get_node_ref\n";
 
     Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
       if !exists $self->{TREE_BY_NAME}{$node};
-
+    
     return $self->{TREE_BY_NAME}{$node};
 }
 
@@ -2494,6 +2495,21 @@ sub DESTROY {
     #print "DELETED $name\n";
     return;
 };
+
+
+# takes a hash mapping names of nodes currently in this tree to
+# desired names, renames nodes accordingly.
+sub remap_labels_from_hash {
+    my $self = shift;
+    my %remap_hash = @_;
+    foreach my $r (keys %remap_hash) {
+	my $this_node = $self->{TREE_BY_NAME}{$r};
+	print "remap_labels_from_hash: $r\n";
+	$this_node->set_name(name => $remap_hash{$r});
+    }
+}
+
+
 
 1;
 

@@ -11,6 +11,7 @@ use Gtk2;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
+use Text::Levenshtein qw(distance);
 
 our $VERSION = '1.99_006';
 
@@ -99,22 +100,27 @@ sub run {
         #say '';
     }
 
+
+    
     my $remap_dlg_response = Biodiverse::GUI::YesNoCancel->run({
         header      => 'Remap tree labels?',
         hide_cancel => 1,
     });
-    if ($remap_dlg_response eq 'yes') {
 
+    my $auto_remap_flag = 0;
+    if ($remap_dlg_response eq 'yes') {
+		
 	# see if they want to try an automatic match based on string distance.
 	my $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-	    header      => 'Try to guess an appropriate remapping?',
+	    header      => 'Try to automatically remap new tree labels to BaseData labels?',
 	    hide_cancel => 1,
 	});
 
+	
 	my %remap_data;
 	if($remap_guess_response eq 'yes') {
-	    # generate an automatic remap file
 	    say "[PHYLOGENY IMPORT] Automatic remap not implemented yet.";
+	    $auto_remap_flag = 1;
 	}
 	else {
 	    # no automatic remap, prompt for manual remap file
@@ -179,6 +185,8 @@ sub run {
 
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
 
+
+    
     my $tree_count = scalar @$phylogeny_array;
     my @names;
     foreach my $tree (@$phylogeny_array) {
@@ -189,6 +197,32 @@ sub run {
         . join (', ', @names)
         . "\n";
 
+
+
+    # try to guess a remap based on the current base data labels.
+    if ($auto_remap_flag) {
+	# get the list of labels in the current base_data
+	my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
+
+	foreach my $tree (@$phylogeny_array) {
+	    my %named_nodes = $tree->get_named_nodes();
+	    my @tree_labels = (keys %named_nodes);
+	    my ($furthest, $mean, %remap) = guess_remap(\@basedata_labels, \@tree_labels);
+
+	    say "[Phylogeny Import] Generated the following guessed remap:";
+	    foreach my $r (sort keys %remap) {
+		print "$r -> $remap{$r}\n";
+	    }
+	    print "Furthest: $furthest\n";
+	    print "Mean: $mean\n";
+
+
+	    # now actually perform the remap on the tree
+	    $tree->remap_labels_from_hash(%remap);
+	}
+    }
+
+    
     #########
     #  4.  add the phylogenies to the GUI
     #########
@@ -500,5 +534,44 @@ sub add_column {
     # Store widgets
     $col_widgets->[$col_id] = [$radio1, $radio2, $radio3];
 }
+
+
+# takes in two references to arrays of labels
+# returns a hash mapping labels in the second list to labels in the first list
+# can be used to generate a remap table (Element Property Table)
+sub guess_remap {
+    my ($first_ref, $second_ref) = @_;
+    my @first_labels = @{$first_ref};
+    my @second_labels = @{$second_ref};
+    my %remap;
+
+    # also keep track of the furthest distance we have to accept,
+    # and the mean distance, so we get an idea of how good this remap is.
+    my $furthestDistance = 0;
+    my $distanceSum = 0;
+    
+    foreach my $label (@second_labels) {
+	my $min_distance = distance($label, $first_labels[0]);
+	my $closest_label = $first_labels[0];
+
+	# find the closest match (will default to the last in case of a tie)
+	foreach my $comparison_label (@first_labels) {
+	    my $this_distance = distance($label, $comparison_label);
+	    if($this_distance <= $min_distance) {
+		$min_distance = $this_distance;
+		$closest_label = $comparison_label;
+	    }
+	}
+
+	$furthestDistance = $min_distance if($min_distance > $furthestDistance);
+	$distanceSum += $min_distance;
+	$remap{$label} = $closest_label;
+    }
+
+    my $meanDistance = $distanceSum/($#second_labels+1);
+    return ($furthestDistance, $meanDistance, %remap);
+}
+
+
 
 1;

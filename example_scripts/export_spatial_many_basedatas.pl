@@ -53,7 +53,12 @@ foreach my $bd_file (@bd_files) {
         $filename =~ s/$strip3/$1/;
         $filename =~ s/_$//;
         $filename =~ s/$dots//;  #  should only be used if we used $bd_name
-        $sp->export (format => $export_type, file => $filename, list => $list_name);
+        $filename =~ s/\>/-/g; 
+        $sp->export (
+            format => $export_type,
+            file   => $filename,
+            list   => $list_name,
+        );
     }
 
     print "";  #  for debugger

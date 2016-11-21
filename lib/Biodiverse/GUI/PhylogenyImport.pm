@@ -104,12 +104,27 @@ sub run {
         hide_cancel => 1,
     });
     if ($remap_dlg_response eq 'yes') {
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
-            gui  => $gui,
-            type => 'label',
-            get_dir_from => $filename,
-        );
 
+	# see if they want to try an automatic match based on string distance.
+	my $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
+	    header      => 'Try to guess an appropriate remapping?',
+	    hide_cancel => 1,
+	});
+
+	my %remap_data;
+	if($remap_guess_response eq 'yes') {
+	    # generate an automatic remap file
+	    say "[PHYLOGENY IMPORT] Automatic remap not implemented yet.";
+	}
+	else {
+	    # no automatic remap, prompt for manual remap file
+	    %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+		gui  => $gui,
+		type => 'label',
+		get_dir_from => $filename,
+	    );
+	}
+	
         #  now do something with them...
         my $remap;
 

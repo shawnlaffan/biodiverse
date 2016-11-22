@@ -346,9 +346,16 @@ sub get_node_ref {
     my $node = $args{node} //
       croak "node not specified in call to get_node_ref\n";
 
-    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
-      if !exists $self->{TREE_BY_NAME}{$node};
+
     
+
+    if (!exists $self->{TREE_BY_NAME}{$node}) {
+        foreach my $k (keys $self->{TREE_BY_NAME}) {
+	    say "key: $k";
+	}
+	Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
+    }
+
     return $self->{TREE_BY_NAME}{$node};
 }
 
@@ -2504,8 +2511,8 @@ sub remap_labels_from_hash {
     my %remap_hash = @_;
     foreach my $r (keys %remap_hash) {
 	my $this_node = $self->{TREE_BY_NAME}{$r};
-	print "remap_labels_from_hash: $r\n";
 	$this_node->set_name(name => $remap_hash{$r});
+	$self->add_to_node_hash (node_ref => $this_node);
     }
 }
 

@@ -11,7 +11,7 @@ use Gtk2;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
-use Biodiverse::RemapGuesser;
+use Biodiverse::RemapGuesser qw/guess_remap/;
 
 our $VERSION = '1.99_006';
 
@@ -219,7 +219,10 @@ sub run {
             # distance which resulted in a match and the mean match
             # string distance. Could be useful to give an idea of how
             # good the remap is, not used for now.
-            my ($furthest, $mean, %remap) = RemapGuesser::guess_remap(\@basedata_labels, \@tree_labels);
+            my ($furthest, $mean, %remap) = Biodiverse::RemapGuesser->guess_remap({
+		"existing_labels" => \@basedata_labels, 
+		"new_labels" => \@tree_labels,
+		});
 
             
             # debug output and user message

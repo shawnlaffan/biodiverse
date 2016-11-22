@@ -14,11 +14,18 @@ use Text::Levenshtein qw(distance);
 
 our $VERSION = '1.99_006';
     
-# takes in two references to arrays of labels
+# takes in two references to arrays of labels (existing_labels and new_labels)
 # returns a hash mapping labels in the second list to labels in the first list
 # can be used to generate a remap table (Element Property Table)
 sub guess_remap {
-    my ($first_ref, $second_ref) = @_;
+    my $self = shift;
+    my $args = shift || {};
+
+
+    
+    my $first_ref = $args->{"existing_labels"};
+    my $second_ref = $args->{"new_labels"};
+    
     my @first_labels = @{$first_ref};
     my @second_labels = @{$second_ref};
     my %remap;

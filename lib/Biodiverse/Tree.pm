@@ -346,13 +346,11 @@ sub get_node_ref {
     my $node = $args{node} //
       croak "node not specified in call to get_node_ref\n";
 
-
-    
-
     if (!exists $self->{TREE_BY_NAME}{$node}) {
-        foreach my $k (keys $self->{TREE_BY_NAME}) {
-	    say "key: $k";
-	}
+	#say "Couldn't find $node, the nodes actually in the tree are:";
+        #foreach my $k (keys $self->{TREE_BY_NAME}) {
+	#    say "key: $k";
+	#}
 	Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
     }
 

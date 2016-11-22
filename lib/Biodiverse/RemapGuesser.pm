@@ -30,8 +30,8 @@ sub guess_remap {
 
     # also keep track of the furthest distance we have to accept,
     # and the mean distance, so we get an idea of how good this remap is.
-    my $furthestDistance = 0;
-    my $distanceSum = 0;
+    my $furthest_distance = 0;
+    my $distance_sum = 0;
     
     foreach my $label (@second_labels) {
         my $min_distance = distance($label, $first_labels[0]);
@@ -39,20 +39,30 @@ sub guess_remap {
 
         # find the closest match (will default to the last in case of a tie)
         foreach my $comparison_label (@first_labels) {
-            my $this_distance = distance($label, $comparison_label);
+	    
+	    # do the comparison ignoring leading and trailing
+	    # whitespace as this can cause match issues e.g. 'sp1 ' is
+	    # just as close to 'sp10' as 'sp1'
+	    
+	    my $stripped_label = $label;
+	    my $stripped_comparison_label = $comparison_label;
+	    $stripped_label =~ s/^\s+|\s+$//g;
+	    $stripped_comparison_label =~ s/^\s+|\s+$//g;
+
+            my $this_distance = distance($stripped_label, $stripped_comparison_label);
             if($this_distance <= $min_distance) {
                 $min_distance = $this_distance;
                 $closest_label = $comparison_label;
             }
         }
 
-        $furthestDistance = $min_distance if($min_distance > $furthestDistance);
-        $distanceSum += $min_distance;
+        $furthest_distance = $min_distance if($min_distance > $furthest_distance);
+        $distance_sum += $min_distance;
         $remap{$label} = $closest_label;
     }
 
-    my $meanDistance = $distanceSum/($#second_labels+1);
-    return ($furthestDistance, $meanDistance, %remap);
+    my $mean_distance = $distance_sum/($#second_labels+1);
+    return ($furthest_distance, $mean_distance, %remap);
 }
 
 

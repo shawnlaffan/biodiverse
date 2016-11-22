@@ -27,10 +27,9 @@ sub main {
     return 0;
 }
 
-
+# testing some basic 'off by one' type remappings
 sub test_basic_examples {
-    # testing some basic 'off by one' type remappings
-    my @separators = (' ', '\t', ':', '_', '.', '');
+    my @separators = (' ', "\t", ':', '_', '.', '');
 
     foreach my $sep1 (@separators) {
         # build the BaseData labels
@@ -47,7 +46,9 @@ sub test_basic_examples {
             }
 
             # guess the remap
-            my %results = Biodiverse::RemapGuesser::guess_remap(\@base_data_labels, \@tree_labels);
+            my ($furthest, $mean, %results) = Biodiverse::RemapGuesser->guess_remap({
+		"existing_labels" => \@base_data_labels, 
+		"new_labels" => \@tree_labels});
 
             # ensure the remapping was correct
             foreach my $i (1..10) {
@@ -60,5 +61,34 @@ sub test_basic_examples {
 
 
 
+# make sure auto matching works with leading and trailing whitespace
+sub test_border_whitespace {
+    my @whitespace = (" ", "  ", "   ", "\t", "\n", "\r");
 
+    foreach my $repetitions (0..10) {
+	my $starta = $whitespace[rand @whitespace];
+	my $startb = $whitespace[rand @whitespace];
+	my $enda = $whitespace[rand @whitespace];
+	my $endb = $whitespace[rand @whitespace];
 
+        # build the label lists
+        my @base_data_labels = ();
+	my @tree_labels = ();
+	for my $i (0..10) {
+            push(@base_data_labels, $starta."genussp$i".$enda);
+	    push(@tree_labels, $startb."genussp$i".$endb);
+        }
+
+	# guess the remap
+	my ($furthest, $mean, %results) = Biodiverse::RemapGuesser->guess_remap({
+	    "existing_labels" => \@base_data_labels, 
+	    "new_labels" => \@tree_labels});
+
+	# ensure the remapping was correct
+	foreach my $i (1..10) {
+	    is($results{$startb."genussp$i".$endb}, $starta."genussp$i".$enda,
+	       $startb."genussp$i".$endb." goes to ".$starta."genussp$i".$enda
+	       );
+	}
+    }
+}

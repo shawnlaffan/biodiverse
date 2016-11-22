@@ -29,21 +29,21 @@ sub guess_remap {
     my $distanceSum = 0;
     
     foreach my $label (@second_labels) {
-	my $min_distance = distance($label, $first_labels[0]);
-	my $closest_label = $first_labels[0];
+        my $min_distance = distance($label, $first_labels[0]);
+        my $closest_label = $first_labels[0];
 
-	# find the closest match (will default to the last in case of a tie)
-	foreach my $comparison_label (@first_labels) {
-	    my $this_distance = distance($label, $comparison_label);
-	    if($this_distance <= $min_distance) {
-		$min_distance = $this_distance;
-		$closest_label = $comparison_label;
-	    }
-	}
+        # find the closest match (will default to the last in case of a tie)
+        foreach my $comparison_label (@first_labels) {
+            my $this_distance = distance($label, $comparison_label);
+            if($this_distance <= $min_distance) {
+                $min_distance = $this_distance;
+                $closest_label = $comparison_label;
+            }
+        }
 
-	$furthestDistance = $min_distance if($min_distance > $furthestDistance);
-	$distanceSum += $min_distance;
-	$remap{$label} = $closest_label;
+        $furthestDistance = $min_distance if($min_distance > $furthestDistance);
+        $distanceSum += $min_distance;
+        $remap{$label} = $closest_label;
     }
 
     my $meanDistance = $distanceSum/($#second_labels+1);

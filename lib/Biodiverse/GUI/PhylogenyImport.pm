@@ -109,34 +109,34 @@ sub run {
 
     my $auto_remap_flag = 0;
     if ($remap_dlg_response eq 'yes') {
-		
-	# see if they want to try an automatic match to BaseData
-	# labels based on string distance. Only ask this if there is
-	# an active BaseData.
+                
+        # see if they want to try an automatic match to BaseData
+        # labels based on string distance. Only ask this if there is
+        # an active BaseData.
 
-	my $remap_guess_response = 'no';
-	my $current_base_data = $gui->{project}->get_selected_base_data();
-	if(defined $current_base_data) {
-	    $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-		header      => 'Try to automatically remap new tree labels to BaseData labels?',
-		hide_cancel => 1,
-	    });
-	}
+        my $remap_guess_response = 'no';
+        my $current_base_data = $gui->{project}->get_selected_base_data();
+        if(defined $current_base_data) {
+            $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
+                header      => 'Try to automatically remap new tree labels to BaseData labels?',
+                hide_cancel => 1,
+            });
+        }
 
-	
-	my %remap_data;
-	if($remap_guess_response eq 'yes') {
-	    $auto_remap_flag = 1;
-	}
-	else {
-	    # no automatic remap, prompt for manual remap file
-	    %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
-		gui  => $gui,
-		type => 'label',
-		get_dir_from => $filename,
-	    );
-	}
-	
+        
+        my %remap_data;
+        if($remap_guess_response eq 'yes') {
+            $auto_remap_flag = 1;
+        }
+        else {
+            # no automatic remap, prompt for manual remap file
+            %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+                gui  => $gui,
+                type => 'label',
+                get_dir_from => $filename,
+            );
+        }
+        
         #  now do something with them...
         my $remap;
 
@@ -207,59 +207,59 @@ sub run {
 
     # try to guess a remap based on the current base data labels.
     if ($auto_remap_flag) {
-	# get the list of labels in the current base_data
-	my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
+        # get the list of labels in the current base_data
+        my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
 
-	
-	foreach my $tree (@$phylogeny_array) {
-	    my %named_nodes = $tree->get_named_nodes();
-	    my @tree_labels = (keys %named_nodes);
+        
+        foreach my $tree (@$phylogeny_array) {
+            my %named_nodes = $tree->get_named_nodes();
+            my @tree_labels = (keys %named_nodes);
 
-	    # furthest and mean refer to the largest string
-	    # distance which resulted in a match and the mean match
-	    # string distance. Could be useful to give an idea of how
-	    # good the remap is, not used for now.
-	    my ($furthest, $mean, %remap) = Biodiverse::RemapGuesser::guess_remap(\@basedata_labels, \@tree_labels);
+            # furthest and mean refer to the largest string
+            # distance which resulted in a match and the mean match
+            # string distance. Could be useful to give an idea of how
+            # good the remap is, not used for now.
+            my ($furthest, $mean, %remap) = RemapGuesser::guess_remap(\@basedata_labels, \@tree_labels);
 
-	    
-	    # debug output and user message
-	    my $remap_text = "\n\n";
-	    say "[Phylogeny Import] Generated the following guessed remap:";
-	    
-	    # 5 is an arbitrary constant, seems enough to get a sense for the mapping.
-	    # is there a place where we put constant/configuration values?
-	    my $how_many_remaps_to_show_as_sample = 5;
-	    my $count = 0;
-	    foreach my $r (sort keys %remap) {
-		$remap_text .= "$r -> $remap{$r}\n";
-		say "$r -> $remap{$r}";
-		last if ++$count >= $how_many_remaps_to_show_as_sample;
-	    }
+            
+            # debug output and user message
+            my $remap_text = "\n\n";
+            say "[Phylogeny Import] Generated the following guessed remap:";
+            
+            # 5 is an arbitrary constant, seems enough to get a sense for the mapping.
+            # is there a place where we put constant/configuration values?
+            my $how_many_remaps_to_show_as_sample = 5;
+            my $count = 0;
+            foreach my $r (sort keys %remap) {
+                $remap_text .= "$r -> $remap{$r}\n";
+                say "$r -> $remap{$r}";
+                last if ++$count >= $how_many_remaps_to_show_as_sample;
+            }
 
-	    say "etc.";
-	    $remap_text .= "etc.\n\n";
-	    
-	    $remap_text .= "Accept this label remap?";
-	    
-	    my $accept_remap_dlg_response = Biodiverse::GUI::YesNoCancel->run({
-		header      => 'Sample of automatically generated remap',
-		text        => $remap_text,
-		hide_cancel => 1,
-	    });
+            say "etc.";
+            $remap_text .= "etc.\n\n";
+            
+            $remap_text .= "Accept this label remap?";
+            
+            my $accept_remap_dlg_response = Biodiverse::GUI::YesNoCancel->run({
+                header      => 'Sample of automatically generated remap',
+                text        => $remap_text,
+                hide_cancel => 1,
+            });
 
-	    if($accept_remap_dlg_response eq 'yes') {
-		# now actually perform the remap on the tree
-		$tree->remap_labels_from_hash(%remap);
-		say "Performed automatic remap.";
-	    }
-	    else {
-		say "Declined automatic remap, no remap performed.";
-	    }
-	    
-	}
+            if($accept_remap_dlg_response eq 'yes') {
+                # now actually perform the remap on the tree
+                $tree->remap_labels_from_hash(%remap);
+                say "Performed automatic remap.";
+            }
+            else {
+                say "Declined automatic remap, no remap performed.";
+            }
+            
+        }
 
 
-	
+        
     }
 
     

@@ -21,8 +21,6 @@ sub guess_remap {
     my $self = shift;
     my $args = shift || {};
 
-
-    
     my $first_ref = $args->{"existing_labels"};
     my $second_ref = $args->{"new_labels"};
     

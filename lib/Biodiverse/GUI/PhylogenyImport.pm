@@ -113,12 +113,11 @@ sub run {
         # see if they want to try an automatic match to BaseData
         # labels based on string distance. Only ask this if there is
         # an active BaseData.
-
         my $remap_guess_response = 'no';
         my $current_base_data = $gui->{project}->get_selected_base_data();
         if(defined $current_base_data) {
             $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-                header      => 'Try to automatically remap new tree labels to BaseData labels?',
+                header      => 'Try to automatically remap new tree labels?',
                 hide_cancel => 1,
             });
         }
@@ -208,16 +207,31 @@ sub run {
     # try to guess a remap based on the current base data labels.
     if ($auto_remap_flag) {
 
-        my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
+        my @sources = ();
+        push @sources, @{$gui->get_project()->get_base_data_list()};
+        push @sources, @{$gui->get_project()->get_phylogeny_list()};
+        push @sources, @{$gui->get_project()->get_matrix_list()};
+
+        my @names;
+        foreach my $source (@sources) {
+            push @names, $source->get_param('NAME');
+        }
+        
+        # select what data source they want to remap to
+        my $choice = $sources[run_select_autoremap_target(\@names)];
+        
+        
+        my @existing_labels = $choice->get_labels();
+        
         
         foreach my $tree (@$phylogeny_array) {
             my %named_nodes = $tree->get_named_nodes();
             my @tree_labels = (keys %named_nodes);
-
+            
 
 	    my $guesser = Biodiverse::RemapGuesser->new();
             my %remap_results = $guesser->guess_remap({
-		"existing_labels" => \@basedata_labels, 
+		"existing_labels" => \@existing_labels, 
 		"new_labels" => \@tree_labels
 	    });
 
@@ -574,6 +588,45 @@ sub add_column {
 }
 
 
+# given an array reference to a list of data source names (e.g. tree
+# names, basedata names etc.), allows the user to select one and
+# returns the index of the item selected (needs to be index to avoid
+# name clashes)
+sub run_select_autoremap_target {
+    my @options = @{$_[0]};
+    
+    my $combo = Gtk2::ComboBox->new_text;
+    
+    foreach my $option (@options) {
+        $combo->append_text ($option);
+    }
 
+    $combo->set_active(0);
+    $combo->show_all;
+    $combo->set_tooltip_text ('Choose a data source to remap the labels to.');
+
+    my $label = Gtk2::Label->new ('Choose a data source to remap the labels to:');
+
+    my $dlg = Gtk2::Dialog->new_with_buttons (
+        'Select Data Source',
+        undef,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($label, 0, 0, 0);
+    $vbox->pack_start($combo, 0, 0, 0);
+
+    $dlg->show_all;
+
+    my $response = $dlg->run();
+    $dlg->destroy();
+
+    return if lc($response) ne 'ok';
+
+    return $combo->get_active;
+}
 
 1;

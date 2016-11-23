@@ -160,7 +160,7 @@ sub attempt_quick_remap {
     # create a hash mapping no punct to original string
     my %no_punct_lookup;
     for my $original (@first_labels) {
-        my $fixed = $original;
+	my $fixed = $original;
 	$fixed =~ s/[^\d\w]/_/g;
 	$no_punct_lookup{$fixed} = $original;
     }

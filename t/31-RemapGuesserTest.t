@@ -136,18 +136,18 @@ sub test_case_differences {
 
 
 # make sure it isn't too slow for a largish dataset
+# this should be done as a quick remap
 sub test_large_dataset {
     # build the labels
     my @base_data_labels = ();
     my @tree_labels = ();
-    my $dataset_size = 1000;
+    my $dataset_size = 10000;
 
     for my $i (0..$dataset_size) {
 	push(@base_data_labels, "genus:sp".$i);
 	push(@tree_labels, "genus_sp".$i);
     }
     
-    # guess the remap
     my $guesser = Biodiverse::RemapGuesser->new();
 	    
     my %remap_results = $guesser->guess_remap({
@@ -185,7 +185,5 @@ sub test_edge_cases {
     };
     # should be no errors
     is($@, "", "Handling empty lists.");
-
-
 
 }

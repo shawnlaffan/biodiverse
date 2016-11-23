@@ -22,11 +22,13 @@ sub new {
 }
 
 
+
     
 # takes in two references to arrays of labels (existing_labels and new_labels)
 # returns a hash mapping labels in the second list to labels in the first list
-# can be used to generate a remap table (Element Property Table)
 sub guess_remap {
+    
+    
     my $self = shift;
     my $args = shift || {};
 
@@ -36,8 +38,21 @@ sub guess_remap {
     my @first_labels = @{$first_ref};
     my @second_labels = @{$second_ref};
 
-  
+
+    # look for simple punctuation match
+    my %quick_results = $self->attempt_quick_remap({
+	"existing_labels" => \@first_labels,
+	"new_labels" => \@second_labels,
+   });
     
+    if($quick_results{success}) {
+	$quick_results{"quick"} = 1;
+	say "[RemapGuesser] generated a quick remap";
+	return wantarray ? %quick_results : \%quick_results;
+
+    }
+
+      
     my %remap;
 
     # assume that the labels have been uniformly deformed (i.e. they
@@ -113,9 +128,13 @@ sub guess_remap {
     if($#second_labels+1 != 0) {
 	$mean_distance = $distance_sum/($#second_labels+1);
     }
+    
+
+    say "[RemapGuesser] generated a full remap";
 
 
     my %results = (
+	quick => 0,
 	furthest_dist => $furthest_distance,
 	mean_dist => $mean_distance,
 	remap => \%remap,
@@ -124,6 +143,54 @@ sub guess_remap {
     return wantarray ? %results : \%results;
 }
 
+
+
+# tries to quickly match two lists of labels that differ only in
+# punctuation/whitespace (not letters or digits)
+sub attempt_quick_remap {
+    my $class = shift;
+    my $args = shift || {};
+ 
+    my $first_ref = $args->{"existing_labels"};
+    my $second_ref = $args->{"new_labels"};
+    
+    my @first_labels = @{$first_ref};
+    my @second_labels = @{$second_ref};
+
+    # create a hash mapping no punct to original string
+    my %no_punct_lookup;
+    for my $original (@first_labels) {
+        my $fixed = $original;
+	$fixed =~ s/[^\d\w]/_/g;
+	$no_punct_lookup{$fixed} = $original;
+    }
+        
+
+    # try to create a complete match
+    my %remap;
+    my $success = 1;
+    foreach my $label (@second_labels) {
+	my $no_punct = $label;
+	$no_punct =~ s/[^\d\w]/_/g;
+
+	if(exists $no_punct_lookup{$no_punct}) {
+	    $remap{$label} = $no_punct_lookup{$no_punct};
+	}
+	else {
+	    # couldn't find a match
+	    $success = 0;
+	    last;
+ 	}
+    }
+
+
+    my %results = (
+	success => $success,
+	remap => \%remap,
+	);
+
+    return wantarray ? %results : \%results;
+}
 
 
 

@@ -13,11 +13,19 @@ use warnings;
 use Text::Levenshtein qw(distance);
 
 our $VERSION = '1.99_006';
+
+
+sub new {
+    my $class = shift;
+    my $self = bless {}, $class;
+    return $self;
+}
+
+
     
 # takes in two references to arrays of labels (existing_labels and new_labels)
 # returns a hash mapping labels in the second list to labels in the first list
 # can be used to generate a remap table (Element Property Table)
-
 sub guess_remap {
     my $self = shift;
     my $args = shift || {};
@@ -27,14 +35,14 @@ sub guess_remap {
     
     my @first_labels = @{$first_ref};
     my @second_labels = @{$second_ref};
+
+  
+    
     my %remap;
 
-
-    # the performance is too bad if we compare every string to every
-    # unmatched string. We can usually stop the search when we find a
-    # match as good as one we previously accepted. Essentially assumes
-    # that the labels have been uniformly deformed (i.e. they differ
-    # according to a pattern (or at least by the same distance))
+    # assume that the labels have been uniformly deformed (i.e. they
+    # differ according to a pattern (or at least by the same
+    # distance))
     my $assume_uniform_deformation = 1;
     
     # also keep track of the furthest distance we have to accept,
@@ -75,7 +83,6 @@ sub guess_remap {
 
 	    $stripped_comparison_label = lc($stripped_comparison_label);
 
-	    #say "comparing $stripped_label to $stripped_comparison_label";
             my $this_distance = distance($stripped_label, $stripped_comparison_label);
             if($this_distance <= $min_distance) {
                 $min_distance = $this_distance;
@@ -97,12 +104,24 @@ sub guess_remap {
         $remap{$label} = $closest_label;
 
 	# now remove the match we made from first_labels
-	# not doing this is too slow, takes > 10 seconds for 1000 labels.
 	splice(@first_labels, $match_index, 1);
     }
 
-    my $mean_distance = $distance_sum/($#second_labels+1);
-    return ($furthest_distance, $mean_distance, %remap);
+    my $mean_distance;
+
+    # need to check if it's 0 to protect from empty list being passed in
+    if($#second_labels+1 != 0) {
+	$mean_distance = $distance_sum/($#second_labels+1);
+    }
+
+
+    my %results = (
+	furthest_dist => $furthest_distance,
+	mean_dist => $mean_distance,
+	remap => \%remap,
+	);
+    
+    return wantarray ? %results : \%results;
 }
 
 

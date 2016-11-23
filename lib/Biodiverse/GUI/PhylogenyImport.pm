@@ -207,24 +207,23 @@ sub run {
 
     # try to guess a remap based on the current base data labels.
     if ($auto_remap_flag) {
-        # get the list of labels in the current base_data
-        my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
 
+        my @basedata_labels = $gui->{project}->get_selected_base_data()->get_labels();
         
         foreach my $tree (@$phylogeny_array) {
             my %named_nodes = $tree->get_named_nodes();
             my @tree_labels = (keys %named_nodes);
 
-            # furthest and mean refer to the largest string
-            # distance which resulted in a match and the mean match
-            # string distance. Could be useful to give an idea of how
-            # good the remap is, not used for now.
-            my ($furthest, $mean, %remap) = Biodiverse::RemapGuesser->guess_remap({
-		"existing_labels" => \@basedata_labels, 
-		"new_labels" => \@tree_labels,
-		});
 
+	    my $guesser = Biodiverse::RemapGuesser->new();
+            my %remap_results = $guesser->guess_remap({
+		"existing_labels" => \@basedata_labels, 
+		"new_labels" => \@tree_labels
+	    });
+
+	    my %remap = %{$remap_results{remap}};
             
+
             # debug output and user message
             my $remap_text = "\n\n";
             say "[Phylogeny Import] Generated the following guessed remap:";
@@ -251,7 +250,6 @@ sub run {
             });
 
             if($accept_remap_dlg_response eq 'yes') {
-                # now actually perform the remap on the tree
                 $tree->remap_labels_from_hash(%remap);
                 say "Performed automatic remap.";
             }
@@ -260,9 +258,6 @@ sub run {
             }
             
         }
-
-
-        
     }
 
     

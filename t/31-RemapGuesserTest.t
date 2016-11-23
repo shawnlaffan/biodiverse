@@ -22,7 +22,6 @@ sub main {
         no strict 'refs';
         $sub->();
     }
-
     done_testing();
     return 0;
 }
@@ -91,4 +90,56 @@ sub test_border_whitespace {
 	       );
 	}
     }
+}
+
+
+
+
+# make sure Genus:Species1 -> genus_species1 etc.
+sub test_case_differences {
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels = ();
+    for my $i (0..10) {
+	push(@base_data_labels, "Genus:Sp".$i);
+	push(@tree_labels, "genus_sp".$i);
+    }
+    
+    # guess the remap
+    my ($furthest, $mean, %results) = Biodiverse::RemapGuesser->guess_remap({
+	"existing_labels" => \@base_data_labels, 
+	"new_labels" => \@tree_labels});
+    
+    # ensure the remapping was correct
+    foreach my $i (1..10) {
+	is($results{"genus_sp".$i}, "Genus:Sp".$i, 
+	   "genus_sp".$i." goes to "."Genus:Sp".$i);
+    }
+}
+
+
+# make sure it isn't too slow for a largish dataset
+sub test_large_dataset {
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels = ();
+    my $dataset_size = 5000;
+
+    for my $i (0..$dataset_size) {
+	push(@base_data_labels, "genus:sp".$i);
+	push(@tree_labels, "genus_sp".$i);
+    }
+    
+    # guess the remap
+    my ($furthest, $mean, %results) = Biodiverse::RemapGuesser->guess_remap({
+	"existing_labels" => \@base_data_labels, 
+	"new_labels" => \@tree_labels});
+    
+    # ensure the remapping was correct (for the first 100 or so)
+    foreach my $i (1..$dataset_size) {
+	is($results{"genus_sp".$i}, "genus:sp".$i, 
+	   "genus_sp".$i." goes to "."genus:sp".$i);
+    }
+
+
 }

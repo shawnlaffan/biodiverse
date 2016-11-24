@@ -84,8 +84,8 @@ sub guess_remap {
     my $first_ref = $args->{"existing_labels"};
     my $second_ref = $args->{"new_labels"};
     
-    my @first_labels = @{$first_ref};
-    my @second_labels = @{$second_ref};
+    my @first_labels = sort @{$first_ref};
+    my @second_labels = sort @{$second_ref};
 
 
     # look for simple punctuation match
@@ -201,8 +201,19 @@ sub guess_remap {
 
     say "[RemapGuesser] generated a full remap";
 
+    for my $k (keys %remap) {
+        my $map = $remap{$k};
+        say "guess_remap before: $k -> $map";
+    }
+
+    
     if($swap) {
-        %remap = reverse %remap;
+        my %hash2;
+        while ((my $key, my $value) = each %remap) {
+            $hash2{$value}=$key;
+        }
+
+        %remap=%hash2;
     }
     
     my %results = (
@@ -211,7 +222,13 @@ sub guess_remap {
 	mean_dist => $mean_distance,
 	remap => \%remap,
 	);
-    
+  
+    for my $k (keys %remap) {
+        my $map = $remap{$k};
+        say "guess_remap after: $k -> $map";
+    }
+
+  
     return wantarray ? %results : \%results;
 }
 

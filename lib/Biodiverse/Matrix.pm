@@ -638,8 +638,8 @@ sub get_labels() {
 # desired names, renames elements accordingly.
 sub remap_labels_from_hash {
     my $self = shift;
-    my %remap_hash = @_;
-
+    my %args = @_;
+    my %remap_hash = %{$args{remap}};
     say "in remap_labels_from_hash";
 
     my @old_names = keys(%remap_hash);

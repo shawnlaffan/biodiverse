@@ -2506,7 +2506,8 @@ sub DESTROY {
 # desired names, renames nodes accordingly.
 sub remap_labels_from_hash {
     my $self = shift;
-    my %remap_hash = @_;
+    my %args = @_;
+    my %remap_hash = %{$args{remap}};
     foreach my $r (keys %remap_hash) {
         my $newName = $remap_hash{$r};
 

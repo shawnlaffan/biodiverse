@@ -31,7 +31,7 @@ sub perform_auto_remap {
     my $data_source = $args->{"data_source"};
 
     
-    $data_source->remap_labels_from_hash(%remap_hash);
+    $data_source->remap_labels_from_hash(remap=>\%remap_hash);
     return;
 }
 

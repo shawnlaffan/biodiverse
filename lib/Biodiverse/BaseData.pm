@@ -4765,8 +4765,27 @@ sub DESTROY {
 }
 
 
+# could probably implement this by creating an ElementProperty object
+# and calling rename_labels. Would need an 'import from hash' function
+# for ElementProperty.
+
+# doesn't handle numeric labels
 sub remap_labels_from_hash {
-    say "BaseData::remap_labels_from_hash not yet implemented.";
+    my $self = shift;
+    my %args = @_;
+    my %remap = %{$args{remap}};
+
+    
+    foreach my $label (keys %remap) {
+        my $remapped = $remap{$label};
+
+        $self->rename_label (
+            label    => $label,
+            new_name => $remapped,
+            no_numeric_check => 1,
+        );
+    }
+
     return;
 }
 

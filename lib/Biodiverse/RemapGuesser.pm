@@ -22,6 +22,55 @@ sub new {
 }
 
 
+# given a remap hash and a data source, actually performs the remap.
+sub perform_auto_remap {
+    my $self = shift;
+    my $args = shift || {};
+
+    my %remap_hash = %{$args->{"remap_hash"}};
+    my $data_source = $args->{"data_source"};
+
+    for my $key (keys %remap_hash) {
+        say "$key -> $remap_hash{$key}";
+    }
+
+    
+    $data_source->remap_labels_from_hash(%remap_hash);
+    return;
+}
+
+
+# takes a two references to trees/matrices/basedata and tries to map
+# the first one to the second one.
+sub generate_auto_remap {
+    my $self = shift;
+    my $args = shift || {};
+    my $first_source = $args->{"existing_data_source"};
+    my $second_source = $args->{"new_data_source"};
+    
+
+    my @existing_labels = $first_source->get_labels();
+    my @new_labels = $second_source->get_labels();
+
+
+    my %remap_results = $self->guess_remap({
+        "existing_labels" => \@existing_labels, 
+            "new_labels" => \@new_labels
+    });
+
+    my %remap = %{$remap_results{remap}};
+    
+    my %results = (
+	remap => \%remap,
+	);
+
+
+    return wantarray ? %results : \%results;
+}
+
+
+
+
 
     
 # takes in two references to arrays of labels (existing_labels and new_labels)

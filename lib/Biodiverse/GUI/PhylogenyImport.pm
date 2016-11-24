@@ -216,24 +216,17 @@ sub run {
         foreach my $source (@sources) {
             push @names, $source->get_param('NAME');
         }
-        
+
         # select what data source they want to remap to
         my $choice = $sources[run_select_autoremap_target(\@names)];
                 
-        my @existing_labels = $choice->get_labels();
-        
         
         foreach my $tree (@$phylogeny_array) {
-            my %named_nodes = $tree->get_named_nodes();
-            my @tree_labels = (keys %named_nodes);
-            
-
 	    my $guesser = Biodiverse::RemapGuesser->new();
-            my %remap_results = $guesser->guess_remap({
-		"existing_labels" => \@existing_labels, 
-		"new_labels" => \@tree_labels
-	    });
-
+            my %remap_results = $guesser->generate_auto_remap({
+                "existing_data_source" => $choice,
+                "new_data_source" => $tree,
+                });
 	    my %remap = %{$remap_results{remap}};
             
 
@@ -263,7 +256,11 @@ sub run {
             });
 
             if($accept_remap_dlg_response eq 'yes') {
-                $tree->remap_labels_from_hash(%remap);
+                $guesser->perform_auto_remap({
+                    "remap_hash" => \%remap,
+                    "data_source" => $tree,
+                    });
+                
                 say "Performed automatic remap.";
             }
             else {

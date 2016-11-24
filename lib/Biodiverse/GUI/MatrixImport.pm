@@ -165,12 +165,29 @@ sub run {
 
     return if lc $remap_response eq 'cancel';
 
+    my $auto_remap_flag = 0;
     if (lc $remap_response eq 'yes') {
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
+
+        # ask if they want to auto remap
+        my $remap_guess_response = 'no';
+        $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
+                header      => 'Try to automatically remap new tree labels?',
+                hide_cancel => 1,
+        });
+
+
+        my %remap_data;
+        if($remap_guess_response eq 'yes') {
+            $auto_remap_flag = 1;
+        }        
+        else {
+            %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
             gui => $gui,
             type => 'remap',
             get_dir_from => $filename,
-        );
+            );
+        }
+        
 
         #  now do something with them...
         if ($remap_data{file}) {
@@ -207,6 +224,18 @@ sub run {
         sep_char           => $sep_char,
     );
 
+
+    # if they wanted to auto remap, do that now
+    if ($auto_remap_flag) {
+        my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+        $remapper->run_autoremap_gui(
+            gui => $gui,
+            data_source => $matrix_ref,
+        );
+     
+    }
+
+    
     $gui->get_project->add_matrix ($matrix_ref);
 
     return $matrix_ref;

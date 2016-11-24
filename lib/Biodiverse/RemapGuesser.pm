@@ -55,6 +55,12 @@ sub generate_auto_remap {
     });
 
     my %remap = %{$remap_results{remap}};
+
+    #foreach my $m (keys %remap) {
+    #    my $mapped_to = $remap{$m};
+    #    say "generate_auto_remap: $m -> $mapped_to";
+    #}
+
     
     my %results = (
 	remap => \%remap,
@@ -72,8 +78,6 @@ sub generate_auto_remap {
 # takes in two references to arrays of labels (existing_labels and new_labels)
 # returns a hash mapping labels in the second list to labels in the first list
 sub guess_remap {
-    
-    
     my $self = shift;
     my $args = shift || {};
 

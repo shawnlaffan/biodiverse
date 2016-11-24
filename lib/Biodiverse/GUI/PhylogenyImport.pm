@@ -111,17 +111,13 @@ sub run {
     my $auto_remap_flag = 0;
     if ($remap_dlg_response eq 'yes') {
                 
-        # see if they want to try an automatic match to BaseData
-        # labels based on string distance. Only ask this if there is
-        # an active BaseData.
+        # ask if they want to auto remap
         my $remap_guess_response = 'no';
-        my $current_base_data = $gui->{project}->get_selected_base_data();
-        if(defined $current_base_data) {
-            $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
+        $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
                 header      => 'Try to automatically remap new tree labels?',
                 hide_cancel => 1,
-            });
-        }
+        });
+
 
         
         my %remap_data;
@@ -204,7 +200,7 @@ sub run {
         . "\n";
 
 
-    # try to guess a remap based on the current base data labels.
+    # If they wanted to auto remap, do that now.
     if ($auto_remap_flag) {
         my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
         foreach my $tree (@$phylogeny_array) {

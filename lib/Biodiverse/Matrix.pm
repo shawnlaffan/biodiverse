@@ -626,15 +626,48 @@ sub delete_all_elements {
 sub numerically {$a <=> $b};
 
 
-# wrapper around get_elements for the purpose of polymorphism in
+# wrapper around get_elements_as_array for the purpose of polymorphism in
 # the auto-remap logic.
 sub get_labels() {
     my $self = shift;
-    return $self->get_elements();
+    return $self->get_elements_as_array();
+}
+
+
+# takes a hash mapping names of elements currently in this matrix to
+# desired names, renames elements accordingly.
+sub remap_labels_from_hash {
+    my $self = shift;
+    my %remap_hash = @_;
+
+    my @old_names = keys(%remap_hash);
+    foreach my $old_name (@old_names) {
+        my $new_name = $remap_hash{$old_name};
+        $self->rename_element (
+            old_name => $old_name,
+            new_name => $new_name,
+            );
+    }
+    
+}
+
+
+sub rename_element {
+    my $self = shift;
+    my %args = %_;
+        
+    my $old_name = $args{"old_name"};
+    my $new_name = $args{"new_name"};
+
+    # TODO
+    # Actually do the renaming here
+    say("Matrix::rename_element not yet implemented!!");
 }
 
 
 1;
+
+
 
 
 __END__

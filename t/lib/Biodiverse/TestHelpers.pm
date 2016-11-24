@@ -826,9 +826,9 @@ sub run_indices_test1 {
         say scalar @$element_list2;
     }
     
-    my $tree = get_tree_object_from_sample_data();
+    my $tree = $args{tree_ref} || get_tree_object_from_sample_data();
 
-    my $matrix = get_matrix_object_from_sample_data();
+    my $matrix = $args{matrix_ref} || get_matrix_object_from_sample_data();
 
     if ($use_element_properties) {
         my $data;

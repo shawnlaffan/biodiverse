@@ -22,6 +22,7 @@ sub main {
         no strict 'refs';
         $sub->();
     }
+    #test_large_dataset();
     done_testing();
     return 0;
 }
@@ -141,7 +142,7 @@ sub test_large_dataset {
     # build the labels
     my @base_data_labels = ();
     my @tree_labels = ();
-    my $dataset_size = 10000;
+    my $dataset_size = 10;
 
     for my $i (0..$dataset_size) {
 	push(@base_data_labels, "genus:sp".$i);
@@ -186,4 +187,70 @@ sub test_edge_cases {
     # should be no errors
     is($@, "", "Handling empty lists.");
 
+}
+
+
+sub test_size_mismatch {
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels = ();
+    my $dataset_size = 10;
+
+    for my $i (0..$dataset_size) {
+	push(@base_data_labels, "genus:sp".$i);
+    }
+
+    for my $i (0..$dataset_size*2) {
+	push(@tree_labels, "genus_sp".$i);
+    }
+
+    
+    my $guesser = Biodiverse::RemapGuesser->new();
+	    
+    my %remap_results = $guesser->guess_remap({
+	"existing_labels" => \@base_data_labels, 
+	    "new_labels" => \@tree_labels
+    });
+
+    my %results = %{$remap_results{remap}};
+
+    
+    # ensure the remapping was correct
+    foreach my $i (1..$dataset_size) {
+	is($results{"genus_sp".$i}, "genus:sp".$i, 
+	   "genus_sp".$i." goes to "."genus:sp".$i);
+    }
+}
+
+
+sub test_size_mismatch2 {
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels = ();
+    my $dataset_size = 10;
+
+    for my $i (0..$dataset_size*2) {
+	push(@base_data_labels, "genus:sp".$i);
+    }
+
+    for my $i (0..$dataset_size) {
+	push(@tree_labels, "genus_sp".$i);
+    }
+
+    
+    my $guesser = Biodiverse::RemapGuesser->new();
+	    
+    my %remap_results = $guesser->guess_remap({
+	"existing_labels" => \@base_data_labels, 
+	    "new_labels" => \@tree_labels
+    });
+
+    my %results = %{$remap_results{remap}};
+
+    
+    # ensure the remapping was correct
+    foreach my $i (1..$dataset_size) {
+	is($results{"genus_sp".$i}, "genus:sp".$i, 
+	   "genus_sp".$i." goes to "."genus:sp".$i);
+    }
 }

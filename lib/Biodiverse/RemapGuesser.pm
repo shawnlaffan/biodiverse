@@ -92,13 +92,12 @@ sub guess_remap {
     my %quick_results = $self->attempt_quick_remap({
 	"existing_labels" => \@first_labels,
 	"new_labels" => \@second_labels,
-   });
+    });
     
     if($quick_results{success}) {
 	$quick_results{"quick"} = 1;
 	say "[RemapGuesser] generated a quick remap";
 	return wantarray ? %quick_results : \%quick_results;
-
     }
 
       
@@ -119,9 +118,30 @@ sub guess_remap {
 
     
     my $match_index;
-    foreach my $label (@second_labels) {
-        my $min_distance = distance($label, $first_labels[0]);
-        my $closest_label = $first_labels[0];
+
+
+    # if there are fewer labels in one list than the other, let the
+    # smaller list be in control of selection
+    my @chooser;
+    my @chosen;
+    my $swap;
+    if(scalar(@first_labels) < scalar(@second_labels)) {
+        say "[RemapGuesser]: Fewer existing labels, so let them choose.";
+        @chooser = @first_labels;
+        @chosen = @second_labels;
+        $swap = 1;
+    }
+    else {
+        say "[RemapGuesser]: The new labels get to choose.";
+        @chooser = @second_labels;
+        @chosen = @first_labels;
+        $swap = 0;
+    }
+
+
+    foreach my $label (@chooser) {
+        my $min_distance = distance($label, $chosen[0]);
+        my $closest_label = $chosen[0];
 	$match_index = 0;
 	   
 	# do the comparison ignoring leading and trailing
@@ -139,8 +159,8 @@ sub guess_remap {
 
 	
         # find the closest match
-        foreach my $i (0..$#first_labels) {
-	    my $comparison_label = $first_labels[$i];
+        foreach my $i (0..$#chosen) {
+	    my $comparison_label = $chosen[$i];
 	   
 	    my $stripped_comparison_label = $comparison_label;
 	    $stripped_comparison_label =~ s/^\s+|\s+$//g;
@@ -167,21 +187,24 @@ sub guess_remap {
 	$accepted_distance = $min_distance;
         $remap{$label} = $closest_label;
 
-	# now remove the match we made from first_labels
-	splice(@first_labels, $match_index, 1);
+	# now remove the match we made from chosen
+	splice(@chosen, $match_index, 1);
     }
 
     my $mean_distance;
 
     # need to check if it's 0 to protect from empty list being passed in
-    if($#second_labels+1 != 0) {
+    if($#chooser != 0) {
 	$mean_distance = $distance_sum/($#second_labels+1);
     }
     
 
     say "[RemapGuesser] generated a full remap";
 
-
+    if($swap) {
+        %remap = reverse %remap;
+    }
+    
     my %results = (
 	quick => 0,
 	furthest_dist => $furthest_distance,
@@ -199,13 +222,13 @@ sub guess_remap {
 sub attempt_quick_remap {
     my $class = shift;
     my $args = shift || {};
- 
-    my $first_ref = $args->{"existing_labels"};
-    my $second_ref = $args->{"new_labels"};
     
-    my @first_labels = @{$first_ref};
-    my @second_labels = @{$second_ref};
+    my @first_labels = @{$args->{"existing_labels"}};
+    my @second_labels = @{$args->{"new_labels"}};
 
+    #say @first_labels;
+    #say @second_labels;
+    
     # create a hash mapping no punct to original string
     my %no_punct_lookup;
     for my $original (@first_labels) {
@@ -232,6 +255,11 @@ sub attempt_quick_remap {
  	}
     }
 
+
+    #for my $k (keys %remap) {
+    #    my $map = $remap{$k};
+    #    say "attempt_quick_remap: $k -> $map";
+    #}
 
     my %results = (
 	success => $success,

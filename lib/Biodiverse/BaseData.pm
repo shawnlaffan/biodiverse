@@ -4765,6 +4765,14 @@ sub DESTROY {
 }
 
 
+sub remap_labels_from_hash {
+    say "BaseData::remap_labels_from_hash not yet implemented.";
+    return;
+}
+
+
+
+
 =head1 NAME
 
 Biodiverse::BaseData

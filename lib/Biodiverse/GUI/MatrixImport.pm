@@ -171,7 +171,7 @@ sub run {
         # ask if they want to auto remap
         my $remap_guess_response = 'no';
         $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-                header      => 'Try to automatically remap new tree labels?',
+                header      => 'Try to automatically remap labels?',
                 hide_cancel => 1,
         });
 

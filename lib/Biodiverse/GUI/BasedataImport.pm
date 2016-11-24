@@ -751,6 +751,27 @@ sub run {
                 my $response = Biodiverse::GUI::YesNoCancel->run({header => $message});
                 return if $response ne 'yes';
             }
+
+
+            #ask if they want to auto remap
+            my $remap_guess_response = 'no';
+            $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
+                header      => 'Try to automatically remap labels?',
+                hide_cancel => 1,
+            });
+        
+            if($remap_guess_response eq 'yes') {
+                my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+                foreach my $file (keys %multiple_brefs) {
+                    next if !$multiple_is_new{$file};
+                    $remapper->run_autoremap_gui(
+                        gui => $gui,
+                        data_source => $multiple_brefs{$file},
+                    );
+                }
+            }
+
+
             foreach my $file (keys %multiple_brefs) {
                 next if !$multiple_is_new{$file};
                 $gui->get_project->add_base_data($multiple_brefs{$file});

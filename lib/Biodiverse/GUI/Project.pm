@@ -1346,6 +1346,7 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_delete
                 menu_phylogeny_save
                 menu_phylogeny_rename
+                menu_phylogeny_auto_remap
                 menu_phylogeny_describe
                 menu_convert_phylogeny_to_matrix
                 menu_trim_tree_to_basedata

@@ -640,6 +640,8 @@ sub remap_labels_from_hash {
     my $self = shift;
     my %remap_hash = @_;
 
+    say "in remap_labels_from_hash";
+
     my @old_names = keys(%remap_hash);
     foreach my $old_name (@old_names) {
         my $new_name = $remap_hash{$old_name};
@@ -652,16 +654,44 @@ sub remap_labels_from_hash {
 }
 
 
+# renames element 'old_name' to 'new_name'
 sub rename_element {
     my $self = shift;
-    my %args = %_;
+    my %args = @_;
         
     my $old_name = $args{"old_name"};
     my $new_name = $args{"new_name"};
 
-    # TODO
-    # Actually do the renaming here
-    say("Matrix::rename_element not yet implemented!!");
+    my @all_elements = $self->get_elements_as_array();
+    
+    for my $element (@all_elements) {
+        my $exists = $self->element_pair_exists(element1 => $element, element2 => $old_name);
+        # pair is in correct order
+        if ($exists == 1) {
+            my $value = $self->get_value(element1 => $element, element2 => $old_name);
+            if($element eq $old_name) {
+                $self->add_element(element1 => $new_name, element2 => $new_name, value => $value);
+                $self->delete_element(element1 => $old_name, element2 => $old_name);
+            }
+            else {
+                $self->add_element(element1 => $element, element2 => $new_name, value => $value);
+                $self->delete_element(element1 => $element, element2 => $old_name);
+            }
+        }
+        # pair is in other order
+        elsif ($exists == 2) {
+            my $value = $self->get_value(element1 => $old_name, element2 => $element);
+            $self->add_element(element1 => $new_name, element2 => $element, value => $value);
+            $self->delete_element(element1 => $old_name, element2 => $element);
+        }
+        # pair doesn't exist
+        else {
+            # do nothing
+        }
+    }
+                       
+    
+
 }
 
 

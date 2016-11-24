@@ -445,6 +445,15 @@ Assumes a dissimilarity matrix, so take care.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_phylogeny_auto_remap">
+            <property name="name">menu_phylogeny_auto_remap</property>
+            <property name="tooltip" translatable="yes">Automatically remap labels to another data source.</property>
+            <property name="label" translatable="yes">Auto Remap</property>
+            <signal handler="on_phylogeny_auto_remap" name="activate"/>
+          </object>
+        </child>
+
+        <child>
           <object class="GtkAction" id="menu_phylogeny_delete_cached_values">
             <property name="name">menu_phylogeny_delete_cached_values</property>
             <property name="tooltip" translatable="yes">Clear any values cached on the tree.  Can reduce memory usage for large trees.</property>
@@ -719,6 +728,7 @@ This cannot be undone.  </property>
           <separator/>
           <menuitem action="menu_phylogeny_describe"/>
           <menuitem action="menu_phylogeny_rename"/>
+          <menuitem action="menu_phylogeny_auto_remap"/>
           <menuitem action="menu_phylogeny_delete_cached_values"/>
           <separator/>
           <menuitem action="menu_convert_phylogeny_to_matrix"/>

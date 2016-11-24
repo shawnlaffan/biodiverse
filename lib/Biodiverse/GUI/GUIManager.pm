@@ -1127,6 +1127,23 @@ sub do_rename_phylogeny {
     return;
 }
 
+sub do_auto_remap_phylogeny {
+    my $self = shift;
+    my $ref = $self->{project}->get_selected_phylogeny();
+    my $gui = $self;
+    
+    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    $remapper->run_autoremap_gui(
+        gui => $gui,
+        data_source => $ref,
+        );   
+
+    
+    return;
+}
+
+
+
 sub do_phylogeny_delete_cached_values {
     my $self = shift;
 

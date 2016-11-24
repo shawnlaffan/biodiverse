@@ -529,19 +529,3 @@ sub add_column {
 1;
 
 
-            # ask if they want to auto remap
-            # my $remap_guess_response = 'no';
-            # $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-            #     header      => 'Try to automatically remap labels?',
-            #     hide_cancel => 1,
-            # });
-        
-            # if($remap_guess_response eq 'yes') {
-            #     my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
-            #     foreach my $file (keys %multiple_brefs) {
-            #         $remapper->run_autoremap_gui(
-            #             gui => $gui,
-            #             data_source => $file,
-            #         );
-            #     }
-            # }

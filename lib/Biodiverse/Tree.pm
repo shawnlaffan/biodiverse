@@ -2508,13 +2508,14 @@ sub remap_labels_from_hash {
     my $self = shift;
     my %remap_hash = @_;
     foreach my $r (keys %remap_hash) {
-        my $this_node = $self->{TREE_BY_NAME}{$r};
-        $this_node->set_name(name => $remap_hash{$r});
+        my $newName = $remap_hash{$r};
 
-        if (!$self->exists_node (name => $this_node->get_name())) {
+        my $this_node = $self->{TREE_BY_NAME}{$r};
+        $this_node->set_name(name => $newName);
+
+        if (!$self->exists_node (name => $newName)) {
             $self->add_to_node_hash (node_ref => $this_node);
         }
-        
     }
 }
 

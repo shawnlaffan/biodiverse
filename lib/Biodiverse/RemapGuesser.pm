@@ -30,10 +30,6 @@ sub perform_auto_remap {
     my %remap_hash = %{$args->{"remap_hash"}};
     my $data_source = $args->{"data_source"};
 
-    for my $key (keys %remap_hash) {
-        say "$key -> $remap_hash{$key}";
-    }
-
     
     $data_source->remap_labels_from_hash(%remap_hash);
     return;

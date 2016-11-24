@@ -219,8 +219,7 @@ sub run {
         
         # select what data source they want to remap to
         my $choice = $sources[run_select_autoremap_target(\@names)];
-        
-        
+                
         my @existing_labels = $choice->get_labels();
         
         

@@ -2519,6 +2519,13 @@ sub remap_labels_from_hash {
 }
 
 
+# wrapper around get_named_nodes for the purpose of polymorphism in
+# the auto-remap logic.
+sub get_labels {
+    my $self = shift;
+    return keys ($self->get_named_nodes());
+}
+
 
 1;
 

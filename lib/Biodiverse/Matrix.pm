@@ -625,6 +625,15 @@ sub delete_all_elements {
 
 sub numerically {$a <=> $b};
 
+
+# wrapper around get_elements for the purpose of polymorphism in
+# the auto-remap logic.
+sub get_labels() {
+    my $self = shift;
+    return $self->get_elements();
+}
+
+
 1;
 
 

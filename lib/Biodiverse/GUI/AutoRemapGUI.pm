@@ -153,8 +153,9 @@ sub run_autoremap_gui {
             "new_data_source" => $tree,
                                                       });
     my %remap = %{$remap_results{remap}};
-    
+    my $warn = $remap_results{warn};
 
+    
     # debug output and user message
     my $remap_text = "\n\n";
     say "[Phylogeny Import] Generated the following guessed remap:";
@@ -171,6 +172,11 @@ sub run_autoremap_gui {
 
     say "etc.";
     $remap_text .= "etc.\n\n";
+
+    if ($warn) {
+        my $furthest_label = $remap_results{furthest_label};
+        $remap_text .= "WARNING: Biodiverse detected that this remapping required a large change in at least one label\n and so may not be accurate. ($furthest_label -> $remap{$furthest_label})\n\n";
+    }
     
     $remap_text .= "Accept this label remap?";
     

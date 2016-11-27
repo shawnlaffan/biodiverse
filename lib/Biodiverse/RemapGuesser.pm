@@ -14,6 +14,8 @@ use Text::Levenshtein qw(distance);
 
 our $VERSION = '1.99_006';
 
+# largest edit distance before user is shown a warning
+use constant MAX_DISTANCE => 3;
 
 sub new {
     my $class = shift;
@@ -55,7 +57,14 @@ sub generate_auto_remap {
     });
 
     my %remap = %{$remap_results{remap}};
-
+    my $furthest = $remap_results{furthest_dist};
+    my $furthest_label = $remap_results{furthest_label};
+    
+    # do we warn the user about a 'bad' match?
+    
+    my $warn = ($furthest > MAX_DISTANCE) ? 1 : 0;
+    #say "furthest: $furthest, warn: $warn";
+    
     #foreach my $m (keys %remap) {
     #    my $mapped_to = $remap{$m};
     #    say "generate_auto_remap: $m -> $mapped_to";
@@ -64,6 +73,8 @@ sub generate_auto_remap {
     
     my %results = (
 	remap => \%remap,
+        warn => $warn,
+        furthest_label => $furthest_label,
 	);
 
 
@@ -111,6 +122,7 @@ sub guess_remap {
     # also keep track of the furthest distance we have to accept,
     # and the mean distance, so we get an idea of how good this remap is.
     my $furthest_distance = 0;
+    my $furthest_label = "";
     my $distance_sum = 0;
 
     
@@ -182,7 +194,13 @@ sub guess_remap {
             }
         }
 
-        $furthest_distance = $min_distance if($min_distance > $furthest_distance);
+
+        if($min_distance >= $furthest_distance) {
+            $furthest_distance = $min_distance;
+            $furthest_label = $label;
+        }
+
+        
 	$distance_sum += $min_distance;
 	$accepted_distance = $min_distance;
         $remap{$label} = $closest_label;
@@ -201,19 +219,22 @@ sub guess_remap {
 
     say "[RemapGuesser] generated a full remap";
 
-    
+    # we need to swap the keys and values if the existing labels
+    # 'chose' from the new labels.
     if($swap) {
+        $furthest_label = $remap{$furthest_label};
+
         my %hash2;
         while ((my $key, my $value) = each %remap) {
             $hash2{$value}=$key;
         }
-
         %remap=%hash2;
     }
     
     my %results = (
 	quick => 0,
 	furthest_dist => $furthest_distance,
+        furthest_label => $furthest_label,
 	mean_dist => $mean_distance,
 	remap => \%remap,
 	);
@@ -269,9 +290,11 @@ sub attempt_quick_remap {
 
 
     #for my $k (keys %remap) {
-    #    my $map = $remap{$k};
-    #    say "attempt_quick_remap: $k -> $map";
+        #my $map = $remap{$k};
+        #say "attempt_quick_remap: $k -> $map";
     #}
+
+    
 
     my %results = (
 	success => $success,

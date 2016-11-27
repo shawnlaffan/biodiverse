@@ -154,33 +154,17 @@ sub run {
     return if !$column_settings;
 
 
-    #  do we need a remap table?
+    # see if they want to remap (auto or manual)
+    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    my %remap_dlg_results = %{$remapper->remap_dlg()};
+    my $remap_dlg_response = $remap_dlg_results{response};
+    my $auto_remap = ($remap_dlg_response eq 'yes') && ($remap_dlg_results{auto_remap});
     my $remap;
-    my $remap_response
-        = Biodiverse::GUI::YesNoCancel->run ({
-            title => 'Remap option',
-            text  => 'Remap element names and set include/exclude?'
-            }
-        );
-
-    return if lc $remap_response eq 'cancel';
-
-    my $auto_remap_flag = 0;
-    if (lc $remap_response eq 'yes') {
-
-        # ask if they want to auto remap
-        my $remap_guess_response = 'no';
-        $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-                header      => 'Try to automatically remap labels?',
-                hide_cancel => 1,
-        });
-
+    if ($remap_dlg_response eq 'yes') {
 
         my %remap_data;
-        if($remap_guess_response eq 'yes') {
-            $auto_remap_flag = 1;
-        }        
-        else {
+
+        if (!$auto_remap) {
             %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
             gui => $gui,
             type => 'remap',
@@ -226,7 +210,7 @@ sub run {
 
 
     # if they wanted to auto remap, do that now
-    if ($auto_remap_flag) {
+    if ($auto_remap) {
         my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
         $remapper->run_autoremap_gui(
             gui => $gui,

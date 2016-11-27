@@ -73,7 +73,8 @@ sub remap_dlg {
         response => $response,
         auto_remap => $auto,
         );
-    return \%results;
+    
+    return wantarray ? %results : \%results;
 
 }
 
@@ -105,7 +106,6 @@ sub run_select_autoremap_target {
         'Select Data Source',
         undef,
         'modal',
-        'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
     );
 

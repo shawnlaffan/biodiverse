@@ -102,29 +102,17 @@ sub run {
     }
 
 
-    
-    my $remap_dlg_response = Biodiverse::GUI::YesNoCancel->run({
-        header      => 'Remap tree labels?',
-        hide_cancel => 1,
-    });
+    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    my %remap_dlg_results = %{$remapper->remap_dlg()};
+    my $remap_dlg_response = $remap_dlg_results{response};
+    my $auto_remap = ($remap_dlg_response eq 'yes') && ($remap_dlg_results{auto_remap});
 
-    my $auto_remap_flag = 0;
     if ($remap_dlg_response eq 'yes') {
-                
-        # ask if they want to auto remap
-        my $remap_guess_response = 'no';
-        $remap_guess_response = Biodiverse::GUI::YesNoCancel->run({
-                header      => 'Try to automatically remap labels?',
-                hide_cancel => 1,
-        });
-
-
-        
         my %remap_data;
-        if($remap_guess_response eq 'yes') {
-            $auto_remap_flag = 1;
-        }
-        else {
+        
+        # if we do have an automatic remap, we do that after the main import.
+        # only process the manual remap stuff here.
+        if(!$auto_remap) {
             # no automatic remap, prompt for manual remap file
             %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info (
                 gui  => $gui,
@@ -201,8 +189,7 @@ sub run {
 
 
     # if they wanted to auto remap, do that now.
-    if ($auto_remap_flag) {
-        my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    if ($auto_remap) {
         foreach my $tree (@$phylogeny_array) {
             $remapper->run_autoremap_gui(
                 gui => $gui,

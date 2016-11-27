@@ -201,11 +201,6 @@ sub guess_remap {
 
     say "[RemapGuesser] generated a full remap";
 
-    for my $k (keys %remap) {
-        my $map = $remap{$k};
-        say "guess_remap before: $k -> $map";
-    }
-
     
     if($swap) {
         my %hash2;
@@ -223,10 +218,10 @@ sub guess_remap {
 	remap => \%remap,
 	);
   
-    for my $k (keys %remap) {
-        my $map = $remap{$k};
-        say "guess_remap after: $k -> $map";
-    }
+    #for my $k (keys %remap) {
+    #    my $map = $remap{$k};
+    #    say "guess_remap after: $k -> $map";
+    #}
 
   
     return wantarray ? %results : \%results;

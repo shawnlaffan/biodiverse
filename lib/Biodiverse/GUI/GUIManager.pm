@@ -1131,13 +1131,19 @@ sub do_auto_remap_phylogeny {
     my $self = shift;
     my $ref = $self->{project}->get_selected_phylogeny();
     my $gui = $self;
+
+
+
+    my $cloned_ref = $ref->clone();
     
     my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
     $remapper->run_autoremap_gui(
         gui => $gui,
-        data_source => $ref,
+        data_source => $cloned_ref,
         );   
 
+    $self->get_project()->delete_phylogeny();
+    $self->get_project()->add_phylogeny($cloned_ref);
     
     return;
 }

@@ -5,15 +5,78 @@ use strict;
 use warnings;
 use Gtk2;
 use Biodiverse::RemapGuesser qw/guess_remap/;
-
+use English( -no_match_vars);
 
 our $VERSION = '1.99_006';
+
+use Biodiverse::GUI::GUIManager;
+
+
 
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
     return $self;
 }
+
+
+
+sub remap_dlg {
+    my $cls = shift; #ignored
+    my $args = shift || {};
+    my $DLG_NAME = "dlgAutoRemap";
+
+    my $text = q{};
+    if (defined $args->{header}) {
+        #print "mode1\n";
+        $text .= '<b>'
+                . Glib::Markup::escape_text ($args->{header})
+                . '</b>';
+    }
+    if (defined $args->{text}) {
+        $text .= Glib::Markup::escape_text(
+            $args->{text}
+        );
+    }
+
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgAutoRemap.ui'));
+    my $dlg = $dlgxml->get_object($DLG_NAME);
+
+    # Put it on top of main window
+    $dlg->set_transient_for($gui->get_object('wndMain'));
+
+    # set the text
+    my $label = $dlgxml->get_object('lblText');
+
+    
+    $label->set_text("Remap labels?");
+    $dlg->set_title ("Remap labels?");
+
+
+    # Show the dialog
+    my $response = $dlg->run();
+    $dlg->destroy();
+
+    $response = 'cancel' if $response eq 'delete-event';
+    if (not ($response eq 'yes' or $response eq 'no' or $response eq 'cancel')) {
+        die "not yes/no/cancel: $response";
+    }
+
+    my $auto = $dlgxml->get_object("chkAuto")->get_active();
+
+    
+
+    my %results = (
+        response => $response,
+        auto_remap => $auto,
+        );
+    return \%results;
+
+}
+
 
 
 # given an array reference to a list of data source names (e.g. tree
@@ -120,18 +183,14 @@ sub run_autoremap_gui {
     if($accept_remap_dlg_response eq 'yes') {
         $guesser->perform_auto_remap({
             "remap_hash" => \%remap,
-                "data_source" => $tree,
-                                     });
+            "data_source" => $tree,
+    });
         
         say "Performed automatic remap.";
     }
     else {
         say "Declined automatic remap, no remap performed.";
     }
-    
-    
-
-
 }
 
 

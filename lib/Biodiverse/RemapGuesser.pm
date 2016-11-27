@@ -102,7 +102,8 @@ sub guess_remap {
     # look for simple punctuation match
     my %quick_results = $self->attempt_quick_remap({
 	"existing_labels" => \@first_labels,
-	"new_labels" => \@second_labels,
+        "new_labels" => \@second_labels,
+            
     });
     
     if($quick_results{success}) {
@@ -296,9 +297,15 @@ sub attempt_quick_remap {
 
     
 
+    
+    # TODO Implement tracking of furthest distance/label. Not really
+    # important because if the quick match ignoring punctuation works,
+    # the match is probably good anyway.
     my %results = (
 	success => $success,
 	remap => \%remap,
+        furthest_dist => 0,
+        furthest_label => "",
 	);
 
     return wantarray ? %results : \%results;

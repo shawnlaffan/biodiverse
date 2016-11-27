@@ -88,7 +88,6 @@ Do you want to continue?</property>
     <action-widgets>
       <action-widget response="-8">btnYes</action-widget>
       <action-widget response="-9">btnNo</action-widget>
-      <action-widget response="-6">btnCancel</action-widget>
     </action-widgets>
   </object>
 </interface>

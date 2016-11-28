@@ -85,6 +85,7 @@ Do you want to continue?</property>
 
       </object>
     </child>
+   
     <action-widgets>
       <action-widget response="-8">btnYes</action-widget>
       <action-widget response="-9">btnNo</action-widget>

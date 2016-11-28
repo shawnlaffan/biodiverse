@@ -14,8 +14,6 @@ use Text::Levenshtein qw(distance);
 
 our $VERSION = '1.99_006';
 
-# largest edit distance before user is shown a warning
-use constant MAX_DISTANCE => 3;
 
 sub new {
     my $class = shift;
@@ -45,7 +43,7 @@ sub generate_auto_remap {
     my $args = shift || {};
     my $first_source = $args->{"existing_data_source"};
     my $second_source = $args->{"new_data_source"};
-    
+    my $max_distance = $args->{"max_distance"};
 
     my @existing_labels = $first_source->get_labels();
     my @new_labels = $second_source->get_labels();
@@ -62,7 +60,7 @@ sub generate_auto_remap {
     
     # do we warn the user about a 'bad' match?
     
-    my $warn = ($furthest > MAX_DISTANCE) ? 1 : 0;
+    my $success = ($furthest > $max_distance) ? 0 : 1;
     #say "furthest: $furthest, warn: $warn";
     
     #foreach my $m (keys %remap) {
@@ -73,7 +71,7 @@ sub generate_auto_remap {
     
     my %results = (
 	remap => \%remap,
-        warn => $warn,
+        success => $success,
         furthest_label => $furthest_label,
 	);
 
@@ -275,12 +273,20 @@ sub attempt_quick_remap {
     # try to create a complete match
     my %remap;
     my $success = 1;
+
+    my $furthest_distance = 0;
+    my $furthest_label = "";
     foreach my $label (@second_labels) {
 	my $no_punct = $label;
 	$no_punct =~ s/[^\d\w]/_/g;
 
 	if(exists $no_punct_lookup{$no_punct}) {
 	    $remap{$label} = $no_punct_lookup{$no_punct};
+            my $distance = distance($label, $no_punct_lookup{$no_punct});
+            if($distance >= $furthest_distance) {
+                $furthest_distance = $distance;
+                $furthest_label = $label;
+            }
 	}
 	else {
 	    # couldn't find a match
@@ -298,14 +304,14 @@ sub attempt_quick_remap {
     
 
     
-    # TODO Implement tracking of furthest distance/label. Not really
-    # important because if the quick match ignoring punctuation works,
-    # the match is probably good anyway.
+
+
+
     my %results = (
 	success => $success,
 	remap => \%remap,
-        furthest_dist => 0,
-        furthest_label => "",
+        furthest_dist => $furthest_distance,
+        furthest_label => $furthest_label,
 	);
 
     return wantarray ? %results : \%results;

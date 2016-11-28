@@ -2517,7 +2517,11 @@ sub remap_labels_from_hash {
         if (!$self->exists_node (name => $newName)) {
             $self->add_to_node_hash (node_ref => $this_node);
         }
+
+        $this_node->delete_cached_values();
     }
+
+    
 }
 
 

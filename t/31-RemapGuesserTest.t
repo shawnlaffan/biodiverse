@@ -137,12 +137,11 @@ sub test_case_differences {
 
 
 # make sure it isn't too slow for a largish dataset
-# this should be done as a quick remap
 sub test_large_dataset {
     # build the labels
     my @base_data_labels = ();
     my @tree_labels = ();
-    my $dataset_size = 10;
+    my $dataset_size = 1000;
 
     for my $i (0..$dataset_size) {
 	push(@base_data_labels, "genus:sp".$i);

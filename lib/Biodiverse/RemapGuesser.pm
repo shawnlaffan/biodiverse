@@ -160,7 +160,11 @@ sub build_remap_stats {
 sub no_punct {
     my $self = shift;
     my $str = shift;
+    say "no_punct in: $str";
+    $str =~ s/^['"]//;
+    $str =~ s/['"]$//;
     $str =~ s/[^\d\w]/_/g;
+    say "no_punct out: $str";
     return $str;
 }
 
@@ -215,17 +219,22 @@ sub guess_remap {
 	$no_punct_hash{$self->no_punct($label)} = $label;
     }
 
+    say "no_punct_hash keys: ", keys %no_punct_hash;
+    
     # look for no punct matches for each of the unmatched new labels
     my @punct_matches = ();
     @unprocessed_new_labels = ();
     my %existing_labels_that_got_matched;
     foreach my $new_label (@new_labels) {
+        say "Looking in the no_punct_hash for $new_label";
         if(exists($no_punct_hash{$self->no_punct($new_label)})) {
+            say "Found it in there";
             $remap{$new_label} = $no_punct_hash{$self->no_punct($new_label)};
             push(@punct_matches, $new_label);
             $existing_labels_that_got_matched{$no_punct_hash{$self->no_punct($new_label)}} = 1;
         }
         else {
+            say "Couldn't find it in there";
             push(@unprocessed_new_labels, $new_label);
         }
     }

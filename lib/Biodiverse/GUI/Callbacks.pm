@@ -206,6 +206,9 @@ my %data_funcs = (
     on_basedata_auto_remap => {
         METHOD => 'do_auto_remap_basedata',
     },
+    on_matrix_auto_remap => {
+        METHOD => 'do_auto_remap_matrix',
+    },
     on_matrix_delete => {
         METHOD => 'do_delete_matrix',
     },

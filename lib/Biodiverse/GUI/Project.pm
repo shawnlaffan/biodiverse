@@ -1256,6 +1256,7 @@ sub manage_empty_basedatas {
         menu_randomisation
         menu_regiongrower
         menu_index
+        menu_basedata_auto_remap
         menu_delete_index
         menu_extract_embedded_trees
         menu_extract_embedded_matrices
@@ -1325,6 +1326,7 @@ sub set_matrix_buttons {
                 menu_matrix_delete
                 menu_matrix_save
                 menu_matrix_rename
+                menu_matrix_auto_remap
                 menu_matrix_describe
                 menu_matrix_export
                 menu_trim_matrix_to_basedata

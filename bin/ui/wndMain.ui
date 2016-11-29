@@ -181,8 +181,6 @@ labels become groups and groups become labels</property>
             <signal handler="on_merge_basedatas" name="activate"/>
           </object>
         </child>
-
-        
         <child>
           <object class="GtkAction" id="menu_basedata_auto_remap">
             <property name="name">menu_basedata_auto_remap</property>
@@ -191,8 +189,6 @@ labels become groups and groups become labels</property>
             <signal handler="on_basedata_auto_remap" name="activate"/>
           </object>
         </child>
-
-        
         <child>
           <object class="GtkAction" id="menu_rename_basedata_labels">
             <property name="name">menu_rename_basedata_labels</property>
@@ -325,6 +321,14 @@ Skips any matrices already in the project.</property>
             <property name="name">menu_matrices</property>
             <property name="tooltip" translatable="yes">Manipulate similarity matrices</property>
             <property name="label" translatable="yes">_Matrices</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkAction" id="menu_matrix_auto_remap">
+            <property name="name">menu_matrix_auto_remap</property>
+            <property name="tooltip" translatable="yes">Automatically remap labels to another data source.</property>
+            <property name="label" translatable="yes">Auto Remap</property>
+            <signal handler="on_matrix_auto_remap" name="activate"/>
           </object>
         </child>
         <child>
@@ -727,6 +731,7 @@ This cannot be undone.  </property>
           <separator/>
           <menuitem action="menu_matrix_describe"/>
           <menuitem action="menu_matrix_rename"/>
+          <menuitem action="menu_matrix_auto_remap"/>
           <separator/>
           <menuitem action="convert_matrix_to_phylogeny"/>
           <menuitem action="menu_trim_matrix_to_basedata"/>

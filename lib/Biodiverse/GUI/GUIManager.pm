@@ -1146,19 +1146,6 @@ sub do_auto_remap_phylogeny {
     return;
 }
 
-
-
-sub do_phylogeny_delete_cached_values {
-    my $self = shift;
-
-    my $object = $self->{project}->get_selected_phylogeny || return;
-    $object->get_root_node->delete_cached_values;
-
-    $self->set_dirty;
-
-    return;
-}
-
 sub do_auto_remap_basedata {
     my $self = shift;
     my $ref = $self->{project}->get_selected_basedata();
@@ -1177,6 +1164,39 @@ sub do_auto_remap_basedata {
     
     return;
 }
+
+sub do_auto_remap_matrix {
+    my $self = shift;
+    my $ref = $self->{project}->get_selected_matrix();
+    my $gui = $self;
+
+    my $cloned_ref = $ref->clone();
+    
+    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    $remapper->run_autoremap_gui(
+        gui => $gui,
+        data_source => $cloned_ref,
+        );   
+
+    $self->get_project()->delete_matrix();
+    $self->get_project()->add_matrix($cloned_ref);
+    
+    return;
+}
+
+
+
+sub do_phylogeny_delete_cached_values {
+    my $self = shift;
+
+    my $object = $self->{project}->get_selected_phylogeny || return;
+    $object->get_root_node->delete_cached_values;
+
+    $self->set_dirty;
+
+    return;
+}
+
 
 
 

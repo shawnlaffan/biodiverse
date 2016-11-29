@@ -48,7 +48,6 @@ sub generate_auto_remap {
     my @existing_labels = $first_source->get_labels();
     my @new_labels = $second_source->get_labels();
 
-
     my $remap_results = $self->guess_remap({
         "existing_labels" => \@existing_labels, 
             "new_labels" => \@new_labels
@@ -72,14 +71,14 @@ sub generate_auto_remap {
 
     my $remap_stats = $self->build_remap_stats($remap_results);
     my $stats = $remap_stats->{stats_string};
-
+    
     
     my %results = (
-	remap => \%remap,
+        remap => \%remap,
         success => $success,
         furthest_label => $furthest_label,
         stats => $stats,
-	);
+        );
 
 
     return wantarray ? %results : \%results;
@@ -216,7 +215,7 @@ sub guess_remap {
     # original value.
     my %no_punct_hash;
     for my $label (@existing_labels) {
-	$no_punct_hash{$self->no_punct($label)} = $label;
+        $no_punct_hash{$self->no_punct($label)} = $label;
     }
 
     #say "no_punct_hash keys: ", keys %no_punct_hash;

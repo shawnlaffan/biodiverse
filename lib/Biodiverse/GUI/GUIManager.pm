@@ -1132,8 +1132,6 @@ sub do_auto_remap_phylogeny {
     my $ref = $self->{project}->get_selected_phylogeny();
     my $gui = $self;
 
-
-
     my $cloned_ref = $ref->clone();
     
     my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
@@ -1160,6 +1158,29 @@ sub do_phylogeny_delete_cached_values {
 
     return;
 }
+
+sub do_auto_remap_basedata {
+    my $self = shift;
+    my $ref = $self->{project}->get_selected_basedata();
+    my $gui = $self;
+
+    my $cloned_ref = $ref->clone();
+    
+    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    $remapper->run_autoremap_gui(
+        gui => $gui,
+        data_source => $cloned_ref,
+        );   
+
+    $self->get_project()->delete_base_data();
+    $self->get_project()->add_base_data($cloned_ref);
+    
+    return;
+}
+
+
+
+
 
 sub do_describe_basedata {
     my $self = shift;

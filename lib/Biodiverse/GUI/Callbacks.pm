@@ -203,6 +203,9 @@ my %data_funcs = (
     on_phylogeny_auto_remap => {
         METHOD => 'do_auto_remap_phylogeny',
     },
+    on_basedata_auto_remap => {
+        METHOD => 'do_auto_remap_basedata',
+    },
     on_matrix_delete => {
         METHOD => 'do_delete_matrix',
     },

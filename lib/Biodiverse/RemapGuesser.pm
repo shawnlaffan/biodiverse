@@ -49,14 +49,14 @@ sub generate_auto_remap {
     my @new_labels = $second_source->get_labels();
 
 
-    my %remap_results = $self->guess_remap({
+    my $remap_results = $self->guess_remap({
         "existing_labels" => \@existing_labels, 
             "new_labels" => \@new_labels
     });
 
-    my %remap = %{$remap_results{remap}};
-    my $furthest = $remap_results{furthest_dist};
-    my $furthest_label = $remap_results{furthest_label};
+    my %remap = %{$remap_results->{remap}};
+    my $furthest = $remap_results->{furthest_dist};
+    my $furthest_label = $remap_results->{furthest_label};
     
     # do we warn the user about a 'bad' match?
     
@@ -68,11 +68,17 @@ sub generate_auto_remap {
     #    say "generate_auto_remap: $m -> $mapped_to";
     #}
 
+
+
+    my $remap_stats = $self->build_remap_stats($remap_results);
+    my $stats = $remap_stats->{stats_string};
+
     
     my %results = (
 	remap => \%remap,
         success => $success,
         furthest_label => $furthest_label,
+        stats => $stats,
 	);
 
 
@@ -80,8 +86,83 @@ sub generate_auto_remap {
 }
 
 
+# Function used by build_remap_stats. Takes in a list of keys and a
+# hash, returns a string showing a sample of how the list of keys is
+# mapped in the hash.
+ sub create_example_string {
+     my ($self, %args) = @_;
+
+     my %the_hash = %{$args{hash}};
+     my @the_keys = @{$args{keys}};
+
+     my $sample_size = (2 > $#the_keys) ? scalar($#the_keys) : 2;
+     if($sample_size < 0) {
+         return "";
+     }
+    
+     my $str = "\n(e.g. ";
+     foreach my $i (0..$sample_size) {
+         my $key = $the_keys[$i];
+         my $value = $the_hash{$key};
+         if($args{no_values}) {
+             $str .= "$key, ";
+         }
+         else {
+             $str .= "$key -> $value, ";
+         }
+     }
+     $str .= ")";
+     return $str;
+}
 
 
+
+# pass in the results of guess_remap, this builds and returns a string
+# describing what happened
+sub build_remap_stats {
+    my $self = shift;
+    my $args = shift || {};
+
+    my $stats = "\n";
+
+    my %remap = %{$args->{remap}};
+   
+    my @exact_matches = @{$args->{exact_matches}};
+    my @punct_matches = @{$args->{punct_matches}};
+    my @not_matched = @{$args->{not_matched}};
+    
+    my $exact_match_count = @{$args->{exact_matches}};
+    my $punct_match_count = @{$args->{punct_matches}};
+    my $not_matched_count = @{$args->{not_matched}};
+
+    $stats .= "Exact Matches: $exact_match_count";
+    $stats .= $self->create_example_string(hash => \%remap, keys => \@exact_matches);
+
+    $stats .= "\n\nPunctuation Matches: $punct_match_count";
+    $stats .= $self->create_example_string(hash => \%remap, keys => \@punct_matches);
+
+    $stats .= "\n\nNot Matched: $not_matched_count";
+    $stats .= $self->create_example_string(hash => \%remap, keys => \@not_matched, no_values=>1);
+
+    $stats .= "\n\n";
+       
+    my %results = (
+        stats_string => $stats,
+        );
+    
+    return wantarray ? %results : \%results;
+}
+
+
+
+# takes a string, returns it with non word/digit characters replaced
+# by underscores.
+sub no_punct {
+    my $self = shift;
+    my $str = shift;
+    $str =~ s/[^\d\w]/_/g;
+    return $str;
+}
 
     
 # takes in two references to arrays of labels (existing_labels and new_labels)
@@ -90,229 +171,117 @@ sub guess_remap {
     my $self = shift;
     my $args = shift || {};
 
-    my $first_ref = $args->{"existing_labels"};
-    my $second_ref = $args->{"new_labels"};
+    my @existing_labels = sort @{$args->{"existing_labels"}};
+    my @new_labels = sort @{$args->{"new_labels"}};
     
-    my @first_labels = sort @{$first_ref};
-    my @second_labels = sort @{$second_ref};
-
-
-    # look for simple punctuation match
-    my %quick_results = $self->attempt_quick_remap({
-	"existing_labels" => \@first_labels,
-        "new_labels" => \@second_labels,
-            
-    });
-    
-    if($quick_results{success}) {
-	$quick_results{"quick"} = 1;
-	say "[RemapGuesser] generated a quick remap";
-	return wantarray ? %quick_results : \%quick_results;
-    }
-
-      
     my %remap;
 
-    # assume that the labels have been uniformly deformed (i.e. they
-    # differ according to a pattern (or at least by the same
-    # distance))
-    my $assume_uniform_deformation = 1;
-    
-    # also keep track of the furthest distance we have to accept,
-    # and the mean distance, so we get an idea of how good this remap is.
-    my $furthest_distance = 0;
-    my $furthest_label = "";
-    my $distance_sum = 0;
-
-    
-    my $accepted_distance;
-
-    
-    my $match_index;
-
-
-    # if there are fewer labels in one list than the other, let the
-    # smaller list be in control of selection
-    my @chooser;
-    my @chosen;
-    my $swap;
-    if(scalar(@first_labels) < scalar(@second_labels)) {
-        say "[RemapGuesser]: Fewer existing labels, so let them choose.";
-        @chooser = @first_labels;
-        @chosen = @second_labels;
-        $swap = 1;
-    }
-    else {
-        say "[RemapGuesser]: The new labels get to choose.";
-        @chooser = @second_labels;
-        @chosen = @first_labels;
-        $swap = 0;
+    ################################################################
+    # step 1: find exact matches
+    my @unprocessed_new_labels = ();
+    my @exact_matches = ();
+    my %existing_labels_hash = map {$_ => 1} @existing_labels;
+    foreach my $new_label (@new_labels) {
+        if(exists($existing_labels_hash{$new_label})) {
+            $remap{$new_label} = $new_label;
+            push(@exact_matches, $new_label);
+        }
+        else {
+            push(@unprocessed_new_labels, $new_label);
+        }
     }
 
-
-    foreach my $label (@chooser) {
-        my $min_distance = distance($label, $chosen[0]);
-        my $closest_label = $chosen[0];
-	$match_index = 0;
-	   
-	# do the comparison ignoring leading and trailing
-	# whitespace as this can cause match issues e.g. 'sp1 ' is
-	# just as close to 'sp10' as 'sp1'
-	my $stripped_label = $label;
-	$stripped_label =~ s/^\s+|\s+$//g;
-	
-	# also do the comparison ignoring case because it seems
-	# unlikely that someone would intentionally use case to
-	# distinguish between labels, whereas having two versions
-	# of the same data with different case conventions seems
-	# more likely. e.g. GenusSpecies1 -> genus_species1
-	$stripped_label = lc($stripped_label);
-
-	
-        # find the closest match
-        foreach my $i (0..$#chosen) {
-	    my $comparison_label = $chosen[$i];
-	   
-	    my $stripped_comparison_label = $comparison_label;
-	    $stripped_comparison_label =~ s/^\s+|\s+$//g;
-
-	    $stripped_comparison_label = lc($stripped_comparison_label);
-
-            my $this_distance = distance($stripped_label, $stripped_comparison_label);
-            if($this_distance <= $min_distance) {
-                $min_distance = $this_distance;
-                $closest_label = $comparison_label;
-		$match_index = $i;
-
-		# if we've previously accepted a match of this distance
-		# and we're assuming uniform deformation, we can end the run here.
-		if($assume_uniform_deformation && defined $accepted_distance
-		   && $this_distance == $accepted_distance) {
-		    last;
-		}
-            }
+    # and now remove any existing labels that were exact matched
+    my @unprocessed_existing_labels = ();
+    foreach my $existing_label (@existing_labels) {
+        # we can just look in the keys since they were exact matches
+        if(!exists($remap{$existing_label})) {
+            push(@unprocessed_existing_labels, $existing_label);
         }
+    }
 
+    
+    @new_labels = @unprocessed_new_labels;
+    @existing_labels = @unprocessed_existing_labels;
+   
 
-        if($min_distance >= $furthest_distance) {
-            $furthest_distance = $min_distance;
-            $furthest_label = $label;
+    ################################################################
+    # step 2: find punctuation-less matches e.g. a:b matches a_b 
+
+    # build the hash mapping punctuation-less existing labels to their
+    # original value.
+    my %no_punct_hash;
+    for my $label (@existing_labels) {
+	$no_punct_hash{$self->no_punct($label)} = $label;
+    }
+
+    # look for no punct matches for each of the unmatched new labels
+    my @punct_matches = ();
+    @unprocessed_new_labels = ();
+    my %existing_labels_that_got_matched;
+    foreach my $new_label (@new_labels) {
+        if(exists($no_punct_hash{$self->no_punct($new_label)})) {
+            $remap{$new_label} = $no_punct_hash{$self->no_punct($new_label)};
+            push(@punct_matches, $new_label);
+            $existing_labels_that_got_matched{$no_punct_hash{$self->no_punct($new_label)}} = 1;
         }
+        else {
+            push(@unprocessed_new_labels, $new_label);
+        }
+    }
 
+    # now remove existing labels that were punct matched
+    @unprocessed_existing_labels = ();
+    foreach my $existing_label (@existing_labels) {
+        if(!exists($existing_labels_that_got_matched{$existing_label})) {
+            push(@unprocessed_existing_labels, $existing_label);
+        }
+    }
+
+    @new_labels = @unprocessed_new_labels;
+    @existing_labels = @unprocessed_existing_labels;
+
+
+    ################################################################
+    # step 3: more complex mappings e.g. string distance can go here
+    
+
+
+
+    
+
+
+    ################################################################
+    # step 4: now figure out the max distance and corresponding 'max
+    # string'
+    my $max_distance = 0;
+    my $max_label = "";
+    for my $label (keys %remap) {
+        my $distance = distance($label, $remap{$label});
+        if($distance >= $max_distance) {
+            $max_distance = $distance;
+            $max_label = $label;
+        }
+    }
+
+
+
+    # There may be some 'not matched' strings which will cause
+    # problems if they don't have a corresponding remap hash entry.
+    # put them in the hash.
+    foreach my $label (@new_labels) {
+        $remap{$label} = $label;
+    }
+    
         
-	$distance_sum += $min_distance;
-	$accepted_distance = $min_distance;
-        $remap{$label} = $closest_label;
-
-	# now remove the match we made from chosen
-	splice(@chosen, $match_index, 1);
-    }
-
-    my $mean_distance;
-
-    # need to check if it's 0 to protect from empty list being passed in
-    if($#chooser != 0) {
-	$mean_distance = $distance_sum/($#second_labels+1);
-    }
-    
-
-    say "[RemapGuesser] generated a full remap";
-
-    # we need to swap the keys and values if the existing labels
-    # 'chose' from the new labels.
-    if($swap) {
-        $furthest_label = $remap{$furthest_label};
-
-        my %hash2;
-        while ((my $key, my $value) = each %remap) {
-            $hash2{$value}=$key;
-        }
-        %remap=%hash2;
-    }
-    
     my %results = (
-	quick => 0,
-	furthest_dist => $furthest_distance,
-        furthest_label => $furthest_label,
-	mean_dist => $mean_distance,
-	remap => \%remap,
-	);
-  
-    #for my $k (keys %remap) {
-    #    my $map = $remap{$k};
-    #    say "guess_remap after: $k -> $map";
-    #}
-
-  
-    return wantarray ? %results : \%results;
-}
-
-
-
-# tries to quickly match two lists of labels that differ only in
-# punctuation/whitespace (not letters or digits)
-sub attempt_quick_remap {
-    my $class = shift;
-    my $args = shift || {};
-    
-    my @first_labels = @{$args->{"existing_labels"}};
-    my @second_labels = @{$args->{"new_labels"}};
-
-    #say @first_labels;
-    #say @second_labels;
-    
-    # create a hash mapping no punct to original string
-    my %no_punct_lookup;
-    for my $original (@first_labels) {
-	my $fixed = $original;
-	$fixed =~ s/[^\d\w]/_/g;
-	$no_punct_lookup{$fixed} = $original;
-    }
-        
-
-    # try to create a complete match
-    my %remap;
-    my $success = 1;
-
-    my $furthest_distance = 0;
-    my $furthest_label = "";
-    foreach my $label (@second_labels) {
-	my $no_punct = $label;
-	$no_punct =~ s/[^\d\w]/_/g;
-
-	if(exists $no_punct_lookup{$no_punct}) {
-	    $remap{$label} = $no_punct_lookup{$no_punct};
-            my $distance = distance($label, $no_punct_lookup{$no_punct});
-            if($distance >= $furthest_distance) {
-                $furthest_distance = $distance;
-                $furthest_label = $label;
-            }
-	}
-	else {
-	    # couldn't find a match
-	    $success = 0;
-	    last;
- 	}
-    }
-
-
-    #for my $k (keys %remap) {
-        #my $map = $remap{$k};
-        #say "attempt_quick_remap: $k -> $map";
-    #}
-
-    
-
-    
-
-
-
-    my %results = (
-	success => $success,
-	remap => \%remap,
-        furthest_dist => $furthest_distance,
-        furthest_label => $furthest_label,
-	);
+        remap => \%remap,
+        exact_matches => \@exact_matches,
+        punct_matches => \@punct_matches,
+        not_matched => \@new_labels,
+        furthest_dist => $max_distance,
+        furthest_label => $max_label,
+        );
 
     return wantarray ? %results : \%results;
 }

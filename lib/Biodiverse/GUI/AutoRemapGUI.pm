@@ -183,25 +183,14 @@ sub run_autoremap_gui {
                                                       });
     my %remap = %{$remap_results{remap}};
     my $success = $remap_results{success};
-
+    my $statsString = $remap_results{stats};
 
     if($success) {
         # debug output and user message
-        my $remap_text = "\n\n";
-        say "[Phylogeny Import] Generated the following guessed remap:";
+        my $remap_text = "\n\n";      
+
+        $remap_text .= $statsString;
         
-        # 5 is an arbitrary constant, seems enough to get a sense for the mapping.
-        # is there a place where we put constant/configuration values?
-        my $how_many_remaps_to_show_as_sample = 5;
-        my $count = 0;
-        foreach my $r (sort keys %remap) {
-            $remap_text .= "$r -> $remap{$r}\n";
-            say "$r -> $remap{$r}";
-            last if ++$count >= $how_many_remaps_to_show_as_sample;
-        }
-        
-        say "etc.";
-        $remap_text .= "etc.\n\n";
         $remap_text .= "Accept this label remap?";
         
         my $accept_remap_dlg_response = Biodiverse::GUI::YesNoCancel->run({

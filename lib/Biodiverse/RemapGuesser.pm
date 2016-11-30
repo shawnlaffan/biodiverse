@@ -48,15 +48,19 @@ sub generate_auto_remap {
 
     my $remap_results = $self->guess_remap({
         "existing_labels" => \@existing_labels, 
-            "new_labels" => \@new_labels
+            "new_labels" => \@new_labels,
+            "max_distance" => $max_distance,
     });
 
     my %remap = %{$remap_results->{remap}};
-    my $furthest = $remap_results->{furthest_dist};
-    my $furthest_label = $remap_results->{furthest_label};
-    
+
   
-    my $success = ($furthest > $max_distance) ? 0 : 1;
+    #my $success = ($furthest > $max_distance) ? 0 : 1;
+
+    # TODO remove whole concept of 'success'
+    # matches which exceed the distance just get 'not matched'
+    my $success = 1;
+    
     
     #foreach my $m (keys %remap) {
     #    my $mapped_to = $remap{$m};
@@ -65,10 +69,9 @@ sub generate_auto_remap {
    
     my %results = (
         remap => \%remap,
-        success => $success,
-        furthest_label => $furthest_label,
         exact_matches => $remap_results->{exact_matches},
         punct_matches => $remap_results->{punct_matches},
+        typo_matches => $remap_results->{typo_matches},
         not_matched => $remap_results->{not_matched},
         );
 
@@ -164,7 +167,8 @@ sub guess_remap {
 
     ################################################################
     # step 2: find punctuation-less matches e.g. a:b matches a_b 
-
+    # currently exempt from checking for the max distance
+    
     # build the hash mapping punctuation-less existing labels to their
     # original value.
     my %no_punct_hash;
@@ -205,29 +209,51 @@ sub guess_remap {
 
 
     ################################################################
-    # step 3: more complex mappings e.g. string distance can go here
+    # step 3: edit distance based matching (try to catch typos).  For
+    # each of the as yet unmatched new labels, find the closest match
+    # in the old labels. If it is under the threshold, add it as a
+    # match.
+
+    @unprocessed_new_labels = ();
+    my $max_distance = $args->{max_distance};
+    my @typo_matches = ();
     
-
-
-
-    
-
-
-    ################################################################
-    # step 4: now figure out the max distance and corresponding 'max
-    # string'
-    my $max_distance = 0;
-    my $max_label = "";
-    for my $label (keys %remap) {
-        my $distance = distance($label, $remap{$label});
-        if($distance >= $max_distance) {
-            $max_distance = $distance;
-            $max_label = $label;
+    foreach my $new (@new_labels) {
+        my $min_distance = $max_distance + 1;
+        my $min_label = "";
+        
+        foreach my $old (@existing_labels) {
+            my $distance = distance( $new, $old );
+            if( $distance <= $min_distance ) {
+                $min_distance = $distance;
+                $min_label = $old;
+            }
         }
+
+        if($min_distance <= $max_distance) {
+            # we found a legitimate match
+            $remap{$new} = $min_label;
+
+            # for now, don't delete the match from existing labels,
+            # because if we're trying to catch typos, there might be
+            # multiple 'labels' (really typos) in the new data that
+            # need to be remapped to the same label in the existing
+            # data.
+
+            push( @typo_matches, $new );
+        }
+        else {
+            push( @unprocessed_new_labels, $new );
+        }        
     }
+    
 
 
+    @new_labels = @unprocessed_new_labels;
 
+    
+
+    #######################
     # There may be some 'not matched' strings which will cause
     # problems if they don't have a corresponding remap hash entry.
     # put them in the hash.
@@ -240,9 +266,8 @@ sub guess_remap {
         remap => \%remap,
         exact_matches => \@exact_matches,
         punct_matches => \@punct_matches,
+        typo_matches => \@typo_matches,
         not_matched => \@new_labels,
-        furthest_dist => $max_distance,
-        furthest_label => $max_label,
         );
 
     return wantarray ? %results : \%results;

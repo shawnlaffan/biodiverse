@@ -174,52 +174,43 @@ sub perform_remap {
 
     # we were able to generate a mapping under the distance threshold,
     # now show them what it is and let them choose which parts to keep
-    if ($success) {
-        my %remap_results_response = %{$self->remap_results_dialog(%remap_results)};
-        my $response = $remap_results_response{response};
+    my %remap_results_response = %{$self->remap_results_dialog(%remap_results)};
+    my $response = $remap_results_response{response};
 
 
-        # now build the remap we actually want to perform
-        # remove parts which aren't enabled
-        if(!$remap_results_response{punct_match_enabled}) {
-            my @punct_matches = @{$remap_results{punct_matches}};
-            foreach my $key (@punct_matches) {
-                delete $remap{$key};
-                say "RemapGUI: deleted $key because it was punct matched";
-            }
-        }
-
-        # TODO we could probably remove exact matches and not matches here as well
-            
-        if ( $response eq 'yes' ) {
-            $guesser->perform_auto_remap(
-                remap => \%remap,
-                new_source => $new_source,
-                );
-
-            say "Performed automatic remap.";
-        }
-        else {
-            say "Declined automatic remap, no remap performed.";
+    # now build the remap we actually want to perform
+    # remove parts which aren't enabled
+    if(!$remap_results_response{punct_match_enabled}) {
+        my @punct_matches = @{$remap_results{punct_matches}};
+        foreach my $key (@punct_matches) {
+            delete $remap{$key};
+            #say "RemapGUI: deleted $key because it was punct matched";
         }
     }
 
-    # we couldn't find a match that stayed under their max distance
+    if(!$remap_results_response{typo_match_enabled}) {
+        my @typo_matches = @{$remap_results{typo_matches}};
+        foreach my $key (@typo_matches) {
+            delete $remap{$key};
+            #say "RemapGUI: deleted $key because it was typo matched";
+        }
+    }
+
+    # TODO we could probably remove exact matches and not matches here as well
+
+    
+    if ( $response eq 'yes' ) {
+        $guesser->perform_auto_remap(
+            remap => \%remap,
+            new_source => $new_source,
+            );
+
+        say "Performed automatic remap.";
+    }
     else {
-        say "Remap failed with distance $max_distance.";
-
-        my $failed_remap_response = Biodiverse::GUI::YesNoCancel->run(
-            {
-                title => 'Auto Remap Failed',
-                text =>
-"\nCouldn't generate a remap with max distance under $max_distance",
-                hide_cancel => 1,
-                yes_is_ok   => 1,
-                hide_no     => 1,
-            }
-        );
-
+        say "Declined automatic remap, no remap performed.";
     }
+    
 }
 
 
@@ -290,6 +281,40 @@ sub remap_results_dialog {
 
 
 
+    ###
+    # Typo matches
+    my $typo_match_str = "";
+    my @typo_matches = @{$args{typo_matches}};
+    foreach my $match (@typo_matches) {
+        $typo_match_str .= "$match -> $remap{$match}\n";
+    }
+
+    my $typo_match_count = @typo_matches;
+
+    
+    my $typo_match_label = Gtk2::Label->new("$typo_match_count Typo Matches:");
+    
+    my $typo_match_buffer = Gtk2::TextBuffer->new();
+    $typo_match_buffer->set_text($typo_match_str);
+    my $typo_match_textview = Gtk2::TextView->new_with_buffer($typo_match_buffer);
+
+    # if you set this to true, they can edit the textbox; could be
+    # useful in the future for allowing full custom remapping here
+    $typo_match_textview->set_editable(0);
+    
+    my $typo_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
+    $typo_match_scroll->set_size_request(300, 100);
+    $typo_match_scroll->add($typo_match_textview);
+
+    my $typo_match_checkbutton = Gtk2::CheckButton->new("Enable");
+    $typo_match_checkbutton->set_active(1);
+    $typo_match_checkbutton->signal_connect(toggled => sub {
+        $typo_match_textview->set_sensitive(!$typo_match_textview->get_sensitive);
+        $typo_match_label->set_sensitive(!$typo_match_label->get_sensitive);
+    });
+
+    
+
 
     ###
     # Not matched
@@ -339,6 +364,10 @@ sub remap_results_dialog {
     $vbox->pack_start( $punct_match_label, 0, 1, 0 );
     $vbox->pack_start( $punct_match_checkbutton, 0, 1, 0);
     $vbox->pack_start( $punct_match_scroll, 0, 1, 0 );
+   
+    $vbox->pack_start( $typo_match_label, 0, 1, 0 );
+    $vbox->pack_start( $typo_match_checkbutton, 0, 1, 0);
+    $vbox->pack_start( $typo_match_scroll, 0, 1, 0 );
 
 
     
@@ -351,14 +380,13 @@ sub remap_results_dialog {
     $dlg->show_all;
 
     my $response = $dlg->run();
-    my $punct_match_enabled = $punct_match_checkbutton->get_active;
-
     
     $dlg->destroy();
 
     my %results = (
         response => $response,
-        punct_match_enabled => $punct_match_enabled,
+        punct_match_enabled => $punct_match_checkbutton->get_active,
+        typo_match_enabled => $typo_match_checkbutton->get_active,
         );
     
     return wantarray ? %results : \%results;

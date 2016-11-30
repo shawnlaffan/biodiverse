@@ -802,24 +802,36 @@ sub run {
                 return if $response ne 'yes';
             }
 
-            #ask if they want to auto remap
-            my $remap_guess_response = 'no';
-            $remap_guess_response = Biodiverse::GUI::YesNoCancel->run(
-                {
-                    header      => 'Try to automatically remap labels?',
-                    hide_cancel => 1,
-                }
-            );
+            # ask if they want to auto remap
 
-            if ( $remap_guess_response eq 'yes' ) {
+
+            # run the remap gui, get all their decisions in one go
+            my $remapper           = Biodiverse::GUI::RemapGUI->new();
+            my %remap_dlg_results  = %{ $remapper->run_remap_gui(gui => $gui) };
+
+            # will be 'auto' 'manual' or 'none'
+            my $remap_type = $remap_dlg_results{remap_type};
+
+
+
+            if ( $remap_type eq 'auto' ) {
                 my $remapper = Biodiverse::GUI::RemapGUI->new();
                 foreach my $file ( keys %multiple_brefs ) {
-                    next if !$multiple_is_new{$file};
-                    $remapper->run_autoremap_gui(
-                        gui         => $gui,
-                        data_source => $multiple_brefs{$file},
+                    #next if !$multiple_is_new{$file};
+
+                    my $old_source = $remap_dlg_results{datasource_choice};
+                    my $max_distance = $remap_dlg_results{max_distance};
+
+                    $remapper->perform_remap(
+                        gui          => $gui,
+                        new_source   => $multiple_brefs{$file},
+                        old_source   => $old_source,
+                        max_distance => $max_distance,
                     );
                 }
+            }
+            elsif ( $remap_type eq 'manual' ) {
+                say "[BasedataImport] Manual remapping at import time not yet implemented.";
             }
 
             foreach my $file ( keys %multiple_brefs ) {

@@ -66,9 +66,9 @@ sub run {
         PARENT_COL         => 'Parent node',
     );
 
-# Process fields produced by get_column_use.  The key of each import_fields entry
-# will be the label passed to get_column_use, ie the text display of each field.
-# Create a different mapping from the identifier (eg NODENUM) to the column.
+    # Process fields produced by get_column_use.  The key of each import_fields entry
+    # will be the label passed to get_column_use, ie the text display of each field.
+    # Create a different mapping from the identifier (eg NODENUM) to the column.
     my %field_map;
     my $import_fields;
     if ($use_tabular_format) {
@@ -92,25 +92,26 @@ sub run {
         #say '';
     }
 
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{ $remapper->remap_dlg() };
-    my $remap_dlg_response = $remap_dlg_results{response};
-    my $auto_remap =
-      ( $remap_dlg_response eq 'yes' ) && ( $remap_dlg_results{auto_remap} );
 
-    if ( $remap_dlg_response eq 'yes' ) {
+    # run the remap gui, get all their decisions in one go
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
+    my %remap_dlg_results  = %{ $remapper->run_remap_gui(gui => $gui) };
+
+    # will be 'auto' 'manual' or 'none'
+    my $remap_type = $remap_dlg_results{remap_type};
+
+
+    # manual remap procedure
+    if ( $remap_type eq "manual" ) {
         my %remap_data;
 
-        # if we do have an automatic remap, we do that after the main import.
-        # only process the manual remap stuff here.
-        if ( !$auto_remap ) {
-            # no automatic remap, prompt for manual remap file
-            %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-                gui          => $gui,
-                type         => 'label',
-                get_dir_from => $filename,
-            );
-        }
+        # no automatic remap, prompt for manual remap file
+        %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
+            gui          => $gui,
+            type         => 'label',
+            get_dir_from => $filename,
+        );
+
 
         #  now do something with them...
         my $remap;
@@ -175,11 +176,17 @@ sub run {
       . join( ', ', @names ) . "\n";
 
     # if they wanted to auto remap, do that now.
-    if ($auto_remap) {
+    if ($remap_type eq "auto") {
+
+        my $old_source = $remap_dlg_results{datasource_choice};
+        my $max_distance = $remap_dlg_results{max_distance};
+        
         foreach my $tree (@$phylogeny_array) {
-            $remapper->run_autoremap_gui(
+            $remapper->perform_remap(
                 gui         => $gui,
-                data_source => $tree,
+                new_source => $tree,
+                old_source => $old_source,
+                max_distance => $max_distance,
             );
         }
     }

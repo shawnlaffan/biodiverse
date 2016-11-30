@@ -158,24 +158,24 @@ sub run {
 
     return if !$column_settings;
 
-    # see if they want to remap (auto or manual)
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{ $remapper->remap_dlg() };
-    my $remap_dlg_response = $remap_dlg_results{response};
-    my $auto_remap =
-      ( $remap_dlg_response eq 'yes' ) && ( $remap_dlg_results{auto_remap} );
-    my $remap;
-    if ( $remap_dlg_response eq 'yes' ) {
 
+    # run the remap gui, get all their decisions in one go
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
+    my %remap_dlg_results  = %{ $remapper->run_remap_gui(gui => $gui) };
+
+    # will be 'auto' 'manual' or 'none'
+    my $remap_type = $remap_dlg_results{remap_type};
+    
+    my $remap;
+    if ( $remap_type eq "manual" ) {
         my %remap_data;
 
-        if ( !$auto_remap ) {
-            %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-                gui          => $gui,
-                type         => 'remap',
-                get_dir_from => $filename,
-            );
-        }
+        %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
+            gui          => $gui,
+            type         => 'remap',
+            get_dir_from => $filename,
+        );
+
 
         #  now do something with them...
         if ( $remap_data{file} ) {
@@ -215,13 +215,17 @@ sub run {
     );
 
     # if they wanted to auto remap, do that now
-    if ($auto_remap) {
-        my $remapper = Biodiverse::GUI::RemapGUI->new();
-        $remapper->run_autoremap_gui(
-            gui         => $gui,
-            data_source => $matrix_ref,
-        );
+    if ($remap_type eq "auto") {
 
+        my $old_source = $remap_dlg_results{datasource_choice};
+        my $max_distance = $remap_dlg_results{max_distance};
+        
+        $remapper->perform_remap(
+                gui         => $gui,
+                new_source => $matrix_ref,
+                old_source => $old_source,
+                max_distance => $max_distance,
+            );
     }
 
     $gui->get_project->add_matrix($matrix_ref);

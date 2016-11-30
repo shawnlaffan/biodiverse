@@ -18,151 +18,142 @@ sub new {
     return $self;
 }
 
-sub remap_dlg {
-    my $self     = shift;
-    my $args     = shift || {};
-    my $DLG_NAME = "dlgAutoRemap";
 
-    my $text = q{};
-    if ( defined $args->{header} ) {
-
-        #print "mode1\n";
-        $text .= '<b>' . Glib::Markup::escape_text( $args->{header} ) . '</b>';
-    }
-    if ( defined $args->{text} ) {
-        $text .= Glib::Markup::escape_text( $args->{text} );
-    }
-
-    my $gui = Biodiverse::GUI::GUIManager->instance;
-
-    my $dlgxml = Gtk2::Builder->new();
-    $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgAutoRemap.ui') );
-    my $dlg = $dlgxml->get_object($DLG_NAME);
-
-    # Put it on top of main window
-    $dlg->set_transient_for( $gui->get_object('wndMain') );
-
-    # set the text
-    my $label = $dlgxml->get_object('lblText');
-
-    $label->set_text("Remap labels?");
-    $dlg->set_title("Remap labels?");
-
-    # Show the dialog
-    my $response = $dlg->run();
-    $dlg->destroy();
-
-    $response = 'cancel' if $response eq 'delete-event';
-    if (
-        not( $response eq 'yes' or $response eq 'no' or $response eq 'cancel' )
-      )
-    {
-        die "not yes/no/cancel: $response";
-    }
-
-    my $auto = $dlgxml->get_object("chkAuto")->get_active();
-
-    my %results = (
-        response   => $response,
-        auto_remap => $auto,
-    );
-
-    return wantarray ? %results : \%results;
-
-}
-
-# given an array reference to a list of data source names (e.g. tree
-# names, basedata names etc.), allows the user to select one and
-# returns the index of the item selected (needs to be index to avoid
-# name clashes)
-sub run_select_autoremap_target {
-    my $self = shift;
-    my $args = shift || {};
-
-    my @options = @{ $args->{'options'} };
-
-    my $combo = Gtk2::ComboBox->new_text;
-
-    foreach my $option (@options) {
-        $combo->append_text($option);
-    }
-
-    $combo->set_active(0);
-    $combo->show_all;
-    $combo->set_tooltip_text('Choose a data source to remap the labels to.');
-
-    my $label =
-      Gtk2::Label->new('Choose a data source to remap the labels to:');
-
-    my $dlg = Gtk2::Dialog->new_with_buttons( 'Select Data Source',
-        undef, 'modal', 'gtk-ok' => 'ok', );
-
-    my $labelTheSecond = Gtk2::Label->new('Maximum acceptable distance:');
-
-    my $adjustment = Gtk2::Adjustment->new( 2, 0, 20, 1, 10, 0 );
-    my $spinner = Gtk2::SpinButton->new( $adjustment, 1, 0 );
-
-    my $vbox = $dlg->get_content_area;
-
-    my $hbox = Gtk2::HBox->new();
-    $hbox->pack_start( $label, 0, 1, 0 );
-    $hbox->pack_start( $combo, 0, 1, 10 );
-    $vbox->pack_start( $hbox,  0, 0, 0 );
-
-    $hbox = Gtk2::HBox->new();
-    $hbox->pack_start( $labelTheSecond, 0, 1, 0 );
-    $hbox->pack_start( $spinner,        0, 1, 10 );
-    $vbox->pack_start( $hbox,           0, 0, 0 );
-
-    $dlg->show_all;
-
-    my $response = $dlg->run();
-    $dlg->destroy();
-
-    my $max_distance = $spinner->get_value_as_int();
-    say "max_distance was $max_distance (from the spinner)";
-
-    my %results = (
-        selection    => $combo->get_active,
-        max_distance => $max_distance,
-    );
-
-    return wantarray ? %results : \%results;
-}
-
-sub run_autoremap_gui {
+sub run_remap_gui {
     my $self = shift;
     my %args = @_;
 
     my $gui = $args{"gui"};
 
-    my $tree    = $args{"data_source"};
+    ####
+    # get the available options to remap labels to
+    # TODO don't allow remapping to yourself (doesn't hurt but just confuses things)
     my @sources = ();
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
     push @sources, @{ $gui->get_project()->get_matrix_list() };
-
-    my @names;
+    
+    my @source_names;
     foreach my $source (@sources) {
-        push @names, $source->get_param('NAME');
+        push @source_names, $source->get_param('NAME');
     }
 
-    # select what data source they want to remap to
-    my %selection_results =
-      %{ $self->run_select_autoremap_target( { options => \@names } ) };
 
-    my $choice       = $sources[ $selection_results{selection} ];
-    my $max_distance = $selection_results{max_distance};
+    ####
+    # The auto/manual checkbutton
+    my $auto_checkbutton = Gtk2::CheckButton->new("Automatic remap");
+    
+    
+    ####
+    # The data source selection combo box and its label
+    my $data_source_combo = Gtk2::ComboBox->new_text;
+    foreach my $option (@source_names) {
+        $data_source_combo->append_text($option);
+    }
+    $data_source_combo->set_active(0);
+    $data_source_combo->show_all;
+    $data_source_combo->set_tooltip_text('Choose a data source to remap the labels to.');
+
+    my $data_source_label =
+      Gtk2::Label->new('Choose a data source to remap the labels to:');
+
+    
+    ####
+    # The max_distance spinbutton and its label
+    my $adjustment = Gtk2::Adjustment->new( 2, 0, 20, 1, 10, 0 );
+    my $spinner = Gtk2::SpinButton->new( $adjustment, 1, 0 );
+    my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
+
+    ####
+    # The dialog itself
+    my $dlg = Gtk2::Dialog->new_with_buttons( 'Remap labels?',
+        undef, 'modal', 'gtk-yes' => 'yes', 'gtk-no' => 'no');
+
+
+    ####
+    # Pack everything in
+    my $vbox = $dlg->get_content_area;
+
+    my $hbox = Gtk2::HBox->new();
+    $hbox->pack_start( $auto_checkbutton, 0, 1, 0 );
+    $vbox->pack_start( $hbox,  0, 0, 0 );
+
+    $hbox = Gtk2::HBox->new();    
+    $hbox->pack_start( $data_source_label, 0, 1, 0 );
+    $hbox->pack_start( $data_source_combo, 0, 1, 10 );
+    $vbox->pack_start( $hbox,  0, 0, 0 );
+
+    $hbox = Gtk2::HBox->new();
+    $hbox->pack_start( $max_distance_label, 0, 1, 0 );
+    $hbox->pack_start( $spinner,        0, 1, 10 );
+    $vbox->pack_start( $hbox,           0, 0, 0 );
+
+
+    
+    $dlg->show_all;
+
+    my $response = $dlg->run();
+
+    my $remap_type;
+    if($response eq "no") {
+        $remap_type = "none";
+    }
+    elsif($response eq "yes") {
+        # check the state of the checkbox
+        if($auto_checkbutton->get_active()) {
+            $remap_type = "auto";
+        }
+        else {
+            $remap_type = "manual";
+        }
+    }
+    else {
+        say "[RemapGUI] Unknown dialog response: $response";        
+    }
+
+    
+    $dlg->destroy();
+
+    my $max_distance = $spinner->get_value_as_int();
+    say "max_distance was $max_distance (from the spinner)";
+
+    
+    my $choice       = $sources[$data_source_combo->get_active];    
+    
+    
+
+    my %results = (
+        remap_type => $remap_type,
+        datasource_choice => $choice,
+        max_distance => $max_distance,
+        );
+
+    return wantarray ? %results : \%results;
+}
+
+
+
+
+
+# given a gui and a data source, perform an automatic remap
+sub perform_remap {
+    my $self = shift;
+    my %args = @_;
+
+    my $new_source    = $args{"new_source"};
+    my $old_source    = $args{"old_source"};
+    my $max_distance  = $args{"max_distance"};
 
     # actually do the remap
     my $guesser       = Biodiverse::RemapGuesser->new();
     my %remap_results = $guesser->generate_auto_remap(
         {
-            "existing_data_source" => $choice,
-            "new_data_source"      => $tree,
+            "existing_data_source" => $old_source,
+            "new_data_source"      => $new_source,
             "max_distance"         => $max_distance,
         }
     );
+    
     my %remap       = %{ $remap_results{remap} };
     my $success     = $remap_results{success};
     my $statsString = $remap_results{stats};
@@ -188,7 +179,7 @@ sub run_autoremap_gui {
             $guesser->perform_auto_remap(
                 {
                     "remap_hash"  => \%remap,
-                    "data_source" => $tree,
+                    "data_source" => $new_source,
                 }
             );
 
@@ -216,4 +207,7 @@ sub run_autoremap_gui {
 
     }
 }
+
+
+
 

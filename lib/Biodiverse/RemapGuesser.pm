@@ -24,12 +24,10 @@ sub new {
 
 # given a remap hash and a data source, actually performs the remap.
 sub perform_auto_remap {
-    my $self = shift;
-    my $args = shift || {};
+    my ($self, %args) = @_;
 
-    my %remap_hash = %{$args->{"remap_hash"}};
-    my $data_source = $args->{"data_source"};
-
+    my %remap_hash = %{$args{remap}};
+    my $data_source = $args{new_source};
     
     $data_source->remap_labels_from_hash(remap=>\%remap_hash);
     return;
@@ -57,37 +55,29 @@ sub generate_auto_remap {
     my $furthest = $remap_results->{furthest_dist};
     my $furthest_label = $remap_results->{furthest_label};
     
-    # do we warn the user about a 'bad' match?
-    
+  
     my $success = ($furthest > $max_distance) ? 0 : 1;
-    #say "furthest: $furthest, warn: $warn";
     
     #foreach my $m (keys %remap) {
     #    my $mapped_to = $remap{$m};
     #    say "generate_auto_remap: $m -> $mapped_to";
     #}
-
-
-
-    my $remap_stats = $self->build_remap_stats($remap_results);
-    my $stats = $remap_stats->{stats_string};
-    
-    
+   
     my %results = (
         remap => \%remap,
         success => $success,
         furthest_label => $furthest_label,
-        stats => $stats,
+        exact_matches => $remap_results->{exact_matches},
+        punct_matches => $remap_results->{punct_matches},
+        not_matched => $remap_results->{not_matched},
         );
-
 
     return wantarray ? %results : \%results;
 }
 
 
-# Function used by build_remap_stats. Takes in a list of keys and a
-# hash, returns a string showing a sample of how the list of keys is
-# mapped in the hash.
+# Takes in a list of keys and a hash, returns a string showing a
+# sample of how the list of keys is mapped in the hash.
  sub create_example_string {
      my ($self, %args) = @_;
 
@@ -115,42 +105,6 @@ sub generate_auto_remap {
 }
 
 
-
-# pass in the results of guess_remap, this builds and returns a string
-# describing what happened
-sub build_remap_stats {
-    my $self = shift;
-    my $args = shift || {};
-
-    my $stats = "\n";
-
-    my %remap = %{$args->{remap}};
-   
-    my @exact_matches = @{$args->{exact_matches}};
-    my @punct_matches = @{$args->{punct_matches}};
-    my @not_matched = @{$args->{not_matched}};
-    
-    my $exact_match_count = @{$args->{exact_matches}};
-    my $punct_match_count = @{$args->{punct_matches}};
-    my $not_matched_count = @{$args->{not_matched}};
-
-    $stats .= "Exact Matches: $exact_match_count";
-    $stats .= $self->create_example_string(hash => \%remap, keys => \@exact_matches);
-
-    $stats .= "\n\nPunctuation Matches: $punct_match_count";
-    $stats .= $self->create_example_string(hash => \%remap, keys => \@punct_matches);
-
-    $stats .= "\n\nNot Matched: $not_matched_count";
-    $stats .= $self->create_example_string(hash => \%remap, keys => \@not_matched, no_values=>1);
-
-    $stats .= "\n\n";
-       
-    my %results = (
-        stats_string => $stats,
-        );
-    
-    return wantarray ? %results : \%results;
-}
 
 
 

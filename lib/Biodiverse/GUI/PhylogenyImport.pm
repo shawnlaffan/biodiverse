@@ -11,7 +11,7 @@ use Gtk2;
 use Biodiverse::ReadNexus;
 use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
-use Biodiverse::GUI::AutoRemapGUI;
+
 
 our $VERSION = '1.99_006';
 
@@ -92,7 +92,7 @@ sub run {
         #say '';
     }
 
-    my $remapper           = Biodiverse::GUI::AutoRemapGUI->new();
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
     my %remap_dlg_results  = %{ $remapper->remap_dlg() };
     my $remap_dlg_response = $remap_dlg_results{response};
     my $auto_remap =
@@ -104,7 +104,6 @@ sub run {
         # if we do have an automatic remap, we do that after the main import.
         # only process the manual remap stuff here.
         if ( !$auto_remap ) {
-
             # no automatic remap, prompt for manual remap file
             %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
                 gui          => $gui,

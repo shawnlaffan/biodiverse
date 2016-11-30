@@ -2362,6 +2362,13 @@ sub rename_label {
     my $labels_are_numeric =
       !$args{no_numeric_check} && $self->labels_are_numeric;
 
+
+    if( $label eq $new_name ) {
+        say "[BASEDATA] Tried to rename a label to itself, nothing was done.";
+        return;
+    }
+
+        
     if ( !$lb->exists_element( element => $label ) ) {
         say "[BASEDATA] Label $label does not exist, not renaming it";
         return;

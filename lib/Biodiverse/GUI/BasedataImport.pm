@@ -812,7 +812,7 @@ sub run {
             );
 
             if ( $remap_guess_response eq 'yes' ) {
-                my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+                my $remapper = Biodiverse::GUI::RemapGUI->new();
                 foreach my $file ( keys %multiple_brefs ) {
                     next if !$multiple_is_new{$file};
                     $remapper->run_autoremap_gui(

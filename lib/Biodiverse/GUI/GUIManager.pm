@@ -34,9 +34,13 @@ require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
 use Biodiverse::GUI::ProgressDialog;
 
+
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;
 require Biodiverse::Config;
+require Biodiverse::GUI::RemapGUI;
+
+
 
 use parent qw /Biodiverse::Common Biodiverse::GUI::Help/;    #/
 
@@ -1132,7 +1136,7 @@ sub do_auto_remap_phylogeny {
 
     my $cloned_ref = $ref->clone();
 
-    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    my $remapper = Biodiverse::GUI::RemapGUI->new();
     $remapper->run_autoremap_gui(
         gui         => $gui,
         data_source => $cloned_ref,
@@ -1151,7 +1155,7 @@ sub do_auto_remap_basedata {
 
     my $cloned_ref = $ref->clone();
 
-    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    my $remapper = Biodiverse::GUI::RemapGUI->new();
     $remapper->run_autoremap_gui(
         gui         => $gui,
         data_source => $cloned_ref,
@@ -1170,7 +1174,7 @@ sub do_auto_remap_matrix {
 
     my $cloned_ref = $ref->clone();
 
-    my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+    my $remapper = Biodiverse::GUI::RemapGUI->new();
     $remapper->run_autoremap_gui(
         gui         => $gui,
         data_source => $cloned_ref,

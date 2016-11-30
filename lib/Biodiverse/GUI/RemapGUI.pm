@@ -1,13 +1,14 @@
-package Biodiverse::GUI::AutoRemapGUI;
+package Biodiverse::GUI::RemapGUI;
 
 use 5.010;
 use strict;
 use warnings;
+
+our $VERSION = '1.99_006';
+
 use Gtk2;
 use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
-
-our $VERSION = '1.99_006';
 
 use Biodiverse::GUI::GUIManager;
 

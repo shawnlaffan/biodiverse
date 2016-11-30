@@ -159,7 +159,7 @@ sub run {
     return if !$column_settings;
 
     # see if they want to remap (auto or manual)
-    my $remapper           = Biodiverse::GUI::AutoRemapGUI->new();
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
     my %remap_dlg_results  = %{ $remapper->remap_dlg() };
     my $remap_dlg_response = $remap_dlg_results{response};
     my $auto_remap =
@@ -216,7 +216,7 @@ sub run {
 
     # if they wanted to auto remap, do that now
     if ($auto_remap) {
-        my $remapper = Biodiverse::GUI::AutoRemapGUI->new();
+        my $remapper = Biodiverse::GUI::RemapGUI->new();
         $remapper->run_autoremap_gui(
             gui         => $gui,
             data_source => $matrix_ref,

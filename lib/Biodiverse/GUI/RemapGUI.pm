@@ -67,11 +67,13 @@ sub run_remap_gui {
     
     ####
     # The max_distance spinbutton and its label
-    my $adjustment = Gtk2::Adjustment->new( 2, 0, 20, 1, 10, 0 );
+    my $adjustment = Gtk2::Adjustment->new( 0, 0, 20, 1, 10, 0 );
     my $spinner = Gtk2::SpinButton->new( $adjustment, 1, 0 );
     $spinner->set_sensitive(0);
+    my $tooltip = Gtk2::Tooltips->new();
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
     $max_distance_label->set_sensitive(0);
+    $tooltip->set_tip($max_distance_label, "New labels within this many edits of an existing label will be detected as possible typos.");
 
 
 
@@ -275,10 +277,10 @@ sub remap_results_dialog {
     
    
     my $punct_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $punct_match_scroll->set_size_request(500, 200);
+    $punct_match_scroll->set_size_request(500, 100);
     $punct_match_scroll->add($punct_tree);
     
-    my $punct_match_checkbutton = Gtk2::CheckButton->new("Enable");
+    my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(toggled => sub {
         $punct_match_label->set_sensitive(!$punct_match_label->get_sensitive);
@@ -298,14 +300,19 @@ sub remap_results_dialog {
     );
 
     my $typo_match_count = @typo_matches;
-    my $typo_match_label = Gtk2::Label->new("$typo_match_count Typo Matches:");
+    
+
+    my $typo_match_label = 
+        Gtk2::Label->new("$typo_match_count Possible Typos: (labels within 'max distance' edits of an exact match)");
+
+
     
    
     my $typo_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $typo_match_scroll->set_size_request(500, 200);
+    $typo_match_scroll->set_size_request(500, 100);
     $typo_match_scroll->add($typo_tree);
     
-    my $typo_match_checkbutton = Gtk2::CheckButton->new("Enable");
+    my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(toggled => sub {
         $typo_match_label->set_sensitive(!$typo_match_label->get_sensitive);
@@ -380,7 +387,9 @@ sub remap_results_dialog {
     $vbox->pack_start( $typo_vbox , 0, 1, 0 );
     $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
     $vbox->pack_start( $not_matched_vbox, 0, 1, 0);
+    $vbox->pack_start( $accept_remap_label, 10, 1, 10);
 
+    
     
     $dlg->show_all;
 
@@ -439,7 +448,7 @@ sub build_bland_tree {
 
     $tree->append_column( $column );
 
-    $column->set_sort_column_id( 0 );
+    $column->set_sort_column_id( ORIGINAL_LABEL_COL );
 
     return $tree;
 }
@@ -457,7 +466,7 @@ sub build_typo_tree {
         'Glib::String',         # Original value
         'Glib::String',         # Remapped value
         'Glib::Boolean',        # Checked?
-        'Glib::Int',         # Edit distance
+        'Glib::String',         # Edit distance
     );
 
     my $typo_model = Gtk2::TreeStore->new( @treestore_args );
@@ -490,8 +499,16 @@ sub build_typo_tree {
     
     $original_column->set_title ( "Original Label" );
     $remapped_column->set_title ( "Remapped Label" );
-    $distance_column->set_title ( "Edit Distance" );
-    $checkbox_column->set_title ( "Perform?" );
+
+    my $tooltip = Gtk2::Tooltips->new();
+    my $distance_header = Gtk2::Label->new('Edit Distance');
+    $distance_header->show();
+    $distance_column->set_widget($distance_header);
+    $tooltip->set_tip($distance_header, "Number of character changes to get from the original label to the remapped label");
+
+
+    $checkbox_column->set_title ( "Use?" );
+
 
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
@@ -508,6 +525,7 @@ sub build_typo_tree {
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $distance_column->pack_start( $distance_renderer, 0 );
     $checkbox_column->pack_start( $checkbox_renderer, 0 );
+
     
     # tell the renderer where to pull the data from
     $original_column->add_attribute( $original_renderer, text => ORIGINAL_LABEL_COL );
@@ -515,15 +533,15 @@ sub build_typo_tree {
     $distance_column->add_attribute( $distance_renderer, text => EDIT_DISTANCE_COL );
     $checkbox_column->add_attribute( $checkbox_renderer, active => PERFORM_COL );
 
+    $typo_tree->append_column( $checkbox_column );
     $typo_tree->append_column( $original_column );
     $typo_tree->append_column( $remapped_column );
     $typo_tree->append_column( $distance_column );
-    $typo_tree->append_column( $checkbox_column );
 
-    $original_column->set_sort_column_id( 0 );
-    $remapped_column->set_sort_column_id( 1 );
-    $distance_column->set_sort_column_id( 2 );
-    $checkbox_column->set_sort_column_id( 3 );
+    $original_column->set_sort_column_id( ORIGINAL_LABEL_COL );
+    $remapped_column->set_sort_column_id( REMAPPED_LABEL_COL );
+    $distance_column->set_sort_column_id( EDIT_DISTANCE_COL );
+    $checkbox_column->set_sort_column_id( PERFORM_COL );
 
 
     return $typo_tree;
@@ -564,7 +582,7 @@ sub build_punct_tree {
     my $checkbox_column = Gtk2::TreeViewColumn->new();
     $original_column->set_title ( "Original Label" );
     $remapped_column->set_title ( "Remapped Label" );
-    $checkbox_column->set_title ( "Perform?" );
+    $checkbox_column->set_title ( "Use?" );
 
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
@@ -586,14 +604,14 @@ sub build_punct_tree {
     $original_column->add_attribute( $original_renderer, text => ORIGINAL_LABEL_COL );
     $remapped_column->add_attribute( $remapped_renderer, text => REMAPPED_LABEL_COL );
     $checkbox_column->add_attribute( $checkbox_renderer, active => PERFORM_COL );
-
+    
+    $punct_tree->append_column( $checkbox_column );
     $punct_tree->append_column( $original_column );
     $punct_tree->append_column( $remapped_column );
-    $punct_tree->append_column( $checkbox_column );
 
-    $original_column->set_sort_column_id( 0 );
-    $remapped_column->set_sort_column_id( 1 );
-    $checkbox_column->set_sort_column_id( 2 );
+    $original_column->set_sort_column_id( ORIGINAL_LABEL_COL );
+    $remapped_column->set_sort_column_id( REMAPPED_LABEL_COL );
+    $checkbox_column->set_sort_column_id( PERFORM_COL );
 
 
     return $punct_tree;

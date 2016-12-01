@@ -1134,16 +1134,24 @@ sub do_auto_remap_phylogeny {
     my $ref  = $self->{project}->get_selected_phylogeny();
     my $gui  = $self;
 
-    my $cloned_ref = $ref->clone();
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
+    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
 
-    my $remapper = Biodiverse::GUI::RemapGUI->new();
-    $remapper->run_autoremap_gui(
-        gui         => $gui,
-        data_source => $cloned_ref,
-    );
-
-    $self->get_project()->delete_phylogeny();
-    $self->get_project()->add_phylogeny($cloned_ref);
+    if($remap_dlg_results{remap_type} eq "auto") {
+        my $cloned_ref = $ref->clone();
+        my $old_source = $remap_dlg_results{datasource_choice};
+        my $max_distance = $remap_dlg_results{max_distance};
+        
+        $remapper->perform_remap (
+                gui         => $gui,
+                new_source => $cloned_ref,
+                old_source => $old_source,
+                max_distance => $max_distance,
+            );
+        
+        $self->get_project()->delete_phylogeny();
+        $self->get_project()->add_phylogeny($cloned_ref);
+    }
 
     return;
 }
@@ -1153,16 +1161,26 @@ sub do_auto_remap_basedata {
     my $ref  = $self->{project}->get_selected_basedata();
     my $gui  = $self;
 
-    my $cloned_ref = $ref->clone();
 
-    my $remapper = Biodiverse::GUI::RemapGUI->new();
-    $remapper->run_autoremap_gui(
-        gui         => $gui,
-        data_source => $cloned_ref,
-    );
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
+    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
 
-    $self->get_project()->delete_base_data();
-    $self->get_project()->add_base_data($cloned_ref);
+    if($remap_dlg_results{remap_type} eq "auto") {
+        my $cloned_ref = $ref->clone();
+        my $old_source = $remap_dlg_results{datasource_choice};
+        my $max_distance = $remap_dlg_results{max_distance};
+        
+        $remapper->perform_remap (
+                gui         => $gui,
+                new_source => $cloned_ref,
+                old_source => $old_source,
+                max_distance => $max_distance,
+            );
+
+        $self->get_project()->delete_base_data();
+        $self->get_project()->add_base_data($cloned_ref);
+
+    }
 
     return;
 }
@@ -1172,16 +1190,24 @@ sub do_auto_remap_matrix {
     my $ref  = $self->{project}->get_selected_matrix();
     my $gui  = $self;
 
-    my $cloned_ref = $ref->clone();
+    my $remapper           = Biodiverse::GUI::RemapGUI->new();
+    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
 
-    my $remapper = Biodiverse::GUI::RemapGUI->new();
-    $remapper->run_autoremap_gui(
-        gui         => $gui,
-        data_source => $cloned_ref,
-    );
+    if($remap_dlg_results{remap_type} eq "auto") {
+        my $cloned_ref = $ref->clone();
+        my $old_source = $remap_dlg_results{datasource_choice};
+        my $max_distance = $remap_dlg_results{max_distance};
+        
+        $remapper->perform_remap (
+                gui         => $gui,
+                new_source => $cloned_ref,
+                old_source => $old_source,
+                max_distance => $max_distance,
+            );
 
-    $self->get_project()->delete_matrix();
-    $self->get_project()->add_matrix($cloned_ref);
+        $self->get_project()->delete_matrix();
+        $self->get_project()->add_matrix($cloned_ref);
+    }
 
     return;
 }

@@ -31,7 +31,7 @@ sub new {
 sub run_remap_gui {
     my $self = shift;
     my %args = @_;
-
+    
     my $gui = $args{"gui"};
 
     ####
@@ -47,8 +47,9 @@ sub run_remap_gui {
         push @source_names, $source->get_param('NAME');
     }
 
-
     
+    # table to align the controls
+    my $table = Gtk2::Table->new(2, 2, 1);
     
     ####
     # The data source selection combo box and its label
@@ -59,35 +60,41 @@ sub run_remap_gui {
     $data_source_combo->set_active(0);
     $data_source_combo->show_all;
     $data_source_combo->set_tooltip_text('Choose a data source to remap the labels to.');
-    $data_source_combo->set_sensitive(0);
     my $data_source_label =
-      Gtk2::Label->new('Choose a data source to remap the labels to:');
-    $data_source_label->set_sensitive(0);
+        Gtk2::Label->new('Data source to remap the labels to:');
+
+    $table->attach_defaults($data_source_label, 0, 1, 0, 1);
+    $table->attach_defaults($data_source_combo, 1, 2, 0, 1);
 
     
     ####
     # The max_distance spinbutton and its label
     my $adjustment = Gtk2::Adjustment->new( 0, 0, 20, 1, 10, 0 );
     my $spinner = Gtk2::SpinButton->new( $adjustment, 1, 0 );
-    $spinner->set_sensitive(0);
     my $tooltip = Gtk2::Tooltips->new();
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
-    $max_distance_label->set_sensitive(0);
     $tooltip->set_tip($max_distance_label, "New labels within this many edits of an existing label will be detected as possible typos.");
 
+    $table->attach_defaults($max_distance_label, 0, 1, 1, 2);
+    $table->attach_defaults($spinner, 1, 2, 1, 2);
 
 
     ####
     # The auto/manual checkbutton
-    my $auto_checkbutton = Gtk2::CheckButton->new("Automatic remap");
-    $auto_checkbutton->set_active(0);
-    $auto_checkbutton->signal_connect(toggled => sub {
-            $data_source_combo->set_sensitive(!$data_source_combo->get_sensitive);
-            $spinner->set_sensitive(!$spinner->get_sensitive);
-            $max_distance_label->set_sensitive(!$max_distance_label->get_sensitive);
-            $data_source_label->set_sensitive(!$data_source_label->get_sensitive);
 
-    });
+    my $auto_checkbutton = Gtk2::CheckButton->new("Automatic remap");
+
+    # sometimes we don't want to prompt for auto/manual so check the
+    # flag for that
+    if(!$args{no_manual}) {
+        $auto_checkbutton->set_active(0);
+        $auto_checkbutton->signal_connect(toggled => sub {
+            $table->set_sensitive(!$table->get_sensitive);
+        });
+
+        # start out disabled
+        $table->set_sensitive(0);
+    }
 
 
 
@@ -104,18 +111,12 @@ sub run_remap_gui {
     my $vbox = $dlg->get_content_area;
 
     my $hbox = Gtk2::HBox->new();
-    $hbox->pack_start( $auto_checkbutton, 0, 1, 0 );
+    if(!$args{no_manual}) {
+        $hbox->pack_start( $auto_checkbutton, 0, 1, 0 );
+    }
     $vbox->pack_start( $hbox,  0, 0, 0 );
+    $vbox->pack_start( $table, 0, 0, 0 );
 
-    $hbox = Gtk2::HBox->new();    
-    $hbox->pack_start( $data_source_label, 0, 1, 0 );
-    $hbox->pack_start( $data_source_combo, 0, 1, 10 );
-    $vbox->pack_start( $hbox,  0, 0, 0 );
-
-    $hbox = Gtk2::HBox->new();
-    $hbox->pack_start( $max_distance_label, 0, 1, 0 );
-    $hbox->pack_start( $spinner,        0, 1, 10 );
-    $vbox->pack_start( $hbox,           0, 0, 0 );
 
 
     
@@ -129,7 +130,7 @@ sub run_remap_gui {
     }
     elsif($response eq "yes") {
         # check the state of the checkbox
-        if($auto_checkbutton->get_active()) {
+        if($args{no_manual} || $auto_checkbutton->get_active()) {
             $remap_type = "auto";
         }
         else {
@@ -144,7 +145,6 @@ sub run_remap_gui {
     $dlg->destroy();
 
     my $max_distance = $spinner->get_value_as_int();
-    say "max_distance was $max_distance (from the spinner)";
 
     
     my $choice       = $sources[$data_source_combo->get_active];    

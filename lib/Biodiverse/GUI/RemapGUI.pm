@@ -12,6 +12,16 @@ use English( -no_match_vars );
 
 use Biodiverse::GUI::GUIManager;
 
+use Text::Levenshtein qw(distance);
+
+my $i;
+use constant ORIGINAL_LABEL_COL        =>   $i || 0;
+use constant REMAPPED_LABEL_COL        => ++$i;
+use constant PERFORM_COL               => ++$i;
+use constant EDIT_DISTANCE_COL         => ++$i;
+
+
+
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -37,6 +47,8 @@ sub run_remap_gui {
         push @source_names, $source->get_param('NAME');
     }
 
+
+    
     
     ####
     # The data source selection combo box and its label
@@ -179,6 +191,7 @@ sub perform_remap {
 
 
     # now build the remap we actually want to perform
+
     # remove parts which aren't enabled
     if(!$remap_results_response{punct_match_enabled}) {
         my @punct_matches = @{$remap_results{punct_matches}};
@@ -196,8 +209,16 @@ sub perform_remap {
         }
     }
 
-    # TODO we could probably remove exact matches and not matches here as well
 
+    # remove specific exclusions
+    my @exclusions = @{$remap_results_response{exclusions}};
+    foreach my $key (@exclusions) {
+        delete $remap{$key};
+        #say "Deleted $key because it was excluded by the checkboxes.";
+    }
+    
+    # TODO we could probably remove exact matches and not matches here as well
+    
     
     if ( $response eq 'yes' ) {
         $guesser->perform_auto_remap(
@@ -214,133 +235,99 @@ sub perform_remap {
 }
 
 
+
+
+
+
+
+
 # called internally by perform_remap
 sub remap_results_dialog {
     my ($self, %args) = @_;
     my %remap = %{$args{remap}};
 
     
+    
     ###
     # Exact matches
-    my $exact_match_str = "";
     my @exact_matches = @{$args{exact_matches}};
-    foreach my $match (@exact_matches) {
-        $exact_match_str .= "$match\n";
-    }
-
+    my $exact_match_tree = $self->build_bland_tree(labels => \@exact_matches);
     my $exact_match_count = @exact_matches;
-
-    
     my $exact_match_label = Gtk2::Label->new("$exact_match_count Exact Matches:");
-    
-    my $exact_match_buffer = Gtk2::TextBuffer->new();
-    $exact_match_buffer->set_text($exact_match_str);
-    my $exact_match_textview = Gtk2::TextView->new_with_buffer($exact_match_buffer);
-
-    # if you set this to true, they can edit the textbox; could be
-    # useful in the future for allowing full custom remapping here
-    $exact_match_textview->set_editable(0);
-    
     my $exact_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $exact_match_scroll->set_size_request(300, 100);
-    $exact_match_scroll->add($exact_match_textview);
+    $exact_match_scroll->set_size_request(500, 100);
+    $exact_match_scroll->add($exact_match_tree);
 
 
 
     ###
     # Punctuation matches
-    my $punct_match_str = "";
     my @punct_matches = @{$args{punct_matches}};
-    foreach my $match (@punct_matches) {
-        $punct_match_str .= "$match -> $remap{$match}\n";
-    }
+
+    # Build the punct_tree
+    my $punct_tree = $self->build_punct_tree (
+        remap => \%remap,
+        punct_matches => \@punct_matches
+    );
 
     my $punct_match_count = @punct_matches;
-
-    
     my $punct_match_label = Gtk2::Label->new("$punct_match_count Punct Matches:");
     
-    my $punct_match_buffer = Gtk2::TextBuffer->new();
-    $punct_match_buffer->set_text($punct_match_str);
-    my $punct_match_textview = Gtk2::TextView->new_with_buffer($punct_match_buffer);
-
-    # if you set this to true, they can edit the textbox; could be
-    # useful in the future for allowing full custom remapping here
-    $punct_match_textview->set_editable(0);
-    
+   
     my $punct_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $punct_match_scroll->set_size_request(300, 100);
-    $punct_match_scroll->add($punct_match_textview);
-
+    $punct_match_scroll->set_size_request(500, 200);
+    $punct_match_scroll->add($punct_tree);
+    
     my $punct_match_checkbutton = Gtk2::CheckButton->new("Enable");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(toggled => sub {
-        $punct_match_textview->set_sensitive(!$punct_match_textview->get_sensitive);
         $punct_match_label->set_sensitive(!$punct_match_label->get_sensitive);
+        $punct_match_scroll->set_sensitive(!$punct_match_scroll->get_sensitive);
     });
 
 
 
     ###
     # Typo matches
-    my $typo_match_str = "";
-    my @typo_matches = @{$args{typo_matches}};
-    foreach my $match (@typo_matches) {
-        $typo_match_str .= "$match -> $remap{$match}\n";
-    }
+        my @typo_matches = @{$args{typo_matches}};
+
+    # Build the typo_tree
+    my $typo_tree = $self->build_typo_tree (
+        remap => \%remap,
+        typo_matches => \@typo_matches
+    );
 
     my $typo_match_count = @typo_matches;
-
-    
     my $typo_match_label = Gtk2::Label->new("$typo_match_count Typo Matches:");
     
-    my $typo_match_buffer = Gtk2::TextBuffer->new();
-    $typo_match_buffer->set_text($typo_match_str);
-    my $typo_match_textview = Gtk2::TextView->new_with_buffer($typo_match_buffer);
-
-    # if you set this to true, they can edit the textbox; could be
-    # useful in the future for allowing full custom remapping here
-    $typo_match_textview->set_editable(0);
-    
+   
     my $typo_match_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $typo_match_scroll->set_size_request(300, 100);
-    $typo_match_scroll->add($typo_match_textview);
-
+    $typo_match_scroll->set_size_request(500, 200);
+    $typo_match_scroll->add($typo_tree);
+    
     my $typo_match_checkbutton = Gtk2::CheckButton->new("Enable");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(toggled => sub {
-        $typo_match_textview->set_sensitive(!$typo_match_textview->get_sensitive);
         $typo_match_label->set_sensitive(!$typo_match_label->get_sensitive);
+        $typo_match_scroll->set_sensitive(!$typo_match_scroll->get_sensitive);
     });
 
-    
+
+
+
+
 
 
     ###
     # Not matched
-    my $not_matched_str = "";
     my @not_matched = @{$args{not_matched}};
-    foreach my $match (@not_matched) {
-        $not_matched_str .= "$match\n";
-    }
-
+    my $not_matched_tree = $self->build_bland_tree(labels => \@not_matched);
     my $not_matched_count = @not_matched;
-
-    
-    my $not_matched_label = Gtk2::Label->new("$not_matched_count Labels Not Matched:");
-    
-    my $not_matched_buffer = Gtk2::TextBuffer->new();
-    $not_matched_buffer->set_text($not_matched_str);
-    my $not_matched_textview = Gtk2::TextView->new_with_buffer($not_matched_buffer);
-
-    # if you set this to true, they can edit the textbox; could be
-    # useful in the future for allowing full custom remapping here
-    $not_matched_textview->set_editable(0);
-    
+    my $not_matched_label = Gtk2::Label->new("$not_matched_count Not Matched:");
     my $not_matched_scroll = Gtk2::ScrolledWindow->new(undef, undef);
-    $not_matched_scroll->set_size_request(300, 100);
-    $not_matched_scroll->add($not_matched_textview);
-
+    $not_matched_scroll->set_size_request(500, 100);
+    $not_matched_scroll->add($not_matched_tree);
+    
 
 
     ###
@@ -357,24 +344,42 @@ sub remap_results_dialog {
     ####
     # Pack everything in
     my $vbox = $dlg->get_content_area;
-    
-    $vbox->pack_start( $exact_match_label, 0, 1, 0 );
-    $vbox->pack_start( $exact_match_scroll, 0, 1, 0 );
-
-    $vbox->pack_start( $punct_match_label, 0, 1, 0 );
-    $vbox->pack_start( $punct_match_checkbutton, 0, 1, 0);
-    $vbox->pack_start( $punct_match_scroll, 0, 1, 0 );
-   
-    $vbox->pack_start( $typo_match_label, 0, 1, 0 );
-    $vbox->pack_start( $typo_match_checkbutton, 0, 1, 0);
-    $vbox->pack_start( $typo_match_scroll, 0, 1, 0 );
 
 
     
-    $vbox->pack_start( $not_matched_label, 0, 1, 0 );
-    $vbox->pack_start( $not_matched_scroll, 0, 1, 0 );
+    my $exact_vbox = Gtk2::VBox->new();
+    $exact_vbox->pack_start( $exact_match_label, 0, 1, 0 );
+    $exact_vbox->pack_start( $exact_match_scroll, 0, 1, 0 );
 
-    $vbox->pack_start( $accept_remap_label, 10, 1, 10);
+    my $not_matched_vbox = Gtk2::VBox->new();
+    $not_matched_vbox->pack_start( $not_matched_label, 0, 1, 0 );
+    $not_matched_vbox->pack_start( $not_matched_scroll, 0, 1, 0 );
+
+    
+    my $punct_vbox = Gtk2::VBox->new();
+    $punct_vbox->pack_start( $punct_match_label, 0, 1, 0 );
+    $punct_vbox->pack_start( $punct_match_checkbutton, 0, 1, 0);
+    $punct_vbox->pack_start( $punct_match_scroll, 0, 1, 0 );
+
+
+
+    
+    my $typo_vbox = Gtk2::VBox->new();
+    $typo_vbox->pack_start( $typo_match_label, 0, 1, 0 );
+    $typo_vbox->pack_start( $typo_match_checkbutton, 0, 1, 0);
+    $typo_vbox->pack_start( $typo_match_scroll, 0, 1, 0 );
+
+
+
+
+
+    $vbox->pack_start( $exact_vbox, 0, 1, 0);
+    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
+    $vbox->pack_start( $punct_vbox , 0, 1, 0 );
+    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
+    $vbox->pack_start( $typo_vbox , 0, 1, 0 );
+    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
+    $vbox->pack_start( $not_matched_vbox, 0, 1, 0);
 
     
     $dlg->show_all;
@@ -383,16 +388,304 @@ sub remap_results_dialog {
     
     $dlg->destroy();
 
+    
     my %results = (
         response => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
-        typo_match_enabled => $typo_match_checkbutton->get_active,
+        #typo_match_enabled => $typo_match_checkbutton->get_active,
+        exclusions => $self->get_exclusions,
         );
     
     return wantarray ? %results : \%results;
 
 }
 
+
+# build a one column tree containing labels from args{labels}
+sub build_bland_tree {
+    my ($self, %args) = @_;
+
+    my @labels = @{$args{labels}}; 
+
+
+    # start by building the TreeModel
+    my @treestore_args = (
+        'Glib::String',         # Original value
+    );
+
+    my $model = Gtk2::TreeStore->new( @treestore_args );
+
+    foreach my $label (@labels) {
+        my $iter = $model->append(undef);
+        $model->set(
+            $iter,
+            ORIGINAL_LABEL_COL,        $label,
+        );
+    }
+
+    
+    my $tree = Gtk2::TreeView->new($model);
+
+    # make the columns for the tree and renderers to match up the
+    # columns to the model data.
+    my $column = Gtk2::TreeViewColumn->new();
+    
+    $column->set_title ( "Label" );
+    my $renderer = Gtk2::CellRendererText->new();
+    $column->pack_start( $renderer, 0 );
+    
+    # tell the renderer where to pull the data from
+    $column->add_attribute( $renderer, text => ORIGINAL_LABEL_COL );
+
+    $tree->append_column( $column );
+
+    $column->set_sort_column_id( 0 );
+
+    return $tree;
+}
+
+
+
+
+sub build_typo_tree {
+    my ($self, %args) = @_;
+
+    my @typo_matches = @{$args{typo_matches}}; my %remap =
+    %{$args{remap}};
+    # start by building the TreeModel
+    my @treestore_args = (
+        'Glib::String',         # Original value
+        'Glib::String',         # Remapped value
+        'Glib::Boolean',        # Checked?
+        'Glib::Int',         # Edit distance
+    );
+
+    my $typo_model = Gtk2::TreeStore->new( @treestore_args );
+
+    foreach my $match (@typo_matches) {
+        my $iter = $typo_model->append(undef);
+
+        # Lazy way of getting edit distance, ideally this wouldn't get
+        # calculated in the middle of the gui.
+        my $distance = distance($match, $remap{$match});
+        
+        $typo_model->set(
+            $iter,
+            ORIGINAL_LABEL_COL,        $match,
+            REMAPPED_LABEL_COL,        $remap{$match},
+            PERFORM_COL,               1,  # checkbox enabled by default
+            EDIT_DISTANCE_COL,         $distance,
+        );
+    }
+
+    
+    my $typo_tree = Gtk2::TreeView->new($typo_model);
+
+    # make the columns for the tree and renderers to match up the
+    # columns to the model data.
+    my $original_column = Gtk2::TreeViewColumn->new();
+    my $remapped_column = Gtk2::TreeViewColumn->new();
+    my $distance_column = Gtk2::TreeViewColumn->new();
+    my $checkbox_column = Gtk2::TreeViewColumn->new();
+    
+    $original_column->set_title ( "Original Label" );
+    $remapped_column->set_title ( "Remapped Label" );
+    $distance_column->set_title ( "Edit Distance" );
+    $checkbox_column->set_title ( "Perform?" );
+
+    my $original_renderer = Gtk2::CellRendererText->new();
+    my $remapped_renderer = Gtk2::CellRendererText->new();
+    my $distance_renderer = Gtk2::CellRendererText->new();
+    my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+
+
+    my %data = (model=>$typo_model, 
+                self=>$self,
+               );
+    $checkbox_renderer->signal_connect_swapped(toggled => \&on_remap_toggled, \%data);
+    
+    $original_column->pack_start( $original_renderer, 0 );
+    $remapped_column->pack_start( $remapped_renderer, 0 );
+    $distance_column->pack_start( $distance_renderer, 0 );
+    $checkbox_column->pack_start( $checkbox_renderer, 0 );
+    
+    # tell the renderer where to pull the data from
+    $original_column->add_attribute( $original_renderer, text => ORIGINAL_LABEL_COL );
+    $remapped_column->add_attribute( $remapped_renderer, text => REMAPPED_LABEL_COL );
+    $distance_column->add_attribute( $distance_renderer, text => EDIT_DISTANCE_COL );
+    $checkbox_column->add_attribute( $checkbox_renderer, active => PERFORM_COL );
+
+    $typo_tree->append_column( $original_column );
+    $typo_tree->append_column( $remapped_column );
+    $typo_tree->append_column( $distance_column );
+    $typo_tree->append_column( $checkbox_column );
+
+    $original_column->set_sort_column_id( 0 );
+    $remapped_column->set_sort_column_id( 1 );
+    $distance_column->set_sort_column_id( 2 );
+    $checkbox_column->set_sort_column_id( 3 );
+
+
+    return $typo_tree;
+}
+
+
+sub build_punct_tree {
+    my ($self, %args) = @_;
+
+    my @punct_matches = @{$args{punct_matches}}; my %remap =
+    %{$args{remap}};
+    # start by building the TreeModel
+    my @treestore_args = (
+        'Glib::String',         # Original value
+        'Glib::String',         # Remapped value
+        'Glib::Boolean',        # Checked?
+    );
+
+    my $punct_model = Gtk2::TreeStore->new( @treestore_args );
+
+    foreach my $match (@punct_matches) {
+        my $iter = $punct_model->append(undef);
+        $punct_model->set(
+            $iter,
+            ORIGINAL_LABEL_COL,        $match,
+            REMAPPED_LABEL_COL,        $remap{$match},
+            PERFORM_COL,               1  # checkbox enabled by default
+        );
+    }
+
+    
+    my $punct_tree = Gtk2::TreeView->new($punct_model);
+
+    # make the columns for the tree and renderers to match up the
+    # columns to the model data.
+    my $original_column = Gtk2::TreeViewColumn->new();
+    my $remapped_column = Gtk2::TreeViewColumn->new();
+    my $checkbox_column = Gtk2::TreeViewColumn->new();
+    $original_column->set_title ( "Original Label" );
+    $remapped_column->set_title ( "Remapped Label" );
+    $checkbox_column->set_title ( "Perform?" );
+
+    my $original_renderer = Gtk2::CellRendererText->new();
+    my $remapped_renderer = Gtk2::CellRendererText->new();
+    my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+
+
+    my %data = (model=>$punct_model, 
+                self=>$self,
+               );
+    
+    $checkbox_renderer->signal_connect_swapped(toggled => \&on_remap_toggled, \%data);
+
+    
+    $original_column->pack_start( $original_renderer, 0 );
+    $remapped_column->pack_start( $remapped_renderer, 0 );
+    $checkbox_column->pack_start( $checkbox_renderer, 0 );
+    
+    # tell the renderer where to pull the data from
+    $original_column->add_attribute( $original_renderer, text => ORIGINAL_LABEL_COL );
+    $remapped_column->add_attribute( $remapped_renderer, text => REMAPPED_LABEL_COL );
+    $checkbox_column->add_attribute( $checkbox_renderer, active => PERFORM_COL );
+
+    $punct_tree->append_column( $original_column );
+    $punct_tree->append_column( $remapped_column );
+    $punct_tree->append_column( $checkbox_column );
+
+    $original_column->set_sort_column_id( 0 );
+    $remapped_column->set_sort_column_id( 1 );
+    $checkbox_column->set_sort_column_id( 2 );
+
+
+    return $punct_tree;
+}
+
+
+
+
+
+
+
+
+
+sub add_exclusion {
+    my ($self, $exclusion) = @_;
+
+    my @exclusion_list = ();
+    if(exists $self->{exclusions}) {
+        @exclusion_list = @{$self->{exclusions}};
+    }
+
+    push( @exclusion_list, $exclusion );
+    $self->{exclusions} = \@exclusion_list;
+
+    return;
+}
+
+sub get_exclusions {
+    my $self = shift;
+
+    my @exclusion_list = ();
+    if(exists $self->{exclusions}) {
+        @exclusion_list = @{$self->{exclusions}};
+    }
+
+    return \@exclusion_list;
+}
+
+sub remove_exclusion {
+    my ($self, $exclusion) = @_;
+
+    my @exclusion_list = ();
+    if(exists $self->{exclusions}) {
+        @exclusion_list = @{$self->{exclusions}};
+    }
+
+    @exclusion_list = grep { !($_ eq $exclusion) } @exclusion_list;
+    $self->{exclusions} = \@exclusion_list;
+
+    return;
+
+
+}
+
+
+
+
+
+# called when a checkbox is toggled
+sub on_remap_toggled {
+    my $arg_ref = shift;
+    my $path = shift;
+
+    my %args = %{$arg_ref};
+    my $model = $args{model};
+    my $self = $args{self};
+
+
+    my $iter = $model->get_iter_from_string($path);
+
+    # Flip state
+    my $state  = $model->get($iter, PERFORM_COL);
+    $model->set($iter, PERFORM_COL, !$state);
+
+    
+    my $label = $model->get($iter, ORIGINAL_LABEL_COL);
+
+    if(!$state) {
+        $self->remove_exclusion($label);
+    }
+    else {
+        $self->add_exclusion($label);
+    }
+    my $exclusions_ref = $self->get_exclusions();
+    my @exclusions = @{$exclusions_ref};
+
+    #say "found label $label, @exclusions";
+    
+    return;
+    
+  
+}
 
 
 

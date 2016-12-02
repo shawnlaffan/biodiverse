@@ -404,8 +404,9 @@ sub get_path_lengths_to_root_node {
     #  Avoid millions of subroutine calls below.
     #  We could use a global precalc, but that won't scale well with
     #  massive trees where we only need a subset.
-    my $path_cache
+    my $path_cache_master
       = $self->get_cached_value_dor_set_default_aa ('PATH_LENGTH_CACHE_PER_TERMINAL', {});
+    my $path_cache = do {$path_cache_master->{$tree_ref} //= {}};
 
     # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
@@ -416,13 +417,15 @@ sub get_path_lengths_to_root_node {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
         my $current_node = $all_nodes->{$label};
-        my $sub_path = $path_cache->{$current_node};
+        my $sub_path = $cache ? $path_cache->{$current_node} : undef;
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_to_root_node (cache => $cache);
             my @p = map {$_->get_name} @$sub_path;
             $sub_path = \@p;
-            $path_cache->{$current_node} = $sub_path;
+            if ($cache) {
+                $path_cache->{$current_node} = $sub_path;
+            }
         }
 
         #  This is a bottleneck for large data sets,

@@ -817,17 +817,11 @@ sub run {
             if ( $remap_type eq 'auto' ) {
                 my $remapper = Biodiverse::GUI::RemapGUI->new();
                 foreach my $file ( keys %multiple_brefs ) {
-                    #next if !$multiple_is_new{$file};
-
-                    my $old_source = $remap_dlg_results->{datasource_choice};
-                    my $max_distance = $remap_dlg_results->{max_distance};
-
-                    $remapper->perform_remap(
-                        gui          => $gui,
-                        new_source   => $multiple_brefs{$file},
-                        old_source   => $old_source,
-                        max_distance => $max_distance,
-                    );
+                    $remap_dlg_results->{gui} = $gui;
+                    $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
+                    $remap_dlg_results->{new_source} = $multiple_brefs{$file};
+                    
+                    $remapper->perform_remap($remap_dlg_results);
                 }
             }
             elsif ( $remap_type eq 'manual' ) {

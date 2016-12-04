@@ -177,17 +177,12 @@ sub run {
 
     # if they wanted to auto remap, do that now.
     if ($remap_type eq "auto") {
-
-        my $old_source = $remap_dlg_results->{datasource_choice};
-        my $max_distance = $remap_dlg_results->{max_distance};
-        
+        $remap_dlg_results->{gui} = $gui;
+        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
+            
         foreach my $tree (@$phylogeny_array) {
-            $remapper->perform_remap(
-                gui         => $gui,
-                new_source => $tree,
-                old_source => $old_source,
-                max_distance => $max_distance,
-            );
+            $remap_dlg_results->{new_source} = $tree;
+            $remapper->perform_remap($remap_dlg_results);
         }
     }
 

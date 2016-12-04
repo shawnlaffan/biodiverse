@@ -23,13 +23,12 @@ sub main {
         $sub->();
     }
 
-    #test_large_dataset();
     done_testing();
     return 0;
 }
 
 # testing some basic 'off by one' type remappings
-sub test_basic_examples {
+sub test_punctuation_remap {
     my @separators = ( ' ', "\t", ':', '_', '.', '' );
 
     foreach my $sep1 (@separators) {
@@ -54,16 +53,18 @@ sub test_basic_examples {
             my %remap_results = $guesser->guess_remap(
                 {
                     "existing_labels" => \@base_data_labels,
-                    "new_labels"      => \@tree_labels
+                    "new_labels"      => \@tree_labels,
+                    "ignore_case"     => 0,
+                    "max_distance"    => 0,
                 }
             );
 
-            my %results = %{ $remap_results{remap} };
+            my $results = $remap_results{remap};
 
             # ensure the remapping was correct
             foreach my $i ( 1 .. 10 ) {
                 is(
-                    $results{ "genus" . $sep2 . "sp" . $i },
+                    $results->{ "genus" . $sep2 . "sp" . $i },
                     "genus" . $sep1 . "sp" . $i,
                     "genus"
                       . $sep2 . "sp"
@@ -79,7 +80,7 @@ sub test_basic_examples {
 
 # make sure auto matching works with leading and trailing whitespace
 sub test_border_whitespace {
-    my @whitespace = ( " ", "  ", "   ", "\t", "\n", "\r" );
+    my @whitespace = ( " ", "  ", "   ", "\t" );
 
     foreach my $repetitions ( 0 .. 10 ) {
         my $starta = $whitespace[ rand @whitespace ];
@@ -100,7 +101,9 @@ sub test_border_whitespace {
         my %remap_results = $guesser->guess_remap(
             {
                 "existing_labels" => \@base_data_labels,
-                "new_labels"      => \@tree_labels
+                "new_labels"      => \@tree_labels,
+                "max_distance"    => 0,
+
             }
         );
 
@@ -139,7 +142,10 @@ sub test_case_differences {
     my %remap_results = $guesser->guess_remap(
         {
             "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 0,
+            "ignore_case"     => 1,
+
         }
     );
 
@@ -155,13 +161,54 @@ sub test_case_differences {
     }
 }
 
+# make sure Hipopotamus -> Hippopotamus etc.
+sub test_typos {
+
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels      = ();
+
+    push( @base_data_labels, "Hippopotamus" );
+    push( @base_data_labels, "Horse" );
+    push( @base_data_labels, "Dog" );
+
+    push( @tree_labels, "Hipopotamus" );
+    push( @tree_labels, "Hoarse" );
+    push( @tree_labels, "Doge" );
+
+    my $guesser = Biodiverse::RemapGuesser->new();
+
+    my %remap_results = $guesser->guess_remap(
+        {
+            "existing_labels" => \@base_data_labels,
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 3,
+            "ignore_case"     => 0,
+
+        }
+    );
+
+    my %results = %{ $remap_results{remap} };
+
+    # ensure the remapping was correct
+    is( $results{"Hipopotamus"}, "Hippopotamus",
+        "Hipopotamus -> Hippopotamus" );
+
+    is( $results{"Hoarse"}, "Horse", "Hoarse -> Horse" );
+    is( $results{"Doge"},   "Dog",   "Doge -> dog" );
+
+}
+
 # make sure it isn't too slow for a largish dataset
 sub test_large_dataset {
 
     # build the labels
     my @base_data_labels = ();
     my @tree_labels      = ();
-    my $dataset_size     = 1000;
+
+    # set this to a large value to test the time it takes
+    # for now just set to 1 so the test results aren't flooded with this.
+    my $dataset_size = 1;
 
     for my $i ( 0 .. $dataset_size ) {
         push( @base_data_labels, "genus:sp" . $i );
@@ -173,7 +220,9 @@ sub test_large_dataset {
     my %remap_results = $guesser->guess_remap(
         {
             "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 0,
+
         }
     );
 
@@ -203,7 +252,8 @@ sub test_edge_cases {
         my %remap_results = $guesser->guess_remap(
             {
                 "existing_labels" => \@base_data_labels,
-                "new_labels"      => \@tree_labels
+                "new_labels"      => \@tree_labels,
+                "max_distance"    => 0,
             }
         );
 
@@ -235,7 +285,9 @@ sub test_size_mismatch {
     my %remap_results = $guesser->guess_remap(
         {
             "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 0,
+
         }
     );
 
@@ -271,7 +323,9 @@ sub test_size_mismatch2 {
     my %remap_results = $guesser->guess_remap(
         {
             "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 0,
+
         }
     );
 
@@ -285,4 +339,77 @@ sub test_size_mismatch2 {
             "genus_sp" . $i . " goes to " . "genus:sp" . $i
         );
     }
+}
+
+# make sure multiple typos remap to the same correct label
+sub test_multiple_remap {
+
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels      = ();
+
+    push( @base_data_labels, "Hippopotamus" );
+
+    push( @tree_labels, "Hipoppotamus" );
+    push( @tree_labels, "Hipopotamus" );
+
+    my $guesser = Biodiverse::RemapGuesser->new();
+
+    my %remap_results = $guesser->guess_remap(
+        {
+            "existing_labels" => \@base_data_labels,
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 3,
+            "ignore_case"     => 0,
+
+        }
+    );
+
+    my %results = %{ $remap_results{remap} };
+
+    # ensure the remapping was correct
+    is( $results{"Hipopotamus"}, "Hippopotamus",
+        "Hipopotamus -> Hippopotamus" );
+
+    is( $results{"Hipoppotamus"},
+        "Hippopotamus", "Hipopotamus -> Hippopotamus" );
+
+}
+
+# make sure the max distance cap is actually working
+sub test_max_distance {
+
+    # build the labels
+    my @base_data_labels = ();
+    my @tree_labels      = ();
+
+    push( @base_data_labels, "first" );
+    push( @base_data_labels, "second" );
+    push( @base_data_labels, "third" );
+    push( @base_data_labels, "fourth" );
+
+    push( @tree_labels, "first" );
+    push( @tree_labels, "seconda" );
+    push( @tree_labels, "thirdaa" );
+    push( @tree_labels, "fourthaaa" );
+
+    my $guesser = Biodiverse::RemapGuesser->new();
+
+    my %remap_results = $guesser->guess_remap(
+        {
+            "existing_labels" => \@base_data_labels,
+            "new_labels"      => \@tree_labels,
+            "max_distance"    => 2,
+            "ignore_case"     => 0,
+
+        }
+    );
+
+    my %results = %{ $remap_results{remap} };
+
+    is( $results{"first"},   "first",  "first -> first" );
+    is( $results{"seconda"}, "second", "seconda -> second" );
+    is( $results{"thirdaa"}, "third",  "thirdaa -> third" );
+    isnt( $results{"fourthaaa"}, "fourth", "fourthaaa doesn't map to fourth" );
+
 }

@@ -287,6 +287,12 @@ sub guess_remap {
         $remap{$label} = $label;
     }
 
+
+    #foreach my $key (keys %remap) {
+    #    say "RemapGuesser: $key -> $remap{$key}";
+    #}
+
+    
     my %results = (
         remap         => \%remap,
         exact_matches => \@exact_matches,

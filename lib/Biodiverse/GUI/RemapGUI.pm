@@ -173,7 +173,7 @@ sub perform_remap {
 
     # actually do the remap
     my $guesser       = Biodiverse::RemapGuesser->new();
-    my %remap_results = $guesser->generate_auto_remap(
+    my $remap_results = $guesser->generate_auto_remap(
         {
             "existing_data_source" => $old_source,
             "new_data_source"      => $new_source,
@@ -181,41 +181,41 @@ sub perform_remap {
         }
     );
     
-    my %remap       = %{ $remap_results{remap} };
-    my $success     = $remap_results{success};
-    my $statsString = $remap_results{stats};
+    my $remap       = $remap_results->{remap};
+    my $success     = $remap_results->{success};
+    my $statsString = $remap_results->{stats};
 
 
     # we were able to generate a mapping under the distance threshold,
     # now show them what it is and let them choose which parts to keep
-    my %remap_results_response = %{$self->remap_results_dialog(%remap_results)};
-    my $response = $remap_results_response{response};
+    my $remap_results_response = $self->remap_results_dialog(%{$remap_results});
+    my $response = $remap_results_response->{response};
 
 
     # now build the remap we actually want to perform
 
     # remove parts which aren't enabled
-    if(!$remap_results_response{punct_match_enabled}) {
-        my @punct_matches = @{$remap_results{punct_matches}};
+    if(!$remap_results_response->{punct_match_enabled}) {
+        my @punct_matches = @{$remap_results->{punct_matches}};
         foreach my $key (@punct_matches) {
-            delete $remap{$key};
+            delete $remap->{$key};
             #say "RemapGUI: deleted $key because it was punct matched";
         }
     }
 
-    if(!$remap_results_response{typo_match_enabled}) {
-        my @typo_matches = @{$remap_results{typo_matches}};
+    if(!$remap_results_response->{typo_match_enabled}) {
+        my @typo_matches = @{$remap_results->{typo_matches}};
         foreach my $key (@typo_matches) {
-            delete $remap{$key};
+            delete $remap->{$key};
             #say "RemapGUI: deleted $key because it was typo matched";
         }
     }
 
 
     # remove specific exclusions
-    my @exclusions = @{$remap_results_response{exclusions}};
+    my @exclusions = @{$remap_results_response->{exclusions}};
     foreach my $key (@exclusions) {
-        delete $remap{$key};
+        delete $remap->{$key};
         #say "Deleted $key because it was excluded by the checkboxes.";
     }
     
@@ -224,7 +224,7 @@ sub perform_remap {
     
     if ( $response eq 'yes' ) {
         $guesser->perform_auto_remap(
-            remap => \%remap,
+            remap => $remap,
             new_source => $new_source,
             );
 
@@ -246,8 +246,7 @@ sub perform_remap {
 # called internally by perform_remap
 sub remap_results_dialog {
     my ($self, %args) = @_;
-    my %remap = %{$args{remap}};
-
+    my $remap = $args{remap};
     
     
     ###
@@ -268,7 +267,7 @@ sub remap_results_dialog {
 
     # Build the punct_tree
     my $punct_tree = $self->build_punct_tree (
-        remap => \%remap,
+        remap => $remap,
         punct_matches => \@punct_matches
     );
 
@@ -295,7 +294,7 @@ sub remap_results_dialog {
 
     # Build the typo_tree
     my $typo_tree = $self->build_typo_tree (
-        remap => \%remap,
+        remap => $remap,
         typo_matches => \@typo_matches
     );
 
@@ -459,8 +458,8 @@ sub build_bland_tree {
 sub build_typo_tree {
     my ($self, %args) = @_;
 
-    my @typo_matches = @{$args{typo_matches}}; my %remap =
-    %{$args{remap}};
+    my @typo_matches = @{$args{typo_matches}}; 
+    my $remap = $args{remap};
     # start by building the TreeModel
     my @treestore_args = (
         'Glib::String',         # Original value
@@ -476,12 +475,12 @@ sub build_typo_tree {
 
         # Lazy way of getting edit distance, ideally this wouldn't get
         # calculated in the middle of the gui.
-        my $distance = distance($match, $remap{$match});
+        my $distance = distance($match, $remap->{$match});
         
         $typo_model->set(
             $iter,
             ORIGINAL_LABEL_COL,        $match,
-            REMAPPED_LABEL_COL,        $remap{$match},
+            REMAPPED_LABEL_COL,        $remap->{$match},
             PERFORM_COL,               1,  # checkbox enabled by default
             EDIT_DISTANCE_COL,         $distance,
         );
@@ -551,8 +550,9 @@ sub build_typo_tree {
 sub build_punct_tree {
     my ($self, %args) = @_;
 
-    my @punct_matches = @{$args{punct_matches}}; my %remap =
-    %{$args{remap}};
+    my @punct_matches = @{$args{punct_matches}}; 
+    my $remap = $args{remap};
+    
     # start by building the TreeModel
     my @treestore_args = (
         'Glib::String',         # Original value
@@ -567,7 +567,7 @@ sub build_punct_tree {
         $punct_model->set(
             $iter,
             ORIGINAL_LABEL_COL,        $match,
-            REMAPPED_LABEL_COL,        $remap{$match},
+            REMAPPED_LABEL_COL,        $remap->{$match},
             PERFORM_COL,               1  # checkbox enabled by default
         );
     }
@@ -672,12 +672,11 @@ sub remove_exclusion {
 
 # called when a checkbox is toggled
 sub on_remap_toggled {
-    my $arg_ref = shift;
+    my $args = shift;
     my $path = shift;
 
-    my %args = %{$arg_ref};
-    my $model = $args{model};
-    my $self = $args{self};
+    my $model = $args->{model};
+    my $self = $args->{self};
 
 
     my $iter = $model->get_iter_from_string($path);

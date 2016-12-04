@@ -1135,12 +1135,12 @@ sub do_auto_remap_phylogeny {
     my $gui  = $self;
 
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
+    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
 
-    if($remap_dlg_results{remap_type} eq "auto") {
+    if($remap_dlg_results->{remap_type} eq "auto") {
         my $cloned_ref = $ref->clone();
-        my $old_source = $remap_dlg_results{datasource_choice};
-        my $max_distance = $remap_dlg_results{max_distance};
+        my $old_source = $remap_dlg_results->{datasource_choice};
+        my $max_distance = $remap_dlg_results->{max_distance};
         
         $remapper->perform_remap (
                 gui         => $gui,
@@ -1163,12 +1163,12 @@ sub do_auto_remap_basedata {
 
 
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
+    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
 
-    if($remap_dlg_results{remap_type} eq "auto") {
+    if($remap_dlg_results->{remap_type} eq "auto") {
         my $cloned_ref = $ref->clone();
-        my $old_source = $remap_dlg_results{datasource_choice};
-        my $max_distance = $remap_dlg_results{max_distance};
+        my $old_source = $remap_dlg_results->{datasource_choice};
+        my $max_distance = $remap_dlg_results->{max_distance};
         
         $remapper->perform_remap (
                 gui         => $gui,
@@ -1191,12 +1191,12 @@ sub do_auto_remap_matrix {
     my $gui  = $self;
 
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{$remapper->run_remap_gui(gui => $gui, no_manual => 1)};
+    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
 
-    if($remap_dlg_results{remap_type} eq "auto") {
+    if($remap_dlg_results->{remap_type} eq "auto") {
         my $cloned_ref = $ref->clone();
-        my $old_source = $remap_dlg_results{datasource_choice};
-        my $max_distance = $remap_dlg_results{max_distance};
+        my $old_source = $remap_dlg_results->{datasource_choice};
+        my $max_distance = $remap_dlg_results->{max_distance};
         
         $remapper->perform_remap (
                 gui         => $gui,

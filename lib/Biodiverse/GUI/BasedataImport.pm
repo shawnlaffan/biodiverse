@@ -807,10 +807,10 @@ sub run {
 
             # run the remap gui, get all their decisions in one go
             my $remapper           = Biodiverse::GUI::RemapGUI->new();
-            my %remap_dlg_results  = %{ $remapper->run_remap_gui(gui => $gui) };
+            my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui);
 
             # will be 'auto' 'manual' or 'none'
-            my $remap_type = $remap_dlg_results{remap_type};
+            my $remap_type = $remap_dlg_results->{remap_type};
 
 
 
@@ -819,8 +819,8 @@ sub run {
                 foreach my $file ( keys %multiple_brefs ) {
                     #next if !$multiple_is_new{$file};
 
-                    my $old_source = $remap_dlg_results{datasource_choice};
-                    my $max_distance = $remap_dlg_results{max_distance};
+                    my $old_source = $remap_dlg_results->{datasource_choice};
+                    my $max_distance = $remap_dlg_results->{max_distance};
 
                     $remapper->perform_remap(
                         gui          => $gui,

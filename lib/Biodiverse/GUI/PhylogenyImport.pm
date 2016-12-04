@@ -95,10 +95,10 @@ sub run {
 
     # run the remap gui, get all their decisions in one go
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_results  = %{ $remapper->run_remap_gui(gui => $gui) };
+    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui);
 
     # will be 'auto' 'manual' or 'none'
-    my $remap_type = $remap_dlg_results{remap_type};
+    my $remap_type = $remap_dlg_results->{remap_type};
 
 
     # manual remap procedure
@@ -178,8 +178,8 @@ sub run {
     # if they wanted to auto remap, do that now.
     if ($remap_type eq "auto") {
 
-        my $old_source = $remap_dlg_results{datasource_choice};
-        my $max_distance = $remap_dlg_results{max_distance};
+        my $old_source = $remap_dlg_results->{datasource_choice};
+        my $max_distance = $remap_dlg_results->{max_distance};
         
         foreach my $tree (@$phylogeny_array) {
             $remapper->perform_remap(

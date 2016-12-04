@@ -2559,9 +2559,10 @@ sub DESTROY {
 sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
-    my %remap_hash = %{ $args{remap} };
-    foreach my $r ( keys %remap_hash ) {
-        my $new_name = $remap_hash{$r};
+    my $remap_hash = $args{remap};
+
+    foreach my $r ( keys %{$remap_hash} ) {
+        my $new_name = $remap_hash->{$r};
         
         my $this_node = $self->{TREE_BY_NAME}{$r};
         $this_node->set_name( name => $new_name );

@@ -26,10 +26,10 @@ sub new {
 sub perform_auto_remap {
     my ($self, %args) = @_;
 
-    my %remap_hash = %{$args{remap}};
+    my $remap_hash = $args{remap};
     my $data_source = $args{new_source};
     
-    $data_source->remap_labels_from_hash(remap=>\%remap_hash);
+    $data_source->remap_labels_from_hash( remap=>$remap_hash );
     return;
 }
 
@@ -52,7 +52,7 @@ sub generate_auto_remap {
             "max_distance" => $max_distance,
     });
 
-    my %remap = %{$remap_results->{remap}};
+    my $remap = $remap_results->{remap};
 
   
     #my $success = ($furthest > $max_distance) ? 0 : 1;
@@ -68,7 +68,7 @@ sub generate_auto_remap {
     #}
    
     my %results = (
-        remap => \%remap,
+        remap => $remap,
         exact_matches => $remap_results->{exact_matches},
         punct_matches => $remap_results->{punct_matches},
         typo_matches => $remap_results->{typo_matches},
@@ -84,7 +84,7 @@ sub generate_auto_remap {
  sub create_example_string {
      my ($self, %args) = @_;
 
-     my %the_hash = %{$args{hash}};
+     my $the_hash = $args{hash};
      my @the_keys = @{$args{keys}};
 
      my $sample_size = (2 > $#the_keys) ? scalar($#the_keys) : 2;
@@ -95,7 +95,7 @@ sub generate_auto_remap {
      my $str = "\n(e.g. ";
      foreach my $i (0..$sample_size) {
          my $key = $the_keys[$i];
-         my $value = $the_hash{$key};
+         my $value = $the_hash->{$key};
          if($args{no_values}) {
              $str .= "$key, ";
          }

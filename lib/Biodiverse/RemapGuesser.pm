@@ -121,7 +121,8 @@ sub no_punct {
 
     $str =~ s/^['"]//;
     $str =~ s/['"]$//;
-    $str =~ s/[^\d\w]/_/g;
+    $str =~ s/[^\d\w]//g;
+    $str =~ s/[\_]//g;
 
     #say "no_punct out: $str";
     return $str;

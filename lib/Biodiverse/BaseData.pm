@@ -4959,7 +4959,10 @@ TO BE FILLED IN
 
 =over
 
-=item NEED TO INSERT METHODS
+=item remap_labels_from_hash
+
+Given a hash mapping from names of labels currently in this BaseData
+to desired new names, renames the labels accordingly.
 
 =back
 

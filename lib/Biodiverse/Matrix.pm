@@ -845,6 +845,15 @@ Import data from a file.  Assumes data are symmetric amongst other things.
 
 Really messy.  Needs cleaning up. 
 
+=item $self->remap_labels_from_hash
+
+Given a hash mapping from names of labels currently in this matrix to
+desired new names, renames the labels accordingly.
+
+=item $self->rename_element
+
+Renames an element in the matrix from old_name to new_name.
+
 =back
 
 =head1 REPORTING ERRORS

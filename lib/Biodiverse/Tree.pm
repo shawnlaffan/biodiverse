@@ -2609,7 +2609,10 @@ TO BE FILLED IN
 
 =over
 
-=item INSERT METHODS
+=item remap_labels_from_hash
+
+Given a hash mapping from names of labels currently in this tree to
+desired new names, renames the labels accordingly.
 
 =back
 

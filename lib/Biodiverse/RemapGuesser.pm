@@ -55,16 +55,6 @@ sub generate_auto_remap {
 
     my $remap = $remap_results->{remap};
 
-    #my $success = ($furthest > $max_distance) ? 0 : 1;
-
-    # TODO remove whole concept of 'success'
-    # matches which exceed the distance just get 'not matched'
-    my $success = 1;
-
-    #foreach my $m (keys %remap) {
-    #    my $mapped_to = $remap{$m};
-    #    say "generate_auto_remap: $m -> $mapped_to";
-    #}
 
     my %results = (
         remap         => $remap,
@@ -77,46 +67,16 @@ sub generate_auto_remap {
     return wantarray ? %results : \%results;
 }
 
-# Takes in a list of keys and a hash, returns a string showing a
-# sample of how the list of keys is mapped in the hash.
-sub create_example_string {
-    my ( $self, %args ) = @_;
-
-    my $the_hash = $args{hash};
-    my @the_keys = @{ $args{keys} };
-
-    my $sample_size = ( 2 > $#the_keys ) ? scalar($#the_keys) : 2;
-    if ( $sample_size < 0 ) {
-        return "";
-    }
-
-    my $str = "\n(e.g. ";
-    foreach my $i ( 0 .. $sample_size ) {
-        my $key   = $the_keys[$i];
-        my $value = $the_hash->{$key};
-        if ( $args{no_values} ) {
-            $str .= "$key, ";
-        }
-        else {
-            $str .= "$key -> $value, ";
-        }
-    }
-    $str .= ")";
-    return $str;
-}
 
 # takes a string, returns it with non word/digit characters replaced
-# by underscores.
+# by underscores. args{ignore_case} controls whether case counts as
+# 'punctuation'
 sub no_punct {
     my ( $self, %args ) = @_;
     my $str = $args{str};
 
-    #say "no_punct in: $str";
-
     if ( $args{ignore_case} ) {
         $str = lc($str);
-
-        #say "converted $str to $str via lc";
     }
 
     $str =~ s/^['"]//;
@@ -124,7 +84,6 @@ sub no_punct {
     $str =~ s/[^\d\w]//g;
     $str =~ s/[\_]//g;
 
-    #say "no_punct out: $str";
     return $str;
 }
 
@@ -303,5 +262,117 @@ sub guess_remap {
 
     return wantarray ? %results : \%results;
 }
+
+
+=pod
+
+=head1 NAME
+
+Biodiverse::RemapGuesser
+
+=head1 SYNOPSIS
+
+Generate remappings between slightly different sets of
+strings. (e.g. labels for a newly imported tree and existing
+basedata).
+
+=head1 DESCRIPTION
+
+There are four stages of matching. After each stage, any string that
+was matched is removed. The next step runs only on the remaining
+unmatched strings. 
+
+The first stage looks for exact matches between the two sets of
+strings. The second stage looks for strings differing only by
+punctuation. This is done by removing all punctuation and finding
+exact matches in this 'punctuation-less' state. The third stage looks
+for matches which are within a specified edit distance. For example,
+if the edit distance specified was 1, then Tyypo would match Typo but
+not Tyyypo. The fourth and final stage places all remaining unmatched
+labels into the 'not matched category'.
+
+=head1 METHODS
+
+=over
+
+=item C<new>
+
+Standard constructor for the RemapGuesser class.
+
+=item C<perform_auto_remap>
+
+Given a hash and a 'data source' (anything which implements
+C<remap_labels_from_hash>, normally a C<BaseData>, C<Tree> or
+C<Matrix>). The hash maps from the names of labels already in the data
+source to the desired new label names. The data source's labels are
+renamed according to the hash. e.g. The hash might contain Genus_sp1
+=> GenusSp1. If there is a label named Genus_sp1 in the data source,
+it will be renamed to GenusSp1.
+
+=item C<generate_auto_remap>
+
+Given two data sources (anything implementing C<get_labels()>), and a
+number of configuration options, generates a hash mapping the labels
+of one data source to the other. 
+
+The C<first_source> argument is mapped to the C<second_source>
+argument. The C<max_distance> argument controls the maximum acceptable
+edit distance for two labels to be regarded as a match. (see class
+description for explanation of matching process). The C<ignore_case>
+argument specifying whether case is treated as punctuation. For
+example, if this is true, GenusSp will match genussp in the
+punctuation stage. This avoids the edit distance requirement which
+would prevent case errors from being matched.
+
+C<generate_auto_remap> returns a hash. C<remap> is a hash specifying
+the complete mapping that was found. This can be passed into
+C<perform_auto_remap> to actually carry out a remap. C<exact_matches>,
+C<punct_matches>, C<typo_matches> and C<not_matched> are lists of
+labels which were matched in the four stages of matching. (see class
+description).
+
+=item C<no_punct>
+
+Given a string (C<args{str}>), returns it with no
+punctuation. Anything outside the Perl \d and \w classes are
+removed. Additionally, quotes and underscores are removed. If
+C<args{ignore_case}> is true, the string is also converted to
+lowercase.
+
+=item C<guess_remap>
+
+Given two lists of strings, generates a remap hash from the first to
+the second using the four stage process described in the class
+description section. Usually outside callers should use
+generate_auto_remap instead of calling this function directly.
+
+=back
+
+=head1 REPORTING ERRORS
+
+Use the issue tracker at http://www.purl.org/biodiverse
+
+=head1 COPYRIGHT
+
+Copyright (c) 2010 Shawn Laffan. All rights reserved.  
+
+=head1 LICENSE
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+For a full copy of the license see <http://www.gnu.org/licenses/>.
+
+=cut
+
+
+
 
 1;

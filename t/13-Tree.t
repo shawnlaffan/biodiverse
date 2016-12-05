@@ -41,6 +41,7 @@ sub main {
                 if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
             $func->();
         }
+
         done_testing;
         return 0;
     }
@@ -698,6 +699,37 @@ sub test_rescale_by_longest_path {
     
 }
 
+sub test_remap_labels_from_hash {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label ($tree1->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $tree1->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = $tree1->get_labels();
+
+    
+    # make sure everything we expect is there
+    foreach my $label (@expected_new_labels) {
+        ok( grep( /^$label$/, @actual_new_labels ), "Labels contain $label");
+    }
+
+    # make sure nothing else is there
+    foreach my $label (@actual_new_labels) {
+        ok( grep( /^$label$/, @expected_new_labels ), "Expected contains $label");
+    }
+
+
+}
+
+
+
+
 
 sub test_depth {
     my $tree = Biodiverse::Tree->new (NAME => 'test depth');
@@ -813,6 +845,8 @@ sub get_site_data_newick_tree {
     }
     croak "should not get this far\n";
 }
+
+
 
 
 

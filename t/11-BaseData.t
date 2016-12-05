@@ -392,6 +392,38 @@ sub test_binarise_sample_counts {
     
 }
 
+
+sub test_remap_labels_from_hash {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label ($bd->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $bd->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = $bd->get_labels();
+
+    
+    # make sure everything we expect is there
+    foreach my $label (@expected_new_labels) {
+        ok( grep( /^$label$/, @actual_new_labels ), "Labels contain $label");
+    }
+
+    # make sure nothing else is there
+    foreach my $label (@actual_new_labels) {
+        ok( grep( /^$label$/, @expected_new_labels ), "Expected contains $label");
+    }
+
+
+}
+
+
+
+
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 

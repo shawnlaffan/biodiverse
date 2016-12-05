@@ -191,6 +191,8 @@ sub perform_remap {
       $self->remap_results_dialog( %{$remap_results} );
     my $response = $remap_results_response->{response};
 
+
+    
     # now build the remap we actually want to perform
 
     # remove parts which aren't enabled
@@ -198,8 +200,7 @@ sub perform_remap {
         my @punct_matches = @{ $remap_results->{punct_matches} };
         foreach my $key (@punct_matches) {
             delete $remap->{$key};
-
-            #say "RemapGUI: deleted $key because it was punct matched";
+            say "RemapGUI: deleted $key because it was punct matched";
         }
     }
 
@@ -207,8 +208,7 @@ sub perform_remap {
         my @typo_matches = @{ $remap_results->{typo_matches} };
         foreach my $key (@typo_matches) {
             delete $remap->{$key};
-
-            #say "RemapGUI: deleted $key because it was typo matched";
+            say "RemapGUI: deleted $key because it was typo matched";
         }
     }
 
@@ -216,8 +216,7 @@ sub perform_remap {
     my @exclusions = @{ $remap_results_response->{exclusions} };
     foreach my $key (@exclusions) {
         delete $remap->{$key};
-
-        #say "Deleted $key because it was excluded by the checkboxes.";
+        say "Deleted $key because it was excluded by the checkboxes.";
     }
 
     # TODO we could probably remove exact matches and not matches here as well
@@ -376,8 +375,7 @@ sub remap_results_dialog {
     my %results = (
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
-
-        #typo_match_enabled => $typo_match_checkbutton->get_active,
+        typo_match_enabled => $typo_match_checkbutton->get_active,
         exclusions => $self->get_exclusions,
     );
 

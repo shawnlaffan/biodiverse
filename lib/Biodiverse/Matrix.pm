@@ -644,17 +644,23 @@ sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
     my %remap_hash = %{ $args{remap} };
-    say "in remap_labels_from_hash";
 
+    
     my @old_names = keys(%remap_hash);
     foreach my $old_name (@old_names) {
         my $new_name = $remap_hash{$old_name};
-        $self->rename_element(
-            old_name => $old_name,
-            new_name => $new_name,
-        );
-    }
+        #say "About to rename $old_name to $new_name";
+        if(!($old_name eq $new_name)) {
 
+            $self->rename_element(
+                old_name => $old_name,
+                new_name => $new_name,
+            );
+        }
+        else {
+            #say "They're the same!!";
+        }
+    }
 }
 
 # renames element 'old_name' to 'new_name'
@@ -662,9 +668,13 @@ sub rename_element {
     my $self = shift;
     my %args = @_;
 
+
     my $old_name = $args{"old_name"};
     my $new_name = $args{"new_name"};
 
+    #say "Matrix: renaming $old_name to $new_name";
+
+    
     my @all_elements = $self->get_elements_as_array();
 
     for my $element (@all_elements) {
@@ -673,10 +683,14 @@ sub rename_element {
             element2 => $old_name
         );
 
+        #say "Dealing with pair $element, $old_name, exists is $exists";
+        
         # pair is in correct order
         if ( $exists == 1 ) {
             my $value =
-              $self->get_value( element1 => $element, element2 => $old_name );
+                $self->get_value( element1 => $element, element2 => $old_name );
+
+
             if ( $element eq $old_name ) {
                 $self->add_element(
                     element1 => $new_name,

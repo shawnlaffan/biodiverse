@@ -11,6 +11,7 @@ use strict;
 use warnings;
 
 use Text::Levenshtein qw(distance);
+use Biodiverse::Progress;
 
 our $VERSION = '1.99_006';
 
@@ -99,6 +100,8 @@ sub guess_remap {
     my $ignore_case = $args->{ignore_case};
 
     my %remap;
+    
+    my $progress = Biodiverse::Progress->new();
 
     ################################################################
     # step 1: find exact matches
@@ -107,7 +110,13 @@ sub guess_remap {
     my %target_labels_hash;
     @target_labels_hash{@target_labels} = undef;  # only need the keys
 
+    my $progress_i = 0;
+    my $n = scalar @from_labels;
+
     foreach my $from_label (@from_labels) {
+        $progress_i ++;
+        $progress->update ("Finding exact matches among $n entries", $progress_i / $n);
+
         if ( exists $target_labels_hash{$from_label} ) {
             $remap{$from_label} = $from_label;
             push @exact_matches, $from_label;
@@ -143,7 +152,11 @@ sub guess_remap {
     @unprocessed_from_labels = ();
     my %existing_labels_that_got_matched;
 
+    $progress_i = 0;
+    $n = scalar @from_labels;
     foreach my $from_label (@from_labels) {
+        $progress_i++;
+        $progress->update ("Finding punctuation matches from $n labels", $progress_i / $n);
 
         my $key = $self->no_punct (
             str         => $from_label,
@@ -164,7 +177,7 @@ sub guess_remap {
         }
     }
 
-    @from_labels = @unprocessed_from_labels;
+    
 
     ################################################################
     # step 3: edit distance based matching (try to catch typos).  For
@@ -172,44 +185,54 @@ sub guess_remap {
     # in the old labels. If it is under the threshold, add it as a
     # match.
 
-    @unprocessed_from_labels = ();
     my $max_distance = $args->{max_distance};
     my @typo_matches;
     my %ambiguous_matches;
 
-    foreach my $from_label (@from_labels) {
-        my $min_distance = $max_distance;
-        my @poss_matches;
+    if ($max_distance) {
+        @from_labels = @unprocessed_from_labels;
+        @unprocessed_from_labels = ();
 
-        foreach my $target_label (keys %target_labels_hash) {
-            my $distance = distance( $from_label, $target_label );
-            next if $distance > $min_distance;
-            my $subset = $poss_matches[$distance] //= [];
-            push @$subset, $target_label;
-            $min_distance = $distance;
-        }
+        $progress_i = 0;
+        $n = scalar @from_labels;
 
-        my $match_subset = $poss_matches[$min_distance] // [];
-
-        if ( scalar @$match_subset == 1) {
-            my $min_label = $match_subset->[0];
-
-            # we found a legitimate, unambiguous match
-            $remap{$from_label} = $min_label;
-
-            # for now, don't delete the match from existing labels,
-            # because if we're trying to catch typos, there might be
-            # multiple 'labels' (really typos) in the new data that
-            # need to be remapped to the same label in the existing
-            # data.
-
-            push @typo_matches, $from_label;
-        }
-        else {
-            if ( scalar @$match_subset > 1) {
-                $ambiguous_matches{$from_label} = $match_subset;
+        foreach my $from_label (@from_labels) {
+            $progress_i++;
+            $progress->update ("Distance matching $n labels", $progress / $n);
+    
+            my $min_distance = $max_distance;
+            my @poss_matches;
+    
+            foreach my $target_label (keys %target_labels_hash) {
+                my $distance = distance( $from_label, $target_label );
+                next if $distance > $min_distance;
+                my $subset = $poss_matches[$distance] //= [];
+                push @$subset, $target_label;
+                $min_distance = $distance;
             }
-            push @unprocessed_from_labels, $from_label;
+    
+            my $match_subset = $poss_matches[$min_distance] // [];
+    
+            if ( scalar @$match_subset == 1) {
+                my $min_label = $match_subset->[0];
+    
+                # we found a legitimate, unambiguous match
+                $remap{$from_label} = $min_label;
+    
+                # for now, don't delete the match from existing labels,
+                # because if we're trying to catch typos, there might be
+                # multiple 'labels' (really typos) in the new data that
+                # need to be remapped to the same label in the existing
+                # data.
+    
+                push @typo_matches, $from_label;
+            }
+            else {
+                if ( scalar @$match_subset > 1) {
+                    $ambiguous_matches{$from_label} = $match_subset;
+                }
+                push @unprocessed_from_labels, $from_label;
+            }
         }
     }
 

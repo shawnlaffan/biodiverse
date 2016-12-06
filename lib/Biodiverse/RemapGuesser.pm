@@ -107,8 +107,8 @@ sub guess_remap {
     my @unprocessed_new_labels;
     my @exact_matches;
     my %existing_labels_hash;
-    @existing_labels_hash{@existing_labels} = (1) x scalar @existing_labels;
-    
+    @existing_labels_hash{@existing_labels} = undef;  # only need the keys
+
     foreach my $new_label (@new_labels) {
         if ( exists $existing_labels_hash{$new_label} ) {
             $remap{$new_label} = $new_label;
@@ -119,15 +119,12 @@ sub guess_remap {
         }
     }
 
+    @new_labels      = @unprocessed_new_labels;
     # and now remove any existing labels that were exact matched
     # (could splice as we go in the loop above?)
-    my @unprocessed_existing_labels
+    @existing_labels
       = grep {!exists $remap{$_}} # use keys since they were exact matches
         @existing_labels;
-    
-
-    @new_labels      = @unprocessed_new_labels;
-    @existing_labels = @unprocessed_existing_labels;
 
     ################################################################
     # step 2: find punctuation-less matches e.g. a:b matches a_b
@@ -147,7 +144,7 @@ sub guess_remap {
     #say "no_punct_hash keys: ", keys %no_punct_hash;
 
     # look for no punct matches for each of the unmatched new labels
-    my @punct_matches = ();
+    my @punct_matches;
     @unprocessed_new_labels = ();
     my %existing_labels_that_got_matched;
 
@@ -171,13 +168,11 @@ sub guess_remap {
         }
     }
 
-    # existing labels that were punct matched
-    @unprocessed_existing_labels
-      = grep {!exists $existing_labels_that_got_matched{$_}}
-        @existing_labels;
-
     @new_labels      = @unprocessed_new_labels;
-    @existing_labels = @unprocessed_existing_labels;
+    # existing labels that were punct matched
+    @existing_labels
+      = grep {!exists $existing_labels_that_got_matched{$_}}
+        @existing_labels;;
 
     ################################################################
     # step 3: edit distance based matching (try to catch typos).  For
@@ -187,7 +182,7 @@ sub guess_remap {
 
     @unprocessed_new_labels = ();
     my $max_distance = $args->{max_distance};
-    my @typo_matches = ();
+    my @typo_matches;
 
     foreach my $new (@new_labels) {
         my $min_distance = $max_distance + 1;

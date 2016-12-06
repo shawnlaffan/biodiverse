@@ -93,39 +93,33 @@ sub guess_remap {
     my $self = shift;
     my $args = shift || {};
 
-    my @existing_labels = sort @{ $args->{existing_labels} };
-    my @new_labels      = sort @{ $args->{new_labels} };
+    my @target_labels = sort @{ $args->{existing_labels} };
+    my @from_labels   = sort @{ $args->{new_labels} };
 
     my $ignore_case = $args->{ignore_case};
-
-    #say "guess_remap: ignore case was $ignore_case";
 
     my %remap;
 
     ################################################################
     # step 1: find exact matches
-    my @unprocessed_new_labels;
+    my @unprocessed_from_labels;
     my @exact_matches;
-    my %existing_labels_hash;
-    @existing_labels_hash{@existing_labels} = undef;  # only need the keys
+    my %target_labels_hash;
+    @target_labels_hash{@target_labels} = undef;  # only need the keys
 
-    foreach my $new_label (@new_labels) {
-        if ( exists $existing_labels_hash{$new_label} ) {
-            $remap{$new_label} = $new_label;
-            push @exact_matches, $new_label;
-            delete $existing_labels_hash{$new_label};
+    foreach my $from_label (@from_labels) {
+        if ( exists $target_labels_hash{$from_label} ) {
+            $remap{$from_label} = $from_label;
+            push @exact_matches, $from_label;
+            delete $target_labels_hash{$from_label};
         }
         else {
-            push @unprocessed_new_labels, $new_label;
+            push @unprocessed_from_labels, $from_label;
         }
     }
 
-    @new_labels      = @unprocessed_new_labels;
-    # and now remove any existing labels that were exact matched
-    # (could splice as we go in the loop above?)
-    #@existing_labels
-    #  = grep {!exists $remap{$_}} # use keys since they were exact matches
-    #    @existing_labels;
+    @from_labels = @unprocessed_from_labels;
+
 
     ################################################################
     # step 2: find punctuation-less matches e.g. a:b matches a_b
@@ -134,7 +128,7 @@ sub guess_remap {
     # build the hash mapping punctuation-less existing labels to their
     # original value.
     my %no_punct_hash;
-    foreach my $label (keys %existing_labels_hash) {
+    foreach my $label (keys %target_labels_hash) {
         my $key = $self->no_punct(
             str => $label,
             ignore_case => $ignore_case,
@@ -146,35 +140,31 @@ sub guess_remap {
 
     # look for no punct matches for each of the unmatched new labels
     my @punct_matches;
-    @unprocessed_new_labels = ();
+    @unprocessed_from_labels = ();
     my %existing_labels_that_got_matched;
 
-    foreach my $new_label (@new_labels) {
+    foreach my $from_label (@from_labels) {
 
         my $key = $self->no_punct (
-            str         => $new_label,
+            str         => $from_label,
             ignore_case => $ignore_case,
         );
-        #say "Looking in the no_punct_hash for $new_label";
+        #say "Looking in the no_punct_hash for $from_label";
         if (exists $no_punct_hash{$key}) {
             #say "Found it in there";
-            $remap{$new_label} = $no_punct_hash{$key};
-            push @punct_matches, $new_label;
+            $remap{$from_label} = $no_punct_hash{$key};
+            push @punct_matches, $from_label;
 
             $existing_labels_that_got_matched{$key} = 1;
-            delete $existing_labels_hash{$key};
+            delete $target_labels_hash{$key};
         }
         else {
             #say "Couldn't find it in there";
-            push @unprocessed_new_labels, $new_label;
+            push @unprocessed_from_labels, $from_label;
         }
     }
 
-    @new_labels      = @unprocessed_new_labels;
-    # existing labels that were punct matched
-    #@existing_labels
-    #  = grep {!exists $existing_labels_that_got_matched{$_}}
-    #    @existing_labels;;
+    @from_labels = @unprocessed_from_labels;
 
     ################################################################
     # step 3: edit distance based matching (try to catch typos).  For
@@ -182,20 +172,20 @@ sub guess_remap {
     # in the old labels. If it is under the threshold, add it as a
     # match.
 
-    @unprocessed_new_labels = ();
+    @unprocessed_from_labels = ();
     my $max_distance = $args->{max_distance};
     my @typo_matches;
     my %ambiguous_matches;
 
-    foreach my $new (@new_labels) {
+    foreach my $from_label (@from_labels) {
         my $min_distance = $max_distance;
         my @poss_matches;
 
-        foreach my $old (keys %existing_labels_hash) {
-            my $distance = distance( $new, $old );
+        foreach my $target_label (keys %target_labels_hash) {
+            my $distance = distance( $from_label, $target_label );
             next if $distance > $min_distance;
             my $subset = $poss_matches[$distance] //= [];
-            push @$subset, $old;
+            push @$subset, $target_label;
             $min_distance = $distance;
         }
 
@@ -205,7 +195,7 @@ sub guess_remap {
             my $min_label = $match_subset->[0];
 
             # we found a legitimate, unambiguous match
-            $remap{$new} = $min_label;
+            $remap{$from_label} = $min_label;
 
             # for now, don't delete the match from existing labels,
             # because if we're trying to catch typos, there might be
@@ -213,13 +203,13 @@ sub guess_remap {
             # need to be remapped to the same label in the existing
             # data.
 
-            push @typo_matches, $new;
+            push @typo_matches, $from_label;
         }
         else {
             if ( scalar @$match_subset > 1) {
-                $ambiguous_matches{$new} = $match_subset;
+                $ambiguous_matches{$from_label} = $match_subset;
             }
-            push @unprocessed_new_labels, $new;
+            push @unprocessed_from_labels, $from_label;
         }
     }
 
@@ -227,7 +217,7 @@ sub guess_remap {
     # There may be some 'not matched' strings which will cause
     # problems if they don't have a corresponding remap hash entry.
     # put them in the hash.
-    @remap{@unprocessed_new_labels} = @unprocessed_new_labels;
+    @remap{@unprocessed_from_labels} = @unprocessed_from_labels;
 
 
     my %results = (
@@ -235,7 +225,7 @@ sub guess_remap {
         exact_matches => \@exact_matches,
         punct_matches => \@punct_matches,
         typo_matches  => \@typo_matches,
-        not_matched   => \@unprocessed_new_labels,
+        not_matched   => \@unprocessed_from_labels,
         ambiguous_matches => \%ambiguous_matches,
     );
 

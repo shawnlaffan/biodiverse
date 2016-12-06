@@ -198,7 +198,7 @@ sub guess_remap {
 
         foreach my $from_label (@from_labels) {
             $progress_i++;
-            $progress->update ("Distance matching $n labels", $progress / $n);
+            $progress->update ("Distance matching $n labels", $progress_i / $n);
     
             my $min_distance = $max_distance;
             my @poss_matches;

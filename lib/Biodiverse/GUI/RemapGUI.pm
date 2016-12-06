@@ -174,19 +174,19 @@ sub perform_remap {
     my $self = shift;
     my $args = shift;
 
-    my $new_source   = $args->{"new_source"};
-    my $old_source   = $args->{"old_source"};
-    my $max_distance = $args->{"max_distance"};
-    my $ignore_case  = $args->{"ignore_case"};
+    my $new_source   = $args->{new_source};
+    my $old_source   = $args->{old_source};
+    my $max_distance = $args->{max_distance};
+    my $ignore_case  = $args->{ignore_case};
 
     # actually do the remap
     my $guesser       = Biodiverse::RemapGuesser->new();
     my $remap_results = $guesser->generate_auto_remap(
         {
-            "existing_data_source" => $old_source,
-            "new_data_source"      => $new_source,
-            "max_distance"         => $max_distance,
-            "ignore_case"          => $ignore_case
+            existing_data_source => $old_source,
+            new_data_source      => $new_source,
+            max_distance         => $max_distance,
+            ignore_case          => $ignore_case
         }
     );
 
@@ -276,16 +276,21 @@ sub remap_results_dialog {
     $punct_match_scroll->set_size_request( 500, 100 );
     $punct_match_scroll->add($punct_tree);
 
-    my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category");
+    my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(
         toggled => sub {
             $punct_match_label->set_sensitive(
-                !$punct_match_label->get_sensitive );
+                !$punct_match_label->get_sensitive,
+            );
             $punct_match_scroll->set_sensitive(
-                !$punct_match_scroll->get_sensitive );
+                !$punct_match_scroll->get_sensitive,
+            );
         }
     );
+    if (!$punct_match_count) {
+        $punct_match_checkbutton->set_active(0);
+    }
 
     ###
     # Typo matches
@@ -299,39 +304,44 @@ sub remap_results_dialog {
 
     my $typo_match_count = @typo_matches;
 
-    my $typo_match_label =
-      Gtk2::Label->new(
-"$typo_match_count Possible Typos: (labels within 'max distance' edits of an exact match)"
-      );
+    my $typo_match_label = Gtk2::Label->new(
+          "$typo_match_count Possible Typos: "
+        . "(labels within 'max distance' edits of an exact match)"
+    );
 
     my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $typo_match_scroll->set_size_request( 500, 100 );
     $typo_match_scroll->add($typo_tree);
 
-    my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category");
+    my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(
         toggled => sub {
             $typo_match_label->set_sensitive(
-                !$typo_match_label->get_sensitive );
+                !$typo_match_label->get_sensitive
+            );
             $typo_match_scroll->set_sensitive(
-                !$typo_match_scroll->get_sensitive );
+                !$typo_match_scroll->get_sensitive
+            );
         }
     );
+    if (!$typo_match_count) {
+        $typo_match_checkbutton->set_active(0);
+    }
 
     ###
     # Not matched
-    my @not_matched       = @{ $args{not_matched} };
-    my $not_matched_tree  = $self->build_bland_tree( labels => \@not_matched );
-    my $not_matched_count = @not_matched;
-    my $not_matched_label = Gtk2::Label->new("$not_matched_count Not Matched:");
+    my @not_matched        = @{ $args{not_matched} };
+    my $not_matched_tree   = $self->build_bland_tree ( labels => \@not_matched );
+    my $not_matched_count  = @not_matched;
+    my $not_matched_label  = Gtk2::Label->new("$not_matched_count Not Matched:");
     my $not_matched_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $not_matched_scroll->set_size_request( 500, 100 );
     $not_matched_scroll->add($not_matched_tree);
 
     ###
     # Accept label
-    my $accept_remap_label = Gtk2::Label->new("Perform this remapping?");
+    my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
 
     ####
     # The dialog itself
@@ -387,7 +397,6 @@ sub remap_results_dialog {
     );
 
     return wantarray ? %results : \%results;
-
 }
 
 # build a one column tree containing labels from args{labels}

@@ -13,6 +13,7 @@ use English( -no_match_vars );
 use Biodiverse::GUI::GUIManager;
 
 use Text::Levenshtein qw(distance);
+use Scalar::Util qw /blessed/;
 
 my $i;
 use constant ORIGINAL_LABEL_COL => $i || 0;
@@ -42,7 +43,9 @@ sub run_remap_gui {
 
     my @source_names;
     foreach my $source (@sources) {
-        push @source_names, $source->get_param('NAME');
+        my $type = blessed $source;
+        $type =~ s/^Biodiverse:://;
+        push @source_names, "$type: " . $source->get_name;
     }
 
     # table to align the controls
@@ -56,8 +59,9 @@ sub run_remap_gui {
     }
     $data_source_combo->set_active(0);
     $data_source_combo->show_all;
-    $data_source_combo->set_tooltip_text(
-        'Choose a data source to remap the labels to.');
+    $data_source_combo->set_tooltip_text (
+        'Choose a data source to remap the labels to.'
+    );
     my $data_source_label =
       Gtk2::Label->new('Data source to remap the labels to:');
 
@@ -70,19 +74,22 @@ sub run_remap_gui {
     my $spinner    = Gtk2::SpinButton->new( $adjustment, 1, 0 );
     my $tooltip    = Gtk2::Tooltips->new();
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
-    $tooltip->set_tip( $max_distance_label,
-"New labels within this many edits of an existing label will be detected as possible typos."
+    $tooltip->set_tip(
+        $spinner,
+          'New labels within this Levenshtein edit distance of an existing label '
+        . " will be detected as possible typos.",
     );
 
     ####
     # The case sensitivity checkbutton
-    my $case_checkbutton =
-      Gtk2::CheckButton->new("Treat case difference as punctuation");
+    my $case_label = Gtk2::Label->new('Match case insensitively?');
+    my $case_checkbutton = Gtk2::CheckButton->new();
     $case_checkbutton->set_active(0);
 
-    $table->attach_defaults( $max_distance_label, 0, 1, 1, 2 );
-    $table->attach_defaults( $spinner,            1, 2, 1, 2 );
-    $table->attach_defaults( $case_checkbutton,   0, 2, 2, 3 );
+    $table->attach_defaults ($max_distance_label, 0, 1, 1, 2 );
+    $table->attach_defaults ($spinner,            1, 2, 1, 2 );
+    $table->attach_defaults ($case_label,         0, 1, 2, 3 );
+    $table->attach_defaults ($case_checkbutton,   1, 2, 2, 3 );
 
     ####
     # The auto/manual checkbutton
@@ -109,7 +116,7 @@ sub run_remap_gui {
         'Remap labels?',
         undef, 'modal',
         'gtk-yes' => 'yes',
-        'gtk-no'  => 'no'
+        'gtk-no'  => 'no',
     );
 
     ####

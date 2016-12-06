@@ -69,7 +69,7 @@ sub test_punctuation_remap {
                     "genus"
                       . $sep2 . "sp"
                       . $i
-                      . " goes to " . "genus"
+                      . " maps to " . "genus"
                       . $sep1 . "sp"
                       . $i
                 );
@@ -117,7 +117,7 @@ sub test_border_whitespace {
                 $startb
                   . "genussp$i"
                   . $endb
-                  . " goes to "
+                  . " maps to "
                   . $starta
                   . "genussp$i"
                   . $enda
@@ -155,7 +155,7 @@ sub test_case_differences {
         is(
             $results{ "genus_sp$i" },
             "genus:sp$i",
-            "genus_sp$i goes to genus:sp$i"
+            "genus_sp$i maps to genus:sp$i"
         );
     }
 }
@@ -232,7 +232,7 @@ sub test_large_dataset {
         is(
             $results{ "genus_sp$i" },
             "genus:sp$i",
-            "genus_sp$i goes to genus:sp$i"
+            "genus_sp$i maps to genus:sp$i"
         );
     }
 
@@ -297,7 +297,7 @@ sub test_size_mismatch {
         is(
             $results{ "genus_sp$i" },
             "genus:sp$i",
-            "genus_sp$i goes to genus:sp$i",
+            "genus_sp$i maps to genus:sp$i",
         );
     }
 }
@@ -335,7 +335,7 @@ sub test_size_mismatch2 {
         is(
             $results{ "genus_sp$i" },
             "genus:sp$i",
-            "genus_sp$i goes to genus:sp$i",
+            "genus_sp$i maps to genus:sp$i",
         );
     }
 }
@@ -379,18 +379,8 @@ sub test_multiple_remap {
 sub test_max_distance {
 
     # build the labels
-    my @base_data_labels = ();
-    my @tree_labels      = ();
-
-    push( @base_data_labels, "first" );
-    push( @base_data_labels, "second" );
-    push( @base_data_labels, "third" );
-    push( @base_data_labels, "fourth" );
-
-    push( @tree_labels, "first" );
-    push( @tree_labels, "seconda" );
-    push( @tree_labels, "thirdaa" );
-    push( @tree_labels, "fourthaaa" );
+    my @base_data_labels = (qw /first second third fourth/);
+    my @tree_labels      = (qw /first seconda thirdaa fourthaaa/);
 
     my $guesser = Biodiverse::RemapGuesser->new();
 
@@ -406,9 +396,48 @@ sub test_max_distance {
 
     my %results = %{ $remap_results{remap} };
 
-    is( $results{"first"},   "first",  "first -> first" );
-    is( $results{"seconda"}, "second", "seconda -> second" );
-    is( $results{"thirdaa"}, "third",  "thirdaa -> third" );
-    isnt( $results{"fourthaaa"}, "fourth", "fourthaaa doesn't map to fourth" );
+    is( $results{first},   "first",  "first -> first" );
+    is( $results{seconda}, "second", "seconda -> second" );
+    is( $results{thirdaa}, "third",  "thirdaa -> third" );
+    isnt( $results{fourthaaa}, "fourth", "fourthaaa does not map to fourth" );
 
 }
+
+
+# make sure the max distance cap is actually working
+sub test_max_distance_ambiguous {
+
+    # build the labels
+    my @base_data_labels = (qw /first second thirda1 thirda2/);
+    my @tree_labels      = (qw /first seconda thirdaa thirdab/);
+
+    my $guesser = Biodiverse::RemapGuesser->new();
+
+    my %remap_results = $guesser->guess_remap(
+        {
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 2,
+            ignore_case     => 0,
+
+        }
+    );
+
+    my $results = $remap_results{remap};
+
+    is( $results->{first},   "first",   "first unchanged" );
+    is( $results->{seconda}, "second",  "seconda -> second" );
+    is( $results->{thirdaa}, "thirdaa", "thirdaa unchanged" );
+    is( $results->{thirdab}, "thirdab", "thirdab unchanged " );
+
+    my $expected_ambiguous = {
+        thirdaa => ['thirda1', 'thirda2'],
+        thirdab => ['thirda1', 'thirda2'],
+    };
+    is_deeply (
+        $remap_results{ambiguous_matches},
+        $expected_ambiguous,
+        'got expected ambiguous matches for min distance 2'
+    );
+}
+

@@ -113,6 +113,7 @@ sub guess_remap {
         if ( exists $existing_labels_hash{$new_label} ) {
             $remap{$new_label} = $new_label;
             push @exact_matches, $new_label;
+            delete $existing_labels_hash{$new_label};
         }
         else {
             push @unprocessed_new_labels, $new_label;
@@ -122,9 +123,9 @@ sub guess_remap {
     @new_labels      = @unprocessed_new_labels;
     # and now remove any existing labels that were exact matched
     # (could splice as we go in the loop above?)
-    @existing_labels
-      = grep {!exists $remap{$_}} # use keys since they were exact matches
-        @existing_labels;
+    #@existing_labels
+    #  = grep {!exists $remap{$_}} # use keys since they were exact matches
+    #    @existing_labels;
 
     ################################################################
     # step 2: find punctuation-less matches e.g. a:b matches a_b
@@ -133,7 +134,7 @@ sub guess_remap {
     # build the hash mapping punctuation-less existing labels to their
     # original value.
     my %no_punct_hash;
-    foreach my $label (@existing_labels) {
+    foreach my $label (keys %existing_labels_hash) {
         my $key = $self->no_punct(
             str => $label,
             ignore_case => $ignore_case,
@@ -161,6 +162,7 @@ sub guess_remap {
             push @punct_matches, $new_label;
 
             $existing_labels_that_got_matched{$key} = 1;
+            delete $existing_labels_hash{$key};
         }
         else {
             #say "Couldn't find it in there";
@@ -170,9 +172,9 @@ sub guess_remap {
 
     @new_labels      = @unprocessed_new_labels;
     # existing labels that were punct matched
-    @existing_labels
-      = grep {!exists $existing_labels_that_got_matched{$_}}
-        @existing_labels;;
+    #@existing_labels
+    #  = grep {!exists $existing_labels_that_got_matched{$_}}
+    #    @existing_labels;;
 
     ################################################################
     # step 3: edit distance based matching (try to catch typos).  For
@@ -183,22 +185,26 @@ sub guess_remap {
     @unprocessed_new_labels = ();
     my $max_distance = $args->{max_distance};
     my @typo_matches;
+    my %ambiguous_matches;
 
     foreach my $new (@new_labels) {
-        my $min_distance = $max_distance + 1;
-        my $min_label    = "";
+        my $min_distance = $max_distance;
+        my @poss_matches;
 
-        foreach my $old (@existing_labels) {
+        foreach my $old (keys %existing_labels_hash) {
             my $distance = distance( $new, $old );
-            if ( $distance <= $min_distance ) {
-                $min_distance = $distance;
-                $min_label    = $old;
-            }
+            next if $distance > $min_distance;
+            my $subset = $poss_matches[$distance] //= [];
+            push @$subset, $old;
+            $min_distance = $distance;
         }
 
-        if ( $min_distance <= $max_distance ) {
+        my $match_subset = $poss_matches[$min_distance] // [];
 
-            # we found a legitimate match
+        if ( scalar @$match_subset == 1) {
+            my $min_label = $match_subset->[0];
+
+            # we found a legitimate, unambiguous match
             $remap{$new} = $min_label;
 
             # for now, don't delete the match from existing labels,
@@ -210,6 +216,9 @@ sub guess_remap {
             push @typo_matches, $new;
         }
         else {
+            if ( scalar @$match_subset > 1) {
+                $ambiguous_matches{$new} = $match_subset;
+            }
             push @unprocessed_new_labels, $new;
         }
     }
@@ -227,6 +236,7 @@ sub guess_remap {
         punct_matches => \@punct_matches,
         typo_matches  => \@typo_matches,
         not_matched   => \@unprocessed_new_labels,
+        ambiguous_matches => \%ambiguous_matches,
     );
 
     return wantarray ? %results : \%results;

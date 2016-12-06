@@ -10,7 +10,10 @@ use 5.010;
 use strict;
 use warnings;
 
-use Text::Levenshtein qw(distance);
+#use Text::Levenshtein qw/distance/;
+use Text::Levenshtein::Flexible;  #  substantially faster
+use List::Util qw /min/;
+
 use Biodiverse::Progress;
 
 our $VERSION = '1.99_006';
@@ -192,6 +195,7 @@ sub guess_remap {
     if ($max_distance) {
         @from_labels = @unprocessed_from_labels;
         @unprocessed_from_labels = ();
+        my $distance_finder = Text::Levenshtein::Flexible->new($max_distance, 1, 1, 1);
 
         $progress_i = 0;
         $n = scalar @from_labels;
@@ -203,12 +207,13 @@ sub guess_remap {
             my $min_distance = $max_distance;
             my @poss_matches;
     
+            ### try distance_l_all($src, @dst)??
             foreach my $target_label (keys %target_labels_hash) {
-                my $distance = distance( $from_label, $target_label );
-                next if $distance > $min_distance;
+                my $distance = $distance_finder->distance_l ($from_label, $target_label);
+                next if !defined $distance || $distance > $min_distance;
                 my $subset = $poss_matches[$distance] //= [];
                 push @$subset, $target_label;
-                $min_distance = $distance;
+                $min_distance = min ($distance, $min_distance);
             }
     
             my $match_subset = $poss_matches[$min_distance] // [];

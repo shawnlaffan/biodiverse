@@ -52,10 +52,10 @@ sub test_punctuation_remap {
 
             my %remap_results = $guesser->guess_remap(
                 {
-                    "existing_labels" => \@base_data_labels,
-                    "new_labels"      => \@tree_labels,
-                    "ignore_case"     => 0,
-                    "max_distance"    => 0,
+                    existing_labels => \@base_data_labels,
+                    new_labels      => \@tree_labels,
+                    ignore_case     => 0,
+                    max_distance    => 0,
                 }
             );
 
@@ -100,9 +100,9 @@ sub test_border_whitespace {
 
         my %remap_results = $guesser->guess_remap(
             {
-                "existing_labels" => \@base_data_labels,
-                "new_labels"      => \@tree_labels,
-                "max_distance"    => 0,
+                existing_labels => \@base_data_labels,
+                new_labels      => \@tree_labels,
+                max_distance    => 0,
 
             }
         );
@@ -112,8 +112,8 @@ sub test_border_whitespace {
         # ensure the remapping was correct
         foreach my $i ( 1 .. 10 ) {
             is(
-                $results{ $startb . "genussp$i" . $endb },
-                $starta . "genussp$i" . $enda,
+                $results{ $startb . 'genussp' . $i . $endb },
+                $starta . 'genussp' . $i . $enda,
                 $startb
                   . "genussp$i"
                   . $endb
@@ -133,19 +133,18 @@ sub test_case_differences {
     my @base_data_labels = ();
     my @tree_labels      = ();
     for my $i ( 0 .. 10 ) {
-        push( @base_data_labels, "Genus:Sp" . $i );
-        push( @tree_labels,      "genus_sp" . $i );
+        push( @base_data_labels, "genus:sp$i" );
+        push( @tree_labels,      "genus_sp$i" );
     }
 
     my $guesser = Biodiverse::RemapGuesser->new();
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 0,
-            "ignore_case"     => 1,
-
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 0,
+            ignore_case     => 1,
         }
     );
 
@@ -154,9 +153,9 @@ sub test_case_differences {
     # ensure the remapping was correct
     foreach my $i ( 1 .. 10 ) {
         is(
-            $results{ "genus_sp" . $i },
-            "Genus:Sp" . $i,
-            "genus_sp" . $i . " goes to " . "Genus:Sp" . $i
+            $results{ "genus_sp$i" },
+            "genus:sp$i",
+            "genus_sp$i goes to genus:sp$i"
         );
     }
 }
@@ -180,10 +179,10 @@ sub test_typos {
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 3,
-            "ignore_case"     => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 3,
+            ignore_case     => 0,
 
         }
     );
@@ -211,17 +210,17 @@ sub test_large_dataset {
     my $dataset_size = 1;
 
     for my $i ( 0 .. $dataset_size ) {
-        push( @base_data_labels, "genus:sp" . $i );
-        push( @tree_labels,      "genus_sp" . $i );
+        push( @base_data_labels, "genus:sp$i" );
+        push( @tree_labels,      "genus_sp$i" );
     }
 
     my $guesser = Biodiverse::RemapGuesser->new();
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 0,
 
         }
     );
@@ -231,9 +230,9 @@ sub test_large_dataset {
     # ensure the remapping was correct
     foreach my $i ( 1 .. $dataset_size ) {
         is(
-            $results{ "genus_sp" . $i },
-            "genus:sp" . $i,
-            "genus_sp" . $i . " goes to " . "genus:sp" . $i
+            $results{ "genus_sp$i" },
+            "genus:sp$i",
+            "genus_sp$i goes to genus:sp$i"
         );
     }
 
@@ -251,9 +250,9 @@ sub test_edge_cases {
 
         my %remap_results = $guesser->guess_remap(
             {
-                "existing_labels" => \@base_data_labels,
-                "new_labels"      => \@tree_labels,
-                "max_distance"    => 0,
+                existing_labels => \@base_data_labels,
+                new_labels      => \@tree_labels,
+                max_distance    => 0,
             }
         );
 
@@ -273,20 +272,20 @@ sub test_size_mismatch {
     my $dataset_size     = 10;
 
     for my $i ( 0 .. $dataset_size ) {
-        push( @base_data_labels, "genus:sp" . $i );
+        push( @base_data_labels, "genus:sp$i" );
     }
 
     for my $i ( 0 .. $dataset_size * 2 ) {
-        push( @tree_labels, "genus_sp" . $i );
+        push( @tree_labels, "genus_sp$i" );
     }
 
     my $guesser = Biodiverse::RemapGuesser->new();
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 0,
 
         }
     );
@@ -296,9 +295,9 @@ sub test_size_mismatch {
     # ensure the remapping was correct
     foreach my $i ( 1 .. $dataset_size ) {
         is(
-            $results{ "genus_sp" . $i },
-            "genus:sp" . $i,
-            "genus_sp" . $i . " goes to " . "genus:sp" . $i
+            $results{ "genus_sp$i" },
+            "genus:sp$i",
+            "genus_sp$i goes to genus:sp$i",
         );
     }
 }
@@ -311,20 +310,20 @@ sub test_size_mismatch2 {
     my $dataset_size     = 10;
 
     for my $i ( 0 .. $dataset_size * 2 ) {
-        push( @base_data_labels, "genus:sp" . $i );
+        push( @base_data_labels, "genus:sp$i" );
     }
 
     for my $i ( 0 .. $dataset_size ) {
-        push( @tree_labels, "genus_sp" . $i );
+        push( @tree_labels, "genus_sp$i" );
     }
 
     my $guesser = Biodiverse::RemapGuesser->new();
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 0,
 
         }
     );
@@ -334,9 +333,9 @@ sub test_size_mismatch2 {
     # ensure the remapping was correct
     foreach my $i ( 1 .. $dataset_size ) {
         is(
-            $results{ "genus_sp" . $i },
-            "genus:sp" . $i,
-            "genus_sp" . $i . " goes to " . "genus:sp" . $i
+            $results{ "genus_sp$i" },
+            "genus:sp$i",
+            "genus_sp$i goes to genus:sp$i",
         );
     }
 }
@@ -357,10 +356,10 @@ sub test_multiple_remap {
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 3,
-            "ignore_case"     => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 3,
+            ignore_case     => 0,
 
         }
     );
@@ -397,10 +396,10 @@ sub test_max_distance {
 
     my %remap_results = $guesser->guess_remap(
         {
-            "existing_labels" => \@base_data_labels,
-            "new_labels"      => \@tree_labels,
-            "max_distance"    => 2,
-            "ignore_case"     => 0,
+            existing_labels => \@base_data_labels,
+            new_labels      => \@tree_labels,
+            max_distance    => 2,
+            ignore_case     => 0,
 
         }
     );

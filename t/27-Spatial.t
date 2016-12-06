@@ -51,7 +51,7 @@ sub main {
         no strict 'refs';
         $sub->();
     }
-    
+
     done_testing;
     return 0;
 }
@@ -116,6 +116,71 @@ sub test_def_queries {
     }
     
 }
+
+sub test_spatial_output_passed_defq {  
+    my $cell_sizes = [1, 1];
+    my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+    
+    
+    # run an analysis with simple def_query
+    my $sp1 = $bd1->add_spatial_output(name => 'sp1');
+    $sp1->run_analysis (
+        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        definition_query   => '$x>1500000',
+        );
+
+        
+    # should work: referencing the def_query of another spatial output
+    # in the same basedata
+    my $sp2 = $bd1->add_spatial_output(name => 'sp2');
+    my $success = eval {
+        $sp2->run_analysis (
+        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        definition_query   => "sp_spatial_output_passed_defq(output=>'sp1',
+                                                             )",
+            );
+    };
+    ok ($success, 'Reference def_query of another spatial output in same basedata.');
+
+    # should also work: referencing own def_query from within a
+    # spatial_condition
+    my $sp3 = $bd1->add_spatial_output(name => 'sp3');
+    $success = eval {
+        $sp3->run_analysis (
+            calculations       => ['calc_richness'],
+            spatial_conditions => ["sp_spatial_output_passed_defq(output=>'sp3')",
+                                   'sp_circle(radius => 3)'
+                                  ],
+            definition_query   => "1",
+        );
+    };
+    ok ($success, 'Reference own def_query from a spatial_condition.');
+
+    
+    # should not work: referencing own def_query from within def_query
+    my $sp4 = $bd1->add_spatial_output(name => 'sp4');
+    $success = eval {
+        $sp4->run_analysis (
+        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        definition_query   => "sp_spatial_output_passed_defq(output=>'sp4')",
+            );
+    };
+    ok (!$success, 'Can\'t reference own def_query.');
+
+    # cleanup
+    $bd1->delete_output(output => $sp1);
+    $bd1->delete_output(output => $sp2);
+    $bd1->delete_output(output => $sp3);
+    $bd1->delete_output(output => $sp4);
+
+}
+
+
+
 
 
 sub test_empty_groups {

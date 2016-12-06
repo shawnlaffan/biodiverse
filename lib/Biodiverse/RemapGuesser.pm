@@ -104,11 +104,13 @@ sub guess_remap {
 
     ################################################################
     # step 1: find exact matches
-    my @unprocessed_new_labels = ();
-    my @exact_matches          = ();
-    my %existing_labels_hash   = map { $_ => 1 } @existing_labels;
+    my @unprocessed_new_labels;
+    my @exact_matches;
+    my %existing_labels_hash;
+    @existing_labels_hash{@existing_labels} = (1) x scalar @existing_labels;
+    
     foreach my $new_label (@new_labels) {
-        if ( exists( $existing_labels_hash{$new_label} ) ) {
+        if ( exists $existing_labels_hash{$new_label} ) {
             $remap{$new_label} = $new_label;
             push @exact_matches, $new_label;
         }
@@ -118,14 +120,11 @@ sub guess_remap {
     }
 
     # and now remove any existing labels that were exact matched
-    my @unprocessed_existing_labels = ();
-    foreach my $existing_label (@existing_labels) {
-
-        # we can just look in the keys since they were exact matches
-        if ( !exists( $remap{$existing_label} ) ) {
-            push @unprocessed_existing_labels, $existing_label;
-        }
-    }
+    # (could splice as we go in the loop above?)
+    my @unprocessed_existing_labels
+      = grep {!exists $remap{$_}} # use keys since they were exact matches
+        @existing_labels;
+    
 
     @new_labels      = @unprocessed_new_labels;
     @existing_labels = @unprocessed_existing_labels;
@@ -137,7 +136,7 @@ sub guess_remap {
     # build the hash mapping punctuation-less existing labels to their
     # original value.
     my %no_punct_hash;
-    for my $label (@existing_labels) {
+    foreach my $label (@existing_labels) {
         my $key = $self->no_punct(
             str => $label,
             ignore_case => $ignore_case,
@@ -151,23 +150,20 @@ sub guess_remap {
     my @punct_matches = ();
     @unprocessed_new_labels = ();
     my %existing_labels_that_got_matched;
+
     foreach my $new_label (@new_labels) {
 
-        my $key = $self->no_punct(
+        my $key = $self->no_punct (
             str         => $new_label,
-            ignore_case => $ignore_case
+            ignore_case => $ignore_case,
         );
         #say "Looking in the no_punct_hash for $new_label";
         if (exists $no_punct_hash{$key}) {
             #say "Found it in there";
-            my $new_key = $self->no_punct(
-                str         => $new_label,
-                ignore_case => $ignore_case
-            );
-            $remap{$new_label} = $no_punct_hash{$new_key};
+            $remap{$new_label} = $no_punct_hash{$key};
             push @punct_matches, $new_label;
-            
-            $existing_labels_that_got_matched{$new_key} = 1;
+
+            $existing_labels_that_got_matched{$key} = 1;
         }
         else {
             #say "Couldn't find it in there";
@@ -175,13 +171,10 @@ sub guess_remap {
         }
     }
 
-    # now remove existing labels that were punct matched
-    @unprocessed_existing_labels = ();
-    foreach my $existing_label (@existing_labels) {
-        if ( !exists( $existing_labels_that_got_matched{$existing_label} ) ) {
-            push @unprocessed_existing_labels, $existing_label;
-        }
-    }
+    # existing labels that were punct matched
+    @unprocessed_existing_labels
+      = grep {!exists $existing_labels_that_got_matched{$_}}
+        @existing_labels;
 
     @new_labels      = @unprocessed_new_labels;
     @existing_labels = @unprocessed_existing_labels;
@@ -226,28 +219,19 @@ sub guess_remap {
         }
     }
 
-    @new_labels = @unprocessed_new_labels;
-
     #######################
     # There may be some 'not matched' strings which will cause
     # problems if they don't have a corresponding remap hash entry.
     # put them in the hash.
-    foreach my $label (@new_labels) {
-        $remap{$label} = $label;
-    }
+    @remap{@unprocessed_new_labels} = @unprocessed_new_labels;
 
 
-    #foreach my $key (keys %remap) {
-    #    say "RemapGuesser: $key -> $remap{$key}";
-    #}
-
-    
     my %results = (
         remap         => \%remap,
         exact_matches => \@exact_matches,
         punct_matches => \@punct_matches,
         typo_matches  => \@typo_matches,
-        not_matched   => \@new_labels,
+        not_matched   => \@unprocessed_new_labels,
     );
 
     return wantarray ? %results : \%results;

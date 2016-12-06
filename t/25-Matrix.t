@@ -124,6 +124,35 @@ sub _test_trim {
     return;
 }
 
+sub test_remap_labels_from_hash {
+    my $mx = create_matrix_object();
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label ($mx->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $mx->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = $mx->get_labels();
+
+    
+    # make sure everything we expect is there
+    foreach my $label (@expected_new_labels) {
+        ok( grep( /^$label$/, @actual_new_labels ), "Labels contain $label");
+    }
+
+    # make sure nothing else is there
+    foreach my $label (@actual_new_labels) {
+        ok( grep( /^$label$/, @expected_new_labels ), "Expected contains $label");
+    }
+
+}
+
+
+
 
 sub test_main_tests {
     foreach my $class (@classes) {

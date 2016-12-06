@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-use Browser::Open qw( open_browser );  #  needed for the about dialogue
+use Browser::Open qw( open_browser );    #  needed for the about dialogue
 
 our $VERSION = '1.99_006';
 
@@ -16,6 +16,7 @@ use Gtk2;
 use Data::Dumper;
 require Biodiverse::GUI::GUIManager;
 require Biodiverse::GUI::Help;
+
 #require Biodiverse::GUI::ParamEditor;
 require Biodiverse::GUI::Tabs::Spatial;
 require Biodiverse::GUI::Tabs::Clustering;
@@ -28,7 +29,7 @@ require Biodiverse::GUI::Tabs::SpatialMatrix;
 # Quitting
 ##########################################################
 sub on_wnd_main_delete_event {
-    if (Biodiverse::GUI::GUIManager->instance->close_project()) {
+    if ( Biodiverse::GUI::GUIManager->instance->close_project() ) {
         Gtk2->main_quit();
         return FALSE;
     }
@@ -40,7 +41,7 @@ sub on_wnd_main_delete_event {
 
 sub on_quit_activate {
     on_wnd_main_delete_event();
-    
+
     return;
 }
 
@@ -49,25 +50,24 @@ sub on_quit_activate {
 # Adapted from Statistics::Descriptive _make_accessors method
 ##########################################################
 sub _make_callbacks {
-    my ($pkg, %args) = @_;
+    my ( $pkg, %args ) = @_;
 
     no strict 'refs';
-    while (my ($callback, $call_args) = each %args) {
-        my $method    = $call_args->{METHOD};
+    while ( my ( $callback, $call_args ) = each %args ) {
+        my $method = $call_args->{METHOD};
         my $meth_args = $call_args->{ARGS} || {};
 
-        *{$pkg."::".$callback} =
-            do {
-                sub {
-                    eval {
-                        my $gui = Biodiverse::GUI::GUIManager->instance;
-                        $gui->$method (%$meth_args);
-                    };
-                    if ($EVAL_ERROR) {
-                        report_error ($EVAL_ERROR);
-                    }
+        *{ $pkg . "::" . $callback } = do {
+            sub {
+                eval {
+                    my $gui = Biodiverse::GUI::GUIManager->instance;
+                    $gui->$method(%$meth_args);
                 };
+                if ($EVAL_ERROR) {
+                    report_error($EVAL_ERROR);
+                }
             };
+        };
     }
 
     return;
@@ -107,9 +107,7 @@ my %help_funcs = (
     },
 );
 
-
-__PACKAGE__->_make_callbacks( %help_funcs );
-
+__PACKAGE__->_make_callbacks(%help_funcs);
 
 sub on_about_activate {
     my $dlg = Gtk2::AboutDialog->new();
@@ -118,33 +116,42 @@ sub on_about_activate {
     my $url = 'http://www.purl.org/biodiverse';
 
     $dlg->set(
-        authors  => ['Shawn Laffan', 'Eugene Lubarsky', 'Dan Rosauer', 'Michael Zhou', 'Anthony Knittel'],
-        comments => 'A tool for the spatial analysis of diversity.',
-        name     => 'Biodiverse',
+        authors => [
+            'Shawn Laffan',
+            'Eugene Lubarsky',
+            'Dan Rosauer',
+            'Michael Zhou',
+            'Anthony Knittel'
+        ],
+        comments     => 'A tool for the spatial analysis of diversity.',
+        name         => 'Biodiverse',
         program_name => 'Biodiverse',
-        version => $gui->get_version(),
-        license => $Biodiverse::Config::license,
-        website => $url,
+        version      => $gui->get_version(),
+        license      => $Biodiverse::Config::license,
+        website      => $url,
+
         #locale  => $locale_text,
     );
 
     #  Need to override the default URL handler, on Windows at least
-    $dlg->signal_connect ('activate-link' => sub {
-        if ($OSNAME eq 'MSWin32') {
-            system ('start', $url);
+    $dlg->signal_connect(
+        'activate-link' => sub {
+            if ( $OSNAME eq 'MSWin32' ) {
+                system( 'start', $url );
+            }
+            else {
+                my $check_open = open_browser($url);
+            }
+            return 1;
         }
-        else {
-            my $check_open = open_browser ($url);
-        }
-        return 1;
-    });
+    );
 
-    #  Locale stuff should go into its own section - need to add a button
-    #use POSIX qw(locale_h);
-    #my $locale_text = "\n\n(Current perl numeric locale is: " . setlocale(LC_ALL) . ")\n";
-    #$dlg->add_button ('locale' => -20);  #  this goes on the end, not what we want
-    
-    $dlg->signal_connect (response => sub { $_[0]->destroy; 1 });
+#  Locale stuff should go into its own section - need to add a button
+#use POSIX qw(locale_h);
+#my $locale_text = "\n\n(Current perl numeric locale is: " . setlocale(LC_ALL) . ")\n";
+#$dlg->add_button ('locale' => -20);  #  this goes on the end, not what we want
+
+    $dlg->signal_connect( response => sub { $_[0]->destroy; 1 } );
 
     $dlg->run();
 }
@@ -168,8 +175,7 @@ my %open_funcs = (
     },
 );
 
-__PACKAGE__->_make_callbacks( %open_funcs );
-
+__PACKAGE__->_make_callbacks(%open_funcs);
 
 #
 ##########################################################
@@ -200,6 +206,15 @@ my %data_funcs = (
     on_phylogeny_rename => {
         METHOD => 'do_rename_phylogeny',
     },
+    on_phylogeny_auto_remap => {
+        METHOD => 'do_auto_remap_phylogeny',
+    },
+    on_basedata_auto_remap => {
+        METHOD => 'do_auto_remap_basedata',
+    },
+    on_matrix_auto_remap => {
+        METHOD => 'do_auto_remap_matrix',
+    },
     on_matrix_delete => {
         METHOD => 'do_delete_matrix',
     },
@@ -223,7 +238,7 @@ my %data_funcs = (
     },
     on_basedata_duplicate_no_outputs => {
         METHOD => 'do_duplicate_basedata',
-        ARGS   => {no_outputs => 1,}
+        ARGS   => { no_outputs => 1, }
     },
     on_basedata_export_groups => {
         METHOD => 'do_export_groups',
@@ -248,19 +263,19 @@ my %data_funcs = (
     },
     on_basedata_trim_to_match_tree => {
         METHOD => 'do_basedata_trim_to_tree',
-        ARGS   => {option => 'keep'},
+        ARGS   => { option => 'keep' },
     },
     on_basedata_trim_to_match_matrix => {
         METHOD => 'do_basedata_trim_to_matrix',
-        ARGS   => {option => 'keep'},
+        ARGS   => { option => 'keep' },
     },
     on_basedata_trim_using_tree => {
         METHOD => 'do_basedata_trim_to_tree',
-        ARGS   => {option => 'trim'},
+        ARGS   => { option => 'trim' },
     },
     on_basedata_trim_using_matrix => {
         METHOD => 'do_basedata_trim_to_matrix',
-        ARGS   => {option => 'trim'},
+        ARGS   => { option => 'trim' },
     },
     on_basedata_attach_properties => {
         METHOD => 'do_basedata_attach_properties',
@@ -342,46 +357,41 @@ my %data_funcs = (
     },
 );
 
-__PACKAGE__->_make_callbacks( %data_funcs );
-
+__PACKAGE__->_make_callbacks(%data_funcs);
 
 ##########################################################
 # Tabs
 ##########################################################
 
 sub _make_tab_callbacks {
-    my ($pkg, %args) = @_;
+    my ( $pkg, %args ) = @_;
 
     no strict 'refs';
-    while (my ($callback, $class) = each %args) {
+    while ( my ( $callback, $class ) = each %args ) {
 
-        *{$pkg.'::'.$callback} =
-            do {
-                sub {
-                    eval {
-                        $class->new();
-                    };
-                    if ($EVAL_ERROR) {
-                        Biodiverse::GUI::GUIManager->instance->report_error ($EVAL_ERROR);
-                    }
-                };
+        *{ $pkg . '::' . $callback } = do {
+            sub {
+                eval { $class->new(); };
+                if ($EVAL_ERROR) {
+                    Biodiverse::GUI::GUIManager->instance->report_error(
+                        $EVAL_ERROR);
+                }
             };
+        };
     }
 
     return;
 }
 
 my %tabs = (
-    on_spatial_activate        => 'Biodiverse::GUI::Tabs::Spatial',
-    on_cluster_activate        => 'Biodiverse::GUI::Tabs::Clustering',
-    on_region_grower_activate  => 'Biodiverse::GUI::Tabs::RegionGrower',
-    on_randomise_activate      => 'Biodiverse::GUI::Tabs::Randomise',
-    on_view_labels_activate    => 'Biodiverse::GUI::Tabs::Labels',
+    on_spatial_activate       => 'Biodiverse::GUI::Tabs::Spatial',
+    on_cluster_activate       => 'Biodiverse::GUI::Tabs::Clustering',
+    on_region_grower_activate => 'Biodiverse::GUI::Tabs::RegionGrower',
+    on_randomise_activate     => 'Biodiverse::GUI::Tabs::Randomise',
+    on_view_labels_activate   => 'Biodiverse::GUI::Tabs::Labels',
 );
 
-__PACKAGE__->_make_tab_callbacks (%tabs);
-
-
+__PACKAGE__->_make_tab_callbacks(%tabs);
 
 ##########################################################
 # Misc dialogs
@@ -402,14 +412,14 @@ my %misc_dialogs = (
     },
 );
 
-__PACKAGE__->_make_callbacks (%misc_dialogs);
+__PACKAGE__->_make_callbacks(%misc_dialogs);
 
 #  error reporting shouldn't be autogenerated as it isn't a callback
 
 sub report_error {
     my $error = shift;
-    my $gui = Biodiverse::GUI::GUIManager->instance();
-    $gui -> report_error ($error);
+    my $gui   = Biodiverse::GUI::GUIManager->instance();
+    $gui->report_error($error);
 }
 
 1;

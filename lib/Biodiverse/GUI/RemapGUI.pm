@@ -269,8 +269,9 @@ sub remap_results_dialog {
     );
 
     my $punct_match_count = @punct_matches;
-    my $punct_match_label =
-      Gtk2::Label->new("$punct_match_count Punct Matches:");
+    my $punct_match_label = Gtk2::Label->new(
+        "Matches ignoring punctuation differences ($punct_match_count):"
+    );
 
     my $punct_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $punct_match_scroll->set_size_request( 500, 100 );
@@ -286,11 +287,9 @@ sub remap_results_dialog {
             $punct_match_scroll->set_sensitive(
                 !$punct_match_scroll->get_sensitive,
             );
+            $punct_match_scroll->set_visible($punct_match_checkbutton->get_active),
         }
     );
-    if (!$punct_match_count) {
-        $punct_match_checkbutton->set_active(0);
-    }
 
     ###
     # Typo matches
@@ -305,7 +304,7 @@ sub remap_results_dialog {
     my $typo_match_count = @typo_matches;
 
     my $typo_match_label = Gtk2::Label->new(
-          "$typo_match_count Possible Typos: "
+          "Possible Typos ($typo_match_count):\n"
         . "(labels within 'max distance' edits of an exact match)"
     );
 
@@ -323,11 +322,9 @@ sub remap_results_dialog {
             $typo_match_scroll->set_sensitive(
                 !$typo_match_scroll->get_sensitive
             );
+            $typo_match_scroll->set_visible($typo_match_checkbutton->get_active),
         }
     );
-    if (!$typo_match_count) {
-        $typo_match_checkbutton->set_active(0);
-    }
 
     ###
     # Not matched
@@ -384,6 +381,18 @@ sub remap_results_dialog {
     $vbox->pack_start( $accept_remap_label,   10, 1, 10 );
 
     $dlg->show_all;
+
+    if (!$exact_match_count) {
+        $exact_match_scroll->hide;
+    }
+    if (!$punct_match_count) {
+        $punct_match_checkbutton->set_active(0);
+        $punct_match_scroll->hide;
+    }
+    if (!$typo_match_count) {
+        $typo_match_checkbutton->set_active(0);
+        $typo_match_scroll->hide;
+    }
 
     my $response = $dlg->run();
 

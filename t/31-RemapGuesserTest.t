@@ -62,18 +62,19 @@ sub test_punctuation_remap {
             my $results = $remap_results{remap};
 
             # ensure the remapping was correct
-            foreach my $i ( 1 .. 10 ) {
-                is(
-                    $results->{ "genus" . $sep2 . "sp" . $i },
-                    "genus" . $sep1 . "sp" . $i,
-                    "genus"
-                      . $sep2 . "sp"
-                      . $i
-                      . " maps to " . "genus"
-                      . $sep1 . "sp"
-                      . $i
-                );
-            }
+            my $sep1_as_string = $sep1 eq "\t" ? '\t' : $sep1;
+            my $sep2_as_string = $sep2 eq "\t" ? '\t' : $sep2;
+            subtest "test_punctuation_remap '$sep1_as_string' -> '$sep2_as_string'" => sub {
+                foreach my $i ( 1 .. 10 ) {
+                    my $res_key  = "genus" . $sep2 . "sp" . $i;
+                    my $expected = "genus" . $sep1 . "sp" . $i;
+                    is(
+                        $results->{ $res_key },
+                        $expected,
+                        "$res_key maps to $expected",
+                    );
+                }
+            };
         }
     }
 }
@@ -110,18 +111,20 @@ sub test_border_whitespace {
         my %results = %{ $remap_results{remap} };
 
         # ensure the remapping was correct
-        foreach my $i ( 1 .. 10 ) {
-            is(
-                $results{ $startb . 'genussp' . $i . $endb },
-                $starta . 'genussp' . $i . $enda,
-                $startb
-                  . "genussp$i"
-                  . $endb
-                  . " maps to "
-                  . $starta
-                  . "genussp$i"
-                  . $enda
-            );
+        subtest "test_border_whitespace_rep$repetitions" => sub {
+            foreach my $i ( 1 .. 10 ) {
+                is(
+                    $results{ $startb . 'genussp' . $i . $endb },
+                    $starta . 'genussp' . $i . $enda,
+                    $startb
+                      . "genussp$i"
+                      . $endb
+                      . " maps to "
+                      . $starta
+                      . "genussp$i"
+                      . $enda
+                );
+            }
         }
     }
 }
@@ -151,13 +154,15 @@ sub test_case_differences {
     my %results = %{ $remap_results{remap} };
 
     # ensure the remapping was correct
-    foreach my $i ( 1 .. 10 ) {
-        is(
-            $results{ "genus_sp$i" },
-            "genus:sp$i",
-            "genus_sp$i maps to genus:sp$i"
-        );
-    }
+    subtest test_case_differences => sub {
+        foreach my $i ( 1 .. 10 ) {
+            is(
+                $results{ "genus_sp$i" },
+                "genus:sp$i",
+                "genus_sp$i maps to genus:sp$i"
+            );
+        }
+    };
 }
 
 # make sure Hipopotamus -> Hippopotamus etc.
@@ -228,14 +233,15 @@ sub test_large_dataset {
     my %results = %{ $remap_results{remap} };
 
     # ensure the remapping was correct
-    foreach my $i ( 1 .. $dataset_size ) {
-        is(
-            $results{ "genus_sp$i" },
-            "genus:sp$i",
-            "genus_sp$i maps to genus:sp$i"
-        );
-    }
-
+    subtest test_large_dataset => sub {
+        foreach my $i ( 1 .. $dataset_size ) {
+            is(
+                $results{ "genus_sp$i" },
+                "genus:sp$i",
+                "genus_sp$i maps to genus:sp$i"
+            );
+        }
+    };
 }
 
 # empty lists etc. etc.
@@ -293,13 +299,15 @@ sub test_size_mismatch {
     my %results = %{ $remap_results{remap} };
 
     # ensure the remapping was correct
-    foreach my $i ( 1 .. $dataset_size ) {
-        is(
-            $results{ "genus_sp$i" },
-            "genus:sp$i",
-            "genus_sp$i maps to genus:sp$i",
-        );
-    }
+    subtest test_size_mismatch => sub {
+        foreach my $i ( 1 .. $dataset_size ) {
+            is(
+                $results{ "genus_sp$i" },
+                "genus:sp$i",
+                "genus_sp$i maps to genus:sp$i",
+            );
+        }
+    };
 }
 
 sub test_size_mismatch2 {
@@ -331,13 +339,15 @@ sub test_size_mismatch2 {
     my %results = %{ $remap_results{remap} };
 
     # ensure the remapping was correct
-    foreach my $i ( 1 .. $dataset_size ) {
-        is(
-            $results{ "genus_sp$i" },
-            "genus:sp$i",
-            "genus_sp$i maps to genus:sp$i",
-        );
-    }
+    subtest test_size_mismatch2 => sub {
+        foreach my $i ( 1 .. $dataset_size ) {
+            is(
+                $results{ "genus_sp$i" },
+                "genus:sp$i",
+                "genus_sp$i maps to genus:sp$i",
+            );
+        }
+    };
 }
 
 # make sure multiple typos remap to the same correct label

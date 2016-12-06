@@ -36,20 +36,20 @@ sub perform_auto_remap {
 sub generate_auto_remap {
     my $self          = shift;
     my $args          = shift || {};
-    my $first_source  = $args->{"existing_data_source"};
-    my $second_source = $args->{"new_data_source"};
-    my $max_distance  = $args->{"max_distance"};
-    my $ignore_case   = $args->{"ignore_case"};
+    my $first_source  = $args->{existing_data_source};
+    my $second_source = $args->{new_data_source};
+    my $max_distance  = $args->{max_distance};
+    my $ignore_case   = $args->{ignore_case};
 
     my @existing_labels = $first_source->get_labels();
     my @new_labels      = $second_source->get_labels();
 
     my $remap_results = $self->guess_remap(
         {
-            "existing_labels" => \@existing_labels,
-            "new_labels"      => \@new_labels,
-            "max_distance"    => $max_distance,
-            "ignore_case"     => $ignore_case,
+            existing_labels => \@existing_labels,
+            new_labels      => \@new_labels,
+            max_distance    => $max_distance,
+            ignore_case     => $ignore_case,
         }
     );
 
@@ -110,10 +110,10 @@ sub guess_remap {
     foreach my $new_label (@new_labels) {
         if ( exists( $existing_labels_hash{$new_label} ) ) {
             $remap{$new_label} = $new_label;
-            push( @exact_matches, $new_label );
+            push @exact_matches, $new_label;
         }
         else {
-            push( @unprocessed_new_labels, $new_label );
+            push @unprocessed_new_labels, $new_label;
         }
     }
 
@@ -123,7 +123,7 @@ sub guess_remap {
 
         # we can just look in the keys since they were exact matches
         if ( !exists( $remap{$existing_label} ) ) {
-            push( @unprocessed_existing_labels, $existing_label );
+            push @unprocessed_existing_labels, $existing_label;
         }
     }
 
@@ -138,8 +138,11 @@ sub guess_remap {
     # original value.
     my %no_punct_hash;
     for my $label (@existing_labels) {
-        $no_punct_hash{ $self->no_punct( str => $label,
-                ignore_case => $ignore_case ) } = $label;
+        my $key = $self->no_punct(
+            str => $label,
+            ignore_case => $ignore_case,
+        );
+        $no_punct_hash{$key} = $label;
     }
 
     #say "no_punct_hash keys: ", keys %no_punct_hash;
@@ -150,38 +153,25 @@ sub guess_remap {
     my %existing_labels_that_got_matched;
     foreach my $new_label (@new_labels) {
 
+        my $key = $self->no_punct(
+            str         => $new_label,
+            ignore_case => $ignore_case
+        );
         #say "Looking in the no_punct_hash for $new_label";
-        if (
-            exists(
-                $no_punct_hash{
-                    $self->no_punct(
-                        str         => $new_label,
-                        ignore_case => $ignore_case
-                    )
-                }
-            )
-          )
-        {
+        if (exists $no_punct_hash{$key}) {
             #say "Found it in there";
-            $remap{$new_label} = $no_punct_hash{
-                $self->no_punct(
-                    str         => $new_label,
-                    ignore_case => $ignore_case
-                )
-            };
-            push( @punct_matches, $new_label );
-            $existing_labels_that_got_matched{
-                $no_punct_hash{
-                    $self->no_punct(
-                        str         => $new_label,
-                        ignore_case => $ignore_case
-                    )
-                }
-            } = 1;
+            my $new_key = $self->no_punct(
+                str         => $new_label,
+                ignore_case => $ignore_case
+            );
+            $remap{$new_label} = $no_punct_hash{$new_key};
+            push @punct_matches, $new_label;
+            
+            $existing_labels_that_got_matched{$new_key} = 1;
         }
         else {
             #say "Couldn't find it in there";
-            push( @unprocessed_new_labels, $new_label );
+            push @unprocessed_new_labels, $new_label;
         }
     }
 
@@ -189,7 +179,7 @@ sub guess_remap {
     @unprocessed_existing_labels = ();
     foreach my $existing_label (@existing_labels) {
         if ( !exists( $existing_labels_that_got_matched{$existing_label} ) ) {
-            push( @unprocessed_existing_labels, $existing_label );
+            push @unprocessed_existing_labels, $existing_label;
         }
     }
 
@@ -229,10 +219,10 @@ sub guess_remap {
             # need to be remapped to the same label in the existing
             # data.
 
-            push( @typo_matches, $new );
+            push @typo_matches, $new;
         }
         else {
-            push( @unprocessed_new_labels, $new );
+            push @unprocessed_new_labels, $new;
         }
     }
 

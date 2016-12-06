@@ -159,6 +159,19 @@ sub test_spatial_output_passed_defq {
     };
     ok ($success, 'Reference own def_query from a spatial_condition.');
 
+    # should be able to reference its own def_query if named is not
+    # passed in
+    $success = eval {
+        $sp3->run_analysis (
+            calculations       => ['calc_richness'],
+            spatial_conditions => ["sp_spatial_output_passed_defq()",
+                                   'sp_circle(radius => 3)'
+                                  ],
+            definition_query   => "1",
+        );
+    };
+    ok ($success, 'Reference own def_query from a spatial_condition without passing in name.');
+
     
     # should not work: referencing own def_query from within def_query
     my $sp4 = $bd1->add_spatial_output(name => 'sp4');

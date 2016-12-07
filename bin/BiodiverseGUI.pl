@@ -23,6 +23,7 @@ BEGIN {
         my $par_temp = $ENV{PAR_TEMP} // 'Not defined';
         $ENV{GDK_PIXBUF_MODULE_FILE} = "$par_temp/inc/loaders.cache";
         $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
+        $ENV{XDG_DATA_DIRS} = "$par_temp/inc/mime";
     }
 }
 

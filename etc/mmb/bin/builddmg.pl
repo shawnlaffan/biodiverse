@@ -6,14 +6,16 @@ use 5.010;
 use Getopt::Long qw(GetOptions);
 use Pod::Usage;
 use English qw { -no_match_vars };
+use Biodiverse::Config;
 
 # Check to see if we are running on OS X.
 # and exit if we aren't.
 if ($OSNAME ne 'darwin') {die "error: requires darwin (OSX)."};
 
+my $bio_version = Biodiverse::Config::VERSION
+my $mac_build_version = 2;
 my $man = 0;
-my $help = 0;
-my $output  = "../builds/Biodiverse.dmg";
+my $output  = "../builds/Biodiverse-$bio_version-$mac_build_version.dmg";
 my $input  = "../images/Biodiverse.dmg";
 my $app = "../builds/Biodiverse.app";
 my $mounted = "/Volumes/Biodiverse";

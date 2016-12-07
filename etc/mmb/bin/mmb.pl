@@ -11,6 +11,7 @@ use Pod::Usage;
 use File::Basename;
 use File::Copy qw(copy);
 use File::Spec::Functions;
+use File::BaseDir qw/xdg_data_dirs/;
 
 my @files;
 
@@ -33,6 +34,7 @@ my $help = 0;
 my $remove = 0;
 my $copydys = 0;
 my $filename;
+my $mime_dir;
 my @libraries  = "/usr/local/opt";
 my $biodiverse_dir = catfile($ENV{"HOME"}, "biodiverse" );
 my $biodiverse_bin_dir = catfile($ENV{"HOME"}, "biodiverse", "bin" );
@@ -41,11 +43,6 @@ my $script = catfile($biodiverse_dir, "bin", "BiodiverseGUI.pl");
 my $output_dir = catfile($biodiverse_dir, "etc", "mmb", "builds", "Biodiverse.app", "Contents", "MacOS");
 my $icon = catfile($biodiverse_dir, "bin", "Biodiverse_icon.ico");
 
-#my $biodiverse_dir = "~/biodiverse";
-#my $build_script = $biodiverse_dir . "/etc/pp/build.pl";
-#my $script = $biodiverse_dir ."/bin/BiodiverseGUI.pl";
-#my $output_dir = $biodiverse_dir . "/etc/mmb/builds/Biodiverse.app/Contents/MacOS/";
-#my $icon = $biodiverse_dir . "/bin/Biodiverse_icon.ico";
 GetOptions(
     'help|?' => \$help,
     'man'    => \$man,
@@ -63,17 +60,21 @@ GetOptions(
 pod2usage(1) if $help;
 pod2usage(-exitval => 0, -verbose => 2) if $man;
 
-#print "$icon\n";
-#print "$filename\n";
-#print "$script\n";
-#print "$build_script\n";
-#print "$output_dir\n";
-#print "$perl_location\n";
-
 # Read in the dynamic libary file
 # and put each line into an array.
 if ($filename) {
     @libs = read_file($filename, chomp => 1);
+}
+
+# Function to get the directory
+# for mime types.
+sub get_xdg_data_dirs(){
+    my @xdg_data_dirs = xdg_data_dirs;
+    foreach $a (@xdg_data_dirs){
+        if ( -d $a . "/mime" ) {
+            $mime_dir = $a . "/mime";
+        }
+    }
 }
 
 # Function to get the absolute paths
@@ -153,14 +154,13 @@ sub create_command_line_string() {
     # form the first part of the build script.
     $run_command_first_part = "cd $biodiverse_dir\; $dyld_library_path $ld_library_path $perl_location $build_script -o $output_dir -s $script -i $icon --";
 
-    $add_files = ' -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\;loaders -a /usr/local/share/mime\;mime';
+    $add_files = " -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\\;loaders -a $mime_dir\\;mime";
+    print "add_files: $add_files\n";
 }
 
 sub run_build_mac_version() {
-    my @args = ( "$run_command_first_part $include_lib $add_files" );
-    #exec { $args[0] } @args;
-    #exec ($run_command_first_part $include_lib $add_files) or print STDERR "couldn't exec foo: $!";
-    print "$run_command_first_part $include_lib $add_files\n";
+    my $result = `$run_command_first_part $include_lib $add_files`;
+    print "$result\n";
 }
 
 if ($remove){
@@ -175,6 +175,7 @@ if (@libraries){
     create_lib_paths();
 }
 
+get_xdg_data_dirs();
 create_command_line_string();
 lib_strings();
 run_build_mac_version();

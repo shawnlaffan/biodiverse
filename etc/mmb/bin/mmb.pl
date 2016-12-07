@@ -8,9 +8,11 @@ use Path::Tiny qw(path);
 use File::Slurp;
 use Getopt::Long qw(GetOptions);
 use Pod::Usage;
+use File::Basename;
+use File::Copy qw(copy);
+use File::Spec::Functions;
 
 my @files;
-my $dir  = "/usr/local/opt";
 
 my $dyld_library_path = "DYLD_LIBRARY_PATH=inc";
 my $ld_library_path = "LD_LIBRARY_PATH=inc";
@@ -18,7 +20,6 @@ my $ld_library_path = "LD_LIBRARY_PATH=inc";
 
 # Need to remove these.
 my $run_command_first_part;
-my @libraries; 
 my $add_files;
 my @libs;
 my $include_lib = "";
@@ -32,12 +33,19 @@ my $help = 0;
 my $remove = 0;
 my $copydys = 0;
 my $filename;
-my $biodiverse_dir = "~/biodiverse/";
-my $build_script = $biodiverse_dir . "etc/pp/build.pl";
-my $script = $biodiverse_dir ."bin/BiodiverseGUI.pl";
-my $output_dir = "~/Documents/Biodiverse.app/Contents/MacOS/";
-my $icon = $biodiverse_dir . "bin/Biodiverse_icon.ico";
+my @libraries  = "/usr/local/opt";
+my $biodiverse_dir = catfile($ENV{"HOME"}, "biodiverse" );
+my $biodiverse_bin_dir = catfile($ENV{"HOME"}, "biodiverse", "bin" );
+my $build_script = catfile($biodiverse_dir, "etc", "pp", "build.pl");
+my $script = catfile($biodiverse_dir, "bin", "BiodiverseGUI.pl");
+my $output_dir = catfile($biodiverse_dir, "etc", "mmb", "builds", "Biodiverse.app", "Contents", "MacOS");
+my $icon = catfile($biodiverse_dir, "bin", "Biodiverse_icon.ico");
 
+#my $biodiverse_dir = "~/biodiverse";
+#my $build_script = $biodiverse_dir . "/etc/pp/build.pl";
+#my $script = $biodiverse_dir ."/bin/BiodiverseGUI.pl";
+#my $output_dir = $biodiverse_dir . "/etc/mmb/builds/Biodiverse.app/Contents/MacOS/";
+#my $icon = $biodiverse_dir . "/bin/Biodiverse_icon.ico";
 GetOptions(
     'help|?' => \$help,
     'man'    => \$man,
@@ -65,7 +73,7 @@ pod2usage(-exitval => 0, -verbose => 2) if $man;
 # Read in the dynamic libary file
 # and put each line into an array.
 if ($filename) {
-    @libs = read_file(path($filename), chomp => 1);
+    @libs = read_file($filename, chomp => 1);
 }
 
 # Function to get the absolute paths
@@ -81,15 +89,30 @@ sub find_dylibs {
     return @files;
 }
 
+# Test if dynamic library
+# is a symbolic link
+sub check_symbolic_link {
+    # Get passed arguments
+    my $alib = shift;
+    # Check is the library is a symbolic link.
+    # If it is return the original library name
+    # but with the symbolic links name.
+    if(-l $alib){
+        return ($alib, $alib,readlink $alib);
+    } else {
+        return ($alib, $alib, basename $alib);
+    }
+}
+
 # copy each required dynamic
 # library to the bin dir.
 sub copy_dylibs_to_bin_dir(){
     my @dy = find_dylibs();
     print "Copying dynamic libraries biodiverse/bin/\n";
     foreach $a (@dy){
-        my $bindir = $biodiverse_dir . "bin/";
-        `cp -p $a $bindir`;
-        `chmod u+w $bindir*dylib`;
+        my ($link, $orig, $newname) = check_symbolic_link($a);
+        my $newlib = catfile($biodiverse_dir, "bin", $newname);
+        copy $orig, $newlib or die "The copy operation failed: $!";
     }
 }
 
@@ -130,14 +153,14 @@ sub create_command_line_string() {
     # form the first part of the build script.
     $run_command_first_part = "cd $biodiverse_dir\; $dyld_library_path $ld_library_path $perl_location $build_script -o $output_dir -s $script -i $icon --";
 
-    $add_files = ' -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\;loaders';
+    $add_files = ' -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\;loaders -a /usr/local/share/mime\;mime';
 }
 
 sub run_build_mac_version() {
     my @args = ( "$run_command_first_part $include_lib $add_files" );
-    exec { $args[0] } @args;
+    #exec { $args[0] } @args;
     #exec ($run_command_first_part $include_lib $add_files) or print STDERR "couldn't exec foo: $!";
-    #print "$run_command_first_part $include_lib $add_files\n";
+    print "$run_command_first_part $include_lib $add_files\n";
 }
 
 if ($remove){

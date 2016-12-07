@@ -183,7 +183,8 @@ sub test_spatial_output_passed_defq {
         definition_query   => "sp_spatial_output_passed_defq(output=>'sp4')",
             );
     };
-    ok (!$success, 'Can\'t reference own def_query.');
+    my $e = $@;
+    ok ($e, 'Get error when trying to self reference in def_query.');
 
     # also shouldn't be able to run a sp_spatial_output_passed_defq
     # with no args in a def_query
@@ -194,7 +195,8 @@ sub test_spatial_output_passed_defq {
         definition_query   => "sp_spatial_output_passed_defq()",
             );
     };
-    ok (!$success, 'Can\'t reference own def_query.');
+    my $e = $@;
+    ok ($e, 'Get error when trying to self reference in def_query without passing in name.');
 
 
     

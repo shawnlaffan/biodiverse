@@ -11,7 +11,7 @@ mkdir -p "`dirname \"$LOG_FILE\"`"
 
 #echo "$(date +%b\ %d\ %H:%M:%S) $(hostname)[(echo $$) $APPNAME:" >>"$LOG_FILE"
 #echo "$(date +%b\ %d\ %H:%M:%S) $(hostname)[$(echo $$)] $APPNAME: BiodiverseGUI_EXEC: $BiodiverseGUI_EXEC" >>"$LOG_FILE"
-echo "$(date +%b\ %d\ %H:%M:%S) $(hostname)[$(echo $$)] $APPNAME: "\$DIR/\$APPNAME": "$DIR/$APPNAME"" >>"$LOG_FILE"
+#echo "$(date +%b\ %d\ %H:%M:%S) $(hostname)[$(echo $$)] $APPNAME: "\$DIR/\$APPNAME": "$DIR/$APPNAME"" >>"$LOG_FILE"
 
 # Run the app and redirect standard 
 # output and error to the log file.

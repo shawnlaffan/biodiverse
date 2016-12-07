@@ -118,7 +118,7 @@ sub test_def_queries {
 }
 
 sub test_spatial_output_passed_defq {  
-    my $cell_sizes = [1, 1];
+    my $cell_sizes = [100000, 100000];
     my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     $bd1->build_spatial_index (resolutions => $cell_sizes);
     
@@ -128,7 +128,7 @@ sub test_spatial_output_passed_defq {
     $sp1->run_analysis (
         calculations       => ['calc_richness'],
         spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => '$x>1500000',
+        definition_query   => '$x>50000',
         );
 
         
@@ -175,6 +175,7 @@ sub test_spatial_output_passed_defq {
     
     # should not work: referencing own def_query from within def_query
     my $sp4 = $bd1->add_spatial_output(name => 'sp4');
+
     $success = eval {
         $sp4->run_analysis (
         calculations       => ['calc_richness'],
@@ -184,6 +185,19 @@ sub test_spatial_output_passed_defq {
     };
     ok (!$success, 'Can\'t reference own def_query.');
 
+    # also shouldn't be able to run a sp_spatial_output_passed_defq
+    # with no args in a def_query
+    $success = eval {
+        $sp4->run_analysis (
+        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        definition_query   => "sp_spatial_output_passed_defq()",
+            );
+    };
+    ok (!$success, 'Can\'t reference own def_query.');
+
+
+    
     # cleanup
     $bd1->delete_output(output => $sp1);
     $bd1->delete_output(output => $sp2);

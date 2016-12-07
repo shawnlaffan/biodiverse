@@ -25,7 +25,6 @@ BEGIN {
         $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
         $ENV{XDG_DATA_DIRS} = "$par_temp/inc/";
         $ENV{BD_NO_GUI_DEV_WARN} = 1;
-        print "$par_temp/inc/mime\n";
     }
 }
 

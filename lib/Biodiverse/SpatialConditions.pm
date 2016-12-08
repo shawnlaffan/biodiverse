@@ -2884,6 +2884,7 @@ sub get_metadata_sp_spatial_output_passed_defq {
     return $self->metadata_class->new (\%metadata);
 }
 
+
 #  get the value from another spatial output
 sub sp_spatial_output_passed_defq {
     my $self = shift;
@@ -2915,10 +2916,11 @@ sub sp_spatial_output_passed_defq {
     }
     
     else {
+        # default to the caller spatial output
         $sp = $self->get_caller_spatial_output_ref;
 
         # make sure we aren't trying to access ourself
-        croak "def_query can't reference itself" if($self->is_def_query);
+        croak "def_query can't reference itself" if eval{$self->is_def_query};
         
         return 1
           if !eval {$self->is_def_query} && $self->get_param('VERIFYING');

@@ -117,7 +117,54 @@ sub test_def_queries {
     
 }
 
-sub test_spatial_output_passed_defq {  
+
+
+# copied from 22-SpatialConditions2.t, was called test_case given a
+# spatial condition, basedata, element and expected neighbours, checks
+# whether BaseData::get_neighbours with the spatial condition produces
+# the expected result.
+sub check_neighbours_are_as_expected {
+    my %args = @_;
+
+    my $bd            = $args{bd};       # basedata object
+    my $cond          = $args{cond};     # spatial condition as string
+    my $element       = $args{element};  # centre element
+    my $expected      = $args{expected}; # array of expected cells as strings
+    my $print_results = $args{print_results} || 0;
+
+    my $spatial_params = Biodiverse::SpatialConditions->new (
+        conditions => $cond,
+    );
+
+    my $neighbours = eval {
+        $bd->get_neighbours (
+            element        => $element,
+            spatial_params => $spatial_params,
+        );
+    };
+
+    if ($print_results) {
+        use Data::Dumper;
+        $Data::Dumper::Purity   = 1;
+        $Data::Dumper::Terse    = 1;
+        $Data::Dumper::Sortkeys = 1;
+        print join "\n", sort keys %$neighbours;
+        print "\n";
+    }
+
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    compare_arr_vals (
+        arr_got => [keys %$neighbours],
+        arr_exp => $expected,
+    );
+}
+
+
+
+# test basic sp_spatial_output_passed_defq case: looking at the result
+# of a def_query for a different spatial output in the same basedata.
+sub test_sp_passed_defq_different_sp {
     my $cell_sizes = [100000, 100000];
     my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     $bd1->build_spatial_index (resolutions => $cell_sizes);
@@ -128,12 +175,14 @@ sub test_spatial_output_passed_defq {
     $sp1->run_analysis (
         calculations       => ['calc_richness'],
         spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => '$x>50000',
+        definition_query   => '$y>1550000',
         );
 
+    my @expected_element_list = sort $sp1->get_groups_that_pass_def_query();
+    
         
-    # should work: referencing the def_query of another spatial output
-    # in the same basedata
+    # referencing the def_query of another spatial output in the same
+    # basedata
     my $sp2 = $bd1->add_spatial_output(name => 'sp2');
     my $success = eval {
         $sp2->run_analysis (
@@ -145,42 +194,129 @@ sub test_spatial_output_passed_defq {
     };
     ok ($success, 'Reference def_query of another spatial output in same basedata.');
 
-    # should also work: referencing own def_query from within a
-    # spatial_condition
-    my $sp3 = $bd1->add_spatial_output(name => 'sp3');
-    $success = eval {
-        $sp3->run_analysis (
+    # the groups that passed the definition query should be same as
+    # those that passed the previous query.
+    my @got_element_list = sort $sp2->get_groups_that_pass_def_query;
+    
+    is_deeply (
+        \@expected_element_list,
+        \@got_element_list,
+        "Correct elements passed the def query when it references another def query",
+        );
+}
+
+
+# test referencing own def_query from within a spatial_condition
+sub test_sp_passed_defq_same_sp {
+    my $cell_sizes = [100000, 100000];
+    my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+
+    my $sp1 = $bd1->add_spatial_output(name => 'sp1');
+    my $cond = "sp_spatial_output_passed_defq()";
+
+    my $success = eval {
+        $sp1->run_analysis (
             calculations       => ['calc_richness'],
-            spatial_conditions => ["sp_spatial_output_passed_defq(output=>'sp3')",
-                                   'sp_circle(radius => 3)'
-                                  ],
-            definition_query   => "1",
+            spatial_conditions => [$cond],
+            definition_query   => '$y<100000', # picked this value so there is only a few matches
+                                               # tests run faster that way.
         );
     };
     ok ($success, 'Reference own def_query from a spatial_condition.');
 
+
+    # now make sure the neighbours are only those who passed the
+    # definition query
+    my @elements = $sp1->get_element_list();
+
+    # build expected results
+    my @expected = ();
+    foreach my $el (@elements) {
+        my @coords = split(/\:/, $el);
+        my $this_y = $coords[1];
+        #say "el: $el, this_y: $this_y";
+        if($this_y < 100000) {
+            push(@expected, $el);
+        }
+    }
+    
+    foreach my $el (@elements) {
+        check_neighbours_are_as_expected (
+            bd => $bd1,
+            cond => "sp_spatial_output_passed_defq(output=>'sp1')",
+            element => $el,
+            expected => \@expected,
+        );
+    }
+}
+
+
+# test using sp_spatial_output_passed_defq with no arguments in a
+# spatial_condition: should default to the 'caller' spatial output.
+sub test_sp_output_passed_defq_default_name {
+    my $cell_sizes = [100000, 100000];
+    my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+
+    
     # should be able to reference its own def_query if named is not
     # passed in
-    $success = eval {
-        $sp3->run_analysis (
+    my $sp = $bd1->add_spatial_output(name => 'sp');
+
+    my $success = eval {
+        $sp->run_analysis (
             calculations       => ['calc_richness'],
-            spatial_conditions => ["sp_spatial_output_passed_defq()",
-                                   'sp_circle(radius => 3)'
-                                  ],
-            definition_query   => "1",
+            spatial_conditions => ["sp_spatial_output_passed_defq()"],
+            definition_query   => '$x<2000000',
         );
     };
     ok ($success, 'Reference own def_query from a spatial_condition without passing in name.');
 
-    
-    # should not work: referencing own def_query from within def_query
-    my $sp4 = $bd1->add_spatial_output(name => 'sp4');
+    # now make sure the neighbours are only those who passed the
+    # definition query
+    my @elements = $sp->get_element_list();
 
-    $success = eval {
-        $sp4->run_analysis (
+
+    # build expected results
+    my @expected = ();
+    foreach my $el (@elements) {
+        my @coords = split(/\:/, $el);
+        my $this_x = $coords[0];
+        #say "el: $el, this_x: $this_x";
+        if($this_x < 2000000) {
+            push(@expected, $el);
+        }
+    }
+
+    say "expected: @expected";
+    
+    foreach my $el (@elements) {
+        check_neighbours_are_as_expected (
+            bd => $bd1,
+            cond => "sp_spatial_output_passed_defq(output => 'sp')",
+            element => $el,
+            expected => \@expected,
+        );
+    }
+}
+
+
+# make sure a def_query can't reference itself through
+# sp_spatial_output_passed_defq.
+sub test_sp_passed_defq_illegal_self_reference {  
+    my $cell_sizes = [100000, 100000];
+    my $bd1 = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd1->build_spatial_index (resolutions => $cell_sizes);
+
+    # should not work: referencing own def_query from within def_query
+    my $sp1 = $bd1->add_spatial_output(name => 'sp1');
+
+    my $success = eval {
+        $sp1->run_analysis (
         calculations       => ['calc_richness'],
         spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => "sp_spatial_output_passed_defq(output=>'sp4')",
+        definition_query   => "sp_spatial_output_passed_defq(output=>'sp1')",
             );
     };
     my $e = $@;
@@ -189,23 +325,14 @@ sub test_spatial_output_passed_defq {
     # also shouldn't be able to run a sp_spatial_output_passed_defq
     # with no args in a def_query
     $success = eval {
-        $sp4->run_analysis (
+        $sp1->run_analysis (
         calculations       => ['calc_richness'],
         spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
         definition_query   => "sp_spatial_output_passed_defq()",
             );
     };
-    my $e = $@;
+    $e = $@;
     ok ($e, 'Get error when trying to self reference in def_query without passing in name.');
-
-
-    
-    # cleanup
-    $bd1->delete_output(output => $sp1);
-    $bd1->delete_output(output => $sp2);
-    $bd1->delete_output(output => $sp3);
-    $bd1->delete_output(output => $sp4);
-
 }
 
 

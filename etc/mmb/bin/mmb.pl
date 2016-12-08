@@ -154,13 +154,19 @@ sub create_command_line_string() {
     # form the first part of the build script.
     $run_command_first_part = "cd $biodiverse_dir\; $dyld_library_path $ld_library_path $perl_location $build_script -o $output_dir -s $script -i $icon --";
 
-    $add_files = " -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\\;loaders -a $mime_dir\\;mime";
-    print "add_files: $add_files\n";
+    $add_files = " -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\\;loaders -a $mime_dir\\;mime -a /usr/local/share/icons\\;icons";
+#    print "add_files: $add_files\n";
 }
 
 sub run_build_mac_version() {
     my $result = `$run_command_first_part $include_lib $add_files`;
     print "$result\n";
+}
+
+sub build_dmg(){
+    print "Building dmg image...\n";
+    my $builddmg = catfile($biodiverse_dir, "etc", "mmb", "bin", "builddmg.pl" );
+    my $build_results = `perl $builddmg`;
 }
 
 if ($remove){
@@ -179,6 +185,7 @@ get_xdg_data_dirs();
 create_command_line_string();
 lib_strings();
 run_build_mac_version();
+build_dmg();
 
 __END__
 

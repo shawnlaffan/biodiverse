@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>Biodiverse</string>
 	<key>CFBundleIconFile</key>
-	<string>Biodiverse.icns</string>
+	<string>Biodiverse</string>
 	<key>CFBundleIdentifier</key>
 	<string>au.edu.unsw.biodiverse</string>
 	<key>CFBundleInfoDictionaryVersion</key>

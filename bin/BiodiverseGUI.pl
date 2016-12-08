@@ -20,12 +20,14 @@ our $VERSION = '1.99_006';
 BEGIN {
     # export environmental variables required by pixbuf on OS X.
     if ($OSNAME eq 'darwin') {
-        my $par_temp = $ENV{PAR_TEMP} // 'Not defined';
-        $ENV{GDK_PIXBUF_MODULE_FILE} = "$par_temp/inc/loaders.cache";
-        $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
-        $ENV{XDG_DATA_DIRS} = "$par_temp/inc/";
+        my $par_temp = $ENV{PAR_TEMP}; # // 'Not defined';
+        if ( $par_temp ) {
+            $ENV{GDK_PIXBUF_MODULE_FILE} = "$par_temp/inc/loaders.cache";
+            $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
+            $ENV{XDG_DATA_DIRS} = "$par_temp/inc/";
+            $ENV{GTK_PATH} = "$par_temp/inc/";
+        }
         $ENV{BD_NO_GUI_DEV_WARN} = 1;
-        $ENV{GTK_PATH} = "$par_temp/inc/";
     }
 }
 

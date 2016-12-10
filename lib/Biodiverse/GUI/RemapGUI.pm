@@ -352,6 +352,8 @@ sub remap_results_dialog {
     ####
     # Pack everything in
     my $vbox = $dlg->get_content_area;
+    $vbox->set_homogeneous(0);
+    $vbox->set_spacing(3);
 
     my $exact_vbox = Gtk2::VBox->new();
     $exact_vbox->pack_start( $exact_match_label,  0, 1, 0 );

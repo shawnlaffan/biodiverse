@@ -238,10 +238,8 @@ sub test_sp_passed_defq_same_sp {
     # build expected results
     my @expected = ();
     foreach my $el (@elements) {
-        my @coords = split(/\:/, $el);
-        my $this_y = $coords[1];
-        #say "el: $el, this_y: $this_y";
-        if($this_y < 100000) {
+        my $coord = $sp1->get_element_name_as_array_aa ($el);
+        if ($coord->[1] < 100000) {
             push(@expected, $el);
         }
     }
@@ -286,10 +284,8 @@ sub test_sp_output_passed_defq_default_name {
     # build expected results
     my @expected = ();
     foreach my $el (@elements) {
-        my @coords = split(/\:/, $el);
-        my $this_x = $coords[0];
-        #say "el: $el, this_x: $this_x";
-        if($this_x < 2000000) {
+        my $coord = $sp->get_element_name_as_array_aa ($el);
+        if ($coord->[0] < 2000000) {
             push(@expected, $el);
         }
     }
@@ -520,6 +516,7 @@ sub test_recycling {
 
 sub get_element_proximity {
     my ($el1, $el2) = @_;
+    #  cheating with the split
     my @e1 = split ':', $el1;
     my @e2 = split ':', $el2;
     

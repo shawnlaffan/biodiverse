@@ -1123,6 +1123,11 @@ sub get_definition_query {
     }
 
     $self->set_param (DEFINITION_QUERY => $definition_query);
+
+    if ($definition_query) {
+        $definition_query->set_caller_spatial_output_ref ($self);
+        $definition_query->set_param(NAME => $self->get_name);
+    }
     
     return $definition_query;
 }
@@ -1180,6 +1185,11 @@ sub get_spatial_conditions_arr {
         }
     }
     $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_arr);
+
+    #  and let them know about ourselves
+    foreach my $sp (@$spatial_conditions_arr) {
+        $sp->set_caller_spatial_output_ref ($self);
+    }
 
     return $spatial_conditions_arr;
 }

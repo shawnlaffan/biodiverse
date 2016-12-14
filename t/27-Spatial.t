@@ -174,9 +174,12 @@ sub test_sp_passed_defq_different_sp {
     my $sp1 = $bd1->add_spatial_output(name => 'sp1');
     $sp1->run_analysis (
         calculations       => ['calc_richness'],
-        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
+        spatial_conditions => [
+            'sp_circle(radius => 150000)',
+            'sp_circle(radius => 300000)',
+        ],
         definition_query   => '$y>1550000',
-        );
+    );
 
     my @expected_element_list = sort $sp1->get_groups_that_pass_def_query();
     
@@ -186,11 +189,13 @@ sub test_sp_passed_defq_different_sp {
     my $sp2 = $bd1->add_spatial_output(name => 'sp2');
     my $success = eval {
         $sp2->run_analysis (
-        calculations       => ['calc_richness'],
-        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => "sp_spatial_output_passed_defq(output=>'sp1',
-                                                             )",
-            );
+            calculations       => ['calc_richness'],
+            spatial_conditions => [
+                'sp_circle(radius => 150000)',
+                'sp_circle(radius => 300000)',
+            ],
+            definition_query   => "sp_spatial_output_passed_defq(output=>'sp1')",
+        );
     };
     ok ($success, 'Reference def_query of another spatial output in same basedata.');
 
@@ -202,7 +207,7 @@ sub test_sp_passed_defq_different_sp {
         \@expected_element_list,
         \@got_element_list,
         "Correct elements passed the def query when it references another def query",
-        );
+    );
 }
 
 
@@ -244,7 +249,7 @@ sub test_sp_passed_defq_same_sp {
     foreach my $el (@elements) {
         check_neighbours_are_as_expected (
             bd => $bd1,
-            cond => "sp_spatial_output_passed_defq(output=>'sp1')",
+            cond => "sp_spatial_output_passed_defq (output=>'sp1')",
             element => $el,
             expected => \@expected,
         );
@@ -293,9 +298,9 @@ sub test_sp_output_passed_defq_default_name {
     
     foreach my $el (@elements) {
         check_neighbours_are_as_expected (
-            bd => $bd1,
-            cond => "sp_spatial_output_passed_defq(output => 'sp')",
-            element => $el,
+            bd       => $bd1,
+            cond     => "sp_spatial_output_passed_defq(output => 'sp')",
+            element  => $el,
             expected => \@expected,
         );
     }
@@ -314,10 +319,13 @@ sub test_sp_passed_defq_illegal_self_reference {
 
     my $success = eval {
         $sp1->run_analysis (
-        calculations       => ['calc_richness'],
-        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => "sp_spatial_output_passed_defq(output=>'sp1')",
-            );
+            calculations       => ['calc_richness'],
+            spatial_conditions => [
+                'sp_circle(radius => 150000)',
+                'sp_circle(radius => 300000)',
+            ],
+            definition_query   => "sp_spatial_output_passed_defq(output=>'sp1')",
+        );
     };
     my $e = $@;
     ok ($e, 'Get error when trying to self reference in def_query.');
@@ -326,10 +334,13 @@ sub test_sp_passed_defq_illegal_self_reference {
     # with no args in a def_query
     $success = eval {
         $sp1->run_analysis (
-        calculations       => ['calc_richness'],
-        spatial_conditions => ['sp_circle(radius => 1.5)', 'sp_circle(radius => 3)'],
-        definition_query   => "sp_spatial_output_passed_defq()",
-            );
+            calculations       => ['calc_richness'],
+            spatial_conditions => [
+                'sp_circle(radius => 150000)',
+                'sp_circle(radius => 300000)',
+            ],
+            definition_query   => "sp_spatial_output_passed_defq()",
+        );
     };
     $e = $@;
     ok ($e, 'Get error when trying to self reference in def_query without passing in name.');

@@ -67,6 +67,7 @@ WriteMakefile(
         "Cpanel::JSON::XS" => 3,
         "JSON::MaybeXS" => 1.003,
         "Sort::Naturally" => 0,
+        "Ref::Util" => "0.101",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",
@@ -76,5 +77,6 @@ WriteMakefile(
         "Test::Most" => "0",
         "Devel::Symdump" => "0",
         "File::Compare" => "0",
+        "Scalar::Util::Numeric" => "0",
     },
 );

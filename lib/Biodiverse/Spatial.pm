@@ -1126,6 +1126,7 @@ sub get_definition_query {
 
     if ($definition_query) {
         $definition_query->set_caller_spatial_output_ref ($self);
+        $definition_query->set_param(NAME => $self->get_name);
     }
     
     return $definition_query;

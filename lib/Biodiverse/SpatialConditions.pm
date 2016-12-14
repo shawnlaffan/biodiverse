@@ -2884,11 +2884,12 @@ sub get_metadata_sp_spatial_output_passed_defq {
     return $self->metadata_class->new (\%metadata);
 }
 
+
 #  get the value from another spatial output
 sub sp_spatial_output_passed_defq {
     my $self = shift;
     my %args = @_;
-
+    
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $default_element
@@ -2897,7 +2898,7 @@ sub sp_spatial_output_passed_defq {
         : $h->{coord_id2};  #?
 
     my $element = $args{element} // $default_element;
-
+    
     my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
     my $sp_name = $args{output};
     my $sp;
@@ -2905,14 +2906,26 @@ sub sp_spatial_output_passed_defq {
         $sp = $bd->get_spatial_output_ref (name => $sp_name)
             or croak 'Spatial output $sp_name does not exist in basedata '
                 . $bd->get_name
-                . "\n";
+            . "\n";
+
+        # make sure we aren't trying to access ourself
+        my $my_name = $self->get_name;
+        croak "def_query can't reference itself" if(defined $my_name && 
+                                                    $my_name eq $sp_name 
+                                                    && $self->is_def_query);
     }
+    
     else {
+        # default to the caller spatial output
         $sp = $self->get_caller_spatial_output_ref;
+
+        # make sure we aren't trying to access ourself
+        croak "def_query can't reference itself" if eval{$self->is_def_query};
+        
         return 1
           if !eval {$self->is_def_query} && $self->get_param('VERIFYING');
     }
-
+    
     croak "output argument not defined "
         . "or we are not being used for a spatial analysis\n"
           if !defined $sp;;

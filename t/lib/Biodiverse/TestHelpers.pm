@@ -169,7 +169,7 @@ sub is_numeric_within_tolerance_or_exact_text {
     my %args = @_;
     my ($got, $expected) = @args{qw /got expected/};
 
-    if (isfloat ($got) && isfloat($expected)) {
+    if (looks_like_number ($expected) && looks_like_number ($got)) {
         my $result = ($args{tolerance} // 1e-10) > abs ($expected - $got);
         if (!$result) {
             #  sometimes we get diffs above the default due to floating point issues

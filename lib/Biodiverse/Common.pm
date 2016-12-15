@@ -28,6 +28,7 @@ use Class::Inspector;
 use Ref::Util qw { :all };
 
 
+
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
 #  but wrap it in an eval to avoid problems on threaded builds
@@ -1207,66 +1208,6 @@ sub write_table_csv {
     return;
 }
 
-#sub write_table_dbf {
-#    my $self = shift;
-#    my %args = @_;
-#    my $data = $args{data} || croak "data arg not specified\n";
-#    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
-#    my $file = $args{file} || croak "file arg not specified\n";
-#    
-#    if (-e $file) {
-#        print "[COMMON] $file exists - deleting... ";
-#        if (! (unlink ($file))) {
-#            print "COULD NOT DELETE FILE - check permissions and file locks\n";
-#            return;
-#        }
-#        print "\n";
-#    }
-#    
-#    my $header = shift (@$data);
-#    
-#    #  set up the field types
-#    my @field_types = ("C", ("F") x $#$header);
-#    my @field_lengths = (64, (20) x $#$header);
-#    my @field_decimals = (undef, (10) x $#$header);
-#    my %flds_to_check;
-#    @flds_to_check{1 .. $#$header} = (undef) x $#$header;  #  need to check all bar the first field
-#    
-#    foreach my $record (@$data) {
-#        foreach my $j (keys %flds_to_check) {
-#            if (defined $record->[$j] and ! looks_like_number $record->[$j]) {  #  assume it's a character type
-#                $field_types[$j] = "C";
-#                $field_lengths[$j] = 64;
-#                $field_decimals[$j] = undef;
-#                delete $flds_to_check{$j};
-#            }
-#        }
-#        last if ! scalar keys %flds_to_check;  #  they're all characters, drop out
-#    }
-#    
-#    my $db = XBase -> create (name => $file,
-#                              #version => 4,
-#                              field_names => $header,
-#                              field_types => \@field_types,
-#                              field_lengths => \@field_lengths,  
-#                              field_decimals => \@field_decimals,
-#                              ) || die XBase->errstr;
-#    
-#    my $i = 0;
-#    foreach my $record (@$data) {
-#        $db -> set_record ($i, @$record);
-#        $i++;
-#    }
-#    
-#    if ($db -> close) {
-#        print "[COMMON] Write to file $file successful\n";
-#    }
-#    else {
-#        carp "[COMMON] Write to file $file failed\n";
-#    };
-#
-#    
-#}
 
 sub write_table_xml {  #  dump the table to an xml file.
     my $self = shift;
@@ -1344,7 +1285,7 @@ sub write_table_json {  #  dump the table to a JSON file.
 #    my $self = shift;
 #    my %args = @_;
 #    my $data = $args{data} || croak "data arg not specified\n";
-#    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+#    is_arrayref($data) || croak "data arg must be an array ref\n";
 #    my $file = $args{file} || croak "file arg not specified\n";
 #    
 #    my $header = shift (@$data);

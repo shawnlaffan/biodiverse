@@ -25,6 +25,7 @@ use Path::Class;
 use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
+use Ref::Util qw { :all };
 
 our $VERSION = '1.99_006';
 
@@ -1037,7 +1038,7 @@ sub write_table {
     croak "file argument not specified\n"
       if !defined $args{file};
     my $data = $args{data} || croak "data argument not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     $args{file} = Path::Class::file($args{file})->absolute;
 
@@ -1076,7 +1077,7 @@ sub to_table {
             element => $check_element,
             list    => $list,
         );
-        if ((ref $values) =~ /HASH/) {
+        if (is_hashref($values)) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
                 last CHECK_ELEMENTS;
@@ -1084,7 +1085,7 @@ sub to_table {
             $prev_list_keys //= scalar keys %$values;
             @list_keys{keys %$values} = undef;
         }
-        elsif ((ref $values) =~ /ARRAY/) {
+        elsif (is_arrayref($values)) {
             $is_asym = 1;  #  arrays are always treated as asymmetric
             last CHECK_ELEMENTS;
         }
@@ -1309,7 +1310,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
         #  get_list_values returns a list reference in scalar context - could be a hash or an array
         my $list =  $self->get_list_values (element => $element, list => $list);
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
-            if ((ref $list) =~ /ARRAY/) {
+            if (is_arrayref($list)) {
                 foreach my $value (@$list) {
                     if (!defined $value) {
                         $value = $no_data_value;
@@ -1317,7 +1318,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
                 }
             }
-            elsif ((ref $list) =~ /HASH/) {
+            elsif (is_hashref($list)) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
                     push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
@@ -1329,11 +1330,11 @@ sub to_table_asym {  #  get the data as an asymmetric table
         }
         else {
             my @line = @basic;
-            if ((ref $list) =~ /ARRAY/) {
+            if (is_arrayref($list)) {
                 #  preserve internal ordering - useful for extracting iteration based values
                 push @line, map {defined $_ ? $_ : $no_data_value} @$list;  
             }
-            elsif ((ref $list) =~ /HASH/) {
+            elsif (is_hashref($list)) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
                     push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
@@ -1384,10 +1385,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
   BY_ELEMENT1:
     foreach my $elt (keys %$elements) {
         my $sub_list = $elements->{$elt}{$list};
-        if ((ref $sub_list) =~ /ARRAY/) {
+        if (is_arrayref($sub_list)) {
             @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
         }
-        elsif ((ref $sub_list) =~ /HASH/) {
+        elsif (is_hashref($sub_list)) {
             @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
         }
     }
@@ -1437,10 +1438,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         my $list = $self->get_hash_list_values (element => $element, list => $list);
         my %data_hash = %indices_hash;
         @data_hash{keys %data_hash} = ($no_data_value) x scalar keys %data_hash;  #  initialises with undef by default
-        if ((ref $list) =~ /ARRAY/) {
+        if (is_arrayref($list)) {
             @data_hash{@$list} = (1) x scalar @$list;
         }
-        elsif ((ref $list) =~ /HASH/) {
+        elsif (is_hashref($list)) {
             @data_hash{keys %$list} = values %$list;
         }
 
@@ -1476,7 +1477,7 @@ sub write_table_asciigrid {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
@@ -1577,7 +1578,7 @@ sub write_table_floatgrid {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.flt/);
@@ -1681,7 +1682,7 @@ sub write_table_divagis {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, qr'\.gri');
@@ -1814,7 +1815,7 @@ sub write_table_geotiff {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
@@ -1908,7 +1909,7 @@ sub write_table_ers {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
@@ -2914,10 +2915,10 @@ sub get_list_values {
 
     #  need to return correct type in list context
     return %{$element_ref->{$list}}
-      if ref ($element_ref->{$list}) =~ /HASH/;
+      if is_hashref($element_ref->{$list});
 
     return @{$element_ref->{$list}}
-      if ref($element_ref->{$list}) =~ /ARRAY/;
+      if is_arrayref($element_ref->{$list});
 
     return;
 }
@@ -2937,8 +2938,9 @@ sub get_hash_list_values {
     return if ! exists $self->{ELEMENTS}{$element}{$list};
 
     croak "list is not a hash\n"
-      if ! ref($self->{ELEMENTS}{$element}{$list}) =~ /HASH/;
-
+        if !is_hashref($self->{ELEMENTS}{$element}{$list});
+        
+ 
     return wantarray
         ? %{$self->{ELEMENTS}{$element}{$list}}
         : $self->{ELEMENTS}{$element}{$list};
@@ -3077,11 +3079,11 @@ sub add_to_lists {  #  add to a list, create if not already there.
         if ($use_ref) {
             $self->{ELEMENTS}{$element}{$list_name} = $list_values;
         }
-        elsif ((ref $list_values) =~ /HASH/) {  #  slice assign
+        elsif (is_hashref($list_values)) {  #  slice assign
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= {});
             @$listref{keys %$list_values} = values %$list_values;
         }
-        elsif ((ref $list_values) =~ /ARRAY/) {
+        elsif (is_arrayref($list_values)) {
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= []);
             push @$listref, @$list_values;
         }
@@ -3102,7 +3104,7 @@ sub delete_lists {
 
     my $element = $args{element};
     my $lists   = $args{lists};
-    croak "argument 'lists' is not an array ref\n" if not (ref $lists) =~ /ARRAY/;
+    croak "argument 'lists' is not an array ref\n" if !is_arrayref($lists);
 
     foreach my $list (@$lists) {
         delete $self->{ELEMENTS}{$element}{$list};
@@ -3124,7 +3126,8 @@ sub get_lists {
 
     my @list;
     foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
-        push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /ARRAY|HASH/;
+        push @list, $tmp if (is_arrayref($self->{ELEMENTS}{$element}{$tmp}) 
+                            || is_hashref($self->{ELEMENTS}{$element}{$tmp}));
     }
 
     return @list if wantarray;
@@ -3322,7 +3325,7 @@ sub get_array_lists {
     my $el_ref = $self->{ELEMENTS}{$element}
       // croak "Element $element does not exist, cannot get hash list\n";
 
-    my @list = grep {ref ($el_ref->{$_}) =~ /ARRAY/} keys %$el_ref;
+    my @list = grep {is_arrayref($el_ref->{$_})} keys %$el_ref;
 
     return wantarray ? @list : \@list;
 }
@@ -3339,7 +3342,7 @@ sub get_hash_lists {
     my $el_ref = $self->{ELEMENTS}{$element}
       // croak "Element $element does not exist, cannot get hash list\n";
 
-    my @list = grep {ref ($el_ref->{$_}) =~ /HASH/} keys %$el_ref;
+    my @list = grep {is_hashref ($el_ref->{$_})} keys %$el_ref;
 
     return wantarray ? @list : \@list;
 }
@@ -3362,7 +3365,7 @@ sub get_hash_list_keys_across_elements {
             autovivify => 0,
         );
         next ELEMENT if ! $hash;
-        next ELEMENT if ! (ref ($hash) =~ /HASH/);
+        next ELEMENT if ! (is_hashref($hash));
 
         if (scalar keys %$hash) {
             @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster

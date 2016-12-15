@@ -13,6 +13,8 @@ use File::BOM qw /:subs/;
 our $VERSION = '1.99_006';
 
 use Biodiverse::Exception;
+use Ref::Util qw { :all };
+
 
 my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';
@@ -1034,10 +1036,10 @@ sub trim {
             }
         }
     }
-    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
+    elsif (is_arrayref($data)) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ((ref $data) =~ /HASH/) {
+    elsif (is_hashref($data)) {
         %keep_or_trim = %$keep;
     }
 

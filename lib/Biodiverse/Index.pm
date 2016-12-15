@@ -25,6 +25,7 @@ use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
 use Scalar::Util qw /blessed reftype/;
 use List::Util;
+use Ref::Util qw { :all };
 
 use Biodiverse::Progress;
 
@@ -192,7 +193,7 @@ sub snap_to_index {
       || croak "element_array not specified\n";
 
     croak "element_array is not an array ref\n"
-      if ! ref ($element_array) =~ /ARRAY/;
+      if !is_arrayref($element_array);
 
     my @columns   = @$element_array;
     my @index_res = @{$self->get_param('RESOLUTIONS')};
@@ -389,12 +390,12 @@ sub round_up_to_resolution {
     my $values = $args{values};
     #  if not an array then make it one
     #  woe betide the soul who passes a hash...
-    if ((ref $values) !~ /ARRAY/) {  
+    if (!is_arrayref($values)) {  
         $values = [($values) x scalar @$resolutions];
     }
     
     my $multipliers = $args{multipliers} // 1;
-    if ((ref $multipliers) !~ /ARRAY/) {  
+    if (!is_arrayref($multipliers)) {  
         $multipliers = [($multipliers) x scalar @$resolutions];
     }
     

@@ -34,8 +34,8 @@ sub run_remap_gui {
     my $gui = $args{"gui"};
 
     ####
-# get the available options to remap labels to
-# TODO don't allow remapping to yourself (doesn't hurt but just confuses things)
+    # get the available options to remap labels to
+    # TODO don't allow remapping to yourself
     my @sources = ();
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
@@ -135,6 +135,7 @@ sub run_remap_gui {
     my $response = $dlg->run();
 
     my $remap_type;
+    
     if ( $response eq "no" ) {
         $remap_type = "none";
     }
@@ -196,6 +197,7 @@ sub perform_remap {
 
     my $remap_results_response =
       $self->remap_results_dialog( %{$remap_results} );
+
     my $response = $remap_results_response->{response};
 
 
@@ -235,9 +237,11 @@ sub perform_remap {
         );
 
         say "Performed automatic remap.";
+        return 1;
     }
     else {
         say "Declined automatic remap, no remap performed.";
+        return 0;
     }
 
 }
@@ -389,6 +393,8 @@ sub remap_results_dialog {
 
     $dlg->destroy();
 
+    
+    
     my %results = (
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,

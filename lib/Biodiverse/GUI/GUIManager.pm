@@ -1129,75 +1129,74 @@ sub do_rename_phylogeny {
     return;
 }
 
-sub do_auto_remap_phylogeny {
-    my $self = shift;
-    my $ref  = $self->{project}->get_selected_phylogeny();
+# Generalised auto remapping: called from do_auto_remap_phylogeny,
+# do_auto_remap_basedata and do_auto_remap_matrix. Pass in a function
+# to get the current data object (the one you will remap), a function
+# to add a new data object to the project, and a function to run the
+# renaming logic.
+sub do_auto_remap {
+    my ($self, %args) = @_;
+    
+    my $get_ref_function           = $args{ get_function    };
+    my $add_to_project_function    = $args{ add_function    };
+    my $rename_function            = $args{ rename_function };
+    
+    my $project = $self->get_project();
+    my $ref  = $project->$get_ref_function();
     my $gui  = $self;
 
+    # get the remapping options e.g. new data source etc.
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
+    my %remap_dlg_options = (gui => $gui, no_manual => 1);
+    my $remap_dlg_results  = $remapper->run_remap_gui( %remap_dlg_options );
 
-    if($remap_dlg_results->{remap_type} eq "auto") {
+    if ( $remap_dlg_results->{remap_type} eq "auto" ) {
+
+        # setup and perform remap
         my $cloned_ref = $ref->clone();
-        $remap_dlg_results->{gui} = $gui;
-        $remap_dlg_results->{new_source} = $cloned_ref;
-        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
 
-        $remapper->perform_remap ($remap_dlg_results);
-        
-        $self->get_project()->delete_phylogeny();
-        $self->get_project()->add_phylogeny($cloned_ref);
+        $remap_dlg_results->{ gui        } = $gui;
+        $remap_dlg_results->{ new_source } = $cloned_ref;
+        $remap_dlg_results->{ old_source } 
+           = $remap_dlg_results->{ datasource_choice };
+
+        my $did_perform_remap = $remapper->perform_remap( $remap_dlg_results );
+
+        if ($did_perform_remap) {
+            # add new data object to project and rename
+            $project->$add_to_project_function( $cloned_ref );
+            $self->$rename_function();
+        }
     }
 
     return;
+}
+
+sub do_auto_remap_phylogeny {
+    my $self = shift;
+    $self->do_auto_remap( 
+        get_function => "get_selected_phylogeny",
+        add_function => "add_phylogeny",
+        rename_function => "do_rename_phylogeny",
+    );
 }
 
 sub do_auto_remap_basedata {
     my $self = shift;
-    my $ref  = $self->{project}->get_selected_basedata();
-    my $gui  = $self;
-
-
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
-
-    if($remap_dlg_results->{remap_type} eq "auto") {
-        my $cloned_ref = $ref->clone();
-        $remap_dlg_results->{gui} = $gui;
-        $remap_dlg_results->{new_source} = $cloned_ref;
-        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
-
-        $remapper->perform_remap ($remap_dlg_results);
-
-        $self->get_project()->delete_base_data();
-        $self->get_project()->add_base_data($cloned_ref);
-
-    }
-
-    return;
+    $self->do_auto_remap( 
+        get_function => "get_selected_basedata",
+        add_function => "add_base_data",
+        rename_function => "do_rename_basedata",
+    );
 }
 
 sub do_auto_remap_matrix {
     my $self = shift;
-    my $ref  = $self->{project}->get_selected_matrix();
-    my $gui  = $self;
-
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui, no_manual => 1);
-
-    if($remap_dlg_results->{remap_type} eq "auto") {
-        my $cloned_ref = $ref->clone();
-        $remap_dlg_results->{gui} = $gui;
-        $remap_dlg_results->{new_source} = $cloned_ref;
-        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
-        
-        $remapper->perform_remap ($remap_dlg_results);
-
-        $self->get_project()->delete_matrix();
-        $self->get_project()->add_matrix($cloned_ref);
-    }
-
-    return;
+    $self->do_auto_remap( 
+        get_function => "get_selected_matrix",
+        add_function => "add_matrix",
+        rename_function => "do_rename_matrix",
+    );
 }
 
 sub do_phylogeny_delete_cached_values {

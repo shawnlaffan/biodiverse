@@ -40,14 +40,32 @@ sub perform_auto_remap {
 sub generate_auto_remap {
     my $self          = shift;
     my $args          = shift || {};
-    my $first_source  = $args->{existing_data_source};
-    my $second_source = $args->{new_data_source};
-    my $max_distance  = $args->{max_distance};
-    my $ignore_case   = $args->{ignore_case};
+    my $existing_source            = $args->{ existing_data_source       };
+    my $new_source                 = $args->{ new_data_source            };
+    my $max_distance               = $args->{ max_distance               };
+    my $ignore_case                = $args->{ ignore_case                };
+    my $remapping_multiple_sources = $args->{ remapping_multiple_sources };
 
-    my @existing_labels = $first_source->get_labels();
-    my @new_labels      = $second_source->get_labels();
+    # we may have to combine multiple sources before remapping
+    # e.g. when importing multiple trees from the same nexus file.
+    my @new_labels;
+    if ( $remapping_multiple_sources ) {
 
+        # use a hash to ensure uniqueness of labels in new_labels
+        my %new_labels_hash;
+        foreach my $individual_source ( @$new_source ) {
+            foreach my $new_label ( $individual_source->get_labels() ) {
+                $new_labels_hash{ $new_label } = 1;
+            }
+        }
+
+        @new_labels = keys %new_labels_hash;
+    }
+    else {
+        @new_labels = $new_source->get_labels();
+    }
+    
+    my @existing_labels = $existing_source->get_labels();
     my $remap_results = $self->guess_remap(
         {
             existing_labels => \@existing_labels,

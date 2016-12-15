@@ -11,6 +11,7 @@ use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
 use Biodiverse::GUI::GUIManager;
+use Ref::Util qw /:all/;
 
 use Text::Levenshtein qw(distance);
 use Scalar::Util qw /blessed/;
@@ -171,23 +172,28 @@ sub run_remap_gui {
 }
 
 # given a gui and a data source, perform an automatic remap
+# including showing the remap analysis/breakdown dialog
 sub perform_remap {
     my $self = shift;
     my $args = shift;
 
-    my $new_source   = $args->{new_source};
-    my $old_source   = $args->{old_source};
-    my $max_distance = $args->{max_distance};
-    my $ignore_case  = $args->{ignore_case};
+    my $new_source   = $args->{ new_source   };
+    my $old_source   = $args->{ old_source   };
+    my $max_distance = $args->{ max_distance };
+    my $ignore_case  = $args->{ ignore_case  };
+
+    # is there a list of sources whose labels we should combine?
+    my $remapping_multiple_sources = is_arrayref($new_source);
 
     # actually do the remap
     my $guesser       = Biodiverse::RemapGuesser->new();
     my $remap_results = $guesser->generate_auto_remap(
         {
-            existing_data_source => $old_source,
-            new_data_source      => $new_source,
-            max_distance         => $max_distance,
-            ignore_case          => $ignore_case
+            existing_data_source       => $old_source,
+            new_data_source            => $new_source,
+            max_distance               => $max_distance,
+            ignore_case                => $ignore_case,
+            remapping_multiple_sources => $remapping_multiple_sources,
         }
     );
 
@@ -231,10 +237,22 @@ sub perform_remap {
     # TODO we could probably remove exact matches and not matches here as well
 
     if ( $response eq 'yes' ) {
-        $guesser->perform_auto_remap(
+
+        if( $remapping_multiple_sources ) {
+            foreach my $source (@$new_source) {
+                $guesser->perform_auto_remap(
+                    remap      => $remap,
+                    new_source => $source,
+                );
+            }
+        }
+
+        else {
+            $guesser->perform_auto_remap(
             remap      => $remap,
             new_source => $new_source,
-        );
+            );
+        }
 
         say "Performed automatic remap.";
         return 1;

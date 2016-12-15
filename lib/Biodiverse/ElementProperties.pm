@@ -11,6 +11,8 @@ use Biodiverse::Exception;
 our $VERSION = '1.99_006';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
+use Ref::Util qw { :all };
+
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -88,7 +90,7 @@ sub import_data {
             message => "Need argument input_element_cols to be set\n",
         );
     }
-    elsif (not (ref $in_cols) =~ /ARRAY/) {
+    elsif (!is_arrayref($in_cols)) {
         Biodiverse::Args::ElPropInputCols->throw (
             message => "Input_element_cols is not an array ref\n",
         );
@@ -107,14 +109,14 @@ sub import_data {
     
     my $include_cols = $args{include_cols};
     if (defined $include_cols) {
-        if ((ref $include_cols) !~ /ARRAY/) {
+        if (!is_arrayref($include_cols)) {
             $include_cols = [$include_cols];
         }
     }
     
     my $exclude_cols = $args{exclude_cols};
     if (defined $exclude_cols) {
-        if ((ref $exclude_cols) !~ /ARRAY/) {
+        if (!is_arrayref($exclude_cols)) {
             $exclude_cols = [$exclude_cols];
         }
     }

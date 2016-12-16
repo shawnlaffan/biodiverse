@@ -1435,11 +1435,18 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
-        my $list = $self->get_hash_list_values (element => $element, list => $list);
+        my $list = $self->get_list_ref (
+            element => $element,
+            list    => $list,
+            autovivify => 0,
+        );
         my %data_hash = %indices_hash;
-        @data_hash{keys %data_hash} = ($no_data_value) x scalar keys %data_hash;  #  initialises with undef by default
+        @data_hash{keys %data_hash}
+          = ($no_data_value) x scalar keys %data_hash;
         if (is_arrayref($list)) {
-            @data_hash{@$list} = (1) x scalar @$list;
+            foreach my $val (@$list) {
+                $data_hash{$val}++;  #  track dups
+            }
         }
         elsif (is_hashref($list)) {
             @data_hash{keys %$list} = values %$list;
@@ -2939,8 +2946,7 @@ sub get_hash_list_values {
 
     croak "list is not a hash\n"
         if !is_hashref($self->{ELEMENTS}{$element}{$list});
-        
- 
+
     return wantarray
         ? %{$self->{ELEMENTS}{$element}{$list}}
         : $self->{ELEMENTS}{$element}{$list};

@@ -72,7 +72,6 @@ sub process_leaks {
     my @leakers;
     foreach my $leak (@leaks) {
         #next if not $leak->[1] =~ 'Biodiverse';
-        #next if not $leak->[0] =~ /ARRAY/;
         next if not $leak->[0] =~ /^\w/;  #  skip regexps
         my $tot_size = total_size ($leak->[0]); 
         #next if $tot_size < 1650000;

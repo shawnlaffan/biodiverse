@@ -84,7 +84,6 @@ sub process_leaks {
     my @tn_leaks;
     foreach my $leak (@leaks) {
         next if not $leak->[1] =~ 'Biodiverse';
-        #next if not $leak->[0] =~ /ARRAY/;
         my $tot_size = total_size ($leak->[0]);
         #next if $tot_size < 1650000;
 

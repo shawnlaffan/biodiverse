@@ -15,7 +15,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
-
+use Ref::Util qw { :all };
 use Scalar::Util qw /looks_like_number reftype/;
 use List::MoreUtils qw /first_index/;
 
@@ -653,7 +653,7 @@ sub on_run {
             $value //= "undef";
             $str_args .= "\t$arg\t= $value\n" ;
         }
-        elsif ((ref $value) =~ /ARRAY/) {
+        elsif (is_arrayref($value)) {
             $str_args .= "\t$arg\t= " . (scalar @$value) . "\n";
         }
     }

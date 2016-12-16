@@ -7,6 +7,7 @@ use Carp;
 
 use Scalar::Util qw /blessed weaken reftype/;
 use List::Util 1.39 qw /min max pairs pairkeys sum/;
+use Ref::Util qw { :all };
 use English ( -no_match_vars );
 use Readonly;
 
@@ -1748,7 +1749,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         next if !defined $args{$listname};
 
         my $label_listref = $args{$listname};
-        if ((ref $label_listref) !~ /ARRAY/) {
+        if (is_arrayref($label_listref)) {
             carp "[INDICES] $label_listref is not an array ref\n";
             next;
         }
@@ -1772,7 +1773,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         my $label_hashref = $args{$listname};
 
         croak "[INDICES] $label_hashref is not a hash ref\n"
-          if (ref $label_hashref) !~ /HASH/;
+          if (is_hashref($label_hashref));
 
         if ($count_labels || $count_samples) {
             while (($label, $value) = each %$label_hashref) {

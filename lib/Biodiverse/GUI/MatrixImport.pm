@@ -5,7 +5,7 @@ use warnings;
 use File::Basename;
 use Carp;
 use Scalar::Util qw /reftype/;
-
+use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
 
 use Gtk2;
@@ -254,7 +254,7 @@ sub make_columns_dialog_normal {
     my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
 
-    if (not defined $type_options or (ref $type_options) !~ /ARRAY/) {
+    if (not defined $type_options or !is_arrayref($type_options)) {
         $type_options = ['Ignore', 'Label', 'Matrix Start'];
     }
 

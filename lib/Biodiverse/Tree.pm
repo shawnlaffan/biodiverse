@@ -10,6 +10,7 @@ use warnings;
 use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
+use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
 
@@ -116,7 +117,7 @@ sub _describe {
 
     foreach my $key (@keys) {
         my $desc = $self->get_param ($key);
-        if ((ref $desc) =~ /ARRAY/) {
+        if (is_arrayref($desc)) {
             $desc = join q{, }, @$desc;
         }
         push @description, "$key: $desc";
@@ -197,12 +198,11 @@ sub delete_from_node_hash {
         delete $self->{TREE_BY_NAME}{$args{node}};  #  $args{node} implies single deletion
     }
 
-    my $arg_nodes_ref = ref $args{nodes};
     my @list;
-    if ($arg_nodes_ref =~ /HASH/) {
+    if (is_hashref($args{nodes})) {
         @list = keys %{$args{nodes}};
     }
-    elsif ($arg_nodes_ref =~ /ARRAY/) {
+    elsif (is_arrayref($args{nodes})) {
         @list = @{$args{nodes}};
     }
     else {
@@ -769,7 +769,7 @@ sub get_metadata_export {
         #  Need to raise the matrices args
         #  This is extremely kludgy as it assumes there is only one
         #  output format for matrices
-        if ((ref $params_array) =~ /HASH/) {
+        if (is_hashref($params_array)) {
             my @values = values %$params_array;
             my @keys   = keys   %$params_array;
 

@@ -16,6 +16,7 @@ use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
+use Ref::Util qw { :all };
 
 use Spreadsheet::Read 0.60;
 
@@ -382,7 +383,7 @@ sub _describe {
 
     foreach my $key (@keys) {
         my $desc = $self->get_param ($key);
-        if ((ref $desc) =~ /ARRAY/) {
+        if (is_arrayref($desc)) {
             $desc = join q{, }, @$desc;
         }
         push @description, "$key: $desc";
@@ -3112,10 +3113,10 @@ sub trim {
             }
         }
     }
-    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
+    elsif (is_arrayref($data)) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ((ref $data) =~ /HASH/) {
+    elsif (is_hashref($data)) {
         %keep_or_trim = %$keep;
     }
 
@@ -3461,9 +3462,11 @@ sub get_range_intersection {
     
     my $labels = $args{labels} || croak "[BaseData] get_range_intersection argument labels not specified\n";
     my $t = ref $labels;
-    ref ($labels) =~ /ARRAY|HASH/ || croak "[BaseData] get_range_intersection argument labels not an array or hash ref\n";
+
+    croak "[BaseData] get_range_intersection argument labels not an array or hash ref\n" 
+        if (!is_arrayref($labels) && !is_hashref($labels));
     
-    $labels = [keys %{$labels}] if (ref ($labels) =~ /HASH/);
+    $labels = [keys %{$labels}] if (is_hashref($labels));
     
     #  now loop through the labels and get the groups that contain all the species
     my $elements = {};
@@ -3492,12 +3495,11 @@ sub get_range_union {
 
     my $labels = $args{labels} // croak "argument labels not specified\n";
 
-    my $lref = reftype $labels;
 
     croak "argument labels not an array or hash ref"
-      if not $lref =~ /^(?:ARRAY|HASH)/;
+        if !is_arrayref($labels) && !is_hashref($labels);
 
-    if ($lref eq 'HASH') {
+    if (is_hashref($labels)) {
         $labels = [keys %$labels];
     }
 

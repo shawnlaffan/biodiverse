@@ -19,6 +19,9 @@ use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 use List::Util qw /all min/;
 use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
+use Ref::Util qw { :all };
+
+
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
@@ -1538,7 +1541,7 @@ sub add_row {
 
     $header //= q{};
 
-    if ((ref $row_options) !~ /ARRAY/ or scalar @$row_options == 0) {
+    if (!is_arrayref($row_options) or scalar @$row_options == 0) {
         $row_options = [qw /
             Ignore
             Label

@@ -11,6 +11,8 @@ use Biodiverse::Common;
 use Biodiverse::Matrix;
 use Biodiverse::ReadNexus;
 
+use Ref::Util qw { :all };
+
 use English ( -no_match_vars );
 
 our $VERSION = '1.99_006';
@@ -595,7 +597,7 @@ sub add_phylogeny {
     my $phylogenies = shift;
     my $no_select = shift;
     
-    if ((ref $phylogenies) !~ /ARRAY/) {
+    if (is_arrayref($phylogenies)) {
         $phylogenies = [$phylogenies];  #  make a scalar value an array
     }
 

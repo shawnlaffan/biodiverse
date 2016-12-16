@@ -4,6 +4,7 @@
 package Biodiverse::Indices::IEI;
 use strict;
 use warnings;
+use Ref::Util qw { :all };
 
 use Carp;
 
@@ -232,7 +233,7 @@ sub get_iei_data_for_elements {
         next BY_LIST if ! defined $args{$listname};
 
         #  silently convert the hash to an array
-        if ((ref $args{$listname}) =~ /HASH/) {  
+        if (is_hashref($args{$listname})) {  
             $args{$listname} = [keys %{$args{$listname}}];
         }
         elsif (! ref ($args{$listname})) {

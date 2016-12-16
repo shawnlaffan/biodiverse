@@ -4,6 +4,7 @@ package Biodiverse::Config;
 use 5.010;
 use strict;
 use warnings;
+use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
@@ -192,7 +193,7 @@ sub use_base {
         warn "Nothing loaded\n";
     }
 
-    @check_packages{keys %$x} = values %$x if (ref $x) =~ /HASH/;
+    @check_packages{keys %$x} = values %$x if is_hashref($x);
 
     foreach my $package (keys %check_packages) {
         my @packs = @{$check_packages{$package}};

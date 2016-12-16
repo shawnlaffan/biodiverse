@@ -19,6 +19,8 @@ use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max/;
+use Ref::Util qw { :all };
+
 
 use parent qw /Biodiverse::Common/;
 
@@ -623,7 +625,7 @@ sub get_distances {
 
     my @cellsize;
     my $cellsizes = $args{cellsizes};
-    if ( ( ref $cellsizes ) =~ /ARRAY/ ) {
+    if ( is_arrayref($cellsizes) ) {
         @cellsize = @$cellsizes;
     }
 
@@ -1382,7 +1384,7 @@ sub get_metadata_sp_ellipse {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1431,7 +1433,7 @@ sub sp_ellipse {
     my $axes = $args{axes};
     if ( defined $axes ) {
         croak "sp_ellipse:  axes arg is not an array ref\n"
-            if ( ref $axes ) !~ /ARRAY/;
+            if (! is_arrayref($axes));
         my $axis_count = scalar @$axes;
         croak
             "sp_ellipse:  axes array needs two axes, you have given $axis_count\n"
@@ -1707,7 +1709,7 @@ sub get_metadata_sp_is_left_of {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1744,7 +1746,7 @@ sub get_metadata_sp_is_right_of {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1781,7 +1783,7 @@ sub get_metadata_sp_in_line_with {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1821,7 +1823,7 @@ sub _sp_side {
     my $axes = $args{axes};
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
-            if ( ref $axes ) !~ /ARRAY/;
+            if ( !is_arrayref($axes) );
         my $axis_count = scalar @$axes;
         croak
           "_sp_side:  axes array needs two axes, you have given $axis_count\n"

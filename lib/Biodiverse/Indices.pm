@@ -10,7 +10,7 @@ use warnings;
 
 #use Devel::Symdump;
 use Data::Dumper;
-use Scalar::Util qw /blessed weaken reftype/;
+use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };

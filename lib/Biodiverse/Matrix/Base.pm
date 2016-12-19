@@ -6,7 +6,7 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 

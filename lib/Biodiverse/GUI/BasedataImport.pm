@@ -14,7 +14,7 @@ use Gtk2;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-use Scalar::Util qw /reftype looks_like_number blessed/;
+use Scalar::Util qw /looks_like_number blessed/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 use List::Util qw /all min/;
 use List::MoreUtils qw /first_index/;
@@ -889,7 +889,7 @@ sub get_column_settings {
         else {
             # initialise
             if (not exists $rest_of_options{$type}
-                or reftype ($rest_of_options{$type}) eq 'ARRAY'
+                or is_arrayref($rest_of_options{$type})
                 ) {
                 $rest_of_options{$type} = [];
             }

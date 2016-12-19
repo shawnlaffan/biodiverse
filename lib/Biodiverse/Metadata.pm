@@ -2,7 +2,6 @@ package Biodiverse::Metadata;
 use 5.016;
 use strict;
 use warnings;
-use Scalar::Util qw /reftype/;
 use Ref::Util qw { :all };
 
 our $VERSION = '1.99_006';

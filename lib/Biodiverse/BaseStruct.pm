@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw /looks_like_number reftype/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max sum/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;

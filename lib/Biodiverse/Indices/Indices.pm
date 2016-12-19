@@ -5,7 +5,7 @@ use 5.010;
 
 use Carp;
 
-use Scalar::Util qw /blessed weaken reftype/;
+use Scalar::Util qw /blessed weaken/;
 use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use Ref::Util qw { :all };
 use English ( -no_match_vars );

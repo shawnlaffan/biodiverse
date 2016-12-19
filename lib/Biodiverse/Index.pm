@@ -23,7 +23,7 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
-use Scalar::Util qw /blessed reftype/;
+use Scalar::Util qw /blessed/;
 use List::Util;
 use Ref::Util qw { :all };
 

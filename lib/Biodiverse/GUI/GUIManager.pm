@@ -10,7 +10,7 @@ our $VERSION = '1.99_006';
 
 #use Data::Dumper;
 use Carp;
-use Scalar::Util qw /blessed reftype/;
+use Scalar::Util qw /blessed/;
 
 use English ( -no_match_vars );
 use Readonly;

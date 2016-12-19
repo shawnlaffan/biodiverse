@@ -2140,20 +2140,18 @@ sub get_list_as_flat_hash {
     #  check the first one
     my $list_reftype = reftype ($list);
     croak 'list arg must be a hash or array ref, not ' . ($list_reftype || 'undef') . "\n"
-      if not (defined $list_reftype or $list_reftype =~ /ARRAY|HASH/);
+      if not (is_ref($list) or is_arrayref($list) or is_hashref($list));
 
     my @refs = ($list);  #  start with this
     my %flat_hash;
 
     foreach my $ref (@refs) {
-        my $reftype = reftype $ref;
-        if ($reftype eq 'ARRAY') {
+        if (is_arrayref($ref)) {
             @flat_hash{@$ref} = (1) x scalar @$ref;
         }
-        elsif ($reftype eq 'HASH') {
+        elsif (is_hashref($ref)) {
             foreach my $key (keys %$ref) {
-                my $reftype2 = reftype ($ref->{$key});
-                if (not $reftype2) {  #  not a ref, so must be a single level hash list
+                if (!is_ref($ref->{$key})) {  #  not a ref, so must be a single level hash list
                     $flat_hash{$key} = $ref->{$key};
                 }
                 else {

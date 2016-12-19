@@ -11,6 +11,7 @@ use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
 use Biodiverse::GUI::GUIManager;
+use Biodiverse::GUI::Export;
 use Ref::Util qw /:all/;
 
 use Text::Levenshtein qw(distance);
@@ -237,7 +238,8 @@ sub perform_remap {
     # TODO we could probably remove exact matches and not matches here as well
 
     if ( $response eq 'yes' ) {
-
+        
+        # actually perform the remap on the data source
         if( $remapping_multiple_sources ) {
             foreach my $source (@$new_source) {
                 $guesser->perform_auto_remap(
@@ -246,7 +248,6 @@ sub perform_remap {
                 );
             }
         }
-
         else {
             $guesser->perform_auto_remap(
             remap      => $remap,
@@ -254,6 +255,16 @@ sub perform_remap {
             );
         }
 
+        # possibly export the newly remapped source
+        if( $remap_results_response->{export_results} ) {
+            $self->export_remapped_datasource (
+                source           => $new_source,
+                multiple_sources => $remapping_multiple_sources,
+                );
+        }
+
+        
+        
         say "Performed automatic remap.";
         return 1;
     }
@@ -365,6 +376,11 @@ sub remap_results_dialog {
     # Accept label
     my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
 
+    ###
+    # Export checkbox
+    my $export_checkbutton = Gtk2::CheckButton->new("Export to new file");
+    $export_checkbutton->set_active(0);
+    
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
@@ -404,7 +420,10 @@ sub remap_results_dialog {
     $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
     $vbox->pack_start( $not_matched_vbox,     0,  1, 0 );
     $vbox->pack_start( $accept_remap_label,   10, 1, 10 );
+    $vbox->pack_start( $export_checkbutton,   0,  1, 0 );
 
+
+    
     $dlg->show_all;
 
     my $response = $dlg->run();
@@ -416,8 +435,9 @@ sub remap_results_dialog {
     my %results = (
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
-        typo_match_enabled => $typo_match_checkbutton->get_active,
-        exclusions => $self->get_exclusions,
+        typo_match_enabled  => $typo_match_checkbutton->get_active,
+        export_results      => $export_checkbutton->get_active,
+        exclusions          => $self->get_exclusions,
     );
 
     return wantarray ? %results : \%results;
@@ -700,4 +720,32 @@ sub on_remap_toggled {
     return;
 
 }
+
+
+# given a datasource or a list of datasources, figure out how to
+# export them and run the gui to do it.
+sub export_remapped_datasource {
+    my ($self, %args) = @_;
+
+    say "About to export";
+
+    if ( $args{multiple_sources} ) {
+        say "NOT IMPLEMENTED: Tried to export multiple sources.";
+    }
+
+    else {
+        say "Single source detected";
+
+        # handle basedata export
+        if(ref($args{source}) eq 'Biodiverse::BaseData') {
+            say "NOT IMPLEMENTED: Export for basedata.";
+        }
+        # handle tree and matrix export
+        else {
+            Biodiverse::GUI::Export::Run( $args{source} );
+        }
+    }
+
+}
+
 

@@ -1695,9 +1695,9 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
           // next LISTNAME;
 
         croak "_calc_abc argument $listname is not a list ref\n"
-          if !ref $el_listref;
+          if !is_ref($el_listref);
 
-        if (reftype ($el_listref) eq 'HASH') {  #  silently convert the hash to an array
+        if (is_hashref($el_listref)) {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
 

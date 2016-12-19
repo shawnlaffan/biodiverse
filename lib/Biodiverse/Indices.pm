@@ -917,7 +917,7 @@ sub get_full_dependency_list {
             my $deps = $meta->get_dep_list($type);
             next if !defined $deps;
 
-            if ( !reftype($deps) ) {
+            if ( !is_ref($deps) ) {
                 $dep_list{$deps}++;
             }
             else {

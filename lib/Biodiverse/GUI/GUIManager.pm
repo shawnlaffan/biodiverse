@@ -41,6 +41,7 @@ require Biodiverse::Config;
 
 use parent qw /Biodiverse::Common Biodiverse::GUI::Help/; #/
 
+use Ref::Util qw { :all };
 
 ##########################################################
 # Construction
@@ -1194,7 +1195,7 @@ sub show_describe_dialog {
     my $description = shift;
 
     #  passed a string so disassemble it into an array
-    if (!reftype ($description)) {
+    if (!is_ref($description)) {
         my @desc = split "\n", $description;
         $description = [];
         foreach my $line (@desc) {
@@ -1205,7 +1206,7 @@ sub show_describe_dialog {
 
 
     my $table_widget;
-    if (ref $description) {
+    if (is_ref($description)) {
         my $row_count = scalar @$description;
         my $table = Gtk2::Table->new ($row_count, 2);
 

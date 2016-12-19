@@ -2138,9 +2138,9 @@ sub get_list_as_flat_hash {
     delete $args{list};  #  saves passing it onwards
 
     #  check the first one
-    my $list_reftype = reftype ($list);
-    croak 'list arg must be a hash or array ref, not ' . ($list_reftype || 'undef') . "\n"
-      if not (is_ref($list) or is_arrayref($list) or is_hashref($list));
+    my $list_reftype = reftype ($list) // 'undef';
+    croak "list arg must be a hash or array ref, not $list_reftype\n"
+      if not (is_arrayref($list) or is_hashref($list));
 
     my @refs = ($list);  #  start with this
     my %flat_hash;

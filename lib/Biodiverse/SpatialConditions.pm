@@ -16,7 +16,7 @@ use Math::Polygon;
 use Geo::ShapeFile;
 use Tree::R;
 use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max/;
 use Ref::Util qw { :all };
@@ -741,7 +741,9 @@ sub get_conditions_code_ref {
 
     my $code_ref = $self->get_cached_value ('CODE_REF');
 
-    return $code_ref if defined $code_ref && reftype ($code_ref) eq 'CODE';  #  need to check for valid code?
+    #  need to check for valid code?
+    return $code_ref
+      if defined $code_ref && is_coderef ($code_ref);  
 
     my $conditions_code = <<'END_OF_CONDITIONS_CODE'
 sub {

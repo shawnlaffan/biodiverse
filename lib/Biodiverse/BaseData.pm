@@ -1788,8 +1788,9 @@ sub import_data_spreadsheet {
     
     say '[BASEDATA] Loading from files as spreadsheet: '
         . join (q{, },
-                map {(reftype ($_) && !blessed ($_)) ? '<<preloaded book>>' : $_}
-                map {$_ // 'undef'} @{$args{input_files}}
+            map {(is_ref ($_) && !blessed ($_)) ? '<<preloaded book>>' : $_}
+            map {$_ // 'undef'}
+            @{$args{input_files}}
         );
 
     # needed to construct the groups and labels

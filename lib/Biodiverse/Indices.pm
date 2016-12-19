@@ -630,15 +630,14 @@ sub _convert_to_hash {
     my %hash;
 
     if ( defined $input ) {
-        my $reftype = reftype $input;
-        if ( !defined $reftype ) {
-            $hash{$input} = $input;
-        }
-        elsif ( $reftype eq 'ARRAY' ) {
+        if ( is_arrayref($input) ) {
             @hash{@$input} = (1) x scalar @$input;
         }
-        elsif ( $reftype eq 'HASH' ) {
+        elsif ( is_hashref($input) ) {
             %hash = %$input;
+        }
+        else {
+            $hash{$input} = $input;
         }
     }
 
@@ -656,18 +655,15 @@ sub _convert_to_array {
     my @array;
 
     if ( defined $input ) {
-        my $reftype = reftype $input;
-        if ( !defined $reftype ) {
-            @array = ($input);
-        }
-        elsif ( $reftype eq 'ARRAY' ) {
+        if ( is_arrayref($input) ) {
             @array = @$input;    #  makes a copy
         }
-        elsif ( $reftype eq 'HASH' ) {
+        elsif ( is_hashref($input)  ) {
             @array = keys %$input;
         }
-
-        #  anything else is not returned
+        else {
+            @array = ($input);
+        }
     }
 
     return wantarray ? @array : \@array;

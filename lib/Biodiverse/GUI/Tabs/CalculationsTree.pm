@@ -13,8 +13,6 @@ package Biodiverse::GUI::Tabs::CalculationsTree;
 use strict;
 use warnings;
 
-use Scalar::Util qw /reftype/;
-
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Indices;

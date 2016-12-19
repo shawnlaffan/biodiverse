@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use File::Basename;
 use Carp;
-use Scalar::Util qw /reftype/;
 use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
 
@@ -402,7 +401,7 @@ sub import_sparse_format {
         my $option = $mapping{$coltype};
         my $aref = $import_args{$coltype} = [];
         my $cols = $column_settings->{$option};
-        if (!reftype $cols) {
+        if (!is_ref($cols)) {
             $cols = [$cols]
         }
         foreach my $col (@$cols) {

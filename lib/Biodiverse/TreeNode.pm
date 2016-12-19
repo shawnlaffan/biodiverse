@@ -416,7 +416,7 @@ sub add_children {
       // return;  #  should croak
 
     croak "TreeNode WARNING: children argument not an array ref\n"
-      if reftype ($children) ne 'ARRAY';
+      if !is_arrayref($children);
     
     #  Remove any duplicates.
     #  Could use a hash but we need to retain the insertion order

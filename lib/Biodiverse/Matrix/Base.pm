@@ -367,7 +367,7 @@ sub import_data_sparse {
     my @label_col_columns  = @{$args{label_col_columns}};
     my $value_column       = $args{value_column};
     
-    if (reftype ($value_column)) {
+    if (is_ref ($value_column)) {
         $value_column = $value_column->[0];  #  take the first if we are passed an array
     }
 

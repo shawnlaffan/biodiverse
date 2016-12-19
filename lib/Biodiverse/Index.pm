@@ -309,8 +309,6 @@ sub get_index_elements {
             $self->set_cached_value (CSV_OBJECT => $csv_object);
         }
 
-        my $reftype_el = reftype ($element) // q{};
-        my $reftype_of = reftype ($offset)  // q{};
 
         my @elements = (is_arrayref($element))  #  is it an array already?
             ? @$element

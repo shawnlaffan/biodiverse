@@ -3,6 +3,7 @@ use 5.016;
 use strict;
 use warnings;
 use Scalar::Util qw /reftype/;
+use Ref::Util qw { :all };
 
 our $VERSION = '1.99_006';
 
@@ -46,12 +47,12 @@ sub get_default_value {
     my %defaults = $self->_get_method_default_hash;
     my $default  = $defaults{$key};
 
-    return $default if !defined $default or !reftype ($default);
+    return $default if !defined $default or !is_ref ($default);
 
-    if (reftype ($default) eq 'ARRAY') {
+    if (is_arrayref($default)) {
         $default = [];
     }
-    elsif (reftype ($default) eq 'HASH') {
+    elsif (is_hashref($default)) {
         $default = {};
     }
     return $default;

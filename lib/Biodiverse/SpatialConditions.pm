@@ -341,7 +341,7 @@ sub parse_distances {
                 my $method = "get_$key";
                 my $a = $metadata->$method;
                 croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
-                  if not reftype $a eq 'ARRAY';
+                  if !is_arrayref($a);
                 foreach my $dist (@$a) {
                     $uses_distances{$key}{$dist}++;
                 }
@@ -1352,13 +1352,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
+    if ( !is_arrayref($size) ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
+    if ( !is_arrayref($origin) ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 

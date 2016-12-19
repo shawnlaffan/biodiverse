@@ -121,7 +121,7 @@ sub new {
     croak 'CELL_SIZES parameter not specified'
       if !defined $cell_sizes;
     croak 'CELL_SIZES parameter is not an array ref'
-      if reftype ($cell_sizes) ne 'ARRAY';
+      if (!is_arrayref($cell_sizes));
 
     foreach my $size (@$cell_sizes) {
         croak "Cell size $size is not numeric, you might need to check the locale\n"
@@ -793,7 +793,7 @@ sub import_data {
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
     croak "input_files array not provided\n"
-      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
@@ -846,9 +846,9 @@ sub import_data {
     $exclude_columns //= [];
     $include_columns //= [];
     croak "exclude_columns argument is not an array reference"
-      if reftype ($exclude_columns) ne 'ARRAY';
+      if !is_arrayref($exclude_columns);
     croak "include_columns argument is not an array reference"
-      if reftype ($include_columns) ne 'ARRAY';
+      if !is_arrayref($include_columns);
 
     #  clear out any undef columns
     $exclude_columns = [grep {defined $_} @$exclude_columns];
@@ -1236,7 +1236,7 @@ sub import_data_raster {
     my $progress_bar = Biodiverse::Progress->new(gui_only => 0);
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
     my $labels_as_bands = exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
     my $strip_file_extensions_from_names
       = exists $args{strip_file_extensions_from_names}
@@ -1542,7 +1542,7 @@ sub import_data_shapefile {
     my $progress_bar = Biodiverse::Progress->new();
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
@@ -1767,7 +1767,7 @@ sub import_data_spreadsheet {
     my $progress_bar = Biodiverse::Progress->new();
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
@@ -2909,7 +2909,7 @@ sub run_exclusions {
             my $list = $check_list->get_element_list;
             @{$label_check_list}{@$list} = (1) x scalar @$list;
         }
-        elsif (reftype $check_list eq 'ARRAY') {
+        elsif (is_arrayref($check_list)) {
             @{$label_check_list}{@$check_list} = (1) x scalar @$check_list;
         }
         else {
@@ -3167,7 +3167,7 @@ sub delete_labels {
       if $self->get_output_ref_count;
 
     my $elements = $args{labels};
-    if (reftype $elements eq 'HASH') {
+    if (is_hashref($elements)) {
         $elements = [keys %$elements];
     }
 
@@ -3186,7 +3186,7 @@ sub delete_groups {
       if $self->get_output_ref_count;
 
     my $elements = $args{groups};
-    if (reftype $elements eq 'HASH') {
+    if (is_hashref($elements)) {
         $elements = [keys %$elements];
     }
 

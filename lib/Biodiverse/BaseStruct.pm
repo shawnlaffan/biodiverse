@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw /looks_like_number reftype/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max sum/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
@@ -2968,7 +2968,7 @@ sub get_array_list_values_aa {
 
     #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if reftype ($list_ref) ne 'ARRAY';
+        if !is_arrayref($list_ref);
 
     return wantarray ? @$list_ref : $list_ref;
 }
@@ -2998,7 +2998,7 @@ sub get_array_list_values {
 
     #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if reftype ($list_ref) ne 'ARRAY';
+      if !is_arrayref($list_ref);
 
     return wantarray ? @$list_ref : $list_ref;
 }

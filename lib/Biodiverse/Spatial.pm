@@ -8,7 +8,7 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed reftype/;
+use Scalar::Util qw /weaken blessed/;
 use List::MoreUtils qw /firstidx lastidx/;
 use List::Util qw /first/;
 use Time::HiRes qw /time/;

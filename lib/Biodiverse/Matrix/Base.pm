@@ -6,7 +6,7 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
@@ -367,7 +367,7 @@ sub import_data_sparse {
     my @label_col_columns  = @{$args{label_col_columns}};
     my $value_column       = $args{value_column};
     
-    if (reftype ($value_column)) {
+    if (is_ref ($value_column)) {
         $value_column = $value_column->[0];  #  take the first if we are passed an array
     }
 

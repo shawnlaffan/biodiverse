@@ -9,7 +9,7 @@ use Ref::Util qw { :all };
 
 
 use Carp;
-use Scalar::Util qw /weaken isweak blessed reftype/;
+use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
@@ -416,7 +416,7 @@ sub add_children {
       // return;  #  should croak
 
     croak "TreeNode WARNING: children argument not an array ref\n"
-      if reftype ($children) ne 'ARRAY';
+      if !is_arrayref($children);
     
     #  Remove any duplicates.
     #  Could use a hash but we need to retain the insertion order

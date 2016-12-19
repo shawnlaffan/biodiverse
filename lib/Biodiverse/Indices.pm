@@ -10,7 +10,7 @@ use warnings;
 
 #use Devel::Symdump;
 use Data::Dumper;
-use Scalar::Util qw /blessed weaken reftype/;
+use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
@@ -630,15 +630,14 @@ sub _convert_to_hash {
     my %hash;
 
     if ( defined $input ) {
-        my $reftype = reftype $input;
-        if ( !defined $reftype ) {
-            $hash{$input} = $input;
-        }
-        elsif ( $reftype eq 'ARRAY' ) {
+        if ( is_arrayref($input) ) {
             @hash{@$input} = (1) x scalar @$input;
         }
-        elsif ( $reftype eq 'HASH' ) {
+        elsif ( is_hashref($input) ) {
             %hash = %$input;
+        }
+        else {
+            $hash{$input} = $input;
         }
     }
 
@@ -656,18 +655,15 @@ sub _convert_to_array {
     my @array;
 
     if ( defined $input ) {
-        my $reftype = reftype $input;
-        if ( !defined $reftype ) {
-            @array = ($input);
-        }
-        elsif ( $reftype eq 'ARRAY' ) {
+        if ( is_arrayref($input) ) {
             @array = @$input;    #  makes a copy
         }
-        elsif ( $reftype eq 'HASH' ) {
+        elsif ( is_hashref($input)  ) {
             @array = keys %$input;
         }
-
-        #  anything else is not returned
+        else {
+            @array = ($input);
+        }
     }
 
     return wantarray ? @array : \@array;
@@ -921,7 +917,7 @@ sub get_full_dependency_list {
             my $deps = $meta->get_dep_list($type);
             next if !defined $deps;
 
-            if ( !reftype($deps) ) {
+            if ( !is_ref($deps) ) {
                 $dep_list{$deps}++;
             }
             else {

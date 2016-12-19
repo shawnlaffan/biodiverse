@@ -23,7 +23,7 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
-use Scalar::Util qw /blessed reftype/;
+use Scalar::Util qw /blessed/;
 use List::Util;
 use Ref::Util qw { :all };
 
@@ -309,14 +309,12 @@ sub get_index_elements {
             $self->set_cached_value (CSV_OBJECT => $csv_object);
         }
 
-        my $reftype_el = reftype ($element) // q{};
-        my $reftype_of = reftype ($offset)  // q{};
 
-        my @elements = ($reftype_el eq 'ARRAY')  #  is it an array already?
+        my @elements = (is_arrayref($element))  #  is it an array already?
             ? @$element
             : $self->csv2list (string => $element, csv_object => $csv_object);
 
-        my @offsets = ($reftype_of eq 'ARRAY')  #  is it also an array already?
+        my @offsets = (is_arrayref($offset))  #  is it also an array already?
             ? @$offset
             : $self->csv2list (string => $offset, csv_object => $csv_object);
 
@@ -356,7 +354,7 @@ sub get_index_elements {
                     $hashref->{$col} = $x;
                 };
         }
-        if (reftype ($hashref)) {
+        if (is_ref($hashref)) {
             $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
             $prev_hashref->{$elements[-1]} = $element;
         }

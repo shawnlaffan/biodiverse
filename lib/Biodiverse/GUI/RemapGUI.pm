@@ -285,10 +285,7 @@ sub remap_results_dialog {
     my @exact_matches = @{ $args{exact_matches} };
     my $exact_match_tree = $self->build_bland_tree( labels => \@exact_matches );
     my $exact_match_count = @exact_matches;
-    my $exact_match_label =
-      Gtk2::Label->new("$exact_match_count Exact Matches:");
     my $exact_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $exact_match_scroll->set_size_request( 500, 100 );
     $exact_match_scroll->add($exact_match_tree);
 
     ###
@@ -302,20 +299,13 @@ sub remap_results_dialog {
     );
 
     my $punct_match_count = @punct_matches;
-    my $punct_match_label =
-      Gtk2::Label->new("$punct_match_count Punct Matches:");
-
     my $punct_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $punct_match_scroll->set_size_request( 500, 100 );
     $punct_match_scroll->add($punct_tree);
 
     my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(
         toggled => sub {
-            $punct_match_label->set_sensitive(
-                !$punct_match_label->get_sensitive,
-            );
             $punct_match_scroll->set_sensitive(
                 !$punct_match_scroll->get_sensitive,
             );
@@ -336,23 +326,13 @@ sub remap_results_dialog {
     );
 
     my $typo_match_count = @typo_matches;
-
-    my $typo_match_label = Gtk2::Label->new(
-          "$typo_match_count Possible Typos: "
-        . "(labels within 'max distance' edits of an exact match)"
-    );
-
     my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $typo_match_scroll->set_size_request( 500, 100 );
     $typo_match_scroll->add($typo_tree);
 
     my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(
         toggled => sub {
-            $typo_match_label->set_sensitive(
-                !$typo_match_label->get_sensitive
-            );
             $typo_match_scroll->set_sensitive(
                 !$typo_match_scroll->get_sensitive
             );
@@ -369,7 +349,6 @@ sub remap_results_dialog {
     my $not_matched_count  = @not_matched;
     my $not_matched_label  = Gtk2::Label->new("$not_matched_count Not Matched:");
     my $not_matched_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $not_matched_scroll->set_size_request( 500, 100 );
     $not_matched_scroll->add($not_matched_tree);
 
     ###
@@ -391,37 +370,51 @@ sub remap_results_dialog {
     );
 
     ####
-    # Pack everything in
+    # Packing
     my $vbox = $dlg->get_content_area;
 
-    my $exact_vbox = Gtk2::VBox->new();
-    $exact_vbox->pack_start( $exact_match_label,  0, 1, 0 );
-    $exact_vbox->pack_start( $exact_match_scroll, 0, 1, 0 );
+    # build vboxes and frames for each of the main match types
+    my @components = ($exact_match_scroll);
+    my $exact_frame = $self->build_vertical_frame (
+        label => "$exact_match_count Exact Matches",
+        components => [$exact_match_scroll],
+        fill => [1],
+        );
+    
+    my $not_matched_frame = $self->build_vertical_frame (
+        label => "$not_matched_count Not Matched",
+        components => [$not_matched_scroll],
+        fill => [1],
+        );
 
-    my $not_matched_vbox = Gtk2::VBox->new();
-    $not_matched_vbox->pack_start( $not_matched_label,  0, 1, 0 );
-    $not_matched_vbox->pack_start( $not_matched_scroll, 0, 1, 0 );
+    my $punct_frame = $self->build_vertical_frame (
+        label => "$punct_match_count Punctuation Matches ".
+                 "(labels within 'max distance' edits of an exact match)",
+        components => [$punct_match_checkbutton, $punct_match_scroll],
+        fill => [0, 1],
+        );
 
-    my $punct_vbox = Gtk2::VBox->new();
-    $punct_vbox->pack_start( $punct_match_label,       0, 1, 0 );
-    $punct_vbox->pack_start( $punct_match_checkbutton, 0, 1, 0 );
-    $punct_vbox->pack_start( $punct_match_scroll,      0, 1, 0 );
+    my $typo_frame = $self->build_vertical_frame (
+        label => "$typo_match_count Possible Typos",
+        components => [$typo_match_checkbutton, $typo_match_scroll],
+        fill => [0, 1],
+        );
 
-    my $typo_vbox = Gtk2::VBox->new();
-    $typo_vbox->pack_start( $typo_match_label,       0, 1, 0 );
-    $typo_vbox->pack_start( $typo_match_checkbutton, 0, 1, 0 );
-    $typo_vbox->pack_start( $typo_match_scroll,      0, 1, 0 );
+    # put these vboxes in vpanes so we can resize
+    my $vpaned1 = Gtk2::VPaned->new();
+    my $vpaned2 = Gtk2::VPaned->new();
+    my $vpaned3 = Gtk2::VPaned->new();
 
-    $vbox->pack_start( $exact_vbox,           0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $punct_vbox,           0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $typo_vbox,            0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $not_matched_vbox,     0,  1, 0 );
-    $vbox->pack_start( $accept_remap_label,   10, 1, 10 );
-    $vbox->pack_start( $export_checkbutton,   0,  1, 0 );
+    $vpaned3->add1($punct_frame);
+    $vpaned3->add2($typo_frame);
+    $vpaned2->add1($not_matched_frame);
+    $vpaned2->add2($vpaned3);
+    $vpaned1->add1($exact_frame);
+    $vpaned1->add2($vpaned2);
 
+    $vbox->pack_start( $vpaned1, 1, 1, 0);
+    $vbox->pack_start( $accept_remap_label, 0, 1, 0);
+    $vbox->pack_start( $export_checkbutton, 0, 1, 0);
 
     
     $dlg->show_all;
@@ -442,6 +435,30 @@ sub remap_results_dialog {
 
     return wantarray ? %results : \%results;
 }
+
+# given a label and list of components, build a frame containing a
+# vbox with the provided components. 'fill' is an array of booleans
+# indicating whether the corresponding component should fill or not.
+sub build_vertical_frame {
+    my ($self, %args) = @_;
+
+    my $vbox = Gtk2::VBox->new();
+
+    my $components = $args{components};
+    my $fill = $args{fill};
+    
+    foreach my $i ( 0..scalar(@{$components})-1 ) {
+        $vbox->pack_start( $components->[$i], $fill->[$i], 1, 0 );
+    }
+
+    my $frame = Gtk2::Frame->new( $args{label} );
+    $frame->set_shadow_type('in');
+    $frame->add($vbox);
+
+    return $frame;
+}
+
+
 
 # build a one column tree containing labels from args{labels}
 sub build_bland_tree {

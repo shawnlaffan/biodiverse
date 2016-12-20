@@ -280,6 +280,11 @@ sub remap_results_dialog {
     my ( $self, %args ) = @_;
     my $remap = $args{remap};
 
+    # most screens are at least 600 pixels high 
+    # at least until the biodiverse mobile app is released...
+    my $default_dialog_height = 600;
+    my $default_dialog_width = 600;
+    
     ###
     # Exact matches
     my @exact_matches = @{ $args{exact_matches} };
@@ -367,7 +372,9 @@ sub remap_results_dialog {
         undef, 'modal',
         'gtk-yes' => 'yes',
         'gtk-no'  => 'no'
-    );
+        );
+
+    $dlg->set_default_size($default_dialog_width, $default_dialog_height);
 
     ####
     # Packing
@@ -405,18 +412,21 @@ sub remap_results_dialog {
     my $vpaned2 = Gtk2::VPaned->new();
     my $vpaned3 = Gtk2::VPaned->new();
 
-    $vpaned3->add1($punct_frame);
-    $vpaned3->add2($typo_frame);
-    $vpaned2->add1($not_matched_frame);
-    $vpaned2->add2($vpaned3);
-    $vpaned1->add1($exact_frame);
-    $vpaned1->add2($vpaned2);
+    $vpaned3->pack1($punct_frame, 1, 1);
+    $vpaned3->pack2($typo_frame, 1, 1);
+    $vpaned2->pack1($not_matched_frame, 1, 1);
+    $vpaned2->pack2($vpaned3, 1, 1);
+    $vpaned1->pack1($exact_frame, 1, 1);
+    $vpaned1->pack2($vpaned2, 1, 1);
 
-    $vbox->pack_start( $vpaned1, 1, 1, 0);
-    $vbox->pack_start( $accept_remap_label, 0, 1, 0);
-    $vbox->pack_start( $export_checkbutton, 0, 1, 0);
-
+    # now put all of these into a scrolled window
+    my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    $outer_scroll->add_with_viewport( $vpaned1 );
     
+    $vbox->pack_start($outer_scroll, 1, 1, 0);
+    $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
+    $vbox->pack_start( $export_checkbutton, 0, 1, 0 );
+
     $dlg->show_all;
 
     my $response = $dlg->run();

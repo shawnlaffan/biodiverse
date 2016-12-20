@@ -307,6 +307,7 @@ sub remap_results_dialog {
     my $punct_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $punct_match_scroll->add($punct_tree);
 
+    # 'use this category' checkbutton
     my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(
@@ -319,6 +320,9 @@ sub remap_results_dialog {
     if (!$punct_match_count) {
         $punct_match_checkbutton->set_active(0);
     }
+
+    
+    
 
     ###
     # Typo matches
@@ -361,9 +365,25 @@ sub remap_results_dialog {
     my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
 
     ###
-    # Export checkbox
-    my $export_checkbutton = Gtk2::CheckButton->new("Export to new file");
+    # Export checkbox 
+    my $export_checkbutton 
+        = Gtk2::CheckButton->new("Export remapped data to new file");
+    
     $export_checkbutton->set_active(0);
+
+    # 'copy selection to clipboard' button
+    my $copy_button 
+        = Gtk2::Button->new_with_label("Copy selection to clipboard");
+
+    $copy_button->signal_connect('clicked' => sub {
+        $self->copy_selected_tree_data_to_clipboard(
+            trees => [ $exact_match_tree,  $not_matched_tree, 
+                       $punct_tree,        $typo_tree,],
+            )
+    });
+
+
+
     
     ####
     # The dialog itself
@@ -424,11 +444,13 @@ sub remap_results_dialog {
     $outer_scroll->add_with_viewport( $vpaned1 );
     
     $vbox->pack_start($outer_scroll, 1, 1, 0);
+    $vbox->pack_start( $copy_button, 0, 0, 0 );
     $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
     $vbox->pack_start( $export_checkbutton, 0, 1, 0 );
 
+    
     $dlg->show_all;
-
+   
     my $response = $dlg->run();
 
     $dlg->destroy();
@@ -489,13 +511,18 @@ sub build_bland_tree {
     }
 
     my $tree = Gtk2::TreeView->new($model);
+    my $sel = $tree->get_selection();
+    $sel->set_mode('multiple');
+      
 
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $column = Gtk2::TreeViewColumn->new();
 
     $column->set_title("Label");
     my $renderer = Gtk2::CellRendererText->new();
+    
     $column->pack_start( $renderer, 0 );
 
     # tell the renderer where to pull the data from
@@ -541,7 +568,11 @@ sub build_typo_tree {
     }
 
     my $typo_tree = Gtk2::TreeView->new($typo_model);
+    my $sel = $typo_tree->get_selection();
+    $sel->set_mode('multiple');
 
+
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $original_column = Gtk2::TreeViewColumn->new();
@@ -575,7 +606,8 @@ sub build_typo_tree {
         toggled => \&on_remap_toggled,
         \%data
     );
-
+    
+    
     $original_column->pack_start( $original_renderer, 0 );
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $distance_column->pack_start( $distance_renderer, 0 );
@@ -630,7 +662,10 @@ sub build_punct_tree {
     }
 
     my $punct_tree = Gtk2::TreeView->new($punct_model);
+    my $sel = $punct_tree->get_selection();
+    $sel->set_mode('multiple');
 
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $original_column = Gtk2::TreeViewColumn->new();
@@ -776,3 +811,55 @@ sub export_remapped_datasource {
 }
 
 
+# given the four trees, find what rows are selected, get the correct
+# data and put it onto the clipboard.
+sub copy_selected_tree_data_to_clipboard {
+    my ($self, %args) = @_;
+    my $trees = $args{trees};
+
+    my @copy_strings;
+    foreach my $tree (@{$trees}) { 
+        my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
+            tree => $tree,
+        );
+
+        foreach my $row (@$selected_list) {
+            push @copy_strings, $row;
+        }
+    }
+
+    my $copy_string = join("\n", @copy_strings);
+    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    $clipboard->set_text($copy_string);
+    say "Copied following data to clipboard:\n$copy_string";
+}
+
+
+# get selected rows of a treeview as comma separated strings.
+sub get_comma_separated_selected_treeview_list {
+    my ($self, %args) = @_;
+    my $tree = $args{tree};
+
+
+    my @value_list = ();
+    
+    my $selection = $tree->get_selection();
+    my $model = $tree->get_model();
+    my $columns = $model->get_n_columns();
+    my (@pathlist) = $selection->get_selected_rows();
+
+    foreach my $path (@pathlist) {
+        my @column_data = ();
+        my $tree_iter = $model->get_iter($path);
+
+        foreach my $i (0..$columns-1) {
+            my $value = $model->get_value($tree_iter, $i);
+            push @column_data, $value
+        }
+
+        my $this_row = join (",", @column_data);
+        push @value_list, $this_row;
+    }
+    
+    return \@value_list;
+}

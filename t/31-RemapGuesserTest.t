@@ -444,8 +444,21 @@ sub test_max_distance_ambiguous {
         thirdaa => ['thirda1', 'thirda2'],
         thirdab => ['thirda1', 'thirda2'],
     };
+
+    # can't just compare the two using is_deeply because the order in
+    # the list is unpredictable, causing the test to fail sometimes.
+    # need to sort each individual list.
+    my %actual = %{$remap_results{ambiguous_matches}};
+
+    foreach my $key (keys %actual) {
+        my @list = @{$actual{$key}};
+        @list = sort @list;
+        $actual{$key} = \@list;
+    }
+    
+            
     is_deeply (
-        $remap_results{ambiguous_matches},
+        \%actual,
         $expected_ambiguous,
         'got expected ambiguous matches for min distance 2'
     );

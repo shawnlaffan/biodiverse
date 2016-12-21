@@ -12,9 +12,8 @@ use Glib;
 use Gtk2;
 use Cwd;
 
-use Biodiverse::GUI::GUIManager;
-use Biodiverse::GUI::ParametersTable;
-use Biodiverse::GUI::YesNoCancel;
+
+use Biodiverse::GUI::Export qw /:all/;
 
 
 sub new {
@@ -35,9 +34,30 @@ sub export_remap {
         say "$key -> $remap{$key}";
     }
 
-    # call into the Export system here
-
+    # choose the filepath to export to
+    my $gui = Biodiverse::GUI::GUIManager->instance;
     
+    my $results = Biodiverse::GUI::Export::choose_file_location_dialog (
+        gui => $gui,
+        params => undef,
+        selected_format => "CSV",
+        );
+
+    return if (!$results->{success});
+
+    my $chooser = $results->{chooser};
+    my $parameters_table = $results->{param_table};
+    my $extractors = $results->{extractors};
+    my $dlg = $results->{dlg};
+    
+    my $filename = $chooser->get_filename();
+    $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
+
+    say "Found export filename $filename";
+    
+    $dlg->destroy;
+    $gui->activate_keyboard_snooper (1);
+
 }
 
 

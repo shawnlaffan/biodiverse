@@ -12,6 +12,7 @@ use English( -no_match_vars );
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Export;
+use Biodiverse::ExportRemap qw/:all/;
 use Ref::Util qw /:all/;
 
 use Text::Levenshtein qw(distance);
@@ -264,7 +265,7 @@ sub perform_remap {
     }
 
     # TODO we could probably remove exact matches and not matches here as well
-
+    
     if ( $response eq 'yes' ) {
         
         # actually perform the remap on the data source
@@ -283,12 +284,10 @@ sub perform_remap {
             );
         }
 
-        # possibly export the newly remapped source
+        # possibly export the new remapping
         if( $remap_results_response->{export_results} ) {
-            $self->export_remapped_datasource (
-                source           => $new_source,
-                multiple_sources => $remapping_multiple_sources,
-                );
+            my $exporter = Biodiverse::ExportRemap->new();
+            $exporter->export_remap ( remap => $remap );
         }
 
         
@@ -850,34 +849,6 @@ sub on_remap_toggled {
 
 }
 
-
-# given a datasource or a list of datasources, figure out how to
-# export them and run the gui to do it.
-sub export_remapped_datasource {
-    my ($self, %args) = @_;
-
-    say "About to export";
-
-    if ( $args{multiple_sources} ) {
-        say "NOT IMPLEMENTED: Tried to export multiple sources.";
-    }
-
-    else {
-        say "Single source detected";
-
-        # handle basedata export
-        if(ref($args{source}) eq 'Biodiverse::BaseData') {
-            say "NOT IMPLEMENTED: Export for basedata.";
-        }
-        # handle tree and matrix export
-        else {
-            Biodiverse::GUI::Export::Run( $args{source} );
-        }
-    }
-
-}
-
-
 # given the four trees, find what rows are selected, get the correct
 # data and put it onto the clipboard.
 sub copy_selected_tree_data_to_clipboard {
@@ -947,3 +918,5 @@ sub add_header_and_tooltip_to_treeview_column {
     my $tooltip = Gtk2::Tooltips->new();
     $tooltip->set_tip( $header, $args{tooltip_text} );
 }
+
+1;

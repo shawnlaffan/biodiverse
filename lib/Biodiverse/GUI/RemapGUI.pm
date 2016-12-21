@@ -23,6 +23,30 @@ use constant REMAPPED_LABEL_COL => ++$i;
 use constant PERFORM_COL        => ++$i;
 use constant EDIT_DISTANCE_COL  => ++$i;
 
+# tooltips
+use constant EXACT_MATCH_PANEL_TOOLTIP  => "";
+use constant NOT_MATCHED_PANEL_TOOLTIP  => "";
+use constant PUNCT_MATCH_PANEL_TOOLTIP  => "";
+use constant TYPO_MATCH_PANEL_TOOLTIP   => "";
+use constant LABEL_COLUMN_TOOLTIP
+    => "These labels will remain unchanged";
+use constant OLD_LABEL_COLUMN_TOOLTIP
+    => "Matching label from selected data source";
+use constant NEW_LABEL_COLUMN_TOOLTIP   
+    => "Label to be remapped";
+use constant USE_COLUMN_TOOLTIP
+    => "Controls whether individual remappings will be performed";
+use constant DISTANCE_COLUMN_TOOLTIP
+    => "Number of character changes to get from the original label to the remapped label";
+use constant COPY_BUTTON_TOOLTIP        
+    => "Copy a comma separated representation of the selected rows to the clipboard";
+use constant EXPORT_CHECKBUTTON_TOOLTIP 
+    => "Save the remapped data source to a file";
+use constant IGNORE_CASE_TOOLTIP
+    => "Treat case difference as punctuation rather than typos.";
+use constant EDIT_DISTANCE_TOOLTIP
+    => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
+
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -74,19 +98,23 @@ sub run_remap_gui {
     # The max_distance spinbutton and its label
     my $adjustment = Gtk2::Adjustment->new( 0,           0, 20, 1, 10, 0 );
     my $spinner    = Gtk2::SpinButton->new( $adjustment, 1, 0 );
-    my $tooltip    = Gtk2::Tooltips->new();
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
-    $tooltip->set_tip(
-        $spinner,
-          'New labels within this Levenshtein edit distance of an existing label '
-        . " will be detected as possible typos.",
-    );
+
+    $spinner->set_tooltip_text(EDIT_DISTANCE_TOOLTIP);
+    
+    # my $tooltip    = Gtk2::Tooltips->new();
+    # $tooltip->set_tip(
+    #     $spinner,
+    #       'New labels within this Levenshtein edit distance of an existing label '
+    #     . " will be detected as possible typos.",
+    # );
 
     ####
     # The case sensitivity checkbutton
     my $case_label = Gtk2::Label->new('Match case insensitively?');
     my $case_checkbutton = Gtk2::CheckButton->new();
     $case_checkbutton->set_active(0);
+    $case_checkbutton->set_tooltip_text(IGNORE_CASE_TOOLTIP);
 
     $table->attach_defaults ($max_distance_label, 0, 1, 1, 2 );
     $table->attach_defaults ($spinner,            1, 2, 1, 2 );
@@ -370,11 +398,13 @@ sub remap_results_dialog {
         = Gtk2::CheckButton->new("Export remapped data to new file");
     
     $export_checkbutton->set_active(0);
-
+    $export_checkbutton->set_tooltip_text(EXPORT_CHECKBUTTON_TOOLTIP);
+    
     # 'copy selection to clipboard' button
     my $copy_button 
-        = Gtk2::Button->new_with_label("Copy selection to clipboard");
-
+        = Gtk2::Button->new_with_label("Copy selected rows to clipboard");
+    $copy_button->set_tooltip_text(COPY_BUTTON_TOOLTIP);
+    
     $copy_button->signal_connect('clicked' => sub {
         $self->copy_selected_tree_data_to_clipboard(
             trees => [ $exact_match_tree,  $not_matched_tree, 
@@ -406,12 +436,14 @@ sub remap_results_dialog {
         label => "$exact_match_count Exact Matches",
         components => [$exact_match_scroll],
         fill => [1],
+        tooltip => EXACT_MATCH_PANEL_TOOLTIP,
         );
     
     my $not_matched_frame = $self->build_vertical_frame (
         label => "$not_matched_count Not Matched",
         components => [$not_matched_scroll],
         fill => [1],
+        tooltip => NOT_MATCHED_PANEL_TOOLTIP,
         );
 
     my $punct_frame = $self->build_vertical_frame (
@@ -419,12 +451,14 @@ sub remap_results_dialog {
                  "(labels within 'max distance' edits of an exact match)",
         components => [$punct_match_checkbutton, $punct_match_scroll],
         fill => [0, 1],
+        tooltip => PUNCT_MATCH_PANEL_TOOLTIP,
         );
 
     my $typo_frame = $self->build_vertical_frame (
         label => "$typo_match_count Possible Typos",
         components => [$typo_match_checkbutton, $typo_match_scroll],
         fill => [0, 1],
+        tooltip => TYPO_MATCH_PANEL_TOOLTIP,
         );
 
     # put these vboxes in vpanes so we can resize
@@ -486,6 +520,7 @@ sub build_vertical_frame {
     my $frame = Gtk2::Frame->new( $args{label} );
     $frame->set_shadow_type('in');
     $frame->add($vbox);
+    $frame->set_tooltip_text( $args{"tooltip"} );
 
     return $frame;
 }
@@ -513,14 +548,18 @@ sub build_bland_tree {
     my $tree = Gtk2::TreeView->new($model);
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
-      
-
     
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $column = Gtk2::TreeViewColumn->new();
 
-    $column->set_title("Label");
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $column,
+        title_text   => 'Label',
+        tooltip_text => LABEL_COLUMN_TOOLTIP,
+        );
+        
     my $renderer = Gtk2::CellRendererText->new();
     
     $column->pack_start( $renderer, 0 );
@@ -534,6 +573,7 @@ sub build_bland_tree {
 
     return $tree;
 }
+
 
 sub build_typo_tree {
     my ( $self, %args ) = @_;
@@ -551,6 +591,7 @@ sub build_typo_tree {
 
     my $typo_model = Gtk2::TreeStore->new(@treestore_args);
 
+    # propagate model with content
     foreach my $match (@typo_matches) {
         my $iter = $typo_model->append(undef);
 
@@ -562,16 +603,15 @@ sub build_typo_tree {
             $iter,
             ORIGINAL_LABEL_COL, $match,
             REMAPPED_LABEL_COL, $remap->{$match},
-            PERFORM_COL,        1,                 # checkbox enabled by default
+            PERFORM_COL,        1,
             EDIT_DISTANCE_COL,  $distance,
         );
     }
 
+    # allow multi selections
     my $typo_tree = Gtk2::TreeView->new($typo_model);
     my $sel = $typo_tree->get_selection();
     $sel->set_mode('multiple');
-
-
     
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
@@ -580,19 +620,32 @@ sub build_typo_tree {
     my $distance_column = Gtk2::TreeViewColumn->new();
     my $checkbox_column = Gtk2::TreeViewColumn->new();
 
-    $original_column->set_title("Original Label");
-    $remapped_column->set_title("Remapped Label");
+    # headers and tooltips
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $original_column,
+        title_text   => 'Original Label',
+        tooltip_text => NEW_LABEL_COLUMN_TOOLTIP,
+        );
 
-    my $tooltip         = Gtk2::Tooltips->new();
-    my $distance_header = Gtk2::Label->new('Edit Distance');
-    $distance_header->show();
-    $distance_column->set_widget($distance_header);
-    $tooltip->set_tip( $distance_header,
-"Number of character changes to get from the original label to the remapped label"
-    );
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $remapped_column,
+        title_text   => 'Remapped Label',
+        tooltip_text => OLD_LABEL_COLUMN_TOOLTIP,
+        );
 
-    $checkbox_column->set_title("Use?");
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $distance_column,
+        title_text   => 'Edit Distance',
+        tooltip_text => DISTANCE_COLUMN_TOOLTIP,
+        );
 
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $checkbox_column,
+        title_text   => 'Use?',
+        tooltip_text => USE_COLUMN_TOOLTIP,
+        );
+
+    # create and pack cell renderers
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
     my $distance_renderer = Gtk2::CellRendererText->new();
@@ -606,8 +659,7 @@ sub build_typo_tree {
         toggled => \&on_remap_toggled,
         \%data
     );
-    
-    
+        
     $original_column->pack_start( $original_renderer, 0 );
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $distance_column->pack_start( $distance_renderer, 0 );
@@ -671,9 +723,24 @@ sub build_punct_tree {
     my $original_column = Gtk2::TreeViewColumn->new();
     my $remapped_column = Gtk2::TreeViewColumn->new();
     my $checkbox_column = Gtk2::TreeViewColumn->new();
-    $original_column->set_title("Original Label");
-    $remapped_column->set_title("Remapped Label");
-    $checkbox_column->set_title("Use?");
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $original_column,
+        title_text   => 'Original Label',
+        tooltip_text => NEW_LABEL_COLUMN_TOOLTIP,
+        );
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $remapped_column,
+        title_text   => 'Remapped Label',
+        tooltip_text => OLD_LABEL_COLUMN_TOOLTIP,
+        );
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $checkbox_column,
+        title_text   => 'Use?',
+        tooltip_text => USE_COLUMN_TOOLTIP,
+        );
 
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
@@ -692,7 +759,7 @@ sub build_punct_tree {
     $original_column->pack_start( $original_renderer, 0 );
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $checkbox_column->pack_start( $checkbox_renderer, 0 );
-
+    
     # tell the renderer where to pull the data from
     $original_column->add_attribute( $original_renderer,
         text => ORIGINAL_LABEL_COL );
@@ -862,4 +929,21 @@ sub get_comma_separated_selected_treeview_list {
     }
     
     return \@value_list;
+}
+
+
+# you can't just use set_tooltip_text for treeview columns for some
+# reason, so this is a little helper function to do the rigmarole with
+# making a label, tooltipping it and adding it to the column.
+sub add_header_and_tooltip_to_treeview_column {
+    my ($self, %args) = @_;
+    my $column = $args{column};
+
+    my $header = Gtk2::Label->new( $args{title_text} );
+    $header->show();
+
+    $column->set_widget($header);
+
+    my $tooltip = Gtk2::Tooltips->new();
+    $tooltip->set_tip( $header, $args{tooltip_text} );
 }

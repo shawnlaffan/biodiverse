@@ -597,7 +597,7 @@ sub add_phylogeny {
     my $phylogenies = shift;
     my $no_select = shift;
     
-    if (is_arrayref($phylogenies)) {
+    if (!is_arrayref($phylogenies)) {
         $phylogenies = [$phylogenies];  #  make a scalar value an array
     }
 

@@ -288,12 +288,13 @@ sub test_tabular_tree_from_file {
     # re-import
     my $reimport_ref = Biodiverse::ReadNexus->new;
     my $reimport_map = {
-        TREENAME_COL       => 6, 
-        LENGTHTOPARENT_COL => 2,
-        NODENUM_COL        => 4,
-        NODENAME_COL       => 3,
-        PARENT_COL         => 5,
+        TREENAME_COL       => 7, 
+        LENGTHTOPARENT_COL => 3,
+        NODENUM_COL        => 5,
+        NODENAME_COL       => 4,
+        PARENT_COL         => 6,
     };
+
 
     $result = eval {
         $reimport_ref->import_tabular_tree (

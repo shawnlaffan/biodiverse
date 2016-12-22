@@ -264,7 +264,16 @@ sub perform_remap {
         say "Deleted $key because it was excluded by the checkboxes.";
     }
 
-    # TODO we could probably remove exact matches and not matches here as well
+
+    # remove exact matches and not matches here as well
+    my @keys = keys %{$remap};
+    foreach my $key (@keys) {
+        if ($key eq $remap->{$key}) {
+            delete $remap->{$key};
+            say "Deleted $key because it mapped to itself.";
+        }
+    }
+
     
     if ( $response eq 'yes' ) {
         

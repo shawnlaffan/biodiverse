@@ -88,6 +88,7 @@ sub Run {
 
     my $params = $metadata->get_parameters_for_format(format => $selected_format);
 
+  RUN_DIALOG:
     my $results = choose_file_location_dialog( gui    => $gui, 
                                                params => $params,
                                                selected_format => $selected_format,);
@@ -170,7 +171,6 @@ sub choose_file_location_dialog {
     $dlg->show_all();
 
 
-  RUN_DIALOG:
     my $response = $dlg->run();
 
     if ($response ne 'ok') {

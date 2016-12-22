@@ -1119,6 +1119,45 @@ sub get_colour_not_in_tree {
 }
 
 
+sub clear_node_colours {
+    my $self = shift;
+    
+    $self->{node_colours_cache} = {};    
+        
+    foreach my $node ($self->get_tree_object()->get_node_refs()) {
+        $node->set_colour(DEFAULT_LINE_COLOUR);
+    }
+}
+
+sub set_node_colour {
+    my ($self, %args) = @_;
+    my $colour_ref = $args{ colour_ref };
+    my $node_name  = $args{ node_name  };
+
+    # cache the colour
+    $self->{node_colours_cache}{$node_name} = $colour_ref;
+
+    # also store it in the node for export purposes
+    my $node_ref 
+        = $self->get_tree_object()->get_node_ref(node => $node_name);
+    $node_ref->set_colour(colour=>$colour_ref);
+}
+
+# boolean: has a colour been set for a given node
+sub node_has_colour {
+    my ($self, %args) = @_;
+    my $node_name = $args{node_name};
+    return (exists $self->{node_colours_cache}{$node_name});
+}
+
+sub get_node_colour {
+    my ($self, %args) = @_;
+    my $node_name = $args{node_name};
+    
+    return $self->{node_colours_cache}{$node_name};
+}
+
+
 # Colours the dendrogram lines with palette colours
 sub recolour_cluster_lines {
     my $self = shift;
@@ -1162,9 +1201,11 @@ sub recolour_cluster_lines {
             die "unknown colouring mode $colour_mode\n";
         }
 
-        $self->{node_colours_cache}{$node_name} = $colour_ref;
-        # also store the colour in the node for export
-        $node_ref->set_colour(colour=>$colour_ref);
+        $self->set_node_colour(
+            colour_ref => $colour_ref,
+            node_name  => $node_name,
+        );
+                        
         # if colour is undef then we're clearing back to default
         $colour_ref ||= DEFAULT_LINE_COLOUR;
 
@@ -1194,13 +1235,11 @@ sub recolour_cluster_lines {
                 next NODE if exists $coloured_nodes{$node_name};
 
                 $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-                $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
 
-                my $node_ref 
-                    = $self->get_tree_object()->get_node_ref(node => $node_name);
-
-                $node_ref->set_colour(colour=>DEFAULT_LINE_COLOUR);
-
+                $self->set_node_colour(
+                    colour_ref => DEFAULT_LINE_COLOUR,
+                    node_name  => $node_name,
+                );
             }
             #print "[Dendrogram] Recoloured nodes\n";
         }
@@ -1221,8 +1260,13 @@ sub colour_line {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
     my $name = $node_ref->get_name;
-    $self->{node_colours_cache}{$name} = $colour_ref;
-    $node_ref->set_colour(colour => $colour_ref);
+    
+
+    $self->set_node_colour (
+        colour_ref => $colour_ref,
+        node_name  => $name,
+    );
+
     
     my $line = $self->{node_lines}->{$name};
     if ($line) {
@@ -1238,8 +1282,11 @@ sub colour_lines {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
     my $name = $node_ref->get_name;
-    $self->{node_colours_cache}{$name} = $colour_ref;
-    $node_ref->set_colour(colour => $colour_ref);
+
+    $self->set_node_colour (
+        colour_ref => $colour_ref,
+        node_name  => $name,
+    );
     
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     $coloured_nodes->{ $name } = $node_ref; # mark as coloured
@@ -1394,15 +1441,17 @@ sub _dump_line_colours {
     my ($self, $node_name) = @_;
     $node_name //= "120___";
 
-    if (exists $self->{node_colours_cache}{$node_name}) {
+    if ( $self->node_has_colour( node_name=>$node_name ) ) {
         my $caller = ( caller(1) )[3];
         my $caller_line = ( caller(1) )[2];
         $caller =~ s/Biodiverse::GUI::Dendrogram:://;
         print "$node_name ($caller, $caller_line): ";
+
+        my $colour_ref = $self->get_node_colour( node_name=>$node_name );
         eval {
-            say $self->{node_colours_cache}{$node_name}->to_string,
+            say $colour_ref->to_string,
                 ' ',
-                $self->{node_lines}{$node_name}->get_property ('fill-color-gdk')->to_string;
+                $colour_ref->get_property ('fill-color-gdk')->to_string;
         };
     }
 }
@@ -1708,7 +1757,7 @@ sub clear_highlights {
         # assume node has associated line
         my $line = $self->{node_lines}->{$node_name};
         next if !$line;
-        my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+        my $colour_ref = $self->get_node_colour() || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;
@@ -1735,7 +1784,12 @@ sub highlight_node {
     my $node_name = $node_ref->get_name;
     #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
     if (my $line = $self->{node_lines}->{$node_name}) {  
-        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+
+        my $colour_ref =  $node_colour 
+                       || $self->get_node_colour(node_name=>$node_name)
+                       || DEFAULT_LINE_COLOUR;
+
+        
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         $line->raise_to_top;
@@ -1764,7 +1818,9 @@ sub highlight_path {
     # set path to highlighted colour
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
-        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+        my $colour_ref =  $node_colour 
+                       || $self->get_node_colour(node_name=>$node_ref->get_name)
+                       || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         $line->raise_to_top;
@@ -2042,13 +2098,11 @@ sub clear {
         $self->zoom_fit;  #  reset any zooming so we don't wreck any new tree plots
     }
 
-    $self->{node_lines} = {};
-    $self->{node_colours_cache} = {};
 
-    # need to clear the colours in each node
-    foreach my $node ($self->get_tree_object()->get_node_refs()) {
-        $node->set_colour(DEFAULT_LINE_COLOUR);
-    }
+
+    $self->{node_lines} = {};
+
+    $self->clear_node_colours();
     
     delete $self->{unscaled_width};
     delete $self->{unscaled_height};
@@ -2305,7 +2359,7 @@ sub draw_node {
     my $length = $length_func->($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $self->get_node_colour(node_name=>$node_name) || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
     my $line = $self->draw_line(

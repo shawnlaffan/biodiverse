@@ -1757,7 +1757,7 @@ sub clear_highlights {
         # assume node has associated line
         my $line = $self->{node_lines}->{$node_name};
         next if !$line;
-        my $colour_ref = $self->get_node_colour() || DEFAULT_LINE_COLOUR;
+        my $colour_ref = $self->get_node_colour( node_name => $node_name ) || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;

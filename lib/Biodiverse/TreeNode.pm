@@ -1550,7 +1550,32 @@ sub number_nodes {
     return $number;
 }
 
-#  convert the entire tree to a table structure, using a basestruct object as an intermediate
+
+# expects a Gdk::Color
+sub set_colour {
+    my ($self, %args) = @_;
+
+    $self->{NODE_VALUES}{COLOUR} = $args{colour};
+}
+
+
+# returns a Gdk::Color
+sub get_colour {
+    my ($self, %args) = @_;
+
+    my $colour_ref = $self->{NODE_VALUES}{COLOUR};
+    if($colour_ref) {
+        return $colour_ref;
+    }
+    else {
+        # choose black to be the default colour
+        return Gtk2::Gdk::Color->new(0,0,0);
+    }
+}
+
+
+#  convert the entire tree to a table structure, using a basestruct
+#  object as an intermediate
 sub to_table {
     my $self = shift;
     my %args = @_;
@@ -1573,8 +1598,8 @@ sub to_table {
     );  #  may need to specify some other params
 
 
-    my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
-#    push @$data, \@header;
+    my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME COLOUR/;
+
 
     my ($parent_num, $taxon_name);
     
@@ -1596,8 +1621,12 @@ sub to_table {
         }
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
+
+        my $colour = $node->get_colour()->to_string();
+
         #  add to the basestruct object
-        @data{@header} = ($treename, $number, $parent_num, $node->get_length || 0, $taxon_name);
+        @data{@header} = ($treename, $number, $parent_num, 
+                          $node->get_length || 0, $taxon_name, $colour);
 
         #  get the additional list data if requested
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {

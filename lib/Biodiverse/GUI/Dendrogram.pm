@@ -1163,6 +1163,8 @@ sub recolour_cluster_lines {
         }
 
         $self->{node_colours_cache}{$node_name} = $colour_ref;
+        # also store the colour in the node for export
+        $node_ref->set_colour(colour=>$colour_ref);
         # if colour is undef then we're clearing back to default
         $colour_ref ||= DEFAULT_LINE_COLOUR;
 
@@ -1190,9 +1192,15 @@ sub recolour_cluster_lines {
             foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
     
                 next NODE if exists $coloured_nodes{$node_name};
-    
+
                 $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
                 $self->{node_colours_cache}{$node_name} = DEFAULT_LINE_COLOUR;
+
+                my $node_ref 
+                    = $self->get_tree_object()->get_node_ref(node => $node_name);
+
+                $node_ref->set_colour(colour=>DEFAULT_LINE_COLOUR);
+
             }
             #print "[Dendrogram] Recoloured nodes\n";
         }
@@ -1214,7 +1222,8 @@ sub colour_line {
 
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
-
+    $node_ref->set_colour(colour => $colour_ref);
+    
     my $line = $self->{node_lines}->{$name};
     if ($line) {
         $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
@@ -1230,7 +1239,8 @@ sub colour_lines {
 
     my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
-
+    $node_ref->set_colour(colour => $colour_ref);
+    
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     $coloured_nodes->{ $name } = $node_ref; # mark as coloured
 
@@ -2035,6 +2045,11 @@ sub clear {
     $self->{node_lines} = {};
     $self->{node_colours_cache} = {};
 
+    # need to clear the colours in each node
+    foreach my $node ($self->get_tree_object()->get_node_refs()) {
+        $node->set_colour(DEFAULT_LINE_COLOUR);
+    }
+    
     delete $self->{unscaled_width};
     delete $self->{unscaled_height};
     delete $self->{tree_node};

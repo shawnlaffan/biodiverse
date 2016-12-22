@@ -11,7 +11,10 @@ use strict;
 use warnings;
 
 #use Text::Levenshtein qw/distance/;
-use Text::Levenshtein::Flexible;  #  substantially faster
+#use Text::Levenshtein::Flexible;  # substantially faster
+use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
+
+
 use List::Util qw /min/;
 
 use Biodiverse::Progress;
@@ -213,8 +216,7 @@ sub guess_remap {
     if ($max_distance) {
         @from_labels = @unprocessed_from_labels;
         @unprocessed_from_labels = ();
-        my $distance_finder = Text::Levenshtein::Flexible->new($max_distance, 1, 1, 1);
-
+        
         $progress_i = 0;
         $n = scalar @from_labels;
 
@@ -225,9 +227,10 @@ sub guess_remap {
             my $min_distance = $max_distance;
             my @poss_matches;
     
-            ### try distance_l_all($src, @dst)??
+            my $distance_finder = Text::Fuzzy->new( $from_label, trans => 1);
+            
             foreach my $target_label (keys %target_labels_hash) {
-                my $distance = $distance_finder->distance_l ($from_label, $target_label);
+                my $distance = $distance_finder->distance( $target_label );
                 next if !defined $distance || $distance > $min_distance;
                 my $subset = $poss_matches[$distance] //= [];
                 push @$subset, $target_label;

@@ -965,12 +965,24 @@ sub update_export_menu {
 sub do_export {
     my $args = shift;
     my $self = $args->[0];
-    my @rest_of_args;
-    if (scalar @$args > 1) {
-        @rest_of_args = @$args[1..$#$args];
-    }
 
-    Biodiverse::GUI::Export::Run($self->{output_ref}, @rest_of_args);
+    my %args_hash;
+
+    my $selected_format = $args->[1] // '';
+
+        
+    # ask whether they want to include colours
+    # TODO: check if colours have actually been changed/selected
+    my $response = Biodiverse::GUI::YesNoCancel->run({
+        header => "Export colours?",
+        hide_cancel => 1,
+    });
+
+    
+    $args_hash{ export_colours  } = ($response eq 'yes');
+    $args_hash{ selected_format } = $selected_format;    
+    
+    Biodiverse::GUI::Export::Run($self->{output_ref}, %args_hash);
 }
 
 

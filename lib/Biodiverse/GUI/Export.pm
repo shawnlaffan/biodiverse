@@ -21,10 +21,13 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
 
+use 5.010;
 
 sub Run {
-    my $object = shift;
-    my $selected_format = shift // '';
+    my ($object, %args) = @_;
+
+    my $selected_format = $args{selected_format};
+    my $export_colours = $args{export_colours};
 
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted
@@ -140,8 +143,9 @@ sub Run {
 
         eval {
             $object->export(
-                format   => $selected_format,
-                file     => $filename,
+                format         => $selected_format,
+                file           => $filename,
+                export_colours => $export_colours,
                 @$params,
             )
         };

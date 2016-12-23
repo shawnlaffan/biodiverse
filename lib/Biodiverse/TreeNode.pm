@@ -1574,6 +1574,27 @@ sub get_colour {
     }
 }
 
+sub get_colour_string {
+    my ($self, %args) = @_;
+
+    my @long_format_string = split("", $self->get_colour()->to_string());
+
+
+    # to_string() gives a colour in a 12 digit format e.g. 1F1F 4444
+    # 0000. Seems like you can just take the first two digits of each
+    # colour block?
+
+    my $short_format_string = "#";
+    $short_format_string .= $long_format_string[1];
+    $short_format_string .= $long_format_string[2];
+    $short_format_string .= $long_format_string[5];
+    $short_format_string .= $long_format_string[6];
+    $short_format_string .= $long_format_string[9];
+    $short_format_string .= $long_format_string[10];
+
+    return $short_format_string;
+}
+
 
 #  convert the entire tree to a table structure, using a basestruct
 #  object as an intermediate
@@ -1598,7 +1619,7 @@ sub to_table {
         NAME => $treename,
     );  #  may need to specify some other params
 
-
+   
     my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME COLOUR/;
 
 
@@ -1897,25 +1918,50 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined $self->get_length) {
             $string .= ":" . $self->get_length;
         }
+
+        # build the bootstrap block
+        my @bootstrap_items = ();
         if (defined $self->get_value($boot_name)) {
-            $string .= "[" . $self->get_value($boot_name) . "]";
+            push @bootstrap_items, $self->get_value($boot_name);
         }
-        
+        if ($args{export_colours}) {
+            push @bootstrap_items, "&!color:".$self->get_colour_string();
+        }
+
+        if(scalar(@bootstrap_items) > 0) {
+            $string .= "[";
+            $string .= join(",", @bootstrap_items);
+            $string .= "]";
+        }
     }
-    else { # terminal nodes
-        #$string .= "'" . $name . "'";
+    # terminal nodes
+    else {
         $string .= $name;
+
         if (defined $self->get_length) { 
             $string .= ":" . $self->get_length;
         }
-        if (defined $self->get_value($boot_name)) { # state at nodes sometimes put as bootstrap values
-            $string .= "[" . $self->get_value($boot_name) . "]";
+
+        # build the bootstrap block
+        my @bootstrap_items = ();
+        if (defined $self->get_value($boot_name)) {
+            push @bootstrap_items, $self->get_value($boot_name);
         }
-        #$string .= ",";
+        if ($args{export_colours}) {
+            push @bootstrap_items, "&!color:".$self->get_colour_string();
+        }
+
+        if(scalar(@bootstrap_items) > 0) {
+            $string .= "[";
+            $string .= join(",", @bootstrap_items);
+            $string .= "]";
+        }
     }
 
     return $string;
 }
+
+
 
 sub print { # prints out the tree (for debugging)
     my $self = shift;

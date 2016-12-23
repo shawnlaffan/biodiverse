@@ -709,7 +709,7 @@ sub get_unique_name {
 sub export {
     my $self = shift;
     my %args = @_;
-
+    
     croak "[TREE] Export:  Argument 'file' not specified or null\n"
         if not defined $args{file}
             || length ($args{file}) == 0;
@@ -1091,6 +1091,7 @@ sub export_tabular_tree {
         symmetric   => 1,
         name        => $name,
         use_internal_names => 1,
+        export_colours => $args{export_colours},
         %args,
     );
 

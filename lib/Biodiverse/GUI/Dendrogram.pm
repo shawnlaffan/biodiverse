@@ -1123,9 +1123,12 @@ sub clear_node_colours {
     my $self = shift;
     
     $self->{node_colours_cache} = {};    
-        
-    foreach my $node ($self->get_tree_object()->get_node_refs()) {
-        $node->set_colour(DEFAULT_LINE_COLOUR);
+
+    my $tree = $self->get_tree_object();
+    if($tree) {
+        foreach my $node ($tree->get_node_refs()) {
+            $node->set_colour(colour => DEFAULT_LINE_COLOUR);
+        }
     }
 }
 

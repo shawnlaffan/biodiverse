@@ -25,9 +25,9 @@ use 5.010;
 
 sub Run {
     my ($object, %args) = @_;
-
-    my $selected_format = $args{selected_format};
-    my $export_colours = $args{export_colours};
+    
+    my $selected_format = $args{selected_format} || '';
+    my $export_colours = $args{export_colours} || 0;
 
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted

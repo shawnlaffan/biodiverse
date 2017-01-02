@@ -872,7 +872,7 @@ sub recolour_cluster_elements {
     my $parent_tab = $self->{parent_tab};
     my $colour_for_undef = $parent_tab->get_undef_cell_colour;
 
-    my $cluster_colour_mode = $self->{cluster_colour_mode};
+    my $cluster_colour_mode = $self->get_cluster_colour_mode();
     my $colour_callback;
 
     if ($cluster_colour_mode eq 'palette') {
@@ -941,7 +941,7 @@ sub recolour_cluster_elements {
             die "how did I get here?\n";
         };
     }
-    
+
     die "Invalid cluster colour mode $cluster_colour_mode\n"
       if !defined $colour_callback;
 
@@ -956,12 +956,13 @@ sub recolour_cluster_elements {
 
 sub in_multiselect_mode {
     my $self = shift;
-    return $self->{cluster_colour_mode} eq 'multiselect';
+    my $mode = $self->get_cluster_colour_mode() // '';
+    return $mode eq 'multiselect';
 }
 
 sub in_multiselect_clear_mode {
     my $self = shift;
-    return ($self->{cluster_colour_mode} // '')  eq 'multiselect'
+    return ($self->get_cluster_colour_mode() // '')  eq 'multiselect'
       && eval {$self->{selector_toggle}->get_active};
 }
 
@@ -985,8 +986,10 @@ sub clear_multiselect_colours_from_plot {
 
     return if !$self->in_multiselect_mode;
 
-    #  temp override, as multiselect colour mode has side effects
-    local $self->{cluster_colour_mode} = 'palette';
+    # temp override, as multiselect colour mode has side effects
+    my $old_mode = $self->get_cluster_colour_mode();
+    $self->set_cluster_colour_mode( value=>'palette' );
+    #local $self->{cluster_colour_mode} = 'palette';
     
     my $colour_store = $self->get_multiselect_colour_store;
     if (@$colour_store) {
@@ -996,6 +999,8 @@ sub clear_multiselect_colours_from_plot {
         #$self->recolour_cluster_elements;
         $self->recolour_cluster_lines (\@coloured_nodes);
     }
+
+    $self->set_cluster_colour_mode( value=>$old_mode );
 
     return;
 }
@@ -1127,7 +1132,9 @@ sub clear_node_colours {
     my $tree = $self->get_tree_object();
     if($tree) {
         foreach my $node ($tree->get_node_refs()) {
-            $node->set_colour(colour => DEFAULT_LINE_COLOUR);
+            $self->set_node_colour( node_name  => $node->get_name(),
+                                    colour_ref => DEFAULT_LINE_COLOUR,
+                                  );
         }
     }
 }
@@ -1174,7 +1181,7 @@ sub recolour_cluster_lines {
     my $list_index   = $self->{analysis_list_index};
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
-    my $colour_mode  = $self->{cluster_colour_mode};
+    my $colour_mode  = $self->get_cluster_colour_mode();
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1187,7 +1194,8 @@ sub recolour_cluster_lines {
             $colour_ref = $self->get_current_multiselect_colour;
             if ($colour_ref || $self->in_multiselect_clear_mode) {
                 $self->store_multiselect_colour ($node_name => $colour_ref);
-            }
+            }          
+            
         }
         elsif ($colour_mode eq 'list-values') {
 
@@ -1234,26 +1242,23 @@ sub recolour_cluster_lines {
             # uncolour previously coloured nodes that aren't being coloured this time
           NODE:
             foreach my $node_name (keys %{ $self->{recolour_nodes} }) {
-    
                 next NODE if exists $coloured_nodes{$node_name};
 
                 $self->{node_lines}->{$node_name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-
                 $self->set_node_colour(
                     colour_ref => DEFAULT_LINE_COLOUR,
                     node_name  => $node_name,
-                );
-            }
+                    );
+          }
+
             #print "[Dendrogram] Recoloured nodes\n";
         }
-
         $self->{recolour_nodes} = \%coloured_nodes;
     }
     #else {
     #    my $href = $self->{recolour_nodes} //= {};
     #    @$href{keys %coloured_nodes} = values %coloured_nodes;
     #}
-
     return;
 }
 
@@ -1263,7 +1268,6 @@ sub colour_line {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
     my $name = $node_ref->get_name;
-    
 
     $self->set_node_colour (
         colour_ref => $colour_ref,
@@ -1459,6 +1463,18 @@ sub _dump_line_colours {
     }
 }
 
+sub set_cluster_colour_mode {
+    my ($self, %args) = @_;
+    my $value = $args { value };
+    $self->{cluster_colour_mode} = $value;
+}
+
+sub get_cluster_colour_mode {
+    my ($self) = @_;
+    my $value =  $self->{cluster_colour_mode};
+    return $value;
+}
+
 # Change of list to display on the map
 # Can either be the Cluster "list" (coloured by node) or a spatial analysis list
 sub on_map_list_combo_changed {
@@ -1484,7 +1500,7 @@ sub on_map_list_combo_changed {
         # Selected cluster-palette-colouring mode
         $self->clear_multiselect_colours_from_plot;
 
-        $self->{cluster_colour_mode} = 'palette';
+        $self->set_cluster_colour_mode(value => 'palette');
 
         $self->get_parent_tab->on_clusters_changed;
 
@@ -1500,8 +1516,8 @@ sub on_map_list_combo_changed {
             $self->{graph_slider}->hide;
         }
 
-        $self->{cluster_colour_mode} = 'multiselect';
-
+        $self->set_cluster_colour_mode(value => 'multiselect');
+        
         $self->set_num_clusters (1, 'no_recolour');
 
         $self->replay_multiselect_store;
@@ -1544,7 +1560,8 @@ sub on_combo_map_index_changed {
         $self->{analysis_max} = $minmax[1];
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
-        $self->{cluster_colour_mode} = 'list-values';
+
+        $self->set_cluster_colour_mode(value => "list-values");
         $self->recolour_cluster_elements();
 
         $self->recolour_cluster_lines($self->get_processed_nodes);
@@ -1572,7 +1589,7 @@ sub select_map_index {
         $self->{analysis_max} = $minmax[1];
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
-        $self->{cluster_colour_mode} = 'list-values';
+        $self->set_cluster_colour_mode(value => 'list-values');
         $self->recolour_cluster_elements();
 
         $self->recolour_cluster_lines($self->get_processed_nodes);
@@ -1684,12 +1701,12 @@ sub replay_multiselect_store {
 
     #  clear current colouring of elements
     #  this is a mess - we should not have to switch to palette mode for this to work
-    $self->{cluster_colour_mode} = 'palette';
+    $self->set_cluster_colour_mode( value=>'palette' );
     $self->{element_to_cluster}  = {};
     $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
     $self->recolour_cluster_elements;
-    $self->{cluster_colour_mode} = 'multiselect';
+    $self->set_cluster_colour_mode( value=>'multiselect' );
 
     #   The next bit of code probably does too much
     #   but getting it to work was not simple
@@ -2055,7 +2072,7 @@ sub set_cluster {
 
     $self->{element_to_cluster}  = {};
     $self->{selected_list_index} = {};
-    $self->{cluster_colour_mode} = 'palette';
+    $self->set_cluster_colour_mode( value=>'palette' );
     $self->{recolour_nodes}      = undef;
     $self->set_processed_nodes (undef);
 

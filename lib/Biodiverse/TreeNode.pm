@@ -1601,6 +1601,7 @@ sub get_colour_string {
 sub to_table {
     my $self = shift;
     my %args = @_;
+    my $export_colours = $args{export_colours};
     my $treename = $args{name} || "TREE";
     
     #  assign unique ID numbers if not already done
@@ -1620,8 +1621,11 @@ sub to_table {
     );  #  may need to specify some other params
 
    
-    my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME COLOUR/;
-
+    my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
+    if( $export_colours ) {
+        push @header, "COLOUR";
+    }
+    
 
     my ($parent_num, $taxon_name);
     
@@ -1644,12 +1648,18 @@ sub to_table {
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
 
-        my $colour = $node->get_colour()->to_string();
+        my $colour = $node->get_colour_string();
 
         #  add to the basestruct object
-        @data{@header} = ($treename, $number, $parent_num, 
-                          $node->get_length || 0, $taxon_name, $colour);
-
+        if( $export_colours ) {
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name, $colour);
+        }
+        else {
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name);
+        }
+        
         #  get the additional list data if requested
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
             my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});

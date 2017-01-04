@@ -52,19 +52,19 @@
     <child>
       <object class="GtkActionGroup" id="actiongroup1">
         <child>
-          <object class="GtkAction" id="menuitem9">
+          <object class="GtkAction" id="xxmenuitem9">
             <property name="name">menuitem9</property>
             <property name="label" translatable="yes">Display</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="menuitem_labels_grid">
+          <object class="GtkAction" id="xxmenuitem_labels_grid">
             <property name="name">menuitem_labels_grid</property>
             <property name="label" translatable="yes">Grid</property>
           </object>
         </child>
         <child>
-          <object class="GtkToggleAction" id="menuitem_labels_show_legend">
+          <object class="GtkToggleAction" id="xxmenuitem_labels_show_legend">
             <property name="active">True</property>
             <property name="name">menuitem_labels_show_legend</property>
             <property name="tooltip" translatable="yes">Show or hide the legend</property>
@@ -72,19 +72,19 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="menuitem_labels_overlays">
+          <object class="GtkAction" id="xxmenuitem_labels_overlays">
             <property name="name">menuitem_labels_overlays</property>
             <property name="label" translatable="yes">Overlays...</property>
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="menuitem_labels_tree">
+          <object class="GtkAction" id="xxmenuitem_labels_tree">
             <property name="name">menuitem_labels_tree</property>
             <property name="label" translatable="yes">Tree</property>
           </object>
         </child>
         <child>
-          <object class="GtkRadioAction" id="phylogeny_plot_length">
+          <object class="GtkRadioAction" id="xxphylogeny_plot_length">
             <property name="active">True</property>
             <property name="name">phylogeny_plot_length</property>
             <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
@@ -92,7 +92,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkRadioAction" id="phylogeny_plot_depth">
+          <object class="GtkRadioAction" id="xxphylogeny_plot_depth">
             <property name="group">phylogeny_plot_length</property>
             <property name="name">phylogeny_plot_depth</property>
             <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
@@ -100,7 +100,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkToggleAction" id="highlight_groups_on_map_labels_tab">
+          <object class="GtkToggleAction" id="xxhighlight_groups_on_map_labels_tab">
             <property name="active">True</property>
             <property name="name">highlight_groups_on_map_labels_tab</property>
             <property name="tooltip" translatable="yes">Highlight groups under this node when hovering on the node</property>
@@ -108,7 +108,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkToggleAction" id="use_highlight_path_changed1">
+          <object class="GtkToggleAction" id="xxuse_highlight_path_changed1">
             <property name="active">True</property>
             <property name="name">use_highlight_path_changed1</property>
             <property name="tooltip" translatable="yes">Highlight paths on the tree for groups when you hover the mouse on them</property>
@@ -116,7 +116,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkAction" id="menuitem_labels_set_tree_line_widths">
+          <object class="GtkAction" id="xxmenuitem_labels_set_tree_line_widths">
             <property name="name">menuitem_labels_set_tree_line_widths</property>
             <property name="tooltip" translatable="yes">Set the width of the tree branches.
 Does not affect the vertical connectors. </property>
@@ -127,17 +127,17 @@ Does not affect the vertical connectors. </property>
     </child>
     <ui>
       <menubar name="menubarLabelsOptions">
-        <menu action="menuitem9">
-          <menuitem action="menuitem_labels_grid"/>
-          <menuitem action="menuitem_labels_show_legend"/>
-          <menuitem action="menuitem_labels_overlays"/>
+        <menu action="xxmenuitem9">
+          <menuitem action="xxmenuitem_labels_grid"/>
+          <menuitem action="xxmenuitem_labels_show_legend"/>
+          <menuitem action="xxmenuitem_labels_overlays"/>
           <separator/>
-          <menuitem action="menuitem_labels_tree"/>
-          <menuitem action="phylogeny_plot_length"/>
-          <menuitem action="phylogeny_plot_depth"/>
-          <menuitem action="highlight_groups_on_map_labels_tab"/>
-          <menuitem action="use_highlight_path_changed1"/>
-          <menuitem action="menuitem_labels_set_tree_line_widths"/>
+          <menuitem action="xxmenuitem_labels_tree"/>
+          <menuitem action="xxphylogeny_plot_length"/>
+          <menuitem action="xxphylogeny_plot_depth"/>
+          <menuitem action="xxhighlight_groups_on_map_labels_tab"/>
+          <menuitem action="xxuse_highlight_path_changed1"/>
+          <menuitem action="xxmenuitem_labels_set_tree_line_widths"/>
         </menu>
       </menubar>
     </ui>

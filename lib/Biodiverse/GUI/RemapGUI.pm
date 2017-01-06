@@ -11,6 +11,9 @@ use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
 use Biodiverse::GUI::GUIManager;
+use Biodiverse::GUI::Export;
+use Biodiverse::ExportRemap qw/:all/;
+use Ref::Util qw /:all/;
 
 use Text::Levenshtein qw(distance);
 use Scalar::Util qw /blessed/;
@@ -20,6 +23,30 @@ use constant ORIGINAL_LABEL_COL => $i || 0;
 use constant REMAPPED_LABEL_COL => ++$i;
 use constant PERFORM_COL        => ++$i;
 use constant EDIT_DISTANCE_COL  => ++$i;
+
+# tooltips
+use constant EXACT_MATCH_PANEL_TOOLTIP  => "";
+use constant NOT_MATCHED_PANEL_TOOLTIP  => "";
+use constant PUNCT_MATCH_PANEL_TOOLTIP  => "";
+use constant TYPO_MATCH_PANEL_TOOLTIP   => "";
+use constant LABEL_COLUMN_TOOLTIP
+    => "These labels will remain unchanged";
+use constant OLD_LABEL_COLUMN_TOOLTIP
+    => "Matching label from selected data source";
+use constant NEW_LABEL_COLUMN_TOOLTIP   
+    => "Label to be remapped";
+use constant USE_COLUMN_TOOLTIP
+    => "Controls whether individual remappings will be performed";
+use constant DISTANCE_COLUMN_TOOLTIP
+    => "Number of character changes to get from the original label to the remapped label";
+use constant COPY_BUTTON_TOOLTIP        
+    => "Copy a comma separated representation of the selected rows to the clipboard";
+use constant EXPORT_CHECKBUTTON_TOOLTIP 
+    => "Save the remapped data source to a file";
+use constant IGNORE_CASE_TOOLTIP
+    => "Treat case difference as punctuation rather than typos.";
+use constant EDIT_DISTANCE_TOOLTIP
+    => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
 
 sub new {
     my $class = shift;
@@ -34,8 +61,8 @@ sub run_remap_gui {
     my $gui = $args{"gui"};
 
     ####
-# get the available options to remap labels to
-# TODO don't allow remapping to yourself (doesn't hurt but just confuses things)
+    # get the available options to remap labels to
+    # TODO don't allow remapping to yourself
     my @sources = ();
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
@@ -72,19 +99,23 @@ sub run_remap_gui {
     # The max_distance spinbutton and its label
     my $adjustment = Gtk2::Adjustment->new( 0,           0, 20, 1, 10, 0 );
     my $spinner    = Gtk2::SpinButton->new( $adjustment, 1, 0 );
-    my $tooltip    = Gtk2::Tooltips->new();
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
-    $tooltip->set_tip(
-        $spinner,
-          'New labels within this Levenshtein edit distance of an existing label '
-        . " will be detected as possible typos.",
-    );
+
+    $spinner->set_tooltip_text(EDIT_DISTANCE_TOOLTIP);
+    
+    # my $tooltip    = Gtk2::Tooltips->new();
+    # $tooltip->set_tip(
+    #     $spinner,
+    #       'New labels within this Levenshtein edit distance of an existing label '
+    #     . " will be detected as possible typos.",
+    # );
 
     ####
     # The case sensitivity checkbutton
     my $case_label = Gtk2::Label->new('Match case insensitively?');
     my $case_checkbutton = Gtk2::CheckButton->new();
     $case_checkbutton->set_active(0);
+    $case_checkbutton->set_tooltip_text(IGNORE_CASE_TOOLTIP);
 
     $table->attach_defaults ($max_distance_label, 0, 1, 1, 2 );
     $table->attach_defaults ($spinner,            1, 2, 1, 2 );
@@ -135,6 +166,7 @@ sub run_remap_gui {
     my $response = $dlg->run();
 
     my $remap_type;
+    
     if ( $response eq "no" ) {
         $remap_type = "none";
     }
@@ -170,23 +202,28 @@ sub run_remap_gui {
 }
 
 # given a gui and a data source, perform an automatic remap
+# including showing the remap analysis/breakdown dialog
 sub perform_remap {
     my $self = shift;
     my $args = shift;
 
-    my $new_source   = $args->{new_source};
-    my $old_source   = $args->{old_source};
-    my $max_distance = $args->{max_distance};
-    my $ignore_case  = $args->{ignore_case};
+    my $new_source   = $args->{ new_source   };
+    my $old_source   = $args->{ old_source   };
+    my $max_distance = $args->{ max_distance };
+    my $ignore_case  = $args->{ ignore_case  };
+
+    # is there a list of sources whose labels we should combine?
+    my $remapping_multiple_sources = is_arrayref($new_source);
 
     # actually do the remap
     my $guesser       = Biodiverse::RemapGuesser->new();
     my $remap_results = $guesser->generate_auto_remap(
         {
-            existing_data_source => $old_source,
-            new_data_source      => $new_source,
-            max_distance         => $max_distance,
-            ignore_case          => $ignore_case
+            existing_data_source       => $old_source,
+            new_data_source            => $new_source,
+            max_distance               => $max_distance,
+            ignore_case                => $ignore_case,
+            remapping_multiple_sources => $remapping_multiple_sources,
         }
     );
 
@@ -196,6 +233,7 @@ sub perform_remap {
 
     my $remap_results_response =
       $self->remap_results_dialog( %{$remap_results} );
+
     my $response = $remap_results_response->{response};
 
 
@@ -226,18 +264,49 @@ sub perform_remap {
         say "Deleted $key because it was excluded by the checkboxes.";
     }
 
-    # TODO we could probably remove exact matches and not matches here as well
 
+    # remove exact matches and not matches here as well
+    my @keys = keys %{$remap};
+    foreach my $key (@keys) {
+        if ($key eq $remap->{$key}) {
+            delete $remap->{$key};
+            say "Deleted $key because it mapped to itself.";
+        }
+    }
+
+    
     if ( $response eq 'yes' ) {
-        $guesser->perform_auto_remap(
+        
+        # actually perform the remap on the data source
+        if( $remapping_multiple_sources ) {
+            foreach my $source (@$new_source) {
+                $guesser->perform_auto_remap(
+                    remap      => $remap,
+                    new_source => $source,
+                );
+            }
+        }
+        else {
+            $guesser->perform_auto_remap(
             remap      => $remap,
             new_source => $new_source,
-        );
+            );
+        }
 
+        # possibly export the new remapping
+        if( $remap_results_response->{export_results} ) {
+            my $exporter = Biodiverse::ExportRemap->new();
+            $exporter->export_remap ( remap => $remap );
+        }
+
+        
+        
         say "Performed automatic remap.";
+        return 1;
     }
     else {
         say "Declined automatic remap, no remap performed.";
+        return 0;
     }
 
 }
@@ -247,15 +316,17 @@ sub remap_results_dialog {
     my ( $self, %args ) = @_;
     my $remap = $args{remap};
 
+    # most screens are at least 600 pixels high 
+    # at least until the biodiverse mobile app is released...
+    my $default_dialog_height = 600;
+    my $default_dialog_width = 600;
+    
     ###
     # Exact matches
     my @exact_matches = @{ $args{exact_matches} };
     my $exact_match_tree = $self->build_bland_tree( labels => \@exact_matches );
     my $exact_match_count = @exact_matches;
-    my $exact_match_label =
-      Gtk2::Label->new("$exact_match_count Exact Matches:");
     my $exact_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $exact_match_scroll->set_size_request( 500, 100 );
     $exact_match_scroll->add($exact_match_tree);
 
     ###
@@ -269,27 +340,24 @@ sub remap_results_dialog {
     );
 
     my $punct_match_count = @punct_matches;
-    my $punct_match_label = Gtk2::Label->new(
-        "Matches ignoring punctuation differences ($punct_match_count):"
-    );
 
     my $punct_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $punct_match_scroll->set_size_request( 500, 100 );
     $punct_match_scroll->add($punct_tree);
 
+    # 'use this category' checkbutton
     my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(
         toggled => sub {
-            $punct_match_label->set_sensitive(
-                !$punct_match_label->get_sensitive,
-            );
             $punct_match_scroll->set_sensitive(
                 !$punct_match_scroll->get_sensitive,
             );
             $punct_match_scroll->set_visible($punct_match_checkbutton->get_active),
         }
     );
+
+    
+    
 
     ###
     # Typo matches
@@ -303,22 +371,14 @@ sub remap_results_dialog {
 
     my $typo_match_count = @typo_matches;
 
-    my $typo_match_label = Gtk2::Label->new(
-          "Possible Typos ($typo_match_count):\n"
-        . "(labels within 'max distance' edits of an exact match)"
-    );
 
     my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $typo_match_scroll->set_size_request( 500, 100 );
     $typo_match_scroll->add($typo_tree);
 
     my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(
         toggled => sub {
-            $typo_match_label->set_sensitive(
-                !$typo_match_label->get_sensitive
-            );
             $typo_match_scroll->set_sensitive(
                 !$typo_match_scroll->get_sensitive
             );
@@ -333,13 +393,35 @@ sub remap_results_dialog {
     my $not_matched_count  = @not_matched;
     my $not_matched_label  = Gtk2::Label->new("$not_matched_count Not Matched:");
     my $not_matched_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $not_matched_scroll->set_size_request( 500, 100 );
     $not_matched_scroll->add($not_matched_tree);
 
     ###
     # Accept label
     my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
 
+    ###
+    # Export checkbox 
+    my $export_checkbutton 
+        = Gtk2::CheckButton->new("Export remapped data to new file");
+    
+    $export_checkbutton->set_active(0);
+    $export_checkbutton->set_tooltip_text(EXPORT_CHECKBUTTON_TOOLTIP);
+    
+    # 'copy selection to clipboard' button
+    my $copy_button 
+        = Gtk2::Button->new_with_label("Copy selected rows to clipboard");
+    $copy_button->set_tooltip_text(COPY_BUTTON_TOOLTIP);
+    
+    $copy_button->signal_connect('clicked' => sub {
+        $self->copy_selected_tree_data_to_clipboard(
+            trees => [ $exact_match_tree,  $not_matched_tree, 
+                       $punct_tree,        $typo_tree,],
+            )
+    });
+
+
+
+    
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
@@ -347,43 +429,71 @@ sub remap_results_dialog {
         undef, 'modal',
         'gtk-yes' => 'yes',
         'gtk-no'  => 'no'
-    );
+        );
+
+    $dlg->set_default_size($default_dialog_width, $default_dialog_height);
 
     ####
-    # Pack everything in
+    # Packing
     my $vbox = $dlg->get_content_area;
     $vbox->set_homogeneous(0);
     $vbox->set_spacing(3);
 
-    my $exact_vbox = Gtk2::VBox->new();
-    $exact_vbox->pack_start( $exact_match_label,  0, 1, 0 );
-    $exact_vbox->pack_start( $exact_match_scroll, 0, 1, 0 );
+    # build vboxes and frames for each of the main match types
+    my @components = ($exact_match_scroll);
+    my $exact_frame = $self->build_vertical_frame (
+        label => "$exact_match_count Exact Matches",
+        components => [$exact_match_scroll],
+        fill => [1],
+        tooltip => EXACT_MATCH_PANEL_TOOLTIP,
+        );
+    
+    my $not_matched_frame = $self->build_vertical_frame (
+        label => "$not_matched_count Not Matched",
+        components => [$not_matched_scroll],
+        fill => [1],
+        tooltip => NOT_MATCHED_PANEL_TOOLTIP,
+        );
 
-    my $not_matched_vbox = Gtk2::VBox->new();
-    $not_matched_vbox->pack_start( $not_matched_label,  0, 1, 0 );
-    $not_matched_vbox->pack_start( $not_matched_scroll, 0, 1, 0 );
+    my $punct_frame = $self->build_vertical_frame (
+        label => "$punct_match_count Punctuation Matches ".
+                 "(labels within 'max distance' edits of an exact match)",
+        components => [$punct_match_checkbutton, $punct_match_scroll],
+        fill => [0, 1],
+        tooltip => PUNCT_MATCH_PANEL_TOOLTIP,
+        );
 
-    my $punct_vbox = Gtk2::VBox->new();
-    $punct_vbox->pack_start( $punct_match_label,       0, 1, 0 );
-    $punct_vbox->pack_start( $punct_match_checkbutton, 0, 1, 0 );
-    $punct_vbox->pack_start( $punct_match_scroll,      0, 1, 0 );
+    my $typo_frame = $self->build_vertical_frame (
+        label => "$typo_match_count Possible Typos",
+        components => [$typo_match_checkbutton, $typo_match_scroll],
+        fill => [0, 1],
+        tooltip => TYPO_MATCH_PANEL_TOOLTIP,
+        );
 
-    my $typo_vbox = Gtk2::VBox->new();
-    $typo_vbox->pack_start( $typo_match_label,       0, 1, 0 );
-    $typo_vbox->pack_start( $typo_match_checkbutton, 0, 1, 0 );
-    $typo_vbox->pack_start( $typo_match_scroll,      0, 1, 0 );
+    # put these vboxes in vpanes so we can resize
+    my $vpaned1 = Gtk2::VPaned->new();
+    my $vpaned2 = Gtk2::VPaned->new();
+    my $vpaned3 = Gtk2::VPaned->new();
 
-    $vbox->pack_start( $exact_vbox,           0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $punct_vbox,           0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $typo_vbox,            0,  1, 0 );
-    $vbox->pack_start( Gtk2::HSeparator->new, 10, 1, 10 );
-    $vbox->pack_start( $not_matched_vbox,     0,  1, 0 );
-    $vbox->pack_start( $accept_remap_label,   10, 1, 10 );
+    $vpaned3->pack1($punct_frame, 1, 1);
+    $vpaned3->pack2($typo_frame, 1, 1);
+    $vpaned2->pack1($not_matched_frame, 1, 1);
+    $vpaned2->pack2($vpaned3, 1, 1);
+    $vpaned1->pack1($exact_frame, 1, 1);
+    $vpaned1->pack2($vpaned2, 1, 1);
 
+    # now put all of these into a scrolled window
+    my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    $outer_scroll->add_with_viewport( $vpaned1 );
+    
+    $vbox->pack_start($outer_scroll, 1, 1, 0);
+    $vbox->pack_start( $copy_button, 0, 0, 0 );
+    $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
+    $vbox->pack_start( $export_checkbutton, 0, 1, 0 );
+
+    
     $dlg->show_all;
-
+   
     if (!$exact_match_count) {
         $exact_match_scroll->hide;
     }
@@ -400,15 +510,43 @@ sub remap_results_dialog {
 
     $dlg->destroy();
 
+    
+    
     my %results = (
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
-        typo_match_enabled => $typo_match_checkbutton->get_active,
-        exclusions => $self->get_exclusions,
+        typo_match_enabled  => $typo_match_checkbutton->get_active,
+        export_results      => $export_checkbutton->get_active,
+        exclusions          => $self->get_exclusions,
     );
 
     return wantarray ? %results : \%results;
 }
+
+# given a label and list of components, build a frame containing a
+# vbox with the provided components. 'fill' is an array of booleans
+# indicating whether the corresponding component should fill or not.
+sub build_vertical_frame {
+    my ($self, %args) = @_;
+
+    my $vbox = Gtk2::VBox->new();
+
+    my $components = $args{components};
+    my $fill = $args{fill};
+    
+    foreach my $i ( 0..scalar(@{$components})-1 ) {
+        $vbox->pack_start( $components->[$i], $fill->[$i], 1, 0 );
+    }
+
+    my $frame = Gtk2::Frame->new( $args{label} );
+    $frame->set_shadow_type('in');
+    $frame->add($vbox);
+    $frame->set_tooltip_text( $args{"tooltip"} );
+
+    return $frame;
+}
+
+
 
 # build a one column tree containing labels from args{labels}
 sub build_bland_tree {
@@ -429,13 +567,22 @@ sub build_bland_tree {
     }
 
     my $tree = Gtk2::TreeView->new($model);
-
+    my $sel = $tree->get_selection();
+    $sel->set_mode('multiple');
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $column = Gtk2::TreeViewColumn->new();
 
-    $column->set_title("Label");
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $column,
+        title_text   => 'Label',
+        tooltip_text => LABEL_COLUMN_TOOLTIP,
+        );
+        
     my $renderer = Gtk2::CellRendererText->new();
+    
     $column->pack_start( $renderer, 0 );
 
     # tell the renderer where to pull the data from
@@ -447,6 +594,7 @@ sub build_bland_tree {
 
     return $tree;
 }
+
 
 sub build_typo_tree {
     my ( $self, %args ) = @_;
@@ -464,6 +612,7 @@ sub build_typo_tree {
 
     my $typo_model = Gtk2::TreeStore->new(@treestore_args);
 
+    # propagate model with content
     foreach my $match (@typo_matches) {
         my $iter = $typo_model->append(undef);
 
@@ -475,13 +624,16 @@ sub build_typo_tree {
             $iter,
             ORIGINAL_LABEL_COL, $match,
             REMAPPED_LABEL_COL, $remap->{$match},
-            PERFORM_COL,        1,                 # checkbox enabled by default
+            PERFORM_COL,        1,
             EDIT_DISTANCE_COL,  $distance,
         );
     }
 
+    # allow multi selections
     my $typo_tree = Gtk2::TreeView->new($typo_model);
-
+    my $sel = $typo_tree->get_selection();
+    $sel->set_mode('multiple');
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $original_column = Gtk2::TreeViewColumn->new();
@@ -489,19 +641,32 @@ sub build_typo_tree {
     my $distance_column = Gtk2::TreeViewColumn->new();
     my $checkbox_column = Gtk2::TreeViewColumn->new();
 
-    $original_column->set_title("Original Label");
-    $remapped_column->set_title("Remapped Label");
+    # headers and tooltips
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $original_column,
+        title_text   => 'Original Label',
+        tooltip_text => NEW_LABEL_COLUMN_TOOLTIP,
+        );
 
-    my $tooltip         = Gtk2::Tooltips->new();
-    my $distance_header = Gtk2::Label->new('Edit Distance');
-    $distance_header->show();
-    $distance_column->set_widget($distance_header);
-    $tooltip->set_tip( $distance_header,
-"Number of character changes to get from the original label to the remapped label"
-    );
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $remapped_column,
+        title_text   => 'Remapped Label',
+        tooltip_text => OLD_LABEL_COLUMN_TOOLTIP,
+        );
 
-    $checkbox_column->set_title("Use?");
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $distance_column,
+        title_text   => 'Edit Distance',
+        tooltip_text => DISTANCE_COLUMN_TOOLTIP,
+        );
 
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $checkbox_column,
+        title_text   => 'Use?',
+        tooltip_text => USE_COLUMN_TOOLTIP,
+        );
+
+    # create and pack cell renderers
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
     my $distance_renderer = Gtk2::CellRendererText->new();
@@ -515,7 +680,7 @@ sub build_typo_tree {
         toggled => \&on_remap_toggled,
         \%data
     );
-
+        
     $original_column->pack_start( $original_renderer, 0 );
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $distance_column->pack_start( $distance_renderer, 0 );
@@ -570,15 +735,33 @@ sub build_punct_tree {
     }
 
     my $punct_tree = Gtk2::TreeView->new($punct_model);
+    my $sel = $punct_tree->get_selection();
+    $sel->set_mode('multiple');
 
+    
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
     my $original_column = Gtk2::TreeViewColumn->new();
     my $remapped_column = Gtk2::TreeViewColumn->new();
     my $checkbox_column = Gtk2::TreeViewColumn->new();
-    $original_column->set_title("Original Label");
-    $remapped_column->set_title("Remapped Label");
-    $checkbox_column->set_title("Use?");
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $original_column,
+        title_text   => 'Original Label',
+        tooltip_text => NEW_LABEL_COLUMN_TOOLTIP,
+        );
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $remapped_column,
+        title_text   => 'Remapped Label',
+        tooltip_text => OLD_LABEL_COLUMN_TOOLTIP,
+        );
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $checkbox_column,
+        title_text   => 'Use?',
+        tooltip_text => USE_COLUMN_TOOLTIP,
+        );
 
     my $original_renderer = Gtk2::CellRendererText->new();
     my $remapped_renderer = Gtk2::CellRendererText->new();
@@ -597,7 +780,7 @@ sub build_punct_tree {
     $original_column->pack_start( $original_renderer, 0 );
     $remapped_column->pack_start( $remapped_renderer, 0 );
     $checkbox_column->pack_start( $checkbox_renderer, 0 );
-
+    
     # tell the renderer where to pull the data from
     $original_column->add_attribute( $original_renderer,
         text => ORIGINAL_LABEL_COL );
@@ -688,3 +871,74 @@ sub on_remap_toggled {
 
 }
 
+# given the four trees, find what rows are selected, get the correct
+# data and put it onto the clipboard.
+sub copy_selected_tree_data_to_clipboard {
+    my ($self, %args) = @_;
+    my $trees = $args{trees};
+
+    my @copy_strings;
+    foreach my $tree (@{$trees}) { 
+        my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
+            tree => $tree,
+        );
+
+        foreach my $row (@$selected_list) {
+            push @copy_strings, $row;
+        }
+    }
+
+    my $copy_string = join("\n", @copy_strings);
+    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    $clipboard->set_text($copy_string);
+    say "Copied following data to clipboard:\n$copy_string";
+}
+
+
+# get selected rows of a treeview as comma separated strings.
+sub get_comma_separated_selected_treeview_list {
+    my ($self, %args) = @_;
+    my $tree = $args{tree};
+
+
+    my @value_list = ();
+    
+    my $selection = $tree->get_selection();
+    my $model = $tree->get_model();
+    my $columns = $model->get_n_columns();
+    my (@pathlist) = $selection->get_selected_rows();
+
+    foreach my $path (@pathlist) {
+        my @column_data = ();
+        my $tree_iter = $model->get_iter($path);
+
+        foreach my $i (0..$columns-1) {
+            my $value = $model->get_value($tree_iter, $i);
+            push @column_data, $value
+        }
+
+        my $this_row = join (",", @column_data);
+        push @value_list, $this_row;
+    }
+    
+    return \@value_list;
+}
+
+
+# you can't just use set_tooltip_text for treeview columns for some
+# reason, so this is a little helper function to do the rigmarole with
+# making a label, tooltipping it and adding it to the column.
+sub add_header_and_tooltip_to_treeview_column {
+    my ($self, %args) = @_;
+    my $column = $args{column};
+
+    my $header = Gtk2::Label->new( $args{title_text} );
+    $header->show();
+
+    $column->set_widget($header);
+
+    my $tooltip = Gtk2::Tooltips->new();
+    $tooltip->set_tip( $header, $args{tooltip_text} );
+}
+
+1;

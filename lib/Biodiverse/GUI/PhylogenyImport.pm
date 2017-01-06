@@ -175,15 +175,18 @@ sub run {
       "[Phylogeny import] $tree_count trees parsed from $filename\nNames are: "
       . join( ', ', @names ) . "\n";
 
-    # if they wanted to auto remap, do that now.
+    # If they wanted to auto remap, do that now.  Labels of multiple
+    # imported trees are combined and the same remap is performed on
+    # all of them.
     if ($remap_type eq "auto") {
-        $remap_dlg_results->{gui} = $gui;
-        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
-            
-        foreach my $tree (@$phylogeny_array) {
-            $remap_dlg_results->{new_source} = $tree;
-            $remapper->perform_remap($remap_dlg_results);
-        }
+        $remap_dlg_results->{ gui        } = $gui;
+        $remap_dlg_results->{ new_source } = $phylogeny_array;
+        $remap_dlg_results->{ old_source } 
+            = $remap_dlg_results->{datasource_choice};
+
+
+        $remapper->perform_remap($remap_dlg_results);
+
     }
 
     #########

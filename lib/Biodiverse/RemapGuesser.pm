@@ -11,7 +11,10 @@ use strict;
 use warnings;
 
 #use Text::Levenshtein qw/distance/;
-use Text::Levenshtein::Flexible;  #  substantially faster
+#use Text::Levenshtein::Flexible;  # substantially faster
+use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
+
+
 use List::Util qw /min/;
 
 use Biodiverse::Progress;
@@ -40,14 +43,32 @@ sub perform_auto_remap {
 sub generate_auto_remap {
     my $self          = shift;
     my $args          = shift || {};
-    my $first_source  = $args->{existing_data_source};
-    my $second_source = $args->{new_data_source};
-    my $max_distance  = $args->{max_distance};
-    my $ignore_case   = $args->{ignore_case};
+    my $existing_source            = $args->{ existing_data_source       };
+    my $new_source                 = $args->{ new_data_source            };
+    my $max_distance               = $args->{ max_distance               };
+    my $ignore_case                = $args->{ ignore_case                };
+    my $remapping_multiple_sources = $args->{ remapping_multiple_sources };
 
-    my @existing_labels = $first_source->get_labels();
-    my @new_labels      = $second_source->get_labels();
+    # we may have to combine multiple sources before remapping
+    # e.g. when importing multiple trees from the same nexus file.
+    my @new_labels;
+    if ( $remapping_multiple_sources ) {
 
+        # use a hash to ensure uniqueness of labels in new_labels
+        my %new_labels_hash;
+        foreach my $individual_source ( @$new_source ) {
+            foreach my $new_label ( $individual_source->get_labels() ) {
+                $new_labels_hash{ $new_label } = 1;
+            }
+        }
+
+        @new_labels = keys %new_labels_hash;
+    }
+    else {
+        @new_labels = $new_source->get_labels();
+    }
+    
+    my @existing_labels = $existing_source->get_labels();
     my $remap_results = $self->guess_remap(
         {
             existing_labels => \@existing_labels,
@@ -195,8 +216,7 @@ sub guess_remap {
     if ($max_distance) {
         @from_labels = @unprocessed_from_labels;
         @unprocessed_from_labels = ();
-        my $distance_finder = Text::Levenshtein::Flexible->new($max_distance, 1, 1, 1);
-
+        
         $progress_i = 0;
         $n = scalar @from_labels;
 
@@ -207,9 +227,10 @@ sub guess_remap {
             my $min_distance = $max_distance;
             my @poss_matches;
     
-            ### try distance_l_all($src, @dst)??
+            my $distance_finder = Text::Fuzzy->new( $from_label, trans => 1);
+            
             foreach my $target_label (keys %target_labels_hash) {
-                my $distance = $distance_finder->distance_l ($from_label, $target_label);
+                my $distance = $distance_finder->distance( $target_label );
                 next if !defined $distance || $distance > $min_distance;
                 my $subset = $poss_matches[$distance] //= [];
                 push @$subset, $target_label;

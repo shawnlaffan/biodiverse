@@ -120,6 +120,21 @@ BEGIN {
         . "at the command prompt.\n"
         . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
     }
+    #  more general solution for anything new
+    my @reqd = qw /Text::Fuzzy/;
+    foreach my $module (@reqd) {
+        if (not eval "require $module") {
+            my $feedback = <<"END_FEEDBACK"
+Cannot locate the $module package.  
+You probably need to install it using
+  cpanm $module
+at the command prompt.
+See https://metacpan.org/pod/$module for more details about what it does.
+END_FEEDBACK
+  ;
+            die $feedback;
+        }
+    }
 }
 
 #  add biodiverse lib paths so we get all the extensions

@@ -6,13 +6,15 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
 our $VERSION = '1.99_006';
 
 use Biodiverse::Exception;
+use Ref::Util qw { :all };
+
 
 my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';
@@ -365,7 +367,7 @@ sub import_data_sparse {
     my @label_col_columns  = @{$args{label_col_columns}};
     my $value_column       = $args{value_column};
     
-    if (reftype ($value_column)) {
+    if (is_ref ($value_column)) {
         $value_column = $value_column->[0];  #  take the first if we are passed an array
     }
 
@@ -1034,10 +1036,10 @@ sub trim {
             }
         }
     }
-    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
+    elsif (is_arrayref($data)) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ((ref $data) =~ /HASH/) {
+    elsif (is_hashref($data)) {
         %keep_or_trim = %$keep;
     }
 

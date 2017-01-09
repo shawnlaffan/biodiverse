@@ -14,6 +14,8 @@ use Carp;
 #use lib File::Spec->catfile( $Bin, '..', '..', 'lib');
 use rlib;
 
+use Ref::Util qw { :all };
+
 use Biodiverse::BaseData;
 use Biodiverse::Common;
 #use Biodiverse::Cluster;
@@ -82,7 +84,6 @@ sub process_leaks {
     my @tn_leaks;
     foreach my $leak (@leaks) {
         next if not $leak->[1] =~ 'Biodiverse';
-        #next if not $leak->[0] =~ /ARRAY/;
         my $tot_size = total_size ($leak->[0]);
         #next if $tot_size < 1650000;
 
@@ -139,7 +140,7 @@ sub build_matrix {
     
     my $no_cache_abc = 1;
 
-    if (defined $spatial_conditions && (ref $spatial_conditions) !~ /ARRAY/) {
+    if (defined $spatial_conditions && !is_arrayref($spatial_conditions)) {
         $spatial_conditions = [$spatial_conditions];
     }
 

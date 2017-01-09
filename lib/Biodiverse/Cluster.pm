@@ -25,6 +25,9 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
 
+use Ref::Util qw { :all };
+
+
 use parent qw /
     Biodiverse::Tree
     Biodiverse::Common
@@ -265,7 +268,7 @@ sub get_indices_object_for_matrix_and_clustering {
     if ($args{objective_function}) {
         $self->set_param (CLUSTER_MOST_SIMILAR_SUB => $args{objective_function});
     }
-    if (ref ($index_order) =~ /ARRAY/) {  #  redundant now?
+    if (is_arrayref($index_order)) {  #  redundant now?
         $self->set_param (CLUSTER_MOST_SIMILAR_SUB =>
             ($index_order->[1] > $index_order->[0]
              ? 'get_min_value'
@@ -556,7 +559,7 @@ sub build_matrix_elements {
 
     my $element1 = $args{element};
     my $element_list2 = $args{element_list};
-    if ((ref $element_list2) =~ /HASH/) {
+    if (is_hashref($element_list2)) {
         $element_list2 = [keys %$element_list2];
     }
 
@@ -859,7 +862,7 @@ sub set_matrix_ref {
         croak "Argument 'matrices' not provided\n"
           if ! exists $args{matrices};
         croak "Argument 'matrices' is not an array\n"
-          if ! (ref $args{matrices}) =~ /ARRAY/;
+          if !is_arrayref($args{matrices});
 
         $self->{MATRICES} = $args{matrices};
     }
@@ -2299,7 +2302,9 @@ sub sp_calc {
         my %sp_calc_values = $indices_object->run_calculations(%args, %elements);
 
         foreach my $key (keys %sp_calc_values) {
-            if (ref($sp_calc_values{$key}) =~ /ARRAY|HASH/) {
+            if (is_arrayref($sp_calc_values{$key}) 
+                || is_hashref($sp_calc_values{$key})) {
+                
                 $node->add_to_lists ($key => $sp_calc_values{$key});
                 delete $sp_calc_values{$key};
             }

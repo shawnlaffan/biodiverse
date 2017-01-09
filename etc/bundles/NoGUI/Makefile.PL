@@ -40,7 +40,7 @@ WriteMakefile(
         "Readonly" => "0",
         "URI::Escape::XS" => "0",
         "Statistics::Descriptive" => "3.0608",
-        "Geo::Converter::dms2dd" => "0",
+        "Geo::Converter::dms2dd" => "0.05",
         "Text::Wrapper" => "0",
         "Exporter::Easy" => "0",
         "Exception::Class" => "0",
@@ -68,6 +68,7 @@ WriteMakefile(
         "JSON::MaybeXS" => 1.003,
         "Sort::Naturally" => 0,
         "Text::Fuzzy" => 0,
+        "Ref::Util" => "0.101",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",
@@ -77,5 +78,6 @@ WriteMakefile(
         "Test::Most" => "0",
         "Devel::Symdump" => "0",
         "File::Compare" => "0",
+        "Scalar::Util::Numeric" => "0",
     },
 );

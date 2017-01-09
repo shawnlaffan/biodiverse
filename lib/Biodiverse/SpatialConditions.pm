@@ -16,9 +16,11 @@ use Math::Polygon;
 use Geo::ShapeFile;
 use Tree::R;
 use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /min max/;
+use Ref::Util qw { :all };
+
 
 use parent qw /Biodiverse::Common/;
 
@@ -339,7 +341,7 @@ sub parse_distances {
                 my $method = "get_$key";
                 my $a = $metadata->$method;
                 croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
-                  if not reftype $a eq 'ARRAY';
+                  if !is_arrayref($a);
                 foreach my $dist (@$a) {
                     $uses_distances{$key}{$dist}++;
                 }
@@ -623,7 +625,7 @@ sub get_distances {
 
     my @cellsize;
     my $cellsizes = $args{cellsizes};
-    if ( ( ref $cellsizes ) =~ /ARRAY/ ) {
+    if ( is_arrayref($cellsizes) ) {
         @cellsize = @$cellsizes;
     }
 
@@ -739,7 +741,9 @@ sub get_conditions_code_ref {
 
     my $code_ref = $self->get_cached_value ('CODE_REF');
 
-    return $code_ref if defined $code_ref && reftype ($code_ref) eq 'CODE';  #  need to check for valid code?
+    #  need to check for valid code?
+    return $code_ref
+      if defined $code_ref && is_coderef ($code_ref);  
 
     my $conditions_code = <<'END_OF_CONDITIONS_CODE'
 sub {
@@ -1350,13 +1354,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
+    if ( !is_arrayref($size) ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
+    if ( !is_arrayref($origin) ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 
@@ -1382,7 +1386,7 @@ sub get_metadata_sp_ellipse {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1431,7 +1435,7 @@ sub sp_ellipse {
     my $axes = $args{axes};
     if ( defined $axes ) {
         croak "sp_ellipse:  axes arg is not an array ref\n"
-            if ( ref $axes ) !~ /ARRAY/;
+            if (! is_arrayref($axes));
         my $axis_count = scalar @$axes;
         croak
             "sp_ellipse:  axes array needs two axes, you have given $axis_count\n"
@@ -1707,7 +1711,7 @@ sub get_metadata_sp_is_left_of {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1744,7 +1748,7 @@ sub get_metadata_sp_is_right_of {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1781,7 +1785,7 @@ sub get_metadata_sp_in_line_with {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( ( ref $axes ) !~ /ARRAY/ ) {
+    if ( !is_arrayref($axes) ) {
         $axes = [ 0, 1 ];
     }
 
@@ -1821,7 +1825,7 @@ sub _sp_side {
     my $axes = $args{axes};
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
-            if ( ref $axes ) !~ /ARRAY/;
+            if ( !is_arrayref($axes) );
         my $axis_count = scalar @$axes;
         croak
           "_sp_side:  axes array needs two axes, you have given $axis_count\n"
@@ -2863,6 +2867,94 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+sub get_metadata_sp_spatial_output_passed_defq {
+    my $self = shift;
+    my %args = @_;
+
+    my $description =
+        q{Returns 1 if an element passed the definition query for a previously calculated spatial output.};
+
+    #my $example = $self->get_example_sp_get_spatial_output_list_value;
+
+    my %metadata = (
+        description => $description,
+        index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
+        #required_args  => [qw /output/],
+        optional_args  => [qw /element output/],
+        result_type    => 'always_same',
+        #example        => $example,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+
+#  get the value from another spatial output
+sub sp_spatial_output_passed_defq {
+    my $self = shift;
+    my %args = @_;
+    
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $default_element
+      = eval {$self->is_def_query}
+        ? $h->{coord_id1}
+        : $h->{coord_id2};  #?
+
+    my $element = $args{element} // $default_element;
+    
+    my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    my $sp_name = $args{output};
+    my $sp;
+    if (defined $sp_name) {
+        $sp = $bd->get_spatial_output_ref (name => $sp_name)
+            or croak 'Spatial output $sp_name does not exist in basedata '
+                . $bd->get_name
+            . "\n";
+
+        # make sure we aren't trying to access ourself
+        my $my_name = $self->get_name;
+        croak "def_query can't reference itself" if(defined $my_name && 
+                                                    $my_name eq $sp_name 
+                                                    && $self->is_def_query);
+    }
+    
+    else {
+        # default to the caller spatial output
+        $sp = $self->get_caller_spatial_output_ref;
+
+        # make sure we aren't trying to access ourself
+        croak "def_query can't reference itself" if eval{$self->is_def_query};
+        
+        return 1
+          if !eval {$self->is_def_query} && $self->get_param('VERIFYING');
+    }
+    
+    croak "output argument not defined "
+        . "or we are not being used for a spatial analysis\n"
+          if !defined $sp;;
+
+    croak "element $element is not in spatial output\n"
+      if not $sp->exists_element (element => $element);
+
+    no autovivification;
+
+    my $passed_defq = $sp->get_param('PASS_DEF_QUERY');
+    return 1 if !$passed_defq;
+
+    return exists $passed_defq->{$element};
+}
+
+sub set_caller_spatial_output_ref {
+    my ($self, $ref) = @_;
+    $self->set_param (SPATIAL_OUTPUT_CALLER_REF => $ref);
+    $self->weaken_param ('SPATIAL_OUTPUT_CALLER_REF');
+}
+
+sub get_caller_spatial_output_ref {
+    my $self = shift;
+    return $self->get_param ('SPATIAL_OUTPUT_CALLER_REF');
+}
 
 sub get_conditions_metadata_as_markdown {
     my $self = shift;

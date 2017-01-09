@@ -25,6 +25,9 @@ use HTML::QuickTable;
 #use XBase;
 #use MRO::Compat;
 use Class::Inspector;
+use Ref::Util qw { :all };
+
+
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -554,7 +557,7 @@ BEGIN {
         }
         print "Default parameters are:\n", Data::Dumper::Dumper ($x);
 
-        if ((ref $x) =~ /HASH/) {
+        if (is_hashref($x)) {
             @user_defined_params{keys %$x} = values %$x;
         }
     }
@@ -1094,7 +1097,7 @@ sub write_table {
     my %args = @_;
     defined $args{file} || croak "file argument not specified\n";
     my $data = $args{data} || croak "data argument not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     $args{file} = Path::Class::file($args{file})->absolute;
 
@@ -1176,7 +1179,7 @@ sub write_table_csv {
     my $self = shift;
     my %args = @_;
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
     my $csv_obj = $self->get_csv_object_for_export (%args);
@@ -1205,73 +1208,13 @@ sub write_table_csv {
     return;
 }
 
-#sub write_table_dbf {
-#    my $self = shift;
-#    my %args = @_;
-#    my $data = $args{data} || croak "data arg not specified\n";
-#    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
-#    my $file = $args{file} || croak "file arg not specified\n";
-#    
-#    if (-e $file) {
-#        print "[COMMON] $file exists - deleting... ";
-#        if (! (unlink ($file))) {
-#            print "COULD NOT DELETE FILE - check permissions and file locks\n";
-#            return;
-#        }
-#        print "\n";
-#    }
-#    
-#    my $header = shift (@$data);
-#    
-#    #  set up the field types
-#    my @field_types = ("C", ("F") x $#$header);
-#    my @field_lengths = (64, (20) x $#$header);
-#    my @field_decimals = (undef, (10) x $#$header);
-#    my %flds_to_check;
-#    @flds_to_check{1 .. $#$header} = (undef) x $#$header;  #  need to check all bar the first field
-#    
-#    foreach my $record (@$data) {
-#        foreach my $j (keys %flds_to_check) {
-#            if (defined $record->[$j] and ! looks_like_number $record->[$j]) {  #  assume it's a character type
-#                $field_types[$j] = "C";
-#                $field_lengths[$j] = 64;
-#                $field_decimals[$j] = undef;
-#                delete $flds_to_check{$j};
-#            }
-#        }
-#        last if ! scalar keys %flds_to_check;  #  they're all characters, drop out
-#    }
-#    
-#    my $db = XBase -> create (name => $file,
-#                              #version => 4,
-#                              field_names => $header,
-#                              field_types => \@field_types,
-#                              field_lengths => \@field_lengths,  
-#                              field_decimals => \@field_decimals,
-#                              ) || die XBase->errstr;
-#    
-#    my $i = 0;
-#    foreach my $record (@$data) {
-#        $db -> set_record ($i, @$record);
-#        $i++;
-#    }
-#    
-#    if ($db -> close) {
-#        print "[COMMON] Write to file $file successful\n";
-#    }
-#    else {
-#        carp "[COMMON] Write to file $file failed\n";
-#    };
-#
-#    
-#}
 
 sub write_table_xml {  #  dump the table to an xml file.
     my $self = shift;
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
     if (-e $file) {
@@ -1302,7 +1245,7 @@ sub write_table_yaml {  #  dump the table to a YAML file.
     my %args = @_;
 
     my $data = $args{data} // croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    is_arrayref($data) // croak "data arg must be an array ref\n";
     my $file = $args{file} // croak "file arg not specified\n";
 
     eval {
@@ -1321,7 +1264,7 @@ sub write_table_json {  #  dump the table to a JSON file.
     my %args = @_;
 
     my $data = $args{data} // croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ // croak "data arg must be an array ref\n";
+    is_arrayref($data) // croak "data arg must be an array ref\n";
     my $file = $args{file} // croak "file arg not specified\n";
 
     eval {
@@ -1342,7 +1285,7 @@ sub write_table_json {  #  dump the table to a JSON file.
 #    my $self = shift;
 #    my %args = @_;
 #    my $data = $args{data} || croak "data arg not specified\n";
-#    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+#    is_arrayref($data) || croak "data arg must be an array ref\n";
 #    my $file = $args{file} || croak "file arg not specified\n";
 #    
 #    my $header = shift (@$data);
@@ -1376,7 +1319,7 @@ sub write_table_html {
     my $self = shift;
     my %args = @_;
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
     my $qt = HTML::QuickTable -> new();
@@ -1555,7 +1498,7 @@ sub array_to_hash_keys_old {  #  clunky...
     my $value = $args{value};
 
     my %hash;
-    if ((ref $list_ref) =~ /ARRAY/ && scalar @$list_ref) {  #  ref to array of non-zero length
+    if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
         #  make a copy of the list so we don't wreck any lists used outside the function
         my @list = @{$list_ref};
         my $rebalance;
@@ -1573,7 +1516,7 @@ sub array_to_hash_keys_old {  #  clunky...
         }
         %hash = (%hash, @list);
     }
-    elsif ((ref $list_ref) =~ /HASH/) {
+    elsif (is_hashref($list_ref)) {
         %hash = %$list_ref;
     }
 
@@ -1611,10 +1554,10 @@ sub array_to_hash_keys {
     my $value = $args{value};
 
     my %hash;
-    if ((ref $list_ref) =~ /ARRAY/ && scalar @$list_ref) {  #  ref to array of non-zero length
+    if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
         @hash{@$list_ref} = ($value) x scalar @$list_ref;
     }
-    elsif ((ref $list_ref) =~ /HASH/) {
+    elsif (is_hashref($list_ref)) {
         %hash = %$list_ref;
     }
 
@@ -1635,7 +1578,7 @@ sub array_to_hash_values {
 
     #  complain if it is a scalar
     croak "Argument 'list' is not an array ref - it is a scalar\n" if ! ref ($list_ref);
-    $list_ref = [values %$list_ref] if (ref $list_ref) =~ /HASH/;
+    $list_ref = [values %$list_ref] if is_hashref($list_ref);
 
     my $prefix = $args{prefix} // "data";
 
@@ -1648,7 +1591,7 @@ sub array_to_hash_values {
     for my $suffix ("$start" .. "$end") {  #  a clunky way to build it, but the .. operator won't play with underscores
         push @keys, "$prefix\_$suffix"; 
     }
-    if ((ref $list_ref) =~ /ARRAY/ && scalar @$list_ref) {  #  ref to array of non-zero length
+    if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
         @hash{@keys} = $args{sort_array_lists} ? sort numerically @$list_ref : @$list_ref;  #  sort if needed
     }
 
@@ -2195,22 +2138,20 @@ sub get_list_as_flat_hash {
     delete $args{list};  #  saves passing it onwards
 
     #  check the first one
-    my $list_reftype = reftype ($list);
-    croak 'list arg must be a hash or array ref, not ' . ($list_reftype || 'undef') . "\n"
-      if not (defined $list_reftype or $list_reftype =~ /ARRAY|HASH/);
+    my $list_reftype = reftype ($list) // 'undef';
+    croak "list arg must be a hash or array ref, not $list_reftype\n"
+      if not (is_arrayref($list) or is_hashref($list));
 
     my @refs = ($list);  #  start with this
     my %flat_hash;
 
     foreach my $ref (@refs) {
-        my $reftype = reftype $ref;
-        if ($reftype eq 'ARRAY') {
+        if (is_arrayref($ref)) {
             @flat_hash{@$ref} = (1) x scalar @$ref;
         }
-        elsif ($reftype eq 'HASH') {
+        elsif (is_hashref($ref)) {
             foreach my $key (keys %$ref) {
-                my $reftype2 = reftype ($ref->{$key});
-                if (not $reftype2) {  #  not a ref, so must be a single level hash list
+                if (!is_ref($ref->{$key})) {  #  not a ref, so must be a single level hash list
                     $flat_hash{$key} = $ref->{$key};
                 }
                 else {
@@ -2251,7 +2192,7 @@ sub get_shared_hash_keys {
     my %args = @_;
 
     my $lists = $args{lists};
-    croak "lists arg is not an array ref\n" if not (ref $lists) =~ /ARRAY/;
+    croak "lists arg is not an array ref\n" if !is_arrayref($lists);
 
     my %shared = %{shift @$lists};  #  copy the first one
     foreach my $list (@$lists) {

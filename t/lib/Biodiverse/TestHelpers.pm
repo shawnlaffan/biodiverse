@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Carp;
+use Scalar::Util::Numeric qw/isfloat/;
 
 $| = 1;
 
@@ -162,6 +163,28 @@ sub isnt_deeply {
     return $ok;
 }
 
+sub is_numeric_within_tolerance_or_exact_text {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
+
+    my %args = @_;
+    my ($got, $expected) = @args{qw /got expected/};
+
+    if (looks_like_number ($expected) && looks_like_number ($got)) {
+        my $result = ($args{tolerance} // 1e-10) > abs ($expected - $got);
+        if (!$result) {
+            #  sometimes we get diffs above the default due to floating point issues
+            #  even when the two numbers are identical but only have 9dp
+            $result = $expected eq $got;
+        }
+        ok ($result, $args{message});
+    }
+    else {
+        is ($got, $expected, $args{message});
+    }
+}
+
+
+
 =item transform_element
 
 Takes in a colon or comma (or any punctuation) separated pair of x and y values
@@ -254,6 +277,7 @@ sub compare_hash_vals {
     my $hash_got   = $args{hash_got};
     my $hash_exp   = $args{hash_exp};
     my $precision  = $args{precision};
+    my $tolerance  = $args{tolerance};
     my $not_strict = $args{no_strict_match};
     my $descr_suffix = $args{descr_suffix} // q{};
     my $sort_array_lists = $args{sort_array_lists};
@@ -294,6 +318,7 @@ sub compare_hash_vals {
                     hash_exp => $hash_exp->{$key},
                     no_strict_match => $args{no_strict_match},
                     descr_suffix    => "in $key",
+                    tolerance       => $tolerance,
                 );
             };
             #say join ' ', sort keys %$hash_got;
@@ -305,6 +330,7 @@ sub compare_hash_vals {
                     compare_arr_sorted (
                         arr_got => $hash_got->{$key},
                         arr_exp => $hash_exp->{$key},
+                        tolerance => $tolerance,
                         #  add no_strict_match option??
                     );
                 };
@@ -314,21 +340,28 @@ sub compare_hash_vals {
                     compare_arr (
                         arr_got => $hash_got->{$key},
                         arr_exp => $hash_exp->{$key},
+                        tolerance => $tolerance,
                         #  add no_strict_match option??
                     );
                 };
             }
         }
         else {
-            my $val_got = snap_to_precision (
-                value     => $hash_got->{$key},
-                precision => $precision,
+            is_numeric_within_tolerance_or_exact_text (
+                got       => $hash_got->{$key},
+                expected  => $hash_exp->{$key},
+                message   => "Got expected value for $key, $descr_suffix",
+                tolerance => $tolerance,
             );
-            my $val_exp = snap_to_precision (
-                value     => $hash_exp->{$key},
-                precision => $precision,
-            );
-            is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
+            #my $val_got = snap_to_precision (
+            #    value     => $hash_got->{$key},
+            #    precision => $precision,
+            #);
+            #my $val_exp = snap_to_precision (
+            #    value     => $hash_exp->{$key},
+            #    precision => $precision,
+            #);
+            #is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -379,14 +412,21 @@ sub compare_arr {
 
     my $arr_got = $args{arr_got};
     my $arr_exp = $args{arr_exp};
-    my $precision = $args{precision};
+    #my $precision = $args{precision};
+    my $tolerance = $args{tolerance};
 
     is (scalar @$arr_got, scalar @$arr_exp, 'Arrays are same size');
 
     for my $i (0 .. $#$arr_exp) {
-        my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
-        my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
-        is ($val_got, $val_exp, "Got expected value for [$i]");
+        #my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
+        #my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
+        #is ($val_got, $val_exp, "Got expected value for [$i]");
+        is_numeric_within_tolerance_or_exact_text (
+            got       => $arr_got->[$i],
+            expected  => $arr_exp->[$i],
+            message   => "Got expected value for [$i]",
+            tolerance => $tolerance,
+        );
     }
 
     return;
@@ -403,14 +443,21 @@ sub compare_arr_sorted {
 
     my @arr_got = sort @{$args{arr_got}};
     my @arr_exp = sort @{$args{arr_exp}};
-    my $precision = $args{precision};
+    #my $precision = $args{precision};
+    my $tolerance = $args{tolerance};
 
     is (scalar @arr_got, scalar @arr_exp, 'Arrays are same size');
 
     for (my $i = 0; $i != @arr_exp; ++$i) {
-        my $val_got = snap_to_precision (value => $arr_got[$i], precision => $precision);
-        my $val_exp = snap_to_precision (value => $arr_exp[$i], precision => $precision);
-        is ($val_got, $val_exp, "Got expected value for [$i]");
+        #my $val_got = snap_to_precision (value => $arr_got[$i], precision => $precision);
+        #my $val_exp = snap_to_precision (value => $arr_exp[$i], precision => $precision);
+        #is ($val_got, $val_exp, "Got expected value for [$i]");
+        is_numeric_within_tolerance_or_exact_text (
+            got       => $arr_got[$i],
+            expected  => $arr_exp[$i],
+            message   => "Got expected value for [$i]",
+            tolerance => $tolerance,
+        );
     }
 
     return;
@@ -782,7 +829,8 @@ sub run_indices_test1 {
     my $expected_results       = $args{expected_results} // {};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
-    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
+    my $precision              = $args{precision} // '%.10f';  #  compare numeric values to 10 dp.
+    my $tolerance              = $args{tolerance} // 1e-10;
     my $descr_suffix           = $args{descr_suffix} // '';
     my $processing_element     = $args{processing_element} // '3350000:850000';
     my $skip_nbr_counts        = $args{skip_nbr_counts} // {};
@@ -826,9 +874,9 @@ sub run_indices_test1 {
         say scalar @$element_list2;
     }
     
-    my $tree = get_tree_object_from_sample_data();
+    my $tree = $args{tree_ref} || get_tree_object_from_sample_data();
 
-    my $matrix = get_matrix_object_from_sample_data();
+    my $matrix = $args{matrix_ref} || get_matrix_object_from_sample_data();
 
     if ($use_element_properties) {
         my $data;
@@ -975,6 +1023,7 @@ sub run_indices_test1 {
                 descr_suffix     => "$nbr_list_count nbr sets " . $descr_suffix,
                 sort_array_lists => $sort_array_lists,
                 precision        => $precision,
+                tolerance        => $tolerance,
             );
         };
 

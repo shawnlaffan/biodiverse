@@ -397,13 +397,13 @@ sub test_export_shapefile {
             my $node_name = $db{NAME};
             my $node_ref = $tree->get_node_ref (node => $node_name);
             
-            my $shp_len_val = sprintf '%10f', $db{LENGTH};
-            my $tree_len    = sprintf '%10f', $node_ref->get_length;
+            my $shp_len_val = sprintf '%.10f', $db{LENGTH};
+            my $tree_len    = sprintf '%.10f', $node_ref->get_length;
     
             is ($shp_len_val, $tree_len, "DB length matches for $node_name");
 
             my ($start, $end) = $shape->points;
-            my $shape_len     = sprintf '%10f', $start->distance_from($end);
+            my $shape_len     = sprintf '%.10f', $start->distance_from($end);
             is ($shape_len, $tree_len, "Shape length matches for $node_name");
 
             my $parent_node = $node_ref->get_parent;

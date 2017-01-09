@@ -4,7 +4,6 @@ use warnings;
 use 5.016;
 use Carp;
 use Readonly;
-use Scalar::Util qw /reftype/;
 use Clone qw /clone/;
 
 our $VERSION = '1.99_006';

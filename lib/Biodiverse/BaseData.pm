@@ -16,6 +16,7 @@ use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
+use Ref::Util qw { :all };
 
 use Spreadsheet::Read 0.60;
 
@@ -124,7 +125,7 @@ sub new {
     croak 'CELL_SIZES parameter not specified'
       if !defined $cell_sizes;
     croak 'CELL_SIZES parameter is not an array ref'
-      if reftype($cell_sizes) ne 'ARRAY';
+      if (!is_arrayref($cell_sizes));
 
     foreach my $size (@$cell_sizes) {
         croak
@@ -380,8 +381,8 @@ sub _describe {
       /;    #/
 
     foreach my $key (@keys) {
-        my $desc = $self->get_param($key);
-        if ( ( ref $desc ) =~ /ARRAY/ ) {
+        my $desc = $self->get_param ($key);
+        if (is_arrayref($desc)) {
             $desc = join q{, }, @$desc;
         }
         push @description, "$key: $desc";
@@ -805,7 +806,7 @@ sub import_data {
     my $progress_bar = Biodiverse::Progress->new( gui_only => 1 );
 
     croak "input_files array not provided\n"
-      if !$args{input_files} || reftype( $args{input_files} ) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
@@ -855,9 +856,9 @@ sub import_data {
     $exclude_columns //= [];
     $include_columns //= [];
     croak "exclude_columns argument is not an array reference"
-      if reftype($exclude_columns) ne 'ARRAY';
+      if !is_arrayref($exclude_columns);
     croak "include_columns argument is not an array reference"
-      if reftype($include_columns) ne 'ARRAY';
+      if !is_arrayref($include_columns);
 
     #  clear out any undef columns
     $exclude_columns = [ grep { defined $_ } @$exclude_columns ];
@@ -1247,18 +1248,17 @@ sub import_data_raster {
     my $progress_bar       = Biodiverse::Progress->new( gui_only => 0 );
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype( $args{input_files} ) ne 'ARRAY';
-    my $labels_as_bands =
-      exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
-    my $strip_file_extensions_from_names =
-      exists $args{strip_file_extensions_from_names}
-      ? $args{strip_file_extensions_from_names}
-      : 1;
-    my $cellorigin_e = $args{raster_origin_e};
-    my $cellorigin_n = $args{raster_origin_n};
-    my $cellsize_e   = $args{raster_cellsize_e};
-    my $cellsize_n   = $args{raster_cellsize_n};
-    my $given_label  = $args{given_label};
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
+    my $labels_as_bands = exists $args{labels_as_bands} ? $args{labels_as_bands} : 1;
+    my $strip_file_extensions_from_names
+      = exists $args{strip_file_extensions_from_names}
+        ? $args{strip_file_extensions_from_names}
+        : 1;
+    my $cellorigin_e    = $args{raster_origin_e};
+    my $cellorigin_n    = $args{raster_origin_n};
+    my $cellsize_e      = $args{raster_cellsize_e};
+    my $cellsize_n      = $args{raster_cellsize_n};
+    my $given_label     = $args{given_label};
 
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
@@ -1586,7 +1586,7 @@ sub import_data_shapefile {
     my $progress_bar = Biodiverse::Progress->new();
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype( $args{input_files} ) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     my $skip_lines_with_undef_groups =
       exists $args{skip_lines_with_undef_groups}
@@ -1819,7 +1819,7 @@ sub import_data_spreadsheet {
     my $progress_bar = Biodiverse::Progress->new();
 
     croak "Input files array not provided\n"
-      if !$args{input_files} || reftype( $args{input_files} ) ne 'ARRAY';
+      if !$args{input_files} || (!is_arrayref($args{input_files}));
 
     my $skip_lines_with_undef_groups =
       exists $args{skip_lines_with_undef_groups}
@@ -1841,9 +1841,11 @@ sub import_data_spreadsheet {
     my $groups_ref = $self->get_groups_ref;
 
     say '[BASEDATA] Loading from files as spreadsheet: '
-      . join( q{, },
-        map { ( reftype($_) && !blessed($_) ) ? '<<preloaded book>>' : $_ }
-        map { $_ // 'undef' } @{ $args{input_files} } );
+        . join (q{, },
+            map {(is_ref ($_) && !blessed ($_)) ? '<<preloaded book>>' : $_}
+            map {$_ // 'undef'}
+            @{$args{input_files}}
+        );
 
     # needed to construct the groups and labels
     my $quotes  = $self->get_param('QUOTES');      #  for storage, not import
@@ -2985,7 +2987,7 @@ sub run_exclusions {
             my $list = $check_list->get_element_list;
             @{$label_check_list}{@$list} = (1) x scalar @$list;
         }
-        elsif ( reftype $check_list eq 'ARRAY' ) {
+        elsif (is_arrayref($check_list)) {
             @{$label_check_list}{@$check_list} = (1) x scalar @$check_list;
         }
         else {
@@ -3205,10 +3207,10 @@ sub trim {
             }
         }
     }
-    elsif ( ( ref $data ) =~ /ARRAY/ ) {    #  convert to hash if needed
+    elsif (is_arrayref($data)) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ( ( ref $data ) =~ /HASH/ ) {
+    elsif (is_hashref($data)) {
         %keep_or_trim = %$keep;
     }
 
@@ -3257,8 +3259,8 @@ sub delete_labels {
       if $self->get_output_ref_count;
 
     my $elements = $args{labels};
-    if ( reftype $elements eq 'HASH' ) {
-        $elements = [ keys %$elements ];
+    if (is_hashref($elements)) {
+        $elements = [keys %$elements];
     }
 
     foreach my $element (@$elements) {
@@ -3276,8 +3278,8 @@ sub delete_groups {
       if $self->get_output_ref_count;
 
     my $elements = $args{groups};
-    if ( reftype $elements eq 'HASH' ) {
-        $elements = [ keys %$elements ];
+    if (is_hashref($elements)) {
+        $elements = [keys %$elements];
     }
 
     foreach my $element (@$elements) {
@@ -3569,13 +3571,13 @@ sub get_range_intersection {
       || croak
       "[BaseData] get_range_intersection argument labels not specified\n";
     my $t = ref $labels;
-    ref($labels) =~ /ARRAY|HASH/
-      || croak
-"[BaseData] get_range_intersection argument labels not an array or hash ref\n";
 
-    $labels = [ keys %{$labels} ] if ( ref($labels) =~ /HASH/ );
-
-  #  now loop through the labels and get the groups that contain all the species
+    croak "[BaseData] get_range_intersection argument labels not an array or hash ref\n" 
+        if (!is_arrayref($labels) && !is_hashref($labels));
+    
+    $labels = [keys %{$labels}] if (is_hashref($labels));
+    
+    #  now loop through the labels and get the groups that contain all the species
     my $elements = {};
     foreach my $label (@$labels) {
         next
@@ -3607,13 +3609,12 @@ sub get_range_union {
 
     my $labels = $args{labels} // croak "argument labels not specified\n";
 
-    my $lref = reftype $labels;
 
     croak "argument labels not an array or hash ref"
-      if not $lref =~ /^(?:ARRAY|HASH)/;
+        if !is_arrayref($labels) && !is_hashref($labels);
 
-    if ( $lref eq 'HASH' ) {
-        $labels = [ keys %$labels ];
+    if (is_hashref($labels)) {
+        $labels = [keys %$labels];
     }
 
     #  now loop through the labels and get the elements they occur in

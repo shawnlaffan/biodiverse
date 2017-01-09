@@ -19,7 +19,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 
 #use File::BOM qw /:subs/;
-
+use Ref::Util qw { :all };
 use Biodiverse::Progress;
 
 my $EMPTY_STRING = q{};
@@ -259,8 +259,8 @@ sub _describe {
       /;
 
     foreach my $key (@keys) {
-        my $desc = $self->get_param($key);
-        if ( ( ref $desc ) =~ /ARRAY/ ) {
+        my $desc = $self->get_param ($key);
+        if (is_arrayref($desc)) {
             $desc = join q{, }, @$desc;
         }
         push @description, "$key: $desc";

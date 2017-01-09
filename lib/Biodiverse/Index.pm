@@ -23,8 +23,9 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
-use Scalar::Util qw /blessed reftype/;
+use Scalar::Util qw /blessed/;
 use List::Util;
+use Ref::Util qw { :all };
 
 use Biodiverse::Progress;
 
@@ -192,7 +193,7 @@ sub snap_to_index {
       || croak "element_array not specified\n";
 
     croak "element_array is not an array ref\n"
-      if ! ref ($element_array) =~ /ARRAY/;
+      if !is_arrayref($element_array);
 
     my @columns   = @$element_array;
     my @index_res = @{$self->get_param('RESOLUTIONS')};
@@ -308,14 +309,12 @@ sub get_index_elements {
             $self->set_cached_value (CSV_OBJECT => $csv_object);
         }
 
-        my $reftype_el = reftype ($element) // q{};
-        my $reftype_of = reftype ($offset)  // q{};
 
-        my @elements = ($reftype_el eq 'ARRAY')  #  is it an array already?
+        my @elements = (is_arrayref($element))  #  is it an array already?
             ? @$element
             : $self->csv2list (string => $element, csv_object => $csv_object);
 
-        my @offsets = ($reftype_of eq 'ARRAY')  #  is it also an array already?
+        my @offsets = (is_arrayref($offset))  #  is it also an array already?
             ? @$offset
             : $self->csv2list (string => $offset, csv_object => $csv_object);
 
@@ -355,7 +354,7 @@ sub get_index_elements {
                     $hashref->{$col} = $x;
                 };
         }
-        if (reftype ($hashref)) {
+        if (is_ref($hashref)) {
             $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
             $prev_hashref->{$elements[-1]} = $element;
         }
@@ -389,12 +388,12 @@ sub round_up_to_resolution {
     my $values = $args{values};
     #  if not an array then make it one
     #  woe betide the soul who passes a hash...
-    if ((ref $values) !~ /ARRAY/) {  
+    if (!is_arrayref($values)) {  
         $values = [($values) x scalar @$resolutions];
     }
     
     my $multipliers = $args{multipliers} // 1;
-    if ((ref $multipliers) !~ /ARRAY/) {  
+    if (!is_arrayref($multipliers)) {  
         $multipliers = [($multipliers) x scalar @$resolutions];
     }
     

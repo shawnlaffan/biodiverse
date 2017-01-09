@@ -14,14 +14,16 @@ use Gtk2;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-use Scalar::Util qw /reftype looks_like_number blessed/;
+use Scalar::Util qw /looks_like_number blessed/;
 use Geo::ShapeFile 2.54;    #  min version we neeed is 2.54
 use List::Util qw /all min/;
 use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
+use Ref::Util qw { :all };
 
-no warnings
-  'redefine';    #  getting redefine warnings, which aren't a problem for us
+
+
+no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
 use Biodiverse::GUI::Project;
 use Biodiverse::ElementProperties;
@@ -965,9 +967,9 @@ sub get_column_settings {
         }
         else {
             # initialise
-            if ( not exists $rest_of_options{$type}
-                or reftype( $rest_of_options{$type} ) eq 'ARRAY' )
-            {
+            if (not exists $rest_of_options{$type}
+                or is_arrayref($rest_of_options{$type})
+                ) {
                 $rest_of_options{$type} = [];
             }
             my $array_ref = $rest_of_options{$type};
@@ -1653,18 +1655,16 @@ sub add_row {
 
     $header //= q{};
 
-    if ( ( ref $row_options ) !~ /ARRAY/ or scalar @$row_options == 0 ) {
-        $row_options = [
-            qw /
-              Ignore
-              Label
-              Group
-              Text_group
-              Sample_counts
-              Include_columns
-              Exclude_columns
-              /
-        ];
+    if (!is_arrayref($row_options) or scalar @$row_options == 0) {
+        $row_options = [qw /
+            Ignore
+            Label
+            Group
+            Text_group
+            Sample_counts
+            Include_columns
+            Exclude_columns
+        /];
     }
 
     #  column number

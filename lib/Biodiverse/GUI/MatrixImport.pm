@@ -4,8 +4,7 @@ use strict;
 use warnings;
 use File::Basename;
 use Carp;
-use Scalar::Util qw /reftype/;
-
+use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
 
 use Gtk2;
@@ -271,8 +270,8 @@ sub make_columns_dialog_normal {
     my $wnd_main     = shift;
     my $type_options = shift;    #  array of types
 
-    if ( not defined $type_options or ( ref $type_options ) !~ /ARRAY/ ) {
-        $type_options = [ 'Ignore', 'Label', 'Matrix Start' ];
+    if (not defined $type_options or !is_arrayref($type_options)) {
+        $type_options = ['Ignore', 'Label', 'Matrix Start'];
     }
 
     my $num_columns = @$header;
@@ -435,10 +434,10 @@ sub import_sparse_format {
     my %import_args;
     foreach my $coltype ( keys %mapping ) {
         my $option = $mapping{$coltype};
-        my $aref   = $import_args{$coltype} = [];
-        my $cols   = $column_settings->{$option};
-        if ( !reftype $cols) {
-            $cols = [$cols];
+        my $aref = $import_args{$coltype} = [];
+        my $cols = $column_settings->{$option};
+        if (!is_ref($cols)) {
+            $cols = [$cols]
         }
         foreach my $col (@$cols) {
             push( @$aref, $col );

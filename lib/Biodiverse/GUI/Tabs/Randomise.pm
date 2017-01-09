@@ -15,8 +15,8 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
-
-use Scalar::Util qw /looks_like_number reftype/;
+use Ref::Util qw { :all };
+use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /first_index/;
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
@@ -653,7 +653,7 @@ sub on_run {
             $value //= "undef";
             $str_args .= "\t$arg\t= $value\n" ;
         }
-        elsif ((ref $value) =~ /ARRAY/) {
+        elsif (is_arrayref($value)) {
             $str_args .= "\t$arg\t= " . (scalar @$value) . "\n";
         }
     }
@@ -711,7 +711,7 @@ sub on_run {
         return;
     }
 
-    if ((reftype ($success) // 1) eq 'ARRAY') {
+    if (is_arrayref($success)) {
         #  we were passed an array of basedatas
         foreach my $bd (@$success) {
             $self->{gui}->get_project->add_base_data($bd);

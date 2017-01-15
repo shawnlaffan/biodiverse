@@ -908,6 +908,19 @@ sub copy_selected_tree_data_to_clipboard {
         }
     }
 
+    # if they've selected nothing, get everything
+    if(scalar @copy_strings == 0) {
+        say "Copying to clipboard -> copying everything.";
+        
+        foreach my $tree (@{$trees}) { 
+            my $selected_list = $self->get_comma_separated_complete_treeview_list ( 
+                tree => $tree,
+            );
+            foreach my $row (@$selected_list) {
+                push @copy_strings, $row;
+            }
+        }
+    }
     my $copy_string = join("\n", @copy_strings);
     my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
     $clipboard->set_text($copy_string);
@@ -919,7 +932,6 @@ sub copy_selected_tree_data_to_clipboard {
 sub get_comma_separated_selected_treeview_list {
     my ($self, %args) = @_;
     my $tree = $args{tree};
-
 
     my @value_list = ();
     
@@ -941,6 +953,34 @@ sub get_comma_separated_selected_treeview_list {
         push @value_list, $this_row;
     }
     
+    return \@value_list;
+}
+
+# get all rows of a treeview as comma separated strings.
+sub get_comma_separated_complete_treeview_list {
+    my ($self, %args) = @_;
+    
+    my $tree = $args{tree};
+    my $model = $tree->get_model();
+    my $columns = $model->get_n_columns();
+        
+    my @value_list = ();
+
+    my $iter = $model->get_iter_first();
+    while(defined $iter) {
+        my @column_data = ();
+        
+        foreach my $i (0..$columns-1) {
+            my $value = $model->get_value($iter, $i);
+            push @column_data, $value
+        }
+
+        my $this_row = join (",", @column_data);
+        push @value_list, $this_row;
+
+        $iter = $model->iter_next( $iter );
+    }
+
     return \@value_list;
 }
 

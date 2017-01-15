@@ -897,7 +897,7 @@ sub copy_selected_tree_data_to_clipboard {
     my ($self, %args) = @_;
     my $trees = $args{trees};
 
-    my @copy_strings;
+    my @copy_strings = ();
     foreach my $tree (@{$trees}) { 
         my $selected_list = $self->get_comma_separated_selected_treeview_list ( 
             tree => $tree,
@@ -921,12 +921,62 @@ sub copy_selected_tree_data_to_clipboard {
             }
         }
     }
+   
+    # Some tables don't contain all the fields. For consistency, we
+    # want to leave missing fields as empty comma separated values
+    # e.g. value1,value2,, rather than just value1,value2.
+    
+
+    # find out how many fields the biggest copy string uses.
+    my $max_comma_count = 0;
+    foreach my $copy_string (@copy_strings) {
+        my $comma_count = $copy_string =~ tr/,//;
+        $max_comma_count = $comma_count if( $comma_count > $max_comma_count ); 
+    }
+
+    # now pad out the other strings to use this many commas as well.
+    my @new_copy_strings = ();
+    foreach my $copy_string (@copy_strings) {
+        push ( @new_copy_strings, 
+               $self->pad_string_to_n_commas(str=>$copy_string, 
+                                      num_commas=>$max_comma_count)
+            );
+    }
+    @copy_strings = @new_copy_strings;
+    
+    # now add the appropriate number of headers on the front
+    my @headers = ("original_label", "remapped_label",
+                   "include", "edit_distance");
+
+    my $header_string = join(",", @headers[0..$max_comma_count]);
+    unshift @copy_strings, $header_string;
+
     my $copy_string = join("\n", @copy_strings);
+
     my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
     $clipboard->set_text($copy_string);
     say "Copied following data to clipboard:\n$copy_string";
 }
 
+
+# used to add additional rows to comma separated strings with missing
+# values. e.g. Value1,Value2 has to fit with Value1,Value2,Value3, so
+# we add a comma to the end.
+sub pad_string_to_n_commas {
+    my ($self, %args) = @_;
+    my $max_commas = $args{num_commas};
+    my $str = $args{str};
+    
+    my $comma_count = $str =~ tr/,//;
+    my $comma_delta = $max_commas - $comma_count;
+    return $str if($comma_delta <= 0);
+    
+    for(my $i=0; $i<$comma_delta; $i++) {
+        $str .= ",";
+    }
+
+    return $str;
+}
 
 # get selected rows of a treeview as comma separated strings.
 sub get_comma_separated_selected_treeview_list {

@@ -1148,7 +1148,10 @@ sub do_auto_remap {
 
     # get the remapping options e.g. new data source etc.
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_options = (gui => $gui, no_manual => 1);
+    my %remap_dlg_options = (gui => $gui, 
+                             no_manual => 1, 
+                             datasource_being_remapped => $ref);
+    
     my $remap_dlg_results  = $remapper->run_remap_gui( %remap_dlg_options );
 
     if ( $remap_dlg_results->{remap_type} eq "auto" ) {

@@ -62,12 +62,24 @@ sub run_remap_gui {
 
     ####
     # get the available options to remap labels to
-    # TODO don't allow remapping to yourself
+
     my @sources = ();
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
     push @sources, @{ $gui->get_project()->get_matrix_list() };
 
+    
+    # Don't show the datasource being remapped as an option to remap
+    # to. Only relevant for menu based remapping.
+    my @fixed_sources = ();
+    foreach my $source (@sources) {
+        if ($source != $args{datasource_being_remapped}) {
+            push @fixed_sources, $source;
+        }
+    }
+    @sources = @fixed_sources;
+
+    
     my @source_names;
     foreach my $source (@sources) {
         my $type = blessed $source;

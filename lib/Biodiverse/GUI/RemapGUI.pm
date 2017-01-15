@@ -58,8 +58,8 @@ sub run_remap_gui {
     my $self = shift;
     my %args = @_;
 
-    my $gui = $args{"gui"};
-    my $datasource_being_remapped = $args{datasource_being_remapped} // undef;
+    my $gui                       = $args{"gui"};
+    my $datasource_being_remapped = $args{datasource_being_remapped};
     
     ####
     # get the available options to remap labels to
@@ -912,7 +912,7 @@ sub copy_selected_tree_data_to_clipboard {
     if(scalar @copy_strings == 0) {
         say "Copying to clipboard -> copying everything.";
         
-        foreach my $tree (@{$trees}) { 
+        foreach my $tree (@$trees) { 
             my $selected_list = $self->get_comma_separated_complete_treeview_list ( 
                 tree => $tree,
             );
@@ -970,10 +970,8 @@ sub pad_string_to_n_commas {
     my $comma_count = $str =~ tr/,//;
     my $comma_delta = $max_commas - $comma_count;
     return $str if($comma_delta <= 0);
-    
-    for(my $i=0; $i<$comma_delta; $i++) {
-        $str .= ",";
-    }
+
+    $str .= ',' x $comma_delta;
 
     return $str;
 }

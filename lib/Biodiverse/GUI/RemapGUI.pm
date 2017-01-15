@@ -59,7 +59,8 @@ sub run_remap_gui {
     my %args = @_;
 
     my $gui = $args{"gui"};
-
+    my $datasource_being_remapped = $args{datasource_being_remapped} // undef;
+    
     ####
     # get the available options to remap labels to
 
@@ -67,18 +68,18 @@ sub run_remap_gui {
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
     push @sources, @{ $gui->get_project()->get_matrix_list() };
-
     
     # Don't show the datasource being remapped as an option to remap
     # to. Only relevant for menu based remapping.
-    my @fixed_sources = ();
-    foreach my $source (@sources) {
-        if ($source != $args{datasource_being_remapped}) {
-            push @fixed_sources, $source;
+    if(defined $datasource_being_remapped) {
+        my @fixed_sources = ();
+        foreach my $source (@sources) {
+            if ($source != $datasource_being_remapped) {
+                push @fixed_sources, $source;
+            }
         }
+        @sources = @fixed_sources;
     }
-    @sources = @fixed_sources;
-
     
     my @source_names;
     foreach my $source (@sources) {
@@ -172,6 +173,13 @@ sub run_remap_gui {
     }
     $vbox->pack_start( $hbox,  0, 0, 0 );
     $vbox->pack_start( $table, 0, 0, 0 );
+
+    # if there are no data sources available, disable the auto
+    # remap options.    
+    if( scalar @sources == 0 ) {
+        $auto_checkbutton->set_active(0);
+        $auto_checkbutton->set_sensitive(0);
+    }
 
     $dlg->show_all;
 

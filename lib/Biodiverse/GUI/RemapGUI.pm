@@ -259,44 +259,15 @@ sub perform_remap {
 
     
     # now build the remap we actually want to perform
-
-    # remove parts which aren't enabled
-    if ( !$remap_results_response->{punct_match_enabled} ) {
-        my @punct_matches = @{ $remap_results->{punct_matches} };
-        foreach my $key (@punct_matches) {
-            delete $remap->{$key};
-            say "RemapGUI: deleted $key because it was punct matched";
-        }
-    }
-
-    if ( !$remap_results_response->{typo_match_enabled} ) {
-        my @typo_matches = @{ $remap_results->{typo_matches} };
-        foreach my $key (@typo_matches) {
-            delete $remap->{$key};
-            say "RemapGUI: deleted $key because it was typo matched";
-        }
-    }
-
-    # remove specific exclusions
-    my @exclusions = @{ $remap_results_response->{exclusions} };
-    foreach my $key (@exclusions) {
-        delete $remap->{$key};
-        say "Deleted $key because it was excluded by the checkboxes.";
-    }
-
-
-    # remove exact matches and not matches here as well
-    my @keys = keys %{$remap};
-    foreach my $key (@keys) {
-        if ($key eq $remap->{$key}) {
-            delete $remap->{$key};
-            say "Deleted $key because it mapped to itself.";
-        }
-    }
+    $remap = $self->build_remap_hash_from_exclusions(
+        %$remap_results_response,
+        remap => $remap,
+        punct_matches => $remap_results->{punct_matches},
+        typo_matches => $remap_results->{typo_matches},
+        );
 
     
     if ( $response eq 'yes' ) {
-        
         # actually perform the remap on the data source
         if( $remapping_multiple_sources ) {
             foreach my $source (@$new_source) {
@@ -615,6 +586,52 @@ sub build_bland_tree {
     return $tree;
 }
 
+
+# given the return values from remap_results_dialog, figures out a
+# clean remap hash. Can also be used for 'live'
+# exporting. (i.e. before the remap has been accepted)
+
+# expects an args hash with a remap, punct_match_enabled,
+# typo_match_enabled, puct_matches, typo_matches, exclusions
+sub build_remap_hash_from_exclusions {
+    my ($self, %args) = @_;
+    my $remap = $args{remap};
+    
+    # remove parts which aren't enabled
+    if ( !$args{punct_match_enabled} ) {
+        my @punct_matches = @{ $args{punct_matches} };
+        foreach my $key (@punct_matches) {
+            delete $remap->{$key};
+            say "RemapGUI: deleted $key because it was punct matched";
+        }
+    }
+
+    if ( !$args{typo_match_enabled} ) {
+        my @typo_matches = @{ $args{typo_matches} };
+        foreach my $key (@typo_matches) {
+            delete $remap->{$key};
+            say "RemapGUI: deleted $key because it was typo matched";
+        }
+    }
+
+    # remove specific exclusions
+    my @exclusions = @{ $args{exclusions} };
+    foreach my $key (@exclusions) {
+        delete $remap->{$key};
+        say "Deleted $key because it was excluded by the checkboxes.";
+    }
+
+    # remove exact matches and not matches here as well
+    my @keys = keys %{$remap};
+    foreach my $key (@keys) {
+        if ($key eq $remap->{$key}) {
+            delete $remap->{$key};
+            say "Deleted $key because it mapped to itself.";
+        }
+    }
+
+    return $remap;
+}
 
 sub build_typo_tree {
     my ( $self, %args ) = @_;

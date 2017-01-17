@@ -41,7 +41,7 @@ use constant DISTANCE_COLUMN_TOOLTIP
     => "Number of character changes to get from the original label to the remapped label";
 use constant COPY_BUTTON_TOOLTIP        
     => "Copy a comma separated representation of the selected rows to the clipboard";
-use constant EXPORT_CHECKBUTTON_TOOLTIP 
+use constant EXPORT_BUTTON_TOOLTIP 
     => "Save the remapped data source to a file";
 use constant IGNORE_CASE_TOOLTIP
     => "Treat case difference as punctuation rather than typos.";
@@ -284,14 +284,6 @@ sub perform_remap {
             );
         }
 
-        # possibly export the new remapping
-        if( $remap_results_response->{export_results} ) {
-            my $exporter = Biodiverse::ExportRemap->new();
-            $exporter->export_remap ( remap => $remap );
-        }
-
-        
-        
         say "Performed automatic remap.";
         return 1;
     }
@@ -389,14 +381,7 @@ sub remap_results_dialog {
     ###
     # Accept label
     my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
-
-    ###
-    # Export checkbox 
-    my $export_checkbutton 
-        = Gtk2::CheckButton->new("Export remapped data to new file");
-    
-    $export_checkbutton->set_active(0);
-    $export_checkbutton->set_tooltip_text(EXPORT_CHECKBUTTON_TOOLTIP);
+ 
     
     # 'copy selection to clipboard' button
     my $copy_button 
@@ -411,8 +396,26 @@ sub remap_results_dialog {
     });
 
 
-
+    # export remap to file button
+    my $export_button 
+        = Gtk2::Button->new_with_label("Export remap to file.");
+    $export_button->set_tooltip_text(EXPORT_BUTTON_TOOLTIP);
     
+    $export_button->signal_connect('clicked' => sub {
+        # put the action for the export button here LUKE
+        $remap = $self->build_remap_hash_from_exclusions(
+            remap => $remap,
+            punct_match_enabled => $punct_match_checkbutton->get_active,
+            typo_match_enabled => $typo_match_checkbutton->get_active,
+            exclusions => $self->get_exclusions,
+            punct_matches => \@punct_matches,
+            typo_matches => \@typo_matches,
+            );
+
+        my $exporter = Biodiverse::ExportRemap->new();
+        $exporter->export_remap ( remap => $remap );
+    });
+
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
@@ -479,8 +482,8 @@ sub remap_results_dialog {
     
     $vbox->pack_start($outer_scroll, 1, 1, 0);
     $vbox->pack_start( $copy_button, 0, 0, 0 );
+    $vbox->pack_start( $export_button, 0, 1, 0 );
     $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
-    $vbox->pack_start( $export_checkbutton, 0, 1, 0 );
 
     
     $dlg->show_all;
@@ -507,7 +510,6 @@ sub remap_results_dialog {
         response            => $response,
         punct_match_enabled => $punct_match_checkbutton->get_active,
         typo_match_enabled  => $typo_match_checkbutton->get_active,
-        export_results      => $export_checkbutton->get_active,
         exclusions          => $self->get_exclusions,
     );
 

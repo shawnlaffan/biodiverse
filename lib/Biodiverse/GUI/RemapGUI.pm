@@ -436,21 +436,21 @@ sub remap_results_dialog {
     # build vboxes and frames for each of the main match types
     my @components = ($exact_match_scroll);
     my $exact_frame = $self->build_vertical_frame (
-        label => "$exact_match_count Exact Matches",
+        label => "Exact Matches: $exact_match_count",
         components => [$exact_match_scroll],
         fill => [1],
         tooltip => EXACT_MATCH_PANEL_TOOLTIP,
         );
     
     my $not_matched_frame = $self->build_vertical_frame (
-        label => "$not_matched_count Not Matched",
+        label => "Not Matched: $not_matched_count",
         components => [$not_matched_scroll],
         fill => [1],
         tooltip => NOT_MATCHED_PANEL_TOOLTIP,
         );
 
     my $punct_frame = $self->build_vertical_frame (
-        label => "$punct_match_count Punctuation Matches ".
+        label => "Punctuation Matches: $punct_match_count ".
                  "(labels within 'max distance' edits of an exact match)",
         components => [$punct_match_checkbutton, $punct_match_scroll],
         fill => [0, 1],
@@ -458,7 +458,7 @@ sub remap_results_dialog {
         );
 
     my $typo_frame = $self->build_vertical_frame (
-        label => "$typo_match_count Possible Typos",
+        label => "Possible Typos: $typo_match_count",
         components => [$typo_match_checkbutton, $typo_match_scroll],
         fill => [0, 1],
         tooltip => TYPO_MATCH_PANEL_TOOLTIP,

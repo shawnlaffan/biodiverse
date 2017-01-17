@@ -503,6 +503,9 @@ sub remap_results_dialog {
         $typo_match_checkbutton->set_active(0);
         $typo_match_scroll->hide;
     }
+    if (!$not_matched_count) {
+        $not_matched_scroll->hide;
+    }
 
     my $response = $dlg->run();
 

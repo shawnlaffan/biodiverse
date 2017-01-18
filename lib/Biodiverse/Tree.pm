@@ -200,9 +200,11 @@ sub delete_from_node_hash {
     my %args = @_;
 
     if ( $args{node} ) {
-        delete $self->{TREE_BY_NAME}{ $args{node} }
-          ;    #  $args{node} implies single deletion
+        #  $args{node} implies single deletion
+        delete $self->{TREE_BY_NAME}{ $args{node} };
     }
+
+    return if !$args{nodes};
 
     my @list;
     if (is_hashref($args{nodes})) {
@@ -244,6 +246,33 @@ sub add_to_node_hash {
 
     $self->{TREE_BY_NAME}{$name} = $node_ref;
     return $node_ref if defined wantarray;
+}
+
+sub rename_node {
+    my $self = shift;
+    my %args = @_;
+
+    my $new_name = $args{new_name}
+      // croak "new_name arg not passed";
+    my $node_ref = $args{node_ref};
+
+    my $old_name;
+    if (!$node_ref) {
+        $old_name = $args{old_name} // $args{node_name} // $args{name}
+          // croak "old_name or node_ref arg not passed\n";
+        $node_ref = $self->get_node_ref_aa ($old_name);
+    }
+    else {
+        $old_name = $node_ref->get_name;
+    }
+
+    croak "Cannot rename over an existing node"
+      if $self->exists_node(name => $new_name);
+
+    $node_ref->rename (new_name => $new_name);
+    $self->add_to_node_hash (node_ref => $node_ref);
+    $self->delete_from_node_hash(node => $old_name);
+    return;
 }
 
 #  does this node exist already?
@@ -2560,16 +2589,27 @@ sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
     my $remap_hash = $args{remap};
+    no autovivification;
 
-    foreach my $r ( keys %{$remap_hash} ) {
+    foreach my $r ( keys %$remap_hash ) {
+        next if !$self->exists_node (name => $r);
+
         my $new_name = $remap_hash->{$r};
-        
-        my $this_node = $self->{TREE_BY_NAME}{$r};
-        $this_node->set_name( name => $new_name );
+        $self->rename_node (
+            old_name => $r,
+            new_name => $new_name,
+        );
 
-        if ( !$self->exists_node( name => $new_name ) ) {
-            $self->add_to_node_hash( node_ref => $this_node );
-        }
+        #my $this_node = $self->{TREE_BY_NAME}{$r};
+        ##  we might have already remapped it or it does not exist
+        ##  (can happen for multiple tree imports)
+        #next if !$this_node;
+        #
+        #$this_node->set_name( name => $new_name );
+        #
+        #if ( !$self->exists_node( name => $new_name ) ) {
+        #    $self->add_to_node_hash( node_ref => $this_node );
+        #}
     }
 
     # clear all cached values

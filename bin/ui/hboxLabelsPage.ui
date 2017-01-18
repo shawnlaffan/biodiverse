@@ -1,147 +1,13 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment3">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment4">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment5">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment6">
-    <property name="upper">0</property>
-    <property name="lower">0</property>
-    <property name="page_increment">0</property>
-    <property name="step_increment">0</property>
-    <property name="page_size">0</property>
-    <property name="value">0</property>
-  </object>
-  <object class="GtkUIManager" id="uimanager1">
-    <child>
-      <object class="GtkActionGroup" id="actiongroup1">
-        <child>
-          <object class="GtkAction" id="menuitem9">
-            <property name="name">menuitem9</property>
-            <property name="label" translatable="yes">Display</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_labels_grid">
-            <property name="name">menuitem_labels_grid</property>
-            <property name="label" translatable="yes">Grid</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleAction" id="menuitem_labels_show_legend">
-            <property name="active">True</property>
-            <property name="name">menuitem_labels_show_legend</property>
-            <property name="tooltip" translatable="yes">Show or hide the legend</property>
-            <property name="label" translatable="yes">Show legend</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_labels_overlays">
-            <property name="name">menuitem_labels_overlays</property>
-            <property name="label" translatable="yes">Overlays...</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_labels_tree">
-            <property name="name">menuitem_labels_tree</property>
-            <property name="label" translatable="yes">Tree</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="phylogeny_plot_length">
-            <property name="active">True</property>
-            <property name="name">phylogeny_plot_length</property>
-            <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
-            <property name="label" translatable="yes">Length</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkRadioAction" id="phylogeny_plot_depth">
-            <property name="group">phylogeny_plot_length</property>
-            <property name="name">phylogeny_plot_depth</property>
-            <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
-            <property name="label" translatable="yes">Depth</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleAction" id="highlight_groups_on_map_labels_tab">
-            <property name="active">True</property>
-            <property name="name">highlight_groups_on_map_labels_tab</property>
-            <property name="tooltip" translatable="yes">Highlight groups under this node when hovering on the node</property>
-            <property name="label" translatable="yes">Highlight groups on map?</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkToggleAction" id="use_highlight_path_changed1">
-            <property name="active">True</property>
-            <property name="name">use_highlight_path_changed1</property>
-            <property name="tooltip" translatable="yes">Highlight paths on the tree for groups when you hover the mouse on them</property>
-            <property name="label" translatable="yes">Highlight node paths for groups?</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menuitem_labels_set_tree_line_widths">
-            <property name="name">menuitem_labels_set_tree_line_widths</property>
-            <property name="tooltip" translatable="yes">Set the width of the tree branches.
-Does not affect the vertical connectors. </property>
-            <property name="label" translatable="yes">Set tree branch line widths</property>
-          </object>
-        </child>
-      </object>
-    </child>
-    <ui>
-      <menubar name="menubarLabelsOptions">
-        <menu action="menuitem9">
-          <menuitem action="menuitem_labels_grid"/>
-          <menuitem action="menuitem_labels_show_legend"/>
-          <menuitem action="menuitem_labels_overlays"/>
-          <separator/>
-          <menuitem action="menuitem_labels_tree"/>
-          <menuitem action="phylogeny_plot_length"/>
-          <menuitem action="phylogeny_plot_depth"/>
-          <menuitem action="highlight_groups_on_map_labels_tab"/>
-          <menuitem action="use_highlight_path_changed1"/>
-          <menuitem action="menuitem_labels_set_tree_line_widths"/>
-        </menu>
-      </menubar>
-    </ui>
-  </object>
+  <!-- interface-requires gtk+ 2.12 -->
+  <!-- interface-naming-policy toplevel-contextual -->
+  <object class="GtkAdjustment" id="adjustment1"/>
+  <object class="GtkAdjustment" id="adjustment2"/>
+  <object class="GtkAdjustment" id="adjustment3"/>
+  <object class="GtkAdjustment" id="adjustment4"/>
+  <object class="GtkAdjustment" id="adjustment5"/>
+  <object class="GtkAdjustment" id="adjustment6"/>
   <object class="GtkHBox" id="hboxLabelsPage">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -157,14 +23,14 @@ Does not affect the vertical connectors. </property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
-            <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+            <property name="tooltip_text" translatable="yes">Select (S or B)</property>
             <child>
               <object class="GtkToggleButton" id="btnSelectToolVL">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Select (S or B)</property>
+                <property name="tooltip_text" translatable="yes">Select (S or B)</property>
                 <child>
                   <object class="GtkImage" id="imageSelectTool1">
                     <property name="visible">True</property>
@@ -184,14 +50,14 @@ Does not affect the vertical connectors. </property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="has_tooltip">True</property>
-            <property name="tooltip-text" translatable="yes">Pan (C)</property>
+            <property name="tooltip_text" translatable="yes">Pan (C)</property>
             <child>
               <object class="GtkToggleButton" id="btnPanToolVL">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Pan (C)</property>
+                <property name="tooltip_text" translatable="yes">Pan (C)</property>
                 <child>
                   <object class="GtkImage" id="imagePanTool1">
                     <property name="visible">True</property>
@@ -210,14 +76,14 @@ Does not affect the vertical connectors. </property>
           <object class="GtkToolItem" id="toolitemLabelsZoom">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
+            <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomInToolVL">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom In (Z)</property>
+                <property name="tooltip_text" translatable="yes">Zoom In (Z)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomTool1">
                     <property name="visible">True</property>
@@ -236,14 +102,14 @@ Does not affect the vertical connectors. </property>
           <object class="GtkToolItem" id="toolitemLabelsZoomOut">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
+            <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomOutToolVL">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom Out (X)</property>
+                <property name="tooltip_text" translatable="yes">Zoom Out (X)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomOutTool1">
                     <property name="visible">True</property>
@@ -262,14 +128,14 @@ Does not affect the vertical connectors. </property>
           <object class="GtkToolItem" id="toolitemLabelsZoomFit">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
+            <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
             <child>
               <object class="GtkToggleButton" id="btnZoomFitToolVL">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip-text" translatable="yes">Zoom to Fit (V)</property>
+                <property name="tooltip_text" translatable="yes">Zoom to Fit (V)</property>
                 <child>
                   <object class="GtkImage" id="imageZoomFitTool1">
                     <property name="visible">True</property>
@@ -289,10 +155,129 @@ Does not affect the vertical connectors. </property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkMenuBar" constructor="uimanager1" id="menubarLabelsOptions">
+              <object class="GtkMenuBar" id="menubarLabelsOptions">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="pack_direction">ttb</property>
+                <child>
+                  <object class="GtkMenuItem" id="menuitem9x">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Display</property>
+                    <property name="use_underline">True</property>
+                    <child type="submenu">
+                      <object class="GtkMenu" id="menu1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_grid">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Grid</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="menuitem_labels_show_legend">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Show or hide the legend</property>
+                            <property name="label" translatable="yes">Show legend</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_overlays">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Overlays...</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_tree">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Tree</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_tree1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">menuitem1</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkRadioMenuItem" id="phylogeny_plot_length">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Plot branches using their lengths.	</property>
+                            <property name="label" translatable="yes">Length</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                            <property name="draw_as_radio">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkRadioMenuItem" id="phylogeny_plot_depth">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Plot branches as a function of depth from the root node.</property>
+                            <property name="label" translatable="yes">Depth</property>
+                            <property name="use_underline">True</property>
+                            <property name="draw_as_radio">True</property>
+                            <property name="group">phylogeny_plot_length</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">When hovering on a branch,
+highlight the groups on the grid 
+in which it is found.
+</property>
+                            <property name="label" translatable="yes">Highlight groups on map?</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="use_highlight_path_changed1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">When hovering over a cell on the map,
+highlight the paths from the tip to the root of the tree
+for labels found in that group. </property>
+                            <property name="label" translatable="yes">Highlight node paths for groups?</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_labels_set_tree_line_widths">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Set the width of the tree branches.
+Does not affect the vertical connectors.</property>
+                            <property name="label" translatable="yes">Set tree branch line widths</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -324,7 +309,7 @@ Does not affect the vertical connectors. </property>
                   <object class="GtkScrolledWindow" id="scrolledwindow_labels1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip-text" translatable="yes">Sorting this list also sorts the rows of the matrix (if one is displayed).</property>
+                    <property name="tooltip_text" translatable="yes">Sorting this list also sorts the rows of the matrix (if one is displayed).</property>
                     <property name="shadow_type">in</property>
                     <child>
                       <object class="GtkTreeView" id="listLabels1">
@@ -349,7 +334,7 @@ Does not affect the vertical connectors. </property>
                       <object class="GtkTreeView" id="listLabels2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="tooltip-text" translatable="yes">Sorting this list also sorts the columns of the matrix.</property>
+                        <property name="tooltip_text" translatable="yes">Sorting this list also sorts the columns of the matrix.</property>
                       </object>
                     </child>
                   </object>

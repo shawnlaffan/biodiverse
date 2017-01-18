@@ -1088,8 +1088,12 @@ sub import_data {
                     }
                     if (! looks_like_number ($coord)) {
                         #next BYLINE if $skip_lines_with_undef_groups;
+                        my $one_based_column = $column + 1;
+                        
                         croak "[BASEDATA] Non-numeric group field in column $column"
-                             . " ($coord), check your data or cellsize arguments.\n"
+                             . " ($coord) \n(column count starts at 0,"
+                             . " you may need to check column $one_based_column)."
+                             . " Check your data or cellsize arguments.\n"
                              . "near line $line_num of file $file\n";
                     }
                 }

@@ -520,7 +520,7 @@ sub get_elements {
     my $self = shift;
 
     return if !exists $self->{ELEMENTS};
-    return if ( scalar keys %{ $self->{ELEMENTS} } ) == 0;
+    return if !scalar keys %{ $self->{ELEMENTS} };
 
     return wantarray ? %{ $self->{ELEMENTS} } : $self->{ELEMENTS};
 }
@@ -565,11 +565,7 @@ sub get_element_pairs_with_value {
 
     my $val = $args{value};
 
-    #my $val_key = $val;
-    #if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
-    #    $val_key = sprintf $prec, $val;
-    #}
-    my $val_key = $self->get_value_index_key( value => $val );
+    my $val_key = $self->get_value_index_key (value => $val);
 
     my %results;
 
@@ -578,11 +574,12 @@ sub get_element_pairs_with_value {
 
     while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
         foreach my $el2 ( keys %$hash_ref ) {
-            my $value =
-              $self->get_defined_value( element1 => $el1, element2 => $el2 );
-            next
-              if $val ne
-              $value;    #  stringification implicitly uses %.15f precision
+            my $value = $self->get_defined_value(
+                element1 => $el1,
+                element2 => $el2
+            );
+            #  stringification implicitly uses %.15f precision
+            next if $val ne $value;    
             $results{$el1}{$el2}++;
         }
     }
@@ -609,8 +606,10 @@ sub get_element_values {    #  get all values associated with one element
             )
           )
         {
-            $values{$el} =
-              $self->get_value( element1 => $el, element2 => $args{element} );
+            $values{$el} = $self->get_value(
+                element1 => $el,
+                element2 => $args{element}
+            );
         }
     }
 
@@ -633,9 +632,9 @@ sub numerically { $a <=> $b }
 
 # wrapper around get_elements_as_array for the purpose of polymorphism in
 # the auto-remap logic.
-sub get_labels() {
+sub get_labels {
     my $self = shift;
-    return $self->get_elements_as_array();
+    return $self->get_elements_as_array;
 }
 
 # takes a hash mapping names of elements currently in this matrix to
@@ -645,22 +644,18 @@ sub remap_labels_from_hash {
     my %args       = @_;
     my %remap_hash = %{ $args{remap} };
 
-    
-    my @old_names = keys(%remap_hash);
+    my @old_names = keys %remap_hash;
     foreach my $old_name (@old_names) {
         my $new_name = $remap_hash{$old_name};
         #say "About to rename $old_name to $new_name";
-        if(!($old_name eq $new_name)) {
-
-            $self->rename_element(
-                old_name => $old_name,
-                new_name => $new_name,
-            );
-        }
-        else {
-            #say "They're the same!!";
-        }
+        next if $old_name eq $new_name;
+        $self->rename_element(
+            old_name => $old_name,
+            new_name => $new_name,
+        );
     }
+
+    return;
 }
 
 # renames element 'old_name' to 'new_name'
@@ -668,28 +663,27 @@ sub rename_element {
     my $self = shift;
     my %args = @_;
 
-
-    my $old_name = $args{"old_name"};
-    my $new_name = $args{"new_name"};
+    my $old_name = $args{old_name};
+    my $new_name = $args{new_name};
 
     #say "Matrix: renaming $old_name to $new_name";
 
-    
-    my @all_elements = $self->get_elements_as_array();
+    my $all_elements = $self->get_elements_as_array;
 
-    for my $element (@all_elements) {
-        my $exists = $self->element_pair_exists(
+    for my $element (@$all_elements) {
+        my $exists = $self->element_pair_exists (
             element1 => $element,
             element2 => $old_name
         );
 
-        #say "Dealing with pair $element, $old_name, exists is $exists";
-        
+        next if !$exists;
+
         # pair is in correct order
         if ( $exists == 1 ) {
-            my $value =
-                $self->get_value( element1 => $element, element2 => $old_name );
-
+            my $value = $self->get_value(
+                element1 => $element,
+                element2 => $old_name
+            );
 
             if ( $element eq $old_name ) {
                 $self->add_element(
@@ -714,11 +708,12 @@ sub rename_element {
                 );
             }
         }
-
-        # pair is in other order
         elsif ( $exists == 2 ) {
-            my $value =
-              $self->get_value( element1 => $old_name, element2 => $element );
+            # pair is in other order
+            my $value = $self->get_value(
+                element1 => $old_name,
+                element2 => $element,
+            );
             $self->add_element(
                 element1 => $new_name,
                 element2 => $element,
@@ -729,13 +724,8 @@ sub rename_element {
                 element2 => $element
             );
         }
-
-        # pair doesn't exist
-        else {
-            # do nothing
-        }
     }
-
+    return;
 }
 
 1;

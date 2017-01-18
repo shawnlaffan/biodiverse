@@ -129,7 +129,8 @@ sub test_remap_labels_from_hash {
 
     my %remap;
     my @expected_new_labels;
-    foreach my $label ($mx->get_labels()) {
+    #  convert to a map
+    foreach my $label ($mx->get_labels) {
         $remap{$label} = uc( $label );
         push( @expected_new_labels, uc $label );
     }

@@ -127,28 +127,21 @@ sub _test_trim {
 sub test_remap_labels_from_hash {
     my $mx = create_matrix_object();
 
-    my %remap;
-    my @expected_new_labels;
-    #  convert to a map
-    foreach my $label ($mx->get_labels) {
-        $remap{$label} = uc( $label );
-        push( @expected_new_labels, uc $label );
+    my (%remap, @expected_new_labels);
+    foreach my $label (sort $mx->get_labels) {
+        $remap{$label} = uc $label;
+        push @expected_new_labels, uc $label;
     }
 
-    $mx->remap_labels_from_hash(remap => \%remap);
-       
-    my @actual_new_labels = $mx->get_labels();
+    $mx->remap_labels_from_hash (remap => \%remap);
 
-    
+    my @actual_new_labels = sort $mx->get_labels;
+
     # make sure everything we expect is there
-    foreach my $label (@expected_new_labels) {
-        ok( grep( /^$label$/, @actual_new_labels ), "Labels contain $label");
-    }
-
-    # make sure nothing else is there
-    foreach my $label (@actual_new_labels) {
-        ok( grep( /^$label$/, @expected_new_labels ), "Expected contains $label");
-    }
+    is_deeply
+      \@actual_new_labels,
+      \@expected_new_labels,
+      'Got expected labels';
 
 }
 

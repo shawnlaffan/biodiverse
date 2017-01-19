@@ -125,24 +125,31 @@ sub _test_trim {
 }
 
 sub test_remap_labels_from_hash {
-    my $mx = create_matrix_object();
+    my $mx_main = create_matrix_object();
+    #  make sure we test symmetric pair existence, e.g. a:c and c:a
+    $mx_main->add_element (element1 => 'a', element2 => 'c', value => 10);
 
+    my $mx_lowmem = $mx_main->clone->to_lowmem;
+    
     my (%remap, @expected_new_labels);
-    foreach my $label (sort $mx->get_labels) {
+    foreach my $label (sort $mx_main->get_labels) {
         $remap{$label} = uc $label;
         push @expected_new_labels, uc $label;
     }
 
-    $mx->remap_labels_from_hash (remap => \%remap);
+    foreach my $data (['normal', $mx_main], ['lowmem', $mx_lowmem]) {
+        my ($label, $mx) = @$data;
 
-    my @actual_new_labels = sort $mx->get_labels;
-
-    # make sure everything we expect is there
-    is_deeply
-      \@actual_new_labels,
-      \@expected_new_labels,
-      'Got expected labels';
-
+        $mx->remap_labels_from_hash (remap => \%remap);
+    
+        my @actual_new_labels = sort $mx->get_labels;
+    
+        # make sure everything we expect is there
+        is_deeply
+          \@actual_new_labels,
+          \@expected_new_labels,
+          "Got expected labels for $label matrix using hash remap";
+    }
 }
 
 sub test_remap_mismatched_labels {

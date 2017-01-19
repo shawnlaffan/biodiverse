@@ -405,7 +405,9 @@ sub get_summary_stats {
     return wantarray ? %stats : \%stats;
 }
 
-sub add_element {    #  add an element pair to the object
+#  add an element pair to the object
+#  should throw an exception if it already exists
+sub add_element {    
     my $self = shift;
     my %args = @_;
 
@@ -707,8 +709,13 @@ sub rename_element {
                     element2 => $old_name
                 );
             }
+            #  now make sure we check for the reverse
+            $exists = $self->element_pair_exists (
+                element1 => $element,
+                element2 => $old_name
+            );
         }
-        elsif ( $exists == 2 ) {
+        if ( $exists == 2 ) {
             # pair is in other order
             my $value = $self->get_value(
                 element1 => $old_name,

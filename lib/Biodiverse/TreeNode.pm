@@ -16,7 +16,7 @@ use List::MoreUtils qw /uniq/;
 
 use Gtk2;
 use Biodiverse::BaseStruct;
-use Biodiverse::BootstrapBlock;
+use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
@@ -56,7 +56,9 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_value( bootstrap_block => Biodiverse::BootstrapBlock->new() );
+    $self->set_value(
+        bootstrap_block => Biodiverse::TreeNode::BootstrapBlock->new(),
+    );
     
     return $self;
 }
@@ -1926,7 +1928,6 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     }
         
     my $bootstrap_block = $self->get_value("bootstrap_block");
-    say "bootstrap_block is $bootstrap_block";
     
     my $bootstrap_string = 
         $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);

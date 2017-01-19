@@ -1,4 +1,4 @@
-package Biodiverse::BootstrapBlock;
+package Biodiverse::TreeNode::BootstrapBlock;
 
 use strict;
 use warnings;

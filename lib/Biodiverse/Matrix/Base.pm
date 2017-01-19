@@ -1088,13 +1088,13 @@ sub get_labels {
 sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
-    my %remap_hash = %{ $args{remap} };
+    my $remap_hash = $args{remap};
 
-    my @old_names = keys %remap_hash;
-    foreach my $old_name (@old_names) {
-        my $new_name = $remap_hash{$old_name};
-        #say "About to rename $old_name to $new_name";
+    foreach my $old_name (keys %$remap_hash) {
+        my $new_name = $remap_hash->{$old_name};
+
         next if $old_name eq $new_name;
+
         $self->rename_element(
             old_name => $old_name,
             new_name => $new_name,

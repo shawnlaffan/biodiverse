@@ -68,11 +68,15 @@ sub decode_bootstrap_block {
 # excluded_keys is an array ref of keys not to include in the block
 sub encode_bootstrap_block {
     my ($self, %args) = @_;
-    my @excluded_keys = @{$args{exclusions}};
-
     my %boot_values = %$self;
-    delete $boot_values{@excluded_keys};
-        
+    
+    if($args{exclusions}) {
+        my @excluded_keys = @{$args{exclusions}};
+        foreach my $exclusion (@excluded_keys) {
+            delete $boot_values{$exclusion};
+        }
+    }
+    
     my $json_string = encode_json \%boot_values;
 
     # the json encoder uses { and } to delimit data, but bootstrap

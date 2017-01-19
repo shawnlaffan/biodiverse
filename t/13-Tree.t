@@ -41,6 +41,7 @@ sub main {
                 if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
             $func->();
         }
+
         done_testing;
         return 0;
     }
@@ -698,6 +699,52 @@ sub test_rescale_by_longest_path {
     
 }
 
+sub test_remap_labels_from_hash {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $tree1->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $tree1->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = sort $tree1->get_labels();
+
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" );
+}
+
+sub test_remap_mismatched_labels {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $tree1->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    # now also add in some junk remap values (might come up say when
+    # applying a multiple tree remap to a single tree)
+    foreach my $number (0..10) {
+        $remap{"junkkey$number"} = "junkvalue$number";
+    }
+
+    eval { $tree1->remap_labels_from_hash(remap => \%remap); };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "got no exception from mismatched remap");
+
+    my @actual_new_labels = sort $tree1->get_labels();
+
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" );
+}
+
 
 sub test_depth {
     my $tree = Biodiverse::Tree->new (NAME => 'test depth');
@@ -813,6 +860,8 @@ sub get_site_data_newick_tree {
     }
     croak "should not get this far\n";
 }
+
+
 
 
 

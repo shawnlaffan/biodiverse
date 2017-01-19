@@ -159,6 +159,18 @@ sub delete_cached_values_below {
     return;
 }
 
+#  almost the same as set_name
+#  but the args differ
+sub rename {
+    my $self = shift;
+    my %args = @_;
+
+    croak "new_name argument missing\n"
+      if not defined $args{new_name};
+
+    $self->{NODE_VALUES}{NAME} = $args{new_name};
+    return;
+}
 
 sub set_name {
     my $self = shift;

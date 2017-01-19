@@ -67,6 +67,7 @@ WriteMakefile(
         "Cpanel::JSON::XS" => 3,
         "JSON::MaybeXS" => 1.003,
         "Sort::Naturally" => 0,
+        "Text::Fuzzy" => 0,
         "Ref::Util" => "0.101",
     },
     BUILD_REQUIRES => {

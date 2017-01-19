@@ -145,6 +145,35 @@ sub test_remap_labels_from_hash {
 
 }
 
+sub test_remap_mismatched_labels {
+    my $mx = create_matrix_object();
+
+    my (%remap, @expected_new_labels);
+    foreach my $label (sort $mx->get_labels) {
+        $remap{$label} = uc $label;
+        push @expected_new_labels, uc $label;
+    }
+
+    # now also add in some junk remap values (might come up say when
+    # applying a multiple tree remap to a single tree)
+    foreach my $number (0..10) {
+        $remap{"junkkey$number"} = "junkvalue$number";
+    }
+    
+    eval { $mx->remap_labels_from_hash(remap => \%remap); };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "got no exception from mismatched remap");
+    
+    my @actual_new_labels = sort $mx->get_labels;
+
+    # make sure everything we expect is there
+    is_deeply
+        \@actual_new_labels,
+        \@expected_new_labels,
+        'Got expected labels';
+}
+
+
 
 
 

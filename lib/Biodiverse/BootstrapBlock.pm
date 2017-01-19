@@ -65,10 +65,15 @@ sub decode_bootstrap_block {
 # returns the values in this object formatted so they are ready to be
 # written straight to a nexus/newick file.
 # e.g. returns "["color":"#ffffff","foo":"bar"]" etc.
+# excluded_keys is an array ref of keys not to include in the block
 sub encode_bootstrap_block {
-    my ($self, %args) = @_;  
+    my ($self, %args) = @_;
+    my @excluded_keys = @{$args{exclusions}};
+
+    my %boot_values = %{unbless($self)};
+    delete $boot_values{@excluded_keys};
         
-    my $json_string = encode_json unbless($self);
+    my $json_string = encode_json \%boot_values;
 
     # the json encoder uses { and } to delimit data, but bootstrap
     # block uses [ and ].

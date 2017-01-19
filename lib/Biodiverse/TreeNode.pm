@@ -1918,12 +1918,19 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     }
 
     # build the bootstrap block
+    my @exclusions = ();    
+
     # if they don't want colours, remove that from the block
-    my $bootstrap_block = $self->get_value("bootstrap_block");
-    if (!$args{export_colours}) {
-        $bootstrap_block->delete_value(key => "color");
+    if(!$args{export_colours}) {
+        push @exclusions, "color";
     }
-    my $bootstrap_string = $bootstrap_block->encode_bootstrap_block();
+        
+    my $bootstrap_block = $self->get_value("bootstrap_block");
+    say "bootstrap_block is $bootstrap_block";
+    
+    my $bootstrap_string = 
+        $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);
+
     $string .= $bootstrap_string;
 
     # # build the bootstrap block

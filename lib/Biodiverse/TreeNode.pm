@@ -16,6 +16,7 @@ use List::MoreUtils qw /uniq/;
 
 use Gtk2;
 use Biodiverse::BaseStruct;
+use Biodiverse::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
@@ -55,6 +56,8 @@ sub new {
         $self->add_children(%args);
     }
 
+    $self->set_value( bootstrap_block => Biodiverse::BootstrapBlock->new() );
+    
     return $self;
 }
 
@@ -1551,50 +1554,26 @@ sub number_nodes {
     return $number;
 }
 
-
 # expects a Gdk::Color
 sub set_colour {
     my ($self, %args) = @_;
-
-    $self->{NODE_VALUES}{COLOUR} = $args{colour};
-}
-
-
-# returns a Gdk::Color
-sub get_colour {
-    my ($self, %args) = @_;
-
-    my $colour_ref = $self->{NODE_VALUES}{COLOUR};
-    if($colour_ref) {
-        return $colour_ref;
-    }
-    else {
-        # choose black to be the default colour
-        return Gtk2::Gdk::Color->new(0,0,0);
-    }
+    my $colour_ref = $args{colour};
+    return if (!$colour_ref);
+    
+    my $colour_string = $colour_ref->to_string();
+    my $bootstrap_block = $self->get_value('bootstrap_block');
+    $bootstrap_block->set_value( key => "color", value => $colour_string );
 }
 
 sub get_colour_string {
     my ($self, %args) = @_;
+    
+    my $bootstrap_block = $self->get_value('bootstrap_block');
+    my $colour_string = $bootstrap_block->get_value( key => "color" ) 
+                        // "$000000000000";
 
-    my @long_format_string = split("", $self->get_colour()->to_string());
-
-
-    # to_string() gives a colour in a 12 digit format e.g. 1F1F 4444
-    # 0000. Seems like you can just take the first two digits of each
-    # colour block?
-
-    my $short_format_string = "#";
-    $short_format_string .= $long_format_string[1];
-    $short_format_string .= $long_format_string[2];
-    $short_format_string .= $long_format_string[5];
-    $short_format_string .= $long_format_string[6];
-    $short_format_string .= $long_format_string[9];
-    $short_format_string .= $long_format_string[10];
-
-    return $short_format_string;
+    return $colour_string;   
 }
-
 
 #  convert the entire tree to a table structure, using a basestruct
 #  object as an intermediate
@@ -1928,21 +1907,6 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined $self->get_length) {
             $string .= ":" . $self->get_length;
         }
-
-        # build the bootstrap block
-        my @bootstrap_items = ();
-        if (defined $self->get_value($boot_name)) {
-            push @bootstrap_items, $self->get_value($boot_name);
-        }
-        if ($args{export_colours}) {
-            push @bootstrap_items, "&!color:".$self->get_colour_string();
-        }
-
-        if(scalar(@bootstrap_items) > 0) {
-            $string .= "[";
-            $string .= join(",", @bootstrap_items);
-            $string .= "]";
-        }
     }
     # terminal nodes
     else {
@@ -1951,23 +1915,32 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined $self->get_length) { 
             $string .= ":" . $self->get_length;
         }
-
-        # build the bootstrap block
-        my @bootstrap_items = ();
-        if (defined $self->get_value($boot_name)) {
-            push @bootstrap_items, $self->get_value($boot_name);
-        }
-        if ($args{export_colours}) {
-            push @bootstrap_items, "&!color:".$self->get_colour_string();
-        }
-
-        if(scalar(@bootstrap_items) > 0) {
-            $string .= "[";
-            $string .= join(",", @bootstrap_items);
-            $string .= "]";
-        }
     }
 
+    # build the bootstrap block
+    # if they don't want colours, remove that from the block
+    my $bootstrap_block = $self->get_value("bootstrap_block");
+    if (!$args{export_colours}) {
+        $bootstrap_block->delete_value(key => "color");
+    }
+    my $bootstrap_string = $bootstrap_block->encode_bootstrap_block();
+    $string .= $bootstrap_string;
+
+    # # build the bootstrap block
+    # my @bootstrap_items = ();
+    # if (defined $self->get_value($boot_name)) {
+    #     push @bootstrap_items, $self->get_value($boot_name);
+    # }
+    # if ($args{export_colours}) {
+    #     push @bootstrap_items, "&!color:".$self->get_colour_string();
+    # }
+
+    # if(scalar(@bootstrap_items) > 0) {
+    #     $string .= "[";
+    #     $string .= join(",", @bootstrap_items);
+    #     $string .= "]";
+    # }
+    
     return $string;
 }
 

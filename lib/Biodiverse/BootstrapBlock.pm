@@ -21,19 +21,22 @@ sub set_value {
     my ($self, %args) = @_;
     my $key    =   $args{ key   };
     my $value  =   $args{ value };
-
     $self->{$key} = $value;
-
     return $value;
 }
 
-# given a key, get value. Will just return undef if the value hasn't
-# been set.
+# given a key, get value. returns undef if the value hasn't been set.
 sub get_value {
     my ($self, %args) = @_;
-    my $key    = $args{ key    };
-
+    my $key = $args{ key };
     return $self->{$key};
+}
+
+# removes given key from the bootstrap block
+sub delete_value {
+    my ($self, %args) = @_;
+    my $key = $args{ key };
+    delete $self->{$key};
 }
 
 # given a boostrap block as it was imported, populate this object.

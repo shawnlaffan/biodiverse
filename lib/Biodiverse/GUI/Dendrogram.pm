@@ -1152,11 +1152,12 @@ sub set_node_colour {
         = $self->get_tree_object()->get_node_ref(node => $node_name);
 
 
-    my $colour_string = $colour_ref ? $colour_ref->to_string() : "#000000";
+    my $colour_string = 
+        $colour_ref ? $self->get_proper_colour_format(colour_ref => $colour_ref) 
+                    : "#000000";
 
     $node_ref->set_bootstrap_value( key => "color", 
                                     value => $colour_string );
-
 }
 
 # boolean: has a colour been set for a given node
@@ -1172,6 +1173,30 @@ sub get_node_colour {
     
     return $self->{node_colours_cache}{$node_name};
 }
+
+# convert from a colour_ref to whatever string format we want to use.
+# not sure if this function should really be here but there's no
+# general colour module?
+sub get_proper_colour_format {
+    my ($self, %args) = @_;
+    my $colour_ref = $args{colour_ref};
+    
+    # of the form # RRRR GGGG BBBB (without spaces)
+    my $long_form_string = $colour_ref->to_string();
+
+    # the way colours are selected in the dendrogram only allows for 2
+    # hex digits for each color. Unless this is change, we don't lose
+    # precision by truncating two of the four digits for each colour
+    # that are stored in the colour ref.
+    my $proper_form_string = "#";
+    my @wanted_indices = (1, 2, 5, 6, 9, 10);
+    foreach my $index (@wanted_indices) {
+        $proper_form_string .= substr($long_form_string, $index, 1);
+    }
+
+    return $proper_form_string;
+}
+
 
 # Colours the dendrogram lines with palette colours
 sub recolour_cluster_lines {

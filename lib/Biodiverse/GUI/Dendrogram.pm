@@ -1150,7 +1150,13 @@ sub set_node_colour {
     # also store it in the node for export purposes
     my $node_ref 
         = $self->get_tree_object()->get_node_ref(node => $node_name);
-    $node_ref->set_colour(colour=>$colour_ref);
+
+
+    my $colour_string = $colour_ref ? $colour_ref->to_string() : "#000000";
+
+    $node_ref->set_bootstrap_value( key => "color", 
+                                    value => $colour_string );
+
 }
 
 # boolean: has a colour been set for a given node
@@ -1166,7 +1172,6 @@ sub get_node_colour {
     
     return $self->{node_colours_cache}{$node_name};
 }
-
 
 # Colours the dendrogram lines with palette colours
 sub recolour_cluster_lines {

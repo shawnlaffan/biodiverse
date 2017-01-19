@@ -1568,25 +1568,23 @@ sub number_nodes {
     return $number;
 }
 
-# expects a Gdk::Color
-sub set_colour {
+
+sub set_bootstrap_value {
     my ($self, %args) = @_;
-    my $colour_ref = $args{colour};
-    return if (!$colour_ref);
-    
-    my $colour_string = $colour_ref->to_string();
+    my $key   = $args{ key   };
+    my $value = $args{ value };
+
     my $bootstrap_block = $self->get_value('bootstrap_block');
-    $bootstrap_block->set_value( key => "color", value => $colour_string );
+    $bootstrap_block->set_value( key => $key, value => $value );
 }
 
-sub get_colour_string {
-    my ($self, %args) = @_;
-    
-    my $bootstrap_block = $self->get_value('bootstrap_block');
-    my $colour_string = $bootstrap_block->get_value( key => "color" ) 
-                        // "$000000000000";
 
-    return $colour_string;   
+sub get_bootstrap_value {
+    my ($self, %args) = @_;
+    my $key   = $args{ key   };
+
+    my $bootstrap_block = $self->get_value('bootstrap_block');
+    return $bootstrap_block->get_value( key => $key );
 }
 
 #  convert the entire tree to a table structure, using a basestruct

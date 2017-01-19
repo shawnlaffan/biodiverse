@@ -704,31 +704,46 @@ sub test_remap_labels_from_hash {
 
     my %remap;
     my @expected_new_labels;
-    foreach my $label ($tree1->get_labels()) {
+    foreach my $label (sort $tree1->get_labels()) {
         $remap{$label} = uc( $label );
         push( @expected_new_labels, uc $label );
     }
 
     $tree1->remap_labels_from_hash(remap => \%remap);
        
-    my @actual_new_labels = $tree1->get_labels();
+    my @actual_new_labels = sort $tree1->get_labels();
 
-    
-    # make sure everything we expect is there
-    foreach my $label (@expected_new_labels) {
-        ok( grep( /^$label$/, @actual_new_labels ), "Labels contain $label");
-    }
-
-    # make sure nothing else is there
-    foreach my $label (@actual_new_labels) {
-        ok( grep( /^$label$/, @expected_new_labels ), "Expected contains $label");
-    }
-
-
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" );
 }
 
+sub test_remap_mismatched_labels {
+    my $tree1 = shift || get_tree_object_from_sample_data();
 
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $tree1->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
 
+    # now also add in some junk remap values (might come up say when
+    # applying a multiple tree remap to a single tree)
+    foreach my $number (0..10) {
+        $remap{"junkkey$number"} = "junkvalue$number";
+    }
+
+    eval { $tree1->remap_labels_from_hash(remap => \%remap); };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "got no exception from mismatched remap");
+
+    my @actual_new_labels = sort $tree1->get_labels();
+
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" );
+}
 
 
 sub test_depth {

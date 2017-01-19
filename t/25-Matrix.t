@@ -124,6 +124,41 @@ sub _test_trim {
     return;
 }
 
+sub test_remap_labels_from_hash {
+    my $mx_main = create_matrix_object();
+    #  make sure we test symmetric pair existence, e.g. a:c and c:a
+    $mx_main->add_element (element1 => 'a', element2 => 'c', value => 10);
+
+    my $mx_lowmem = $mx_main->clone->to_lowmem;
+    
+    my (%remap, @expected_new_labels);
+    foreach my $label ($mx_main->get_labels) {
+        $remap{$label} = uc $label;
+        push @expected_new_labels, uc $label;
+    }
+    #  add some excess keys to ensure they are ignored
+    @remap{qw/bodge1 bodge2 bodge3/} = ('blert') x 3;
+
+    foreach my $data (['normal', $mx_main], ['lowmem', $mx_lowmem]) {
+        my ($label, $mx) = @$data;
+
+        eval {
+            $mx->remap_labels_from_hash(remap => \%remap);
+        };
+        my $e = $EVAL_ERROR;
+        ok (!$e, "got no exception from hash remap including excess keys");
+
+        my @actual_new_labels = $mx->get_labels;
+
+        # make sure everything we expect is there
+        is_deeply
+          [sort @actual_new_labels],
+          [sort @expected_new_labels],
+          "Got expected labels for $label matrix using hash remap";
+    }
+}
+
+
 
 sub test_main_tests {
     foreach my $class (@classes) {

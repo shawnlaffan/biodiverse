@@ -1574,18 +1574,33 @@ sub set_bootstrap_value {
     my $key   = $args{ key   };
     my $value = $args{ value };
 
-    my $bootstrap_block = $self->get_value('bootstrap_block');
+    my $bootstrap_block = $self->get_bootstrap_block();
     $bootstrap_block->set_value( key => $key, value => $value );
 }
-
 
 sub get_bootstrap_value {
     my ($self, %args) = @_;
     my $key   = $args{ key   };
 
-    my $bootstrap_block = $self->get_value('bootstrap_block');
+    my $bootstrap_block = $self->get_bootstrap_block();
     return $bootstrap_block->get_value( key => $key );
 }
+
+# isolate dealings with the underlying object hash to one function
+sub get_bootstrap_block {
+    my ($self, %args) = @_;
+    my $bootstrap_block = $self->get_value('bootstrap_block');
+    if(!$bootstrap_block) {
+        $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
+    
+        $self->set_value (
+            bootstrap_block => $bootstrap_block,
+        );
+    }
+
+    return $bootstrap_block;
+}
+
 
 #  convert the entire tree to a table structure, using a basestruct
 #  object as an intermediate
@@ -1937,7 +1952,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         push @exclusions, "color";
     }
         
-    my $bootstrap_block = $self->get_value("bootstrap_block");
+    my $bootstrap_block = $self->get_bootstrap_block();
     
     my $bootstrap_string = 
         $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);

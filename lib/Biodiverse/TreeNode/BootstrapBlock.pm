@@ -70,7 +70,7 @@ sub encode_bootstrap_block {
     my ($self, %args) = @_;
     my @excluded_keys = @{$args{exclusions}};
 
-    my %boot_values = %{unbless($self)};
+    my %boot_values = %$self;
     delete $boot_values{@excluded_keys};
         
     my $json_string = encode_json \%boot_values;

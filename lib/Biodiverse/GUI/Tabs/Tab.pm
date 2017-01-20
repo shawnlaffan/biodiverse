@@ -997,8 +997,8 @@ sub export_colours_dialog {
         header => "Export colours?",
         hide_cancel => 1,
     });
-
-    return $response eq 'yes';
+    
+    return $response eq 'yes' ? 1 : 0;
 }
 
 

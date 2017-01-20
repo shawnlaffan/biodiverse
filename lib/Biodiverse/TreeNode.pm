@@ -1952,9 +1952,12 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     # build the bootstrap block
     my @exclusions = ();    
 
-    # if they don't want colours, remove that from the block
-    if(!$args{export_colours}) {
-        say "EXCLUDING COLOUR";
+    # if they don't want colours, remove that from the block Don't
+    # change this to if($args{export_colours}) because we want 'undef'
+    # to result in including the colours. Should probably reimplement
+    # this as an array of bootstrap block exclusions if there are more
+    # bootstrap block items that get used.
+    if($args{export_colours} == 0) {
         push @exclusions, "color";
     }
         
@@ -1964,21 +1967,6 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);
 
     $string .= $bootstrap_string;
-
-    # # build the bootstrap block
-    # my @bootstrap_items = ();
-    # if (defined $self->get_value($boot_name)) {
-    #     push @bootstrap_items, $self->get_value($boot_name);
-    # }
-    # if ($args{export_colours}) {
-    #     push @bootstrap_items, "&!color:".$self->get_colour_string();
-    # }
-
-    # if(scalar(@bootstrap_items) > 0) {
-    #     $string .= "[";
-    #     $string .= join(",", @bootstrap_items);
-    #     $string .= "]";
-    # }
     
     return $string;
 }

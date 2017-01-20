@@ -48,7 +48,7 @@ sub test_basic_operations {
 }
 
 sub test_decode {
-    my @raw_inputs = ('["foo":"bar",\'footwo\':"bartwo",foothree:barthree]');
+    my @raw_inputs = ('["foo":"bar","footwo":"bartwo",foothree:barthree]');
 
 
     my %hash = ( "foo"      => "bar", 

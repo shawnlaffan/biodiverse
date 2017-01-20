@@ -47,7 +47,9 @@ sub decode_bootstrap_block {
 
     # fix up unquoted key/value pairs i.e. add quotes because the json
     # decoder doesn't work without them.
+    print "Input going in $input\n";
     $input = $self->fix_up_unquoted_bootstrap_block( block => $input );
+    print "After fix up: $input\n";
     
     # will replace first and last use of [ and ] respectively.
     $input =~ s/\[/\{/;
@@ -97,14 +99,25 @@ sub encode_bootstrap_block {
 
 
 
-# add quotes to unquoted bootstrap blocks
+# add quotes to unquoted bootstrap blocks. Needed for the json decoder
 # e.g. [key:value,key2:value2] goes to ["key":"value","key2":"value2"]
 sub fix_up_unquoted_bootstrap_block {
     my ($self, %args) = @_;
     my $block = $args{block};
 
-    # do some crazy regex here
-    
+
+    # Basic idea is to find a block starting and ending with '[' or
+    # ','. Take what is inside this block, and find a 'key' and
+    # 'value' separated by a ':'. If these aren't already quoted, put
+    # quotes around them. We need to do this loop because the final
+    # comma of one block is the starting comma of the next block. 
+        
+    my $old = "";
+    while(!($old eq $block)) {
+        $old = $block;
+        # crazy regex here
+        $block =~ s/([\[,])([^\"]*?)\:([^\"]*?)([\],])/$1\"$2\":\"$3\"$4/;
+    }
     return $block;
 }
 

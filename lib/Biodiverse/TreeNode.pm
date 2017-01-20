@@ -1654,7 +1654,7 @@ sub to_table {
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
 
-        my $colour = $node->get_colour_string();
+        my $colour = $node->get_bootstrap_value(key => "color");
 
         #  add to the basestruct object
         if( $export_colours ) {

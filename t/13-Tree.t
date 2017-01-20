@@ -493,10 +493,10 @@ sub test_export_tabular_tree {
 
 sub test_export_nexus {
     my $tree = shift // get_site_data_as_tree();
-
+    
     _test_export_nexus (tree => $tree, no_translate_block => 0);
     _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
-    
+    _test_export_nexus (tree => $tree, no_translate_block => 0, check_bootstrap_values => 1);
     
 }
 
@@ -506,15 +506,24 @@ sub _test_export_nexus {
     my $tree = $args{tree};
     delete $args{tree};
 
+    if($args{check_bootstrap_values}) {
+        # add some bootstrap values to export
+        # get all the nodes
+        my @tree_nodes = $tree->get_node_refs();
+        foreach my $node (@tree_nodes) {
+            $node->set_bootstrap_value( key => "bootkey", value => "bootvalue" );
+        }
+    }
+    
     my $test_suffix = ', args:';
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
         $test_suffix .= " $key => $val,";
     }
     chop $test_suffix;
-
+    
     my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-
+    
     my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
     note "File name is $fname";
     my $success = eval {
@@ -543,6 +552,7 @@ sub _test_export_nexus {
         'Reimported nexus tree matches original' . $test_suffix,
     );
 
+    
     my %nodes   = $tree->get_node_hash;
     my %nodes_i = $imported_tree->get_node_hash;
 
@@ -576,7 +586,18 @@ sub _test_export_nexus {
         };
     };
 
-
+    # make sure the bootstrap values got through
+    if($args{check_bootstrap_values}) {
+        subtest "bootstrap roundtrip" => sub {
+            my @tree_nodes = $imported_tree->get_node_refs();
+            foreach my $node (@tree_nodes) {
+                is($node->get_bootstrap_value( key => "bootkey" ),
+                   "bootvalue",
+                   "Exported and then imported correct bootstrap value."
+                    );
+            }
+        };
+    }
     return;
 }
 
@@ -608,7 +629,6 @@ sub test_roundtrip_names_with_quotes_in_newick {
 
     ok ($tree1->trees_are_same(comparison => $tree2), 'trees are the same when roundtripped via newick and names have quotes');
 }
-
 
 
 sub test_equalise_branch_lengths {

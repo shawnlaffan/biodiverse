@@ -45,15 +45,16 @@ sub decode_bootstrap_block {
     my ($self, %args) = @_;
     my $input = $args{ raw_bootstrap };
 
+    # fix up unquoted key/value pairs i.e. add quotes because the json
+    # decoder doesn't work without them.
+    $input = $self->fix_up_unquoted_bootstrap_block( block => $input );
+    
     # will replace first and last use of [ and ] respectively.
     $input =~ s/\[/\{/;
     $input = scalar reverse $input; # cheeky
     $input =~ s/\]/\}/;
     $input = scalar reverse $input;
 
-
-    # TODO Make this deal with unquoted bootstrap blocks: currently fails.
-    
     my $decoded_hash = decode_json $input;
 
     foreach my $key (keys %$decoded_hash) {
@@ -92,6 +93,19 @@ sub encode_bootstrap_block {
     # if we have nothing in this block, we probably don't want to
     # write out [], makes the nexus file ugly.
     return $json_string eq "[]" ? "" : $json_string;
+}
+
+
+
+# add quotes to unquoted bootstrap blocks
+# e.g. [key:value,key2:value2] goes to ["key":"value","key2":"value2"]
+sub fix_up_unquoted_bootstrap_block {
+    my ($self, %args) = @_;
+    my $block = $args{block};
+
+    # do some crazy regex here
+    
+    return $block;
 }
 
 

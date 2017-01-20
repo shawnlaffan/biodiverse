@@ -22,7 +22,6 @@ sub main {
         no strict 'refs';
         $sub->();
     }
-
     done_testing();
     return 0;
 }
@@ -49,7 +48,7 @@ sub test_basic_operations {
 }
 
 sub test_decode {
-    my @raw_inputs = ('["foo":"bar","footwo":"bartwo","foothree":"barthree"]');
+    my @raw_inputs = ('["foo":"bar",\'footwo\':"bartwo",foothree:barthree]');
 
 
     my %hash = ( "foo"      => "bar", 
@@ -97,7 +96,7 @@ sub test_encode {
 
     # also test an encoding with exclusions
     my @exclusions = ("foo");
-   $actual = 
+    $actual = 
        $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);
 
     delete $hash{"foo"};
@@ -108,7 +107,26 @@ sub test_encode {
     }
     ok (index($actual, '"foo":"bar"') == -1, 
         "Block didn't contain excluded item")
-
-
 }
 
+
+sub test_fix_up_unquoted_bootstrap_block {
+    my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
+    my %test_hash = (
+        '[key:value,key2:value2]' => '["key":"value","key2":"value2"]',
+        '[key:value]'             => '["key":"value"]',
+        '["key":"value"]'         => '["key":"value"]',
+        '["key":"value",key2:value2,"key3":"value3"]' 
+                   => '["key":"value","key2":"value2","key3":"value3"]',
+    );
+
+    foreach my $key (keys %test_hash) {
+        my $result = 
+            $bootstrap_block->fix_up_unquoted_bootstrap_block( block => $key);
+
+        is ( $result,
+             $test_hash{$key},
+             "$key processed correctly",
+            );
+    }
+}

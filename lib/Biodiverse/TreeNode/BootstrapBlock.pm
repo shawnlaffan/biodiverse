@@ -45,22 +45,21 @@ sub decode_bootstrap_block {
     my ($self, %args) = @_;
     my $input = $args{ raw_bootstrap };
 
+    # get rid of leading and trailing square brackets 
+    $input =~ s/^\[//;
+    $input =~ s/\[$//;
+
+    $input = "{".$input."}";
+    
     # fix up unquoted key/value pairs i.e. add quotes because the json
     # decoder doesn't work without them.
-    print "Input going in $input\n";
     $input = $self->fix_up_unquoted_bootstrap_block( block => $input );
-    print "After fix up: $input\n";
-    
-    # will replace first and last use of [ and ] respectively.
-    $input =~ s/\[/\{/;
-    $input = scalar reverse $input; # cheeky
-    $input =~ s/\]/\}/;
-    $input = scalar reverse $input;
 
     my $decoded_hash = decode_json $input;
 
     foreach my $key (keys %$decoded_hash) {
         $self->set_value( key => $key, value => $decoded_hash->{$key} );
+        #print "Setting $key to be $decoded_hash->{$key}\n";
     }    
     
 }
@@ -106,7 +105,7 @@ sub fix_up_unquoted_bootstrap_block {
     my $block = $args{block};
 
 
-    # Basic idea is to find a block starting and ending with '[' or
+    # Basic idea is to find a block starting and ending with '{' or
     # ','. Take what is inside this block, and find a 'key' and
     # 'value' separated by a ':'. If these aren't already quoted, put
     # quotes around them. We need to do this loop because the final
@@ -116,7 +115,7 @@ sub fix_up_unquoted_bootstrap_block {
     while(!($old eq $block)) {
         $old = $block;
         # crazy regex here
-        $block =~ s/([\[,])([^\"]*?)\:([^\"]*?)([\],])/$1\"$2\":\"$3\"$4/;
+        $block =~ s/([\{,])([^\"]*?)\:([^\"]*?)([\},])/$1\"$2\":\"$3\"$4/;
     }
     return $block;
 }

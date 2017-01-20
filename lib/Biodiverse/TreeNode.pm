@@ -56,9 +56,14 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_value(
-        bootstrap_block => Biodiverse::TreeNode::BootstrapBlock->new(),
-    );
+    if (exists $args{boot}) {
+        #say "We found the boot arg, it is $args{boot}";
+        my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
+        $bootstrap_block->decode_bootstrap_block(raw_bootstrap => $args{boot});
+        $self->set_value(
+            bootstrap_block => $bootstrap_block,
+        );
+    }
     
     return $self;
 }
@@ -1949,6 +1954,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
 
     # if they don't want colours, remove that from the block
     if(!$args{export_colours}) {
+        say "EXCLUDING COLOUR";
         push @exclusions, "color";
     }
         

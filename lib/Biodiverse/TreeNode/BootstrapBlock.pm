@@ -72,6 +72,7 @@ sub encode_bootstrap_block {
     
     if($args{exclusions}) {
         my @excluded_keys = @{$args{exclusions}};
+        # print "Exclusions are: @excluded_keys\n";
         foreach my $exclusion (@excluded_keys) {
             delete $boot_values{$exclusion};
         }
@@ -87,8 +88,10 @@ sub encode_bootstrap_block {
     $json_string = scalar reverse $json_string; # cheeky
     $json_string =~ s/\}/\]/;
     $json_string = scalar reverse $json_string;
-    
-    return $json_string;
+
+    # if we have nothing in this block, we probably don't want to
+    # write out [], makes the nexus file ugly.
+    return $json_string eq "[]" ? "" : $json_string;
 }
 
 

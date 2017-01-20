@@ -115,8 +115,9 @@ sub Run {
 
         eval {
             $object->export(
-                format   => $selected_format,
-                file     => $filename,
+                format         => $selected_format,
+                file           => $filename,
+                export_colours => $export_colours,
                 @$params,
             )
         };

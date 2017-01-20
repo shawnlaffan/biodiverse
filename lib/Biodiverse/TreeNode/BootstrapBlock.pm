@@ -40,11 +40,13 @@ sub delete_value {
 }
 
 # given a boostrap block as it was imported, populate this object.
-# e.g. "[color:#ffffff,foo:bar]" etc.
+# e.g. "color:#ffffff,foo:bar" etc.
 sub decode_bootstrap_block {
     my ($self, %args) = @_;
     my $input = $args{ raw_bootstrap };
 
+    return if !$input;
+    
     # get rid of leading and trailing square brackets 
     $input =~ s/^\[//;
     $input =~ s/\[$//;
@@ -98,12 +100,11 @@ sub encode_bootstrap_block {
 
 
 
-# add quotes to unquoted bootstrap blocks. Needed for the json decoder
-# e.g. [key:value,key2:value2] goes to ["key":"value","key2":"value2"]
+# add quotes to unquoted json blocks. Needed for the json decoder
+# e.g. {key:value,key2:value2} goes to {"key":"value","key2":"value2"}
 sub fix_up_unquoted_bootstrap_block {
     my ($self, %args) = @_;
     my $block = $args{block};
-
 
     # Basic idea is to find a block starting and ending with '{' or
     # ','. Take what is inside this block, and find a 'key' and

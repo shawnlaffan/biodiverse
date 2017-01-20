@@ -1957,7 +1957,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     # to result in including the colours. Should probably reimplement
     # this as an array of bootstrap block exclusions if there are more
     # bootstrap block items that get used.
-    if($args{export_colours} == 0) {
+    if($args{export_colours} && $args{export_colours} == 0) {
         push @exclusions, "color";
     }
         

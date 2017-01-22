@@ -49,7 +49,7 @@ sub decode_bootstrap_block {
     
     # get rid of leading and trailing square brackets 
     $input =~ s/^\[//;
-    $input =~ s/\[$//;
+    $input =~ s/\]$//;
 
     $input = "{".$input."}";
     

@@ -74,8 +74,8 @@ sub encode_bootstrap_block {
     my ($self, %args) = @_;
     my %boot_values = %$self;
     
-    if($args{exclusions}) {
-        my @excluded_keys = @{$args{exclusions}};
+    if($self->{exclusions}) {
+        my @excluded_keys = @{$self->{exclusions}};
         # print "Exclusions are: @excluded_keys\n";
         foreach my $exclusion (@excluded_keys) {
             delete $boot_values{$exclusion};
@@ -121,5 +121,25 @@ sub fix_up_unquoted_bootstrap_block {
     return $block;
 }
 
+
+# pass in a string, no bootstrap block value with this string as its
+# key will be included in 'encode_bootstrap_block'.
+sub add_exclusion {
+    my ($self, %args) = @_;
+    my $exclusion = $args{exclusion};
+
+    my @exclusions = (defined $self->{exclusions}) 
+                          ? @{$self->{exclusions}} 
+                          : ();
+
+    push @exclusions, $exclusion;
+    $self->{exclusions} = \@exclusions;
+}
+
+
+sub clear_exclusions {
+    my ($self, %args) = @_;
+    $self->{exclusions} = undef;
+}
 
 1;

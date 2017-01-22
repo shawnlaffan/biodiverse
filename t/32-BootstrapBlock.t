@@ -94,19 +94,40 @@ sub test_encode {
             "Block contained $expected_string")
     }
 
-    # also test an encoding with exclusions
-    my @exclusions = ("foo");
-    $actual = 
-       $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);
+    # test an encoding with exclusions
+    $bootstrap_block->add_exclusion( exclusion => "foo"    );
+    $bootstrap_block->add_exclusion( exclusion => "footwo" );
+    $actual = $bootstrap_block->encode_bootstrap_block();
 
-    delete $hash{"foo"};
+    delete $hash{ "foo"    };
+    delete $hash{ "footwo" };
     foreach my $key (keys %hash) {
         my $expected_string = "\"$key\":\"$hash{$key}\"";
         ok (index($actual, $expected_string) != -1, 
             "Block contained $expected_string")
     }
     ok (index($actual, '"foo":"bar"') == -1, 
-        "Block didn't contain excluded item")
+        "Block didn't contain excluded item");
+    ok (index($actual, '"footwo":"bartwo"') == -1, 
+        "Block didn't contain excluded item");
+
+    # now test clearing the exclusions
+    $bootstrap_block->clear_exclusions();
+    my $actual = $bootstrap_block->encode_bootstrap_block();
+
+    %hash = (    "foo"      => "bar", 
+                 "footwo"   => "bartwo", 
+                 "foothree" => "barthree", 
+        );
+
+    
+    # we don't know what order the bootstrap block will be written, so
+    # just look for the pairs we know should be there.
+    foreach my $key (keys %hash) {
+        my $expected_string = "\"$key\":\"$hash{$key}\"";
+        ok (index($actual, $expected_string) != -1, 
+            "Block contained $expected_string")
+    }
 }
 
 

@@ -289,6 +289,14 @@ sub get_common_export_metadata {
             choices     => \@lists,
             default     => $default_idx,
         },
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => '',
+            tooltip     => 'Only elements which pass this def query ' .
+                           'will be exported.',
+        },
     ];
     foreach (@$metadata) {
         bless $_, $parameter_metadata_class;

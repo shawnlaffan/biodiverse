@@ -81,6 +81,9 @@ sub encode_bootstrap_block {
             delete $boot_values{$exclusion};
         }
     }
+
+    # also make sure "exclusions:..." isn't in the encoding
+    delete $boot_values{"exclusions"};
     
     my $json_string = encode_json \%boot_values;
 
@@ -140,6 +143,17 @@ sub add_exclusion {
 sub clear_exclusions {
     my ($self, %args) = @_;
     $self->{exclusions} = undef;
+}
+
+sub has_exclusion {
+    my ($self, %args) = @_;
+    my $key = $args{key};
+
+    my @exclusions = (defined $self->{exclusions}) 
+        ? @{$self->{exclusions}} 
+        : ();
+    
+    return grep( /^$key$/, @exclusions );
 }
 
 1;

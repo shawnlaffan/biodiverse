@@ -27,7 +27,6 @@ sub Run {
     my ($object, %args) = @_;
     
     my $selected_format = $args{selected_format} || '';
-    my $export_colours = $args{export_colours} || 1;
     
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted
@@ -117,7 +116,6 @@ sub Run {
             $object->export(
                 format         => $selected_format,
                 file           => $filename,
-                export_colours => $export_colours,
                 @$params,
             )
         };

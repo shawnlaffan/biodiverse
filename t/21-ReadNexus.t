@@ -279,8 +279,7 @@ sub test_tabular_tree_from_file {
     
     my $export_tree = $phylogeny_array->[0]; 
     $result = eval {
-        $export_tree->export_tabular_tree(file => $exported_tabular_file, 
-                                          export_colours => 1,);
+        $export_tree->export_tabular_tree(file => $exported_tabular_file);
     };
     my $e = $EVAL_ERROR;
     diag $e if $e;

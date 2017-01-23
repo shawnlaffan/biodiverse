@@ -97,6 +97,11 @@ sub test_encode {
     # test an encoding with exclusions
     $bootstrap_block->add_exclusion( exclusion => "foo"    );
     $bootstrap_block->add_exclusion( exclusion => "footwo" );
+
+    ok($bootstrap_block->has_exclusion( key => "foo" ), "has_exclusion worked" );
+    ok($bootstrap_block->has_exclusion( key => "footwo" ), "has_exclusion worked" );
+    ok(!$bootstrap_block->has_exclusion( key => "foothree" ), "has_exclusion worked" );
+    
     $actual = $bootstrap_block->encode_bootstrap_block();
 
     delete $hash{ "foo"    };
@@ -113,7 +118,7 @@ sub test_encode {
 
     # now test clearing the exclusions
     $bootstrap_block->clear_exclusions();
-    my $actual = $bootstrap_block->encode_bootstrap_block();
+    $actual = $bootstrap_block->encode_bootstrap_block();
 
     %hash = (    "foo"      => "bar", 
                  "footwo"   => "bartwo", 

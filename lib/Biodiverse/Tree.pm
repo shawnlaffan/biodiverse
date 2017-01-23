@@ -1150,7 +1150,6 @@ sub export_tabular_tree {
         symmetric          => 1,
         name               => $name,
         use_internal_names => 1,
-        export_colours => $args{export_colours},
         %args,
     );
 

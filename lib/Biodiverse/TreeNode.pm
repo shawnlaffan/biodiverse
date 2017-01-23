@@ -1612,8 +1612,8 @@ sub get_bootstrap_block {
 sub to_table {
     my $self = shift;
     my %args = @_;
-    my $export_colours = $args{export_colours};
     my $treename = $args{name} || "TREE";
+
     
     #  assign unique ID numbers if not already done
     defined ($self->get_value ('NODE_NUMBER')) || $self->number_nodes;
@@ -1625,6 +1625,10 @@ sub to_table {
             plot_coords_left_to_right => $args{plot_coords_left_to_right},
         );
     }
+
+    # figure out if we're meant to be exporting colours or not
+    my $export_colours
+        = !$self->get_bootstrap_block->has_exclusion( key => "color" );
     
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
@@ -1950,21 +1954,10 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     }
 
     # build the bootstrap block
-    my @exclusions = ();    
-
-    # if they don't want colours, remove that from the block Don't
-    # change this to if($args{export_colours}) because we want 'undef'
-    # to result in including the colours. Should probably reimplement
-    # this as an array of bootstrap block exclusions if there are more
-    # bootstrap block items that get used.
-    if($args{export_colours} && $args{export_colours} == 0) {
-        push @exclusions, "color";
-    }
-        
     my $bootstrap_block = $self->get_bootstrap_block();
     
     my $bootstrap_string = 
-        $bootstrap_block->encode_bootstrap_block(exclusions => \@exclusions);
+        $bootstrap_block->encode_bootstrap_block();
 
     $string .= $bootstrap_string;
     

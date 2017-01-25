@@ -1053,6 +1053,42 @@ sub write_table {
     return;
 }
 
+# pass in a string def query, this returns a list of all elements that
+# pass the def query.
+sub get_elements_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};
+
+    #say "In get_elements_that_pass_def_query";
+    #say "def_query is $def_query";
+    
+    $def_query =
+        Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $def_query, );
+
+    my $bd = $self->get_basedata_ref;
+    if (Biodiverse::MissingBasedataRef->caught) {
+        # TODO FIGURE OUT WHAT TO DO IN THIS SITUATION
+        # Shouldn't really be able to happen?
+        return;
+    }
+    
+    my $groups        = $bd->get_groups;
+    my $element       = $groups->[0];
+
+    my $elements_that_pass_hash = $bd->get_neighbours(
+        element            => $element,
+        spatial_conditions => $def_query,
+        is_def_query       => 1,
+        );
+
+    my @elements_that_pass = keys %$elements_that_pass_hash;
+
+    #say "Elements that pass: @elements_that_pass";
+    
+    return \@elements_that_pass;
+}
+
 #  control whether a file is written symetrically or not
 sub to_table {
     my $self = shift;
@@ -1066,8 +1102,15 @@ sub to_table {
 
     my $list = $args{list};
 
-    my $check_elements = $self->get_element_list;
-
+    my $check_elements;
+    if( $args{def_query} ) {
+        $check_elements = 
+            $self->get_elements_that_pass_def_query( defq => $args{def_query} );
+    }
+    else {
+        $check_elements = $self->get_element_list;
+    }
+  
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;

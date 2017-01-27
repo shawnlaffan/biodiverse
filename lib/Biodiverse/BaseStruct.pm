@@ -277,6 +277,14 @@ sub get_common_export_metadata {
         $default_idx = first_index {$last_used_list eq $_} @lists;
     }
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+    #say "Default def_query value is: .$def_query_default.";
+
     my $metadata = [
         {
             name => 'file',
@@ -293,7 +301,7 @@ sub get_common_export_metadata {
             name        => 'def_query',
             label_text  => 'Def query',
             type        => 'spatial_conditions',
-            default     => '',
+            default     => $def_query_default,
             tooltip     => 'Only elements which pass this def query ' .
                            'will be exported.',
         },
@@ -1053,41 +1061,6 @@ sub write_table {
     return;
 }
 
-# pass in a string def query, this returns a list of all elements that
-# pass the def query.
-sub get_elements_that_pass_def_query {
-    my ($self, %args) = @_;
-    my $def_query = $args{defq};
-
-    #say "In get_elements_that_pass_def_query";
-    #say "def_query is $def_query";
-    
-    $def_query =
-        Biodiverse::SpatialConditions::DefQuery->new(
-            conditions => $def_query, );
-
-    my $bd = $self->get_basedata_ref;
-    if (Biodiverse::MissingBasedataRef->caught) {
-        # TODO FIGURE OUT WHAT TO DO IN THIS SITUATION
-        # Shouldn't really be able to happen?
-        return;
-    }
-    
-    my $groups        = $bd->get_groups;
-    my $element       = $groups->[0];
-
-    my $elements_that_pass_hash = $bd->get_neighbours(
-        element            => $element,
-        spatial_conditions => $def_query,
-        is_def_query       => 1,
-        );
-
-    my @elements_that_pass = keys %$elements_that_pass_hash;
-
-    #say "Elements that pass: @elements_that_pass";
-    
-    return \@elements_that_pass;
-}
 
 #  control whether a file is written symetrically or not
 sub to_table {
@@ -1199,6 +1172,7 @@ sub to_table_sym {
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
@@ -1206,7 +1180,14 @@ sub to_table_sym {
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;
-    my @elements = sort $self->get_element_list;
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort @{$self->get_elements_that_pass_def_query( defq=>$def_query )};
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
 
     my $list_hash_ref = $self->get_hash_list_values(
         element => $elements[0],
@@ -1316,14 +1297,21 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
-    my @elements = sort $self->get_element_list;
-
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
     push my @header, 'ELEMENT'; 
     if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
@@ -1420,13 +1408,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
-    my $elements = $self->get_element_hash();
+
+    my $elements;
+    if ($def_query) {
+        $elements = $self->get_element_hash_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        $elements = $self->get_element_hash();
+    }
+
     my %indices_hash;
 
     my $quote_char = $self->get_param('QUOTES');
@@ -1449,7 +1446,15 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         @print_order;
 
     my @data;
-    my @elements = sort keys %$elements;
+
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort keys %$elements;
+    }
 
     push my @header, 'ELEMENT';  #  need the number of element components for the header
     if (! $no_element_array) {
@@ -2423,6 +2428,67 @@ sub get_element_list_sorted {
     my @array = sort {$self->sort_by_axes ($a, $b)} @list;
 
     return wantarray ? @array : \@array;
+}
+
+# pass in a string def query, this returns a list of all elements that
+# pass the def query.
+sub get_elements_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};    
+    
+    my $elements_that_pass_hash = 
+        $self->get_element_hash_that_pass_def_query( defq => $args{defq} );
+
+    my @elements_that_pass = keys %$elements_that_pass_hash;
+    
+    return wantarray ? @elements_that_pass : \@elements_that_pass;
+}
+
+# gets the complete element hash and then weeds out elements that
+# don't pass a given def query.
+sub get_element_hash_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};
+     
+    $def_query =
+        Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $def_query, );
+
+    my $bd = $self->get_basedata_ref;
+    if (Biodiverse::MissingBasedataRef->caught) {
+        # What do we do here?
+        say "[BaseStruct.pm]: Missing BaseStruct in 
+                       get_elements_hash_that_pass_def_query";
+        return;
+    }
+    
+    my $groups        = $bd->get_groups;
+    my $element       = $groups->[0];
+
+    my $elements_that_pass_hash = $bd->get_neighbours(
+        element            => $element,
+        spatial_conditions => $def_query,
+        is_def_query       => 1,
+        );
+
+    
+    # at this stage we have a hash in the form "element_name" -> 1 to
+    # indicate that it passed the def query. We want this in the form
+    # "element_name" -> all the data about this element. This is the
+    # format used by get_element_hash and so by a lot of the
+    # basestruct functions.
+    
+    my %formatted_element_hash = $self->get_element_hash;
+
+    my %formatted_elements_that_pass;
+    foreach my $element (keys %formatted_element_hash) {
+        if ($elements_that_pass_hash->{$element}) {
+            $formatted_elements_that_pass{$element} 
+                  = $formatted_element_hash{$element};
+        }
+    }
+    
+    return \%formatted_elements_that_pass;
 }
 
 sub get_element_hash {

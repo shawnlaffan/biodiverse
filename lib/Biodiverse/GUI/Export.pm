@@ -186,19 +186,16 @@ sub choose_file_location_dialog {
         $gui->activate_keyboard_snooper (1);
         return {success => 0};
     }
-    else {
-        return {
-            success => 1,
-            chooser => $chooser,
-            param_table => $parameters_table,
-            extractors => $extractors,
-            dlg => $dlg,
-            
-        }
-    }
 
-    
+    my $result = {
+        success => 1,
+        chooser => $chooser,
+        param_table => $parameters_table,
+        extractors => $extractors,
+        dlg => $dlg,
+    };
 
+    return $result;
 }
 
 1;

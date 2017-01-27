@@ -792,11 +792,16 @@ sub export_shapefile {
     say "Exporting to shapefile $file";
 
     my $def_query = $args{def_query};
-    say "Found def_query $def_query";
     
     my @elements;
     if ($def_query) {
         @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
+        my $length = scalar @elements;
+        if( $length == 0) {
+            say "[BaseStruct] No elements passed the def query!";
+            @elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
     }
     else {
         @elements = $self->get_element_list;
@@ -1102,15 +1107,22 @@ sub to_table {
       if !defined $args{list}; 
 
     my $list = $args{list};
-
     my $check_elements;
     if( $args{def_query} ) {
         $check_elements = 
             $self->get_elements_that_pass_def_query( defq => $args{def_query} );
+
+        my $length = scalar @{ $check_elements };
+        if( $length == 0 ) {
+            say "[BASESTRUCT] No elements passed the def query!";
+            $check_elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
     }
     else {
         $check_elements = $self->get_element_list;
     }
+    
   
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.

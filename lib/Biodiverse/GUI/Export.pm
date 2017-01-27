@@ -89,11 +89,13 @@ sub Run {
     my $params = $metadata->get_parameters_for_format(format => $selected_format);
 
   RUN_DIALOG:
-    my $results = choose_file_location_dialog( gui    => $gui, 
-                                               params => $params,
-                                               selected_format => $selected_format,);
-    
-    return if (!$results->{success});
+    my $results = choose_file_location_dialog(
+        gui    => $gui, 
+        params => $params,
+        selected_format => $selected_format,
+    );
+
+    return if !$results->{success};
 
     my $chooser = $results->{chooser};
     my $parameters_table = $results->{param_table};
@@ -101,20 +103,30 @@ sub Run {
     my $dlg = $results->{dlg};
     
     # Export!
-    $params = $parameters_table->extract($extractors);
-    my $filename = $chooser->get_filename();
-    $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
-    if ( (not -e $filename)
-        || Biodiverse::GUI::YesNoCancel->run({
-            header => "Overwrite file $filename?"})
-                eq 'yes'
-        ) {
+    my $extracted_params = $parameters_table->extract($extractors);
+    my $filename = $chooser->get_filename;
+    #  normalise the file name
+    $filename = Path::Class::File->new($filename)->stringify;
 
+    my $writefile = 'yes';
+    while (-e $filename) {
+        $writefile = Biodiverse::GUI::YesNoCancel->run({
+            header => "Overwrite file $filename?"
+        });
+        last if $writefile ne 'no';
+        #  get a new file name
+        $dlg->run;
+        $filename  = $chooser->get_filename;
+        $filename  = Path::Class::File->new($filename)->stringify;
+        $writefile = 'yes';
+    }
+
+    if ($writefile eq 'yes') {
         eval {
             $object->export(
                 format   => $selected_format,
                 file     => $filename,
-                @$params,
+                @$extracted_params,
             )
         };
         if ($EVAL_ERROR) {
@@ -122,13 +134,9 @@ sub Run {
             $gui->report_error ($EVAL_ERROR);
         }
     }
-    else {
-        goto RUN_DIALOG; # my first ever goto!
-    }
 
     $dlg->destroy;
     $gui->activate_keyboard_snooper (1);
-
 
     return;
 }

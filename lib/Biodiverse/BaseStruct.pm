@@ -713,6 +713,14 @@ sub get_metadata_export_shapefile {
     #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+
+    
     my @parameters = (
         {  # GUI supports just one of these
             name => 'file',
@@ -733,6 +741,14 @@ sub get_metadata_export_shapefile {
             default     => 0,
         },
         @nodata_meta,
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => $def_query_default,
+            tooltip     => 'Only elements which pass this def query ' .
+                'will be exported.',
+        },
         {
             type        => 'comment',
             label_text  => $shape_export_comment_text,
@@ -776,6 +792,8 @@ sub export_shapefile {
     say "Exporting to shapefile $file";
 
     my $def_query = $args{def_query};
+    say "Found def_query $def_query";
+    
     my @elements;
     if ($def_query) {
         @elements = $self->get_elements_that_pass_def_query(defq => $def_query);

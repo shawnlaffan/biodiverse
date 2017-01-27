@@ -775,7 +775,17 @@ sub export_shapefile {
 
     say "Exporting to shapefile $file";
 
-    my @elements    = $self->get_element_list;
+    my $def_query = $args{def_query};
+    my @elements;
+    if ($def_query) {
+        @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
+    }
+    else {
+        @elements = $self->get_element_list;
+    }
+
+    
+
     my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
     if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {

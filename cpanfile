@@ -63,9 +63,9 @@ test_requires => sub {
     requires "Devel::Symdump";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
-}
+};
 
-feature 'GUI', 'GUI packages', sub {
+feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends'; 
     requires 'ExtUtils::PkgConfig';
     requires 'Glib';
@@ -77,4 +77,4 @@ feature 'GUI', 'GUI packages', sub {
     requires 'ExtUtils::Depends';
     requires 'HTTP::Tiny';
     requires 'LWP::Simple';
-}
+};

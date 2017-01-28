@@ -1,0 +1,17 @@
+language: perl
+perl:
+  - '5.24' # Experimental keys on scalar is now forbidden
+  - '5.22'
+distro: trusty
+sudo: required
+before_install:
+  - sudo apt-get install libglade2-dev libgnomecanvas2-dev
+
+  # Here as well as cpanfile because of dependancy problems if not installed before Gnome2::Canvas
+  - cpanm ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
+
+  # Here as well as cpanfile because -v stops travis from timing out and killing the build (and -v for the whole install produces a ridiculously large log) 
+  - cpanm -v Geo::GDAL
+env:
+  - BD_NO_TEST_GUI=1
+script: prove -l

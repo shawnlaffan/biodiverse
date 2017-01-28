@@ -3,7 +3,7 @@ requires 'ExtUtils::Depends';
 requires 'ExtUtils::PkgConfig';
 requires 'Glib';
 requires 'Gtk2';
-requires 'Gtk2::GladeXML';
+#requires 'Gtk2::GladeXML';
 
 requires 'Browser::Open';
 requires 'Data::DumpXML';

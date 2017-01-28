@@ -2625,7 +2625,7 @@ sub remap_labels_from_hash {
 # the auto-remap logic.
 sub get_labels {
     my $self = shift;
-    return keys( $self->get_named_nodes() );
+    return keys( %{ $self->get_named_nodes() } );
 }
 
 1;

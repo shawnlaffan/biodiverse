@@ -1,6 +1,6 @@
 language: perl
 perl:
-#  - '5.24' # Experimental keys on scalar is now forbidden
+  - '5.24' # Experimental keys on scalar is now forbidden
   - '5.22'
 distro: trusty
 sudo: required

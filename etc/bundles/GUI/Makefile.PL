@@ -26,7 +26,7 @@ WriteMakefile(
     PREREQ_PM => {
         "Task::Biodiverse::NoGUI" => "1.0001",
         "Data::DumpXML" => "0",
-        "Gtk2::GladeXML" => "0",
+        #"Gtk2::GladeXML" => "0",
         "Gnome2::Canvas" => "0",
         "Browser::Open" => "0",
         "LWP::Simple" => "0",

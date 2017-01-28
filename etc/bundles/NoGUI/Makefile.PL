@@ -61,7 +61,8 @@ WriteMakefile(
         "Spreadsheet::ReadSXC" => "0",
         "Spreadsheet::ParseExcel" => "0",
         "Spreadsheet::ParseXLSX" => "0",
-        "Data::Alias" => "0",
+        #  Data::Alias does not install post 5.22
+        ($] lt '5.024' ? ("Data::Alias" => "0") : ()),  
         "Getopt::Long::Descriptive" => "0",
         "Sereal" => "3",
         "Cpanel::JSON::XS" => 3,

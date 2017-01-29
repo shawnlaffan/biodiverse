@@ -54,6 +54,9 @@ requires "Ref::Util", "0.101";
 #($] lt '5.024' ? ("Data::Alias", "0") : ()),
 requires "Data::Alias", "0";
 
+#  remove this once the to do list under issue #581 is completed
+requires 'Browser::Open';
+
 test_requires => sub {
     requires "Data::Section::Simple";
     requires "Test::Deep";

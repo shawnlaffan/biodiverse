@@ -65,6 +65,16 @@ sub to_hash {
 }
 
 
+# given a BaseData, Tree or Matrix ref, applies this remap to their
+# labels. Updates the ref so doesn't need to return anything.
+sub apply_to_data_source {
+    my ($self, %args) = @_;
+    my $source = $args{data_source};
+    my $remap_hash = $self->to_hash;
+    $source->remap_labels_from_hash( remap_hash => $remap_hash );
+}
+
+
 
 # hopefully don't need a separate export sub, can just use
 # BaseStruct::Export. Might need to set params a la line 22
@@ -72,10 +82,9 @@ sub to_hash {
 
 
 
-
-
 # importing can just use import_data from ElementProperties.pm
 # procedure for importing:
+
 # my %remap_data;
 
 # # no automatic remap, prompt for manual remap file

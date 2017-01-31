@@ -1152,7 +1152,7 @@ sub do_auto_remap {
                              no_manual => 1, 
                              datasource_being_remapped => $ref);
 
-    my $pre_remap_dlg_results  = $remapper->run_remap_gui( %remap_dlg_options );
+    my $pre_remap_dlg_results  = $remapper->pre_remap_dlg( %remap_dlg_options );
 
     if ( $pre_remap_dlg_results->{remap_type} eq "auto" ) {
 

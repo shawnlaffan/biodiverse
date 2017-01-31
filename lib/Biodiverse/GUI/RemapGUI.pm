@@ -56,8 +56,10 @@ sub new {
     return $self;
 }
 
-# TODO Rename to pre_remap_dlg
-sub run_remap_gui {
+# dialog for picking which sources to remap, and what they get
+# remapped to as well as properties such as case sensitivity and
+# allowable edit distance.
+sub pre_remap_dlg {
     my $self = shift;
     my %args = @_;
 

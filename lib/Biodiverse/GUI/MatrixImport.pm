@@ -160,7 +160,7 @@ sub run {
 
     # run the remap gui, get all their decisions in one go
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui);
+    my $remap_dlg_results  = $remapper->pre_remap_dlg(gui => $gui);
 
     # will be 'auto' 'manual' or 'none'
     my $remap_type = $remap_dlg_results->{remap_type};

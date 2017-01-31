@@ -1138,100 +1138,85 @@ sub do_rename_phylogeny {
 # renaming logic.
 sub do_remap {
     my ($self, %args) = @_;
-    
-    my $default_remapee            = $args{ default_remapee };
-    
-    
-    my $project = $self->get_project();
-    my $gui  = $self;
 
-    # get the remapping options e.g. new data source etc.
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my %remap_dlg_options = (gui => $gui, 
-                             no_manual => 1, 
-                             default_remapee => $default_remapee);
-
-    my $pre_remap_dlg_results  = $remapper->pre_remap_dlg( %remap_dlg_options );
+    # ask what type of remap, what is getting remapped to what etc.
+    my $remap_gui           = Biodiverse::GUI::RemapGUI->new();
+    my $pre_remap_dlg_results = 
+       $remap_gui->pre_remap_dlg( gui => $self, 
+                                  default_remapee => $args{default_remapee}, 
+                                );
 
     my $remap_type = $pre_remap_dlg_results->{remap_type};
+    my $remapee    = $pre_remap_dlg_results->{remapee};
+
+    my $want_to_perform_remap = 0;
+    my $generated_remap = Biodiverse::Remap->new;
+
+    # guess an automatic remap
     if ( $remap_type eq "auto" ) {
-        my $remapee = $pre_remap_dlg_results->{remapee};
         my $controller = $pre_remap_dlg_results->{controller};
         
-        # setup and perform remap
-        my $cloned_ref = $remapee->clone();
-
-        $pre_remap_dlg_results->{ new_source } = $cloned_ref;
+        $pre_remap_dlg_results->{ new_source } = $remapee;
         $pre_remap_dlg_results->{ old_source } = $controller;
-        
-        # guess an automatic remap
-        my $guessed_remap = Biodiverse::Remap->new();
-        $guessed_remap->populate_with_guessed_remap( $pre_remap_dlg_results );
+        $generated_remap->populate_with_guessed_remap( $pre_remap_dlg_results );
 
         # show them the remap and do exclusions etc.
-        my $want_to_perform_remap 
-            = $remapper->post_auto_remap_dlg(remap_object => $guessed_remap);
+        $want_to_perform_remap 
+            = $remap_gui->post_auto_remap_dlg(remap_object => $generated_remap);
+    }
 
-        if ($want_to_perform_remap) {
-            $guessed_remap->apply_to_data_source( data_source => $cloned_ref );
+    # load a remap file
+    elsif ( $remap_type eq "manual" ) {
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
+            gui          => $self,
+        );
 
-            # add new data object to project and rename. We need to
-            # figure the correct functions out based on the type of
-            # the remapee.
-            my %blessed_to_function_name = (
-                "Biodiverse::Tree"     => "phylogeny",
-                "Biodiverse::BaseData" => "base_data",
-                "Biodiverse::Matrix"   => "matrix",
-                );
-            
-
-            my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
-            my $add_to_project_function = "add_"     . $function_name;
-            my $rename_function         = "do_rename_". $function_name;
-
-            $project->$add_to_project_function( $cloned_ref );
-            $self->$rename_function();
+        if ( defined $remap_data{file} ) {
+            $generated_remap->import_data( %remap_data, );
+            # TODO add in a 'review' dialog here
+            $want_to_perform_remap = 1; 
         }
     }
-    elsif ( $remap_type eq "manual" ) {
-        say "We don't handle manual remaps from here yet";
-    }
-    else {
-        # they must have clicked 'no'
-        # say "remap_type is $remap_type";
-    }
+    
+    # regardless of how we got the remap, apply it in the same way
+    if ($want_to_perform_remap) {
+        my $cloned_ref = $remapee->clone();
 
-    return;
+        $generated_remap->apply_to_data_source( data_source => $cloned_ref );
+
+        # add new data object to project and rename. We need to figure
+        # out the correct functions based on the type of the remapee.
+        my %blessed_to_function_name = (
+            "Biodiverse::Tree"     => "phylogeny",
+            "Biodiverse::BaseData" => "base_data",
+            "Biodiverse::Matrix"   => "matrix",
+            );
+        
+        my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
+        my $add_to_project_function = "add_"     . $function_name;
+        my $rename_function         = "do_rename_". $function_name;
+
+        $self->get_project->$add_to_project_function( $cloned_ref );
+        $self->$rename_function();
+    }
 }
 
 sub do_auto_remap_phylogeny {
     my $self = shift;
     my $default_remapee = $self->get_project()->get_selected_phylogeny();
-    $self->do_remap( 
-        default_remapee => $default_remapee,
-        # add_function => "add_phylogeny",
-        # rename_function => "do_rename_phylogeny",
-    );
+    $self->do_remap( default_remapee => $default_remapee );
 }
 
 sub do_auto_remap_basedata {
     my $self = shift;
     my $default_remapee = $self->get_project->get_selected_basedata();
-    $self->do_remap( 
-        default_remapee => $default_remapee,
-        # add_function => "add_base_data",
-        # rename_function => "do_rename_basedata",
-    );
+    $self->do_remap( default_remapee => $default_remapee );
 }
 
 sub do_auto_remap_matrix {
     my $self = shift;
     my $default_remapee = $self->get_project->get_selected_matrix();
-    $self->do_remap( 
-        default_remapee => $default_remapee,
-        # add_function => "add_matrix",
-        # rename_function => "do_rename_matrix",
-    );
+    $self->do_remap( default_remapee => $default_remapee );
 }
 
 sub do_phylogeny_delete_cached_values {

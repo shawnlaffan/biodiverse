@@ -6,6 +6,8 @@ use Carp;
 use 5.016;
 
 use Data::Dumper;
+use Ref::Util qw { :all };
+
 
 our $VERSION = '1.99_006';
 
@@ -18,7 +20,9 @@ sub populate_from_hash {
     my ($self, %args) = @_;
     my $hash = $args{remap_hash};
 
-    # build the basestruct ready for export
+    # clear any previous remap.
+    $self->delete_all_elements();
+
     my $quotes = "'";
     my $sep = ":";
     
@@ -65,16 +69,70 @@ sub to_hash {
 }
 
 
-# given a BaseData, Tree or Matrix ref, applies this remap to their
+# given a BaseData, Tree order Matrix ref, applies this remap to their
 # labels. Updates the ref so doesn't need to return anything.
 sub apply_to_data_source {
     my ($self, %args) = @_;
     my $source = $args{data_source};
     my $remap_hash = $self->to_hash;
-    $source->remap_labels_from_hash( remap_hash => $remap_hash );
+    $source->remap_labels_from_hash( remap => $remap_hash );
 }
 
 
+sub populate_with_guessed_remap {
+    my $self = shift;
+    my $args = shift;
+
+        
+    my $new_source   = $args->{ new_source   };
+    my $old_source   = $args->{ old_source   };
+    my $max_distance = $args->{ max_distance };
+    my $ignore_case  = $args->{ ignore_case  };
+
+    # is there a list of sources whose labels we should combine?
+    my $remapping_multiple_sources = is_arrayref($new_source);
+
+    # actually do the remap
+    my $guesser       = Biodiverse::RemapGuesser->new();
+    my $remap_results = $guesser->generate_auto_remap(
+        {
+            existing_data_source       => $old_source,
+            new_data_source            => $new_source,
+            max_distance               => $max_distance,
+            ignore_case                => $ignore_case,
+            remapping_multiple_sources => $remapping_multiple_sources,
+        }
+        );
+    
+    my $remap       = $remap_results->{remap};
+    
+    $self->{ exact_matches } = $remap_results->{ exact_matches };
+    $self->{ punct_matches } = $remap_results->{ punct_matches };
+    $self->{ typo_matches  } = $remap_results->{ typo_matches  };
+    $self->{ not_matched   } = $remap_results->{ not_matched   };
+    
+    $self->populate_from_hash( remap_hash => $remap );
+
+    $self->{ has_auto_remap } = 1;
+}
+
+
+# have we generated an auto remap in this Remap object?
+sub has_auto_remap {
+    my ($self, %args) = @_;
+    return $self->{ has_auto_remap };
+}
+
+# get exact matches, punct matches etc.
+sub get_match_category {
+    my ($self, %args) = @_;
+    my $match_category = $args{category};
+    
+    return $self->{$match_category};
+}
+
+
+    
 
 # hopefully don't need a separate export sub, can just use
 # BaseStruct::Export. Might need to set params a la line 22

@@ -10,6 +10,8 @@ use Gtk2;
 use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
+use Carp;
+
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Export;
 use Biodiverse::ExportRemap qw/:all/;
@@ -54,6 +56,7 @@ sub new {
     return $self;
 }
 
+# TODO Rename to pre_remap_dlg
 sub run_remap_gui {
     my $self = shift;
     my %args = @_;
@@ -223,67 +226,45 @@ sub run_remap_gui {
 
 # given a gui and a data source, perform an automatic remap
 # including showing the remap analysis/breakdown dialog
-sub perform_remap {
-    my $self = shift;
-    my $args = shift;
+sub post_auto_remap_dlg {
+    my ($self, %args) = @_;
+    my $remap_object = $args{remap_object};
+    my $remap_hash = $remap_object->to_hash();
+    
+    croak "[RemapGUI.pm] No auto remap was generated in the remap_object" 
+        if (!$remap_object->has_auto_remap);
 
-    my $new_source   = $args->{ new_source   };
-    my $old_source   = $args->{ old_source   };
-    my $max_distance = $args->{ max_distance };
-    my $ignore_case  = $args->{ ignore_case  };
 
-    # is there a list of sources whose labels we should combine?
-    my $remapping_multiple_sources = is_arrayref($new_source);
+    my %params = (remap => $remap_hash,);
 
-    # actually do the remap
-    my $guesser       = Biodiverse::RemapGuesser->new();
-    my $remap_results = $guesser->generate_auto_remap(
-        {
-            existing_data_source       => $old_source,
-            new_data_source            => $new_source,
-            max_distance               => $max_distance,
-            ignore_case                => $ignore_case,
-            remapping_multiple_sources => $remapping_multiple_sources,
-        }
-    );
-
-    my $remap       = $remap_results->{remap};
-    my $success     = $remap_results->{success};
-    my $statsString = $remap_results->{stats};
-
+    my @match_categories = ("exact_matches", "punct_matches", 
+                            "typo_matches", "not_matched");
+    
+    foreach my $category (@match_categories) {
+        $params{$category} = 
+            $remap_object->get_match_category(category => $category);
+    }
+                            
+    
     my $remap_results_response =
-      $self->remap_results_dialog( %{$remap_results} );
+      $self->remap_results_dialog( %params );
 
     my $response = $remap_results_response->{response};
-
-
     
     # now build the remap we actually want to perform
-    $remap = $self->build_remap_hash_from_exclusions(
+    $remap_hash = $self->build_remap_hash_from_exclusions(
         %$remap_results_response,
-        remap => $remap,
-        punct_matches => $remap_results->{punct_matches},
-        typo_matches => $remap_results->{typo_matches},
+        remap => $remap_hash,
+        punct_matches => 
+            $remap_object->get_match_category(category => "punct_matches"),
+        punct_matches => 
+            $remap_object->get_match_category(category => "typo_matches"),
+
         );
 
+    $remap_object->populate_from_hash(remap_hash => $remap_hash);
     
     if ( $response eq 'yes' ) {
-        # actually perform the remap on the data source
-        if( $remapping_multiple_sources ) {
-            foreach my $source (@$new_source) {
-                $guesser->perform_auto_remap(
-                    remap      => $remap,
-                    new_source => $source,
-                );
-            }
-        }
-        else {
-            $guesser->perform_auto_remap(
-            remap      => $remap,
-            new_source => $new_source,
-            );
-        }
-
         say "Performed automatic remap.";
         return 1;
     }

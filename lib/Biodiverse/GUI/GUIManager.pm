@@ -39,7 +39,7 @@ require Biodiverse::BaseData;
 require Biodiverse::Matrix;
 require Biodiverse::Config;
 require Biodiverse::GUI::RemapGUI;
-
+require Biodiverse::Remap;
 
 use Ref::Util qw { :all };
 
@@ -1151,22 +1151,29 @@ sub do_auto_remap {
     my %remap_dlg_options = (gui => $gui, 
                              no_manual => 1, 
                              datasource_being_remapped => $ref);
-    
-    my $remap_dlg_results  = $remapper->run_remap_gui( %remap_dlg_options );
 
-    if ( $remap_dlg_results->{remap_type} eq "auto" ) {
+    my $pre_remap_dlg_results  = $remapper->run_remap_gui( %remap_dlg_options );
+
+    if ( $pre_remap_dlg_results->{remap_type} eq "auto" ) {
 
         # setup and perform remap
         my $cloned_ref = $ref->clone();
 
-        $remap_dlg_results->{ gui        } = $gui;
-        $remap_dlg_results->{ new_source } = $cloned_ref;
-        $remap_dlg_results->{ old_source } 
-           = $remap_dlg_results->{ datasource_choice };
+        $pre_remap_dlg_results->{ new_source } = $cloned_ref;
+        $pre_remap_dlg_results->{ old_source } 
+           = $pre_remap_dlg_results->{ datasource_choice };
+        
+        # guess an automatic remap
+        my $guessed_remap = Biodiverse::Remap->new();
+        $guessed_remap->populate_with_guessed_remap( $pre_remap_dlg_results );
 
-        my $did_perform_remap = $remapper->perform_remap( $remap_dlg_results );
+        # show them the remap and do exclusions etc.
+        my $want_to_perform_remap 
+            = $remapper->post_auto_remap_dlg(remap_object => $guessed_remap);
 
-        if ($did_perform_remap) {
+        if ($want_to_perform_remap) {
+            $guessed_remap->apply_to_data_source( data_source => $cloned_ref );
+
             # add new data object to project and rename
             $project->$add_to_project_function( $cloned_ref );
             $self->$rename_function();

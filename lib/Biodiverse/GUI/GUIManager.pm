@@ -41,6 +41,7 @@ require Biodiverse::Config;
 require Biodiverse::GUI::RemapGUI;
 require Biodiverse::Remap;
 
+
 use Ref::Util qw { :all };
 
 use parent qw /Biodiverse::Common Biodiverse::GUI::Help/;    #/
@@ -1138,19 +1139,17 @@ sub do_rename_phylogeny {
 sub do_remap {
     my ($self, %args) = @_;
     
-    my $get_ref_function           = $args{ get_function    };
-    my $add_to_project_function    = $args{ add_function    };
-    my $rename_function            = $args{ rename_function };
+    my $default_remapee            = $args{ default_remapee };
+    
     
     my $project = $self->get_project();
-    my $ref  = $project->$get_ref_function();
     my $gui  = $self;
 
     # get the remapping options e.g. new data source etc.
     my $remapper           = Biodiverse::GUI::RemapGUI->new();
     my %remap_dlg_options = (gui => $gui, 
                              no_manual => 1, 
-                             datasource_being_remapped => $ref);
+                             default_remapee => $default_remapee);
 
     my $pre_remap_dlg_results  = $remapper->pre_remap_dlg( %remap_dlg_options );
 
@@ -1176,7 +1175,20 @@ sub do_remap {
         if ($want_to_perform_remap) {
             $guessed_remap->apply_to_data_source( data_source => $cloned_ref );
 
-            # add new data object to project and rename
+            # add new data object to project and rename. We need to
+            # figure the correct functions out based on the type of
+            # the remapee.
+            my %blessed_to_function_name = (
+                "Biodiverse::Tree"     => "phylogeny",
+                "Biodiverse::BaseData" => "base_data",
+                "Biodiverse::Matrix"   => "matrix",
+                );
+            
+
+            my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
+            my $add_to_project_function = "add_"     . $function_name;
+            my $rename_function         = "do_rename_". $function_name;
+
             $project->$add_to_project_function( $cloned_ref );
             $self->$rename_function();
         }
@@ -1194,28 +1206,31 @@ sub do_remap {
 
 sub do_auto_remap_phylogeny {
     my $self = shift;
+    my $default_remapee = $self->get_project()->get_selected_phylogeny();
     $self->do_remap( 
-        get_function => "get_selected_phylogeny",
-        add_function => "add_phylogeny",
-        rename_function => "do_rename_phylogeny",
+        default_remapee => $default_remapee,
+        # add_function => "add_phylogeny",
+        # rename_function => "do_rename_phylogeny",
     );
 }
 
 sub do_auto_remap_basedata {
     my $self = shift;
+    my $default_remapee = $self->get_project->get_selected_basedata();
     $self->do_remap( 
-        get_function => "get_selected_basedata",
-        add_function => "add_base_data",
-        rename_function => "do_rename_basedata",
+        default_remapee => $default_remapee,
+        # add_function => "add_base_data",
+        # rename_function => "do_rename_basedata",
     );
 }
 
 sub do_auto_remap_matrix {
     my $self = shift;
+    my $default_remapee = $self->get_project->get_selected_matrix();
     $self->do_remap( 
-        get_function => "get_selected_matrix",
-        add_function => "add_matrix",
-        rename_function => "do_rename_matrix",
+        default_remapee => $default_remapee,
+        # add_function => "add_matrix",
+        # rename_function => "do_rename_matrix",
     );
 }
 

@@ -63,7 +63,8 @@ sub new {
 # remapped to as well as properties such as case sensitivity and
 # allowable edit distance.
 # nomenclature: 'remapee'-> the thing that will undergo remapping
-#               'controller' -> the thing that will control the remapping
+#               'controller' -> the thing that will control the remapping 
+#                               e.g. another basedata, tree, matrix or a file.
 # TODO put all string constants at the top of the file.
 sub pre_remap_dlg {
     my $self = shift;
@@ -72,7 +73,7 @@ sub pre_remap_dlg {
     my $gui                       = $args{"gui"};
     
     # TODO change this to be the 'default'
-    my $default_remapee = $args{datasource_being_remapped};
+    my $default_remapee = $args{default_remapee};
     
     ####
     # get the available options to remap labels to and from

@@ -17,6 +17,8 @@ use Biodiverse::GUI::Export;
 use Biodiverse::ExportRemap qw/:all/;
 use Ref::Util qw /:all/;
 
+use List::MoreUtils qw(first_index);
+
 use Text::Levenshtein qw(distance);
 use Scalar::Util qw /blessed/;
 
@@ -99,6 +101,9 @@ sub pre_remap_dlg {
         $controller_combo->append_text($self->object_to_name(obj => $option));
     }
 
+    my $index = first_index { $_ eq $default_remapee } @remapee_sources;
+    $remapee_combo->set_active($index);
+    $controller_combo->set_active(0);
     
     $remapee_combo->show_all;
     $controller_combo->show_all;
@@ -141,6 +146,12 @@ sub pre_remap_dlg {
                         $case_checkbutton, 
                         $spinner,
                         $max_distance_label);
+
+    # we start with manual as default
+    foreach my $option (@auto_options) {
+        $option->set_sensitive(0);
+    }
+
     
     $controller_combo->signal_connect(
         changed => sub {
@@ -176,22 +187,27 @@ sub pre_remap_dlg {
     # The dialog has now finished, process the response and figure out
     # what to return.
 
-    return (remap_type => "none") if ( $response eq "no" );
-    
-    my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
-    my $remapee = $remapee_sources[$remapee_combo->get_active];
-    my $controller = $controller_sources[$controller_combo->get_active];
-    
-    say "Going to remap $remapee using $controller";
-    
-    my %results = (
-        remap_type              => $remap_type,
-        remapee                 => $remapee,
-        controller              => $controller,
-        max_distance            => $spinner->get_value_as_int(),
-        ignore_case             => $case_checkbutton->get_active(),
-    );
+    my %results;
 
+
+    if ( $response eq "no" ) {
+        %results = (remap_type => "none");
+    }
+    else {
+        my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
+        my $remapee = $remapee_sources[$remapee_combo->get_active];
+        my $controller = $controller_sources[$controller_combo->get_active];
+        
+        say "Going to remap $remapee using $controller";
+        
+        %results = (
+            remap_type              => $remap_type,
+            remapee                 => $remapee,
+            controller              => $controller,
+            max_distance            => $spinner->get_value_as_int(),
+            ignore_case             => $case_checkbutton->get_active(),
+        );
+    }
     return wantarray ? %results : \%results;
 }
 
@@ -557,7 +573,7 @@ sub build_remap_hash_from_exclusions {
     my $remap = $args{remap};
     
     # remove parts which aren't enabled
-    if ( !$args{punct_match_enabled} ) {
+    if ( !$args{punct_match_enabled} and $args{punct_matches}) {
         my @punct_matches = @{ $args{punct_matches} };
         foreach my $key (@punct_matches) {
             delete $remap->{$key};
@@ -565,7 +581,7 @@ sub build_remap_hash_from_exclusions {
         }
     }
 
-    if ( !$args{typo_match_enabled} ) {
+    if ( !$args{typo_match_enabled} and $args{typo_matches}) {
         my @typo_matches = @{ $args{typo_matches} };
         foreach my $key (@typo_matches) {
             delete $remap->{$key};

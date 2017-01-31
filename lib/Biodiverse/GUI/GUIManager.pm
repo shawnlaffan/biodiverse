@@ -1135,7 +1135,7 @@ sub do_rename_phylogeny {
 # to get the current data object (the one you will remap), a function
 # to add a new data object to the project, and a function to run the
 # renaming logic.
-sub do_auto_remap {
+sub do_remap {
     my ($self, %args) = @_;
     
     my $get_ref_function           = $args{ get_function    };
@@ -1154,7 +1154,8 @@ sub do_auto_remap {
 
     my $pre_remap_dlg_results  = $remapper->pre_remap_dlg( %remap_dlg_options );
 
-    if ( $pre_remap_dlg_results->{remap_type} eq "auto" ) {
+    my $remap_type = $pre_remap_dlg_results->{remap_type};
+    if ( $remap_type eq "auto" ) {
         my $remapee = $pre_remap_dlg_results->{remapee};
         my $controller = $pre_remap_dlg_results->{controller};
         
@@ -1180,8 +1181,12 @@ sub do_auto_remap {
             $self->$rename_function();
         }
     }
-    else {
+    elsif ( $remap_type eq "manual" ) {
         say "We don't handle manual remaps from here yet";
+    }
+    else {
+        # they must have clicked 'no'
+        # say "remap_type is $remap_type";
     }
 
     return;
@@ -1189,7 +1194,7 @@ sub do_auto_remap {
 
 sub do_auto_remap_phylogeny {
     my $self = shift;
-    $self->do_auto_remap( 
+    $self->do_remap( 
         get_function => "get_selected_phylogeny",
         add_function => "add_phylogeny",
         rename_function => "do_rename_phylogeny",
@@ -1198,7 +1203,7 @@ sub do_auto_remap_phylogeny {
 
 sub do_auto_remap_basedata {
     my $self = shift;
-    $self->do_auto_remap( 
+    $self->do_remap( 
         get_function => "get_selected_basedata",
         add_function => "add_base_data",
         rename_function => "do_rename_basedata",
@@ -1207,7 +1212,7 @@ sub do_auto_remap_basedata {
 
 sub do_auto_remap_matrix {
     my $self = shift;
-    $self->do_auto_remap( 
+    $self->do_remap( 
         get_function => "get_selected_matrix",
         add_function => "add_matrix",
         rename_function => "do_rename_matrix",

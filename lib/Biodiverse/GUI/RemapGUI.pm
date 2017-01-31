@@ -60,69 +60,59 @@ sub new {
 # dialog for picking which sources to remap, and what they get
 # remapped to as well as properties such as case sensitivity and
 # allowable edit distance.
+# nomenclature: 'remapee'-> the thing that will undergo remapping
+#               'controller' -> the thing that will control the remapping
+# TODO put all string constants at the top of the file.
 sub pre_remap_dlg {
     my $self = shift;
     my %args = @_;
 
     my $gui                       = $args{"gui"};
     
-    # todo change this to 'default' rather than only.
-    my $datasource_being_remapped = $args{datasource_being_remapped};
+    # TODO change this to be the 'default'
+    my $default_remapee = $args{datasource_being_remapped};
     
     ####
     # get the available options to remap labels to and from
-
-    my @sources = ();
-    push @sources, @{ $gui->get_project()->get_base_data_list() };
-    push @sources, @{ $gui->get_project()->get_phylogeny_list() };
-    push @sources, @{ $gui->get_project()->get_matrix_list() };
+    my @remapee_sources = ();
+    push @remapee_sources, @{ $gui->get_project()->get_base_data_list() };
+    push @remapee_sources, @{ $gui->get_project()->get_phylogeny_list() };
+    push @remapee_sources, @{ $gui->get_project()->get_matrix_list() };
         
-    my @source_names;
-    foreach my $source (@sources) {
-        my $type = blessed $source;
-        $type =~ s/^Biodiverse:://;
-        push @source_names, "$type: " . $source->get_name;
-    }
+
+    my @controller_sources = @remapee_sources;
+    unshift @controller_sources, MANUAL_OPTION_TEXT;
     
     # table to align the controls
     my $table = Gtk2::Table->new( 4, 2, 1 );
     
     ####
-    # The soon-to-be remapped datasource selection combo box and its
-    # label, as well as the data source we are remapping to combo box
-    # and its label.
-    my $remap_data_source_combo = Gtk2::ComboBox->new_text;
-    my $data_source_combo = Gtk2::ComboBox->new_text;
+    # The remapee data source selection combo box and its label, as
+    # well as the controller combo box and its label.
+    my $remapee_combo = Gtk2::ComboBox->new_text;
+    my $controller_combo = Gtk2::ComboBox->new_text;
 
-    $data_source_combo->append_text( MANUAL_OPTION_TEXT );
-    foreach my $option (@source_names) {
-        $remap_data_source_combo->append_text($option);
-        $data_source_combo->append_text($option);
+    foreach my $option (@remapee_sources) {
+        $remapee_combo->append_text($self->object_to_name(obj => $option));
     }
-    $remap_data_source_combo->show_all;
-    $data_source_combo->show_all;
-    $remap_data_source_combo->set_tooltip_text (
-        'Choose a data source to be remapped.'
-    );
-    $remap_data_source_combo->set_tooltip_text (
-        'Choose a data source to remap to'
-    );
-
+    foreach my $option (@controller_sources) {
+        $controller_combo->append_text($self->object_to_name(obj => $option));
+    }
 
     
-    my $remap_data_source_label =
-        Gtk2::Label->new('Data source that will be remapped:');
+    $remapee_combo->show_all;
+    $controller_combo->show_all;
 
-    my $data_source_label =
-        Gtk2::Label->new('Remap the labels to:');
-
+    $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
+    $remapee_combo->set_tooltip_text ('Choose a data source to remap to');
+    my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
+    my $controller_label = Gtk2::Label->new('Remap the labels to:');
+   
     
-    
-    $table->attach_defaults( $remap_data_source_label, 0, 1, 0, 1 );
-    $table->attach_defaults( $remap_data_source_combo, 1, 2, 0, 1 );
-    $table->attach_defaults( $data_source_label, 0, 1, 1, 2 );
-    $table->attach_defaults( $data_source_combo, 1, 2, 1, 2 );
-
+    $table->attach_defaults( $remapee_label, 0, 1, 0, 1 );
+    $table->attach_defaults( $remapee_combo, 1, 2, 0, 1 );
+    $table->attach_defaults( $controller_label, 0, 1, 1, 2 );
+    $table->attach_defaults( $controller_combo, 1, 2, 1, 2 );
 
     
     ####
@@ -144,27 +134,20 @@ sub pre_remap_dlg {
     $table->attach_defaults ($case_label,         0, 1, 3, 4 );
     $table->attach_defaults ($case_checkbutton,   1, 2, 3, 4 );
 
-        # $auto_checkbutton->signal_connect(
-        #     toggled => sub {
-        #         $table->set_sensitive( !$table->get_sensitive );
-        #     }
-        # );
 
+    # make selecting the manual/file based remap option disable the
+    # auto remap setting.
     my @auto_options = ($case_label, 
                         $case_checkbutton, 
                         $spinner,
                         $max_distance_label);
-
     
-    # make selecting the manual/file based remap option disable the
-    # auto options.
-    $data_source_combo->signal_connect(
+    $controller_combo->signal_connect(
         changed => sub {
-            my $sensitive = ($data_source_combo->get_active == 0) ? 0 : 1;
+            my $sensitive = ($controller_combo->get_active == 0) ? 0 : 1;
             foreach my $option (@auto_options) {
                 $option->set_sensitive($sensitive);
             }
-
         }
     );
 
@@ -181,48 +164,32 @@ sub pre_remap_dlg {
     ####
     # Pack everything in
     my $vbox = $dlg->get_content_area;
-
     my $hbox = Gtk2::HBox->new();
-
     $vbox->pack_start( $hbox,  0, 0, 0 );
     $vbox->pack_start( $table, 0, 0, 0 );
-
     $dlg->show_all;
-
     my $response = $dlg->run();
-
-    my $remap_type;
-    
-    if ( $response eq "no" ) {
-        $remap_type = "none";
-    }
-    elsif ( $response eq "yes" ) {
-
-        # check the state of the checkbox
-        # TODO FIX THIS
-        if ( 1 ) {
-            $remap_type = "auto";
-        }
-        else {
-            $remap_type = "manual";
-        }
-    }
-    else {
-        say "[RemapGUI] Unknown dialog response: $response";
-    }
 
     $dlg->destroy();
 
-    my $max_distance = $spinner->get_value_as_int();
-    my $ignore_case  = $case_checkbutton->get_active();
 
-    my $choice = $sources[ $data_source_combo->get_active ];
+    # The dialog has now finished, process the response and figure out
+    # what to return.
 
+    return (remap_type => "none") if ( $response eq "no" );
+    
+    my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
+    my $remapee = $remapee_sources[$remapee_combo->get_active];
+    my $controller = $controller_sources[$controller_combo->get_active];
+    
+    say "Going to remap $remapee using $controller";
+    
     my %results = (
-        remap_type        => $remap_type,
-        datasource_choice => $choice,
-        max_distance      => $max_distance,
-        ignore_case       => $ignore_case,
+        remap_type              => $remap_type,
+        remapee                 => $remapee,
+        controller              => $controller,
+        max_distance            => $spinner->get_value_as_int(),
+        ignore_case             => $case_checkbutton->get_active(),
     );
 
     return wantarray ? %results : \%results;
@@ -1057,5 +1024,25 @@ sub add_header_and_tooltip_to_treeview_column {
     my $tooltip = Gtk2::Tooltips->new();
     $tooltip->set_tip( $header, $args{tooltip_text} );
 }
+
+
+# given an object, returns a name suitable for printing
+sub object_to_name {
+    my ($self, %args) = @_;
+    my $obj = $args{obj};
+
+    my $type = blessed $obj;
+
+    if($type) {
+        $type =~ s/^Biodiverse:://;
+        return "$type: " . $obj->get_name;
+    }
+    else {
+        # we got passed a scalar/hash/array, just send it straight
+        # back.
+        return $obj;
+    }
+}
+
 
 1;

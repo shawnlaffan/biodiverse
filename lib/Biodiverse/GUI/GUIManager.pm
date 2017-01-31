@@ -1155,13 +1155,14 @@ sub do_auto_remap {
     my $pre_remap_dlg_results  = $remapper->pre_remap_dlg( %remap_dlg_options );
 
     if ( $pre_remap_dlg_results->{remap_type} eq "auto" ) {
-
+        my $remapee = $pre_remap_dlg_results->{remapee};
+        my $controller = $pre_remap_dlg_results->{controller};
+        
         # setup and perform remap
-        my $cloned_ref = $ref->clone();
+        my $cloned_ref = $remapee->clone();
 
         $pre_remap_dlg_results->{ new_source } = $cloned_ref;
-        $pre_remap_dlg_results->{ old_source } 
-           = $pre_remap_dlg_results->{ datasource_choice };
+        $pre_remap_dlg_results->{ old_source } = $controller;
         
         # guess an automatic remap
         my $guessed_remap = Biodiverse::Remap->new();
@@ -1178,6 +1179,9 @@ sub do_auto_remap {
             $project->$add_to_project_function( $cloned_ref );
             $self->$rename_function();
         }
+    }
+    else {
+        say "We don't handle manual remaps from here yet";
     }
 
     return;

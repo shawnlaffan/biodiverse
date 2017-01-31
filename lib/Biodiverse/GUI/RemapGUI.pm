@@ -49,6 +49,7 @@ use constant IGNORE_CASE_TOOLTIP
     => "Treat case difference as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
+use constant MANUAL_OPTION_TEXT => "Select a remap file";
 
 sub new {
     my $class = shift;
@@ -64,70 +65,73 @@ sub pre_remap_dlg {
     my %args = @_;
 
     my $gui                       = $args{"gui"};
+    
+    # todo change this to 'default' rather than only.
     my $datasource_being_remapped = $args{datasource_being_remapped};
     
     ####
-    # get the available options to remap labels to
+    # get the available options to remap labels to and from
 
     my @sources = ();
     push @sources, @{ $gui->get_project()->get_base_data_list() };
     push @sources, @{ $gui->get_project()->get_phylogeny_list() };
     push @sources, @{ $gui->get_project()->get_matrix_list() };
-    
-    # Don't show the datasource being remapped as an option to remap
-    # to. Only relevant for menu based remapping.
-    if(defined $datasource_being_remapped) {
-        my @fixed_sources = ();
-        foreach my $source (@sources) {
-            if ($source != $datasource_being_remapped) {
-                push @fixed_sources, $source;
-            }
-        }
-        @sources = @fixed_sources;
-    }
-    
+        
     my @source_names;
     foreach my $source (@sources) {
         my $type = blessed $source;
         $type =~ s/^Biodiverse:://;
         push @source_names, "$type: " . $source->get_name;
     }
-
+    
     # table to align the controls
-    my $table = Gtk2::Table->new( 2, 3, 1 );
-
+    my $table = Gtk2::Table->new( 4, 2, 1 );
+    
     ####
-    # The data source selection combo box and its label
+    # The soon-to-be remapped datasource selection combo box and its
+    # label, as well as the data source we are remapping to combo box
+    # and its label.
+    my $remap_data_source_combo = Gtk2::ComboBox->new_text;
     my $data_source_combo = Gtk2::ComboBox->new_text;
+
+    $data_source_combo->append_text( MANUAL_OPTION_TEXT );
     foreach my $option (@source_names) {
+        $remap_data_source_combo->append_text($option);
         $data_source_combo->append_text($option);
     }
-    $data_source_combo->set_active(0);
+    $remap_data_source_combo->show_all;
     $data_source_combo->show_all;
-    $data_source_combo->set_tooltip_text (
-        'Choose a data source to remap the labels to.'
+    $remap_data_source_combo->set_tooltip_text (
+        'Choose a data source to be remapped.'
     );
+    $remap_data_source_combo->set_tooltip_text (
+        'Choose a data source to remap to'
+    );
+
+
+    
+    my $remap_data_source_label =
+        Gtk2::Label->new('Data source that will be remapped:');
+
     my $data_source_label =
-      Gtk2::Label->new('Data source to remap the labels to:');
+        Gtk2::Label->new('Remap the labels to:');
 
-    $table->attach_defaults( $data_source_label, 0, 1, 0, 1 );
-    $table->attach_defaults( $data_source_combo, 1, 2, 0, 1 );
+    
+    
+    $table->attach_defaults( $remap_data_source_label, 0, 1, 0, 1 );
+    $table->attach_defaults( $remap_data_source_combo, 1, 2, 0, 1 );
+    $table->attach_defaults( $data_source_label, 0, 1, 1, 2 );
+    $table->attach_defaults( $data_source_combo, 1, 2, 1, 2 );
 
+
+    
     ####
     # The max_distance spinbutton and its label
     my $adjustment = Gtk2::Adjustment->new( 0,           0, 20, 1, 10, 0 );
     my $spinner    = Gtk2::SpinButton->new( $adjustment, 1, 0 );
     my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
-
     $spinner->set_tooltip_text(EDIT_DISTANCE_TOOLTIP);
     
-    # my $tooltip    = Gtk2::Tooltips->new();
-    # $tooltip->set_tip(
-    #     $spinner,
-    #       'New labels within this Levenshtein edit distance of an existing label '
-    #     . " will be detected as possible typos.",
-    # );
-
     ####
     # The case sensitivity checkbutton
     my $case_label = Gtk2::Label->new('Match case insensitively?');
@@ -135,30 +139,36 @@ sub pre_remap_dlg {
     $case_checkbutton->set_active(0);
     $case_checkbutton->set_tooltip_text(IGNORE_CASE_TOOLTIP);
 
-    $table->attach_defaults ($max_distance_label, 0, 1, 1, 2 );
-    $table->attach_defaults ($spinner,            1, 2, 1, 2 );
-    $table->attach_defaults ($case_label,         0, 1, 2, 3 );
-    $table->attach_defaults ($case_checkbutton,   1, 2, 2, 3 );
+    $table->attach_defaults ($max_distance_label, 0, 1, 2, 3 );
+    $table->attach_defaults ($spinner,            1, 2, 2, 3 );
+    $table->attach_defaults ($case_label,         0, 1, 3, 4 );
+    $table->attach_defaults ($case_checkbutton,   1, 2, 3, 4 );
 
-    ####
-    # The auto/manual checkbutton
+        # $auto_checkbutton->signal_connect(
+        #     toggled => sub {
+        #         $table->set_sensitive( !$table->get_sensitive );
+        #     }
+        # );
 
-    my $auto_checkbutton = Gtk2::CheckButton->new("Automatic remap");
+    my @auto_options = ($case_label, 
+                        $case_checkbutton, 
+                        $spinner,
+                        $max_distance_label);
 
-    # sometimes we don't want to prompt for auto/manual so check the
-    # flag for that
-    if ( !$args{no_manual} ) {
-        $auto_checkbutton->set_active(0);
-        $auto_checkbutton->signal_connect(
-            toggled => sub {
-                $table->set_sensitive( !$table->get_sensitive );
+    
+    # make selecting the manual/file based remap option disable the
+    # auto options.
+    $data_source_combo->signal_connect(
+        changed => sub {
+            my $sensitive = ($data_source_combo->get_active == 0) ? 0 : 1;
+            foreach my $option (@auto_options) {
+                $option->set_sensitive($sensitive);
             }
-        );
 
-        # start out disabled
-        $table->set_sensitive(0);
-    }
+        }
+    );
 
+    
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
@@ -173,18 +183,9 @@ sub pre_remap_dlg {
     my $vbox = $dlg->get_content_area;
 
     my $hbox = Gtk2::HBox->new();
-    if ( !$args{no_manual} ) {
-        $hbox->pack_start( $auto_checkbutton, 0, 1, 0 );
-    }
+
     $vbox->pack_start( $hbox,  0, 0, 0 );
     $vbox->pack_start( $table, 0, 0, 0 );
-
-    # if there are no data sources available, disable the auto
-    # remap options.    
-    if( scalar @sources == 0 ) {
-        $auto_checkbutton->set_active(0);
-        $auto_checkbutton->set_sensitive(0);
-    }
 
     $dlg->show_all;
 
@@ -198,7 +199,8 @@ sub pre_remap_dlg {
     elsif ( $response eq "yes" ) {
 
         # check the state of the checkbox
-        if ( $args{no_manual} || $auto_checkbutton->get_active() ) {
+        # TODO FIX THIS
+        if ( 1 ) {
             $remap_type = "auto";
         }
         else {

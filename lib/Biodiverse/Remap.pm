@@ -83,7 +83,6 @@ sub populate_with_guessed_remap {
     my $self = shift;
     my $args = shift;
 
-        
     my $new_source   = $args->{ new_source   };
     my $old_source   = $args->{ old_source   };
     my $max_distance = $args->{ max_distance };
@@ -132,36 +131,33 @@ sub get_match_category {
 }
 
 
-    
+sub dequote_all_elements {
+    my ($self, %args) = @_;
+    my $old_hash = $self->to_hash();
+    my %dequoted_hash = ();
 
-# hopefully don't need a separate export sub, can just use
-# BaseStruct::Export. Might need to set params a la line 22
-# ElementProperties.pm. See ExportRemap.pm
+    foreach my $key (keys %$old_hash) {
+        my $new_key = $self->dequote_element( element    => $key,
+                                              quote_char => "'",
+                                            );
+
+        my $new_val = $self->dequote_element( element    => $old_hash->{$key},
+                                              quote_char => "'",
+                                            );
+
+        $dequoted_hash{$new_key} = $new_val;
+    }
+    $self->populate_from_hash(remap_hash => \%dequoted_hash);
+}
 
 
 
-# importing can just use import_data from ElementProperties.pm
-# procedure for importing:
-
-# my %remap_data;
-
-# # no automatic remap, prompt for manual remap file
-# %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-#     gui          => $gui,
-#     type         => 'label',
-#     get_dir_from => $filename,
-#     );
-
-
-# #  now do something with them...
-# my $remap;
-
-# ###### check if we need to call remap (eg if tabular, and no remapping?)
-# if ( defined $remap_data{file} ) {
-#     $remap = Biodiverse::ElementProperties->new;
-#     $remap->import_data( %remap_data, );
-# }
-# $import_params{element_properties} = $remap;
-# if ( !defined $remap ) {
-#     $import_params{use_element_properties} = undef;
-# }
+# Importing mostly uses import_data from ElementProperties.pm
+# procedure. But we also need to dequote the elements otherwise remaps
+# involving colons will put quotes around each element. This causes a
+# mismatch with basedata etc.
+sub import_from_file {
+    my($self, %args) = @_;
+    $self->import_data(%args);
+    $self->dequote_all_elements();
+}

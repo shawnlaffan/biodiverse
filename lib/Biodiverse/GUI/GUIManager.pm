@@ -1163,12 +1163,15 @@ sub do_remap {
 
     # load a remap file
     elsif ( $remap_type eq "manual" ) {
+        say "GUIManager: performing a manual remap";
+        
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
             gui          => $self,
         );
 
         if ( defined $remap_data{file} ) {
-            $generated_remap->import_data( %remap_data, );
+            $generated_remap->import_from_file( %remap_data, );
+            
             # TODO add in a 'review' dialog here
             $want_to_perform_remap = 1; 
         }

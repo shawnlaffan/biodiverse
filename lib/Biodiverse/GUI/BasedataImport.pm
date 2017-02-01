@@ -804,37 +804,17 @@ sub run {
                 return if $response ne 'yes';
             }
 
-            # ask if they want to auto remap
-
-
-            # run the remap gui, get all their decisions in one go
-            my $remapper           = Biodiverse::GUI::RemapGUI->new();
-            my $remap_dlg_results  = $remapper->pre_remap_dlg(gui => $gui);
-
-            # will be 'auto' 'manual' or 'none'
-            my $remap_type = $remap_dlg_results->{remap_type};
-
-
-
-            if ( $remap_type eq 'auto' ) {
-                my $remapper = Biodiverse::GUI::RemapGUI->new();
-                foreach my $file ( keys %multiple_brefs ) {
-                    $remap_dlg_results->{gui} = $gui;
-                    $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
-                    $remap_dlg_results->{new_source} = $multiple_brefs{$file};
-                    
-                    $remapper->perform_remap($remap_dlg_results);
-                }
-            }
-            elsif ( $remap_type eq 'manual' ) {
-                say "[BasedataImport] Manual remapping at import time not yet implemented.";
-            }
-
             foreach my $file ( keys %multiple_brefs ) {
                 next if !$multiple_is_new{$file};
                 $gui->get_project->add_base_data( $multiple_brefs{$file} );
             }
         }
+
+        # run the auto remapper
+        $gui->do_remap(
+            default_remapee => $gui->get_project->get_selected_basedata,
+            );
+        
         return $basedata_ref;
     }
 

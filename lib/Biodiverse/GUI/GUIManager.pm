@@ -1131,11 +1131,7 @@ sub do_rename_phylogeny {
     return;
 }
 
-# Generalised auto remapping: called from do_auto_remap_phylogeny,
-# do_auto_remap_basedata and do_auto_remap_matrix. Pass in a function
-# to get the current data object (the one you will remap), a function
-# to add a new data object to the project, and a function to run the
-# renaming logic.
+# Generalised remapping, pass in the default remapee
 sub do_remap {
     my ($self, %args) = @_;
 
@@ -1188,12 +1184,21 @@ sub do_remap {
         # out the correct functions based on the type of the remapee.
         my %blessed_to_function_name = (
             "Biodiverse::Tree"     => "phylogeny",
-            "Biodiverse::BaseData" => "base_data",
+            "Biodiverse::BaseData" => "basedata",
             "Biodiverse::Matrix"   => "matrix",
             );
         
         my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
-        my $add_to_project_function = "add_"     . $function_name;
+        my $add_to_project_function;
+
+        # the function names are frustratingly add_base_data and
+        # do_rename_basedata so we have to fix that here.
+        if($function_name eq 'basedata') {
+            $add_to_project_function = "add_"."base_data";
+        }
+        else {
+            $add_to_project_function = "add_" . $function_name;
+        }
         my $rename_function         = "do_rename_". $function_name;
 
         $self->get_project->$add_to_project_function( $cloned_ref );

@@ -17,7 +17,7 @@ use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Ref::Util qw { :all };
-
+use Sort::Naturally qw /ncmp/;
 use Spreadsheet::Read 0.60;
 
 #  these are here for PAR purposes to ensure they get packed
@@ -4095,7 +4095,7 @@ sub get_output_ref_count {
 
 sub get_output_refs_sorted_by_name {
     my $self = shift;
-    my @sorted = sort { $a->get_param('NAME') cmp $b->get_param('NAME') }
+    my @sorted = sort { ncmp ($a->get_param('NAME'),  $b->get_param('NAME')) }
       $self->get_output_refs();
 
     return wantarray ? @sorted : \@sorted;

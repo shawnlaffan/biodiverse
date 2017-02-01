@@ -14,7 +14,6 @@ use Carp;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Export;
-use Biodiverse::ExportRemap qw/:all/;
 use Ref::Util qw /:all/;
 
 use List::MoreUtils qw(first_index);
@@ -307,8 +306,6 @@ sub remap_results_dialog {
             $punct_match_scroll->set_visible($punct_match_checkbutton->get_active),
         }
     );
-
-    
     
 
     ###
@@ -381,8 +378,9 @@ sub remap_results_dialog {
             typo_matches => \@typo_matches,
             );
 
-        my $exporter = Biodiverse::ExportRemap->new();
-        $exporter->export_remap ( remap => $remap );
+        my $remap_object = Biodiverse::Remap->new();
+        $remap_object->populate_from_hash(remap_hash => $remap);
+        Biodiverse::GUI::Export::Run($remap_object);
     });
 
     ####
@@ -600,6 +598,7 @@ sub build_remap_hash_from_exclusions {
     # remove exact matches and not matches here as well
     my @keys = keys %{$remap};
     foreach my $key (@keys) {
+        say ".$key. compared to .$remap->{$key}.";
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};
             say "Deleted $key because it mapped to itself.";

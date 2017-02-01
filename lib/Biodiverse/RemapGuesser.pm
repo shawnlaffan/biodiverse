@@ -27,17 +27,6 @@ sub new {
     return $self;
 }
 
-# given a remap hash and a data source, actually performs the remap.
-sub perform_auto_remap {
-    my ( $self, %args ) = @_;
-
-    my $remap_hash  = $args{remap};
-    my $data_source = $args{new_source};
-
-    $data_source->remap_labels_from_hash( remap => $remap_hash );
-    return;
-}
-
 # takes a two references to trees/matrices/basedata and tries to map
 # the first one to the second one.
 sub generate_auto_remap {

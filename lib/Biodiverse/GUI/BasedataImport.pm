@@ -745,7 +745,7 @@ sub run {
                     is_lat_field           => $is_lat_field,
                     is_lon_field           => $is_lon_field,
                 );
-            };
+            } // 0;
         }
     }
     elsif ( $read_format eq 'text' ) {

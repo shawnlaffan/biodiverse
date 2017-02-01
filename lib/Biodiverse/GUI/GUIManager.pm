@@ -1150,6 +1150,7 @@ sub do_remap {
 
     # guess an automatic remap
     if ( $remap_type eq "auto" ) {
+        say "Started an auto remap";
         my $controller = $pre_remap_dlg_results->{controller};
         
         $pre_remap_dlg_results->{ new_source } = $remapee;
@@ -1163,8 +1164,6 @@ sub do_remap {
 
     # load a remap file
     elsif ( $remap_type eq "manual" ) {
-        say "GUIManager: performing a manual remap";
-        
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
             gui          => $self,
         );

@@ -30,16 +30,13 @@ sub populate_from_hash {
         sep_char => $sep,
         quote_char => $quotes,
         );
-    
+
     foreach my $key (keys %$hash) {
         # create an element for this remap
         my @in_cols = ($key);
 
-        my $element = $self->list2csv (
-            list       => \@in_cols,
-            csv_object => $csv_out,
-            );
-
+        my $element = $key;
+        
         $self->add_element (
             element    => $element,
             csv_object => $csv_out,
@@ -111,7 +108,7 @@ sub populate_with_guessed_remap {
     $self->{ not_matched   } = $remap_results->{ not_matched   };
     
     $self->populate_from_hash( remap_hash => $remap );
-
+    $self->dequote_all_elements();
     $self->{ has_auto_remap } = 1;
 }
 
@@ -144,9 +141,11 @@ sub dequote_all_elements {
         my $new_val = $self->dequote_element( element    => $old_hash->{$key},
                                               quote_char => "'",
                                             );
-
+        say "dequote keys: .$key. -> .$new_key.";
         $dequoted_hash{$new_key} = $new_val;
     }
+
+    
     $self->populate_from_hash(remap_hash => \%dequoted_hash);
 }
 

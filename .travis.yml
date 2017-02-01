@@ -18,3 +18,7 @@ before_install:
 env:
   - BD_NO_TEST_GUI=1
 script: prove -l
+# blocklist
+branches:
+  except:
+  - ppm

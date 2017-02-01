@@ -1728,7 +1728,10 @@ sub import_data_shapefile {
                     my $g_size = $group_sizes[$i];
 
                     #  refactor this - duplicated from spreadsheet read
-                    if ( $g_size >= 0 ) {
+                    if ( $g_size < 0 ) {
+                        push @gp_fields, $val;
+                    }
+                    else {
                         if (   $is_lat_field
                             && $is_lat_field->{ $group_field_names[$i] } )
                         {
@@ -1753,6 +1756,7 @@ sub import_data_shapefile {
                             push @gp_fields, $val;
                         }
                     }
+
                 }
                 my $grpstring = $self->list2csv(
                     list       => \@gp_fields,

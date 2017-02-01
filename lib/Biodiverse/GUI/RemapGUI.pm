@@ -598,7 +598,6 @@ sub build_remap_hash_from_exclusions {
     # remove exact matches and not matches here as well
     my @keys = keys %{$remap};
     foreach my $key (@keys) {
-        say ".$key. compared to .$remap->{$key}.";
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};
             say "Deleted $key because it mapped to itself.";

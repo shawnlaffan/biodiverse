@@ -57,7 +57,6 @@ sub run {
     #########
 
     my %import_params;
-    my $call_remap;
     my %tabular_column_labels = (
         TREENAME_COL       => 'Tree name',
         LENGTHTOPARENT_COL => 'Length',
@@ -72,11 +71,7 @@ sub run {
     my %field_map;
     my $import_fields;
     if ($use_tabular_format) {
-
-     # Piggy-back code here, a bit messy.
-     # The get_remap_info call is used for identifying columns for table import,
-     # as well as for re-map
-        $call_remap = 1;
+        # Piggy-back code here, a bit messy.
         my @column_fields = values %tabular_column_labels;
         $import_fields = get_column_use( $gui, $filename, \@column_fields );
 
@@ -88,48 +83,11 @@ sub run {
             # find the column for this label
             $field_map{ $labels_to_columns{$field} } = $h_ref->{id};
         }
-
-        #say '';
     }
 
-
-    # run the remap gui, get all their decisions in one go
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->pre_remap_dlg(gui => $gui);
-
-    # will be 'auto' 'manual' or 'none'
-    my $remap_type = $remap_dlg_results->{remap_type};
-
-
-    # manual remap procedure
-    if ( $remap_type eq "manual" ) {
-        my %remap_data;
-
-        # no automatic remap, prompt for manual remap file
-        %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-            gui          => $gui,
-            type         => 'label',
-            get_dir_from => $filename,
-        );
-
-
-        #  now do something with them...
-        my $remap;
-
-        ###### check if we need to call remap (eg if tabular, and no remapping?)
-        if ( defined $remap_data{file} ) {
-            $remap = Biodiverse::ElementProperties->new;
-            $remap->import_data( %remap_data, );
-        }
-        $import_params{element_properties} = $remap;
-        if ( !defined $remap ) {
-            $import_params{use_element_properties} = undef;
-        }
-    }
-
-# process fields produced by get_column_use.  the key of each import_fields entry
-# will be the label passed to get_column_use, ie the text display of each field.
-# create a different mapping from the identifier (eg NODENUM) to the column.
+    # process fields produced by get_column_use.  the key of each import_fields entry
+    # will be the label passed to get_column_use, ie the text display of each field.
+    # create a different mapping from the identifier (eg NODENUM) to the column.
     my %labels_to_columns = reverse %tabular_column_labels;
 
     #my %field_map;
@@ -150,7 +108,7 @@ sub run {
     );
     if ($use_tabular_format) {
 
-#  Looks partly redundant, but ensures %import_params takes precedence over column_map - needed?
+        #  Looks partly redundant, but ensures %import_params takes precedence over column_map - needed?
         %import_args = (
             file       => $filename,
             column_map => \%field_map,
@@ -175,20 +133,6 @@ sub run {
       "[Phylogeny import] $tree_count trees parsed from $filename\nNames are: "
       . join( ', ', @names ) . "\n";
 
-    # If they wanted to auto remap, do that now.  Labels of multiple
-    # imported trees are combined and the same remap is performed on
-    # all of them.
-    if ($remap_type eq "auto") {
-        $remap_dlg_results->{ gui        } = $gui;
-        $remap_dlg_results->{ new_source } = $phylogeny_array;
-        $remap_dlg_results->{ old_source } 
-            = $remap_dlg_results->{datasource_choice};
-
-
-        $remapper->perform_remap($remap_dlg_results);
-
-    }
-
     #########
     #  4.  add the phylogenies to the GUI
     #########
@@ -199,6 +143,12 @@ sub run {
         'Import results'
     );
 
+    ##############################
+    # 5. Run the remapper
+    $gui->do_remap(
+        default_remapee => $gui->get_project->get_selected_phylogeny,
+    );
+        
     #  SWL:  not sure why we return undef in void context
     return defined wantarray ? $phylogeny_ref : undef;
 }

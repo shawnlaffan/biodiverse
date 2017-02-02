@@ -141,7 +141,6 @@ sub dequote_all_elements {
         my $new_val = $self->dequote_element( element    => $old_hash->{$key},
                                               quote_char => "'",
                                             );
-        say "dequote keys: .$key. -> .$new_key.";
         $dequoted_hash{$new_key} = $new_val;
     }
 

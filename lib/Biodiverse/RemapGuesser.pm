@@ -210,6 +210,7 @@ sub guess_remap {
         $n = scalar @from_labels;
 
         foreach my $from_label (@from_labels) {
+            
             $progress_i++;
             $progress->update ("Distance matching $n labels", $progress_i / $n);
     
@@ -225,9 +226,9 @@ sub guess_remap {
                 push @$subset, $target_label;
                 $min_distance = min ($distance, $min_distance);
             }
-    
+
             my $match_subset = $poss_matches[$min_distance] // [];
-    
+
             if ( scalar @$match_subset == 1) {
                 my $min_label = $match_subset->[0];
     
@@ -247,6 +248,8 @@ sub guess_remap {
                     $ambiguous_matches{$from_label} = $match_subset;
                 }
                 push @unprocessed_from_labels, $from_label;
+                say "We couldn't find a definitive match for $from_label,". 
+                    " there were multiple matches with the same distance.";
             }
         }
     }

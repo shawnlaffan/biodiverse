@@ -184,6 +184,7 @@ sub init_grid {
     my $self = shift;
 
     my $frame   = $self->{xmlPage}->get_object('gridFrameViewLabels');
+    my $lframe  = $self->{xmlPage}->get_object('gridFrameViewLabelsLegend');
     my $hscroll = $self->{xmlPage}->get_object('gridHScrollViewLabels');
     my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
 
@@ -195,6 +196,7 @@ sub init_grid {
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
+	lframe => $lframe,
         hscroll => $hscroll,
         vscroll => $vscroll,
         show_legend => 0,

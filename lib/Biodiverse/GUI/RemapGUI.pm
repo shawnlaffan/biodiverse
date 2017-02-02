@@ -71,19 +71,17 @@ sub pre_remap_dlg {
 
     my $gui                       = $args{"gui"};
     
-    # TODO change this to be the 'default'
-    my $default_remapee = $args{default_remapee};
-    
     ####
     # get the available options to remap labels to and from
     my @remapee_sources = ();
     push @remapee_sources, @{ $gui->get_project()->get_base_data_list() };
     push @remapee_sources, @{ $gui->get_project()->get_phylogeny_list() };
     push @remapee_sources, @{ $gui->get_project()->get_matrix_list() };
-        
 
     my @controller_sources = @remapee_sources;
     unshift @controller_sources, MANUAL_OPTION_TEXT;
+
+    my $default_remapee = $args{default_remapee} // @remapee_sources->[0];
     
     # table to align the controls
     my $table = Gtk2::Table->new( 4, 2, 1 );
@@ -368,7 +366,6 @@ sub remap_results_dialog {
     $export_button->set_tooltip_text(EXPORT_BUTTON_TOOLTIP);
     
     $export_button->signal_connect('clicked' => sub {
-        # put the action for the export button here LUKE
         $remap = $self->build_remap_hash_from_exclusions(
             remap => $remap,
             punct_match_enabled => $punct_match_checkbutton->get_active,

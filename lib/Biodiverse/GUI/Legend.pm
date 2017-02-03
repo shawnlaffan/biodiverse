@@ -98,10 +98,10 @@ sub new {
 
 
     # Set up the Legend canvas
-    $self->{canvas}->set_center_scroll_region(0);
+    #$self->{canvas}->set_center_scroll_region(0);
     $self->{canvas}->show;
-    $self->set_zoom_fit_flag(1);
-    $self->{dragging} = 0;
+    #$self->set_zoom_fit_flag(1);
+    #$self->{dragging} = 0;
 
     # Create background rectangle for the legend
     my $rect = Gnome2::Canvas::Item->new (

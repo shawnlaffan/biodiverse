@@ -45,9 +45,10 @@ requires "Getopt::Long::Descriptive";
 requires "Sereal", "3",
 requires "Cpanel::JSON::XS", 3,
 requires "JSON::MaybeXS", 1.003,
-requires "Sort::Naturally", 0,
+requires "Sort::Naturally",
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
+requires "Text::Levenshtein";  #  should replace by Text::Fuzzy
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

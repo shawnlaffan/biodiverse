@@ -26,6 +26,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
+use Biodiverse::GUI::Legend;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -74,10 +75,6 @@ use constant LIGHTEST_GREY_FRAC  => 0.8;
 =item frame
 
 The GtkFrame to hold the canvas
-
-=item lframe
-
-The GtkFrame to hold the legend canvas
 
 =item hscroll
 
@@ -147,11 +144,6 @@ sub new {
     $frame->add($self->{canvas});
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
     
-    # Make the legend canvas and hook it up
-    $self->{lcanvas} = Gnome2::Canvas->new();
-    $lframe->add($self->{lcanvas});
-    #$self->{lcanvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
-
     # Set up custom scrollbars due to flicker problems whilst panning..
     $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
     $self->{vadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
@@ -171,9 +163,6 @@ sub new {
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
 
-    # for Legend
-    $self->{lcanvas}->show;
-
     if ($show_value) {
         $self->setup_value_label();
     }
@@ -192,24 +181,6 @@ sub new {
     );
     $rect->lower_to_bottom();
 
-    # Create background rectangle for the legend
-    my $lrect = Gnome2::Canvas::Item->new (
-        $self->{lcanvas}->root,
-        'Gnome2::Canvas::Rect',
-        #x1 => 10,
-        #y1 => 10,
-        #x2 => 10,
-        #y2 => 10,
-        x1 => 0,
-        y1 => 0,
-        x2 => CELL_SIZE_X,
-        fill_color_gdk => "black",
-        #outline_color => "black",
-        #width_pixels => 2,
-        y2 => CELL_SIZE_X,
-    );
-    $lrect->lower_to_bottom();
-
     $self->{canvas}->root->signal_connect_swapped (
         event => \&on_background_event,
         $self,
@@ -225,8 +196,14 @@ sub new {
 
     # Labels::initGrid will set {page} (hacky)
 
+    # Call Legend.pm and pass it the lframe variable.
+    $self->{legend} = Biodiverse::GUI::Legend->new (
+        lframe => $lframe,	
+    );
+
     return $self;
 }
+
 
 
 sub show_legend {
@@ -236,17 +213,17 @@ sub show_legend {
 
 
     # Create legend
-#    my $pixbuf = $self->make_legend_pixbuf;
-#    
-#    $self->{legend} = Gnome2::Canvas::Item->new (
-#        $self->{canvas}->root,
-#        'Gnome2::Canvas::Pixbuf',
-#        pixbuf           => $pixbuf,
-#        width_in_pixels  => 1,
-#        height_in_pixels => 1,
-#        'height-set'     => 1,
-#        width            => LEGEND_WIDTH,
-#    );
+    my $pixbuf = $self->make_legend_pixbuf;
+    
+    $self->{legend} = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root,
+        'Gnome2::Canvas::Pixbuf',
+        pixbuf           => $pixbuf,
+        width_in_pixels  => 1,
+        height_in_pixels => 1,
+        'height-set'     => 1,
+        width            => LEGEND_WIDTH,
+    );
     
     $self->{legend}->raise_to_top();
     $self->{back_rect}->lower_to_bottom();

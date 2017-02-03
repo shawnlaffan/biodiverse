@@ -49,6 +49,7 @@ requires "Sort::Naturally",
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
 requires "Text::Levenshtein";  #  should replace by Text::Fuzzy
+requires "Data::Structure::Util";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

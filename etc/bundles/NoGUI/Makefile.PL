@@ -71,6 +71,7 @@ WriteMakefile(
         "Text::Fuzzy" => 0,
         "Ref::Util" => "0.101",
         "Text::Levenshtein" => 0,
+        "Data::Structure::Util" => 0,
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

@@ -2285,6 +2285,29 @@ sub assign_element_properties {
     return $count;
 }
 
+sub delete_element_properties {
+    my ($self, %args) = shift;
+
+    croak "Cannot delete properties from a basedata with existing outputs"
+        if $self->get_output_ref_count;
+
+    # delete element properties from groups
+    my $gp = $self->get_groups_ref;
+    $gp->delete_cached_values;
+    foreach my $group ($self->get_groups) {
+        $gp->delete_lists( element => $group,
+                           lists   => ['PROPERTIES'] );
+    }
+
+    # delete element properties from labels
+    my $lb = $self->get_labels_ref;
+    $lb->delete_cached_values;
+    foreach my $label ($self->get_labels) {
+        $lb->delete_lists( element => $label,
+                           lists   => ['PROPERTIES'] );
+    }
+}
+
 sub rename_labels {
     my $self = shift;
     return $self->_rename_groups_or_labels( @_, type => 'label' );

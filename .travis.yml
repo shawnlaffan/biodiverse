@@ -4,6 +4,9 @@ perl:
   - '5.22'
 distro: trusty
 sudo: required
+cache:
+  directories:
+    - perl_modules
 before_install:
   - sudo apt-get install libglade2-dev libgnomecanvas2-dev
 
@@ -15,6 +18,8 @@ before_install:
   #  Could adapt approach used in https://github.com/shawnlaffan/bd_travis_experiment
   #  or install libgdal-dev via apt-get (if it can be located)
   - cpanm -v Geo::GDAL
+  - cpanm local::lib
+  - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
 env:
   - BD_NO_TEST_GUI=1
 script: prove -l
@@ -22,3 +27,4 @@ script: prove -l
 branches:
   except:
   - ppm
+  

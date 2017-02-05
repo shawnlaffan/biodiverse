@@ -7,20 +7,20 @@ requires 'Text::Fuzzy';
 requires 'Text::Levenshtein';
 
 requires "Data::DumpXML";
-requires "Math::Random::MT::Auto", "6.21",
-requires "Text::CSV_XS", "1.04",
+requires "Math::Random::MT::Auto", "6.21";
+requires "Text::CSV_XS", "1.04";
 requires "DBD::XBase";
 requires "HTML::QuickTable";
-requires "YAML::Syck", "1.29",
-requires "Clone", "0.35",
+requires "YAML::Syck", "1.29";
+requires "Clone", "0.35";
 requires "Regexp::Common";
 requires "rlib";
 requires "Test::Lib";
 requires "parent";
 requires "Readonly";
 requires "URI::Escape::XS";
-requires "Statistics::Descriptive", "3.0608",
-requires "Geo::Converter::dms2dd", "0.05",
+requires "Statistics::Descriptive", "3.0608";
+requires "Geo::Converter::dms2dd", "0.05";
 requires "Text::Wrapper";
 requires "Exporter::Easy";
 requires "Exception::Class";
@@ -32,20 +32,20 @@ requires "Tree::R";
 requires "Geo::ShapeFile", "2.60",
 requires "Geo::Shapefile::Writer";
 requires "List::MoreUtils", "0.410",
-requires "List::Util", "1.41",
+requires "List::Util", "1.41";
 requires "Class::Inspector";
-requires "autovivification", "0.16",
-requires "List::BinarySearch", "0.25",
-requires "List::BinarySearch::XS", "0.09",
-requires "Spreadsheet::Read", "0.60",
+requires "autovivification", "0.16";
+requires "List::BinarySearch", "0.25";
+requires "List::BinarySearch::XS", "0.09";
+requires "Spreadsheet::Read", "0.60";
 requires "Spreadsheet::ReadSXC";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
 requires "Getopt::Long::Descriptive";
-requires "Sereal", "3",
-requires "Cpanel::JSON::XS", 3,
-requires "JSON::MaybeXS", 1.003,
-requires "Sort::Naturally",
+requires "Sereal", "3";
+requires "Cpanel::JSON::XS", "3";
+requires "JSON::MaybeXS", "1.003";
+requires "Sort::Naturally";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
 requires "Text::Levenshtein";  #  should replace by Text::Fuzzy

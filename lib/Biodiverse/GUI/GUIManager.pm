@@ -33,6 +33,7 @@ require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
 use Biodiverse::GUI::ProgressDialog;
+use Biodiverse::GUI::DeleteElementProperties;
 
 
 require Biodiverse::BaseData;
@@ -931,7 +932,13 @@ sub do_basedata_attach_properties {
 sub do_delete_element_properties {
     my $self = shift;
     my $bd   = $self->{project}->get_selected_base_data;
-    $bd->delete_element_properties();
+
+
+    my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
+    $delete_el_props_gui->run( basedata => $bd );
+
+    # TODO need to hook the return value of the gui to the basedata.
+    #$bd->delete_element_properties();
 }
 
 sub do_delete_basedata {

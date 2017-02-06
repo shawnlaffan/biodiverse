@@ -33,8 +33,7 @@ use English qw { -no_match_vars };
 
 #use Math::Random::MT::Auto qw /rand srand shuffle/;
 
-use
-  Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
+use Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects
 use Biodiverse::Spatial;
 use Biodiverse::RegionGrower;
@@ -2285,8 +2284,26 @@ sub assign_element_properties {
     return $count;
 }
 
+# returns a hash. 'groups' maps to a hash mapping from element names
+# to element property hashes for this basedata's groups. 'labels'
+# likewise.
+sub get_all_element_properties {
+    my ($self, %args) = shift;
+    my %results_hash;
+    
+    my $gp = $self->get_groups_ref;
+    $results_hash{groups} = $gp->get_all_element_properties();
+    
+    my $lb = $self->get_labels_ref;
+    $results_hash{labels} = $lb->get_all_element_properties();
+
+    return wantarray ? %results_hash : \%results_hash;
+}
+
 sub delete_element_properties {
     my ($self, %args) = shift;
+
+    $self->get_all_element_properties();
 
     croak "Cannot delete properties from a basedata with existing outputs"
         if $self->get_output_ref_count;

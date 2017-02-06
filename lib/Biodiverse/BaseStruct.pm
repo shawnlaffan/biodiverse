@@ -3611,6 +3611,19 @@ sub get_element_property_keys {
     return wantarray ? @keys : \@keys;
 }
 
+# returns a hash mapping from elements to element property hashes.
+sub get_all_element_properties {
+    my ($self, %args) = @_;
+    my %element_to_props_hash;
+    
+    foreach my $element ($self->get_element_list) {
+        my $props_hash = $self->get_element_properties(element => $element);
+        $element_to_props_hash{ $element } = $props_hash;
+    }
+
+    return wantarray ? %element_to_props_hash : \%element_to_props_hash;
+}
+
 sub get_element_properties {
     my $self = shift;
     my %args = @_;

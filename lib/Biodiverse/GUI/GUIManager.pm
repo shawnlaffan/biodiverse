@@ -928,6 +928,12 @@ sub do_basedata_attach_properties {
     return;
 }
 
+sub do_delete_element_properties {
+    my $self = shift;
+    my $bd   = $self->{project}->get_selected_base_data;
+    $bd->delete_element_properties();
+}
+
 sub do_delete_basedata {
     my $self = shift;
 

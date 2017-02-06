@@ -286,6 +286,9 @@ my %data_funcs = (
     on_basedata_attach_ranges_as_properties => {
         METHOD => 'do_basedata_attach_label_ranges_as_properties',
     },
+    on_delete_element_properties => {
+        METHOD => 'do_delete_element_properties',
+    },
     on_merge_basedatas => {
         METHOD => 'do_merge_basedatas',
     },

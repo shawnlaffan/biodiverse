@@ -102,6 +102,8 @@ sub run {
     $dlg->show_all;
     my $response = $dlg->run();
     $dlg->destroy();
+
+    return wantarray ? %{$self->{to_delete}} : $self->{to_delete};
 }
 
 
@@ -259,8 +261,6 @@ sub _remove_item_for_deletion {
     else {
         $labels_to_delete_hash->{$element} = \@fixed_up_array;
     }
-    use Data::Dumper;
-    print Dumper($labels_to_delete_hash);
     
     $self->{to_delete}->{labels} = $labels_to_delete_hash;  
 }
@@ -272,9 +272,6 @@ sub _add_item_for_deletion {
 
     my $labels_to_delete_hash = $self->{to_delete}->{labels};
     push @{$labels_to_delete_hash->{$element}}, $property;
-
-    use Data::Dumper;
-    print Dumper($labels_to_delete_hash);
     
     $self->{to_delete}->{labels} = $labels_to_delete_hash;
 }

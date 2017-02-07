@@ -3119,6 +3119,18 @@ sub delete_lists {
     return;
 }
 
+# delete a single element property
+sub delete_element_property {
+    my ($self, %args) = @_;
+
+    my $element  = $args{ element  };
+    my $property = $args{ property };
+
+    my %props = %{$self->{ELEMENTS}{$element}{PROPERTIES}};
+    delete $props{ $property };
+    $self->{ELEMENTS}{$element}{PROPERTIES} = \%props;
+}
+
 sub get_lists {
     my $self = shift;
     my %args = @_;

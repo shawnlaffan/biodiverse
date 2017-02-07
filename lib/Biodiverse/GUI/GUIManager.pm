@@ -935,10 +935,10 @@ sub do_delete_element_properties {
 
 
     my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
-    $delete_el_props_gui->run( basedata => $bd );
+    my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
 
-    # TODO need to hook the return value of the gui to the basedata.
-    #$bd->delete_element_properties();
+    
+    $bd->delete_element_properties_from_hash( hash => $to_delete_hash );
 }
 
 sub do_delete_basedata {

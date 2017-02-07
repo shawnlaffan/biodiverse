@@ -13,8 +13,15 @@ use Biodiverse::GUI::GUIManager;
 
 use Scalar::Util qw /blessed/;
 
-use constant DEFAULT_DIALOG_HEIGHT => 600;
+use constant DEFAULT_DIALOG_HEIGHT => 500;
 use constant DEFAULT_DIALOG_WIDTH => 600;
+
+my $i;
+use constant PROPERTY_COL => $i || 0;
+use constant ELEMENT_COL  => ++$i;
+use constant VALUE_COL     => ++$i;
+use constant DELETE_COL  => ++$i;
+
 
 
 sub new {
@@ -71,7 +78,10 @@ sub run {
 
         $vbox->pack_start( $prop_info_label, 0, 0, 0 );
 
-        my $tree = $self->build_tree_from_hash( hash => \%elements_to_values );
+        my $tree = $self->build_tree_from_hash( hash => \%elements_to_values,
+                                                property => $property,
+                                              );
+        
         $inner_vbox->pack_start( $tree, 0, 0, 0 );
 
         $scroll->add_with_viewport($inner_vbox);
@@ -100,12 +110,14 @@ sub run {
 sub build_tree_from_hash {
     my ($self, %args) = @_;
     my %hash = %{$args{hash}};
-
+    my $property = $args{property};
+    
     # start by building the TreeModel
     my @treestore_args = (
+        'Glib::String',     # Property
         'Glib::String',     # Element
         'Glib::String',     # Value
-        'Glib::Boolean',    # Delete?
+        'Glib::Boolean',    # Delete
         );
 
     my $model = Gtk2::TreeStore->new(@treestore_args);
@@ -115,9 +127,10 @@ sub build_tree_from_hash {
         my $iter = $model->append(undef);
         $model->set(
             $iter,
-            0, $key,
-            1, $hash{$key},
-            2, 0,
+            PROPERTY_COL, $property,
+            ELEMENT_COL,  $key,
+            VALUE_COL,    $hash{$key},
+            DELETE_COL,   0,
             );
     }
 
@@ -126,9 +139,16 @@ sub build_tree_from_hash {
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
 
+    my $property_column = Gtk2::TreeViewColumn->new();
     my $element_column = Gtk2::TreeViewColumn->new();
     my $value_column = Gtk2::TreeViewColumn->new();
     my $delete_column = Gtk2::TreeViewColumn->new();
+
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $property_column,
+        title_text   => 'Property',
+        tooltip_text => '',
+        );
     
     $self->add_header_and_tooltip_to_treeview_column (
         column       => $element_column,
@@ -148,6 +168,7 @@ sub build_tree_from_hash {
         tooltip_text => '',
         );
 
+    my $property_renderer = Gtk2::CellRendererText->new();
     my $element_renderer = Gtk2::CellRendererText->new();
     my $value_renderer = Gtk2::CellRendererText->new();
     my $delete_renderer = Gtk2::CellRendererToggle->new();
@@ -161,24 +182,29 @@ sub build_tree_from_hash {
         \%data
         );
 
+    $property_column->pack_start( $property_renderer, 0 );
     $element_column->pack_start( $element_renderer, 0 );
     $value_column->pack_start( $value_renderer, 0 );
     $delete_column->pack_start( $delete_renderer, 0 );
 
+    $property_column->add_attribute( $property_renderer,
+                                    text => PROPERTY_COL );
     $element_column->add_attribute( $element_renderer,
-                                     text => 0 );
+                                     text => ELEMENT_COL );
     $value_column->add_attribute( $value_renderer,
-                                     text => 1 );
+                                     text => VALUE_COL );
     $delete_column->add_attribute( $delete_renderer,
-                                     active => 2 );
+                                     active => DELETE_COL );
 
+    $tree->append_column($property_column);
     $tree->append_column($element_column);
     $tree->append_column($value_column);
     $tree->append_column($delete_column);
 
-    $element_column->set_sort_column_id(0);
-    $value_column->set_sort_column_id(1);
-    $delete_column->set_sort_column_id(2);
+    $property_column->set_sort_column_id(PROPERTY_COL);
+    $element_column->set_sort_column_id(ELEMENT_COL);
+    $value_column->set_sort_column_id(VALUE_COL);
+    $delete_column->set_sort_column_id(DELETE_COL);
 
     return $tree;
 }
@@ -194,26 +220,65 @@ sub on_delete_toggled {
     my $iter = $model->get_iter_from_string($path);
 
     # Flip state
-    my $state = $model->get( $iter, 2 );
-    $model->set( $iter, 2, !$state );
-  
-    # my $label = $model->get( $iter, ORIGINAL_LABEL_COL );
+    my $state = $model->get( $iter, DELETE_COL );
+    $model->set( $iter, DELETE_COL, !$state );
 
-    # if ( !$state ) {
-    #     $self->remove_exclusion($label);
-    # }
-    # else {
-    #     $self->add_exclusion($label);
-    # }
-    # my $exclusions_ref = $self->get_exclusions();
-    # my @exclusions     = @{$exclusions_ref};
+    my $property = $model->get( $iter, PROPERTY_COL );
+    my $element = $model->get( $iter, ELEMENT_COL );
 
-    # #say "found label $label, @exclusions";
-
-    return;
-
-
+    if ( !$state ) {
+        $self->_add_item_for_deletion( 
+            property => $property,
+            element  => $element,
+        );
+    }
+    else {
+        $self->_remove_item_for_deletion( 
+            property => $property,
+            element  => $element,
+        );
+    }
 }
+
+
+# TODO also need to pass in whether it's a group/label when we
+# implement that.
+sub _remove_item_for_deletion {
+    my ($self, %args) = @_;
+    my $property = $args{ property };
+    my $element  = $args{ element  };
+
+    my $labels_to_delete_hash = $self->{to_delete}->{labels};
+
+    my @fixed_up_array = @{$labels_to_delete_hash->{$element}};
+    @fixed_up_array = grep { $_ ne  $property } @fixed_up_array;      
+
+    if (scalar @fixed_up_array == 0) {
+        delete $labels_to_delete_hash->{$element};
+    }
+    else {
+        $labels_to_delete_hash->{$element} = \@fixed_up_array;
+    }
+    use Data::Dumper;
+    print Dumper($labels_to_delete_hash);
+    
+    $self->{to_delete}->{labels} = $labels_to_delete_hash;  
+}
+
+sub _add_item_for_deletion {
+    my ($self, %args) = @_;
+    my $property = $args{ property };
+    my $element  = $args{ element  };
+
+    my $labels_to_delete_hash = $self->{to_delete}->{labels};
+    push @{$labels_to_delete_hash->{$element}}, $property;
+
+    use Data::Dumper;
+    print Dumper($labels_to_delete_hash);
+    
+    $self->{to_delete}->{labels} = $labels_to_delete_hash;
+}
+
 
 
 # given a hash mapping from element name to a hash mapping from

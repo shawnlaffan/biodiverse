@@ -936,7 +936,6 @@ sub do_delete_element_properties {
 
     my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
     my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
-
     
     $bd->delete_element_properties_from_hash( hash => $to_delete_hash );
 }

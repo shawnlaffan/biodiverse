@@ -3125,7 +3125,7 @@ sub delete_element_property {
 
     my $element  = $args{ element  };
     my $property = $args{ property };
-
+    
     my %props = %{$self->{ELEMENTS}{$element}{PROPERTIES}};
     delete $props{ $property };
     $self->{ELEMENTS}{$element}{PROPERTIES} = \%props;

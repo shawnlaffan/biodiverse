@@ -37,21 +37,21 @@ sub new {
 sub run {
     my ( $self, %args ) = @_;
     my $bd = $args{basedata};
-
-    say "LUKE: in run_delete_element_properties_gui";
     
-    # start by doing just the labels, add in the groups later.
     my %el_props_hash = $bd->get_all_element_properties();
-    %el_props_hash = %{$el_props_hash{labels}};
-
-    #say "el_props_hash:";
-    #use Data::Dumper;
-    #print Dumper(\%el_props_hash);
-
+    my %label_props_hash = %{$el_props_hash{labels}};
+    my %group_props_hash = %{$el_props_hash{groups}};
+    
     # break up into a hash mapping from the property name to a hash
     # mapping from element name to value
-    %el_props_hash = 
-        $self->format_element_properties_hash( props_hash => \%el_props_hash );
+    %label_props_hash = $self->format_element_properties_hash( 
+        props_hash => \%label_props_hash 
+        );
+
+    %group_props_hash = $self->format_element_properties_hash( 
+        props_hash => \%group_props_hash 
+        );
+
 
 
     my $dlg = Gtk2::Dialog->new_with_buttons(
@@ -60,45 +60,32 @@ sub run {
 
     $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
 
-    ####
-    # Packing
-    my $vbox = Gtk2::VBox->new();
+    my $label_outer_vbox = 
+        $self->_build_deletion_panel( values_hash => \%label_props_hash );
+
+    my $group_outer_vbox =
+        $self->_build_deletion_panel( values_hash => \%group_props_hash );
     
-    # now start building the gui components and packing them in
-    foreach my $property (keys %el_props_hash) {
-        my %elements_to_values = %{$el_props_hash{$property}};
-        my $count = scalar (keys %elements_to_values);
 
-        my $scroll = Gtk2::ScrolledWindow->new( undef, undef );
-        my $inner_vbox = Gtk2::VBox->new();
+    my $notebook = Gtk2::Notebook->new;
+    $notebook->append_page (
+        $label_outer_vbox,
+        "Labels",        
+    );
 
-        say "building gui for $property";
-        my $prop_info_label = 
-            Gtk2::Label->new("Property: $property (applies to $count labels)");
+    $notebook->append_page (
+        $group_outer_vbox,
+        "Groups",        
+        );
 
-        $vbox->pack_start( $prop_info_label, 0, 0, 0 );
-
-        my $tree = $self->build_tree_from_hash( hash => \%elements_to_values,
-                                                property => $property,
-                                              );
-        
-        $inner_vbox->pack_start( $tree, 0, 0, 0 );
-
-        $scroll->add_with_viewport($inner_vbox);
-
-        $scroll->set_size_request(200, 100);
-        $vbox->pack_start( $scroll, 0, 0, 0 );
-    }
-
-    my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $outer_scroll->add_with_viewport($vbox);
-    $outer_scroll->set_size_request(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
+    # we need to know what notebook page we're on when we choose to
+    # delete something, so we know whether to add it to groups or
+    # labels.
+    $self->{notebook} = $notebook;
     
-    my $outer_vbox = $dlg->get_content_area;
-    $outer_vbox->pack_start( $outer_scroll, 0, 0, 0 );
-    $outer_vbox->set_homogeneous(0);
-    $outer_vbox->set_spacing(3);
-
+    my $content_area = $dlg->get_content_area;
+    $content_area->pack_start( $notebook, 0, 0, 0 );
+    
     $dlg->show_all;
     my $response = $dlg->run();
     $dlg->destroy();
@@ -211,7 +198,54 @@ sub build_tree_from_hash {
     return $tree;
 }
 
-# handle deletion checkbox toggling here
+
+sub _build_deletion_panel {
+    my ($self, %args) = @_;
+    my %values_hash = %{$args{values_hash}};
+    my $label_vbox = Gtk2::VBox->new();
+
+    
+    # build the labels tab
+    foreach my $property (keys %values_hash) {
+        my %elements_to_values = %{$values_hash{$property}};
+        my $count = scalar (keys %elements_to_values);
+
+        my $label_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+        my $label_inner_vbox = Gtk2::VBox->new();
+
+        my $label_prop_info_label = 
+            Gtk2::Label->new("Property: $property (applies to $count labels)");
+
+        $label_vbox->pack_start( $label_prop_info_label, 0, 0, 0 );
+
+        my $label_tree = $self->build_tree_from_hash( hash => \%elements_to_values,
+                                                      property => $property,
+            );
+        
+        $label_inner_vbox->pack_start( $label_tree, 0, 0, 0 );
+
+        $label_scroll->add_with_viewport($label_inner_vbox);
+
+        $label_scroll->set_size_request(200, 100);
+        $label_vbox->pack_start( $label_scroll, 0, 0, 0 );
+    }
+
+    my $label_outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    $label_outer_scroll->add_with_viewport($label_vbox);
+    $label_outer_scroll->set_size_request(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
+    
+    my $label_outer_vbox = Gtk2::VBox->new();
+    $label_outer_vbox->pack_start( $label_outer_scroll, 0, 0, 0 );
+    $label_outer_vbox->set_homogeneous(0);
+    $label_outer_vbox->set_spacing(3);
+
+    
+    return $label_outer_vbox;
+}
+
+
+
+# handle deletion checkbox toggling
 sub on_delete_toggled {
     my $args = shift;
     my $path = shift;
@@ -228,52 +262,62 @@ sub on_delete_toggled {
     my $property = $model->get( $iter, PROPERTY_COL );
     my $element = $model->get( $iter, ELEMENT_COL );
 
+    # figure out if it's a group or label element property
+    my $notebook = $self->{notebook};
+    my $current_page = $notebook->get_current_page;
+    my $basestruct = ($current_page == 0) ? "label" : "group";
+    
     if ( !$state ) {
         $self->_add_item_for_deletion( 
-            property => $property,
-            element  => $element,
+            property   => $property,
+            element    => $element,
+            basestruct => $basestruct,
         );
     }
     else {
         $self->_remove_item_for_deletion( 
-            property => $property,
-            element  => $element,
+            property   => $property,
+            element    => $element,
+            basestruct => $basestruct,
         );
     }
 }
 
 
-# TODO also need to pass in whether it's a group/label when we
-# implement that.
 sub _remove_item_for_deletion {
     my ($self, %args) = @_;
-    my $property = $args{ property };
-    my $element  = $args{ element  };
+    my $property   = $args{ property   };
+    my $element    = $args{ element    };
+    # either group or label
+    my $basestruct = $args{ basestruct };
+    
+    my $to_delete_hash = $self->{to_delete}->{$basestruct};
 
-    my $labels_to_delete_hash = $self->{to_delete}->{labels};
-
-    my @fixed_up_array = @{$labels_to_delete_hash->{$element}};
+    my @fixed_up_array = @{$to_delete_hash->{$element}};
     @fixed_up_array = grep { $_ ne  $property } @fixed_up_array;      
 
     if (scalar @fixed_up_array == 0) {
-        delete $labels_to_delete_hash->{$element};
+        delete $to_delete_hash->{$element};
     }
     else {
-        $labels_to_delete_hash->{$element} = \@fixed_up_array;
+        $to_delete_hash->{$element} = \@fixed_up_array;
     }
     
-    $self->{to_delete}->{labels} = $labels_to_delete_hash;  
+    $self->{to_delete}->{$basestruct} = $to_delete_hash;  
 }
 
 sub _add_item_for_deletion {
     my ($self, %args) = @_;
-    my $property = $args{ property };
-    my $element  = $args{ element  };
+    my $property   = $args{ property   };
+    my $element    = $args{ element    };
+    # either group or label
+    my $basestruct = $args{ basestruct };
 
-    my $labels_to_delete_hash = $self->{to_delete}->{labels};
-    push @{$labels_to_delete_hash->{$element}}, $property;
     
-    $self->{to_delete}->{labels} = $labels_to_delete_hash;
+    my $to_delete_hash = $self->{to_delete}->{$basestruct};
+    push @{$to_delete_hash->{$element}}, $property;
+    
+    $self->{to_delete}->{$basestruct} = $to_delete_hash;
 }
 
 
@@ -292,10 +336,6 @@ sub format_element_properties_hash {
             $new_hash{$prop}->{$element} = $value;
         }
     }
-
-    # say "new_hash:";
-    # use Data::Dumper;
-    # print Dumper(\%new_hash);
 
     return wantarray ? %new_hash : \%new_hash;
 }

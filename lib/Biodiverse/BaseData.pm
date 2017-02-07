@@ -2308,10 +2308,11 @@ sub get_all_element_properties {
 sub delete_element_properties_from_hash {
     my ($self, %args) = @_;
     my $hash = $args{ hash };
-    
+
+    # delete label element properties
     my $lb = $self->get_labels_ref;
-    foreach my $element (keys %{$hash->{labels}}) {
-        my @props = @{$hash->{labels}->{$element}};
+    foreach my $element (keys %{$hash->{label}}) {
+        my @props = @{$hash->{label}->{$element}};
         foreach my $prop (@props) {
             $lb->delete_element_property(
                 element  => $element,
@@ -2320,7 +2321,18 @@ sub delete_element_properties_from_hash {
         }
     }
 
-    # TODO add groups
+    # delete group element properties
+    my $gp = $self->get_groups_ref;
+    foreach my $element (keys %{$hash->{group}}) {
+        my @props = @{$hash->{group}->{$element}};
+        foreach my $prop (@props) {
+            $gp->delete_element_property(
+                element  => $element,
+                property => $prop,
+                );
+        }
+    }
+
 }
 
 

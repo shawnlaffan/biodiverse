@@ -17,10 +17,10 @@ use constant DEFAULT_DIALOG_HEIGHT => 500;
 use constant DEFAULT_DIALOG_WIDTH => 600;
 
 my $i;
-use constant PROPERTY_COL => $i || 0;
+use constant DELETE_COL  => $i || 0;
+use constant PROPERTY_COL => ++$i;
 use constant ELEMENT_COL  => ++$i;
 use constant VALUE_COL     => ++$i;
-use constant DELETE_COL  => ++$i;
 
 
 
@@ -52,8 +52,6 @@ sub run {
         props_hash => \%group_props_hash 
         );
 
-
-
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Delete Element Properties', undef, 'modal', 'gtk-yes' => 'yes', 'gtk-no'  => 'no'
         );
@@ -61,10 +59,14 @@ sub run {
     $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
 
     my $label_outer_vbox = 
-        $self->_build_deletion_panel( values_hash => \%label_props_hash );
+        $self->_build_deletion_panel( values_hash => \%label_props_hash,
+                                      basestruct  => "label",
+                                    );
 
     my $group_outer_vbox =
-        $self->_build_deletion_panel( values_hash => \%group_props_hash );
+        $self->_build_deletion_panel( values_hash => \%group_props_hash,
+                                      basestruct  => "group",
+                                    );
     
 
     my $notebook = Gtk2::Notebook->new;
@@ -103,10 +105,10 @@ sub build_tree_from_hash {
     
     # start by building the TreeModel
     my @treestore_args = (
+        'Glib::Boolean',    # Delete
         'Glib::String',     # Property
         'Glib::String',     # Element
         'Glib::String',     # Value
-        'Glib::Boolean',    # Delete
         );
 
     my $model = Gtk2::TreeStore->new(@treestore_args);
@@ -116,10 +118,10 @@ sub build_tree_from_hash {
         my $iter = $model->append(undef);
         $model->set(
             $iter,
+            DELETE_COL,   0,
             PROPERTY_COL, $property,
             ELEMENT_COL,  $key,
             VALUE_COL,    $hash{$key},
-            DELETE_COL,   0,
             );
     }
 
@@ -133,6 +135,13 @@ sub build_tree_from_hash {
     my $value_column = Gtk2::TreeViewColumn->new();
     my $delete_column = Gtk2::TreeViewColumn->new();
 
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $delete_column,
+        title_text   => 'Delete',
+        tooltip_text => '',
+        );
+
+    
     $self->add_header_and_tooltip_to_treeview_column (
         column       => $property_column,
         title_text   => 'Property',
@@ -151,11 +160,6 @@ sub build_tree_from_hash {
         tooltip_text => '',
         );
 
-    $self->add_header_and_tooltip_to_treeview_column (
-        column       => $delete_column,
-        title_text   => 'Delete',
-        tooltip_text => '',
-        );
 
     my $property_renderer = Gtk2::CellRendererText->new();
     my $element_renderer = Gtk2::CellRendererText->new();
@@ -171,10 +175,10 @@ sub build_tree_from_hash {
         \%data
         );
 
+    $delete_column->pack_start( $delete_renderer, 0 );
     $property_column->pack_start( $property_renderer, 0 );
     $element_column->pack_start( $element_renderer, 0 );
     $value_column->pack_start( $value_renderer, 0 );
-    $delete_column->pack_start( $delete_renderer, 0 );
 
     $property_column->add_attribute( $property_renderer,
                                     text => PROPERTY_COL );
@@ -185,10 +189,10 @@ sub build_tree_from_hash {
     $delete_column->add_attribute( $delete_renderer,
                                      active => DELETE_COL );
 
+    $tree->append_column($delete_column);
     $tree->append_column($property_column);
     $tree->append_column($element_column);
     $tree->append_column($value_column);
-    $tree->append_column($delete_column);
 
     $property_column->set_sort_column_id(PROPERTY_COL);
     $element_column->set_sort_column_id(ELEMENT_COL);
@@ -202,10 +206,10 @@ sub build_tree_from_hash {
 sub _build_deletion_panel {
     my ($self, %args) = @_;
     my %values_hash = %{$args{values_hash}};
-    my $label_vbox = Gtk2::VBox->new();
+    # group or label?
+    my $basestruct = $args{basestruct};
 
-    
-    # build the labels tab
+    my $label_vbox = Gtk2::VBox->new();
     foreach my $property (keys %values_hash) {
         my %elements_to_values = %{$values_hash{$property}};
         my $count = scalar (keys %elements_to_values);
@@ -214,12 +218,19 @@ sub _build_deletion_panel {
         my $label_inner_vbox = Gtk2::VBox->new();
 
         my $label_prop_info_label = 
-            Gtk2::Label->new("Property: $property (applies to $count labels)");
+            Gtk2::Label->new(
+                "Property: $property (applies to $count $basestruct"."s)"
+            );
 
+        my $delete_checkbutton 
+            = Gtk2::CheckButton->new("Delete Property");
+                 
         $label_vbox->pack_start( $label_prop_info_label, 0, 0, 0 );
-
-        my $label_tree = $self->build_tree_from_hash( hash => \%elements_to_values,
-                                                      property => $property,
+        $label_vbox->pack_start( $delete_checkbutton, 0, 0, 0 );
+        
+        my $label_tree = 
+            $self->build_tree_from_hash( hash => \%elements_to_values,
+                                         property => $property,
             );
         
         $label_inner_vbox->pack_start( $label_tree, 0, 0, 0 );
@@ -228,6 +239,34 @@ sub _build_deletion_panel {
 
         $label_scroll->set_size_request(200, 100);
         $label_vbox->pack_start( $label_scroll, 0, 0, 0 );
+
+        $delete_checkbutton->set_active(0);
+        $delete_checkbutton->signal_connect(
+            toggled => sub {
+                $label_tree->set_sensitive( !$label_tree->get_sensitive );
+                if($label_tree->get_sensitive) {
+                    # take everything off deletion
+                    foreach my $element (keys %elements_to_values) {
+                        $self->_remove_item_for_deletion (
+                            property   => $property,
+                            element    => $element,
+                            basestruct => $basestruct,
+                            );
+                    }                     
+                }
+                else {
+                    # add everything for deletion
+                    foreach my $element (keys %elements_to_values) {
+                        $self->_add_item_for_deletion (
+                            property   => $property,
+                            element    => $element,
+                            basestruct => $basestruct,
+                            );
+                    }                     
+
+                }
+            }
+         );
     }
 
     my $label_outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
@@ -293,8 +332,21 @@ sub _remove_item_for_deletion {
     
     my $to_delete_hash = $self->{to_delete}->{$basestruct};
 
-    my @fixed_up_array = @{$to_delete_hash->{$element}};
-    @fixed_up_array = grep { $_ ne  $property } @fixed_up_array;      
+    my @old_array = @{$to_delete_hash->{$element}};
+
+    # just delete first occurence (so that the exclusion checkboxes
+    # still work)
+    my @fixed_up_array;
+    my $found = 0;
+    foreach my $item (@old_array) {
+        if(($item eq $property) and (!$found)) {
+            $found = 1;
+        }
+        else {
+            push @fixed_up_array, $item;
+        }
+    }
+
 
     if (scalar @fixed_up_array == 0) {
         delete $to_delete_hash->{$element};
@@ -312,10 +364,12 @@ sub _add_item_for_deletion {
     my $element    = $args{ element    };
     # either group or label
     my $basestruct = $args{ basestruct };
-
     
     my $to_delete_hash = $self->{to_delete}->{$basestruct};
+    
+    #if ( !grep( /^$property$/, @{$to_delete_hash->{$element}}) ) {
     push @{$to_delete_hash->{$element}}, $property;
+    #}
     
     $self->{to_delete}->{$basestruct} = $to_delete_hash;
 }

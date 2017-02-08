@@ -933,7 +933,10 @@ sub do_delete_element_properties {
     my $self = shift;
     my $bd   = $self->{project}->get_selected_base_data;
 
-
+    croak "Cannot delete properties from a basedata with existing outputs" 
+        . " (try 'duplicate without outputs')" 
+        if($bd->get_output_ref_count);
+    
     my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
     my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
 

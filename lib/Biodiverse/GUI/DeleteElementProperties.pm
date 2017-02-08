@@ -92,7 +92,12 @@ sub run {
     my $response = $dlg->run();
     $dlg->destroy();
 
-    return wantarray ? %{$self->{to_delete}} : $self->{to_delete};
+    if($response eq "yes") {
+        return wantarray ? %{$self->{to_delete}} : $self->{to_delete};
+    }
+    else {
+        return wantarray ? () : {};
+    }
 }
 
 

@@ -2300,39 +2300,19 @@ sub get_all_element_properties {
     return wantarray ? %results_hash : \%results_hash;
 }
 
-
 # expects a hash in format:
-#    labels -> { element -> {prop, prop, prop}, element2 -> {prop} } etc.
-#    groups -> { element -> {prop} } etc.
-# All of the listed element properties are deleted
-sub delete_element_properties_from_hash {
+#    element -> {prop, prop, prop}, element2 -> {prop} etc.
+# deletes given properties for given elements
+sub delete_label_properties {
     my ($self, %args) = @_;
-    my $hash = $args{ hash };
-
-    # delete label element properties
     my $lb = $self->get_labels_ref;
-    foreach my $element (keys %{$hash->{label}}) {
-        my @props = @{$hash->{label}->{$element}};
-        foreach my $prop (@props) {
-            $lb->delete_element_property(
-                element  => $element,
-                property => $prop,
-            );
-        }
-    }
+    $lb->delete_element_properties_from_hash( hash => $args{hash} );
+}
 
-    # delete group element properties
+sub delete_group_properties {
+    my ($self, %args) = @_;
     my $gp = $self->get_groups_ref;
-    foreach my $element (keys %{$hash->{group}}) {
-        my @props = @{$hash->{group}->{$element}};
-        foreach my $prop (@props) {
-            $gp->delete_element_property(
-                element  => $element,
-                property => $prop,
-                );
-        }
-    }
-
+    $gp->delete_element_properties_from_hash( hash => $args{hash} );
 }
 
 

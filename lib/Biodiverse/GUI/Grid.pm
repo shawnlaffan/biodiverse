@@ -26,7 +26,6 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
-use Biodiverse::GUI::Legend;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -117,7 +116,6 @@ sub new {
     my $class   = shift;
     my %args = @_;
     my $frame   = $args{frame};
-    my $lframe  = $args{lframe};
     my $hscroll = $args{hscroll};
     my $vscroll = $args{vscroll};
     
@@ -143,7 +141,7 @@ sub new {
     $self->{canvas} = Gnome2::Canvas->new();
     $frame->add($self->{canvas});
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
-    
+
     # Set up custom scrollbars due to flicker problems whilst panning..
     $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
     $self->{vadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
@@ -162,7 +160,7 @@ sub new {
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
-
+    
     if ($show_value) {
         $self->setup_value_label();
     }
@@ -196,21 +194,14 @@ sub new {
 
     # Labels::initGrid will set {page} (hacky)
 
-    # Call Legend.pm and pass it the lframe variable.
-    $self->{legend} = Biodiverse::GUI::Legend->new (
-        lframe => $lframe,	
-    );
-
     return $self;
 }
-
 
 
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
     return if $self->get_legend;
-
 
     # Create legend
     my $pixbuf = $self->make_legend_pixbuf;

@@ -64,7 +64,7 @@ use constant HIGHLIGHT_COLOUR    => Gtk2::Gdk::Color->new(255*257,0,0); # red
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
 #use constant CELL_OUTLINE_COLOUR => Gtk2::Gdk::Color->new(0, 0, 0);
-#use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
+use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
 #use constant DARKEST_GREY_FRAC   => 0.2;
 #use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -221,7 +221,7 @@ sub make_mark {
     my $anchor = shift;
 
     my $mark = Gnome2::Canvas::Item->new (
-        $self->{legend_group}, # $self->{canvas}->root,
+        $self->{legend_group}, 
         'Gnome2::Canvas::Text',
         text            => q{},
         anchor          => $anchor,
@@ -300,7 +300,8 @@ sub setup_value_label {
     my $group = shift;
 
     my $value_group = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
+        $self->{legend_group}->root,
+        #$self->{canvas}->root,
         'Gnome2::Canvas::Group',
         x => 0,
         y => 100,
@@ -439,10 +440,10 @@ sub reposition {
     );
 
     # Reposition the "mark" textboxes
-    my $mark_x = -10; 
+    my $mark_x = $width - $legend_width; 
     foreach my $i (0..3) {
         $self->{marks}[$i]->set(
-            x => $mark_x ,
+            x => $mark_x,
             y => $scroll_y + $i * $height / 3,
         );
     }

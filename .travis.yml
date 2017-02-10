@@ -17,7 +17,7 @@ before_install:
   - cpanm -v Geo::GDAL
 env:
   - BD_NO_TEST_GUI=1
-script: prove -l
+script: prove -l -j4
 # blocklist
 branches:
   except:

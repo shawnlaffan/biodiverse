@@ -6,7 +6,7 @@
     <property name="title" translatable="yes">Export</property>
     <property name="modal">True</property>
     <property name="window_position">center</property>
-    <property name="type_hint">normal</property>
+    <property name="type_hint">dialog</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox10">
         <property name="visible">True</property>

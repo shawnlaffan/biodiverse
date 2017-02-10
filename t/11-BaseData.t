@@ -91,7 +91,7 @@ sub main {
         no strict 'refs';
         $sub->();
     }
-    
+
     done_testing;
     return 0;
 }
@@ -391,6 +391,57 @@ sub test_binarise_sample_counts {
     }
     
 }
+
+
+sub test_remap_labels_from_hash {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $bd->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $bd->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = sort $bd->get_labels();
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" )
+}
+
+sub test_remap_mismatched_labels {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $bd->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    # now also add in some junk remap values (might come up say when
+    # applying a multiple tree remap to a single tree)
+    foreach my $number (0..10) {
+        $remap{"junkkey$number"} = "junkvalue$number";
+    }
+    
+    
+    eval { $bd->remap_labels_from_hash(remap => \%remap); };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "got no exception from mismatched remap");
+    
+    my @actual_new_labels = sort $bd->get_labels();
+
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" )
+}
+
+
+
+
 
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);

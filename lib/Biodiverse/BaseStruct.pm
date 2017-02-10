@@ -2497,7 +2497,7 @@ sub get_text_axis_as_coord {
     my %this_axis;
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
-        my $axes = $self->get_element_name_as_array (element => $element);
+        my $axes = $self->get_element_name_as_array_aa ($element);
         $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest

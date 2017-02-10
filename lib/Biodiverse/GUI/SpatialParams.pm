@@ -144,6 +144,8 @@ sub new {
         }
     }
 
+    $hbox->set_no_show_all (1);
+
     return $self;
 }
 

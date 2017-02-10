@@ -1193,9 +1193,10 @@ sub import_data {
                       if $data_in_matrix_form;
                 }
 
-        #  single label col or matrix form data need extra quotes to be stripped
-        #  should clean up mx form on first pass
-        #  or do as a post-processing step
+                #  single label col or matrix form data
+                #  need extra quotes to be stripped
+                #  should clean up mx form on first pass
+                #  or do as a post-processing step
                 if ( scalar @label_columns <= 1 ) {
                     $el = $self->dequote_element(
                         element    => $el,
@@ -4903,7 +4904,6 @@ sub merge {
     return;
 }
 
-sub numerically { $a <=> $b }
 sub reintegrate_after_parallel_randomisations {
     my $self = shift;
     my %args = @_;

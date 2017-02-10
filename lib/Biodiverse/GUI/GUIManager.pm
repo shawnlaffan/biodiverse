@@ -1136,11 +1136,12 @@ sub do_remap {
     my ($self, %args) = @_;
 
     # ask what type of remap, what is getting remapped to what etc.
-    my $remap_gui           = Biodiverse::GUI::RemapGUI->new();
-    my $pre_remap_dlg_results = 
-       $remap_gui->pre_remap_dlg( gui => $self, 
-                                  default_remapee => $args{default_remapee}, 
-                                );
+    my $remap_gui = Biodiverse::GUI::RemapGUI->new();
+    my $pre_remap_dlg_results 
+       = $remap_gui->pre_remap_dlg (
+            gui => $self, 
+            default_remapee => $args{default_remapee}, 
+    );
 
     my $remap_type = $pre_remap_dlg_results->{remap_type};
     my $remapee    = $pre_remap_dlg_results->{remapee};
@@ -1148,8 +1149,7 @@ sub do_remap {
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
 
-    # guess an automatic remap
-    if ( $remap_type eq "auto" ) {
+    if ( $remap_type eq "auto" ) {  # guess an automatic remap
         say "Started an auto remap";
         my $controller = $pre_remap_dlg_results->{controller};
         
@@ -1161,9 +1161,7 @@ sub do_remap {
         $want_to_perform_remap 
             = $remap_gui->post_auto_remap_dlg(remap_object => $generated_remap);
     }
-
-    # load a remap file
-    elsif ( $remap_type eq "manual" ) {
+    elsif ( $remap_type eq "manual" ) {  # load a remap file
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
             gui          => $self,
         );
@@ -1175,37 +1173,42 @@ sub do_remap {
             $want_to_perform_remap = 1; 
         }
     }
-    
-    # regardless of how we got the remap, apply it in the same way
-    if ($want_to_perform_remap) {
-        my $cloned_ref = $remapee->clone();
-
-        $generated_remap->apply_to_data_source( data_source => $cloned_ref );
-
-        # add new data object to project and rename. We need to figure
-        # out the correct functions based on the type of the remapee.
-        my %blessed_to_function_name = (
-            "Biodiverse::Tree"     => "phylogeny",
-            "Biodiverse::BaseData" => "basedata",
-            "Biodiverse::Matrix"   => "matrix",
-            );
-        
-        my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
-        my $add_to_project_function;
-
-        # the function names are frustratingly add_base_data and
-        # do_rename_basedata so we have to fix that here.
-        if($function_name eq 'basedata') {
-            $add_to_project_function = "add_"."base_data";
-        }
-        else {
-            $add_to_project_function = "add_" . $function_name;
-        }
-        my $rename_function         = "do_rename_". $function_name;
-
-        $self->get_project->$add_to_project_function( $cloned_ref );
-        $self->$rename_function();
+    else {
+        croak "Unknown option $remap_type\n";
     }
+    
+    return if !$want_to_perform_remap;
+
+    # regardless of how we got the remap, apply it in the same way
+    my $cloned_ref = $remapee->clone();
+
+    $generated_remap->apply_to_data_source( data_source => $cloned_ref );
+
+    # add new data object to project and rename. We need to figure
+    # out the correct functions based on the type of the remapee.
+    my %blessed_to_function_name = (
+        "Biodiverse::Tree"     => "phylogeny",
+        "Biodiverse::BaseData" => "basedata",
+        "Biodiverse::Matrix"   => "matrix",
+        );
+    
+    my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
+    my $add_to_project_function;
+
+    # the function names are frustratingly add_base_data and
+    # do_rename_basedata so we have to fix that here.
+    if($function_name eq 'basedata') {
+        $add_to_project_function = "add_"."base_data";
+    }
+    else {
+        $add_to_project_function = "add_" . $function_name;
+    }
+    my $rename_function         = "do_rename_". $function_name;
+
+    $self->get_project->$add_to_project_function( $cloned_ref );
+    $self->$rename_function();
+
+    return;
 }
 
 sub do_auto_remap_phylogeny {

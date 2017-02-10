@@ -69,19 +69,20 @@ sub pre_remap_dlg {
     my $self = shift;
     my %args = @_;
 
-    my $gui                       = $args{"gui"};
-    
+    my $gui = $args{gui};
+
     ####
     # get the available options to remap labels to and from
-    my @remapee_sources = ();
-    push @remapee_sources, @{ $gui->get_project()->get_base_data_list() };
-    push @remapee_sources, @{ $gui->get_project()->get_phylogeny_list() };
-    push @remapee_sources, @{ $gui->get_project()->get_matrix_list() };
-
+    my @remapee_sources = (
+        @{ $gui->get_project->get_base_data_list },
+        @{ $gui->get_project->get_phylogeny_list },
+        @{ $gui->get_project->get_matrix_list },
+    );
+    
     my @controller_sources = @remapee_sources;
     unshift @controller_sources, MANUAL_OPTION_TEXT;
 
-    my $default_remapee = $args{default_remapee} // @remapee_sources->[0];
+    my $default_remapee = $args{default_remapee} // $remapee_sources[0];
     
     # table to align the controls
     my $table = Gtk2::Table->new( 4, 2, 1 );

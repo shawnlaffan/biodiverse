@@ -27,9 +27,9 @@ sub populate_from_hash {
     my $sep = ":";
     
     my $csv_out = $self->get_csv_object (
-        sep_char => $sep,
+        sep_char   => $sep,
         quote_char => $quotes,
-        );
+    );
 
     foreach my $key (keys %$hash) {
         # create an element for this remap
@@ -40,7 +40,7 @@ sub populate_from_hash {
         $self->add_element (
             element    => $element,
             csv_object => $csv_out,
-            );
+        );
 
         my $properties_hash;
         $properties_hash->{REMAP} = $hash->{$key};
@@ -98,7 +98,7 @@ sub populate_with_guessed_remap {
             ignore_case                => $ignore_case,
             remapping_multiple_sources => $remapping_multiple_sources,
         }
-        );
+    );
     
     my $remap       = $remap_results->{remap};
     
@@ -128,24 +128,30 @@ sub get_match_category {
 }
 
 
+#  should work directly on the REMAP hash entries for each element
 sub dequote_all_elements {
     my ($self, %args) = @_;
     my $old_hash = $self->to_hash();
-    my %dequoted_hash = ();
+    my %dequoted_hash;
 
     foreach my $key (keys %$old_hash) {
-        my $new_key = $self->dequote_element( element    => $key,
-                                              quote_char => "'",
-                                            );
+        my $new_key = $self->dequote_element(
+            element    => $key,
+            quote_char => "'",
+        );
 
-        my $new_val = $self->dequote_element( element    => $old_hash->{$key},
-                                              quote_char => "'",
-                                            );
+        my $new_val = $new_key;
+        if (defined $old_hash->{$key}) {
+            $new_val = $self->dequote_element(
+                element    => $old_hash->{$key},
+                quote_char => "'",
+            );
+        }
         $dequoted_hash{$new_key} = $new_val;
     }
 
     
-    $self->populate_from_hash(remap_hash => \%dequoted_hash);
+    $self->populate_from_hash (remap_hash => \%dequoted_hash);
 }
 
 

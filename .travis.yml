@@ -25,7 +25,7 @@ before_install:
   
   #  Let's see if we can find where gdal-config went.
   #  It should be in ./gdal
-  - find . -name 'gdal*' -print
+  - find . $HOME $TRAVIS_BUILD -name 'gdal*' -print
   
   - cpanm local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
@@ -43,4 +43,4 @@ branches:
 
 cache:
   directories:
-  - $HOME/gdal
+  - gdal

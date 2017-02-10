@@ -22,3 +22,4 @@ script: prove -l
 branches:
   except:
   - ppm
+  - issue_630_export_user_tree_colours

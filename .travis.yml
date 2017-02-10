@@ -10,10 +10,12 @@ cache:
 before_install:
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
-  #- sudo apt-get install libgnomecanvas2-dev
-  #
-  ## Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  #- cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
+  #  NO - leave in until issue #581 is finalised
+  #  as it has GUI deps
+  - sudo apt-get install libgnomecanvas2-dev
+
+  # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
+  - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
 
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)

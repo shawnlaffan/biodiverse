@@ -277,6 +277,14 @@ sub get_common_export_metadata {
         $default_idx = first_index {$last_used_list eq $_} @lists;
     }
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+    #say "Default def_query value is: .$def_query_default.";
+
     my $metadata = [
         {
             name => 'file',
@@ -288,6 +296,14 @@ sub get_common_export_metadata {
             type        => 'choice',
             choices     => \@lists,
             default     => $default_idx,
+        },
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => $def_query_default,
+            tooltip     => 'Only elements which pass this def query ' .
+                           'will be exported.',
         },
     ];
     foreach (@$metadata) {
@@ -697,6 +713,14 @@ sub get_metadata_export_shapefile {
     #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+
+    
     my @parameters = (
         {  # GUI supports just one of these
             name => 'file',
@@ -717,6 +741,14 @@ sub get_metadata_export_shapefile {
             default     => 0,
         },
         @nodata_meta,
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => $def_query_default,
+            tooltip     => 'Only elements which pass this def query ' .
+                'will be exported.',
+        },
         {
             type        => 'comment',
             label_text  => $shape_export_comment_text,
@@ -759,7 +791,24 @@ sub export_shapefile {
 
     say "Exporting to shapefile $file";
 
-    my @elements    = $self->get_element_list;
+    my $def_query = $args{def_query};
+    
+    my @elements;
+    if ($def_query) {
+        @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
+        my $length = scalar @elements;
+        if( $length == 0) {
+            say "[BaseStruct] No elements passed the def query!";
+            @elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
+    }
+    else {
+        @elements = $self->get_element_list;
+    }
+
+    
+
     my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
     if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
@@ -1045,6 +1094,7 @@ sub write_table {
     return;
 }
 
+
 #  control whether a file is written symetrically or not
 sub to_table {
     my $self = shift;
@@ -1057,9 +1107,23 @@ sub to_table {
       if !defined $args{list}; 
 
     my $list = $args{list};
+    my $check_elements;
+    if( $args{def_query} ) {
+        $check_elements = 
+            $self->get_elements_that_pass_def_query( defq => $args{def_query} );
 
-    my $check_elements = $self->get_element_list;
-
+        my $length = scalar @{ $check_elements };
+        if( $length == 0 ) {
+            say "[BASESTRUCT] No elements passed the def query!";
+            $check_elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
+    }
+    else {
+        $check_elements = $self->get_element_list;
+    }
+    
+  
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
@@ -1148,6 +1212,7 @@ sub to_table_sym {
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
@@ -1155,7 +1220,14 @@ sub to_table_sym {
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;
-    my @elements = sort $self->get_element_list;
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort @{$self->get_elements_that_pass_def_query( defq=>$def_query )};
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
 
     my $list_hash_ref = $self->get_hash_list_values(
         element => $elements[0],
@@ -1265,14 +1337,21 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
-    my @elements = sort $self->get_element_list;
-
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
     push my @header, 'ELEMENT'; 
     if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
@@ -1369,13 +1448,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
-    my $elements = $self->get_element_hash();
+
+    my $elements;
+    if ($def_query) {
+        $elements = $self->get_element_hash_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        $elements = $self->get_element_hash();
+    }
+
     my %indices_hash;
 
     my $quote_char = $self->get_param('QUOTES');
@@ -1398,7 +1486,15 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         @print_order;
 
     my @data;
-    my @elements = sort keys %$elements;
+
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort keys %$elements;
+    }
 
     push my @header, 'ELEMENT';  #  need the number of element components for the header
     if (! $no_element_array) {
@@ -2374,6 +2470,67 @@ sub get_element_list_sorted {
     return wantarray ? @array : \@array;
 }
 
+# pass in a string def query, this returns a list of all elements that
+# pass the def query.
+sub get_elements_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};    
+    
+    my $elements_that_pass_hash = 
+        $self->get_element_hash_that_pass_def_query( defq => $args{defq} );
+
+    my @elements_that_pass = keys %$elements_that_pass_hash;
+    
+    return wantarray ? @elements_that_pass : \@elements_that_pass;
+}
+
+# gets the complete element hash and then weeds out elements that
+# don't pass a given def query.
+sub get_element_hash_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};
+     
+    $def_query =
+        Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $def_query, );
+
+    my $bd = $self->get_basedata_ref;
+    if (Biodiverse::MissingBasedataRef->caught) {
+        # What do we do here?
+        say "[BaseStruct.pm]: Missing BaseStruct in 
+                       get_elements_hash_that_pass_def_query";
+        return;
+    }
+    
+    my $groups        = $bd->get_groups;
+    my $element       = $groups->[0];
+
+    my $elements_that_pass_hash = $bd->get_neighbours(
+        element            => $element,
+        spatial_conditions => $def_query,
+        is_def_query       => 1,
+        );
+
+    
+    # at this stage we have a hash in the form "element_name" -> 1 to
+    # indicate that it passed the def query. We want this in the form
+    # "element_name" -> all the data about this element. This is the
+    # format used by get_element_hash and so by a lot of the
+    # basestruct functions.
+    
+    my %formatted_element_hash = $self->get_element_hash;
+
+    my %formatted_elements_that_pass;
+    foreach my $element (keys %formatted_element_hash) {
+        if ($elements_that_pass_hash->{$element}) {
+            $formatted_elements_that_pass{$element} 
+                  = $formatted_element_hash{$element};
+        }
+    }
+    
+    return \%formatted_elements_that_pass;
+}
+
 sub get_element_hash {
     my $self = shift;
 
@@ -2497,7 +2654,7 @@ sub get_text_axis_as_coord {
     my %this_axis;
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
-        my $axes = $self->get_element_name_as_array (element => $element);
+        my $axes = $self->get_element_name_as_array_aa ($element);
         $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest

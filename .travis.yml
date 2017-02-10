@@ -22,6 +22,10 @@ before_install:
   - cpanm -v Geo::GDAL
   - cpanm local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+  
+  #  Let's see if we can find where libgdal went.
+  #  It should be in ./gdal
+  - find . -name 'libgdal*' -print
 env:
   - BD_NO_TEST_GUI=1
 script: prove -l -j4
@@ -32,3 +36,7 @@ branches:
   #  list GUI only branches here since we lack GUI tests
   - issue_630_export_user_tree_colours
   - issue_633_remove_pixbuf
+
+cache:
+  directories:
+  - $HOME/gdal

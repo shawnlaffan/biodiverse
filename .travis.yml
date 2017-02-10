@@ -22,12 +22,14 @@ before_install:
   #  Could adapt approach used in https://github.com/shawnlaffan/bd_travis_experiment
   #  or install libgdal-dev via apt-get (if it can be located)
   - cpanm -v Geo::GDAL
+  
+  #  Let's see if we can find where gdal-config went.
+  #  It should be in ./gdal
+  - find . -name 'gdal*' -print
+  
   - cpanm local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   
-  #  Let's see if we can find where libgdal went.
-  #  It should be in ./gdal
-  - find . -name 'libgdal*' -print
 env:
   - BD_NO_TEST_GUI=1
 script: prove -l -j4

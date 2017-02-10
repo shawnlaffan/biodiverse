@@ -5,10 +5,12 @@ perl:
 distro: trusty
 sudo: required
 before_install:
-  - sudo apt-get install libgnomecanvas2-dev
-
-  # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
+  #  Disable Gtk stuff for speed reasons
+  #  Reinstate when we add the GUI variant
+  #- sudo apt-get install libgnomecanvas2-dev
+  #
+  ## Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
+  #- cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
 
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)
@@ -22,4 +24,6 @@ script: prove -l -j4
 branches:
   except:
   - ppm
+  #  list GUI only branches here since we lack GUI tests
   - issue_630_export_user_tree_colours
+  - issue_633_remove_pixbuf

@@ -85,12 +85,72 @@ sub Run {
         $format_dlg->destroy;
     }
 
-    #my $meta_params = $metadata->get_parameters;
-    #my $params = $params->{$selected_format};  #  should be a method
+
     my $params = $metadata->get_parameters_for_format(format => $selected_format);
 
+  RUN_DIALOG:
+    my $results = choose_file_location_dialog(
+        gui    => $gui, 
+        params => $params,
+        selected_format => $selected_format,
+    );
+
+    return if !$results->{success};
+
+    my $chooser = $results->{chooser};
+    my $parameters_table = $results->{param_table};
+    my $extractors = $results->{extractors};
+    my $dlg = $results->{dlg};
+    
+    # Export!
+    my $extracted_params = $parameters_table->extract($extractors);
+    my $filename = $chooser->get_filename;
+    #  normalise the file name
+    $filename = Path::Class::File->new($filename)->stringify;
+
+    my $writefile = 'yes';
+    while (-e $filename) {
+        $writefile = Biodiverse::GUI::YesNoCancel->run({
+            header => "Overwrite file $filename?"
+        });
+        last if $writefile ne 'no';
+        #  get a new file name
+        $dlg->run;
+        $filename  = $chooser->get_filename;
+        $filename  = Path::Class::File->new($filename)->stringify;
+        $writefile = 'yes';
+    }
+
+    if ($writefile eq 'yes') {
+        eval {
+            $object->export(
+                format   => $selected_format,
+                file     => $filename,
+                @$extracted_params,
+            )
+        };
+        if ($EVAL_ERROR) {
+            $gui->activate_keyboard_snooper (1);
+            $gui->report_error ($EVAL_ERROR);
+        }
+    }
+
+    $dlg->destroy;
+    $gui->activate_keyboard_snooper (1);
+
+    return;
+}
+
+
+sub choose_file_location_dialog {
+    my %args = @_;
+    my $gui = $args{gui};
+    my $params = $args{params};
+    my $selected_format = $args{selected_format};
+
+    
     #####################
-    #  and now get the params for the selected format
+    #  get the params for the selected format
     my $dlgxml = Gtk2::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgExport.ui'));
 
@@ -119,47 +179,23 @@ sub Run {
     $dlg->show_all();
 
 
-  RUN_DIALOG:
     my $response = $dlg->run();
 
     if ($response ne 'ok') {
         $dlg->destroy;
         $gui->activate_keyboard_snooper (1);
-        return;
+        return {success => 0};
     }
 
-    # Export!
-    $params = $parameters_table->extract($extractors);
-    my $filename = $chooser->get_filename();
-    $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
-    if ( (not -e $filename)
-        || Biodiverse::GUI::YesNoCancel->run({
-            header => "Overwrite file $filename?"})
-                eq 'yes'
-        ) {
+    my $result = {
+        success => 1,
+        chooser => $chooser,
+        param_table => $parameters_table,
+        extractors => $extractors,
+        dlg => $dlg,
+    };
 
-        eval {
-            $object->export(
-                format   => $selected_format,
-                file     => $filename,
-                @$params,
-            )
-        };
-        if ($EVAL_ERROR) {
-            $gui->activate_keyboard_snooper (1);
-            $gui->report_error ($EVAL_ERROR);
-        }
-    }
-    else {
-        goto RUN_DIALOG; # my first ever goto!
-    }
-
-
-    $dlg->destroy;
-    $gui->activate_keyboard_snooper (1);
-
-    return;
+    return $result;
 }
-
 
 1;

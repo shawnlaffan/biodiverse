@@ -5,9 +5,11 @@ use warnings;
 no warnings 'recursion';
 
 use English ( -no_match_vars );
+use Ref::Util qw { :all };
+
 
 use Carp;
-use Scalar::Util qw /weaken isweak blessed reftype/;
+use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
@@ -151,6 +153,18 @@ sub delete_cached_values_below {
     return;
 }
 
+#  almost the same as set_name
+#  but the args differ
+sub rename {
+    my $self = shift;
+    my %args = @_;
+
+    croak "new_name argument missing\n"
+      if not defined $args{new_name};
+
+    $self->{NODE_VALUES}{NAME} = $args{new_name};
+    return;
+}
 
 sub set_name {
     my $self = shift;
@@ -414,7 +428,7 @@ sub add_children {
       // return;  #  should croak
 
     croak "TreeNode WARNING: children argument not an array ref\n"
-      if reftype ($children) ne 'ARRAY';
+      if !is_arrayref($children);
     
     #  Remove any duplicates.
     #  Could use a hash but we need to retain the insertion order
@@ -507,7 +521,7 @@ sub delete_children {
     my $children = $args{children};
 
     croak "children argument not specified or not an array ref"
-        if ! defined $children || ! ref ($children) =~ /ARRAY/;
+        if ! defined $children || !is_arrayref($children);
 
     my $count = 0;
     foreach my $child (@$children) {
@@ -1283,7 +1297,7 @@ sub get_hash_lists {
     my @list;
     foreach my $tmp (keys %{$self}) {
         next if $tmp =~ /^_/;  #  skip the internals
-        push @list, $tmp if ref($self->{$tmp}) =~ /HASH/;
+        push @list, $tmp if is_hashref($self->{$tmp});
     }
     return @list if wantarray;
     return \@list;
@@ -1347,6 +1361,8 @@ sub set_parent {
 
     my $parent = $args{parent}
       // croak "argument 'parent' not specified\n";
+
+    return if $self->{_PARENT} && $parent eq $self->{_PARENT};
 
     croak 'parent Reference not same type as child (' . blessed ($self) . ")\n"
         if blessed($parent) ne blessed($self);
@@ -1599,7 +1615,7 @@ sub to_table {
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
             my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});
             if (defined $sub_list_ref) {
-                if ((ref $sub_list_ref) =~ /ARRAY/) {
+                if (is_arrayref ($sub_list_ref)) {
                     $sub_list_ref = $self->array_to_hash_values (
                         list             => $sub_list_ref,
                         prefix           => $args{sub_list},
@@ -1607,7 +1623,7 @@ sub to_table {
                         sort_array_lists => $args{sort_array_lists},
                     );
                 }
-                if ((ref $sub_list_ref) =~ /HASH/) {
+                if (is_hashref($sub_list_ref)) {
                     @data{keys %$sub_list_ref} = (values %$sub_list_ref);
                 }
             }
@@ -1715,7 +1731,7 @@ sub to_basestruct_group_nodes {
         #  should really allow arrays here - convert to hashes?
         if ($sub_list !~ /(no list)/) {
             my $sub_list_ref = $node->get_list_ref (list => $sub_list) // '';
-            if ((ref $sub_list_ref) =~ /ARRAY/) {
+            if (is_arrayref($sub_list_ref)) {
                 $sub_list_ref = $self->array_to_hash_values (
                     list   => $sub_list_ref,
                     prefix => $sub_list,
@@ -1723,7 +1739,7 @@ sub to_basestruct_group_nodes {
                     sort_array_lists => $args{sort_array_lists},
                 );
             }
-            if ((ref $sub_list_ref) =~ /HASH/) {
+            if (is_hashref($sub_list_ref)) {
                 @data{keys %$sub_list_ref} = (values %$sub_list_ref);
             }
         }
@@ -1908,12 +1924,12 @@ sub add_to_lists {
         if ($use_ref) {
             $self->{$list} = $values;
         }
-        elsif ((ref $values) =~ /HASH/) {
+        elsif (is_hashref($values)) {
             $self->{$list} = {} if ! exists $self->{$list};
             next if ! scalar keys %$values;
             @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
         }
-        elsif ((ref $values) =~ /ARRAY/) {
+        elsif (is_arrayref($values)) {
             $self->{$list} = [] if ! exists $self->{$list};
             next if ! scalar @$values;
             push @{$self->{$list}}, @$values;
@@ -1933,7 +1949,7 @@ sub delete_lists {
     
     my $lists = $args{lists};
     croak "argument 'lists' not defined or not an array\n"
-        if not defined $lists or (ref $lists) !~ /ARRAY/;
+        if not defined $lists or !is_arrayref($lists);
     
     foreach my $list (@$lists) {
         next if ! exists $self->{$list};
@@ -2021,7 +2037,7 @@ sub get_max_list_length_below {
     my $length;
     
     my $list_ref = $self->get_list_ref (%args);
-    if ((ref $list_ref) =~ /ARRAY/) {
+    if (is_arrayref($list_ref)) {
         $length = scalar @$list_ref;
     }
     else {  #  must be a hash

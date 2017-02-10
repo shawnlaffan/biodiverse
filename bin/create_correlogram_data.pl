@@ -9,6 +9,8 @@ use FindBin qw { $Bin };
 use File::Spec;
 use POSIX qw { fmod };
 use File::Basename;
+use Ref::Util qw { :all };
+
 
 #use lib File::Spec->catfile( $Bin, '..', 'lib');
 #eval 'use mylib';
@@ -183,7 +185,7 @@ sub build_matrix {
     #my $spatial_conditions = [
     #    $sp_cond,
     #];
-    if (defined $spatial_conditions && (ref $spatial_conditions) !~ /ARRAY/) {
+    if (defined $spatial_conditions && !is_arrayref($spatial_conditions)) {
         $spatial_conditions = [$spatial_conditions];
     }
 

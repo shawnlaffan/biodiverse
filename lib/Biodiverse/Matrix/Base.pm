@@ -6,13 +6,15 @@ use 5.010;
 use Carp;
 use English qw / -no_match_vars/;
 
-use Scalar::Util qw /looks_like_number blessed reftype/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
 our $VERSION = '1.99_006';
 
 use Biodiverse::Exception;
+use Ref::Util qw { :all };
+
 
 my $EMPTY_STRING = q{};
 my $lowmem_class = 'Biodiverse::Matrix::LowMem';
@@ -365,7 +367,7 @@ sub import_data_sparse {
     my @label_col_columns  = @{$args{label_col_columns}};
     my $value_column       = $args{value_column};
     
-    if (reftype ($value_column)) {
+    if (is_ref ($value_column)) {
         $value_column = $value_column->[0];  #  take the first if we are passed an array
     }
 
@@ -1034,10 +1036,10 @@ sub trim {
             }
         }
     }
-    elsif ((ref $data) =~ /ARRAY/) {  #  convert to hash if needed
+    elsif (is_arrayref($data)) {  #  convert to hash if needed
         @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    elsif ((ref $data) =~ /HASH/) {
+    elsif (is_hashref($data)) {
         %keep_or_trim = %$keep;
     }
 
@@ -1071,6 +1073,110 @@ sub trim {
     );
 
     return wantarray ? %results : \%results;
+}
+
+# wrapper around get_elements_as_array for the purpose of polymorphism in
+# the auto-remap logic.
+sub get_labels {
+    my $self = shift;
+    return $self->get_elements_as_array;
+}
+
+
+# takes a hash mapping names of elements currently in this matrix to
+# desired names, renames elements accordingly.
+sub remap_labels_from_hash {
+    my $self       = shift;
+    my %args       = @_;
+    my $remap_hash = $args{remap};
+
+    foreach my $old_name (keys %$remap_hash) {
+        my $new_name = $remap_hash->{$old_name};
+
+        next if $old_name eq $new_name;
+
+        $self->rename_element(
+            old_name => $old_name,
+            new_name => $new_name,
+        );
+    }
+
+    return;
+}
+
+# renames element 'old_name' to 'new_name'
+sub rename_element {
+    my $self = shift;
+    my %args = @_;
+
+    my $old_name = $args{old_name};
+    my $new_name = $args{new_name};
+
+    #say "Matrix: renaming $old_name to $new_name";
+
+    my $all_elements = $self->get_elements_as_array;
+
+    for my $element (@$all_elements) {
+        my $exists = $self->element_pair_exists (
+            element1 => $element,
+            element2 => $old_name
+        );
+
+        next if !$exists;
+
+        # pair is in correct order
+        if ( $exists == 1 ) {
+            my $value = $self->get_value(
+                element1 => $element,
+                element2 => $old_name
+            );
+
+            if ( $element eq $old_name ) {
+                $self->add_element(
+                    element1 => $new_name,
+                    element2 => $new_name,
+                    value    => $value
+                );
+                $self->delete_element(
+                    element1 => $old_name,
+                    element2 => $old_name
+                );
+            }
+            else {
+                $self->add_element(
+                    element1 => $element,
+                    element2 => $new_name,
+                    value    => $value
+                );
+                $self->delete_element(
+                    element1 => $element,
+                    element2 => $old_name
+                );
+            }
+            #  now make sure we check for the reverse
+            $exists = $self->element_pair_exists (
+                element1 => $element,
+                element2 => $old_name
+            );
+        }
+        if ( $exists == 2 ) {
+            # pair is in other order
+            my $value = $self->get_value(
+                element1 => $old_name,
+                element2 => $element,
+            );
+            $self->add_element(
+                element1 => $new_name,
+                element2 => $element,
+                value    => $value
+            );
+            $self->delete_element(
+                element1 => $old_name,
+                element2 => $element
+            );
+        }
+    }
+    return;
 }
 
 sub numerically {$a <=> $b};

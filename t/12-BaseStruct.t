@@ -45,9 +45,28 @@ sub main {
     test_export_shape_point();
     test_export_shape_3d();
     test_text_axis_name_coords();
-
+    test_get_elements_that_pass_def_query();
+    
     done_testing;
     return 0;
+}
+
+sub test_get_elements_that_pass_def_query {
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+        );
+
+    my $groups = $bd->get_groups_ref;
+    my @passed = 
+        sort $groups->get_elements_that_pass_def_query( defq => '$x < 2000000' );
+
+    my @expected = ('1950000:1350000', '1950000:1450000');
+    
+    is_deeply (
+        \@passed,
+        \@expected,
+        "Simple def query produced the correct elements"
+        );
 }
 
 

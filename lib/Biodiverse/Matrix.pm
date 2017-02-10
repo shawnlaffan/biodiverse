@@ -13,54 +13,56 @@ our $VERSION = '1.99_006';
 use English ( -no_match_vars );
 
 use Carp;
+
 #use Data::Dumper;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
-#use File::BOM qw /:subs/;
 
+#use File::BOM qw /:subs/;
+use Ref::Util qw { :all };
 use Biodiverse::Progress;
 
 my $EMPTY_STRING = q{};
 
 #  access the miscellaneous functions as methods
-use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/; 
+use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/;
 
 sub new {
     my $class = shift;
-    my %args = @_;
-    
+    my %args  = @_;
+
     my $self = bless {}, $class;
-    
 
     # try to load from a file if the file arg is given
     my $file_loaded;
-    $file_loaded = $self->load_file (@_) if defined $args{file};
+    $file_loaded = $self->load_file(@_) if defined $args{file};
     return $file_loaded if defined $file_loaded;
 
-
     my %PARAMS = (
-        OUTPFX               => 'BIODIVERSE',
-        OUTSUFFIX            => __PACKAGE__->get_file_suffix,
-        OUTSUFFIX_YAML       => __PACKAGE__->get_file_suffix_yaml,
-        TYPE                 => undef,
-        QUOTES               => q{'},
-        JOIN_CHAR            => q{:},  #  used for labels
-        ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
+        OUTPFX          => 'BIODIVERSE',
+        OUTSUFFIX       => __PACKAGE__->get_file_suffix,
+        OUTSUFFIX_YAML  => __PACKAGE__->get_file_suffix_yaml,
+        TYPE            => undef,
+        QUOTES          => q{'},
+        JOIN_CHAR       => q{:},                              #  used for labels
+        ELEMENT_COLUMNS => [ 1, 2 ]
+        , #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
-        VAL_INDEX_PRECISION  => '%.2g',  #  %g keeps 0 as 0.  %f does not.
+        VAL_INDEX_PRECISION  => '%.2g',    #  %g keeps 0 as 0.  %f does not.
     );
 
-    $self->set_params (%PARAMS, %args);  #  load the defaults, with the rest of the args as params
-    $self->set_default_params;  #  and any user overrides
-    
-    $self->{BYELEMENT} = undef;  #  values indexed by elements
-    $self->{BYVALUE}   = undef;  #  elements indexed by value
+    $self->set_params( %PARAMS, %args )
+      ;    #  load the defaults, with the rest of the args as params
+    $self->set_default_params;    #  and any user overrides
 
-    $self->set_param (NAME => $args{name}) if defined $args{name};
+    $self->{BYELEMENT} = undef;   #  values indexed by elements
+    $self->{BYVALUE}   = undef;   #  elements indexed by value
+
+    $self->set_param( NAME => $args{name} ) if defined $args{name};
 
     warn "[MATRIX] WARNING: Matrix name not specified\n"
-        if ! defined $self->get_param('NAME');
+      if !defined $self->get_param('NAME');
 
     return $self;
 }
@@ -76,9 +78,9 @@ sub get_file_suffix_yaml {
 sub rename {
     my $self = shift;
     my %args = @_;
-    
+
     my $name = $args{new_name};
-    if (not defined $name) {
+    if ( not defined $name ) {
         croak "[Matrix] Argument 'new_name' not defined\n";
     }
 
@@ -86,15 +88,14 @@ sub rename {
     #my $bd = $self->get_param ('BASEDATA_REF');
     #$bd->rename_output (object => $self, new_name => $name);
 
-    # and now change ourselves   
-    $self->set_param (NAME => $name);
-    
-}
+    # and now change ourselves
+    $self->set_param( NAME => $name );
 
+}
 
 sub clone {
     my $self = shift;
-    return $self->_duplicate (@_);
+    return $self->_duplicate(@_);
 }
 
 #  avoid needless cloning of the basedata, but don't create the parameter if it is not already there
@@ -108,14 +109,12 @@ sub _duplicate {
     my $exists = $self->exists_param('BASEDATA_REF');
     if ($exists) {
         $bd = $self->get_param('BASEDATA_REF');
-        $self->set_param(BASEDATA_REF => undef);
+        $self->set_param( BASEDATA_REF => undef );
     }
 
-    my $params = eval {
-        $self->SUPER::clone(data => $self->{PARAMS});
-    };
+    my $params = eval { $self->SUPER::clone( data => $self->{PARAMS} ); };
 
-    my $clone_ref = blessed ($self)->new(%$params);
+    my $clone_ref = blessed($self)->new(%$params);
 
     my $elements = $self->get_elements_ref;
 
@@ -126,44 +125,46 @@ sub _duplicate {
     my $byelement = $self->{BYELEMENT};
     my $byvalue   = $self->{BYVALUE};
 
-    my (%c_byelement, %c_byvalue);
-    keys %c_byelement = keys %$byelement;  #  pre-allocate the buckets - the pay-off is for many-key hashes
-    keys %c_byvalue   = keys %$byvalue;
+    my ( %c_byelement, %c_byvalue );
+    keys %c_byelement = keys %$byelement
+      ;    #  pre-allocate the buckets - the pay-off is for many-key hashes
+    keys %c_byvalue = keys %$byvalue;
 
     my $progress;
-    if (scalar keys %$byelement > 500) {
-        $progress = Biodiverse::Progress->new(text => 'Cloning matrix ' . $self->get_param('NAME'));
+    if ( scalar keys %$byelement > 500 ) {
+        $progress =
+          Biodiverse::Progress->new(
+            text => 'Cloning matrix ' . $self->get_param('NAME') );
     }
 
-
-    foreach my $key (keys %$byelement) {
+    foreach my $key ( keys %$byelement ) {
         my $hashref = $byelement->{$key};
         my %c_hash;
-        keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+        keys %c_hash = keys %$hashref;    #  pre-allocate the buckets
         %c_hash = %$hashref;
         $c_byelement{$key} = \%c_hash;
     }
 
     $clone_ref->{BYELEMENT} = \%c_byelement;
 
-    my $i = 0;
-    my $to_do = scalar keys %$byvalue;
+    my $i           = 0;
+    my $to_do       = scalar keys %$byvalue;
     my $target_text = "Target is $to_do value index keys";
 
-    foreach my $val_key (keys %$byvalue) {
+    foreach my $val_key ( keys %$byvalue ) {
         my $val_hashref = $byvalue->{$val_key};
         my %c_val_hash;
-        keys %c_val_hash = keys %$val_hashref;  #  pre-allocate the buckets
+        keys %c_val_hash = keys %$val_hashref;    #  pre-allocate the buckets
 
         if ($progress) {
             $i++;
-            $progress->update ($target_text, $i / $to_do);
+            $progress->update( $target_text, $i / $to_do );
         }
 
-        foreach my $e_key (keys %$val_hashref) {
+        foreach my $e_key ( keys %$val_hashref ) {
             my $hashref = $val_hashref->{$e_key};
             my %c_hash;
-            keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+            keys %c_hash = keys %$hashref;        #  pre-allocate the buckets
             %c_hash = %$hashref;
             $c_val_hash{$e_key} = \%c_hash;
         }
@@ -175,18 +176,18 @@ sub _duplicate {
 
     if ($progress) {
         $progress->destroy();
-    };
+    }
 
     if ($EVAL_ERROR) {
         if ($exists) {
-            $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
+            $self->set_param( BASEDATA_REF => $bd );    #  put it back if needed
         }
         croak $EVAL_ERROR;
     }
 
     if ($exists) {
-        $self->set_param(BASEDATA_REF => $bd);
-        $clone_ref->set_param(BASEDATA_REF => $bd);
+        $self->set_param( BASEDATA_REF => $bd );
+        $clone_ref->set_param( BASEDATA_REF => $bd );
     }
 
     return $clone_ref;
@@ -203,23 +204,25 @@ sub delete_value_index {
 
 sub rebuild_value_index {
     my $self = shift;
-    
+
     #$self->delete_value_index;
     $self->{BYVALUE} = {};
-    
+
     my @elements = $self->get_elements_as_array;
-    
-    EL1:
+
+  EL1:
     foreach my $el1 (@elements) {
-        EL2:
+      EL2:
         foreach my $el2 (@elements) {
+
             #  we want pairs in their stored order
             next EL2
-              if 1 != $self->element_pair_exists(element1 => $el1, element2 => $el2);
+              if 1 !=
+              $self->element_pair_exists( element1 => $el1, element2 => $el2 );
 
-            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            my $val = $self->get_value( element1 => $el1, element2 => $el2 );
 
-            my $index_val = $self->get_value_index_key (value => $val);
+            my $index_val = $self->get_value_index_key( value => $val );
 
             $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
         }
@@ -231,12 +234,12 @@ sub rebuild_value_index {
 sub get_value_index_key {
     my $self = shift;
     my %args = @_;
-    
+
     my $val = $args{value};
-    
+
     return 'undef' if !defined $val;
 
-    if (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+    if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
         $val = sprintf $prec, $val;
     }
 
@@ -246,71 +249,64 @@ sub get_value_index_key {
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
 sub _describe {
     my $self = shift;
-    
-    my @description = (
-        'TYPE: ' . blessed $self,
-    );
-    
+
+    my @description = ( 'TYPE: ' . blessed $self, );
+
     my @keys = qw /
-        NAME
-        JOIN_CHAR
-        QUOTES
-    /;
+      NAME
+      JOIN_CHAR
+      QUOTES
+      /;
 
     foreach my $key (@keys) {
         my $desc = $self->get_param ($key);
-        if ((ref $desc) =~ /ARRAY/) {
+        if (is_arrayref($desc)) {
             $desc = join q{, }, @$desc;
         }
         push @description, "$key: $desc";
     }
 
-    push @description,  'Element count: ' . $self->get_element_count,;
+    push @description, 'Element count: ' . $self->get_element_count,;
 
     push @description, 'Max value: ' . $self->get_max_value;
     push @description, 'Min value: ' . $self->get_min_value;
-    push @description, 'Symmetric: ' . ($self->is_symmetric ? 'yes' : 'no');
-    
+    push @description, 'Symmetric: ' . ( $self->is_symmetric ? 'yes' : 'no' );
+
     my $description = join "\n", @description;
-    
+
     return wantarray ? @description : $description;
 }
 
-
-#  convert this matrix to a tree by clustering 
+#  convert this matrix to a tree by clustering
 sub to_tree {
     my $self = shift;
     my %args = @_;
     $args{linkage_function} = $args{linkage_function} || 'link_average';
-    
-    if ($self->get_param ('AS_TREE')) {  #  don't recalculate 
-        return $self->get_param ('AS_TREE');
+
+    if ( $self->get_param('AS_TREE') ) {    #  don't recalculate
+        return $self->get_param('AS_TREE');
     }
-    
+
     my $tree = Biodiverse::Cluster->new;
-    $tree->set_param (
-        'NAME' => ($args{name}
-        || $self->get_param ('NAME') . "_AS_TREE"
-        )
-    );
-    
+    $tree->set_param(
+        'NAME' => ( $args{name} || $self->get_param('NAME') . "_AS_TREE" ) );
+
     eval {
-        $tree->cluster (
+        $tree->cluster(
             %args,
+
             #  need to work on a clone, as it is a destructive approach
-            cluster_matrix => $self->clone, 
+            cluster_matrix => $self->clone,
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
-    
-    $self->set_param (AS_TREE => $tree);
-    
+
+    $self->set_param( AS_TREE => $tree );
+
     return $tree;
 }
 
-
-
-my $ludicrously_extreme_pos_val = 10 ** 20;
+my $ludicrously_extreme_pos_val = 10**20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
 sub get_min_value {
@@ -319,17 +315,17 @@ sub get_min_value {
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
 
-    #  Special case the zeroes - only valid for index precisions using %.g
-    #  Useful for cluster analyses with many zero values due to identical assemblages
+#  Special case the zeroes - only valid for index precisions using %.g
+#  Useful for cluster analyses with many zero values due to identical assemblages
     return 0 if $min_key eq 0;
 
     my $min = $ludicrously_extreme_pos_val;
 
     my $element_hash = $val_hash->{$min_key};
-    while (my ($el1, $hash_ref) = each %$element_hash) {
-        foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_defined_value_aa ($el1, $el2);
-            $min = min ($min, $val);
+    while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
+        foreach my $el2 ( keys %$hash_ref ) {
+            my $val = $self->get_defined_value_aa( $el1, $el2 );
+            $min = min( $min, $val );
         }
     }
 
@@ -339,16 +335,17 @@ sub get_min_value {
 sub get_max_value {
     my $self = shift;
 
-    my $val_hash = $self->{BYVALUE};    
+    my $val_hash = $self->{BYVALUE};
     my $max_key  = max keys %$val_hash;
     my $max      = $ludicrously_extreme_neg_val;
 
     my $element_hash = $val_hash->{$max_key};
-    while (my ($el1, $hash_ref) = each %$element_hash) {
-        foreach my $el2 (keys %$hash_ref) {
-            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
-            my $val = $self->get_defined_value_aa ($el1, $el2);
-            $max = max ($max, $val);
+    while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
+        foreach my $el2 ( keys %$hash_ref ) {
+
+#my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_aa( $el1, $el2 );
+            $max = max( $max, $val );
         }
     }
 
@@ -360,28 +357,28 @@ sub get_max_value {
 #  with large matrices and calculation of percentiles.
 sub get_summary_stats {
     my $self = shift;
-    
+
     my $n = $self->get_element_pair_count;
-    my ($sumx, $sumx_sqr);
+    my ( $sumx, $sumx_sqr );
     my @percentile_targets = qw /2.5 5 95 97.5/;
     my @percentile_target_counts;
     foreach my $pct (@percentile_targets) {
-        push @percentile_target_counts, $n * $pct / 100;  #  should floor it?
+        push @percentile_target_counts, $n * $pct / 100;    #  should floor it?
     }
     my %percentile_hash;
 
     my $count;
 
     my $values_hash = $self->{BYVALUE};
-    BY_VALUE:
-    foreach my $value (sort {$a <=> $b} keys %$values_hash) {
+  BY_VALUE:
+    foreach my $value ( sort { $a <=> $b } keys %$values_hash ) {
         my $hash      = $values_hash->{$value};
         my $sub_count = scalar keys %$hash;
         $sumx     += $value * $sub_count;
-        $sumx_sqr += ($value ** 2) * $sub_count;
+        $sumx_sqr += ( $value**2 ) * $sub_count;
         $count    += $sub_count;
 
-        FIND_PCTL:
+      FIND_PCTL:
         foreach my $target (@percentile_target_counts) {
             last FIND_PCTL if $count < $target;
             my $percentile = shift @percentile_targets;
@@ -389,50 +386,54 @@ sub get_summary_stats {
             shift @percentile_target_counts;
         }
     }
-    
+
     my $max = $self->get_max_value;
     my $min = $self->get_min_value;
 
     my %stats = (
-        MAX => $max,
-        MIN => $min,
-        MEAN   => $sumx / $n,
+        MAX  => $max,
+        MIN  => $min,
+        MEAN => $sumx / $n,
+
         #SD     => undef,
-        PCT025 => ($percentile_hash{'2.5'}  // $min),
-        PCT975 => ($percentile_hash{'97.5'} // $max),
-        PCT05  => ($percentile_hash{'5'}    // $min),
-        PCT95  => ($percentile_hash{'95'}   // $max),
+        PCT025 => ( $percentile_hash{'2.5'}  // $min ),
+        PCT975 => ( $percentile_hash{'97.5'} // $max ),
+        PCT05  => ( $percentile_hash{'5'}    // $min ),
+        PCT95  => ( $percentile_hash{'95'}   // $max ),
     );
 
     return wantarray ? %stats : \%stats;
 }
 
-sub add_element {  #  add an element pair to the object
+#  add an element pair to the object
+#  should throw an exception if it already exists
+sub add_element {    
     my $self = shift;
     my %args = @_;
-    
+
     my $element1 = $args{element1};
     croak "Element1 not specified in call to add_element\n"
-        if ! defined $element1;
+      if !defined $element1;
 
     my $element2 = $args{element2};
     croak "Element2 not specified in call to add_element\n"
-        if ! defined $element2;
+      if !defined $element2;
 
     my $val = $args{value};
-    if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
+    if ( !defined $val && !$self->get_param('ALLOW_UNDEF') ) {
         warn "[Matrix] add_element Warning: Value not defined and "
-            . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
+          . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
         return;
     }
 
-    my $index_val = $self->get_value_index_key (value => $val);
+    my $index_val = $self->get_value_index_key( value => $val );
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
-    $self->{ELEMENTS}{$element1}++;  #  cache the component elements to save searching through the other lists later
-    $self->{ELEMENTS}{$element2}++;  #  also keeps a count of the elements
-    
+    $self->{ELEMENTS}{$element1}++
+      ; #  cache the component elements to save searching through the other lists later
+    $self->{ELEMENTS}{$element2}++;    #  also keeps a count of the elements
+
     return;
 }
 
@@ -441,17 +442,18 @@ sub delete_element {
     my $self = shift;
     my %args = @_;
 
-    my $exists = $self->element_pair_exists (@_)
+    my $exists = $self->element_pair_exists(@_)
       || return 0;
 
     croak "element1 and/or element2 not defined\n"
-        if ! (defined $args{element1} && defined $args{element2});
+      if !( defined $args{element1} && defined $args{element2} );
 
-    my ($element1, $element2) = $exists == 1
-        ? @args{'element1', 'element2'}
-        : @args{'element2', 'element1'};
+    my ( $element1, $element2 ) =
+        $exists == 1
+      ? @args{ 'element1', 'element2' }
+      : @args{ 'element2', 'element1' };
 
-    my $value = $self->get_value (
+    my $value = $self->get_value(
         element1    => $element1,
         element2    => $element2,
         pair_exists => 1,
@@ -462,89 +464,86 @@ sub delete_element {
     my $el_ref      = $self->{ELEMENTS};
     my $by_el_index = $self->{BYELEMENT};
 
-    #  now we get to the cleanup, including the containing hashes if they are now empty
-    #  all the undef - delete pairs are to ensure they get deleted properly
-    #  the hash ref must be empty (undef) or it won't be deleted
-    #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
+#  now we get to the cleanup, including the containing hashes if they are now empty
+#  all the undef - delete pairs are to ensure they get deleted properly
+#  the hash ref must be empty (undef) or it won't be deleted
+#  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
     delete $by_el_index->{$element1}{$element2};
-    if (scalar keys %{$by_el_index->{$element1}} == 0) {
+    if ( scalar keys %{ $by_el_index->{$element1} } == 0 ) {
         delete $by_el_index->{$element1}
-            // warn "ISSUES BYELEMENT $element1 $element2\n";
+          // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
-    my $index_val = $self->get_value_index_key (value => $value);
-    if (!$val_index->{$index_val}) {
-        $self->rebuild_value_index;  #  a bit underhanded, but this ensures we upgrade old matrices
+    my $index_val = $self->get_value_index_key( value => $value );
+    if ( !$val_index->{$index_val} ) {
+        $self->rebuild_value_index
+          ;    #  a bit underhanded, but this ensures we upgrade old matrices
     }
-    
 
     delete $val_index->{$index_val}{$element1}{$element2};
-    if (!scalar keys %{$val_index->{$index_val}{$element1}}) {
+    if ( !scalar keys %{ $val_index->{$index_val}{$element1} } ) {
         delete $val_index->{$index_val}{$element1};
-        if (!scalar keys %{$val_index->{$index_val}}) {
+        if ( !scalar keys %{ $val_index->{$index_val} } ) {
             delete $val_index->{$index_val}
-                // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
+              // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }
     }
+
     #  Decrement the ELEMENTS counts, deleting entry if now zero
     #  as there are no more entries with this element
     $el_ref->{$element1}--;
-    if (!$el_ref->{$element1}) {
-        delete $el_ref->{$element1}
-            // warn "ISSUES $element1\n";
+    if ( !$el_ref->{$element1} ) {
+        delete $el_ref->{$element1} // warn "ISSUES $element1\n";
     }
     $el_ref->{$element2}--;
-    if (!$el_ref->{$element2}) {
-        delete $el_ref->{$element2}
-            // warn "ISSUES $element2\n";
+    if ( !$el_ref->{$element2} ) {
+        delete $el_ref->{$element2} // warn "ISSUES $element2\n";
     }
 
     #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
-    return 1;  # return success if we get this far
+    return 1;    # return success if we get this far
 }
 
-
-sub is_symmetric {  #  check if the matrix is symmetric (each element has an equal number of entries)
+sub is_symmetric
+{ #  check if the matrix is symmetric (each element has an equal number of entries)
     my $self = shift;
-    
+
     my $prev_count = undef;
-    foreach my $count (values %{$self->{ELEMENTS}}) {
-        if (defined $prev_count) {
+    foreach my $count ( values %{ $self->{ELEMENTS} } ) {
+        if ( defined $prev_count ) {
             return if $count != $prev_count;
         }
         $prev_count = $count;
     }
-    return 1;  #  if we get this far then it is symmetric
+    return 1;    #  if we get this far then it is symmetric
 }
-
-
 
 sub get_elements {
     my $self = shift;
 
-    return if ! exists $self->{ELEMENTS};
-    return if (scalar keys %{$self->{ELEMENTS}}) == 0;
+    return if !exists $self->{ELEMENTS};
+    return if !scalar keys %{ $self->{ELEMENTS} };
 
-    return wantarray ? %{$self->{ELEMENTS}} : $self->{ELEMENTS};
+    return wantarray ? %{ $self->{ELEMENTS} } : $self->{ELEMENTS};
 }
 
 sub get_elements_ref {
     my $self = shift;
 
-    return $self->{ELEMENTS} // do {$self->{ELEMENTS} = {}};
+    return $self->{ELEMENTS} // do { $self->{ELEMENTS} = {} };
 }
 
 sub get_elements_as_array {
     my $self = shift;
     return wantarray
-        ? keys %{$self->{ELEMENTS}}
-        : [keys %{$self->{ELEMENTS}}];
+      ? keys %{ $self->{ELEMENTS} }
+      : [ keys %{ $self->{ELEMENTS} } ];
 }
 
 sub get_element_count {
     my $self = shift;
-    return 0 if ! exists $self->{ELEMENTS};
-    return scalar keys %{$self->{ELEMENTS}};
+    return 0 if !exists $self->{ELEMENTS};
+    return scalar keys %{ $self->{ELEMENTS} };
 }
 
 #sub get_element_pair_count {
@@ -557,7 +556,7 @@ sub get_element_count {
 #    my $count = sum values %{$self->{ELEMENTS}};
 #    $count /= 2;  #  correct for double counting
 #    #  IS THIS CORRECTION VALID?  We can have symmetric and non-symmetric matrices, so a:b and b:a
-#    #  It depends on how they are tracked, though.  
+#    #  It depends on how they are tracked, though.
 #
 #    return $count;
 #}
@@ -567,45 +566,56 @@ sub get_element_pairs_with_value {
     my %args = @_;
 
     my $val = $args{value};
-    #my $val_key = $val;
-    #if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
-    #    $val_key = sprintf $prec, $val;
-    #}
+
     my $val_key = $self->get_value_index_key (value => $val);
 
     my %results;
 
-    my $val_hash = $self->{BYVALUE};
+    my $val_hash     = $self->{BYVALUE};
     my $element_hash = $val_hash->{$val_key};
 
-    while (my ($el1, $hash_ref) = each %$element_hash) {
-        foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_defined_value (element1 => $el1, element2 => $el2);
-            next if $val ne $value;  #  stringification implicitly uses %.15f precision
+    while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
+        foreach my $el2 ( keys %$hash_ref ) {
+            my $value = $self->get_defined_value(
+                element1 => $el1,
+                element2 => $el2
+            );
+            #  stringification implicitly uses %.15f precision
+            next if $val ne $value;    
             $results{$el1}{$el2}++;
         }
     }
 
-    return wantarray ? %results : \%results;    
+    return wantarray ? %results : \%results;
 }
 
-sub get_element_values {  #  get all values associated with one element
+sub get_element_values {    #  get all values associated with one element
     my $self = shift;
     my %args = @_;
-    
-    croak "element not specified (matrix)\n"  if ! defined $args{element};
-    croak "matrix element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
+
+    croak "element not specified (matrix)\n" if !defined $args{element};
+    croak "matrix element does not exist\n"
+      if !$self->element_is_in_matrix( element => $args{element} );
 
     my @elements = $self->get_elements_as_array;
-    
+
     my %values;
     foreach my $el (@elements) {
-        if ($self->element_pair_exists (element1 => $el, element2 => $args{element})) {
-            $values{$el} = $self->get_value (element1 => $el, element2 => $args{element});
+        if (
+            $self->element_pair_exists(
+                element1 => $el,
+                element2 => $args{element}
+            )
+          )
+        {
+            $values{$el} = $self->get_value(
+                element1 => $el,
+                element2 => $args{element}
+            );
         }
     }
-    
-    return wantarray ? %values : \%values;    
+
+    return wantarray ? %values : \%values;
 }
 
 sub delete_all_elements {
@@ -620,13 +630,11 @@ sub delete_all_elements {
     return;
 }
 
+sub numerically { $a <=> $b }
 
 
-
-sub numerically {$a <=> $b};
 
 1;
-
 
 __END__
 
@@ -732,6 +740,15 @@ Returns the value for element pair [$element1, $element2].
 Import data from a file.  Assumes data are symmetric amongst other things.
 
 Really messy.  Needs cleaning up. 
+
+=item $self->remap_labels_from_hash
+
+Given a hash mapping from names of labels currently in this matrix to
+desired new names, renames the labels accordingly.
+
+=item $self->rename_element
+
+Renames an element in the matrix from old_name to new_name.
 
 =back
 

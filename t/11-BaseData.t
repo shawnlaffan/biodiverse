@@ -91,7 +91,7 @@ sub main {
         no strict 'refs';
         $sub->();
     }
-    
+
     done_testing;
     return 0;
 }
@@ -391,6 +391,57 @@ sub test_binarise_sample_counts {
     }
     
 }
+
+
+sub test_remap_labels_from_hash {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $bd->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    $bd->remap_labels_from_hash(remap => \%remap);
+       
+    my @actual_new_labels = sort $bd->get_labels();
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" )
+}
+
+sub test_remap_mismatched_labels {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my %remap;
+    my @expected_new_labels;
+    foreach my $label (sort $bd->get_labels()) {
+        $remap{$label} = uc( $label );
+        push( @expected_new_labels, uc $label );
+    }
+
+    # now also add in some junk remap values (might come up say when
+    # applying a multiple tree remap to a single tree)
+    foreach my $number (0..10) {
+        $remap{"junkkey$number"} = "junkvalue$number";
+    }
+    
+    
+    eval { $bd->remap_labels_from_hash(remap => \%remap); };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "got no exception from mismatched remap");
+    
+    my @actual_new_labels = sort $bd->get_labels();
+
+    is_deeply( \@actual_new_labels,
+               \@expected_new_labels,
+               "Got expected labels" )
+}
+
+
+
+
 
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
@@ -1118,6 +1169,43 @@ sub test_raster_zero_cellsize {
 
         $i++;
     }
+    
+}
+
+sub test_import_shapefile_dms_coords {
+    my %bd_args = (
+        NAME => 'test import shapefile DMS',
+        CELL_SIZES => [0,0],
+    );
+
+    my $bd1 = Biodiverse::BaseData->new (%bd_args);
+    my $e;
+
+    my $fname = Path::Class::File->new (
+        Path::Class::File->new($0)->dir,
+        "dms_latlon.shp",
+    );
+    $fname = $fname->stringify;
+    say "testing filename $fname";
+    
+    eval {
+        $bd1->import_data_shapefile(
+            input_files   => [$fname],
+            group_field_names => [qw /dms_lon dms_lat/],
+            label_field_names => [qw /KEY/],
+            is_lat_field => {dms_lat => 1},
+            is_lon_field => {dms_lon => 1},
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, 'import spreadsheet with DMS coords produced no error');
+
+    my @gp_names = $bd1->get_groups;
+    is_deeply (\@gp_names,
+               ['134.506111111111:-23.5436111111111'],
+               'got correct group names',
+    );
     
 }
 

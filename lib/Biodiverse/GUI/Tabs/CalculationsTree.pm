@@ -13,12 +13,10 @@ package Biodiverse::GUI::Tabs::CalculationsTree;
 use strict;
 use warnings;
 
-use Scalar::Util qw /reftype/;
-
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Indices;
-
+use Ref::Util qw { :all };
 use Text::Wrapper;
 
 our $VERSION = '1.99_006';
@@ -260,7 +258,7 @@ sub member_of {
 
     #  sometimes we are passed a hash
     return exists $ref->{$elem}
-      if reftype ($ref) eq 'HASH';
+      if is_hashref($ref);
 
     foreach my $member (@$ref) {
         return 1 if $elem eq $member;

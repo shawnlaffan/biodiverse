@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw /looks_like_number reftype/;
+use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max sum/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
@@ -25,6 +25,7 @@ use Path::Class;
 use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
+use Ref::Util qw { :all };
 
 our $VERSION = '1.99_006';
 
@@ -276,6 +277,14 @@ sub get_common_export_metadata {
         $default_idx = first_index {$last_used_list eq $_} @lists;
     }
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+    #say "Default def_query value is: .$def_query_default.";
+
     my $metadata = [
         {
             name => 'file',
@@ -287,6 +296,14 @@ sub get_common_export_metadata {
             type        => 'choice',
             choices     => \@lists,
             default     => $default_idx,
+        },
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => $def_query_default,
+            tooltip     => 'Only elements which pass this def query ' .
+                           'will be exported.',
         },
     ];
     foreach (@$metadata) {
@@ -696,6 +713,14 @@ sub get_metadata_export_shapefile {
     #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
+    # look for a default value for def query
+    my $def_query_default = "";
+    if($self->get_def_query()) {
+        $def_query_default = $self->get_def_query()->get_conditions();
+        $def_query_default =~ s/\n//g;
+    }
+
+    
     my @parameters = (
         {  # GUI supports just one of these
             name => 'file',
@@ -716,6 +741,14 @@ sub get_metadata_export_shapefile {
             default     => 0,
         },
         @nodata_meta,
+        {
+            name        => 'def_query',
+            label_text  => 'Def query',
+            type        => 'spatial_conditions',
+            default     => $def_query_default,
+            tooltip     => 'Only elements which pass this def query ' .
+                'will be exported.',
+        },
         {
             type        => 'comment',
             label_text  => $shape_export_comment_text,
@@ -758,7 +791,24 @@ sub export_shapefile {
 
     say "Exporting to shapefile $file";
 
-    my @elements    = $self->get_element_list;
+    my $def_query = $args{def_query};
+    
+    my @elements;
+    if ($def_query) {
+        @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
+        my $length = scalar @elements;
+        if( $length == 0) {
+            say "[BaseStruct] No elements passed the def query!";
+            @elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
+    }
+    else {
+        @elements = $self->get_element_list;
+    }
+
+    
+
     my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
     if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
@@ -1037,14 +1087,15 @@ sub write_table {
     croak "file argument not specified\n"
       if !defined $args{file};
     my $data = $args{data} || croak "data argument not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     $args{file} = Path::Class::file($args{file})->absolute;
 
     return;
 }
 
-#  control whether a file is written symmetrically or not
+
+#  control whether a file is written symetrically or not
 sub to_table {
     my $self = shift;
     my %args = @_;
@@ -1056,9 +1107,23 @@ sub to_table {
       if !defined $args{list}; 
 
     my $list = $args{list};
+    my $check_elements;
+    if( $args{def_query} ) {
+        $check_elements = 
+            $self->get_elements_that_pass_def_query( defq => $args{def_query} );
 
-    my $check_elements = $self->get_element_list;
-
+        my $length = scalar @{ $check_elements };
+        if( $length == 0 ) {
+            say "[BASESTRUCT] No elements passed the def query!";
+            $check_elements = $self->get_element_list;
+            $args{def_query} = '';
+        }
+    }
+    else {
+        $check_elements = $self->get_element_list;
+    }
+    
+  
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
@@ -1076,7 +1141,7 @@ sub to_table {
             element => $check_element,
             list    => $list,
         );
-        if ((ref $values) =~ /HASH/) {
+        if (is_hashref($values)) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
                 last CHECK_ELEMENTS;
@@ -1084,7 +1149,7 @@ sub to_table {
             $prev_list_keys //= scalar keys %$values;
             @list_keys{keys %$values} = undef;
         }
-        elsif ((ref $values) =~ /ARRAY/) {
+        elsif (is_arrayref($values)) {
             $is_asym = 1;  #  arrays are always treated as asymmetric
             last CHECK_ELEMENTS;
         }
@@ -1147,6 +1212,7 @@ sub to_table_sym {
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
@@ -1154,7 +1220,14 @@ sub to_table_sym {
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;
-    my @elements = sort $self->get_element_list;
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort @{$self->get_elements_that_pass_def_query( defq=>$def_query )};
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
 
     my $list_hash_ref = $self->get_hash_list_values(
         element => $elements[0],
@@ -1264,14 +1337,21 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
     my $quote_char = $self->get_param('QUOTES');
 
     my @data;  #  2D array to hold the data
-    my @elements = sort $self->get_element_list;
-
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort $self->get_element_list;
+    }
     push my @header, 'ELEMENT'; 
     if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
@@ -1309,7 +1389,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
         #  get_list_values returns a list reference in scalar context - could be a hash or an array
         my $list =  $self->get_list_values (element => $element, list => $list);
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
-            if ((ref $list) =~ /ARRAY/) {
+            if (is_arrayref($list)) {
                 foreach my $value (@$list) {
                     if (!defined $value) {
                         $value = $no_data_value;
@@ -1317,7 +1397,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
                 }
             }
-            elsif ((ref $list) =~ /HASH/) {
+            elsif (is_hashref($list)) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
                     push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
@@ -1329,11 +1409,11 @@ sub to_table_asym {  #  get the data as an asymmetric table
         }
         else {
             my @line = @basic;
-            if ((ref $list) =~ /ARRAY/) {
+            if (is_arrayref($list)) {
                 #  preserve internal ordering - useful for extracting iteration based values
                 push @line, map {defined $_ ? $_ : $no_data_value} @$list;  
             }
-            elsif ((ref $list) =~ /HASH/) {
+            elsif (is_hashref($list)) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
                     push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
@@ -1368,13 +1448,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
     my $quote_el_names     = $args{quote_element_names_and_headers};
+    my $def_query          = $args{def_query};
 
     my $fh = $args{file_handle};
     my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
-    my $elements = $self->get_element_hash();
+
+    my $elements;
+    if ($def_query) {
+        $elements = $self->get_element_hash_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        $elements = $self->get_element_hash();
+    }
+
     my %indices_hash;
 
     my $quote_char = $self->get_param('QUOTES');
@@ -1384,10 +1473,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
   BY_ELEMENT1:
     foreach my $elt (keys %$elements) {
         my $sub_list = $elements->{$elt}{$list};
-        if ((ref $sub_list) =~ /ARRAY/) {
+        if (is_arrayref($sub_list)) {
             @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
         }
-        elsif ((ref $sub_list) =~ /HASH/) {
+        elsif (is_hashref($sub_list)) {
             @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
         }
     }
@@ -1397,7 +1486,15 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         @print_order;
 
     my @data;
-    my @elements = sort keys %$elements;
+
+    my @elements;
+    if ($def_query) {
+        @elements = 
+            sort $self->get_elements_that_pass_def_query( defq => $def_query );
+    }
+    else {
+        @elements = sort keys %$elements;
+    }
 
     push my @header, 'ELEMENT';  #  need the number of element components for the header
     if (! $no_element_array) {
@@ -1434,13 +1531,20 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
-        my $list = $self->get_hash_list_values (element => $element, list => $list);
+        my $list = $self->get_list_ref (
+            element => $element,
+            list    => $list,
+            autovivify => 0,
+        );
         my %data_hash = %indices_hash;
-        @data_hash{keys %data_hash} = ($no_data_value) x scalar keys %data_hash;  #  initialises with undef by default
-        if ((ref $list) =~ /ARRAY/) {
-            @data_hash{@$list} = (1) x scalar @$list;
+        @data_hash{keys %data_hash}
+          = ($no_data_value) x scalar keys %data_hash;
+        if (is_arrayref($list)) {
+            foreach my $val (@$list) {
+                $data_hash{$val}++;  #  track dups
+            }
         }
-        elsif ((ref $list) =~ /HASH/) {
+        elsif (is_hashref($list)) {
             @data_hash{keys %$list} = values %$list;
         }
 
@@ -1476,7 +1580,7 @@ sub write_table_asciigrid {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
@@ -1577,7 +1681,7 @@ sub write_table_floatgrid {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.flt/);
@@ -1681,7 +1785,7 @@ sub write_table_divagis {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, qr'\.gri');
@@ -1814,7 +1918,7 @@ sub write_table_geotiff {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
@@ -1908,7 +2012,7 @@ sub write_table_ers {
     my %args = @_;
 
     my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
@@ -2366,6 +2470,67 @@ sub get_element_list_sorted {
     return wantarray ? @array : \@array;
 }
 
+# pass in a string def query, this returns a list of all elements that
+# pass the def query.
+sub get_elements_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};    
+    
+    my $elements_that_pass_hash = 
+        $self->get_element_hash_that_pass_def_query( defq => $args{defq} );
+
+    my @elements_that_pass = keys %$elements_that_pass_hash;
+    
+    return wantarray ? @elements_that_pass : \@elements_that_pass;
+}
+
+# gets the complete element hash and then weeds out elements that
+# don't pass a given def query.
+sub get_element_hash_that_pass_def_query {
+    my ($self, %args) = @_;
+    my $def_query = $args{defq};
+     
+    $def_query =
+        Biodiverse::SpatialConditions::DefQuery->new(
+            conditions => $def_query, );
+
+    my $bd = $self->get_basedata_ref;
+    if (Biodiverse::MissingBasedataRef->caught) {
+        # What do we do here?
+        say "[BaseStruct.pm]: Missing BaseStruct in 
+                       get_elements_hash_that_pass_def_query";
+        return;
+    }
+    
+    my $groups        = $bd->get_groups;
+    my $element       = $groups->[0];
+
+    my $elements_that_pass_hash = $bd->get_neighbours(
+        element            => $element,
+        spatial_conditions => $def_query,
+        is_def_query       => 1,
+        );
+
+    
+    # at this stage we have a hash in the form "element_name" -> 1 to
+    # indicate that it passed the def query. We want this in the form
+    # "element_name" -> all the data about this element. This is the
+    # format used by get_element_hash and so by a lot of the
+    # basestruct functions.
+    
+    my %formatted_element_hash = $self->get_element_hash;
+
+    my %formatted_elements_that_pass;
+    foreach my $element (keys %formatted_element_hash) {
+        if ($elements_that_pass_hash->{$element}) {
+            $formatted_elements_that_pass{$element} 
+                  = $formatted_element_hash{$element};
+        }
+    }
+    
+    return \%formatted_elements_that_pass;
+}
+
 sub get_element_hash {
     my $self = shift;
 
@@ -2489,7 +2654,7 @@ sub get_text_axis_as_coord {
     my %this_axis;
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
-        my $axes = $self->get_element_name_as_array (element => $element);
+        my $axes = $self->get_element_name_as_array_aa ($element);
         $this_axis{$axes->[$axis] // ''}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
@@ -2914,10 +3079,10 @@ sub get_list_values {
 
     #  need to return correct type in list context
     return %{$element_ref->{$list}}
-      if ref ($element_ref->{$list}) =~ /HASH/;
+      if is_hashref($element_ref->{$list});
 
     return @{$element_ref->{$list}}
-      if ref($element_ref->{$list}) =~ /ARRAY/;
+      if is_arrayref($element_ref->{$list});
 
     return;
 }
@@ -2937,7 +3102,7 @@ sub get_hash_list_values {
     return if ! exists $self->{ELEMENTS}{$element}{$list};
 
     croak "list is not a hash\n"
-      if ! ref($self->{ELEMENTS}{$element}{$list}) =~ /HASH/;
+        if !is_hashref($self->{ELEMENTS}{$element}{$list});
 
     return wantarray
         ? %{$self->{ELEMENTS}{$element}{$list}}
@@ -2960,7 +3125,7 @@ sub get_array_list_values_aa {
 
     #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if reftype ($list_ref) ne 'ARRAY';
+        if !is_arrayref($list_ref);
 
     return wantarray ? @$list_ref : $list_ref;
 }
@@ -2990,7 +3155,7 @@ sub get_array_list_values {
 
     #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if reftype ($list_ref) ne 'ARRAY';
+      if !is_arrayref($list_ref);
 
     return wantarray ? @$list_ref : $list_ref;
 }
@@ -3077,11 +3242,11 @@ sub add_to_lists {  #  add to a list, create if not already there.
         if ($use_ref) {
             $self->{ELEMENTS}{$element}{$list_name} = $list_values;
         }
-        elsif ((ref $list_values) =~ /HASH/) {  #  slice assign
+        elsif (is_hashref($list_values)) {  #  slice assign
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= {});
             @$listref{keys %$list_values} = values %$list_values;
         }
-        elsif ((ref $list_values) =~ /ARRAY/) {
+        elsif (is_arrayref($list_values)) {
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= []);
             push @$listref, @$list_values;
         }
@@ -3102,7 +3267,7 @@ sub delete_lists {
 
     my $element = $args{element};
     my $lists   = $args{lists};
-    croak "argument 'lists' is not an array ref\n" if not (ref $lists) =~ /ARRAY/;
+    croak "argument 'lists' is not an array ref\n" if !is_arrayref($lists);
 
     foreach my $list (@$lists) {
         delete $self->{ELEMENTS}{$element}{$list};
@@ -3124,7 +3289,8 @@ sub get_lists {
 
     my @list;
     foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
-        push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /ARRAY|HASH/;
+        push @list, $tmp if (is_arrayref($self->{ELEMENTS}{$element}{$tmp}) 
+                            || is_hashref($self->{ELEMENTS}{$element}{$tmp}));
     }
 
     return @list if wantarray;
@@ -3380,7 +3546,7 @@ sub get_array_lists {
     my $el_ref = $self->{ELEMENTS}{$element}
       // croak "Element $element does not exist, cannot get hash list\n";
 
-    my @list = grep {ref ($el_ref->{$_}) =~ /ARRAY/} keys %$el_ref;
+    my @list = grep {is_arrayref($el_ref->{$_})} keys %$el_ref;
 
     return wantarray ? @list : \@list;
 }
@@ -3397,7 +3563,7 @@ sub get_hash_lists {
     my $el_ref = $self->{ELEMENTS}{$element}
       // croak "Element $element does not exist, cannot get hash list\n";
 
-    my @list = grep {ref ($el_ref->{$_}) =~ /HASH/} keys %$el_ref;
+    my @list = grep {is_hashref ($el_ref->{$_})} keys %$el_ref;
 
     return wantarray ? @list : \@list;
 }
@@ -3420,7 +3586,7 @@ sub get_hash_list_keys_across_elements {
             autovivify => 0,
         );
         next ELEMENT if ! $hash;
-        next ELEMENT if ! (ref ($hash) =~ /HASH/);
+        next ELEMENT if ! (is_hashref($hash));
 
         if (scalar keys %$hash) {
             @hash_keys{keys %$hash} = undef; #  no need for values and assigning undef is faster

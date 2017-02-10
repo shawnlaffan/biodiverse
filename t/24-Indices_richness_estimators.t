@@ -23,6 +23,9 @@ my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
 my $bd = get_basedata();
 Readonly my $focal_gp => 'Broad_Meadow_Brook';
 Readonly my @nbr_set2 => grep {$_ ne $focal_gp} $bd->get_groups;
+#  many of the expected vals are from external sources
+#  and are only precise to 6dp
+Readonly my $subtest_tolerance => 1e-6;
 
 exit main( @ARGV );
 
@@ -125,6 +128,7 @@ sub test_indices_1col {
         element_list2      => [],
         expected_results   => \%expected_results_overlay,
         descr_suffix       => 'one group',
+        tolerance          => $subtest_tolerance,
     );
 
     return;
@@ -167,6 +171,7 @@ sub test_chao1_F2_no_F1 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_F2_no_F1',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -207,6 +212,7 @@ sub test_chao1_F1_no_F2 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_F1_no_F2',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -248,6 +254,7 @@ sub test_chao1_no_F1_no_F2 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao1_no_F1_no_F2',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -290,6 +297,7 @@ sub test_chao2_Q2_no_Q1 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_Q2_no_Q1',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -332,6 +340,7 @@ sub test_chao2_Q1_no_Q2 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_Q1_no_Q2',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -375,6 +384,7 @@ sub test_chao2_no_Q1_no_Q2 {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_chao2_no_Q1_no_Q2',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -408,6 +418,7 @@ sub test_ICE {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE base',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -449,6 +460,7 @@ sub test_ICE_no_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE_no_singletons',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -481,6 +493,7 @@ sub test_ICE_one_group {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE_one_group',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -523,6 +536,7 @@ sub test_ICE_no_infrequents {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE_no_infrequents',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -556,6 +570,7 @@ sub test_ACE {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE base',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -596,6 +611,7 @@ sub test_ACE_no_rares {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_no_rares',
+        tolerance          => $subtest_tolerance,
     );
 
     return;
@@ -636,6 +652,7 @@ sub test_ACE_no_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_no_singletons',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -674,6 +691,7 @@ sub test_ACE_only_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_only_singletons',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -713,6 +731,7 @@ sub test_ACE_all_rares_are_singletons {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_all_rares_are_singletons',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -751,6 +770,7 @@ sub test_ACE_empty_group {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ACE_empty_group',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -792,6 +812,7 @@ sub test_ICE_all_groups_empty {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE_all_groups_empty',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    
@@ -832,6 +853,7 @@ sub test_ICE_additional_empty_group {
         expected_results   => \%expected_results,
         skip_nbr_counts    => {1 => 1},
         descr_suffix       => 'test_ICE_additional_empty_group',
+        tolerance          => $subtest_tolerance,
     );
 
     return;    

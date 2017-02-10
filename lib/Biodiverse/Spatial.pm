@@ -8,10 +8,11 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed reftype/;
+use Scalar::Util qw /weaken blessed/;
 use List::MoreUtils qw /firstidx lastidx/;
 use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
+use Ref::Util qw { :all };
 
 our $VERSION = '1.99_006';
 
@@ -19,6 +20,8 @@ use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
+
+
 
 use parent qw /Biodiverse::BaseStruct/;
 
@@ -127,7 +130,7 @@ sub compare {
 
             next BY_LIST if ! $base_ref || ! $comp_ref; #  nothing to compare with...
 
-            next BY_LIST if (ref $base_ref) =~ /ARRAY/;
+            next BY_LIST if (is_arrayref($base_ref));
 
             my $results_ref = $self->get_list_ref (
                 element => $element,
@@ -247,7 +250,7 @@ say "Target list names are: " . join ' ', @target_list_names;
             );
 
             next BY_LIST if !$comp_ref; #  nothing to compare with...
-            next BY_LIST if (ref $comp_ref) =~ /ARRAY/;  #  skip arrays
+            next BY_LIST if (is_arrayref($comp_ref));  #  skip arrays
 
             my $result_list_name = $list_name;
             $result_list_name =~ s/>>/>>p_rank>>/;
@@ -575,10 +578,10 @@ sub sp_calc {
     if (defined $args{elements_to_calc}) {
         #$calc_element_subset = 1;
         my $elts = $args{elements_to_calc}; 
-        if ((ref $elts) =~ /ARRAY/) {
+        if (is_arrayref($elts)) {
             @elements_to_use{@$elts} = @$elts;
         }
-        elsif ((ref $elts) =~ /HASH/) {
+        elsif (is_hashref($elts)) {
             %elements_to_use = %$elts;
         }
         else {
@@ -747,7 +750,7 @@ sub sp_calc {
         foreach my $key (keys %sp_calc_values) {
             my $list_ref = $sp_calc_values{$key};
 
-            if (ref ($list_ref) =~ /ARRAY|HASH/) {
+            if (is_arrayref($list_ref) || is_hashref($list_ref)) {
                 $self->add_to_lists (
                     element => $element,
                     $key    => $list_ref,
@@ -1191,6 +1194,11 @@ sub get_definition_query {
     }
 
     $self->set_param (DEFINITION_QUERY => $definition_query);
+
+    if ($definition_query) {
+        $definition_query->set_caller_spatial_output_ref ($self);
+        $definition_query->set_param(NAME => $self->get_name);
+    }
     
     return $definition_query;
 }
@@ -1207,7 +1215,7 @@ sub get_spatial_conditions_arr {
 
     $args{spatial_conditions} //= $args{spatial_params};  #  for back compat
     croak "spatial_conditions not an array ref or not defined\n"
-      if not (ref $args{spatial_conditions}) =~ /ARRAY/;
+      if !is_arrayref($args{spatial_conditions});
 
     $spatial_conditions_arr = $args{spatial_conditions};
     my $check = 1;
@@ -1248,6 +1256,11 @@ sub get_spatial_conditions_arr {
         }
     }
     $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_arr);
+
+    #  and let them know about ourselves
+    foreach my $sp (@$spatial_conditions_arr) {
+        $sp->set_caller_spatial_output_ref ($self);
+    }
 
     return $spatial_conditions_arr;
 }

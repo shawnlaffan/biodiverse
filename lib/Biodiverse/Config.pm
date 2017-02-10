@@ -4,6 +4,7 @@ package Biodiverse::Config;
 use 5.010;
 use strict;
 use warnings;
+use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
@@ -120,6 +121,21 @@ BEGIN {
         . "at the command prompt.\n"
         . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
     }
+    #  more general solution for anything new
+    my @reqd = qw /Text::Fuzzy Data::Compare Text::Levenshtein/;
+    foreach my $module (@reqd) {
+        if (not eval "require $module") {
+            my $feedback = <<"END_FEEDBACK"
+Cannot locate the $module package.  
+You probably need to install it using
+  cpanm $module
+at the command prompt.
+See https://metacpan.org/pod/$module for more details about what it does.
+END_FEEDBACK
+  ;
+            die $feedback;
+        }
+    }
 }
 
 #  add biodiverse lib paths so we get all the extensions
@@ -136,8 +152,12 @@ sub add_lib_paths {
         if ( $OSNAME eq 'MSWin32' ) {
             $sep = q{;};
         }
-        push @lib_paths, split $sep, $ENV{$var};
+        
+        my @paths = grep {-d} split $sep, $ENV{$var};
+        push @lib_paths, @paths;
     }
+
+    return if !scalar @lib_paths;
 
     say "Adding $var paths to \@INC";
     say join q{ }, @lib_paths;
@@ -192,7 +212,7 @@ sub use_base {
         warn "Nothing loaded\n";
     }
 
-    @check_packages{keys %$x} = values %$x if (ref $x) =~ /HASH/;
+    @check_packages{keys %$x} = values %$x if is_hashref($x);
 
     foreach my $package (keys %check_packages) {
         my @packs = @{$check_packages{$package}};

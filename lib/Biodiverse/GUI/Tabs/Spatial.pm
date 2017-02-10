@@ -471,8 +471,58 @@ sub init_dendrogram {
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
 
+    $self->init_branch_colouring_combo;
+    
     return 1;
 }
+
+sub init_branch_colouring_combo {
+    my $self = shift;
+
+return if !defined $self->{output_ref};
+
+    my $xml_page = $self->{xmlPage};
+    my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
+    
+    my $combo = $self->{branch_colouring_combobox};
+
+    if (!$combo && not (blessed ($self) =~ /Matrix/)) {
+        my $model = Gtk2::ListStore->new('Glib::String');
+        $combo = Gtk2::ComboBox->new_with_model ($model);
+        $self->{branch_colouring_combobox} = $combo;
+
+        my $label = Gtk2::Label->new('Branch colouring: ');
+
+        my $renderer = Gtk2::CellRendererText->new();
+        $combo->pack_start($renderer, 1);
+        $combo->add_attribute($renderer, markup => 0);
+
+        my $iter = $model->append();
+        $model->set ( $iter, 0, '<i>Turnover</i>' );
+        $combo->set_active(0);
+
+        my $list_names
+          = $self->{output_ref}->get_hash_lists_across_elements;
+        foreach my $list_name (@$list_names) {
+            next if $list_name =~ /SPATIAL_RESULTS$/;
+            next if $list_name eq 'RECYCLED_SET';
+            
+            my $iter = $model->append();
+            $model->set ( $iter, 0, $list_name );
+        }
+        
+        my $separator = Gtk2::SeparatorToolItem->new;
+        $bottom_hbox->pack_start ($separator, 0, 0, 0);
+        $bottom_hbox->pack_start ($label, 0, 0, 0);
+        $bottom_hbox->pack_start ($combo, 0, 0, 0);
+        $separator->show;
+        $label->show;
+        $combo->show;
+    }
+
+    return 1;
+}
+
 
 sub init_grid {
     my $self = shift;
@@ -1332,7 +1382,7 @@ sub on_grid_hover {
             @labels2{keys %$this_labels} = values %$this_labels;
         }
 
-        $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2]);
+        $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
@@ -1357,8 +1407,17 @@ my @dendro_highlight_branch_colours
   = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
-    my $self = shift;
-    my $hashrefs = shift;
+    my ($self, $hashrefs, $group) = @_;
+
+    if (my $combo = $self->{branch_colouring_combobox}) {
+        my $selected_text = $combo->get_active_text;
+        if ($selected_text ne '<i>Turnover</i>') {
+            return $self->colour_branches_on_dendrogram (
+                list_name => $selected_text,
+                group     => $group,
+            );
+        }
+    }
 
     my $tree = $self->get_current_tree;
 
@@ -1401,6 +1460,72 @@ sub highlight_paths_on_dendrogram {
     }
 
     return;
+}
+
+sub colour_branches_on_dendrogram {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree       = $self->get_current_tree;
+    my $list_name  = $args{list_name};
+    my $dendrogram = $self->{dendrogram};
+    my $output_ref = $self->{output_ref};
+
+    my $listref = $output_ref->get_list_ref (
+        list    => $list_name,
+        element => $args{group},
+    );
+    
+    my $minmax
+      = $self->get_index_min_max_values_across_full_list ($list_name);
+
+    #  log scale as a temporary measure
+    my $logmin = log ($minmax->[0] + 1);
+    my $logmax = log ($minmax->[1] + 1);
+
+    my $node_ref;
+    my %done;
+    my $colour_ref;
+
+  LABEL:
+    foreach my $label (keys %$listref) {
+        next LABEL if $done{$label};
+
+        # Might not match some or all nodes
+        my $success = eval {
+            $node_ref = $tree->get_node_ref (node => $label);
+        };
+        if (!$success) {
+            $colour_ref = COLOUR_BLACK;
+            $dendrogram->highlight_node ($node_ref, $colour_ref);
+            $done{$label}++;
+            next LABEL;
+        }
+
+      NODE:
+        while ($node_ref) {
+            my $node_name = $node_ref->get_name;
+            last NODE if $done{$node_name};
+
+            if (!exists $listref->{$node_name}) {
+                $colour_ref = COLOUR_BLACK;
+            }
+            else {
+                #my $rescaled_value = ($listref->{$node_name} - $minmax->[0]) / $range;
+                #$colour_ref = $dendro_highlight_branch_colours[0];
+                my $val = log $listref->{$node_name} + 1;
+                $colour_ref
+                  = $self->{grid}->get_colour_hue ($val, $logmin, $logmax);
+            }
+
+            $dendrogram->highlight_node ($node_ref, $colour_ref);
+
+            $done{$node_name}++;
+
+            $node_ref = $node_ref->get_parent;
+        }
+    }
+    
 }
 
 sub on_end_grid_hover {
@@ -1632,6 +1757,36 @@ sub on_active_index_changed {
     return;
 }
 
+#  bad name - we want all values across all lists of name $listname across all elements
+sub get_index_min_max_values_across_full_list {
+    my ($self, $list_name) = @_;
+
+    my $output_ref = $self->{output_ref};
+
+    use List::MoreUtils qw /minmax/;
+    my $stats = $self->{list_minmax_across_all_elements}{$list_name};
+    
+    return $stats if $stats;
+
+    my @minmax;
+    foreach my $element ($output_ref->get_element_list) {
+        my $list_ref = $output_ref->get_list_ref (
+            element    => $element,
+            list       => $list_name,
+            autovivify => 0,
+        );
+        next if !defined $list_ref;
+        next if !scalar keys %$list_ref;
+
+        @minmax = minmax (grep {defined $_}  values %$list_ref, @minmax);
+    }
+    
+    $stats = \@minmax;
+
+    $self->{list_minmax_across_all_elements}{$list_name} = $stats;  #  store it
+
+    return $stats;
+}
 
 sub set_plot_min_max_values {
     my $self = shift;

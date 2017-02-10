@@ -14,6 +14,8 @@ use Cwd;
 our $VERSION = '1.99_006';
 
 use Biodiverse::GUI::GUIManager;
+use Ref::Util qw { :all };
+
 
 # Show the dialog. Params:
 #   title
@@ -43,7 +45,7 @@ sub Run {
     foreach my $suffix (@suffixes) {
 
         my $filter = Gtk2::FileFilter->new();
-        if ((ref $suffix) =~ /ARRAY/) {
+        if (is_arrayref($suffix)) {
             foreach my $suff (@$suffix) {
                 $filter->add_pattern("*.$suff");
             }

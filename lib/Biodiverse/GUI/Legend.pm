@@ -485,7 +485,8 @@ sub set_legend_mode {
 
     # Update legend
     if ($self->{legend}) {
-        $self->{legend}=>$self->make_legend_rect();
+        #$self->{legend}=>$self->make_legend_rect();
+        $self->{legend}->make_legend_rect();
     }
 
     return;

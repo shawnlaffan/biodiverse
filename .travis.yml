@@ -57,15 +57,11 @@ before_install:
   #  as it has GUI deps
   - sudo apt-get install libgnomecanvas2-dev
 
+  - cpanm local::lib
+  - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
   - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
-
-  #  Let's see if we can find where gdal-config went.
-  #  It should be in ./gdal
-  - find . $HOME $TRAVIS_BUILD -name 'gdal-config' -print
-  
-  #- cpanm local::lib
-  #- eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   
 env:
   - BD_NO_TEST_GUI=1

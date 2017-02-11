@@ -16,7 +16,7 @@ before_install:
   - export gdal_version=2.1.3
   - export geo_gdal_tar=Geo-GDAL-2.010301.tar.gz
   - export geo_gdal_dir=Geo-GDAL-2.010301
-  - export gdal_home=$TRAVIS_BUILD/gdal_builds/${gdal_version}
+  - export gdal_home=$TRAVIS_BUILD_dir/gdal_builds/${gdal_version}
   - echo $gdal_home
 
   - startdir=`pwd`

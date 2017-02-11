@@ -38,8 +38,9 @@ before_install:
   #- if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
   - echo $gdal_config
   #  env var avoids cpanm parsing the --gdal-config argument
-  - export PERL_GDAL_CONFIG=$gdal_config
+  #- export PERL_GDAL_CONFIG=$gdal_config
   - export PERL_GDAL_NO_DOWNLOADS=1
+  - export PERL_GDAL_SOURCE_TREE=${gdal_home}/gdal-${gdal_version}
 
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)

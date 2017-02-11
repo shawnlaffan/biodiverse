@@ -11,7 +11,7 @@ cache:
 before_install:
 
   #  local::lib target should be cached
-  - cpanm local::lib
+  - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
 
   #  now we build a gdal if it has not been cached

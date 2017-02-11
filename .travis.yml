@@ -31,7 +31,7 @@ before_install:
   - if [ -n $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
   - if [ -n $gdalconfig ]; then cd ${startdir}; fi
   - if [ -n $gdalconfig ]; then gdalconfig=`find $gdal_home -name gdal-config -print | grep bin | head -1`; fi
-  - if [ -e ${gdal_home}/bin]; ls ${gdal_home}/bin; fi
+  - if [ -e ${gdal_home}/bin]; then ls ${gdal_home}/bin; fi
   - echo $gdal_config
 
   # Here as well as cpanfile because -v stops travis from timing out and killing the build

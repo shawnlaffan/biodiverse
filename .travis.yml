@@ -28,7 +28,6 @@ before_install:
   - cd ${gdal_home}
   - pwd
   - find $gdal_home -name 'gdal-config' -print
-  #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
   - if [ -n "$gdalconfig" ]; then build_gdal=false; else build_gdal=true; fi;
@@ -40,10 +39,7 @@ before_install:
   - cd ${startdir}
   - if [ "$build_gdal" = true ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
   - find $gdal_home -name 'gdal-config' -print
-  #- if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
-  #- echo $gdal_config
-  #  env var avoids cpanm parsing the --gdal-config argument
-  #- export PERL_GDAL_CONFIG=$gdal_config
+  #  using env vars avoids cpanm parsing the --gdal-config type arguments in cpanm Geo::GDAL
   - export PERL_GDAL_NO_DOWNLOADS=1
   - export PERL_GDAL_SOURCE_TREE=${gdal_home}/gdal-${gdal_version}
   - echo $PERL_GDAL_SOURCE_TREE
@@ -51,8 +47,6 @@ before_install:
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)
   #  -v should not be needed now we build our own
-  #  Could adapt approach used in https://github.com/shawnlaffan/bd_travis_experiment
-  #  or install libgdal-dev via apt-get (if it can be located)
   - cpanm -v Geo::GDAL
 
   #  Disable Gtk stuff for speed reasons

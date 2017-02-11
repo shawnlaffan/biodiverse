@@ -23,14 +23,15 @@ before_install:
   - mkdir -p ${gdal_home}
   - export PATH=${gdal_home}/bin:$PATH
   #- ls ${gdal_home}/bin
-  - gdalconfig=`find $gdal_home -name gdal-config -print | head -1`
+  - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`
   - echo $gdalconfig
   #- echo http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz
   - if [ -n $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   - if [ -n $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
   - if [ -n $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
   - if [ -n $gdalconfig ]; then cd ${startdir}; fi
-  - if [ -n $gdalconfig ]; then gdalconfig=`find $gdal_home -name gdal-config -print | grep bin | head -1`; fi
+  - if [ -n $gdalconfig ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`; fi
+  - find $gdal_home -name 'gdal-config' -print
   - if [ -e ${gdal_home}/bin]; then ls ${gdal_home}/bin; fi
   - echo $gdal_config
 

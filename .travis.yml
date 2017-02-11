@@ -31,7 +31,7 @@ before_install:
   #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
-  - if [ -n "$gdalconfig" ]; then build_gdal=true; else build_gdal=false; fi;
+  - if [ -n "$gdalconfig" ]; then build_gdal=false; else build_gdal=true; fi;
   - echo $build_gdal
   - if [ "$build_gdal" = true ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   #  should use -C and --strip-components to simplify the dir structure

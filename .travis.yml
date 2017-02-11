@@ -27,14 +27,15 @@ before_install:
   #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
-  - if [ -n $gdalconfig ]; then gdalconfig='blargle_file_not_here'; fi;
-  - echo $gdalconfig
-  - if [ ! -e $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
+  - build_gdal=true
+  - if [ -n $gdalconfig ]; then build_gdal=false; fi;
+  - echo $build_gdal
+  - if [ "$build_gdal" = true ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   #  should use -C and --strip-components to simplify the dir structure
-  - if [ ! -e $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
-  - if [ ! -e $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
+  - if [ "$build_gdal" = true ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
+  - if [ "$build_gdal" = true ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
   - cd ${startdir}
-  - if [ ! -e $gdalconfig ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
+  - if [ "$build_gdal" = true ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
   - find $gdal_home -name 'gdal-config' -print
   #- if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
   #- echo $gdal_config

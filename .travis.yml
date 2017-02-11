@@ -7,6 +7,11 @@ sudo: required
 cache:
   directories:
     - perl_modules
+    - $HOME/gdal
+env:
+  - gdal_version=2.1.3
+  - geo_gdal_tar=Geo-GDAL-2.010301.tar.gz
+  - geo_gdal_dir=Geo-GDAL-2.010301
 before_install:
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
@@ -17,12 +22,24 @@ before_install:
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
   - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
 
+  #  build a gdal
+  - export gdal_home=$HOME/gdal/${gdal_version}
+  - mkdir -p ${gdal_home}
+  - export PATH=${gdal_home}/bin:$PATH
+  - gdalconfig=`find $gdal_home -name gdal-config -print`
+  - echo $gdalconfig
+  - if [ -n $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
+  - if [ -n $gdalconfig ]; then tar -xzvf gdal-${gdal_version}.tar.gz; fi
+  - if [ -n $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=$HOME/gdal/${gdal_version} && make && make install; fi
+  - if [ -n $gdalconfig ]; then cd ${startdir}; fi
+  - if [ -n $gdalconfig ]; then gdalconfig=`which gdal-config`; fi
+
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)
   #  Could adapt approach used in https://github.com/shawnlaffan/bd_travis_experiment
   #  or install libgdal-dev via apt-get (if it can be located)
-  - cpanm -v Geo::GDAL
-  
+  - cpanm -v Geo::GDAL --gdal-config=$gdal_config
+
   #  Let's see if we can find where gdal-config went.
   #  It should be in ./gdal
   - find . $HOME $TRAVIS_BUILD -name 'gdal*' -print
@@ -40,7 +57,3 @@ branches:
   #  list GUI only branches here since we lack GUI tests
   - issue_630_export_user_tree_colours
   - issue_633_remove_pixbuf
-
-cache:
-  directories:
-  - gdal

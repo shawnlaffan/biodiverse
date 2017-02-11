@@ -27,6 +27,7 @@ before_install:
   #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
+  - if [ -n $gdalconfig ]; then gdalconfig='blargle_file_not_here'; fi;
   #- echo http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz
   - if [ ! -e $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi

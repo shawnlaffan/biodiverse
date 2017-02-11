@@ -7,6 +7,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use rlib;
 use Biodiverse::RemapGuesser;
 
 use List::Util qw(shuffle);

@@ -9,6 +9,7 @@ use Carp;
 use Scalar::Util qw /blessed/;
 
 use Test::Lib;
+use rlib;
 
 use Data::Section::Simple qw(
     get_data_section

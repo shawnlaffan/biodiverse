@@ -8,6 +8,7 @@ use File::Spec;
 use File::Find;
 
 use Test::Lib;
+use rlib;
 
 #  need to move GUI modules into their own test file
 BEGIN {

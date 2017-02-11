@@ -10,6 +10,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 
 use Test::More;
 

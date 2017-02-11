@@ -12,6 +12,7 @@ use Data::Dumper;
 use Path::Class;
 
 use Test::Lib;
+use rlib;
 
 use Data::Section::Simple qw(
     get_data_section

@@ -11,6 +11,7 @@ use 5.010;
 use English qw { -no_match_vars };
 
 use Test::Lib;
+use rlib;
 
 use Data::Section::Simple qw(
     get_data_section

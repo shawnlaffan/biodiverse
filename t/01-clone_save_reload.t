@@ -12,6 +12,7 @@ use English qw { -no_match_vars };
 use Scalar::Util qw /blessed/;
 
 use Test::Lib;
+use rlib;
 
 local $| = 1;
 

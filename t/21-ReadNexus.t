@@ -6,6 +6,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 
 #use Test::More tests => 35;
 use Test::More;

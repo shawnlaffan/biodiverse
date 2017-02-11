@@ -9,6 +9,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 use List::Util qw /first/;
 use File::Temp qw /tempfile/;
 

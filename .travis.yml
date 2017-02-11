@@ -25,19 +25,20 @@ before_install:
   - pwd
   - find $gdal_home -name 'gdal-config' -print
   #- export PATH=${gdal_home}/bin:$PATH
-  - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`
+  - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
   #- echo http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz
   - if [ ! -e $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
   - cd ${startdir}
-  - if [ ! -e $gdalconfig ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`; fi
+  - if [ ! -e $gdalconfig ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
   - find $gdal_home -name 'gdal-config' -print
   #- if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
   - echo $gdal_config
   #  env var avoids cpanm parsing the --gdal-config argument
-  - PERL_GDAL_CONFIG=$gdal_config
+  - export PERL_GDAL_CONFIG=$gdal_config
+  - export PERL_GDAL_NO_DOWNLOADS=1
 
   # Here as well as cpanfile because -v stops travis from timing out and killing the build
   # (and -v for the whole install produces a ridiculously large log)

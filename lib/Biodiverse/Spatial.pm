@@ -10,7 +10,7 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Scalar::Util qw /weaken blessed/;
 use List::MoreUtils qw /firstidx lastidx/;
-use List::Util qw /first/;
+use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
 
@@ -190,21 +190,23 @@ sub convert_comparisons_to_significances {
     croak qq{Argument 'result_list_name' not specified\n}
         if !defined $result_list_pfx;
 
-    my $progress = Biodiverse::Progress->new();
-    my $progress_text = "Calculating significances";
-    $progress->update ($progress_text, 0);
-
-    #my $bd = $self->get_param ('BASEDATA_REF');
-
     #  drop out if no elements to compare with
     my $e_list = $self->get_element_list;
     return 1 if not scalar @$e_list;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
 
     # find all the relevant lists for this target name
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
       = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
-        $self->get_lists_across_elements;
+        $self->get_hash_list_names_across_elements;
+
+#  some more debugging
+say "Prefix is $result_list_pfx";
+say "Target list names are: " . join ' ', @target_list_names;
 
     my $to_do = $self->get_element_count;
     my $i = 0;
@@ -297,7 +299,73 @@ sub convert_comparisons_to_significances {
     return 1;
 }
 
-            
+
+sub reintegrate_after_parallel_randomisations {
+    my $self = shift;
+    my %args = @_;
+
+    my $to = $self;  #  save some editing below, as this used to be in BaseData.pm
+    my $from = $args{from}
+      // croak "'from' argument not defined";
+
+    my $r = $args{randomisations_to_reintegrate}
+      // croak "'randomisations_to_reintegrate' argument undefined";
+    
+    #  should add some sanity checks here?
+    #  currently they are handled by the caller,
+    #  assuming it is a Basedata reintegrate call
+    
+    #  messy
+    my @randomisations_to_reintegrate = uniq @{$args{randomisations_to_reintegrate}};
+    my $rand_list_re_text
+      = '^(?:'
+      . join ('|', @randomisations_to_reintegrate)
+      . ')>>(?!p_rank>>)';
+    my $re_rand_list_names = qr /$rand_list_re_text/;
+
+    my $gp_list = $to->get_element_list;
+    my @rand_lists =
+        grep {$_ =~ $re_rand_list_names}
+        $to->get_hash_list_names_across_elements;
+
+    foreach my $list_name (@rand_lists) {
+        foreach my $group (@$gp_list) {
+            my $lr_to   = $to->get_list_ref (
+                element => $group,
+                list => $list_name,
+            );
+            my $lr_from = $from->get_list_ref (
+                element => $group,
+                list => $list_name,
+            );
+            my %all_keys;
+            #  get all the keys due to ties not being tracked in all cases
+            @all_keys{keys %$lr_from, keys %$lr_to} = undef;
+            my %p_keys;
+            @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
+
+            #  we need to update the C_ and Q_ keys first,
+            #  then recalculate the P_ keys
+            foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
+                no autovivification;  #  don't pollute the from data set
+                $lr_to->{$key} += ($lr_from->{$key} // 0),
+            }
+            foreach my $key (keys %p_keys) {
+                no autovivification;  #  don't pollute the from data set
+                my $index = substr $key, 1; # faster than s///;
+                $lr_to->{$key} = $lr_to->{"C$index"} / $lr_to->{"Q$index"};
+            }
+        }
+    }
+    #  could do directly, but convert_comparisons_to_significances handles recycling 
+    foreach my $rand_name (@randomisations_to_reintegrate) {
+        $to->convert_comparisons_to_significances (
+            result_list_name => $rand_name,
+        );
+    }
+    return;
+}
+
 sub find_list_indices_across_elements {
     my $self = shift;
     my %args = @_;

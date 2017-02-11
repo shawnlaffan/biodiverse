@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
@@ -3450,6 +3450,64 @@ sub get_lists_across_elements {
     );
 
     return wantarray ? @lists : \@lists;
+}
+
+sub get_hash_list_names_across_elements {
+    my $self = shift;
+    my %args = @_;
+
+    my $no_private = $args{no_private};
+    
+    my $ref_types = $self->get_list_names_across_elements (%args);
+
+    my @hash_lists;
+    foreach my $key (keys %$ref_types) {
+        next if $no_private && $key =~ /^_/;
+        next if not $ref_types->{$key} =~ /HASH/;
+        push @hash_lists, $key; 
+    }
+
+    return wantarray ? @hash_lists : \@hash_lists;
+}
+
+#  profiling shows get_hash_lists_across_elements is slow
+#  as it checks the ref type of all lists, when they should
+#  be constant across a basestruct.
+#  see how we go with this approach (currently sans caching)
+sub get_list_names_across_elements {
+    my $self = shift;
+    my %args = @_;
+
+    no autovivification;
+
+    #  turn off caching for now - we need to update it when we analyse the data
+    #my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
+    #my $cached_lists = $self->get_cached_value ($cache_name);
+    #
+    #return wantarray ? %$cached_lists : $cached_lists
+    #  if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    
+    my %list_reftypes;
+    my $elements_hash = $self->{ELEMENTS};
+
+  SEARCH_FOR_LISTS:
+    foreach my $elt (keys %$elements_hash) {
+        my $elt_ref = $elements_hash->{$elt};
+
+        #  dirty hack - we probably should not be looking inside these
+        foreach my $list_name (keys %{$elt_ref}) {
+            next if $list_reftypes{$list_name};
+            next if !defined $elt_ref->{$list_name};
+            $list_reftypes{$list_name}
+              = reftype ($elt_ref->{$list_name}) // 'NOT A REF';
+        }
+    }
+
+    #if (!$args{no_cache}) {
+    #    $self->set_cached_value ($cache_name => \%list_reftypes);
+    #}
+
+    return wantarray ? %list_reftypes : \%list_reftypes;
 }
 
 #  get a list of hash lists with numeric values in them

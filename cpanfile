@@ -32,7 +32,7 @@ requires "Tree::R";
 requires "Geo::ShapeFile", "2.60",
 requires "Geo::Shapefile::Writer";
 requires "List::MoreUtils", "0.410",
-requires "List::Util", "1.41";
+requires "List::Util", "1.45";
 requires "Class::Inspector";
 requires "autovivification", "0.16";
 requires "List::BinarySearch", "0.25";
@@ -50,6 +50,7 @@ requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
 requires "Text::Levenshtein";  #  should replace by Text::Fuzzy
 requires "Data::Structure::Util";
+requires "Data::Compare";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

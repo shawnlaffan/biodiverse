@@ -31,6 +31,8 @@ use Biodiverse::ElementProperties;
 use File::Temp;
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
+use Test::TempDir::Tiny;
+use File::Spec::Functions 'catfile';
 
 my $default_prng_seed = 2345;
 
@@ -47,6 +49,9 @@ use Exporter::Easy (
                 transform_element
                 is_or_isnt
                 isnt_deeply
+                get_temp_file_path
+                get_temp_dir
+                write_data_to_file
             ),
         ],
         basedata => [
@@ -705,8 +710,32 @@ sub get_matrix_object_from_sample_data {
     return $matrix;
 }
 
+sub get_temp_dir {
+    return tempdir();
+}
+
+sub get_temp_file_path {
+    my $fname = shift;
+    my $dir = tempdir();
+    return catfile($dir, $fname);
+}
+
+sub write_data_to_file {
+    my ($fname, $data) = @_;
+    open(my $fh, '>', $fname) or die "write_data_file: Cannot open $fname\n";
+    print $fh $data;
+    $fh->close;
+}
+
 sub write_data_to_temp_file {
     my $data = shift;
+
+    # my $fname = get_temp_file_path('bd_XXXXXX.txt');
+    # open(my fh, '>', $fname) or die "write_data_to_temp_file: Cannot open $fname\n";
+    # print $fh $data;
+    # $fh->close;
+
+    # return $fh;
 
     my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $fname = $tmp_obj->filename;

@@ -14,7 +14,7 @@ use Test::Exception;
 use English qw/-no_match_vars/;
 
 use Text::CSV_XS;
-use File::Temp qw /tempfile/;
+use Biodiverse::TestHelpers qw /:utils/;
 
 #  just need something that inherits the csv handlers
 use Biodiverse::BaseStruct;
@@ -92,8 +92,8 @@ sub test_guesswork {
     $csv_got = $obj->get_csv_object_using_guesswork(string => $string);
     is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string');
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my ($fh, $filename) = tempfile(DIR => $tmp_folder);
+    my $filename = get_temp_file_path('biodiverseXXXX');
+    open(my $fh, '>', $filename) or die "test_guesswork: Cannot open $filename\n";
     #  add some lines
     say {$fh} $string;
     say {$fh} $string;

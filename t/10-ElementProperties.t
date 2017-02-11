@@ -20,7 +20,7 @@ use Data::Section::Simple qw(
 );
 use Data::Dumper;
 
-use Biodiverse::TestHelpers qw /:element_properties/;
+use Biodiverse::TestHelpers qw /:element_properties :utils/;
 use Biodiverse::ElementProperties;
 
 
@@ -35,8 +35,7 @@ use Biodiverse::ElementProperties;
     $string =~ s/^\$VAR1=//;
     $string =~ s/;$//;
 
-    my $tmp_obj = get_import_data();
-    my $ep_f = $tmp_obj->filename;
+    my $ep_f = get_import_data();
     my $remap = Biodiverse::ElementProperties->new;
     my $success = eval { $remap->import_data(%remap_data, file => $ep_f) };
     diag $EVAL_ERROR if $EVAL_ERROR;
@@ -139,12 +138,9 @@ done_testing();
 #######################################
 
 sub get_import_data {
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX');
-    my $ep_f = $tmp_obj->filename;
-    print $tmp_obj get_element_properties_test_data();
-    $tmp_obj -> close;
-    
-    return $tmp_obj;
+    my $fname = get_temp_file_path('biodiverseXXXX');
+    write_data_to_file($fname, get_element_properties_test_data());
+    return $fname;
 }
 
 sub get_label_properties_data {

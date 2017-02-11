@@ -20,7 +20,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
+use Biodiverse::TestHelpers qw /:cluster :basedata :tree :utils/;
 use Biodiverse::Cluster;
 use Biodiverse::BaseData;
 
@@ -370,8 +370,7 @@ sub test_node_hash_keys_match_node_names {
 sub test_export_shapefile {
     my $tree = shift // get_site_data_as_tree();
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand());
+    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()));
 
     my $success = eval {
         $tree->export_shapefile (
@@ -424,9 +423,8 @@ sub test_export_shapefile {
 sub test_export_tabular_tree {
     my $tree = shift // get_site_data_as_tree();
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()) . '.csv');
 
-    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.csv';
     #note "File name is $fname";
     my $success = eval {
         $tree->export_tabular_tree (
@@ -514,9 +512,7 @@ sub _test_export_nexus {
     }
     chop $test_suffix;
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-
-    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
+    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()) . '.nex');
     note "File name is $fname";
     my $success = eval {
         $tree->export_nexus (

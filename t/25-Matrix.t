@@ -21,7 +21,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:matrix :basedata/;
+use Biodiverse::TestHelpers qw /:matrix :basedata :utils/;
 
 
 use Biodiverse::Matrix;
@@ -579,8 +579,7 @@ sub _test_to_table {
     
     #  now check the exports are the same with and without file handles
     foreach my $type (@types) {
-        my $f   = File::Temp->new (TEMPLATE => 'bd_XXXXXX', TMPDIR => 1);
-        my $pfx = $f->filename;
+        my $pfx = get_temp_file_path('bd_XXXXXX');
 
         my $fname_use_fh = $pfx . '_use_fh.csv';
         my $fname_no_fh  = $pfx . '_no_fh.csv';
@@ -590,11 +589,7 @@ sub _test_to_table {
 
         my $comp = File::Compare::compare ($fname_use_fh, $fname_no_fh);
         ok (!$comp, "Exported files with and without file handles in to_table are identical for $type, " . blessed ($mx));
-
-        unlink $fname_use_fh, $fname_no_fh;
     }
-    
-
 }
 
 

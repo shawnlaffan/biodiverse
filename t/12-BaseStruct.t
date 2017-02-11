@@ -25,7 +25,7 @@ use Scalar::Util qw /looks_like_number/;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::TestHelpers qw /:basedata :utils/;
 
 exit main( @ARGV );
 
@@ -79,10 +79,8 @@ sub test_export_shape {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my $fname = $tmp_folder. '/export_basestruct_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    my $fname = get_temp_file_path('export_basestruct_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     my $success = eval {
         $gp->export (
@@ -98,16 +96,11 @@ sub test_export_shape {
       subtest 'polygon shapefile matches basestruct'
         => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
 
-    #if ($subtest_success) {
-    #    unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
-    #}
-
     #  now check labels can also be exported
     #  (a test of text axes)
     my $lb = $bd->get_labels_ref;
-    $fname = $tmp_folder . '/export_basestruct_labels_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    $fname = get_temp_file_path('export_basestruct_labels_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     $success = eval {
         $lb->export (
@@ -122,11 +115,6 @@ sub test_export_shape {
     $subtest_success =
       subtest 'polygon shapefile matches label basestruct'
         => sub {subtest_for_polygon_shapefile_export ($lb, $fname)};
-
-    #if ($subtest_success) {
-    #    unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
-    #}
-
 }
 
 sub subtest_for_polygon_shapefile_export {
@@ -204,10 +192,8 @@ sub test_export_shape_point {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my $fname = $tmp_folder . '/export_point_basestruct_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    my $fname = get_temp_file_path('export_point_basestruct_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     my $success = eval {
         $gp->export (

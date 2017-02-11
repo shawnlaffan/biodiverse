@@ -11,7 +11,6 @@ use FindBin qw/$Bin/;
 use Test::Lib;
 use rlib;
 use List::Util qw /first/;
-use File::Temp qw /tempfile/;
 
 use Test::More;
 
@@ -23,7 +22,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster :tree/;
+use Biodiverse::TestHelpers qw /:cluster :tree :utils/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -399,7 +398,9 @@ sub test_mx_direct_write_to_file {
         linkage_function   => 'link_average',
     );
 
-    my ($fh, $fname) = tempfile (TEMPLATE => 'bd_XXXX', TEMPDIR => 1);
+    my $fname = get_temp_file_path("bd_XXXX");
+    open(my $fh, '>', $fname) or die "test_mx_direct_write_to_file: Cannot open $fname\n";
+
     my $cl = $bd->add_cluster_output (name => 'write_mx_to_file');
     $cl->run_analysis (
         %analysis_args,

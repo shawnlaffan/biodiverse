@@ -859,7 +859,7 @@ sub test_roundtrip_delimited_text {
         {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
     );
     
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+    my $tmp_folder = get_temp_file_path('');
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
@@ -869,7 +869,7 @@ sub test_roundtrip_delimited_text {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name, but at least it goes into a temp folder
-        my $fname = $tmp_folder . '/' . 'delimtxt' . $i
+        my $fname = $tmp_folder . 'delimtxt' . $i
                    . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
                    . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
                    . '.txt';  
@@ -979,7 +979,7 @@ sub test_roundtrip_raster {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $tmp_dir = get_temp_dir;
         my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
@@ -1108,7 +1108,7 @@ sub test_raster_zero_cellsize {
         my $format = $out_options_hash->{format};
 
         #  need to use a better approach for the name
-        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $tmp_dir = get_temp_dir;
         my $fname_base = $format; 
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
@@ -1261,7 +1261,7 @@ sub test_roundtrip_shapefile {
         },
     );
 
-    my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+    my $tmp_dir = get_temp_file_path('');
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
@@ -1271,7 +1271,8 @@ sub test_roundtrip_shapefile {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = $tmp_dir . '/' . 'shapefile_' . $i; 
+        my $fname_base = $tmp_dir . 'shapefile_' . $i; 
+
         my $suffix = ''; # leave off, .shp will be added (or similar)
         my $fname = $fname_base . $suffix;  
         my @exported_files;

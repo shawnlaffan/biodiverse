@@ -64,10 +64,12 @@ before_install:
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
   - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
   
-  - ls perl_modules
+  - [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
   
 env:
   - BD_NO_TEST_GUI=1
+  - BD_NO_TEST_GUI=0
+
 script: prove -l -j4
 # blocklist
 branches:

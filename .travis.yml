@@ -21,7 +21,8 @@ before_install:
 
   - startdir=`pwd`
   - mkdir -p ${gdal_home}
-  - export PATH=${gdal_home}/bin:$PATH
+  - find $gdal_home -name 'gdal-config' -print
+  #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`
   - echo $gdalconfig
   #- echo http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz

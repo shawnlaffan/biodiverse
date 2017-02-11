@@ -1,7 +1,7 @@
 language: perl
 perl:
   - '5.24'
-  #- '5.22'
+  - '5.22'
 distro: trusty
 sudo: required
 cache:
@@ -28,8 +28,9 @@ before_install:
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
   - echo $gdalconfig
   - if [ -n $gdalconfig ]; then gdalconfig='blargle_file_not_here'; fi;
-  #- echo http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz
+  - echo $gdalconfig
   - if [ ! -e $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
+  #  should use -C and --strip-components to simplify the dir structure
   - if [ ! -e $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
   - cd ${startdir}

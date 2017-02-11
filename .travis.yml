@@ -64,6 +64,8 @@ before_install:
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
   - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
   
+  - ls perl_modules
+  
 env:
   - BD_NO_TEST_GUI=1
 script: prove -l -j4

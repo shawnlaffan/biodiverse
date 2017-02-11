@@ -21,6 +21,7 @@ before_install:
 
   - startdir=`pwd`
   - mkdir -p ${gdal_home}
+  - cd ${gdal_home}
   - find $gdal_home -name 'gdal-config' -print
   #- export PATH=${gdal_home}/bin:$PATH
   - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`
@@ -29,10 +30,10 @@ before_install:
   - if [ ! -e $gdalconfig ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
   - if [ ! -e $gdalconfig ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
-  - if [ ! -e $gdalconfig ]; then cd ${startdir}; fi
+  - cd ${startdir}
   - if [ ! -e $gdalconfig ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep bin | head -1`; fi
   - find $gdal_home -name 'gdal-config' -print
-  - if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
+  #- if [ -e ${gdal_home}/bin ]; then ls ${gdal_home}/bin; fi
   - echo $gdal_config
   #  env var avoids cpanm parsing the --gdal-config argument
   - PERL_GDAL_CONFIG=$gdal_config

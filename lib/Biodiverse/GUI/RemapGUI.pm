@@ -50,7 +50,7 @@ use constant IGNORE_CASE_TOOLTIP
     => "Treat case difference as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
-use constant MANUAL_OPTION_TEXT => "Select a remap file";
+use constant MANUAL_OPTION_TEXT => "From file";
 
 sub new {
     my $class = shift;

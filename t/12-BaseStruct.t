@@ -25,7 +25,7 @@ use Scalar::Util qw /looks_like_number/;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata :utils/;
+use Biodiverse::TestHelpers qw /:basedata/;
 
 exit main( @ARGV );
 

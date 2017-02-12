@@ -21,7 +21,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:matrix :basedata :utils/;
+use Biodiverse::TestHelpers qw /:matrix :basedata/;
 
 
 use Biodiverse::Matrix;
@@ -537,8 +537,8 @@ sub create_matrix_object {
 
     my $e;
 
-    my $tmp_mx_file = write_data_to_temp_file (get_matrix_data());
-    my $fname = $tmp_mx_file->filename;
+    my $tmp_mx_file = write_data_to_temp_file(get_matrix_data());
+
     my $mx = eval {
         $class->new (
             NAME            => "test matrix $class",
@@ -552,7 +552,7 @@ sub create_matrix_object {
     
     eval {
         $mx->import_data (
-            file => $fname,
+            file => $tmp_mx_file,
         );
     };
     $e = $EVAL_ERROR;

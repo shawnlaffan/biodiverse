@@ -20,7 +20,7 @@ use Data::Section::Simple qw(
 );
 use Data::Dumper;
 
-use Biodiverse::TestHelpers qw /:element_properties :utils/;
+use Biodiverse::TestHelpers qw /:element_properties/;
 use Biodiverse::ElementProperties;
 
 
@@ -50,8 +50,7 @@ use Biodiverse::ElementProperties;
 
 #  add properties after importation
 {
-    my $tmp_bd_file = write_data_to_temp_file (get_basedata_data());
-    my $bd_fname = $tmp_bd_file->filename;
+    my $bd_fname = write_data_to_temp_file(get_basedata_data());
     my $bd = Biodiverse::BaseData->new (
         NAME       => 'test add label props after import',
         CELL_SIZES => [100000, 100000],
@@ -69,8 +68,8 @@ use Biodiverse::ElementProperties;
     my %prop_col_hash;
     @prop_col_hash{@prop_names} = (5 .. 8);
     
-    my $tmp_remap_file = write_data_to_temp_file (get_label_properties_data());
-    my $fname = $tmp_remap_file->filename;
+    my $fname = write_data_to_temp_file(get_label_properties_data());
+
     my %lbprops_args = (
         input_element_cols => [1,2],
         %prop_col_hash,
@@ -138,8 +137,7 @@ done_testing();
 #######################################
 
 sub get_import_data {
-    my $fname = get_temp_file_path('biodiverseXXXX');
-    write_data_to_file($fname, get_element_properties_test_data());
+    my $fname = write_data_to_temp_file(get_element_properties_test_data());
     return $fname;
 }
 

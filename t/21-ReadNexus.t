@@ -13,7 +13,7 @@ use Test::More;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Biodiverse::TestHelpers qw /:tree :utils/;
+use Biodiverse::TestHelpers qw /:tree/;
 
 
 local $| = 1;
@@ -227,8 +227,7 @@ sub test_tabular_tree_from_file {
 
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
-    my $initial_tabular_file = get_temp_file_path('biodiverse_tabular_tree_export_XXXX.txt');
-    write_data_to_file($initial_tabular_file, $data);
+    my $initial_tabular_file =  write_data_to_temp_file($data);
 
     # define map to read sample file
     my $column_map = {

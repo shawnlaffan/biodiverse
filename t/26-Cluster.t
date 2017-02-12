@@ -22,7 +22,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster :tree :utils/;
+use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;

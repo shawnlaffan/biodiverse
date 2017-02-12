@@ -506,9 +506,7 @@ sub test_import_small {
         CELL_SIZES => [1,1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
-
+    my $fname = write_data_to_temp_file(get_import_data_small());
     my $e;
 
     #  vanilla import
@@ -741,9 +739,7 @@ sub test_import_null_labels {
         CELL_SIZES => [1,1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_null_label());
-    my $fname = $tmp_file->filename;
-
+    my $fname = write_data_to_temp_file(get_import_data_null_label());
     my $e;
 
     #  vanilla import
@@ -779,11 +775,8 @@ sub test_import_cr_line_endings {
     #my $dc = ($data_cr =~ /\n/sg);
     isnt ($data_cr =~ /\n/sg, 'stripped all newlines from input file data');
 
-    my $tmp_file1 = write_data_to_temp_file ($data);
-    my $fname1 = $tmp_file1->filename;
-
-    my $tmp_file_cr = write_data_to_temp_file ($data_cr);
-    my $fname_cr = $tmp_file_cr->filename;
+    my $fname1 = write_data_to_temp_file($data);
+    my $fname_cr = write_data_to_temp_file($data_cr);
     
     #  get the original - should add some labels with special characters
     my $bd = Biodiverse::BaseData->new (%bd_args);
@@ -821,8 +814,7 @@ sub test_roundtrip_delimited_text {
         CELL_SIZES => [1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
+    my $fname = write_data_to_temp_file(get_import_data_small());
 
     my $e;
 
@@ -925,9 +917,8 @@ sub test_roundtrip_raster {
         CELL_SIZES => [1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
-    say "testing filename $fname";
+    my $fname = write_data_to_temp_file(get_import_data_small());
+    note("testing filename $fname");
     my $e;
 
     #  get the original - should add some labels with special characters
@@ -1064,9 +1055,8 @@ sub test_raster_zero_cellsize {
         CELL_SIZES => [1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
-    say "testing filename $fname";
+    my $fname = write_data_to_temp_file(get_import_data_small());
+    note("testing filename $fname");
     my $e;
 
     my $bd = Biodiverse::BaseData->new (%bd_args);
@@ -1217,9 +1207,8 @@ sub test_roundtrip_shapefile {
         CELL_SIZES => [1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
-    say "testing filename $fname";
+    my $fname = write_data_to_temp_file(get_import_data_small());
+    note("testing filename $fname");
     my $e;
 
     #  get the original - should add some labels with special characters
@@ -1385,8 +1374,7 @@ sub get_small_bd {
         CELL_SIZES => [1,1],
     );
 
-    my $tmp_file = write_data_to_temp_file (get_import_data_small());
-    my $fname = $tmp_file->filename;
+    my $fname = write_data_to_temp_file(get_import_data_small());
 
     my $e;
 
@@ -1527,8 +1515,8 @@ sub _test_rename_labels_or_groups {
         CELL_SIZES => [100000, 100000],
     );
     
-    my $tmp_remap_file = write_data_to_temp_file (get_label_remap_data());
-    my $fname = $tmp_remap_file->filename;
+    my $fname = write_data_to_temp_file(get_label_remap_data());
+
     my %rename_props_args = (
         input_element_cols    => [1,2],
         remapped_element_cols => [3,4],

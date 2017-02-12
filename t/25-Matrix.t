@@ -7,6 +7,7 @@ use warnings;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 use Scalar::Util qw /blessed/;
 use File::Compare;
 
@@ -536,8 +537,8 @@ sub create_matrix_object {
 
     my $e;
 
-    my $tmp_mx_file = write_data_to_temp_file (get_matrix_data());
-    my $fname = $tmp_mx_file->filename;
+    my $tmp_mx_file = write_data_to_temp_file(get_matrix_data());
+
     my $mx = eval {
         $class->new (
             NAME            => "test matrix $class",
@@ -551,7 +552,7 @@ sub create_matrix_object {
     
     eval {
         $mx->import_data (
-            file => $fname,
+            file => $tmp_mx_file,
         );
     };
     $e = $EVAL_ERROR;
@@ -578,8 +579,7 @@ sub _test_to_table {
     
     #  now check the exports are the same with and without file handles
     foreach my $type (@types) {
-        my $f   = File::Temp->new (TEMPLATE => 'bd_XXXXXX', TMPDIR => 1);
-        my $pfx = $f->filename;
+        my $pfx = get_temp_file_path('bd_XXXXXX');
 
         my $fname_use_fh = $pfx . '_use_fh.csv';
         my $fname_no_fh  = $pfx . '_no_fh.csv';
@@ -589,11 +589,7 @@ sub _test_to_table {
 
         my $comp = File::Compare::compare ($fname_use_fh, $fname_no_fh);
         ok (!$comp, "Exported files with and without file handles in to_table are identical for $type, " . blessed ($mx));
-
-        unlink $fname_use_fh, $fname_no_fh;
     }
-    
-
 }
 
 

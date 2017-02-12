@@ -7,6 +7,7 @@ use warnings;
 use English qw { -no_match_vars };
 
 use Test::Lib;
+use rlib;
 
 local $| = 1;
 

@@ -102,9 +102,21 @@ if ($OSNAME eq 'MSWin32') {
 
 #  clunky - should hunt for Gtk2 use in script?  
 my @ui_arg = ();
+my @gtk_path_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
     my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
     @ui_arg = ('-a', "$ui_dir;ui");
+    
+    #  get the Gtk2 stuff
+    my $base = Path::Class::file($EXECUTABLE_NAME)
+        ->parent
+        ->parent
+        ->subdir('site/lib/auto/Gtk2');
+    foreach my $subdir (qw /share etc lib/) {
+        my $source_dir = Path::Class::dir ($base, $subdir);
+        my $dest_dir   = Path::Class::dir ('lib/auto/Gtk2', $subdir);
+        push @gtk_path_arg, ('-a', "$source_dir;$dest_dir")
+    }
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -124,6 +136,7 @@ my @cmd = (
     '-z',
     9,
     @ui_arg,
+    @gtk_path_arg,
     @icon_file_arg,
     $execute,
     @links,
@@ -136,7 +149,8 @@ if ($verbose) {
     splice @cmd, 1, 0, $verbose;
 }
 
-say join ' ', @cmd;
+
+say join ' ', "\nCOMMAND TO RUN:\n", @cmd;
 
 system @cmd;
 

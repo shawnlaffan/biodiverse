@@ -59,7 +59,7 @@
           <object class="GtkAction" id="menu_remap">
             <property name="name">menu_remap</property>
             <property name="tooltip" translatable="yes">Remap labels to another datasource. </property>
-            <property name="label" translatable="yes">Remap</property>
+            <property name="label" translatable="yes">Remap element names</property>
             <signal handler="on_do_remap" name="activate"/>
           </object>
         </child>

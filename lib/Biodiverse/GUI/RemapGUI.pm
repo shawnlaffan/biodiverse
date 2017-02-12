@@ -185,14 +185,10 @@ sub pre_remap_dlg {
 
     # The dialog has now finished, process the response and figure out
     # what to return.
-
     my %results;
 
 
-    if ( $response eq "no" ) {
-        %results = (remap_type => "none");
-    }
-    else {
+    if ( $response eq "yes" ) {
         my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
         my $remapee = $remapee_sources[$remapee_combo->get_active];
         my $controller = $controller_sources[$controller_combo->get_active];
@@ -205,8 +201,12 @@ sub pre_remap_dlg {
             controller              => $controller,
             max_distance            => $spinner->get_value_as_int(),
             ignore_case             => $case_checkbutton->get_active(),
-        );
+            );
     }
+    else {
+        %results = (remap_type => "none");
+    }
+
     return wantarray ? %results : \%results;
 }
 

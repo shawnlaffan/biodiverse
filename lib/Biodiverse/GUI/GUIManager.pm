@@ -1173,7 +1173,7 @@ sub do_remap {
             $want_to_perform_remap = 1; 
         }
     }
-    else {
+    elsif( $remap_type ne "none") {
         croak "Unknown option $remap_type\n";
     }
     

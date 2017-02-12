@@ -9,6 +9,7 @@ local $| = 1;
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 use Test::Lib;
+use rlib;
 use Test::More;
 use Biodiverse::Config;
 

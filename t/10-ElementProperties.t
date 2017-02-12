@@ -6,6 +6,7 @@ use warnings;
 local $| = 1;
 
 use Test::Lib;
+use rlib;
 
 use Test::More;
 use Test::Exception;
@@ -34,8 +35,7 @@ use Biodiverse::ElementProperties;
     $string =~ s/^\$VAR1=//;
     $string =~ s/;$//;
 
-    my $tmp_obj = get_import_data();
-    my $ep_f = $tmp_obj->filename;
+    my $ep_f = get_import_data();
     my $remap = Biodiverse::ElementProperties->new;
     my $success = eval { $remap->import_data(%remap_data, file => $ep_f) };
     diag $EVAL_ERROR if $EVAL_ERROR;
@@ -50,8 +50,7 @@ use Biodiverse::ElementProperties;
 
 #  add properties after importation
 {
-    my $tmp_bd_file = write_data_to_temp_file (get_basedata_data());
-    my $bd_fname = $tmp_bd_file->filename;
+    my $bd_fname = write_data_to_temp_file(get_basedata_data());
     my $bd = Biodiverse::BaseData->new (
         NAME       => 'test add label props after import',
         CELL_SIZES => [100000, 100000],
@@ -69,8 +68,8 @@ use Biodiverse::ElementProperties;
     my %prop_col_hash;
     @prop_col_hash{@prop_names} = (5 .. 8);
     
-    my $tmp_remap_file = write_data_to_temp_file (get_label_properties_data());
-    my $fname = $tmp_remap_file->filename;
+    my $fname = write_data_to_temp_file(get_label_properties_data());
+
     my %lbprops_args = (
         input_element_cols => [1,2],
         %prop_col_hash,
@@ -138,12 +137,8 @@ done_testing();
 #######################################
 
 sub get_import_data {
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX');
-    my $ep_f = $tmp_obj->filename;
-    print $tmp_obj get_element_properties_test_data();
-    $tmp_obj -> close;
-    
-    return $tmp_obj;
+    my $fname = write_data_to_temp_file(get_element_properties_test_data());
+    return $fname;
 }
 
 sub get_label_properties_data {

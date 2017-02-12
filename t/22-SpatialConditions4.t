@@ -9,6 +9,7 @@ use English qw{
 };
 
 use Test::Lib;
+use rlib;
 use Test::More;
 
 use Biodiverse::BaseData;

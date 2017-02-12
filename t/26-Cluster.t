@@ -9,8 +9,8 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 use List::Util qw /first/;
-use File::Temp qw /tempfile/;
 
 use Test::More;
 
@@ -398,7 +398,9 @@ sub test_mx_direct_write_to_file {
         linkage_function   => 'link_average',
     );
 
-    my ($fh, $fname) = tempfile (TEMPLATE => 'bd_XXXX', TEMPDIR => 1);
+    my $fname = get_temp_file_path("bd_XXXX");
+    open(my $fh, '>', $fname) or die "test_mx_direct_write_to_file: Cannot open $fname\n";
+
     my $cl = $bd->add_cluster_output (name => 'write_mx_to_file');
     $cl->run_analysis (
         %analysis_args,

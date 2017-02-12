@@ -110,7 +110,7 @@ sub pre_remap_dlg {
     $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
     $remapee_combo->set_tooltip_text ('Choose a data source to remap to');
     my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
-    my $controller_label = Gtk2::Label->new('Remap the labels to:');
+    my $controller_label = Gtk2::Label->new('Label source:');
    
     
     $table->attach_defaults( $remapee_label, 0, 1, 0, 1 );

@@ -5,9 +5,10 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-
-use PAR::Packer 1.022;    #  make sure we get all the Strawberry libs
-use Module::ScanDeps 1.16;
+#  make sure we get all the Strawberry libs
+#  and pack Gtk2 libs
+use PAR::Packer 1.036;    
+use Module::ScanDeps 1.23;
 BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }

@@ -17,6 +17,8 @@ use File::Copy;
 use Path::Class;
 use Cwd;
 use File::Basename;
+use File::Find::Rule;
+
 
 use Getopt::Long::Descriptive;
 
@@ -78,6 +80,7 @@ if ($OSNAME eq 'MSWin32') {
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
     my @fnames = get_dll_list($c_bin);
+    push @fnames, get_sis_gtk_dll_list();
     for my $fname (@fnames) {
         my $source = Path::Class::file ($fname)->stringify;
         my $fbase  = Path::Class::file ($fname)->basename;
@@ -177,3 +180,13 @@ sub get_dll_list {
     return @dll_files;
 }
 
+#  find the set of gtk dlls installed into site/lib/auto
+#  from sisyphusion.tk/ppm
+sub get_sis_gtk_dll_list {
+    my $base = Path::Class::file($^X)->parent->parent->subdir('site/lib/auto');
+    my @files = File::Find::Rule->file()
+                            ->name( 'lib*.dll' )
+                            ->in( $base );
+    @files = grep {$_ =~ /site.lib.auto/} @files;
+    return @files;
+}

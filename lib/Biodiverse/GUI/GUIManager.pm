@@ -1146,6 +1146,13 @@ sub do_remap {
     my $remap_type = $pre_remap_dlg_results->{remap_type};
     my $remapee    = $pre_remap_dlg_results->{remapee};
 
+    # check if the remapee is a basedata with outputs
+    my $type = blessed $remapee;
+
+    croak "Can't remap elements of a Basedata with outputs. " .
+          "Try 'Duplicate without outputs'."
+        if ($type eq 'Biodiverse::BaseData' && $remapee->get_output_ref_count);
+
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
 

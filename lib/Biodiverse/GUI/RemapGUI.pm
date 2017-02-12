@@ -167,8 +167,8 @@ sub pre_remap_dlg {
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Remap labels?',
         undef, 'modal',
-        'gtk-yes' => 'yes',
-        'gtk-no'  => 'no',
+        'gtk-ok' => 'ok',
+        'gtk-cancel'  => 'cancel',
     );
 
     ####
@@ -188,7 +188,7 @@ sub pre_remap_dlg {
     my %results;
 
 
-    if ( $response eq "yes" ) {
+    if ( $response eq "ok" ) {
         my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
         my $remapee = $remapee_sources[$remapee_combo->get_active];
         my $controller = $controller_sources[$controller_combo->get_active];

@@ -59,7 +59,7 @@ sub test_to_and_from_hash {
         "label5" => "remappedlabel5",
         );
 
-    $remap->populate_from_hash(remap_hash => \%remap_hash);
+    $remap->import_from_hash(remap_hash => \%remap_hash);
 
     my $output_hash = $remap->to_hash();
 

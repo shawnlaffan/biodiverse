@@ -248,7 +248,7 @@ sub post_auto_remap_dlg {
 
         );
 
-    $remap_object->populate_from_hash(remap_hash => $remap_hash);
+    $remap_object->import_from_hash(remap_hash => $remap_hash);
     
     if ( $response eq 'yes' ) {
         say "Performed automatic remap.";
@@ -377,7 +377,7 @@ sub remap_results_dialog {
             );
 
         my $remap_object = Biodiverse::Remap->new();
-        $remap_object->populate_from_hash(remap_hash => $remap);
+        $remap_object->import_from_hash(remap_hash => $remap);
         Biodiverse::GUI::Export::Run($remap_object);
     });
 

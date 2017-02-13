@@ -16,7 +16,7 @@ use parent qw /Biodiverse::ElementProperties/;
 
 # given a hash mapping from one set of labels to another, fills out
 # this object with that remap.
-sub populate_from_hash {
+sub import_from_hash {
     my ($self, %args) = @_;
     my $hash = $args{remap_hash};
 
@@ -107,7 +107,7 @@ sub populate_with_guessed_remap {
     $self->{ typo_matches  } = $remap_results->{ typo_matches  };
     $self->{ not_matched   } = $remap_results->{ not_matched   };
     
-    $self->populate_from_hash( remap_hash => $remap );
+    $self->import_from_hash( remap_hash => $remap );
     $self->dequote_all_elements();
     $self->{ has_auto_remap } = 1;
 }

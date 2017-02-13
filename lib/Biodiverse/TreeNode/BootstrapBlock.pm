@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use Carp;
 
+use 5.010;
+
 use Cpanel::JSON::XS;
 use Data::Structure::Util qw( unbless );
 
@@ -61,7 +63,6 @@ sub decode_bootstrap_block {
 
     foreach my $key (keys %$decoded_hash) {
         $self->set_value( key => $key, value => $decoded_hash->{$key} );
-        #print "Setting $key to be $decoded_hash->{$key}\n";
     }    
     
 }
@@ -73,6 +74,7 @@ sub decode_bootstrap_block {
 sub encode_bootstrap_block {
     my ($self, %args) = @_;
     my %boot_values = %$self;
+
     
     if($self->{exclusions}) {
         my @excluded_keys = @{$self->{exclusions}};
@@ -84,21 +86,17 @@ sub encode_bootstrap_block {
 
     # also make sure "exclusions:..." isn't in the encoding
     delete $boot_values{"exclusions"};
+
+    my @bootstrap_strings;
+    foreach my $key (keys %boot_values) {
+        my $value = $boot_values{$key};
+        push @bootstrap_strings, "!$key=$value";
+    }
+    my $bootstrap_string = "[&" . join(",", @bootstrap_strings) . "]";    
     
-    my $json_string = encode_json \%boot_values;
-
-    # the json encoder uses { and } to delimit data, but bootstrap
-    # block uses [ and ].
-
-    # will replace first and last use of { and } respectively.
-    $json_string =~ s/\{/\[/;
-    $json_string = scalar reverse $json_string; # cheeky
-    $json_string =~ s/\}/\]/;
-    $json_string = scalar reverse $json_string;
-
     # if we have nothing in this block, we probably don't want to
     # write out [], makes the nexus file ugly.
-    return $json_string eq "[]" ? "" : $json_string;
+    return $bootstrap_string eq "[]" ? "" : $bootstrap_string;
 }
 
 

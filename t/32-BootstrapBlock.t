@@ -89,7 +89,7 @@ sub test_encode {
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.
     foreach my $key (keys %hash) {
-        my $expected_string = "\"$key\":\"$hash{$key}\"";
+        my $expected_string = "!$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
             "Block contained $expected_string")
     }
@@ -107,13 +107,13 @@ sub test_encode {
     delete $hash{ "foo"    };
     delete $hash{ "footwo" };
     foreach my $key (keys %hash) {
-        my $expected_string = "\"$key\":\"$hash{$key}\"";
+        my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
             "Block contained $expected_string")
     }
-    ok (index($actual, '"foo":"bar"') == -1, 
+    ok (index($actual, '"foo"="bar"') == -1, 
         "Block didn't contain excluded item");
-    ok (index($actual, '"footwo":"bartwo"') == -1, 
+    ok (index($actual, '"footwo"="bartwo"') == -1, 
         "Block didn't contain excluded item");
 
     # now test clearing the exclusions
@@ -129,7 +129,7 @@ sub test_encode {
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.
     foreach my $key (keys %hash) {
-        my $expected_string = "\"$key\":\"$hash{$key}\"";
+        my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
             "Block contained $expected_string")
     }

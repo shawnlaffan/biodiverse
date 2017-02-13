@@ -128,32 +128,32 @@ sub get_match_category {
 }
 
 
-#  should work directly on the REMAP hash entries for each element
+#  now works directly on the REMAP hash entries for each element
 sub dequote_all_elements {
     my ($self, %args) = @_;
     my $old_hash = $self->to_hash();
-    my %dequoted_hash;
-
-    foreach my $key (keys %$old_hash) {
-        my $new_key = $self->dequote_element(
-            element    => $key,
-            quote_char => "'",
-        );
-
-        my $new_val = $new_key;
-        if (defined $old_hash->{$key}) {
-            $new_val = $self->dequote_element(
-                element    => $old_hash->{$key},
-                quote_char => "'",
-            );
-        }
-        $dequoted_hash{$new_key} = $new_val;
-    }
-
+    my $elements = $self->get_element_list;
     
-    $self->populate_from_hash (remap_hash => \%dequoted_hash);
-}
+    foreach my $element (@$elements) {
+        # fix up the remapped value
+        my $remapped = $self->get_element_remapped(element => $element);
+        my $new_remapped = $self->dequote_element(
+            element    => $remapped,
+            quote_char => "'",
+            );
+        $self->{ELEMENTS}{$element}{REMAP} = $new_remapped;
 
+        # fix up the element name itself
+        my $new_name = $self->dequote_element(
+            element    => $element,
+            quote_char => "'",
+            );
+        $self->rename_element(
+            element    => $element,
+            new_name   => $new_name,
+            );
+    }
+}
 
 
 # Importing mostly uses import_data from ElementProperties.pm

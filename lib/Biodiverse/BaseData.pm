@@ -576,7 +576,7 @@ sub get_embedded_matrices {
 
   OUTPUT:
     foreach my $output (@$outputs) {
-        next OUTPUT if !$output->can('get_embedded_tree');
+        next OUTPUT if !$output->can('get_embedded_matrix');
 
         my $mx = $output->get_embedded_matrix;
         if ($mx) {

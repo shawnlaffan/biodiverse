@@ -4,7 +4,7 @@ requires 'Ref::Util';
 requires 'Scalar::Util::Numeric';
 requires 'Task::Biodiverse::NoGUI', '1.0001';
 requires 'Text::Fuzzy';
-requires 'Text::Levenshtein';
+requires 'Text::Levenshtein';  #  should replace by Text::Fuzzy
 
 requires "Data::DumpXML";
 requires "Math::Random::MT::Auto", "6.21";
@@ -48,7 +48,6 @@ requires "JSON::MaybeXS", "1.003";
 requires "Sort::Naturally";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
-requires "Text::Levenshtein";  #  should replace by Text::Fuzzy
 requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";

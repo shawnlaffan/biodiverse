@@ -13,7 +13,8 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   - set BDV_PPM=https://github.com/shawnlaffan/biodiverse/raw/ppm/ppm524_x64
   - ppm install %BDV_PPM%/Geo-GDAL.ppd
-  - cpanm --installdeps --notest  .
+  #- cpanm --installdeps --notest  .
+  - cpanm --notest Task::Biodiverse::NoGUI
 
 
 build_script:

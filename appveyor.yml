@@ -18,6 +18,13 @@ install:
   - cpanm --notest Text::Levenshtein
   - cpanm --notest Data::Compare
   - cpanm --notest Test::TempDir::Tiny
+  #  until the remap class does not call the GUI:
+  - set SIS_PPM=http://www.sisyphusion.tk/ppm
+  - ppm install %SIS_PPM%/Cairo.ppd 
+  - ppm install %SIS_PPM%/Glib.ppd 
+  - ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
+  - ppm install %SIS_PPM%/Pango.ppd
+  - ppm install %SIS_PPM%/Gtk2.ppd
 
 
 build_script:

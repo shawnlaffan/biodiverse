@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.990074 20170214
+    - Add Statistics::Sampler::Multinomial
+
 1.990073 20170214
     - Add Test::TempDir::Tiny
 

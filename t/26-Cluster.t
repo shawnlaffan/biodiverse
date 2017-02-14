@@ -187,6 +187,8 @@ sub check_order_is_same_given_same_prng {
     my $cl1 = $bd->add_cluster_output (name => 'cl1');
     my $cl2 = $bd->add_cluster_output (name => 'cl2');
     my $cl3 = $bd->add_cluster_output (name => 'cl3');
+    my $cl4 = $bd->add_cluster_output (name => 'cl4');
+    
     
     $cl1->run_analysis (
         prng_seed => $prng_seed,
@@ -195,15 +197,20 @@ sub check_order_is_same_given_same_prng {
         prng_seed => $prng_seed,
     );
     $cl3->run_analysis (
-        prng_seed => $prng_seed + 1,  #  different prng
+        prng_seed => ($prng_seed + 1),  #  different prng
+    );
+    $cl4->run_analysis (
+        prng_seed => ($prng_seed + 2),  #  different prng
     );
     
     my $newick1 = $cl1->to_newick;
     my $newick2 = $cl2->to_newick;
     my $newick3 = $cl3->to_newick;
+    my $newick4 = $cl4->to_newick;
     
     is   ($newick1, $newick2, 'trees are the same');
-    isnt ($newick1, $newick3, 'trees are not the same');
+    isnt ($newick1, $newick3, 'trees are not the same when seed differs by 1');
+    isnt ($newick1, $newick4, 'trees are not the same when seed differs by 2');
 }
 
 

@@ -1,0 +1,22 @@
+branches:
+  except:
+    - /travis/
+skip_tags: true
+
+cache:
+  - C:\strawberry
+
+install:
+  - if not exist "C:\strawberry" cinst strawberryperl
+  - set ST=C:\strawberry
+  - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
+  - cd C:\projects\%APPVEYOR_PROJECT_NAME%
+  - set BDV_PPM=https://github.com/shawnlaffan/biodiverse/raw/ppm/ppm524_x64
+  - ppm install %BDV_PPM%/Geo-GDAL.ppd
+  - cpanm --installdeps .
+
+
+build_script:
+  - set BD_NO_TEST_GUI=1
+  - prove -l
+

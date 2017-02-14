@@ -70,10 +70,9 @@ sub main {
 
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
-    my $data = get_cluster_mini_data();
-    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-    
-    check_order_is_same_given_same_prng (basedata_ref => $bd);
+    #my $data = get_cluster_mini_data();
+    #my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    #check_order_is_same_given_same_prng (basedata_ref => $bd);
     
     my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);

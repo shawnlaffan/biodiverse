@@ -13,7 +13,8 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   - set BDV_PPM=https://github.com/shawnlaffan/biodiverse/raw/ppm/ppm524_x64
   - ppm install %BDV_PPM%/Geo-GDAL.ppd
-  #- cpanm --installdeps --notest  .
+  
+  #  cpanfile has these covered now?
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest Text::Levenshtein
   - cpanm --notest Data::Compare
@@ -25,6 +26,10 @@ install:
   - ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
   - ppm install %SIS_PPM%/Pango.ppd
   - ppm install %SIS_PPM%/Gtk2.ppd
+  
+  #  until #581 is finalised
+  - cpanm Browser::open
+  #- cpanm --installdeps --notest --with-all-features.
 
 
 build_script:

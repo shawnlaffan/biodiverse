@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.990072 20170214
+    - Add Data::Compare, Text::Levenshtein and Data::Structure::Util
+
 1.990071 2017-01-29
     - Change log release only - neglected to update them for 1.99007
     - Add Ref::Util, Scalar::Util::Numeric,

@@ -70,6 +70,7 @@ sub main {
 
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
+    #  skip the small data - they provide no additional benefit
     #my $data = get_cluster_mini_data();
     #my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
     #check_order_is_same_given_same_prng (basedata_ref => $bd);

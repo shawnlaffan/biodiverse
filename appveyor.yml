@@ -29,7 +29,7 @@ install:
   
   #  until #581 is finalised
   - cpanm Browser::Open
-  #- cpanm --installdeps --notest --with-all-features.
+  #- cpanm --installdeps --notest --with-all-features .
 
 
 build_script:

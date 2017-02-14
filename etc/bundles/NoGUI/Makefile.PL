@@ -73,6 +73,7 @@ WriteMakefile(
         "Text::Levenshtein" => 0,
         "Data::Structure::Util" => 0,
         "Data::Compare" => 0,
+        "Test::TempDir::Tiny" => "0.016",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

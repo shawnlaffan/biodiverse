@@ -17,6 +17,7 @@ install:
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest Text::Levenshtein
   - cpanm --notest Data::Compare
+  - cpanm --notest Test::TempDir::Tiny
 
 
 build_script:

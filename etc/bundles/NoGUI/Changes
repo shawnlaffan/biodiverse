@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+1.990073 20170214
+    - Add Test::TempDir::Tiny
+
 1.990072 20170214
     - Add Data::Compare, Text::Levenshtein and Data::Structure::Util
 

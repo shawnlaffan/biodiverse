@@ -56,7 +56,7 @@ requires "Test::TempDir::Tiny";
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going
 #($] lt '5.024' ? ("Data::Alias", "0") : ()),
-requires "Data::Alias", "0";
+suggests "Data::Alias", "0";
 
 #  remove this once the to do list under issue #581 is completed
 requires 'Browser::Open';

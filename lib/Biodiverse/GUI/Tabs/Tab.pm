@@ -969,47 +969,9 @@ sub do_export {
     my %args_hash;
 
     my $selected_format = $args->[1] // '';
-
-    # handle export/non-export of colours
-    my $export_colours = $self->export_colours_dialog();
-    if(!$export_colours) {
-        my @node_refs = $self->{output_ref}->get_node_refs;
-        foreach my $node_ref (@node_refs) {
-            $node_ref->get_bootstrap_block->add_exclusion(exclusion => "color");
-        }
-    }
     
     $args_hash{ selected_format } = $selected_format;    
     Biodiverse::GUI::Export::Run($self->{output_ref}, %args_hash);
-
-    # clear any exclusions we set
-    my @node_refs = $self->{output_ref}->get_node_refs;
-    foreach my $node_ref (@node_refs) {
-        $node_ref->get_bootstrap_block->clear_exclusions();
-    }
 }
-
-
-
-sub export_colours_dialog {
-    # ask whether they want to include colours 
-    my ($self, %args) = @_;
-    
-    # check if we are in multiselect mode first
-    if(!($self->{dendrogram}->get_cluster_colour_mode() eq 'multiselect')) {
-        return 0;
-    }
-
-    # TODO: allow choice of colour format for compatibility with other
-    # packages.
-    my $response = Biodiverse::GUI::YesNoCancel->run({
-        header => "Export colours?",
-        hide_cancel => 1,
-    });
-    
-    return $response eq 'yes' ? 1 : 0;
-}
-
-
 
 1;

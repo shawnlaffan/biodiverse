@@ -48,7 +48,7 @@ sub test_basic_operations {
 }
 
 sub test_decode {
-    my @raw_inputs = ('"foo":"bar","footwo":"bartwo",foothree:barthree');
+    my @raw_inputs = ('"foo"="bar","footwo"="bartwo",foothree=barthree');
 
 
     my %hash = ( "foo"      => "bar", 
@@ -139,10 +139,10 @@ sub test_encode {
 sub test_fix_up_unquoted_bootstrap_block {
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
     my %test_hash = (
-        '{key:value,key2:value2}' => '{"key":"value","key2":"value2"}',
-        '{key:value}'             => '{"key":"value"}',
-        '{"key":"value"}'         => '{"key":"value"}',
-        '{"key":"value",key2:value2,"key3":"value3"}' 
+        '{key=value,key2=value2}' => '{"key":"value","key2":"value2"}',
+        '{key=value}'             => '{"key":"value"}',
+        '{"key"="value"}'         => '{"key":"value"}',
+        '{"key"="value",key2=value2,"key3"="value3"}' 
                    => '{"key":"value","key2":"value2","key3":"value3"}',
     );
 

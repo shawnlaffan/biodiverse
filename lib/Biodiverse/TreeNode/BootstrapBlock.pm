@@ -99,29 +99,36 @@ sub encode_bootstrap_block {
     
     # if we have nothing in this block, we probably don't want to
     # write out [], makes the nexus file ugly.
-    return $bootstrap_string eq "[]" ? "" : $bootstrap_string;
+    return $bootstrap_string eq "[&]" ? "" : $bootstrap_string;
 }
 
 
 
 # add quotes to unquoted json blocks. Needed for the json decoder
-# e.g. {key:value,key2:value2} goes to {"key":"value","key2":"value2"}
+# e.g. {&key=value,key2=value2} goes to {"key":"value","key2":"value2"}
 sub fix_up_unquoted_bootstrap_block {
     my ($self, %args) = @_;
     my $block = $args{block};
 
     # Basic idea is to find a block starting and ending with '{' or
     # ','. Take what is inside this block, and find a 'key' and
-    # 'value' separated by a ':'. If these aren't already quoted, put
+    # 'value' separated by '='. If these aren't already quoted, put
     # quotes around them. We need to do this loop because the final
     # comma of one block is the starting comma of the next block. 
-        
+
+    # first remove the leading ampersand
+    $block =~ s/\{\&/{/;
     my $old = "";
     while(!($old eq $block)) {
         $old = $block;
         # crazy regex here
-        $block =~ s/([\{,])([^\"]*?)\:([^\"]*?)([\},])/$1\"$2\":\"$3\"$4/;
+        $block =~ s/([\{,])([^\"]*?)\=([^\"]*?)([\},])/$1\"$2\":\"$3\"$4/;
     }
+    
+    # also replace equals signs between quotes with colons so we can
+    # use a json decoder.
+    $block =~ s/\"=\"/\":\"/g;
+    
     return $block;
 }
 

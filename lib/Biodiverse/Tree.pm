@@ -894,6 +894,13 @@ sub get_metadata_export_nexus {
             type    => 'boolean',
             default => 0,
         },
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Place the colours you selected in the nexus bootstrap block',
+            type       => 'boolean',
+            default    => 0,
+        },
     );
     for (@parameters) {
         bless $_, $parameter_metadata_class;
@@ -916,13 +923,27 @@ sub export_nexus {
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
 
+    my $export_colours = $args{export_colours};
+    if(!$export_colours) {
+        my @node_refs = $self->get_node_refs;
+        foreach my $node_ref (@node_refs) {
+            $node_ref->get_bootstrap_block->add_exclusion(exclusion => "color");
+        }
+    }
+  
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
     );
 
     $fh->close;
+    # clear any exclusions we set
+    my @node_refs = $self->get_node_refs;
+    foreach my $node_ref (@node_refs) {
+        $node_ref->get_bootstrap_block->clear_exclusions();
+    }
 
+    
     return 1;
 }
 
@@ -930,7 +951,6 @@ sub get_metadata_export_newick {
     my $self = shift;
 
     my @parameters = (
-        bless(
             {
                 name       => 'use_internal_names',
                 label_text => 'Label internal nodes',
@@ -938,9 +958,18 @@ sub get_metadata_export_newick {
                 type       => 'boolean',
                 default    => 1,
             },
-            $parameter_metadata_class
-        ),
-    );
+            {
+                name       => 'export_colours',
+                label_text => 'Export colours',
+                tooltip    => 'Place the colours you selected in the nexus bootstrap block',
+                type       => 'boolean',
+                default    => 0,
+            },
+        );
+
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }  
 
     my %args = (
         format     => 'Newick',
@@ -960,9 +989,22 @@ sub export_newick {
 
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
+
+    my $export_colours = $args{export_colours};
+    if(!$export_colours) {
+        my @node_refs = $self->get_node_refs;
+        foreach my $node_ref (@node_refs) {
+            $node_ref->get_bootstrap_block->add_exclusion(exclusion => "color");
+        }
+    }
+    
     print {$fh} $self->to_newick(%args);
     $fh->close;
 
+    my @node_refs = $self->get_node_refs;
+    foreach my $node_ref (@node_refs) {
+        $node_ref->get_bootstrap_block->clear_exclusions();
+    }   
     return 1;
 }
 

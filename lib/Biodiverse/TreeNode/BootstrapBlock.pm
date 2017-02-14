@@ -90,7 +90,10 @@ sub encode_bootstrap_block {
     my @bootstrap_strings;
     foreach my $key (keys %boot_values) {
         my $value = $boot_values{$key};
-        push @bootstrap_strings, "!$key=$value";
+        if($key eq "color") {
+            $key = "!"."color";
+        }
+        push @bootstrap_strings, "$key=$value";
     }
     my $bootstrap_string = "[&" . join(",", @bootstrap_strings) . "]";    
     

@@ -75,7 +75,7 @@ sub test_decode {
 sub test_encode {
     my %hash = ( "foo"      => "bar", 
                  "footwo"   => "bartwo", 
-                 "foothree" => "barthree", 
+                 "foothree" => "barthree",
                );
 
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
@@ -89,7 +89,7 @@ sub test_encode {
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.
     foreach my $key (keys %hash) {
-        my $expected_string = "!$key=$hash{$key}";
+        my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
             "Block contained $expected_string")
     }
@@ -155,4 +155,28 @@ sub test_fix_up_unquoted_bootstrap_block {
              "$key processed correctly",
             );
     }
+}
+
+# only color export should have an exclamation mark
+# e.g. [&blah=blah,!color=red,blah2=blah2]
+sub test_colour_specific_export {
+    my %hash = ( "foo"      => "bar", 
+                 "footwo"   => "bartwo", 
+                 "color"    => "red",
+        );
+
+    my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
+
+    foreach my $key (keys %hash) {
+        $bootstrap_block->set_value( key => $key, value => $hash{ $key } );
+    }
+
+    my $actual = $bootstrap_block->encode_bootstrap_block();
+
+    # we don't know what order the bootstrap block will be written, so
+    # just look for the pairs we know should be there.
+    ok (index($actual, "!color=red") != -1, 
+        "Block contained !color=red")
+
+    
 }

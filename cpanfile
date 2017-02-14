@@ -57,6 +57,7 @@ requires "Test::TempDir::Tiny";
 #  but cpanfile will (hopefully) just complain and keep going
 #($] lt '5.024' ? ("Data::Alias", "0") : ()),
 suggests "Data::Alias", "0";
+suggests "Panda::Lib";
 
 #  remove this once the to do list under issue #581 is completed
 requires 'Browser::Open';

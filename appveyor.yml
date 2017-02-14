@@ -28,7 +28,7 @@ install:
   - ppm install %SIS_PPM%/Gtk2.ppd
   
   #  until #581 is finalised
-  - cpanm Browser::open
+  - cpanm Browser::Open
   #- cpanm --installdeps --notest --with-all-features.
 
 

@@ -22,8 +22,6 @@ use constant PROPERTY_COL => ++$i;
 use constant ELEMENT_COL  => ++$i;
 use constant VALUE_COL     => ++$i;
 
-
-
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -42,16 +40,6 @@ sub run {
     my %label_props_hash = %{$el_props_hash{labels}};
     my %group_props_hash = %{$el_props_hash{groups}};
     
-    # break up into a hash mapping from the property name to a hash
-    # mapping from element name to value
-    %label_props_hash = $self->format_element_properties_hash( 
-        props_hash => \%label_props_hash 
-        );
-
-    %group_props_hash = $self->format_element_properties_hash( 
-        props_hash => \%group_props_hash 
-        );
-
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Delete Element Properties', undef, 'modal', 'gtk-yes' => 'yes', 'gtk-no'  => 'no'
         );
@@ -86,7 +74,7 @@ sub run {
     $self->{notebook} = $notebook;
     
     my $content_area = $dlg->get_content_area;
-    $content_area->pack_start( $notebook, 0, 0, 0 );
+    $content_area->pack_start( $notebook, 1, 1, 1 );
     
     $dlg->show_all;
     my $response = $dlg->run();
@@ -105,29 +93,41 @@ sub run {
 # for it and return.
 sub build_tree_from_hash {
     my ($self, %args) = @_;
-    my %hash = %{$args{hash}};
-    my $property = $args{property};
-    
-    # start by building the TreeModel
-    my @treestore_args = (
-        'Glib::Boolean',    # Delete
-        'Glib::String',     # Property
-        'Glib::String',     # Element
-        'Glib::String',     # Value
-        );
+
+    my %element_hash = %{$args{element_hash}};
+    my @all_props    = @{$args{all_props}};
+
+    # treat the element name just like an ordinary property
+    unshift(@all_props, "Element");
+
+    my @treestore_args;
+
+    # each of the property columns
+    foreach my $prop (@all_props) {
+        push @treestore_args, 'Glib::Boolean';
+        push @treestore_args, 'Glib::String';
+    }
 
     my $model = Gtk2::TreeStore->new(@treestore_args);
-
+    
     # fill model with content
-    foreach my $key (keys %hash) {
+    foreach my $element (keys %element_hash) {
         my $iter = $model->append(undef);
-        $model->set(
-            $iter,
-            DELETE_COL,   0,
-            PROPERTY_COL, $property,
-            ELEMENT_COL,  $key,
-            VALUE_COL,    $hash{$key},
-            );
+        my %props_to_values_hash = %{$element_hash{$element}};
+        $props_to_values_hash{"Element"} = $element;
+
+        my @model_args =($iter, 0, $element);
+        my $i = 0;
+        foreach my $prop (@all_props) {
+            # the delete/don't delete checkbox
+            push(@model_args, $i++);
+            push(@model_args, 0);
+            
+            # the value
+            push(@model_args, $i++);
+            push(@model_args, $props_to_values_hash{$prop});
+        }
+        $model->set(@model_args);
     }
 
     # allow multi selections
@@ -135,159 +135,85 @@ sub build_tree_from_hash {
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
 
-    my $property_column = Gtk2::TreeViewColumn->new();
-    my $element_column = Gtk2::TreeViewColumn->new();
-    my $value_column = Gtk2::TreeViewColumn->new();
-    my $delete_column = Gtk2::TreeViewColumn->new();
-
-    $self->add_header_and_tooltip_to_treeview_column (
-        column       => $delete_column,
-        title_text   => 'Delete',
-        tooltip_text => '',
-        );
-
+    my @columns;
+    my @renderers;
+    $i = 0;
     
-    $self->add_header_and_tooltip_to_treeview_column (
-        column       => $property_column,
-        title_text   => 'Property',
-        tooltip_text => '',
-        );
+    foreach my $prop (@all_props) {
+        my $new_column = Gtk2::TreeViewColumn->new();
+        push (@columns, $new_column);
+
+        $self->add_header_and_tooltip_to_treeview_column (
+            column       => $new_column,
+            title_text   => $prop,
+            tooltip_text => '',
+            );
+       
+        my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+
+    #     my %data = (
+    #         model         => $model,
+    #         self          => $self,
+    #         column_number => $i,
+    #         );
+    #     $checkbox_renderer->signal_connect_swapped(
+    #         toggled => \&on_delete_toggled,
+    #         \%data
+    #         );
+        
+        my $new_renderer = Gtk2::CellRendererText->new();
+
+        $new_column->pack_start( $checkbox_renderer, 0 );
+        $new_column->set_attributes( $checkbox_renderer, active => $i++ );
+
+        $new_column->pack_start( $new_renderer, 0 );
+        $new_column->set_attributes( $new_renderer, text => $i++ );
+
+        $tree->append_column($new_column);
+        $new_column->set_sort_column_id($i);
+    }
     
-    $self->add_header_and_tooltip_to_treeview_column (
-        column       => $element_column,
-        title_text   => 'Element',
-        tooltip_text => '',
-        );
-
-    $self->add_header_and_tooltip_to_treeview_column (
-        column       => $value_column,
-        title_text   => 'Value',
-        tooltip_text => '',
-        );
-
-
-    my $property_renderer = Gtk2::CellRendererText->new();
-    my $element_renderer = Gtk2::CellRendererText->new();
-    my $value_renderer = Gtk2::CellRendererText->new();
-    my $delete_renderer = Gtk2::CellRendererToggle->new();
-
-    my %data = (
-        model => $model,
-        self  => $self,
-        );
-    $delete_renderer->signal_connect_swapped(
-        toggled => \&on_delete_toggled,
-        \%data
-        );
-
-    $delete_column->pack_start( $delete_renderer, 0 );
-    $property_column->pack_start( $property_renderer, 0 );
-    $element_column->pack_start( $element_renderer, 0 );
-    $value_column->pack_start( $value_renderer, 0 );
-
-    $property_column->add_attribute( $property_renderer,
-                                    text => PROPERTY_COL );
-    $element_column->add_attribute( $element_renderer,
-                                     text => ELEMENT_COL );
-    $value_column->add_attribute( $value_renderer,
-                                     text => VALUE_COL );
-    $delete_column->add_attribute( $delete_renderer,
-                                     active => DELETE_COL );
-
-    $tree->append_column($delete_column);
-    $tree->append_column($property_column);
-    $tree->append_column($element_column);
-    $tree->append_column($value_column);
-
-    $property_column->set_sort_column_id(PROPERTY_COL);
-    $element_column->set_sort_column_id(ELEMENT_COL);
-    $value_column->set_sort_column_id(VALUE_COL);
-    $delete_column->set_sort_column_id(DELETE_COL);
-
     return $tree;
 }
 
 
+# input hash is in format:
+# 'Genus:sp8' => {
+#     'RANGE' => 4,
+#     'ABUNDANCE' => 10
+# },
+# 'Genus:sp21' => {
+#     'RANGE' => 25,
+#     'ABUNDANCE' => 180
+# },
 sub _build_deletion_panel {
     my ($self, %args) = @_;
-    my %values_hash = %{$args{values_hash}};
-    # group or label?
+    my %hash = %{$args{values_hash}};
     my $basestruct = $args{basestruct};
-
-    my $label_vbox = Gtk2::VBox->new();
-    foreach my $property (keys %values_hash) {
-        my %elements_to_values = %{$values_hash{$property}};
-        my $count = scalar (keys %elements_to_values);
-
-        my $label_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-        my $label_inner_vbox = Gtk2::VBox->new();
-
-        my $label_prop_info_label = 
-            Gtk2::Label->new(
-                "Property: $property (applies to $count $basestruct"."s)"
-            );
-
-        my $delete_checkbutton 
-            = Gtk2::CheckButton->new("Delete Property");
-                 
-        $label_vbox->pack_start( $label_prop_info_label, 0, 0, 0 );
-        $label_vbox->pack_start( $delete_checkbutton, 0, 0, 0 );
-        
-        my $label_tree = 
-            $self->build_tree_from_hash( hash => \%elements_to_values,
-                                         property => $property,
-            );
-        
-        $label_inner_vbox->pack_start( $label_tree, 0, 0, 0 );
-
-        $label_scroll->add_with_viewport($label_inner_vbox);
-
-        $label_scroll->set_size_request(200, 100);
-        $label_vbox->pack_start( $label_scroll, 0, 0, 0 );
-
-        $delete_checkbutton->set_active(0);
-        $delete_checkbutton->signal_connect(
-            toggled => sub {
-                $label_tree->set_sensitive( !$label_tree->get_sensitive );
-                if($label_tree->get_sensitive) {
-                    # take everything off deletion
-                    foreach my $element (keys %elements_to_values) {
-                        $self->_remove_item_for_deletion (
-                            property   => $property,
-                            element    => $element,
-                            basestruct => $basestruct,
-                            );
-                    }                     
-                }
-                else {
-                    # add everything for deletion
-                    foreach my $element (keys %elements_to_values) {
-                        $self->_add_item_for_deletion (
-                            property   => $property,
-                            element    => $element,
-                            basestruct => $basestruct,
-                            );
-                    }                     
-
-                }
-            }
-         );
+    
+    # find all of the possible properties
+    my %all_props;
+    foreach my $element (keys %hash) {
+        my %prop_to_value = %{$hash{$element}};
+        foreach my $prop (keys %prop_to_value) {
+            $all_props{$prop} = 1;
+        }
     }
+    my @all_props = keys %all_props;
 
-    my $label_outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $label_outer_scroll->add_with_viewport($label_vbox);
-    $label_outer_scroll->set_size_request(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
-    
-    my $label_outer_vbox = Gtk2::VBox->new();
-    $label_outer_vbox->pack_start( $label_outer_scroll, 0, 0, 0 );
-    $label_outer_vbox->set_homogeneous(0);
-    $label_outer_vbox->set_spacing(3);
+    my $tree = $self->build_tree_from_hash( all_props    => \@all_props,
+                                            element_hash => \%hash,
+        );
 
     
-    return $label_outer_vbox;
+    my $scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    $scroll->add($tree);
+
+    my $vbox = Gtk2::VBox->new();
+    $vbox->pack_start( $scroll, 1, 1, 1 );
+    
+    return $vbox;
 }
-
-
 
 # handle deletion checkbox toggling
 sub on_delete_toggled {
@@ -296,35 +222,36 @@ sub on_delete_toggled {
 
     my $model = $args->{model};
     my $self  = $args->{self};
-
+    my $column_number = $args->{column_number};
+    
     my $iter = $model->get_iter_from_string($path);
 
     # Flip state
-    my $state = $model->get( $iter, DELETE_COL );
-    $model->set( $iter, DELETE_COL, !$state );
+    my $state = $model->get( $iter, $column_number );
+    $model->set( $iter, $column_number, !$state );
 
-    my $property = $model->get( $iter, PROPERTY_COL );
-    my $element = $model->get( $iter, ELEMENT_COL );
+    # my $property = $model->get( $iter, PROPERTY_COL );
+    # my $element = $model->get( $iter, ELEMENT_COL );
 
     # figure out if it's a group or label element property
-    my $notebook = $self->{notebook};
-    my $current_page = $notebook->get_current_page;
-    my $basestruct = ($current_page == 0) ? "label" : "group";
+    # my $notebook = $self->{notebook};
+    # my $current_page = $notebook->get_current_page;
+    # my $basestruct = ($current_page == 0) ? "label" : "group";
     
-    if ( !$state ) {
-        $self->_add_item_for_deletion( 
-            property   => $property,
-            element    => $element,
-            basestruct => $basestruct,
-        );
-    }
-    else {
-        $self->_remove_item_for_deletion( 
-            property   => $property,
-            element    => $element,
-            basestruct => $basestruct,
-        );
-    }
+    # if ( !$state ) {
+    #     $self->_add_item_for_deletion( 
+    #         property   => $property,
+    #         element    => $element,
+    #         basestruct => $basestruct,
+    #     );
+    # }
+    # else {
+    #     $self->_remove_item_for_deletion( 
+    #         property   => $property,
+    #         element    => $element,
+    #         basestruct => $basestruct,
+    #     );
+    # }
 }
 
 

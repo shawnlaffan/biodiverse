@@ -32,8 +32,8 @@ require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(show_legend hide_legend get_legend make_mark make_legend_rect setup_value_label set_value_label set_legend_min_max set_legend_gt_flag set_legend_lt_flag reposition set_legend_mode set_legend_hue get_legend_hue hsv_to_rgb);
 
+our @EXPORT = qw(show_legend hide_legend get_legend make_mark make_legend_rect set_legend_min_max set_legend_gt_flag set_legend_lt_flag reposition set_legend_mode set_legend_hue get_legend_hue hsv_to_rgb);
 
 ##########################################################
 # Rendering constants
@@ -65,8 +65,8 @@ use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
 #use constant CELL_OUTLINE_COLOUR => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
-#use constant DARKEST_GREY_FRAC   => 0.2;
-#use constant LIGHTEST_GREY_FRAC  => 0.8;
+use constant MARK_X_LEGEND_OFFSET  => 0.01;
+
 
 ##########################################################
 # Construction
@@ -295,62 +295,6 @@ sub make_mark {
 #    return $pixbuf;
 #}
 
-sub setup_value_label {
-    my $self = shift;
-    my $group = shift;
-
-    my $value_group = Gnome2::Canvas::Item->new (
-        $self->{legend_group}->root,
-        #$self->{canvas}->root,
-        'Gnome2::Canvas::Group',
-        x => 0,
-        y => 100,
-    );
-
-    my $text = Gnome2::Canvas::Item->new (
-        $value_group,
-        'Gnome2::Canvas::Text',
-        x => 0, y => 0,
-        markup => "<b>Value: </b>",
-        anchor => 'nw',
-        fill_color_gdk => COLOUR_BLACK,
-    );
-
-    my ($text_width, $text_height)
-        = $text->get('text-width', 'text-height');
-
-    my $rect = Gnome2::Canvas::Item->new (
-        $value_group,
-        'Gnome2::Canvas::Rect',
-        x1 => 0,
-        y1 => 0,
-        x2 => $text_width,
-        y2 => $text_height,
-        fill_color_gdk => COLOUR_WHITE,
-    );
-
-    $rect->lower(1);
-    $self->{value_group} = $value_group;
-    $self->{value_text} = $text;
-    $self->{value_rect} = $rect;
-
-    return;
-}
-
-sub set_value_label {
-    my $self = shift;
-    my $val = shift;
-
-    $self->{value_text}->set(markup => "<b>Value: </b>$val");
-
-    # Resize value background rectangle
-    my ($text_width, $text_height)
-        = $self->{value_text}->get('text-width', 'text-height');
-    $self->{value_rect}->set(x2 => $text_width, y2 => $text_height);
-
-    return;
-}
-
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
@@ -360,6 +304,9 @@ sub set_legend_min_max {
 
     $self->{last_min} = $min;
     $self->{last_max} = $max;
+
+    # Get the width and height of the canvas.
+    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
     return if ! ($self->{marks}
                  && defined $min
@@ -388,12 +335,16 @@ sub set_legend_min_max {
         my @bounds = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
         my $offset = $lbounds[0] - $bounds[2];
-        if (($text_num + 0) != 0) {
-            $mark->move ($offset - length ($text), 0);
-        }
-        else {
-            $mark->move ($offset - length ($text) - 0.5, 0);
-        }
+
+        # I've removed the if...then statement and the padding for the mark with zero on it.
+        #if (($text_num + 0) != 0) {
+            #$mark->move ($offset - length ($text), 0);
+            $mark->move (($offset - length ($text)) - ($width * MARK_X_LEGEND_OFFSET) , 0);
+        #}
+        #else {
+            #$mark->move ($offset - length ($text) - 0.5, 0);
+        #}
+        #$mark->set (x=>$width - LEGEND_WIDTH);
         $mark->raise_to_top;
     }
 
@@ -428,24 +379,30 @@ sub reposition {
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 
-    # Adjust the legend height
-    $self->{legend}->set(
-        y2       => $height,
-    );
-
     # Reposition the legend group box
     $self->{legend_group}->set(
         x        => $width - $legend_width,
         y        => 0,
     );
 
+    # Adjust the legend height
+    $self->{legend}->set(
+        x2       => $width,
+        y2       => $height,
+    );
+
     # Reposition the "mark" textboxes
-    my $mark_x = $width - $legend_width; 
     foreach my $i (0..3) {
+        my $mark = $self->{marks}[3 - $i];
+        #  move the mark to right align with the legend
+        my @bounds = $mark->get_bounds;
+        my @lbounds = $self->{legend}->get_bounds;
+        my $offset = $lbounds[0] - $bounds[2];
+        $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
         $self->{marks}[$i]->set(
-            x => $mark_x,
             y => $scroll_y + $i * $height / 3,
         );
+        $mark->raise_to_top;
     }
 
     # Reposition value box
@@ -485,8 +442,8 @@ sub set_legend_mode {
 
     # Update legend
     if ($self->{legend}) {
-        #$self->{legend}=>$self->make_legend_rect();
-        $self->{legend}->make_legend_rect();
+        $self->{legend}=>$self->make_legend_rect();
+        #$self->{legend}->make_legend_rect();
     }
 
     return;

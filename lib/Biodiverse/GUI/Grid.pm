@@ -248,6 +248,65 @@ sub destroy {
 }
 
 ##########################################################
+# Setting up the canvas
+##########################################################
+
+sub setup_value_label {
+    my $self = shift;
+    my $group = shift;
+
+    my $value_group = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root,
+        'Gnome2::Canvas::Group',
+        x => 0,
+        y => 100,
+    );
+
+    my $text = Gnome2::Canvas::Item->new (
+        $value_group,
+        'Gnome2::Canvas::Text',
+        x => 0, y => 0,
+        markup => "<b>Value: </b>",
+        anchor => 'nw',
+        fill_color_gdk => COLOUR_BLACK,
+    );
+
+    my ($text_width, $text_height)
+        = $text->get('text-width', 'text-height');
+
+    my $rect = Gnome2::Canvas::Item->new (
+        $value_group,
+        'Gnome2::Canvas::Rect',
+        x1 => 0,
+        y1 => 0,
+        x2 => $text_width,
+        y2 => $text_height,
+        fill_color_gdk => COLOUR_WHITE,
+    );
+
+    $rect->lower(1);
+    $self->{value_group} = $value_group;
+    $self->{value_text} = $text;
+    $self->{value_rect} = $rect;
+
+    return;
+}
+
+sub set_value_label {
+    my $self = shift;
+    my $val = shift;
+
+    $self->{value_text}->set(markup => "<b>Value: </b>$val");
+
+    # Resize value background rectangle
+    my ($text_width, $text_height)
+        = $self->{value_text}->get('text-width', 'text-height');
+    $self->{value_rect}->set(x2 => $text_width, y2 => $text_height);
+
+    return;
+}
+
+##########################################################
 # Drawing stuff on the grid (mostly public)
 ##########################################################
 

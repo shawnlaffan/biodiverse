@@ -442,13 +442,7 @@ sub set_legend_mode {
 
     # Update legend
     if ($self->{legend}) {
-<<<<<<< HEAD
-        $self->{legend}=>$self->make_legend_rect();
-        #$self->{legend}->make_legend_rect();
-=======
-        #$self->{legend}=>$self->make_legend_rect();
         $self->make_legend_rect();
->>>>>>> 02196942f8dfb552dfef721b8ca4b0e197c98e98
     }
 
     return;

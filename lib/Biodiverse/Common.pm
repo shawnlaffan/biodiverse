@@ -2586,12 +2586,12 @@ sub get_sig_rank_from_comp_results {
         $sig_thresh_hi = 0.95;
     }
 
-    foreach my $key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+    foreach my $c_key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
         no autovivification;
         
-        (my $index_name = $key) =~ s/^C_//;
+        my $index_name = substr $c_key, 2;
 
-        if (!defined $comp_list_ref->{$key}) {
+        if (!defined $comp_list_ref->{$c_key}) {
             $results_list_ref->{$index_name} = undef;
             next;
         }
@@ -2604,7 +2604,6 @@ sub get_sig_rank_from_comp_results {
             $results_list_ref->{$index_name} = $p_high;
         }
         else {
-            my $c_key = 'C_' . $index_name;
             my $t_key = 'T_' . $index_name;
             my $q_key = 'Q_' . $index_name;
 
@@ -2614,7 +2613,7 @@ sub get_sig_rank_from_comp_results {
                 /  $comp_list_ref->{$q_key};
 
             $results_list_ref->{$index_name}
-              = $p_low  < $sig_thresh_lo ? $p_low : undef;
+              = ($p_low < $sig_thresh_lo) ? $p_low : undef;
         }
     }
 

@@ -6,6 +6,7 @@ use English qw { -no_match_vars };
 use Carp;
 
 use Test::Lib;
+use rlib;
 
 use Test::More;
 use Test::Exception;

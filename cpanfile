@@ -4,7 +4,7 @@ requires 'Ref::Util';
 requires 'Scalar::Util::Numeric';
 requires 'Task::Biodiverse::NoGUI', '1.0001';
 requires 'Text::Fuzzy';
-requires 'Text::Levenshtein';
+requires 'Text::Levenshtein';  #  should replace by Text::Fuzzy
 
 requires "Data::DumpXML";
 requires "Math::Random::MT::Auto", "6.21";
@@ -32,7 +32,7 @@ requires "Tree::R";
 requires "Geo::ShapeFile", "2.60",
 requires "Geo::Shapefile::Writer";
 requires "List::MoreUtils", "0.410",
-requires "List::Util", "1.41";
+requires "List::Util", "1.45";
 requires "Class::Inspector";
 requires "autovivification", "0.16";
 requires "List::BinarySearch", "0.25";
@@ -48,13 +48,16 @@ requires "JSON::MaybeXS", "1.003";
 requires "Sort::Naturally";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
-requires "Text::Levenshtein";  #  should replace by Text::Fuzzy
 requires "Data::Structure::Util";
+requires "Data::Compare";
+requires "Test::TempDir::Tiny";
+requires "Statistics::Sampler::Multinomial";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going
 #($] lt '5.024' ? ("Data::Alias", "0") : ()),
-requires "Data::Alias", "0";
+suggests "Data::Alias", "0";
+suggests "Panda::Lib";
 
 #  remove this once the to do list under issue #581 is completed
 requires 'Browser::Open';
@@ -68,6 +71,7 @@ test_requires => sub {
     requires "Devel::Symdump";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
+    requires "Test::TempDir::Tiny"
 };
 
 feature 'GUI', 'GUI packages' => sub {

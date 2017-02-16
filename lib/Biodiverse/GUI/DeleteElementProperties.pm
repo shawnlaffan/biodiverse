@@ -89,45 +89,18 @@ sub run {
 }
 
 
-# given a hash mapping from element names to values, make a gtk tree
-# for it and return.
-sub build_tree_from_hash {
+# given a list, build a single column tree from it and return.
+sub build_tree_from_list {
     my ($self, %args) = @_;
+    my @list    = @{$args{list}};
 
-    my %element_hash = %{$args{element_hash}};
-    my @all_props    = @{$args{all_props}};
-
-    # treat the element name just like an ordinary property
-    unshift(@all_props, "Element");
-
-    my @treestore_args;
-
-    # each of the property columns
-    foreach my $prop (@all_props) {
-        push @treestore_args, 'Glib::Boolean';
-        push @treestore_args, 'Glib::String';
-    }
-
-    my $model = Gtk2::TreeStore->new(@treestore_args);
+    my $model = Gtk2::TreeStore->new(('Glib::String'));
+    my $title = $args{ title } // '';
     
     # fill model with content
-    foreach my $element (keys %element_hash) {
+    foreach my $item (@list) {
         my $iter = $model->append(undef);
-        my %props_to_values_hash = %{$element_hash{$element}};
-        $props_to_values_hash{"Element"} = $element;
-
-        my @model_args =($iter, 0, $element);
-        my $i = 0;
-        foreach my $prop (@all_props) {
-            # the delete/don't delete checkbox
-            push(@model_args, $i++);
-            push(@model_args, 0);
-            
-            # the value
-            push(@model_args, $i++);
-            push(@model_args, $props_to_values_hash{$prop});
-        }
-        $model->set(@model_args);
+        $model->set($iter, 0, $item);
     }
 
     # allow multi selections
@@ -135,57 +108,24 @@ sub build_tree_from_hash {
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
 
-    my @columns;
-    my @renderers;
-    $i = 0;
+    my $column = Gtk2::TreeViewColumn->new();
+    $self->add_header_and_tooltip_to_treeview_column (
+        column       => $column,
+        title_text   => $title,
+        tooltip_text => '',
+        );
     
-    foreach my $prop (@all_props) {
-        my $new_column = Gtk2::TreeViewColumn->new();
-        push (@columns, $new_column);
+    my $renderer = Gtk2::CellRendererText->new();
 
-        $self->add_header_and_tooltip_to_treeview_column (
-            column       => $new_column,
-            title_text   => $prop,
-            tooltip_text => '',
-            );
-       
-        my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+    $column->pack_start( $renderer, 0 );
+    $column->set_attributes( $renderer, text => 0 );
+    $tree->append_column($column);
+    $column->set_sort_column_id(0);
 
-    #     my %data = (
-    #         model         => $model,
-    #         self          => $self,
-    #         column_number => $i,
-    #         );
-    #     $checkbox_renderer->signal_connect_swapped(
-    #         toggled => \&on_delete_toggled,
-    #         \%data
-    #         );
-        
-        my $new_renderer = Gtk2::CellRendererText->new();
-
-        $new_column->pack_start( $checkbox_renderer, 0 );
-        $new_column->set_attributes( $checkbox_renderer, active => $i++ );
-
-        $new_column->pack_start( $new_renderer, 0 );
-        $new_column->set_attributes( $new_renderer, text => $i++ );
-
-        $tree->append_column($new_column);
-        $new_column->set_sort_column_id($i);
-    }
-    
     return $tree;
 }
 
 
-# input hash is in format:
-# 'Genus:sp8' => {
-#     'RANGE' => 4,
-#     'ABUNDANCE' => 10
-# },
-# 'Genus:sp21' => {
-#     'RANGE' => 25,
-#     'ABUNDANCE' => 180
-# },
 sub _build_deletion_panel {
     my ($self, %args) = @_;
     my %hash = %{$args{values_hash}};
@@ -193,24 +133,47 @@ sub _build_deletion_panel {
     
     # find all of the possible properties
     my %all_props;
+
+    my @elements_list;
     foreach my $element (keys %hash) {
         my %prop_to_value = %{$hash{$element}};
         foreach my $prop (keys %prop_to_value) {
             $all_props{$prop} = 1;
         }
+        push @elements_list, $element;
     }
     my @all_props = keys %all_props;
 
-    my $tree = $self->build_tree_from_hash( all_props    => \@all_props,
-                                            element_hash => \%hash,
-        );
+    my $properties_tree = 
+        $self->build_tree_from_list( list  => \@all_props,
+                                     title => "Properties");
 
+    my $elements_tree =
+        $self->build_tree_from_list( list  => \@elements_list,
+                                     title => "Element");
+    
+
+    my $hbox = Gtk2::HBox->new();
+    $hbox->pack_start( $properties_tree, 1, 1, 0 );  
+    $hbox->pack_start( $elements_tree, 1, 1, 0 );  
     
     my $scroll = Gtk2::ScrolledWindow->new( undef, undef );
-    $scroll->add($tree);
 
-    my $vbox = Gtk2::VBox->new();
-    $vbox->pack_start( $scroll, 1, 1, 1 );
+    $scroll->add_with_viewport($hbox);
+
+    my $vbox = Gtk2::VBox->new(); 
+    $vbox->pack_start( $scroll, 1, 1, 0 ); 
+
+    my $delete_properties_button =
+        Gtk2::Button->new_with_label("Delete selected properties");
+
+    my $delete_labels_button =
+        Gtk2::Button->new_with_label("Delete all properties of selected labels");
+
+    my $button_hbox = Gtk2::HBox->new();
+    $button_hbox->pack_start( $delete_properties_button, 1, 0, 0 );
+    $button_hbox->pack_start( $delete_labels_button, 1, 0, 0 );
+    $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
     return $vbox;
 }

@@ -897,7 +897,7 @@ sub get_metadata_export_nexus {
         {
             name       => 'export_colours',
             label_text => 'Export colours',
-            tooltip    => 'Place the colours you selected in the nexus bootstrap block',
+            tooltip    => 'Include user defined colours (in the nexus bootstrap block)',
             type       => 'boolean',
             default    => 0,
         },
@@ -961,7 +961,7 @@ sub get_metadata_export_newick {
             {
                 name       => 'export_colours',
                 label_text => 'Export colours',
-                tooltip    => 'Place the colours you selected in the nexus bootstrap block',
+                tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
                 type       => 'boolean',
                 default    => 0,
             },
@@ -2667,7 +2667,8 @@ sub remap_labels_from_hash {
 # the auto-remap logic.
 sub get_labels {
     my $self = shift;
-    return keys( $self->get_named_nodes() );
+    my $named_nodes = $self->get_named_nodes;
+    return wantarray ? keys %$named_nodes : [keys %$named_nodes];
 }
 
 1;

@@ -89,9 +89,6 @@ sub show_legend {
     #print "already have legend!\n" if $self->{legend};
     return if $self->get_legend;
 
-    # Create legend
-    my $legend_colour_select = $self->make_legend_rect;
-
     # Make group so we can pack the coloured
     # rectangles into it.  
     $self->{legend_group} = Gnome2::Canvas::Item->new (
@@ -102,15 +99,17 @@ sub show_legend {
     );   
 
     # Create the legend rectangles for packing
-    $self->{legend}  = Gnome2::Canvas::Item->new (
-        $self->{legend_group}, 
-        'Gnome2::Canvas::Rect',
-        x1 => 0,
-        x2 => 20, 
-        y1 => 0,
-        y2 => 180, 
-        fill_color_gdk => $legend_colour_select,
-    );
+   # $self->{legend}  = Gnome2::Canvas::Item->new (
+   #     $self->{legend_group}, 
+   #     'Gnome2::Canvas::Rect',
+   #     x1 => 0,
+   #     x2 => 20, 
+   #     y1 => 0,
+   #     y2 => 180, 
+   #     fill_color_gdk => $legend_colour_select,
+   # );
+   # # Create legend
+    $self->{legend} = $self->make_legend_rect();
 
     $self->{legend_group}->raise_to_top();
     $self->{back_rect}->lower_to_bottom();
@@ -151,18 +150,47 @@ sub get_legend {
 
 sub make_legend_rect {
     my $self = shift;
-    my ($width, $height);
+    my $height = shift || 180;
+    #my ($width, $height);
+    my $width;
     my @pixels;
-
+    my $legend_temp;
     # Make array of rgb values
+    my $themode = $self->{legend_mode};
+    print "mode: $themode\n";
+
+    # Make a group so we can pack the coloured
+    # rectangles into it.  
+    $self->{legend_colours_group} = Gnome2::Canvas::Item->new (
+        $self->{legend_group},
+        'Gnome2::Canvas::Group',
+        x => 0,
+        y => 0, 
+    );   
 
     if ($self->{legend_mode} eq 'Hue') {
 
-        ($width, $height) = (LEGEND_WIDTH, 180);
+        #($width, $height) = (LEGEND_WIDTH, 180);
+        $width = LEGEND_WIDTH;
+
+#        foreach my $row (0..($height - 1)) {
+#            my @rgb = hsv_to_rgb($row, 1, 1);
+#            push @pixels, (@rgb) x $width;
+#        }
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
-            push @pixels, (@rgb) x $width;
+            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
+            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
+                $self->{legend_colours_group},
+                'Gnome2::Canvas::Rect',
+                x1 => 0,
+                x2 => $width,
+                y1 => $row,
+                y2 => $row+1,
+                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b,0),
+            );
+            #push @pixels, (@rgb) x $width;
         }
 
     }
@@ -197,19 +225,7 @@ sub make_legend_rect {
     # Convert to low-level integers
     my $data = pack "C*", @pixels;
 
-    # Create a rectangle and colour it
-    # with data in @pixels.
-   # my $legend  = Gnome2::Canvas::Item->new (
-   #     $self->{legend_group},
-   #     'Gnome2::Canvas::Rect',
-   #     x1 => 0,
-   #     y1 => 0,
-   #     x2 => 20,
-   #     y2 => 180,
-   #     fill_color_gdk => HIGHLIGHT_COLOUR,
-   # );
-    my $legend_colour = HIGHLIGHT_COLOUR;
-    return $legend_colour;
+    return $self->{legend_colours_group};
 }
 
 ##########################################################
@@ -373,6 +389,7 @@ sub reposition {
     # Convert coordinates into world units
     # (this has been tricky to get working right...)
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
+    print "canvas width: $width, canvas height: $height\n";
 
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
@@ -386,10 +403,16 @@ sub reposition {
     );
 
     # Adjust the legend height
-    $self->{legend}->set(
-        x2       => $width,
-        y2       => $height,
-    );
+    #$self->{legend}->set(
+    #    x       => 0, #$width,
+    #    y       => 0, #$scroll_y, #$height,
+    #);
+
+    # Update the legend colours
+    $self->make_legend_rect($height);
+    
+    #my $lh = $self->{legend}->get('y');
+    #print "legend height: $lh\n";
 
     # Reposition the "mark" textboxes
     foreach my $i (0..3) {

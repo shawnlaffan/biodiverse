@@ -381,8 +381,8 @@ sub reposition {
 
     # Reposition the legend group box
     $self->{legend_group}->set(
-        x        => $width - $legend_width,
-        y        => 0,
+        x        => $width  + $scroll_x - $legend_width,
+        y        => $scroll_y,
     );
 
     # Adjust the legend height
@@ -400,7 +400,7 @@ sub reposition {
         my $offset = $lbounds[0] - $bounds[2];
         $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
         $self->{marks}[$i]->set(
-            y => $scroll_y + $i * $height / 3,
+            y => $i * $height / 3,
         );
         $mark->raise_to_top;
     }
@@ -485,7 +485,7 @@ sub get_legend_hue {
 # by Jacob Ehnmark
 sub hsv_to_rgb {
     my($h, $s, $v) = @_;
-    $v = $v >= 1.0 ? 255 : $v * 256; 
+    $v = $v >= 1.0 ? 255 : $v * 256;
 
     # Grey image.
     return((int($v)) x 3) if ($s == 0);

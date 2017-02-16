@@ -85,21 +85,25 @@ sub encode_bootstrap_block {
     }
 
     # also make sure "exclusions:..." isn't in the encoding
-    delete $boot_values{"exclusions"};
+    delete $boot_values{exclusions};
 
     my @bootstrap_strings;
     foreach my $key (keys %boot_values) {
         my $value = $boot_values{$key};
-        if($key eq "color") {
-            $key = "!"."color";
+        #  should test if the value looks like a valid colour value
+        if ($key eq 'color') {
+            $key = '!color';
         }
         push @bootstrap_strings, "$key=$value";
     }
-    my $bootstrap_string = "[&" . join(",", @bootstrap_strings) . "]";    
-    
+
     # if we have nothing in this block, we probably don't want to
-    # write out [], makes the nexus file ugly.
-    return $bootstrap_string eq "[&]" ? "" : $bootstrap_string;
+    # write out [], as it makes the nexus file ugly.
+    return '' if !scalar @bootstrap_strings;
+
+    my $bootstrap_string = '[&' . join(",", @bootstrap_strings) . ']';
+
+    return $bootstrap_string;
 }
 
 

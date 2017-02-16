@@ -990,21 +990,26 @@ sub export_newick {
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
 
+    my @node_refs = $self->get_node_refs;
     my $export_colours = $args{export_colours};
+    my $added_exclusions;
     if(!$export_colours) {
-        my @node_refs = $self->get_node_refs;
+        $added_exclusions++;
         foreach my $node_ref (@node_refs) {
-            $node_ref->get_bootstrap_block->add_exclusion(exclusion => "color");
+            $node_ref->get_bootstrap_block->add_exclusion(
+                exclusion => 'color',
+            );
         }
     }
     
     print {$fh} $self->to_newick(%args);
     $fh->close;
 
-    my @node_refs = $self->get_node_refs;
-    foreach my $node_ref (@node_refs) {
-        $node_ref->get_bootstrap_block->clear_exclusions();
-    }   
+    if ($added_exclusions) {
+        foreach my $node_ref (@node_refs) {
+            $node_ref->get_bootstrap_block->clear_exclusions;
+        }
+    }
     return 1;
 }
 

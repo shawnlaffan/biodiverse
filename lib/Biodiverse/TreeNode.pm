@@ -1628,14 +1628,14 @@ sub to_table {
 
     # figure out if we're meant to be exporting colours or not
     my $export_colours
-        = !$self->get_bootstrap_block->has_exclusion( key => "color" );
+        = !$self->get_bootstrap_block->has_exclusion( key => 'color' );
     
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
         NAME => $treename,
     );  #  may need to specify some other params
 
-   
+
     my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
     if( $export_colours ) {
         push @header, "COLOUR";
@@ -1663,7 +1663,7 @@ sub to_table {
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
 
-        my $colour = $node->get_bootstrap_value(key => "color");
+        my $colour = $node->get_bootstrap_value (key => 'color');
 
         #  add to the basestruct object
         if( $export_colours ) {
@@ -1926,6 +1926,11 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         #$name = "'$name'";  #  quote otherwise
     }
     
+    # build the bootstrap block
+    my $bootstrap_block = $self->get_bootstrap_block();
+    
+    my $bootstrap_string = 
+        $bootstrap_block->encode_bootstrap_block();
 
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";
@@ -1940,6 +1945,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined ($name) && $use_int_names ) {
             $string .= $name;  
         }
+        $string .= $bootstrap_string;
         if (defined $self->get_length) {
             $string .= ":" . $self->get_length;
         }
@@ -1947,19 +1953,12 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     # terminal nodes
     else {
         $string .= $name;
+        $string .= $bootstrap_string;
 
         if (defined $self->get_length) { 
             $string .= ":" . $self->get_length;
         }
     }
-
-    # build the bootstrap block
-    my $bootstrap_block = $self->get_bootstrap_block();
-    
-    my $bootstrap_string = 
-        $bootstrap_block->encode_bootstrap_block();
-
-    $string .= $bootstrap_string;
     
     return $string;
 }

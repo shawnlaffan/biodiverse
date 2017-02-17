@@ -9,15 +9,17 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
-use List::Util 1.33 qw /max min sum any all none notall pairs/;
+use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
-use Ref::Util qw { :all };
+use Data::Compare ();
 
+use Ref::Util qw { :all };
+use Sort::Naturally qw /ncmp/;
 use Spreadsheet::Read 0.60;
 
 #  these are here for PAR purposes to ensure they get packed
@@ -574,7 +576,7 @@ sub get_embedded_matrices {
 
   OUTPUT:
     foreach my $output (@$outputs) {
-        next OUTPUT if !$output->can('get_embedded_tree');
+        next OUTPUT if !$output->can('get_embedded_matrix');
 
         my $mx = $output->get_embedded_matrix;
         if ($mx) {
@@ -1191,9 +1193,10 @@ sub import_data {
                       if $data_in_matrix_form;
                 }
 
-        #  single label col or matrix form data need extra quotes to be stripped
-        #  should clean up mx form on first pass
-        #  or do as a post-processing step
+                #  single label col or matrix form data
+                #  need extra quotes to be stripped
+                #  should clean up mx form on first pass
+                #  or do as a post-processing step
                 if ( scalar @label_columns <= 1 ) {
                     $el = $self->dequote_element(
                         element    => $el,
@@ -1728,7 +1731,10 @@ sub import_data_shapefile {
                     my $g_size = $group_sizes[$i];
 
                     #  refactor this - duplicated from spreadsheet read
-                    if ( $g_size >= 0 ) {
+                    if ( $g_size < 0 ) {
+                        push @gp_fields, $val;
+                    }
+                    else {
                         if (   $is_lat_field
                             && $is_lat_field->{ $group_field_names[$i] } )
                         {
@@ -1753,6 +1759,7 @@ sub import_data_shapefile {
                             push @gp_fields, $val;
                         }
                     }
+
                 }
                 my $grpstring = $self->list2csv(
                     list       => \@gp_fields,
@@ -4091,7 +4098,7 @@ sub get_output_ref_count {
 
 sub get_output_refs_sorted_by_name {
     my $self = shift;
-    my @sorted = sort { $a->get_param('NAME') cmp $b->get_param('NAME') }
+    my @sorted = sort { ncmp ($a->get_param('NAME'),  $b->get_param('NAME')) }
       $self->get_output_refs();
 
     return wantarray ? @sorted : \@sorted;
@@ -4897,7 +4904,112 @@ sub merge {
     return;
 }
 
-sub numerically { $a <=> $b }
+sub reintegrate_after_parallel_randomisations {
+    my $self = shift;
+    my %args = @_;
+    
+    my $bd_from = $args{from} || croak "'from' argument is undefined\n";
+
+    croak "Cannot merge into self" if $self eq $bd_from;
+    croak "Cannot merge into basedata with different cell sizes and offsets"
+      if !$self->cellsizes_and_origins_match (%args);
+    croak "No point reintegrating into basedata with no outputs"
+      if !$self->get_output_ref_count;
+
+    my @randomisations_to   = $self->get_randomisation_output_refs;
+    my @randomisations_from = $bd_from->get_randomisation_output_refs;
+
+    return if !scalar @randomisations_to || !scalar @randomisations_from;
+
+    my @outputs_to   = $self->get_output_refs_sorted_by_name;
+    my @outputs_from = $bd_from->get_output_refs_sorted_by_name;
+    
+    croak "Cannot reintegrate when number of outputs differs"
+      if scalar @outputs_to != scalar @outputs_from;
+
+    foreach my $i (0 .. $#outputs_to) {
+        croak "mismatch of output names"
+          if $outputs_to[$i]->get_name ne $outputs_from[$i]->get_name;
+    }
+
+    #  Check groups and labels unless told otherwise
+    #  (e.g. we have control of the process so they will always match)
+    my $comp = Data::Compare->new;
+    if (!$args{no_check_groups_and_labels}) {
+        my $gp_to   = $self->get_groups_ref;
+        my $gp_from = $bd_from->get_groups_ref;
+        croak "Group and/or label mismatch"
+          if !$comp->Cmp (
+            scalar $gp_to->get_element_hash,
+            scalar $gp_from->get_element_hash,
+          );
+    }
+
+    my @randomisations_to_reintegrate;
+
+  RAND_FROM:
+    foreach my $rand_from (@randomisations_from) {
+        my $name_from  = $rand_from->get_name;
+        my $rand_to    = $self->get_randomisation_output_ref (
+            name => $name_from,
+        );
+        my $init_states_to   = $rand_to->get_prng_init_states_array;
+        my $init_states_from = $rand_from->get_prng_init_states_array;
+
+        # avoid double reintegration
+        foreach my $init_state_to (@$init_states_to) {
+            foreach my $init_state_from (@$init_states_from) {
+                croak 'Attempt to reintegrate randomisation '
+                     .'when its initial PRNG state has already been used'
+                  if $comp->Cmp ($init_state_to, $init_state_from);
+            }
+        }
+
+        push @randomisations_to_reintegrate, $name_from;
+
+        # We are going to add this one, so update the
+        # init and end states, and the iteration counts 
+        push @$init_states_to, @$init_states_from;
+        my $prng_total_counts_array   = $rand_to->get_prng_total_counts_array;
+        push @$prng_total_counts_array, $rand_from->get_prng_total_counts_array;
+        my $prng_end_states_array     = $rand_to->get_prng_end_states_array;
+        push @$prng_end_states_array,   $rand_from->get_prng_end_states_array;
+
+        my $total_iters = sum (@$prng_total_counts_array);
+        $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
+    }
+
+    my $rand_list_re_text
+      = '^(?:'
+      . join ('|', uniq @randomisations_to_reintegrate)
+      . ')>>(?!p_rank>>)';
+    my $re_rand_list_names = qr /$rand_list_re_text/;
+
+    #  now we can finally get some work done
+    #  working on spatial only for now
+  OUTPUT:
+    foreach my $i (0 .. $#outputs_to) {
+        my $to   = $outputs_to[$i];
+        my $from = $outputs_from[$i];
+
+        #  this is not a generic enough check
+        next OUTPUT
+          if not blessed ($to) =~ /Spatial|Cluster|RegionGrower|Tree/;
+
+        $to->reintegrate_after_parallel_randomisations (
+            from => $from,
+            no_check_groups_and_labels => 1,
+            randomisations_to_reintegrate => \@randomisations_to_reintegrate,
+        );
+
+    }
+
+    return;
+}
+
+
+sub numerically {$a <=> $b};
+
 
 #  let the system handle it most of the time
 sub DESTROY {

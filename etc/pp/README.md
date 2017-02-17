@@ -1,6 +1,6 @@
 ## Packing Gtk2 libs ##
 
-The Heavy.pm.patch needs to be applied to PAR\Heavy.pm
+Prior to PAR::Packer version 1.036, the Heavy.pm.patch needs to be applied to PAR\Heavy.pm
 
 Original source is https://rt.cpan.org/Ticket/Attachment/1135201/597366/Heavy.pm.patch
 but this version contains a second step.

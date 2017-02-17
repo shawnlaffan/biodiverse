@@ -12,6 +12,7 @@ use English qw { -no_match_vars };
 use Scalar::Util qw /blessed/;
 
 use Test::Lib;
+use rlib;
 
 local $| = 1;
 
@@ -20,7 +21,8 @@ use Test::Exception;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata :matrix :tree/;
+use Biodiverse::TestHelpers qw /:basedata :matrix :tree :utils/;
+use File::Spec::Functions 'catfile';
 
 exit main( @ARGV );
 
@@ -127,11 +129,7 @@ sub test_save_and_reload {
 
     my $class = blessed $object;
 
-    #  need a temp file name
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX', SUFFIX => ".$suffix");
-    my $fname = $tmp_obj->filename;
-    $tmp_obj->close;
-
+    my $fname = get_temp_file_path("biodiverse.$suffix");
     my $suffix_feedback = $suffix || 'a null string';
 
     lives_ok {
@@ -149,14 +147,12 @@ sub test_save_and_reload {
             'storable',
             'set last serialisation format parameter correctly';    
     }
-    
+
     #  override a parameter that is set on file load
     $object->set_last_file_serialisation_format;
     $new_object->set_last_file_serialisation_format;    
 
     is_deeply ($new_object, $object, "structures are the same for suffix $suffix");
-    
-    unlink $fname;
 }
 
 sub test_clone {
@@ -191,12 +187,8 @@ sub test_save_and_reload_non_existent_folder {
 
     my $class = blessed $object;
 
-    #  need a temp file name
-    my $tmp_obj = File::Temp->new (OUTSUFFIX => $suffix);
-    my $fname = $tmp_obj->filename;
-    $tmp_obj->close;
-    
-    $fname = "$fname/" . 'fnargle' . (int rand() * 1000);  #  should use Path::Class
+    my $fname = get_temp_file_path("biodiverse.$suffix");
+    $fname = catfile($fname, 'fnargle' . (int rand() * 1000));
 
     my $suffix_feedback = $suffix || 'a null string';
 

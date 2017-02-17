@@ -11,6 +11,7 @@ use 5.010;
 use English qw { -no_match_vars };
 
 use Test::Lib;
+use rlib;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -45,9 +46,28 @@ sub main {
     test_export_shape_point();
     test_export_shape_3d();
     test_text_axis_name_coords();
-
+    test_get_elements_that_pass_def_query();
+    
     done_testing;
     return 0;
+}
+
+sub test_get_elements_that_pass_def_query {
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+        );
+
+    my $groups = $bd->get_groups_ref;
+    my @passed = 
+        sort $groups->get_elements_that_pass_def_query( defq => '$x < 2000000' );
+
+    my @expected = ('1950000:1350000', '1950000:1450000');
+    
+    is_deeply (
+        \@passed,
+        \@expected,
+        "Simple def query produced the correct elements"
+        );
 }
 
 
@@ -59,10 +79,8 @@ sub test_export_shape {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my $fname = $tmp_folder. '/export_basestruct_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    my $fname = get_temp_file_path('export_basestruct_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     my $success = eval {
         $gp->export (
@@ -78,16 +96,11 @@ sub test_export_shape {
       subtest 'polygon shapefile matches basestruct'
         => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
 
-    #if ($subtest_success) {
-    #    unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
-    #}
-
     #  now check labels can also be exported
     #  (a test of text axes)
     my $lb = $bd->get_labels_ref;
-    $fname = $tmp_folder . '/export_basestruct_labels_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    $fname = get_temp_file_path('export_basestruct_labels_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     $success = eval {
         $lb->export (
@@ -102,11 +115,6 @@ sub test_export_shape {
     $subtest_success =
       subtest 'polygon shapefile matches label basestruct'
         => sub {subtest_for_polygon_shapefile_export ($lb, $fname)};
-
-    #if ($subtest_success) {
-    #    unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
-    #}
-
 }
 
 sub subtest_for_polygon_shapefile_export {
@@ -184,10 +192,8 @@ sub test_export_shape_point {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    my $fname = $tmp_folder . '/export_point_basestruct_' . int (rand() * 1000);
-
-    say "Exporting to $fname";
+    my $fname = get_temp_file_path('export_point_basestruct_' . int (1000 * rand()));
+    note("Exporting to $fname");
 
     my $success = eval {
         $gp->export (

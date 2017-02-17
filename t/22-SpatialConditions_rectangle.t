@@ -7,6 +7,7 @@ use English qw { -no_match_vars };
 use FindBin qw/$Bin/;
 
 use Test::Lib;
+use rlib;
 use Scalar::Util qw /looks_like_number/;
 use Data::Dumper qw /Dumper/;
 #use Test::More tests => 255;

@@ -9,6 +9,7 @@ use Carp;
 use Scalar::Util qw /blessed/;
 
 use Test::Lib;
+use rlib;
 
 use Data::Section::Simple qw(
     get_data_section
@@ -21,14 +22,6 @@ use Test::More;
 
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
-
-
-my %file_temp_args = (
-    TEMPLATE => "biodiverse_export_test_XXXXX",
-    SUFFIX   => '.csv',
-    UNLINK   => 0,
-);
-
 
 #  check the metadata
 #  we just want no warnings raised here?
@@ -192,11 +185,7 @@ sub run_basestruct_export_to_table {
     }
     $feedback_text =~ s/, $//;
     
-
-
-    my $tmp_obj1  = File::Temp->new (%file_temp_args);
-    my $filename1 = $tmp_obj1->filename;
-    undef $tmp_obj1;  # we just wanted the name, and we'll overwrite it
+    my $filename1 = get_temp_file_path('biodiverse_export_test_XXXXX.csv');
 
     eval {
         $gp->export_table_delimited_text (
@@ -209,9 +198,7 @@ sub run_basestruct_export_to_table {
 
     ok (!$e, "Exported file without raising exception, using file handle, $feedback_text");
     
-    my $tmp_obj2  = File::Temp->new (%file_temp_args);
-    my $filename2 = $tmp_obj2->filename;
-    undef $tmp_obj2;  # we just wanted the name, and we'll overwrite it
+    my $filename2 = get_temp_file_path('biodiverse_export_test_XXXXX.csv');
 
     eval {
         $gp->export_table_delimited_text (
@@ -245,10 +232,6 @@ sub run_basestruct_export_to_table {
             }
         }
     }
-
-    #  now clean up
-    eval {unlink $filename1};
-    eval {unlink $filename2};
 }
 
 done_testing();

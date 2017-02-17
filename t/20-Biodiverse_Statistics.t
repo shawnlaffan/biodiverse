@@ -6,6 +6,7 @@ use English qw { -no_match_vars };
 use FindBin qw/$Bin/;
 
 use Test::Lib;
+use rlib;
 
 use Test::More;
 

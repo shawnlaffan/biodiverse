@@ -6,6 +6,7 @@ use warnings;
 local $| = 1;
 
 use Test::Lib;
+use rlib;
 use Test::More;
 use Biodiverse::Config;
 

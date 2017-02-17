@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /first_index/;
-use List::Util qw /sum min max/;
+use List::Util qw /sum min max uniq/;
 use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
@@ -2089,6 +2089,113 @@ sub convert_comparisons_to_significances {
         }
     }
 }
+
+sub reintegrate_after_parallel_randomisations {
+    my $self = shift;
+    my %args = @_;
+
+    my $to = $self;  #  save some editing below, as this used to be in BaseData.pm
+    my $from = $args{from}
+      // croak "'from' argument not defined";
+
+    my $r = $args{randomisations_to_reintegrate}
+      // croak "'randomisations_to_reintegrate' argument undefined";
+    
+    #  should add some sanity checks here?
+    #  currently they are handled by the caller,
+    #  assuming it is a Basedata reintegrate call
+    
+    #  messy
+    my @randomisations_to_reintegrate = uniq @{$args{randomisations_to_reintegrate}};
+    my $rand_list_re_text
+      = '^(?:'
+      . join ('|', @randomisations_to_reintegrate)
+      . ')>>(?!p_rank>>)';
+    my $re_rand_list_names = qr /$rand_list_re_text/;
+
+    my $node_list = $to->get_node_refs;
+    my @rand_lists =
+        grep {$_ =~ $re_rand_list_names}
+        $to->get_hash_list_names_across_nodes;
+
+    foreach my $list_name (@rand_lists) {
+        foreach my $to_node (@$node_list) {
+            my $node_name = $to_node->get_name;
+            my $from_node = $from->get_node_ref(node => $node_name);
+            my %l_args = (list => $list_name);
+            my $lr_to   = $to_node->get_list_ref (%l_args);
+            my $lr_from = $from_node->get_list_ref (%l_args);
+            my %all_keys;
+            #  get all the keys due to ties not being tracked in all cases
+            @all_keys{keys %$lr_from, keys %$lr_to} = undef;
+            my %p_keys;
+            @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
+
+            #  we need to update the C_ and Q_ keys first,
+            #  then recalculate the P_ keys
+            foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
+                no autovivification;  #  don't pollute the from data set
+                $lr_to->{$key} += ($lr_from->{$key} // 0),
+            }
+            foreach my $key (keys %p_keys) {
+                no autovivification;  #  don't pollute the from data set
+                my $index = $key;
+                $index =~ s/^P_//;
+                $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
+            }            
+        }
+        $to->convert_comparisons_to_significances (
+            result_list_name => $list_name,
+        );
+    }
+
+    foreach my $to_node (@$node_list) {
+        my $from_node = $from->get_node_ref (node => $to_node->get_name);
+
+        foreach my $rand_name (@randomisations_to_reintegrate) {
+            #  need to handle the data lists
+            my $data_list_name = $rand_name . '_DATA';
+            my $data = $from_node->get_list_ref (list => $data_list_name, autovivify => 0);
+            $to_node->add_to_lists ($data_list_name => $data);
+
+            my $stats = $stats_class->new;
+
+            my $stats_list_name = $rand_name;
+            my $to_stats_prev   = $to_node->get_list_ref (list => $stats_list_name);
+            my $from_stats_prev = $from_node->get_list_ref (list => $stats_list_name);
+
+            $stats->add_data ($to_node->get_list_ref (list => $data_list_name));
+            my %stats_hash = (
+                MEAN   => $stats->mean,
+                SD     => $stats->standard_deviation,
+                MEDIAN => $stats->median,
+                Q25    => scalar $stats->percentile (25),
+                Q05    => scalar $stats->percentile (5),
+                Q01    => scalar $stats->percentile (1),
+                COUNT_IDENTICAL
+                       => (($to_stats_prev->{COUNT_IDENTICAL}   // 0)
+                         + ($from_stats_prev->{COUNT_IDENTICAL} // 0)),
+                COMPARISONS
+                       => (($to_stats_prev->{COMPARISONS}   // 0)
+                         + ($from_stats_prev->{COMPARISONS} // 0)),
+            );
+            $stats_hash{PCT_IDENTICAL}
+              = 100 * $stats_hash{COUNT_IDENTICAL} / $stats_hash{COMPARISONS};
+
+            #  use_ref to override existing
+            $to_node->add_to_lists ($stats_list_name => \%stats_hash, use_ref => 1);  
+    
+            my $list_name = $rand_name . '_ID_LDIFFS';
+            my $from_id_ldiffs = $from_node->get_list_ref (list => $list_name);
+            $to_node->add_to_lists (
+                $list_name => $from_id_ldiffs,
+            );
+        }
+    }
+
+    return;
+}
+
 
 sub get_hash_list_names_across_nodes {
     my $self = shift;

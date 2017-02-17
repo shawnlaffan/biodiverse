@@ -8,6 +8,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 use List::Util qw /first sum0/;
 use List::MoreUtils qw /any_u/;
 

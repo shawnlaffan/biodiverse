@@ -6,6 +6,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 
 #use Test::More tests => 35;
 use Test::More;
@@ -157,12 +158,7 @@ sub test_tabular_tree_unix_line_endings {
 sub test_tabular_tree_file_no_exists {
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'bd_should_not_exist_XXXX', SUFFIX => ".txt");
-    my $temp_file = $tmp_obj->filename;
-    $tmp_obj->close;
-    unlink $temp_file;
-
-    ok (!-e $temp_file, 'Temp file no longer exists');
+    my $temp_file = get_temp_file_path('bd_should_not_exist_XXXX.txt');
 
     # define map to read sample file
     my $column_map = {
@@ -189,11 +185,7 @@ sub test_tabular_tree_file_no_exists {
 
 sub test_tabular_tree_empty_data {
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
-
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
-    my $read_file = $tmp_obj->filename;
-    $tmp_obj->close;
-
+    my $read_file = get_temp_file_path('biodiverse_tabular_tree_export_XXXX.txt');
 
     # define map to read sample file
     my $column_map = {
@@ -235,11 +227,7 @@ sub test_tabular_tree_from_file {
 
     my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
-    my $initial_tabular_file = $tmp_obj->filename;
-    print {$tmp_obj} $data;
-    $tmp_obj->close;
-
+    my $initial_tabular_file =  write_data_to_temp_file($data);
 
     # define map to read sample file
     my $column_map = {
@@ -273,10 +261,7 @@ sub test_tabular_tree_from_file {
     }
 
     # perform export
-    $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverse_tabular_tree_export_XXXX', SUFFIX => ".txt");
-    my $exported_tabular_file = $tmp_obj->filename;
-    $tmp_obj->close;
-    
+    my $exported_tabular_file = get_temp_file_path('biodiverse_tabular_tree_export_XXXX.txt');
     my $export_tree = $phylogeny_array->[0]; 
     $result = eval {
         $export_tree->export_tabular_tree(file => $exported_tabular_file);
@@ -327,9 +312,6 @@ sub test_tabular_tree_from_file {
     if ($EVAL_ERROR) { print "error $EVAL_ERROR\n"; }
     is ($result, 1, 'perform tree compare');
     is ($trees_compare, 1, 'tabular trip round-trip comparison');
-    
-    unlink $exported_tabular_file;
-    unlink $initial_tabular_file;
 }
 
 

@@ -122,7 +122,7 @@ BEGIN {
         . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
     }
     #  more general solution for anything new
-    my @reqd = qw /Text::Fuzzy Data::Structure::Util/;
+    my @reqd = qw /Text::Fuzzy Data::Structure::Util Data::Compare Text::Levenshtein/;
     foreach my $module (@reqd) {
         if (not eval "require $module") {
             my $feedback = <<"END_FEEDBACK"
@@ -152,8 +152,12 @@ sub add_lib_paths {
         if ( $OSNAME eq 'MSWin32' ) {
             $sep = q{;};
         }
-        push @lib_paths, split $sep, $ENV{$var};
+        
+        my @paths = grep {-d} split $sep, $ENV{$var};
+        push @lib_paths, @paths;
     }
+
+    return if !scalar @lib_paths;
 
     say "Adding $var paths to \@INC";
     say join q{ }, @lib_paths;

@@ -53,7 +53,7 @@ sub decode_bootstrap_block {
     $input =~ s/^\[//;
     $input =~ s/\]$//;
 
-    $input = "{".$input."}";
+    $input = '{' . $input . '}';
     
     # fix up unquoted key/value pairs i.e. add quotes because the json
     # decoder doesn't work without them.
@@ -69,19 +69,17 @@ sub decode_bootstrap_block {
 
 # returns the values in this object formatted so they are ready to be
 # written straight to a nexus/newick file.
-# e.g. returns "["color":"#ffffff","foo":"bar"]" etc.
+# e.g. returns [&!color="#ffffff","foo"="bar"] etc.
 # excluded_keys is an array ref of keys not to include in the block
 sub encode_bootstrap_block {
     my ($self, %args) = @_;
     my %boot_values = %$self;
 
     
-    if($self->{exclusions}) {
+    if ($self->{exclusions}) {
         my @excluded_keys = @{$self->{exclusions}};
         # print "Exclusions are: @excluded_keys\n";
-        foreach my $exclusion (@excluded_keys) {
-            delete $boot_values{$exclusion};
-        }
+        delete @boot_values{@excluded_keys};
     }
 
     # also make sure "exclusions:..." isn't in the encoding
@@ -141,14 +139,11 @@ sub fix_up_unquoted_bootstrap_block {
 # key will be included in 'encode_bootstrap_block'.
 sub add_exclusion {
     my ($self, %args) = @_;
-    my $exclusion = $args{exclusion};
 
-    my @exclusions = (defined $self->{exclusions}) 
-                          ? @{$self->{exclusions}} 
-                          : ();
+    my $key = $args{exclusion};
+    my $exclusions = $self->{exclusions} //= [];
 
-    push @exclusions, $exclusion;
-    $self->{exclusions} = \@exclusions;
+    push @$exclusions, $key;
 }
 
 
@@ -161,11 +156,10 @@ sub has_exclusion {
     my ($self, %args) = @_;
     my $key = $args{key};
 
-    my @exclusions = (defined $self->{exclusions}) 
-        ? @{$self->{exclusions}} 
-        : ();
-    
-    return grep( /^$key$/, @exclusions );
+    my $exclusions = $self->{exclusions};
+    return if !$exclusions;
+
+    return grep {$_ eq $key} @$exclusions;
 }
 
 1;

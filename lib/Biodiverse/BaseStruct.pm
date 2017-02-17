@@ -3120,35 +3120,25 @@ sub delete_lists {
 }
 
 
-# expects a hash in format:
-#    element -> {prop, prop, prop}, element2 -> {prop} etc.
-# deletes given properties for given elements
-sub delete_element_properties_from_hash {
-    my ($self, %args) = @_;
-    my $hash = $args{ hash };
 
-    foreach my $element (keys %{$hash}) {
-        my @props = @{$hash->{$element}};
-        foreach my $prop (@props) {
-            $self->delete_element_property (
-                element  => $element,
-                property => $prop,
-            );
-        }
-    }
+sub delete_properties_for_given_element {
+    my ($self, %args) = @_;
+    my $el = $args{ el };
+
+    $self->{ELEMENTS}{$el}{PROPERTIES} = {};
 }
 
 
-# delete a single element property
+# delete an element property for all elements
 sub delete_element_property {
     my ($self, %args) = @_;
+    my $prop = $args{ prop };
 
-    my $element  = $args{ element  };
-    my $property = $args{ property };
-    
-    my %props = %{$self->{ELEMENTS}{$element}{PROPERTIES}};
-    delete $props{ $property };
-    $self->{ELEMENTS}{$element}{PROPERTIES} = \%props;
+    foreach my $el ($self->get_element_list) {
+        my %props = %{$self->{ELEMENTS}{$el}{PROPERTIES}};
+        delete $props{ $prop };
+        $self->{ELEMENTS}{$el}{PROPERTIES} = \%props;
+    }
 }
 
 sub get_lists {

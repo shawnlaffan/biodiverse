@@ -939,11 +939,6 @@ sub do_delete_element_properties {
     
     my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
     my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
-
-
-    $bd->delete_label_properties( hash => $to_delete_hash->{label} );
-    $bd->delete_group_properties( hash => $to_delete_hash->{group} );
-
 }
 
 sub do_delete_basedata {

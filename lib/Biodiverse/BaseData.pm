@@ -2300,46 +2300,26 @@ sub get_all_element_properties {
     return wantarray ? %results_hash : \%results_hash;
 }
 
-# expects a hash in format:
-#    element -> {prop, prop, prop}, element2 -> {prop} etc.
-# deletes given properties for given elements
-sub delete_label_properties {
+sub delete_group_element_property {
     my ($self, %args) = @_;
-    my $lb = $self->get_labels_ref;
-    $lb->delete_element_properties_from_hash( hash => $args{hash} );
+    $self->get_groups_ref->delete_element_property(%args);
 }
 
-sub delete_group_properties {
+sub delete_label_element_property {
     my ($self, %args) = @_;
-    my $gp = $self->get_groups_ref;
-    $gp->delete_element_properties_from_hash( hash => $args{hash} );
+    $self->get_labels_ref->delete_element_property(%args);
 }
 
-
-sub delete_all_element_properties {
-    my ($self, %args) = shift;
-
-    $self->get_all_element_properties();
-
-    croak "Cannot delete properties from a basedata with existing outputs"
-        if $self->get_output_ref_count;
-
-    # delete element properties from groups
-    my $gp = $self->get_groups_ref;
-    $gp->delete_cached_values;
-    foreach my $group ($self->get_groups) {
-        $gp->delete_lists( element => $group,
-                           lists   => ['PROPERTIES'] );
-    }
-
-    # delete element properties from labels
-    my $lb = $self->get_labels_ref;
-    $lb->delete_cached_values;
-    foreach my $label ($self->get_labels) {
-        $lb->delete_lists( element => $label,
-                           lists   => ['PROPERTIES'] );
-    }
+sub delete_individual_group_properties {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(%args);
 }
+
+sub delete_individual_label_properties {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(%args);
+}
+
 
 sub rename_labels {
     my $self = shift;

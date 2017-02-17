@@ -3,6 +3,7 @@ package Biodiverse::GUI::DeleteElementProperties;
 use 5.010;
 use strict;
 use warnings;
+use Carp;
 
 our $VERSION = '1.99_006';
 
@@ -35,6 +36,7 @@ sub new {
 sub run {
     my ( $self, %args ) = @_;
     my $bd = $args{basedata};
+    $self->{bd} = $bd;
     
     my %el_props_hash = $bd->get_all_element_properties();
     my %label_props_hash = %{$el_props_hash{labels}};
@@ -167,126 +169,75 @@ sub _build_deletion_panel {
     my $delete_properties_button =
         Gtk2::Button->new_with_label("Delete selected properties");
 
-    my $delete_labels_button =
-        Gtk2::Button->new_with_label("Delete all properties of selected labels");
+    $delete_properties_button->signal_connect(
+        'clicked' => sub {
+            $self->clicked_delete_button(tree => $properties_tree,
+                                         type => 'property',);
 
+        }
+        );
+    
+    my $delete_elements_button =
+        Gtk2::Button->new_with_label("Delete all properties of selected elements");
+
+    $delete_elements_button->signal_connect(
+        'clicked' => sub {
+            $self->clicked_delete_button(tree => $elements_tree,
+                                         type => 'element',);
+        }
+        );
+    
     my $button_hbox = Gtk2::HBox->new();
     $button_hbox->pack_start( $delete_properties_button, 1, 0, 0 );
-    $button_hbox->pack_start( $delete_labels_button, 1, 0, 0 );
+    $button_hbox->pack_start( $delete_elements_button, 1, 0, 0 );
     $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
     return $vbox;
 }
 
-# handle deletion checkbox toggling
-sub on_delete_toggled {
-    my $args = shift;
-    my $path = shift;
 
-    my $model = $args->{model};
-    my $self  = $args->{self};
-    my $column_number = $args->{column_number};
-    
-    my $iter = $model->get_iter_from_string($path);
-
-    # Flip state
-    my $state = $model->get( $iter, $column_number );
-    $model->set( $iter, $column_number, !$state );
-
-    # my $property = $model->get( $iter, PROPERTY_COL );
-    # my $element = $model->get( $iter, ELEMENT_COL );
-
-    # figure out if it's a group or label element property
-    # my $notebook = $self->{notebook};
-    # my $current_page = $notebook->get_current_page;
-    # my $basestruct = ($current_page == 0) ? "label" : "group";
-    
-    # if ( !$state ) {
-    #     $self->_add_item_for_deletion( 
-    #         property   => $property,
-    #         element    => $element,
-    #         basestruct => $basestruct,
-    #     );
-    # }
-    # else {
-    #     $self->_remove_item_for_deletion( 
-    #         property   => $property,
-    #         element    => $element,
-    #         basestruct => $basestruct,
-    #     );
-    # }
-}
-
-
-sub _remove_item_for_deletion {
+sub clicked_delete_button {
     my ($self, %args) = @_;
-    my $property   = $args{ property   };
-    my $element    = $args{ element    };
-    # either group or label
-    my $basestruct = $args{ basestruct };
+    my $type         = $args{type}; # element or property
+    my $tree         = $args{tree};
+    my $selection    = $tree->get_selection();
     
-    my $to_delete_hash = $self->{to_delete}->{$basestruct};
+    my $notebook     = $self->{notebook};
+    my $current_page = $notebook->get_current_page;
+    my $basestruct   = ($current_page == 0) ? 'label' : 'group';
+    my $bd           = $self->{bd};
 
-    my @old_array = @{$to_delete_hash->{$element}};
+    # should probably just figure out what sub to use here.
+    
+    $selection->selected_foreach (
+        sub{
+            my ($model, $path, $iter) = @_;
+            my $value = $model->get($iter, 0);
+            
+            if($type eq 'element') {
+                if($basestruct eq 'label') {
+                    $bd->delete_individual_label_properties(el => $value);
+                }
+                else {
+                    $bd->delete_individual_group_properties(el => $value);
+                }
+            }
+            elsif($type eq 'property') {
+                if($basestruct eq 'label') {
+                    $bd->delete_label_element_property(prop => $value);
+                }
+                else {
+                    $bd->delete_group_element_property(prop => $value);
+                }
 
-    # just delete first occurence (so that the exclusion checkboxes
-    # still work)
-    my @fixed_up_array;
-    my $found = 0;
-    foreach my $item (@old_array) {
-        if(($item eq $property) and (!$found)) {
-            $found = 1;
+            }
+            else {
+                croak "Unknown type $type";
+            }
+            
+            push @{$self->{to_delete}->{$basestruct}->{$type}}, $value;
         }
-        else {
-            push @fixed_up_array, $item;
-        }
-    }
-
-
-    if (scalar @fixed_up_array == 0) {
-        delete $to_delete_hash->{$element};
-    }
-    else {
-        $to_delete_hash->{$element} = \@fixed_up_array;
-    }
-    
-    $self->{to_delete}->{$basestruct} = $to_delete_hash;  
-}
-
-sub _add_item_for_deletion {
-    my ($self, %args) = @_;
-    my $property   = $args{ property   };
-    my $element    = $args{ element    };
-    # either group or label
-    my $basestruct = $args{ basestruct };
-    
-    my $to_delete_hash = $self->{to_delete}->{$basestruct};
-    
-    #if ( !grep( /^$property$/, @{$to_delete_hash->{$element}}) ) {
-    push @{$to_delete_hash->{$element}}, $property;
-    #}
-    
-    $self->{to_delete}->{$basestruct} = $to_delete_hash;
-}
-
-
-
-# given a hash mapping from element name to a hash mapping from
-# property name to value. Convert this to a hash mapping from property
-# name to a hash mapping from element name to value.
-sub format_element_properties_hash {
-    my ($self, %args) = @_;
-    my %old_hash = %{$args{props_hash}};
-    my %new_hash;
-
-    foreach my $element (keys %old_hash) {
-        foreach my $prop (keys %{ $old_hash{$element} }) {
-            my $value = $old_hash{$element}->{$prop};
-            $new_hash{$prop}->{$element} = $value;
-        }
-    }
-
-    return wantarray ? %new_hash : \%new_hash;
+        );
 }
 
 # you can't just use set_tooltip_text for treeview columns for some

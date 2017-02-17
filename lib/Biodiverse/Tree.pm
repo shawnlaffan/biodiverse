@@ -958,13 +958,14 @@ sub get_metadata_export_newick {
                 type       => 'boolean',
                 default    => 1,
             },
-            {
-                name       => 'export_colours',
-                label_text => 'Export colours',
-                tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
-                type       => 'boolean',
-                default    => 0,
-            },
+            #  Colours seem unsupported in figtree for newick files
+            #{
+            #    name       => 'export_colours',
+            #    label_text => 'Export colours',
+            #    tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
+            #    type       => 'boolean',
+            #    default    => 0,
+            #},
         );
 
     for (@parameters) {
@@ -1163,6 +1164,13 @@ sub get_metadata_export_tabular_tree {
 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
             type    => 'boolean',
             default => 0,
+        },
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
+            type       => 'boolean',
+            default    => 0,
         },
     );
 

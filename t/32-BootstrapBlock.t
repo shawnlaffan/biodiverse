@@ -18,6 +18,20 @@ my @test_subs = grep { $_ =~ 'main::test_' } $obj->functions();
 exit main();
 
 sub main {
+    my @args  = @_;
+
+    #  run a subset of tests?
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+              if not my $func = (__PACKAGE__->can( 'test_' . $name )
+                || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
     foreach my $sub (@test_subs) {
         no strict 'refs';
         $sub->();
@@ -30,42 +44,45 @@ sub main {
 sub test_basic_operations {
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
 
-    my %hash = ( "foo"      => "bar", 
-                 "footwo"   => "bartwo", 
-                 "foothree" => "barthree" );
-        
+    my %hash = (
+        "foo"      => "bar", 
+        "footwo"   => "bartwo", 
+        "foothree" => "barthree"
+    );
 
     foreach my $key (keys %hash) {
         $bootstrap_block->set_value( key => $key, value => $hash{$key} );
     }
 
     foreach my $key (keys %hash) {
-        is ( $bootstrap_block->get_value ( key => $key ),
-             $hash{ $key },
-             "$key maps to $hash{$key}"
-            );
+        is (
+            $bootstrap_block->get_value (key => $key),
+            $hash{$key},
+            "$key maps to $hash{$key}"
+        );
     }
 }
 
 sub test_decode {
-    my @raw_inputs = ('"foo"="bar","footwo"="bartwo",foothree=barthree');
+    my @raw_inputs = (q/"foo"="bar","footwo"="bartwo",foothree=barthree/);
 
+    my %hash = (
+        "foo"      => "bar", 
+        "footwo"   => "bartwo", 
+        "foothree" => "barthree", 
+    );
 
-    my %hash = ( "foo"      => "bar", 
-                 "footwo"   => "bartwo", 
-                 "foothree" => "barthree", 
-               );
-    
 
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
 
     foreach my $input (@raw_inputs) {
         $bootstrap_block->decode_bootstrap_block( raw_bootstrap => $input );
-        
+
         foreach my $key (keys %hash) {
-            is ( $bootstrap_block->get_value ( key => $key ),
-                 $hash{ $key },
-                 "$key maps to $hash{$key}"
+            is (
+                $bootstrap_block->get_value ( key => $key ),
+                $hash{ $key },
+                "$key maps to $hash{$key}"
             );
         }
     }
@@ -73,10 +90,11 @@ sub test_decode {
 
 
 sub test_encode {
-    my %hash = ( "foo"      => "bar", 
-                 "footwo"   => "bartwo", 
-                 "foothree" => "barthree",
-               );
+    my %hash = (
+        "foo"      => "bar", 
+        "footwo"   => "bartwo", 
+        "foothree" => "barthree",
+    );
 
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
 
@@ -91,7 +109,8 @@ sub test_encode {
     foreach my $key (keys %hash) {
         my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
-            "Block contained $expected_string")
+            "Block contained $expected_string",
+        );
     }
 
     # test an encoding with exclusions
@@ -104,34 +123,37 @@ sub test_encode {
     
     $actual = $bootstrap_block->encode_bootstrap_block();
 
-    delete $hash{ "foo"    };
-    delete $hash{ "footwo" };
+    delete @hash{qw/foo footwo/};
     foreach my $key (keys %hash) {
         my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
-            "Block contained $expected_string")
+            "Block contained $expected_string",
+        );
     }
     ok (index($actual, '"foo"="bar"') == -1, 
-        "Block didn't contain excluded item");
+        "Block didn't contain excluded item",
+    );
     ok (index($actual, '"footwo"="bartwo"') == -1, 
-        "Block didn't contain excluded item");
+        "Block didn't contain excluded item",
+    );
 
     # now test clearing the exclusions
     $bootstrap_block->clear_exclusions();
     $actual = $bootstrap_block->encode_bootstrap_block();
 
-    %hash = (    "foo"      => "bar", 
-                 "footwo"   => "bartwo", 
-                 "foothree" => "barthree", 
-        );
+    %hash = (
+        "foo"      => "bar", 
+        "footwo"   => "bartwo", 
+        "foothree" => "barthree", 
+    );
 
-    
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.
     foreach my $key (keys %hash) {
         my $expected_string = "$key=$hash{$key}";
         ok (index($actual, $expected_string) != -1, 
-            "Block contained $expected_string")
+            "Block contained $expected_string",
+        );
     }
 }
 
@@ -150,25 +172,30 @@ sub test_fix_up_unquoted_bootstrap_block {
         my $result = 
             $bootstrap_block->fix_up_unquoted_bootstrap_block( block => $key);
 
-        is ( $result,
-             $test_hash{$key},
-             "$key processed correctly",
-            );
+        is (
+            $result,
+            $test_hash{$key},
+            "$key processed correctly",
+        );
     }
 }
 
 # only color export should have an exclamation mark
 # e.g. [&blah=blah,!color=red,blah2=blah2]
 sub test_colour_specific_export {
-    my %hash = ( "foo"      => "bar", 
-                 "footwo"   => "bartwo", 
-                 "color"    => "red",
-        );
+    my %hash = (
+        "foo"      => "bar", 
+        "footwo"   => "bartwo", 
+        "color"    => "red",
+    );
 
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
 
     foreach my $key (keys %hash) {
-        $bootstrap_block->set_value( key => $key, value => $hash{ $key } );
+        $bootstrap_block->set_value(
+            key   => $key,
+            value => $hash{ $key },
+        );
     }
 
     my $actual = $bootstrap_block->encode_bootstrap_block();
@@ -176,7 +203,7 @@ sub test_colour_specific_export {
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.
     ok (index($actual, "!color=red") != -1, 
-        "Block contained !color=red")
+        "Block contained !color=red",
+    );
 
-    
 }

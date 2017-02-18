@@ -68,14 +68,13 @@ sub decode_bootstrap_block {
 }
 
 # returns the values in this object formatted so they are ready to be
-# written straight to a nexus/newick file.
+# written straight to a nexus file.
 # e.g. returns [&!color="#ffffff","foo"="bar"] etc.
 # excluded_keys is an array ref of keys not to include in the block
 sub encode_bootstrap_block {
     my ($self, %args) = @_;
     my %boot_values = %$self;
 
-    
     if ($self->{exclusions}) {
         my @excluded_keys = @{$self->{exclusions}};
         # print "Exclusions are: @excluded_keys\n";
@@ -121,7 +120,7 @@ sub fix_up_unquoted_bootstrap_block {
     # first remove the leading ampersand
     $block =~ s/\{\&/{/;
     my $old = "";
-    while(!($old eq $block)) {
+    while($old ne $block) {
         $old = $block;
         # crazy regex here
         $block =~ s/([\{,])([^\"]*?)\=([^\"]*?)([\},])/$1\"$2\":\"$3\"$4/;

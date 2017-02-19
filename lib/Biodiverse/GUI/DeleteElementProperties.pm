@@ -29,65 +29,69 @@ sub new {
     return $self;
 }
 
-# given a basedata, run a dialog that shows all the element properties
-# associated with the basedata, and allows the user to delete
-# some. Then returns which element properties are to be deleted
-# (details TBA) so the basedata itself can do the deleting.
-sub run {
+# separated into a sub so we can call this to update the values after
+# deleting something.
+sub build_main_notebook {
     my ( $self, %args ) = @_;
-    my $bd = $args{basedata};
-    $self->{bd} = $bd;
+    my $bd = $self->{bd};
     
     my %el_props_hash = $bd->get_all_element_properties();
     my %label_props_hash = %{$el_props_hash{labels}};
     my %group_props_hash = %{$el_props_hash{groups}};
-    
-    my $dlg = Gtk2::Dialog->new_with_buttons(
-        'Delete Element Properties', undef, 'modal', 'gtk-yes' => 'yes', 'gtk-no'  => 'no'
-        );
-
-    $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
 
     my $label_outer_vbox = 
         $self->_build_deletion_panel( values_hash => \%label_props_hash,
                                       basestruct  => "label",
-                                    );
+        );
 
     my $group_outer_vbox =
         $self->_build_deletion_panel( values_hash => \%group_props_hash,
                                       basestruct  => "group",
-                                    );
+        );
     
 
     my $notebook = Gtk2::Notebook->new;
     $notebook->append_page (
         $label_outer_vbox,
         "Labels",        
-    );
+        );
 
     $notebook->append_page (
         $group_outer_vbox,
         "Groups",        
         );
 
-    # we need to know what notebook page we're on when we choose to
-    # delete something, so we know whether to add it to groups or
-    # labels.
     $self->{notebook} = $notebook;
+
+    return $notebook;
+}
+
+
+
+sub run {
+    my ( $self, %args ) = @_;
+    my $bd = $args{basedata};
+    $self->{bd} = $bd;
+    
+    
+    my $dlg = Gtk2::Dialog->new_with_buttons(
+        'Delete Element Properties', undef, 'modal', 'gtk-ok' => 'ok', 
+        );
+
+    $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
+
+
+    my $notebook = $self->build_main_notebook();
+
     
     my $content_area = $dlg->get_content_area;
     $content_area->pack_start( $notebook, 1, 1, 1 );
-    
+
+
+    $self->{dlg} = $dlg;
     $dlg->show_all;
     my $response = $dlg->run();
     $dlg->destroy();
-
-    if($response eq "yes") {
-        return wantarray ? %{$self->{to_delete}} : $self->{to_delete};
-    }
-    else {
-        return wantarray ? () : {};
-    }
 }
 
 
@@ -100,7 +104,7 @@ sub build_tree_from_list {
     my $title = $args{ title } // '';
     
     # fill model with content
-    foreach my $item (@list) {
+    foreach my $item (sort @list) {
         my $iter = $model->append(undef);
         $model->set($iter, 0, $item);
     }
@@ -150,10 +154,14 @@ sub _build_deletion_panel {
         $self->build_tree_from_list( list  => \@all_props,
                                      title => "Properties");
 
+    $self->{$basestruct}->{properties_tree} = $properties_tree;
+    
     my $elements_tree =
         $self->build_tree_from_list( list  => \@elements_list,
                                      title => "Element");
-    
+
+    $self->{basestruct}->{elements_tree} = $elements_tree;
+
 
     my $hbox = Gtk2::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  
@@ -238,7 +246,26 @@ sub clicked_delete_button {
             push @{$self->{to_delete}->{$basestruct}->{$type}}, $value;
         }
         );
+
+
+    my $new_notebook = $self->build_main_notebook();
+    
+    my $dlg = $self->{dlg};
+    my $content_area = $dlg->get_content_area;
+
+    my @children = $content_area->get_children;
+    $content_area->remove($children[0]);
+
+    say "Current page is $current_page";
+    
+    $content_area->pack_start( $new_notebook, 1, 1, 1 );
+    $self->{notebook} = $new_notebook;
+    $dlg->show_all;
+    $new_notebook->set_current_page($current_page);
+
 }
+
+
 
 # you can't just use set_tooltip_text for treeview columns for some
 # reason, so this is a little helper function to do the rigmarole with

@@ -130,7 +130,13 @@ use Biodiverse::ElementProperties;
     }
 
     # now test deleting the element properties, making sure everything is gone.
-    $bd->delete_all_element_properties();
+    foreach my $element ($bd->get_labels_ref->get_element_list) {
+        $bd->delete_individual_label_properties(el => $element);
+    }
+    foreach my $element ($bd->get_groups_ref->get_element_list) {
+        $bd->delete_individual_group_properties(el => $element);
+    }
+
     
     $lb = $bd->get_labels_ref;
 

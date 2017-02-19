@@ -222,3 +222,32 @@ sub test_colour_specific_export {
     );
 
 }
+
+
+sub test_roundtrip {
+    my %data = (
+        aref   => [1,3,5],
+        href   => {a => 1, b => 2},
+        colour => '#002244',
+        other  => 'blort',
+        other2 => 'blert15',
+    );
+
+    my $booter = Biodiverse::TreeNode::BootstrapBlock->new;
+    foreach my $key (keys %data) {
+        next if $key eq 'colour';
+        $booter->set_value_aa ($key => $data{$key});
+    }
+    $booter->set_colour_aa ($data{colour}); 
+    my $encoded = $booter->encode (include_colour => 1);
+
+    my $expected
+      = '[&!color=#002244,aref={1,3,5,7},href={a,1,b,2},'
+      . 'other=blort,other2=blert15]';
+    is ($encoded, $expected, 'encoded expected string');
+    
+    my $booter2 = Biodiverse::TreeNode::BootstrapBlock->new;
+    $booter2->decode(raw_bootstrap => $encoded);
+    is_deeply ($booter2, $booter, 'encode-decode roundtrip passed')
+}
+

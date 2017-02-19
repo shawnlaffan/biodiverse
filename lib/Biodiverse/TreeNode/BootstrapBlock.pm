@@ -4,11 +4,11 @@ use strict;
 use warnings;
 use Carp;
 
-use 5.010;
+use 5.016;
 
 use Cpanel::JSON::XS;
 use Data::Structure::Util qw( unbless );
-
+use Ref::Util qw /is_arrayref is_hashref/;
 
 our $VERSION = '1.99_006';
 
@@ -21,9 +21,16 @@ sub new {
 # add or update a key:value pair to this object.
 sub set_value {
     my ($self, %args) = @_;
-    my $key    =   $args{ key   };
+    my $key    =   $args{ key   }
+      // croak "key arg not passed\n";
     my $value  =   $args{ value };
-    $self->{$key} = $value;
+    $self->{_data}{$key} = $value;
+    return $value;
+}
+
+sub set_value_aa {
+    my ($self, $key, $value) = @_;
+    $self->{_data}{$key} = $value;
     return $value;
 }
 
@@ -31,14 +38,20 @@ sub set_value {
 sub get_value {
     my ($self, %args) = @_;
     my $key = $args{ key };
-    return $self->{$key};
+    return $self->{_data}{$key};
 }
 
 # removes given key from the bootstrap block
 sub delete_value {
     my ($self, %args) = @_;
     my $key = $args{ key };
-    delete $self->{$key};
+    delete $self->{_data}{$key};
+}
+
+sub get_data {
+    my $self = shift;
+    my $data =  $self->{_data} //= {};
+    return wantarray ? %$data : $data;
 }
 
 sub set_colour {
@@ -61,9 +74,14 @@ sub delete_colour {
     delete $self->{colour};
 }
 
+sub decode_bootstrap_block {
+    my $self = shift;
+    return $self->decode (@_);
+}
+
 # given a boostrap block as it was imported, populate this object.
 # e.g. "color:#ffffff,foo:bar" etc.
-sub decode_bootstrap_block {
+sub decode {
     my ($self, %args) = @_;
     my $input = $args{ raw_bootstrap };
 
@@ -82,37 +100,47 @@ sub decode_bootstrap_block {
     my $decoded_hash = decode_json $input;
 
     foreach my $key (keys %$decoded_hash) {
-        $self->set_value( key => $key, value => $decoded_hash->{$key} );
+        if ($key eq '!color') {
+            $self->set_colour_aa ($decoded_hash->{$key});
+        }
+        else {
+            $self->set_value_aa( $key => $decoded_hash->{$key} );
+        }
     }    
     
+}
+
+sub encode_bootstrap_block {
+    my $self = shift;
+    return $self->encode (@_);
 }
 
 # returns the values in this object formatted so they are ready to be
 # written straight to a nexus file.
 # e.g. returns [&!color="#ffffff","foo"="bar"] etc.
 # excluded_keys is an array ref of keys not to include in the block
-sub encode_bootstrap_block {
+sub encode {
     my ($self, %args) = @_;
-    my %boot_values = %$self;
-
-    if ($self->{exclusions}) {
-        my @excluded_keys = @{$self->{exclusions}};
-        # print "Exclusions are: @excluded_keys\n";
-        delete @boot_values{@excluded_keys};
-    }
-
-    # also make sure "exclusions:..." isn't in the encoding
-    delete $boot_values{exclusions};
+    my %boot_values = $self->get_data;
 
     my @bootstrap_strings;
-    foreach my $key (keys %boot_values) {
+    foreach my $key (sort keys %boot_values) {
         my $value = $boot_values{$key};
-        #  should test if the value looks like a valid colour value
+        if (is_arrayref($value)) {
+            $value = '{' . join (',', @$value) .'}';
+        }
+        elsif (is_hashref ($value)) {
+            my @arr
+              = map {$_ => $value->{$_}}
+                sort keys %$value; 
+            $value = '{' . join (',', @arr) .'}';
+        }
         push @bootstrap_strings, "$key=$value";
     }
     if ($args{include_colour}) {
         my $colour = $self->get_colour;
         if (defined $colour) {
+            #  should test if the value looks like a valid colour value
             $colour = $self->reformat_colour_spec (colour => $colour);
             unshift @bootstrap_strings, "!color=" . $colour;
         }

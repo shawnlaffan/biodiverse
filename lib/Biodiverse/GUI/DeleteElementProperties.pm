@@ -49,7 +49,6 @@ sub build_main_notebook {
                                       basestruct  => "group",
         );
     
-
     my $notebook = Gtk2::Notebook->new;
     $notebook->append_page (
         $label_outer_vbox,
@@ -146,7 +145,11 @@ sub _build_deletion_panel {
         foreach my $prop (keys %prop_to_value) {
             $all_props{$prop} = 1;
         }
-        push @elements_list, $element;
+
+        # only show elements that actually have properties.
+        if(scalar(keys %prop_to_value)) {
+            push @elements_list, $element;            
+        }
     }
     my @all_props = keys %all_props;
 

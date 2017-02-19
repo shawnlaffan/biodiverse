@@ -1149,15 +1149,16 @@ sub set_node_colour {
 
     # also store it in the node for export purposes
     my $node_ref 
-        = $self->get_tree_object()->get_node_ref(node => $node_name);
+      = $self->get_tree_object->get_node_ref(node => $node_name);
 
+    my $colour_string = $colour_ref
+        ? $self->get_proper_colour_format(colour_ref => $colour_ref) 
+        : DEFAULT_LINE_COLOUR_RGB;
 
-    my $colour_string = 
-        $colour_ref ? $self->get_proper_colour_format(colour_ref => $colour_ref) 
-                    : "#000000";
-
-    $node_ref->set_bootstrap_value( key => "color", 
-                                    value => $colour_string );
+    $node_ref->set_bootstrap_value(
+        key   => "color",
+        value => $colour_string
+    );
 }
 
 # boolean: has a colour been set for a given node

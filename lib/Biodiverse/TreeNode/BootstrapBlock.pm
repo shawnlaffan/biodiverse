@@ -41,6 +41,26 @@ sub delete_value {
     delete $self->{$key};
 }
 
+sub set_colour {
+    my ($self, %args) = @_;
+    $self->{colour} = $args{colour};
+}
+
+sub set_colour_aa {
+    my ($self, $colour) = @_;
+    $self->{colour} = $colour;
+}
+
+sub get_colour {
+    my $self = shift;
+    return $self->{colour};
+}
+
+sub delete_colour {
+    my $self= shift;
+    delete $self->{colour};
+}
+
 # given a boostrap block as it was imported, populate this object.
 # e.g. "color:#ffffff,foo:bar" etc.
 sub decode_bootstrap_block {
@@ -88,10 +108,13 @@ sub encode_bootstrap_block {
     foreach my $key (keys %boot_values) {
         my $value = $boot_values{$key};
         #  should test if the value looks like a valid colour value
-        if ($key eq 'color') {
-            $key = '!color';
-        }
         push @bootstrap_strings, "$key=$value";
+    }
+    if ($args{include_colour}) {
+        my $colour = $self->get_colour;
+        if (defined $colour) {
+            unshift @bootstrap_strings, "!color=" . $colour;
+        }
     }
 
     # if we have nothing in this block, we probably don't want to

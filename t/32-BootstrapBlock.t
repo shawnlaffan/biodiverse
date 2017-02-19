@@ -9,6 +9,8 @@ use Test::Lib;
 use Test::More;
 use Test::Exception;
 
+use rlib;
+
 use Biodiverse::TreeNode::BootstrapBlock;
 
 use Devel::Symdump;
@@ -186,7 +188,6 @@ sub test_colour_specific_export {
     my %hash = (
         "foo"      => "bar", 
         "footwo"   => "bartwo", 
-        "color"    => "red",
     );
 
     my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
@@ -197,8 +198,11 @@ sub test_colour_specific_export {
             value => $hash{ $key },
         );
     }
+    $bootstrap_block->set_colour_aa('red');
 
-    my $actual = $bootstrap_block->encode_bootstrap_block();
+    my $actual = $bootstrap_block->encode_bootstrap_block(
+        include_colour => 1,
+    );
 
     # we don't know what order the bootstrap block will be written, so
     # just look for the pairs we know should be there.

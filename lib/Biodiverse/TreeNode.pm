@@ -1580,7 +1580,12 @@ sub set_bootstrap_value {
     my $value = $args{ value };
 
     my $bootstrap_block = $self->get_bootstrap_block();
-    $bootstrap_block->set_value( key => $key, value => $value );
+    if ($key eq 'color' || $key eq 'colour') {
+        $bootstrap_block->set_colour_aa ($value);
+    }
+    else {
+        $bootstrap_block->set_value( key => $key, value => $value );
+    }
 }
 
 sub get_bootstrap_value {
@@ -1637,7 +1642,7 @@ sub to_table {
 
 
     my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
-    if( $export_colours ) {
+    if ( $export_colours ) {
         push @header, "COLOUR";
     }
     
@@ -1663,10 +1668,9 @@ sub to_table {
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
 
-        my $colour = $node->get_bootstrap_value (key => 'color');
-
         #  add to the basestruct object
         if( $export_colours ) {
+            my $colour = $node->get_bootstrap_value (key => 'color');
             @data{@header} = ($treename, $number, $parent_num, 
                               $node->get_length || 0, $taxon_name, $colour);
         }
@@ -1926,11 +1930,11 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         #$name = "'$name'";  #  quote otherwise
     }
     
-    # build the bootstrap block
+    # build the bootstrap block - should be conditional
     my $bootstrap_block = $self->get_bootstrap_block();
-    
-    my $bootstrap_string = 
-        $bootstrap_block->encode_bootstrap_block();
+    my $bootstrap_string = $bootstrap_block->encode_bootstrap_block(
+        include_colour => $args{export_colours} || $args{include_colours},
+    );
 
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";

@@ -113,6 +113,7 @@ sub encode_bootstrap_block {
     if ($args{include_colour}) {
         my $colour = $self->get_colour;
         if (defined $colour) {
+            $colour = $self->reformat_colour_spec (colour => $colour);
             unshift @bootstrap_strings, "!color=" . $colour;
         }
     }
@@ -127,6 +128,25 @@ sub encode_bootstrap_block {
 }
 
 
+sub reformat_colour_spec {
+    my ($self, %args) = @_;
+    my $colour = $args{colour};
+
+    #  only worry about #RRRRGGGGBBBB
+    return $colour if not $colour =~ /^#[a-fA-F\d]{12}$/;    
+
+    # the way colours are selected in the dendrogram only allows for 2
+    # hex digits for each color. Unless this is change, we don't lose
+    # precision by truncating two of the four digits for each colour
+    # that are stored in the colour ref.
+    my $proper_form_string = "#";
+    my @wanted_indices = (1, 2, 5, 6, 9, 10);
+    foreach my $index (@wanted_indices) {
+        $proper_form_string .= substr($colour, $index, 1);
+    }
+
+    return $proper_form_string;
+}
 
 # add quotes to unquoted json blocks. Needed for the json decoder
 # e.g. {&key=value,key2=value2} goes to {"key":"value","key2":"value2"}

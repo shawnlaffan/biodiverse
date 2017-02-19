@@ -493,10 +493,21 @@ sub test_export_tabular_tree {
 sub test_export_nexus {
     my $tree = shift // get_site_data_as_tree();
     
-    _test_export_nexus (tree => $tree, no_translate_block => 0);
-    _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
-    _test_export_nexus (tree => $tree, no_translate_block => 0, check_bootstrap_values => 1);
-    
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 0,
+    );
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 1,
+        use_internal_names => 1,
+    );
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 0,
+        check_bootstrap_values => 1,
+    );
+
 }
 
 
@@ -505,12 +516,19 @@ sub _test_export_nexus {
     my $tree = $args{tree};
     delete $args{tree};
 
-    if($args{check_bootstrap_values}) {
+    if ($args{check_bootstrap_values}) {
         # add some bootstrap values to export
         # get all the nodes
         my @tree_nodes = $tree->get_node_refs();
         foreach my $node (@tree_nodes) {
-            $node->set_bootstrap_value( key => "bootkey", value => "bootvalue" );
+            $node->set_bootstrap_value(
+                key   => "bootkey",
+                value => "bootvalue",
+            );
+            $node->set_bootstrap_value(
+                key   => "colour",
+                value => "red",
+            );
         }
     }
     
@@ -590,13 +608,19 @@ sub _test_export_nexus {
         subtest "bootstrap roundtrip" => sub {
             my @tree_nodes = $imported_tree->get_node_refs();
             foreach my $node (@tree_nodes) {
+                my $node_name = $node->get_name;
                 is($node->get_bootstrap_value( key => "bootkey" ),
                    "bootvalue",
-                   "Exported and then imported correct bootstrap value."
-                    );
+                   "Exported and then imported correct bootstrap value for $node_name."
+                );
+                is($node->get_bootstrap_value( key => "colour" ),
+                   "red",
+                   "Exported and then imported correct colour for $node_name."
+                );
             }
         };
     }
+
     return;
 }
 

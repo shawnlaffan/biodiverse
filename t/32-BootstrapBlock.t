@@ -210,4 +210,15 @@ sub test_colour_specific_export {
         "Block contained !color=red",
     );
 
+    $bootstrap_block->set_colour_aa('#e4e41a1a1c1c');
+    $actual = $bootstrap_block->encode_bootstrap_block(
+        include_colour => 1,
+    );
+    $actual =~ /\!color=(#[a-fA-F\d]+)/;
+    my $colour = $1;
+    like ($colour,
+        qr/^#[a-fA-F\d]{6}$/,
+        "Block contained expected colour spec",
+    );
+
 }

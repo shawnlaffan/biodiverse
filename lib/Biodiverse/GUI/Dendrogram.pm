@@ -1118,7 +1118,9 @@ sub increment_multiselect_colour {
 sub get_colour_not_in_tree {
     my $self = shift;
     
-    my $colour = eval {$self->get_parent_tab->get_excluded_cell_colour} || COLOUR_NOT_IN_TREE;
+    my $colour = eval {
+        $self->get_parent_tab->get_excluded_cell_colour
+    } || COLOUR_NOT_IN_TREE;
 
     return $colour;
 }
@@ -1132,9 +1134,10 @@ sub clear_node_colours {
     my $tree = $self->get_tree_object();
     if($tree) {
         foreach my $node ($tree->get_node_refs()) {
-            $self->set_node_colour( node_name  => $node->get_name(),
-                                    colour_ref => DEFAULT_LINE_COLOUR,
-                                  );
+            $self->set_node_colour(
+                node_name  => $node->get_name(),
+                colour_ref => DEFAULT_LINE_COLOUR,
+            );
         }
     }
 }
@@ -1147,12 +1150,14 @@ sub set_node_colour {
     # cache the colour
     $self->{node_colours_cache}{$node_name} = $colour_ref;
 
+    #  needs profiling - we cache the nodes by name somewhere
+
     # also store it in the node for export purposes
     my $node_ref 
       = $self->get_tree_object->get_node_ref(node => $node_name);
 
     my $colour_string = $colour_ref
-        ? $self->get_proper_colour_format(colour_ref => $colour_ref) 
+        ? $colour_ref->to_string 
         : DEFAULT_LINE_COLOUR_RGB;
 
     $node_ref->set_bootstrap_value(
@@ -1178,6 +1183,9 @@ sub get_node_colour {
 # convert from a colour_ref to whatever string format we want to use.
 # not sure if this function should really be here but there's no
 # general colour module?
+#  could shift the logic into TreeNode.pm and have conditional usage
+#  based on it fitting #RRRRGGGGBBBB
+#  requires that we always store the string forms
 sub get_proper_colour_format {
     my ($self, %args) = @_;
     my $colour_ref = $args{colour_ref};
@@ -1870,7 +1878,7 @@ sub highlight_path {
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
         my $colour_ref =  $node_colour 
-                       || $self->get_node_colour(node_name=>$node_ref->get_name)
+                       || $self->get_node_colour(node_name => $node_ref->get_name)
                        || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);

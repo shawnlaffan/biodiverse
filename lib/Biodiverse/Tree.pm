@@ -924,25 +924,28 @@ sub export_nexus {
       || croak "Could not open file '$file' for writing\n";
 
     my $export_colours = $args{export_colours};
-    if(!$export_colours) {
-        my @node_refs = $self->get_node_refs;
-        foreach my $node_ref (@node_refs) {
-            $node_ref->get_bootstrap_block->add_exclusion(exclusion => "color");
+    my $sub_list_name  = $args{sub_list};
+    my $comment_block_hash;
+    if ($export_colours || defined $sub_list_name) {
+        my %comments_block;
+        my $node_refs = $self->get_node_refs;
+        foreach my $node_ref (@$node_refs) {
+            my $booter    = $node_ref->get_bootstrap_block;
+            my $boot_text = $booter->encode_bootstrap_block(
+                include_colour => $export_colours,
+            );
+            $comments_block{$node_ref->get_name} = $boot_text;
         }
+        $comment_block_hash = \%comments_block;
     }
   
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
+        comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;
-    # clear any exclusions we set
-    my @node_refs = $self->get_node_refs;
-    foreach my $node_ref (@node_refs) {
-        $node_ref->get_bootstrap_block->clear_exclusions();
-    }
-
     
     return 1;
 }

@@ -166,8 +166,8 @@ sub pre_remap_dlg {
 
     my $set_same_object_warning = sub {
         my $warning_text = '';
-        if ($controller_combo->get_active_text
-             eq $remapee_combo->get_active_text) {
+        if ($controller_sources[$controller_combo->get_active]
+             eq $remapee_sources[$remapee_combo->get_active]) {
             $warning_text
               = 'Note: remapping an object to itself '
               . 'is pointless.';

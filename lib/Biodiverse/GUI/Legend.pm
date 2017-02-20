@@ -39,35 +39,10 @@ our @EXPORT = qw(show_legend hide_legend get_legend make_mark make_legend_rect s
 ##########################################################
 # Rendering constants
 ##########################################################
-use constant CELL_SIZE_X        => 10;    # Cell size (canvas units)
-#use constant CIRCLE_DIAMETER    => 5;
-#use constant MARK_X_OFFSET      => 2;
-#
-#use constant MARK_OFFSET_X      => 3;    # How far inside the cells, marks (cross,cricle) are drawn
-#use constant MARK_END_OFFSET_X  => CELL_SIZE_X - MARK_OFFSET_X;
-#
 use constant BORDER_SIZE        => 20;
 use constant LEGEND_WIDTH       => 20;
-#
-## Lists for each cell container
-use constant INDEX_COLOUR       => 0;  # current Gtk2::Gdk::Color
-use constant INDEX_ELEMENT      => 1;  # BaseStruct element for this cell
-use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
-#use constant INDEX_CROSS        => 3;
-#use constant INDEX_CIRCLE       => 4;
-#use constant INDEX_MINUS        => 5;
-#
-##use constant INDEX_VALUES       => undef; # DELETE DELETE FIXME
-#
-#use constant HOVER_CURSOR       => 'hand2';
-#
-use constant HIGHLIGHT_COLOUR    => Gtk2::Gdk::Color->new(255*257,0,0); # red
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-#use constant CELL_OUTLINE_COLOUR => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
 use constant MARK_X_LEGEND_OFFSET  => 0.01;
-
 
 ##########################################################
 # Construction
@@ -76,10 +51,6 @@ use constant MARK_X_LEGEND_OFFSET  => 0.01;
 =head2 Constructor
 
 =over 5
-
-=item lframe
-
-The GtkFrame to hold the legend canvas
 
 =back
 
@@ -363,12 +334,13 @@ sub reposition {
     # (this has been tricky to get working right...)
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
+    print "width: $width, height: $height\n";
+
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 
-    print "height: $height, width: $width, legend_width: $legend_width\n";
     # Reposition the legend group box
     $self->{legend_group}->set(
         x        => $width  + $scroll_x - $legend_width,
@@ -385,7 +357,7 @@ sub reposition {
     $self->make_legend_rect($height);
 
     # Scale the legend to the height of the canvas. 
-    my $matrix = [1,0,0,$self->{legend_scaling_factor},0,0];
+    my $matrix = [1,0,0,$self->{legend_scaling_factor}*($height/380),0,0];
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes

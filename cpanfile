@@ -60,7 +60,7 @@ suggests "Data::Alias", "0";
 suggests "Panda::Lib";
 
 #  remove this once the to do list under issue #581 is completed
-requires 'Browser::Open';
+#requires 'Browser::Open';
 
 test_requires => sub {
     requires "Data::Section::Simple";

@@ -56,6 +56,14 @@
           <accelerator key="w" modifiers="GDK_MOD1_MASK"/>
         </child>
         <child>
+          <object class="GtkAction" id="menu_remap">
+            <property name="name">menu_remap</property>
+            <property name="tooltip" translatable="yes">Remap labels to another datasource. </property>
+            <property name="label" translatable="yes">Remap element names</property>
+            <signal handler="on_do_remap" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_quit">
             <property name="stock_id">gtk-quit</property>
             <property name="name">menu_quit</property>
@@ -185,7 +193,7 @@ labels become groups and groups become labels</property>
           <object class="GtkAction" id="menu_basedata_auto_remap">
             <property name="name">menu_basedata_auto_remap</property>
             <property name="tooltip" translatable="yes">Auto remap basedata labels to another datasource. </property>
-            <property name="label" translatable="yes">Auto Remap</property>
+            <property name="label" translatable="yes">Remap Labels</property>
             <signal handler="on_basedata_auto_remap" name="activate"/>
           </object>
         </child>
@@ -327,7 +335,7 @@ Skips any matrices already in the project.</property>
           <object class="GtkAction" id="menu_matrix_auto_remap">
             <property name="name">menu_matrix_auto_remap</property>
             <property name="tooltip" translatable="yes">Automatically remap labels to another data source.</property>
-            <property name="label" translatable="yes">Auto Remap</property>
+            <property name="label" translatable="yes">Remap Labels</property>
             <signal handler="on_matrix_auto_remap" name="activate"/>
           </object>
         </child>
@@ -464,7 +472,7 @@ Assumes a dissimilarity matrix, so take care.</property>
           <object class="GtkAction" id="menu_phylogeny_auto_remap">
             <property name="name">menu_phylogeny_auto_remap</property>
             <property name="tooltip" translatable="yes">Automatically remap labels to another data source.</property>
-            <property name="label" translatable="yes">Auto Remap</property>
+            <property name="label" translatable="yes">Remap Labels</property>
             <signal handler="on_phylogeny_auto_remap" name="activate"/>
           </object>
         </child>
@@ -684,6 +692,8 @@ This cannot be undone.  </property>
           <menuitem action="menu_save_as"/>
           <separator/>
           <menuitem action="menu_set_working_directory"/>
+          <separator/>
+          <menuitem action="menu_remap"/>
           <separator/>
           <menuitem action="menu_quit"/>
         </menu>

@@ -27,17 +27,6 @@ sub new {
     return $self;
 }
 
-# given a remap hash and a data source, actually performs the remap.
-sub perform_auto_remap {
-    my ( $self, %args ) = @_;
-
-    my $remap_hash  = $args{remap};
-    my $data_source = $args{new_source};
-
-    $data_source->remap_labels_from_hash( remap => $remap_hash );
-    return;
-}
-
 # takes a two references to trees/matrices/basedata and tries to map
 # the first one to the second one.
 sub generate_auto_remap {
@@ -221,6 +210,7 @@ sub guess_remap {
         $n = scalar @from_labels;
 
         foreach my $from_label (@from_labels) {
+            
             $progress_i++;
             $progress->update ("Distance matching $n labels", $progress_i / $n);
     
@@ -236,9 +226,9 @@ sub guess_remap {
                 push @$subset, $target_label;
                 $min_distance = min ($distance, $min_distance);
             }
-    
+
             my $match_subset = $poss_matches[$min_distance] // [];
-    
+
             if ( scalar @$match_subset == 1) {
                 my $min_label = $match_subset->[0];
     
@@ -258,6 +248,8 @@ sub guess_remap {
                     $ambiguous_matches{$from_label} = $match_subset;
                 }
                 push @unprocessed_from_labels, $from_label;
+                say "We couldn't find a definitive match for $from_label,". 
+                    " there were multiple matches with the same distance.";
             }
         }
     }

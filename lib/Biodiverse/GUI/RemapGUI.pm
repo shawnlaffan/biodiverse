@@ -91,6 +91,8 @@ sub pre_remap_dlg {
     
     # table to align the controls
     my $table = Gtk2::Table->new( 5, 2, 1 );
+    $table->set_homogeneous(0);
+    $table->set_col_spacings(10);
     
     ####
     # The remapee data source selection combo box and its label, as
@@ -167,12 +169,25 @@ sub pre_remap_dlg {
         if ($controller_combo->get_active_text
              eq $remapee_combo->get_active_text) {
             $warning_text
-              = 'Warning: remapping an object to itself '
-              . 'will result in an error.';
+              = 'Note: remapping an object to itself '
+              . 'is pointless.';
         }
         $warning_label->set_markup (
             $span_leader . $warning_text . $span_ender
         );
+    };
+    my $basedata_has_outputs_warning = sub {
+        my $remapee = $remapee_sources[$remapee_combo->get_active];
+        if ($remapee->isa('Biodiverse::BaseData')
+            && $remapee->get_output_ref_count) {
+            $warning_text
+              = "Warning: Cannot remap a basedata with outputs.\n"
+              . "You can use the 'Duplicate without outputs'\n"
+              . "menu option to create a 'clean' version.";
+            $warning_label->set_markup (
+                $span_leader . $warning_text . $span_ender
+            );
+        }
     };
     
     $controller_combo->signal_connect(
@@ -187,9 +202,14 @@ sub pre_remap_dlg {
     $remapee_combo->signal_connect(
         changed => sub {
             $set_same_object_warning->();
+            #  basedata warning overrides same object
+            $basedata_has_outputs_warning->();
         }
     );
 
+    #  trigger the warnings for the first display
+    $set_same_object_warning->();
+    $basedata_has_outputs_warning->();
     
     ####
     # The dialog itself
@@ -230,7 +250,7 @@ sub pre_remap_dlg {
             controller              => $controller,
             max_distance            => $spinner->get_value_as_int(),
             ignore_case             => $case_checkbutton->get_active(),
-            );
+        );
     }
     else {
         %results = (remap_type => "none");

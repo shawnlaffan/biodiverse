@@ -2911,6 +2911,11 @@ sub rename_subelement {
     return;
 }
 
+sub delete_all_elements {
+    my ($self, %args) = @_;
+    $self->{ELEMENTS} = ();
+}
+
 #  delete the element, return a list of fully cleansed elements
 sub delete_element {  
     my $self = shift;

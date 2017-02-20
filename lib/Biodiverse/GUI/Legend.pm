@@ -14,6 +14,7 @@ use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
 use Exporter;
+use Geometry::AffineTransform;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -164,6 +165,9 @@ sub make_legend_rect {
 
         ($width, $height) = (LEGEND_WIDTH, 180);
 
+        # Set the legend scaling factor.
+        $self->{legend_scaling_factor}=2.1; 
+
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
@@ -183,7 +187,9 @@ sub make_legend_rect {
     elsif ($self->{legend_mode} eq 'Sat') {
 
         ($width, $height) = (LEGEND_WIDTH, 100);
-        #$width = LEGEND_WIDTH;
+
+        # Set the legend scaling factor.
+        $self->{legend_scaling_factor}=3.8; 
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb(
@@ -208,7 +214,9 @@ sub make_legend_rect {
     elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = (LEGEND_WIDTH, 255);
-        #$width = LEGEND_WIDTH;
+
+        # Set the legend scaling factor.
+        $self->{legend_scaling_factor}=1.4; 
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
@@ -217,7 +225,6 @@ sub make_legend_rect {
 #            add_legend_row($row,$r,$g,$b);
             my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
                 $self->{legend_colours_group},
-                #$self->{legend_group},
                 'Gnome2::Canvas::Rect',
                 x1 => 0,
                 x2 => $width,
@@ -361,6 +368,7 @@ sub reposition {
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 
+    print "height: $height, width: $width, legend_width: $legend_width\n";
     # Reposition the legend group box
     $self->{legend_group}->set(
         x        => $width  + $scroll_x - $legend_width,
@@ -375,9 +383,10 @@ sub reposition {
 
     # Update the legend colours
     $self->make_legend_rect($height);
-    
-    #my $lh = $self->{legend}->get('y');
-    #print "legend height: $lh\n";
+
+    # Scale the legend to the height of the canvas. 
+    my $matrix = [1,0,0,$self->{legend_scaling_factor},0,0];
+    $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
     foreach my $i (0..3) {

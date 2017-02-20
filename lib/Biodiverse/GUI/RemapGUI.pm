@@ -47,7 +47,7 @@ use constant COPY_BUTTON_TOOLTIP
 use constant EXPORT_BUTTON_TOOLTIP 
     => "Save the remapped data source to a file";
 use constant IGNORE_CASE_TOOLTIP
-    => "Treat case difference as punctuation rather than typos.";
+    => "Treat case differences as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
 use constant MANUAL_OPTION_TEXT => "From file";
@@ -82,7 +82,12 @@ sub pre_remap_dlg {
     my @controller_sources = @remapee_sources;
     unshift @controller_sources, MANUAL_OPTION_TEXT;
 
-    my $default_remapee = $args{default_remapee} // $remapee_sources[0];
+    my $selected_basedata = $gui->get_project->get_selected_basedata;
+
+    my $default_remapee
+      = $args{default_remapee}
+      // $selected_basedata
+      // $remapee_sources[0];
     
     # table to align the controls
     my $table = Gtk2::Table->new( 4, 2, 1 );

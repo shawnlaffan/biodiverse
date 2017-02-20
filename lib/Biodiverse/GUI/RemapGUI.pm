@@ -90,7 +90,7 @@ sub pre_remap_dlg {
       // $remapee_sources[0];
     
     # table to align the controls
-    my $table = Gtk2::Table->new( 4, 2, 1 );
+    my $table = Gtk2::Table->new( 5, 2, 1 );
     
     ####
     # The remapee data source selection combo box and its label, as
@@ -116,13 +116,11 @@ sub pre_remap_dlg {
     $remapee_combo->set_tooltip_text ('Choose a data source to remap to');
     my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
     my $controller_label = Gtk2::Label->new('Label source:');
-   
     
     $table->attach_defaults( $remapee_label, 0, 1, 0, 1 );
     $table->attach_defaults( $remapee_combo, 1, 2, 0, 1 );
     $table->attach_defaults( $controller_label, 0, 1, 1, 2 );
     $table->attach_defaults( $controller_combo, 1, 2, 1, 2 );
-
     
     ####
     # The max_distance spinbutton and its label
@@ -138,24 +136,44 @@ sub pre_remap_dlg {
     $case_checkbutton->set_active(0);
     $case_checkbutton->set_tooltip_text(IGNORE_CASE_TOOLTIP);
 
+    my $warning_label = Gtk2::Label->new('');
+    my $span_leader   = '<span foreground="red">';
+    my $span_ender    = '</span>';
+    my $warning_text  =  $span_leader . $span_ender;
+    $warning_label->set_markup ($warning_text);
+
     $table->attach_defaults ($max_distance_label, 0, 1, 2, 3 );
     $table->attach_defaults ($spinner,            1, 2, 2, 3 );
     $table->attach_defaults ($case_label,         0, 1, 3, 4 );
     $table->attach_defaults ($case_checkbutton,   1, 2, 3, 4 );
-
+    $table->attach_defaults( $warning_label,      0, 2, 4, 5 );
 
     # make selecting the manual/file based remap option disable the
     # auto remap setting.
-    my @auto_options = ($case_label, 
-                        $case_checkbutton, 
-                        $spinner,
-                        $max_distance_label);
+    my @auto_options = (
+        $case_label, 
+        $case_checkbutton, 
+        $spinner,
+        $max_distance_label,
+    );
 
     # we start with manual as default
     foreach my $option (@auto_options) {
         $option->set_sensitive(0);
     }
 
+    my $set_same_object_warning = sub {
+        my $warning_text = '';
+        if ($controller_combo->get_active_text
+             eq $remapee_combo->get_active_text) {
+            $warning_text
+              = 'Warning: remapping an object to itself '
+              . 'will result in an error.';
+        }
+        $warning_label->set_markup (
+            $span_leader . $warning_text . $span_ender
+        );
+    };
     
     $controller_combo->signal_connect(
         changed => sub {
@@ -163,6 +181,12 @@ sub pre_remap_dlg {
             foreach my $option (@auto_options) {
                 $option->set_sensitive($sensitive);
             }
+            $set_same_object_warning->();
+        }
+    );
+    $remapee_combo->signal_connect(
+        changed => sub {
+            $set_same_object_warning->();
         }
     );
 

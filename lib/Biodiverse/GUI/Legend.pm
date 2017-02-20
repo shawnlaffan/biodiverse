@@ -1,6 +1,6 @@
 =head1 LEGEND
 
-A component that displays a BaseStruct using GnomeCanvas
+Component to display a legend. 
 
 =cut
 
@@ -98,17 +98,7 @@ sub show_legend {
         y => 0,
     );   
 
-    # Create the legend rectangles for packing
-   # $self->{legend}  = Gnome2::Canvas::Item->new (
-   #     $self->{legend_group}, 
-   #     'Gnome2::Canvas::Rect',
-   #     x1 => 0,
-   #     x2 => 20, 
-   #     y1 => 0,
-   #     y2 => 180, 
-   #     fill_color_gdk => $legend_colour_select,
-   # );
-   # # Create legend
+   # Create legend
     $self->{legend} = $self->make_legend_rect();
 
     $self->{legend_group}->raise_to_top();
@@ -134,6 +124,9 @@ sub hide_legend {
     $self->{legend}->destroy();
     delete $self->{legend};
 
+    $self->{legend_group}->destroy();
+    delete $self->{legend_group};
+
     foreach my $i (0..3) {
         $self->{marks}[$i]->destroy();
     }
@@ -150,14 +143,13 @@ sub get_legend {
 
 sub make_legend_rect {
     my $self = shift;
-    my $height = shift || 180;
+    my $height = shift || 380;
     #my ($width, $height);
     my $width;
-    my @pixels;
-    my $legend_temp;
-    # Make array of rgb values
-    my $themode = $self->{legend_mode};
-    print "mode: $themode\n";
+
+    if ($self->{legend_colours_group}) {
+        $self->{legend_colours_group}->destroy(); 
+    }
 
     # Make a group so we can pack the coloured
     # rectangles into it.  
@@ -170,17 +162,12 @@ sub make_legend_rect {
 
     if ($self->{legend_mode} eq 'Hue') {
 
-        #($width, $height) = (LEGEND_WIDTH, 180);
-        $width = LEGEND_WIDTH;
-
-#        foreach my $row (0..($height - 1)) {
-#            my @rgb = hsv_to_rgb($row, 1, 1);
-#            push @pixels, (@rgb) x $width;
-#        }
+        ($width, $height) = (LEGEND_WIDTH, 180);
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
+#            add_legend_row($row,$r,$g,$b);
             my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
                 $self->{legend_colours_group},
                 'Gnome2::Canvas::Rect',
@@ -188,44 +175,85 @@ sub make_legend_rect {
                 x2 => $width,
                 y1 => $row,
                 y2 => $row+1,
-                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b,0),
+                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
             );
-            #push @pixels, (@rgb) x $width;
         }
 
     }
     elsif ($self->{legend_mode} eq 'Sat') {
 
         ($width, $height) = (LEGEND_WIDTH, 100);
+        #$width = LEGEND_WIDTH;
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb(
                 $self->{hue},
-                1 - $row / 100.0,
+                1 - $row / $height,
                 1,
             );
-            push @pixels, (@rgb) x $width;
+            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
+#            add_legend_row($row,$r,$g,$b);
+            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
+                $self->{legend_colours_group},
+                'Gnome2::Canvas::Rect',
+                x1 => 0,
+                x2 => $width,
+                y1 => $row,
+                y2 => $row+1,
+                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+            );
         }
 
     }
     elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = (LEGEND_WIDTH, 255);
+        #$width = LEGEND_WIDTH;
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
-            my @rgb = ($intensity) x 3;
-            push @pixels, (@rgb) x $width;
+            my @rgb = ($intensity * 275 ) x 3;
+            my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
+#            add_legend_row($row,$r,$g,$b);
+            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
+                $self->{legend_colours_group},
+                #$self->{legend_group},
+                'Gnome2::Canvas::Rect',
+                x1 => 0,
+                x2 => $width,
+                y1 => $row,
+                y2 => $row+1,
+                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+            );
         }
     }
     else {
         croak "Legend: Invalid colour system\n";
     }
 
-    # Convert to low-level integers
-    my $data = pack "C*", @pixels;
-
     return $self->{legend_colours_group};
+}
+
+# Add a coloured row to the legend.
+sub add_legend_row {
+    my $self   = shift;
+    my $row    = shift;
+    my $r      = shift;
+    my $g      = shift;
+    my $b      = shift;
+
+    my $width = LEGEND_WIDTH;
+
+    print $self->{legend_colours_group};
+    my $legend_colour_row = Gnome2::Canvas::Item->new (
+        $self->{legend_colours_group},
+        'Gnome2::Canvas::Rect',
+        x1 => 0,
+        x2 => $width,
+        y1 => $row,
+        y2 => $row+1,
+        fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+    );
 }
 
 ##########################################################
@@ -239,7 +267,7 @@ sub make_mark {
     my $mark = Gnome2::Canvas::Item->new (
         $self->{legend_group}, 
         'Gnome2::Canvas::Text',
-        text            => q{},
+        text            => q{0},
         anchor          => $anchor,
         fill_color_gdk  => COLOUR_BLACK,
     );
@@ -248,68 +276,6 @@ sub make_mark {
 
     return $mark;
 }
-
-#sub make_legend_pixbuf {
-#    my $self = shift;
-#    my ($width, $height);
-#    my @pixels;
-#
-#    # Make array of rgb values
-#
-#    if ($self->{legend_mode} eq 'Hue') {
-#
-#        ($width, $height) = (LEGEND_WIDTH, 180);
-#
-#        foreach my $row (0..($height - 1)) {
-#            my @rgb = hsv_to_rgb($row, 1, 1);
-#            push @pixels, (@rgb) x $width;
-#        }
-#
-#    }
-#    elsif ($self->{legend_mode} eq 'Sat') {
-#
-#        ($width, $height) = (LEGEND_WIDTH, 100);
-#
-#        foreach my $row (0..($height - 1)) {
-#            my @rgb = hsv_to_rgb(
-#                $self->{hue},
-#                1 - $row / 100.0,
-#                1,
-#            );
-#            push @pixels, (@rgb) x $width;
-#        }
-#
-#    }
-#    elsif ($self->{legend_mode} eq 'Grey') {
-#
-#        ($width, $height) = (LEGEND_WIDTH, 255);
-#
-#        foreach my $row (0..($height - 1)) {
-#            my $intensity = $self->rescale_grey(255 - $row);
-#            my @rgb = ($intensity) x 3;
-#            push @pixels, (@rgb) x $width;
-#        }
-#    }
-#    else {
-#        croak "Legend: Invalid colour system\n";
-#    }
-#
-#
-#    # Convert to low-level integers
-#    my $data = pack "C*", @pixels;
-#
-#    my $pixbuf = Gtk2::Gdk::Pixbuf->new_from_data(
-#        $data,       # the data.  this will be copied.
-#        'rgb',       # only currently supported colorspace
-#        0,           # true, because we do have alpha channel data
-#        8,           # gdk-pixbuf currently allows only 8-bit samples
-#        $width,      # width in pixels
-#        $height,     # height in pixels
-#        $width * 3,  # rowstride -- we have RGBA data, so it's four
-#    );               # bytes per pixel.
-#
-#    return $pixbuf;
-#}
 
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
@@ -389,7 +355,6 @@ sub reposition {
     # Convert coordinates into world units
     # (this has been tricky to get working right...)
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
-    print "canvas width: $width, canvas height: $height\n";
 
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
@@ -403,10 +368,10 @@ sub reposition {
     );
 
     # Adjust the legend height
-    #$self->{legend}->set(
-    #    x       => 0, #$width,
-    #    y       => 0, #$scroll_y, #$height,
-    #);
+    $self->{legend}->set(
+        x       => 0, #$width,
+        y       => 0, #$scroll_y, #$height,
+    );
 
     # Update the legend colours
     $self->make_legend_rect($height);
@@ -493,7 +458,8 @@ sub set_legend_hue {
 
     # Update legend
     if ($self->{legend}) {
-        $self->{legend}->set(pixbuf => $self->make_legend_rect() );
+        #$self->{legend}->set(pixbuf => $self->make_legend_rect() );
+        $self->make_legend_rect();
     }
 
     return;
@@ -527,6 +493,44 @@ sub hsv_to_rgb {
     elsif($i == 3) { return($p, $q, $v); }
     elsif($i == 4) { return($t, $p, $v); }
     else           { return($v, $p, $q); }
+}
+
+sub rgb_to_hsv {
+    my $var_r = $_[0] / 255;
+    my $var_g = $_[1] / 255;
+    my $var_b = $_[2] / 255;
+    my($var_max, $var_min) = maxmin($var_r, $var_g, $var_b);
+    my $del_max = $var_max - $var_min;
+
+    if($del_max) {
+        my $del_r = ((($var_max - $var_r) / 6) + ($del_max / 2)) / $del_max;
+        my $del_g = ((($var_max - $var_g) / 6) + ($del_max / 2)) / $del_max;
+        my $del_b = ((($var_max - $var_b) / 6) + ($del_max / 2)) / $del_max;
+    
+        my $h;
+        if($var_r == $var_max) { $h = $del_b - $del_g; }
+        elsif($var_g == $var_max) { $h = 1/3 + $del_r - $del_b; }
+        elsif($var_b == $var_max) { $h = 2/3 + $del_g - $del_r; }
+    
+        if($h < 0) { $h += 1 }
+        if($h > 1) { $h -= 1 }
+    
+        return($h * 360, $del_max / $var_max, $var_max);
+    }
+    else {
+        return(0, 0, $var_max);
+    }
+}
+
+sub maxmin {
+    my($min, $max) = @_;
+    
+    for(my $i=0; $i<@_; $i++) {
+        $max = $_[$i] if($max < $_[$i]);
+        $min = $_[$i] if($min > $_[$i]);
+    }
+    
+    return($max,$min);
 }
 
 1;

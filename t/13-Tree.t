@@ -521,14 +521,9 @@ sub _test_export_nexus {
         # get all the nodes
         my @tree_nodes = $tree->get_node_refs();
         foreach my $node (@tree_nodes) {
-            $node->set_bootstrap_value(
-                key   => "bootkey",
-                value => "bootvalue",
-            );
-            $node->set_bootstrap_value(
-                key   => "colour",
-                value => "red",
-            );
+            my $booter = $node->get_bootstrap_block;
+            $booter->set_value_aa(bootkey => "bootvalue");
+            $booter->set_colour_aa("red");
         }
     }
     
@@ -609,11 +604,12 @@ sub _test_export_nexus {
             my @tree_nodes = $imported_tree->get_node_refs();
             foreach my $node (@tree_nodes) {
                 my $node_name = $node->get_name;
-                is($node->get_bootstrap_value( key => "bootkey" ),
+                my $booter = $node->get_bootstrap_block;
+                is ($booter->get_value( key => "bootkey" ),
                    "bootvalue",
                    "Exported and then imported correct bootstrap value for $node_name."
                 );
-                is($node->get_bootstrap_value( key => "colour" ),
+                is ($booter->get_colour,
                    "red",
                    "Exported and then imported correct colour for $node_name."
                 );

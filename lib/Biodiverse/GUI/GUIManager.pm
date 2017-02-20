@@ -1149,8 +1149,9 @@ sub do_remap {
     # check if the remapee is a basedata with outputs
     my $type = blessed $remapee;
 
-    croak "Can't remap elements of a Basedata with outputs. " .
-          "Try 'Duplicate without outputs'."
+    croak "Cannot remap elements of a Basedata with outputs.\n"
+          . "You can use the 'Duplicate without outputs' menu "
+          . "option to create a new version.\n"
         if ($type eq 'Biodiverse::BaseData' && $remapee->get_output_ref_count);
 
     my $want_to_perform_remap = 0;
@@ -1205,7 +1206,7 @@ sub do_remap {
     # the function names are frustratingly add_base_data and
     # do_rename_basedata so we have to fix that here.
     if($function_name eq 'basedata') {
-        $add_to_project_function = "add_"."base_data";
+        $add_to_project_function = "add_base_data";
     }
     else {
         $add_to_project_function = "add_" . $function_name;

@@ -1147,7 +1147,7 @@ sub do_remap {
     my $remapee    = $pre_remap_dlg_results->{remapee};
 
     # check if the remapee is a basedata with outputs
-    my $type = blessed $remapee;
+    my $type = (blessed $remapee) // '';
 
     croak "Cannot remap elements of a Basedata with outputs.\n"
           . "You can use the 'Duplicate without outputs' menu "

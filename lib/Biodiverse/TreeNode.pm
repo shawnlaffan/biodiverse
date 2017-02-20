@@ -56,10 +56,10 @@ sub new {
         $self->add_children(%args);
     }
 
-    if (exists $args{boot}) {
+    if (exists $args{boot} && defined $args{boot}) {
         #say "We found the boot arg, it is $args{boot}";
         my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
-        $bootstrap_block->decode_bootstrap_block(raw_bootstrap => $args{boot});
+        $bootstrap_block->decode (raw_bootstrap => $args{boot});
         $self->set_value(
             bootstrap_block => $bootstrap_block,
         );
@@ -1598,15 +1598,10 @@ sub get_bootstrap_value {
 
 # isolate dealings with the underlying object hash to one function
 sub get_bootstrap_block {
-    my ($self, %args) = @_;
-    my $bootstrap_block = $self->get_value('bootstrap_block');
-    if(!$bootstrap_block) {
-        $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
-    
-        $self->set_value (
-            bootstrap_block => $bootstrap_block,
-        );
-    }
+    my ($self) = @_;
+    my $bootstrap_block =
+           $self->{bootstrap_block}
+      ||=  Biodiverse::TreeNode::BootstrapBlock->new;
 
     return $bootstrap_block;
 }
@@ -1932,7 +1927,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     
     # build the bootstrap block - should be conditional
     my $bootstrap_block = $self->get_bootstrap_block();
-    my $bootstrap_string = $bootstrap_block->encode_bootstrap_block(
+    my $bootstrap_string = $bootstrap_block->encode (
         include_colour => $args{export_colours} || $args{include_colours},
     );
 

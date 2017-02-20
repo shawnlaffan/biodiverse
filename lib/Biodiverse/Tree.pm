@@ -931,7 +931,7 @@ sub export_nexus {
         my $node_refs = $self->get_node_refs;
         foreach my $node_ref (@$node_refs) {
             my $booter    = $node_ref->get_bootstrap_block;
-            my $boot_text = $booter->encode_bootstrap_block(
+            my $boot_text = $booter->encode (
                 include_colour => $export_colours,
             );
             $comments_block{$node_ref->get_name} = $boot_text;

@@ -13,7 +13,7 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   - set BDV_PPM=https://github.com/shawnlaffan/biodiverse/raw/ppm/ppm524_x64
   - set have_geo_gdal=0
-  - FOR /F "delims=" %i IN ('ppm query Geo::GDAL') DO set have_geo_gdal=1
+  - FOR /F "delims=" %%i IN ('ppm query Geo::GDAL') DO set have_geo_gdal=1
   - IF [%have_geo_gdal%]==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
   
   #  cpanfile has these covered now?

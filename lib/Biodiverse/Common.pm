@@ -226,7 +226,7 @@ sub load_storable_file {
 
     #  load data from storable file, ignores rest of the args
     $self = retrieve($file);
-    if ($Storable::VERSION le 2.15) {
+    if ($Storable::VERSION le '2.15') {
         foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
             $self -> $fn if $self->can($fn);
         }

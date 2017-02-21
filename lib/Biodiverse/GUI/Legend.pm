@@ -60,7 +60,11 @@ use constant LEGEND_HEIGHT  => 380;
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
-    return if $self->get_legend;
+    if ($self->get_legend) {
+        $self->{legend_group}->show;
+	return;
+    }
+    # return if $self->get_legend;
 
     # Get the width and height of the canvas.
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
@@ -97,17 +101,7 @@ sub hide_legend {
 
     return if !$self->get_legend;
 
-    $self->{legend}->destroy();
-    delete $self->{legend};
-
-    $self->{legend_group}->destroy();
-    delete $self->{legend_group};
-
-    foreach my $i (0..3) {
-        $self->{marks}[$i]->destroy();
-    }
-
-    delete $self->{marks};
+    $self->{legend_group}->hide;
 
     return;
 }
@@ -343,18 +337,18 @@ sub reposition {
 
     my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
 
+    # Get the pixels per unit value from the canvas
+    # to scale the legend with.
+    my $ppu = $self->{canvas}->get_pixels_per_unit();
+
     # Reposition the legend group box
     $self->{legend_group}->set(
         x        => $width  + $scroll_x - $legend_width,
         y        => $scroll_y,
     );
 
-    # Get the pixels per unit value from the canvas
-    # to scale the legend with.
-    my $ppu = $self->{canvas}->get_pixels_per_unit();
-    print "ppu: $ppu\n";
-
     # Scale the legend's height and width to match the current size of the canvas. 
+    # Scaling y is a hack. Probably should get it  working with ppu.
     my $matrix = [$legend_width*$ppu, # scale x
                   0,
                   0,

@@ -14,7 +14,6 @@ use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
 
-use Gtk2;
 use Biodiverse::BaseStruct;
 use Biodiverse::TreeNode::BootstrapBlock;
 

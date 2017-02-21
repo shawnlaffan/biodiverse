@@ -67,5 +67,4 @@ branches:
   except:
   - ppm
   #  list GUI only branches here since we lack GUI tests
-  - issue_630_export_user_tree_colours
   - issue_633_remove_pixbuf

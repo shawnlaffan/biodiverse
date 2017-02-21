@@ -758,7 +758,7 @@ sub get_unique_name {
 sub export {
     my $self = shift;
     my %args = @_;
-
+    
     croak "[TREE] Export:  Argument 'file' not specified or null\n"
       if not defined $args{file}
       || length( $args{file} ) == 0;
@@ -894,6 +894,13 @@ sub get_metadata_export_nexus {
             type    => 'boolean',
             default => 0,
         },
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
+            type       => 'boolean',
+            default    => 0,
+        },
     );
     for (@parameters) {
         bless $_, $parameter_metadata_class;
@@ -916,13 +923,30 @@ sub export_nexus {
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
 
+    my $export_colours = $args{export_colours};
+    my $sub_list_name  = $args{sub_list};
+    my $comment_block_hash;
+    if ($export_colours || defined $sub_list_name) {
+        my %comments_block;
+        my $node_refs = $self->get_node_refs;
+        foreach my $node_ref (@$node_refs) {
+            my $booter    = $node_ref->get_bootstrap_block;
+            my $boot_text = $booter->encode (
+                include_colour => $export_colours,
+            );
+            $comments_block{$node_ref->get_name} = $boot_text;
+        }
+        $comment_block_hash = \%comments_block;
+    }
+  
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
+        comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;
-
+    
     return 1;
 }
 
@@ -930,7 +954,6 @@ sub get_metadata_export_newick {
     my $self = shift;
 
     my @parameters = (
-        bless(
             {
                 name       => 'use_internal_names',
                 label_text => 'Label internal nodes',
@@ -938,9 +961,11 @@ sub get_metadata_export_newick {
                 type       => 'boolean',
                 default    => 1,
             },
-            $parameter_metadata_class
-        ),
-    );
+        );
+
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }  
 
     my %args = (
         format     => 'Newick',
@@ -960,6 +985,7 @@ sub export_newick {
 
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
+
     print {$fh} $self->to_newick(%args);
     $fh->close;
 
@@ -1116,6 +1142,13 @@ sub get_metadata_export_tabular_tree {
 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
             type    => 'boolean',
             default => 0,
+        },
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
+            type       => 'boolean',
+            default    => 0,
         },
     );
 
@@ -2732,7 +2765,8 @@ sub remap_labels_from_hash {
 # the auto-remap logic.
 sub get_labels {
     my $self = shift;
-    return keys( %{ $self->get_named_nodes() } );
+    my $named_nodes = $self->get_named_nodes;
+    return wantarray ? keys %$named_nodes : [keys %$named_nodes];
 }
 
 1;

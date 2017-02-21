@@ -492,11 +492,22 @@ sub test_export_tabular_tree {
 
 sub test_export_nexus {
     my $tree = shift // get_site_data_as_tree();
+    
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 0,
+    );
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 1,
+        use_internal_names => 1,
+    );
+    _test_export_nexus (
+        tree => $tree,
+        no_translate_block => 0,
+        check_bootstrap_values => 1,
+    );
 
-    _test_export_nexus (tree => $tree, no_translate_block => 0);
-    _test_export_nexus (tree => $tree, no_translate_block => 1, use_internal_names => 1);
-    
-    
 }
 
 
@@ -505,14 +516,27 @@ sub _test_export_nexus {
     my $tree = $args{tree};
     delete $args{tree};
 
+    if ($args{check_bootstrap_values}) {
+        # add some bootstrap values to export
+        # get all the nodes
+        my @tree_nodes = $tree->get_node_refs();
+        foreach my $node (@tree_nodes) {
+            my $booter = $node->get_bootstrap_block;
+            $booter->set_value_aa(bootkey => "bootvalue");
+            $booter->set_colour_aa("red");
+        }
+    }
+    
     my $test_suffix = ', args:';
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
         $test_suffix .= " $key => $val,";
     }
     chop $test_suffix;
-
-    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()) . '.nex');
+    
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+    
+    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
     note "File name is $fname";
     my $success = eval {
         $tree->export_nexus (
@@ -540,6 +564,7 @@ sub _test_export_nexus {
         'Reimported nexus tree matches original' . $test_suffix,
     );
 
+    
     my %nodes   = $tree->get_node_hash;
     my %nodes_i = $imported_tree->get_node_hash;
 
@@ -573,6 +598,28 @@ sub _test_export_nexus {
         };
     };
 
+    ## make sure the bootstrap values got through
+    ## comment out since todo results in lots of newlines at the terminal
+    #if($args{check_bootstrap_values}) {
+    #    TODO: {
+    #        local $TODO = 'round tripping is for issue #657';
+    #        subtest "bootstrap roundtrip" => sub {
+    #            my @tree_nodes = $imported_tree->get_node_refs();
+    #            foreach my $node (@tree_nodes) {
+    #                my $node_name = $node->get_name;
+    #                my $booter = $node->get_bootstrap_block;
+    #                is ($booter->get_value( key => "bootkey" ),
+    #                   "bootvalue",
+    #                   "Exported and then imported correct bootstrap value for $node_name."
+    #                );
+    #                is ($booter->get_colour,
+    #                   "red",
+    #                   "Exported and then imported correct colour for $node_name."
+    #                );
+    #            }
+    #        };
+    #    }
+    #}
 
     return;
 }
@@ -605,7 +652,6 @@ sub test_roundtrip_names_with_quotes_in_newick {
 
     ok ($tree1->trees_are_same(comparison => $tree2), 'trees are the same when roundtripped via newick and names have quotes');
 }
-
 
 
 sub test_equalise_branch_lengths {

@@ -1481,8 +1481,6 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_popup {
-    say "on_grid_popup in Clustering.pm called";
-    
     my $self = shift;
     my $element = shift;
     my $basedata_ref = $self->{basedata_ref};

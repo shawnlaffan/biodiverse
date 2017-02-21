@@ -212,7 +212,7 @@ sub destroy {
 
     delete $self->{hover_func}; #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
-    delete $self->{click_func}; #??? not sure if helps
+    delete $self->{ctrl_click_func}; #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it from being destroyed properly,

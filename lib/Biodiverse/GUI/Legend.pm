@@ -61,6 +61,7 @@ sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
     if ($self->get_legend) {
+        # Show the legend group because it already exists.
         $self->{legend_group}->show;
 	return;
     }
@@ -101,6 +102,7 @@ sub hide_legend {
 
     return if !$self->get_legend;
 
+    # Hide the legend group as a whole.
     $self->{legend_group}->hide;
 
     return;
@@ -113,16 +115,17 @@ sub get_legend {
 
 sub make_legend_rect {
     my $self = shift;
-    #my $height = shift || ;
     my ($width, $height);
-    #my $width;
 
+    # If legend_colours_group already exists then destroy it.
+    # We do this because we are about to create it again
+    # with a different colour scheme as defined by legend_mode.
     if ($self->{legend_colours_group}) {
         $self->{legend_colours_group}->destroy(); 
     }
 
     # Make a group so we can pack the coloured
-    # rectangles into it.  
+    # rectangles into it to create the legend.
     $self->{legend_colours_group} = Gnome2::Canvas::Item->new (
         $self->{legend_group},
         'Gnome2::Canvas::Group',
@@ -130,6 +133,12 @@ sub make_legend_rect {
         y => 0, 
     );   
 
+    # Create and colour the legend according to the colouring
+    # scheme specified by $self->{legend_mode}. Each colour
+    # mode has a different range as specified by $height.
+    #  Once the legend is create it is scaled to the height
+    # of the canvas according to each mode's scaling factor
+    # held in $self->{legend_scaling_factor}.
     if ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = (LEGEND_WIDTH, 180);
@@ -140,20 +149,10 @@ sub make_legend_rect {
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-#            add_legend_row($row,$r,$g,$b);
-            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
-                $self->{legend_colours_group},
-                'Gnome2::Canvas::Rect',
-                x1 => 0,
-                x2 => $width,
-                y1 => $row,
-                y2 => $row+1,
-                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
-            );
+            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    }
-    elsif ($self->{legend_mode} eq 'Sat') {
+    } elsif ($self->{legend_mode} eq 'Sat') {
 
         ($width, $height) = (LEGEND_WIDTH, 100);
 
@@ -167,20 +166,10 @@ sub make_legend_rect {
                 1,
             );
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-#            add_legend_row($row,$r,$g,$b);
-            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
-                $self->{legend_colours_group},
-                'Gnome2::Canvas::Rect',
-                x1 => 0,
-                x2 => $width,
-                y1 => $row,
-                y2 => $row+1,
-                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
-            );
+            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    }
-    elsif ($self->{legend_mode} eq 'Grey') {
+    } elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = (LEGEND_WIDTH, 255);
 
@@ -189,21 +178,11 @@ sub make_legend_rect {
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
-            my @rgb = ($intensity * 275 ) x 3;
+            my @rgb = ($intensity * 257 ) x 3;
             my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-#            add_legend_row($row,$r,$g,$b);
-            my $self->{legend_colours_rect}  = Gnome2::Canvas::Item->new (
-                $self->{legend_colours_group},
-                'Gnome2::Canvas::Rect',
-                x1 => 0,
-                x2 => $width,
-                y1 => $row,
-                y2 => $row+1,
-                fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
-            );
+            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
-    }
-    else {
+    } else {
         croak "Legend: Invalid colour system\n";
     }
 
@@ -220,9 +199,8 @@ sub add_legend_row {
 
     my $width = LEGEND_WIDTH;
 
-    print $self->{legend_colours_group};
     my $legend_colour_row = Gnome2::Canvas::Item->new (
-        $self->{legend_colours_group},
+        $self,
         'Gnome2::Canvas::Rect',
         x1 => 0,
         x2 => $width,

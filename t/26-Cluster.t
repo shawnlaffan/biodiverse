@@ -9,8 +9,8 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
+use rlib;
 use List::Util qw /first/;
-use File::Temp qw /tempfile/;
 
 use Test::More;
 
@@ -70,10 +70,10 @@ sub main {
 
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
-    my $data = get_cluster_mini_data();
-    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-    
-    check_order_is_same_given_same_prng (basedata_ref => $bd);
+    #  skip the small data - they provide no additional benefit
+    #my $data = get_cluster_mini_data();
+    #my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    #check_order_is_same_given_same_prng (basedata_ref => $bd);
     
     my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);
@@ -187,6 +187,8 @@ sub check_order_is_same_given_same_prng {
     my $cl1 = $bd->add_cluster_output (name => 'cl1');
     my $cl2 = $bd->add_cluster_output (name => 'cl2');
     my $cl3 = $bd->add_cluster_output (name => 'cl3');
+    my $cl4 = $bd->add_cluster_output (name => 'cl4');
+    
     
     $cl1->run_analysis (
         prng_seed => $prng_seed,
@@ -195,15 +197,20 @@ sub check_order_is_same_given_same_prng {
         prng_seed => $prng_seed,
     );
     $cl3->run_analysis (
-        prng_seed => $prng_seed + 1,  #  different prng
+        prng_seed => ($prng_seed + 1),  #  different prng
+    );
+    $cl4->run_analysis (
+        prng_seed => ($prng_seed + 2),  #  different prng
     );
     
     my $newick1 = $cl1->to_newick;
     my $newick2 = $cl2->to_newick;
     my $newick3 = $cl3->to_newick;
+    my $newick4 = $cl4->to_newick;
     
     is   ($newick1, $newick2, 'trees are the same');
-    isnt ($newick1, $newick3, 'trees are not the same');
+    isnt ($newick1, $newick3, 'trees are not the same when seed differs by 1');
+    isnt ($newick1, $newick4, 'trees are not the same when seed differs by 2');
 }
 
 
@@ -398,7 +405,9 @@ sub test_mx_direct_write_to_file {
         linkage_function   => 'link_average',
     );
 
-    my ($fh, $fname) = tempfile (TEMPLATE => 'bd_XXXX', TEMPDIR => 1);
+    my $fname = get_temp_file_path("bd_XXXX");
+    open(my $fh, '>', $fname) or die "test_mx_direct_write_to_file: Cannot open $fname\n";
+
     my $cl = $bd->add_cluster_output (name => 'write_mx_to_file');
     $cl->run_analysis (
         %analysis_args,

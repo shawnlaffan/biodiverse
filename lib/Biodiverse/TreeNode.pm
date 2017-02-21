@@ -15,6 +15,7 @@ use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
 
 use Biodiverse::BaseStruct;
+use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
@@ -54,6 +55,15 @@ sub new {
         $self->add_children(%args);
     }
 
+    if (exists $args{boot} && defined $args{boot}) {
+        #say "We found the boot arg, it is $args{boot}";
+        my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
+        $bootstrap_block->decode (raw_bootstrap => $args{boot});
+        $self->set_value(
+            bootstrap_block => $bootstrap_block,
+        );
+    }
+    
     return $self;
 }
 
@@ -1562,11 +1572,56 @@ sub number_nodes {
     return $number;
 }
 
-#  convert the entire tree to a table structure, using a basestruct object as an intermediate
+
+sub set_bootstrap_value {
+    my ($self, %args) = @_;
+    my $key   = $args{ key   };
+    my $value = $args{ value };
+
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_value_aa( $key => $value );
+
+    return;
+}
+
+sub get_bootstrap_value {
+    my ($self, %args) = @_;
+    my $key   = $args{ key   };
+
+    my $bootstrap_block = $self->get_bootstrap_block();
+    return $bootstrap_block->get_value( key => $key );
+}
+
+sub set_bootstrap_colour_aa {
+    my ($self, $colour) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_colour_aa ($colour);
+    return;
+}
+
+sub get_bootstrap_colour {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour;
+}
+
+
+# isolate dealings with the underlying object hash to one function
+sub get_bootstrap_block {
+    my ($self) = @_;
+    return
+      $self->{_bootstrap_block}
+      ||=  Biodiverse::TreeNode::BootstrapBlock->new;
+}
+
+
+#  convert the entire tree to a table structure, using a basestruct
+#  object as an intermediate
 sub to_table {
     my $self = shift;
     my %args = @_;
     my $treename = $args{name} || "TREE";
+
     
     #  assign unique ID numbers if not already done
     defined ($self->get_value ('NODE_NUMBER')) || $self->number_nodes;
@@ -1578,6 +1633,10 @@ sub to_table {
             plot_coords_left_to_right => $args{plot_coords_left_to_right},
         );
     }
+
+    # figure out if we're meant to be exporting colours or not
+    my $export_colours
+        = !$self->get_bootstrap_block->has_exclusion( key => 'color' );
     
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
@@ -1586,7 +1645,10 @@ sub to_table {
 
 
     my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
-#    push @$data, \@header;
+    if ( $export_colours ) {
+        push @header, "COLOUR";
+    }
+    
 
     my ($parent_num, $taxon_name);
     
@@ -1608,9 +1670,18 @@ sub to_table {
         }
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
-        #  add to the basestruct object
-        @data{@header} = ($treename, $number, $parent_num, $node->get_length || 0, $taxon_name);
 
+        #  add to the basestruct object
+        if( $export_colours ) {
+            my $colour = $node->get_bootstrap_value (key => 'color');
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name, $colour);
+        }
+        else {
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name);
+        }
+        
         #  get the additional list data if requested
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
             my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});
@@ -1862,6 +1933,11 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         #$name = "'$name'";  #  quote otherwise
     }
     
+    # build the bootstrap block - should be conditional
+    my $bootstrap_block = $self->get_bootstrap_block();
+    my $bootstrap_string = $bootstrap_block->encode (
+        include_colour => $args{export_colours} || $args{include_colours},
+    );
 
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";
@@ -1876,28 +1952,25 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined ($name) && $use_int_names ) {
             $string .= $name;  
         }
+        $string .= $bootstrap_string;
         if (defined $self->get_length) {
             $string .= ":" . $self->get_length;
         }
-        if (defined $self->get_value($boot_name)) {
-            $string .= "[" . $self->get_value($boot_name) . "]";
-        }
-        
     }
-    else { # terminal nodes
-        #$string .= "'" . $name . "'";
+    # terminal nodes
+    else {
         $string .= $name;
+        $string .= $bootstrap_string;
+
         if (defined $self->get_length) { 
             $string .= ":" . $self->get_length;
         }
-        if (defined $self->get_value($boot_name)) { # state at nodes sometimes put as bootstrap values
-            $string .= "[" . $self->get_value($boot_name) . "]";
-        }
-        #$string .= ",";
     }
-
+    
     return $string;
 }
+
+
 
 sub print { # prints out the tree (for debugging)
     my $self = shift;

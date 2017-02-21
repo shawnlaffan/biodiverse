@@ -10,10 +10,7 @@ use 5.010;
 use strict;
 use warnings;
 
-#use Text::Levenshtein qw/distance/;
-#use Text::Levenshtein::Flexible;  # substantially faster
-use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
-
+use Text::Fuzzy;
 
 use List::Util qw /min/;
 
@@ -25,17 +22,6 @@ sub new {
     my $class = shift;
     my $self = bless {}, $class;
     return $self;
-}
-
-# given a remap hash and a data source, actually performs the remap.
-sub perform_auto_remap {
-    my ( $self, %args ) = @_;
-
-    my $remap_hash  = $args{remap};
-    my $data_source = $args{new_source};
-
-    $data_source->remap_labels_from_hash( remap => $remap_hash );
-    return;
 }
 
 # takes a two references to trees/matrices/basedata and tries to map
@@ -221,6 +207,7 @@ sub guess_remap {
         $n = scalar @from_labels;
 
         foreach my $from_label (@from_labels) {
+            
             $progress_i++;
             $progress->update ("Distance matching $n labels", $progress_i / $n);
     
@@ -236,9 +223,9 @@ sub guess_remap {
                 push @$subset, $target_label;
                 $min_distance = min ($distance, $min_distance);
             }
-    
+
             my $match_subset = $poss_matches[$min_distance] // [];
-    
+
             if ( scalar @$match_subset == 1) {
                 my $min_label = $match_subset->[0];
     
@@ -258,6 +245,8 @@ sub guess_remap {
                     $ambiguous_matches{$from_label} = $match_subset;
                 }
                 push @unprocessed_from_labels, $from_label;
+                say "We couldn't find a definitive match for $from_label,". 
+                    " there were multiple matches with the same distance.";
             }
         }
     }

@@ -1,0 +1,41 @@
+branches:
+  except:
+    - /travis/
+skip_tags: true
+
+cache:
+  - C:\strawberry
+
+install:
+  - if not exist "C:\strawberry" choco install strawberryperl --version 5.24.1.1
+  - set ST=C:\strawberry
+  - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
+  - cd C:\projects\%APPVEYOR_PROJECT_NAME%
+  - set BDV_PPM=https://github.com/shawnlaffan/biodiverse/raw/ppm/ppm524_x64
+  - set have_geo_gdal=0
+  - FOR /F "delims=" %%i IN ('ppm query Geo::GDAL') DO set have_geo_gdal=1
+  - IF [%have_geo_gdal%]==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
+  
+  #  cpanfile has these covered now?
+  - cpanm --notest Task::Biodiverse::NoGUI
+  - cpanm --notest Text::Levenshtein
+  - cpanm --notest Data::Compare
+  - cpanm --notest Test::TempDir::Tiny
+  #  until the remap class does not call the GUI:
+  - set SIS_PPM=http://www.sisyphusion.tk/ppm
+  #  assuming if we have Geo::GDAL then we also have these from the cache
+  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Cairo.ppd 
+  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Glib.ppd 
+  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
+  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Pango.ppd
+  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gtk2.ppd
+  
+  #  until #581 is finalised
+  #- cpanm Browser::Open
+  #- cpanm --installdeps --notest --with-all-features .
+
+
+build_script:
+  - set BD_NO_TEST_GUI=1
+  - prove -l
+

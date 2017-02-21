@@ -7,6 +7,7 @@ use Test::More tests => 55;
 
 use lib 't/lib';
 use Test::Lib;
+use rlib;
 use Utils qw/is_between compare_hash_by_ranges/;
 
 use Benchmark;

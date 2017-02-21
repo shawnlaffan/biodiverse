@@ -897,7 +897,7 @@ sub get_metadata_export_nexus {
         {
             name       => 'export_colours',
             label_text => 'Export colours',
-            tooltip    => 'Include user defined colours (in the nexus comments blocks)',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
             type       => 'boolean',
             default    => 0,
         },
@@ -961,14 +961,6 @@ sub get_metadata_export_newick {
                 type       => 'boolean',
                 default    => 1,
             },
-            #  Colours seem unsupported in figtree for newick files
-            #{
-            #    name       => 'export_colours',
-            #    label_text => 'Export colours',
-            #    tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
-            #    type       => 'boolean',
-            #    default    => 0,
-            #},
         );
 
     for (@parameters) {
@@ -1154,7 +1146,7 @@ sub get_metadata_export_tabular_tree {
         {
             name       => 'export_colours',
             label_text => 'Export colours',
-            tooltip    => 'Include the user defined colours (in the nexus bootstrap block)',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
             type       => 'boolean',
             default    => 0,
         },

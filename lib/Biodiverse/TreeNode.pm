@@ -1579,13 +1579,10 @@ sub set_bootstrap_value {
     my $key   = $args{ key   };
     my $value = $args{ value };
 
-    my $bootstrap_block = $self->get_bootstrap_block();
-    if ($key eq 'color' || $key eq 'colour') {
-        $bootstrap_block->set_colour_aa ($value);
-    }
-    else {
-        $bootstrap_block->set_value( key => $key, value => $value );
-    }
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_value_aa( $key => $value );
+
+    return;
 }
 
 sub get_bootstrap_value {
@@ -1596,14 +1593,26 @@ sub get_bootstrap_value {
     return $bootstrap_block->get_value( key => $key );
 }
 
+sub set_bootstrap_colour_aa {
+    my ($self, $colour) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_colour_aa ($colour);
+    return;
+}
+
+sub get_bootstrap_colour {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour;
+}
+
+
 # isolate dealings with the underlying object hash to one function
 sub get_bootstrap_block {
     my ($self) = @_;
-    my $bootstrap_block =
-           $self->{bootstrap_block}
+    return
+      $self->{_bootstrap_block}
       ||=  Biodiverse::TreeNode::BootstrapBlock->new;
-
-    return $bootstrap_block;
 }
 
 

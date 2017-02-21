@@ -537,12 +537,13 @@ sub init_grid {
 
     # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
-    my $click_closure = sub {
+    my $ctrl_click_closure = sub {
         Biodiverse::GUI::CellPopup::cell_clicked(
             $_[0],
             $self->{grid}->get_base_struct,
         );
     };
+    my $click_closure = sub { $self->on_graph_popup };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
@@ -554,7 +555,8 @@ sub init_grid {
         show_legend => 1,
         show_value  => 0,
         hover_func      => $hover_closure,
-        ctrl_click_func => $click_closure, # Middle click
+        ctrl_click_func => $ctrl_click_closure, # Middle click
+        click_func      => $click_closure,
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,

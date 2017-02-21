@@ -130,7 +130,8 @@ sub new {
 
     #  callback funcs
     $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
-    $self->{ctrl_click_func}      = $args{ctrl_click_func};      # click on a cell
+    $self->{ctrl_click_func} = $args{ctrl_click_func}; # ctrl/middle click on a cell
+    $self->{click_func}      = $args{click_func};      # click on a cell
     $self->{select_func}     = $args{select_func};     # select a set of elements
     $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
     $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
@@ -281,6 +282,7 @@ sub destroy {
 
     delete $self->{hover_func};  #??? not sure if helps
     delete $self->{ctrl_click_func};  #??? not sure if helps
+    delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
     delete $self->{grid_click_func};
     delete $self->{end_hover_func};  #??? not sure if helps
@@ -1390,11 +1392,10 @@ sub on_event {
     elsif ($event->type eq 'button-press') {
         $self->{clicked_cell} = undef unless $event->button == 2;  #  clear any clicked cell
 
-        my $button = $event->button;
-        say "event->button is $button";
-        
         if ( $event->button == 1 and !($event->state >= [ 'control-mask' ])) {
-            say "Left clicked on a grid cell";
+            my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
+            my $f = $self->{click_func};
+            $f->($element);
         }
         # If middle-click or control-click
         elsif (        $event->button == 2

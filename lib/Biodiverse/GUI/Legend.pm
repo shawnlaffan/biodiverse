@@ -43,6 +43,7 @@ use constant BORDER_SIZE        => 20;
 use constant LEGEND_WIDTH       => 20;
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant MARK_X_LEGEND_OFFSET  => 0.01;
+use constant LEGEND_HEIGHT  => 380;
 
 ##########################################################
 # Construction
@@ -61,12 +62,15 @@ sub show_legend {
     #print "already have legend!\n" if $self->{legend};
     return if $self->get_legend;
 
+    # Get the width and height of the canvas.
+    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
+
     # Make group so we can pack the coloured
     # rectangles into it.  
     $self->{legend_group} = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Group',
-        x => 0, 
+        x => $width - LEGEND_WIDTH, 
         y => 0,
     );   
 
@@ -115,9 +119,9 @@ sub get_legend {
 
 sub make_legend_rect {
     my $self = shift;
-    my $height = shift || 380;
-    #my ($width, $height);
-    my $width;
+    #my $height = shift || ;
+    my ($width, $height);
+    #my $width;
 
     if ($self->{legend_colours_group}) {
         $self->{legend_colours_group}->destroy(); 
@@ -128,7 +132,7 @@ sub make_legend_rect {
     $self->{legend_colours_group} = Gnome2::Canvas::Item->new (
         $self->{legend_group},
         'Gnome2::Canvas::Group',
-        x => 0,
+        x => 0, 
         y => 0, 
     );   
 
@@ -334,8 +338,6 @@ sub reposition {
     # (this has been tricky to get working right...)
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
-    print "width: $width, height: $height\n";
-
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
@@ -347,17 +349,18 @@ sub reposition {
         y        => $scroll_y,
     );
 
-    # Adjust the legend height
-    $self->{legend}->set(
-        x       => 0, #$width,
-        y       => 0, #$scroll_y, #$height,
-    );
+    # Get the pixels per unit value from the canvas
+    # to scale the legend with.
+    my $ppu = $self->{canvas}->get_pixels_per_unit();
+    print "ppu: $ppu\n";
 
-    # Update the legend colours
-    $self->make_legend_rect($height);
-
-    # Scale the legend to the height of the canvas. 
-    my $matrix = [1,0,0,$self->{legend_scaling_factor}*($height/380),0,0];
+    # Scale the legend's height and width to match the current size of the canvas. 
+    my $matrix = [$legend_width*$ppu, # scale x
+                  0,
+                  0,
+                  $self->{legend_scaling_factor}*($height/LEGEND_HEIGHT), # scale y
+                  0,
+                  0];
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes

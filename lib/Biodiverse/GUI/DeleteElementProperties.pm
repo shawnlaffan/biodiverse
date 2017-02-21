@@ -271,6 +271,11 @@ sub clicked_delete_button {
 
     if ($selected_one) {
         $self->{project}->set_dirty;
+        #  clear the cache
+        my $ref = $basestruct eq 'label'
+          ? $bd->get_labels_ref
+          : $bd->get_groups_ref;
+        $ref->delete_cached_values;
     }
 
     my $new_notebook = $self->build_main_notebook();

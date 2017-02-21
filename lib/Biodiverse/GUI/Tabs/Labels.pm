@@ -331,15 +331,31 @@ sub init_list {
     my $types = $stats_metadata->get_types;
     my @columns;
     my $i = 0;
-    $self->add_column (tree => $tree, title => 'Label', model_id => $i);
+    $self->add_column (
+        tree  => $tree,
+        title => 'Label',
+        model_id => $i,
+    );
     foreach my $column (@$types) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self->add_column (tree => $tree, title => $column_name, model_id => $i);
+        $self->add_column (
+            tree  => $tree,
+            title => $column_name,
+            model_id => $i,
+        );
     }
-    $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
-    $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
+    $self->add_column (
+        tree  => $tree,
+        title => $selected_list1_name,
+        model_id => ++$i,
+    );
+    $self->add_column (
+        tree  => $tree,
+        title => $selected_list2_name,
+        model_id => ++$i,
+    );
 
     # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});

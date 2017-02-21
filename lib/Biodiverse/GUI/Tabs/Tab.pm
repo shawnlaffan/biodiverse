@@ -518,6 +518,12 @@ sub on_zoom_fit_tool {
     $self->choose_tool('ZoomFit');
 }
 
+sub on_graph_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Graph');
+}
+
 my %cursor_icons = (
     Select  => undef,
     ZoomIn  => 'zoom-in',

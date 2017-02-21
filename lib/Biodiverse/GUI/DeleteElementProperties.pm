@@ -13,15 +13,16 @@ use Biodiverse::RemapGuesser qw/guess_remap/;
 use Biodiverse::GUI::GUIManager;
 
 use Scalar::Util qw /blessed/;
+use Sort::Naturally;
 
 use constant DEFAULT_DIALOG_HEIGHT => 500;
-use constant DEFAULT_DIALOG_WIDTH => 600;
+use constant DEFAULT_DIALOG_WIDTH  => 600;
 
 my $i;
-use constant DELETE_COL  => $i || 0;
+use constant DELETE_COL   => $i || 0;
 use constant PROPERTY_COL => ++$i;
 use constant ELEMENT_COL  => ++$i;
-use constant VALUE_COL     => ++$i;
+use constant VALUE_COL    => ++$i;
 
 sub new {
     my $class = shift;
@@ -40,25 +41,27 @@ sub build_main_notebook {
     my %group_props_hash = %{$el_props_hash{groups}};
 
     my $label_outer_vbox = 
-        $self->_build_deletion_panel( values_hash => \%label_props_hash,
-                                      basestruct  => "label",
+        $self->_build_deletion_panel(
+            values_hash => \%label_props_hash,
+            basestruct  => 'label',
         );
 
     my $group_outer_vbox =
-        $self->_build_deletion_panel( values_hash => \%group_props_hash,
-                                      basestruct  => "group",
+        $self->_build_deletion_panel(
+            values_hash => \%group_props_hash,
+            basestruct  => "group",
         );
     
     my $notebook = Gtk2::Notebook->new;
     $notebook->append_page (
         $label_outer_vbox,
         "Labels",        
-        );
+    );
 
     $notebook->append_page (
         $group_outer_vbox,
         "Groups",        
-        );
+    );
 
     $self->{notebook} = $notebook;
 
@@ -71,21 +74,22 @@ sub run {
     my ( $self, %args ) = @_;
     my $bd = $args{basedata};
     $self->{bd} = $bd;
-    
-    
+
     my $dlg = Gtk2::Dialog->new_with_buttons(
-        'Delete Element Properties', undef, 'modal', 'gtk-ok' => 'ok', 
-        );
+        'Delete Element Properties',
+        undef,
+        'modal',
+        #'gtk-cancel' => 'cancel',
+        #'gtk-ok'     => 'ok',
+        'gtk-close'  => 'close',
+    );
 
     $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
 
-
     my $notebook = $self->build_main_notebook();
-
     
     my $content_area = $dlg->get_content_area;
     $content_area->pack_start( $notebook, 1, 1, 1 );
-
 
     $self->{dlg} = $dlg;
     $dlg->show_all;
@@ -103,7 +107,7 @@ sub build_tree_from_list {
     my $title = $args{ title } // '';
     
     # fill model with content
-    foreach my $item (sort @list) {
+    foreach my $item (nsort @list) {
         my $iter = $model->append(undef);
         $model->set($iter, 0, $item);
     }
@@ -118,7 +122,7 @@ sub build_tree_from_list {
         column       => $column,
         title_text   => $title,
         tooltip_text => '',
-        );
+    );
     
     my $renderer = Gtk2::CellRendererText->new();
 
@@ -154,17 +158,20 @@ sub _build_deletion_panel {
     my @all_props = keys %all_props;
 
     my $properties_tree = 
-        $self->build_tree_from_list( list  => \@all_props,
-                                     title => "Properties");
+        $self->build_tree_from_list(
+            list  => \@all_props,
+            title => "Properties",
+        );
 
     $self->{$basestruct}->{properties_tree} = $properties_tree;
     
     my $elements_tree =
-        $self->build_tree_from_list( list  => \@elements_list,
-                                     title => "Element");
+        $self->build_tree_from_list(
+            list  => \@elements_list,
+            title => "Element",
+        );
 
     $self->{basestruct}->{elements_tree} = $elements_tree;
-
 
     my $hbox = Gtk2::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  
@@ -178,25 +185,32 @@ sub _build_deletion_panel {
     $vbox->pack_start( $scroll, 1, 1, 0 ); 
 
     my $delete_properties_button =
-        Gtk2::Button->new_with_label("Delete selected properties");
+        Gtk2::Button->new_with_label(
+            "Delete selected properties from all elements"
+        );
 
     $delete_properties_button->signal_connect(
         'clicked' => sub {
-            $self->clicked_delete_button(tree => $properties_tree,
-                                         type => 'property',);
-
+            $self->clicked_delete_button(
+                tree => $properties_tree,
+                type => 'property',
+            );
         }
-        );
+    );
     
     my $delete_elements_button =
-        Gtk2::Button->new_with_label("Delete all properties of selected elements");
+        Gtk2::Button->new_with_label(
+            "Delete all properties from selected elements"
+        );
 
     $delete_elements_button->signal_connect(
         'clicked' => sub {
-            $self->clicked_delete_button(tree => $elements_tree,
-                                         type => 'element',);
+            $self->clicked_delete_button(
+                tree => $elements_tree,
+                type => 'element',
+            );
         }
-        );
+    );
     
     my $button_hbox = Gtk2::HBox->new();
     $button_hbox->pack_start( $delete_properties_button, 1, 0, 0 );
@@ -240,7 +254,6 @@ sub clicked_delete_button {
                 else {
                     $bd->delete_group_element_property(prop => $value);
                 }
-
             }
             else {
                 croak "Unknown type $type";
@@ -248,7 +261,7 @@ sub clicked_delete_button {
             
             push @{$self->{to_delete}->{$basestruct}->{$type}}, $value;
         }
-        );
+    );
 
 
     my $new_notebook = $self->build_main_notebook();
@@ -266,6 +279,7 @@ sub clicked_delete_button {
     $dlg->show_all;
     $new_notebook->set_current_page($current_page);
 
+    return;
 }
 
 

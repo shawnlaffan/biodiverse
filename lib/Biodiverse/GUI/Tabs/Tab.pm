@@ -625,6 +625,31 @@ sub on_grid_click {
     # }
 }
 
+
+sub handle_graph_click {
+    # my $self = shift;
+    # my $element = shift;
+    # my $basedata_ref = $self->{basedata_ref};
+
+    # my ($sources, $default_source);
+    # my $node_ref = $self->get_coloured_node_for_element($element);
+
+    # if ($node_ref) {
+    #     # This will add the "whole cluster" sources
+    #     ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
+    # }
+    # else {
+    #     # Node isn't part of any cluster - just labels then
+    #     $sources = {};
+    # }
+
+
+    # $sources = {};
+    # Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
+
+    return;
+}
+
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
     my $canvas = $grid->{canvas};

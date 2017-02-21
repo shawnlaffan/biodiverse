@@ -2313,6 +2313,16 @@ sub delete_label_element_property {
     $self->get_labels_ref->delete_element_property(%args);
 }
 
+sub delete_group_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_groups_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_label_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_labels_ref->delete_element_property(prop => $prop);
+}
+
 sub delete_individual_group_properties {
     my ($self, %args) = @_;
     $self->get_groups_ref->delete_properties_for_given_element(%args);
@@ -2323,6 +2333,15 @@ sub delete_individual_label_properties {
     $self->get_labels_ref->delete_properties_for_given_element(%args);
 }
 
+sub delete_individual_group_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(el => $el);
+}
+
+sub delete_individual_label_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(el => $el);
+}
 
 sub rename_labels {
     my $self = shift;

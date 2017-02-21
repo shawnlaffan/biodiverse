@@ -8,7 +8,7 @@ use Carp;
 our $VERSION = '1.99_006';
 
 use Gtk2;
-use Biodiverse::RemapGuesser qw/guess_remap/;
+#use Biodiverse::RemapGuesser qw/guess_remap/;
 
 use Biodiverse::GUI::GUIManager;
 
@@ -26,7 +26,11 @@ use constant VALUE_COL    => ++$i;
 
 sub new {
     my $class = shift;
-    my $self = bless {}, $class;
+    my $self = {
+        gui => Biodiverse::GUI::GUIManager->instance()
+    };
+    $self->{project} = $self->{gui}->get_project();
+    bless $self, $class;
     return $self;
 }
 
@@ -137,22 +141,21 @@ sub build_tree_from_list {
 
 sub _build_deletion_panel {
     my ($self, %args) = @_;
-    my %hash = %{$args{values_hash}};
+    my $values_hash = $args{values_hash};
     my $basestruct = $args{basestruct};
     
     # find all of the possible properties
     my %all_props;
 
     my @elements_list;
-    foreach my $element (keys %hash) {
-        my %prop_to_value = %{$hash{$element}};
-        foreach my $prop (keys %prop_to_value) {
-            $all_props{$prop} = 1;
-        }
+    foreach my $element (keys %$values_hash) {
+        my $prop_to_value = $values_hash->{$element};
 
-        # only show elements that actually have properties.
-        if(scalar(keys %prop_to_value)) {
-            push @elements_list, $element;            
+        # we only care about elements that
+        # actually have properties.
+        if (scalar keys %$prop_to_value) {
+            push @elements_list, $element;
+            @all_props{keys %$prop_to_value} = ();
         }
     }
     my @all_props = keys %all_props;
@@ -163,7 +166,7 @@ sub _build_deletion_panel {
             title => "Properties",
         );
 
-    $self->{$basestruct}->{properties_tree} = $properties_tree;
+    $self->{$basestruct}{properties_tree} = $properties_tree;
     
     my $elements_tree =
         $self->build_tree_from_list(
@@ -171,7 +174,7 @@ sub _build_deletion_panel {
             title => "Element",
         );
 
-    $self->{basestruct}->{elements_tree} = $elements_tree;
+    $self->{basestruct}{elements_tree} = $elements_tree;
 
     my $hbox = Gtk2::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  
@@ -185,7 +188,7 @@ sub _build_deletion_panel {
     $vbox->pack_start( $scroll, 1, 1, 0 ); 
 
     my $delete_properties_button =
-        Gtk2::Button->new_with_label(
+        Gtk2::Button->new_with_label (
             "Delete selected properties from all elements"
         );
 
@@ -226,43 +229,49 @@ sub clicked_delete_button {
     my $type         = $args{type}; # element or property
     my $tree         = $args{tree};
     my $selection    = $tree->get_selection();
-    
+
     my $notebook     = $self->{notebook};
     my $current_page = $notebook->get_current_page;
     my $basestruct   = ($current_page == 0) ? 'label' : 'group';
     my $bd           = $self->{bd};
 
-    # should probably just figure out what sub to use here.
+    my $selected_one = 0;
     
+    my %methods = (
+        element => {
+            label => 'delete_individual_label_properties_aa',
+            group => 'delete_individual_group_properties_aa',
+        },
+        property => {
+            label => 'delete_label_element_property_aa',
+            group => 'delete_group_element_property_aa',
+        },
+    );
+    
+    # should probably just figure out what sub to use here.
+
     $selection->selected_foreach (
-        sub{
+        sub {
             my ($model, $path, $iter) = @_;
             my $value = $model->get($iter, 0);
+
+            no autovivification;
+
+            $selected_one ||= 1;
             
-            if($type eq 'element') {
-                if($basestruct eq 'label') {
-                    $bd->delete_individual_label_properties(el => $value);
-                }
-                else {
-                    $bd->delete_individual_group_properties(el => $value);
-                }
-            }
-            elsif($type eq 'property') {
-                if($basestruct eq 'label') {
-                    $bd->delete_label_element_property(prop => $value);
-                }
-                else {
-                    $bd->delete_group_element_property(prop => $value);
-                }
-            }
-            else {
-                croak "Unknown type $type";
-            }
+            my $method = $methods{$type}{$basestruct};
+            croak "No method for type $type and target $basestruct"
+              if !defined $method;
+            $bd->$method($value);
             
-            push @{$self->{to_delete}->{$basestruct}->{$type}}, $value;
+            #  seems not to be used
+            push @{$self->{to_delete}{$basestruct}{$type}}, $value;
         }
     );
 
+    if ($selected_one) {
+        $self->{project}->set_dirty;
+    }
 
     my $new_notebook = $self->build_main_notebook();
     
@@ -272,7 +281,7 @@ sub clicked_delete_button {
     my @children = $content_area->get_children;
     $content_area->remove($children[0]);
 
-    say "Current page is $current_page";
+    #say "Current page is $current_page";
     
     $content_area->pack_start( $new_notebook, 1, 1, 1 );
     $self->{notebook} = $new_notebook;

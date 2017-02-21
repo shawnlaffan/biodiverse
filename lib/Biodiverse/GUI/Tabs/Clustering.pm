@@ -268,6 +268,7 @@ sub new {
         btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
+        btnGraphToolCL      => {clicked => \&on_graph_tool},
 
         plot_length         => {toggled => \&on_plot_mode_changed},
         group_length        => {toggled => \&on_group_mode_changed},
@@ -1807,6 +1808,7 @@ my %drag_modes = (
     ZoomIn  => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
+    Graph   => 'click',
 );
 
 sub choose_tool {

@@ -261,7 +261,9 @@ sub new {
         btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
+        btnGraphToolSP   => {clicked => \&on_graph_tool},
 
+        
         menuitem_spatial_overlays => {activate => \&on_overlays},
         menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
@@ -315,6 +317,7 @@ sub new {
         ZoomIn  => 'select',
         ZoomOut => 'click',
         ZoomFit => 'click',
+        Graph   => 'click',
     };
 
     $self->choose_tool('Select');

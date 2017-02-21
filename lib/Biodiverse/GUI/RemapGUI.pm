@@ -16,9 +16,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Export;
 use Ref::Util qw /:all/;
 
-use List::MoreUtils qw(first_index);
-
-use Text::Levenshtein qw(distance);
+use Text::Fuzzy;
 use Scalar::Util qw /blessed/;
 
 my $i;
@@ -676,7 +674,8 @@ sub build_typo_tree {
 
         # Lazy way of getting edit distance, ideally this wouldn't get
         # calculated in the middle of the gui.
-        my $distance = distance( $match, $remap->{$match} );
+        my $distance_finder = Text::Fuzzy->new( $match, trans => 1);
+        my $distance = $distance_finder->distance( $remap->{$match} );
 
         $typo_model->set(
             $iter,

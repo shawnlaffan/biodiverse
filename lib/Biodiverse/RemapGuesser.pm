@@ -10,10 +10,7 @@ use 5.010;
 use strict;
 use warnings;
 
-#use Text::Levenshtein qw/distance/;
-#use Text::Levenshtein::Flexible;  # substantially faster
-use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
-
+use Text::Fuzzy;
 
 use List::Util qw /min/;
 

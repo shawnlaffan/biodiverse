@@ -189,7 +189,8 @@ sub init_grid {
     my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
 
     my $hover_closure  = sub { $self->on_grid_hover(@_); };
-    my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
+    my $ctrl_click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
+    my $click_closure = sub {};
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
@@ -201,7 +202,8 @@ sub init_grid {
         show_legend => 0,
         show_value  => 0,
         hover_func      => $hover_closure,
-        ctrl_click_func => $click_closure,
+        ctrl_click_func => $ctrl_click_closure,
+        click_func      => $click_closure,
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,

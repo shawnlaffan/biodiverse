@@ -542,7 +542,7 @@ sub init_map {
         show_legend => 1,
         show_value  => 0,
         hover_func  => $hover_closure,
-        click_func  => $click_closure,
+        ctrl_click_func  => $click_closure,
         select_func => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure
@@ -1420,7 +1420,7 @@ sub on_dendrogram_select {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
-
+    
     return;
 }
 
@@ -1479,6 +1479,8 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_popup {
+    say "on_grid_popup in Clustering.pm called";
+    
     my $self = shift;
     my $element = shift;
     my $basedata_ref = $self->{basedata_ref};

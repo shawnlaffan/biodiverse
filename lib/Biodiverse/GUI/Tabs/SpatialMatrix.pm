@@ -259,7 +259,7 @@ sub init_grid {
         show_legend => 1,
         show_value  => 0,
         hover_func      => $hover_closure,
-        click_func      => $click_closure, # Middle click
+        ctrl_click_func => $click_closure, # Middle/Control click
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
     );

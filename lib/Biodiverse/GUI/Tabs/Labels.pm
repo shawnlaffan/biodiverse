@@ -200,7 +200,7 @@ sub init_grid {
         show_legend => 0,
         show_value  => 0,
         hover_func      => $hover_closure,
-        click_func      => $click_closure,
+        ctrl_click_func => $click_closure,
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,

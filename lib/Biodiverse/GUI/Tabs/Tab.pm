@@ -569,6 +569,35 @@ sub set_display_cursors {
     
 }
 
+sub on_graph_popup {
+    my $self = shift;
+    return if ($self->{tool} ne 'Graph'); 
+    
+    say "About to display a graph";
+   
+    # my $element = shift;
+    # my $basedata_ref = $self->{basedata_ref};
+
+    # my ($sources, $default_source);
+    # my $node_ref = $self->get_coloured_node_for_element($element);
+
+    # if ($node_ref) {
+    #     # This will add the "whole cluster" sources
+    #     ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
+    # }
+    # else {
+    #     # Node isn't part of any cluster - just labels then
+    #     $sources = {};
+    # }
+
+    # # Add source for labels just in this cell
+    # $sources->{'Labels (this cell)'} = sub {
+    #     Biodiverse::GUI::CellPopup::show_all_labels(@_, $element, $basedata_ref);
+    # };
+
+    # Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
+}
+
 
 sub on_grid_select {
     my ($self, $groups, $ignore_change, $rect) = @_;
@@ -593,6 +622,7 @@ sub on_grid_click {
 
     # }
 }
+
 
 
 

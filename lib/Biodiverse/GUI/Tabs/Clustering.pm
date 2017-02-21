@@ -529,7 +529,8 @@ sub init_map {
     my $hscroll = $self->{xmlPage}->get_object('mapHScroll');
     my $vscroll = $self->{xmlPage}->get_object('mapVScroll');
 
-    my $click_closure = sub { $self->on_grid_popup(@_); };
+    my $ctrl_click_closure = sub { $self->on_grid_popup(@_); };
+    my $click_closure = sub { $self->on_graph_popup(@_); };
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
@@ -542,7 +543,8 @@ sub init_map {
         show_legend => 1,
         show_value  => 0,
         hover_func  => $hover_closure,
-        ctrl_click_func  => $click_closure,
+        ctrl_click_func  => $ctrl_click_closure,
+        click_func => $click_closure,
         select_func => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure
@@ -1479,8 +1481,6 @@ sub on_end_grid_hover {
 }
 
 sub on_grid_popup {
-    say "on_grid_popup in Clustering.pm called";
-    
     my $self = shift;
     my $element = shift;
     my $basedata_ref = $self->{basedata_ref};
@@ -1506,6 +1506,7 @@ sub on_grid_popup {
 
     return;
 }
+
 
 sub on_dendrogram_popup {
     my $self = shift;

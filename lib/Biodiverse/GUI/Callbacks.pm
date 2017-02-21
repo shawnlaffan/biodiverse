@@ -209,6 +209,9 @@ my %data_funcs = (
     on_phylogeny_auto_remap => {
         METHOD => 'do_auto_remap_phylogeny',
     },
+    on_do_remap => {
+        METHOD => 'do_remap',
+    },
     on_basedata_auto_remap => {
         METHOD => 'do_auto_remap_basedata',
     },

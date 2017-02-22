@@ -543,7 +543,7 @@ sub init_grid {
             $self->{grid}->get_base_struct,
         );
     };
-    my $click_closure = sub { $self->on_graph_popup };
+    my $click_closure = sub { $self->on_graph_popup(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };

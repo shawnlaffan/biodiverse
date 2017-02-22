@@ -2,6 +2,8 @@ package Biodiverse::GUI::Popup;
 
 use strict;
 use warnings;
+use 5.010;
+
 
 use Data::Dumper;
 use Carp;
@@ -88,8 +90,10 @@ sub show_popup {
     my $element = shift;
     my $sources_ref = shift;
     my $default_source = shift;
+    my $popup_type = shift;
     my $dlgxml;
-
+    my $canvas;
+    
     # If already showing a dialog, close it
     if (exists $g_dialogs{$element}) {
         close_dialog($element);
@@ -102,19 +106,29 @@ sub show_popup {
         }
         else {
             #print "[Popup] Making new labels dialog for $element\n";
-            $dlgxml = make_dialog();
+            ($dlgxml, $canvas) = make_dialog($popup_type);
         }
 
         $g_dialogs{$element} = $dlgxml;
-        load_dialog($dlgxml, $element, $sources_ref, $default_source);
+        load_dialog($dlgxml, $element, $sources_ref, 
+                    $default_source, $popup_type, $canvas);
     }
 }
 
 sub make_dialog {
+    my $popup_type = shift;
+
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     my $dlgxml = Gtk2::Builder->new();
-    $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
+
+    
+    if($popup_type && $popup_type eq 'canvas') {
+        $dlgxml->add_from_file($gui->get_gtk_ui_file('wndGraphPopup.ui'));
+    }
+    else {
+        $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
+    }
 
     # Put it on top of main window
     $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_object('wndMain'));
@@ -128,27 +142,38 @@ sub make_dialog {
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
 
-    # Set up the list
-    my $list = $dlgxml->get_object('lstData');
+    my $canvas;
+    
+    if($popup_type && $popup_type eq 'canvas') {
+        # get the frame and add a canvas to it
+        my $frame = $dlgxml->get_object('graphDrawingFrame');
 
-    my $name_renderer = Gtk2::CellRendererText->new();
-    my $value_renderer = Gtk2::CellRendererText->new();
-    my $col_name = Gtk2::TreeViewColumn->new();
-    my $col_value = Gtk2::TreeViewColumn->new();
+        $canvas = Gtk2::Label->new("This label was set in Popup.pm make_dialog");
+        $frame->add($canvas);
+        $canvas->show();
+    }
+    else {
+        # Set up the list
+        my $list = $dlgxml->get_object('lstData');
 
-    $col_name->pack_start($name_renderer, 1);
-    $col_value->pack_start($value_renderer, 1);
-    $col_name->add_attribute($name_renderer, text => 0);
+        my $name_renderer = Gtk2::CellRendererText->new();
+        my $value_renderer = Gtk2::CellRendererText->new();
+        my $col_name = Gtk2::TreeViewColumn->new();
+        my $col_value = Gtk2::TreeViewColumn->new();
 
-    $list->insert_column($col_name, -1);
-    $list->insert_column($col_value, -1);
-    $list->set_headers_visible(0);
+        $col_name->pack_start($name_renderer, 1);
+        $col_value->pack_start($value_renderer, 1);
+        $col_name->add_attribute($name_renderer, text => 0);
 
-    # Save col/renderer so that we can choose different count columns
-    $list->{colValue} = $col_value;
-    $list->{valueRenderer} = $value_renderer;
+        $list->insert_column($col_name, -1);
+        $list->insert_column($col_value, -1);
+        $list->set_headers_visible(0);
 
-    return $dlgxml;
+        # Save col/renderer so that we can choose different count columns
+        $list->{colValue} = $col_value;
+        $list->{valueRenderer} = $value_renderer;
+    }
+    return ($dlgxml, $canvas);
 }
 
 
@@ -157,7 +182,9 @@ sub load_dialog {
     my $element = shift;
     my $sources_ref    = shift;
     my $default_source = shift;
-
+    my $popup_type = shift;
+    my $canvas = shift;
+    
     #print Data::Dumper::Dumper($neighbours);
     #print Data::Dumper::Dumper(%g_dialogs);
 
@@ -165,7 +192,13 @@ sub load_dialog {
     my $popup = {};
     bless $popup, 'Biodiverse::GUI::PopupObject';
 
-    $popup->{list}    = $dlgxml->get_object('lstData');
+    if($popup_type eq "canvas") {
+        $popup->{canvas}  = $canvas;
+    }
+    else {
+        $popup->{list}    = $dlgxml->get_object('lstData');
+    }
+        
     $popup->{element} = $element;
     $popup->{sources_ref} = $sources_ref;
 
@@ -271,6 +304,7 @@ sub on_source_changed {
     $popup->{listname} = $name;
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
+    print "About to call the callback in Popup.pm on_source_changed\n";
     $callback->($popup);
 
     return;

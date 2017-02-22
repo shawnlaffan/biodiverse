@@ -260,3 +260,33 @@ sub generate_fake_graph {
     return wantarray ? %graph : \%graph;
     
 }
+
+sub generate_fake_graph {
+    my ($self, %args) = @_;
+
+    my ($minimum, $maximum) = (2, 5);
+    my $exponent = $minimum + int(rand($maximum - $minimum));
+    
+    my %graph;
+
+    my %coeff;
+    foreach my $exp (0..$exponent) {
+        my $coefficient = -20 + int(rand(40));
+        $coeff{$exp} = $coefficient;
+    }
+    
+    # generate a nice polynomial graph with some noise
+    ($minimum, $maximum) = (-20, 20);
+    foreach my $x (-100..100) {
+        my $random_noise_percent = $minimum + int(rand($maximum - $minimum));
+        my $y = 0;
+        foreach my $exp (0..$exponent) {
+            my $coefficient = int(rand(40));
+            $y += $coeff{$exp} * ($x**$exp);
+        }
+        $y += ($random_noise_percent/100) * $y;
+        $graph{$x} = $y;
+    }
+    
+    return wantarray ? %graph : \%graph;
+}

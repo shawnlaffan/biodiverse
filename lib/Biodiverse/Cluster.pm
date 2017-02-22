@@ -2351,6 +2351,14 @@ sub get_embedded_matrix {
     return;
 }
 
+
+# for compatibility with Spatial
+sub get_lists_across_elements {
+    my $self = shift;
+    my @lists = $self->get_lists_for_export;
+    return wantarray ? @lists : \@lists;
+}
+
 #sub max {
 #    return $_[0] > $_[1] ? $_[0] : $_[1];
 #}

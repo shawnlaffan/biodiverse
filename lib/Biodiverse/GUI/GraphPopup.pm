@@ -19,11 +19,14 @@ use Biodiverse::GUI::CanvasGraph;
 
 sub add_graph {
     my $popup = shift;
-    my $node_ref = shift;
-    
+    my $output_ref = shift;
     my $list_name = shift;
-
-    my $list_ref = $node_ref->get_list_ref(list => $list_name);
+    my $element = shift;
+    
+    my $list_ref = $output_ref->get_list_ref (
+        element => $element,
+        list    => $list_name,
+        );
 
     my $canvas = $popup->{canvas};
 

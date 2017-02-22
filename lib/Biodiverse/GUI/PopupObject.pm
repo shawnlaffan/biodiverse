@@ -2,6 +2,7 @@ package Biodiverse::GUI::PopupObject;
 
 use strict;
 use warnings;
+use 5.010;
 
 our $VERSION = '1.99_006';
 
@@ -28,6 +29,14 @@ sub set_list_model {
     $popup->{list}->set_model($model);
 }
 
+sub set_canvas {
+    my $popup = shift;
+    my $canvas = shift;
+
+    say "Setting canvas in PopupObject.pm";
+    # for the graph popups
+    $popup->{canvas} = $canvas;
+}
 
 1;
 

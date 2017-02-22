@@ -11,6 +11,7 @@ use List::MoreUtils qw /minmax/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
+use Biodiverse::GUI::GraphPopup;
 use Carp;
 
 use Biodiverse::Metadata::Parameter;
@@ -575,28 +576,34 @@ sub on_graph_popup {
     
     say "About to display a graph";
    
-    # my $element = shift;
+    my $element = shift;
+    my $node_ref = $self->get_coloured_node_for_element($element);
     # my $basedata_ref = $self->{basedata_ref};
 
-    # my ($sources, $default_source);
-    # my $node_ref = $self->get_coloured_node_for_element($element);
+    my %sources;
+    my @lists = $node_ref->get_list_names;
+    foreach my $name (@lists) {
+        next if not defined $name;
+        next if $name =~ /^_/; # leading underscore marks internal list
 
-    # if ($node_ref) {
-    #     # This will add the "whole cluster" sources
-    #     ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
-    # }
-    # else {
-    #     # Node isn't part of any cluster - just labels then
-    #     $sources = {};
-    # }
+        say "Found a list $name";
+        $sources{$name} = sub { 
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $node_ref, $name);
+        };
+    }
 
-    # # Add source for labels just in this cell
+    
+    # Add source for labels just in this cell
     # $sources->{'Labels (this cell)'} = sub {
     #     Biodiverse::GUI::CellPopup::show_all_labels(@_, $element, $basedata_ref);
     # };
 
-    # Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
+    my @source_list = keys %sources;
+    my $default_source = $source_list[0];
+    Biodiverse::GUI::Popup::show_popup($element, \%sources, $default_source, "canvas");
 }
+
+
 
 
 sub on_grid_select {
@@ -621,33 +628,6 @@ sub on_grid_click {
     #     $self->handle_graph_click();
 
     # }
-}
-
-
-
-
-sub handle_graph_click {
-    # my $self = shift;
-    # my $element = shift;
-    # my $basedata_ref = $self->{basedata_ref};
-
-    # my ($sources, $default_source);
-    # my $node_ref = $self->get_coloured_node_for_element($element);
-
-    # if ($node_ref) {
-    #     # This will add the "whole cluster" sources
-    #     ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
-    # }
-    # else {
-    #     # Node isn't part of any cluster - just labels then
-    #     $sources = {};
-    # }
-
-
-    # $sources = {};
-    # Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
-
-    return;
 }
 
 sub handle_grid_drag_zoom {

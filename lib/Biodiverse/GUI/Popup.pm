@@ -148,8 +148,10 @@ sub make_dialog {
         # get the frame and add a canvas to it
         my $frame = $dlgxml->get_object('graphDrawingFrame');
 
-        $canvas = Gtk2::Label->new("This label was set in Popup.pm make_dialog");
+        $canvas = Gnome2::Canvas->new();
+        $canvas->set_scroll_region(0, 0, 300, 300);
         $frame->add($canvas);
+        $frame->set_size_request(350, 350);
         $canvas->show();
     }
     else {
@@ -304,7 +306,6 @@ sub on_source_changed {
     $popup->{listname} = $name;
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
-    print "About to call the callback in Popup.pm on_source_changed\n";
     $callback->($popup);
 
     return;

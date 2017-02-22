@@ -14,9 +14,8 @@ our $VERSION = '1.99_006';
 
 use English qw { -no_match_vars };
 
-use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::PopupObject;
-
+use Biodiverse::GUI::CanvasGraph;
 
 sub add_graph {
     my $popup = shift;
@@ -28,12 +27,14 @@ sub add_graph {
     my $list_ref = $node_ref->get_list_ref(list => $list_name);
 
     my $canvas = $popup->{canvas};
-
-    $canvas->set_label("Reset label for $list_name!");
-    $canvas->show();
+    my $grapher = Biodiverse::GUI::CanvasGraph->new();
+    $grapher->generate_canvas_graph(
+        graph_values => $list_ref,
+        canvas       => $canvas,
+    );
     
+    $canvas->show();
     $popup->set_canvas($canvas);
-
     
     return;
 }

@@ -258,4 +258,5 @@ sub generate_fake_graph {
     }
     
     return wantarray ? %graph : \%graph;
+    
 }

@@ -27,7 +27,10 @@ sub new {
 # Gnome2::Canvas. Updates this same canvas with the graph on it.
 sub generate_canvas_graph {
     my ($self, %args) = @_;
-    my %graph_values = %{$args{graph_values}};
+    #my %graph_values = %{$args{graph_values}};
+    my %graph_values = $self->generate_fake_graph();
+
+    
     my $canvas       = $args{canvas};
     my $root         = $canvas->root;
     my ($canvas_width, $canvas_height) = (300, 300);
@@ -49,8 +52,6 @@ sub generate_canvas_graph {
                                          fill_color => 'white',
                                          outline_color => 'white');
 
-    
-    
 
     # we've got 400x400 pixels to display the graph, we need to scale
     # the values so they fit nicely in this space.
@@ -60,8 +61,7 @@ sub generate_canvas_graph {
         canvas_height => $canvas_height,
         );
     
-    # start by just plotting the points
-
+    # plot the points
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
         #print "Plotting ($x, $y)";
@@ -102,7 +102,6 @@ sub rescale_graph_points {
     if($max_y == $min_y) {
         ($max_y, $min_y) = (1, 0); # stop division by 0 error
     }
-
     
     my %new_values;
     
@@ -111,11 +110,41 @@ sub rescale_graph_points {
         my $y = $old_values{$x};
 
         my $new_x = (($canvas_width)*($x-$min_x) / ($max_x-$min_x));
-        my $new_y = (($canvas_height)*($y-$min_y) / ($max_y-$min_y));
+        my $new_y = $canvas_height - (($canvas_height)*($y-$min_y) / ($max_y-$min_y));
 
         $new_values{$new_x} = $new_y;
     }
 
     return wantarray? %new_values : \%new_values;
     
+}
+
+sub generate_fake_graph {
+    my ($self, %args) = @_;
+
+    my ($minimum, $maximum) = (2, 5);
+    my $exponent = $minimum + int(rand($maximum - $minimum));
+    
+    my %graph;
+
+    my %coeff;
+    foreach my $exp (0..$exponent) {
+        my $coefficient = -20 + int(rand(40));
+        $coeff{$exp} = $coefficient;
+    }
+    
+    # generate a nice polynomial graph with some noise
+    ($minimum, $maximum) = (-20, 20);
+    foreach my $x (-100..100) {
+        my $random_noise_percent = $minimum + int(rand($maximum - $minimum));
+        my $y = 0;
+        foreach my $exp (0..$exponent) {
+            my $coefficient = int(rand(40));
+            $y += $coeff{$exp} * ($x**$exp);
+        }
+        $y += ($random_noise_percent/100) * $y;
+        $graph{$x} = $y;
+    }
+    
+    return wantarray ? %graph : \%graph;
 }

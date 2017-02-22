@@ -88,6 +88,8 @@ Parameters
 # $sources_ref points to a hash:
 #   SOURCE_NAME => $function
 sub show_popup {
+    say "[Popup.pm]: At the top of show_popup";
+    
     my $element = shift;
     my $sources_ref = shift;
     my $default_source = shift;
@@ -98,10 +100,13 @@ sub show_popup {
     
     # If already showing a dialog, close it
     if (exists $g_dialogs{$element}) {
+        say "[Popup.pm] Closing an existing dialog";
         close_dialog($element);
     }
     else {
         if (defined $g_reuse_dlg) {
+            say "[Popup.pm] Found a reuse_dlg object";
+
             $dlgxml = $g_reuse_dlg;
             delete $g_dialogs{$g_reuse_element};
             $canvas = $g_reuse_canvas;
@@ -112,6 +117,7 @@ sub show_popup {
         }
 
         $g_dialogs{$element} = $dlgxml;
+        say "[Popup.pm] About to call load_dialog";
         load_dialog($dlgxml, $element, $sources_ref, 
                     $default_source, $popup_type, $canvas);
     }
@@ -197,6 +203,7 @@ sub load_dialog {
     bless $popup, 'Biodiverse::GUI::PopupObject';
 
     if($popup_type eq "canvas") {
+        say "Saved a canvas in the popup";
         $popup->{canvas}  = $canvas;
     }
     else {

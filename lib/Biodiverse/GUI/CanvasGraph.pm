@@ -29,7 +29,7 @@ sub generate_canvas_graph {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
     my $canvas       = $args{canvas};
-    my $root = $canvas->root;
+    my $root         = $canvas->root;
     my ($canvas_width, $canvas_height) = (300, 300);
     my ($point_width, $point_height) = (2, 2);
     
@@ -64,7 +64,7 @@ sub generate_canvas_graph {
 
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
-        print "Plotting ($x, $y)";
+        #print "Plotting ($x, $y)";
             
         my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
                                              x1 => $x-$point_width, 
@@ -94,7 +94,7 @@ sub rescale_graph_points {
     my $min_y = min @y_values;
     my $max_y = max @y_values;
 
-    say "x, y min max is ($min_x, $max_x), ($min_y, $max_y)";
+    #say "x, y min max is ($min_x, $max_x), ($min_y, $max_y)";
 
     if($max_x == $min_x) {
         ($max_x, $min_x) = (1, 0); # stop division by 0 error

@@ -63,6 +63,7 @@ my %g_dialogs;      # Maps cell -> dialog
 
 my $g_reuse_dlg;     # Dialog to be reused next
 my $g_reuse_element; # this dialog's cell
+my $g_reuse_canvas;
 
 my $g_selected_source = 2;     # name of previously selected source
 my $g_last_reuse = 1;        # last state of the re-use checkbox
@@ -87,36 +88,44 @@ Parameters
 # $sources_ref points to a hash:
 #   SOURCE_NAME => $function
 sub show_popup {
+    say "[Popup.pm]: At the top of show_popup";
+    
     my $element = shift;
     my $sources_ref = shift;
     my $default_source = shift;
-    my $popup_type = shift;
+    my $popup_type = shift // 'normal';
+    say "[Popup.pm] Popup type is $popup_type";
     my $dlgxml;
     my $canvas;
     
     # If already showing a dialog, close it
     if (exists $g_dialogs{$element}) {
+        say "[Popup.pm] Closing an existing dialog";
         close_dialog($element);
     }
     else {
         if (defined $g_reuse_dlg) {
+            say "[Popup.pm] Found a reuse_dlg object";
+
             $dlgxml = $g_reuse_dlg;
             delete $g_dialogs{$g_reuse_element};
+            $canvas = $g_reuse_canvas;
             #print "[Popup] Reusing dialog which was for $g_reuse_element\n";
         }
         else {
-            #print "[Popup] Making new labels dialog for $element\n";
+            say "[Popup.pm] Making a dialog from scratch";
             ($dlgxml, $canvas) = make_dialog($popup_type);
         }
 
         $g_dialogs{$element} = $dlgxml;
+        say "[Popup.pm] About to call load_dialog";
         load_dialog($dlgxml, $element, $sources_ref, 
                     $default_source, $popup_type, $canvas);
     }
 }
 
 sub make_dialog {
-    my $popup_type = shift;
+    my $popup_type = shift // 'normal';
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
@@ -184,7 +193,7 @@ sub load_dialog {
     my $element = shift;
     my $sources_ref    = shift;
     my $default_source = shift;
-    my $popup_type = shift;
+    my $popup_type = shift // 'normal';
     my $canvas = shift;
     
     #print Data::Dumper::Dumper($neighbours);
@@ -195,6 +204,7 @@ sub load_dialog {
     bless $popup, 'Biodiverse::GUI::PopupObject';
 
     if($popup_type eq "canvas") {
+        say "Saved a canvas in the popup";
         $popup->{canvas}  = $canvas;
     }
     else {
@@ -242,8 +252,8 @@ sub load_dialog {
     # Set to last re-use state
     #print "[Popup] last reuse = $g_last_reuse\n";
     $dlgxml->get_object('chkReuse')->set_active($g_last_reuse);
-    $dlgxml->get_object('chkReuse')->signal_connect(toggled => \&on_reuse_toggled, [$element, $dlgxml]);
-    on_reuse_toggled($dlgxml->get_object('chkReuse'),  [$element, $dlgxml]);
+    $dlgxml->get_object('chkReuse')->signal_connect(toggled => \&on_reuse_toggled, [$element, $dlgxml, $canvas]);
+    on_reuse_toggled($dlgxml->get_object('chkReuse'),  [$element, $dlgxml, $canvas]);
 }
 
 ##########################################################
@@ -330,6 +340,7 @@ sub close_dialog {
     if ($element eq $g_reuse_element) {
         $g_reuse_dlg     = undef;
         $g_reuse_element = undef;
+        $g_reuse_canvas  = undef;
     }
 
     return;
@@ -344,6 +355,7 @@ sub on_close_all {
     %g_dialogs = ();
     $g_reuse_dlg = undef;
     $g_reuse_element = undef;
+    $g_reuse_canvas = undef;
 
     return;
 }
@@ -352,7 +364,7 @@ sub on_reuse_toggled {
     my $button = shift;
     my $args = shift;
 
-    my ($element, $dlgxml) = ($args->[0], $args->[1]);
+    my ($element, $dlgxml, $canvas) = ($args->[0], $args->[1], $args->[2]);
     if ($button->get_active() ) {
         # Set to re-use
         # Clear old dialog's checkbox
@@ -363,6 +375,7 @@ sub on_reuse_toggled {
         # Set this dialog to be re-use target
         $g_reuse_dlg = $dlgxml;
         $g_reuse_element = $element;
+        $g_reuse_canvas = $canvas;
 
         #print "[Popup] Set reuse dialog to be $element\n";
         $g_last_reuse = 1;
@@ -371,6 +384,7 @@ sub on_reuse_toggled {
         # Clear re-use dialog
         $g_reuse_dlg = undef;
         $g_reuse_element = undef;
+        $g_reuse_canvas = undef;
         #print "[Popup] Cleared re-use dialog\n";
         $g_last_reuse = 0;
     }

@@ -575,12 +575,9 @@ sub set_display_cursors {
 sub on_graph_popup {
     my $self = shift;
     return if ($self->{tool} ne 'Graph'); 
-    
-    say "About to display a graph";
    
     my $element = shift;
     my $node_ref = $self->get_coloured_node_for_element($element);
-    # my $basedata_ref = $self->{basedata_ref};
 
     my %sources;
     my @lists = $node_ref->get_list_names;
@@ -588,20 +585,15 @@ sub on_graph_popup {
         next if not defined $name;
         next if $name =~ /^_/; # leading underscore marks internal list
 
-        say "Found a list $name";
         $sources{$name} = sub { 
             Biodiverse::GUI::GraphPopup::add_graph(@_, $node_ref, $name);
         };
     }
 
-    
-    # Add source for labels just in this cell
-    # $sources->{'Labels (this cell)'} = sub {
-    #     Biodiverse::GUI::CellPopup::show_all_labels(@_, $element, $basedata_ref);
-    # };
-
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
+        
+    say "[Tab.pm] About to call show_popup";
     Biodiverse::GUI::Popup::show_popup($element, \%sources, $default_source, "canvas");
 }
 

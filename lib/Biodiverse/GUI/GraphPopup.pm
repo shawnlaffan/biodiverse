@@ -22,11 +22,11 @@ sub add_graph {
     my $node_ref = shift;
     
     my $list_name = shift;
-    say "Adding a graph to the popup for list $list_name";
 
     my $list_ref = $node_ref->get_list_ref(list => $list_name);
 
     my $canvas = $popup->{canvas};
+
     my $grapher = Biodiverse::GUI::CanvasGraph->new();
     $grapher->generate_canvas_graph(
         graph_values => $list_ref,

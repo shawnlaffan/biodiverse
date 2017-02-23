@@ -34,6 +34,7 @@ sub add_graph {
     $grapher->generate_canvas_graph(
         graph_values => $list_ref,
         canvas       => $canvas,
+        clear_canvas => 1,
     );
     
     $canvas->show();

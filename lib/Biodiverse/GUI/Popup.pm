@@ -160,7 +160,7 @@ sub make_dialog {
         $canvas = Gnome2::Canvas->new();
         $canvas->set_scroll_region(0, 0, 300, 300);
         $frame->add($canvas);
-        $frame->set_size_request(350, 350);
+        $frame->set_size_request(400, 400);
         $canvas->show();
     }
     else {

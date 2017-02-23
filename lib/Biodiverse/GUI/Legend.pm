@@ -147,17 +147,12 @@ sub hide_legend {
 sub show {
     my $self = shift;
 
-    return if !$self->get_legend;
-
     # Show the legend group.
     $self->{legend_group}->show;
 
     return;
 }
-sub get_legend {
-    my $self = shift;
-    return $self->{legend};
-}
+
 
 sub make_legend_rect {
     my $self = shift;
@@ -518,6 +513,23 @@ sub set_legend_min_max {
     return;
 }
 
+#  dup from Tab.pm - need to inherit from single source
+sub format_number_for_display {
+    my $self = shift;
+    my %args = @_;
+    my $val = $args{number};
+
+    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
+    if ($text == 0) {
+        $text = sprintf ('%.2e', $val);
+    }
+    if ($text == 0) {
+        $text = 0;  #  make sure it is 0 and not 0.00e+000
+    };
+    return $text;
+}
+
+#  should replace with List::MoreUtils::minmax
 sub maxmin {
     my($min, $max) = @_;
     

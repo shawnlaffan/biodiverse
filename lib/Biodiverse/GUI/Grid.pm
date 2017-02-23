@@ -200,6 +200,7 @@ sub new {
         legend_marks => \@legend_marks,
         legend_mode  => $self->{legend_mode},
     );
+    $self->{legend} = $legend;
 
     $legend->reposition();
     $legend->show();
@@ -837,8 +838,8 @@ sub get_colour_from_chooser {
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
     my $legend = $self->{legend};
-    return if ! ($legend);
-    $self->{legend}->set_legend_min_max($min,$max);
+    #return if ! ($legend);
+    $legend->set_legend_min_max($min,$max);
 }
 
 
@@ -891,20 +892,20 @@ sub set_legend_min_max {
 #}
 
 #  dup from Tab.pm - need to inherit from single source
-sub format_number_for_display {
-    my $self = shift;
-    my %args = @_;
-    my $val = $args{number};
-
-    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
-    if ($text == 0) {
-        $text = sprintf ('%.2e', $val);
-    }
-    if ($text == 0) {
-        $text = 0;  #  make sure it is 0 and not 0.00e+000
-    };
-    return $text;
-}
+#sub format_number_for_display {
+#    my $self = shift;
+#    my %args = @_;
+#    my $val = $args{number};
+#
+#    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
+#    if ($text == 0) {
+#        $text = sprintf ('%.2e', $val);
+#    }
+#    if ($text == 0) {
+#        $text = 0;  #  make sure it is 0 and not 0.00e+000
+#    };
+#    return $text;
+#}
 
 # Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
 # Is this ever called?

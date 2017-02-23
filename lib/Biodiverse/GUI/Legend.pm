@@ -60,7 +60,6 @@ sub new {
     my %args         = @_;
 
    my $self = {
-       #legend_marks => ('nw','w','w','sw');
    };
    bless $self, $class;
 
@@ -69,6 +68,7 @@ sub new {
     $self->{legend_mode}  = $args{legend_mode};
 
     # Get the width and height of the canvas.
+    #my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
 
     # Make group so we can pack the coloured
@@ -142,6 +142,11 @@ sub hide_legend {
     $self->{legend_group}->hide;
 
     return;
+}
+
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
 }
 
 sub show {
@@ -288,11 +293,13 @@ sub set_legend_lt_flag {
 # Updates position of legend and value box when canvas is resized or scrolled
 sub reposition {
     my $self = shift;
+    my $width_px = shift;
+    my $height_px = shift;
     return if not defined $self->{legend};
 
     # Convert coordinates into world units
     # (this has been tricky to get working right...)
-    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
+    my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
 
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);

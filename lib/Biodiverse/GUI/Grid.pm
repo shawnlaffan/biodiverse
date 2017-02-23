@@ -191,19 +191,18 @@ sub new {
     #$self->show_legend(\@legend_marks);
     #}
 
-
     # Define the positions of the legend marks
     my @legend_marks = ('nw','w','w','sw');
     # Create the Label legend
-    my $legend = Biodiverse::GUI::Legend->new(
+    my $label_legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},
         legend_marks => \@legend_marks,
         legend_mode  => $self->{legend_mode},
     );
-    $self->{legend} = $legend;
+    $self->{label_legend} = $label_legend;
 
-    $legend->reposition();
-    $legend->show();
+    $self->{label_legend}->reposition();
+    $self->{label_legend}->show();
 
     $self->{drag_mode} = 'select';
 
@@ -213,7 +212,12 @@ sub new {
 }
 
 
-
+# Update the position and/or mode of the legend. 
+sub update {
+    my $self = shift;
+    my $legend = $self->{label_legend};
+    $legend->reposition($self->{width_px}, $self->{height_px});
+}
 
 sub destroy {
     my $self = shift;
@@ -226,8 +230,8 @@ sub destroy {
         $self->{cells_group}->destroy();
     }
 
-#    if ($self->{legend}) {
-#        $self->{legend}->destroy();
+#    if ($self->{lebel_legend}) {
+#        $self->{lebel_legend}->destroy();
 #        delete $self->{legend};
 #
 #        foreach my $i (0..3) {
@@ -570,7 +574,7 @@ sub set_base_struct {
     #  show legend by default - gets hidden by caller if needed
     #my @legend_marks = ("nw","w","w","sw");
     #$self->show_legend(\@legend_marks);
-    #$self->{legend}->show;
+    $self->{label_legend}->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
@@ -837,11 +841,22 @@ sub get_colour_from_chooser {
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    my $legend = $self->{legend};
-    #return if ! ($legend);
+    my $legend = $self->{label_legend};
+    return if ! ($legend);
     $legend->set_legend_min_max($min,$max);
 }
 
+sub show_legend {
+    my $self = shift;
+    my $legend = $self->{label_legend};
+    $legend->show;
+}
+
+sub hide_legend {
+    my $self = shift;
+    my $legend = $self->{label_legend};
+    $legend->hide_legend;
+}
 
 #sub set_legend_min_max {
 #    my ($self, $min, $max) = @_;
@@ -1520,8 +1535,9 @@ sub on_size_allocate {
             
         }
 
-        #$self->{legend}->reposition();
-        #$self->reposition();
+        # I'm not show if this need to be here.
+        $self->{label_legend}->reposition($self->{width_px}, $self->{height_px});
+
         $self->setup_scrollbars();
         $self->resize_background_rect();
 

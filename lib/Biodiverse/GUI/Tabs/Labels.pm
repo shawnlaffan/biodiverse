@@ -841,7 +841,7 @@ sub on_selected_labels_changed {
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-
+    $grid->update();
     return;
 }
 

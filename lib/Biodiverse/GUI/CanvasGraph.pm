@@ -28,9 +28,6 @@ use constant X_AXIS_LABEL_PADDING => 5;
 use constant Y_AXIS_LABEL_PADDING => 80;
 use constant LABEL_FONT => 'Sans 9';
 
-  
-
-
 sub new {
     my $class = shift;
     my $self = bless {}, $class;
@@ -46,8 +43,13 @@ sub generate_canvas_graph {
     
     my $canvas       = $args{canvas};
     my $root         = $canvas->root;
+    my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
+    
+    # whether or not we should clear the canvas. We don't want to
+    # clear it if we're plotting multiple graphs at the same time.
+    my $clear_canvas = $args{clear_canvas};
+    
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
-    my ($point_width, $point_height) = (POINT_WIDTH, POINT_HEIGHT);
     
     # clean out non numeric hash entries
     foreach my $x (keys %graph_values) {
@@ -56,24 +58,27 @@ sub generate_canvas_graph {
             delete $graph_values{$x};
         }
     }
-    # clear the canvas (there must be a better way to do this?)
-    # draw a white box over the whole canvas
-    my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-                                         x1 => -$canvas_width,
-                                         y1 => -$canvas_height,
-                                         x2 => $canvas_width*2,
-                                         y2 => $canvas_height*2,
-                                         fill_color => 'white',
-                                         outline_color => 'white');
-    # draw the black box that outlines the graph
-    $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-                                         x1 => -$point_width,
-                                         y1 => -$point_height,
-                                         x2 => $canvas_width+$point_width,
-                                         y2 => $canvas_height+$point_height,
-                                         fill_color => 'white',
-                                         outline_color => 'black');
 
+    if($clear_canvas) {
+        # clear the canvas (there must be a better way to do this?)
+        # draw a white box over the whole canvas
+        my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+                                             x1 => -$canvas_width,
+                                             y1 => -$canvas_height,
+                                             x2 => $canvas_width*2,
+                                             y2 => $canvas_height*2,
+                                             fill_color => 'white',
+                                             outline_color => 'white');
+
+        # draw the black box that outlines the graph
+        $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+                                          x1 => -(POINT_WIDTH),
+                                          y1 => -(POINT_HEIGHT),
+                                          x2 => $canvas_width+POINT_WIDTH,
+                                          y2 => $canvas_height+POINT_HEIGHT,
+                                          fill_color => 'white',
+                                          outline_color => 'black');
+    }
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
@@ -82,27 +87,43 @@ sub generate_canvas_graph {
         canvas_height => $canvas_height,
         );
     
+    $self->plot_points(
+        graph_values => \%scaled_graph_values,
+        canvas       => $canvas,
+        point_colour => $point_colour,
+        );
+    
+    # add axis labels
+    $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
+                                            canvas       => $canvas,
+                                            canvas_width => $canvas_width,
+                                            canvas_height => $canvas_height,
+        );
+}
+
+
+sub plot_points {
+    my ($self, %args) = @_;
+    my %graph_values  = %{$args{graph_values}};
+    my $point_colour  = $args{point_colour};
+    my $canvas        = $args{canvas};
+    my $root          = $canvas->root;
+
+    my ($point_width, $point_height) = (POINT_WIDTH, POINT_HEIGHT);
+    
     # plot the points
-    foreach my $x (keys %scaled_graph_values) {
-        my $y = $scaled_graph_values{$x};
-            
+    foreach my $x (keys %graph_values) {
+        my $y = $graph_values{$x};
+        
         my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
                                              x1 => $x-$point_width, 
                                              y1 => $y-$point_height,
                                              x2 => $x+$point_width,
                                              y2 => $y+$point_height,
-                                             fill_color => 'green',
-                                             outline_color => 'black');
+                                             fill_color => $point_colour,
+                                             outline_color => $point_colour);
     }
 
-    
-    # add axis labels
-    $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
-                                            scaled_graph_values => \%scaled_graph_values,
-                                            canvas       => $canvas,
-                                            canvas_width => $canvas_width,
-                                            canvas_height => $canvas_height,
-        );
 }
 
 
@@ -225,7 +246,7 @@ sub generate_fake_graph {
     
     # generate a nice polynomial graph with some noise
     ($minimum, $maximum) = (-20, 20);
-    foreach my $x (-100..100) {
+    foreach my $x (-30..30) {
         my $random_noise_percent = $minimum + int(rand($maximum - $minimum));
         my $y = 0;
         foreach my $exp (0..$exponent) {

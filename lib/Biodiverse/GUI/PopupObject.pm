@@ -33,7 +33,6 @@ sub set_canvas {
     my $popup = shift;
     my $canvas = shift;
 
-    say "Setting canvas in PopupObject.pm";
     # for the graph popups
     $popup->{canvas} = $canvas;
 }

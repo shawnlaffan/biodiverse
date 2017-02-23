@@ -27,8 +27,8 @@ sub new {
 # Gnome2::Canvas. Updates this same canvas with the graph on it.
 sub generate_canvas_graph {
     my ($self, %args) = @_;
-    #my %graph_values = %{$args{graph_values}};
-    my %graph_values = $self->generate_fake_graph();
+    my %graph_values = %{$args{graph_values}};
+    #my %graph_values = $self->generate_fake_graph();
 
     
     my $canvas       = $args{canvas};
@@ -45,25 +45,32 @@ sub generate_canvas_graph {
     }
     # clear the canvas (there must be a better way to do this?)
     my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+                                         x1 => -$canvas_width,
+                                         y1 => -$canvas_height,
+                                         x2 => $canvas_width*2,
+                                         y2 => $canvas_height*2,
+                                         fill_color => 'white',
+                                         outline_color => 'white');
+    $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
                                          x1 => -$point_width,
                                          y1 => -$point_height,
                                          x2 => $canvas_width+$point_width,
                                          y2 => $canvas_height+$point_height,
                                          fill_color => 'white',
-                                         outline_color => 'white');
+                                         outline_color => 'black');
 
 
     # we've got 400x400 pixels to display the graph, we need to scale
     # the values so they fit nicely in this space.
-    %graph_values = $self->rescale_graph_points(
+    my %scaled_graph_values = $self->rescale_graph_points(
         old_values   => \%graph_values,
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
         );
     
     # plot the points
-    foreach my $x (keys %graph_values) {
-        my $y = $graph_values{$x};
+    foreach my $x (keys %scaled_graph_values) {
+        my $y = $scaled_graph_values{$x};
         #print "Plotting ($x, $y)";
             
         my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
@@ -74,6 +81,13 @@ sub generate_canvas_graph {
                                              fill_color => 'green',
                                              outline_color => 'black');
     }
+
+    $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
+                                            scaled_graph_values => \%scaled_graph_values,
+                                            canvas       => $canvas,
+                                            canvas_width => $canvas_width,
+                                            canvas_height => $canvas_height,
+        );
 }
 
 
@@ -118,6 +132,61 @@ sub rescale_graph_points {
     return wantarray? %new_values : \%new_values;
     
 }
+
+sub add_axis_labels_to_graph_canvas {
+    my ($self, %args) = @_;
+    my %graph_values  = %{$args{graph_values}};
+    my $canvas        = $args{canvas};
+    my $canvas_width  = $args{canvas_width};
+    my $canvas_height = $args{canvas_height};
+    my $root          = $canvas->root;
+    
+    my @x_values = keys %graph_values;
+    my @y_values = values %graph_values;
+    my $min_x = min @x_values;
+    my $max_x = max @x_values;
+    my $min_y = min @y_values;
+    my $max_y = max @y_values;
+
+    
+    # add some axis labels
+    my $number_of_axis_labels = 4;
+
+    # x axis labels
+    foreach my $axis_label (0..($number_of_axis_labels-1)) {
+        my $x_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_width;
+        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_x - $min_x) 
+            + $min_x;
+        $text = sprintf("%.2e", $text);
+        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
+                                                 x => $x_position,
+                                                 y => $canvas_height+5,
+                                                 fill_color => 'black',
+                                                 font => 'Sans 9',
+                                                 anchor => 'GTK_ANCHOR_NW',
+                                                 text => $text,
+            );
+    }
+
+    # y axis labels
+    foreach my $axis_label (0..($number_of_axis_labels-1)) {
+        my $y_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_height;
+        $y_position = $canvas_height - $y_position;
+
+        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_y - $min_y) 
+            + $min_y;
+        $text = sprintf("%.2e", $text);
+        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
+                                                 x => -80,
+                                                 y => $y_position,
+                                                 fill_color => 'black',
+                                                 font => 'Sans 9',
+                                                 anchor => 'GTK_ANCHOR_NW',
+                                                 text => $text,
+            );
+    }
+}
+
 
 sub generate_fake_graph {
     my ($self, %args) = @_;

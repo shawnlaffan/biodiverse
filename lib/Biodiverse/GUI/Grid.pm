@@ -161,7 +161,7 @@ sub new {
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
-    
+
     if ($show_value) {
         $self->setup_value_label();
     }
@@ -188,8 +188,21 @@ sub new {
     $self->{back_rect} = $rect;
 
     #if ($show_legend) {
-        $self->show_legend;
+    #$self->show_legend(\@legend_marks);
     #}
+
+
+    # Define the positions of the legend marks
+    my @legend_marks = ('nw','w','w','sw');
+    # Create the Label legend
+    my $legend = Biodiverse::GUI::Legend->new(
+        canvas       => $self->{canvas},
+        legend_marks => \@legend_marks,
+        legend_mode  => $self->{legend_mode},
+    );
+
+    $legend->reposition();
+    $legend->show();
 
     $self->{drag_mode} = 'select';
 
@@ -212,14 +225,20 @@ sub destroy {
         $self->{cells_group}->destroy();
     }
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
+#    if ($self->{legend}) {
+#        $self->{legend}->destroy();
+#        delete $self->{legend};
+#
+#        foreach my $i (0..3) {
+#            $self->{marks}[$i]->destroy();
+#        }
+#    }
 
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    # Destroy the legend group.
+    if ($self->{legend_group}) {
+        $self->{legend_group}->destroy();
     }
+
 
     $self->{value_group}->destroy if $self->{value_group};
     delete $self->{value_group};
@@ -548,8 +567,9 @@ sub set_base_struct {
     $self->resize_background_rect();
     
     #  show legend by default - gets hidden by caller if needed
-    $self->show_legend;
-
+    #my @legend_marks = ("nw","w","w","sw");
+    #$self->show_legend(\@legend_marks);
+    #$self->{legend}->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
@@ -812,6 +832,63 @@ sub get_colour_from_chooser {
 
     return $colour;
 }
+
+# Sets the values of the textboxes next to the legend */
+sub set_legend_min_max {
+    my ($self, $min, $max) = @_;
+    my $legend = $self->{legend};
+    return if ! ($legend);
+    $self->{legend}->set_legend_min_max($min,$max);
+}
+
+
+#sub set_legend_min_max {
+#    my ($self, $min, $max) = @_;
+#
+#    $min //= $self->{last_min};
+#    $max //= $self->{last_max};
+#
+#    $self->{last_min} = $min;
+#    $self->{last_max} = $max;
+#
+#    return if ! ($self->{marks}
+#                 && defined $min
+#                 && defined $max
+#                );
+#
+#    # Set legend textbox markers
+#    my $marker_step = ($max - $min) / 3;
+#    foreach my $i (0..3) {
+#        my $val = $min + $i * $marker_step;
+#        my $text = $self->format_number_for_display (number => $val);
+#        my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
+#        if ($i == 0 and $self->{legend_lt_flag}) {
+#            $text = '<=' . $text;
+#        }
+#        elsif ($i == 3 and $self->{legend_gt_flag}) {
+#            $text = '>=' . $text;
+#        }
+#        elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
+#            $text = '  ' . $text;
+#        }
+#
+#        my $mark = $self->{marks}[3 - $i];
+#        $mark->set( text => $text );
+#        #  move the mark to right align with the legend
+#        my @bounds = $mark->get_bounds;
+#        my @lbounds = $self->{legend}->get_bounds;
+#        my $offset = $lbounds[0] - $bounds[2];
+#        if (($text_num + 0) != 0) {
+#            $mark->move ($offset - length ($text), 0);
+#        }
+#        else {
+#            $mark->move ($offset - length ($text) - 0.5, 0);
+#        }
+#        $mark->raise_to_top;
+#    }
+#
+#    return;
+#}
 
 #  dup from Tab.pm - need to inherit from single source
 sub format_number_for_display {
@@ -1133,6 +1210,31 @@ sub get_colour_grey {
     return Gtk2::Gdk::Color->new($sat, $sat, $sat);
 }
 
+# FROM http://blog.webkist.com/archives/000052.html
+# by Jacob Ehnmark
+sub hsv_to_rgb {
+    my($h, $s, $v) = @_;
+    $v = $v >= 1.0 ? 255 : $v * 256;
+
+    # Grey image.
+    return((int($v)) x 3) if ($s == 0);
+
+    $h /= 60;
+    my $i = int($h);
+    my $f = $h - int($i);
+    my $p = int($v * (1 - $s));
+    my $q = int($v * (1 - $s * $f));
+    my $t = int($v * (1 - $s * (1 - $f)));
+    $v = int($v);
+
+    if   ($i == 0) { return($v, $t, $p); }
+    elsif($i == 1) { return($q, $v, $p); }
+    elsif($i == 2) { return($p, $v, $t); }
+    elsif($i == 3) { return($p, $q, $v); }
+    elsif($i == 4) { return($t, $p, $v); }
+    else           { return($v, $p, $q); }
+}
+
 sub rgb_to_hsv {
     my $var_r = $_[0] / 255;
     my $var_g = $_[1] / 255;
@@ -1417,7 +1519,8 @@ sub on_size_allocate {
             
         }
 
-        $self->reposition();
+        #$self->{legend}->reposition();
+        #$self->reposition();
         $self->setup_scrollbars();
         $self->resize_background_rect();
 
@@ -1629,7 +1732,8 @@ sub on_scrollbars_scroll {
     if (not $self->{dragging}) {
         my ($x, $y) = ($self->{hadjust}->get_value, $self->{vadjust}->get_value);
         $self->{canvas}->scroll_to($x, $y);
-        $self->reposition();
+        $self->{legend}->reposition();
+        #$self->reposition();
     }
     
     return;
@@ -1680,7 +1784,8 @@ sub resize_background_rect {
 sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
-    $self->reposition();
+    $self->{legend}->reposition();
+    #$self->reposition();
     
     return;
 }
@@ -1733,11 +1838,35 @@ sub get_zoom_fit_flag {
 sub post_zoom {
     my $self = shift;
     $self->setup_scrollbars();
-    $self->reposition();
+    $self->{legend}->reposition();
+    #$self->reposition();
     $self->resize_background_rect();
     
     return;
 }
+
+# Set colouring mode - 'Hue' or 'Sat'
+sub set_legend_mode {
+    my $self = shift;
+    my $mode = shift;
+
+    $mode = ucfirst lc $mode;
+
+    croak "Invalid display mode '$mode'\n"
+        if not $mode =~ /^Hue|Sat|Grey$/;
+
+    $self->{legend_mode} = $mode;
+
+    $self->colour_cells();
+
+    # Update legend
+    if ($self->{legend}) {
+        $self->{legend}->make_legend_rect();
+        $self->{legend}->reposition();
+    }
+
+    return;
+};
 
 =head2 setHue
 

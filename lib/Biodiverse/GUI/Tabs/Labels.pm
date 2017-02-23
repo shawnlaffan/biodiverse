@@ -196,7 +196,6 @@ sub init_grid {
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
-	lframe => $lframe,
         hscroll => $hscroll,
         vscroll => $vscroll,
         show_legend => 0,
@@ -833,7 +832,6 @@ sub on_selected_labels_changed {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
-
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";

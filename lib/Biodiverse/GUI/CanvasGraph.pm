@@ -261,6 +261,61 @@ sub generate_fake_graph {
     
 }
 
+sub add_axis_labels_to_graph_canvas {
+    my ($self, %args) = @_;
+    my %graph_values  = %{$args{graph_values}};
+    my $canvas        = $args{canvas};
+    my $canvas_width  = $args{canvas_width};
+    my $canvas_height = $args{canvas_height};
+    my $root          = $canvas->root;
+    
+    my @x_values = keys %graph_values;
+    my @y_values = values %graph_values;
+    my $min_x = min @x_values;
+    my $max_x = max @x_values;
+    my $min_y = min @y_values;
+    my $max_y = max @y_values;
+
+    
+    # add some axis labels
+    my $number_of_axis_labels = 4;
+
+    # x axis labels
+    foreach my $axis_label (0..($number_of_axis_labels-1)) {
+        my $x_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_width;
+        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_x - $min_x) 
+            + $min_x;
+        $text = sprintf("%.2e", $text);
+        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
+                                                 x => $x_position,
+                                                 y => $canvas_height+5,
+                                                 fill_color => 'black',
+                                                 font => 'Sans 9',
+                                                 anchor => 'GTK_ANCHOR_NW',
+                                                 text => $text,
+            );
+    }
+
+    # y axis labels
+    foreach my $axis_label (0..($number_of_axis_labels-1)) {
+        my $y_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_height;
+        $y_position = $canvas_height - $y_position;
+
+        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_y - $min_y) 
+            + $min_y;
+        $text = sprintf("%.2e", $text);
+        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
+                                                 x => -80,
+                                                 y => $y_position,
+                                                 fill_color => 'black',
+                                                 font => 'Sans 9',
+                                                 anchor => 'GTK_ANCHOR_NW',
+                                                 text => $text,
+            );
+    }
+}
+
+
 sub generate_fake_graph {
     my ($self, %args) = @_;
 

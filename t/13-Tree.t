@@ -697,10 +697,10 @@ sub test_rescale_by_longest_path {
     #  now we rescale things
     my $rescaled_tree
       = $tree->clone_tree_with_rescaled_branch_lengths (scale_factor => 0.01);
-    is (
-        $rescaled_tree->get_longest_path_length_to_terminals,
-        $new_longest_path / 100,
-        'New longest path is 0.01 of the original',
+    is_numeric_within_tolerance_or_exact_text (
+        got => $rescaled_tree->get_longest_path_length_to_terminals,
+        expected => $new_longest_path / 100,
+        message  => 'New longest path is 0.01 of the original',
     );
     is (
         $rescaled_tree->get_total_length,

@@ -49,6 +49,7 @@ use Exporter::Easy (
                 transform_element
                 verify_set_contents
                 write_data_to_temp_file
+                is_numeric_within_tolerance_or_exact_text
             ),
         ],
         basedata => [

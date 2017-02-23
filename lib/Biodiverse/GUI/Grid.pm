@@ -1391,11 +1391,12 @@ sub on_event {
     }
     elsif ($event->type eq 'button-press') {
         $self->{clicked_cell} = undef unless $event->button == 2;  #  clear any clicked cell
-
         if ( $event->button == 1 and !($event->state >= [ 'control-mask' ])) {
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
-            $f->($element);
+            if($f) {
+                $f->($element);
+            }
         }
         # If middle-click or control-click
         elsif (        $event->button == 2
@@ -1411,7 +1412,6 @@ sub on_event {
             
             return 1;  #  Don't propagate the events
         }
-        
         elsif ($self->{drag_mode} eq 'select' and $event->button == 1) { # left click and drag
             
             if (defined $self->{select_func}

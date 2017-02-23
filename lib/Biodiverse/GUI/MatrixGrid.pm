@@ -72,12 +72,13 @@ sub new {
         hue     => 0,      # default constant-hue red
     }; 
     bless $self, $class;
-
+    
     #  callbacks
     $self->{hover_func}  = $args{hover_func};  # move mouse over a cell
     $self->{select_func} = $args{select_func}; # click on a cell
     $self->{grid_click_func} = $args{grid_click_func}; # click on a cell
-
+    $self->{click_func} = $args{click_func};
+    
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
     $frame->add($self->{canvas});

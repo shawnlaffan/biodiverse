@@ -233,7 +233,9 @@ sub init_matrix_grid {
     my $hover_closure  = sub { $self->on_matrix_hover(@_); };
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
     my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
-
+    my $click_closure = sub { $self->on_graph_popup(@_); };
+    
+    
     $self->{matrix_grid} = Biodiverse::GUI::MatrixGrid->new(
         frame => $frame,
         hscroll => $hscroll,
@@ -241,6 +243,7 @@ sub init_matrix_grid {
         hover_func      => $hover_closure,
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
+        click_func      => $click_closure,
     );
     $self->{matrix_grid}->{page} = $self; # Hacky
 

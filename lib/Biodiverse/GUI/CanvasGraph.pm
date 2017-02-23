@@ -80,6 +80,26 @@ sub generate_canvas_graph {
                                           outline_color => 'black');
     }
 
+    if($clear_canvas) {
+        # clear the canvas (there must be a better way to do this?)
+        # draw a white box over the whole canvas
+        my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+                                             x1 => -$canvas_width,
+                                             y1 => -$canvas_height,
+                                             x2 => $canvas_width*2,
+                                             y2 => $canvas_height*2,
+                                             fill_color => 'white',
+                                             outline_color => 'white');
+
+        # draw the black box that outlines the graph
+        $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+                                          x1 => -(POINT_WIDTH),
+                                          y1 => -(POINT_HEIGHT),
+                                          x2 => $canvas_width+POINT_WIDTH,
+                                          y2 => $canvas_height+POINT_HEIGHT,
+                                          fill_color => 'white',
+                                          outline_color => 'black');
+    }
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(

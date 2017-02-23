@@ -80,6 +80,7 @@ sub generate_canvas_graph {
                                           outline_color => 'black');
     }
 
+
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
         old_values   => \%graph_values,
@@ -276,24 +277,26 @@ sub add_axis_labels_to_graph_canvas {
     my $min_y = min @y_values;
     my $max_y = max @y_values;
 
-    
     # add some axis labels
-    my $number_of_axis_labels = 4;
+    my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;
 
     # x axis labels
     foreach my $axis_label (0..($number_of_axis_labels-1)) {
         my $x_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_width;
         my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_x - $min_x) 
             + $min_x;
+
+        # TODO Add format choice
         $text = sprintf("%.2e", $text);
-        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
-                                                 x => $x_position,
-                                                 y => $canvas_height+5,
-                                                 fill_color => 'black',
-                                                 font => 'Sans 9',
-                                                 anchor => 'GTK_ANCHOR_NW',
-                                                 text => $text,
-            );
+        my $x_label = Gnome2::Canvas::Item->new (
+            $root, 'Gnome2::Canvas::Text',
+            x => $x_position,
+            y => $canvas_height+X_AXIS_LABEL_PADDING,
+            fill_color => 'black',
+            font => 'Sans 9',
+            anchor => 'GTK_ANCHOR_NW',
+            text => $text,
+        );
     }
 
     # y axis labels
@@ -303,19 +306,24 @@ sub add_axis_labels_to_graph_canvas {
 
         my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_y - $min_y) 
             + $min_y;
+
+        # TODO Add format choice
         $text = sprintf("%.2e", $text);
-        my $x_label = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Text',
-                                                 x => -80,
-                                                 y => $y_position,
-                                                 fill_color => 'black',
-                                                 font => 'Sans 9',
-                                                 anchor => 'GTK_ANCHOR_NW',
-                                                 text => $text,
+        my $x_label = Gnome2::Canvas::Item->new (
+            $root, 'Gnome2::Canvas::Text',
+            x => - Y_AXIS_LABEL_PADDING,
+            y => $y_position,
+            fill_color => 'black',
+            font => LABEL_FONT,
+            anchor => 'GTK_ANCHOR_NW',
+            text => $text,
             );
     }
 }
 
 
+# make a random polynomial hash
+# lots of magic numbers but this is really a test function.
 sub generate_fake_graph {
     my ($self, %args) = @_;
 

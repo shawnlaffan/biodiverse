@@ -353,7 +353,8 @@ sub compare_hash_vals {
             is_numeric_within_tolerance_or_exact_text (
                 got       => $hash_got->{$key},
                 expected  => $hash_exp->{$key},
-                message   => "Got expected value for $key, $descr_suffix",
+                message   => "Got expected value for $key ($hash_got->{$key} "
+                           . "same as $hash_exp->{$key}), $descr_suffix",
                 tolerance => $tolerance,
             );
             #my $val_got = snap_to_precision (

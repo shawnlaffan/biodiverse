@@ -38,8 +38,8 @@ sub new {
 # Gnome2::Canvas. Updates this same canvas with the graph on it.
 sub generate_canvas_graph {
     my ($self, %args) = @_;
-    #my %graph_values = %{$args{graph_values}};
-    my %graph_values = $self->generate_fake_graph();
+    my %graph_values = %{$args{graph_values}};
+    #my @graphs = $self->generate_fake_graph();
     
     my $canvas       = $args{canvas};
     my $root         = $canvas->root;

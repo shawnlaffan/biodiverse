@@ -18,6 +18,7 @@ use Ref::Util qw /:all/;
 
 use Text::Fuzzy;
 use Scalar::Util qw /blessed/;
+use List::MoreUtils qw /first_index/;
 
 my $i;
 use constant ORIGINAL_LABEL_COL => $i || 0;
@@ -76,6 +77,9 @@ sub pre_remap_dlg {
         @{ $gui->get_project->get_phylogeny_list },
         @{ $gui->get_project->get_matrix_list },
     );
+    
+    croak "Nothing to remap\n"
+      if !@remapee_sources;
     
     my @controller_sources = @remapee_sources;
     unshift @controller_sources, MANUAL_OPTION_TEXT;

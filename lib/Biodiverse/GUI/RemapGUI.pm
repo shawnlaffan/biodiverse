@@ -276,8 +276,7 @@ sub post_auto_remap_dlg {
     my $remap_hash = $remap_object->to_hash();
     
     croak "[RemapGUI.pm] No auto remap was generated in the remap_object" 
-        if (!$remap_object->has_auto_remap);
-
+      if !$remap_object->has_auto_remap;
 
     my %params = (remap => $remap_hash);
 
@@ -288,26 +287,26 @@ sub post_auto_remap_dlg {
             $remap_object->get_match_category(category => $category);
     }
 
-
     my $remap_results_response =
       $self->remap_results_dialog( %params );
 
     my $response = $remap_results_response->{response};
-    
+
     # now build the remap we actually want to perform
     $remap_hash = $self->build_remap_hash_from_exclusions(
         %$remap_results_response,
         remap => $remap_hash,
-        punct_matches => 
-            $remap_object->get_match_category(category => "punct_matches"),
-        punct_matches => 
-            $remap_object->get_match_category(category => "typo_matches"),
+        punct_matches => $remap_object->get_match_category(
+            category => "punct_matches",
+        ),
+        punct_matches => $remap_object->get_match_category(
+            category => "typo_matches",
+        ),
+    );
 
-        );
+    #$remap_object->import_from_hash(remap_hash => $remap_hash);
 
-    $remap_object->import_from_hash(remap_hash => $remap_hash);
-    
-    if ( $response eq 'yes' ) {
+    if ( $response =~ /yes|apply/ ) {
         say "Performed automatic remap.";
         return 1;
     }
@@ -539,8 +538,6 @@ sub remap_results_dialog {
     my $response = $dlg->run();
 
     $dlg->destroy();
-
-    
     
     my %results = (
         response            => $response,

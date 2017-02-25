@@ -1171,7 +1171,7 @@ sub do_remap {
     }
     elsif ( $remap_type eq "manual" ) {  # load a remap file
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-            gui          => $self,
+            gui => $self,
         );
 
         if ( defined $remap_data{file} ) {

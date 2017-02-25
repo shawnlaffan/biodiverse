@@ -33,7 +33,7 @@ sub import_from_hash {
 
     foreach my $key (keys %$hash) {
         # create an element for this remap
-        my @in_cols = ($key);
+        #my @in_cols = ($key);
 
         my $element = $key;
         
@@ -42,11 +42,15 @@ sub import_from_hash {
             csv_object => $csv_out,
         );
 
-        my $properties_hash;
-        $properties_hash->{REMAP} = $hash->{$key};
-
-        $self->add_to_lists (element => $element, PROPERTIES => $properties_hash);
+        $self->add_to_lists (
+            element    => $element,
+            PROPERTIES => {
+                REMAP => $hash->{$key}
+            },
+        );
     }
+    
+    return;
 }
 
 # returns a hash of the remap this object represents.

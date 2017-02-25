@@ -279,17 +279,16 @@ sub post_auto_remap_dlg {
         if (!$remap_object->has_auto_remap);
 
 
-    my %params = (remap => $remap_hash,);
+    my %params = (remap => $remap_hash);
 
-    my @match_categories = ("exact_matches", "punct_matches", 
-                            "typo_matches", "not_matched");
-    
+    my @match_categories = qw /exact_matches punct_matches typo_matches not_matched/;
+
     foreach my $category (@match_categories) {
         $params{$category} = 
             $remap_object->get_match_category(category => $category);
     }
-                            
-    
+
+
     my $remap_results_response =
       $self->remap_results_dialog( %params );
 
@@ -327,7 +326,7 @@ sub remap_results_dialog {
     # most screens are at least 600 pixels high 
     # at least until the biodiverse mobile app is released...
     my $default_dialog_height = 600;
-    my $default_dialog_width = 600;
+    my $default_dialog_width  = 600;
     
     ###
     # Exact matches
@@ -377,7 +376,6 @@ sub remap_results_dialog {
 
     my $typo_match_count = @typo_matches;
 
-
     my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $typo_match_scroll->add($typo_tree);
 
@@ -388,7 +386,9 @@ sub remap_results_dialog {
             $typo_match_scroll->set_sensitive(
                 !$typo_match_scroll->get_sensitive
             );
-            $typo_match_scroll->set_visible($typo_match_checkbutton->get_active),
+            $typo_match_scroll->set_visible(
+                $typo_match_checkbutton->get_active,
+            ),
         }
     );
 
@@ -403,9 +403,8 @@ sub remap_results_dialog {
 
     ###
     # Accept label
-    my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
- 
-    
+    #my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
+
     # 'copy selection to clipboard' button
     my $copy_button 
         = Gtk2::Button->new_with_label("Copy selected rows to clipboard");
@@ -413,9 +412,11 @@ sub remap_results_dialog {
     
     $copy_button->signal_connect('clicked' => sub {
         $self->copy_selected_tree_data_to_clipboard(
-            trees => [ $exact_match_tree,  $not_matched_tree, 
-                       $punct_tree,        $typo_tree,],
-            )
+            trees => [
+                    $exact_match_tree,  $not_matched_tree, 
+                    $punct_tree,        $typo_tree,
+            ],
+        )
     });
 
     # export remap to file button
@@ -425,12 +426,12 @@ sub remap_results_dialog {
     
     $export_button->signal_connect('clicked' => sub {
         $remap = $self->build_remap_hash_from_exclusions(
-            remap => $remap,
-            punct_match_enabled => $punct_match_checkbutton->get_active,
-            typo_match_enabled => $typo_match_checkbutton->get_active,
-            exclusions => $self->get_exclusions,
+            remap         => $remap,
+            exclusions    => $self->get_exclusions,
             punct_matches => \@punct_matches,
-            typo_matches => \@typo_matches,
+            typo_matches  => \@typo_matches,
+            punct_match_enabled => $punct_match_checkbutton->get_active,
+            typo_match_enabled  => $typo_match_checkbutton->get_active,
         );
 
         my $remap_object = Biodiverse::Remap->new();
@@ -466,7 +467,7 @@ sub remap_results_dialog {
         components => [$exact_match_scroll],
         fill => [1],
         tooltip => EXACT_MATCH_PANEL_TOOLTIP,
-        );
+    );
     
     my $not_matched_frame = $self->build_vertical_frame (
         label => "Not Matched: $not_matched_count",
@@ -483,7 +484,7 @@ sub remap_results_dialog {
         components => [$punct_match_checkbutton, $punct_match_scroll],
         fill => [0, 1],
         tooltip => PUNCT_MATCH_PANEL_TOOLTIP,
-        );
+    );
 
     my $typo_frame = $self->build_vertical_frame (
         label => "Possible Typos: $typo_match_count",
@@ -491,7 +492,7 @@ sub remap_results_dialog {
         padding => 0,
         fill => [0, 1],
         tooltip => TYPO_MATCH_PANEL_TOOLTIP,
-        );
+    );
 
     # put these vboxes in vpanes so we can resize
     my $vpaned1 = Gtk2::VPaned->new();
@@ -661,7 +662,7 @@ sub build_remap_hash_from_exclusions {
     foreach my $key (@keys) {
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};
-            say "Deleted $key because it mapped to itself.";
+            #say "Deleted $key because it mapped to itself.";
         }
     }
 

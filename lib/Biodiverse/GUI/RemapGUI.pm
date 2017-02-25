@@ -103,16 +103,23 @@ sub pre_remap_dlg {
     my $controller_combo = Gtk2::ComboBox->new_text;
 
     foreach my $option (@remapee_sources) {
-        $remapee_combo->append_text($self->object_to_name(obj => $option));
+        $remapee_combo->append_text(
+            $self->object_to_name(obj => $option)
+        );
     }
     foreach my $option (@controller_sources) {
-        $controller_combo->append_text($self->object_to_name(obj => $option));
+        $controller_combo->append_text(
+            $self->object_to_name(obj => $option)
+        );
     }
 
-    my $index = first_index { $_ eq $default_remapee } @remapee_sources;
+    my $index
+      = first_index
+        { $_ eq $default_remapee }
+        @remapee_sources;
     $remapee_combo->set_active($index);
     $controller_combo->set_active(0);
-    
+
     $remapee_combo->show_all;
     $controller_combo->show_all;
 
@@ -411,10 +418,9 @@ sub remap_results_dialog {
             )
     });
 
-
     # export remap to file button
     my $export_button 
-        = Gtk2::Button->new_with_label("Export remap to file.");
+        = Gtk2::Button->new_with_label("Export remap to file");
     $export_button->set_tooltip_text(EXPORT_BUTTON_TOOLTIP);
     
     $export_button->signal_connect('clicked' => sub {
@@ -425,7 +431,7 @@ sub remap_results_dialog {
             exclusions => $self->get_exclusions,
             punct_matches => \@punct_matches,
             typo_matches => \@typo_matches,
-            );
+        );
 
         my $remap_object = Biodiverse::Remap->new();
         $remap_object->import_from_hash(remap_hash => $remap);
@@ -437,11 +443,14 @@ sub remap_results_dialog {
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Remap results',
         undef, 'modal',
-        'gtk-yes' => 'yes',
-        'gtk-no'  => 'no'
-        );
+        'gtk-apply'  => 'yes',
+        'gtk-cancel' => 'no'
+    );
 
-    $dlg->set_default_size($default_dialog_width, $default_dialog_height);
+    $dlg->set_default_size(
+        $default_dialog_width,
+        $default_dialog_height,
+    );
 
     ####
     # Packing
@@ -500,10 +509,13 @@ sub remap_results_dialog {
     my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $outer_scroll->add_with_viewport( $vpaned1 );
     
-    $vbox->pack_start($outer_scroll, 1, 1, 0);
-    $vbox->pack_start( $copy_button, 0, 0, 0 );
-    $vbox->pack_start( $export_button, 0, 1, 0 );
-    $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
+    my $hbox = Gtk2::HBox->new;
+    $hbox->pack_start( $copy_button,   0, 0, 0 );
+    $hbox->pack_start( $export_button, 0, 0, 0 );
+
+    $vbox->pack_start( $outer_scroll,  1, 1, 0);
+    $vbox->pack_start( $hbox,          0, 0, 0);
+    #$vbox->pack_start( $accept_remap_label, 0, 1, 0 );
 
     
     $dlg->show_all;

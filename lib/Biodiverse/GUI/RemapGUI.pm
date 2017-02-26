@@ -223,7 +223,7 @@ sub pre_remap_dlg {
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
-        'Remap labels?',
+        'Remap options',
         undef, 'modal',
         'gtk-ok' => 'ok',
         'gtk-cancel'  => 'cancel',

@@ -188,7 +188,8 @@ sub run {
     # run the remapper
     $gui->do_remap(
         default_remapee => $gui->get_project->get_selected_matrix,
-        );
+        check_first     => 1,
+    );
 
     return $matrix_ref;
 }

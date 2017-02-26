@@ -810,11 +810,10 @@ sub run {
             }
         }
 
-        # run the auto remapper
-        $gui->do_remap(
+        $gui->do_remap (
             default_remapee => $gui->get_project->get_selected_basedata,
-            );
-        
+            check_first     => 1,
+        );
         return $basedata_ref;
     }
 

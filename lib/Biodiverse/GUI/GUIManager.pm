@@ -1135,6 +1135,21 @@ sub do_rename_phylogeny {
 sub do_remap {
     my ($self, %args) = @_;
 
+    if ($args{check_first}) {
+        my $default_target = $args{default_remapee};
+        my $type
+           = $default_target->isa('Biodiverse::BaseData') ? 'label'
+           : $default_target->isa('Biodiverse::Tree')     ? 'node'
+           : 'element';
+        my $message  = "Remap the $type names?";
+        my $response =
+            Biodiverse::GUI::YesNoCancel->run( {
+                header      => $message,
+                hide_cancel => 1,
+            } );
+        return if $response ne 'yes';
+    }
+
     # ask what type of remap, what is getting remapped to what etc.
     my $remap_gui = Biodiverse::GUI::RemapGUI->new();
     my $pre_remap_dlg_results 
@@ -1198,14 +1213,14 @@ sub do_remap {
         "Biodiverse::Tree"     => "phylogeny",
         "Biodiverse::BaseData" => "basedata",
         "Biodiverse::Matrix"   => "matrix",
-        );
+    );
     
     my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
     my $add_to_project_function;
 
     # the function names are frustratingly add_base_data and
     # do_rename_basedata so we have to fix that here.
-    if($function_name eq 'basedata') {
+    if ($function_name eq 'basedata') {
         $add_to_project_function = "add_base_data";
     }
     else {

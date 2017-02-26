@@ -147,6 +147,7 @@ sub run {
     # 5. Run the remapper
     $gui->do_remap(
         default_remapee => $gui->get_project->get_selected_phylogeny,
+        check_first     => 1,
     );
         
     #  SWL:  not sure why we return undef in void context

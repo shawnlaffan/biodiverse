@@ -49,7 +49,7 @@ use constant IGNORE_CASE_TOOLTIP
     => "Treat case differences as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
-use constant MANUAL_OPTION_TEXT => "From file";
+use constant MANUAL_OPTION_TEXT => 'User defined from file';
 
 sub new {
     my $class = shift;
@@ -124,7 +124,11 @@ sub pre_remap_dlg {
     $controller_combo->show_all;
 
     $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
-    $remapee_combo->set_tooltip_text ('Choose a data source to remap to');
+    $controller_combo->set_tooltip_text (
+        "Choose a data source to remap to.\n"
+        . 'The user defined from file option requires both source and '
+        . 'target be specified in the selected file.'
+    );
     my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
     my $controller_label = Gtk2::Label->new('Label source:');
     
@@ -225,8 +229,8 @@ sub pre_remap_dlg {
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Remap options',
         undef, 'modal',
-        'gtk-ok' => 'ok',
-        'gtk-cancel'  => 'cancel',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
     );
 
     ####

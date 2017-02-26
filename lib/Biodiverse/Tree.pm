@@ -2735,6 +2735,8 @@ sub remap_labels_from_hash {
         next if !$self->exists_node (name => $r);
 
         my $new_name = $remap_hash->{$r};
+        next if !defined $new_name || $new_name eq $r;
+        
         $self->rename_node (
             old_name => $r,
             new_name => $new_name,

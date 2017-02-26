@@ -5048,6 +5048,8 @@ sub remap_labels_from_hash {
 
     foreach my $label ( keys %remap ) {
         my $remapped = $remap{$label};
+ 
+        next if !defined $remapped || $label eq $remapped;
 
         $self->rename_label(
             label            => $label,

@@ -143,21 +143,25 @@ sub dequote_all_elements {
     foreach my $element (@$elements) {
         # fix up the remapped value
         my $remapped = $self->get_element_remapped(element => $element);
-        my $new_remapped = $self->dequote_element(
-            element    => $remapped,
-            quote_char => "'",
-        );
-        $self->{ELEMENTS}{$element}{PROPERTIES}{REMAP} = $new_remapped;
+        if (defined $remapped) {
+            my $new_remapped = $self->dequote_element(
+                element    => $remapped,
+                quote_char => "'",
+            );
+            $self->{ELEMENTS}{$element}{PROPERTIES}{REMAP} = $new_remapped;
+        }
 
         # fix up the element name itself
         my $new_name = $self->dequote_element(
             element    => $element,
             quote_char => "'",
         );
-        $self->rename_element(
-            element    => $element,
-            new_name   => $new_name,
-        );
+        if ($new_name ne $element) {
+            $self->rename_element(
+                element    => $element,
+                new_name   => $new_name,
+            );
+        }
     }
 }
 

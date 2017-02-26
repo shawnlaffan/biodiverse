@@ -304,17 +304,12 @@ sub post_auto_remap_dlg {
         ),
     );
 
-    #$remap_object->import_from_hash(remap_hash => $remap_hash);
+    #  make sure we get numbers - strictly needed?
+    my $check = $response =~ /yes|apply/ ? 1 : 0;
+    say "Automatic remap "
+     . $check ? 'applied' : 'skipped';
 
-    if ( $response =~ /yes|apply/ ) {
-        say "Performed automatic remap.";
-        return 1;
-    }
-    else {
-        say "Declined automatic remap, no remap performed.";
-        return 0;
-    }
-
+    return $check;
 }
 
 # called internally by perform_remap

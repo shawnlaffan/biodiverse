@@ -66,5 +66,3 @@ script: prove -l -j4
 branches:
   except:
   - ppm
-  #  list GUI only branches here since we lack GUI tests
-  - issue_633_remove_pixbuf

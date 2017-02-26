@@ -1167,7 +1167,7 @@ sub do_remap {
     croak "Cannot remap elements of a Basedata with outputs.\n"
           . "You can use the 'Duplicate without outputs' menu "
           . "option to create a new version.\n"
-        if ($remapee->isa('Biodiverse::BaseData') && $remapee->get_output_ref_count);
+        if ($type eq 'Biodiverse::BaseData' && $remapee->get_output_ref_count);
 
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
@@ -1185,9 +1185,11 @@ sub do_remap {
             = $remap_gui->post_auto_remap_dlg(remap_object => $generated_remap);
     }
     elsif ( $remap_type eq "manual" ) {  # load a remap file
+        my $col_defs = ['Input_element', 'Remapped_element'];
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
             gui => $self,
-            column_overrides => ['Input_element', 'Remapped_element'],
+            column_overrides => $col_defs,
+            required_cols    => $col_defs,
         );
 
         if ( defined $remap_data{file} ) {

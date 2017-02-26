@@ -350,25 +350,16 @@ sub compare_hash_vals {
             }
         }
         else {
-            my $m1 = $hash_got->{$key} // 'undef';
-            my $m2 = $hash_exp->{$key} // 'undef';
+            my $v1 = $hash_got->{$key} // 'undef';
+            my $v2 = $hash_exp->{$key} // 'undef';
             is_numeric_within_tolerance_or_exact_text (
                 got       => $hash_got->{$key},
                 expected  => $hash_exp->{$key},
                 message   => "Got expected value for $key "
-                           . "($m1 like $m2),"
+                           . "($v1 like $v2),"
                            . "$descr_suffix",
                 tolerance => $tolerance,
             );
-            #my $val_got = snap_to_precision (
-            #    value     => $hash_got->{$key},
-            #    precision => $precision,
-            #);
-            #my $val_exp = snap_to_precision (
-            #    value     => $hash_exp->{$key},
-            #    precision => $precision,
-            #);
-            #is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -530,7 +521,7 @@ my %bd_cache;
 sub get_basedata_object {
     my %args = @_;
 
-    my $args_str = get_stringified_args_hash (%args);
+    #my $args_str = get_stringified_args_hash (%args);
 
     #  caching proved not to work well since all calls were different.  
     #{

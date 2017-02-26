@@ -8,6 +8,7 @@ use Carp;
 
 use Test::Lib;
 use Test::More;
+use rlib;
 
 use Test::More; # tests => 2;
 use Test::Exception;

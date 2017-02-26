@@ -49,7 +49,9 @@ use constant IGNORE_CASE_TOOLTIP
     => "Treat case differences as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
-use constant MANUAL_OPTION_TEXT => 'User defined from file';
+use constant USER_DEFINED_FROM_FILE_TEXT => 'User defined from file';
+use constant AUTO_FROM_FILE_TEXT => 'Auto from file';
+
 
 sub new {
     my $class = shift;
@@ -82,7 +84,8 @@ sub pre_remap_dlg {
       if !@remapee_sources;
     
     my @controller_sources = @remapee_sources;
-    unshift @controller_sources, MANUAL_OPTION_TEXT;
+    unshift @controller_sources,
+      (USER_DEFINED_FROM_FILE_TEXT, AUTO_FROM_FILE_TEXT);
 
     my $selected_basedata = $gui->get_project->get_selected_basedata;
 
@@ -126,8 +129,9 @@ sub pre_remap_dlg {
     $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
     $controller_combo->set_tooltip_text (
         "Choose a data source to remap to.\n"
-        . 'The user defined from file option requires both source and '
-        . 'target be specified in the selected file.'
+        . "The user defined from file option requires both source and "
+        . "target names to be specified in the selected file.  \n"
+        . "The auto from file option requires only a list of target element names."
     );
     my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
     my $controller_label = Gtk2::Label->new('Label source:');
@@ -251,7 +255,11 @@ sub pre_remap_dlg {
 
 
     if ( $response eq "ok" ) {
-        my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
+        my $iter = $controller_combo->get_active;
+        my $remap_type
+            = $iter == 0 ? 'manual_from_file'
+            : $iter == 1 ? 'auto_from_file'
+            : 'auto';
         my $remapee = $remapee_sources[$remapee_combo->get_active];
         my $controller = $controller_sources[$controller_combo->get_active];
         
@@ -656,9 +664,10 @@ sub build_remap_hash_from_exclusions {
     # remove exact matches and not matches here as well
     my @keys = keys %{$remap};
     foreach my $key (@keys) {
+        no autovivification;
+        next if !defined $remap->{$key};
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};
-            #say "Deleted $key because it mapped to itself.";
         }
     }
 

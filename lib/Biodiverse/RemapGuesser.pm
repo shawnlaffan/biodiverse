@@ -54,7 +54,8 @@ sub generate_auto_remap {
         @new_labels = $new_source->get_labels();
     }
     
-    my @existing_labels = $existing_source->get_labels();
+    my $method = $existing_source->can ('get_labels') ? 'get_labels' : 'get_element_list';
+    my @existing_labels = $existing_source->$method;
     my $remap_results = $self->guess_remap(
         {
             existing_labels => \@existing_labels,

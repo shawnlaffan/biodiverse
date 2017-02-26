@@ -1172,6 +1172,34 @@ sub do_remap {
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
 
+    croak "Unknown option $remap_type\n"
+      if not $remap_type =~ /^(?:auto|manual)_from_file|auto|none$/;;
+
+    if ( $remap_type =~ /(manual|auto)_from_file/ ) {  # load a remap file
+        my $type = $1;  #  manual or auto
+        my $col_defs = $type eq 'manual'
+            ? ['Input_element', 'Remapped_element']
+            : ['Input_element'];
+
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
+            gui => $self,
+            column_overrides => $col_defs,
+            required_cols    => $col_defs,
+        );
+
+        if ( defined $remap_data{file} ) {
+            $generated_remap->import_from_file( %remap_data, );
+
+            if ($type =~ /auto/) {
+                $remap_type = 'auto';
+                $pre_remap_dlg_results->{controller} = $generated_remap;
+            }
+
+            # TODO add in a 'review' dialog here
+            $want_to_perform_remap = 1; 
+        }
+    }
+    #  no elsif here - we can set $remap_type to auto in the previous step
     if ( $remap_type eq "auto" ) {  # guess an automatic remap
         say "Started an auto remap";
         my $controller = $pre_remap_dlg_results->{controller};
@@ -1183,24 +1211,6 @@ sub do_remap {
         # show them the remap and do exclusions etc.
         $want_to_perform_remap 
             = $remap_gui->post_auto_remap_dlg(remap_object => $generated_remap);
-    }
-    elsif ( $remap_type eq "manual" ) {  # load a remap file
-        my $col_defs = ['Input_element', 'Remapped_element'];
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-            gui => $self,
-            column_overrides => $col_defs,
-            required_cols    => $col_defs,
-        );
-
-        if ( defined $remap_data{file} ) {
-            $generated_remap->import_from_file( %remap_data, );
-            
-            # TODO add in a 'review' dialog here
-            $want_to_perform_remap = 1; 
-        }
-    }
-    elsif( $remap_type ne "none") {
-        croak "Unknown option $remap_type\n";
     }
     
     return if !$want_to_perform_remap;

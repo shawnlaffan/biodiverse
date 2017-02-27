@@ -12,19 +12,35 @@ echo gdal_home is $gdal_home
 startdir=`pwd`
 mkdir -p ${gdal_home}
 cd ${gdal_home}
+
 pwd
+
 find $gdal_home -name 'gdal-config' -print
 gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
 echo gdal config is $gdalconfig
-if [ -n "$gdalconfig" ]; then build_gdal=false; else build_gdal=true; fi;
+
+if [ -n "$gdalconfig" ]
+then
+    build_gdal=false
+else
+    build_gdal=true
+fi
+
 echo build_gdal var is $build_gdal
-if [ "$build_gdal" = true ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
-  #  should use -C and --strip-components to simplify the dir structure
-if [ "$build_gdal" = true ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
-if [ "$build_gdal" = true ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
+
+if [ "$build_gdal" = true ]
+then
+    wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz
+    #  should use -C and --strip-components to simplify the dir structure
+    tar -xzf gdal-${gdal_version}.tar.gz
+    cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install
+    cd ${startdir}
+    gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
+fi
+
 cd ${startdir}
-if [ "$build_gdal" = true ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
-find $gdal_home -name 'gdal-config' -print
+
+#find $gdal_home -name 'gdal-config' -print
   #  using env vars avoids cpanm parsing the --gdal-config type arguments in cpanm Geo::GDAL
 export PERL_GDAL_NO_DOWNLOADS=1
 export PERL_GDAL_SOURCE_TREE=${gdal_home}/gdal-${gdal_version}

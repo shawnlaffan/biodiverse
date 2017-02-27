@@ -23,7 +23,7 @@ before_install:
   - echo ${PWD}
   
   #  use the builds script
-  - ${PWD}/etc/build_gdal_travis.sh
+  - sh ${PWD}/etc/build_gdal_travis.sh
 
 
   #  now we build a gdal if it has not been cached

@@ -18,6 +18,14 @@ before_install:
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
 
+  #  just to be sure 
+  - find . build_gdal_travis.sh -print
+  - echo ${PWD}
+  
+  #  use the builds script
+  - ${PWD}/etc/build_gdal_travis.sh
+
+
   #  now we build a gdal if it has not been cached
   
   #  should be able to specify these under env

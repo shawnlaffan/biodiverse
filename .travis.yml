@@ -1,7 +1,7 @@
 language: perl
 perl:
   - '5.24'
-  - '5.22'
+  #- '5.22'
 distro: trusty
 sudo: required
 cache:
@@ -10,7 +10,7 @@ cache:
     - gdal_builds
 env:
   - BD_NO_TEST_GUI=1
-  - BD_NO_TEST_GUI=0
+  #- BD_NO_TEST_GUI=0
 
 before_install:
 

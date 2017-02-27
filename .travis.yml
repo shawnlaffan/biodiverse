@@ -19,7 +19,7 @@ before_install:
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
 
   #  just to be sure 
-  - find . build_gdal_travis.sh -print
+  - find . -name "build_gdal_travis.sh" -print
   - echo ${PWD}
   
   #  use the builds script

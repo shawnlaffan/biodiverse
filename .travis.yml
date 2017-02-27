@@ -8,6 +8,10 @@ cache:
   directories:
     - perl_modules
     - gdal_builds
+env:
+  - BD_NO_TEST_GUI=1
+  - BD_NO_TEST_GUI=0
+
 before_install:
 
   #  local::lib target is cached
@@ -18,8 +22,9 @@ before_install:
   
   #  should be able to specify these under env
   - export gdal_version=2.1.3
-  - export geo_gdal_tar=Geo-GDAL-2.010301.tar.gz
-  - export geo_gdal_dir=Geo-GDAL-2.010301
+  - export perl_gdal_version=2.010301
+  - export geo_gdal_tar=Geo-GDAL-${perl_gdal_version}.tar.gz
+  - export geo_gdal_dir=Geo-GDAL-${perl_gdal_version}
   - export gdal_home=$TRAVIS_BUILD_DIR/gdal_builds/${gdal_version}
   - echo $gdal_home
 
@@ -58,9 +63,7 @@ before_install:
 
   - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
-env:
-  - BD_NO_TEST_GUI=1
-  - BD_NO_TEST_GUI=0
+
 script: prove -l -j4
 # blocklist
 branches:

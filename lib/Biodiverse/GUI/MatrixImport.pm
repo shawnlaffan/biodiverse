@@ -157,34 +157,6 @@ sub run {
 
     return if !$column_settings;
 
-
-    # run the remap gui, get all their decisions in one go
-    my $remapper           = Biodiverse::GUI::RemapGUI->new();
-    my $remap_dlg_results  = $remapper->run_remap_gui(gui => $gui);
-
-    # will be 'auto' 'manual' or 'none'
-    my $remap_type = $remap_dlg_results->{remap_type};
-    
-    my $remap;
-    if ( $remap_type eq "manual" ) {
-        my %remap_data;
-
-        %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-            gui          => $gui,
-            type         => 'remap',
-            get_dir_from => $filename,
-        );
-
-
-        #  now do something with them...
-        if ( $remap_data{file} ) {
-
-            #my $file = $remap_data{file};
-            $remap = Biodiverse::ElementProperties->new;
-            $remap->import_data(%remap_data);
-        }
-    }
-
     #########
     # 3. Add the matrix
     #########
@@ -207,22 +179,17 @@ sub run {
     # Load file
     $matrix_ref->load_data(
         file               => $filename,
-        element_properties => $remap,
-
         #input_quotes       => $quotes,
         sep_char => $sep_char,
     );
 
-    # if they wanted to auto remap, do that now
-    if ($remap_type eq "auto") {
-        $remap_dlg_results->{gui} = $gui;
-        $remap_dlg_results->{old_source} = $remap_dlg_results->{datasource_choice};
-        $remap_dlg_results->{new_source} = $matrix_ref;
-                
-        $remapper->perform_remap($remap_dlg_results);
-    }
-
     $gui->get_project->add_matrix($matrix_ref);
+
+    # run the remapper
+    $gui->do_remap(
+        default_remapee => $gui->get_project->get_selected_matrix,
+        check_first     => 1,
+    );
 
     return $matrix_ref;
 }

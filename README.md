@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/shawnlaffan/biodiverse.svg?branch=master)](https://travis-ci.org/shawnlaffan/biodiverse)
+[![Build status](https://ci.appveyor.com/api/projects/status/9dnh2co30sfbl3i2/branch/master?svg=true)](https://ci.appveyor.com/project/shawnlaffan/biodiverse/branch/master)
+
+
 # Biodiverse
 
 Biodiverse is a tool for the spatial analysis of diversity using indices based on taxonomic, phylogenetic, trait and matrix-based (e.g. genetic distance) relationships, as well as related environmental and temporal variations. 

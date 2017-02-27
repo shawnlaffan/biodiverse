@@ -10,7 +10,7 @@ cache:
     - gdal_builds
 before_install:
 
-  #  local::lib target should be cached
+  #  local::lib target is cached
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
 
@@ -51,12 +51,10 @@ before_install:
 
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
-  #  NO - leave in until issue #581 is finalised
-  #  as it has GUI deps
-  - sudo apt-get install libgnomecanvas2-dev
+  - if [ "$BD_NO_TEST_GUI" = 0 ]; then sudo apt-get install libgnomecanvas2-dev; fi;
 
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  - cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2
+  - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2; fi;
 
   - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
@@ -68,6 +66,3 @@ script: prove -l -j4
 branches:
   except:
   - ppm
-  #  list GUI only branches here since we lack GUI tests
-  - issue_630_export_user_tree_colours
-  - issue_633_remove_pixbuf

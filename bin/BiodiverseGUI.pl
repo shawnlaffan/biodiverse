@@ -39,7 +39,14 @@ use Biodiverse::GUI::GUIManager;
 say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
-use Gtk2 qw/-init/;
+use Gtk2;
+
+# my $icontheme = Gtk2::IconTheme->new;
+# use List::Util qw /uniq/;
+# say join "\n", 'Icon themes: ', uniq $icontheme->get_search_path;
+# say join "\n", 'Gtk2 RC files: ', Gtk2::Rc->get_default_files;
+
+Gtk2->init;
 
 use Biodiverse::GUI::Callbacks;
 

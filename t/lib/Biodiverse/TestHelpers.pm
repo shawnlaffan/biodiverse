@@ -27,10 +27,10 @@ use Biodiverse::TreeNode;
 use Biodiverse::ReadNexus;
 use Biodiverse::ElementProperties;
 
-
-use File::Temp;
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
+use Test::TempDir::Tiny;
+use File::Spec::Functions 'catfile';
 
 my $default_prng_seed = 2345;
 
@@ -38,15 +38,18 @@ use Exporter::Easy (
     TAGS => [
         utils  => [
             qw(
-                write_data_to_temp_file
-                snap_to_precision
-                verify_set_contents
-                compare_hash_vals
                 compare_arr_vals
+                compare_hash_vals
                 get_all_calculations
-                transform_element
+                get_temp_dir
+                get_temp_file_path
                 is_or_isnt
                 isnt_deeply
+                snap_to_precision
+                transform_element
+                verify_set_contents
+                write_data_to_temp_file
+                is_numeric_within_tolerance_or_exact_text
             ),
         ],
         basedata => [
@@ -347,21 +350,16 @@ sub compare_hash_vals {
             }
         }
         else {
+            my $v1 = $hash_got->{$key} // 'undef';
+            my $v2 = $hash_exp->{$key} // 'undef';
             is_numeric_within_tolerance_or_exact_text (
                 got       => $hash_got->{$key},
                 expected  => $hash_exp->{$key},
-                message   => "Got expected value for $key, $descr_suffix",
+                message   => "Got expected value for $key "
+                           . "($v1 like $v2),"
+                           . "$descr_suffix",
                 tolerance => $tolerance,
             );
-            #my $val_got = snap_to_precision (
-            #    value     => $hash_got->{$key},
-            #    precision => $precision,
-            #);
-            #my $val_exp = snap_to_precision (
-            #    value     => $hash_exp->{$key},
-            #    precision => $precision,
-            #);
-            #is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -466,12 +464,8 @@ sub compare_arr_sorted {
 sub get_basedata_import_data_file {
     my %args = @_;
 
-    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
-    my $ep_f = $tmp_obj->filename;
-    print $tmp_obj $args{data} || get_basedata_test_data(@_);
-    $tmp_obj->close;
-
-    return $tmp_obj;
+    my $data = $args{data} || get_basedata_test_data(@_);
+    return write_data_to_temp_file($data);
 }
 
 sub get_basedata_test_data {
@@ -527,7 +521,7 @@ my %bd_cache;
 sub get_basedata_object {
     my %args = @_;
 
-    my $args_str = get_stringified_args_hash (%args);
+    #my $args_str = get_stringified_args_hash (%args);
 
     #  caching proved not to work well since all calls were different.  
     #{
@@ -581,9 +575,10 @@ sub get_basedata_object_from_site_data {
     my %args = @_;
 
     my $file = write_data_to_temp_file(get_basedata_site_data());
+
     my $group_columns = $args{group_columns} // [3, 4];
 
-    print "Temp file is $file\n";
+    note("Temp file is $file\n");
 
     my $bd = Biodiverse::BaseData->new(
         CELL_SIZES => $args{CELL_SIZES},
@@ -605,7 +600,7 @@ sub get_numeric_labels_basedata_object_from_site_data {
 
     my $file = write_data_to_temp_file(get_numeric_labels_basedata_site_data());
 
-    print "Temp file is $file\n";
+    note("Temp file is $file\n");
 
     my $bd = Biodiverse::BaseData->new(
         CELL_SIZES => $args{CELL_SIZES},
@@ -705,15 +700,28 @@ sub get_matrix_object_from_sample_data {
     return $matrix;
 }
 
+sub get_temp_dir {
+    return tempdir();
+}
+
+sub get_temp_file_path {
+    my $fname = shift;
+    my $dir = tempdir();
+    return catfile($dir, $fname);
+}
+
+sub write_data_to_file {
+    my ($fname, $data) = @_;
+    open(my $fh, '>', $fname) or die "write_data_file: Cannot open $fname\n";
+    print $fh $data;
+    $fh->close;
+}
+
 sub write_data_to_temp_file {
     my $data = shift;
-
-    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
-    my $fname = $tmp_obj->filename;
-    print $tmp_obj $data;
-    $tmp_obj->close;
-
-    return $tmp_obj;
+    my $file = get_temp_file_path('biodiverse.tmp');
+    write_data_to_file($file, $data);
+    return $file;
 }
 
 sub get_nexus_tree_data {
@@ -1692,6 +1700,9 @@ label,x,y,samples
 a,1,1,1
 b,1,1,1
 c,1,1,1
+d,1,1,1
+e,1,1,1
+f,1,1,1
 a,1,2,1
 b,1,2,1
 c,1,2,1

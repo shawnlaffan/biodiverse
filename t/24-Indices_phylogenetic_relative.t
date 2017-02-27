@@ -13,6 +13,7 @@ BEGIN {
 }
 
 use Test::Lib;
+use rlib;
 use Test::More;
 use Biodiverse::Config;
 use List::Util qw /sum/;

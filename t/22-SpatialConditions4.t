@@ -9,6 +9,7 @@ use English qw{
 };
 
 use Test::Lib;
+use rlib;
 use Test::More;
 
 use Biodiverse::BaseData;
@@ -131,7 +132,7 @@ sub run_case {
             count         => $v1{count},
             includes      => $includes,
             excludes      => $excludes,
-            print_results => 1,
+            print_results => 0,
         ) };
     }
 }

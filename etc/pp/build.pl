@@ -5,9 +5,10 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-
-use PAR::Packer 1.022;    #  make sure we get all the Strawberry libs
-use Module::ScanDeps 1.16;
+#  make sure we get all the Strawberry libs
+#  and pack Gtk2 libs
+use PAR::Packer 1.036;    
+use Module::ScanDeps 1.23;
 BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }
@@ -17,6 +18,8 @@ use File::Copy;
 use Path::Class;
 use Cwd;
 use File::Basename;
+use File::Find::Rule;
+
 
 use Getopt::Long::Descriptive;
 
@@ -78,6 +81,11 @@ if ($OSNAME eq 'MSWin32') {
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
     my @fnames = get_dll_list($c_bin);
+    #  clunky - should have a gtk flag like for GD
+    if ($script =~ 'BiodiverseGUI.pl') {
+        push @fnames, get_sis_gtk_dll_list();
+    }
+
     for my $fname (@fnames) {
         my $source = Path::Class::file ($fname)->stringify;
         my $fbase  = Path::Class::file ($fname)->basename;
@@ -95,9 +103,21 @@ if ($OSNAME eq 'MSWin32') {
 
 #  clunky - should hunt for Gtk2 use in script?  
 my @ui_arg = ();
+my @gtk_path_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
     my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
     @ui_arg = ('-a', "$ui_dir;ui");
+    
+    #  get the Gtk2 stuff
+    my $base = Path::Class::file($EXECUTABLE_NAME)
+        ->parent
+        ->parent
+        ->subdir('site/lib/auto/Gtk2');
+    foreach my $subdir (qw /share etc lib/) {
+        my $source_dir = Path::Class::dir ($base, $subdir);
+        my $dest_dir   = Path::Class::dir ('lib/auto/Gtk2', $subdir);
+        push @gtk_path_arg, ('-a', "$source_dir;$dest_dir")
+    }
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -117,6 +137,7 @@ my @cmd = (
     '-z',
     9,
     @ui_arg,
+    @gtk_path_arg,
     @icon_file_arg,
     $execute,
     @links,
@@ -129,7 +150,8 @@ if ($verbose) {
     splice @cmd, 1, 0, $verbose;
 }
 
-say join ' ', @cmd;
+
+say join ' ', "\nCOMMAND TO RUN:\n", @cmd;
 
 system @cmd;
 
@@ -177,3 +199,17 @@ sub get_dll_list {
     return @dll_files;
 }
 
+#  find the set of gtk dlls installed into site/lib/auto
+#  by sisyphusion.tk/ppm installs
+sub get_sis_gtk_dll_list {
+    my $base = Path::Class::file($EXECUTABLE_NAME)
+        ->parent
+        ->parent
+        ->subdir('site/lib/auto');
+
+    my @files = File::Find::Rule->file()
+                            ->name( 'lib*.dll' )
+                            ->in( $base );
+    @files = grep {$_ =~ /site.lib.auto/} @files;
+    return @files;
+}

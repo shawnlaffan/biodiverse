@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -ev
+
 echo Running gdal build script
 
 export gdal_version=2.1.3

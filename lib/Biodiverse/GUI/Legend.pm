@@ -358,6 +358,12 @@ sub set_legend_mode {
     return;
 }
 
+sub get_legend_mode {
+    my $self = shift;
+    return $self->{legend_mode};
+}
+
+
 =head2 setHue
 
 Sets the hue for the saturation (constant-hue) colouring mode

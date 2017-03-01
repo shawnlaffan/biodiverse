@@ -124,7 +124,6 @@ sub new {
     my $show_value  = $args{show_value}  // 0;
 
     my $self = {
-        legend_mode => 'Hue',
         hue         => 0,     # default constant-hue red
     }; 
     bless $self, $class;
@@ -189,9 +188,9 @@ sub new {
     # Create the Label legend
     my $label_legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},
-        legend_mode  => $self->{legend_mode},
+        legend_mode  => 'Hue',  #  by default
         width_px     => $self->{width_px},
-        height_px     => $self->{height_px},
+        height_px    => $self->{height_px},
     );
     $self->{label_legend} = $label_legend;
 
@@ -213,15 +212,18 @@ sub update_legend {
     if ($self->{width_px} && $self->{height_px}) {
         $legend->reposition($self->{width_px}, $self->{height_px});
     }
+    return;
 }
 
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
-    $self->{legend_mode} = $mode;
+
     my $legend = $self->{label_legend};
     $legend->set_legend_mode($mode);
     $self->colour_cells();
+    
+    return;
 }
 
 sub destroy {
@@ -1146,8 +1148,8 @@ sub set_colour_for_undef {
 }
 
 my %colour_methods = (
-    Hue => 'get_colour_hue',
-    Sat => 'get_colour_saturation',
+    Hue  => 'get_colour_hue',
+    Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
 );
 
@@ -1162,9 +1164,10 @@ sub get_colour {
     }
     my @args = ($val, $min, $max);
 
-    my $method = $colour_methods{$self->{legend_mode}};
+    my $mode = $self->{label_legend}->get_legend_mode;
+    my $method = $colour_methods{$mode};
 
-    croak "Unknown colour system: $self->{legend_mode}\n"
+    croak "Unknown colour system: $mode\n"
       if !$method;
 
     return $self->$method(@args);
@@ -1876,34 +1879,6 @@ sub post_zoom {
     return;
 }
 
-# Set colouring mode - 'Hue' or 'Sat'
-#sub set_legend_mode {
-#    my $self = shift;
-#    my $mode = shift;
-#
-#    $mode = ucfirst lc $mode;
-#
-#    croak "Invalid display mode '$mode'\n"
-#        if not $mode =~ /^Hue|Sat|Grey$/;
-#
-#    $self->{legend_mode} = $mode;
-#
-#    $self->colour_cells();
-#
-#    # Update legend
-#    if ($self->{label_legend}) {
-#        print "inside if statement in set_legend_mode\n";
-#        $self->{label_legend}->{legend}->make_legend_rect();
-#        $self->update_legend();
-#    }
-#
-#    return;
-#};
 
-=head2 setHue
-
-Sets the hue for the saturation (constant-hue) colouring mode
-
-=cut
 
 1;

@@ -218,6 +218,7 @@ sub update_legend {
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
+    $self->{legend_mode} = $mode;
     my $legend = $self->{label_legend};
     $legend->set_legend_mode($mode);
     $self->colour_cells();

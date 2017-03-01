@@ -878,95 +878,15 @@ sub set_legend_hue {
     my $rgb  = shift;
     my $legend = $self->get_legend;
     $self->colour_cells();
-    $legend->set_legend_hue($rgb);
+    $legend->set_hue($rgb);
 }
 
 sub get_legend_hue {
     my $self = shift;
     my $legend = $self->get_legend;
-    $legend->get_legend_hue;
+    $legend->get_hue;
 }
 
-#sub set_legend_min_max {
-#    my ($self, $min, $max) = @_;
-#
-#    $min //= $self->{last_min};
-#    $max //= $self->{last_max};
-#
-#    $self->{last_min} = $min;
-#    $self->{last_max} = $max;
-#
-#    return if ! ($self->{marks}
-#                 && defined $min
-#                 && defined $max
-#                );
-#
-#    # Set legend textbox markers
-#    my $marker_step = ($max - $min) / 3;
-#    foreach my $i (0..3) {
-#        my $val = $min + $i * $marker_step;
-#        my $text = $self->format_number_for_display (number => $val);
-#        my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
-#        if ($i == 0 and $self->{legend_lt_flag}) {
-#            $text = '<=' . $text;
-#        }
-#        elsif ($i == 3 and $self->{legend_gt_flag}) {
-#            $text = '>=' . $text;
-#        }
-#        elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
-#            $text = '  ' . $text;
-#        }
-#
-#        my $mark = $self->{marks}[3 - $i];
-#        $mark->set( text => $text );
-#        #  move the mark to right align with the legend
-#        my @bounds = $mark->get_bounds;
-#        my @lbounds = $self->get_legend->get_bounds;
-#        my $offset = $lbounds[0] - $bounds[2];
-#        if (($text_num + 0) != 0) {
-#            $mark->move ($offset - length ($text), 0);
-#        }
-#        else {
-#            $mark->move ($offset - length ($text) - 0.5, 0);
-#        }
-#        $mark->raise_to_top;
-#    }
-#
-#    return;
-#}
-
-#  dup from Tab.pm - need to inherit from single source
-#sub format_number_for_display {
-#    my $self = shift;
-#    my %args = @_;
-#    my $val = $args{number};
-#
-#    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
-#    if ($text == 0) {
-#        $text = sprintf ('%.2e', $val);
-#    }
-#    if ($text == 0) {
-#        $text = 0;  #  make sure it is 0 and not 0.00e+000
-#    };
-#    return $text;
-#}
-
-# Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
-# Is this ever called?
-#sub set_calculation_list {
-#    my $self = shift;
-#    my $list_name = shift;
-#    print "[Grid] Setting calculation list to $list_name\n";
-#
-#    my $elts = $self->{base_struct}->get_element_hash();
-#
-#    foreach my $element (sort keys %{$elts}) {
-#        my $cell = $self->{element_group}{$element};
-#        $cell->[INDEX_VALUES] = $elts->{$element}{$list_name};
-#    }
-#
-#    return;
-#}
 
 
 ##########################################################

@@ -62,18 +62,18 @@ sub new {
     my %args         = @_;
 
     my $canvas       = $args{canvas};
-    my @legend_marks = $args{legend_marks} // qw/nw w w sw/;
-    my $legend_mode  = $args{legend_mode} // qw/Hue/;
-    my $width_px     = $args{width_px} // 0;
-    my $height_px    = $args{height_px} // 0;
+    my $legend_marks = $args{legend_marks} // [qw/nw w w sw/];
+    my $legend_mode  = $args{legend_mode}  // 'Hue';
+    my $width_px     = $args{width_px}     // 0;
+    my $height_px    = $args{height_px}    // 0;
 
     my $self = {
-        canvas => $canvas,
-        legend => \@legend_marks,
-        legend_mode => $legend_mode,
-        width_px    => $width_px,
+        canvas       => $canvas,
+        legend_marks => $legend_marks,
+        legend_mode  => $legend_mode,
+        width_px     => $width_px,
         height_px    => $height_px,
-        hue => $args{hue} // 0,
+        hue          => $args{hue} // 0,
     };
     bless $self, $class;
     # Get the width and height of the canvas.
@@ -351,8 +351,8 @@ sub set_legend_mode {
 
     # Update legend
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
-            $self->{legend} = $self->make_legend_rect();
-            $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+        $self->{legend} = $self->make_legend_rect();
+        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
     }
 
     return;

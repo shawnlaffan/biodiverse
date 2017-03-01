@@ -870,7 +870,7 @@ sub show_legend {
 sub hide_legend {
     my $self = shift;
     my $legend = $self->get_legend;
-    $legend->hide_legend;
+    $legend->hide;
 }
 
 sub set_legend_hue {

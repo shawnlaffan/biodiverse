@@ -101,20 +101,20 @@ sub new {
     return $self;
 };
 
+sub hide {
+    my $self = shift;
+    $self->hide_legend;
+}
+
 sub hide_legend {
     my $self = shift;
 
-    return if !$self->get_legend;
+    return if !$self->{legend_group};
 
     # Hide the legend group.
     $self->{legend_group}->hide;
 
     return;
-}
-
-sub get_legend {
-    my $self = shift;
-    return $self->{legend};
 }
 
 sub show {

@@ -186,16 +186,15 @@ sub new {
 
     $self->{back_rect} = $rect;
     # Create the Label legend
-    my $label_legend = Biodiverse::GUI::Legend->new(
+    my $legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},
         legend_mode  => 'Hue',  #  by default
         width_px     => $self->{width_px},
         height_px    => $self->{height_px},
     );
-    $self->{label_legend} = $label_legend;
+    $self->set_legend ($legend);
 
-    $self->update_legend();
-    #$self->{label_legend}->show();
+    $self->update_legend;
 
     $self->{drag_mode} = 'select';
 
@@ -204,11 +203,21 @@ sub new {
     return $self;
 }
 
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
+}
+
+sub set_legend {
+    my ($self, $legend) = @_;
+    croak "legend arg not passed" if !defined $legend;
+    $self->{legend} = $legend;
+}
 
 # Update the position and/or mode of the legend.
 sub update_legend {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     if ($self->{width_px} && $self->{height_px}) {
         $legend->reposition($self->{width_px}, $self->{height_px});
     }
@@ -219,7 +228,7 @@ sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
 
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     $legend->set_legend_mode($mode);
     $self->colour_cells();
     
@@ -237,8 +246,8 @@ sub destroy {
         $self->{cells_group}->destroy();
     }
 
-#    if ($self->{label_legend}) {
-#        $self->{label_legend}->destroy();
+#    if ($self->{legend}) {
+#        $self->{legend}->destroy();
 #        delete $self->{legend};
 #
 #        foreach my $i (0..3) {
@@ -580,7 +589,7 @@ sub set_base_struct {
     #$self->update_legend();
 
     # show legend by default - gets hidden by caller if needed
-    $self->{label_legend}->show;
+    $self->get_legend->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
@@ -847,34 +856,34 @@ sub get_colour_from_chooser {
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     return if ! ($legend);
     $legend->set_legend_min_max($min,$max);
 }
 
 sub show_legend {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     $legend->show;
 }
 
 sub hide_legend {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     $legend->hide_legend;
 }
 
 sub set_legend_hue {
     my $self = shift;
     my $rgb  = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     $self->colour_cells();
     $legend->set_legend_hue($rgb);
 }
 
 sub get_legend_hue {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->get_legend;
     $legend->get_legend_hue;
 }
 
@@ -912,7 +921,7 @@ sub get_legend_hue {
 #        $mark->set( text => $text );
 #        #  move the mark to right align with the legend
 #        my @bounds = $mark->get_bounds;
-#        my @lbounds = $self->{legend}->get_bounds;
+#        my @lbounds = $self->get_legend->get_bounds;
 #        my $offset = $lbounds[0] - $bounds[2];
 #        if (($text_num + 0) != 0) {
 #            $mark->move ($offset - length ($text), 0);
@@ -1164,7 +1173,7 @@ sub get_colour {
     }
     my @args = ($val, $min, $max);
 
-    my $mode = $self->{label_legend}->get_legend_mode;
+    my $mode = $self->get_legend->get_legend_mode;
     my $method = $colour_methods{$mode};
 
     croak "Unknown colour system: $mode\n"
@@ -1557,7 +1566,7 @@ sub on_size_allocate {
         }
 
         # I'm not sure if this need to be here.
-        $self->{label_legend}->reposition($self->{width_px}, $self->{height_px});
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
 
         $self->setup_scrollbars();
         $self->resize_background_rect();

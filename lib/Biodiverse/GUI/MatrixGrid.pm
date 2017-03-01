@@ -146,40 +146,51 @@ sub new {
     my $matrix_legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},
     );
-    $self->{matrix_legend} = $matrix_legend;
+    $self->set_legend ($matrix_legend);
 
-    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
-    $self->{matrix_legend}->show();
+    $self->get_legend->reposition($self->{width_px}, $self->{height_px});
+    $self->get_legend->show;
 
     $self->{drag_mode} = 'select';
 
     return $self;
 }
 
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
+}
+
+sub set_legend {
+    my ($self, $legend) = @_;
+    croak "legend arg not passed" if !defined $legend;
+    $self->{legend} = $legend;
+}
+
 # Update the position and/or mode of the legend.
 sub update_legend {
     my $self = shift;
-    my $legend = $self->{matrix_legend};
+    my $legend = $self->get_legend;
     $legend->reposition($self->{width_px}, $self->{height_px});
 }
 
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    my $legend = $self->{matrix_legend};
-    return if ! ($legend);
+    my $legend = $self->get_legend;
+    return if !$legend;
     $legend->set_legend_min_max($min,$max);
 }
 
 sub show_legend {
     my $self = shift;
-    my $legend = $self->{matrix_legend};
+    my $legend = $self->get_legend;
     $legend->show;
 }
 
 sub hide_legend {
     my $self = shift;
-    my $legend = $self->{matrix_legend};
+    my $legend = $self->get_legend;
     $legend->hide_legend;
 }
 
@@ -798,7 +809,7 @@ sub on_size_allocate {
             $self->fit_grid();
         }
 
-        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
         $self->setup_scrollbars();
         $self->resize_background_rect();
 
@@ -908,7 +919,7 @@ sub on_scrollbars_scroll {
     if (not $self->{dragging}) {
         my ($x, $y) = ($self->{hadjust}->get_value, $self->{vadjust}->get_value);
         $self->{canvas}->scroll_to($x, $y);
-        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
     }
 
     return;
@@ -964,7 +975,7 @@ sub resize_background_rect {
 sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
-    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+    $self->get_legend->reposition($self->{width_px}, $self->{height_px});
     
     return;
 }
@@ -1018,7 +1029,7 @@ sub post_zoom {
     my $self = shift;
     $self->setup_scrollbars();
     $self->resize_background_rect();
-    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+    $self->get_legend->reposition($self->{width_px}, $self->{height_px});
     
     return;
 }
@@ -1031,8 +1042,8 @@ sub set_colours {
     $self->colour_cells();
 
     # Update legend
-    if ($self->{matrix_legend}) {
-        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+    if ($self->get_legend) {
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
     }
     
     return;
@@ -1053,8 +1064,8 @@ sub set_hue {
     $self->colour_cells();
 
     # Update legend
-    if ($self->{matrix_legend}) {
-        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+    if ($self->get_legend) {
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
     }
     
     return;

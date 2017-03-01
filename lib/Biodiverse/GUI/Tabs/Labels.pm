@@ -833,7 +833,7 @@ sub on_selected_labels_changed {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
-    $self->{matrix_grid}->set_legend_min_max(0, $max_value);
+    #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
@@ -844,7 +844,7 @@ sub on_selected_labels_changed {
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
     $grid->update_legend();
-    $self->{matrix_grid}->update_legend();
+    #$self->{matrix_grid}->update_legend();
     return;
 }
 

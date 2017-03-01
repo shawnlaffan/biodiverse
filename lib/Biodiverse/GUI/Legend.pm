@@ -73,6 +73,7 @@ sub new {
         legend_mode => $legend_mode,
         width_px    => $width_px,
         height_px    => $height_px,
+        hue => $args{hue} // 0,
     };
     bless $self, $class;
     # Get the width and height of the canvas.
@@ -531,6 +532,9 @@ sub get_colour_grey {
 # by Jacob Ehnmark
 sub hsv_to_rgb {
     my($h, $s, $v) = @_;
+    
+    return if !defined $h;
+    
     $v = $v >= 1.0 ? 255 : $v * 256;
 
     # Grey image.

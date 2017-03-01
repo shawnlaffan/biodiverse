@@ -173,13 +173,13 @@ sub set_legend_min_max {
 
 sub show_legend {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->{matrix_legend};
     $legend->show;
 }
 
 sub hide_legend {
     my $self = shift;
-    my $legend = $self->{label_legend};
+    my $legend = $self->{matrix_legend};
     $legend->hide_legend;
 }
 
@@ -385,15 +385,8 @@ sub set_colouring {
     # Colour each cell
     $self->colour_cells($colour_none);
 
-    # Set legend textbox markers
-    if ($self->{marks} and defined $min_value) {
-        my $marker_step = ($max_value - $min_value) / 3;
-        foreach my $i (0..3) {
-            my $text = sprintf ("%.4f", $min_value + $i * $marker_step); # round to 4 d.p.
-            $self->{marks}[3 - $i]->set( text => $text );
-        }
-    }
-    
+    $self->set_legend_min_max ($min_value, $max_value);
+
     return;
 }
 

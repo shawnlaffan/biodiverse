@@ -200,11 +200,7 @@ sub make_legend_rect {
 
 # Add a coloured row to the legend.
 sub add_legend_row {
-    my $self   = shift;
-    my $row    = shift;
-    my $r      = shift;
-    my $g      = shift;
-    my $b      = shift;
+    my ($self, $row, $r, $g, $b) = @_;
 
     my $width = LEGEND_WIDTH;
 
@@ -281,12 +277,14 @@ sub reposition {
     );
 
     # Scale the legend's height and width to match the current size of the canvas. 
-    my $matrix = [$legend_width*$ppu, # scale x
-                  0,
-                  0,
-                  $height/$self->{legend_height}, # scale y
-                  0,
-                  0];
+    my $matrix = [
+        $legend_width * $ppu, # scale x
+        0,
+        0,
+        $height / $self->{legend_height}, # scale y
+        0,
+        0
+    ];
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
@@ -301,12 +299,13 @@ sub reposition {
         # Set the location of the y of the marks
         # Has a vertical offset for the first and
         # last marks.
-        my $y_offset = 0 ;
+        my $y_offset = 0;
         if ($i == 0) {
-            $y_offset = MARK_Y_LEGEND_OFFSET;
-        } elsif ($i == 3) {
+            $y_offset =  MARK_Y_LEGEND_OFFSET;
+        }
+        elsif ($i == 3) {
             $y_offset = -MARK_Y_LEGEND_OFFSET;
-	}
+        }
         $self->{marks}[$i]->set(
             y => $i * $height / 3 + $y_offset / $ppu,
         );
@@ -347,7 +346,7 @@ sub set_legend_mode {
 
     $self->{legend_mode} = $mode;
 
-    $self->colour_cells();
+    #$self->colour_cells();
 
     # Update legend
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
@@ -382,8 +381,6 @@ sub set_legend_hue {
 
     $self->{hue} = $hue;
 
-    $self->colour_cells();
-
     # Update legend
     if ($self->{legend}) {
         $self->{legend} = $self->make_legend_rect();
@@ -402,19 +399,6 @@ sub get_legend_hue {
 # Colouring based on an analysis value
 ##########################################################
 
-#  a mis-named sub - this merely sets the initial colours or clears existing colours
-sub colour_cells {
-    my $self = shift;
-
-    my $colour_none = $self->get_colour_for_undef;
-
-    foreach my $cell (values %{$self->{cells}}) {
-        my $rect = $cell->[INDEX_RECT];
-        $rect->set('fill-color-gdk' => $colour_none);
-    }
-
-    return;
-}
 
 sub get_colour_for_undef {
     my $self = shift;

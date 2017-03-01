@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!-- interface-requires gtk+ 2.12 -->
+  <requires lib="gtk+" version="2.20"/>
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkAdjustment" id="adjustment1"/>
   <object class="GtkAdjustment" id="adjustment2"/>
@@ -567,11 +567,12 @@ Does not affect the vertical connectors.</property>
                               <object class="GtkFrame" id="phylogenyGraphFrame">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="resize_mode">queue</property>
                                 <property name="label_xalign">0</property>
                                 <property name="shadow_type">none</property>
                               </object>
                               <packing>
-                                <property name="resize">True</property>
+                                <property name="resize">False</property>
                                 <property name="shrink">True</property>
                               </packing>
                             </child>

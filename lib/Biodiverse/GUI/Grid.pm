@@ -186,23 +186,17 @@ sub new {
     );
 
     $self->{back_rect} = $rect;
-
-    #if ($show_legend) {
-    #$self->show_legend(\@legend_marks);
-    #}
-
-    # Define the positions of the legend marks
-    my @legend_marks = ('nw','w','w','sw');
     # Create the Label legend
     my $label_legend = Biodiverse::GUI::Legend->new(
         canvas       => $self->{canvas},
-        legend_marks => \@legend_marks,
         legend_mode  => $self->{legend_mode},
+        width_px     => $self->{width_px},
+        height_px     => $self->{height_px},
     );
     $self->{label_legend} = $label_legend;
 
-    $self->{label_legend}->reposition();
-    $self->{label_legend}->show();
+    $self->update_legend();
+    #$self->{label_legend}->show();
 
     $self->{drag_mode} = 'select';
 
@@ -212,11 +206,21 @@ sub new {
 }
 
 
-# Update the position and/or mode of the legend. 
-sub update {
+# Update the position and/or mode of the legend.
+sub update_legend {
     my $self = shift;
     my $legend = $self->{label_legend};
-    $legend->reposition($self->{width_px}, $self->{height_px});
+    if ($self->{width_px} && $self->{height_px}) {
+        $legend->reposition($self->{width_px}, $self->{height_px});
+    }
+}
+
+sub set_legend_mode {
+    my $self = shift;
+    my $mode = shift;
+    my $legend = $self->{label_legend};
+    $legend->set_legend_mode($mode);
+    $self->colour_cells();
 }
 
 sub destroy {
@@ -230,8 +234,8 @@ sub destroy {
         $self->{cells_group}->destroy();
     }
 
-#    if ($self->{lebel_legend}) {
-#        $self->{lebel_legend}->destroy();
+#    if ($self->{label_legend}) {
+#        $self->{label_legend}->destroy();
 #        delete $self->{legend};
 #
 #        foreach my $i (0..3) {
@@ -570,10 +574,9 @@ sub set_base_struct {
     # Update
     $self->setup_scrollbars();
     $self->resize_background_rect();
-    
-    #  show legend by default - gets hidden by caller if needed
-    #my @legend_marks = ("nw","w","w","sw");
-    #$self->show_legend(\@legend_marks);
+    #$self->update_legend();
+
+    # show legend by default - gets hidden by caller if needed
     $self->{label_legend}->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
@@ -856,6 +859,20 @@ sub hide_legend {
     my $self = shift;
     my $legend = $self->{label_legend};
     $legend->hide_legend;
+}
+
+sub set_legend_hue {
+    my $self = shift;
+    my $rgb  = shift;
+    my $legend = $self->{label_legend};
+    $self->colour_cells();
+    $legend->set_legend_hue($rgb);
+}
+
+sub get_legend_hue {
+    my $self = shift;
+    my $legend = $self->{label_legend};
+    $legend->get_legend_hue;
 }
 
 #sub set_legend_min_max {
@@ -1535,7 +1552,7 @@ sub on_size_allocate {
             
         }
 
-        # I'm not show if this need to be here.
+        # I'm not sure if this need to be here.
         $self->{label_legend}->reposition($self->{width_px}, $self->{height_px});
 
         $self->setup_scrollbars();
@@ -1749,8 +1766,7 @@ sub on_scrollbars_scroll {
     if (not $self->{dragging}) {
         my ($x, $y) = ($self->{hadjust}->get_value, $self->{vadjust}->get_value);
         $self->{canvas}->scroll_to($x, $y);
-        $self->{legend}->reposition();
-        #$self->reposition();
+        $self->update_legend();
     }
     
     return;
@@ -1779,7 +1795,6 @@ sub resize_background_rect {
     my $self = shift;
 
     if ($self->{width_px}) {
-
         # Make it the full visible area
         my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
         if (not $self->{dragging}) {
@@ -1790,7 +1805,6 @@ sub resize_background_rect {
             $self->{back_rect}->lower_to_bottom();
         }
     }
-    
     return;
 }
 
@@ -1801,8 +1815,7 @@ sub resize_background_rect {
 sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
-    $self->{legend}->reposition();
-    #$self->reposition();
+    $self->update_legend();
     
     return;
 }
@@ -1855,35 +1868,36 @@ sub get_zoom_fit_flag {
 sub post_zoom {
     my $self = shift;
     $self->setup_scrollbars();
-    $self->{legend}->reposition();
-    #$self->reposition();
+
+    $self->update_legend();
     $self->resize_background_rect();
     
     return;
 }
 
 # Set colouring mode - 'Hue' or 'Sat'
-sub set_legend_mode {
-    my $self = shift;
-    my $mode = shift;
-
-    $mode = ucfirst lc $mode;
-
-    croak "Invalid display mode '$mode'\n"
-        if not $mode =~ /^Hue|Sat|Grey$/;
-
-    $self->{legend_mode} = $mode;
-
-    $self->colour_cells();
-
-    # Update legend
-    if ($self->{legend}) {
-        $self->{legend}->make_legend_rect();
-        $self->{legend}->reposition();
-    }
-
-    return;
-};
+#sub set_legend_mode {
+#    my $self = shift;
+#    my $mode = shift;
+#
+#    $mode = ucfirst lc $mode;
+#
+#    croak "Invalid display mode '$mode'\n"
+#        if not $mode =~ /^Hue|Sat|Grey$/;
+#
+#    $self->{legend_mode} = $mode;
+#
+#    $self->colour_cells();
+#
+#    # Update legend
+#    if ($self->{label_legend}) {
+#        print "inside if statement in set_legend_mode\n";
+#        $self->{label_legend}->{legend}->make_legend_rect();
+#        $self->update_legend();
+#    }
+#
+#    return;
+#};
 
 =head2 setHue
 

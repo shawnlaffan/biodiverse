@@ -23,6 +23,7 @@ use Gnome2::Canvas;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::Progress;
+use Biodiverse::GUI::Legend;
 
 ##########################################################
 # Rendering constants
@@ -141,58 +142,46 @@ sub new {
     );
     $self->{back_rect} = $rect;
 
-    $self->show_legend;
+    # Create the Matrix legend
+    my $matrix_legend = Biodiverse::GUI::Legend->new(
+        canvas       => $self->{canvas},
+    );
+    $self->{matrix_legend} = $matrix_legend;
+
+    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
+    $self->{matrix_legend}->show();
 
     $self->{drag_mode} = 'select';
 
     return $self;
 }
 
+# Update the position and/or mode of the legend.
+sub update_legend {
+    my $self = shift;
+    my $legend = $self->{matrix_legend};
+    $legend->reposition($self->{width_px}, $self->{height_px});
+}
+
+# Sets the values of the textboxes next to the legend */
+sub set_legend_min_max {
+    my ($self, $min, $max) = @_;
+    my $legend = $self->{matrix_legend};
+    return if ! ($legend);
+    $legend->set_legend_min_max($min,$max);
+}
+
 sub show_legend {
     my $self = shift;
-    print "already have legend!\n" if $self->{legend};
-    
-    return if $self->{legend};
-
-    # Create legend
-    my $pixbuf = $self->make_legend_pixbuf;
-    $self->{legend} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Pixbuf',
-        pixbuf              => $pixbuf,
-        'width_in_pixels'   => 1,
-        'height_in_pixels'  => 1,
-        'height-set'        => 1,
-        width               => LEGEND_WIDTH,
-    );
-    
-    $self->{legend}->raise_to_top();
-    $self->{back_rect}->lower_to_bottom();
-
-    $self->{marks}[0] = $self->make_mark('ne');
-    $self->{marks}[1] = $self->make_mark('e');
-    $self->{marks}[2] = $self->make_mark('e');
-    $self->{marks}[3] = $self->make_mark('se');
-    
-    return;
+    my $legend = $self->{label_legend};
+    $legend->show;
 }
 
 sub hide_legend {
     my $self = shift;
-
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
-
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
-    }
-    delete $self->{marks};
-    
-    return;
+    my $legend = $self->{label_legend};
+    $legend->hide_legend;
 }
-
 
 sub destroy {
     my $self = shift;
@@ -200,16 +189,10 @@ sub destroy {
     #$self->{canvas}->hide();
     print "[MatrixGrid] Trying to clean up canvas references\n";
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
-
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    # Destory the legend group.
+    if ($self->{legend_group}) {
+        $self->{legend_group}->destroy();
     }
-
-    delete $self->{marks};
 
     # Destroy cell groups
     if ($self->{cells_group}) {
@@ -248,54 +231,6 @@ sub make_mark {
     );
     $mark->raise_to_top();
     return $mark;
-}
-
-sub make_legend_pixbuf {
-    my $self = shift;
-    my ($width, $height);
-    my @pixels;
-
-    # Make array of rgb values
-
-    if ($self->{colours} eq 'Hue') {
-        
-        ($width, $height) = (LEGEND_WIDTH, 180);
-
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb($row, 1, 1);
-            push @pixels, (@rgb) x $width;
-        }
-
-    }
-    elsif ($self->{colours} eq 'Sat') {
-        
-        ($width, $height) = (LEGEND_WIDTH, 100);
-
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb($self->{hue}, 1 - $row / 100.0, 1);
-            push @pixels, (@rgb) x $width;
-        }
-
-    }
-    else {
-        croak "Invalid colour system\n";
-    }
-
-
-    # Convert to low-level integers
-    my $data = pack "C*", @pixels;
-
-    my $pixbuf = Gtk2::Gdk::Pixbuf->new_from_data(
-        $data,       # the data.  this will be copied.
-        'rgb',       # only currently supported colorspace
-        0,           # true, because we do have alpha channel data
-        8,           # gdk-pixbuf currently allows only 8-bit samples
-        $width,      # width in pixels
-        $height,     # height in pixels
-        $width * 3,  # rowstride -- we have RGBA data, so it's four
-    );               #   bytes per pixel.
-
-    return $pixbuf;
 }
 
 ##########################################################
@@ -870,7 +805,7 @@ sub on_size_allocate {
             $self->fit_grid();
         }
 
-        $self->reposition();
+        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
         $self->setup_scrollbars();
         $self->resize_background_rect();
 
@@ -980,7 +915,7 @@ sub on_scrollbars_scroll {
     if (not $self->{dragging}) {
         my ($x, $y) = ($self->{hadjust}->get_value, $self->{vadjust}->get_value);
         $self->{canvas}->scroll_to($x, $y);
-        $self->reposition();
+        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
     }
 
     return;
@@ -1033,55 +968,10 @@ sub resize_background_rect {
     return;
 }
 
-# Updates position of legend and value box when canvas is resized or scrolled
-sub reposition {
-    my $self = shift;
-    return if not defined $self->{legend};
-
-    # Convert coordinates into world units
-    # (this has been tricky to get working right...)
-    #  SWL - use zero if these are not defined.  this is a total hack and not a solution
-    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
-
-    my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
-    ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
-
-    my ($border_width, $legend_width)
-        = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
-
-    $self->{legend}->set(
-        x      => $width + $scroll_x - $legend_width, # world units
-        y      => $scroll_y,                          # world units
-        width  => LEGEND_WIDTH,                       # pixels
-        height => $self->{height_px}                  # pixels
-    );
-    
-    # Reposition the "mark" textboxes
-    my $mark_x = $scroll_x + $width - $legend_width - 2 * $border_width; # world units
-    foreach my $i (0..3) {
-        $self->{marks}[$i]->set( x => $mark_x , y => $scroll_y + $i * $height / 3);
-    }
-    
-    # Reposition value box
-    if ($self->{value_group}) {
-        my ($value_x, $value_y) = $self->{value_group}->get('x', 'y');
-        $self->{value_group}->move( $scroll_x - $value_x,$scroll_y - $value_y);
-
-        my ($text_width, $text_height) = $self->{value_text}->get("text-width", "text-height");
-
-        # Resize value background rectangle
-        $self->{value_rect}->set(x2 => $text_width, y2 => $text_height);
-    }
-    
-    return;
-}
-
-
-
 sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
-    $self->reposition();
+    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
     
     return;
 }
@@ -1135,7 +1025,7 @@ sub post_zoom {
     my $self = shift;
     $self->setup_scrollbars();
     $self->resize_background_rect();
-    $self->reposition();
+    $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
     
     return;
 }
@@ -1148,8 +1038,8 @@ sub set_colours {
     $self->colour_cells();
 
     # Update legend
-    if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
+    if ($self->{matrix_legend}) {
+        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
     }
     
     return;
@@ -1170,8 +1060,8 @@ sub set_hue {
     $self->colour_cells();
 
     # Update legend
-    if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
+    if ($self->{matrix_legend}) {
+        $self->{matrix_legend}->reposition($self->{width_px}, $self->{height_px});
     }
     
     return;

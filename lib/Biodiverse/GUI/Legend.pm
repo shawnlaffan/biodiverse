@@ -13,7 +13,6 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
-use Exporter;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -31,17 +30,20 @@ use Biodiverse::Progress;
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-#our @ISA    = qw(Exporter);
-
-#our @EXPORT = qw(show_legend hide_legend get_legend make_mark make_legend_rect set_legend_min_max set_legend_gt_flag set_legend_lt_flag reposition set_legend_mode set_legend_hue get_legend_hue hsv_to_rgb);
 ##########################################################
 # Constants
 ##########################################################
 use constant BORDER_SIZE        => 20;
 use constant LEGEND_WIDTH       => 20;
-use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant MARK_X_LEGEND_OFFSET  => 0.01;
+use constant MARK_Y_LEGEND_OFFSET  => 8;
 use constant LEGEND_HEIGHT  => 380;
+use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
+
+use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
+use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant DARKEST_GREY_FRAC   => 0.2;
+use constant LIGHTEST_GREY_FRAC  => 0.8;
 
 ##########################################################
 # Construction
@@ -59,14 +61,20 @@ sub new {
     my $class        = shift;
     my %args         = @_;
 
-   my $self = {
-   };
-   bless $self, $class;
+    my $canvas       = $args{canvas};
+    my @legend_marks = $args{legend_marks} // qw/nw w w sw/;
+    my $legend_mode  = $args{legend_mode} // qw/Hue/;
+    my $width_px     = $args{width_px} // 0;
+    my $height_px    = $args{height_px} // 0;
 
-    $self->{canvas}       = $args{canvas};
-    $self->{legend_marks} = $args{legend_marks};
-    $self->{legend_mode}  = $args{legend_mode};
-
+    my $self = {
+        canvas => $canvas,
+        legend => \@legend_marks,
+        legend_mode => $legend_mode,
+        width_px    => $width_px,
+        height_px    => $height_px,
+    };
+    bless $self, $class;
     # Get the width and height of the canvas.
     #my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
     my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
@@ -91,47 +99,6 @@ sub new {
 
     return $self;
 };
-
-sub show_legend {
-    my $self = shift;
-    my @legend_marks = shift;
-    #print "already have legend!\n" if $self->{legend};
-    if ($self->get_legend) {
-        # Show the legend group because it already exists.
-        $self->{legend_group}->show;
-	return;
-    }
-
-    # Get the width and height of the canvas.
-    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
-
-
-    # Make group so we can pack the coloured
-    # rectangles into it.  
-    $self->{legend_group} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
-        x => $width - LEGEND_WIDTH, 
-        y => 0,
-    );   
-
-    # Create the legend rectangle.
-    $self->{legend} = $self->make_legend_rect();
-
-    $self->{legend_group}->raise_to_top();
-    $self->{back_rect}->lower_to_bottom();
-
-    $self->{marks}[0] = $self->make_mark( 'nw' );
-    $self->{marks}[1] = $self->make_mark( 'w'  );
-    $self->{marks}[2] = $self->make_mark( 'w'  );
-    $self->{marks}[3] = $self->make_mark( 'sw' );
-
-    eval {
-        $self->reposition;  #  trigger a redisplay of the legend
-    };
-
-    return;
-}
 
 sub hide_legend {
     my $self = shift;
@@ -185,12 +152,11 @@ sub make_legend_rect {
     # Once the legend is create it is scaled to the height
     # of the canvas in reposition and according to each
     # mode's scaling factor held in $self->{legend_scaling_factor}.
+
     if ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = (LEGEND_WIDTH, 180);
-
-        # Set the legend scaling factor.
-        $self->{legend_scaling_factor}=2.1; 
+        $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
@@ -201,9 +167,7 @@ sub make_legend_rect {
     } elsif ($self->{legend_mode} eq 'Sat') {
 
         ($width, $height) = (LEGEND_WIDTH, 100);
-
-        # Set the legend scaling factor.
-        $self->{legend_scaling_factor}=3.8; 
+        $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb(
@@ -218,9 +182,7 @@ sub make_legend_rect {
     } elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = (LEGEND_WIDTH, 255);
-
-        # Set the legend scaling factor.
-        $self->{legend_scaling_factor}=1.49;
+        $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
@@ -295,6 +257,7 @@ sub reposition {
     my $self = shift;
     my $width_px = shift;
     my $height_px = shift;
+
     return if not defined $self->{legend};
 
     # Convert coordinates into world units
@@ -317,11 +280,10 @@ sub reposition {
     );
 
     # Scale the legend's height and width to match the current size of the canvas. 
-    # Scaling y is a hack. Probably should get it  working with ppu.
     my $matrix = [$legend_width*$ppu, # scale x
                   0,
                   0,
-                  $self->{legend_scaling_factor}*($height/LEGEND_HEIGHT), # scale y
+                  $height/$self->{legend_height}, # scale y
                   0,
                   0];
     $self->{legend_colours_group}->affine_absolute($matrix);
@@ -334,9 +296,20 @@ sub reposition {
         my @lbounds = $self->{legend}->get_bounds;
         my $offset = $lbounds[0] - $bounds[2];
         $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
+
+        # Set the location of the y of the marks
+        # Has a vertical offset for the first and
+        # last marks.
+        my $y_offset = 0 ;
+        if ($i == 0) {
+            $y_offset = MARK_Y_LEGEND_OFFSET;
+        } elsif ($i == 3) {
+            $y_offset = -MARK_Y_LEGEND_OFFSET;
+	}
         $self->{marks}[$i]->set(
-            y => $i * $height / 3,
+            y => $i * $height / 3 + $y_offset / $ppu,
         );
+
         $mark->raise_to_top;
     }
 
@@ -376,9 +349,9 @@ sub set_legend_mode {
     $self->colour_cells();
 
     # Update legend
-    if ($self->{legend}) {
-        $self->make_legend_rect();
-        $self->reposition;  #  trigger a redisplay of the legend
+    if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
+            $self->{legend} = $self->make_legend_rect();
+            $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
     }
 
     return;
@@ -406,9 +379,8 @@ sub set_legend_hue {
 
     # Update legend
     if ($self->{legend}) {
-        #$self->{legend}->set(pixbuf => $self->make_legend_rect() );
-        $self->make_legend_rect();
-        $self->reposition;  #  trigger a redisplay of the legend
+        $self->{legend} = $self->make_legend_rect();
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
     }
 
     return;
@@ -418,6 +390,142 @@ sub get_legend_hue {
     my $self = shift;
     return $self->{hue};
 }
+
+##########################################################
+# Colouring based on an analysis value
+##########################################################
+
+#  a mis-named sub - this merely sets the initial colours or clears existing colours
+sub colour_cells {
+    my $self = shift;
+
+    my $colour_none = $self->get_colour_for_undef;
+
+    foreach my $cell (values %{$self->{cells}}) {
+        my $rect = $cell->[INDEX_RECT];
+        $rect->set('fill-color-gdk' => $colour_none);
+    }
+
+    return;
+}
+
+sub get_colour_for_undef {
+    my $self = shift;
+    my $colour_none = shift;
+
+    return $self->{colour_none} // $self->set_colour_for_undef ($colour_none);
+}
+
+sub set_colour_for_undef {
+    my ($self, $colour) = @_;
+
+    $colour //= COLOUR_WHITE;
+
+    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+
+    $self->{colour_none} = $colour;
+}
+
+my %colour_methods = (
+    Hue => 'get_colour_hue',
+    Sat => 'get_colour_saturation',
+    Grey => 'get_colour_grey',
+);
+
+sub get_colour {
+    my ($self, $val, $min, $max) = @_;
+
+    if (defined $min and $val < $min) {
+        $val = $min;
+    }
+    if (defined $max and $val > $max) {
+        $val = $max;
+    }
+    my @args = ($val, $min, $max);
+
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+      if !$method;
+
+    return $self->$method(@args);
+}
+
+sub get_colour_hue {
+    my ($self, $val, $min, $max) = @_;
+    # We use the following system:
+    #   Linear interpolation between min...max
+    #   HUE goes from 180 to 0 as val goes from min to max
+    #   Saturation, Brightness are 1
+    #
+    my $hue;
+    if (! defined $max || ! defined $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0);
+        #return COLOUR_BLACK;
+    }
+    elsif ($max != $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        $hue = ($val - $min) / ($max - $min) * 180;
+    }
+    else {
+        $hue = 0;
+    }
+
+    $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
+
+    my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
+
+    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+}
+
+sub get_colour_saturation {
+    my ($self, $val, $min, $max) = @_;
+    #   Linear interpolation between min...max
+    #   SATURATION goes from 0 to 1 as val goes from min to max
+    #   Hue is variable, Brightness 1
+    my $sat;
+    if (! defined $max || ! defined $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0);
+        #return COLOUR_BLACK;
+    }
+    elsif ($max != $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        $sat = ($val - $min) / ($max - $min);
+    }
+    else {
+        $sat = 1;
+    }
+
+    my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
+
+    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+}
+
+sub get_colour_grey {
+    my ($self, $val, $min, $max) = @_;
+
+    my $sat;
+    if (! defined $max || ! defined $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0);
+        #return COLOUR_BLACK;
+    }
+    elsif ($max != $min) {
+        return Gtk2::Gdk::Color->new(0, 0, 0)
+          if ! defined $val;
+
+        $sat = ($val - $min) / ($max - $min);
+    }
+    else {
+        $sat = 1;
+    }
+    $sat *= 255;
+    $sat = $self->rescale_grey($sat);  #  don't use all the shades
+    $sat *= 257;
+
+    return Gtk2::Gdk::Color->new($sat, $sat, $sat);
+}
+
 
 # FROM http://blog.webkist.com/archives/000052.html
 # by Jacob Ehnmark
@@ -534,6 +642,21 @@ sub format_number_for_display {
         $text = 0;  #  make sure it is 0 and not 0.00e+000
     };
     return $text;
+}
+
+#  rescale the grey values into lighter shades
+sub rescale_grey {
+    my $self  = shift;
+    my $value = shift;
+    my $max   = shift;
+    defined $max or $max = 255;
+
+    $value /= $max;
+    $value *= (LIGHTEST_GREY_FRAC - DARKEST_GREY_FRAC);
+    $value += DARKEST_GREY_FRAC;
+    $value *= $max;
+
+    return $value;
 }
 
 #  should replace with List::MoreUtils::minmax

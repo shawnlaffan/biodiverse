@@ -878,13 +878,13 @@ sub set_legend_hue {
     my $rgb  = shift;
     my $legend = $self->get_legend;
     $self->colour_cells();
-    $legend->set_hue($rgb);
+    $legend->set_legend_hue($rgb);
 }
 
 sub get_legend_hue {
     my $self = shift;
     my $legend = $self->get_legend;
-    $legend->get_hue;
+    $legend->get_legend_hue;
 }
 
 

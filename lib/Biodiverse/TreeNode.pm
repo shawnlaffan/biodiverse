@@ -278,6 +278,24 @@ sub get_total_length {
     return $self->get_length_below;  #  calculate total length otherwise
 }
 
+sub get_sum_of_branch_lengths_below {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+    
+    my $sum = $self->get_cached_value ('SUM_OF_BRANCH_LENGTHS_BELOW');
+    
+    return $sum if defined $sum;
+    
+    my %nodes = $self->get_all_descendants_and_self;
+    foreach my $node (values %nodes) {
+        $sum += $node->get_length;
+    }
+
+    $self->set_cached_value (SUM_OF_BRANCH_LENGTHS_BELOW => $sum);
+
+    return $sum;
+}
+
 sub get_longest_path_length_to_terminals {
     my $self = shift;
     my %args = (cache => 1, @_);

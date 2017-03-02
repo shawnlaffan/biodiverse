@@ -1451,7 +1451,8 @@ sub get_max_total_length {
     return $lengths[0];
 }
 
-sub get_total_tree_length {    #  calculate the total length of the tree
+#  duplicated by get_sum_of_branch_lengths, which has a clearer name
+sub get_total_tree_length { #  calculate the total length of the tree
     my $self = shift;
 
     my $length;
@@ -2380,6 +2381,14 @@ sub trim {
 
     return $self;
 }
+
+#  wrapper method so we can have a different name
+sub get_sum_of_branch_lengths {
+    my $self = shift;
+    
+    return $self->get_sum_of_branch_lengths_below;
+}
+
 
 sub numerically { $a <=> $b }
 

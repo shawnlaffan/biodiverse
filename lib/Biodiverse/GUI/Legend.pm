@@ -101,6 +101,7 @@ sub new {
     return $self;
 };
 
+# Hide the legend
 sub hide {
     my $self = shift;
 
@@ -112,6 +113,7 @@ sub hide {
     return;
 }
 
+# Show the legend
 sub show {
     my $self = shift;
 
@@ -121,7 +123,9 @@ sub show {
     return;
 }
 
-
+# Makes a rectangle and fills it 
+# with colours for the chose legend
+# mode.
 sub make_rect {
     my $self = shift;
     my ($width, $height);
@@ -211,7 +215,7 @@ sub add_row {
 }
 
 ##########################################################
-# Setting up the canvas
+# Setting up various components of the legend 
 ##########################################################
 
 sub make_mark {
@@ -244,7 +248,8 @@ sub set_lt_flag {
     return;
 }
 
-# Updates position of legend and value box when canvas is resized or scrolled
+# Updates position of legend and value box
+# when canvas is resized or scrolled
 sub reposition {
     my $self = shift;
     my $width_px = shift;
@@ -393,7 +398,6 @@ sub get_hue {
 ##########################################################
 # Colouring based on an analysis value
 ##########################################################
-
 
 sub get_colour_for_undef {
     my $self = shift;

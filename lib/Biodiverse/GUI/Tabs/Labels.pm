@@ -184,6 +184,7 @@ sub init_grid {
     my $self = shift;
 
     my $frame   = $self->{xmlPage}->get_object('gridFrameViewLabels');
+    my $lframe  = $self->{xmlPage}->get_object('gridFrameViewLabelsLegend');
     my $hscroll = $self->{xmlPage}->get_object('gridHScrollViewLabels');
     my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
 
@@ -831,7 +832,7 @@ sub on_selected_labels_changed {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
-
+    #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
@@ -841,7 +842,8 @@ sub on_selected_labels_changed {
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-
+    $grid->update_legend();
+    #$self->{matrix_grid}->update_legend();
     return;
 }
 

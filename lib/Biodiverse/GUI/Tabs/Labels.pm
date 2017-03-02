@@ -214,7 +214,6 @@ sub init_grid {
         return;
     }
 
-    #$self->{grid}->set_legend_mode('Hue');
     $self->{grid}->set_legend_mode('Sat');
 
     $self->warn_if_basedata_has_gt2_axes;

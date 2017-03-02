@@ -179,7 +179,7 @@ sub set_legend_min_max {
     my ($self, $min, $max) = @_;
     my $legend = $self->get_legend;
     return if !$legend;
-    $legend->set_legend_min_max($min,$max);
+    $legend->set_min_max($min,$max);
 }
 
 sub show_legend {
@@ -599,7 +599,7 @@ sub get_colour_saturation {
     else {
         $sat = 1;
     }
-    
+
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
     
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);

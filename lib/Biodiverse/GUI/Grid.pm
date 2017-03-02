@@ -229,7 +229,7 @@ sub set_legend_mode {
     my $mode = shift;
 
     my $legend = $self->get_legend;
-    $legend->set_legend_mode($mode);
+    $legend->set_mode($mode);
     $self->colour_cells();
     
     return;
@@ -858,7 +858,7 @@ sub set_legend_min_max {
     my ($self, $min, $max) = @_;
     my $legend = $self->get_legend;
     return if ! ($legend);
-    $legend->set_legend_min_max($min,$max);
+    $legend->set_min_max($min,$max);
 }
 
 sub show_legend {
@@ -877,14 +877,14 @@ sub set_legend_hue {
     my $self = shift;
     my $rgb  = shift;
     my $legend = $self->get_legend;
-    $self->colour_cells();
-    $legend->set_legend_hue($rgb);
+    #$self->colour_cells();
+    $legend->set_hue($rgb);
 }
 
 sub get_legend_hue {
     my $self = shift;
     my $legend = $self->get_legend;
-    $legend->get_legend_hue;
+    $legend->get_hue;
 }
 
 
@@ -1093,7 +1093,7 @@ sub get_colour {
     }
     my @args = ($val, $min, $max);
 
-    my $mode = $self->get_legend->get_legend_mode;
+    my $mode = $self->get_legend->get_mode;
     my $method = $colour_methods{$mode};
 
     croak "Unknown colour system: $mode\n"

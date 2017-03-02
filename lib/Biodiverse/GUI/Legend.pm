@@ -91,7 +91,7 @@ sub new {
     $self->{legend_group}->raise_to_top();
 
     # Create the legend rectangle.
-    $self->{legend} = $self->make_legend_rect();
+    $self->{legend} = $self->make_rect();
 
     $self->{marks}[0] = $self->make_mark( $self->{legend_marks}[0] );
     $self->{marks}[1] = $self->make_mark( $self->{legend_marks}[1] );
@@ -102,11 +102,6 @@ sub new {
 };
 
 sub hide {
-    my $self = shift;
-    $self->hide_legend;
-}
-
-sub hide_legend {
     my $self = shift;
 
     return if !$self->{legend_group};
@@ -127,7 +122,7 @@ sub show {
 }
 
 
-sub make_legend_rect {
+sub make_rect {
     my $self = shift;
     my ($width, $height);
 
@@ -162,7 +157,7 @@ sub make_legend_rect {
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
+            add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
     } elsif ($self->{legend_mode} eq 'Sat') {
@@ -177,7 +172,7 @@ sub make_legend_rect {
                 1,
             );
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
+            add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
     } elsif ($self->{legend_mode} eq 'Grey') {
@@ -189,7 +184,7 @@ sub make_legend_rect {
             my $intensity = $self->rescale_grey(255 - $row);
             my @rgb = ($intensity * 257 ) x 3;
             my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-            add_legend_row($self->{legend_colours_group},$row,$r,$g,$b);
+            add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
     } else {
         croak "Legend: Invalid colour system\n";
@@ -199,7 +194,7 @@ sub make_legend_rect {
 }
 
 # Add a coloured row to the legend.
-sub add_legend_row {
+sub add_row {
     my ($self, $row, $r, $g, $b) = @_;
 
     my $width = LEGEND_WIDTH;
@@ -335,7 +330,7 @@ sub reposition {
 }
 
 # Set colouring mode - 'Hue' or 'Sat'
-sub set_legend_mode {
+sub set_mode {
     my $self = shift;
     my $mode = shift;
 
@@ -350,14 +345,14 @@ sub set_legend_mode {
 
     # Update legend
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
-        $self->{legend} = $self->make_legend_rect();
+        $self->{legend} = $self->make_rect();
         $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
     }
 
     return;
 }
 
-sub get_legend_mode {
+sub get_mode {
     my $self = shift;
     return $self->{legend_mode};
 }
@@ -369,28 +364,28 @@ Sets the hue for the saturation (constant-hue) colouring mode
 
 =cut
 
-sub set_legend_hue {
+sub set_hue {
     my $self = shift;
     my $rgb = shift;
 
     my @x = (rgb_to_hsv($rgb->red / 257, $rgb->green /257, $rgb->blue / 257));
 
     my $hue = (rgb_to_hsv($rgb->red / 257, $rgb->green /257, $rgb->blue / 257))[0];
-    my $last_hue_used = $self->get_legend_hue;
+    my $last_hue_used = $self->get_hue;
     return if defined $last_hue_used && $hue == $last_hue_used;
 
     $self->{hue} = $hue;
 
     # Update legend
     if ($self->{legend}) {
-        $self->{legend} = $self->make_legend_rect();
+        $self->{legend} = $self->make_rect();
         $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
     }
 
     return;
 }
 
-sub get_legend_hue {
+sub get_hue {
     my $self = shift;
     return $self->{hue};
 }
@@ -574,7 +569,7 @@ sub rgb_to_hsv {
 }
 
 # Sets the values of the textboxes next to the legend */
-sub set_legend_min_max {
+sub set_min_max {
     my ($self, $min, $max) = @_;
 
     $min //= $self->{last_min};

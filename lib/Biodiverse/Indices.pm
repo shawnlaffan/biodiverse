@@ -28,7 +28,6 @@ my $EMPTY_STRING = q{};
 use parent qw {
   Biodiverse::Indices::Indices
   Biodiverse::Indices::Numeric_Labels
-  Biodiverse::Indices::IEI
   Biodiverse::Indices::Hierarchical_Labels
   Biodiverse::Indices::Phylogenetic
   Biodiverse::Indices::PhylogeneticRelative

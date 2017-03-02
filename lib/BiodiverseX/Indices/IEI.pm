@@ -1,7 +1,7 @@
 #  Inter-event interval stats
 #  A plugin for the biodiverse system and not to be used on its own.
 
-package Biodiverse::Indices::IEI;
+package BiodiverseX::Indices::IEI;
 use strict;
 use warnings;
 use Ref::Util qw { :all };

@@ -16,10 +16,9 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Export;
 use Ref::Util qw /:all/;
 
-use List::MoreUtils qw(first_index);
-
-use Text::Levenshtein qw(distance);
+use Text::Fuzzy;
 use Scalar::Util qw /blessed/;
+use List::MoreUtils qw /first_index/;
 
 my $i;
 use constant ORIGINAL_LABEL_COL => $i || 0;
@@ -50,7 +49,9 @@ use constant IGNORE_CASE_TOOLTIP
     => "Treat case differences as punctuation rather than typos.";
 use constant EDIT_DISTANCE_TOOLTIP
     => "New labels within this Levenshtein edit distance of an existing label will be detected as possible typos";
-use constant MANUAL_OPTION_TEXT => "From file";
+use constant USER_DEFINED_FROM_FILE_TEXT => 'User defined from file';
+use constant AUTO_FROM_FILE_TEXT => 'Auto from file';
+
 
 sub new {
     my $class = shift;
@@ -79,8 +80,12 @@ sub pre_remap_dlg {
         @{ $gui->get_project->get_matrix_list },
     );
     
+    croak "Nothing to remap\n"
+      if !@remapee_sources;
+    
     my @controller_sources = @remapee_sources;
-    unshift @controller_sources, MANUAL_OPTION_TEXT;
+    unshift @controller_sources,
+      (USER_DEFINED_FROM_FILE_TEXT, AUTO_FROM_FILE_TEXT);
 
     my $selected_basedata = $gui->get_project->get_selected_basedata;
 
@@ -101,21 +106,33 @@ sub pre_remap_dlg {
     my $controller_combo = Gtk2::ComboBox->new_text;
 
     foreach my $option (@remapee_sources) {
-        $remapee_combo->append_text($self->object_to_name(obj => $option));
+        $remapee_combo->append_text(
+            $self->object_to_name(obj => $option)
+        );
     }
     foreach my $option (@controller_sources) {
-        $controller_combo->append_text($self->object_to_name(obj => $option));
+        $controller_combo->append_text(
+            $self->object_to_name(obj => $option)
+        );
     }
 
-    my $index = first_index { $_ eq $default_remapee } @remapee_sources;
+    my $index
+      = first_index
+        { $_ eq $default_remapee }
+        @remapee_sources;
     $remapee_combo->set_active($index);
     $controller_combo->set_active(0);
-    
+
     $remapee_combo->show_all;
     $controller_combo->show_all;
 
     $remapee_combo->set_tooltip_text ('Choose a data source to be remapped.');
-    $remapee_combo->set_tooltip_text ('Choose a data source to remap to');
+    $controller_combo->set_tooltip_text (
+        "Choose a data source to remap to.\n"
+        . "The user defined from file option requires both source and "
+        . "target names to be specified in the selected file.  \n"
+        . "The auto from file option requires only a list of target element names."
+    );
     my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
     my $controller_label = Gtk2::Label->new('Label source:');
     
@@ -214,10 +231,10 @@ sub pre_remap_dlg {
     ####
     # The dialog itself
     my $dlg = Gtk2::Dialog->new_with_buttons(
-        'Remap labels?',
+        'Remap options',
         undef, 'modal',
-        'gtk-ok' => 'ok',
-        'gtk-cancel'  => 'cancel',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
     );
 
     ####
@@ -238,7 +255,11 @@ sub pre_remap_dlg {
 
 
     if ( $response eq "ok" ) {
-        my $remap_type = ($controller_combo->get_active == 0) ? "manual" : "auto";
+        my $iter = $controller_combo->get_active;
+        my $remap_type
+            = $iter == 0 ? 'manual_from_file'
+            : $iter == 1 ? 'auto_from_file'
+            : 'auto';
         my $remapee = $remapee_sources[$remapee_combo->get_active];
         my $controller = $controller_sources[$controller_combo->get_active];
         
@@ -267,47 +288,40 @@ sub post_auto_remap_dlg {
     my $remap_hash = $remap_object->to_hash();
     
     croak "[RemapGUI.pm] No auto remap was generated in the remap_object" 
-        if (!$remap_object->has_auto_remap);
+      if !$remap_object->has_auto_remap;
 
+    my %params = (remap => $remap_hash);
 
-    my %params = (remap => $remap_hash,);
+    my @match_categories = qw /exact_matches punct_matches typo_matches not_matched/;
 
-    my @match_categories = ("exact_matches", "punct_matches", 
-                            "typo_matches", "not_matched");
-    
     foreach my $category (@match_categories) {
         $params{$category} = 
             $remap_object->get_match_category(category => $category);
     }
-                            
-    
+
     my $remap_results_response =
       $self->remap_results_dialog( %params );
 
     my $response = $remap_results_response->{response};
-    
+
     # now build the remap we actually want to perform
     $remap_hash = $self->build_remap_hash_from_exclusions(
         %$remap_results_response,
         remap => $remap_hash,
-        punct_matches => 
-            $remap_object->get_match_category(category => "punct_matches"),
-        punct_matches => 
-            $remap_object->get_match_category(category => "typo_matches"),
+        punct_matches => $remap_object->get_match_category(
+            category => "punct_matches",
+        ),
+        punct_matches => $remap_object->get_match_category(
+            category => "typo_matches",
+        ),
+    );
 
-        );
+    #  make sure we get numbers - strictly needed?
+    my $check = $response =~ /yes|apply/ ? 1 : 0;
+    say "Automatic remap "
+     . $check ? 'applied' : 'skipped';
 
-    $remap_object->import_from_hash(remap_hash => $remap_hash);
-    
-    if ( $response eq 'yes' ) {
-        say "Performed automatic remap.";
-        return 1;
-    }
-    else {
-        say "Declined automatic remap, no remap performed.";
-        return 0;
-    }
-
+    return $check;
 }
 
 # called internally by perform_remap
@@ -318,7 +332,7 @@ sub remap_results_dialog {
     # most screens are at least 600 pixels high 
     # at least until the biodiverse mobile app is released...
     my $default_dialog_height = 600;
-    my $default_dialog_width = 600;
+    my $default_dialog_width  = 600;
     
     ###
     # Exact matches
@@ -368,7 +382,6 @@ sub remap_results_dialog {
 
     my $typo_match_count = @typo_matches;
 
-
     my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $typo_match_scroll->add($typo_tree);
 
@@ -379,7 +392,9 @@ sub remap_results_dialog {
             $typo_match_scroll->set_sensitive(
                 !$typo_match_scroll->get_sensitive
             );
-            $typo_match_scroll->set_visible($typo_match_checkbutton->get_active),
+            $typo_match_scroll->set_visible(
+                $typo_match_checkbutton->get_active,
+            ),
         }
     );
 
@@ -394,9 +409,8 @@ sub remap_results_dialog {
 
     ###
     # Accept label
-    my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
- 
-    
+    #my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
+
     # 'copy selection to clipboard' button
     my $copy_button 
         = Gtk2::Button->new_with_label("Copy selected rows to clipboard");
@@ -404,26 +418,27 @@ sub remap_results_dialog {
     
     $copy_button->signal_connect('clicked' => sub {
         $self->copy_selected_tree_data_to_clipboard(
-            trees => [ $exact_match_tree,  $not_matched_tree, 
-                       $punct_tree,        $typo_tree,],
-            )
+            trees => [
+                    $exact_match_tree,  $not_matched_tree, 
+                    $punct_tree,        $typo_tree,
+            ],
+        )
     });
-
 
     # export remap to file button
     my $export_button 
-        = Gtk2::Button->new_with_label("Export remap to file.");
+        = Gtk2::Button->new_with_label("Export remap to file");
     $export_button->set_tooltip_text(EXPORT_BUTTON_TOOLTIP);
     
     $export_button->signal_connect('clicked' => sub {
         $remap = $self->build_remap_hash_from_exclusions(
-            remap => $remap,
-            punct_match_enabled => $punct_match_checkbutton->get_active,
-            typo_match_enabled => $typo_match_checkbutton->get_active,
-            exclusions => $self->get_exclusions,
+            remap         => $remap,
+            exclusions    => $self->get_exclusions,
             punct_matches => \@punct_matches,
-            typo_matches => \@typo_matches,
-            );
+            typo_matches  => \@typo_matches,
+            punct_match_enabled => $punct_match_checkbutton->get_active,
+            typo_match_enabled  => $typo_match_checkbutton->get_active,
+        );
 
         my $remap_object = Biodiverse::Remap->new();
         $remap_object->import_from_hash(remap_hash => $remap);
@@ -435,11 +450,14 @@ sub remap_results_dialog {
     my $dlg = Gtk2::Dialog->new_with_buttons(
         'Remap results',
         undef, 'modal',
-        'gtk-yes' => 'yes',
-        'gtk-no'  => 'no'
-        );
+        'gtk-apply'  => 'yes',
+        'gtk-cancel' => 'no'
+    );
 
-    $dlg->set_default_size($default_dialog_width, $default_dialog_height);
+    $dlg->set_default_size(
+        $default_dialog_width,
+        $default_dialog_height,
+    );
 
     ####
     # Packing
@@ -455,7 +473,7 @@ sub remap_results_dialog {
         components => [$exact_match_scroll],
         fill => [1],
         tooltip => EXACT_MATCH_PANEL_TOOLTIP,
-        );
+    );
     
     my $not_matched_frame = $self->build_vertical_frame (
         label => "Not Matched: $not_matched_count",
@@ -472,7 +490,7 @@ sub remap_results_dialog {
         components => [$punct_match_checkbutton, $punct_match_scroll],
         fill => [0, 1],
         tooltip => PUNCT_MATCH_PANEL_TOOLTIP,
-        );
+    );
 
     my $typo_frame = $self->build_vertical_frame (
         label => "Possible Typos: $typo_match_count",
@@ -480,7 +498,7 @@ sub remap_results_dialog {
         padding => 0,
         fill => [0, 1],
         tooltip => TYPO_MATCH_PANEL_TOOLTIP,
-        );
+    );
 
     # put these vboxes in vpanes so we can resize
     my $vpaned1 = Gtk2::VPaned->new();
@@ -498,10 +516,13 @@ sub remap_results_dialog {
     my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
     $outer_scroll->add_with_viewport( $vpaned1 );
     
-    $vbox->pack_start($outer_scroll, 1, 1, 0);
-    $vbox->pack_start( $copy_button, 0, 0, 0 );
-    $vbox->pack_start( $export_button, 0, 1, 0 );
-    $vbox->pack_start( $accept_remap_label, 0, 1, 0 );
+    my $hbox = Gtk2::HBox->new;
+    $hbox->pack_start( $copy_button,   0, 0, 0 );
+    $hbox->pack_start( $export_button, 0, 0, 0 );
+
+    $vbox->pack_start( $outer_scroll,  1, 1, 0);
+    $vbox->pack_start( $hbox,          0, 0, 0);
+    #$vbox->pack_start( $accept_remap_label, 0, 1, 0 );
 
     
     $dlg->show_all;
@@ -524,8 +545,6 @@ sub remap_results_dialog {
     my $response = $dlg->run();
 
     $dlg->destroy();
-
-    
     
     my %results = (
         response            => $response,
@@ -645,9 +664,10 @@ sub build_remap_hash_from_exclusions {
     # remove exact matches and not matches here as well
     my @keys = keys %{$remap};
     foreach my $key (@keys) {
+        no autovivification;
+        next if !defined $remap->{$key};
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};
-            say "Deleted $key because it mapped to itself.";
         }
     }
 
@@ -676,7 +696,8 @@ sub build_typo_tree {
 
         # Lazy way of getting edit distance, ideally this wouldn't get
         # calculated in the middle of the gui.
-        my $distance = distance( $match, $remap->{$match} );
+        my $distance_finder = Text::Fuzzy->new( $match, trans => 1);
+        my $distance = $distance_finder->distance( $remap->{$match} );
 
         $typo_model->set(
             $iter,

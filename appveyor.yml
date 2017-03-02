@@ -16,11 +16,8 @@ install:
   - FOR /F "delims=" %%i IN ('ppm query Geo::GDAL') DO set have_geo_gdal=1
   - IF [%have_geo_gdal%]==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
   
-  #  cpanfile has these covered now?
   - cpanm --notest Task::Biodiverse::NoGUI
-  - cpanm --notest Text::Levenshtein
-  - cpanm --notest Data::Compare
-  - cpanm --notest Test::TempDir::Tiny
+  
   #  until the remap class does not call the GUI:
   - set SIS_PPM=http://www.sisyphusion.tk/ppm
   #  assuming if we have Geo::GDAL then we also have these from the cache
@@ -29,9 +26,7 @@ install:
   - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
   - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Pango.ppd
   - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gtk2.ppd
-  
-  #  until #581 is finalised
-  #- cpanm Browser::Open
+
   #- cpanm --installdeps --notest --with-all-features .
 
 

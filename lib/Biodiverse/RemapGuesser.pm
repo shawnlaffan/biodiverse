@@ -10,10 +10,7 @@ use 5.010;
 use strict;
 use warnings;
 
-#use Text::Levenshtein qw/distance/;
-#use Text::Levenshtein::Flexible;  # substantially faster
-use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
-
+use Text::Fuzzy;
 
 use List::Util qw /min/;
 
@@ -57,7 +54,8 @@ sub generate_auto_remap {
         @new_labels = $new_source->get_labels();
     }
     
-    my @existing_labels = $existing_source->get_labels();
+    my $method = $existing_source->can ('get_labels') ? 'get_labels' : 'get_element_list';
+    my @existing_labels = $existing_source->$method;
     my $remap_results = $self->guess_remap(
         {
             existing_labels => \@existing_labels,

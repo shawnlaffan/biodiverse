@@ -662,7 +662,7 @@ sub parse_newick {
         }
 
         #  we have a comma or are at the end of the string, so we create this node and start a new one
-        elsif ($string =~ m/ \G (,)/xgcs) {  
+        elsif ($string =~ m/ \G (?:,)/xgcs) {  
 
             $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 

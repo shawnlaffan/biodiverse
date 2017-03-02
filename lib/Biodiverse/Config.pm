@@ -122,7 +122,7 @@ BEGIN {
         . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
     }
     #  more general solution for anything new
-    my @reqd = qw /Text::Fuzzy Data::Compare Text::Levenshtein/;
+    my @reqd = qw /Text::Fuzzy Data::Structure::Util Data::Compare Text::Levenshtein/;
     foreach my $module (@reqd) {
         if (not eval "require $module") {
             my $feedback = <<"END_FEEDBACK"

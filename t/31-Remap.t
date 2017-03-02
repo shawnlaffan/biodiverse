@@ -8,6 +8,7 @@ use Carp;
 
 use Test::Lib;
 use Test::More;
+use rlib;
 
 use Test::More; # tests => 2;
 use Test::Exception;
@@ -57,7 +58,7 @@ sub test_to_and_from_hash {
         "label3" => "remappedlabel3",
         "label4" => "remappedlabel4",
         "label5" => "remappedlabel5",
-        );
+    );
 
     $remap->import_from_hash(remap_hash => \%remap_hash);
 
@@ -67,4 +68,25 @@ sub test_to_and_from_hash {
               \%remap_hash,
               "Got out the same hash we put in");
     
+}
+
+sub test_remapped_element_names {
+    my $remap = Biodiverse::Remap->new();
+
+    my %remap_hash = (
+        "label1" => "remappedlabel1",
+        "label2" => "remappedlabel2",
+        "label3" => undef,
+    );
+
+    $remap->import_from_hash(remap_hash => \%remap_hash);
+
+    foreach my $label (keys %remap_hash) {
+        my $expected = $remap_hash{$label};
+        my $remapped = $remap->get_element_remapped (element => $label);
+        my $msg = defined $expected
+          ? "got $expected for $label"
+          : 'got undef for non-remap';
+        is ($remapped, $expected, $msg);
+    }
 }

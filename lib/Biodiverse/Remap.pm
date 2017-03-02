@@ -21,11 +21,13 @@ sub import_from_hash {
     my $hash = $args{remap_hash};
 
     # clear any previous remap.
-    $self->delete_all_elements();
+    # no - caller can take care of this as we might
+    #  import from multiple sources
+    #$self->delete_all_elements();
 
     my $quotes = "'";
     my $sep = ":";
-    
+
     my $csv_out = $self->get_csv_object (
         sep_char   => $sep,
         quote_char => $quotes,
@@ -33,7 +35,7 @@ sub import_from_hash {
 
     foreach my $key (keys %$hash) {
         # create an element for this remap
-        my @in_cols = ($key);
+        #my @in_cols = ($key);
 
         my $element = $key;
         
@@ -42,11 +44,15 @@ sub import_from_hash {
             csv_object => $csv_out,
         );
 
-        my $properties_hash;
-        $properties_hash->{REMAP} = $hash->{$key};
-
-        $self->add_to_lists (element => $element, PROPERTIES => $properties_hash);
+        $self->add_to_lists (
+            element    => $element,
+            PROPERTIES => {
+                REMAP => $hash->{$key}
+            },
+        );
     }
+
+    return;
 }
 
 # returns a hash of the remap this object represents.
@@ -137,21 +143,25 @@ sub dequote_all_elements {
     foreach my $element (@$elements) {
         # fix up the remapped value
         my $remapped = $self->get_element_remapped(element => $element);
-        my $new_remapped = $self->dequote_element(
-            element    => $remapped,
-            quote_char => "'",
+        if (defined $remapped) {
+            my $new_remapped = $self->dequote_element(
+                element    => $remapped,
+                quote_char => "'",
             );
-        $self->{ELEMENTS}{$element}{REMAP} = $new_remapped;
+            $self->{ELEMENTS}{$element}{PROPERTIES}{REMAP} = $new_remapped;
+        }
 
         # fix up the element name itself
         my $new_name = $self->dequote_element(
             element    => $element,
             quote_char => "'",
+        );
+        if ($new_name ne $element) {
+            $self->rename_element(
+                element    => $element,
+                new_name   => $new_name,
             );
-        $self->rename_element(
-            element    => $element,
-            new_name   => $new_name,
-            );
+        }
     }
 }
 

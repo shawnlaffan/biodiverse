@@ -2860,33 +2860,41 @@ sub rename_element {
     croak "argument 'new_name' is undefined\n"
       if !defined $new_name;
 
+    return if $element eq $new_name;
+
     my @sub_elements =
         $self->get_sub_element_list (element => $element);
 
     my $el_hash = $self->{ELEMENTS};
     
+    my $did_something;
     #  increment the subelements
     if ($self->exists_element (element => $new_name)) {
-        my $sub_el_hash_target = $self->{ELEMENTS}{$new_name}{SUBELEMENTS};
-        my $sub_el_hash_source = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+        no autovivification;
+        my $sub_el_hash_target = $el_hash->{$new_name}{SUBELEMENTS} // {};
+        my $sub_el_hash_source = $el_hash->{$element}{SUBELEMENTS}  // {};
         foreach my $sub_element (keys %$sub_el_hash_source) {
-            #if (exists $sub_el_hash_target->{$sub_element} {
-                $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
-            #}
+            $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
+        }
+        if (scalar keys %$sub_el_hash_source || scalar keys %$sub_el_hash_target) {
+            $did_something = 1;
         }
     }
     else {
         $self->add_element (element => $new_name);
         my $el_array = $el_hash->{$new_name}{_ELEMENT_ARRAY};
         $el_hash->{$new_name} = $el_hash->{$element};
-        #  reinstate the _EL_ARRAY since it will be overwritten bythe previous line
+        #  reinstate the _EL_ARRAY since it will be overwritten by the previous line
         $el_hash->{$new_name}{_ELEMENT_ARRAY} = $el_array;
         #  the coord will need to be recalculated
         delete $el_hash->{$new_name}{_ELEMENT_COORD};
+        $did_something = 1;
     }
-    delete $el_hash->{$element};
+    if ($did_something) {  #  don't delete if we did nothing
+        delete $el_hash->{$element};
+    }
 
-    return wantarray ? @sub_elements : \@sub_elements;
+    return wantarray ? @sub_elements : \@sub_elements;;
 }
 
 sub rename_subelement {

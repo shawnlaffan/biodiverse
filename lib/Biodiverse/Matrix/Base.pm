@@ -1093,7 +1093,7 @@ sub remap_labels_from_hash {
     foreach my $old_name (keys %$remap_hash) {
         my $new_name = $remap_hash->{$old_name};
 
-        next if $old_name eq $new_name;
+        next if !defined $new_name || $old_name eq $new_name;
 
         $self->rename_element(
             old_name => $old_name,

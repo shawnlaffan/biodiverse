@@ -1157,8 +1157,9 @@ sub get_colour_saturation {
     else {
         $sat = 1;
     }
-    
-    my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
+
+    my $hue = $self->get_legend->get_hue // 0;
+    my ($r, $g, $b) = hsv_to_rgb($hue, $sat, 1);
     
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
 }

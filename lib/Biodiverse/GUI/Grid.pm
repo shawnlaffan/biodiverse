@@ -235,6 +235,26 @@ sub set_legend_mode {
     return;
 }
 
+sub set_legend_gt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_gt_flag($flag);
+
+    return;
+}
+
+sub set_legend_lt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_lt_flag($flag);
+
+    return;
+}
+
 sub destroy {
     my $self = shift;
 
@@ -245,15 +265,6 @@ sub destroy {
     if ($self->{cells_group}) {
         $self->{cells_group}->destroy();
     }
-
-#    if ($self->{legend}) {
-#        $self->{legend}->destroy();
-#        delete $self->{legend};
-#
-#        foreach my $i (0..3) {
-#            $self->{marks}[$i]->destroy();
-#        }
-#    }
 
     # Destroy the legend group.
     if ($self->{legend_group}) {

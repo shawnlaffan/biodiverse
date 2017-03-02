@@ -230,14 +230,14 @@ sub make_mark {
     return $mark;
 }
 
-sub set_legend_gt_flag {
+sub set_gt_flag {
     my $self = shift;
     my $flag = shift;
     $self->{legend_gt_flag} = $flag;
     return;
 }
 
-sub set_legend_lt_flag {
+sub set_lt_flag {
     my $self = shift;
     my $flag = shift;
     $self->{legend_lt_flag} = $flag;

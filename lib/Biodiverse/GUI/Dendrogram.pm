@@ -1160,10 +1160,7 @@ sub set_node_colour {
         ? $colour_ref->to_string 
         : DEFAULT_LINE_COLOUR_RGB;
 
-    $node_ref->set_bootstrap_value(
-        key   => "color",
-        value => $colour_string
-    );
+    $node_ref->set_bootstrap_colour_aa ($colour_string);
 }
 
 # boolean: has a colour been set for a given node

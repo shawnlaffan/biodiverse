@@ -27,7 +27,7 @@ BEGIN {
             $ENV{XDG_DATA_DIRS} = "$par_temp/inc/";
             $ENV{GTK_PATH} = "$par_temp/inc/";
         }
-        $ENV{BD_NO_GUI_DEV_WARN} = 1;
+        $ENV{BD_NO_GUI_DEV_WARN} = 1; # Disable the startup warning.
     }
 }
 

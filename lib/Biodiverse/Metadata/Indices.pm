@@ -7,7 +7,7 @@ use Readonly;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 Readonly my %methods_and_defaults => (
     name           => 'no_name',

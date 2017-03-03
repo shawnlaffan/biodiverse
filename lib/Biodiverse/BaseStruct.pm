@@ -27,7 +27,7 @@ use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 my $EMPTY_STRING = q{};
 

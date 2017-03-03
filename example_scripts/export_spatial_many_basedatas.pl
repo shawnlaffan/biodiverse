@@ -35,6 +35,10 @@ if (!length $out_suffix) {
     $out_suffix = undef;
 }
 
+if (!length $list_name) {
+    $list_name = 'SPATIAL_RESULTS';
+}
+
 foreach my $bd_file (@bd_files) {
 
     my $bd = Biodiverse::BaseData->new(file => $bd_file);

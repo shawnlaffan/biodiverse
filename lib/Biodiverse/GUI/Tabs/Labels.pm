@@ -1782,7 +1782,7 @@ sub update_selection_menu {
             my $menu_item = Gtk2::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
-                activate => \&do_selection_export, [$self, $ref, $label],
+                activate => \&do_selection_export, [$self, $ref, selected_format => $label],
             );
         }
         $submenu_item->set_submenu($submenu);

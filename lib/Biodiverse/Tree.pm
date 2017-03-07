@@ -266,7 +266,7 @@ sub rename_node {
         $old_name = $node_ref->get_name;
     }
 
-    croak "Cannot rename over an existing node"
+    croak "Cannot rename over an existing node ($old_name => $new_name)"
       if $self->exists_node(name => $new_name);
 
     $node_ref->rename (new_name => $new_name);

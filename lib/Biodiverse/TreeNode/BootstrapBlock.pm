@@ -10,7 +10,7 @@ use Cpanel::JSON::XS;
 use Data::Structure::Util qw( unbless );
 use Ref::Util qw /is_arrayref is_hashref/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 sub new {
     my $class = shift;
@@ -161,7 +161,7 @@ sub reformat_colour_spec {
     my $colour = $args{colour};
 
     #  only worry about #RRRRGGGGBBBB
-    return $colour if not $colour =~ /^#[a-fA-F\d]{12}$/;    
+    return $colour if not $colour =~ /^#[a-fA-F\d]{12}$/;
 
     # the way colours are selected in the dendrogram only allows for 2
     # hex digits for each color. Unless this is change, we don't lose

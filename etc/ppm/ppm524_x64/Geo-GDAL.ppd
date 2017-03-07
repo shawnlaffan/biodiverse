@@ -1,0 +1,12 @@
+<SOFTPKG NAME="Geo-GDAL" VERSION="2.010301">
+    <ABSTRACT>Perl extension for the GDAL library for geospatial data</ABSTRACT>
+    <AUTHOR>Ari Jolma &lt;ari.jolma at gmail.com&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <REQUIRE NAME="Carp::" />
+        <REQUIRE NAME="Encode::" />
+        <REQUIRE NAME="POSIX::" />
+        <REQUIRE NAME="Scalar::Util" />
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.24" />
+        <CODEBASE HREF="Geo-GDAL-2.010301.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

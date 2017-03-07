@@ -86,4 +86,5 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends';
     requires 'HTTP::Tiny';
     requires 'LWP::Simple';
+    requires 'IO::Socket::SSL';
 };

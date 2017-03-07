@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -1160,10 +1160,7 @@ sub set_node_colour {
         ? $colour_ref->to_string 
         : DEFAULT_LINE_COLOUR_RGB;
 
-    $node_ref->set_bootstrap_value(
-        key   => "color",
-        value => $colour_string
-    );
+    $node_ref->set_bootstrap_colour_aa ($colour_string);
 }
 
 # boolean: has a colour been set for a given node

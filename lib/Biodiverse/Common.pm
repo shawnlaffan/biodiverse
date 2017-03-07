@@ -45,7 +45,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 my $EMPTY_STRING = q{};
 
@@ -195,7 +195,10 @@ sub load_sereal_file {
 
     #my $structure;
     #$self = $decoder->decode($string, $structure);
-    $decoder->decode($string, $self);
+    eval {
+        $decoder->decode($string, $self);
+    };
+    croak $@ if $@;
 
     $self->set_last_file_serialisation_format ('sereal');
 

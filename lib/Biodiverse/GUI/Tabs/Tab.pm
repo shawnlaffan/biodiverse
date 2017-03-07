@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -423,6 +423,7 @@ sub on_show_hide_legend {
     if ($active) {
         $grid->show_legend;
         $grid->set_legend_min_max;
+        $grid->update_legend;
     }
     else {
         $grid->hide_legend;
@@ -465,6 +466,7 @@ sub on_colour_mode_changed {
 
     $self->{grid}->set_legend_mode($self->{colour_mode});
     $self->recolour(all_elements => 1);
+    $self->{grid}->update_legend;
 
     return;
 }

@@ -20,12 +20,13 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
+use Biodiverse::GUI::Legend;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -123,7 +124,6 @@ sub new {
     my $show_value  = $args{show_value}  // 0;
 
     my $self = {
-        legend_mode => 'Hue',
         hue         => 0,     # default constant-hue red
     }; 
     bless $self, $class;
@@ -160,7 +160,7 @@ sub new {
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
-    
+
     if ($show_value) {
         $self->setup_value_label();
     }
@@ -185,10 +185,16 @@ sub new {
     );
 
     $self->{back_rect} = $rect;
+    # Create the Label legend
+    my $legend = Biodiverse::GUI::Legend->new(
+        canvas       => $self->{canvas},
+        legend_mode  => 'Hue',  #  by default
+        width_px     => $self->{width_px},
+        height_px    => $self->{height_px},
+    );
+    $self->set_legend ($legend);
 
-    #if ($show_legend) {
-        $self->show_legend;
-    #}
+    $self->update_legend;
 
     $self->{drag_mode} = 'select';
 
@@ -197,60 +203,56 @@ sub new {
     return $self;
 }
 
-
-sub show_legend {
-    my $self = shift;
-    #print "already have legend!\n" if $self->{legend};
-    return if $self->get_legend;
-
-    # Create legend
-    my $pixbuf = $self->make_legend_pixbuf;
-    
-    $self->{legend} = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Pixbuf',
-        pixbuf           => $pixbuf,
-        width_in_pixels  => 1,
-        height_in_pixels => 1,
-        'height-set'     => 1,
-        width            => LEGEND_WIDTH,
-    );
-    
-    $self->{legend}->raise_to_top();
-    $self->{back_rect}->lower_to_bottom();
-
-    $self->{marks}[0] = $self->make_mark( 'nw' );
-    $self->{marks}[1] = $self->make_mark( 'w'  );
-    $self->{marks}[2] = $self->make_mark( 'w'  );
-    $self->{marks}[3] = $self->make_mark( 'sw' );
-
-    eval {
-        $self->reposition;  #  trigger a redisplay of the legend
-    };
-    
-    return;
-}
-
-sub hide_legend {
-    my $self = shift;
-
-    return if !$self->get_legend;
-
-    $self->{legend}->destroy();
-    delete $self->{legend};
-
-    foreach my $i (0..3) {
-        $self->{marks}[$i]->destroy();
-    }
-
-    delete $self->{marks};
-
-    return;
-}
-
 sub get_legend {
     my $self = shift;
     return $self->{legend};
+}
+
+sub set_legend {
+    my ($self, $legend) = @_;
+    croak "legend arg not passed" if !defined $legend;
+    $self->{legend} = $legend;
+}
+
+# Update the position and/or mode of the legend.
+sub update_legend {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    if ($self->{width_px} && $self->{height_px}) {
+        $legend->reposition($self->{width_px}, $self->{height_px});
+    }
+    return;
+}
+
+sub set_legend_mode {
+    my $self = shift;
+    my $mode = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_mode($mode);
+    $self->colour_cells();
+    
+    return;
+}
+
+sub set_legend_gt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_gt_flag($flag);
+
+    return;
+}
+
+sub set_legend_lt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_lt_flag($flag);
+
+    return;
 }
 
 sub destroy {
@@ -264,14 +266,11 @@ sub destroy {
         $self->{cells_group}->destroy();
     }
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
-
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    # Destroy the legend group.
+    if ($self->{legend_group}) {
+        $self->{legend_group}->destroy();
     }
+
 
     $self->{value_group}->destroy if $self->{value_group};
     delete $self->{value_group};
@@ -299,89 +298,9 @@ sub destroy {
     return;
 }
 
-
 ##########################################################
 # Setting up the canvas
 ##########################################################
-
-sub make_mark {
-    my $self   = shift;
-    my $anchor = shift;
-
-    my $mark = Gnome2::Canvas::Item->new (
-        $self->{canvas}->root,
-        'Gnome2::Canvas::Text',
-        text            => q{},
-        anchor          => $anchor,
-        fill_color_gdk  => COLOUR_BLACK,
-    );
-
-    $mark->raise_to_top();
-
-    return $mark;
-}
-
-sub make_legend_pixbuf {
-    my $self = shift;
-    my ($width, $height);
-    my @pixels;
-
-    # Make array of rgb values
-
-    if ($self->{legend_mode} eq 'Hue') {
-        
-        ($width, $height) = (LEGEND_WIDTH, 180);
-
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb($row, 1, 1);
-            push @pixels, (@rgb) x $width;
-        }
-
-    }
-    elsif ($self->{legend_mode} eq 'Sat') {
-        
-        ($width, $height) = (LEGEND_WIDTH, 100);
-
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb(
-                $self->{hue},
-                1 - $row / 100.0,
-                1,
-            );
-            push @pixels, (@rgb) x $width;
-        }
-
-    }
-    elsif ($self->{legend_mode} eq 'Grey') {
-        
-        ($width, $height) = (LEGEND_WIDTH, 255);
-
-        foreach my $row (0..($height - 1)) {
-            my $intensity = $self->rescale_grey(255 - $row);
-            my @rgb = ($intensity) x 3;
-            push @pixels, (@rgb) x $width;
-        }
-    }
-    else {
-        croak "Legend: Invalid colour system\n";
-    }
-
-
-    # Convert to low-level integers
-    my $data = pack "C*", @pixels;
-
-    my $pixbuf = Gtk2::Gdk::Pixbuf->new_from_data(
-        $data,       # the data.  this will be copied.
-        'rgb',       # only currently supported colorspace
-        0,           # true, because we do have alpha channel data
-        8,           # gdk-pixbuf currently allows only 8-bit samples
-        $width,      # width in pixels
-        $height,     # height in pixels
-        $width * 3,  # rowstride -- we have RGBA data, so it's four
-    );               # bytes per pixel.
-
-    return $pixbuf;
-}
 
 sub setup_value_label {
     my $self = shift;
@@ -420,7 +339,7 @@ sub setup_value_label {
     $self->{value_group} = $value_group;
     $self->{value_text} = $text;
     $self->{value_rect} = $rect;
-    
+
     return;
 }
 
@@ -434,7 +353,7 @@ sub set_value_label {
     my ($text_width, $text_height)
         = $self->{value_text}->get('text-width', 'text-height');
     $self->{value_rect}->set(x2 => $text_width, y2 => $text_height);
-    
+
     return;
 }
 
@@ -678,10 +597,10 @@ sub set_base_struct {
     # Update
     $self->setup_scrollbars();
     $self->resize_background_rect();
-    
-    #  show legend by default - gets hidden by caller if needed
-    $self->show_legend;
+    #$self->update_legend();
 
+    # show legend by default - gets hidden by caller if needed
+    $self->get_legend->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
@@ -945,103 +864,40 @@ sub get_colour_from_chooser {
     return $colour;
 }
 
-
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-
-    $min //= $self->{last_min};
-    $max //= $self->{last_max};
-
-    $self->{last_min} = $min;
-    $self->{last_max} = $max;
-
-    return if ! ($self->{marks}
-                 && defined $min
-                 && defined $max
-                );
-
-    # Set legend textbox markers
-    my $marker_step = ($max - $min) / 3;
-    foreach my $i (0..3) {
-        my $val = $min + $i * $marker_step;
-        my $text = $self->format_number_for_display (number => $val);
-        my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
-        if ($i == 0 and $self->{legend_lt_flag}) {
-            $text = '<=' . $text;
-        }
-        elsif ($i == 3 and $self->{legend_gt_flag}) {
-            $text = '>=' . $text;
-        }
-        elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
-            $text = '  ' . $text;
-        }
-
-        my $mark = $self->{marks}[3 - $i];
-        $mark->set( text => $text );
-        #  move the mark to right align with the legend
-        my @bounds = $mark->get_bounds;
-        my @lbounds = $self->{legend}->get_bounds;
-        my $offset = $lbounds[0] - $bounds[2];
-        if (($text_num + 0) != 0) {
-            $mark->move ($offset - length ($text), 0);
-        }
-        else {
-            $mark->move ($offset - length ($text) - 0.5, 0);
-        }
-        $mark->raise_to_top;
-    }
-    
-    return;
+    my $legend = $self->get_legend;
+    return if ! ($legend);
+    $legend->set_min_max($min,$max);
 }
 
-
-#  dup from Tab.pm - need to inherit from single source
-sub format_number_for_display {
+sub show_legend {
     my $self = shift;
-    my %args = @_;
-    my $val = $args{number};
-
-    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
-    if ($text == 0) {
-        $text = sprintf ('%.2e', $val);
-    }
-    if ($text == 0) {
-        $text = 0;  #  make sure it is 0 and not 0.00e+000
-    };
-    return $text;
+    my $legend = $self->get_legend;
+    $legend->show;
 }
 
-sub set_legend_gt_flag {
+sub hide_legend {
     my $self = shift;
-    my $flag = shift;
-    $self->{legend_gt_flag} = $flag;
-    return;
+    my $legend = $self->get_legend;
+    $legend->hide;
 }
 
-sub set_legend_lt_flag {
+sub set_legend_hue {
     my $self = shift;
-    my $flag = shift;
-    $self->{legend_lt_flag} = $flag;
-    return;
+    my $rgb  = shift;
+    my $legend = $self->get_legend;
+    #$self->colour_cells();
+    $legend->set_hue($rgb);
 }
 
-# Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
-# Is this ever called?
-#sub set_calculation_list {
-#    my $self = shift;
-#    my $list_name = shift;
-#    print "[Grid] Setting calculation list to $list_name\n";
-#
-#    my $elts = $self->{base_struct}->get_element_hash();
-#
-#    foreach my $element (sort keys %{$elts}) {
-#        my $cell = $self->{element_group}{$element};
-#        $cell->[INDEX_VALUES] = $elts->{$element}{$list_name};
-#    }
-#
-#    return;
-#}
+sub get_legend_hue {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    $legend->get_hue;
+}
+
 
 
 ##########################################################
@@ -1232,8 +1088,8 @@ sub set_colour_for_undef {
 }
 
 my %colour_methods = (
-    Hue => 'get_colour_hue',
-    Sat => 'get_colour_saturation',
+    Hue  => 'get_colour_hue',
+    Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
 );
 
@@ -1248,9 +1104,10 @@ sub get_colour {
     }
     my @args = ($val, $min, $max);
 
-    my $method = $colour_methods{$self->{legend_mode}};
+    my $mode = $self->get_legend->get_mode;
+    my $method = $colour_methods{$mode};
 
-    croak "Unknown colour system: $self->{legend_mode}\n"
+    croak "Unknown colour system: $mode\n"
       if !$method;
 
     return $self->$method(@args);
@@ -1300,8 +1157,9 @@ sub get_colour_saturation {
     else {
         $sat = 1;
     }
-    
-    my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
+
+    my $hue = $self->get_legend->get_hue // 0;
+    my ($r, $g, $b) = hsv_to_rgb($hue, $sat, 1);
     
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
 }
@@ -1639,7 +1497,9 @@ sub on_size_allocate {
             
         }
 
-        $self->reposition();
+        # I'm not sure if this need to be here.
+        $self->get_legend->reposition($self->{width_px}, $self->{height_px});
+
         $self->setup_scrollbars();
         $self->resize_background_rect();
 
@@ -1851,7 +1711,7 @@ sub on_scrollbars_scroll {
     if (not $self->{dragging}) {
         my ($x, $y) = ($self->{hadjust}->get_value, $self->{vadjust}->get_value);
         $self->{canvas}->scroll_to($x, $y);
-        $self->reposition();
+        $self->update_legend();
     }
     
     return;
@@ -1880,7 +1740,6 @@ sub resize_background_rect {
     my $self = shift;
 
     if ($self->{width_px}) {
-
         # Make it the full visible area
         my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
         if (not $self->{dragging}) {
@@ -1891,61 +1750,6 @@ sub resize_background_rect {
             $self->{back_rect}->lower_to_bottom();
         }
     }
-    
-    return;
-}
-
-# Updates position of legend and value box when canvas is resized or scrolled
-sub reposition {
-    my $self = shift;
-    return if not defined $self->{legend};
-
-    # Convert coordinates into world units
-    # (this has been tricky to get working right...)
-    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
-
-    my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
-       ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
-
-    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
-
-    $self->{legend}->set(
-        x       => $width + $scroll_x - $legend_width,  # world units
-        y       => $scroll_y,                           # world units
-        width   => LEGEND_WIDTH,                        # pixels
-        height  => $self->{height_px},                  # pixels
-    );            
-    
-    # Reposition the "mark" textboxes
-    my $mark_x = $scroll_x              # world units
-                 + $width
-                 - $legend_width
-                 - 2 * $border_width; 
-    foreach my $i (0..3) {
-        $self->{marks}[$i]->set(
-            x => $mark_x ,
-            y => $scroll_y + $i * $height / 3,
-        );
-    }
-    
-    # Reposition value box
-    if ($self->{value_group}) {
-        my ($value_x, $value_y) = $self->{value_group}->get('x', 'y');
-        $self->{value_group}->move(
-            $scroll_x - $value_x,
-            $scroll_y - $value_y,
-        );
-
-        my ($text_width, $text_height)
-            = $self->{value_text}->get('text-width', 'text-height');
-
-        # Resize value background rectangle
-        $self->{value_rect}->set(
-            x2 => $text_width,
-            y2 => $text_height,
-        );
-    }
-    
     return;
 }
 
@@ -1956,7 +1760,7 @@ sub reposition {
 sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
-    $self->reposition();
+    $self->update_legend();
     
     return;
 }
@@ -2009,66 +1813,13 @@ sub get_zoom_fit_flag {
 sub post_zoom {
     my $self = shift;
     $self->setup_scrollbars();
-    $self->reposition();
+
+    $self->update_legend();
     $self->resize_background_rect();
     
     return;
 }
 
 
-# Set colouring mode - 'Hue' or 'Sat'
-sub set_legend_mode {
-    my $self = shift;
-    my $mode = shift;
-
-    $mode = ucfirst lc $mode;
-
-    croak "Invalid display mode '$mode'\n"
-        if not $mode =~ /^Hue|Sat|Grey$/;
-    
-    $self->{legend_mode} = $mode;
-
-    $self->colour_cells();
-
-    # Update legend
-    if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
-    }
-    
-    return;
-}
-
-=head2 setHue
-
-Sets the hue for the saturation (constant-hue) colouring mode
-
-=cut
-
-sub set_legend_hue {
-    my $self = shift;
-    my $rgb = shift;
-
-    my @x = (rgb_to_hsv($rgb->red / 257, $rgb->green /257, $rgb->blue / 257));
-
-    my $hue = (rgb_to_hsv($rgb->red / 257, $rgb->green /257, $rgb->blue / 257))[0];
-    my $last_hue_used = $self->get_legend_hue;
-    return if defined $last_hue_used && $hue == $last_hue_used;
-
-    $self->{hue} = $hue;
-
-    $self->colour_cells();
-
-    # Update legend
-    if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
-    }
-    
-    return;
-}
-
-sub get_legend_hue {
-    my $self = shift;
-    return $self->{hue};
-}
 
 1;

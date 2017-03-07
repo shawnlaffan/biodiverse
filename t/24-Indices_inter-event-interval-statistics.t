@@ -13,6 +13,12 @@ use Biodiverse::TestHelpers qw{
     :runners
 };
 
+### dirty cheat
+{
+    package Biodiverse::Indices;
+    use parent 'BiodiverseX::Indices::IEI';
+}
+
 run_indices_test1 (
     calcs_to_test  => [qw/
         calc_iei_stats

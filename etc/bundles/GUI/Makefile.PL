@@ -31,6 +31,7 @@ WriteMakefile(
         "Browser::Open" => "0",
         "LWP::Simple" => "0",
         "HTTP::Tiny" => "0",
+        "IO::Socket::SSL" => "0",
     },
     BUILD_REQUIRES => {
         "ExtUtils::Depends" => "0",

@@ -8,7 +8,7 @@ use Carp;  #  warnings and dropouts
 use File::Spec;  #  for the cat_file sub 
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use BdPD::GDM_Input;
 

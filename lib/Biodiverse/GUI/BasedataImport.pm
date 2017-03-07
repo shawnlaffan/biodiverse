@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Carp;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use File::Basename;
 use Gtk2;
@@ -810,11 +810,10 @@ sub run {
             }
         }
 
-        # run the auto remapper
-        $gui->do_remap(
+        $gui->do_remap (
             default_remapee => $gui->get_project->get_selected_basedata,
-            );
-        
+            check_first     => 1,
+        );
         return $basedata_ref;
     }
 
@@ -1813,7 +1812,7 @@ sub get_remap_info {
         csv_object => $csv_obj,
     );
 
-    my @headers = map { defined $_ ? $_ : '{null}' }
+    my @headers = map { $_ // '{null}' }
       @headers_full[ 0 .. min( $#headers_full, $max_cols_to_show - 1 ) ];
 
     ( $dlg, my $col_widgets ) = make_remap_columns_dialog(
@@ -1904,8 +1903,8 @@ sub get_remap_info {
     }
 
     #  just pass them onwards, even if it means guessing again
-    $results{input_sep_char}     = $properties_params{input_quote_char},
-      $results{input_quote_char} = $properties_params{input_sep_char};
+    $results{input_sep_char}   = $properties_params{input_quote_char},
+    $results{input_quote_char} = $properties_params{input_sep_char};
 
     return wantarray ? %results : \%results;
 }

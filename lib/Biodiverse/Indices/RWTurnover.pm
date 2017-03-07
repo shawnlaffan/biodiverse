@@ -5,7 +5,7 @@ use autovivification;
 
 use Carp;
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

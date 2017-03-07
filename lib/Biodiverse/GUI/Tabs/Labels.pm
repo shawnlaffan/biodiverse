@@ -21,7 +21,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -184,6 +184,7 @@ sub init_grid {
     my $self = shift;
 
     my $frame   = $self->{xmlPage}->get_object('gridFrameViewLabels');
+    my $lframe  = $self->{xmlPage}->get_object('gridFrameViewLabelsLegend');
     my $hscroll = $self->{xmlPage}->get_object('gridHScrollViewLabels');
     my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
 
@@ -847,7 +848,7 @@ sub on_selected_labels_changed {
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
-
+    #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
@@ -857,7 +858,8 @@ sub on_selected_labels_changed {
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-
+    $grid->update_legend();
+    #$self->{matrix_grid}->update_legend();
     return;
 }
 
@@ -1796,7 +1798,7 @@ sub update_selection_menu {
             my $menu_item = Gtk2::MenuItem->new($label);
             $submenu->append($menu_item);
             $menu_item->signal_connect_swapped(
-                activate => \&do_selection_export, [$self, $ref, $label],
+                activate => \&do_selection_export, [$self, $ref, selected_format => $label],
             );
         }
         $submenu_item->set_submenu($submenu);

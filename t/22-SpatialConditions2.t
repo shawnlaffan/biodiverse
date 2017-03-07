@@ -204,7 +204,7 @@ sub run_case_transformed {
             element       => $element,
             cond          => $cond,
             expected      => $expected,
-            print_results => 1,
+            print_results => 0,
         ) };
     }
 

@@ -50,7 +50,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_006';
+our $VERSION = '1.99_007';
 
 use parent qw {Biodiverse::Common};
 
@@ -2170,7 +2170,9 @@ sub run_import_post_processes {
     $groups_ref->delete_param('SAMPLE_COUNTS_ARE_FLOATS');
 
     if ( $orig_label_count != $self->get_label_count ) {
-        $labels_ref->generate_element_coords;
+        #$labels_ref->generate_element_coords;
+        #  defer recalculation until needed (saves some time)
+        $labels_ref->delete_param('AXIS_LIST_ORDER');
     }
 
     if ( $orig_group_count != $self->get_group_count ) {
@@ -5101,6 +5103,8 @@ sub remap_labels_from_hash {
 
     foreach my $label ( keys %remap ) {
         my $remapped = $remap{$label};
+ 
+        next if !defined $remapped || $label eq $remapped;
 
         $self->rename_label(
             label            => $label,

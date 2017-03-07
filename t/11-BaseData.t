@@ -2045,24 +2045,28 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 my $lr_integr = $to_node->get_list_ref (%l_args);
                 my $lr_from   = $from_node->get_list_ref (%l_args);
 
+                my $ok_count = 0;
+                my $fail_msg = '';
                 #  should refactor this - it duplicates the spatial variant
+              BY_KEY:
                 foreach my $key (sort keys %$lr_integr) {
                     no autovivification;
+                    my $exp;
                     if ($key =~ /^P_/) {
                         my $index = $key;
                         $index =~ s/^P_//;
-                        is ($lr_integr->{$key},
-                            $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
-                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
-                        );
+                        $exp = $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"};
                     }
                     else {
-                        is ($lr_integr->{$key},
-                            ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
-                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
-                        );
+                        $exp = ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0);
+                    }
+                    if ($lr_integr->{$key} ne $exp) {
+                        $fail_msg = "FAILED: Integrated = orig+from, "
+                          . "$lr_integr->{$key}, $node_name, $list_name, $key";
+                        last BY_KEY;
                     }
                 }
+                ok (!$fail_msg, "reintegrated $list_name for $node_name");
             }
 
             foreach my $sig_list_name (@sig_lists) {

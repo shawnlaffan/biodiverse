@@ -26,10 +26,13 @@ use constant VALUE_COL    => ++$i;
 
 sub new {
     my $class = shift;
+    
+    my $gui = Biodiverse::GUI::GUIManager->instance;
     my $self = {
-        gui => Biodiverse::GUI::GUIManager->instance()
+        gui     => $gui,
+        project => $gui->get_project,
+        scheduled_deletions => [],
     };
-    $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
     return $self;
 }
@@ -53,7 +56,7 @@ sub build_main_notebook {
     my $group_outer_vbox =
         $self->_build_deletion_panel(
             values_hash => \%group_props_hash,
-            basestruct  => "group",
+            basestruct  => 'group',
         );
     
     my $notebook = Gtk2::Notebook->new;
@@ -83,9 +86,9 @@ sub run {
         'Delete Element Properties',
         undef,
         'modal',
-        #'gtk-cancel' => 'cancel',
-        #'gtk-ok'     => 'ok',
-        'gtk-close'  => 'close',
+        'gtk-cancel' => 'cancel',
+        'gtk-apply'  => 'apply',
+        #'gtk-close'  => 'close',
     );
 
     $dlg->set_default_size(DEFAULT_DIALOG_WIDTH, DEFAULT_DIALOG_HEIGHT);
@@ -99,6 +102,10 @@ sub run {
     $dlg->show_all;
     my $response = $dlg->run();
     $dlg->destroy();
+
+    if ($response =~ /ok|apply/) {
+        $self->clicked_apply;
+    }
 }
 
 
@@ -189,12 +196,15 @@ sub _build_deletion_panel {
 
     my $delete_properties_button =
         Gtk2::Button->new_with_label (
-            "Delete selected properties from all elements"
+            "Schedule selected properties from all elements"
         );
+    $delete_properties_button->set_tooltip_text (
+        'Schedule deletion of selected properties from all elements'
+    );
 
     $delete_properties_button->signal_connect(
         'clicked' => sub {
-            $self->clicked_delete_button(
+            $self->clicked_schedule_button(
                 tree => $properties_tree,
                 type => 'property',
             );
@@ -203,12 +213,15 @@ sub _build_deletion_panel {
     
     my $delete_elements_button =
         Gtk2::Button->new_with_label(
-            "Delete all properties from selected elements"
+            "Schedule all properties from selected elements"
         );
+    $delete_elements_button->set_tooltip_text (
+        'Schedule deletion of all properties from the selected elements'
+    );
 
     $delete_elements_button->signal_connect(
         'clicked' => sub {
-            $self->clicked_delete_button(
+            $self->clicked_schedule_button(
                 tree => $elements_tree,
                 type => 'element',
             );
@@ -224,7 +237,86 @@ sub _build_deletion_panel {
 }
 
 
-sub clicked_delete_button {
+sub clicked_apply {
+    my ($self, %args) = @_;
+
+    #my $notebook     = $self->{notebook};
+    #my $current_page = $notebook->get_current_page;
+    #my $basestruct   = ($current_page == 0) ? 'label' : 'group';
+    my $bd           = $self->{bd};
+
+    my $selected_one = 0;
+    
+    my %methods = (
+        label => {
+            element  => 'delete_individual_label_properties_aa',
+            property => 'delete_label_element_property_aa',
+        },
+        group => {
+            element  => 'delete_individual_group_properties_aa',
+            property => 'delete_group_element_property_aa',            
+        },
+        #element => {
+        #    label => 'delete_individual_label_properties_aa',
+        #    group => 'delete_individual_group_properties_aa',
+        #},
+        #property => {
+        #    label => 'delete_label_element_property_aa',
+        #    group => 'delete_group_element_property_aa',
+        #},
+    );
+    
+    # should probably just figure out what sub to use here.
+    my $schedule = $self->{scheduled_deletions};
+    my %target_bs_types;
+    
+    #  too many levels...
+    foreach my $part (@$schedule) {
+        foreach my $bs_type (keys %$part) {
+            my $subhash = $part->{$bs_type};
+            foreach my $target (keys %$subhash) {
+                my $method = $methods{$bs_type}{$target};
+                croak "No method for type $bs_type and target $target"
+                  if !defined $method;
+                my $subsubhash = $subhash->{$target};
+                foreach my $value (keys %$subsubhash) {
+                    $bd->$method($value);
+                }
+            }
+            $target_bs_types{$bs_type}++;
+        }
+    }
+
+    if (@$schedule) {
+        $self->{project}->set_dirty;
+        foreach my $type (keys %target_bs_types) {
+            #  clear the cache
+            my $ref = $type eq 'label'
+              ? $bd->get_labels_ref
+              : $bd->get_groups_ref;
+            $ref->delete_cached_values;
+        }
+    }
+
+    #my $new_notebook = $self->build_main_notebook();
+    #
+    #my $dlg = $self->{dlg};
+    #my $content_area = $dlg->get_content_area;
+    #
+    #my @children = $content_area->get_children;
+    #$content_area->remove($children[0]);
+    #
+    ##say "Current page is $current_page";
+    #
+    #$content_area->pack_start( $new_notebook, 1, 1, 1 );
+    #$self->{notebook} = $new_notebook;
+    #$dlg->show_all;
+    #$new_notebook->set_current_page($current_page);
+
+    return;
+}
+
+sub clicked_schedule_button {
     my ($self, %args) = @_;
     my $type         = $args{type}; # element or property
     my $tree         = $args{tree};
@@ -232,66 +324,42 @@ sub clicked_delete_button {
 
     my $notebook     = $self->{notebook};
     my $current_page = $notebook->get_current_page;
-    my $basestruct   = ($current_page == 0) ? 'label' : 'group';
+    my $bs_type      = ($current_page == 0) ? 'label' : 'group';
     my $bd           = $self->{bd};
 
     my $selected_one = 0;
     
-    my %methods = (
-        element => {
-            label => 'delete_individual_label_properties_aa',
-            group => 'delete_individual_group_properties_aa',
-        },
-        property => {
-            label => 'delete_label_element_property_aa',
-            group => 'delete_group_element_property_aa',
-        },
-    );
-    
-    # should probably just figure out what sub to use here.
+    my %targets;
 
     $selection->selected_foreach (
         sub {
             my ($model, $path, $iter) = @_;
             my $value = $model->get($iter, 0);
 
-            no autovivification;
-
-            $selected_one ||= 1;
-            
-            my $method = $methods{$type}{$basestruct};
-            croak "No method for type $type and target $basestruct"
-              if !defined $method;
-            $bd->$method($value);
-            
-            #  seems not to be used
-            push @{$self->{to_delete}{$basestruct}{$type}}, $value;
+            $tree->collapse_row ($path);
+            $targets{$bs_type}{$type}{$value}++;
         }
     );
 
-    if ($selected_one) {
-        $self->{project}->set_dirty;
-        #  clear the cache
-        my $ref = $basestruct eq 'label'
-          ? $bd->get_labels_ref
-          : $bd->get_groups_ref;
-        $ref->delete_cached_values;
+    if (scalar keys %targets) {
+        my $schedule = $self->{scheduled_deletions};
+        push @$schedule, \%targets;
     }
 
-    my $new_notebook = $self->build_main_notebook();
-    
-    my $dlg = $self->{dlg};
-    my $content_area = $dlg->get_content_area;
-
-    my @children = $content_area->get_children;
-    $content_area->remove($children[0]);
-
-    #say "Current page is $current_page";
-    
-    $content_area->pack_start( $new_notebook, 1, 1, 1 );
-    $self->{notebook} = $new_notebook;
-    $dlg->show_all;
-    $new_notebook->set_current_page($current_page);
+    #my $new_notebook = $self->build_main_notebook();
+    #
+    #my $dlg = $self->{dlg};
+    #my $content_area = $dlg->get_content_area;
+    #
+    #my @children = $content_area->get_children;
+    #$content_area->remove($children[0]);
+    #
+    ##say "Current page is $current_page";
+    #
+    #$content_area->pack_start( $new_notebook, 1, 1, 1 );
+    #$self->{notebook} = $new_notebook;
+    #$dlg->show_all;
+    #$new_notebook->set_current_page($current_page);
 
     return;
 }

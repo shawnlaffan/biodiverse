@@ -22,6 +22,7 @@ BEGIN {
 my $bio_version = $Biodiverse::Config::VERSION;
 my $mac_build_version = 2;
 my $help;
+my $verbose;
 my $man = 0;
 my $output  = catfile($FindBin::Bin, "..", "builds", "Biodiverse-$bio_version-$mac_build_version.dmg");
 my $input  = catfile($FindBin::Bin, "..", "images", "Biodiverse.dmg");
@@ -34,7 +35,8 @@ GetOptions(
     'output|o=s' => \$output,
     'input|i=s' => \$input,
     'app|a=s' => \$app,
-    'mounted|m=s' => \$mounted
+    'mounted|m=s' => \$mounted,
+    'verbose|v=s' => \$verbose
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
@@ -52,7 +54,7 @@ sub mount_read_write_dmg() {
 sub remove_app() {
     # Removes Biodiverse.app for the mounted read/write dmg image
     print "removing Biodiverse.app from $input\n";
-    my @remove_app_args = ("rm", "-fR", "mounted/Biodiverse.app");
+    my @remove_app_args = ("rm", "-fR", "$mounted/Biodiverse.app");
     system(@remove_app_args) == 0
         or die "system @remove_app_args failed: $?";
 }

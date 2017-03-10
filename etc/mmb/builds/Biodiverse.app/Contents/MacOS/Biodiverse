@@ -1,9 +1,9 @@
-#!/bin/sh
-# Author: Jason Mumbulla (jasonmumbulla@gmail.com)
+#!/usr/bin/env bash
 
+# Author: Jason Mumbulla (jasonmumbulla@gmail.com)
 APPNAME="BiodiverseGUI"
 
-DIR=$(cd "$(dirname "$0")"; pwd)
+DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 # Create the log file directory if it doesn't exist
 LOG_FILE="$HOME/Library/Logs/$APPNAME/$APPNAME.log"

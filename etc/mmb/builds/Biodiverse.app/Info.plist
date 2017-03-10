@@ -24,5 +24,7 @@
 	<string>1.0</string>
 	<key>NSAppleScriptEnabled</key>
 	<string>NO</string>
+	<key>CFBundleIconFile</key>
+	<string>Biodiverse.icns</string>
 </dict>
 </plist>

@@ -1,4 +1,4 @@
-#!/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl
+#!/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl5.22.0
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use File::Copy qw(copy);
 use File::Spec::Functions;
 use File::BaseDir qw/xdg_data_dirs/;
 
-my @files;
+my @files = ();
 
 my $dyld_library_path = "DYLD_LIBRARY_PATH=inc";
 my $ld_library_path = "LD_LIBRARY_PATH=inc";
@@ -22,10 +22,11 @@ my $ld_library_path = "LD_LIBRARY_PATH=inc";
 # Need to remove these.
 my $run_command_first_part;
 my $add_files;
-my @libs;
+my @dylibs = ();
 my $include_lib = "";
+my @founddylibs = ();
 
-my $perl_location = `which perl`;
+my $perl_location = `which perl5.22.0`;
 chomp $perl_location;
 
 # Setup options.
@@ -33,9 +34,10 @@ my $man = 0;
 my $help = 0;
 my $remove = 0;
 my $copydys = 0;
-my $filename;
 my $mime_dir;
-my @libraries  = "/usr/local/opt";
+my $filename;
+my $verbose = 0;
+my @libraries  = ('/usr/local/opt');
 my $biodiverse_dir = catfile($ENV{"HOME"}, "biodiverse" );
 my $biodiverse_bin_dir = catfile($ENV{"HOME"}, "biodiverse", "bin" );
 my $build_script = catfile($biodiverse_dir, "etc", "pp", "build.pl");
@@ -54,7 +56,8 @@ GetOptions(
     'output|o=s' =>\$output_dir,
     'remove|r'   =>\$remove,
     'copy|c'   =>\$copydys,
-    'library|l=s' =>\@libraries
+    'library|l=s' =>\@libraries,
+    'verbose|v=s' =>\$verbose
 ) or pod2usage(2);
 
 pod2usage(1) if $help;
@@ -63,7 +66,7 @@ pod2usage(-exitval => 0, -verbose => 2) if $man;
 # Read in the dynamic libary file
 # and put each line into an array.
 if ($filename) {
-    @libs = read_file($filename, chomp => 1);
+    @dylibs = read_file($filename, chomp =>1);
 }
 
 # Function to get the directory
@@ -83,18 +86,30 @@ sub get_xdg_data_dirs(){
 # Prints to STDOUT any file not
 # found.
 sub find_dylibs {
-    @files =  File::Find::Rule->file()
-    ->extras({ follow => 1,follow_skip => 2 })
-    ->name( @libs )
-    ->in( @libraries );
-    return @files;
+    my @path = shift;
+    my @findlibs = shift;
+    print "Finding dynamic libraries locations\n";
+    #@dylibs = ('libgdal.dylib','libgobject-2.0.0.dylib');
+    my @dylibs = ('libgdal.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib', 'libffi.6.dylib', 'libpango-1.0.0.dylib', 'libpangocairo-1.0.0.dylib', 'libcairo.2.dylib', 'libfreetype.6.dylib', 'libgthread-2.0.0.dylib', 'libpcre.1.dylib', 'libintl.8.dylib', 'libpangoft2-1.0.0.dylib', 'libharfbuzz.0.dylib', 'libfontconfig.1.dylib', 'libpixman-1.0.dylib', 'libpng16.16.dylib', 'libgtk-quartz-2.0.0.dylib', 'libgdk-quartz-2.0.0.dylib', 'libatk-1.0.0.dylib', 'libgdk_pixbuf-2.0.0.dylib', 'libgio-2.0.0.dylib', 'libgmodule-2.0.0.dylib', 'libssl.1.0.0.dylib', 'libcrypto.1.0.0.dylib', 'libgdal.20.dylib', 'libproj.12.dylib', 'libjson-c.2.dylib', 'libfreexl.1.dylib', 'libgeos_c.1.dylib', 'libgif.4.dylib', 'libjpeg.8.dylib', 'libgeotiff.2.dylib', 'libtiff.5.dylib', 'libspatialite.7.dylib', 'libxml2.2.dylib', 'libgeos-3.5.0.dylib', 'liblwgeom-2.1.5.dylib', 'libsqlite3.0.dylib', 'libgnomecanvas-2.0.dylib', 'libart_lgpl_2.2.dylib', 'libgailutil.18.dylib');
+    @libraries = ('/usr/local/opt');
+
+    foreach $a (@dylibs){
+        my @file =  File::Find::Rule->file()
+                                  ->extras({ follow => 1,follow_skip => 2 })
+                                  ->name( "$a" )
+                                  ->in( @libraries );
+        push @founddylibs, @file;
+        print "Found $a at @file\n" if ($verbose);
+    }
 }
+
 
 # Test if dynamic library
 # is a symbolic link
 sub check_symbolic_link {
     # Get passed arguments
     my $alib = shift;
+
     # Check is the library is a symbolic link.
     # If it is return the original library name
     # but with the symbolic links name.
@@ -108,7 +123,7 @@ sub check_symbolic_link {
 # copy each required dynamic
 # library to the bin dir.
 sub copy_dylibs_to_bin_dir(){
-    my @dy = find_dylibs();
+    my @dy = @founddylibs; #find_dylibs();
     print "Copying dynamic libraries biodiverse/bin/\n";
     foreach $a (@dy){
         my ($link, $orig, $newname) = check_symbolic_link($a);
@@ -130,10 +145,11 @@ sub remove_old_dylibs_from_bin_dir(){
 # string for the final command line
 # arguments.
 sub lib_strings() {
-    my @dyl = find_dylibs();
+    my @dyl = @founddylibs; #find_dylibs(@libraries,@dylibs);
     foreach my $c (@dyl){
         $include_lib = "$include_lib -l $c";
     } 
+    print "[lib_strings] include_lib: $include_lib\n" if ($verbose);
 }
 
 # Create the DYLD_LIBRARY_PATH
@@ -155,17 +171,21 @@ sub create_command_line_string() {
     $run_command_first_part = "cd $biodiverse_dir\; $dyld_library_path $ld_library_path $perl_location $build_script -o $output_dir -s $script -i $icon --";
 
     $add_files = " -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache\\;loaders.cache -a /usr/local/Cellar/gdk-pixbuf/2.36.0_2/lib/gdk-pixbuf-2.0/2.10.0/loaders\\;loaders -a $mime_dir\\;mime -a /usr/local/share/icons\\;icons";
-#    print "add_files: $add_files\n";
+    print "[crete_command_line_string] run_command_first_part: $run_command_first_part\n" if ($verbose);
+    print "[crete_command_line_string] add_files: $add_files\n" if ($verbose);
 }
 
 sub run_build_mac_version() {
+    print "[run_build_mac_version]\n" if ($verbose);
+    print "[run_build_mac_version] run_command_first_part include_lib add_files: $run_command_first_part $include_lib $add_files\n" if ($verbose);
     my $result = `$run_command_first_part $include_lib $add_files`;
-    print "$result\n";
+    print "$result\n" if ($verbose);
 }
 
 sub build_dmg(){
-    print "Building dmg image...\n";
+    print "[build_dmg] Building dmg image...\n" if ($verbose);
     my $builddmg = catfile($biodiverse_dir, "etc", "mmb", "bin", "builddmg.pl" );
+    print "[build_dmg] build_dmg: $builddmg\n" if ($verbose);
     my $build_results = `perl $builddmg`;
 }
 
@@ -174,6 +194,7 @@ if ($remove){
 }
 
 if ($copydys){
+    find_dylibs();
     copy_dylibs_to_bin_dir();
 }
 
@@ -208,6 +229,7 @@ Options:
     --output          OUTPUTDIR
     --remove
     --copy
+    --verbose
 
 =head1 OPTIONS
 
@@ -256,6 +278,10 @@ If true copy dynamic libraries in bin directory.
 =item B<-libpath>
 
 Paths to libraries for environmental variables DYLD_LIBRARY_PATH and LD_LIBRARY_PATH.
+
+=item B<-vabose>
+
+Verbose mode.
 
 =back
 

@@ -201,7 +201,10 @@ sub get_dll_list {
 
 #  find the set of gtk dlls installed into site/lib/auto
 #  by sisyphusion.tk/ppm installs
+#  only on windows
 sub get_sis_gtk_dll_list {
+    return if $OSNAME ne 'MSWin32';
+
     my $base = Path::Class::file($EXECUTABLE_NAME)
         ->parent
         ->parent

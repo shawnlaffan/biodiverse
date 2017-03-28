@@ -6,8 +6,9 @@ matrix:
   include:
     - os: osx
       env: BD_NO_TEST_GUI=1
-    - os: osx
-      env: BD_NO_TEST_GUI=0
+      perl: '5.24'
+    #- os: osx
+    #  env: BD_NO_TEST_GUI=0
     ##  linux stuff - uncomment before merging
     #- os: linux
     #  perl: '5.24'

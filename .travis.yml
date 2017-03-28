@@ -1,21 +1,24 @@
-os:
-  - linux
-  - osx
-language: perl
+#os:
+#  - linux
+#  - osx
+#language: perl
 matrix:
     include:
         - os: linux
           perl: '5.24'
           env: BD_NO_TEST_GUI=1
           dist: trusty
+          language: perl
         - os: linux
           perl: '5.24'
           env: BD_NO_TEST_GUI=0
           dist: trusty
+          language: perl
         - os: linux
           perl: '5.22'
           env: BD_NO_TEST_GUI=1
           dist: trusty
+          language: perl
 
 #sudo: required
 cache:

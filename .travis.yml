@@ -39,7 +39,9 @@ before_install:
   - brew tap osgeo/osgeo4mac
   - brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
   - brew install gdk-pixbuf pango gtk+ gtk+3 libglade libgnomecanvas
+  - echo Installing GDAL
   - brew link --force  gdal-20
+  - echo Done GDAL
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   - brew link --force libffi
   - brew link --force gettext

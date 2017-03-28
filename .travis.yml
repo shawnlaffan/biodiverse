@@ -37,11 +37,12 @@ before_install:
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac
-  - brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
-  - brew install gdk-pixbuf pango gtk+ gtk+3 libglade libgnomecanvas
   - echo Installing GDAL
-  - brew link --force  gdal-20
+  - brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
   - echo Done GDAL
+  - brew install gdk-pixbuf pango gtk+ libgnomecanvas
+  #- brew install gtk+3 libglade 
+  - brew link --force  gdal-20
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   - brew link --force libffi
   - brew link --force gettext

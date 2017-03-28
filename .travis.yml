@@ -1,29 +1,29 @@
 #os:
 #  - linux
 #  - osx
-#language: perl
+language: perl
 matrix:
-    include:
-        - os: osx
-          env: BD_NO_TEST_GUI=1
-        - os: osx
-          env: BD_NO_TEST_GUI=0
-        ##  linux stuff - uncomment before merging
-        #- os: linux
-        #  perl: '5.24'
-        #  env: BD_NO_TEST_GUI=1
-        #  dist: trusty
-        #  language: perl
-        #- os: linux
-        #  perl: '5.24'
-        #  env: BD_NO_TEST_GUI=0
-        #  dist: trusty
-        #  language: perl
-        #- os: linux
-        #  perl: '5.22'
-        #  env: BD_NO_TEST_GUI=1
-        #  dist: trusty
-        #  language: perl
+  include:
+    - os: osx
+      env: BD_NO_TEST_GUI=1
+    - os: osx
+      env: BD_NO_TEST_GUI=0
+    ##  linux stuff - uncomment before merging
+    #- os: linux
+    #  perl: '5.24'
+    #  env: BD_NO_TEST_GUI=1
+    #  dist: trusty
+    #  language: perl
+    #- os: linux
+    #  perl: '5.24'
+    #  env: BD_NO_TEST_GUI=0
+    #  dist: trusty
+    #  language: perl
+    #- os: linux
+    #  perl: '5.22'
+    #  env: BD_NO_TEST_GUI=1
+    #  dist: trusty
+    #  language: perl
 
 #sudo: required
 cache:
@@ -32,35 +32,35 @@ cache:
     - gdal_builds
 
 before_install:
-    #  homebrew
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-    brew tap homebrew/boneyard osgeo/osgeo4mac
-    brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
-    brew install gdk-pixbuf pango gtk+ gtk+3 libglade libgnomecanvas
-    brew link --force  gdal-20
-    export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
-    brew link --force libffi
-    brew link --force gettext
-    brew link --force liblwgeom
+  #  homebrew
+  - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  - brew tap homebrew/boneyard osgeo/osgeo4mac
+  - brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
+  - brew install gdk-pixbuf pango gtk+ gtk+3 libglade libgnomecanvas
+  - brew link --force  gdal-20
+  - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
+  - brew link --force libffi
+  - brew link --force gettext
+  - brew link --force liblwgeom
     
     
-    # perlbrew
-    \curl -L https://install.perlbrew.pl | bash
-    perlbrew install perl-5.24.0
-    perlbrew switch perl-5.24.0
-    #  get from perlbrew
-    cpan App::cpanminus
+  # perlbrew
+  - \curl -L https://install.perlbrew.pl | bash
+  - perlbrew install perl-5.24.0
+  - perlbrew switch perl-5.24.0
+  #  get from perlbrew
+  - cpan App::cpanminus
+  
+  #  biodiverse deps
+  - cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
+  - cpanm  --force Geo::GDAL
     
-    #  biodiverse deps
-    cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
-    cpanm  --force Geo::GDAL
+  #  should not be needed
+  - cpanm Gtk3 Gtk2::GladeXML Glib::Object::Introspection
     
-    #  should not be needed
-    cpanm Gtk3 Gtk2::GladeXML Glib::Object::Introspection
-    
-    cpanm Task::Biodiverse::NoGUI
-    cpanm Task::Biodiverse
-    cpanm Task::Biodiverse::NoGUI
+  - cpanm Task::Biodiverse::NoGUI
+  - cpanm Task::Biodiverse
+  - cpanm Task::Biodiverse::NoGUI
   
   #  linux stuff - uncomment before merging
   ##  local::lib target is cached
@@ -89,4 +89,4 @@ script: prove -l -j4
 # blocklist
 branches:
   except:
-  - ppm
+    - ppm

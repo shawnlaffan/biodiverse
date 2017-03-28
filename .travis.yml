@@ -33,7 +33,7 @@ cache:
 
 before_install:
   # perlbrew
-  - \curl -L https://install.perlbrew.pl | bash
+  #- \curl -L https://install.perlbrew.pl | bash
   - perlbrew install perl-5.24.0
   - perlbrew switch perl-5.24.0
   #  get from perlbrew

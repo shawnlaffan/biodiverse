@@ -32,28 +32,30 @@ cache:
     - gdal_builds
 
 before_install:
+  # perlbrew
+  - \curl -L https://install.perlbrew.pl | bash
+  - perlbrew install perl-5.24.0
+  - perlbrew switch perl-5.24.0
+  #  get from perlbrew
+  #- cpan App::cpanminus
+  - perlbrew install-cpanm
+  
   #  homebrew
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac
   #- echo Installing GDAL
-  #- brew install --verbose https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
+  - brew install --verbose https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
   #- echo Done GDAL
   #- brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
-  #- brew link --force gdal-20
+  - brew link --force gdal-20
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   - brew link --force libffi
   - brew link --force gettext
   - brew link --force liblwgeom
     
     
-  # perlbrew
-  - \curl -L https://install.perlbrew.pl | bash
-  - perlbrew install perl-5.24.0
-  - perlbrew switch perl-5.24.0
-  #  get from perlbrew
-  - cpan App::cpanminus
   
   #  biodiverse deps
   - cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer

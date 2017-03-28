@@ -4,21 +4,24 @@
 #language: perl
 matrix:
     include:
-        - os: linux
-          perl: '5.24'
+        - os: osx
           env: BD_NO_TEST_GUI=1
-          dist: trusty
-          language: perl
-        - os: linux
-          perl: '5.24'
-          env: BD_NO_TEST_GUI=0
-          dist: trusty
-          language: perl
-        - os: linux
-          perl: '5.22'
-          env: BD_NO_TEST_GUI=1
-          dist: trusty
-          language: perl
+        ##  linux stuff - uncomment before merging
+        #- os: linux
+        #  perl: '5.24'
+        #  env: BD_NO_TEST_GUI=1
+        #  dist: trusty
+        #  language: perl
+        #- os: linux
+        #  perl: '5.24'
+        #  env: BD_NO_TEST_GUI=0
+        #  dist: trusty
+        #  language: perl
+        #- os: linux
+        #  perl: '5.22'
+        #  env: BD_NO_TEST_GUI=1
+        #  dist: trusty
+        #  language: perl
 
 #sudo: required
 cache:
@@ -27,27 +30,57 @@ cache:
     - gdal_builds
 
 before_install:
-
-  #  local::lib target is cached
-  - cpanm --notest local::lib
-  - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-
-  #  just to be sure 
-  - find . -name "build_gdal_travis.sh" -print
-  #- echo ${PWD}
+    #  homebrew
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+    brew tap homebrew/boneyard osgeo/osgeo4mac
+    brew install https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
+    brew install gdk-pixbuf pango gtk+ gtk+3 libglade libgnomecanvas
+    brew link --force  gdal-20
+    export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
+    brew link --force libffi
+    brew link --force gettext
+    brew link --force liblwgeom
+    
+    
+    # perlbrew
+    \curl -L https://install.perlbrew.pl | bash
+    perlbrew install perl-5.24.0
+    perlbrew switch perl-5.24.0
+    #  get from perlbrew
+    cpan App::cpanminus
+    
+    #  biodiverse deps
+    cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
+    cpanm  --force Geo::GDAL
+    
+    #  should not be needed
+    cpanm Gtk3 Gtk2::GladeXML Glib::Object::Introspection
+    
+    cpanm Task::Biodiverse::NoGUI
+    cpanm Task::Biodiverse
+    cpanm Task::Biodiverse::NoGUI
   
-  #  call the gdal build script
-  #- chmod +x ./etc/build_gdal_travis.sh
-  - sh ./etc/build_gdal_travis.sh
-
-  #  Disable Gtk stuff for speed reasons
-  #  Reinstate when we add the GUI variant
-  - if [ "$BD_NO_TEST_GUI" = 0 ]; then sudo apt-get install libgnomecanvas2-dev; fi;
-
-  # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2; fi;
-
-  - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
+  #  linux stuff - uncomment before merging
+  ##  local::lib target is cached
+  #- cpanm --notest local::lib
+  #- eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+  #
+  ##  just to be sure 
+  #- find . -name "build_gdal_travis.sh" -print
+  ##- echo ${PWD}
+  #
+  ##  call the gdal build script
+  ##- chmod +x ./etc/build_gdal_travis.sh
+  #- sh ./etc/build_gdal_travis.sh
+  #
+  ##  Disable Gtk stuff for speed reasons
+  ##  Reinstate when we add the GUI variant
+  #- if [ "$BD_NO_TEST_GUI" = 0 ]; then sudo apt-get install libgnomecanvas2-dev; fi;
+  #
+  ## Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
+  #- if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2; fi;
+  #
+  #- if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
 
 script: prove -l -j4

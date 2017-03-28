@@ -41,7 +41,7 @@ before_install:
   - echo Done GDAL
   - brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
-  - brew link --force  gdal-20
+  - brew link --verbose --force  gdal-20
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   - brew link --force libffi
   - brew link --force gettext

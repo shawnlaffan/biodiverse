@@ -33,16 +33,21 @@ matrix:
 
 before_install:
   # perlbrew
-  - \curl -kL http://install.perlbrew.pl | bash
-  - source ~/perl5/perlbrew/etc/bashrc
-  - perl -v
-  - which -a perl  #- perlbrew install perl-5.24.0
-  - perlbrew install-cpanm
-  - perlbrew install perl-5.24.0
-  - perlbrew switch perl-5.24.0
+  #- \curl -kL http://install.perlbrew.pl | bash
+  #- source ~/perl5/perlbrew/etc/bashrc
+  #- perl -v
+  #- which -a perl  #- perlbrew install perl-5.24.0
+  #- perlbrew install-cpanm
+  #- perlbrew install perl-5.24.0
+  #- perlbrew switch perl-5.24.0
   
   #  homebrew
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  
+  - brew install perl
+  - which perl
+  - perl -v
+  
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac
   #- echo Installing GDAL

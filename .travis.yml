@@ -33,13 +33,15 @@ cache:
 
 before_install:
   # perlbrew
+  - perl -v
+  - which -a perl
   #- \curl -L https://install.perlbrew.pl | bash
   #- perlbrew install perl-5.24.0
   #- perlbrew switch perl-5.24.0
   #  get from perlbrew
   #- cpan App::cpanminus
-  - ~/perl5/perlbrew/bin/perlbrew install-cpanm
-  - ~/perl5/perlbrew/bin/perlbrew installed
+  #- ~/perl5/perlbrew/bin/perlbrew install-cpanm
+  #- ~/perl5/perlbrew/bin/perlbrew installed
   
   #  homebrew
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"

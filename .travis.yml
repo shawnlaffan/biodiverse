@@ -26,8 +26,10 @@ matrix:
     #  dist: trusty
     #  language: perl
 sudo: required
-#cache:
-#  directories:
+cache:
+  directories:
+    #  homebrew files
+    - /usr/local
 #    - perl_modules
 #    - gdal_builds
 
@@ -46,6 +48,7 @@ before_install:
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   
   - brew install perl
+  - brew install cpanminus
   #  dirty hack to ensure we get the brewed perl
   - export PATH=/usr/local/bin:${PATH}
   #- sudo cpan App::cpanminus

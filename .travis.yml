@@ -54,7 +54,7 @@ before_install:
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   - export PERL_GDAL_NO_VERSION_CHECK=1
   #- cpanm --force Geo::GDAL
-  - cpanm Geo::GDAL
+  - cpanm -v --force Geo::GDAL
 
   #  GUI stuff - not for mac tests  
   #- cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer

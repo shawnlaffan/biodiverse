@@ -46,6 +46,8 @@ before_install:
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   
   - brew install perl
+  #  dirty hack
+  - export PATH=/usr/local/bin;${PATH}
   - pwd
   - which -a perl
   - perl -v

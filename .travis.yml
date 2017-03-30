@@ -50,6 +50,8 @@ before_install:
   - export PATH=/usr/local/bin:${PATH}
   #- sudo cpan App::cpanminus
   - find /usr/local -name 'cpanm*' -print
+  - ls -l /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Aliases/cpanm
+  
   - PERL_MM_OPT="INSTALL_BASE=${PWD}/perl5" cpan local::lib
   - echo 'eval "$(perl -I${PWD}/perl5/lib/perl5 -Mlocal::lib)"' >> ~/.bash_profile
   - cpanm --notest local::lib

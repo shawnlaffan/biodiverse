@@ -6,7 +6,7 @@ matrix:
   include:
     - os: osx
       env: BD_NO_TEST_GUI=1
-      perl: '5.24'
+      #perl: '5.24'
     #- os: osx
     #  env: BD_NO_TEST_GUI=0
     ##  linux stuff - uncomment before merging
@@ -33,14 +33,14 @@ cache:
 
 before_install:
   # perlbrew
+  - curl -kL http://install.perlbrew.pl | bash
+  - source ~/perl5/perlbrew/etc/bashrc
   - perl -v
-  - which -a perl
-  #- \curl -L https://install.perlbrew.pl | bash
-  #- perlbrew install perl-5.24.0
+  - which -a perl  #- perlbrew install perl-5.24.0
+  - perlbrew install-cpanm
   #- perlbrew switch perl-5.24.0
   #  get from perlbrew
   #- cpan App::cpanminus
-  #- ~/perl5/perlbrew/bin/perlbrew install-cpanm
   #- ~/perl5/perlbrew/bin/perlbrew installed
   
   #  homebrew
@@ -52,13 +52,7 @@ before_install:
   #- echo Done GDAL
   #- brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
-  #- brew link --force gdal-20
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
-  #- brew link --force libffi
-  #- brew link --force gettext
-  #- brew link --force liblwgeom
-    
-    
   
   #  biodiverse deps
   - cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer

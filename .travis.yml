@@ -43,7 +43,8 @@ before_install:
 
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-  - cpanm Task::Biodiverse::NoGUI
+  - cpanm --notest Math::Random::MT::Auto
+  - cpanm --notest Task::Biodiverse::NoGUI
   #- cpanm Task::Biodiverse
   #- cpanm Task::Biodiverse::NoGUI
   

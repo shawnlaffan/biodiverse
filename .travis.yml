@@ -45,21 +45,20 @@ before_install:
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   - cpanm --notest Math::Random::MT::Auto
   - cpanm --notest Task::Biodiverse::NoGUI
-  #- cpanm Task::Biodiverse
-  #- cpanm Task::Biodiverse::NoGUI
   
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac
   - brew install --verbose https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
-  - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
+  - export PATH="/usr/local/opt/gdal-20/bin:$PATH"
+  - export PERL_GDAL_CONFIG=/usr/local/opt/gdal-20/bin/gdal-config
   - export PERL_GDAL_NO_VERSION_CHECK=1
-  #- cpanm --force Geo::GDAL
   - cpanm -v --force Geo::GDAL
 
   #  GUI stuff - not for mac tests  
   #- cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
   #- brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
+  #- cpanm Task::Biodiverse
   
   #  should not be needed
   #- cpanm Gtk3 Gtk2::GladeXML Glib::Object::Introspection

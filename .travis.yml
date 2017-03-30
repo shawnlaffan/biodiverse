@@ -47,7 +47,7 @@ before_install:
   
   - brew install perl
   #  dirty hack
-  - export PATH=/usr/local/bin;${PATH}
+  - export PATH=/usr/local/bin:${PATH}
   - pwd
   - which -a perl
   - perl -v

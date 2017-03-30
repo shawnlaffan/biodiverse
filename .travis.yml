@@ -49,7 +49,8 @@ before_install:
   - pwd
   - which -a perl
   - perl -v
-  - ls -l ~/bin
+  - /usr/local/bin/perl -v
+  #- ls -l ~/bin
   #- cpanm --notest local::lib
   #- eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   #- PERL_MM_OPT="INSTALL_BASE=$HOME/perl5" cpan local::lib

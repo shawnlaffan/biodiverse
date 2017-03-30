@@ -30,37 +30,22 @@ cache:
   directories:
     #  homebrew files
     - /usr/local
-#    - perl_modules
+    - perl_modules
 #    - gdal_builds
 
 before_install:
-  # perlbrew
-  #- \curl -kL http://install.perlbrew.pl | bash
-  #- source ~/perl5/perlbrew/etc/bashrc
-  #- perl -v
-  #- which -a perl  #- perlbrew install perl-5.24.0
-  #- perlbrew install-cpanm
-  #- perlbrew install perl-5.24.0
-  #- perlbrew switch perl-5.24.0
-  #- which -a perl
-  
   #  homebrew
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  
   - brew install perl
   - brew install cpanminus
+  #- brew install gdk-pixbuf
+  - brew install gtk+
+  - brew install pango
   #  dirty hack to ensure we get the brewed perl
   - export PATH=/usr/local/bin:${PATH}
-  #- sudo cpan App::cpanminus
-  - find /usr/local -name 'cpanm*' -print
-  - ls -l /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Aliases/cpanm
   
-  - PERL_MM_OPT="INSTALL_BASE=${PWD}/perl5" cpan local::lib
-  - echo 'eval "$(perl -I${PWD}/perl5/lib/perl5 -Mlocal::lib)"' >> ~/.bash_profile
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-  #- PERL_MM_OPT="INSTALL_BASE=$HOME/perl5" cpan local::lib
-  #- echo 'eval "$(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)"' >> ~/.bash_profile
   - cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
   - cpanm Task::Biodiverse::NoGUI
   - cpanm Task::Biodiverse

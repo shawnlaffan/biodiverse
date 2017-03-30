@@ -38,7 +38,8 @@ before_install:
   #- perlbrew switch perl-5.24.0
   #  get from perlbrew
   #- cpan App::cpanminus
-  - perlbrew install-cpanm
+  - ~/perl5/perlbrew/bin/perlbrew install-cpanm
+  - ~/perl5/perlbrew/bin/perlbrew installed
   
   #  homebrew
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -49,11 +50,11 @@ before_install:
   #- echo Done GDAL
   #- brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
-  - brew link --force gdal-20
+  #- brew link --force gdal-20
   - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
-  - brew link --force libffi
-  - brew link --force gettext
-  - brew link --force liblwgeom
+  #- brew link --force libffi
+  #- brew link --force gettext
+  #- brew link --force liblwgeom
     
     
   

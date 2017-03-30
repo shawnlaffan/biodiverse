@@ -38,31 +38,28 @@ before_install:
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   - brew install perl
   - brew install cpanminus
-  #- brew install gtk+
-  #- brew install pango
-  #  dirty hack to ensure we get the brewed perl
+  #  make sure we get the brewed perl and cpanm etc
   - export PATH=/usr/local/bin:${PATH}
-  
+
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-  #- cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
   - cpanm Task::Biodiverse::NoGUI
   #- cpanm Task::Biodiverse
   #- cpanm Task::Biodiverse::NoGUI
   
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac
-  #- echo Installing GDAL
   - brew install --verbose https://raw.githubusercontent.com/OSGeo/homebrew-osgeo4mac/master/boneyard/gdal-20.rb
-  #- echo Done GDAL
+  - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
+  - export PERL_GDAL_NO_VERSION_CHECK=1
+  #- cpanm --force Geo::GDAL
+  - cpanm Geo::GDAL
+
+  #  GUI stuff - not for mac tests  
+  #- cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
   #- brew install gdk-pixbuf pango gtk+ libgnomecanvas
   #- brew install gtk+3 libglade 
-  - export PERL_GDAL_CONFIG=/usr/local/bin/gdal-config
   
-  #  biodiverse deps
-  
-  - cpanm  --force Geo::GDAL
-    
   #  should not be needed
   #- cpanm Gtk3 Gtk2::GladeXML Glib::Object::Introspection
     

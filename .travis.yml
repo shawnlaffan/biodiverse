@@ -38,18 +38,17 @@ before_install:
   - /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   - brew install perl
   - brew install cpanminus
-  #- brew install gdk-pixbuf
-  - brew install gtk+
-  - brew install pango
+  #- brew install gtk+
+  #- brew install pango
   #  dirty hack to ensure we get the brewed perl
   - export PATH=/usr/local/bin:${PATH}
   
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-  - cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
+  #- cpanm Pango Gtk2 Gnome2::Canvas IO::Socket::SSL PAR::Packer
   - cpanm Task::Biodiverse::NoGUI
-  - cpanm Task::Biodiverse
-  - cpanm Task::Biodiverse::NoGUI
+  #- cpanm Task::Biodiverse
+  #- cpanm Task::Biodiverse::NoGUI
   
   - brew tap homebrew/boneyard
   - brew tap osgeo/osgeo4mac

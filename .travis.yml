@@ -49,7 +49,7 @@ before_install:
   #  dirty hack to ensure we get the brewed perl
   - export PATH=/usr/local/bin:${PATH}
   - sudo cpan App::cpanminus
-  - find /usr/local/bin 'cpanm*' -print
+  - find /usr/local/bin -name 'cpanm*' -print
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   #- PERL_MM_OPT="INSTALL_BASE=$HOME/perl5" cpan local::lib

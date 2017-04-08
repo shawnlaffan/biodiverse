@@ -108,16 +108,7 @@ if ($script =~ 'BiodiverseGUI.pl') {
     my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
     @ui_arg = ('-a', "$ui_dir;ui");
     
-    #  get the Gtk2 stuff
-    my $base = Path::Class::file($EXECUTABLE_NAME)
-        ->parent
-        ->parent
-        ->subdir('site/lib/auto/Gtk2');
-    foreach my $subdir (qw /share etc lib/) {
-        my $source_dir = Path::Class::dir ($base, $subdir);
-        my $dest_dir   = Path::Class::dir ('lib/auto/Gtk2', $subdir);
-        push @gtk_path_arg, ('-a', "$source_dir;$dest_dir")
-    }
+    push @gtk_path_arg, get_sis_theme_stuff();
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -208,11 +199,35 @@ sub get_sis_gtk_dll_list {
     my $base = Path::Class::file($EXECUTABLE_NAME)
         ->parent
         ->parent
-        ->subdir('site/lib/auto');
+        ->subdir('bin');
 
     my @files = File::Find::Rule->file()
-                            ->name( 'lib*.dll' )
+                            ->name( '*.dll' )
                             ->in( $base );
-    @files = grep {$_ =~ /site.lib.auto/} @files;
+    @files = grep {$_ =~ /s1s/} @files;
     return @files;
+}
+
+sub get_sis_theme_stuff {
+    return if $OSNAME ne 'MSWin32';
+
+    #  get the Gtk2 stuff
+    my $base = Path::Class::file($EXECUTABLE_NAME)
+        ->parent
+        ->parent
+        ->subdir('site');
+    
+    my @path_args;
+    my $subdir = 'share';
+    my $source_dir = Path::Class::dir ($base, $subdir);
+    my $dest_dir   = Path::Class::dir ($subdir);
+    push @path_args, ('-a', "$source_dir;$dest_dir");
+    $subdir = 'lib/auto/Cairo/etc';
+    $source_dir = Path::Class::dir ($base, $subdir);
+    $dest_dir   = Path::Class::dir ($subdir);
+    push @path_args, ('-a', "$source_dir;$dest_dir");
+
+    push @path_args, ('-M', 'gtk-2.0');
+
+    return @path_args;
 }

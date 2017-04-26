@@ -55,6 +55,7 @@ my $root_dir = Path::Class::file ($script)->dir->parent;
 
 #  assume bin folder is at parent folder level
 my $bin_folder = Path::Class::dir ($root_dir, 'bin');
+say $bin_folder;
 my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
 #$icon_file = undef;  #  DEBUG
 
@@ -216,18 +217,22 @@ sub get_sis_theme_stuff {
         ->parent
         ->parent
         ->subdir('site');
-    
+#say "Looking for Sis stuff under $base";
     my @path_args;
-    my $subdir = 'share';
-    my $source_dir = Path::Class::dir ($base, $subdir);
-    my $dest_dir   = Path::Class::dir ($subdir);
+    my $sharedir = 'share';
+    my $source_dir = Path::Class::dir ($base, $sharedir);
+    my $dest_dir   = Path::Class::dir ($sharedir);
     push @path_args, ('-a', "$source_dir;$dest_dir");
-    $subdir = 'lib/auto/Cairo/etc';
+    my $subdir = 'lib/auto/Cairo/etc';
     $source_dir = Path::Class::dir ($base, $subdir);
     $dest_dir   = Path::Class::dir ($subdir);
     push @path_args, ('-a', "$source_dir;$dest_dir");
 
-    push @path_args, ('-M', 'gtk-2.0');
+    # packs libwimp.dll etc
+    my $gtk2dir = 'lib/gtk-2.0';
+    $source_dir = Path::Class::dir ($base, $gtk2dir);
+    $dest_dir   = Path::Class::dir ($gtk2dir);
+    push @path_args, ('-a', "$source_dir;$dest_dir");
 
     return @path_args;
 }

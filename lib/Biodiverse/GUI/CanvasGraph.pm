@@ -193,7 +193,7 @@ sub add_axis_labels_to_graph_canvas {
             + $min_x;
 
         # TODO Add format choice
-        $text = sprintf("%.2e", $text);
+        $text = sprintf("%.g", $text);
         my $x_label = Gnome2::Canvas::Item->new (
             $root, 'Gnome2::Canvas::Text',
             x => $x_position,

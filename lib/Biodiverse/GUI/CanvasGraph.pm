@@ -7,6 +7,7 @@ use 5.010;
 use Data::Dumper;
 use Carp;
 use Gnome2::Canvas;
+#require Biodiverse::GUI::Graphs;
 
 use Gtk2;
 use Glib qw/TRUE FALSE/;
@@ -29,31 +30,135 @@ use constant X_AXIS_LABEL_PADDING => 5;
 use constant Y_AXIS_LABEL_PADDING => 30;
 use constant LABEL_FONT => 'Sans 9';
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_GREY        => Gtk2::Gdk::Color->new(224, 224, 224);
+use constant COLOUR_GREY         => Gtk2::Gdk::Color->new(224, 224, 224);
+use constant CELL_SIZE_X        => 10;    # Cell size (canvas units)
+use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant INDEX_ELEMENT      => 1;  # BaseStruct element for this cell
+use constant BORDER_SIZE        => 20;
 
 sub new {
-    my $class = shift;
-    my $self = bless {}, $class;
+    my $class   = shift;
+    my %args = @_;
+    #my %graph_values = $args{graph_values};
+    #my %graph_values = %{$args{graph_values}};
+
+    my $self = {
+    }; 
+    bless $self, $class;
+    say "[[new]]";
+    #  callback funcs
+#    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
+#    $self->{ctrl_click_func} = $args{ctrl_click_func}; # ctrl/middle click on a cell
+#    $self->{click_func}      = $args{click_func};      # click on a cell
+#    $self->{select_func}     = $args{select_func};     # select a set of elements
+#    $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
+#    $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
+
+    # Make the canvas and hook it up
+    #my $root         = $self->{canvas}->root;
+    #$frame->add($self->{canvas});
+    $self->{canvas}       = $args{canvas};
+    $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
+
+    # Set up canvas
+    $self->{canvas}->set_center_scroll_region(0);
+    $self->{canvas}->show;
+    $self->set_zoom_fit_flag(1);
+    $self->{dragging} = 0;
+
+    #if ($show_value) {
+    #    $self->setup_value_label();
+    #}
+
+    # Create background rectangle to receive mouse events for panning
+    my $rect = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root,
+        'Gnome2::Canvas::Rect',
+        x1 => 0,
+        y1 => 0,
+        x2 => CELL_SIZE_X,
+        y2 => CELL_SIZE_X,
+        fill_color_gdk => COLOUR_WHITE,
+    );
+    $rect->lower_to_bottom();
+
+    $self->{canvas}->root->signal_connect_swapped (
+        event => \&on_background_event,
+        $self,
+    );
+    #$rect->signal_connect (button_release_event => \&_do_popup_menu); 
+
+    #    my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+    #                                         x1 => -$canvas_width,
+    #                                         y1 => -$canvas_height,
+    #                                         x2 => $canvas_width*2,
+    #                                         y2 => $canvas_height*2,
+    #                                         fill_color => 'white',
+    #                                         outline_color => 'white');
+
+    my $width           = CANVAS_WIDTH;
+    my $height          = CANVAS_HEIGHT; 
+
+    # draw the black box that outlines the graph
+    my $border = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root, 'Gnome2::Canvas::Rect',
+        x1 => 0.25*240-(POINT_WIDTH),
+        y1 => -(POINT_HEIGHT),
+        x2 => 300,   # 0.75*240+(POINT_WIDTH),
+        y2 => $height+POINT_HEIGHT,
+        fill_color_gdk => COLOUR_WHITE,
+        outline_color_gdk => COLOUR_BLACK 
+    );
+
+    
+
+    
+    $self->{width_units}  = $width  + 2*BORDER_SIZE;
+    $self->{height_units} = $height + 4*BORDER_SIZE;
+
+    $self->{back_rect} = $rect;
+    $self->{border_rect} = $border;
+
+    # Create the Label legend
+    #my $legend = Biodiverse::GUI::Legend->new(
+    #    canvas       => $self->{canvas},
+    #    legend_mode  => 'Hue',  #  by default
+    #    width_px     => $self->{width_px},
+    #    height_px    => $self->{height_px},
+    #);
+    #$self->set_legend ($legend);
+
+    #$self->update_legend;
+
+    $self->resize_border_rect();
+    $self->resize_background_rect();
+
     return $self;
 }
 
-# given a hash mapping from x axis values to y axis values, and a
-# Gnome2::Canvas. Updates this same canvas with the graph on it.
-sub generate_canvas_graph {
+# Add a layer of for the graph values
+sub add_point_layer {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
-    #my @graphs = $self->generate_fake_graph();
-
     my $canvas       = $args{canvas};
-    my $root         = $canvas->root;
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
-    
-    # whether or not we should clear the canvas. We don't want to
-    # clear it if we're plotting multiple graphs at the same time.
-    my $clear_canvas = $args{clear_canvas};
-    
+
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
-    
+
+    say "[[add_point_layer]]"; 
+    # Make a group for the graph point layers 
+    my $point_layer_group = Gnome2::Canvas::Item->new (
+        $canvas->root,
+        'Gnome2::Canvas::Group',
+        x => 70,
+        y => 40,
+        #x => 0,
+        #y => 0
+    );
+
+    #$point_layer_group->lower_to_bottom();
+    $self->{point_layer_group} = $point_layer_group;
+
     # clean out non numeric hash entries
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
@@ -118,14 +223,6 @@ sub generate_canvas_graph {
         fill_color_gdk => COLOUR_BLACK,
     );
 
-    my $ylab = Gnome2::Canvas::Item->new (
-        $root,
-        'Gnome2::Canvas::Text',
-        x => -80, y => 95,
-        markup => "<b>Key</b>",
-        anchor => 'nw',
-        fill_color_gdk => COLOUR_BLACK,
-    );
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
         old_values   => \%graph_values,
@@ -135,25 +232,24 @@ sub generate_canvas_graph {
     
     $self->plot_points(
         graph_values => \%scaled_graph_values,
-        canvas       => $canvas,
+        canvas       => $point_layer_group,
         point_colour => $point_colour,
         );
     
     # add axis labels
     $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
-                                            canvas       => $canvas,
+                                            canvas       => $point_layer_group,
                                             canvas_width => $canvas_width,
                                             canvas_height => $canvas_height,
         );
 }
-
 
 sub plot_points {
     my ($self, %args) = @_;
     my %graph_values  = %{$args{graph_values}};
     my $point_colour  = $args{point_colour};
     my $canvas        = $args{canvas};
-    my $root          = $canvas->root;
+    my $root          = $canvas;
 
     my ($point_width, $point_height) = (POINT_WIDTH, POINT_HEIGHT);
     
@@ -171,7 +267,6 @@ sub plot_points {
     }
 
 }
-
 
 sub rescale_graph_points {
     my ($self, %args) = @_;
@@ -220,7 +315,7 @@ sub add_axis_labels_to_graph_canvas {
     my $canvas        = $args{canvas};
     my $canvas_width  = $args{canvas_width};
     my $canvas_height = $args{canvas_height};
-    my $root          = $canvas->root;
+    my $root          = $canvas;
     
     my @x_values = keys %graph_values;
     my @y_values = values %graph_values;
@@ -273,36 +368,107 @@ sub add_axis_labels_to_graph_canvas {
             );
     }
 }
+# Implements resizing
+sub on_size_allocate {
+    my ($self, $size, $canvas) = @_;
+    $self->{width_px}  = $size->width;
+    $self->{height_px} = $size->height;
 
-
-# make a random polynomial hash
-# lots of magic numbers but this is really a test function.
-sub generate_fake_graph {
-    my ($self, %args) = @_;
-
-    my ($minimum, $maximum) = (2, 5);
-    my $exponent = $minimum + int(rand($maximum - $minimum));
-    
-    my %graph;
-
-    my %coeff;
-    foreach my $exp (0..$exponent) {
-        my $coefficient = -20 + int(rand(40));
-        $coeff{$exp} = $coefficient;
-    }
-    
-    # generate a nice polynomial graph with some noise
-    ($minimum, $maximum) = (-20, 20);
-    foreach my $x (-30..30) {
-        my $random_noise_percent = $minimum + int(rand($maximum - $minimum));
-        my $y = 0;
-        foreach my $exp (0..$exponent) {
-            my $coefficient = int(rand(40));
-            $y += $coeff{$exp} * ($x**$exp);
+    if (exists $self->{width_units}) {
+        if ($self->get_zoom_fit_flag) {
+            $self->fit_grid();
         }
-        $y += ($random_noise_percent/100) * $y;
-        $graph{$x} = $y;
+        else {
+            
+        }
+        $self->resize_border_rect();
+        $self->resize_background_rect();
+
     }
+    
+    return;
+}
+
+
+# Resize background rectangle which is dragged for panning
+sub resize_background_rect {
+    my $self = shift;
+    if ($self->{width_px}) {
+        # Make it the full visible area
+        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        if (not $self->{dragging}) {
+            $self->{back_rect}->set(
+                x2 => max($width,  $self->{width_units} // 1),
+                y2 => max($height, $self->{height_units} // 1),
+            );
+            $self->{back_rect}->lower_to_bottom();
+        }
+    }
+    return;
+}
+
+# Resize border rectangle
+sub resize_border_rect {
+    my $self = shift;
+    if ($self->{width_px}) {
+        # Make it centered on the visible area
+        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        if (not $self->{dragging}) {
+            my $border_x1 = (max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH;
+            my $border_y1 = (max($height,  $self->{height_units})/2) - 100 - POINT_WIDTH;
+            my $border_x2 = (max($width,  $self->{width_units})/2) + 100 + POINT_WIDTH;
+            my $border_y2 = (max($height,  $self->{height_units})/2) + 100 + POINT_WIDTH;
+         
+            say "[[resize_border_rect]] \$border_x1: $border_x1 \$border_x2: $border_x2";
+            say "[[resize_border_rect]] \$border_y1: $border_y1 \$border_y2: $border_y2";
+            $self->{border_rect}->set(
+                x1 => ((max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH // 1),
+                y1 => ((max($height, $self->{height_units})/2) - 100 - POINT_WIDTH // 1),
+                x2 => ((max($width,  $self->{width_units})/2) + 100 + POINT_WIDTH // 1),
+                y2 => ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1),
+            );
+            $self->{border_rect}->raise_to_top();
+        }
+    }
+    return;
+}
+
+sub get_zoom_fit_flag {
+    my ($self) = @_;
+    
+    return $self->{zoom_fit};
+}
+
+sub set_zoom_fit_flag {
+    my ($self, $zoom_fit) = @_;
+    
+    $self->{zoom_fit} = $zoom_fit;
+}
+
+
+# Implements panning
+sub on_background_event {
+    my ($self, $event, $cell) = @_;
+
+    # Do everything with right click now.
+    return if $event->type =~ m/^button-/ && $event->button != 3;
+    if ($event->type eq 'button-press') {
+        my $button_nr = $event->button;
+        ($button_nr == 3)&& (_do_popup_menu($self->{canvas}->root));
+    }
+    return 0;
+}
+
+
+# Calculate pixels-per-unit to make image fit
+sub fit_grid {
+    my $self = shift;
+
+    my $ppu_width = $self->{width_px} / $self->{width_units};
+    my $ppu_height = $self->{height_px} / $self->{height_units};
+    my $min_ppu = $ppu_width < $ppu_height ? $ppu_width : $ppu_height;
+    $self->{canvas}->set_pixels_per_unit( $min_ppu );
+    print "[Grid] Setting grid zoom (pixels per unit) to $min_ppu\n";
     
     return wantarray ? %graph : \%graph;
     
@@ -400,30 +566,60 @@ sub generate_fake_graph {
     return wantarray ? %graph : \%graph;
 }
 
+
 sub clear_graph {
     my $self = shift;
     my $canvas = shift;
-
-    my $root         = $canvas->root;
+    my $root         = $canvas;
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
+    my $width           = CANVAS_WIDTH;
+    my $height          = CANVAS_HEIGHT; 
 
+    say "[[clear_graph]]";
+
+    if ($self->{point_layer_group}) {
+        say "[[clear_graph]] Destroy";
+        $self->{point_layer_group}->destroy();
+    }
+    return;
+    # Create background rectangle to receive mouse events for panning
+    my $rect = Gnome2::Canvas::Item->new (
+        $root,
+        'Gnome2::Canvas::Rect',
+        x1 => 0,
+        y1 => 0,
+        x2 => CELL_SIZE_X,
+        y2 => CELL_SIZE_X,
+        fill_color_gdk => COLOUR_WHITE,
+    );
+    $rect->lower_to_bottom();
     # Draw a white box over the whole canvas
-    my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-                                      x1 => -$canvas_width,
-                                      y1 => -$canvas_height,
-                                      x2 => $canvas_width*2,
-                                      y2 => $canvas_height*2,
-                                      fill_color => 'white',
-                                      outline_color => 'white');
+    #my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+    #                                  x1 => -$canvas_width,
+    #                                  y1 => -$canvas_height,
+    #                                  x2 => $canvas_width*2,
+    #                                  y2 => $canvas_height*2,
+    #                                  fill_color => 'white',
+    #                                  outline_color => 'white');
 
+    # draw the black box that outlines the graph
+    my $border = Gnome2::Canvas::Item->new (
+        $root, 'Gnome2::Canvas::Rect',
+        x1 => 0.25*240-(POINT_WIDTH),
+        y1 => -(POINT_HEIGHT),
+        x2 => 300,   # 0.75*240+(POINT_WIDTH),
+        y2 => $height+POINT_HEIGHT,
+        fill_color_gdk => COLOUR_WHITE,
+        outline_color_gdk => COLOUR_BLACK 
+    );
     # Draw the black box that outlines the graph
-    my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-                                     x1 => -(POINT_WIDTH),
-                                      y1 => -(POINT_HEIGHT),
-                                      x2 => $canvas_width+POINT_WIDTH,
-                                      y2 => $canvas_height+POINT_HEIGHT,
-                                      fill_color => 'white',
-                                      outline_color => 'black');
+    #$box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
+    #                                 x1 => -(POINT_WIDTH),
+    #                                  y1 => -(POINT_HEIGHT),
+    #                                  x2 => $canvas_width+POINT_WIDTH,
+    #                                  y2 => $canvas_height+POINT_HEIGHT,
+    #                                  fill_color => 'white',
+    #                                  outline_color => 'black');
     # add axis labels
     my %zero_data = ( 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0 );
     #add_axis_labels_to_graph_canvas( graph_values => %zero_data,
@@ -431,14 +627,19 @@ sub clear_graph {
     #                                        canvas_width => $canvas_width,
     #                                        canvas_height => $canvas_height,
     #                                       );
+    resize_border_rect();
 }
 
+# Popup menu for the graph.
+# Buggy. Does not clear properly after item selection under OSX.
 sub _do_popup_menu {
     # Just clean the graph at the moment.
     my ($self, $event) = @_;
-    if ($event->button != 3) {  # ignore other than button3
-        return 0;  # propagate event
-    }
+    say "[[_do_popup_menu]] $self";
+    #return if $event->type =~ m/^button-/ && $event->button != 3;
+    #if ($event->button != 3) {  # ignore other than button3
+    #    return 0;  # propagate event
+    #}
 
     # Create the menu items
     my $menu = Gtk2::Menu->new;
@@ -447,7 +648,6 @@ sub _do_popup_menu {
     my $clear_item = Gtk2::MenuItem->new ("Clear");
     my $sep_item = Gtk2::SeparatorMenuItem->new();
     my $sep2_item = Gtk2::SeparatorMenuItem->new();
-
 
     my $display_item = Gtk2::RadioMenuItem->new(undef,'Refresh with selection');
     #connect to the toggled signal to catch the changes

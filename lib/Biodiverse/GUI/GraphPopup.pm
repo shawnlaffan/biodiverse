@@ -30,12 +30,21 @@ sub add_graph {
 
     my $canvas = $popup->{canvas};
 
-    my $grapher = Biodiverse::GUI::CanvasGraph->new();
-    $grapher->generate_canvas_graph(
+    my $grapher;
+
+    if ( ! $canvas->{back_rect}){
+        $grapher = Biodiverse::GUI::CanvasGraph->new(canvas => $canvas);
+    }
+
+    $grapher->add_point_layer(
         graph_values => $list_ref,
-        canvas       => $canvas,
-        clear_canvas => 1,
+        canvas => $canvas,
     );
+    #$grapher->generate_canvas_graph(
+    #    graph_values => $list_ref,
+    #    canvas       => $canvas,
+    #     clear_canvas => 1,
+    #);
     
     $canvas->show();
     $popup->set_canvas($canvas);

@@ -29,12 +29,34 @@ sub set_list_model {
     $popup->{list}->set_model($model);
 }
 
+# for the graph popup
 sub set_canvas {
-    my $popup = shift;
+    my $self = shift;
     my $canvas = shift;
 
-    # for the graph popups
-    $popup->{canvas} = $canvas;
+    $self->{canvas} = $canvas;
+}
+
+# return the canvas
+sub get_canvas {
+    my $self = shift;
+    my $popup = shift;
+
+    return $self->{canvas};
+}
+
+# Store the backgound rectangle
+sub set_background {
+    my $self = shift;
+    my $background = shift;
+
+    $self->{background} = $background;
+}
+
+# return the background rectangle
+sub get_background {
+    my $self = shift;
+    return $self->{background};
 }
 
 1;

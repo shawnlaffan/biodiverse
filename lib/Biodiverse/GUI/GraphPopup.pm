@@ -22,32 +22,33 @@ sub add_graph {
     my $output_ref = shift;
     my $list_name = shift;
     my $element = shift;
+    my $spatial = shift;
     
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
         );
 
-    my $canvas = $popup->{canvas};
 
-    my $grapher;
+    my $canvas     = $popup->get_canvas;
+    my $background = $popup->get_background;
 
-    if ( ! $canvas->{back_rect}){
-        $grapher = Biodiverse::GUI::CanvasGraph->new(canvas => $canvas);
+    if ( ! $background ){
+        $background = Biodiverse::GUI::CanvasGraph->new(
+            canvas => $canvas
+        );
     }
 
-    $grapher->add_point_layer(
+    $background->add_point_layer(
         graph_values => $list_ref,
-        canvas => $canvas,
+        canvas => $canvas
     );
-    #$grapher->generate_canvas_graph(
-    #    graph_values => $list_ref,
-    #    canvas       => $canvas,
-    #     clear_canvas => 1,
-    #);
-    
+
+    $popup->set_background($background);
+    $spatial->{popup} = $popup;
+
     $canvas->show();
-    $popup->set_canvas($canvas);
-    
+    #$popup->set_canvas($canvas);
+
     return;
 }

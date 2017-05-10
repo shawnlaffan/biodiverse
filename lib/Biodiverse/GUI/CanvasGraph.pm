@@ -45,7 +45,7 @@ sub new {
     my $self = {
     }; 
     bless $self, $class;
-    say "[[new]]";
+    #say "[GraphPopup][[new]]";
     #  callback funcs
 #    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
 #    $self->{ctrl_click_func} = $args{ctrl_click_func}; # ctrl/middle click on a cell
@@ -57,6 +57,7 @@ sub new {
     # Make the canvas and hook it up
     #my $root         = $self->{canvas}->root;
     #$frame->add($self->{canvas});
+#    $self->{popup}        = $args{popup};
     $self->{canvas}       = $args{canvas};
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
@@ -88,14 +89,6 @@ sub new {
     );
     #$rect->signal_connect (button_release_event => \&_do_popup_menu); 
 
-    #    my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-    #                                         x1 => -$canvas_width,
-    #                                         y1 => -$canvas_height,
-    #                                         x2 => $canvas_width*2,
-    #                                         y2 => $canvas_height*2,
-    #                                         fill_color => 'white',
-    #                                         outline_color => 'white');
-
     my $width           = CANVAS_WIDTH;
     my $height          = CANVAS_HEIGHT; 
 
@@ -109,9 +102,6 @@ sub new {
         fill_color_gdk => COLOUR_WHITE,
         outline_color_gdk => COLOUR_BLACK 
     );
-
-    
-
     
     $self->{width_units}  = $width  + 2*BORDER_SIZE;
     $self->{height_units} = $height + 4*BORDER_SIZE;
@@ -145,8 +135,7 @@ sub add_point_layer {
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    say "[[add_point_layer]]"; 
-    # Make a group for the graph point layers 
+    # Make a group for the graph point layer
     my $point_layer_group = Gnome2::Canvas::Item->new (
         $canvas->root,
         'Gnome2::Canvas::Group',

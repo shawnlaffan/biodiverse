@@ -13,7 +13,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::GraphPopup;
 use Carp;
-
+use Data::Dumper;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
@@ -579,24 +579,23 @@ sub on_graph_popup {
     my $output_ref = $self->{output_ref};
         
     my @lists = $output_ref->get_lists_across_elements;
-    
+
     my %sources;
 
     foreach my $list_name (@lists) {
         #say "Found list $list_name";
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
-
         $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element);
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self);
         };
     }
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
-        
+
     #say "[Tab.pm] About to call show_popup";
-    Biodiverse::GUI::Popup::show_popup($element, \%sources, $default_source, "canvas");
+    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self);
 }
 
 

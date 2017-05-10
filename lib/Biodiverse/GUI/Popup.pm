@@ -92,13 +92,15 @@ sub show_popup {
     my $sources_ref = shift;
     my $default_source = shift;
     my $popup_type = shift // 'normal';
+    my $spatial = shift;
+
 
     my $dlgxml;
     my $canvas;
-    
+
     # If already showing a dialog, close it
     if (exists $g_dialogs{$element}) {
-        close_dialog($element);
+        close_dialog($element, $spatial);
     }
     else {
         if (defined $g_reuse_dlg) {
@@ -113,7 +115,7 @@ sub show_popup {
 
         $g_dialogs{$element} = $dlgxml;
         load_dialog($dlgxml, $element, $sources_ref, 
-                    $default_source, $popup_type, $canvas);
+                    $default_source, $popup_type, $canvas, $spatial);
     }
 }
 
@@ -143,18 +145,19 @@ sub make_dialog {
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
-
     my $canvas;
     
     if($popup_type && $popup_type eq 'canvas') {
-        # get the frame and add a canvas to it
-        my $frame = $dlgxml->get_object('graphDrawingFrame');
+    #    if (! $canvas) {
+            #  get the frame and add a canvas to it
+            my $frame = $dlgxml->get_object('graphDrawingFrame');
 
-        $canvas = Gnome2::Canvas->new();
-        $canvas->set_scroll_region(0, 0, 200, 200);
-        $frame->add($canvas);
-        $frame->set_size_request(400, 400);
-        $canvas->show();
+            $canvas = Gnome2::Canvas->new();
+            $canvas->set_scroll_region(0, 0, 200, 200);
+            $frame->add($canvas);
+            $frame->set_size_request(400, 400);
+            $canvas->show();
+    #    }
     }
     else {
         # Set up the list
@@ -188,13 +191,18 @@ sub load_dialog {
     my $default_source = shift;
     my $popup_type = shift // 'normal';
     my $canvas = shift;
+    my $spatial = shift;
     
     #print Data::Dumper::Dumper($neighbours);
     #print Data::Dumper::Dumper(%g_dialogs);
 
-    # Create pseudo-object hash to hold everything together
     my $popup = {};
-    bless $popup, 'Biodiverse::GUI::PopupObject';
+    if ( ! $spatial->{popup}) {
+        # Create pseudo-object hash to hold everything together
+        bless $popup, 'Biodiverse::GUI::PopupObject';
+    } else {
+      $popup = $spatial->{popup};
+    }
 
     if($popup_type eq "canvas") {
         $popup->{canvas}  = $canvas;
@@ -236,9 +244,9 @@ sub load_dialog {
 
     # Connect signals
     $dlgxml->get_object('comboSources')->signal_connect(changed => \&on_source_changed, $popup);
-    $dlgxml->get_object('btnClose')->signal_connect_swapped(clicked => \&close_dialog, $element);
-    $dlgxml->get_object(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, $element);
-    $dlgxml->get_object('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all);
+    $dlgxml->get_object('btnClose')->signal_connect_swapped(clicked => \&close_dialog, [$element, $spatial]);
+    $dlgxml->get_object(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, [$element, $spatial]);
+    $dlgxml->get_object('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all, $spatial);
     $dlgxml->get_object('btnCopy')->signal_connect_swapped(clicked => \&on_copy, $popup);
 
     # Set to last re-use state
@@ -320,7 +328,10 @@ sub on_source_changed {
 ##########################################################
 
 sub close_dialog {
-    my $element = shift;
+    #my $self = shift;
+    my $args = shift;
+    my ($element, $spatial) = ($args->[0], $args->[1]);
+
     #print "[Popup] Closing labels dialog for $element\n";
     $g_dialogs{$element}->get_object(DLG_NAME)->destroy();
     #print "[Popup] Dialogue destroyed\n";
@@ -335,10 +346,16 @@ sub close_dialog {
         $g_reuse_canvas  = undef;
     }
 
+    if ($spatial->{popup}) {
+        #say "removing \$spatial->{popup}";
+        $spatial->{popup} = undef;
+    }
+
     return;
 }
 
 sub on_close_all {
+    my $spatial = shift;
     print "[Popup] Closing all labels dialogs\n";
     while ( (my $element, my $dlgxml) = each %g_dialogs) {
         $dlgxml->get_object(DLG_NAME)->destroy();
@@ -348,6 +365,11 @@ sub on_close_all {
     $g_reuse_dlg = undef;
     $g_reuse_element = undef;
     $g_reuse_canvas = undef;
+
+    if ($spatial->{popup}) {
+        #say "removing \$spatial->{popup}";
+        $spatial->{popup} = undef;
+    }
 
     return;
 }

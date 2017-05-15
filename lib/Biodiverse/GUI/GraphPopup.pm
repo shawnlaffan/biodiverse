@@ -22,15 +22,20 @@ sub add_graph {
     my $output_ref = shift;
     my $list_name = shift;
     my $element = shift;
-    my $spatial = shift;
+    my $popupobj = shift;
     
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
         );
 
+    my $canvas = $popup->get_canvas;
+    my $canvasobj = $popupobj->get_canvas;
 
-    my $canvas     = $popup->get_canvas;
+    if ($canvasobj) {
+       $canvas = $canvasobj;
+    }
+
     my $background = $popup->get_background;
 
     if ( ! $background ){
@@ -45,7 +50,6 @@ sub add_graph {
     );
 
     $popup->set_background($background);
-    $spatial->{popup} = $popup;
 
     $canvas->show();
     #$popup->set_canvas($canvas);

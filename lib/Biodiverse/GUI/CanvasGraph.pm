@@ -25,7 +25,7 @@ use constant CANVAS_WIDTH  => 200;
 use constant CANVAS_HEIGHT => 200;
 use constant NUMBER_OF_AXIS_LABELS => 3;
 # gap from the bottom of the graph to the labels
-use constant X_AXIS_LABEL_PADDING => 5;
+use constant X_AXIS_LABEL_PADDING => 15;
 # distance from the left of the graph to the start of the label
 use constant Y_AXIS_LABEL_PADDING => 30;
 use constant LABEL_FONT => 'Sans 9';
@@ -45,7 +45,9 @@ sub new {
     my $self = {
     }; 
     bless $self, $class;
-    #say "[GraphPopup][[new]]";
+
+    my $canvas = $args{canvas};
+
     #  callback funcs
 #    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
 #    $self->{ctrl_click_func} = $args{ctrl_click_func}; # ctrl/middle click on a cell
@@ -563,8 +565,6 @@ sub clear_graph {
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
     my $width           = CANVAS_WIDTH;
     my $height          = CANVAS_HEIGHT; 
-
-    say "[[clear_graph]]";
 
     if ($self->{point_layer_group}) {
         say "[[clear_graph]] Destroy";

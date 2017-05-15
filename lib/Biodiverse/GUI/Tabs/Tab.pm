@@ -15,6 +15,7 @@ use Biodiverse::GUI::GraphPopup;
 use Carp;
 use Data::Dumper;
 use Biodiverse::Metadata::Parameter;
+use Biodiverse::GUI::PopupObject;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub add_to_notebook {
@@ -582,12 +583,18 @@ sub on_graph_popup {
 
     my %sources;
 
+    if ( ! defined $self->{popup}) {
+        my $popup = {};
+        bless $popup, 'Biodiverse::GUI::PopupObject';
+        $self->{popup} = $popup;
+    }
+
     foreach my $list_name (@lists) {
         #say "Found list $list_name";
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self);
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup});
         };
     }
 
@@ -595,7 +602,7 @@ sub on_graph_popup {
     my $default_source = $source_list[0];
 
     #say "[Tab.pm] About to call show_popup";
-    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self);
+    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
 }
 
 

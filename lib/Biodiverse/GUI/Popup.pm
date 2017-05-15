@@ -92,15 +92,14 @@ sub show_popup {
     my $sources_ref = shift;
     my $default_source = shift;
     my $popup_type = shift // 'normal';
-    my $spatial = shift;
-
+    my $popupobj = shift;
 
     my $dlgxml;
     my $canvas;
 
     # If already showing a dialog, close it
     if (exists $g_dialogs{$element}) {
-        close_dialog($element, $spatial);
+        close_dialog($element, $popupobj);
     }
     else {
         if (defined $g_reuse_dlg) {
@@ -115,7 +114,7 @@ sub show_popup {
 
         $g_dialogs{$element} = $dlgxml;
         load_dialog($dlgxml, $element, $sources_ref, 
-                    $default_source, $popup_type, $canvas, $spatial);
+                    $default_source, $popup_type, $canvas, $popupobj);
     }
 }
 
@@ -191,17 +190,20 @@ sub load_dialog {
     my $default_source = shift;
     my $popup_type = shift // 'normal';
     my $canvas = shift;
-    my $spatial = shift;
+    my $popupobj = shift;
     
     #print Data::Dumper::Dumper($neighbours);
     #print Data::Dumper::Dumper(%g_dialogs);
 
-    my $popup = {};
-    if ( ! $spatial->{popup}) {
+    my $self->{popup} = {};
+    my $popup = $self->{popup};
+
+    if ( ! defined $popupobj ) {
+        #say "[load_dialog] creating pseudo-object hash to hold everything together";
         # Create pseudo-object hash to hold everything together
         bless $popup, 'Biodiverse::GUI::PopupObject';
     } else {
-      $popup = $spatial->{popup};
+      $popup = $popupobj;
     }
 
     if($popup_type eq "canvas") {
@@ -244,9 +246,9 @@ sub load_dialog {
 
     # Connect signals
     $dlgxml->get_object('comboSources')->signal_connect(changed => \&on_source_changed, $popup);
-    $dlgxml->get_object('btnClose')->signal_connect_swapped(clicked => \&close_dialog, [$element, $spatial]);
-    $dlgxml->get_object(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, [$element, $spatial]);
-    $dlgxml->get_object('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all, $spatial);
+    $dlgxml->get_object('btnClose')->signal_connect_swapped(clicked => \&close_dialog, [$element, $popup]);
+    $dlgxml->get_object(DLG_NAME)->signal_connect_swapped(delete_event => \&close_dialog, [$element, $popup]);
+    $dlgxml->get_object('btnCloseAll')->signal_connect_swapped(clicked => \&on_close_all, $popup);
     $dlgxml->get_object('btnCopy')->signal_connect_swapped(clicked => \&on_copy, $popup);
 
     # Set to last re-use state
@@ -330,7 +332,7 @@ sub on_source_changed {
 sub close_dialog {
     #my $self = shift;
     my $args = shift;
-    my ($element, $spatial) = ($args->[0], $args->[1]);
+    my ($element, $popup) = ($args->[0], $args->[1]);
 
     #print "[Popup] Closing labels dialog for $element\n";
     $g_dialogs{$element}->get_object(DLG_NAME)->destroy();
@@ -346,17 +348,17 @@ sub close_dialog {
         $g_reuse_canvas  = undef;
     }
 
-    if ($spatial->{popup}) {
-        #say "removing \$spatial->{popup}";
-        $spatial->{popup} = undef;
+    if ($popup->{canvas}) {
+        $popup->{canvas} = undef;
+        $popup->{background} = undef;
     }
 
     return;
 }
 
 sub on_close_all {
-    my $spatial = shift;
-    print "[Popup] Closing all labels dialogs\n";
+    my $popup = shift;
+    #print "[Popup] Closing all labels dialogs\n";
     while ( (my $element, my $dlgxml) = each %g_dialogs) {
         $dlgxml->get_object(DLG_NAME)->destroy();
     }
@@ -366,9 +368,9 @@ sub on_close_all {
     $g_reuse_element = undef;
     $g_reuse_canvas = undef;
 
-    if ($spatial->{popup}) {
-        #say "removing \$spatial->{popup}";
-        $spatial->{popup} = undef;
+    if ($popup->{canvas}) {
+        $popup->{canvas} = undef;
+        $popup->{background} = undef;
     }
 
     return;

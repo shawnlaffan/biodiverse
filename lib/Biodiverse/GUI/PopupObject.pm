@@ -59,5 +59,47 @@ sub get_background {
     return $self->{background};
 }
 
+# Store the secondary plot group
+sub set_secondary {
+    my $self = shift;
+    my $secondary = shift;
+
+    $self->{secondary} = $secondary;
+}
+
+# return the secondary plot group
+sub get_secondary {
+    my $self = shift;
+    return $self->{secondary};
+}
+
+# Store the graph popup
+sub set_graphpopup {
+    my $self = shift;
+    my $graphpopup = shift;
+
+    $self->{graphpopup} = $graphpopup;
+}
+
+# return the graph popup
+sub get_graphpopup {
+    my $self = shift;
+    return $self->{graphpopup};
+}
+
+# Store the list ref
+sub set_list_ref {
+    my $self = shift;
+    my $list_ref = shift;
+
+    $self->{list_ref} = $list_ref;
+}
+
+# return the list ref
+sub get_list_ref {
+    my $self = shift;
+    return $self->{list_ref};
+}
+
 1;
 

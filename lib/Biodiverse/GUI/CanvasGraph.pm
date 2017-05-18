@@ -128,17 +128,21 @@ sub new {
     return $self;
 }
 
-# Add a layer of for the graph values
-sub add_point_layer {
+# Add the secondary layer of plot values
+sub add_primary_layer {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
     my $canvas       = $args{canvas};
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
 
+
+    say "[add_primary_layer] \$self: $self";
+    say "[add_primary_layer] \$canvas: $canvas";
+
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    # Make a group for the graph point layer
-    my $point_layer_group = Gnome2::Canvas::Item->new (
+    # Make a group for the secondary plot layer
+    my $primary_group = Gnome2::Canvas::Item->new (
         $canvas->root,
         'Gnome2::Canvas::Group',
         x => 70,
@@ -148,7 +152,7 @@ sub add_point_layer {
     );
 
     #$point_layer_group->lower_to_bottom();
-    $self->{point_layer_group} = $point_layer_group;
+    $self->set_primary($primary_group);
 
     # clean out non numeric hash entries
     foreach my $x (keys %graph_values) {
@@ -220,19 +224,100 @@ sub add_point_layer {
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
         );
-    
+    #say "\$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
+
+    while( my( $key, $value ) = each %scaled_graph_values ){
+    #print "[add_primary_layer] $key: $value\n";
+    }
+
     $self->plot_points(
         graph_values => \%scaled_graph_values,
-        canvas       => $point_layer_group,
+        canvas       => $primary_group,
+        point_colour => $point_colour,
+        );
+
+    # add axis labels
+    if (%graph_values){
+        $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
+                                                canvas       => $primary_group,
+                                                canvas_width => $canvas_width,
+                                                canvas_height => $canvas_height,
+            );
+    }
+}
+
+# Add the secondary layer of plot values
+sub add_secondary_layer {
+    my ($self, %args) = @_;
+    my %graph_values = %{$args{graph_values}};
+    my $canvas       = $args{canvas};
+    my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
+
+    $point_colour = Gtk2::Gdk::Color->new(255*257,0,0);
+
+    my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
+    say "[add_secondary_layer] \$self: $self";
+    say "[add_secondary_layer] \$canvas: $canvas";
+
+    # Make a group for the secondary plot layer
+    my $secondary_group = Gnome2::Canvas::Item->new (
+        $canvas->root,
+        'Gnome2::Canvas::Group',
+        x => 70,
+        y => 40,
+        #x => 0,
+        #y => 0
+    );
+
+   $self->set_secondary($secondary_group);
+
+   my $secondary = $self->get_secondary;
+   say "[add_secondary_layer] \$secondary: $secondary";
+   say "[add_secondary_layer] \$canvas: $canvas";
+
+
+    # clean out non numeric hash entries
+    foreach my $x (keys %graph_values) {
+        my $y = $graph_values{$x};
+        if(!looks_like_number($y) || !looks_like_number($x)) {
+            delete $graph_values{$x};
+        }
+    }
+
+    # scale the values so they fit nicely in the canvas space.
+    my %scaled_graph_values = $self->rescale_graph_points(
+        old_values   => \%graph_values,
+        canvas_width => $canvas_width,
+        canvas_height => $canvas_height,
+        );
+    #say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
+
+    while( my( $key, $value ) = each %scaled_graph_values ){
+    #print "[add_secondary_layer] $key: $value\n";
+    }
+
+    $self->plot_points(
+        graph_values => \%scaled_graph_values,
+        canvas       => $secondary_group,
         point_colour => $point_colour,
         );
     
     # add axis labels
-    $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
-                                            canvas       => $point_layer_group,
-                                            canvas_width => $canvas_width,
-                                            canvas_height => $canvas_height,
-        );
+    if (%graph_values){
+        $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
+                                                canvas       => $secondary_group,
+                                                canvas_width => $canvas_width,
+                                                canvas_height => $canvas_height,
+            );
+   }
+
+   say "[add_secondary_layer] about to show \$secondary_group: $secondary_group";
+   $secondary_group->raise_to_top();
+   $secondary_group->show();
+
+   return $secondary_group;
 }
 
 sub plot_points {
@@ -410,8 +495,8 @@ sub resize_border_rect {
             my $border_x2 = (max($width,  $self->{width_units})/2) + 100 + POINT_WIDTH;
             my $border_y2 = (max($height,  $self->{height_units})/2) + 100 + POINT_WIDTH;
          
-            say "[[resize_border_rect]] \$border_x1: $border_x1 \$border_x2: $border_x2";
-            say "[[resize_border_rect]] \$border_y1: $border_y1 \$border_y2: $border_y2";
+            #say "[[resize_border_rect]] \$border_x1: $border_x1 \$border_x2: $border_x2";
+            #say "[[resize_border_rect]] \$border_y1: $border_y1 \$border_y2: $border_y2";
             $self->{border_rect}->set(
                 x1 => ((max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH // 1),
                 y1 => ((max($height, $self->{height_units})/2) - 100 - POINT_WIDTH // 1),
@@ -674,8 +759,42 @@ sub _do_popup_menu {
 
 sub toggle {
     my ($menu_item,$text) = @_;
-        my $val = $menu_item->get_active;
-        say "\$val: $val";
-        ($val)&&(print "$text active\n");
-        ($val)||(print "$text not active\n");
+    my $val = $menu_item->get_active;
+    say "\$val: $val";
+    ($val)&&(print "$text active\n");
+    ($val)||(print "$text not active\n");
+}
+
+
+# set the parmary plot group
+sub set_primary {
+    my $self = shift;
+    my $primary = shift;
+
+    $self->{primary} = $primary;
+}
+
+# return the parmary plot group
+sub get_primary {
+    my $self = shift;
+    my $primary = shift;
+
+    return $self->{primary};
+}
+
+
+# set the secondary plot group
+sub set_secondary {
+    my $self = shift;
+    my $secondary = shift;
+
+    $self->{secondary} = $secondary;
+}
+
+# return the secondary plot group
+sub get_secondary {
+    my $self = shift;
+    my $secondary = shift;
+
+    return $self->{secondary};
 }

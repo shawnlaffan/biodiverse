@@ -1388,10 +1388,15 @@ sub on_grid_hover {
         }
 
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
+
+        if ($self->{popup}) {
+            $self->add_secondary_plot_to_popup_graph;
+        }
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
         $self->{grid}->mark_if_exists({}, 'minus');
+
 
         $self->{dendrogram}->clear_highlights();
     }
@@ -1537,7 +1542,17 @@ sub on_end_grid_hover {
     my $self = shift;
     my $dendrogram = $self->{dendrogram}
       // return;
-
+    #my $secondary = $self->{popup}->get_secondary;
+    if ($self->{popup}){
+        my $secondary = $self->{popup}->get_secondary if $self->{popup}->get_secondary;
+        if ($secondary) {
+           say "[on_end_grid_hover] \$secondary: $secondary";
+            my $secondary = $self->{popup}->get_secondary;
+            say "[on_end_grid_hover] destroy \$secondary: $secondary";
+            $secondary->destroy;
+            say "[on_end_grid_hover] \$secondary: $secondary";
+        }
+    }
     $dendrogram->clear_highlights;
 }
 
@@ -2155,6 +2170,42 @@ sub get_options {
     return wantarray ? %$options : $options;
 }
 
+sub add_secondary_plot_to_popup_graph {
+    my $self = shift;
+    say "[add_secondary_plot_to_popup_graph] \$self: $self";
+
+    my $output_ref = $self->{output_ref};
+    my @lists = $output_ref->get_lists_across_elements;
+
+    foreach my $list_name (@lists) {
+        next if not defined $list_name;
+        next if $list_name =~ /^_/; # leading underscore marks internal list
+        $sources{$list_name} = sub {
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup});
+        };
+    }
+
+    my $background = $self->{popup}->get_background;
+    my $canvas = $self->{popup}->get_canvas;
+    my $list_ref = $self->{popup}->get_list_ref;
+    my $secondary;
+
+    # call graph update here if it exists.
+    if ($background) {
+        say "[add_secondary_plot_to_popup_graph] \$background: $background";
+        say "[add_secondary_plot_to_popup_graph] \$canvas: $canvas";
+        say "[add_secondary_plot_to_popup_graph] \$list_ref: $list_ref";
+        $secondary = $background->add_secondary_layer (
+            graph_values => $list_ref,
+            canvas => $canvas
+        );
+    }
+    $secondary->raise_to_top();
+    $secondary->show();
+    $self->{popup}->set_secondary($secondary);
+
+    return;
+}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

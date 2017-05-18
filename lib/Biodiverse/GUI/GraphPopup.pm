@@ -44,15 +44,24 @@ sub add_graph {
         );
     }
 
-    $background->add_point_layer(
+    my $primary = $background->get_primary;
+    if ($primary) {
+        $primary->destroy();
+    }
+
+    $background->add_primary_layer(
         graph_values => $list_ref,
         canvas => $canvas
     );
-
     $popup->set_background($background);
+    $popup->set_secondary($background->get_secondary);
+    #$popup->set_graphpopup($popup);
+    $popup->set_list_ref($list_ref);
+
 
     $canvas->show();
     #$popup->set_canvas($canvas);
 
     return;
 }
+

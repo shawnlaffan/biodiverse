@@ -583,6 +583,9 @@ sub on_graph_popup {
 
     my %sources;
 
+
+    say "\$self: $self";
+
     if ( ! defined $self->{popup}) {
         my $popup = {};
         bless $popup, 'Biodiverse::GUI::PopupObject';
@@ -617,6 +620,7 @@ sub on_grid_select {
 
 sub on_grid_click {
     my $self = shift;
+    say "[on_grid_click]";
 
     if ($self->{tool} eq 'ZoomOut') {
         $self->{grid}->zoom_out();

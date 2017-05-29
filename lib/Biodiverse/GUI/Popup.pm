@@ -353,6 +353,7 @@ sub close_dialog {
     if ($popup->{canvas}) {
         $popup->{canvas} = undef;
         $popup->{background} = undef;
+        $popup->{secondary} = undef;
     }
 
     return;

@@ -257,9 +257,9 @@ sub add_secondary_layer {
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
-    say "[add_secondary_layer] \$self: $self";
-    say "[add_secondary_layer] \$canvas: $canvas";
+    #say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
+    #say "[add_secondary_layer] \$self: $self";
+    #say "[add_secondary_layer] \$canvas: $canvas";
 
     # Make a group for the secondary plot layer
     my $secondary_group = Gnome2::Canvas::Item->new (
@@ -274,8 +274,8 @@ sub add_secondary_layer {
    $self->set_secondary($secondary_group);
 
    my $secondary = $self->get_secondary;
-   say "[add_secondary_layer] \$secondary: $secondary";
-   say "[add_secondary_layer] \$canvas: $canvas";
+   #say "[add_secondary_layer] \$secondary: $secondary";
+   #say "[add_secondary_layer] \$canvas: $canvas";
 
 
     # clean out non numeric hash entries
@@ -651,9 +651,12 @@ sub clear_graph {
     my $width           = CANVAS_WIDTH;
     my $height          = CANVAS_HEIGHT; 
 
-    if ($self->{point_layer_group}) {
-        say "[[clear_graph]] Destroy";
-        $self->{point_layer_group}->destroy();
+    say "clear_graph";
+    print Dumper($self);
+
+    if ($self->{secondary}) {
+        say "[[clear_graph]] \$self->{secondary}->destroy";
+        $self->{secondary}->destroy();
     }
     return;
     # Create background rectangle to receive mouse events for panning
@@ -709,7 +712,6 @@ sub clear_graph {
 sub _do_popup_menu {
     # Just clean the graph at the moment.
     my ($self, $event) = @_;
-    say "[[_do_popup_menu]] $self";
     #return if $event->type =~ m/^button-/ && $event->button != 3;
     #if ($event->button != 3) {  # ignore other than button3
     #    return 0;  # propagate event

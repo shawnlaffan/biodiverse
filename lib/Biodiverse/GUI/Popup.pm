@@ -98,10 +98,10 @@ sub show_popup {
     my $canvas;
 
     # If already showing a dialog, close it
-    if (exists $g_dialogs{$element}) {
-        close_dialog($element, $popupobj);
-    }
-    else {
+    #if (exists $g_dialogs{$element}) {
+    #    close_dialog($element, $popupobj);
+    #}
+    #else {
         if (defined $g_reuse_dlg) {
             $dlgxml = $g_reuse_dlg;
             delete $g_dialogs{$g_reuse_element};
@@ -115,7 +115,7 @@ sub show_popup {
         $g_dialogs{$element} = $dlgxml;
         load_dialog($dlgxml, $element, $sources_ref, 
                     $default_source, $popup_type, $canvas, $popupobj);
-    }
+    #}
 }
 
 sub make_dialog {
@@ -332,7 +332,9 @@ sub on_source_changed {
 sub close_dialog {
     #my $self = shift;
     my $args = shift;
+    say "[close_dialog] \$element: $args->[0], \$popup: $args->[1]";
     my ($element, $popup) = ($args->[0], $args->[1]);
+
 
     #print "[Popup] Closing labels dialog for $element\n";
     $g_dialogs{$element}->get_object(DLG_NAME)->destroy();

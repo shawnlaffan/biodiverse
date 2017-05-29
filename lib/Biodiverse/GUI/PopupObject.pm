@@ -101,5 +101,15 @@ sub get_list_ref {
     return $self->{list_ref};
 }
 
+# remove the secondary layer
+sub clear_secondary {
+    my $self = shift;
+    my $secondary = shift;
+    if ($secondary) {
+        say "[clear_secondary] destroy \$secondary: $secondary";
+        $secondary->destroy();
+    }
+}
+
 1;
 

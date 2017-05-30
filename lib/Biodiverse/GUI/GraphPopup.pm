@@ -17,6 +17,8 @@ use English qw { -no_match_vars };
 use Biodiverse::GUI::PopupObject;
 use Biodiverse::GUI::CanvasGraph;
 
+use constant COLOUR_RED         => Gtk2::Gdk::Color->new(65535, 0, 0);
+
 sub add_graph {
     my $popup = shift;
     my $output_ref = shift;
@@ -54,14 +56,13 @@ sub add_graph {
         graph_values => $list_ref,
         canvas => $canvas
     );
+
     $popup->set_background($background);
     $popup->set_secondary($background->get_secondary);
-    #$popup->set_graphpopup($popup);
     $popup->set_list_ref($list_ref);
 
 
     $canvas->show();
-    #$popup->set_canvas($canvas);
 
     return;
 }
@@ -73,29 +74,33 @@ sub add_secondary {
     my $element = shift;
     my $popupobj = shift;
 
+    my $secondary_element = $popupobj->get_secondary_element;
+
+    return if $element eq $secondary_element;
+
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
         );
 
+
     my $background = $popupobj->get_background;
     my $canvas = $popupobj->get_canvas;
-    #my $list_ref = $self->{popup}->get_list_ref;
     my $secondary;
 
-    say "[add_secondary]";
-
     # call graph update here if it exists.
-    if ($background) {
-        say "[add_secondary_plot_to_popup_graph] \$background: $background";
-        say "[add_secondary_plot_to_popup_graph] \$canvas: $canvas";
-        say "[add_secondary_plot_to_popup_graph] \$list_ref: $list_ref";
+    my $primary = $background->get_primary;
+    $secondary = $background->get_secondary;
+
+    if ($primary) {
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
+            point_colour => COLOUR_RED,
             canvas => $canvas
         );
+        $secondary->raise_to_top();
+        $secondary->show();
+        $popupobj->set_secondary($secondary);
+        $popupobj->set_secondary_element($element);
     }
-    $secondary->raise_to_top();
-    $secondary->show();
-    $popupobj->set_secondary($secondary);
 }

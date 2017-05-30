@@ -35,6 +35,7 @@ use constant CELL_SIZE_X        => 10;    # Cell size (canvas units)
 use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
 use constant INDEX_ELEMENT      => 1;  # BaseStruct element for this cell
 use constant BORDER_SIZE        => 20;
+use constant COLOUR_RED         => Gtk2::Gdk::Color->new(65535, 0, 0);
 
 sub new {
     my $class   = shift;
@@ -48,18 +49,8 @@ sub new {
 
     my $canvas = $args{canvas};
 
-    #  callback funcs
-#    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
-#    $self->{ctrl_click_func} = $args{ctrl_click_func}; # ctrl/middle click on a cell
-#    $self->{click_func}      = $args{click_func};      # click on a cell
-#    $self->{select_func}     = $args{select_func};     # select a set of elements
-#    $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
-#    $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
 
     # Make the canvas and hook it up
-    #my $root         = $self->{canvas}->root;
-    #$frame->add($self->{canvas});
-#    $self->{popup}        = $args{popup};
     $self->{canvas}       = $args{canvas};
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
@@ -68,10 +59,6 @@ sub new {
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
-
-    #if ($show_value) {
-    #    $self->setup_value_label();
-    #}
 
     # Create background rectangle to receive mouse events for panning
     my $rect = Gnome2::Canvas::Item->new (
@@ -83,7 +70,6 @@ sub new {
         y2 => CELL_SIZE_X,
         fill_color_gdk => COLOUR_WHITE,
     );
-    $rect->lower_to_bottom();
 
     $self->{canvas}->root->signal_connect_swapped (
         event => \&on_background_event,
@@ -105,6 +91,9 @@ sub new {
         outline_color_gdk => COLOUR_BLACK 
     );
     
+    $border->lower_to_bottom();
+    $rect->lower_to_bottom();
+
     $self->{width_units}  = $width  + 2*BORDER_SIZE;
     $self->{height_units} = $height + 4*BORDER_SIZE;
 
@@ -135,23 +124,28 @@ sub add_primary_layer {
     my $canvas       = $args{canvas};
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
 
-
-    say "[add_primary_layer] \$self: $self";
-    say "[add_primary_layer] \$canvas: $canvas";
+    return if ( ! %graph_values );
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    # Make a group for the secondary plot layer
+    #my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+    #my $x = (max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH;
+    #my $y = (max($height,  $self->{height_units})/2) - 100 - POINT_WIDTH;
+
+    #say "\$x: $x, \$y: $y";
+    #my ($x12, $y12) = $self->{border_rect}->get('x1','y1');
+    #say "\$x12: $x12, \$y12: $y12";
+
+    # Make a group for the primary plot layer
     my $primary_group = Gnome2::Canvas::Item->new (
         $canvas->root,
         'Gnome2::Canvas::Group',
-        x => 70,
-        y => 40,
+        x => 0,
+        y => 0,
         #x => 0,
         #y => 0
     );
 
-    #$point_layer_group->lower_to_bottom();
     $self->set_primary($primary_group);
 
     # clean out non numeric hash entries
@@ -170,10 +164,6 @@ sub add_primary_layer {
         );
     #say "\$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
 
-    while( my( $key, $value ) = each %scaled_graph_values ){
-    #print "[add_primary_layer] $key: $value\n";
-    }
-
     $self->plot_points(
         graph_values => \%scaled_graph_values,
         canvas       => $primary_group,
@@ -188,6 +178,9 @@ sub add_primary_layer {
                                                 canvas_height => $canvas_height,
             );
     }
+    $self->resize_primary_points();
+    $primary_group->raise_to_top();
+    $primary_group->show();
 }
 
 # Add the secondary layer of plot values
@@ -195,31 +188,26 @@ sub add_secondary_layer {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
     my $canvas       = $args{canvas};
-    my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
+    my $point_colour = $args{colour} // COLOUR_RED;
 
-    $point_colour = Gtk2::Gdk::Color->new(255*257,0,0);
+    #$point_colour = Gtk2::Gdk::Color->new(255*257,0,0);
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
-
-    #say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
-    #say "[add_secondary_layer] \$self: $self";
-    #say "[add_secondary_layer] \$canvas: $canvas";
 
     # Make a group for the secondary plot layer
     my $secondary_group = Gnome2::Canvas::Item->new (
         $canvas->root,
         'Gnome2::Canvas::Group',
-        x => 70,
-        y => 40,
-        #x => 0,
-        #y => 0
+        #x => 70+40,
+        #y => 40+40,
+        x => 0,
+        y => 0
     );
 
    $self->set_secondary($secondary_group);
 
    my $secondary = $self->get_secondary;
-   #say "[add_secondary_layer] \$secondary: $secondary";
-   #say "[add_secondary_layer] \$canvas: $canvas";
+   #say "[add_secondary_layer] \$secondary_group: $secondary_group";
 
 
     # clean out non numeric hash entries
@@ -236,11 +224,6 @@ sub add_secondary_layer {
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
         );
-    #say "[add_secondary_layer] \$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
-
-    while( my( $key, $value ) = each %scaled_graph_values ){
-    #print "[add_secondary_layer] $key: $value\n";
-    }
 
     $self->plot_points(
         graph_values => \%scaled_graph_values,
@@ -257,9 +240,9 @@ sub add_secondary_layer {
             );
    }
 
-   say "[add_secondary_layer] about to show \$secondary_group: $secondary_group";
    $secondary_group->raise_to_top();
    $secondary_group->show();
+   $self->resize_secondary_points();
 
    return $secondary_group;
 }
@@ -272,7 +255,7 @@ sub plot_points {
     my $root          = $canvas;
 
     my ($point_width, $point_height) = (POINT_WIDTH, POINT_HEIGHT);
-    
+
     # plot the points
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
@@ -403,8 +386,9 @@ sub on_size_allocate {
         }
         $self->resize_border_rect();
         $self->resize_background_rect();
-
-    }
+        $self->resize_primary_points();
+        $self->resize_secondary_points() if $self->get_secondary;;
+        }
     
     return;
 }
@@ -453,6 +437,30 @@ sub resize_border_rect {
     return;
 }
 
+# Resize the graph primary points
+sub resize_primary_points {
+    my $self = shift;
+
+    my ($x12, $y12) = $self->{border_rect}->get('x1','y1');
+    $self->{primary}->set(
+        x => $x12,
+        y => $y12
+    );
+    $self->{primary}->raise_to_top();
+}
+
+# Resize the graph secondary points
+sub resize_secondary_points {
+    my $self = shift;
+
+    my ($x12, $y12) = $self->{border_rect}->get('x1','y1');
+    $self->{secondary}->set(
+        x => $x12,
+        y => $y12
+    );
+    $self->{secondary}->raise_to_top();
+}
+
 sub get_zoom_fit_flag {
     my ($self) = @_;
     
@@ -469,7 +477,6 @@ sub set_zoom_fit_flag {
 # Implements panning
 sub on_background_event {
     my ($self, $event, $cell) = @_;
-
     # Do everything with right click now.
     return if $event->type =~ m/^button-/ && $event->button != 3;
     if ($event->type eq 'button-press') {
@@ -488,7 +495,7 @@ sub fit_grid {
     my $ppu_height = $self->{height_px} / $self->{height_units};
     my $min_ppu = $ppu_width < $ppu_height ? $ppu_width : $ppu_height;
     $self->{canvas}->set_pixels_per_unit( $min_ppu );
-    print "[Grid] Setting grid zoom (pixels per unit) to $min_ppu\n";
+    #print "[Grid] Setting grid zoom (pixels per unit) to $min_ppu\n";
     
     return;
 }
@@ -498,64 +505,15 @@ sub clear_graph {
     my $self = shift;
     my $canvas = shift;
     my $root         = $canvas;
-    my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
-    my $width           = CANVAS_WIDTH;
-    my $height          = CANVAS_HEIGHT; 
 
     say "clear_graph";
-    print Dumper($self);
 
-    if ($self->{secondary}) {
-        say "[[clear_graph]] \$self->{secondary}->destroy";
-        $self->{secondary}->destroy();
-    }
+    #if ($self->{secondary}) {
+        say "[[clear_graph]] \$canvas: $canvas";
+        #say "[[clear_graph]] \$self->{secondary}->destroy";
+        #$self->{secondary}->destroy();
+    #}
     return;
-    # Create background rectangle to receive mouse events for panning
-    my $rect = Gnome2::Canvas::Item->new (
-        $root,
-        'Gnome2::Canvas::Rect',
-        x1 => 0,
-        y1 => 0,
-        x2 => CELL_SIZE_X,
-        y2 => CELL_SIZE_X,
-        fill_color_gdk => COLOUR_WHITE,
-    );
-    $rect->lower_to_bottom();
-    # Draw a white box over the whole canvas
-    #my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-    #                                  x1 => -$canvas_width,
-    #                                  y1 => -$canvas_height,
-    #                                  x2 => $canvas_width*2,
-    #                                  y2 => $canvas_height*2,
-    #                                  fill_color => 'white',
-    #                                  outline_color => 'white');
-
-    # draw the black box that outlines the graph
-    my $border = Gnome2::Canvas::Item->new (
-        $root, 'Gnome2::Canvas::Rect',
-        x1 => 0.25*240-(POINT_WIDTH),
-        y1 => -(POINT_HEIGHT),
-        x2 => 300,   # 0.75*240+(POINT_WIDTH),
-        y2 => $height+POINT_HEIGHT,
-        fill_color_gdk => COLOUR_WHITE,
-        outline_color_gdk => COLOUR_BLACK 
-    );
-    # Draw the black box that outlines the graph
-    #$box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
-    #                                 x1 => -(POINT_WIDTH),
-    #                                  y1 => -(POINT_HEIGHT),
-    #                                  x2 => $canvas_width+POINT_WIDTH,
-    #                                  y2 => $canvas_height+POINT_HEIGHT,
-    #                                  fill_color => 'white',
-    #                                  outline_color => 'black');
-    # add axis labels
-    my %zero_data = ( 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0 );
-    #add_axis_labels_to_graph_canvas( graph_values => %zero_data,
-    #                                        canvas       => $canvas,
-    #                                        canvas_width => $canvas_width,
-    #                                        canvas_height => $canvas_height,
-    #                                       );
-    resize_border_rect();
 }
 
 # Popup menu for the graph.
@@ -563,11 +521,10 @@ sub clear_graph {
 sub _do_popup_menu {
     # Just clean the graph at the moment.
     my ($self, $event) = @_;
-    #return if $event->type =~ m/^button-/ && $event->button != 3;
-    #if ($event->button != 3) {  # ignore other than button3
-    #    return 0;  # propagate event
-    #}
 
+    print Dumper($self);
+
+    say "[_do_popup_menu] \$self: $self";
     # Create the menu items
     my $menu = Gtk2::Menu->new;
     my $logX_item = Gtk2::CheckMenuItem->new('_log X');
@@ -623,11 +580,10 @@ sub toggle {
 sub set_primary {
     my $self = shift;
     my $primary = shift;
-
     $self->{primary} = $primary;
 }
 
-# return the parmary plot group
+# return the primary plot group
 sub get_primary {
     my $self = shift;
     my $primary = shift;

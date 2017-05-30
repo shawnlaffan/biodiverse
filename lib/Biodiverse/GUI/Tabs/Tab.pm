@@ -584,7 +584,6 @@ sub on_graph_popup {
     my %sources;
 
     if ( ! blessed $self->{popup}) {
-        say "about to create \$popup";
         my $popup = {};
         bless $popup, 'Biodiverse::GUI::PopupObject';
         $self->{popup} = $popup;
@@ -603,22 +602,29 @@ sub on_graph_popup {
     my $default_source = $source_list[0];
 
     Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
+
+    #my $graph_popup_init = 1;
+    #$self->{popup}->{graph_popup_init} = $graph_popup_init;
 }
 
 sub on_add_secondary_to_graph_popup {
     my $self = shift;
     return if ($self->{tool} ne 'Graph');
+
+    # Don't add a second layer because we have
+    # only just created the primary layer
+    #if ($self->{popup}->{graph_popup_init}) {
+    #    say "[Tab] \$self->{popup}->{graph_popup_init} is defined. Undefining";
+    #    $self->{popup}->{graph_popup_init} = undef;
+    #    return;
+    #}
+
     my $element = shift;
     my $output_ref = $self->{output_ref};
 
     my @lists = $output_ref->get_lists_across_elements;
 
-   #foreach my $list_name (@lists) {
-    #    say "[on_add_secondary_to_graph_popup] \$list_name: $list_name";
-    #}
-
     my %sources;
-    say "\$output_ref: $output_ref";
 
     foreach my $list_name (@lists) {
         #say "Found list $list_name";
@@ -631,30 +637,9 @@ sub on_add_secondary_to_graph_popup {
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
-    say "[on_add_secondary_to_graph_popup] About to show second group";
+
     Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
 
-    #print "[on_add_secondary_to_graph_popup] ", Dumper(%sources);
-#    my $background = $self->{popup}->get_background;
-#    my $canvas = $self->{popup}->get_canvas;
-#    my $list_ref = $self->{popup}->get_list_ref;
-#    my $secondary;
-#
-#    # call graph update here if it exists.
-#    if ($background) {
-#        say "[add_secondary_plot_to_popup_graph] \$background: $background";
-#        say "[add_secondary_plot_to_popup_graph] \$canvas: $canvas";
-#        say "[add_secondary_plot_to_popup_graph] \$list_ref: $list_ref";
-#        $secondary = $background->add_secondary_layer (
-#            graph_values => $list_ref,
-#            canvas => $canvas
-#        );
-#    }
-#    $secondary->raise_to_top();
-#    $secondary->show();
-#    $self->{popup}->set_secondary($secondary);
-
-    #return;
 }
 
 sub on_grid_select {
@@ -667,7 +652,7 @@ sub on_grid_select {
 
 sub on_grid_click {
     my $self = shift;
-    say "[on_grid_click]";
+    #say "[on_grid_click]";
 
     if ($self->{tool} eq 'ZoomOut') {
         $self->{grid}->zoom_out();

@@ -1389,8 +1389,8 @@ sub on_grid_hover {
         }
 
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
+
         if (defined $self->{popup}->{canvas}) {
-            #Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup(@_,$output_ref);
             Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
         }
     }
@@ -2168,43 +2168,6 @@ sub get_options {
 
     return wantarray ? %$options : $options;
 }
-
-#sub add_secondary_plot_to_popup_graph {
-#    my $self = shift;
-#    say "[add_secondary_plot_to_popup_graph] \$self: $self";
-#
-#    my $output_ref = $self->{output_ref};
-#    my @lists = $output_ref->get_lists_across_elements;
-#
-#    foreach my $list_name (@lists) {
-#        next if not defined $list_name;
-#        next if $list_name =~ /^_/; # leading underscore marks internal list
-#        $sources{$list_name} = sub {
-#            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup});
-#        };
-#    }
-#
-#    my $background = $self->{popup}->get_background;
-#    my $canvas = $self->{popup}->get_canvas;
-#    my $list_ref = $self->{popup}->get_list_ref;
-#    my $secondary;
-#
-#    # call graph update here if it exists.
-#    if ($background) {
-#        say "[add_secondary_plot_to_popup_graph] \$background: $background";
-#        say "[add_secondary_plot_to_popup_graph] \$canvas: $canvas";
-#        say "[add_secondary_plot_to_popup_graph] \$list_ref: $list_ref";
-#        $secondary = $background->add_secondary_layer (
-#            graph_values => $list_ref,
-#            canvas => $canvas
-#        );
-#    }
-#    $secondary->raise_to_top();
-#    $secondary->show();
-#    $self->{popup}->set_secondary($secondary);
-#
-#    return;
-#}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

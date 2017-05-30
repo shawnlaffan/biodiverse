@@ -59,6 +59,22 @@ sub get_background {
     return $self->{background};
 }
 
+# set the parmary plot group
+sub set_primary {
+    my $self = shift;
+    my $primary = shift;
+    say "[set_primary] \$self: $self";
+    $self->{primary} = $primary;
+}
+
+# return the primary plot group
+sub get_primary {
+    my $self = shift;
+    my $primary = shift;
+
+    return $self->{primary};
+}
+
 # Store the secondary plot group
 sub set_secondary {
     my $self = shift;
@@ -101,13 +117,29 @@ sub get_list_ref {
     return $self->{list_ref};
 }
 
+# Store secondary element 
+sub set_secondary_element {
+    my $self = shift;
+    my $secondary_element = shift;
+
+    $self->{secondary_element} = $secondary_element;
+}
+
+# return the secondary element
+sub get_secondary_element {
+    my $self = shift;
+    return $self->{secondary_element};
+}
+
 # remove the secondary layer
 sub clear_secondary {
     my $self = shift;
     my $secondary = shift;
     if ($secondary) {
-        say "[clear_secondary] destroy \$secondary: $secondary";
-        $secondary->destroy();
+        #say "[clear_secondary] destroy \$secondary: $secondary";
+        #$secondary->destroy();
+        $self->{secondary}->destroy();
+        #$secondary = undef;
     }
 }
 

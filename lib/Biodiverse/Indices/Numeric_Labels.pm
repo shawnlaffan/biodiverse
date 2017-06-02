@@ -1,6 +1,3 @@
-#  Inter-event interval stats
-#  A plugin for the biodiverse system and not to be used on its own.
-
 package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;

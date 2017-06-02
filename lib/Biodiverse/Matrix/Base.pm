@@ -510,10 +510,12 @@ sub to_table {
     my $self = shift;
     my %args = @_;
     
-    if ($args{type} eq 'sparse') {
+    my $type = $args{type} // '';
+
+    if ($type eq 'sparse') {
         return $self->to_table_sparse (%args);
     }
-    elsif ($args{type} eq 'gdm') {
+    elsif ($type eq 'gdm') {
         return $self->to_table_gdm (%args);
     }
     else {

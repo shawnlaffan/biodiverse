@@ -1083,15 +1083,6 @@ sub on_cell_leave {
     my $self = shift;
     my $leave_element = shift;
     my $cell = shift;
-
-    say "[on_cell_leave] \$self: $self";
-    say "[on_cell_leave] \$leave_element: $leave_element";
-    say "[on_cell_leave] \$cell: $cell";
-
-    no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
-    if (not $self->{leave_element}) {
-        $self->{leave_element} = "";
-    }
 }
 
 sub on_end_grid_hover {

@@ -137,9 +137,7 @@ sub clear_secondary {
     my $secondary = shift;
     if ($secondary) {
         #say "[clear_secondary] destroy \$secondary: $secondary";
-        #$secondary->destroy();
         $self->{secondary}->destroy();
-        #$secondary = undef;
     }
 }
 

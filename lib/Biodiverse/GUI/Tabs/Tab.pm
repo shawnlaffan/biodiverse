@@ -692,6 +692,7 @@ sub handle_graph_click {
     return;
 }
 
+
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
     my $canvas = $grid->{canvas};

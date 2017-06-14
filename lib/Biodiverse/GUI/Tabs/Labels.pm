@@ -194,6 +194,8 @@ sub init_grid {
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
+    my $cell_enter =         sub { $self->on_cell_enter(@_); };
+    my $cell_leave =         sub { $self->on_cell_leave(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -207,6 +209,8 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure,
+        cell_enter_func => $cell_enter,
+        cell_leave_func => $cell_leave,
     );
     $self->{grid}->{page} = $self; # Hacky
 
@@ -1054,6 +1058,40 @@ sub on_grid_hover {
     }
 
     return;
+}
+
+sub on_cell_enter {
+    my $self = shift;
+    my $enter_element = shift;
+    my $cell = shift;
+
+    if (not $self->{current_cell}) {
+        $self->{current_cell} = "";
+    }
+
+    if ($cell ne $self->{current_cell}) {
+        if (defined $self->{popup}->{canvas}) {
+            my $secondary = $self->{popup}->get_secondary;
+            $self->{popup}->clear_secondary($secondary);
+            Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $enter_element);
+        }
+        $self->{current_cell} = $cell;
+    }
+}
+
+sub on_cell_leave {
+    my $self = shift;
+    my $leave_element = shift;
+    my $cell = shift;
+
+    say "[on_cell_leave] \$self: $self";
+    say "[on_cell_leave] \$leave_element: $leave_element";
+    say "[on_cell_leave] \$cell: $cell";
+
+    no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
+    if (not $self->{leave_element}) {
+        $self->{leave_element} = "";
+    }
 }
 
 sub on_end_grid_hover {

@@ -548,6 +548,8 @@ sub init_grid {
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $cell_enter = sub { $self->on_cell_enter(@_); };
+    my $cell_leave = sub { $self->on_cell_leave(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -561,6 +563,8 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
+        cell_enter_func      => $cell_enter,
+        cell_leave_func       => $cell_leave,
     );
     $self->{grid}->{page} = $self;
     $self->{grid}->{drag_mode} = 'select';
@@ -1390,9 +1394,9 @@ sub on_grid_hover {
 
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
 
-        if (defined $self->{popup}->{canvas}) {
-            Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
-        }
+        #if (defined $self->{popup}->{canvas}) {
+        #    Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
+        #}
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
@@ -1544,14 +1548,14 @@ sub on_end_grid_hover {
     my $dendrogram = $self->{dendrogram}
       // return;
     #my $secondary = $self->{popup}->get_secondary;
-    if (blessed $self->{popup}){
-        my $secondary = $self->{popup}->get_secondary;
-        if ($secondary) {
-           #say "[on_end_grid_hover] \$secondary: $secondary";
-            my $secondary = $self->{popup}->get_secondary;
-            $self->{popup}->clear_secondary($secondary);
-        }
-    }
+    #if (blessed $self->{popup}){
+    #    my $secondary = $self->{popup}->get_secondary;
+    #    if ($secondary) {
+    #       #say "[on_end_grid_hover] \$secondary: $secondary";
+    #        my $secondary = $self->{popup}->get_secondary;
+    #        $self->{popup}->clear_secondary($secondary);
+    #    }
+    #}
     $dendrogram->clear_highlights;
 }
 

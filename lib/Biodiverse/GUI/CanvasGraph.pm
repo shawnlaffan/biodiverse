@@ -31,11 +31,11 @@ use constant Y_AXIS_LABEL_PADDING => 30;
 use constant LABEL_FONT => 'Sans 9';
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
 use constant COLOUR_GREY         => Gtk2::Gdk::Color->new(224, 224, 224);
-use constant CELL_SIZE_X        => 10;    # Cell size (canvas units)
+use constant COLOUR_RED          => Gtk2::Gdk::Color->new(65535, 0, 0); # red
+use constant CELL_SIZE_X         => 10;    # Cell size (canvas units)
 use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant INDEX_ELEMENT      => 1;  # BaseStruct element for this cell
-use constant BORDER_SIZE        => 20;
-use constant COLOUR_RED         => Gtk2::Gdk::Color->new(65535, 0, 0);
+use constant INDEX_ELEMENT       => 1;  # BaseStruct element for this cell
+use constant BORDER_SIZE         => 20;
 
 sub new {
     my $class   = shift;
@@ -48,7 +48,7 @@ sub new {
     bless $self, $class;
 
     my $canvas = $args{canvas};
-
+    my $popupobj = $args{popupobj};
 
     # Make the canvas and hook it up
     $self->{canvas}       = $args{canvas};
@@ -117,7 +117,7 @@ sub new {
     return $self;
 }
 
-# Add the secondary layer of plot values
+# Add the primary layer of plot values
 sub add_primary_layer {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
@@ -128,22 +128,12 @@ sub add_primary_layer {
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    #my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
-    #my $x = (max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH;
-    #my $y = (max($height,  $self->{height_units})/2) - 100 - POINT_WIDTH;
-
-    #say "\$x: $x, \$y: $y";
-    #my ($x12, $y12) = $self->{border_rect}->get('x1','y1');
-    #say "\$x12: $x12, \$y12: $y12";
-
     # Make a group for the primary plot layer
     my $primary_group = Gnome2::Canvas::Item->new (
         $canvas->root,
         'Gnome2::Canvas::Group',
         x => 0,
         y => 0,
-        #x => 0,
-        #y => 0
     );
 
     $self->set_primary($primary_group);
@@ -162,8 +152,8 @@ sub add_primary_layer {
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
         );
-    #say "\$canvas_width: $canvas_width, \$canvas_height: $canvas_height";
 
+    # Plot the points
     $self->plot_points(
         graph_values => \%scaled_graph_values,
         canvas       => $primary_group,
@@ -187,10 +177,9 @@ sub add_primary_layer {
 sub add_secondary_layer {
     my ($self, %args) = @_;
     my %graph_values = %{$args{graph_values}};
+    my $point_colour = $args{point_colour} // COLOUR_RED;
     my $canvas       = $args{canvas};
-    my $point_colour = $args{colour} // COLOUR_RED;
 
-    #$point_colour = Gtk2::Gdk::Color->new(255*257,0,0);
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -504,14 +493,17 @@ sub fit_grid {
 sub clear_graph {
     my $self = shift;
     my $canvas = shift;
-    my $root         = $canvas;
+    my $root = $canvas;
 
     say "clear_graph";
 
-    #if ($self->{secondary}) {
-        say "[[clear_graph]] \$canvas: $canvas";
-        #say "[[clear_graph]] \$self->{secondary}->destroy";
-        #$self->{secondary}->destroy();
+    #my $primary = $popupobj->get_primary;
+    #my $secondary = $popupobj->get_secondary;
+    #if ($popupobj->get_primary) {
+    #    $popupobj->clear_primary($secondary);
+    #}
+    #if ($popupobj->get_secondary) {
+    #    $popupobj->clear_secondary($secondary);
     #}
     return;
 }
@@ -520,7 +512,7 @@ sub clear_graph {
 # Buggy. Does not clear properly after item selection under OSX.
 sub _do_popup_menu {
     # Just clean the graph at the moment.
-    my ($self, $event) = @_;
+    my ($self, $event,$popupobj) = @_;
 
     print Dumper($self);
 
@@ -554,7 +546,7 @@ sub _do_popup_menu {
     # Attach the callback functions to the activate signal
     $logX_item->signal_connect('toggled' => \&toggle,"log X");
     $logY_item->signal_connect('toggled' => \&toggle,"log Y");
-    $clear_item->signal_connect( 'activate' =>  \&clear_graph, $self);
+    $clear_item->signal_connect( 'activate' =>  \&clear_graph, $self,$popupobj);
 
     $display_item->show;
     $display2_item->show;

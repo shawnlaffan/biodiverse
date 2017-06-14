@@ -667,6 +667,21 @@ sub on_grid_click {
     # }
 }
 
+#sub on_grid_enter {
+#    my $self = shift;
+#    my $element = shift;
+#    say "[on_grid_enter]\$element: $element";
+#    #if (defined $self->{popup}->{canvas}) {
+#    #    Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
+#    #}
+#}
+#
+#sub on_grid_leave {
+#    my $self = shift;
+#    say "[on_grid_leave]\$self: $self";
+#}
+
+
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
     my $canvas = $grid->{canvas};

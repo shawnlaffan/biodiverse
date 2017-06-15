@@ -550,6 +550,7 @@ sub init_grid {
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
     my $cell_enter = sub { $self->on_cell_enter(@_); };
     my $cell_leave = sub { $self->on_cell_leave(@_); };
+    my $plot_max = $self->{plot_max_value};
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -563,8 +564,9 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
-        cell_enter_func      => $cell_enter,
-        cell_leave_func       => $cell_leave,
+        cell_enter_func => $cell_enter,
+        cell_leave_func => $cell_leave,
+        plot_max        => $plot_max,
     );
     $self->{grid}->{page} = $self;
     $self->{grid}->{drag_mode} = 'select';

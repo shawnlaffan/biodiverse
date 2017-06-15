@@ -26,6 +26,8 @@ sub add_graph {
     my $list_name = shift;
     my $element = shift;
     my $popupobj = shift;
+    my $max = shift;
+    my $min = shift;
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
@@ -44,7 +46,7 @@ sub add_graph {
 
     if ( ! $background ){
         $background = Biodiverse::GUI::CanvasGraph->new(
-            canvas => $canvas,
+            canvas   => $canvas,
             popupobj => $popupobj
         );
     }
@@ -57,7 +59,9 @@ sub add_graph {
     $background->add_primary_layer(
         graph_values => $list_ref,
         point_colour => COLOUR_LILAC,
-        canvas => $canvas
+        canvas       => $canvas,
+        max          => $max,
+        min          => $min
     );
 
     $popup->set_background($background);

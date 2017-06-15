@@ -580,6 +580,7 @@ sub on_graph_popup {
     my $output_ref = $self->{output_ref};
         
     my @lists = $output_ref->get_lists_across_elements;
+    my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
     my %sources;
 
@@ -594,7 +595,7 @@ sub on_graph_popup {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup});
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup}, $max, $min);
         };
     }
 

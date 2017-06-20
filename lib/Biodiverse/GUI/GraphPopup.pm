@@ -60,8 +60,8 @@ sub add_graph {
         graph_values => $list_ref,
         point_colour => COLOUR_LILAC,
         canvas       => $canvas,
-        max          => $max,
-        min          => $min
+        y_max          => $max,
+        y_min          => $min
     );
 
     $popup->set_background($background);
@@ -80,6 +80,8 @@ sub add_secondary {
     my $list_name = shift;
     my $element = shift;
     my $popupobj = shift;
+    my $max = shift;
+    my $min = shift;
 
     my $secondary_element = $popupobj->get_secondary_element;
     no warnings qw(uninitialized);
@@ -107,7 +109,9 @@ sub add_secondary {
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,
-            canvas => $canvas
+            canvas       => $canvas,
+            y_max          => $max,
+            y_min          => $min
         );
         $secondary->raise_to_top();
         $secondary->show();

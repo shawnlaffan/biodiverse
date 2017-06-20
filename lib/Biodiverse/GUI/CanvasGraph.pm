@@ -27,7 +27,7 @@ use constant NUMBER_OF_AXIS_LABELS => 4;
 # gap from the bottom of the graph to the labels
 use constant X_AXIS_LABEL_PADDING => 15;
 # distance from the left of the graph to the start of the label
-use constant Y_AXIS_LABEL_PADDING => 7;
+use constant Y_AXIS_LABEL_PADDING => 10;
 use constant LABEL_FONT => 'Sans 9';
 use constant TICK_LENGTH => 3; # Length of the tick marks on the x and y axis.
 use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
@@ -35,7 +35,7 @@ use constant COLOUR_GREY         => Gtk2::Gdk::Color->new(224, 224, 224);
 use constant COLOUR_RED          => Gtk2::Gdk::Color->new(65535, 0, 0); # red
 use constant CELL_SIZE_X         => 10;    # Cell size (canvas units)
 use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_LIGHT_GREY        => Gtk2::Gdk::Color->new(240*257, 240*257, 240*257);
+use constant COLOUR_LIGHT_GREY        => Gtk2::Gdk::Color->new(240, 240, 240);
 use constant INDEX_ELEMENT       => 1;  # BaseStruct element for this cell
 use constant BORDER_SIZE         => 20;
 
@@ -90,7 +90,8 @@ sub new {
         x2 => 300,   # 0.75*240+(POINT_WIDTH),
         y2 => $height+POINT_HEIGHT,
         fill_color_gdk => COLOUR_WHITE,
-        outline_color_gdk => COLOUR_BLACK 
+        outline_color_gdk => COLOUR_WHITE
+        #outline_color_gdk => COLOUR_BLACK
     );
     
     $border->lower_to_bottom();
@@ -102,6 +103,36 @@ sub new {
     $self->{back_rect} = $rect;
     $self->{border_rect} = $border;
 
+    # Make a group for the primary plot layer
+    my $tick_group = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root,
+        'Gnome2::Canvas::Group',
+        x => 68,
+
+    );
+    # add X axis line
+    my $x_line = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root, 'Gnome2::Canvas::Line',
+        #points => [70, $height+POINT_HEIGHT, 268, $height+POINT_HEIGHT],
+        points => [0, 0, 0, 0],
+        fill_color_gdk => COLOUR_LIGHT_GREY,
+        width_units => 1
+    );
+
+    $self->{x_line} = $x_line;
+    $x_line->raise_to_top();
+
+    # add Y axis line
+    my $y_line = Gnome2::Canvas::Item->new (
+        $self->{canvas}->root, 'Gnome2::Canvas::Line',
+        #points => [61, 38, 61, 237],
+        points => [0, 0, 0, 0],
+        fill_color_gdk => COLOUR_LIGHT_GREY,
+        width_units => 1
+    );
+    $self->{y_line} = $y_line;
+    $y_line->raise_to_top();
+
     # Create the Label legend
     #my $legend = Biodiverse::GUI::Legend->new(
     #    canvas       => $self->{canvas},
@@ -112,10 +143,12 @@ sub new {
     #$self->set_legend ($legend);
 
     #$self->update_legend;
+    show_ticks_marks($tick_group);
 
     $self->resize_border_rect();
     $self->resize_background_rect();
-
+    $self->resize_x_line();
+    $self->resize_y_line();
     return $self;
 }
 
@@ -125,8 +158,8 @@ sub add_primary_layer {
     my %graph_values = %{$args{graph_values}};
     my $canvas       = $args{canvas};
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
-    my $max          = $args{max};
-    my $min          = $args{min};
+    my $y_max          = $args{y_max};
+    my $y_min          = $args{y_min};
     return if ( ! %graph_values );
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -151,6 +184,7 @@ sub add_primary_layer {
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
+        y_max        => $y_max,
         old_values   => \%graph_values,
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
@@ -169,8 +203,8 @@ sub add_primary_layer {
                                                 canvas        => $primary_group,
                                                 canvas_width  => $canvas_width,
                                                 canvas_height => $canvas_height,
-                                                max           => $max,
-                                                min           => $min
+                                                y_max           => $y_max,
+                                                y_min           => $y_min
             );
     }
     $self->resize_primary_points();
@@ -184,6 +218,8 @@ sub add_secondary_layer {
     my %graph_values = %{$args{graph_values}};
     my $point_colour = $args{point_colour} // COLOUR_RED;
     my $canvas       = $args{canvas};
+    my $y_max          = $args{y_max};
+    my $y_min          = $args{y_min};
 
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -210,6 +246,7 @@ sub add_secondary_layer {
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
+        y_max        => $y_max,
         old_values   => \%graph_values,
         canvas_width => $canvas_width,
         canvas_height => $canvas_height,
@@ -249,6 +286,15 @@ sub plot_points {
     # plot the points
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
+#        my $circle = Gnome2::Canvas::Item->new (
+#                                                 $root,
+#                                                 'Gnome2::Canvas::Ellipse',
+#                                                 x1 => $x-$point_width,
+#                                                 y1 => $y-$point_height,
+#                                                 x2 => $x+$point_width,
+#                                                 y2 => $y+$point_height,
+#                                                 fill_color => 'grey',
+#                                                 outline_color => 'black');
         
         my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
                                              x1 => $x-$point_width, 
@@ -263,8 +309,9 @@ sub plot_points {
 
 sub rescale_graph_points {
     my ($self, %args) = @_;
-    my %old_values = %{$args{old_values}};
-    my $canvas_width = $args{canvas_width};
+    my $y_max          = $args{y_max};
+    my %old_values    = %{$args{old_values}};
+    my $canvas_width  = $args{canvas_width};
     my $canvas_height = $args{canvas_height};
 
     # find the max and min for the x and y axis.
@@ -276,7 +323,11 @@ sub rescale_graph_points {
     my $min_x = min @x_values;
     my $max_x = max @x_values;
     my $min_y = min @y_values;
-    my $max_y = max @y_values;
+    my $max_y = $y_max // max @y_values;
+    my $max_y_values = max @y_values;
+    if ($max_y_values > $max_y) {
+        $max_y = $max_y_values;
+   }
 
     #say "x, y min max is ($min_x, $max_x), ($min_y, $max_y)";
 
@@ -297,6 +348,10 @@ sub rescale_graph_points {
         my $new_y = $canvas_height - (($canvas_height)*($y-$min_y) / ($max_y-$min_y));
 
         $new_values{$new_x} = $new_y;
+        #say "[rescale_graph_points] \$x: $x, new \$x: $new_x";
+        #say "[rescale_graph_points] \$y: $y, new \$y: $new_y";
+        #say "[rescale_graph_points] \$max_y: $max_y";
+        #say "[rescale_graph_points] \$max_y_values: $max_y_values";
     }
 
     return wantarray? %new_values : \%new_values;
@@ -309,15 +364,15 @@ sub add_axis_labels_to_graph_canvas {
     my $canvas_width  = $args{canvas_width};
     my $canvas_height = $args{canvas_height};
     my $root          = $canvas;
-    my $max           = $args{max};
-    my $min           = $args{min};
+    my $y_max           = $args{y_max};
+    my $y_min           = $args{y_min};
 
     my @x_values = keys %graph_values;
     my @y_values = values %graph_values;
     my $min_x = min @x_values;
     my $max_x = max @x_values;
-    my $min_y = $min; # min value for whole grid
-    my $max_y = $max; # max value for whole grid
+    my $min_y = $y_min; # min value for whole grid
+    my $max_y = $y_max; # max value for whole grid
     #my $min_y = min @y_values; # min value for cell
     #my $max_y = max @y_values; # max value for cell
 
@@ -334,21 +389,22 @@ sub add_axis_labels_to_graph_canvas {
         $text = sprintf("%.4g", $text);
         my $x_label = Gnome2::Canvas::Item->new (
             $root, 'Gnome2::Canvas::Text',
-            x => $x_position - 2,
+            x => $x_position,
             y => $canvas_height+X_AXIS_LABEL_PADDING,
             fill_color => 'black',
             font => 'Sans 9',
-            anchor => 'GTK_ANCHOR_NW',
+            anchor => 'GTK_ANCHOR_N',
+            justification =>  'center',
             text => $text,
         );
 
         # X axis tick marks
-        my $x_line = Gnome2::Canvas::Item->new (
-            $root, 'Gnome2::Canvas::Line',
-            points => [$x_position, $canvas_height+5, $x_position, $canvas_height+5+TICK_LENGTH],
-            fill_color_gdk => COLOUR_BLACK,
-            width_units => 1
-      );
+#        my $x_line = Gnome2::Canvas::Item->new (
+#            $root, 'Gnome2::Canvas::Line',
+#            points => [$x_position, $canvas_height+4, $x_position, $canvas_height+4+TICK_LENGTH],
+#            fill_color_gdk => COLOUR_BLACK,
+#            width_units => 1
+#      );
     }
 
     # y axis labels
@@ -361,24 +417,24 @@ sub add_axis_labels_to_graph_canvas {
 
         # TODO Add format choice
         $text = sprintf("%.4f", $text);
-        my $x_label = Gnome2::Canvas::Item->new (
+        my $y_label = Gnome2::Canvas::Item->new (
             $root, 'Gnome2::Canvas::Text',
             x => - Y_AXIS_LABEL_PADDING,
-            y => $y_position - 3,
+            y => $y_position,
             fill_color => 'black',
             font => LABEL_FONT,
-            anchor => 'GTK_ANCHOR_NE',
+            anchor => 'GTK_ANCHOR_E',
             justification =>  'right',
             text => $text,
             );
 
         # Y axis tick marks
-        my $y_line = Gnome2::Canvas::Item->new (
-            $root, 'Gnome2::Canvas::Line',
-            points => [-TICK_LENGTH, $y_position, 0, $y_position],
-            fill_color_gdk => COLOUR_BLACK,
-            width_units => 1
-        );
+#        my $y_line = Gnome2::Canvas::Item->new (
+#            $root, 'Gnome2::Canvas::Line',
+#            points => [- Y_AXIS_LABEL_PADDING, $y_position, - Y_AXIS_LABEL_PADDING + TICK_LENGTH, $y_position],
+#            fill_color_gdk => COLOUR_BLACK,
+#            width_units => 1
+#        );
 
     }
 }
@@ -398,6 +454,8 @@ sub on_size_allocate {
         $self->resize_border_rect();
         $self->resize_background_rect();
         $self->resize_primary_points();
+        $self->resize_x_line();
+        $self->resize_y_line();
         $self->resize_secondary_points() if $self->get_secondary;;
         }
     
@@ -448,6 +506,46 @@ sub resize_border_rect {
     return;
 }
 
+# Resize the x axis line
+sub resize_x_line {
+    my $self = shift;
+    if ($self->{width_px}) {
+        # Make it centered on the visible area
+        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        if (not $self->{dragging}) {
+            $self->{x_line}->set(
+                points => [
+                ((max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH // 1),
+                ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1),
+                ((max($width,  $self->{width_units})/2) + 100 + POINT_WIDTH // 1),
+                ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1)]
+            );
+            $self->{x_line}->raise_to_top();
+        }
+    }
+    return;
+}
+
+# Resize the y axis line
+sub resize_y_line {
+    my $self = shift;
+    if ($self->{width_px}) {
+        # Make it centered on the visible area
+        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        if (not $self->{dragging}) {
+            $self->{y_line}->set(
+                points => [
+                ((max($width,  $self->{width_units})/2)  - 107 - POINT_WIDTH // 1),
+                ((max($height, $self->{height_units})/2) - 100 - POINT_WIDTH // 1),
+                ((max($width,  $self->{width_units})/2)  - 107 - POINT_WIDTH // 1),
+                ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1)]
+            );
+            $self->{y_line}->raise_to_top();
+        }
+    }
+    return;
+}
+
 # Resize the graph primary points
 sub resize_primary_points {
     my $self = shift;
@@ -484,7 +582,36 @@ sub set_zoom_fit_flag {
     $self->{zoom_fit} = $zoom_fit;
 }
 
+sub show_ticks_marks {
+    my $root = shift;
 
+    my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
+    my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;
+
+    # y axis labels
+    foreach my $axis_label (0..($number_of_axis_labels-1)) {
+        my $x_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_width;
+        my $y_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_height;
+        $y_position = $canvas_height - $y_position;
+
+        # Y axis tick marks
+        my $y_line = Gnome2::Canvas::Item->new (
+            $root, 'Gnome2::Canvas::Line',
+            points => [- Y_AXIS_LABEL_PADDING, $y_position, - Y_AXIS_LABEL_PADDING + TICK_LENGTH, $y_position],
+            fill_color_gdk => COLOUR_BLACK,
+            width_units => 1
+        );
+
+        # X axis tick marks
+        my $x_line = Gnome2::Canvas::Item->new (
+            $root, 'Gnome2::Canvas::Line',
+            points => [$x_position, $canvas_height+4, $x_position, $canvas_height+4+TICK_LENGTH],
+            fill_color_gdk => COLOUR_BLACK,
+            width_units => 1
+      );
+
+    }
+}
 # Implements panning
 sub on_background_event {
     my ($self, $event, $cell) = @_;

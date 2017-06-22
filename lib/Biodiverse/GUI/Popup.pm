@@ -150,8 +150,7 @@ sub make_dialog {
     #    if (! $canvas) {
             #  get the frame and add a canvas to it
             my $frame = $dlgxml->get_object('graphDrawingFrame');
-
-            $canvas = Gnome2::Canvas->new();
+            $canvas = Gnome2::Canvas->new_aa();
             $canvas->set_scroll_region(0, 0, 200, 200);
             $frame->add($canvas);
             $frame->set_size_request(400, 400);

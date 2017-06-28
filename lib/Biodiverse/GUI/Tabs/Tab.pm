@@ -581,8 +581,8 @@ sub on_graph_popup {
         
     my @lists = $output_ref->get_lists_across_elements;
 
-    # Get the max and min plot values.
-    my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
+    # Get the y max and min plot values.
+    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
     my %sources;
 
@@ -597,7 +597,7 @@ sub on_graph_popup {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup}, $max, $min);
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
         };
     }
 
@@ -606,8 +606,6 @@ sub on_graph_popup {
 
     Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
 
-    #my $graph_popup_init = 1;
-    #$self->{popup}->{graph_popup_init} = $graph_popup_init;
 }
 
 sub on_add_secondary_to_graph_popup {
@@ -618,7 +616,7 @@ sub on_add_secondary_to_graph_popup {
     my $output_ref = $self->{output_ref};
 
     # Get the max and min plot values.
-    my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
+    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
     my @lists = $output_ref->get_lists_across_elements;
 
@@ -629,7 +627,7 @@ sub on_add_secondary_to_graph_popup {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub {
-            Biodiverse::GUI::GraphPopup::add_secondary(@_, $output_ref, $list_name, $element, $self->{popup}, $max, $min);
+            Biodiverse::GUI::GraphPopup::add_secondary(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
         };
     }
 

@@ -65,6 +65,7 @@ sub add_graph {
     );
 
     $popup->set_background($background);
+    $popup->set_primary($background->get_primary);
     $popup->set_secondary($background->get_secondary);
     $popup->set_list_ref($list_ref);
 

@@ -63,7 +63,6 @@ sub get_background {
 sub set_primary {
     my $self = shift;
     my $primary = shift;
-    say "[set_primary] \$self: $self";
     $self->{primary} = $primary;
 }
 
@@ -138,6 +137,16 @@ sub clear_secondary {
     if ($secondary) {
         #say "[clear_secondary] destroy \$secondary: $secondary";
         $self->{secondary}->destroy();
+    }
+}
+
+# remove the primary layer
+sub clear_primary {
+    my $self = shift;
+    my $primary = shift;
+    if ($primary) {
+        #say "[clear_primary] destroy \$primary: $primary";
+        $self->{primary}->destroy();
     }
 }
 

@@ -1820,7 +1820,6 @@ sub set_plot_min_max_values {
 
     my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
-
     my $stats = $self->{stats}{$list}{$index};
 
     if (not $stats) {

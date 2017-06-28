@@ -79,7 +79,7 @@ sub new {
 
     $self->{canvas}->root->signal_connect_swapped (
         event => \&on_background_event,
-        $self,
+        [$self,$popupobj],
     );
     #$rect->signal_connect (button_release_event => \&_do_popup_menu); 
 
@@ -213,6 +213,8 @@ sub add_primary_layer {
                                                 y_min           => $y_min
             );
     }
+    $self->set_primary($primary_group);
+
     $self->resize_primary_points();
     $primary_group->raise_to_top();
     $primary_group->show();
@@ -378,8 +380,8 @@ sub add_axis_labels_to_graph_canvas {
     my @y_values = values %graph_values;
     my $min_x = min @x_values;
     my $max_x = max @x_values;
-    my $min_y = $y_min; # min value for whole grid
-    my $max_y = $y_max; # max value for whole grid
+    my $min_y = $y_min; # min value for the plot
+    my $max_y = $y_max; # max value for the plot
     #my $min_y = min @y_values; # min value for cell
     #my $max_y = max @y_values; # max value for cell
 
@@ -593,12 +595,15 @@ sub show_ticks_marks {
 }
 # Implements panning
 sub on_background_event {
-    my ($self, $event, $cell) = @_;
+    my ($array_ref, $event, $cell) = @_;
+    my $self = $array_ref->[0];
+    my $popupobj = $array_ref->[1];
+
     # Do everything with right click now.
     return if $event->type =~ m/^button-/ && $event->button != 3;
     if ($event->type eq 'button-press') {
         my $button_nr = $event->button;
-        ($button_nr == 3)&& (_do_popup_menu($self->{canvas}->root));
+        ($button_nr == 3)&& (_do_popup_menu([$self->{canvas}->root,$popupobj]));
     }
     return 0;
 }
@@ -620,31 +625,32 @@ sub fit_grid {
 
 sub clear_graph {
     my $self = shift;
-    my $canvas = shift;
-    my $root = $canvas;
+    my $popupobj = shift;
 
-    say "clear_graph";
 
-    #my $primary = $popupobj->get_primary;
-    #my $secondary = $popupobj->get_secondary;
-    #if ($popupobj->get_primary) {
-    #    $popupobj->clear_primary($secondary);
-    #}
-    #if ($popupobj->get_secondary) {
-    #    $popupobj->clear_secondary($secondary);
-    #}
+    my $primary = $popupobj->get_primary;
+    my $secondary = $popupobj->get_secondary;
+
+    if ($popupobj->get_primary) {
+        $popupobj->clear_primary($primary);
+    }
+    if ($popupobj->get_secondary) {
+        $popupobj->clear_secondary($secondary);
+    }
     return;
 }
 
 # Popup menu for the graph.
 # Buggy. Does not clear properly after item selection under OSX.
 sub _do_popup_menu {
-    # Just clean the graph at the moment.
-    my ($self, $event,$popupobj) = @_;
+    #my ($self, $event,$popupobj) = @_;
+    my $array = shift;
+    my $event = shift;
+    my $popupobj = shift;
 
-    print Dumper($self);
+    my $self = $array->[0];
+    my $popupobj = $array->[1];
 
-    say "[_do_popup_menu] \$self: $self";
     # Create the menu items
     my $menu = Gtk2::Menu->new;
     my $logX_item = Gtk2::CheckMenuItem->new('_log X');
@@ -653,18 +659,18 @@ sub _do_popup_menu {
     my $sep_item = Gtk2::SeparatorMenuItem->new();
     my $sep2_item = Gtk2::SeparatorMenuItem->new();
 
-    my $display_item = Gtk2::RadioMenuItem->new(undef,'Refresh with selection');
+    #my $display_item = Gtk2::RadioMenuItem->new(undef,'Refresh with selection');
     #connect to the toggled signal to catch the changes
-    $display_item->signal_connect('toggled' => \&toggle,"Refresh with selection");
-    my $group = $display_item->get_group;
-    my $display2_item = Gtk2::RadioMenuItem->new($group, 'Add selection');
+    #$display_item->signal_connect('toggled' => \&toggle,"Refresh with selection");
+    #my $group = $display_item->get_group;
+    #my $display2_item = Gtk2::RadioMenuItem->new($group, 'Add selection');
     #connect to the toggled signal to catch the changes
-    $display2_item->signal_connect('toggled' => \&toggle,"Add selection");
+    #$display2_item->signal_connect('toggled' => \&toggle,"Add selection");
 
 
     # Add them to the menu
-    $menu->append($display_item);
-    $menu->append($display2_item);
+    #$menu->append($display_item);
+    #$menu->append($display2_item);
     $menu->append($sep2_item);
     $menu->append($logX_item);
     $menu->append($logY_item);
@@ -674,11 +680,11 @@ sub _do_popup_menu {
     # Attach the callback functions to the activate signal
     $logX_item->signal_connect('toggled' => \&toggle,"log X");
     $logY_item->signal_connect('toggled' => \&toggle,"log Y");
-    $clear_item->signal_connect( 'activate' =>  \&clear_graph, $self,$popupobj);
+    $clear_item->signal_connect( 'activate' =>  \&clear_graph,$popupobj);
 
-    $display_item->show;
-    $display2_item->show;
-    $sep2_item->show;
+    #$display_item->show;
+    #$display2_item->show;
+    #$sep2_item->show;
     $logX_item->show;
     $logY_item->show;
     $sep_item->show;
@@ -700,6 +706,7 @@ sub toggle {
 sub set_primary {
     my $self = shift;
     my $primary = shift;
+
     $self->{primary} = $primary;
 }
 

@@ -17,6 +17,7 @@ use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
+use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Naturally qw /ncmp/;
@@ -35,8 +36,7 @@ use English qw { -no_match_vars };
 
 #use Math::Random::MT::Auto qw /rand srand shuffle/;
 
-use
-  Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
+use Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects
 use Biodiverse::Spatial;
 use Biodiverse::RegionGrower;

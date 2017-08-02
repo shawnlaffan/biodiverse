@@ -1722,7 +1722,7 @@ sub on_name_changed {
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_object('txtClusterName')->get_text();
 
-    my $label_widget = $self->{xmllabel}->get_object('lblClusteringName');
+    my $label_widget = $self->{xmlLabel}->get_object('lblClusteringName');
     $label_widget->set_text($name);
 
     my $tab_menu_label = $self->{tab_menu_label};

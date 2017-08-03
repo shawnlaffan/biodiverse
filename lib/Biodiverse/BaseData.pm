@@ -3421,20 +3421,21 @@ sub delete_sub_element {
 sub delete_sub_element_aa {
     my ( $self, $label, $group ) = @_;
 
-    my $groups_ref = $self->get_groups_ref;
-    my $labels_ref = $self->get_labels_ref;
+    #my $groups_ref = $self->get_groups_ref;
+    #my $labels_ref = $self->get_labels_ref;
 
-#  return value of delete_sub_element_aa is the number of subelements remaining,
-#  or undef if no subelements list
+    #  return value of delete_sub_element_aa
+    #  is the number of subelements remaining,
+    #  or undef if no subelements list
 
-    if ( !( $labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
+    if ( !( $self->get_labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
         $self->delete_element(
             type    => 'LABELS',
             element => $label,
         );
     }
 
-    if ( !( $groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
+    if ( !( $self->get_groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
         $self->delete_element(
             type    => 'GROUPS',
             element => $group,

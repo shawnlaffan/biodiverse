@@ -2433,7 +2433,7 @@ sub swap_to_reach_richness_targets {
         my $target_group = $target_groups_tmp_a->[$i];
 
         my $target_gp_richness
-          = $new_bd->get_richness (element => $target_group) // 0;
+          = $new_bd->get_richness_aa ($target_group) // 0;
 
         #  If the target group is at its richness threshold then
         #  we must first remove one label.

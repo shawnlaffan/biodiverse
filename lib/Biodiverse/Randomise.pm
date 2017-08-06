@@ -2389,11 +2389,6 @@ sub swap_to_reach_richness_targets {
         }
 
         #  select an unassigned label and group pair
-        #my $lb_arr = $cloned_bd->get_labels;
-        #my @labels = sort {$a cmp $b} @$lb_arr;
-        #my $i = int $rand->rand (scalar @labels);
-        #my $add_label = $labels[$i];
-        #my $cl = $cloned_bd_label_arr->[$i] // '';
         my $i = int $rand->rand (scalar @$cloned_bd_label_arr);
         my $add_label = $cloned_bd_label_arr->[$i];
 

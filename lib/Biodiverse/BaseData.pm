@@ -3839,6 +3839,14 @@ sub exists_label {
         element => ( $args{label} // $args{element} ) );
 }
 
+sub exists_label_aa {
+    $_[0]->get_labels_ref->exists_element_aa( $_[1] );
+}
+
+sub exists_group_aa {
+    $_[0]->get_groups_ref->exists_element_aa( $_[1] );
+}
+
 sub exists_label_in_group {
     my $self = shift;
     my %args = @_;

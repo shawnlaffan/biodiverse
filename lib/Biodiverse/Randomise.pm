@@ -2389,14 +2389,13 @@ sub swap_to_reach_richness_targets {
         }
 
         #  select an unassigned label and group pair
-        my $lb_arr = $cloned_bd->get_labels;
-        my @labels = sort {$a cmp $b} @$lb_arr;
-        my $i = int $rand->rand (scalar @labels);
-        my $add_label = $labels[$i];
-        my $cl = $cloned_bd_label_arr->[$i] // '';
-        say '_______' . join ':', scalar @$cloned_bd_label_arr, scalar @labels;
-        say '____ ' . join ':', @$cloned_bd_label_arr;
-        croak "===not match $cl, $add_label ===\n" if $add_label ne $cl;
+        #my $lb_arr = $cloned_bd->get_labels;
+        #my @labels = sort {$a cmp $b} @$lb_arr;
+        #my $i = int $rand->rand (scalar @labels);
+        #my $add_label = $labels[$i];
+        #my $cl = $cloned_bd_label_arr->[$i] // '';
+        my $i = int $rand->rand (scalar @$cloned_bd_label_arr);
+        my $add_label = $cloned_bd_label_arr->[$i];
 
         my $from_groups_hash
           = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
@@ -2414,8 +2413,11 @@ sub swap_to_reach_richness_targets {
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
         $self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
-        if (!$cloned_bd->exists_label (label => $add_label)) {
-            $self->delete_from_sorted_list_aa ($add_label, $cloned_bd_label_arr);
+        if (!$cloned_bd->exists_label_aa ($add_label)) {
+            $self->delete_from_sorted_list_aa (
+                $add_label,
+                $cloned_bd_label_arr,
+            );
             delete $cloned_bd_label_hash{$add_label};
         }
 

@@ -3011,6 +3011,15 @@ sub exists_element {
     exists $self->{ELEMENTS}{$el};
 }
 
+sub exists_element_aa {
+    #my ($self, $el) = @_;
+
+    croak "element not specified\n"
+      if !defined $_[0];
+
+    exists $_[0]->{ELEMENTS}{$_[1]};
+}
+
 sub exists_sub_element {
     my $self = shift;
 

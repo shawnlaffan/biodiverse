@@ -14,18 +14,18 @@ install:
   - set BDV_PPM=https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/ppm/ppm524_x64
   - set have_geo_gdal=0
   - FOR /F "delims=" %%i IN ('perl -MGeo::GDAL -e"print 1"') DO set have_geo_gdal=1
-  - IF %have_geo_gdal%==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
+  - IF "%have_geo_gdal%"=="0" ppm install %BDV_PPM%/Geo-GDAL.ppd
   
   - cpanm --notest Task::Biodiverse::NoGUI
   
   #  until the remap class does not call the GUI:
   - set SIS_PPM=http://www.sisyphusion.tk/ppm
   #  assuming if we have Geo::GDAL then we also have these from the cache
-  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Cairo.ppd 
-  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Glib.ppd 
-  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
-  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Pango.ppd
-  - IF [%have_geo_gdal%]==0 ppm install %SIS_PPM%/Gtk2.ppd
+  - IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Cairo.ppd 
+  - IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Glib.ppd 
+  - IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
+  - IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Pango.ppd
+  - IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gtk2.ppd
 
   #- cpanm --installdeps --notest --with-all-features .
 

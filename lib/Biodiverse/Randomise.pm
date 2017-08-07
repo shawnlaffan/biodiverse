@@ -2341,6 +2341,8 @@ sub swap_to_reach_richness_targets {
     my %groups_without_labels_a;       #  store sorted arrays
     my %cloned_bd_groups_with_label_a;
     my %orig_bd_groups_with_label_a;
+    my %new_bd_labels_in_gps_as_hash;
+    my %new_bd_labels_in_gps_as_array;
     my $cloned_bd_lb_arr = $cloned_bd->get_labels;
     my $cloned_bd_label_arr = [sort @$cloned_bd_lb_arr];
     my %cloned_bd_label_hash;
@@ -2456,6 +2458,13 @@ sub swap_to_reach_richness_targets {
             #  we will remove one of these labels
             my $loser_labels
               = $new_bd->get_labels_in_group_as_hash_aa ($target_group);
+            my $ll = (
+                    $new_bd_labels_in_gps_as_array{$target_group}
+                //= [sort keys %$loser_labels]
+            );
+            #say '';
+            #say join ':', @$ll;
+            #say join ' ', sort keys %$loser_labels;
 
             #  get those labels not in the unfilled groups
             my @loser_labels_filtered
@@ -2495,6 +2504,10 @@ sub swap_to_reach_richness_targets {
 
             #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element_aa ($remove_label, $target_group);
+            $self->delete_from_sorted_list_aa (
+                $remove_label,
+                $new_bd_labels_in_gps_as_array{$target_group},
+            );
 
             #  track the removal only if the tracker hash includes $remove_label
             #  else it will get it next time it needs it
@@ -2577,6 +2590,11 @@ sub swap_to_reach_richness_targets {
                     $removed_count, $csv_object,
                 );
                 $swap_insert_count++;
+                $new_bd_labels_in_gps_as_array{$return_gp} //= [];
+                $self->insert_into_sorted_list_aa (
+                    $remove_label,
+                    $new_bd_labels_in_gps_as_array{$return_gp},
+                );
 
                 my $new_richness = $new_bd->get_richness_aa ($return_gp);
 
@@ -2634,6 +2652,11 @@ sub swap_to_reach_richness_targets {
             $add_count, $csv_object,
         );
         $swap_insert_count++;
+        $new_bd_labels_in_gps_as_array{$target_group} //= [];
+        $self->insert_into_sorted_list_aa (
+            $add_label,
+            $new_bd_labels_in_gps_as_array{$target_group},
+        );
         if (my $aref = $groups_without_labels_a{$add_label}) {
             $self->delete_from_sorted_list_aa ($target_group, $aref);
             if (!scalar @$aref) {

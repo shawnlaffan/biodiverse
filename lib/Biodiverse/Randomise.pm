@@ -2458,9 +2458,12 @@ sub swap_to_reach_richness_targets {
               = $new_bd->get_labels_in_group_as_hash_aa ($target_group);
 
             #  get those labels not in the unfilled groups
-            my @loser_labels_filtered = sort grep {!exists $labels_in_unfilled_gps{$_}} keys %$loser_labels;
+            my @loser_labels_filtered
+              = sort grep {!exists $labels_in_unfilled_gps{$_}}
+                keys %$loser_labels;
 
-            #  but select from all labels if all are in the unfilled groups (i.e. the filtered list is empty)
+            #  but select from all labels if all are in the unfilled groups
+            #  (i.e. the filtered list is empty)
             my $loser_labels_array_to_use = scalar @loser_labels_filtered
                 ? \@loser_labels_filtered
                 : [sort keys %$loser_labels];  #  could cache this as a sorted list

@@ -14,7 +14,7 @@ install:
   - set BDV_PPM=https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/ppm/ppm524_x64
   - set have_geo_gdal=0
   - FOR /F "delims=" %%i IN ('perl -MGeo::GDAL -e"print 1"') DO set have_geo_gdal=1
-  - IF [%have_geo_gdal%]==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
+  - IF %have_geo_gdal%==0 ppm install %BDV_PPM%/Geo-GDAL.ppd
   
   - cpanm --notest Task::Biodiverse::NoGUI
   

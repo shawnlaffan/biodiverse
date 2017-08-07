@@ -2458,7 +2458,7 @@ sub swap_to_reach_richness_targets {
             #  we will remove one of these labels
             my $loser_labels
               = $new_bd->get_labels_in_group_as_hash_aa ($target_group);
-            my $ll = (
+            my $loser_labels_arr = (
                     $new_bd_labels_in_gps_as_array{$target_group}
                 //= [sort keys %$loser_labels]
             );
@@ -2466,13 +2466,13 @@ sub swap_to_reach_richness_targets {
             #  get those labels not in the unfilled groups
             my @loser_labels_filtered
               = sort grep {!exists $labels_in_unfilled_gps{$_}}
-                @$ll;
+                @$loser_labels_arr;
 
             #  but select from all labels if all are in the unfilled groups
             #  (i.e. the filtered list is empty)
             my $loser_labels_array_to_use = scalar @loser_labels_filtered
                 ? \@loser_labels_filtered
-                : [@$ll];  #  could use directly if we modified use of shuffle below
+                : [@$loser_labels_arr];  #  could use directly if we modified use of shuffle below
 
             my $loser_labels_array_shuffled
                 = $rand->shuffle ($loser_labels_array_to_use);

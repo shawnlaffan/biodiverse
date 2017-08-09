@@ -2971,7 +2971,10 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    1;
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 #  array args version to avoid the args hash creation

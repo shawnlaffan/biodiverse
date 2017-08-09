@@ -2997,7 +2997,10 @@ sub delete_sub_element_aa {
     }
     delete $href->{SUBELEMENTS}{$sub_element};
 
-    scalar keys %{$href->{SUBELEMENTS}};
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {

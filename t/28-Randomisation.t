@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-
+local $| = 1;
 use 5.010;
 use strict;
 use warnings;
@@ -53,6 +53,7 @@ sub main {
     
     foreach my $sub (sort @subs) {
         no strict 'refs';
+        diag "Running $sub";
         $sub->();
     }
 

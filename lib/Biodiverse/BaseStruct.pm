@@ -3021,7 +3021,7 @@ sub exists_element_aa {
     #my ($self, $el) = @_;
 
     croak "element not specified\n"
-      if !defined $_[0];
+      if !defined $_[1];
 
     exists $_[0]->{ELEMENTS}{$_[1]};
 }

@@ -2216,6 +2216,7 @@ sub get_rand_structured_subset {
             $progress->update ($progress_text, (scalar keys %done) / $to_do);
 
             $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+            $subset_bd->rename (new_name => "subset $group");
 
             for my $nbr_group (@nbrs_to_check) {       
                 my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);

@@ -53,7 +53,7 @@ sub main {
     
     foreach my $sub (sort @subs) {
         no strict 'refs';
-        diag "Running $sub";
+        #diag "Running $sub";
         $sub->();
     }
 

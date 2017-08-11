@@ -1292,6 +1292,7 @@ sub test_label_properties_reassigned {
     ok (!$e, 'Label properties assigned without eval error');
     
     my $prop_keys = $bd->get_labels_ref->get_element_property_keys;  #  trigger some caching which needs to be cleared
+    #my $prop_keys = [];    
 
     #  name is short for sub name
     my $sp = $bd->add_spatial_output (name => 't_l_p_r');
@@ -1311,7 +1312,8 @@ sub test_label_properties_reassigned {
         #by_item   => 1,
     );
 
-    while (my ($props_func, $negate_expected) = each %prop_handlers) {
+    foreach my $props_func (sort keys %prop_handlers) {
+        my $negate_expected = $prop_handlers{$props_func};
 
         my $rand_name   = 'r' . $object_name . $props_func;
 

@@ -353,7 +353,7 @@ sub check_rand_function_is_valid {
     my $valid = exists $rand_functions{$function};
 
     croak "Randomisation function $function is not one of "
-          . join (', ', keys %rand_functions)
+          . join (', ', sort keys %rand_functions)
           . "\n"
       if !$valid;
 
@@ -2370,6 +2370,16 @@ sub swap_to_reach_richness_targets {
         quote_char => $bd->get_param ('QUOTES'),
     );
 
+#  debuggery
+#say '++++++';
+#say join ' ', @{$rand->get_state};
+#say '++++++';
+#my @st = qw /4604605761774546606 12028258828340103986 16099555594579468232 4837984775212904038 4352298933789646433 4041972252215673234 5768238916228264954 7925306767408348055 7488348415524171999 12417287344254084102 11070418237287110863 2456419090561506883 3319005613257292089 7335617826490227896 1406795320200564884 16705936005617352618 12959935186444161156 14590615807024942385 17476595709830820056 17892778422973846120 4202465725360848230 8913074983275735413 16929002184704001253 4286178247421096315 14899380753365461790 17957430122355072232 15167283179604087411 527164787130980114 12515061948564916262 13999827297413032544 14379885873767728817 2416562308322963905 12985205317447547864 7575476568873844853 17582110333706471777 4011365508237669990 13276898008117019503 2355763207909933441 3336586234185556339 9502658543203835597 8589344357407044251 9409274381988792497 7742007473114906213 11850711877622126566 7142642940118202147 14790091391553368783 8273090992679227120 11517399438567493894 5564004013831018270 3323435479615015219 2333781205842746134 17808408969740440965 6044617774878430359 1209534460175760850 7505143072450589652 79354762887538124 13513557628079379760 11594347518777446310 4613504276589957654 12826192108933417312 10246340745495130995 15148181128709280885 14188802726171573527 11088151591930836261 3399055450616875975 12065076565577204709 5858154136436064161 17939760897591782449 13713114442775200409 12402459929121848015 2205256379544457244 8733999736483777228 17473873093138470644 80341852738064659 17876383424293252114 8276801080288098970 4526087541441528405 15277012515694786605 14207811973834648778 17170416405289314378 9438246433367352659 2253395442538511730 17769067858851732715 2690356802743020682 11531005686939027687 16538334275586930408 17257120584482819304 2054285389840596606 761353651566742253 12401050736834418133 7912776175788614108 2105570199476192560 17309166522696981658 5404047348104915344 14356836387640438401 8790976299238103522 3559070609570740337 4821589573747029611 11767899813327639799 13413074747270939714 9237586401879186805 7588769727305421085 14954790251951291800 5172853591307607357 7138091410606588721 3964840243052211366 7540475494164564868 14848988255364764737 7625739146145381143 8485396520014935117 16916187707275332611 3969154639998331532 4109893844263582828 15214447354983207328 4308762190800679817 9860715909048914486 11098479785519947613 17961656612086985796 1881386487744428458 2586483870624006441 1283499144653425223 13159135165246517160 8303966118971391057 16455488730273166245 6443896217287454402 13284417689437835158 11410180639661282258 1428475885260229539 9658847218395898675 3441434464188419318 1488759595530706095 6243926119460325929 941885663969589213 8427317644182016646 9785529891323332764 1789368976406344436 5290754773699690630 6153735956093678659 796718397021890342 8423361588988747719 17976231060482386620 9395524612609157351 1925492168304667211 12776907963163416047 11547816119036469801 9872940694842039912 11882608900265720723 740727250501082075 1218742479837980391 14191967450766073873 7336802111146096442 2185773693822557036 12651677406141862406 13499972837086747444 10734819254236052160 5747793491086348118 6109774937260521 13301604997444058052 13780707525655743978 2605119678176785700 11578530964230306410 4023155254152563996 4523024090641137857 12797220294543292920 9860078710440586904 624712920297917951 17013762873072530511 17907186763842641773 5553905336308809524 15917284833935968076 14077291103885219163 2165449045289322094 14722377481118427543 1625138597269829191 1210013731305274627 10599422936509417443 4834216232465484915 4807880631002621252 18241366938229880233 18236296312929616159 17346834067265317822 16555094286336859587 903814074227769161 3624493219077603458 6241161919331724851 6390231388879393824 12912819395507044328 7631696045787905182 13217911534140742018 18409823318106708061 10796538513277474762 8544268477230140146 5922127675172039376 10216991866260975793 11074024980536063315 3371989866950152660 332508097082523431 3382930262243585030 12925970823660150925 14310293355723730747 16731647101192293934 17611141351644423343 14879403690707693269 11355301385283538752 3684894511847086618 5889460984330049080 6340650224120993534 529911889250293587 17406834681703199632 527447270815848035 7105311252846262824 16688590388348751383 18025481490549126020 9661579276007988158 8626407846687973698 18306570457243282245 5435510886462233556 3512558378072932612 13075937910392473261 14958223267599520529 12881419887307620886 16552927037373480108 12531415108855432889 11121362393887302942 3106926223824282475 16124126081242718983 10377478751329394515 10340138690316994913 8271474992640209764 164452744158336451 9052590417931598251 6037990823867365836 867476077193311010 17895465446994443963 8253779831615900136 9064894420763423823 14931032696061205756 17115355634354909091 18044594004383858425 4680780100935674483 17304725336701454863 3481870624334589869 13054793535402596086 15961963185298721755 2273126495041399905 15687214258252214256 3062947638590945137 901658307213451971 3066077357746861503 11954568236265999384 15375596883877953543 15128981312011947566 14014586996402071951 3453802310876794302 10878312862389693629 9915780158526209613 228056370964694850 3192690799253838422 10934975137631630013 14505973951199153051 7397907489574212059 8602439505800168365 13279443354064732444 4850545441664609410 18260925878139006525 320273254162012695 9796607673301015500 6316905708417145345 1617353618255499252 17291998727977226615 18313405742266228472 12490021990470186741 16723162678104841795 8644849723364791469 10334396591250887379 3457537939435730329 1608221349780979705 3743718566424171170 10678423656354956747 17389925300386296355 6405617688708517885 13902112357039739375 5682610812987069999 8801379466556335176 14110633708227724584 6038354423754465808 13341237080992616191 10292175804432043444 5011614061943127843 1818376866154759799 13833961800549029622 7968710927165096191 13885825997623622627 2983544106314690640 12434003019008340589 666602296473061647 17420570119781842695 7181754778439327707 7806551186709847406 4128380064450312397 15220869668405564609 8998112700050465759 11759737540192134844 14313331633849896956 8526985019025690174 6286467910394523271 17092065754641184691 10156117143945550518 13778583210679262129 4139083881182189931 11711734417351549254 4175293726251677697 267 0 0 -1 0 0 0 -1 0 -1 0 0/;
+#$rand->set_state (\@st);
+#
+#my $tn = $new_bd->get_groups_ref->to_table (list => 'SUBELEMENTS', symmetric => 1);
+#my $tb = $bd->get_groups_ref->to_table (list => 'SUBELEMENTS', symmetric => 1);
+
     #  and now we do some amazing cell swapping work to
     #  shunt labels in and out of groups until we're happy
 
@@ -2396,6 +2406,10 @@ sub swap_to_reach_richness_targets {
         %unfilled_gps_without_label,
         %unfilled_gps_without_label_by_gp,
     );
+    my %tracker_hashes;  #  for debug purposes
+    $tracker_hashes{labels_in_unfilled_gps}     = \%labels_in_unfilled_gps;
+    $tracker_hashes{unfilled_gps_without_label} = \%unfilled_gps_without_label;
+    $tracker_hashes{unfilled_gps_without_label_by_gp} = \%unfilled_gps_without_label_by_gp;
     foreach my $gp (keys %unfilled_groups) {
         my $list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
         foreach my $label ($bd->get_labels) {
@@ -2403,10 +2417,10 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$label}++;
             }
             else {
-                $unfilled_gps_without_label{$label} //= [];
+                my $list = $unfilled_gps_without_label{$label} //= [];
                 $self->insert_into_sorted_list_aa (
                     $gp,
-                    $unfilled_gps_without_label{$label},
+                    $list,
                 );
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
@@ -2426,6 +2440,13 @@ sub swap_to_reach_richness_targets {
     my %cloned_bd_label_hash;
     @cloned_bd_label_hash{@$cloned_bd_label_arr} = undef;
     $cloned_bd_lb_arr = undef;  #  clean up
+    #  for debug purposes
+    $tracker_hashes{groups_without_labels_a}       = \%groups_without_labels_a;
+    $tracker_hashes{cloned_bd_groups_with_label_a} = \%cloned_bd_groups_with_label_a;
+    $tracker_hashes{orig_bd_groups_with_label_a}   = \%orig_bd_groups_with_label_a;
+    $tracker_hashes{new_bd_labels_in_gps_as_hash}  = \%new_bd_labels_in_gps_as_hash;
+    $tracker_hashes{new_bd_labels_in_gps_as_array} = \%new_bd_labels_in_gps_as_array;
+    $tracker_hashes{cloned_bd_label_hash}          = \%cloned_bd_label_hash;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
@@ -2488,6 +2509,9 @@ sub swap_to_reach_richness_targets {
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
         $self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
+        if (!scalar @$from_cloned_groups_tmp_a) {
+            delete $cloned_bd_groups_with_label_a{$add_label};
+        }
         if (!$cloned_bd->exists_label_aa ($add_label)) {
             $self->delete_from_sorted_list_aa (
                 $add_label,
@@ -2566,6 +2590,7 @@ sub swap_to_reach_richness_targets {
 
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array_shuffled) {
+                no autovivification;
                 #  Do we have any unfilled groups without this label?
                 my $x = $unfilled_gps_without_label{$label} // [];
 
@@ -2594,9 +2619,9 @@ sub swap_to_reach_richness_targets {
                 );
             }
             #   unfilled_groups condition will never trigger in this if-branch
-            if (exists $unfilled_groups{$target_group}) {  
-                $unfilled_gps_without_label{$remove_label}{$target_group}++;  #  breakage if ever it
-            }
+            #if (exists $unfilled_groups{$target_group}) {  
+            #    $unfilled_gps_without_label{$remove_label}{$target_group}++;  #  breakage if ever it
+            #}
 
             if (! $swap_to_unfilled) {
                 #say ":: Swap to unfilled $remove_label";
@@ -2646,6 +2671,7 @@ sub swap_to_reach_richness_targets {
                 }
             }
             else {
+                no autovivification;
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups
@@ -2665,10 +2691,9 @@ sub swap_to_reach_richness_targets {
                     $removed_count, $csv_object,
                 );
                 $swap_insert_count++;
-                $new_bd_labels_in_gps_as_array{$return_gp} //= [];
                 $self->insert_into_sorted_list_aa (
                     $remove_label,
-                    $new_bd_labels_in_gps_as_array{$return_gp},
+                    $new_bd_labels_in_gps_as_array{$return_gp} // [],
                 );
 
                 my $new_richness = $new_bd->get_richness_aa ($return_gp);
@@ -2683,6 +2708,9 @@ sub swap_to_reach_richness_targets {
                 #  no need to go looking for the index using a binary search - we already have it
                 splice @$unfilled_aref, $i, 1;
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
+                if (!scalar @$unfilled_aref) {
+                    delete $unfilled_gps_without_label{$remove_label};
+                }
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     $self->delete_from_sorted_list_aa ($return_gp, $aref);
                     if (!scalar @$aref) {
@@ -2699,6 +2727,9 @@ sub swap_to_reach_richness_targets {
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
                         $self->delete_from_sorted_list_aa ($last_filled, $list);
+                        if (!scalar @$list) {
+                            delete $unfilled_gps_without_label{$label};
+                        }
                     }
                     delete $unfilled_gps_without_label_by_gp{$last_filled};
                   LB:
@@ -2718,6 +2749,12 @@ sub swap_to_reach_richness_targets {
 
             if (!($swap_out_count % 10000)) {
                 say "Swap count $swap_out_count";
+                #use Data::Dump qw /dump/;
+                #use Test::More;
+                #diag '=====';
+                #diag Data::Dump::dump \%tracker_hashes;
+                #diag '=====';
+                #my $x = <STDIN>;
             }
         }
 
@@ -2727,10 +2764,9 @@ sub swap_to_reach_richness_targets {
             $add_count, $csv_object,
         );
         $swap_insert_count++;
-        $new_bd_labels_in_gps_as_array{$target_group} //= [];
         $self->insert_into_sorted_list_aa (
             $add_label,
-            $new_bd_labels_in_gps_as_array{$target_group},
+            $new_bd_labels_in_gps_as_array{$target_group} //= [],
         );
         if (my $aref = $groups_without_labels_a{$add_label}) {
             $self->delete_from_sorted_list_aa ($target_group, $aref);
@@ -2742,6 +2778,9 @@ sub swap_to_reach_richness_targets {
             my $list = $unfilled_gps_without_label{$add_label};
             $self->delete_from_sorted_list_aa ($target_group, $list);
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
+            if (!scalar @$list) {
+                delete $unfilled_gps_without_label{$add_label};
+            }
         }
 
         #  check if we've filled this group, if nothing was swapped out
@@ -2759,6 +2798,9 @@ sub swap_to_reach_richness_targets {
             foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
                 my $list = $unfilled_gps_without_label{$label};
                 $self->delete_from_sorted_list_aa ($target_group, $list);
+                if (!scalar @$list) {
+                    delete $unfilled_gps_without_label{$label};
+                }
             }
             delete $unfilled_gps_without_label_by_gp{$target_group};
             $last_filled = $target_group;

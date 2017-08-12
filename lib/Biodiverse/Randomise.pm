@@ -2410,23 +2410,19 @@ sub swap_to_reach_richness_targets {
     $tracker_hashes{labels_in_unfilled_gps}     = \%labels_in_unfilled_gps;
     $tracker_hashes{unfilled_gps_without_label} = \%unfilled_gps_without_label;
     $tracker_hashes{unfilled_gps_without_label_by_gp} = \%unfilled_gps_without_label_by_gp;
-    foreach my $gp (keys %unfilled_groups) {
+    my @sorted_bd_labels = sort $bd->get_labels; 
+    foreach my $gp (sort keys %unfilled_groups) {
         my $list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
-        foreach my $label ($bd->get_labels) {
+        foreach my $label (@sorted_bd_labels) {
             if (exists $list->{$label}) {
                 $labels_in_unfilled_gps{$label}++;
             }
             else {
                 my $sublist = $unfilled_gps_without_label{$label} //= [];
-                push @$sublist, $gp;  #  we will sort below in bulk
+                push @$sublist, $gp;
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
         }
-    }
-    #  bulk sort is faster than binsearch insert
-    foreach my $key (keys %unfilled_gps_without_label) {
-        $unfilled_gps_without_label{$key}
-          = [sort @{$unfilled_gps_without_label{$key}}];
     }
     my $target_has_empty_gps = any {!$_} values %filled_groups;
 
@@ -2541,7 +2537,9 @@ sub swap_to_reach_richness_targets {
             else {
                 $tmp = [sort keys %$target_groups_tmp];
             }
-            $target_groups_tmp_a  = $groups_without_labels_a{$add_label} = $tmp;
+            $target_groups_tmp_a
+              = $groups_without_labels_a{$add_label}
+              = $tmp;
         };
         #  cache maintains a sorted list, so no need to re-sort.  
         $i = int $rand->rand(scalar @$target_groups_tmp_a);

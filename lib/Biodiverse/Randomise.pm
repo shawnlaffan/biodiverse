@@ -2418,13 +2418,15 @@ sub swap_to_reach_richness_targets {
             }
             else {
                 my $sublist = $unfilled_gps_without_label{$label} //= [];
-                $self->insert_into_sorted_list_aa (
-                    $gp,
-                    $sublist,
-                );
+                push @$sublist, $gp;  #  we will sort below in bulk
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
         }
+    }
+    #  bulk sort is faster than binsearch insert
+    foreach my $key (keys %unfilled_gps_without_label) {
+        $unfilled_gps_without_label{$key}
+          = [sort @{$unfilled_gps_without_label{$key}}];
     }
     my $target_has_empty_gps = any {!$_} values %filled_groups;
 

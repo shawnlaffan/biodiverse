@@ -31,7 +31,7 @@ cmpthese (
 
 sub insert_into_sorted_list_bulk {
     my $list = [];
-    foreach my $key (@keys) {
+    foreach my $key (keys %hashbase) {
         insert_into_sorted_list_aa($key, $list);
     }
     $list;
@@ -47,9 +47,14 @@ sub insert_into_sorted_list_aa {
 
 sub insert_then_sort {
     my $list = [];
-    foreach my $key (@keys) {
+    foreach my $key (keys %hashbase) {
         push @$list, $key;
     }
     $list = [sort @$list];
 }
 
+__END__
+
+                          Rate insert_into_sorted_list        insert_then_sort
+insert_into_sorted_list  678/s                      --                    -70%
+insert_then_sort        2286/s                    237%                      --

@@ -2417,10 +2417,10 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$label}++;
             }
             else {
-                my $list = $unfilled_gps_without_label{$label} //= [];
+                my $sublist = $unfilled_gps_without_label{$label} //= [];
                 $self->insert_into_sorted_list_aa (
                     $gp,
-                    $list,
+                    $sublist,
                 );
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }

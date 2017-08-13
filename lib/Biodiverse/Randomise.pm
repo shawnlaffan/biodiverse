@@ -2324,10 +2324,7 @@ sub swap_to_reach_richness_targets {
         %unfilled_gps_without_label,
         %unfilled_gps_without_label_by_gp,
     );
-    my %tracker_hashes;  #  for debug purposes
-    $tracker_hashes{labels_in_unfilled_gps}     = \%labels_in_unfilled_gps;
-    $tracker_hashes{unfilled_gps_without_label} = \%unfilled_gps_without_label;
-    $tracker_hashes{unfilled_gps_without_label_by_gp} = \%unfilled_gps_without_label_by_gp;
+
     my @sorted_bd_labels = sort $bd->get_labels; 
     foreach my $gp (sort keys %unfilled_groups) {
         my $list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
@@ -2356,13 +2353,18 @@ sub swap_to_reach_richness_targets {
     my %cloned_bd_label_hash;
     @cloned_bd_label_hash{@$cloned_bd_label_arr} = undef;
     $cloned_bd_lb_arr = undef;  #  clean up
-    #  for debug purposes
-    $tracker_hashes{groups_without_labels_a}       = \%groups_without_labels_a;
-    $tracker_hashes{cloned_bd_groups_with_label_a} = \%cloned_bd_groups_with_label_a;
-    $tracker_hashes{orig_bd_groups_with_label_a}   = \%orig_bd_groups_with_label_a;
-    $tracker_hashes{new_bd_labels_in_gps_as_hash}  = \%new_bd_labels_in_gps_as_hash;
-    $tracker_hashes{new_bd_labels_in_gps_as_array} = \%new_bd_labels_in_gps_as_array;
-    $tracker_hashes{cloned_bd_label_hash}          = \%cloned_bd_label_hash;
+    #  keep refs of tracker hashes for debug purposes
+    my %tracker_hashes = (
+        labels_in_unfilled_gps           => \%labels_in_unfilled_gps,
+        unfilled_gps_without_label       => \%unfilled_gps_without_label,
+        unfilled_gps_without_label_by_gp => \%unfilled_gps_without_label_by_gp,
+        groups_without_labels_a          => \%groups_without_labels_a,
+        cloned_bd_groups_with_label_a    => \%cloned_bd_groups_with_label_a,
+        orig_bd_groups_with_label_a      => \%orig_bd_groups_with_label_a,
+        new_bd_labels_in_gps_as_hash     => \%new_bd_labels_in_gps_as_hash,
+        new_bd_labels_in_gps_as_array    => \%new_bd_labels_in_gps_as_array,
+        cloned_bd_label_hash             => \%cloned_bd_label_hash,
+    );
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:

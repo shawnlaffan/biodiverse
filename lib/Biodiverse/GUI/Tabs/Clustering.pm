@@ -673,7 +673,7 @@ sub on_combo_map_list_changed {
     my $list  = $model->get($iter, 0);
 
     my $sensitive = 1;
-    if ($list eq '<i>Cluster</i>' || $list eq '<i>Multiselect</i>') {
+    if ($list eq '<i>Cluster</i>' || $list eq '<i>User defined</i>') {
         $sensitive = 0;
         $self->hide_legend;
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);
@@ -686,8 +686,8 @@ sub on_combo_map_list_changed {
     #  show/hide some widgets 
     my @cluster_widgets  = qw /label_cluster_spin_button spinClusters/;
     my @cloister_widgets = qw /label_selector_colour selector_colorbutton selector_toggle autoincrement_toggle/;
-    my $m1 = $list eq '<i>Multiselect</i>' ? 'hide' : 'show';
-    my $m2 = $list eq '<i>Multiselect</i>' ? 'show' : 'hide';
+    my $m1 = $list eq '<i>User defined</i>' ? 'hide' : 'show';
+    my $m2 = $list eq '<i>User defined</i>' ? 'show' : 'hide';
     foreach my $widget_name (@cluster_widgets) {
         my $widget = $self->{xmlPage}->get_object ($widget_name);
         $widget->$m1;

@@ -1409,7 +1409,7 @@ sub setup_map_list_model {
 
     #  add the multiselect selector
     $iter = $model->insert(0);
-    $model->set($iter, 0, '<i>Multiselect</i>');
+    $model->set($iter, 0, '<i>User defined</i>');
 
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
@@ -1546,7 +1546,7 @@ sub on_map_list_combo_changed {
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
-    elsif ($list eq '<i>Multiselect</i>') {
+    elsif ($list eq '<i>User defined</i>') {
         if ($self->{slider}) {
             $self->{slider}->hide;
             $self->{graph_slider}->hide;

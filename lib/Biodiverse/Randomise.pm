@@ -2613,7 +2613,7 @@ sub swap_to_reach_richness_targets {
                 $swap_insert_count++;
                 $self->insert_into_sorted_list_aa (
                     $remove_label,
-                    $new_bd_labels_in_gps_as_array{$return_gp} // [],
+                    $new_bd_labels_in_gps_as_array{$return_gp} //= [],
                 );
 
                 my $new_richness = $new_bd->get_richness_aa ($return_gp);

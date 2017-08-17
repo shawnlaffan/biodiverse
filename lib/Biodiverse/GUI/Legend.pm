@@ -591,6 +591,9 @@ sub set_min_max {
     my $marker_step = ($max - $min) / 3;
     foreach my $i (0..3) {
         my $val = $min + $i * $marker_step;
+        if ($self->get_log_mode) {
+            $val = exp ($val) - 1;
+        }
         my $text = $self->format_number_for_display (number => $val);
         my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
         if ($i == 0 and $self->{legend_lt_flag}) {
@@ -619,6 +622,21 @@ sub set_min_max {
     }
 
     return;
+}
+
+sub set_log_mode_on {
+    my ($self) = @_;
+    return $self->{log_mode} = 1;
+}
+
+sub set_log_mode_off {
+    my ($self) = @_;
+    return $self->{log_mode} = 0;
+}
+
+sub get_log_mode {
+    my $self = shift;
+    return $self->{log_mode};
 }
 
 #  dup from Tab.pm - need to inherit from single source

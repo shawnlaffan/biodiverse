@@ -9,6 +9,7 @@ use Data::Dumper;
 use Sort::Naturally qw /nsort ncmp/;
 
 use List::MoreUtils qw /firstidx/;
+use List::Util qw /max/;
 
 use Gtk2;
 use Carp;
@@ -817,21 +818,41 @@ sub on_selected_labels_changed {
         }
     }
 
+    my $grid = $self->{grid};
+    my $max_group_richness = max (values %group_richness);
+
     #  richness is the number of labels selected,
     #  which is the number of items in @paths
     my $max_value = scalar @paths;
-
-    my $grid = $self->{grid};
+    my $display_max_value = $max_value;
+    my $use_log;
+    
+    #  some arbitrary thresholds here - should let the user decide
+    if ( $max_value &&
+        ($max_value > 20 || ($max_group_richness / $max_value < 0.8))
+        ) {
+        my $log_max_value = log ($max_value + 1);
+        $display_max_value = $log_max_value;
+        $grid->set_legend_log_mode_on;
+        $use_log = 1;
+    }
+    else {
+        $grid->set_legend_log_mode_off;
+    }
+    
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};
         return COLOUR_GREY if !defined $val;
         return if !$val;
-        return $grid->get_colour($val, 0, $max_value);
+        if ($use_log) {
+            $val = log ($val + 1);
+        }
+        return $grid->get_colour($val, 0, $display_max_value);
     };
 
     $grid->colour($colour_func);
-    $grid->set_legend_min_max(0, $max_value);
+    $grid->set_legend_min_max(0, $display_max_value);
     #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {

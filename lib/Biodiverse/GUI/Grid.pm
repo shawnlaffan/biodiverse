@@ -872,6 +872,21 @@ sub set_legend_min_max {
     $legend->set_min_max($min,$max);
 }
 
+sub set_legend_log_mode_on {
+    my $self = shift;
+    $self->get_legend->set_log_mode_on;
+}
+
+sub set_legend_log_mode_off {
+    my $self = shift;
+    $self->get_legend->set_log_mode_off;
+}
+
+sub get_legend_log_mode {
+    my $self = shift;
+    $self->get_legend->get_log_mode;
+}
+
 sub show_legend {
     my $self = shift;
     my $legend = $self->get_legend;

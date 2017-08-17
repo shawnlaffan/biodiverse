@@ -789,20 +789,25 @@ sub on_selected_labels_changed {
     my @phylogeny_colour_nodes;
 
 
+    my %checked_nodes;
     foreach my $path (@paths) {
 
         # don't know why all this is needed (gtk bug?)
         $iter  = $sorted_model->get_iter($path);
         $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         $label = $global_model->get($iter1, LABELS_MODEL_NAME);
-
+#say $label;
         # find phylogeny nodes to colour
         if (defined $tree) {
             #  not all will match
             eval {
                 my $node_ref = $tree->get_node_ref (node => $label);
-                if (defined $node_ref) {
+                while ($node_ref) {
+                    last if exists $checked_nodes{$node_ref};
                     push @phylogeny_colour_nodes, $node_ref;
+                    $checked_nodes{$node_ref}++;
+                    $node_ref = $node_ref->get_parent;
+                    #last;
                 }
             }
         }
@@ -857,7 +862,10 @@ sub on_selected_labels_changed {
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
-        $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
+        $self->{dendrogram}->recolour_cluster_lines(
+            \@phylogeny_colour_nodes,
+            'no_colour_decendants',
+        );
     }
 
     # have to run this after everything else is updated

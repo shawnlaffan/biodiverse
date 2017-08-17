@@ -1208,6 +1208,7 @@ sub get_proper_colour_format {
 sub recolour_cluster_lines {
     my $self = shift;
     my $cluster_nodes = shift;
+    my $colour_descendents = !shift;  #  negate the arg
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
@@ -1265,8 +1266,15 @@ sub recolour_cluster_lines {
         # - don't cache on the tree as we can get recursion stack blow-outs
         # - https://github.com/shawnlaffan/biodiverse/issues/549
         # We could cache on $self if it were needed.
-        foreach my $child_ref (values %{$node_ref->get_all_descendants (cache => 0)}) {
-            $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
+        if ($colour_descendents) {
+            my $descendants = $node_ref->get_all_descendants (cache => 0);
+            foreach my $child_ref (values %$descendants) {
+                $self->colour_line(
+                    $child_ref,
+                    $colour_ref,
+                    \%coloured_nodes,
+                );
+            }
         }
 
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured

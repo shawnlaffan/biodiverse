@@ -169,6 +169,11 @@ sub new {
     $xml->get_object('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
     $xml->get_object('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
+    
+    foreach my $type_option (qw /auto linear log/) {
+        my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
+        $xml->get_object($radio_item)->signal_connect_swapped(toggled => \&on_grid_colour_scaling_changed, $self);
+    }
 
     $self->{use_highlight_path} = 1;
 
@@ -731,6 +736,60 @@ sub on_selected_matrix_changed {
     return;
 }
 
+#  should use the group-changed signal to trigger this
+sub on_grid_colour_scaling_changed {
+    my ($self, $radio_widget) = @_;
+
+    #  avoid triggering twice - we only care about which one is active
+    return if !$radio_widget->get_active;
+    
+    my $xml_page = $self->{xmlPage};
+
+    my %names_and_strings;
+    foreach my $opt (qw /auto linear log/) {
+        $names_and_strings{"radiomenuitem_grid_colouring_$opt"} = $opt;
+    }
+
+    my $mode_string;
+    foreach my $name (keys %names_and_strings) {
+        my $string = $names_and_strings{$name};
+        my $widget = $xml_page->get_object($name);
+        if ($widget->get_active) {
+            $mode_string = $string;
+            last;
+        }
+    }
+
+    die "[Labels tab] - on_grid_colour_scaling_changed - undefined mode"
+      if !defined $mode_string;
+
+    say "[Labels tab] Changing grid colour scaling to $mode_string";
+
+    if ($mode_string eq 'log') {
+        $self->set_legend_log_mode ('on');
+    }
+    elsif ($mode_string eq 'linear') {
+        $self->set_legend_log_mode ('off');
+    }
+    else {
+        $self->set_legend_log_mode ('auto');
+    }
+    on_selected_labels_changed(undef, [$self]);
+    
+    return;   
+}
+
+sub set_legend_log_mode {
+    my ($self, $mode) = @_;
+    die 'invalid mode' if $mode !~ /^(auto|off|on)$/;
+    $self->{legend_log_mode} = $mode;
+}
+
+sub get_legend_log_mode {
+    my ($self) = @_;
+    $self->{legend_log_mode} //= 'auto';
+}
+
 
 # Called when user changes selection in one of the two labels lists
 sub on_selected_labels_changed {
@@ -831,20 +890,25 @@ sub on_selected_labels_changed {
     my $max_value = scalar @paths;
     my $display_max_value = $max_value;
     my $use_log;
-    
-    #  some arbitrary thresholds here - should let the user decide
-    if ( $max_value &&
-        ($max_value > 20 || ($max_group_richness / $max_value < 0.8))
-        ) {
-        my $log_max_value = log ($max_value + 1);
-        $display_max_value = $log_max_value;
+    if ($max_value) {
+        my $mode = $self->get_legend_log_mode;
+        if ($mode eq 'on') {
+            $use_log = 1;
+        }
+        #  some arbitrary thresholds here - should let the user decide
+        elsif ($mode eq 'auto' && ($max_value > 20 || ($max_group_richness / $max_value < 0.8))) {
+            $use_log = 1;
+        }
+    }
+
+    if ($use_log) {
+        $display_max_value = log ($max_value + 1);
         $grid->set_legend_log_mode_on;
-        $use_log = 1;
     }
     else {
         $grid->set_legend_log_mode_off;
     }
-    
+
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};

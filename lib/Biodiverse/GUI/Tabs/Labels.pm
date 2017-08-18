@@ -860,7 +860,7 @@ sub on_selected_labels_changed {
         if (defined $tree) {
             #  not all will match
             eval {
-                my $node_ref = $tree->get_node_ref (node => $label);
+                my $node_ref = $tree->get_node_ref_aa ($label);
                 while ($node_ref) {
                     last if exists $checked_nodes{$node_ref};
                     push @phylogeny_colour_nodes, $node_ref;

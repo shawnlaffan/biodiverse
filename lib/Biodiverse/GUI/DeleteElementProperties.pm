@@ -103,8 +103,8 @@ sub run {
     my $response = $dlg->run();
     $dlg->destroy();
 
-    if ($response =~ /ok|apply/) {
-        $self->clicked_apply;
+    if ($response =~ /^(ok|apply)$/) {
+        $self->on_clicked_apply;
     }
 }
 
@@ -112,13 +112,13 @@ sub run {
 # given a list, build a single column tree from it and return.
 sub build_tree_from_list {
     my ($self, %args) = @_;
-    my @list    = @{$args{list}};
+    my $list = $args{list};
 
     my $model = Gtk2::TreeStore->new(('Glib::String'));
     my $title = $args{ title } // '';
     
     # fill model with content
-    foreach my $item (nsort @list) {
+    foreach my $item (nsort @$list) {
         my $iter = $model->append(undef);
         $model->set($iter, 0, $item);
     }
@@ -237,7 +237,7 @@ sub _build_deletion_panel {
 }
 
 
-sub clicked_apply {
+sub on_clicked_apply {
     my ($self, %args) = @_;
 
     #my $notebook     = $self->{notebook};
@@ -270,7 +270,7 @@ sub clicked_apply {
     my $schedule = $self->{scheduled_deletions};
     my %target_bs_types;
     
-    #  too many levels...
+    #  too many nested levels...
     foreach my $part (@$schedule) {
         foreach my $bs_type (keys %$part) {
             my $subhash = $part->{$bs_type};

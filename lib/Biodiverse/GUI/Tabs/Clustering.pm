@@ -1968,47 +1968,6 @@ sub on_menu_stretch_changed {
     return;
 }
 
-sub on_grid_colour_scaling_changed {
-    my ($self, $checkbox) = @_;
-    
-    my $xml_page = $self->{xmlPage};
-
-    my $active = $checkbox->get_active;
-
-    if ($active) {
-        say "[Cluster tab] Grid: Turning on log scaling mode";
-        $self->set_legend_log_mode ('on');
-    }
-    else {
-        say "[Cluster tab] Grid: Turning off log scaling mode";
-        $self->set_legend_log_mode ('off');
-    }
-    
-    return;   
-}
-
-sub set_legend_log_mode {
-    my ($self, $mode) = @_;
-    die 'invalid mode' if $mode !~ /^(off|on)$/;
-    my $prev_mode = $self->get_legend_log_mode;
-    $self->{legend_log_mode} = $mode;
-    if ($mode eq 'on') {
-        $self->{grid}->set_legend_log_mode_on;
-    }
-    else {
-        $self->{grid}->set_legend_log_mode_off;
-    }
-    #  trigger a redisplay if needed
-    if ($prev_mode ne $mode) {
-        $self->recolour;
-        $self->{grid}->update_legend;
-    }
-}
-
-sub get_legend_log_mode {
-    my ($self) = @_;
-    $self->{legend_log_mode} //= 'off';
-}
 
 
 sub on_stretch_changed {

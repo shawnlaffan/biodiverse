@@ -233,6 +233,24 @@ sub _build_deletion_panel {
     $button_hbox->pack_start( $delete_elements_button, 1, 0, 0 );
     $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
+    my $undo_last_schedule_button =
+        Gtk2::Button->new_with_label(
+            'Unschedule last selection'
+        );
+    $undo_last_schedule_button->set_tooltip_text (
+        'Clear last selection from schedule'
+    );
+    my $hbox_u = Gtk2::HBox->new();
+    $hbox_u->pack_start($undo_last_schedule_button, 1, 0, 0);
+    $vbox->pack_start( $hbox_u, 0, 0, 0 );
+
+    $undo_last_schedule_button->signal_connect(
+        'clicked' => sub {
+            my $schedule = $self->{scheduled_deletions};
+            pop @$schedule;
+        }
+    );
+    
     return $vbox;
 }
 

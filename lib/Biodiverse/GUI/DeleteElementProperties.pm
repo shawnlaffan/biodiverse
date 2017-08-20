@@ -258,11 +258,7 @@ sub _build_deletion_panel {
 sub on_clicked_apply {
     my ($self, %args) = @_;
 
-    #my $notebook     = $self->{notebook};
-    #my $current_page = $notebook->get_current_page;
-    #my $basestruct   = ($current_page == 0) ? 'label' : 'group';
     my $bd           = $self->{bd};
-
     my $selected_one = 0;
     
     my %methods = (
@@ -274,14 +270,6 @@ sub on_clicked_apply {
             element  => 'delete_individual_group_properties_aa',
             property => 'delete_group_element_property_aa',            
         },
-        #element => {
-        #    label => 'delete_individual_label_properties_aa',
-        #    group => 'delete_individual_group_properties_aa',
-        #},
-        #property => {
-        #    label => 'delete_label_element_property_aa',
-        #    group => 'delete_group_element_property_aa',
-        #},
     );
     
     # should probably just figure out what sub to use here.
@@ -316,21 +304,6 @@ sub on_clicked_apply {
         }
     }
 
-    #my $new_notebook = $self->build_main_notebook();
-    #
-    #my $dlg = $self->{dlg};
-    #my $content_area = $dlg->get_content_area;
-    #
-    #my @children = $content_area->get_children;
-    #$content_area->remove($children[0]);
-    #
-    ##say "Current page is $current_page";
-    #
-    #$content_area->pack_start( $new_notebook, 1, 1, 1 );
-    #$self->{notebook} = $new_notebook;
-    #$dlg->show_all;
-    #$new_notebook->set_current_page($current_page);
-
     return;
 }
 
@@ -363,21 +336,6 @@ sub clicked_schedule_button {
         my $schedule = $self->{scheduled_deletions};
         push @$schedule, \%targets;
     }
-
-    #my $new_notebook = $self->build_main_notebook();
-    #
-    #my $dlg = $self->{dlg};
-    #my $content_area = $dlg->get_content_area;
-    #
-    #my @children = $content_area->get_children;
-    #$content_area->remove($children[0]);
-    #
-    ##say "Current page is $current_page";
-    #
-    #$content_area->pack_start( $new_notebook, 1, 1, 1 );
-    #$self->{notebook} = $new_notebook;
-    #$dlg->show_all;
-    #$new_notebook->set_current_page($current_page);
 
     return;
 }

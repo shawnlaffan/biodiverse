@@ -598,11 +598,11 @@ sub set_min_max {
         my $val = $min + $i * $marker_step;
         if ($self->get_log_mode) {
             my $log_step = log (101) * $i / 3;
-            #  transform called in two places
-            #  should use a method for consistency
-            #$val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+            #  should use a method for each transform
+            #  (log and antilog)
+            #  orig:
+            #  $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
             $val = (exp ($log_step) - 1) / 100 * ($max - $min) + $min;
-            #$val = $val * ($max - $min) + $min;
         }
         my $text = $self->format_number_for_display (number => $val);
         my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down

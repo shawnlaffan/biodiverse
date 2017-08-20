@@ -1219,6 +1219,7 @@ sub recolour_cluster_lines {
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
+    #my $log_scale    = $map->get_legend_log_mode eq 'on';
 
     foreach my $node_ref (@$cluster_nodes) {
 

@@ -524,15 +524,17 @@ sub on_show_hide_parameters {
 sub init_map {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_object('mapFrame');
-    my $hscroll = $self->{xmlPage}->get_object('mapHScroll');
-    my $vscroll = $self->{xmlPage}->get_object('mapVScroll');
+    my $xml_page = $self->{xmlPage};
 
-    my $click_closure = sub { $self->on_grid_popup(@_); };
-    my $hover_closure = sub { $self->on_grid_hover(@_); };
-    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $frame   = $xml_page->get_object('mapFrame');
+    my $hscroll = $xml_page->get_object('mapHScroll');
+    my $vscroll = $xml_page->get_object('mapVScroll');
+
+    my $click_closure      = sub { $self->on_grid_popup(@_); };
+    my $hover_closure      = sub { $self->on_grid_hover(@_); };
+    my $select_closure     = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -546,10 +548,19 @@ sub init_map {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure
     );
-    $self->{grid}->{page} = $self;
+    
+    my $grid = $self->{grid};
+    
+    $grid->{page} = $self;
 
-    $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
+    $grid->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
+    my $menu_log_checkbox = $xml_page->get_object('menu_dendro_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
+    
     $self->warn_if_basedata_has_gt2_axes;
 
     return;
@@ -1957,6 +1968,49 @@ sub on_menu_stretch_changed {
     return;
 }
 
+sub on_grid_colour_scaling_changed {
+    my ($self, $checkbox) = @_;
+    
+    my $xml_page = $self->{xmlPage};
+
+    my $active = $checkbox->get_active;
+
+    if ($active) {
+        say "[Cluster tab] Grid: Turning on log scaling mode";
+        $self->set_legend_log_mode ('on');
+    }
+    else {
+        say "[Cluster tab] Grid: Turning off log scaling mode";
+        $self->set_legend_log_mode ('off');
+    }
+    
+    return;   
+}
+
+sub set_legend_log_mode {
+    my ($self, $mode) = @_;
+    die 'invalid mode' if $mode !~ /^(off|on)$/;
+    my $prev_mode = $self->get_legend_log_mode;
+    $self->{legend_log_mode} = $mode;
+    if ($mode eq 'on') {
+        $self->{grid}->set_legend_log_mode_on;
+    }
+    else {
+        $self->{grid}->set_legend_log_mode_off;
+    }
+    #  trigger a redisplay if needed
+    if ($prev_mode ne $mode) {
+        $self->recolour;
+        $self->{grid}->update_legend;
+    }
+}
+
+sub get_legend_log_mode {
+    my ($self) = @_;
+    $self->{legend_log_mode} //= 'off';
+}
+
+
 sub on_stretch_changed {
     my $self = shift;
     my $sel  = shift || 'min-max';
@@ -1976,6 +2030,7 @@ sub on_stretch_changed {
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
     $self->recolour;
+    $self->{grid}->update_legend;
 
     return;
 }

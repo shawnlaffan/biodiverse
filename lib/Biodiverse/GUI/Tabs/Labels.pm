@@ -172,7 +172,10 @@ sub new {
     
     foreach my $type_option (qw /auto linear log/) {
         my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
-        $xml->get_object($radio_item)->signal_connect_swapped(toggled => \&on_grid_colour_scaling_changed, $self);
+        $xml->get_object($radio_item)->signal_connect_swapped(
+            toggled => \&on_grid_colour_scaling_changed,
+            $self,
+        );
     }
 
     $self->{use_highlight_path} = 1;
@@ -902,7 +905,7 @@ sub on_selected_labels_changed {
     }
 
     if ($use_log) {
-        $display_max_value = log ($max_value + 1);
+        #$display_max_value = log ($max_value + 1);
         $grid->set_legend_log_mode_on;
     }
     else {
@@ -914,9 +917,9 @@ sub on_selected_labels_changed {
         my $val = $group_richness{$elt};
         return COLOUR_GREY if !defined $val;
         return if !$val;
-        if ($use_log) {
-            $val = log ($val + 1);
-        }
+        #if ($use_log) {
+        #    $val = log ($val + 1);
+        #}
         return $grid->get_colour($val, 0, $display_max_value);
     };
 

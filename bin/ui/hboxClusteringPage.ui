@@ -202,6 +202,16 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkCheckMenuItem" id="menu_dendro_colour_stretch_log_mode">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Log scale the colours.
+Uses the min and max determined by the Colour stretch choice.</property>
+                            <property name="label" translatable="yes">Log scale</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -1541,6 +1551,7 @@ or only change when you want to. </property>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -1555,6 +1566,7 @@ a branch will reset it to uncoloured.</property>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
           </object>

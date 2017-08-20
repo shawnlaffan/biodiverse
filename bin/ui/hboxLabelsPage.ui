@@ -182,7 +182,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="tooltip_text" translatable="yes">Control the colour scaling on the grid</property>
-                            <property name="label" translatable="yes">Colour stretch</property>
+                            <property name="label" translatable="yes">Colour scaling</property>
                             <property name="use_underline">True</property>
                             <child type="submenu">
                               <object class="GtkMenu" id="menu2">

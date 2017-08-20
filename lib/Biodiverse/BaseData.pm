@@ -17,6 +17,7 @@ use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
+use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Naturally qw /ncmp/;
@@ -1637,7 +1638,7 @@ sub import_data_shapefile {
         my $fnamebase = $file->stringify;
 
 #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
-        my $shapefile = Geo::ShapeFile->new($fnamebase);
+        my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
 
         #say "have $shapefile";
 
@@ -3476,20 +3477,21 @@ sub delete_sub_element {
 sub delete_sub_element_aa {
     my ( $self, $label, $group ) = @_;
 
-    my $groups_ref = $self->get_groups_ref;
-    my $labels_ref = $self->get_labels_ref;
+    #my $groups_ref = $self->get_groups_ref;
+    #my $labels_ref = $self->get_labels_ref;
 
-#  return value of delete_sub_element_aa is the number of subelements remaining,
-#  or undef if no subelements list
+    #  return value of delete_sub_element_aa
+    #  is the number of subelements remaining,
+    #  or undef if no subelements list
 
-    if ( !( $labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
+    if ( !( $self->get_labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
         $self->delete_element(
             type    => 'LABELS',
             element => $label,
         );
     }
 
-    if ( !( $groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
+    if ( !( $self->get_groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
         $self->delete_element(
             type    => 'GROUPS',
             element => $group,
@@ -3891,6 +3893,14 @@ sub exists_label {
     my %args = @_;
     return $self->get_labels_ref->exists_element(
         element => ( $args{label} // $args{element} ) );
+}
+
+sub exists_label_aa {
+    $_[0]->get_labels_ref->exists_element_aa( $_[1] );
+}
+
+sub exists_group_aa {
+    $_[0]->get_groups_ref->exists_element_aa( $_[1] );
 }
 
 sub exists_label_in_group {

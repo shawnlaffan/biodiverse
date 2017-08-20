@@ -872,6 +872,21 @@ sub set_legend_min_max {
     $legend->set_min_max($min,$max);
 }
 
+sub set_legend_log_mode_on {
+    my $self = shift;
+    $self->get_legend->set_log_mode_on;
+}
+
+sub set_legend_log_mode_off {
+    my $self = shift;
+    $self->get_legend->set_log_mode_off;
+}
+
+sub get_legend_log_mode {
+    my $self = shift;
+    $self->get_legend->get_log_mode;
+}
+
 sub show_legend {
     my $self = shift;
     my $legend = $self->get_legend;
@@ -1094,23 +1109,28 @@ my %colour_methods = (
 );
 
 sub get_colour {
-    my ($self, $val, $min, $max) = @_;
+    #my ($self, $val, $min, $max) = @_;
+    my $self = shift;
 
-    if (defined $min and $val < $min) {
-        $val = $min;
-    }
-    if (defined $max and $val > $max) {
-        $val = $max;
-    }
-    my @args = ($val, $min, $max);
-
-    my $mode = $self->get_legend->get_mode;
-    my $method = $colour_methods{$mode};
-
-    croak "Unknown colour system: $mode\n"
-      if !$method;
-
-    return $self->$method(@args);
+    return $self->get_legend->get_colour (@_);
+    
+    #if (defined $min and $val < $min) {
+    #    $val = $min;
+    #}
+    #if (defined $max and $val > $max) {
+    #    $val = $max;
+    #}
+    #
+    #my @args = ($val, $min, $max);
+    #
+    #my $mode = $self->get_legend->get_mode;
+    #my $method = $colour_methods{$mode};
+    #
+    #croak "Unknown colour system: $mode\n"
+    #  if !$method;
+    #
+    #return $self->get_legend->$method(@args);
+    #return $self->$method(@args);
 }
 
 sub get_colour_hue {

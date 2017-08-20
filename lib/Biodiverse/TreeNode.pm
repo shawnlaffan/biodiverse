@@ -1113,6 +1113,32 @@ sub get_path_lengths_to_root_node {
     return wantarray ? %path_lengths : \%path_lengths;
 }
 
+#  inconsistent with the non-aa version, as cache is passed
+#  as a 0 in that version to disable it
+sub get_path_lengths_to_root_node_aa {
+    my ($self, $no_cache) = @_;
+
+    if (!$no_cache) {
+        my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
+        return (wantarray ? %$path : $path) if $path;
+    }
+
+    my %path_lengths;
+    $path_lengths{$self->get_name} = $self->get_length;
+
+    my $node = $self->get_parent;
+    while ($node) {  #  undef when root node
+        $path_lengths{$node->get_name} = $node->get_length;
+        $node = $node->get_parent;
+    }
+
+    if (!$no_cache) {
+        $self->set_cached_value (PATH_LENGTHS_TO_ROOT_NODE => \%path_lengths);
+    }
+
+    return wantarray ? %path_lengths : \%path_lengths;
+}
+
 #  get all the nodes along a path from self to another node,
 #  including self and other, and the shared ancestor
 sub get_path_to_node {

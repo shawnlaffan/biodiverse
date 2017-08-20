@@ -71,7 +71,8 @@ test_requires => sub {
     requires "Devel::Symdump";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
-    requires "Test::TempDir::Tiny"
+    requires "Test::TempDir::Tiny";
+    requires "Test::Exception";
 };
 
 feature 'GUI', 'GUI packages' => sub {

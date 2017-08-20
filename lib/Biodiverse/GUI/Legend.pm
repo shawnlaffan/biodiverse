@@ -432,6 +432,11 @@ sub get_colour {
     if (defined $max and $val > $max) {
         $val = $max;
     }
+    if ($self->get_log_mode) {
+        $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+        $min = 0;
+        $max = 1;
+    }
     my @args = ($val, $min, $max);
 
     my $method = $colour_methods{$self->{legend_mode}};
@@ -591,6 +596,14 @@ sub set_min_max {
     my $marker_step = ($max - $min) / 3;
     foreach my $i (0..3) {
         my $val = $min + $i * $marker_step;
+        if ($self->get_log_mode) {
+            my $log_step = log (101) * $i / 3;
+            #  should use a method for each transform
+            #  (log and antilog)
+            #  orig:
+            #  $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+            $val = (exp ($log_step) - 1) / 100 * ($max - $min) + $min;
+        }
         my $text = $self->format_number_for_display (number => $val);
         my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
         if ($i == 0 and $self->{legend_lt_flag}) {
@@ -619,6 +632,20 @@ sub set_min_max {
     }
 
     return;
+}
+
+sub set_log_mode_on {
+    my ($self) = @_;
+    return $self->{log_mode} = 1;
+}
+
+sub set_log_mode_off {
+    my ($self) = @_;
+    return $self->{log_mode} = 0;
+}
+
+sub get_log_mode {
+    $_[0]->{log_mode};
 }
 
 #  dup from Tab.pm - need to inherit from single source

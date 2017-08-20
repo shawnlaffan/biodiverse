@@ -2971,11 +2971,15 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    1;
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 #  array args version to avoid the args hash creation
 #  (benchmarking indicates it takes a meaningful slab of time)
+#  candidate for refaliasing
 sub delete_sub_element_aa {
     my ($self, $element, $sub_element) = @_;
     
@@ -2996,7 +3000,10 @@ sub delete_sub_element_aa {
     }
     delete $href->{SUBELEMENTS}{$sub_element};
 
-    scalar keys %{$href->{SUBELEMENTS}};
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {
@@ -3008,6 +3015,15 @@ sub exists_element {
 
     #  no explicit return for speed under pre-5.20 perls
     exists $self->{ELEMENTS}{$el};
+}
+
+sub exists_element_aa {
+    #my ($self, $el) = @_;
+
+    croak "element not specified\n"
+      if !defined $_[1];
+
+    exists $_[0]->{ELEMENTS}{$_[1]};
 }
 
 sub exists_sub_element {

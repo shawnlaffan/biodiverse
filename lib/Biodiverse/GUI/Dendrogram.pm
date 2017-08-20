@@ -1208,6 +1208,7 @@ sub get_proper_colour_format {
 sub recolour_cluster_lines {
     my $self = shift;
     my $cluster_nodes = shift;
+    my $colour_descendents = !shift;  #  negate the arg
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
@@ -1218,6 +1219,7 @@ sub recolour_cluster_lines {
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
+    #my $log_scale    = $map->get_legend_log_mode eq 'on';
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1265,8 +1267,15 @@ sub recolour_cluster_lines {
         # - don't cache on the tree as we can get recursion stack blow-outs
         # - https://github.com/shawnlaffan/biodiverse/issues/549
         # We could cache on $self if it were needed.
-        foreach my $child_ref (values %{$node_ref->get_all_descendants (cache => 0)}) {
-            $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
+        if ($colour_descendents) {
+            my $descendants = $node_ref->get_all_descendants (cache => 0);
+            foreach my $child_ref (values %$descendants) {
+                $self->colour_line(
+                    $child_ref,
+                    $colour_ref,
+                    \%coloured_nodes,
+                );
+            }
         }
 
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured
@@ -1409,7 +1418,7 @@ sub setup_map_list_model {
 
     #  add the multiselect selector
     $iter = $model->insert(0);
-    $model->set($iter, 0, '<i>Multiselect</i>');
+    $model->set($iter, 0, '<i>User defined</i>');
 
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
@@ -1546,7 +1555,7 @@ sub on_map_list_combo_changed {
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
-    elsif ($list eq '<i>Multiselect</i>') {
+    elsif ($list eq '<i>User defined</i>') {
         if ($self->{slider}) {
             $self->{slider}->hide;
             $self->{graph_slider}->hide;

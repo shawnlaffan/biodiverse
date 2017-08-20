@@ -272,6 +272,12 @@ sub init_grid {
 
     $self->{grid}->{page} = $self; # Hacky
 
+    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
+
     $self->warn_if_basedata_has_gt2_axes;
 
     return;

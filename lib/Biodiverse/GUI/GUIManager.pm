@@ -33,6 +33,7 @@ require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
 use Biodiverse::GUI::ProgressDialog;
+use Biodiverse::GUI::DeleteElementProperties;
 
 
 require Biodiverse::BaseData;
@@ -927,6 +928,18 @@ sub do_basedata_attach_properties {
     $summary_dlg->destroy;
 
     return;
+}
+
+sub do_delete_element_properties {
+    my $self = shift;
+    my $bd   = $self->{project}->get_selected_base_data;
+
+    croak "Cannot delete properties from a basedata with existing outputs" 
+        . " (try 'duplicate without outputs')" 
+        if($bd->get_output_ref_count);
+    
+    my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
+    my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
 }
 
 sub do_delete_basedata {

@@ -2290,6 +2290,62 @@ sub assign_element_properties {
     return $count;
 }
 
+# returns a hash. 'groups' maps to a hash mapping from element names
+# to element property hashes for this basedata's groups. 'labels'
+# likewise.
+sub get_all_element_properties {
+    my ($self, %args) = shift;
+    my %results_hash;
+    
+    my $gp = $self->get_groups_ref;
+    $results_hash{groups} = $gp->get_all_element_properties();
+    
+    my $lb = $self->get_labels_ref;
+    $results_hash{labels} = $lb->get_all_element_properties();
+
+    return wantarray ? %results_hash : \%results_hash;
+}
+
+sub delete_group_element_property {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_element_property(%args);
+}
+
+sub delete_label_element_property {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_element_property(%args);
+}
+
+sub delete_group_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_groups_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_label_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_labels_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_individual_group_properties {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_label_properties {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_group_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(el => $el);
+}
+
+sub delete_individual_label_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(el => $el);
+}
+
 sub rename_labels {
     my $self = shift;
     return $self->_rename_groups_or_labels( @_, type => 'label' );

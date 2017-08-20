@@ -3305,6 +3305,28 @@ sub delete_lists {
     return;
 }
 
+
+
+sub delete_properties_for_given_element {
+    my ($self, %args) = @_;
+    my $el = $args{ el };
+
+    $self->{ELEMENTS}{$el}{PROPERTIES} = {};
+}
+
+
+# delete an element property for all elements
+sub delete_element_property {
+    my ($self, %args) = @_;
+    my $prop = $args{ prop };
+
+    foreach my $el ($self->get_element_list) {
+        my %props = %{$self->{ELEMENTS}{$el}{PROPERTIES}};
+        delete $props{ $prop };
+        $self->{ELEMENTS}{$el}{PROPERTIES} = \%props;
+    }
+}
+
 sub get_lists {
     my $self = shift;
     my %args = @_;
@@ -3853,6 +3875,19 @@ sub get_element_property_keys {
     $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
 
     return wantarray ? @keys : \@keys;
+}
+
+# returns a hash mapping from elements to element property hashes.
+sub get_all_element_properties {
+    my ($self, %args) = @_;
+    my %element_to_props_hash;
+    
+    foreach my $element ($self->get_element_list) {
+        my $props_hash = $self->get_element_properties(element => $element);
+        $element_to_props_hash{ $element } = $props_hash;
+    }
+
+    return wantarray ? %element_to_props_hash : \%element_to_props_hash;
 }
 
 sub get_element_properties {

@@ -2104,16 +2104,19 @@ sub clipboard_get_func {
         #  but we would then need to unescape the names
         my $header = $self->{tree_model_column_names};
         my $selected_records = $self->get_selected_records;
-        
+        my @recs = map {[@$_[0..($#$_)-2]]} ($header, @$selected_records);
         if ($datatype == TYPE_HTML) {
             my $qt = HTML::QuickTable->new();
             $text .= $HTML_HEADER;
-            $text .= $qt->render([$header, @$selected_records]);
+            $text .= $qt->render(\@recs);
             $text .= $HTML_FOOTER;
         }
         else {
-            foreach my $rec ($header, @$selected_records) {
-                $text .= join ("\t", map {$_ // ''} @$rec) . "\n";
+            foreach my $rec (@recs) {
+                #  skip the selection cols
+                $text
+                  .= join "\t", (map {$_ // ''} @$rec);
+                $text .= "\n";
             }
         }
     }

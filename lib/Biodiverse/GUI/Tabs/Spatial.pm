@@ -9,7 +9,7 @@ our $VERSION = '1.99_008';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number refaddr/;
+use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use Time::HiRes;
 use Sort::Naturally qw /nsort/;
 
@@ -466,7 +466,8 @@ sub init_dendrogram {
         parent_tab      => $self,
     );
 
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
@@ -556,8 +557,10 @@ sub init_grid {
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
     );
-    $self->{grid}->{page} = $self;
-    $self->{grid}->{drag_mode} = 'select';
+    $self->{grid}{page} = $self;
+    weaken $self->{grid}{page};
+
+    $self->{grid}{drag_mode} = 'select';
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};

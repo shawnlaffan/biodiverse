@@ -603,7 +603,8 @@ sub init_dendrogram {
     # TODO: Abstract this properly
     #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};

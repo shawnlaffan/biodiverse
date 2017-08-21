@@ -11,6 +11,8 @@ use Sort::Naturally qw /nsort ncmp/;
 use List::MoreUtils qw /firstidx/;
 use List::Util qw /max/;
 
+use HTML::QuickTable;
+
 use Gtk2;
 use Carp;
 use Biodiverse::GUI::GUIManager;
@@ -44,6 +46,10 @@ use constant COLOUR_GREY => Gtk2::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
+
+use constant TYPE_TEXT => 1;
+use constant TYPE_HTML => 2; # some programs want HTML tables
+
 
 ##################################################
 # Initialisation
@@ -369,7 +375,7 @@ sub init_list {
         title => $selected_list2_name,
         model_id => ++$i,
     );
-    push @column_names, ('selected1', 'selected2');
+    push @column_names, ('Selected', 'Selected_Col');
 
     # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -2037,10 +2043,7 @@ sub do_copy_selected_to_clipboard {
 
     my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
 
-    use constant TYPE_TEXT => 1;
-    use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
-
-    # Add text and HTML (spreadsheet programs can read it) data to clipboard
+    # Add text and HTML data to clipboard
     # We'll be called back when someone pastes
     eval {
         $clipboard->set_with_data (
@@ -2052,7 +2055,7 @@ sub do_copy_selected_to_clipboard {
             {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
             {target=>'UTF8_STRING',   info => TYPE_TEXT},
             {target=>'text/plain',    info => TYPE_TEXT},
-            {target=>'text/html',     info => TYPE_TEXT},
+            {target=>'text/html',     info => TYPE_HTML},
         );
     };
     warn $EVAL_ERROR if $EVAL_ERROR;
@@ -2060,11 +2063,25 @@ sub do_copy_selected_to_clipboard {
     return;
 }
 
+my $HTML_HEADER =<<'END_HTML_HEADER'
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+END_HTML_HEADER
+;
+
+my $HTML_FOOTER = "</body></html>\n";
 
 sub clipboard_get_func {
     my $clipboard = shift;
     my $selection = shift;
-    my $datatype  = shift;  #  currently we only handle text, so this is ignored
+    my $datatype  = shift;
     my $user_data = shift;
     my ($self, $do_full_recs) = @$user_data;
 
@@ -2083,8 +2100,17 @@ sub clipboard_get_func {
         #  but we would then need to unescape the names
         my $header = $self->{tree_model_column_names};
         my $selected_records = $self->get_selected_records;
-        foreach my $rec ($header, @$selected_records) {
-            $text .= join ("\t", map {defined $_ ? $_ : ''} @$rec) . "\n";
+        
+        if ($datatype == TYPE_HTML) {
+            my $qt = HTML::QuickTable->new();
+            $text .= $HTML_HEADER;
+            $text .= $qt->render([$header, @$selected_records]);
+            $text .= $HTML_FOOTER;
+        }
+        else {
+            foreach my $rec ($header, @$selected_records) {
+                $text .= join ("\t", map {$_ // ''} @$rec) . "\n";
+            }
         }
     }
     else {
@@ -2095,7 +2121,13 @@ sub clipboard_get_func {
     # Give the data..
     print "[Labels] Sending data for selection to clipboard\n";
 
-    $selection->set_text($text);
+    if ($datatype == TYPE_HTML) {
+        my $atom = Gtk2::Gdk::Atom->intern('text/html');
+        $selection->set($atom, 8, $text);
+    }
+    else {
+        $selection->set_text($text);
+    }
 
     return;
 }

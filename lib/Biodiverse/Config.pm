@@ -8,7 +8,7 @@ use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 #use Exporter;
 #use Devel::Symdump;

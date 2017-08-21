@@ -14,7 +14,7 @@ use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;

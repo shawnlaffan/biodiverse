@@ -336,6 +336,7 @@ sub init_list {
     my $tree = $self->{xmlPage}->get_object($id);
 
 
+    my @column_names;
     my $labels_ref = $self->{base_ref}->get_labels_ref;
     my $stats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
     my $types = $stats_metadata->get_types;
@@ -346,6 +347,7 @@ sub init_list {
         title => 'Label',
         model_id => $i,
     );
+    push @column_names, 'Label';
     foreach my $column (@$types) {
         $i++;
         my ($key, $value) = %$column;
@@ -355,6 +357,7 @@ sub init_list {
             title => $column_name,
             model_id => $i,
         );
+        push @column_names, $key;
     }
     $self->add_column (
         tree  => $tree,
@@ -366,6 +369,7 @@ sub init_list {
         title => $selected_list2_name,
         model_id => ++$i,
     );
+    push @column_names, ('selected1', 'selected2');
 
     # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -394,6 +398,8 @@ sub init_list {
 #    'start-interactive-search' => \&on_interactive_search,
 #    [$self, $id],
 #);
+
+    $self->{tree_model_column_names} = \@column_names;
 
     return;
 }
@@ -570,6 +576,27 @@ sub get_selected_labels {
     return wantarray ? @selected_labels : \@selected_labels;
 }
 
+sub get_selected_records {
+    my $self = shift;
+
+    # Get the current selection
+    my $selection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
+    my @paths = $selection->get_selected_rows();
+    #my @selected = map { ($_->get_indices)[0] } @paths;
+    my $sorted_model = $selection->get_tree_view()->get_model();
+    my $global_model = $self->{labels_model};
+
+    my @selected_records;
+    foreach my $path (@paths) {
+        # don't know why all this is needed (gtk bug?)
+        my $iter  = $sorted_model->get_iter($path);
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        my @values = map {$_ eq '-99999' ? undef : $_} $global_model->get($iter1);
+        push @selected_records, \@values;
+    }
+
+    return wantarray ? @selected_records : \@selected_records;
+}
 
 sub switch_selection {
     my $self = shift;
@@ -1966,12 +1993,23 @@ sub update_selection_menu {
     );
 
 
-    my $selection_to_clipboard = Gtk2::MenuItem->new_with_label('Copy to clipboard');
-    $selection_to_clipboard->signal_connect_swapped(
-        activate => \&do_copy_selection_to_clipboard, [$self],
+    my $selected_labels_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected labels to clipboard');
+    $selected_labels_to_clipboard->signal_connect_swapped(
+        activate => \&do_copy_selected_to_clipboard, [$self],
+    );
+    $selected_labels_to_clipboard->set_tooltip_text(
+          'Copy the selected label names to the clipboard',
+    );
+    my $selected_records_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected records to clipboard');
+    $selected_records_to_clipboard->signal_connect_swapped(
+        activate => \&do_copy_selected_to_clipboard, [$self, 'full_recs'],
+    );
+    $selected_records_to_clipboard->set_tooltip_text(
+          'Copy the selected records to the clipboard (labels and data)',
     );
 
-    $selection_menu->append($selection_to_clipboard);
+    $selection_menu->append($selected_labels_to_clipboard);
+    $selection_menu->append($selected_records_to_clipboard);
     $selection_menu->append($selection_mode_item);
     $selection_menu->append($switch_selection_item);
     $selection_menu->append($select_regex_item);
@@ -1992,9 +2030,10 @@ sub do_switch_selection {
     return;
 }
 
-sub do_copy_selection_to_clipboard {
+sub do_copy_selected_to_clipboard {
     my $args = shift;
     my $self = $args->[0];
+    my $full_recs = $args->[1];
 
     my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
 
@@ -2007,7 +2046,7 @@ sub do_copy_selection_to_clipboard {
         $clipboard->set_with_data (
             \&clipboard_get_func,
             \&clipboard_clear_func,
-            $self,
+            [$self, $full_recs],
             {target=>'STRING',        info => TYPE_TEXT},
             {target=>'TEXT',          info => TYPE_TEXT},
             {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
@@ -2026,9 +2065,8 @@ sub clipboard_get_func {
     my $clipboard = shift;
     my $selection = shift;
     my $datatype  = shift;  #  currently we only handle text, so this is ignored
-    my $self      = shift;
-
-    my $text;
+    my $user_data = shift;
+    my ($self, $do_full_recs) = @$user_data;
 
     if (! $self) {
         my $gui = Biodiverse::GUI::GUIManager->instance;
@@ -2037,11 +2075,21 @@ sub clipboard_get_func {
         return;
     }
 
-    my $selected_labels = $self->get_selected_labels;
+    my $text = '';
 
     # Generate the text
-    foreach my $label (@$selected_labels) {
-        $text .= "$label\n";
+    if ($do_full_recs) {
+        #  could iterate over $tree_view->get_columns
+        #  but we would then need to unescape the names
+        my $header = $self->{tree_model_column_names};
+        my $selected_records = $self->get_selected_records;
+        foreach my $rec ($header, @$selected_records) {
+            $text .= join ("\t", map {defined $_ ? $_ : ''} @$rec) . "\n";
+        }
+    }
+    else {
+        my $selected_labels = $self->get_selected_labels;
+        $text .= join "\n", @$selected_labels;
     }
 
     # Give the data..

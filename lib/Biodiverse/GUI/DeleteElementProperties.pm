@@ -251,6 +251,25 @@ sub _build_deletion_panel {
         }
     );
     
+    
+    my $helper_text = <<'END_HELPER_TEXT'
+<i>Select properties to delete from all elements,
+or elements that are to have all their properties deleted.
+
+There is currently no option to delete single
+properties from individual elements.
+
+(n.b. labels and groups are both types of element).</i>
+END_HELPER_TEXT
+;
+    $helper_text =~ s/(?:\r?\n)(?![\r\n])/ /gs;
+    my $helper_label = Gtk2::Label->new();
+    $helper_label->set_width_chars (90);
+    $helper_label->set_line_wrap (1);
+    $helper_label->set_selectable (1);
+    $helper_label->set_markup ($helper_text);
+    $vbox->pack_start( $helper_label, 0, 0, 0 );
+    
     return $vbox;
 }
 

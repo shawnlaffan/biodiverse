@@ -55,13 +55,13 @@ sub new {
         $self->add_children(%args);
     }
 
-    if (exists $args{boot} && defined $args{boot}) {
+    if (exists $args{boot} && defined $args{boot} && length $args{boot}) {
         #say "We found the boot arg, it is $args{boot}";
-        my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
-        $bootstrap_block->decode (raw_bootstrap => $args{boot});
-        $self->set_value(
-            bootstrap_block => $bootstrap_block,
-        );
+        my $booter = $self->get_bootstrap_block;
+        $booter->decode (raw_bootstrap => $args{boot});
+        #  store the raw text somewhere that can be deleted with impunity
+        #  handy for debugging
+        $booter->set_cached_value (RAW_TEXT => $args{boot});
     }
     
     return $self;

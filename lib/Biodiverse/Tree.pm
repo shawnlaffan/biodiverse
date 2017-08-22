@@ -859,9 +859,8 @@ sub get_metadata_export {
 sub get_lists_for_export {
     my $self = shift;
 
-    my @sub_list
-      ;    #  get a list of available sub_lists (these are actually hashes)
-           #foreach my $list (sort $self->get_hash_lists) {
+    my @sub_list;
+    #  get a list of available sub_lists (these are actually hashes)
     foreach my $list ( sort $self->get_list_names_below ) {    #  get all lists
         if ( $list eq 'SPATIAL_RESULTS' ) {
             unshift @sub_list, $list;

@@ -524,7 +524,14 @@ sub _test_export_nexus {
             my $booter = $node->get_bootstrap_block;
             $booter->set_value_aa(bootkey => "bootvalue");
             $booter->set_colour_aa("red");
+            my $some_list = {a => 1, b => 2, c => 3};
+            $node->add_to_list (
+                BOOTER_TEST_LIST => $some_list,
+                use_ref => 1,
+            );
         }
+        $args{sub_list} = 'BOOTER_TEST_LIST';
+        $args{export_colours} = 1;
     }
     
     my $test_suffix = ', args:';
@@ -601,26 +608,34 @@ sub _test_export_nexus {
 
     ## make sure the bootstrap values got through
     ## comment out since todo results in lots of newlines at the terminal
-    #if($args{check_bootstrap_values}) {
-    #    TODO: {
-    #        local $TODO = 'round tripping is for issue #657';
-    #        subtest "bootstrap roundtrip" => sub {
-    #            my @tree_nodes = $imported_tree->get_node_refs();
-    #            foreach my $node (@tree_nodes) {
-    #                my $node_name = $node->get_name;
-    #                my $booter = $node->get_bootstrap_block;
-    #                is ($booter->get_value( key => "bootkey" ),
-    #                   "bootvalue",
-    #                   "Exported and then imported correct bootstrap value for $node_name."
-    #                );
-    #                is ($booter->get_colour,
-    #                   "red",
-    #                   "Exported and then imported correct colour for $node_name."
-    #                );
-    #            }
-    #        };
-    #    }
-    #}
+    if($args{check_bootstrap_values}) {
+        #TODO: {
+        #    local $TODO = 'round tripping is for issue #657';
+            subtest "bootstrap roundtrip" => sub {
+                my @tree_nodes = $imported_tree->get_node_refs();
+                foreach my $node (@tree_nodes) {
+                    my $node_name = $node->get_name;
+                    my $booter = $node->get_bootstrap_block;
+                    my %expected_list_items = (
+                        bootkey => 'bootvalue',
+                        BOOTER_TEST_LIST__a => 1,
+                        BOOTER_TEST_LIST__b => 2,
+                        BOOTER_TEST_LIST__c => 3,
+                    );
+                    foreach my $key (sort keys %expected_list_items) {
+                        is ($booter->get_value ( key => $key ),
+                           $expected_list_items{$key},
+                           "Exported and then imported correct bootstrap value for $key in $node_name."
+                        );
+                    }
+                    is ($booter->get_colour,
+                       "red",
+                       "Exported and then imported correct colour for $node_name."
+                    );
+                }
+            };
+        #}
+    }
 
     return;
 }

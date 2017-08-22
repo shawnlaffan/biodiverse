@@ -931,6 +931,7 @@ sub export_nexus {
         $sub_list_name = undef;
     }
     my $comment_block_hash;
+    my @booters_to_cleanse;
     if ($export_colours || defined $sub_list_name) {
         my %comments_block;
         my $node_refs = $self->get_node_refs;
@@ -941,6 +942,7 @@ sub export_nexus {
                 and $sub_list = $node_ref->get_list_ref_aa ($sub_list_name)
                 ) {
                 $booter->set_value_aa ($sub_list_name => $sub_list);
+                push @booters_to_cleanse, $booter;
             }
             my $boot_text = $booter->encode (
                 include_colour => $export_colours,
@@ -959,15 +961,11 @@ sub export_nexus {
     $fh->close;
 
     #  clean up if needed
-    #  should check if we already had such a list?
-    if (defined $sub_list_name) {
-        my $node_refs = $self->get_node_refs;
-        foreach my $node_ref (@$node_refs) {
-            my $booter = $node_ref->get_bootstrap_block;
-            $booter->delete_value_aa ($sub_list_name);
-        }
+    #  should not do so if we already had such a list?
+    foreach my $booter (@booters_to_cleanse) {
+        $booter->delete_value_aa ($sub_list_name);
     }
-    
+
     return 1;
 }
 

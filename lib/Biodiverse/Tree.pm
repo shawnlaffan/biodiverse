@@ -944,18 +944,18 @@ sub export_nexus {
                 $booter->set_value_aa ($sub_list_name => $sub_list);
                 push @booters_to_cleanse, $booter;
             }
-            my $boot_text = $booter->encode (
-                include_colour => $export_colours,
-            );
-            $comments_block{$node_ref->get_name} = $boot_text;
+            #my $boot_text = $booter->encode (
+            #    include_colour => $export_colours,
+            #);
+            #$comments_block{$node_ref->get_name} = $boot_text;
         }
-        $comment_block_hash = \%comments_block;
+        #$comment_block_hash = \%comments_block;
     }
   
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
-        comment_block_hash => $comment_block_hash,
+        #comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;

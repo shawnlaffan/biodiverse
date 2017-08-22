@@ -534,9 +534,10 @@ sub _test_export_nexus {
     }
     chop $test_suffix;
     
-    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
-    
-    my $fname = $tmp_folder . '/tree_export_' . int (1000 * rand()) . '.nex';
+    my $fname = get_temp_file_path (
+        'tree_export_'
+        . int (1000 * rand()) . '.nex',
+    );
     note "File name is $fname";
     my $success = eval {
         $tree->export_nexus (

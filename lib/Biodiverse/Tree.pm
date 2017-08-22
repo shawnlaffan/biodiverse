@@ -905,6 +905,8 @@ sub get_metadata_export_nexus {
     for (@parameters) {
         bless $_, $parameter_metadata_class;
     }
+    
+    push @parameters, $self->get_lists_export_metadata;
 
     my %args = (
         format     => 'Nexus',
@@ -925,12 +927,21 @@ sub export_nexus {
 
     my $export_colours = $args{export_colours};
     my $sub_list_name  = $args{sub_list};
+    if ($sub_list_name eq '(no list)') {
+        $sub_list_name = undef;
+    }
     my $comment_block_hash;
     if ($export_colours || defined $sub_list_name) {
         my %comments_block;
         my $node_refs = $self->get_node_refs;
         foreach my $node_ref (@$node_refs) {
-            my $booter    = $node_ref->get_bootstrap_block;
+            my $booter = $node_ref->get_bootstrap_block;
+            my $sub_list;
+            if (   defined $sub_list_name
+                and $sub_list = $node_ref->get_list_ref_aa ($sub_list_name)
+                ) {
+                $booter->set_value_aa ($sub_list_name => $sub_list);
+            }
             my $boot_text = $booter->encode (
                 include_colour => $export_colours,
             );
@@ -946,6 +957,16 @@ sub export_nexus {
     );
 
     $fh->close;
+
+    #  clean up if needed
+    #  should check if we already had such a list?
+    if (defined $sub_list_name) {
+        my $node_refs = $self->get_node_refs;
+        foreach my $node_ref (@$node_refs) {
+            my $booter = $node_ref->get_bootstrap_block;
+            $booter->delete_value_aa ($sub_list_name);
+        }
+    }
     
     return 1;
 }

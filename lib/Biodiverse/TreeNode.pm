@@ -2178,6 +2178,13 @@ sub get_list_ref {
     defined $list ? $self->{$list} : undef;
 }
 
+sub get_list_ref_aa {
+    my ($self, $list) = @_;
+    no autovivification;
+    defined $list ? $self->{$list} : undef;
+}
+
+
 sub get_node_range {
     my $self = shift;
     my %args = @_;

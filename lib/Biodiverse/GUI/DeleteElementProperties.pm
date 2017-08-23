@@ -50,13 +50,13 @@ sub build_main_notebook {
     my $label_outer_vbox = 
         $self->_build_deletion_panel(
             values_hash => \%label_props_hash,
-            basestruct  => 'label',
+            bs_type     => 'label',
         );
 
     my $group_outer_vbox =
         $self->_build_deletion_panel(
             values_hash => \%group_props_hash,
-            basestruct  => 'group',
+            bs_type     => 'group',
         );
     
     my $notebook = Gtk2::Notebook->new;
@@ -149,7 +149,7 @@ sub build_tree_from_list {
 sub _build_deletion_panel {
     my ($self, %args) = @_;
     my $values_hash = $args{values_hash};
-    my $basestruct = $args{basestruct};
+    my $bs_type = $args{bs_type};
     
     # find all of the possible properties
     my %all_props;
@@ -173,7 +173,7 @@ sub _build_deletion_panel {
             title => "Properties",
         );
 
-    $self->{$basestruct}{properties_tree} = $properties_tree;
+    $self->{$bs_type}{properties_tree} = $properties_tree;
     
     my $elements_tree =
         $self->build_tree_from_list(
@@ -181,7 +181,7 @@ sub _build_deletion_panel {
             title => "Element",
         );
 
-    $self->{basestruct}{elements_tree} = $elements_tree;
+    $self->{$bs_type}{elements_tree} = $elements_tree;
 
     my $hbox = Gtk2::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  

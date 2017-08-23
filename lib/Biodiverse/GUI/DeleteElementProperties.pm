@@ -232,7 +232,7 @@ sub _build_deletion_panel {
 
     my $schedule_deletion_button =
         Gtk2::Button->new_with_label (
-            "Check selections"
+            "Schedule selected"
         );
     $schedule_deletion_button->set_tooltip_text (
         'Schedule deletions of selected properties from all elements, and all properties from selected elements'
@@ -255,7 +255,7 @@ sub _build_deletion_panel {
     
     my $unschedule_deletion_button =
         Gtk2::Button->new_with_label(
-            "Uncheck selections"
+            "Unschedule selected"
         );
     $unschedule_deletion_button->set_tooltip_text (
         'Unschedule deletions of selected properties from all elements, and all properties from selected elements'
@@ -281,21 +281,19 @@ sub _build_deletion_panel {
     $button_hbox->pack_start( $unschedule_deletion_button, 1, 0, 0 );
     $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
-    my $undo_last_schedule_button =
+    my $clear_selections_button =
         Gtk2::Button->new_with_label(
-            'Unschedule last selection'
+            'Clear selections'
         );
-    $undo_last_schedule_button->set_tooltip_text (
-        'Clear last selection from schedule'
+    $clear_selections_button->set_tooltip_text (
+        'Clear selections from lists (this does not uncheck the boxes)'
     );
-    my $hbox_u = Gtk2::HBox->new();
-    $hbox_u->pack_start($undo_last_schedule_button, 1, 0, 0);
-    $vbox->pack_start( $hbox_u, 0, 0, 0 );
+    $button_hbox->pack_start( $clear_selections_button, 1, 0, 0 );
 
-    $undo_last_schedule_button->signal_connect(
+    $clear_selections_button->signal_connect(
         'clicked' => sub {
-            my $schedule = $self->{scheduled_deletions};
-            pop @$schedule;
+            $properties_tree->get_selection->unselect_all;
+            $elements_tree->get_selection->unselect_all;
         }
     );
     
@@ -373,6 +371,8 @@ sub on_clicked_apply {
         }
     }
 
+    my $msg = 'No deletions scheduled';
+    
     if ($delete_count) {
         $self->{project}->set_dirty;
         foreach my $type (keys %bs_type_had_deletions) {
@@ -382,26 +382,29 @@ sub on_clicked_apply {
               : $bd->get_groups_ref;
             $ref->delete_cached_values;
         }
-        my $msg = "Deleted:\n"
-        . 'all properties from '
-        . ($bs_type_had_deletions{label}{elements_tree} // 0)
-        . " labels,\n"
-        . ($bs_type_had_deletions{label}{properties_tree} // 0)
-        . " properties across all labels,\n"
-        . ' all properties from '
-        . ($bs_type_had_deletions{group}{elements_tree} // 0)
-        . " groups,\n"
-        . ($bs_type_had_deletions{group}{properties_tree} // 0)
-        . " properties across all groups\n";
-        my $dlg = Gtk2::MessageDialog->new (
-            undef, 'modal',
-            'info', # message type
-            'ok',
-            $msg,
-        );
-        $dlg->run;
-        $dlg->destroy;
+        my $fmt = <<"END_FMT"
+Deleted:
+all properties from %d labels,
+%d properties across all labels,
+all properties from %d groups,
+%d properties across all groups
+END_FMT
+  ;
+        $msg = sprintf $fmt,
+            ($bs_type_had_deletions{label}{elements_tree} // 0),
+            ($bs_type_had_deletions{label}{properties_tree} // 0),
+            ($bs_type_had_deletions{group}{elements_tree} // 0),
+            ($bs_type_had_deletions{group}{properties_tree} // 0);
     }
+    
+    my $dlg = Gtk2::MessageDialog->new (
+        undef, 'modal',
+        'info', # message type
+        'ok',
+        $msg,
+    );
+    $dlg->run;
+    $dlg->destroy;
 
     return;
 }

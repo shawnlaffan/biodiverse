@@ -792,6 +792,25 @@ sub colour {
     return;
 }
 
+sub hide_some_cells {
+    my $self = shift;
+    my $callback = shift;
+
+  CELL:
+    foreach my $cell (values %{$self->{cells}}) {
+        #  sometimes we are called before all cells have contents
+        if ($callback->($cell->[INDEX_ELEMENT])) {
+            $cell->[INDEX_RECT]->hide;
+        }
+        else {
+            $cell->[INDEX_RECT]->show;
+        }
+    }
+
+    return;
+}
+
+
 sub store_cell_outline_colour {
     my $self = shift;
     my $col  = shift;

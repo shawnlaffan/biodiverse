@@ -1890,8 +1890,14 @@ sub recolour {
             ? $grid->get_colour($val, $min, $max)
             : $colour_none;
     };
+    
+    my $defq_callback = sub {
+        my $elt = shift // return;
+        !$output_ref->group_passed_def_query(group => $elt);
+    };
 
     $grid->colour($colour_func);
+    #$grid->hide_some_cells($defq_callback);
     $grid->set_legend_min_max($min, $max);
 
     return;

@@ -368,7 +368,7 @@ sub on_clicked_apply {
             }
             if ($sub_delete_count) {
                 $delete_count += $sub_delete_count;
-                $bs_type_had_deletions{$bs_type}++;
+                $bs_type_had_deletions{$bs_type}{$tree_type} += $sub_delete_count;
             }
         }
     }
@@ -382,6 +382,25 @@ sub on_clicked_apply {
               : $bd->get_groups_ref;
             $ref->delete_cached_values;
         }
+        my $msg = "Deleted:\n"
+        . 'all properties from '
+        . ($bs_type_had_deletions{label}{elements_tree} // 0)
+        . " labels,\n"
+        . ($bs_type_had_deletions{label}{properties_tree} // 0)
+        . " properties across all labels,\n"
+        . ' all properties from '
+        . ($bs_type_had_deletions{group}{elements_tree} // 0)
+        . " groups,\n"
+        . ($bs_type_had_deletions{group}{properties_tree} // 0)
+        . " properties across all groups\n";
+        my $dlg = Gtk2::MessageDialog->new (
+            undef, 'modal',
+            'info', # message type
+            'ok',
+            $msg,
+        );
+        $dlg->run;
+        $dlg->destroy;
     }
 
     return;

@@ -24,6 +24,9 @@ use constant PROPERTY_COL => ++$i;
 use constant ELEMENT_COL  => ++$i;
 use constant VALUE_COL    => ++$i;
 
+use constant MODEL_CHECKED_COL => 0;
+use constant MODEL_TEXT_COL    => 1;
+
 sub new {
     my $class = shift;
     
@@ -101,6 +104,7 @@ sub run {
     $self->{dlg} = $dlg;
     $dlg->show_all;
     my $response = $dlg->run();
+    delete $self->{dlg};
     $dlg->destroy();
 
     if ($response =~ /^(ok|apply)$/) {
@@ -114,13 +118,14 @@ sub build_tree_from_list {
     my ($self, %args) = @_;
     my $list = $args{list};
 
-    my $model = Gtk2::TreeStore->new(('Glib::String'));
+    my $model = Gtk2::TreeStore->new('Glib::Boolean', 'Glib::String');
+
     my $title = $args{ title } // '';
     
     # fill model with content
     foreach my $item (nsort @$list) {
         my $iter = $model->append(undef);
-        $model->set($iter, 0, $item);
+        $model->set($iter, 1, $item);
     }
 
     # allow multi selections
@@ -135,16 +140,45 @@ sub build_tree_from_list {
         tooltip_text => '',
     );
     
-    my $renderer = Gtk2::CellRendererText->new();
+    my $text_renderer  = Gtk2::CellRendererText->new();
+    my $check_renderer = Gtk2::CellRendererToggle->new();
+    
+    #$check_renderer->signal_connect_swapped(toggled => \&on_checkbox_toggled, $model);
 
-    $column->pack_start( $renderer, 0 );
-    $column->set_attributes( $renderer, text => 0 );
+    $column->pack_start( $check_renderer, 0);
+    $column->pack_start( $text_renderer,  1 );
+    $column->add_attribute( $check_renderer, active => 0 );
+    $column->add_attribute( $text_renderer,  text => 1 );
     $tree->append_column($column);
-    $column->set_sort_column_id(0);
+    $column->set_sort_column_id(1);
 
-    return $tree;
+    return ($tree, $model);
 }
 
+sub on_checkbox_toggled {
+    my $model = shift;
+    my $path  = shift;
+    
+    my $iter = $model->get_iter_from_string($path);
+
+    # Flip state
+    my $state = $model->get($iter, MODEL_CHECKED_COL);
+
+    $model->set($iter, MODEL_CHECKED_COL, !$state);
+    #$model->set($iter, MODEL_GRAYED_COL, 0);
+    
+    # Apply state to all child nodes
+    #my $child_iter = $model->iter_nth_child($iter, 0);
+    #while ($child_iter) {
+    #    $model->set($child_iter, MODEL_CHECKED_COL, $state);
+    #    $child_iter = $model->iter_next($child_iter);
+    #}
+
+    # update state of any parent
+    #update_type_checkbox($model, $model->iter_parent($iter) );
+
+    return;
+}
 
 sub _build_deletion_panel {
     my ($self, %args) = @_;
@@ -167,21 +201,23 @@ sub _build_deletion_panel {
     }
     my @all_props = keys %all_props;
 
-    my $properties_tree = 
+    my ($properties_tree, $properties_model) = 
         $self->build_tree_from_list(
             list  => \@all_props,
             title => "Properties",
         );
 
     $self->{$bs_type}{properties_tree} = $properties_tree;
+    $self->{models}{$bs_type}{properties_tree} = $properties_model;
     
-    my $elements_tree =
+    my ($elements_tree, $elements_model) =
         $self->build_tree_from_list(
             list  => \@elements_list,
-            title => "Element",
+            title => "Elements",
         );
 
     $self->{$bs_type}{elements_tree} = $elements_tree;
+    $self->{models}{$bs_type}{elements_tree} = $elements_model;
 
     my $hbox = Gtk2::HBox->new();
     $hbox->pack_start( $properties_tree, 1, 1, 0 );  
@@ -194,43 +230,55 @@ sub _build_deletion_panel {
     my $vbox = Gtk2::VBox->new(); 
     $vbox->pack_start( $scroll, 1, 1, 0 ); 
 
-    my $delete_properties_button =
+    my $schedule_deletion_button =
         Gtk2::Button->new_with_label (
-            "Schedule selected properties from all elements"
+            "Check selections"
         );
-    $delete_properties_button->set_tooltip_text (
-        'Schedule deletion of selected properties from all elements'
+    $schedule_deletion_button->set_tooltip_text (
+        'Schedule deletions of selected properties from all elements, and all properties from selected elements'
     );
 
-    $delete_properties_button->signal_connect(
+    $schedule_deletion_button->signal_connect(
         'clicked' => sub {
             $self->clicked_schedule_button(
                 tree => $properties_tree,
                 type => 'property',
+                check => 1,
+            );
+            $self->clicked_schedule_button(
+                tree => $elements_tree,
+                type => 'element',
+                check => 1,
             );
         }
     );
     
-    my $delete_elements_button =
+    my $unschedule_deletion_button =
         Gtk2::Button->new_with_label(
-            "Schedule all properties from selected elements"
+            "Uncheck selections"
         );
-    $delete_elements_button->set_tooltip_text (
-        'Schedule deletion of all properties from the selected elements'
+    $unschedule_deletion_button->set_tooltip_text (
+        'Unschedule deletions of selected properties from all elements, and all properties from selected elements'
     );
 
-    $delete_elements_button->signal_connect(
+    $unschedule_deletion_button->signal_connect(
         'clicked' => sub {
+            $self->clicked_schedule_button(
+                tree => $properties_tree,
+                type => 'property',
+                check => 0,
+            );
             $self->clicked_schedule_button(
                 tree => $elements_tree,
                 type => 'element',
+                check => 0,
             );
         }
     );
     
     my $button_hbox = Gtk2::HBox->new();
-    $button_hbox->pack_start( $delete_properties_button, 1, 0, 0 );
-    $button_hbox->pack_start( $delete_elements_button, 1, 0, 0 );
+    $button_hbox->pack_start( $schedule_deletion_button, 1, 0, 0 );
+    $button_hbox->pack_start( $unschedule_deletion_button, 1, 0, 0 );
     $vbox->pack_start( $button_hbox, 0, 0, 0 );
     
     my $undo_last_schedule_button =
@@ -282,39 +330,52 @@ sub on_clicked_apply {
     
     my %methods = (
         label => {
-            element  => 'delete_individual_label_properties_aa',
-            property => 'delete_label_element_property_aa',
+            elements_tree  => 'delete_individual_label_properties_aa',
+            properties_tree => 'delete_label_element_property_aa',
         },
         group => {
-            element  => 'delete_individual_group_properties_aa',
-            property => 'delete_group_element_property_aa',            
+            elements_tree  => 'delete_individual_group_properties_aa',
+            properties_tree => 'delete_group_element_property_aa',            
         },
     );
     
     # should probably just figure out what sub to use here.
-    my $schedule = $self->{scheduled_deletions};
-    my %target_bs_types;
+    #my $schedule = $self->{scheduled_deletions};
+    my %bs_type_had_deletions;
     
-    #  too many nested levels...
-    foreach my $part (@$schedule) {
-        foreach my $bs_type (keys %$part) {
-            my $subhash = $part->{$bs_type};
-            foreach my $target (keys %$subhash) {
-                my $method = $methods{$bs_type}{$target};
-                croak "No method for type $bs_type and target $target"
-                  if !defined $method;
-                my $subsubhash = $subhash->{$target};
-                foreach my $value (keys %$subsubhash) {
-                    $bd->$method($value);
+    my $delete_count;
+    
+    foreach my $bs_type (keys %methods) {
+        foreach my $tree_type (keys %{$methods{$bs_type}}) {
+            #my $treeview = $self->{$bs_type}{$tree_type};
+            #my $model = $treeview->get_model;
+            my $model = $self->{models}{$bs_type}{$tree_type};
+            my @targets;
+            my $method = $methods{$bs_type}{$tree_type};
+            my $iter = $model->get_iter_first();
+            while ($iter) {
+                my ($checked) = $model->get($iter, MODEL_CHECKED_COL);
+                if ($checked) {
+                    my ($text) = $model->get($iter, MODEL_TEXT_COL);
+                    push (@targets, $text);
                 }
+                $iter = $model->iter_next($iter);
             }
-            $target_bs_types{$bs_type}++;
+            my $sub_delete_count;
+            foreach my $target (@targets) {
+                $bd->$method($target);
+                $sub_delete_count ++;
+            }
+            if ($sub_delete_count) {
+                $delete_count += $sub_delete_count;
+                $bs_type_had_deletions{$bs_type}++;
+            }
         }
     }
 
-    if (@$schedule) {
+    if ($delete_count) {
         $self->{project}->set_dirty;
-        foreach my $type (keys %target_bs_types) {
+        foreach my $type (keys %bs_type_had_deletions) {
             #  clear the cache
             my $ref = $type eq 'label'
               ? $bd->get_labels_ref
@@ -330,6 +391,7 @@ sub clicked_schedule_button {
     my ($self, %args) = @_;
     my $type         = $args{type}; # element or property
     my $tree         = $args{tree};
+    my $check        = $args{check};
     my $selection    = $tree->get_selection();
 
     my $notebook     = $self->{notebook};
@@ -338,23 +400,26 @@ sub clicked_schedule_button {
     my $bd           = $self->{bd};
 
     my $selected_one = 0;
+    #my $schedule = $self->{scheduled_deletions};
     
-    my %targets;
+    #my %targets;
+    #my $settings = $targets{$bs_type}{$type} = {};
 
     $selection->selected_foreach (
         sub {
             my ($model, $path, $iter) = @_;
-            my $value = $model->get($iter, 0);
-
-            $tree->collapse_row ($path);
-            $targets{$bs_type}{$type}{$value}++;
+            my $text  = $model->get($iter, MODEL_TEXT_COL);
+            #my $check = $model->get($iter, MODEL_CHECK_COL);
+            $model->set($iter, MODEL_CHECKED_COL, $check);
+            #$tree->collapse_row ($path);
+            #$settings->{$text} = 1;
         }
     );
 
-    if (scalar keys %targets) {
-        my $schedule = $self->{scheduled_deletions};
-        push @$schedule, \%targets;
-    }
+    #if (scalar keys %targets) {
+    #    
+    #    push @$schedule, \%targets;
+    #}
 
     return;
 }

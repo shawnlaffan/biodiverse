@@ -491,25 +491,27 @@ sub import_tabular_tree {
     return 1;
 }
 
+#  Now pass over the data again and assign parents.
+#  Needs to be post-import as we won't have all the parents
+#  loaded on the first pass.
 sub assign_parents_for_tabular_tree_import {
     my $self = shift;
     my %args = @_;
     
-    my $tree = $args{tree_ref};
+    my $tree      = $args{tree_ref};
     my $node_hash = $args{node_hash};
-    
-    #  now pass over the data again and assign parents
+
     foreach my $node_number (sort keys %$node_hash) {
         my $node_name = $node_hash->{$node_number}{NAME_COL};
-        my $node_ref  = $tree->get_node_ref (node => $node_name);
+        my $node_ref  = $tree->get_node_ref_aa ($node_name);
 
         my $parent_number = $node_hash->{$node_number}{PARENTNODE_COL};
         my $parent_name   = $node_hash->{$parent_number}{NAME_COL};
 
-        if (defined $parent_name) {
-            my $parent_ref = $tree->get_node_ref (node => $parent_name);
-            $parent_ref->add_children(children => [$node_ref]);
-        }
+        next if !defined $parent_name;
+
+        my $parent_ref = $tree->get_node_ref_aa ($parent_name);
+        $parent_ref->add_children(children => [$node_ref]);
     }
     
     return;

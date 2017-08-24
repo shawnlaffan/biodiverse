@@ -5,11 +5,11 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number refaddr/;
+use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use Time::HiRes;
 use Sort::Naturally qw /nsort/;
 
@@ -469,7 +469,8 @@ sub init_dendrogram {
         parent_tab      => $self,
     );
 
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
@@ -568,8 +569,10 @@ sub init_grid {
         cell_leave_func => $cell_leave,
         plot_max        => $plot_max,
     );
-    $self->{grid}->{page} = $self;
-    $self->{grid}->{drag_mode} = 'select';
+    $self->{grid}{page} = $self;
+    weaken $self->{grid}{page};
+
+    $self->{grid}{drag_mode} = 'select';
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};
@@ -584,12 +587,17 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
+ 
+    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
 
     $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
-
 
 sub set_cell_outline_menuitem_active {
     my ($self, $active) = @_;

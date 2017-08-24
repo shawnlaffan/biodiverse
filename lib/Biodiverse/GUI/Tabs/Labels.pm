@@ -9,6 +9,10 @@ use Data::Dumper;
 use Sort::Naturally qw /nsort ncmp/;
 
 use List::MoreUtils qw /firstidx/;
+use List::Util qw /max/;
+use Scalar::Util qw /weaken/;
+
+use HTML::QuickTable;
 
 use Gtk2;
 use Carp;
@@ -21,7 +25,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -43,6 +47,10 @@ use constant COLOUR_GREY => Gtk2::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';
+
+use constant TYPE_TEXT => 1;
+use constant TYPE_HTML => 2; # some programs want HTML tables
+
 
 ##################################################
 # Initialisation
@@ -168,6 +176,14 @@ sub new {
     $xml->get_object('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
     $xml->get_object('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
+    
+    foreach my $type_option (qw /auto linear log/) {
+        my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
+        $xml->get_object($radio_item)->signal_connect_swapped(
+            toggled => \&on_grid_colour_scaling_changed,
+            $self,
+        );
+    }
 
     $self->{use_highlight_path} = 1;
 
@@ -212,7 +228,8 @@ sub init_grid {
         cell_enter_func => $cell_enter,
         cell_leave_func => $cell_leave,
     );
-    $self->{grid}->{page} = $self; # Hacky
+    $self->{grid}{page} = $self; # Hacky
+    weaken $self->{grid}{page};
 
     eval {$self->{grid}->set_base_struct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
@@ -249,7 +266,8 @@ sub init_matrix_grid {
         grid_click_func => $grid_click_closure,
         click_func      => $click_closure,
     );
-    $self->{matrix_grid}->{page} = $self; # Hacky
+    $self->{matrix_grid}{page} = $self; # Hacky
+    weaken $self->{matrix_grid}{page};
 
     $self->{matrix_drawn} = 0;
 
@@ -289,7 +307,8 @@ sub init_dendrogram {
         parent_tab      => undef,
         basedata_ref    => $self->{base_ref},
     );
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};    
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
@@ -336,20 +355,40 @@ sub init_list {
     my $tree = $self->{xmlPage}->get_object($id);
 
 
+    my @column_names;
     my $labels_ref = $self->{base_ref}->get_labels_ref;
     my $stats_metadata = $labels_ref->get_metadata (sub => 'get_base_stats');
     my $types = $stats_metadata->get_types;
     my @columns;
     my $i = 0;
-    $self->add_column (tree => $tree, title => 'Label', model_id => $i);
+    $self->add_column (
+        tree  => $tree,
+        title => 'Label',
+        model_id => $i,
+    );
+    push @column_names, 'Label';
     foreach my $column (@$types) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self->add_column (tree => $tree, title => $column_name, model_id => $i);
+        $self->add_column (
+            tree  => $tree,
+            title => $column_name,
+            model_id => $i,
+        );
+        push @column_names, $key;
     }
-    $self->add_column (tree => $tree, title => $selected_list1_name, model_id => ++$i);
-    $self->add_column (tree => $tree, title => $selected_list2_name, model_id => ++$i);
+    $self->add_column (
+        tree  => $tree,
+        title => $selected_list1_name,
+        model_id => ++$i,
+    );
+    $self->add_column (
+        tree  => $tree,
+        title => $selected_list2_name,
+        model_id => ++$i,
+    );
+    push @column_names, ('Selected', 'Selected_Col');
 
     # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
@@ -378,6 +417,8 @@ sub init_list {
 #    'start-interactive-search' => \&on_interactive_search,
 #    [$self, $id],
 #);
+
+    $self->{tree_model_column_names} = \@column_names;
 
     return;
 }
@@ -554,6 +595,27 @@ sub get_selected_labels {
     return wantarray ? @selected_labels : \@selected_labels;
 }
 
+sub get_selected_records {
+    my $self = shift;
+
+    # Get the current selection
+    my $selection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
+    my @paths = $selection->get_selected_rows();
+    #my @selected = map { ($_->get_indices)[0] } @paths;
+    my $sorted_model = $selection->get_tree_view()->get_model();
+    my $global_model = $self->{labels_model};
+
+    my @selected_records;
+    foreach my $path (@paths) {
+        # don't know why all this is needed (gtk bug?)
+        my $iter  = $sorted_model->get_iter($path);
+        my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
+        my @values = map {$_ eq '-99999' ? undef : $_} $global_model->get($iter1);
+        push @selected_records, \@values;
+    }
+
+    return wantarray ? @selected_records : \@selected_records;
+}
 
 sub switch_selection {
     my $self = shift;
@@ -739,6 +801,60 @@ sub on_selected_matrix_changed {
     return;
 }
 
+#  should use the group-changed signal to trigger this
+sub on_grid_colour_scaling_changed {
+    my ($self, $radio_widget) = @_;
+
+    #  avoid triggering twice - we only care about which one is active
+    return if !$radio_widget->get_active;
+    
+    my $xml_page = $self->{xmlPage};
+
+    my %names_and_strings;
+    foreach my $opt (qw /auto linear log/) {
+        $names_and_strings{"radiomenuitem_grid_colouring_$opt"} = $opt;
+    }
+
+    my $mode_string;
+    foreach my $name (keys %names_and_strings) {
+        my $string = $names_and_strings{$name};
+        my $widget = $xml_page->get_object($name);
+        if ($widget->get_active) {
+            $mode_string = $string;
+            last;
+        }
+    }
+
+    die "[Labels tab] - on_grid_colour_scaling_changed - undefined mode"
+      if !defined $mode_string;
+
+    say "[Labels tab] Changing grid colour scaling to $mode_string";
+
+    if ($mode_string eq 'log') {
+        $self->set_legend_log_mode ('on');
+    }
+    elsif ($mode_string eq 'linear') {
+        $self->set_legend_log_mode ('off');
+    }
+    else {
+        $self->set_legend_log_mode ('auto');
+    }
+    on_selected_labels_changed(undef, [$self]);
+    
+    return;   
+}
+
+sub set_legend_log_mode {
+    my ($self, $mode) = @_;
+    die 'invalid mode' if $mode !~ /^(auto|off|on)$/;
+    $self->{legend_log_mode} = $mode;
+}
+
+sub get_legend_log_mode {
+    my ($self) = @_;
+    $self->{legend_log_mode} //= 'auto';
+}
+
 
 # Called when user changes selection in one of the two labels lists
 sub on_selected_labels_changed {
@@ -797,20 +913,25 @@ sub on_selected_labels_changed {
     my @phylogeny_colour_nodes;
 
 
+    my %checked_nodes;
     foreach my $path (@paths) {
 
         # don't know why all this is needed (gtk bug?)
         $iter  = $sorted_model->get_iter($path);
         $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         $label = $global_model->get($iter1, LABELS_MODEL_NAME);
-
+#say $label;
         # find phylogeny nodes to colour
         if (defined $tree) {
             #  not all will match
             eval {
-                my $node_ref = $tree->get_node_ref (node => $label);
-                if (defined $node_ref) {
+                my $node_ref = $tree->get_node_ref_aa ($label);
+                while ($node_ref) {
+                    last if exists $checked_nodes{$node_ref};
                     push @phylogeny_colour_nodes, $node_ref;
+                    $checked_nodes{$node_ref}++;
+                    $node_ref = $node_ref->get_parent;
+                    #last;
                 }
             }
         }
@@ -826,26 +947,54 @@ sub on_selected_labels_changed {
         }
     }
 
+    my $grid = $self->{grid};
+    my $max_group_richness = max (values %group_richness);
+
     #  richness is the number of labels selected,
     #  which is the number of items in @paths
     my $max_value = scalar @paths;
+    my $display_max_value = $max_value;
+    my $use_log;
+    if ($max_value) {
+        my $mode = $self->get_legend_log_mode;
+        if ($mode eq 'on') {
+            $use_log = 1;
+        }
+        #  some arbitrary thresholds here - should let the user decide
+        elsif ($mode eq 'auto' && ($max_value > 20 || ($max_group_richness / $max_value < 0.8))) {
+            $use_log = 1;
+        }
+    }
 
-    my $grid = $self->{grid};
+    if ($use_log) {
+        #$display_max_value = log ($max_value + 1);
+        $grid->set_legend_log_mode_on;
+    }
+    else {
+        $grid->set_legend_log_mode_off;
+    }
+
     my $colour_func = sub {
         my $elt = shift;
         my $val = $group_richness{$elt};
         return COLOUR_GREY if !defined $val;
         return if !$val;
-        return $grid->get_colour($val, 0, $max_value);
+        #if ($use_log) {
+        #    $val = log ($val + 1);
+        #}
+        return $grid->get_colour($val, 0, $display_max_value);
     };
 
     $grid->colour($colour_func);
-    $grid->set_legend_min_max(0, $max_value);
+    $grid->set_legend_min_max(0, $display_max_value);
     #$self->{matrix_grid}->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
-        $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
+        $self->{dendrogram}->recolour_cluster_lines(
+            \@phylogeny_colour_nodes,
+            'no_colour_decendants',
+        );
     }
 
     # have to run this after everything else is updated
@@ -1888,12 +2037,23 @@ sub update_selection_menu {
     );
 
 
-    my $selection_to_clipboard = Gtk2::MenuItem->new_with_label('Copy to clipboard');
-    $selection_to_clipboard->signal_connect_swapped(
-        activate => \&do_copy_selection_to_clipboard, [$self],
+    my $selected_labels_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected labels to clipboard');
+    $selected_labels_to_clipboard->signal_connect_swapped(
+        activate => \&do_copy_selected_to_clipboard, [$self],
+    );
+    $selected_labels_to_clipboard->set_tooltip_text(
+          'Copy the selected label names to the clipboard',
+    );
+    my $selected_records_to_clipboard = Gtk2::MenuItem->new_with_label('Copy selected records to clipboard');
+    $selected_records_to_clipboard->signal_connect_swapped(
+        activate => \&do_copy_selected_to_clipboard, [$self, 'full_recs'],
+    );
+    $selected_records_to_clipboard->set_tooltip_text(
+          'Copy the selected records to the clipboard (labels and data)',
     );
 
-    $selection_menu->append($selection_to_clipboard);
+    $selection_menu->append($selected_labels_to_clipboard);
+    $selection_menu->append($selected_records_to_clipboard);
     $selection_menu->append($selection_mode_item);
     $selection_menu->append($switch_selection_item);
     $selection_menu->append($select_regex_item);
@@ -1914,28 +2074,26 @@ sub do_switch_selection {
     return;
 }
 
-sub do_copy_selection_to_clipboard {
+sub do_copy_selected_to_clipboard {
     my $args = shift;
     my $self = $args->[0];
+    my $full_recs = $args->[1];
 
     my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
 
-    use constant TYPE_TEXT => 1;
-    use constant TYPE_HTML => 2; # spreadsheet programs should understand HTML tables
-
-    # Add text and HTML (spreadsheet programs can read it) data to clipboard
+    # Add text and HTML data to clipboard
     # We'll be called back when someone pastes
     eval {
         $clipboard->set_with_data (
             \&clipboard_get_func,
             \&clipboard_clear_func,
-            $self,
+            [$self, $full_recs],
             {target=>'STRING',        info => TYPE_TEXT},
             {target=>'TEXT',          info => TYPE_TEXT},
             {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
             {target=>'UTF8_STRING',   info => TYPE_TEXT},
             {target=>'text/plain',    info => TYPE_TEXT},
-            {target=>'text/html',     info => TYPE_TEXT},
+            {target=>'text/html',     info => TYPE_HTML},
         );
     };
     warn $EVAL_ERROR if $EVAL_ERROR;
@@ -1943,14 +2101,27 @@ sub do_copy_selection_to_clipboard {
     return;
 }
 
+my $HTML_HEADER =<<'END_HTML_HEADER'
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+END_HTML_HEADER
+;
+
+my $HTML_FOOTER = "</body></html>\n";
 
 sub clipboard_get_func {
     my $clipboard = shift;
     my $selection = shift;
-    my $datatype  = shift;  #  currently we only handle text, so this is ignored
-    my $self      = shift;
-
-    my $text;
+    my $datatype  = shift;
+    my $user_data = shift;
+    my ($self, $do_full_recs) = @$user_data;
 
     if (! $self) {
         my $gui = Biodiverse::GUI::GUIManager->instance;
@@ -1959,17 +2130,45 @@ sub clipboard_get_func {
         return;
     }
 
-    my $selected_labels = $self->get_selected_labels;
+    my $text = '';
 
     # Generate the text
-    foreach my $label (@$selected_labels) {
-        $text .= "$label\n";
+    if ($do_full_recs) {
+        #  could iterate over $tree_view->get_columns
+        #  but we would then need to unescape the names
+        my $header = $self->{tree_model_column_names};
+        my $selected_records = $self->get_selected_records;
+        my @recs = map {[@$_[0..($#$_)-2]]} ($header, @$selected_records);
+        if ($datatype == TYPE_HTML) {
+            my $qt = HTML::QuickTable->new();
+            $text .= $HTML_HEADER;
+            $text .= $qt->render(\@recs);
+            $text .= $HTML_FOOTER;
+        }
+        else {
+            foreach my $rec (@recs) {
+                #  skip the selection cols
+                $text
+                  .= join "\t", (map {$_ // ''} @$rec);
+                $text .= "\n";
+            }
+        }
+    }
+    else {
+        my $selected_labels = $self->get_selected_labels;
+        $text .= join "\n", @$selected_labels;
     }
 
     # Give the data..
     print "[Labels] Sending data for selection to clipboard\n";
 
-    $selection->set_text($text);
+    if ($datatype == TYPE_HTML) {
+        my $atom = Gtk2::Gdk::Atom->intern('text/html');
+        $selection->set($atom, 8, $text);
+    }
+    else {
+        $selection->set_text($text);
+    }
 
     return;
 }

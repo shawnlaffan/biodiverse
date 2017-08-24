@@ -10,7 +10,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 use Biodiverse::Exception;
 use Ref::Util qw { :all };

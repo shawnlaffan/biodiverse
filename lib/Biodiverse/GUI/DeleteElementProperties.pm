@@ -283,10 +283,12 @@ sub _build_deletion_panel {
 <i>Select properties to delete from all elements,
 or elements that are to have all their properties deleted.
 
+Items with checkboxes ticked are scheduled for deletion.
+
 There is currently no option to delete single
 properties from individual elements.
 
-(n.b. labels and groups are both types of element).</i>
+(note: labels and groups are types of element).</i>
 END_HELPER_TEXT
 ;
     $helper_text =~ s/(?:\r?\n)(?![\r\n])/ /gs;

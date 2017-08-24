@@ -10,6 +10,7 @@ use Carp;
 use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
+use List::Util qw /max/;
 use File::BOM qw / :subs /;
 
 use Biodiverse::Tree;
@@ -425,6 +426,7 @@ sub import_tabular_tree {
     #    croak "Missing parameter for $param" if (! defined($columns{$param}));
         say "Param $param col $columns{$param}";
     }
+    my $max_target_col = max (values %columns);
 
     #  read first line to get an initial default tree name
     my @data = ($csv->getline($io));
@@ -444,11 +446,12 @@ sub import_tabular_tree {
         push @data, $csv->getline ($io);
         my %line_hash;
 
+        #  skip line if we don't have sufficient values - safe in all cases?
+        next LINE if $max_target_col > $#$line_array;
+        
         # check all necessary values are defined (?)
+        # should use a slice assign
         foreach my $col_name (keys %columns) {
-            #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
-            #  skip line if we don't have sufficient values - safe in all cases?
-            next LINE if $columns{$col_name} > $#$line_array;
             $line_hash{$col_name} = $line_array->[$columns{$col_name}]
         }
 

@@ -415,11 +415,6 @@ sub import_tabular_tree {
     # look for values with given names in header. (just add to args map)
     my %header_col_nums; 
     @header_col_nums{@$header} = (0..$#$header);
-    #$col_nums{TREENAME_COL}       //= $header_col_nums{TREENAME};
-    #$col_nums{LENGTHTOPARENT_COL} //= $header_col_nums{LENGTHTOPARENT};
-    #$col_nums{NODE_NUMBER_COL}    //= $header_col_nums{NODE_NUMBER};
-    #$col_nums{PARENTNODE_COL}     //= $header_col_nums{PARENTNODE};
-    #$col_nums{NAME_COL}           //= $header_col_nums{NAME};
 
     # check if all required fields are defined (?)
     foreach my $p (sort keys %header_col_nums) { #/
@@ -446,15 +441,11 @@ sub import_tabular_tree {
     while (my $line_array = shift @data) {
         push @data, $csv->getline ($io);
 
-        my %line_hash;
-
         #  skip line if we don't have sufficient values - safe in all cases?
         next LINE if $max_target_col > $#$line_array;
         
-        # should use a slice assign
-        foreach my $col_name (keys %col_nums) {
-            $line_hash{$col_name} = $line_array->[$col_nums{$col_name}]
-        }
+        my %line_hash;
+        @line_hash{keys %col_nums} = @$line_array[values %col_nums];
 
         my $treename_col = $line_hash{TREENAME_COL};
 
@@ -484,8 +475,10 @@ sub import_tabular_tree {
 
         my $node_number = $line_hash{NODE_NUMBER_COL};
         next if !defined $node_number;
+
         # store as shallow copy of %line_hash
         # (instead of \%line_hash directly);
+        # Not sure why?
         $node_hash->{$node_number} = {%line_hash}; 
     }
 

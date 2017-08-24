@@ -18,12 +18,6 @@ use Sort::Naturally;
 use constant DEFAULT_DIALOG_HEIGHT => 500;
 use constant DEFAULT_DIALOG_WIDTH  => 600;
 
-my $i;
-use constant DELETE_COL   => $i || 0;
-use constant PROPERTY_COL => ++$i;
-use constant ELEMENT_COL  => ++$i;
-use constant VALUE_COL    => ++$i;
-
 use constant MODEL_CHECKED_COL => 0;
 use constant MODEL_TEXT_COL    => 1;
 
@@ -142,8 +136,6 @@ sub build_tree_from_list {
     
     my $text_renderer  = Gtk2::CellRendererText->new();
     my $check_renderer = Gtk2::CellRendererToggle->new();
-    
-    #$check_renderer->signal_connect_swapped(toggled => \&on_checkbox_toggled, $model);
 
     $column->pack_start( $check_renderer, 0);
     $column->pack_start( $text_renderer,  1 );
@@ -165,17 +157,6 @@ sub on_checkbox_toggled {
     my $state = $model->get($iter, MODEL_CHECKED_COL);
 
     $model->set($iter, MODEL_CHECKED_COL, !$state);
-    #$model->set($iter, MODEL_GRAYED_COL, 0);
-    
-    # Apply state to all child nodes
-    #my $child_iter = $model->iter_nth_child($iter, 0);
-    #while ($child_iter) {
-    #    $model->set($child_iter, MODEL_CHECKED_COL, $state);
-    #    $child_iter = $model->iter_next($child_iter);
-    #}
-
-    # update state of any parent
-    #update_type_checkbox($model, $model->iter_parent($iter) );
 
     return;
 }
@@ -385,9 +366,9 @@ sub on_clicked_apply {
         my $fmt = <<"END_FMT"
 Deleted:
 all properties from %d labels,
-%d properties across all labels,
+%d properties from all labels,
 all properties from %d groups,
-%d properties across all groups
+%d properties from all groups.
 END_FMT
   ;
         $msg = sprintf $fmt,
@@ -422,26 +403,15 @@ sub clicked_schedule_button {
     my $bd           = $self->{bd};
 
     my $selected_one = 0;
-    #my $schedule = $self->{scheduled_deletions};
-    
-    #my %targets;
-    #my $settings = $targets{$bs_type}{$type} = {};
 
     $selection->selected_foreach (
         sub {
             my ($model, $path, $iter) = @_;
             my $text  = $model->get($iter, MODEL_TEXT_COL);
-            #my $check = $model->get($iter, MODEL_CHECK_COL);
             $model->set($iter, MODEL_CHECKED_COL, $check);
-            #$tree->collapse_row ($path);
-            #$settings->{$text} = 1;
         }
     );
 
-    #if (scalar keys %targets) {
-    #    
-    #    push @$schedule, \%targets;
-    #}
 
     return;
 }

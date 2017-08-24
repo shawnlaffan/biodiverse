@@ -476,10 +476,7 @@ sub import_tabular_tree {
         my $node_number = $line_hash{NODE_NUMBER_COL};
         next if !defined $node_number;
 
-        # store as shallow copy of %line_hash
-        # (instead of \%line_hash directly);
-        # Not sure why?
-        $node_hash->{$node_number} = {%line_hash}; 
+        $node_hash->{$node_number} = \%line_hash; 
     }
 
     $self->assign_parents_for_tabular_tree_import (

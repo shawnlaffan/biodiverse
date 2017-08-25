@@ -64,6 +64,7 @@ sub new {
     my $map             = $args{grid};        # Grid.pm object of the dataset to link in
     my $map_list_combo  = $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
+    my $use_slider_to_select_nodes = !$args{no_use_slider_to_select_nodes};
 
     my $grey = 0.9 * 255 * 257;
 
@@ -82,7 +83,7 @@ sub new {
         render_width        => 0,
         render_height       => 0,
         graph_height_px     => 0,
-        use_slider_to_select_nodes => 1,
+        use_slider_to_select_nodes => $use_slider_to_select_nodes,
         colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
         use_highlight_func  => 1, #  should we highlight?
     };

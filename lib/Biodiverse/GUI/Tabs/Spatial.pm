@@ -464,6 +464,7 @@ sub init_dendrogram {
         click_func      => $click_closure,
         select_func     => $select_closure,
         parent_tab      => $self,
+        no_use_slider_to_select_nodes => 1,
     );
 
     $self->{dendrogram}{page} = $self;

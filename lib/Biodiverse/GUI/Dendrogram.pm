@@ -1816,8 +1816,9 @@ sub clear_highlights {
     # set all nodes to recorded/default colour
     return if !$self->{highlighted_lines};
 
-    my @nodes_remaining
-      = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+    #my @nodes_remaining
+      #= ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+    my @nodes_remaining = keys %{$self->{tree_node_name_hash}};
 
     foreach my $node_name (@nodes_remaining) {
         # assume node has associated line
@@ -1834,11 +1835,13 @@ sub clear_highlights {
 sub highlight_node {
     my ($self, $node_ref, $node_colour) = @_;
 
+    my $all_tree_node_names = $self->{tree_node_name_hash};
+
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining
-          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-        foreach my $node_name (@nodes_remaining) {
+        #my @nodes_remaining
+        #  = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
+        foreach my $node_name (keys %$all_tree_node_names) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node_name};
             next if !$line;
@@ -1871,8 +1874,9 @@ sub highlight_path {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my $desc = $self->{tree_node}->get_names_of_all_descendants;
-        foreach my $node_name ($self->{tree_node}->get_name, keys %$desc) {
+        #my $desc = $self->{tree_node}->get_names_of_all_descendants;
+        my $desc = $self->{tree_node_name_hash};
+        foreach my $node_name (keys %$desc) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node_name};
             next if !$line;
@@ -2114,6 +2118,9 @@ sub set_cluster {
 
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
+    
+    $self->{tree_node_name_hash}
+      = $self->{tree_node}->get_names_of_all_descendants_and_self;
 
     $self->{element_to_cluster}  = {};
     $self->{selected_list_index} = {};

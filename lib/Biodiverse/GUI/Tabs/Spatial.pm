@@ -1881,11 +1881,14 @@ sub recolour {
     my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
 
     my $colour_func = sub {
+        no autovivification;
+
         my $elt = shift // return;
         if (!$output_ref->group_passed_def_query(group => $elt)) {
             return $self->get_excluded_cell_colour;
         }
 
+        #  should use a method here
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)

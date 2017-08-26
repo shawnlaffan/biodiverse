@@ -1871,9 +1871,8 @@ sub highlight_path {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining
-          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-        foreach my $node_name (@nodes_remaining) {
+        my $desc = $self->{tree_node}->get_names_of_all_descendants;
+        foreach my $node_name ($self->{tree_node}->get_name, keys %$desc) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node_name};
             next if !$line;

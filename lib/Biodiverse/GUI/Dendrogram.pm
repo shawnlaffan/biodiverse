@@ -1816,15 +1816,13 @@ sub clear_highlights {
     # set all nodes to recorded/default colour
     return if !$self->{highlighted_lines};
 
-    #my @nodes_remaining
-      #= ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-    my @nodes_remaining = keys %{$self->{tree_node_name_hash}};
-
-    foreach my $node_name (@nodes_remaining) {
+    foreach my $node_name (keys %{$self->{tree_node_name_hash}}) {
         # assume node has associated line
-        my $line = $self->{node_lines}->{$node_name};
+        my $line = $self->{node_lines}{$node_name};
         next if !$line;
-        my $colour_ref = $self->get_node_colour( node_name => $node_name ) || DEFAULT_LINE_COLOUR;
+        my $colour_ref
+          =  $self->get_node_colour( node_name => $node_name )
+          || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;
@@ -1839,11 +1837,9 @@ sub highlight_node {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        #my @nodes_remaining
-        #  = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
         foreach my $node_name (keys %$all_tree_node_names) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node_name};
+            my $line = $self->{node_lines}{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
@@ -1852,13 +1848,12 @@ sub highlight_node {
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
     #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
-    if (my $line = $self->{node_lines}->{$node_name}) {  
+    if (my $line = $self->{node_lines}{$node_name}) {  
 
         my $colour_ref =  $node_colour 
-                       || $self->get_node_colour(node_name=>$node_name)
+                       || $self->get_node_colour(node_name => $node_name)
                        || DEFAULT_LINE_COLOUR;
 
-        
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         $line->raise_to_top;
@@ -1874,7 +1869,6 @@ sub highlight_path {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        #my $desc = $self->{tree_node}->get_names_of_all_descendants;
         my $desc = $self->{tree_node_name_hash};
         foreach my $node_name (keys %$desc) {
             # assume node has associated line

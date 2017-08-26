@@ -911,18 +911,18 @@ sub on_selected_labels_changed {
         $iter  = $sorted_model->get_iter($path);
         $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         $label = $global_model->get($iter1, LABELS_MODEL_NAME);
-#say $label;
+
         # find phylogeny nodes to colour
-        if (defined $tree) {
-            #  not all will match
+        #  not all will match
+        if (defined $tree && $tree->exists_node(name => $label)) {            
             eval {
                 my $node_ref = $tree->get_node_ref_aa ($label);
-                while ($node_ref) {
+                #  this will cache the path if not already done
+                my $path = $node_ref->get_path_to_root_node;
+                foreach $node_ref (@$path) {
                     last if exists $checked_nodes{$node_ref};
                     push @phylogeny_colour_nodes, $node_ref;
                     $checked_nodes{$node_ref}++;
-                    $node_ref = $node_ref->get_parent;
-                    #last;
                 }
             }
         }

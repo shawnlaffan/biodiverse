@@ -1445,7 +1445,6 @@ sub highlight_paths_on_dendrogram {
                 list_name => $selected_text,
                 group     => $group,
             );
-            $self->{dendrogram}->get_legend->show;
             return;
         }
     }
@@ -1504,6 +1503,9 @@ sub colour_branches_on_dendrogram {
     my $dendrogram = $self->{dendrogram};
     my $output_ref = $self->{output_ref};
 
+    my $legend = $dendrogram->get_legend;
+    $legend->show;
+
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
         element => $args{group},
@@ -1512,9 +1514,9 @@ sub colour_branches_on_dendrogram {
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
 
-    #  log scale as a temporary measure
-    my $logmin = log ($minmax->[0] + 1);
-    my $logmax = log ($minmax->[1] + 1);
+    $legend->set_log_mode_on;
+    $legend->set_min_max (@$minmax);
+    my ($min, $max) = @$minmax;  #  should not need to pass this
 
     my $node_ref;
     my %done;
@@ -1544,11 +1546,9 @@ sub colour_branches_on_dendrogram {
                 $colour_ref = COLOUR_BLACK;
             }
             else {
-                #my $rescaled_value = ($listref->{$node_name} - $minmax->[0]) / $range;
-                #$colour_ref = $dendro_highlight_branch_colours[0];
-                my $val = log $listref->{$node_name} + 1;
+                my $val = $listref->{$node_name};
                 $colour_ref
-                  = $self->{grid}->get_colour_hue ($val, $logmin, $logmax);
+                  = $legend->get_colour ($val, $min, $max);
             }
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);

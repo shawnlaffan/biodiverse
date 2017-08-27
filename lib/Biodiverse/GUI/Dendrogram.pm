@@ -194,6 +194,18 @@ sub new {
             $self
         );
     }
+    
+        # Create the Label legend
+    my $legend = Biodiverse::GUI::Legend->new(
+        canvas       => $self->{canvas},
+        legend_mode  => 'Hue',  #  by default
+        width_px     => $self->{width_px},
+        height_px    => $self->{height_px},
+    );
+    $self->set_legend ($legend);
+
+    $self->update_legend;
+$self->get_legend->show;  #  need to move this
 
     $self->{drag_mode} = 'click';
 
@@ -2789,6 +2801,8 @@ sub on_resize {
         # Set visible region
         $self->{canvas}->set_scroll_region(0, 0, $size->width, $size->height);
     }
+    
+    $self->update_legend;
 
     return;
 }
@@ -3003,6 +3017,60 @@ sub get_hover_clear_cursor {
 
     return $cursor;
 }
+
+###  COPIED FROM grid.pm
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
+}
+
+sub set_legend {
+    my ($self, $legend) = @_;
+    croak "legend arg not passed" if !defined $legend;
+    $self->{legend} = $legend;
+}
+
+# Update the position and/or mode of the legend.
+sub update_legend {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    if ($self->{width_px} && $self->{height_px}) {
+        $legend->reposition($self->{width_px}, $self->{height_px});
+    }
+    return;
+}
+
+sub set_legend_mode {
+    my $self = shift;
+    my $mode = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_mode($mode);
+    $self->colour_cells();
+    
+    return;
+}
+
+sub set_legend_gt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_gt_flag($flag);
+
+    return;
+}
+
+sub set_legend_lt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_lt_flag($flag);
+
+    return;
+}
+
 
 ##########################################################
 # Misc

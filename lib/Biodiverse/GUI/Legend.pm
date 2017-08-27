@@ -85,7 +85,7 @@ sub new {
     $self->{legend_group} = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Group',
-        x => $width - LEGEND_WIDTH,
+        x => $width - $self->get_width,
         y => 0,
     );
     $self->{legend_group}->raise_to_top();
@@ -157,19 +157,19 @@ sub make_rect {
 
     if ($self->{legend_mode} eq 'Hue') {
 
-        ($width, $height) = (LEGEND_WIDTH, 180);
+        ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
     }
     elsif ($self->{legend_mode} eq 'Sat') {
 
-        ($width, $height) = (LEGEND_WIDTH, 100);
+        ($width, $height) = ($self->get_width, 100);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
@@ -179,20 +179,20 @@ sub make_rect {
                 1,
             );
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
     }
     elsif ($self->{legend_mode} eq 'Grey') {
 
-        ($width, $height) = (LEGEND_WIDTH, 255);
+        ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
             my @rgb = ($intensity * 257 ) x 3;
             my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
     }
     else {
@@ -204,12 +204,12 @@ sub make_rect {
 
 # Add a coloured row to the legend.
 sub add_row {
-    my ($self, $row, $r, $g, $b) = @_;
+    my ($self, $group, $row, $r, $g, $b) = @_;
 
-    my $width = LEGEND_WIDTH;
+    my $width = $self->get_width;
 
     my $legend_colour_row = Gnome2::Canvas::Item->new (
-        $self,
+        $group,
         'Gnome2::Canvas::Rect',
         x1 => 0,
         x2 => $width,
@@ -253,6 +253,10 @@ sub set_lt_flag {
     return;
 }
 
+sub get_width {
+    return LEGEND_WIDTH;
+}
+
 # Updates position of legend and value box
 # when canvas is resized or scrolled
 sub reposition {
@@ -269,7 +273,7 @@ sub reposition {
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
-    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
+    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, $self->get_width);
 
     # Get the pixels per unit value from the canvas
     # to scale the legend with.

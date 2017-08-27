@@ -280,6 +280,8 @@ sub new {
         menuitem_spatial_tree_colour_mode_hue  => {toggled  => \&on_tree_colour_mode_changed},
         menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
         menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
+        
+        menuitem_spatial_tree_show_legend => {toggled => \&on_show_tree_legend_changed},
     );
 
     #  bodge - should set the radio group
@@ -1517,7 +1519,11 @@ sub colour_branches_on_dendrogram {
     else {
         $legend->set_log_mode_off;
     }
-    $legend->show;
+    
+    my $checkbox = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    if ($checkbox->get_active) {
+        $legend->show;
+    }
 
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
@@ -2200,6 +2206,29 @@ sub get_options {
     my $options = $self->{options} // {};
 
     return wantarray ? %$options : $options;
+}
+
+sub on_show_tree_legend_changed {
+    my ($self, $menu_item) = @_;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+    return if !$legend;
+
+    my $check = $menu_item->get_active;
+
+    my $combo = $self->{branch_colouring_combobox};
+    return if !$combo;
+
+    #  no legend for turnover    
+    my $selected_text = $combo->get_active_text;
+    $check &&= $selected_text ne '<i>Turnover</i>';
+
+    if ($check) {
+        $legend->show;
+    }
+    else {
+        $legend->hide;
+    }
 }
 
 

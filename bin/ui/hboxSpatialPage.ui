@@ -478,9 +478,11 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                           <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_show_legend">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Show or hide the legend on the tree plot</property>
+                            <property name="tooltip_text" translatable="yes">Show or hide the legend on the tree plot
+(if one is relevant)</property>
                             <property name="label" translatable="yes">Show legend</property>
                             <property name="use_underline">True</property>
+                            <property name="active">True</property>
                           </object>
                         </child>
                         <child>

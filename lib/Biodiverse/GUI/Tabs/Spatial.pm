@@ -480,6 +480,7 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->init_branch_colouring_combo;
+    $self->init_dendrogram_legend;
     
     return 1;
 }
@@ -531,6 +532,24 @@ sub init_branch_colouring_combo {
     return 1;
 }
 
+sub init_dendrogram_legend {
+    my $self = shift;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+    return if !$legend;
+
+    my $combo = $self->{branch_colouring_combobox};
+    return if !$combo;
+    
+    my $selected_text = $combo->get_active_text;
+    if ($selected_text ne '<i>Turnover</i>') {
+        $legend->show;
+    }
+    else {
+        $legend->hide;
+    }
+
+}
 
 sub init_grid {
     my $self = shift;

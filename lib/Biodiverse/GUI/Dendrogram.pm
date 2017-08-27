@@ -2771,10 +2771,14 @@ sub on_resize {
     #  for debugging
     #$self->{render_width} = $self->{width_px};
     #$self->{render_height} = $self->{height_px};
+    my $legend_width = 0;
+    if (my $legend = $self->get_legend) {
+        $legend_width = $legend->get_width;
+    }
 
     my $resize_bk = 0;
     if ($self->{render_width} == 0 || $self->get_zoom_fit_flag) {
-        $self->{render_width} = $size->width;
+        $self->{render_width} = $size->width - $legend_width;
         $resize_bk = 1;
     }
     if ($self->{render_height} == 0 || $self->get_zoom_fit_flag) {
@@ -3035,9 +3039,13 @@ sub set_legend {
 sub update_legend {
     my $self = shift;
     my $legend = $self->get_legend;
+    
+    return if !$legend;
+    
     if ($self->{width_px} && $self->{height_px}) {
         $legend->reposition($self->{width_px}, $self->{height_px});
     }
+    
     return;
 }
 

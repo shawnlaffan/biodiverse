@@ -65,6 +65,7 @@ sub new {
     my $map_list_combo  = $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
     my $use_slider_to_select_nodes = !$args{no_use_slider_to_select_nodes};
+    my $want_legend = $args{want_legend};
 
     my $grey = 0.9 * 255 * 257;
 
@@ -195,17 +196,17 @@ sub new {
         );
     }
     
-        # Create the Label legend
-    my $legend = Biodiverse::GUI::Legend->new(
-        canvas       => $self->{canvas},
-        legend_mode  => 'Hue',  #  by default
-        width_px     => $self->{width_px},
-        height_px    => $self->{height_px},
-    );
-    $self->set_legend ($legend);
-
-    $self->update_legend;
-$self->get_legend->show;  #  need to move this
+    # Create the Label legend if requested
+    if ($want_legend) {
+        my $legend = Biodiverse::GUI::Legend->new(
+            canvas       => $self->{canvas},
+            legend_mode  => 'Hue',  #  by default
+            width_px     => $self->{width_px},
+            height_px    => $self->{height_px},
+        );
+        $self->set_legend ($legend);
+        $self->update_legend;
+    }
 
     $self->{drag_mode} = 'click';
 
@@ -1232,7 +1233,6 @@ sub recolour_cluster_lines {
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
-    #my $log_scale    = $map->get_legend_log_mode eq 'on';
 
     foreach my $node_ref (@$cluster_nodes) {
 

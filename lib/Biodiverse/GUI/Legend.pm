@@ -253,8 +253,14 @@ sub set_lt_flag {
     return;
 }
 
+sub set_width {
+    my ($self, $width) = @_;
+    $self->{back_rect_width} = $width;
+}
+
 sub get_width {
-    return LEGEND_WIDTH;
+    my $self = shift;
+    return $self->{back_rect_width} // LEGEND_WIDTH;
 }
 
 # Updates position of legend and value box

@@ -1504,6 +1504,14 @@ sub colour_branches_on_dendrogram {
     my $output_ref = $self->{output_ref};
 
     my $legend = $dendrogram->get_legend;
+    
+    my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
+    if ($log_check_box->get_active) {
+        $legend->set_log_mode_on;
+    }
+    else {
+        $legend->set_log_mode_off;
+    }
     $legend->show;
 
     my $listref = $output_ref->get_list_ref (
@@ -1514,7 +1522,6 @@ sub colour_branches_on_dendrogram {
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
 
-    $legend->set_log_mode_on;
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 

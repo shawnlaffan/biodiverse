@@ -276,6 +276,10 @@ sub new {
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
+        
+        menuitem_spatial_tree_colour_mode_hue  => {toggled  => \&on_tree_colour_mode_changed},
+        menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
+        menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
     );
 
     #  bodge - should set the radio group
@@ -2195,6 +2199,47 @@ sub get_options {
     my $options = $self->{options} // {};
 
     return wantarray ? %$options : $options;
+}
+
+
+#  Too similar to on_colour_mode_changed
+#  Need to refactor the two
+sub on_tree_colour_mode_changed {
+    my ($self, $menu_item) = @_;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+
+    if ($menu_item) {
+        # Just got the signal for the deselected option.
+        # Wait for signal for selected one.
+        return if !$menu_item->get_active();
+
+        my $mode = $menu_item->get_label();
+    
+        if ($mode eq 'Sat...') {
+            $mode = 'Sat';
+
+            # Pop up dialog for choosing the hue to use in saturation mode
+            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_select = $colour_dialog->get_color_selection();
+            $colour_dialog->show_all();
+            my $response = $colour_dialog->run;
+            if ($response eq 'ok') {
+                my $hue = $colour_select->get_current_color();
+                $legend->set_hue($hue);
+            }
+            $colour_dialog->destroy();
+        }
+        
+        $legend->set_mode($mode);
+    }
+
+    #  legend should be able to update itself,
+    #  but currently we need to do it through the
+    #  dendrogram or it gets zero size
+    $self->{dendrogram}->update_legend;
+
+    return;
 }
 
 

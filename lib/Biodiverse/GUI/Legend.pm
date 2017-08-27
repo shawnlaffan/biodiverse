@@ -117,6 +117,8 @@ sub hide {
 sub show {
     my $self = shift;
 
+    return if !$self->{legend_group};
+
     # Show the legend group.
     $self->{legend_group}->show;
 
@@ -124,7 +126,7 @@ sub show {
 }
 
 # Makes a rectangle and fills it 
-# with colours for the chose legend
+# with colours for the chosen legend
 # mode.
 sub make_rect {
     my $self = shift;
@@ -164,7 +166,8 @@ sub make_rect {
             add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    } elsif ($self->{legend_mode} eq 'Sat') {
+    }
+    elsif ($self->{legend_mode} eq 'Sat') {
 
         ($width, $height) = (LEGEND_WIDTH, 100);
         $self->{legend_height} = $height;
@@ -179,7 +182,8 @@ sub make_rect {
             add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    } elsif ($self->{legend_mode} eq 'Grey') {
+    }
+    elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = (LEGEND_WIDTH, 255);
         $self->{legend_height} = $height;
@@ -190,7 +194,8 @@ sub make_rect {
             my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
             add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
-    } else {
+    }
+    else {
         croak "Legend: Invalid colour system\n";
     }
 
@@ -252,7 +257,7 @@ sub set_lt_flag {
 # when canvas is resized or scrolled
 sub reposition {
     my $self = shift;
-    my $width_px = shift;
+    my $width_px  = shift;
     my $height_px = shift;
 
     return if not defined $self->{legend};

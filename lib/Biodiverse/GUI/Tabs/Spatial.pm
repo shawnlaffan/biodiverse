@@ -475,6 +475,7 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->init_branch_colouring_combo;
+    $self->init_dendrogram_legend;
     
     return 1;
 }
@@ -482,7 +483,7 @@ sub init_dendrogram {
 sub init_branch_colouring_combo {
     my $self = shift;
 
-return if !defined $self->{output_ref};
+    return if !defined $self->{output_ref};
 
     my $xml_page = $self->{xmlPage};
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
@@ -526,6 +527,24 @@ return if !defined $self->{output_ref};
     return 1;
 }
 
+sub init_dendrogram_legend {
+    my $self = shift;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+
+    my $combo = $self->{branch_colouring_combobox};
+    
+    return if !$combo;
+    
+    my $selected_text = $combo->get_active_text;
+    if ($selected_text ne '<i>Turnover</i>') {
+        $legend->show;
+    }
+    else {
+        $legend->hide;
+    }
+
+}
 
 sub init_grid {
     my $self = shift;
@@ -1422,13 +1441,17 @@ sub highlight_paths_on_dendrogram {
     if (my $combo = $self->{branch_colouring_combobox}) {
         my $selected_text = $combo->get_active_text;
         if ($selected_text ne '<i>Turnover</i>') {
-            return $self->colour_branches_on_dendrogram (
+            $self->colour_branches_on_dendrogram (
                 list_name => $selected_text,
                 group     => $group,
             );
+            $self->{dendrogram}->get_legend->show;
+            return;
         }
     }
 
+    $self->{dendrogram}->get_legend->hide;
+    
     my $tree = $self->get_current_tree;
 
     # Highlight the branches in the groups on the tree.

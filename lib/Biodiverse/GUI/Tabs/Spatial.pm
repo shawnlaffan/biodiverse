@@ -1518,31 +1518,29 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
-    my $node_ref;
     my %done;
-    my $colour_ref;
 
   LABEL:
     foreach my $label (keys %$listref) {
         next LABEL if $done{$label};
-
+        
         # Might not match some or all nodes
-        my $success = eval {
-            $node_ref = $tree->get_node_ref (node => $label);
-        };
-        if (!$success) {
-            $colour_ref = COLOUR_BLACK;
-            $dendrogram->highlight_node ($node_ref, $colour_ref);
-            $done{$label}++;
-            next LABEL;
-        }
+        next LABEL if !$tree->exists_node(name => $label);
 
+        my $node_ref = $tree->get_node_ref (node => $label);
+        my $colour_ref;
+
+        #  Colour ourselves, and also work our way up the tree
+        #  and do our ancestors.
+        #  This ensures ancestors get the default colour
+        #  if they are not in the list or are undef. 
       NODE:
         while ($node_ref) {
             my $node_name = $node_ref->get_name;
             last NODE if $done{$node_name};
 
-            if (!exists $listref->{$node_name}) {
+            no autovivification;
+            if (!defined $listref->{$node_name}) {
                 $colour_ref = COLOUR_BLACK;
             }
             else {

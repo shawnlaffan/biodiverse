@@ -166,7 +166,7 @@ sub new {
     $self->{length_scale} = 1;
     $self->{height_scale} = 1;
 
-    # Create background rectange to receive mouse events for panning
+    # Create background rectangle to receive mouse events for panning
     my $rect = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Rect',
@@ -2771,10 +2771,12 @@ sub on_resize {
     #  for debugging
     #$self->{render_width} = $self->{width_px};
     #$self->{render_height} = $self->{height_px};
+
+    # trying to stop overlap of legend over tree
     my $legend_width = 0;
-    if (my $legend = $self->get_legend) {
-        $legend_width = $legend->get_width;
-    }
+    #if (my $legend = $self->get_legend) {
+    #    $legend_width = $legend->get_width;
+    #}
 
     my $resize_bk = 0;
     if ($self->{render_width} == 0 || $self->get_zoom_fit_flag) {

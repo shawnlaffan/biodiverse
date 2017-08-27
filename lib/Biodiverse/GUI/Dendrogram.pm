@@ -1859,7 +1859,8 @@ sub highlight_node {
 
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
-    #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
+    #  avoid some unhandled exceptions when the mouse is
+    #  hovering and the display is under construction
     if (my $line = $self->{node_lines}{$node_name}) {  
 
         my $colour_ref =  $node_colour 

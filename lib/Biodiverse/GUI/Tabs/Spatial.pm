@@ -507,7 +507,7 @@ sub init_branch_colouring_combo {
 
         my $list_names
           = $self->{output_ref}->get_hash_lists_across_elements;
-        foreach my $list_name (@$list_names) {
+        foreach my $list_name (nsort @$list_names) {
             next if $list_name =~ /SPATIAL_RESULTS$/;
             next if $list_name eq 'RECYCLED_SET';
             

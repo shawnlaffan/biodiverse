@@ -2244,30 +2244,41 @@ sub render_tree {
     );
     $self->{lines_group} = $lines_group;
 
+    my $legend = $self->get_legend;
+    my $legend_width = $legend ? $legend->get_width : 0;
+    my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
+
     # Scaling values to make the rendered tree render_width by render_height
-    $self->{length_scale} = $self->{render_width}  / ($self->{unscaled_width}  || 1);
-    $self->{height_scale} = $self->{render_height} / ($self->{unscaled_height} || 1);
+    $self->{length_scale}
+      = ($self->{render_width} - $legend_width)
+        / ($self->{unscaled_width}  || 1);
+    $self->{height_scale}
+      = $self->{render_height}
+      / ($self->{unscaled_height} || 1);
 
     #print "[Dendrogram] Length scale = $self->{length_scale} Height scale = $self->{height_scale}\n";
 
     # Recursive draw
     my $length_func = $self->{length_func};
     my $root_offset = $self->{render_width}
-                      - ($self->{border_len} + $self->{neg_len})
+                      - $legend_width
+                      - $root_circ_diameter
+                      - (  $self->{border_len}
+                         + $self->{neg_len}
+                         )
                       * $self->{length_scale};
 
     $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
-    my $diameter = 0.5 * $self->{border_len} * $self->{length_scale};
     $self->{root_circle} = Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Ellipse',
         x1 => $root_offset,
-        y1 => $root_y + $diameter / 2,
-        x2 => $root_offset + $diameter,
-        y2 => $root_y - $diameter / 2,
+        y1 => $root_y + $root_circ_diameter / 2,
+        x2 => $root_offset + $root_circ_diameter,
+        y2 => $root_y - $root_circ_diameter / 2,
         fill_color => 'brown'
     );
     # Hook up the root-circle to the root!
@@ -2772,15 +2783,9 @@ sub on_resize {
     #$self->{render_width} = $self->{width_px};
     #$self->{render_height} = $self->{height_px};
 
-    # trying to stop overlap of legend over tree
-    my $legend_width = 0;
-    #if (my $legend = $self->get_legend) {
-    #    $legend_width = $legend->get_width;
-    #}
-
     my $resize_bk = 0;
     if ($self->{render_width} == 0 || $self->get_zoom_fit_flag) {
-        $self->{render_width} = $size->width - $legend_width;
+        $self->{render_width} = $size->width;
         $resize_bk = 1;
     }
     if ($self->{render_height} == 0 || $self->get_zoom_fit_flag) {

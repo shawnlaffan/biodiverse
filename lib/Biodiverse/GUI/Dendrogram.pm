@@ -2377,7 +2377,7 @@ sub render_graph {
     my $previous_y;
     my $y_offset; # this puts the lowest y-value at the bottom of the graph - no wasted space
 
-    my @num_lengths = map { $_->get_value('total_length_gui') } @$lengths;
+    #my @num_lengths = map { $_->get_value('total_length_gui') } @$lengths;
     #print "[render_graph] lengths: @num_lengths\n";
 
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {

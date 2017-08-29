@@ -287,8 +287,8 @@ sub reposition {
 
     # Reposition the legend group box
     $self->{legend_group}->set(
-        x        => $width  + $scroll_x - $legend_width,
-        y        => $scroll_y,
+        x => $width  + $scroll_x - $legend_width,
+        y => $scroll_y,
     );
 
     # Scale the legend's height and width to match the current size of the canvas. 
@@ -306,9 +306,9 @@ sub reposition {
     foreach my $i (0..3) {
         my $mark = $self->{marks}[3 - $i];
         #  move the mark to right align with the legend
-        my @bounds = $mark->get_bounds;
+        my @bounds  = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
-        my $offset = $lbounds[0] - $bounds[2];
+        my $offset  = $lbounds[0] - $bounds[2];
         $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
 
         # Set the location of the y of the marks

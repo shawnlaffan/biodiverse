@@ -174,8 +174,9 @@ sub new {
         y1 => 0,
         x2 => 1,
         y2 => 1,
-        fill_color_gdk => COLOUR_WHITE
+        fill_color_gdk => COLOUR_WHITE,
         #fill_color => "blue",
+        #outline_color_gdk   => COLOUR_BLACK,
     );
 
     $rect->lower_to_bottom();
@@ -2246,8 +2247,7 @@ sub render_tree {
 
     my $legend = $self->get_legend;
     my $legend_width = $legend ? $legend->get_width : 0;
-    my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
-
+    
     # Scaling values to make the rendered tree render_width by render_height
     $self->{length_scale}
       = ($self->{render_width} - $legend_width)
@@ -2262,7 +2262,7 @@ sub render_tree {
     my $length_func = $self->{length_func};
     my $root_offset = $self->{render_width}
                       - $legend_width
-                      - $root_circ_diameter
+                      #- $root_circ_diameter  #  using here causes issues with zoom and graph
                       - (  $self->{border_len}
                          + $self->{neg_len}
                          )
@@ -2272,6 +2272,7 @@ sub render_tree {
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
+    my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
     $self->{root_circle} = Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Ellipse',
@@ -2362,7 +2363,12 @@ sub render_graph {
     # Note: "length" here usually means length to the right of the node (towards root)
     my $start_length = $lengths->[0]->get_value('total_length_gui') * $self->{length_scale};
     my $start_index = 0;
+    my $legend_width = 0;
+    if (my $legend = $self->get_legend) {
+        $legend_width = $legend->get_width;
+    }
     my $current_x = $self->{render_width}
+                    - $legend_width
                     - ($self->{border_len}
                        + $self->{neg_len}
                        )

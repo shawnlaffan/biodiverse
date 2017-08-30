@@ -1394,7 +1394,7 @@ sub test_randomise_tree_ref_args {
 
     foreach my $shuffle_method (@shuffle_method_array) {
         my $use_is_or_isnt = ($shuffle_method !~ /no_change$/) ? 'isnt' : 'is';
-        my $not_text = $use_is_or_isnt eq 'isnt' ? 'not' : ' ';
+        my $not_text = $use_is_or_isnt eq 'isnt' ? 'not' : '';
         my $notnot_text = $use_is_or_isnt eq 'isnt' ? '' : ' not';
         my $rand_name = 't_r_t_r_f_rand' . $shuffle_method;
         my $rand = $bd->add_randomisation_output (name => $rand_name);

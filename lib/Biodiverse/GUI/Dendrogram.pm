@@ -205,6 +205,7 @@ sub new {
             width_px     => $self->{width_px},
             height_px    => $self->{height_px},
         );
+        #$legend->set_width(15);  # thinnish by default
         $self->set_legend ($legend);
         $self->update_legend;
     }

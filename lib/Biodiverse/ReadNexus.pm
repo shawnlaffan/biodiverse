@@ -45,7 +45,7 @@ $re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* 
 #  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
 
 my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
-$re_text_in_square_brackets = qr / (?> [^[]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
+$re_text_in_square_brackets = qr / (?> [^\[\]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
 
 
 sub new {

@@ -2525,7 +2525,7 @@ sub do_trim_basedata {
 
     my $text =
         "Deleted $results{DELETE_COUNT} labels"
-      . " from $results{DELETE_SUB_COUNT} groups. "
+      . " and $results{DELETE_SUB_COUNT} groups. "
       . "$name has $label_count labels remaining across "
       . "$group_count groups.\n";
 

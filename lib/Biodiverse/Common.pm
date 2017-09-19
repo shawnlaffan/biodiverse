@@ -2002,6 +2002,11 @@ sub get_cached_metadata {
     return $cache;
 }
 
+sub delete_cached_metadata {
+    my $self = shift;
+    
+    delete $self->{_cache}{METADATA_CACHE};
+}
 
 #my $indices_wantarray = 0;
 #  get the metadata for a subroutine

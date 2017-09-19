@@ -2314,6 +2314,8 @@ sub sp_calc {
 
     #  run any global post_calcs
     $indices_object->run_postcalc_globals (%args);
+    
+    $self->delete_cached_metadata;
 
     return 1;
 }

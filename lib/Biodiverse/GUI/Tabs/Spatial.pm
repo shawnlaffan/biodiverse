@@ -487,8 +487,14 @@ sub init_dendrogram {
     return 1;
 }
 
+sub update_branch_colouring_combo {
+    my $self = shift;
+    $self->init_branch_colouring_combo (refresh => 1);
+}
+
 sub init_branch_colouring_combo {
     my $self = shift;
+    my %args = @_;
 
     return if !defined $self->{output_ref};
     return if blessed ($self) =~ /Matrix/;
@@ -498,7 +504,7 @@ sub init_branch_colouring_combo {
     
     my $combo = $self->{branch_colouring_combobox};
 
-    if (!$combo) {
+    if ($args{refresh} || !$combo) {
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
@@ -1323,7 +1329,7 @@ sub on_run {
         #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
-        $self->init_branch_colouring_combo;
+        $self->update_branch_colouring_combo;
     }
 
     #  make sure the grid is sensitive again

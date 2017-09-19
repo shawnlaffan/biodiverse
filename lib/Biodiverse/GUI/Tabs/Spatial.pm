@@ -491,13 +491,14 @@ sub init_branch_colouring_combo {
     my $self = shift;
 
     return if !defined $self->{output_ref};
+    return if blessed ($self) =~ /Matrix/;
 
     my $xml_page = $self->{xmlPage};
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
     
     my $combo = $self->{branch_colouring_combobox};
 
-    if (!$combo && not (blessed ($self) =~ /Matrix/)) {
+    if (!$combo) {
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
@@ -528,8 +529,9 @@ sub init_branch_colouring_combo {
         $bottom_hbox->pack_start ($combo, 0, 0, 0);
         $separator->show;
         $label->show;
-        $combo->show;
     }
+
+    $combo->show;
 
     return 1;
 }
@@ -1321,6 +1323,7 @@ sub on_run {
         #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
+        $self->init_branch_colouring_combo;
     }
 
     #  make sure the grid is sensitive again

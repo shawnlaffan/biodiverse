@@ -1,4 +1,4 @@
-<SOFTPKG NAME="Geo-GDAL" VERSION="2.010301">
+<SOFTPKG NAME="Geo-GDAL" VERSION="2.0201">
     <ABSTRACT>Perl extension for the GDAL library for geospatial data</ABSTRACT>
     <AUTHOR>Ari Jolma &lt;ari.jolma at gmail.com&gt;</AUTHOR>
     <IMPLEMENTATION>
@@ -7,6 +7,6 @@
         <REQUIRE NAME="POSIX::" />
         <REQUIRE NAME="Scalar::Util" />
         <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.26" />
-        <CODEBASE HREF="Geo-GDAL-2.010301.tar.gz" />
+        <CODEBASE HREF="Geo-GDAL-2.0201.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

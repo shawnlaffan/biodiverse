@@ -46,6 +46,15 @@ END_OF_LICENSE
   ;
 
 BEGIN {
+    if ($ENV{PAR_0}) {
+        use Config;
+        $ENV{PATH} .= "$Config{path_sep}$ENV{PAR_TEMP}";
+    }
+    #print $ENV{PATH};
+};
+  
+BEGIN {
+    #  THIS SHOULD NO LONGER BE NEEDED
     #  Add the gtk and gdal libs if using windows - brittle?
     #  Search up the tree until we find a dir of the requisite name
     #  and which contains a bin folder

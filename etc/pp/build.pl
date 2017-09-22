@@ -164,11 +164,17 @@ if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
 sub get_dll_list {
     my $folder = shift;
 
-    #  we did used to get libgcc and libstd, but PAR::Packer 1.022 onwards includes them
+    #  we did used to get libgcc and libstd,
+    #  but PAR::Packer 1.022 onwards includes them
+    #  Lots of GDAL libs in here
     my @dll_pfx = qw /
-        libeay   libexpat libgif   libiconv
-        libjpeg  liblzma  libpng   libpq 
-        libtiff  libxml2  ssleay32 zlib1
+        libcfitsio libcrypto libeay  libexpat
+        libgif     libhdf_   libhdf5 libhdf5_hl
+        libiconv   libjpeg   liblzma libmfhdf_
+        libnetcdf  libpng    libpng16
+        libpq      libssl    libsz   libtiff
+        libwinpthread        libxdr  libxdr
+        libxml2    ssleay32  zlib1
     /;
     if ($PACKING_GD) {
         my @extras = qw /
@@ -180,7 +186,7 @@ sub get_dll_list {
     #  maybe we should just pack the lot?
     my @files     = glob "$folder\\*.dll";
     my $regstr    = join '|', @dll_pfx;
-    my $regmatch  = qr /$regstr/;
+    my $regmatch  = qr /$regstr/i;
     my @dll_files = grep {$_ =~ $regmatch} @files;
 
     say $folder;

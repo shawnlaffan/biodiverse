@@ -28,8 +28,11 @@ my @dlls = File::Find::Rule->file()
 
 my %skippers = get_skippers();
 my %full_list;
-
+my %searched_for;
+my $iter = 0;
 while (1) {
+    $iter++;
+    say "Iter:  $iter";
     my( $stdout, $stderr, $exit ) = capture {
         system( $OBJDUMP, '-p', @dlls );
     };
@@ -44,6 +47,7 @@ while (1) {
     last if !@dlls;
     my @dll2;
     foreach my $file (@dlls) {
+        next if $searched_for{$file};
         my $rule = File::Find::Rule->new;
         $rule->or(
             $rule->new
@@ -61,6 +65,7 @@ while (1) {
         #                ->name( $file )
         #                ->in( @exe_path );
         push @dll2, @locs;
+        $searched_for{$file}++;
     }
     @dlls = uniq @dll2;
     my $key_count = keys %full_list;
@@ -70,18 +75,8 @@ while (1) {
     #say join ' ', @dlls;
 }
 
-say join "\n", sort +(uniq keys %full_list);
-
-#foreach my $file (keys %full_list) {
-#    say dll_get_fullpath ( $file );
-#}
-
-
-sub dll_get_fullpath {
-    my( $key ) = @_;
-    my $short = lc path( $key )->basename; ## yuck
-    return  $short ;
-}
+my @l2 = map {('--link' => $_)} sort +(uniq keys %full_list);
+say join " ", @l2;
 
 
 sub get_skippers {

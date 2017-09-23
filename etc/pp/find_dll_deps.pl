@@ -12,16 +12,13 @@ use File::Find::Rule qw/ rule find /;
 use Storable         qw/ retrieve /;
 use Path::Tiny       qw/ path /;
 
-our $PP        = which('pp')       or die "pp not installed ";
-our $SCANDEPS  = which('scandeps') or die "scandeps not installed ";
-our $OBJDUMP   = which('objdump') ;
+my $PP        = which('pp')       or die "pp not found";
+my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
 my @exe_path = grep {/berrybrew/} split ';', $ENV{PATH};
 
-#my @files = qw /dlls\s1sart_lgpl_2-2.dll dlls\s1sglib-2.0-0.dll/;
 my $glob = $ARGV[0] or die 'no argument passed';
-#my @files = glob 'dlls\s1s*';
-#my @files = glob $glob;
+
 my @dlls = File::Find::Rule->file()
                         ->name( '*.dll' )
                         ->in( $glob );

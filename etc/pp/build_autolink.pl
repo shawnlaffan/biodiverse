@@ -271,6 +271,13 @@ sub get_dll_skipper_regexp {
 sub get_dep_dlls {
     my ($script, $no_execute) = @_;
     
+    #  make sure $script/../lib is in @INC
+    #  assume script is in a bin folder
+    my $script_path = path ($script)->parent->parent->stringify;    
+    #say "======= $script_path/lib ======";
+    local @INC = (@INC, "$script_path/lib")
+      if -d "$script_path/lib";
+    
     my $deps_hash = scan_deps(
         files   => [ $script ],
         recurse => 1,

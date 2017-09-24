@@ -14,11 +14,14 @@ use Storable         qw/ retrieve /;
 use Path::Tiny       qw/ path /;
 
 use Module::ScanDeps;
+use Config;
 
 #my $PP        = which('pp')       or die "pp not found";
 my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
-my @exe_path = grep {/berrybrew/} split ';', $ENV{PATH};
+my @exe_path = split ';', $ENV{PATH};
+@exe_path = grep {/berrybrew/} @exe_path;
+
 
 #  need to use GetOpts variant, and pass through any Module::ScanDeps args
 my $script = $ARGV[0] or die 'no argument passed';
@@ -101,7 +104,9 @@ sub get_dll_skipper_regexp {
     return $qr_skip;
 }
 
-
+#  find dependent dlls
+#  could also adapt some of Module::ScanDeps::_compile_or_execute
+#  as it handles more edge cases
 sub get_dep_dlls {
     my ($script, $no_execute) = @_;
     

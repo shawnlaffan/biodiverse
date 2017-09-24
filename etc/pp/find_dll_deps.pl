@@ -3,6 +3,7 @@
 use 5.020;
 use warnings;
 use strict;
+use Carp;
 
 use Data::Dump       qw/ dd /;
 use File::Which      qw( which );
@@ -12,16 +13,19 @@ use File::Find::Rule qw/ rule find /;
 use Storable         qw/ retrieve /;
 use Path::Tiny       qw/ path /;
 
-my $PP        = which('pp')       or die "pp not found";
+use Module::ScanDeps;
+
+#my $PP        = which('pp')       or die "pp not found";
 my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
 my @exe_path = grep {/berrybrew/} split ';', $ENV{PATH};
 
-my $glob = $ARGV[0] or die 'no argument passed';
+#  need to use GetOpts variant, and pass through any Module::ScanDeps args
+my $script = $ARGV[0] or die 'no argument passed';
+my $no_execute = $ARGV[1];
 
-my @dlls = File::Find::Rule->file()
-                        ->name( '*.dll' )
-                        ->in( $glob );
+my $dll_files = get_dep_dlls ($script, $no_execute);
+my @dlls = @$dll_files;
 
 my %skippers = get_skippers();
 my %full_list;
@@ -39,7 +43,11 @@ while (1) {
         exit;
     }
     @dlls = $stdout =~ /DLL.Name:\s*(\S+)/gmi;
-    @dlls = uniq sort grep {!exists $full_list{$_} && !exists $skippers{$_}} @dlls;
+    @dlls
+      = uniq
+        sort
+        grep {!exists $full_list{$_} && !exists $skippers{$_}}
+        @dlls;
     say join ' ', @dlls;
     last if !@dlls;
     my @dll2;
@@ -58,9 +66,6 @@ while (1) {
         $rule->file;
         $rule->name ($file);
         my @locs = $rule->in ( @exe_path );
-        #my @locs = File::Find::Rule->file()
-        #                ->name( $file )
-        #                ->in( @exe_path );
         push @dll2, @locs;
         $searched_for{$file}++;
     }
@@ -72,6 +77,7 @@ while (1) {
     #say join ' ', @dlls;
 }
 
+say "\n==========\n\n";
 my @l2 = map {('--link' => $_)} sort +(uniq keys %full_list);
 say join " ", @l2;
 
@@ -88,4 +94,35 @@ sub get_skippers {
     my %skippers;
     @skippers{@skip} = (1) x @skip;
     return %skippers;
+}
+
+
+sub get_dep_dlls {
+    my ($script, $no_execute) = @_;
+    
+    my $deps_hash = scan_deps(
+        files   => [ $script ],
+        recurse => 1,
+        execute => !$no_execute,
+    );
+
+    my %dll_hash;
+    foreach my $package (keys %$deps_hash) {
+        #  could get {uses} directly, but this helps with debug
+        my $details = $deps_hash->{$package};
+        my $uses = $details->{uses};
+        next if !$uses;
+        foreach my $dll (grep {/dll$/} @$uses) {
+            my $dll_path = $deps_hash->{$package}{file};
+            #  Remove trailing component after lib
+            #  Clunky and likely to fail.
+            $dll_path =~ s|(?<=/lib/).+?$||;
+            $dll_path .= $dll;
+            croak "cannot find $dll_path for package $package"
+              if not -e $dll_path;
+            $dll_hash{$dll_path}++;
+        }
+    }
+    
+    return [sort keys %dll_hash];
 }

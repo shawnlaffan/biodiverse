@@ -27,7 +27,7 @@ my $no_execute = $ARGV[1];
 my $dll_files = get_dep_dlls ($script, $no_execute);
 my @dlls = @$dll_files;
 
-my $re_skippers = get_skipper_regexp();
+my $re_skippers = get_dll_skipper_regexp();
 my %full_list;
 my %searched_for;
 my $iter = 0;
@@ -87,7 +87,7 @@ say join " ", @l2;
 
 #  Should really only need perl526 since we skip windows dir
 #  in the search
-sub get_skipper_regexp {
+sub get_dll_skipper_regexp {
     my @skip = qw /
         KERNEL32.dll msvcrt.dll
         perl5\d\d.dll

@@ -20,7 +20,9 @@ use Config;
 my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
 my @exe_path = split ';', $ENV{PATH};
-@exe_path = grep {/berrybrew/} @exe_path;
+#@exe_path = grep {/berrybrew/} @exe_path;
+#  skip anything under the Windows folder
+@exe_path = grep {$_ !~ m|^[a-z]\:[/\\]windows|i} @exe_path;
 
 
 #  need to use GetOpts variant, and pass through any Module::ScanDeps args
@@ -59,16 +61,8 @@ while (1) {
     my @dll2;
     foreach my $file (@dlls) {
         next if $searched_for{$file};
-        my $rule = File::Find::Rule->new;
-        $rule->or(
-            $rule->new
-                 ->directory
-                 ->name('Windows')
-                 ->prune
-                 ->discard,
-            $rule->new
-                 ->maxdepth (1)  #  don't recurse
-        );
+        #  don't recurse
+        my $rule = File::Find::Rule->new->maxdepth(1);
         $rule->file;
         $rule->name ($file);
         my @locs = $rule->in ( @exe_path );

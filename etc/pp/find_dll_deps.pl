@@ -63,9 +63,9 @@ while (1) {
         #  don't recurse
         my $rule = File::Find::Rule->new->maxdepth(1);
         $rule->file;
-        $rule->name (qr/^\Q$file/E$/i);  #  case insensitive
+        $rule->name (qr/^\Q$file\E$/i);  #  case insensitive
         $rule->start (@exe_path);
-        MATCH:
+      MATCH:
         while (my $f = $rule->match) {
             push @dll2, $f;
             #say "XXXX: $f";
@@ -77,9 +77,9 @@ while (1) {
     @dlls = uniq @dll2;
     my $key_count = keys %full_list;
     @full_list{@dlls} = (1) x @dlls;
+    #  did we add anything new?
     last if $key_count == scalar keys %full_list;
 
-    #say join ' ', @dlls;
 }
 
 say "\n==========\n\n";
@@ -103,6 +103,13 @@ sub get_dll_skipper_regexp {
 sub get_dep_dlls {
     my ($script, $no_execute) = @_;
     
+    #  make sure $script/../lib is in @INC
+    #  assume script is in a bin folder
+    my $script_path = path ($script)->parent->parent->stringify;    
+    #say "======= $script_path/lib ======";
+    local @INC = (@INC, "$script_path/lib")
+      if -d "$script_path/lib";
+
     my $deps_hash = scan_deps(
         files   => [ $script ],
         recurse => 1,

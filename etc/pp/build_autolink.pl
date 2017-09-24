@@ -232,7 +232,7 @@ sub get_autolink_list {
             $rule->file;
             $rule->name (qr/^\Q$file\E$/i);
             $rule->start (@exe_path);
-            MATCH:
+          MATCH:
             while (my $f = $rule->match) {
                 push @dll2, $f;
                 #say "XXXX: $f";
@@ -244,6 +244,7 @@ sub get_autolink_list {
         @dlls = uniq @dll2;
         my $key_count = keys %full_list;
         @full_list{@dlls} = (1) x @dlls;
+        #  did we add anything new?
         last if $key_count == scalar keys %full_list;
     
         #say join ' ', @dlls;

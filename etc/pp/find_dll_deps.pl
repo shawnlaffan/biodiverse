@@ -14,9 +14,8 @@ use Storable         qw/ retrieve /;
 use Path::Tiny       qw/ path /;
 
 use Module::ScanDeps;
-use Config;
+#use Config;
 
-#my $PP        = which('pp')       or die "pp not found";
 my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
 my @exe_path = split ';', $ENV{PATH};
@@ -29,8 +28,8 @@ my $RE_DLL_EXT = qr/\.dll/i;
 my $script = $ARGV[0] or die 'no argument passed';
 my $no_execute = $ARGV[1];
 
-my $dll_files = get_dep_dlls ($script, $no_execute);
-my @dlls = @$dll_files;
+my @dlls = get_dep_dlls ($script, $no_execute);
+
 
 my $re_skippers = get_dll_skipper_regexp();
 my %full_list;
@@ -65,9 +64,14 @@ while (1) {
         my $rule = File::Find::Rule->new->maxdepth(1);
         $rule->file;
         $rule->name ($file);
-        my @locs = $rule->in ( @exe_path );
-        #my @check = grep {/$re_skippers/} @locs;
-        push @dll2, @locs;
+        $rule->start (@exe_path);
+        MATCH:
+        while (my $f = $rule->match) {
+            push @dll2, $f;
+            #say "XXXX: $f";
+            last MATCH;
+        }
+
         $searched_for{$file}++;
     }
     @dlls = uniq @dll2;
@@ -123,5 +127,6 @@ sub get_dep_dlls {
         }
     }
     
-    return [sort keys %dll_hash];
+    my @dll_list = sort keys %dll_hash;
+    return wantarray ? @dll_list : \@dll_list;
 }

@@ -27,7 +27,7 @@ my $no_execute = $ARGV[1];
 my $dll_files = get_dep_dlls ($script, $no_execute);
 my @dlls = @$dll_files;
 
-my %skippers = get_skippers();
+my $re_skippers = get_skipper_regexp();
 my %full_list;
 my %searched_for;
 my $iter = 0;
@@ -43,10 +43,13 @@ while (1) {
         exit;
     }
     @dlls = $stdout =~ /DLL.Name:\s*(\S+)/gmi;
+    #  extra grep is wasteful but also useful for debug 
+    #  since we can easily disable it
     @dlls
       = uniq
         sort
-        grep {!exists $full_list{$_} && !exists $skippers{$_}}
+        grep {!exists $full_list{$_}}
+        grep {$_ !~ /$re_skippers/}
         @dlls;
     say join ' ', @dlls;
     last if !@dlls;
@@ -66,6 +69,7 @@ while (1) {
         $rule->file;
         $rule->name ($file);
         my @locs = $rule->in ( @exe_path );
+        #my @check = grep {/$re_skippers/} @locs;
         push @dll2, @locs;
         $searched_for{$file}++;
     }
@@ -81,19 +85,20 @@ say "\n==========\n\n";
 my @l2 = map {('--link' => $_)} sort +(uniq keys %full_list);
 say join " ", @l2;
 
-
-sub get_skippers {
+#  Should really only need perl526 since we skip windows dir
+#  in the search
+sub get_skipper_regexp {
     my @skip = qw /
         KERNEL32.dll msvcrt.dll
-        perl526.dll
+        perl5\d\d.dll
         ADVAPI32.dll
         ole32.dll
         USER32.dll WINMM.dll WS2_32.dll
         SHELL32.dll
     /;
-    my %skippers;
-    @skippers{@skip} = (1) x @skip;
-    return %skippers;
+    my $sk = join '|', @skip;
+    my $qr_skip = qr /$sk/;
+    return $qr_skip;
 }
 
 

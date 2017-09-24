@@ -20,10 +20,10 @@ use Config;
 my $OBJDUMP   = which('objdump')  or die "objdump not found";
 
 my @exe_path = split ';', $ENV{PATH};
-#@exe_path = grep {/berrybrew/} @exe_path;
 #  skip anything under the Windows folder
 @exe_path = grep {$_ !~ m|^[a-z]\:[/\\]windows|i} @exe_path;
 
+my $RE_DLL_EXT = qr/\.dll/i;
 
 #  need to use GetOpts variant, and pass through any Module::ScanDeps args
 my $script = $ARGV[0] or die 'no argument passed';
@@ -82,19 +82,14 @@ say "\n==========\n\n";
 my @l2 = map {('--link' => $_)} sort +(uniq keys %full_list);
 say join " ", @l2;
 
-#  Should really only need perl526 since we skip windows dir
-#  in the search
 sub get_dll_skipper_regexp {
+    #  used to be more here from windows folder
+    #  but we avoid them in the first place now
     my @skip = qw /
-        KERNEL32.dll msvcrt.dll
-        perl5\d\d.dll
-        ADVAPI32.dll
-        ole32.dll
-        USER32.dll WINMM.dll WS2_32.dll
-        SHELL32.dll
+        perl5\d\d
     /;
     my $sk = join '|', @skip;
-    my $qr_skip = qr /$sk/;
+    my $qr_skip = qr /^(?:$sk)$RE_DLL_EXT$/;
     return $qr_skip;
 }
 
@@ -116,7 +111,7 @@ sub get_dep_dlls {
         my $details = $deps_hash->{$package};
         my $uses = $details->{uses};
         next if !$uses;
-        foreach my $dll (grep {/dll$/} @$uses) {
+        foreach my $dll (grep {$_ =~ $RE_DLL_EXT} @$uses) {
             my $dll_path = $deps_hash->{$package}{file};
             #  Remove trailing component after lib
             #  Clunky and likely to fail.

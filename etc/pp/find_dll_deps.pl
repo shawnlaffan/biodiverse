@@ -30,7 +30,6 @@ my $no_execute = $ARGV[1];
 
 my @dlls = get_dep_dlls ($script, $no_execute);
 
-
 my $re_skippers = get_dll_skipper_regexp();
 my %full_list;
 my %searched_for;
@@ -38,6 +37,7 @@ my $iter = 0;
 while (1) {
     $iter++;
     say "Iter:  $iter";
+    say join ' ', @dlls;
     my( $stdout, $stderr, $exit ) = capture {
         system( $OBJDUMP, '-p', @dlls );
     };
@@ -50,12 +50,12 @@ while (1) {
     #  extra grep is wasteful but also useful for debug 
     #  since we can easily disable it
     @dlls
-      = uniq
-        sort
+      = sort
         grep {!exists $full_list{$_}}
         grep {$_ !~ /$re_skippers/}
+        uniq
         @dlls;
-    say join ' ', @dlls;
+    
     last if !@dlls;
     my @dll2;
     foreach my $file (@dlls) {
@@ -63,7 +63,7 @@ while (1) {
         #  don't recurse
         my $rule = File::Find::Rule->new->maxdepth(1);
         $rule->file;
-        $rule->name ($file);
+        $rule->name (qr/^\Q$file/E$/i);  #  case insensitive
         $rule->start (@exe_path);
         MATCH:
         while (my $f = $rule->match) {

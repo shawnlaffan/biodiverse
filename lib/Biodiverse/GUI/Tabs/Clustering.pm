@@ -1557,6 +1557,7 @@ sub get_sources_for_node {
     $sources{'Labels (cluster) calc_abc3'} = sub { show_cluster_labelsABC3(@_, $node_ref, $basedata_ref); };
     $sources{'Labels (cluster)'} = sub { show_cluster_labels(@_, $node_ref, $basedata_ref); };
     $sources{'Elements (cluster)'} = sub { show_cluster_elements(@_, $node_ref); };
+    $sources{Descendants} = sub { show_cluster_descendents(@_, $node_ref); };
 
     # Custom lists - getValues() - all lists in node's $self
     # FIXME: try to merge with CellPopup::showOutputList
@@ -1711,6 +1712,28 @@ sub show_cluster_elements {
         my $count = $elements->{$element};
         my $iter = $model->append;
         $model->set($iter,    0,$element ,  1,$count);
+    }
+
+    $popup->set_list_model($model);
+    $popup->set_value_column(1);
+
+    return;
+}
+
+# Called by popup dialog
+# Shows all descendent nodes under given node
+sub show_cluster_descendents {
+    my $popup    = shift;
+    my $node_ref = shift;
+
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+
+    my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
+
+    foreach my $element (nsort keys %$node_hash) {
+        my $count = $node_hash->{$element};
+        my $iter  = $model->append;
+        $model->set($iter, 0, $element, 1, $count);
     }
 
     $popup->set_list_model($model);

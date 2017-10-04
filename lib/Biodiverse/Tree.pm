@@ -385,7 +385,9 @@ sub get_node_ref {
         #foreach my $k (keys $self->{TREE_BY_NAME}) {
         #    say "key: $k";
         #}
-        Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+        Biodiverse::Tree::NotExistsNode->throw(
+            "[Tree] $node does not exist, cannot get ref"
+        );
     }
 
     return $self->{TREE_BY_NAME}{$node};
@@ -401,7 +403,7 @@ sub get_node_ref_aa {
     no autovivification;
 
     return $self->{TREE_BY_NAME}{$node}
-      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist, cannot get ref (aa)");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.

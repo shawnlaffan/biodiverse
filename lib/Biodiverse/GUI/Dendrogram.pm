@@ -1170,7 +1170,7 @@ sub set_node_colour {
 
     # also store it in the node for export purposes
     my $node_ref 
-      = $self->get_tree_object->get_node_ref(node => $node_name);
+      = $self->get_tree_object->get_node_ref_aa($node_name);
 
     my $colour_string = $colour_ref
         ? $colour_ref->to_string 

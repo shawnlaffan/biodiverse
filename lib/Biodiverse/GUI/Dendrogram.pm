@@ -2115,6 +2115,7 @@ sub set_cluster {
     return if !defined $cluster;  #  trying to avoid warnings
 
     # Clear any palette colours
+    delete $self->{node_colours_cache};
     $self->{node_palette_colours} = {};
     foreach my $node_ref (values %{$cluster->get_node_hash}) {
         #$node_ref->set_cached_value(__gui_palette_colour => undef);

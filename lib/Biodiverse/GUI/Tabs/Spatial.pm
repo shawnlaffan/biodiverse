@@ -503,8 +503,18 @@ sub init_branch_colouring_combo {
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
     
     my $combo = $self->{branch_colouring_combobox};
+    my $have_combo = !!$combo;
 
     if ($args{refresh} || !$combo) {
+        #  clean up pre-existing
+        if ($have_combo) {
+            foreach my $widget (
+                    $combo,
+                    @{$self->{branch_colouring_extra_widgets} // []}
+                ) {
+                $widget->destroy;
+            }
+        }
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
@@ -535,6 +545,8 @@ sub init_branch_colouring_combo {
         $bottom_hbox->pack_start ($combo, 0, 0, 0);
         $separator->show;
         $label->show;
+        $self->{branch_colouring_extra_widgets}
+          = [$separator, $label];  
     }
 
     $combo->show;

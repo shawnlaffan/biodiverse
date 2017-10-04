@@ -793,6 +793,9 @@ sub colour {
 }
 
 sub hide_some_cells {
+    #  disable for now
+    return;
+    
     my $self = shift;
     my $callback = shift;
 

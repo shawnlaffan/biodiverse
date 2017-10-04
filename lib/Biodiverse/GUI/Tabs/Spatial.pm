@@ -1950,7 +1950,7 @@ sub recolour {
     };
 
     $grid->colour($colour_func);
-    $grid->hide_some_cells($defq_callback);
+    #$grid->hide_some_cells($defq_callback);
     $grid->set_legend_min_max($min, $max);
 
     return;

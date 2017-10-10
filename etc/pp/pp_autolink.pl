@@ -1,4 +1,6 @@
 #  logic initially based on pp_simple.pl
+#  Should cache the Module::Scandeps result
+#  and then clean it up after using it.
 
 use 5.020;
 use warnings;
@@ -20,16 +22,21 @@ my $RE_DLL_EXT = qr/\.dll/i;
 
 #  messy arg handling - ideally would use a GetOpts variant that allows
 #  pass through to pp without needing to set them after --
-#  Should also trap any scandeps args (if diff from pp)
-my $script_fullname = $ARGV[-1] or die 'no script name specified';
+#  Should also trap any scandeps args (if diff from pp).
+#  pp also allows multiple .pl files.
+my $script_fullname = $ARGV[-1] or die 'no input file specified';
 #  does not handle -x inside quotes
-my $no_execute_flag = not grep {/\s-x\s/} @ARGV;  
+my $no_execute_flag = not grep {$_ eq '-x'} @ARGV;  
 
+die "Script $script_fullname does not have a .pl extension"
+  if !$script_fullname =~ /\.pl$/;
 
 my @links = map {('--link' => $_)}
             get_autolink_list ($script_fullname, $no_execute_flag);
 
-say join ' ', @links;
+say 'Detected link list: ' . join ' ', @links;
+
+system 'pp', @links, @ARGV;
 
 
 sub get_autolink_list {

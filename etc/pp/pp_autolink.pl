@@ -15,7 +15,7 @@ use Capture::Tiny    qw/ capture /;
 use List::Util       qw( uniq );
 use File::Find::Rule qw/ rule find /;
 use Path::Tiny       qw/ path /;
-
+use File::Temp       qw/ tempfile /;
 use Module::ScanDeps;
 
 my $RE_DLL_EXT = qr/\.dll/i;
@@ -25,8 +25,19 @@ my $RE_DLL_EXT = qr/\.dll/i;
 #  Should also trap any scandeps args (if diff from pp).
 #  pp also allows multiple .pl files.
 my $script_fullname = $ARGV[-1] or die 'no input file specified';
-#  does not handle -x inside quotes
+#  does not handle -x as a value for some other arg like --somearg -x
 my $no_execute_flag = not grep {$_ eq '-x'} @ARGV;  
+
+#  scandeps will execute for us, and we use a cache file
+#  did not get it to work, so disable for now
+#my @args_for_pp = grep {$_ ne '-x'} @ARGV;
+my @args_for_pp = @ARGV;
+
+my ($cache_fh, $cache_file);
+#($cache_fh, $cache_file)
+#  = tempfile( 'pp_autolink_cache_file_XXXXXX',
+#               TMPDIR => 1
+#            );
 
 die "Script $script_fullname does not have a .pl extension"
   if !$script_fullname =~ /\.pl$/;
@@ -36,8 +47,18 @@ my @links = map {('--link' => $_)}
 
 say 'Detected link list: ' . join ' ', @links;
 
-system 'pp', @links, @ARGV;
+my @command = (
+    'pp',
+    @links,
+    #"--cachedeps=$cache_file",
+    @args_for_pp,
+);
 
+#say join ' ', @command;
+system @command;
+
+#undef $cache_fh;
+#unlink $cache_file;
 
 sub get_autolink_list {
     my ($script, $no_execute_flag) = @_;
@@ -155,6 +176,7 @@ sub get_dep_dlls {
         files   => [ $script ],
         recurse => 1,
         execute => !$no_execute_flag,
+        cache_file => $cache_file,
     );
 
     my %dll_hash;

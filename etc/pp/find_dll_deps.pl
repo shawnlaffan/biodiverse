@@ -1,4 +1,4 @@
-#  logic based on pp_simple.pl
+#  logic initially based on pp_simple.pl
 
 use 5.020;
 use warnings;
@@ -18,13 +18,16 @@ use Module::ScanDeps;
 
 my $RE_DLL_EXT = qr/\.dll/i;
 
-#  need to use GetOpts variant, and pass through any Module::ScanDeps args
-my $script_fullname = $ARGV[0] or die 'no script name specified';
-my $no_execute      = $ARGV[1];
+#  messy arg handling - ideally would use a GetOpts variant that allows
+#  pass through to pp without needing to set them after --
+#  Should also trap any scandeps args (if diff from pp)
+my $script_fullname = $ARGV[-1] or die 'no script name specified';
+#  does not handle -x inside quotes
+my $no_execute_flag = not grep {/\s-x\s/} @ARGV;  
 
 
 my @links = map {('--link' => $_)}
-            get_autolink_list ($script_fullname);
+            get_autolink_list ($script_fullname, $no_execute_flag);
 
 say join ' ', @links;
 
@@ -34,11 +37,12 @@ sub get_autolink_list {
 
     my $OBJDUMP   = which('objdump')  or die "objdump not found";
     
-    my $env_sep  = $OSNAME =~ /MSWin32/i ? ';' : ':';
+    my $env_sep  = $OSNAME =~ /MSWin/i ? ';' : ':';
     my @exe_path = split $env_sep, $ENV{PATH};
 
     if ($OSNAME =~ /MSWin32/i) {
-        #  skip anything under the C:\Windows folder (or D:\ etc just to be sure)
+        #  skip anything under the C:\Windows folder
+        #  (or D:\, E:\ etc just to be sure)
         @exe_path = grep {$_ !~ m|^[a-z]\:[/\\]windows|i} @exe_path;
     }
     #  what to skip for linux or mac?
@@ -114,12 +118,12 @@ sub get_autolink_list {
 }
 
 sub get_dll_skipper_regexp {
-    #  used to be more here from windows folder
-    #  but we avoid them in the first place now
-    #  PAR packs these automatically these days
+    #  PAR packs these automatically these days.
     my @skip = qw /
         perl5\d\d
         libstdc\+\+\-6
+        libgcc_s_seh\-1
+        libwinpthread\-1
     /;
     my $sk = join '|', @skip;
     my $qr_skip = qr /^(?:$sk)$RE_DLL_EXT$/;
@@ -131,7 +135,8 @@ sub get_dll_skipper_regexp {
 #  as it handles more edge cases
 sub get_dep_dlls {
     my ($script, $no_execute_flag) = @_;
-    
+
+    #  This is clunky:
     #  make sure $script/../lib is in @INC
     #  assume script is in a bin folder
     my $rlib_path = (path ($script)->parent->parent->stringify) . '/lib';

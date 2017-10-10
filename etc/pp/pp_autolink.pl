@@ -18,7 +18,9 @@ use Path::Tiny       qw/ path /;
 use File::Temp       qw/ tempfile /;
 use Module::ScanDeps;
 
-my $RE_DLL_EXT = qr/\.dll/i;
+use Config;
+
+my $RE_DLL_EXT = qr/\.$Config::Config{so}/i;
 
 #  messy arg handling - ideally would use a GetOpts variant that allows
 #  pass through to pp without needing to set them after --

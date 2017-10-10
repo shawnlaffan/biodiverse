@@ -20,6 +20,8 @@ use Cwd;
 use File::Basename;
 use File::Find::Rule;
 
+use FindBin qw /$Bin/;
+
 use 5.020;
 use warnings;
 use strict;
@@ -91,8 +93,8 @@ my @links;
 
 if ($OSNAME eq 'MSWin32') {
 
-    @links = map {('--link' => $_)}
-        get_autolink_list ($script_fullname);
+    #@links = map {('--link' => $_)}
+    #    get_autolink_list ($script_fullname);
 
     $output_binary .= '.exe';
 }
@@ -118,7 +120,8 @@ $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my @cmd = (
-    'pp',
+    'perl',
+    "$Bin/pp_autolink.pl",
     #$verbose,
     '-u',
     '-B',

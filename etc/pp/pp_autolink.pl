@@ -193,8 +193,8 @@ sub get_dep_dlls {
         map {path($_)->absolute}
         @INC;
 
-    my $paths = join '|', @lib_paths;
-    my $inc_path_re = qr /^(\Q$paths\E)/i;
+    my $paths = join '|', map {quotemeta} @lib_paths;
+    my $inc_path_re = qr /^($paths)/i;
     #say $inc_path_re;
 
     my %dll_hash;
@@ -207,8 +207,8 @@ sub get_dep_dlls {
         foreach my $dll (grep {$_ =~ $RE_DLL_EXT} @$uses) {
             my $dll_path = $deps_hash->{$package}{file};
             #  Remove trailing component of path after /lib/
-            if (lc($dll_path) =~ $inc_path_re) {
-                $dll_path = $1 . $dll;
+            if ($dll_path =~ m/$inc_path_re/) {
+                $dll_path = $1 . '/' . $dll;
             }
             else {
                 #  fallback, get everything after /lib/
@@ -216,7 +216,8 @@ sub get_dep_dlls {
                 $dll_path .= $dll;
             }
             #say $dll_path;
-            croak "cannot find or read $dll_path for package $package"
+            croak "either cannot find or cannot read $dll_path "
+                . "for package $package"
               if not -r $dll_path;
             $dll_hash{$dll_path}++;
         }

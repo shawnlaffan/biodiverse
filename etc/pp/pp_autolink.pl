@@ -15,6 +15,7 @@ use Capture::Tiny    qw/ capture /;
 use List::Util       qw( uniq );
 use File::Find::Rule qw/ rule find /;
 use Path::Tiny       qw/ path /;
+use Cwd              qw/ abs_path /;
 use File::Temp       qw/ tempfile /;
 use Module::ScanDeps;
 
@@ -30,8 +31,8 @@ my $script_fullname = $ARGV[-1] or die 'no input file specified';
 #  does not handle -x as a value for some other arg like --somearg -x
 my $no_execute_flag = not grep {$_ eq '-x'} @ARGV;  
 
-#  scandeps will execute for us, and we use a cache file
-#  did not get it to work, so disable for now
+#  Try caching - scandeps will execute for us, and then we use a cache file
+#  Nope, did not get it to work, so disable for now
 #my @args_for_pp = grep {$_ ne '-x'} @ARGV;
 my @args_for_pp = @ARGV;
 
@@ -72,8 +73,8 @@ sub get_autolink_list {
 
     if ($OSNAME =~ /MSWin32/i) {
         #  skip anything under the C:\Windows folder
-        #  (or D:\, E:\ etc just to be sure)
-        @exe_path = grep {$_ !~ m|^[a-z]\:[/\\]windows|i} @exe_path;
+        my $system_root = abs_path($ENV{SystemRoot});
+        @exe_path = grep {$_ !~ m|^\Q$system_root\E|i} @exe_path;
     }
     #  what to skip for linux or mac?
 

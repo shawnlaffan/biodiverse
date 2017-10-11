@@ -73,8 +73,9 @@ sub get_autolink_list {
 
     if ($OSNAME =~ /MSWin32/i) {
         #  skip anything under the C:\Windows folder
-        my $system_root = abs_path($ENV{SystemRoot});
+        my $system_root = $ENV{SystemRoot};
         @exe_path = grep {$_ !~ m|^\Q$system_root\E|i} @exe_path;
+        #say "PATHS: " . join ' ', @exe_path;
     }
     #  what to skip for linux or mac?
 
@@ -181,6 +182,20 @@ sub get_dep_dlls {
         execute => !$no_execute_flag,
         cache_file => $cache_file,
     );
+    
+    #my @lib_paths 
+    #  = map {path($_)->absolute}
+    #    grep {defined}  #  needed?
+    #    @Config{qw /installsitearch installvendorarch installarchlib/};
+    #say join ' ', @lib_paths;
+    my @lib_paths
+      = reverse sort {length $a <=> length $b}
+        map {path($_)->absolute}
+        @INC;
+
+    my $paths = join '|', @lib_paths;
+    my $inc_path_re = qr /^(\Q$paths\E)/i;
+    #say $inc_path_re;
 
     my %dll_hash;
     foreach my $package (keys %$deps_hash) {
@@ -192,13 +207,17 @@ sub get_dep_dlls {
         foreach my $dll (grep {$_ =~ $RE_DLL_EXT} @$uses) {
             my $dll_path = $deps_hash->{$package}{file};
             #  Remove trailing component of path after /lib/
-            #  Clunky and likely to fail somewhere if we have x/lib/stuff/lib/lib.pm.
-            #  Not sure how likely that is, though.
-            #  Maybe check against entries in @INC?
-            $dll_path =~ s|(?<=/lib/).+?$||;
-            $dll_path .= $dll;
-            croak "cannot find $dll_path for package $package"
-              if not -e $dll_path;
+            if (lc($dll_path) =~ $inc_path_re) {
+                $dll_path = $1 . $dll;
+            }
+            else {
+                #  fallback, get everything after /lib/
+                $dll_path =~ s|(?<=/lib/).+?$||;
+                $dll_path .= $dll;
+            }
+            #say $dll_path;
+            croak "cannot find or read $dll_path for package $package"
+              if not -r $dll_path;
             $dll_hash{$dll_path}++;
         }
     }

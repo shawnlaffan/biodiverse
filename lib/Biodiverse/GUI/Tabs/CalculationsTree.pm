@@ -19,7 +19,7 @@ use Biodiverse::Indices;
 use Ref::Util qw { :all };
 use Text::Wrapper;
 
-our $VERSION = '1.99_008';
+our $VERSION = '2.00';
 
 #use Readonly;
 my $i;

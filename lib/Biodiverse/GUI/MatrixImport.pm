@@ -9,7 +9,7 @@ use File::BOM qw / :subs /;
 
 use Gtk2;
 
-our $VERSION = '1.99_008';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport

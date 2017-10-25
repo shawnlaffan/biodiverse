@@ -8,7 +8,7 @@ use List::Util qw /sum min max/;
 
 use Carp;
 
-our $VERSION = '1.99_008';
+our $VERSION = '2.00';
 
 use Biodiverse::Statistics;
 

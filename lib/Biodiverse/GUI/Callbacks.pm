@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Browser::Open qw( open_browser );    #  needed for the about dialogue
 
-our $VERSION = '1.99_008';
+our $VERSION = '2.00';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;

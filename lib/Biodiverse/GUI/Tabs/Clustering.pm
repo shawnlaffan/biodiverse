@@ -23,7 +23,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '1.99_008';
+our $VERSION = '2.00';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;

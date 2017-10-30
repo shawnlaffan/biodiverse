@@ -1,4 +1,4 @@
-#!/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl5.22.0
+##!/Users/jason/perl5/perlbrew/perls/perl-5.22.0/bin/perl5.22.0
 
 use strict;
 use warnings;
@@ -26,7 +26,8 @@ my @dylibs = ();
 my $include_lib = "";
 my @founddylibs = ();
 
-my $perl_location = `which perl5.22.0`;
+#my $perl_location = `which perl5.22.0`;
+my $perl_location = $^X;
 chomp $perl_location;
 
 # Setup options.
@@ -72,10 +73,13 @@ if ($filename) {
 # Function to get the directory
 # for mime types.
 sub get_xdg_data_dirs(){
-    my @xdg_data_dirs = xdg_data_dirs;
-    foreach $a (@xdg_data_dirs){
-        if ( -d $a . "/mime" ) {
-            $mime_dir = $a . "/mime";
+    my @xdg_data_dirs = xdg_data_dirs();
+    foreach my $dir (@xdg_data_dirs){
+        say "Checking for ${dir}/mime";
+        if ( -d $dir . "/mime" ) {
+            say 'Found it';
+            $mime_dir = $dir. "/mime";
+            last;
         }
     }
 }
@@ -122,7 +126,7 @@ sub check_symbolic_link {
 
 # copy each required dynamic
 # library to the bin dir.
-sub copy_dylibs_to_bin_dir(){
+sub copy_dylibs_to_bin_dir {
     my @dy = @founddylibs; #find_dylibs();
     print "Copying dynamic libraries biodiverse/bin/\n";
     foreach $a (@dy){
@@ -134,7 +138,7 @@ sub copy_dylibs_to_bin_dir(){
 
 # Remove old dynamic libraries
 # from the biodiverse/bin directory.
-sub remove_old_dylibs_from_bin_dir(){
+sub remove_old_dylibs_from_bin_dir {
     my $bindir = $biodiverse_dir . "bin/";
     print "Removing stale dynamic libraries.\n";
     `rm -fR $bindir.*dylib`;
@@ -144,7 +148,7 @@ sub remove_old_dylibs_from_bin_dir(){
 # Create the dynamic library
 # string for the final command line
 # arguments.
-sub lib_strings() {
+sub lib_strings {
     my @dyl = @founddylibs; #find_dylibs(@libraries,@dylibs);
     foreach my $c (@dyl){
         $include_lib = "$include_lib -l $c";
@@ -165,7 +169,7 @@ sub create_lib_paths {
     chop $ld_library_path;
 }
 
-sub create_command_line_string() {
+sub create_command_line_string {
     # Put all the variables together to 
     # form the first part of the build script.
     $run_command_first_part = "cd $biodiverse_dir\; $dyld_library_path $ld_library_path $perl_location $build_script -o $output_dir -s $script -i $icon --";

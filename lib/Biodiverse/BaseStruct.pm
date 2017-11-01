@@ -27,7 +27,7 @@ use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 my $EMPTY_STRING = q{};
 
@@ -2971,11 +2971,15 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    1;
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 #  array args version to avoid the args hash creation
 #  (benchmarking indicates it takes a meaningful slab of time)
+#  candidate for refaliasing
 sub delete_sub_element_aa {
     my ($self, $element, $sub_element) = @_;
     
@@ -2996,7 +3000,10 @@ sub delete_sub_element_aa {
     }
     delete $href->{SUBELEMENTS}{$sub_element};
 
-    scalar keys %{$href->{SUBELEMENTS}};
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {
@@ -3008,6 +3015,15 @@ sub exists_element {
 
     #  no explicit return for speed under pre-5.20 perls
     exists $self->{ELEMENTS}{$el};
+}
+
+sub exists_element_aa {
+    #my ($self, $el) = @_;
+
+    croak "element not specified\n"
+      if !defined $_[1];
+
+    exists $_[0]->{ELEMENTS}{$_[1]};
 }
 
 sub exists_sub_element {
@@ -3287,6 +3303,28 @@ sub delete_lists {
     }
 
     return;
+}
+
+
+
+sub delete_properties_for_given_element {
+    my ($self, %args) = @_;
+    my $el = $args{ el };
+
+    $self->{ELEMENTS}{$el}{PROPERTIES} = {};
+}
+
+
+# delete an element property for all elements
+sub delete_element_property {
+    my ($self, %args) = @_;
+    my $prop = $args{ prop };
+
+    foreach my $el ($self->get_element_list) {
+        my %props = %{$self->{ELEMENTS}{$el}{PROPERTIES}};
+        delete $props{ $prop };
+        $self->{ELEMENTS}{$el}{PROPERTIES} = \%props;
+    }
 }
 
 sub get_lists {
@@ -3837,6 +3875,19 @@ sub get_element_property_keys {
     $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
 
     return wantarray ? @keys : \@keys;
+}
+
+# returns a hash mapping from elements to element property hashes.
+sub get_all_element_properties {
+    my ($self, %args) = @_;
+    my %element_to_props_hash;
+    
+    foreach my $element ($self->get_element_list) {
+        my $props_hash = $self->get_element_properties(element => $element);
+        $element_to_props_hash{ $element } = $props_hash;
+    }
+
+    return wantarray ? %element_to_props_hash : \%element_to_props_hash;
 }
 
 sub get_element_properties {

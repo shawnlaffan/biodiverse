@@ -178,6 +178,52 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkMenuItem" id="menuitem_label_grid_colour_scale">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Control the colour scaling on the grid</property>
+                            <property name="label" translatable="yes">Colour scaling</property>
+                            <property name="use_underline">True</property>
+                            <child type="submenu">
+                              <object class="GtkMenu" id="menu2">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_auto">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Switches to log scaling when max richness is &gt;20 or ratio of max richness to number of selected labels is 80% </property>
+                                    <property name="label" translatable="yes">auto</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_linear">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">linear</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radiomenuitem_grid_colouring_auto</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_log">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">natural log</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radiomenuitem_grid_colouring_auto</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkCheckMenuItem" id="menuitem_labels_show_legend">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>

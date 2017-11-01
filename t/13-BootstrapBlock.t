@@ -242,14 +242,14 @@ sub test_roundtrip {
     my $encoded = $booter->encode (include_colour => 1);
 
     my $expected
-      = '[&!color=#002244,aref={1,3,5},href={a,1,b,2},'
-      . 'other=blort,other2=blert15]';
+      = '[&!color=#002244,aref__0=1,aref__1=3,aref__2=5,'
+      . 'href__a=1,href__b=2,other=blort,other2=blert15]';
     is ($encoded, $expected, 'encoded expected string');
     
     TODO: {
         my $booter2 = Biodiverse::TreeNode::BootstrapBlock->new;
         $booter2->decode(raw_bootstrap => $encoded);
-        local $TODO = 'importation not yet implemented';
+        local $TODO = 'importation not yet implemented';  #  and might never be supported
         is_deeply ($booter2, $booter, 'encode-decode roundtrip passed')
     }
 }

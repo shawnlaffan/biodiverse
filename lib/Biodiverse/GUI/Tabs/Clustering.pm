@@ -23,7 +23,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '1.99_007';
+our $VERSION = '1.99_008';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -525,16 +525,18 @@ sub on_show_hide_parameters {
 sub init_map {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_object('mapFrame');
-    my $hscroll = $self->{xmlPage}->get_object('mapHScroll');
-    my $vscroll = $self->{xmlPage}->get_object('mapVScroll');
+    my $xml_page = $self->{xmlPage};
 
+    my $frame   = $xml_page->get_object('mapFrame');
+    my $hscroll = $xml_page->get_object('mapHScroll');
+    my $vscroll = $xml_page->get_object('mapVScroll');
+
+    my $click_closure      = sub { $self->on_grid_popup(@_); };
     my $ctrl_click_closure = sub { $self->on_grid_popup(@_); };
-    my $click_closure = sub { $self->on_graph_popup(@_); };
-    my $hover_closure = sub { $self->on_grid_hover(@_); };
-    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $hover_closure      = sub { $self->on_grid_hover(@_); };
+    my $select_closure     = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -549,10 +551,19 @@ sub init_map {
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure
     );
-    $self->{grid}->{page} = $self;
+    
+    my $grid = $self->{grid};
+    
+    $grid->{page} = $self;
 
-    $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
+    $grid->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
+    my $menu_log_checkbox = $xml_page->get_object('menu_dendro_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
+    
     $self->warn_if_basedata_has_gt2_axes;
 
     return;
@@ -595,7 +606,8 @@ sub init_dendrogram {
     # TODO: Abstract this properly
     #$self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
 
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
@@ -676,7 +688,7 @@ sub on_combo_map_list_changed {
     my $list  = $model->get($iter, 0);
 
     my $sensitive = 1;
-    if ($list eq '<i>Cluster</i>' || $list eq '<i>Multiselect</i>') {
+    if ($list eq '<i>Cluster</i>' || $list eq '<i>User defined</i>') {
         $sensitive = 0;
         $self->hide_legend;
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => undef);
@@ -689,8 +701,8 @@ sub on_combo_map_list_changed {
     #  show/hide some widgets 
     my @cluster_widgets  = qw /label_cluster_spin_button spinClusters/;
     my @cloister_widgets = qw /label_selector_colour selector_colorbutton selector_toggle autoincrement_toggle/;
-    my $m1 = $list eq '<i>Multiselect</i>' ? 'hide' : 'show';
-    my $m2 = $list eq '<i>Multiselect</i>' ? 'show' : 'hide';
+    my $m1 = $list eq '<i>User defined</i>' ? 'hide' : 'show';
+    my $m2 = $list eq '<i>User defined</i>' ? 'show' : 'hide';
     foreach my $widget_name (@cluster_widgets) {
         my $widget = $self->{xmlPage}->get_object ($widget_name);
         $widget->$m1;
@@ -1726,7 +1738,7 @@ sub on_name_changed {
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_object('txtClusterName')->get_text();
 
-    my $label_widget = $self->{xmllabel}->get_object('lblClusteringName');
+    my $label_widget = $self->{xmlLabel}->get_object('lblClusteringName');
     $label_widget->set_text($name);
 
     my $tab_menu_label = $self->{tab_menu_label};
@@ -1962,6 +1974,8 @@ sub on_menu_stretch_changed {
     return;
 }
 
+
+
 sub on_stretch_changed {
     my $self = shift;
     my $sel  = shift || 'min-max';
@@ -1981,6 +1995,7 @@ sub on_stretch_changed {
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
     $self->recolour;
+    $self->{grid}->update_legend;
 
     return;
 }

@@ -127,7 +127,35 @@ use Biodiverse::ElementProperties;
             $i ++;
         }
     }
+
+    # now test deleting the element properties, making sure everything is gone.
+    foreach my $element ($bd->get_labels_ref->get_element_list) {
+        $bd->delete_individual_label_properties(el => $element);
+    }
+    foreach my $element ($bd->get_groups_ref->get_element_list) {
+        $bd->delete_individual_group_properties(el => $element);
+    }
+
     
+    $lb = $bd->get_labels_ref;
+
+    foreach my $label ($bd->get_labels) {
+        my $list = $lb->get_list_ref (
+            element => $label,
+            list    => 'PROPERTIES',
+            );
+        ok (scalar keys %$list == 0, "$label list is empty");
+    }
+
+    my $gp = $bd->get_groups_ref;
+    foreach my $group ($bd->get_groups) {
+        my $list = $gp->get_list_ref (
+            element => $group,
+            list    => 'PROPERTIES',
+            );
+        ok (scalar keys %$list == 0, "$group list is empty");
+    }
+
     
 }
 

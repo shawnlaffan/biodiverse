@@ -417,7 +417,7 @@ sub set_base_struct {
 
     my @tmpcell_sizes = $data->get_cell_sizes;  #  work on a copy
     say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
-    
+
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
 
     say join q{ }, $min_x, $max_x, $min_y // '', $max_y // '';

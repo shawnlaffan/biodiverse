@@ -550,6 +550,7 @@ sub init_grid {
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
     my $cell_enter = sub { $self->on_cell_enter(@_); };
     my $cell_leave = sub { $self->on_cell_leave(@_); };
+
     my $plot_max = $self->{plot_max_value};
 
     $self->{grid} = Biodiverse::GUI::Grid->new(

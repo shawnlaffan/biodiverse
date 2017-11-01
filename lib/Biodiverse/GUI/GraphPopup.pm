@@ -85,6 +85,7 @@ sub add_secondary {
     my $min = shift;
 
     my $secondary_element = $popupobj->get_secondary_element;
+
     no warnings qw(uninitialized);
     return if $element eq $secondary_element;
 

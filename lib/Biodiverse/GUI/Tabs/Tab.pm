@@ -581,6 +581,12 @@ sub on_graph_popup {
         
     my @lists = $output_ref->get_lists_across_elements;
 
+    my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
+    say "[on_graph_popup] \@keys: @keys";
+    #foreach my $key_across_element (@keys_across_elements) {
+    #    say "[on_graph_popup] \$key_across_element: $key_across_element"; 
+    #}
+    #print Dumper($output_ref);
     # Get the y max and min plot values.
     my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
@@ -603,7 +609,7 @@ sub on_graph_popup {
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
-
+   
     Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
 
 }

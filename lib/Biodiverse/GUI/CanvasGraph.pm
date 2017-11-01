@@ -357,10 +357,6 @@ sub rescale_graph_points {
         my $new_y = $canvas_height - (($canvas_height)*($y-$min_y) / ($max_y-$min_y));
 
         $new_values{$new_x} = $new_y;
-        #say "[rescale_graph_points] \$x: $x, new \$x: $new_x";
-        #say "[rescale_graph_points] \$y: $y, new \$y: $new_y";
-        #say "[rescale_graph_points] \$max_y: $max_y";
-        #say "[rescale_graph_points] \$max_y_values: $max_y_values";
     }
 
     return wantarray? %new_values : \%new_values;
@@ -407,13 +403,6 @@ sub add_axis_labels_to_graph_canvas {
             text => $text,
         );
 
-        # X axis tick marks
-#        my $x_line = Gnome2::Canvas::Item->new (
-#            $root, 'Gnome2::Canvas::Line',
-#            points => [$x_position, $canvas_height+4, $x_position, $canvas_height+4+TICK_LENGTH],
-#            fill_color_gdk => COLOUR_BLACK,
-#            width_units => 1
-#      );
     }
 
     # y axis labels
@@ -436,14 +425,6 @@ sub add_axis_labels_to_graph_canvas {
             justification =>  'right',
             text => $text,
             );
-
-        # Y axis tick marks
-#        my $y_line = Gnome2::Canvas::Item->new (
-#            $root, 'Gnome2::Canvas::Line',
-#            points => [- Y_AXIS_LABEL_PADDING, $y_position, - Y_AXIS_LABEL_PADDING + TICK_LENGTH, $y_position],
-#            fill_color_gdk => COLOUR_BLACK,
-#            width_units => 1
-#        );
 
     }
 }
@@ -646,7 +627,6 @@ sub _do_popup_menu {
     #my ($self, $event,$popupobj) = @_;
     my $array = shift;
     my $event = shift;
-    my $popupobj = shift;
 
     my $self = $array->[0];
     my $popupobj = $array->[1];

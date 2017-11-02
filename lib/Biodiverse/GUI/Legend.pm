@@ -20,7 +20,7 @@ use Tree::R;
 
 #use Geo::ShapeFile;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -85,7 +85,7 @@ sub new {
     $self->{legend_group} = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Group',
-        x => $width - LEGEND_WIDTH,
+        x => $width - $self->get_width,
         y => 0,
     );
     $self->{legend_group}->raise_to_top();
@@ -117,6 +117,8 @@ sub hide {
 sub show {
     my $self = shift;
 
+    return if !$self->{legend_group};
+
     # Show the legend group.
     $self->{legend_group}->show;
 
@@ -124,7 +126,7 @@ sub show {
 }
 
 # Makes a rectangle and fills it 
-# with colours for the chose legend
+# with colours for the chosen legend
 # mode.
 sub make_rect {
     my $self = shift;
@@ -155,18 +157,19 @@ sub make_rect {
 
     if ($self->{legend_mode} eq 'Hue') {
 
-        ($width, $height) = (LEGEND_WIDTH, 180);
+        ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my @rgb = hsv_to_rgb($row, 1, 1);
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    } elsif ($self->{legend_mode} eq 'Sat') {
+    }
+    elsif ($self->{legend_mode} eq 'Sat') {
 
-        ($width, $height) = (LEGEND_WIDTH, 100);
+        ($width, $height) = ($self->get_width, 100);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
@@ -176,21 +179,23 @@ sub make_rect {
                 1,
             );
             my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
 
-    } elsif ($self->{legend_mode} eq 'Grey') {
+    }
+    elsif ($self->{legend_mode} eq 'Grey') {
 
-        ($width, $height) = (LEGEND_WIDTH, 255);
+        ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
 
         foreach my $row (0..($height - 1)) {
             my $intensity = $self->rescale_grey(255 - $row);
             my @rgb = ($intensity * 257 ) x 3;
             my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-            add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
-    } else {
+    }
+    else {
         croak "Legend: Invalid colour system\n";
     }
 
@@ -199,12 +204,12 @@ sub make_rect {
 
 # Add a coloured row to the legend.
 sub add_row {
-    my ($self, $row, $r, $g, $b) = @_;
+    my ($self, $group, $row, $r, $g, $b) = @_;
 
-    my $width = LEGEND_WIDTH;
+    my $width = $self->get_width;
 
     my $legend_colour_row = Gnome2::Canvas::Item->new (
-        $self,
+        $group,
         'Gnome2::Canvas::Rect',
         x1 => 0,
         x2 => $width,
@@ -248,11 +253,21 @@ sub set_lt_flag {
     return;
 }
 
+sub set_width {
+    my ($self, $width) = @_;
+    $self->{back_rect_width} = $width;
+}
+
+sub get_width {
+    my $self = shift;
+    return $self->{back_rect_width} // LEGEND_WIDTH;
+}
+
 # Updates position of legend and value box
 # when canvas is resized or scrolled
 sub reposition {
     my $self = shift;
-    my $width_px = shift;
+    my $width_px  = shift;
     my $height_px = shift;
 
     return if not defined $self->{legend};
@@ -264,7 +279,7 @@ sub reposition {
     my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
        ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
 
-    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, LEGEND_WIDTH);
+    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, $self->get_width);
 
     # Get the pixels per unit value from the canvas
     # to scale the legend with.
@@ -272,8 +287,8 @@ sub reposition {
 
     # Reposition the legend group box
     $self->{legend_group}->set(
-        x        => $width  + $scroll_x - $legend_width,
-        y        => $scroll_y,
+        x => $width  + $scroll_x - $legend_width,
+        y => $scroll_y,
     );
 
     # Scale the legend's height and width to match the current size of the canvas. 
@@ -291,9 +306,9 @@ sub reposition {
     foreach my $i (0..3) {
         my $mark = $self->{marks}[3 - $i];
         #  move the mark to right align with the legend
-        my @bounds = $mark->get_bounds;
+        my @bounds  = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
-        my $offset = $lbounds[0] - $bounds[2];
+        my $offset  = $lbounds[0] - $bounds[2];
         $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
 
         # Set the location of the y of the marks
@@ -431,6 +446,11 @@ sub get_colour {
     }
     if (defined $max and $val > $max) {
         $val = $max;
+    }
+    if ($self->get_log_mode) {
+        $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+        $min = 0;
+        $max = 1;
     }
     my @args = ($val, $min, $max);
 
@@ -591,6 +611,14 @@ sub set_min_max {
     my $marker_step = ($max - $min) / 3;
     foreach my $i (0..3) {
         my $val = $min + $i * $marker_step;
+        if ($self->get_log_mode) {
+            my $log_step = log (101) * $i / 3;
+            #  should use a method for each transform
+            #  (log and antilog)
+            #  orig:
+            #  $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+            $val = (exp ($log_step) - 1) / 100 * ($max - $min) + $min;
+        }
         my $text = $self->format_number_for_display (number => $val);
         my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
         if ($i == 0 and $self->{legend_lt_flag}) {
@@ -619,6 +647,20 @@ sub set_min_max {
     }
 
     return;
+}
+
+sub set_log_mode_on {
+    my ($self) = @_;
+    return $self->{log_mode} = 1;
+}
+
+sub set_log_mode_off {
+    my ($self) = @_;
+    return $self->{log_mode} = 0;
+}
+
+sub get_log_mode {
+    $_[0]->{log_mode};
 }
 
 #  dup from Tab.pm - need to inherit from single source

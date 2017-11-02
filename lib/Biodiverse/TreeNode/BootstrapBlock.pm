@@ -10,7 +10,9 @@ use Cpanel::JSON::XS;
 use Data::Structure::Util qw( unbless );
 use Ref::Util qw /is_arrayref is_hashref/;
 
-our $VERSION = '1.99_007';
+use parent qw /Biodiverse::Common/;
+
+our $VERSION = '2.00';
 
 sub new {
     my $class = shift;
@@ -48,10 +50,20 @@ sub delete_value {
     delete $self->{_data}{$key};
 }
 
+sub delete_value_aa {
+    my ($self, $key) = @_;
+    delete $self->{_data}{$key};
+}
+
 sub get_data {
     my $self = shift;
     my $data =  $self->{_data} //= {};
     return wantarray ? %$data : $data;
+}
+
+sub clear_data {
+    my $self = shift;
+    $self->{_data} = {};
 }
 
 sub set_colour {
@@ -124,18 +136,25 @@ sub encode {
     my %boot_values = $self->get_data;
 
     my @bootstrap_strings;
-    foreach my $key (sort keys %boot_values) {
-        my $value = $boot_values{$key};
+    foreach my $boot_key (sort keys %boot_values) {
+        my $value = $boot_values{$boot_key};
         if (is_arrayref($value)) {
-            $value = '{' . join (',', @$value) .'}';
+            my $formatted = join (',', map {$boot_key . '__' . $_ . '=' . $value->[$_]} keys @$value);
+            push @bootstrap_strings, $formatted;
         }
         elsif (is_hashref ($value)) {
+            #  make them key=value pairs,
+            #  with list name as a prefix on each key
+            #  to ensure uniqueness if multiple lists are one day attached
             my @arr
-              = map {$_ => $value->{$_}}
-                sort keys %$value; 
-            $value = '{' . join (',', @arr) .'}';
+              = map {$boot_key . '__' . $_ . '=' . $value->{$_}}
+                sort keys %$value;
+            my $formatted = join (',', @arr);
+            push @bootstrap_strings, $formatted;
         }
-        push @bootstrap_strings, "$key=$value";
+        else {
+            push @bootstrap_strings, ($boot_key . '=' . $value);
+        }
     }
     if ($args{include_colour}) {
         my $colour = $self->get_colour;

@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
@@ -2424,7 +2424,7 @@ sub calc_phylo_corrected_weighted_endemism {
     no warnings 'uninitialized';
 
     my %results = (
-        PE_CWE => eval {$pe / $pd},
+        PE_CWE => $pd ? $pe / $pd : undef,
     );
 
     return wantarray ? %results : \%results;
@@ -2464,7 +2464,7 @@ sub calc_phylo_corrected_weighted_rarity {
     no warnings 'uninitialized';
 
     my %results = (
-        PHYLO_RARITY_CWR => eval {$aed_t / $pd},
+        PHYLO_RARITY_CWR => $pd ? $aed_t / $pd : undef,
     );
 
     return wantarray ? %results : \%results;

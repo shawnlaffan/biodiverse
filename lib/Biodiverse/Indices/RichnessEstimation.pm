@@ -8,7 +8,7 @@ use Carp;
 
 use List::Util qw /max min sum/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -134,7 +134,7 @@ sub calc_chao1 {
             $part1 += $f * (exp (-$i) - exp (-2 * $i));
             $part2 += $i * exp (-$i) * $f;
         }
-        $variance = $part1 - $part2 ** 2 / $n;
+        $variance = $n ? $part1 - $part2 ** 2 / $n : 0;
         $chao_formula = 0;
     }
 
@@ -359,7 +359,7 @@ sub _calc_chao_confidence_intervals {
             $sums{$freq} ++;
         }
         #  set CIs to undefined if we only have singletons/uniques
-        if (! (scalar keys %sums == 1 && exists $sums{1})) {
+        if ($richness && ! (scalar keys %sums == 1 && exists $sums{1})) {
             while (my ($f, $count) = each %sums) {
                 $P += $count * exp (-$f);
             }

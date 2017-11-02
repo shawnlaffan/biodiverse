@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 BEGIN {
     # export environmental variables required by pixbuf on OS X.

@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 #use Data::Dumper;
 use Carp;
@@ -33,6 +33,7 @@ require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
 use Biodiverse::GUI::ProgressDialog;
+use Biodiverse::GUI::DeleteElementProperties;
 
 
 require Biodiverse::BaseData;
@@ -927,6 +928,18 @@ sub do_basedata_attach_properties {
     $summary_dlg->destroy;
 
     return;
+}
+
+sub do_delete_element_properties {
+    my $self = shift;
+    my $bd   = $self->{project}->get_selected_base_data;
+
+    croak "Cannot delete properties from a basedata with existing outputs" 
+        . " (try 'duplicate without outputs')" 
+        if($bd->get_output_ref_count);
+    
+    my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
+    my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
 }
 
 sub do_delete_basedata {
@@ -2512,7 +2525,7 @@ sub do_trim_basedata {
 
     my $text =
         "Deleted $results{DELETE_COUNT} labels"
-      . " from $results{DELETE_SUB_COUNT} groups. "
+      . " and $results{DELETE_SUB_COUNT} groups. "
       . "$name has $label_count labels remaining across "
       . "$group_count groups.\n";
 

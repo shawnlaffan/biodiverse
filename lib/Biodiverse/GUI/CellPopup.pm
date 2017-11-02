@@ -9,7 +9,7 @@ use Carp;
 use Scalar::Util qw /looks_like_number/;
 use Sort::Naturally qw /nsort/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Gtk2;
 

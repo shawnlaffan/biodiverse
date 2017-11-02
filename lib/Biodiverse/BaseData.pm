@@ -17,6 +17,7 @@ use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
+use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Naturally qw /ncmp/;
@@ -35,8 +36,7 @@ use English qw { -no_match_vars };
 
 #use Math::Random::MT::Auto qw /rand srand shuffle/;
 
-use
-  Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
+use Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects
 use Biodiverse::Spatial;
 use Biodiverse::RegionGrower;
@@ -51,7 +51,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use parent qw {Biodiverse::Common};
 
@@ -1638,7 +1638,7 @@ sub import_data_shapefile {
         my $fnamebase = $file->stringify;
 
 #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
-        my $shapefile = Geo::ShapeFile->new($fnamebase);
+        my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
 
         #say "have $shapefile";
 
@@ -2288,6 +2288,62 @@ sub assign_element_properties {
     }
 
     return $count;
+}
+
+# returns a hash. 'groups' maps to a hash mapping from element names
+# to element property hashes for this basedata's groups. 'labels'
+# likewise.
+sub get_all_element_properties {
+    my ($self, %args) = shift;
+    my %results_hash;
+    
+    my $gp = $self->get_groups_ref;
+    $results_hash{groups} = $gp->get_all_element_properties();
+    
+    my $lb = $self->get_labels_ref;
+    $results_hash{labels} = $lb->get_all_element_properties();
+
+    return wantarray ? %results_hash : \%results_hash;
+}
+
+sub delete_group_element_property {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_element_property(%args);
+}
+
+sub delete_label_element_property {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_element_property(%args);
+}
+
+sub delete_group_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_groups_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_label_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_labels_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_individual_group_properties {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_label_properties {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_group_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(el => $el);
+}
+
+sub delete_individual_label_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(el => $el);
 }
 
 sub rename_labels {
@@ -3421,20 +3477,21 @@ sub delete_sub_element {
 sub delete_sub_element_aa {
     my ( $self, $label, $group ) = @_;
 
-    my $groups_ref = $self->get_groups_ref;
-    my $labels_ref = $self->get_labels_ref;
+    #my $groups_ref = $self->get_groups_ref;
+    #my $labels_ref = $self->get_labels_ref;
 
-#  return value of delete_sub_element_aa is the number of subelements remaining,
-#  or undef if no subelements list
+    #  return value of delete_sub_element_aa
+    #  is the number of subelements remaining,
+    #  or undef if no subelements list
 
-    if ( !( $labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
+    if ( !( $self->get_labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
         $self->delete_element(
             type    => 'LABELS',
             element => $label,
         );
     }
 
-    if ( !( $groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
+    if ( !( $self->get_groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
         $self->delete_element(
             type    => 'GROUPS',
             element => $group,
@@ -3836,6 +3893,14 @@ sub exists_label {
     my %args = @_;
     return $self->get_labels_ref->exists_element(
         element => ( $args{label} // $args{element} ) );
+}
+
+sub exists_label_aa {
+    $_[0]->get_labels_ref->exists_element_aa( $_[1] );
+}
+
+sub exists_group_aa {
+    $_[0]->get_groups_ref->exists_element_aa( $_[1] );
 }
 
 sub exists_label_in_group {

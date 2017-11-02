@@ -45,7 +45,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 
@@ -2002,6 +2002,11 @@ sub get_cached_metadata {
     return $cache;
 }
 
+sub delete_cached_metadata {
+    my $self = shift;
+    
+    delete $self->{_cache}{METADATA_CACHE};
+}
 
 #my $indices_wantarray = 0;
 #  get the metadata for a subroutine

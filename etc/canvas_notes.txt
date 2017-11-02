@@ -1,3 +1,6 @@
+Patch submitted to: https://bugzilla.gnome.org/show_bug.cgi?id=385432
+
+
 symbol-file c:\\strawberry\\c\\bin\\libgnomecanvas-2-0.dll.debug
 dir C:\\Users\\michaelz\\Desktop\\libgnomecanvas-2.30.2\\libgnomecanvas
 dir C:\\Users\\michaelz\\Desktop\\gtk+-2.24.12\\gdk\\win32

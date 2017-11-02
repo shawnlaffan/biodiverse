@@ -19,7 +19,7 @@ use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -55,13 +55,13 @@ sub new {
         $self->add_children(%args);
     }
 
-    if (exists $args{boot} && defined $args{boot}) {
+    if (exists $args{boot} && defined $args{boot} && length $args{boot}) {
         #say "We found the boot arg, it is $args{boot}";
-        my $bootstrap_block = Biodiverse::TreeNode::BootstrapBlock->new();
-        $bootstrap_block->decode (raw_bootstrap => $args{boot});
-        $self->set_value(
-            bootstrap_block => $bootstrap_block,
-        );
+        my $booter = $self->get_bootstrap_block;
+        $booter->decode (raw_bootstrap => $args{boot});
+        #  store the raw text somewhere that can be deleted with impunity
+        #  handy for debugging
+        $booter->set_cached_value (RAW_TEXT => $args{boot});
     }
     
     return $self;
@@ -1113,6 +1113,32 @@ sub get_path_lengths_to_root_node {
     return wantarray ? %path_lengths : \%path_lengths;
 }
 
+#  inconsistent with the non-aa version, as cache is passed
+#  as a 0 in that version to disable it
+sub get_path_lengths_to_root_node_aa {
+    my ($self, $no_cache) = @_;
+
+    if (!$no_cache) {
+        my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
+        return (wantarray ? %$path : $path) if $path;
+    }
+
+    my %path_lengths;
+    $path_lengths{$self->get_name} = $self->get_length;
+
+    my $node = $self->get_parent;
+    while ($node) {  #  undef when root node
+        $path_lengths{$node->get_name} = $node->get_length;
+        $node = $node->get_parent;
+    }
+
+    if (!$no_cache) {
+        $self->set_cached_value (PATH_LENGTHS_TO_ROOT_NODE => \%path_lengths);
+    }
+
+    return wantarray ? %path_lengths : \%path_lengths;
+}
+
 #  get all the nodes along a path from self to another node,
 #  including self and other, and the shared ancestor
 sub get_path_to_node {
@@ -2151,6 +2177,13 @@ sub get_list_ref {
     no autovivification;
     defined $list ? $self->{$list} : undef;
 }
+
+sub get_list_ref_aa {
+    my ($self, $list) = @_;
+    no autovivification;
+    defined $list ? $self->{$list} : undef;
+}
+
 
 sub get_node_range {
     my $self = shift;

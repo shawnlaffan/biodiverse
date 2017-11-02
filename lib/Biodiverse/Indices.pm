@@ -20,7 +20,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 
@@ -484,16 +484,7 @@ sub get_calculation_metadata_as_markdown {
                         $formula_url .= $element;
                     }
                     else {
-                        #$formula .= "\n";
-                        my $eqn = $element;
-                        $eqn =~ s/\\/\\\\/g
-                          ; #  need to escape the backslashes for github to work
-                        $eqn =~ s/^= /=/;
-                        $formula_url .= "![$eqn]($codecogs_url";
-                        $formula_url .= $eqn;
-
-                        #$formula_url .= "%.png) ";
-                        $formula_url .= ")";
+                        $formula_url .= $self->_format_equation_as_markdown($element);
                     }
                     $iter++;
                 }
@@ -528,16 +519,7 @@ sub get_calculation_metadata_as_markdown {
                             $formula_url .= $element;
                         }
                         else {
-                            my $eqn = $element;
-                            $eqn =~ s/\\/\\\\/g
-                              ; #  need to escape the backslashes for github to work
-                            $eqn =~ s/^= /=/;
-                            $formula_url .= "![$eqn]($codecogs_url";
-                            $formula_url .= $eqn;
-
-                            #$formula_url .= '%.png) ';
-                            #$formula_url .= $codecogs_suffix;
-                            $formula_url .= ')';
+                            $formula_url .= $self->_format_equation_as_markdown($element);
                         }
                         $iter++;
                     }
@@ -615,6 +597,24 @@ sub get_calculation_metadata_as_markdown {
     }
 
     return $markdown;
+}
+
+sub _format_equation_as_markdown {
+    my ($self, $eqn) = @_;
+    use URI::Escape qw /uri_escape/;
+    my $codecogs_url = 'http://latex.codecogs.com/png.latex?';
+
+    my $alt_text = $eqn;
+    #  need to escape the backslashes for github to work
+    $alt_text =~ s/\\/\\\\/g;
+    $eqn =~ s/^= /=/;
+    $eqn = uri_escape ($eqn);
+    $eqn =~ s/\(/\\\(/g;
+    $eqn =~ s/\)/\\\)/g;
+    $eqn =~ s/%5C%5C/%5C\\/g;
+    my $formula_url = " ![$alt_text]($codecogs_url$eqn) ";
+    
+    return $formula_url;
 }
 
 sub _convert_to_hash {

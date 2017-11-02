@@ -14,7 +14,7 @@ use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 our $AUTOLOAD;
 
@@ -266,7 +266,7 @@ sub rename_node {
         $old_name = $node_ref->get_name;
     }
 
-    croak "Cannot rename over an existing node"
+    croak "Cannot rename over an existing node ($old_name => $new_name)"
       if $self->exists_node(name => $new_name);
 
     $node_ref->rename (new_name => $new_name);
@@ -385,7 +385,9 @@ sub get_node_ref {
         #foreach my $k (keys $self->{TREE_BY_NAME}) {
         #    say "key: $k";
         #}
-        Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+        Biodiverse::Tree::NotExistsNode->throw(
+            "[Tree] $node does not exist, cannot get ref"
+        );
     }
 
     return $self->{TREE_BY_NAME}{$node};
@@ -401,7 +403,7 @@ sub get_node_ref_aa {
     no autovivification;
 
     return $self->{TREE_BY_NAME}{$node}
-      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist, cannot get ref (aa)");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -859,9 +861,8 @@ sub get_metadata_export {
 sub get_lists_for_export {
     my $self = shift;
 
-    my @sub_list
-      ;    #  get a list of available sub_lists (these are actually hashes)
-           #foreach my $list (sort $self->get_hash_lists) {
+    my @sub_list;
+    #  get a list of available sub_lists (these are actually hashes)
     foreach my $list ( sort $self->get_list_names_below ) {    #  get all lists
         if ( $list eq 'SPATIAL_RESULTS' ) {
             unshift @sub_list, $list;
@@ -905,6 +906,8 @@ sub get_metadata_export_nexus {
     for (@parameters) {
         bless $_, $parameter_metadata_class;
     }
+    
+    push @parameters, $self->get_lists_export_metadata;
 
     my %args = (
         format     => 'Nexus',
@@ -925,28 +928,45 @@ sub export_nexus {
 
     my $export_colours = $args{export_colours};
     my $sub_list_name  = $args{sub_list};
+    if (($sub_list_name // '') eq '(no list)') {
+        $sub_list_name = undef;
+    }
     my $comment_block_hash;
+    my @booters_to_cleanse;
     if ($export_colours || defined $sub_list_name) {
         my %comments_block;
         my $node_refs = $self->get_node_refs;
         foreach my $node_ref (@$node_refs) {
-            my $booter    = $node_ref->get_bootstrap_block;
-            my $boot_text = $booter->encode (
-                include_colour => $export_colours,
-            );
-            $comments_block{$node_ref->get_name} = $boot_text;
+            my $booter = $node_ref->get_bootstrap_block;
+            my $sub_list;
+            if (   defined $sub_list_name
+                and $sub_list = $node_ref->get_list_ref_aa ($sub_list_name)
+                ) {
+                $booter->set_value_aa ($sub_list_name => $sub_list);
+                push @booters_to_cleanse, $booter;
+            }
+            #my $boot_text = $booter->encode (
+            #    include_colour => $export_colours,
+            #);
+            #$comments_block{$node_ref->get_name} = $boot_text;
         }
-        $comment_block_hash = \%comments_block;
+        #$comment_block_hash = \%comments_block;
     }
   
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
-        comment_block_hash => $comment_block_hash,
+        #comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;
-    
+
+    #  clean up if needed
+    #  should not do so if we already had such a list?
+    foreach my $booter (@booters_to_cleanse) {
+        $booter->delete_value_aa ($sub_list_name);
+    }
+
     return 1;
 }
 

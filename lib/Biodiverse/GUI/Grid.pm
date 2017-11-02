@@ -20,7 +20,7 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -792,6 +792,28 @@ sub colour {
     return;
 }
 
+sub hide_some_cells {
+    #  disable for now
+    return;
+    
+    my $self = shift;
+    my $callback = shift;
+
+  CELL:
+    foreach my $cell (values %{$self->{cells}}) {
+        #  sometimes we are called before all cells have contents
+        if ($callback->($cell->[INDEX_ELEMENT])) {
+            $cell->[INDEX_RECT]->hide;
+        }
+        else {
+            $cell->[INDEX_RECT]->show;
+        }
+    }
+
+    return;
+}
+
+
 sub store_cell_outline_colour {
     my $self = shift;
     my $col  = shift;
@@ -870,6 +892,21 @@ sub set_legend_min_max {
     my $legend = $self->get_legend;
     return if ! ($legend);
     $legend->set_min_max($min,$max);
+}
+
+sub set_legend_log_mode_on {
+    my $self = shift;
+    $self->get_legend->set_log_mode_on;
+}
+
+sub set_legend_log_mode_off {
+    my $self = shift;
+    $self->get_legend->set_log_mode_off;
+}
+
+sub get_legend_log_mode {
+    my $self = shift;
+    $self->get_legend->get_log_mode;
 }
 
 sub show_legend {
@@ -1094,23 +1131,28 @@ my %colour_methods = (
 );
 
 sub get_colour {
-    my ($self, $val, $min, $max) = @_;
+    #my ($self, $val, $min, $max) = @_;
+    my $self = shift;
 
-    if (defined $min and $val < $min) {
-        $val = $min;
-    }
-    if (defined $max and $val > $max) {
-        $val = $max;
-    }
-    my @args = ($val, $min, $max);
-
-    my $mode = $self->get_legend->get_mode;
-    my $method = $colour_methods{$mode};
-
-    croak "Unknown colour system: $mode\n"
-      if !$method;
-
-    return $self->$method(@args);
+    return $self->get_legend->get_colour (@_);
+    
+    #if (defined $min and $val < $min) {
+    #    $val = $min;
+    #}
+    #if (defined $max and $val > $max) {
+    #    $val = $max;
+    #}
+    #
+    #my @args = ($val, $min, $max);
+    #
+    #my $mode = $self->get_legend->get_mode;
+    #my $method = $colour_methods{$mode};
+    #
+    #croak "Unknown colour system: $mode\n"
+    #  if !$method;
+    #
+    #return $self->get_legend->$method(@args);
+    #return $self->$method(@args);
 }
 
 sub get_colour_hue {

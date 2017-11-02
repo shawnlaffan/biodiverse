@@ -24,7 +24,7 @@ use Ref::Util qw { :all };
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
@@ -2839,6 +2839,7 @@ sub sp_get_spatial_output_list_value {
 
     my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
+    my $no_die_if_not_exists = $args{no_error_if_index_not_exists};
     
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -2862,7 +2863,11 @@ sub sp_get_spatial_output_list_value {
       if not $sp->exists_element (element => $element);
 
     my $list = $sp->get_list_ref (list => $list_name, element => $element);
-    return if not exists $list->{$index};
+
+    croak "Index $index does not exist at element $element\n"
+      if !$no_die_if_not_exists && !exists $list->{$index};
+    
+    no autovivification;
 
     return $list->{$index};
 }

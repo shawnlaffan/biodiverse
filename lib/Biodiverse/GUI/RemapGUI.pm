@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Gtk2;
 use Biodiverse::RemapGuesser qw/guess_remap/;
@@ -303,6 +303,11 @@ sub post_auto_remap_dlg {
       $self->remap_results_dialog( %params );
 
     my $response = $remap_results_response->{response};
+    
+    if (not $response =~ /yes|apply/) {
+        say "Automatic remap skipped";
+        return;
+    }
 
     # now build the remap we actually want to perform
     $remap_hash = $self->build_remap_hash_from_exclusions(
@@ -316,10 +321,15 @@ sub post_auto_remap_dlg {
         ),
     );
 
+    #  clean up the object
+    foreach my $element ($remap_object->get_element_list) {
+        next if exists $remap_hash->{$element};
+        $remap_object->delete_element(element => $element);
+    }
+
     #  make sure we get numbers - strictly needed?
     my $check = $response =~ /yes|apply/ ? 1 : 0;
-    say "Automatic remap "
-     . $check ? 'applied' : 'skipped';
+    say "Automatic remap applied";
 
     return $check;
 }

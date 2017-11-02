@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-
+local $| = 1;
 use 5.010;
 use strict;
 use warnings;
@@ -53,6 +53,7 @@ sub main {
     
     foreach my $sub (sort @subs) {
         no strict 'refs';
+        #diag "Running $sub";
         $sub->();
     }
 
@@ -1291,6 +1292,7 @@ sub test_label_properties_reassigned {
     ok (!$e, 'Label properties assigned without eval error');
     
     my $prop_keys = $bd->get_labels_ref->get_element_property_keys;  #  trigger some caching which needs to be cleared
+    #my $prop_keys = [];    
 
     #  name is short for sub name
     my $sp = $bd->add_spatial_output (name => 't_l_p_r');
@@ -1310,11 +1312,16 @@ sub test_label_properties_reassigned {
         #by_item   => 1,
     );
 
-    while (my ($props_func, $negate_expected) = each %prop_handlers) {
+    foreach my $props_func (sort keys %prop_handlers) {
+        my $negate_expected = $prop_handlers{$props_func};
 
         my $rand_name   = 'r' . $object_name . $props_func;
 
         my $rand = $bd->add_randomisation_output (name => $rand_name);
+        
+        my $prng = $rand->initialise_rand;
+        say "=====\n" . (join ' ', $prng->get_state) . "\n=====";
+        
         my $rand_bd_array = $rand->run_analysis (
             %args,
             function   => $rand_func,
@@ -1387,7 +1394,7 @@ sub test_randomise_tree_ref_args {
 
     foreach my $shuffle_method (@shuffle_method_array) {
         my $use_is_or_isnt = ($shuffle_method !~ /no_change$/) ? 'isnt' : 'is';
-        my $not_text = $use_is_or_isnt eq 'isnt' ? 'not' : ' ';
+        my $not_text = $use_is_or_isnt eq 'isnt' ? 'not' : '';
         my $notnot_text = $use_is_or_isnt eq 'isnt' ? '' : ' not';
         my $rand_name = 't_r_t_r_f_rand' . $shuffle_method;
         my $rand = $bd->add_randomisation_output (name => $rand_name);
@@ -1685,6 +1692,8 @@ sub test_function_stability {
     my $sp //= $bd->add_spatial_output (name => 'sp');
     
     my $r_spatially_structured_cond = "sp_circle (radius => $c)";
+    my $c3 = $c * 3;
+    $r_spatially_structured_cond = "sp_block (size => $c3)";
     
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
@@ -1693,6 +1702,7 @@ sub test_function_stability {
 
     use Biodiverse::Randomise;
     my @functions = Biodiverse::Randomise->get_randomisation_functions_as_array;
+    @functions = sort @functions;
     
     foreach my $function (@functions) {
         my $rand = $bd->add_randomisation_output (name => $function);
@@ -2549,71 +2559,71 @@ __DATA__
 {   '1.5:0.5' => {},
     '1.5:1.5' => {
         a => 3,
-        b => 4,
-        c => 3,
-        d => 3
+        b => 1,
+        c => 4,
+        d => 12
     },
     '1.5:2.5' => {
-        a => 1,
-        b => 3,
-        c => 8,
-        d => 9
-    },
-    '1.5:3.5' => {
         a => 2,
         b => 2,
-        c => 1,
-        d => 6
+        c => 3,
+        d => 4
+    },
+    '1.5:3.5' => {
+        a => 4,
+        b => 4,
+        c => 2,
+        d => 16
     },
     '1.5:4.5' => {
-        a => 4,
-        b => 6,
-        c => 6,
-        d => 2
+        a => 1,
+        b => 8,
+        c => 2,
+        d => 12
     },
     '2.5:0.5' => {},
     '2.5:1.5' => {
-        b => 8,
-        c => 3,
-        d => 16
+        b => 6,
+        c => 9,
+        d => 4
     },
     '2.5:2.5' => {
         b => 2,
-        c => 4,
-        d => 4
-    },
-    '2.5:3.5' => {
-        b => 1,
-        c => 9,
-        d => 8
-    },
-    '2.5:4.5' => {
-        b => 4,
         c => 6,
         d => 6
     },
-    '3.5:0.5' => {},
-    '3.5:1.5' => {
-        c => 2,
-        d => 12
-    },
-    '3.5:2.5' => {
-        c => 2,
-        d => 12
-    },
-    '3.5:3.5' => {
-        c => 4,
-        d => 8
-    },
-    '3.5:4.5' => {
+    '2.5:3.5' => {
+        b => 3,
         c => 12,
         d => 4
     },
+    '2.5:4.5' => {
+        b => 4,
+        c => 4,
+        d => 3
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 8,
+        d => 3
+    },
+    '3.5:2.5' => {
+        c => 1,
+        d => 1
+    },
+    '3.5:3.5' => {
+        c => 6,
+        d => 8
+    },
+    '3.5:4.5' => {
+        c => 3,
+        d => 8
+    },
     '4.5:0.5' => {},
-    '4.5:1.5' => { d => 4 },
-    '4.5:2.5' => { d => 3 },
-    '4.5:3.5' => { d => 1 },
-    '4.5:4.5' => { d => 2 }
+    '4.5:1.5' => { d => 2 },
+    '4.5:2.5' => { d => 2 },
+    '4.5:3.5' => { d => 9 },
+    '4.5:4.5' => { d => 6 }
 }
 
 
@@ -2692,72 +2702,72 @@ __DATA__
 @@ RAND_RESULTS_rand_random_walk
 {   '1.5:0.5' => {},
     '1.5:1.5' => {
+        a => 2,
+        b => 4,
+        c => 4,
+        d => 6
+    },
+    '1.5:2.5' => {
+        a => 1,
+        b => 2,
+        c => 3,
+        d => 3
+    },
+    '1.5:3.5' => {
+        a => 4,
+        b => 8,
+        c => 1,
+        d => 4
+    },
+    '1.5:4.5' => {
         a => 3,
+        b => 4,
+        c => 8,
+        d => 4
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
         b => 1,
         c => 3,
         d => 9
     },
-    '1.5:2.5' => {
-        a => 4,
-        b => 4,
-        c => 3,
+    '2.5:2.5' => {
+        b => 6,
+        c => 12,
         d => 2
     },
-    '1.5:3.5' => {
-        a => 2,
+    '2.5:3.5' => {
         b => 3,
-        c => 1,
+        c => 2,
         d => 6
     },
-    '1.5:4.5' => {
-        a => 1,
-        b => 2,
-        c => 6,
-        d => 3
-    },
-    '2.5:0.5' => {},
-    '2.5:1.5' => {
-        b => 4,
-        c => 6,
-        d => 12
-    },
-    '2.5:2.5' => {
-        b => 8,
-        c => 8,
-        d => 4
-    },
-    '2.5:3.5' => {
+    '2.5:4.5' => {
         b => 2,
         c => 4,
-        d => 16
-    },
-    '2.5:4.5' => {
-        b => 6,
-        c => 2,
-        d => 4
+        d => 12
     },
     '3.5:0.5' => {},
     '3.5:1.5' => {
-        c => 12,
-        d => 4
+        c => 2,
+        d => 16
     },
     '3.5:2.5' => {
-        c => 4,
-        d => 3
+        c => 6,
+        d => 4
     },
     '3.5:3.5' => {
-        c => 2,
-        d => 12
-    },
-    '3.5:4.5' => {
         c => 9,
         d => 8
     },
+    '3.5:4.5' => {
+        c => 6,
+        d => 8
+    },
     '4.5:0.5' => {},
-    '4.5:1.5' => { d => 1 },
-    '4.5:2.5' => { d => 8 },
-    '4.5:3.5' => { d => 2 },
-    '4.5:4.5' => { d => 6 }
+    '4.5:1.5' => { d => 2 },
+    '4.5:2.5' => { d => 3 },
+    '4.5:3.5' => { d => 12 },
+    '4.5:4.5' => { d => 1 }
 }
 
 
@@ -2765,71 +2775,71 @@ __DATA__
 {   '1.5:0.5' => {},
     '1.5:1.5' => {
         a => 3,
-        b => 4,
-        c => 3,
-        d => 3
+        b => 1,
+        c => 4,
+        d => 12
     },
     '1.5:2.5' => {
-        a => 1,
-        b => 3,
-        c => 8,
-        d => 9
-    },
-    '1.5:3.5' => {
         a => 2,
         b => 2,
-        c => 1,
-        d => 6
+        c => 3,
+        d => 4
+    },
+    '1.5:3.5' => {
+        a => 4,
+        b => 4,
+        c => 2,
+        d => 16
     },
     '1.5:4.5' => {
-        a => 4,
-        b => 6,
-        c => 6,
-        d => 2
+        a => 1,
+        b => 8,
+        c => 2,
+        d => 12
     },
     '2.5:0.5' => {},
     '2.5:1.5' => {
-        b => 8,
-        c => 3,
-        d => 16
+        b => 6,
+        c => 9,
+        d => 4
     },
     '2.5:2.5' => {
         b => 2,
-        c => 4,
-        d => 4
-    },
-    '2.5:3.5' => {
-        b => 1,
-        c => 9,
-        d => 8
-    },
-    '2.5:4.5' => {
-        b => 4,
         c => 6,
         d => 6
     },
-    '3.5:0.5' => {},
-    '3.5:1.5' => {
-        c => 2,
-        d => 12
-    },
-    '3.5:2.5' => {
-        c => 2,
-        d => 12
-    },
-    '3.5:3.5' => {
-        c => 4,
-        d => 8
-    },
-    '3.5:4.5' => {
+    '2.5:3.5' => {
+        b => 3,
         c => 12,
         d => 4
     },
+    '2.5:4.5' => {
+        b => 4,
+        c => 4,
+        d => 3
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 8,
+        d => 3
+    },
+    '3.5:2.5' => {
+        c => 1,
+        d => 1
+    },
+    '3.5:3.5' => {
+        c => 6,
+        d => 8
+    },
+    '3.5:4.5' => {
+        c => 3,
+        d => 8
+    },
     '4.5:0.5' => {},
-    '4.5:1.5' => { d => 4 },
-    '4.5:2.5' => { d => 3 },
-    '4.5:3.5' => { d => 1 },
-    '4.5:4.5' => { d => 2 }
+    '4.5:1.5' => { d => 2 },
+    '4.5:2.5' => { d => 2 },
+    '4.5:3.5' => { d => 9 },
+    '4.5:4.5' => { d => 6 }
 }
 
 

@@ -1,6 +1,3 @@
-#  Inter-event interval stats
-#  A plugin for the biodiverse system and not to be used on its own.
-
 package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
@@ -11,7 +8,7 @@ use List::Util qw /sum min max/;
 
 use Carp;
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Biodiverse::Statistics;
 

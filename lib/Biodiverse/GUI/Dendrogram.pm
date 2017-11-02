@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '1.99_007';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -64,6 +64,8 @@ sub new {
     my $map             = $args{grid};        # Grid.pm object of the dataset to link in
     my $map_list_combo  = $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
+    my $use_slider_to_select_nodes = !$args{no_use_slider_to_select_nodes};
+    my $want_legend = $args{want_legend};
 
     my $grey = 0.9 * 255 * 257;
 
@@ -82,7 +84,7 @@ sub new {
         render_width        => 0,
         render_height       => 0,
         graph_height_px     => 0,
-        use_slider_to_select_nodes => 1,
+        use_slider_to_select_nodes => $use_slider_to_select_nodes,
         colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
         use_highlight_func  => 1, #  should we highlight?
     };
@@ -164,7 +166,7 @@ sub new {
     $self->{length_scale} = 1;
     $self->{height_scale} = 1;
 
-    # Create background rectange to receive mouse events for panning
+    # Create background rectangle to receive mouse events for panning
     my $rect = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Rect',
@@ -172,8 +174,9 @@ sub new {
         y1 => 0,
         x2 => 1,
         y2 => 1,
-        fill_color_gdk => COLOUR_WHITE
+        fill_color_gdk => COLOUR_WHITE,
         #fill_color => "blue",
+        #outline_color_gdk   => COLOUR_BLACK,
     );
 
     $rect->lower_to_bottom();
@@ -192,6 +195,19 @@ sub new {
             changed => \&on_map_list_combo_changed,
             $self
         );
+    }
+    
+    # Create the Label legend if requested
+    if ($want_legend) {
+        my $legend = Biodiverse::GUI::Legend->new(
+            canvas       => $self->{canvas},
+            legend_mode  => 'Hue',  #  by default
+            width_px     => $self->{width_px},
+            height_px    => $self->{height_px},
+        );
+        #$legend->set_width(15);  # thinnish by default
+        $self->set_legend ($legend);
+        $self->update_legend;
     }
 
     $self->{drag_mode} = 'click';
@@ -1154,7 +1170,7 @@ sub set_node_colour {
 
     # also store it in the node for export purposes
     my $node_ref 
-      = $self->get_tree_object->get_node_ref(node => $node_name);
+      = $self->get_tree_object->get_node_ref_aa($node_name);
 
     my $colour_string = $colour_ref
         ? $colour_ref->to_string 
@@ -1208,6 +1224,7 @@ sub get_proper_colour_format {
 sub recolour_cluster_lines {
     my $self = shift;
     my $cluster_nodes = shift;
+    my $colour_descendents = !shift;  #  negate the arg
 
     my ($colour_ref, $line, $list_ref, $val);
     my %coloured_nodes;
@@ -1265,8 +1282,15 @@ sub recolour_cluster_lines {
         # - don't cache on the tree as we can get recursion stack blow-outs
         # - https://github.com/shawnlaffan/biodiverse/issues/549
         # We could cache on $self if it were needed.
-        foreach my $child_ref (values %{$node_ref->get_all_descendants (cache => 0)}) {
-            $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
+        if ($colour_descendents) {
+            my $descendants = $node_ref->get_all_descendants (cache => 0);
+            foreach my $child_ref (values %$descendants) {
+                $self->colour_line(
+                    $child_ref,
+                    $colour_ref,
+                    \%coloured_nodes,
+                );
+            }
         }
 
         $coloured_nodes{$node_name} = $node_ref; # mark as coloured
@@ -1409,7 +1433,7 @@ sub setup_map_list_model {
 
     #  add the multiselect selector
     $iter = $model->insert(0);
-    $model->set($iter, 0, '<i>Multiselect</i>');
+    $model->set($iter, 0, '<i>User defined</i>');
 
     # Add & select, the "cluster" analysis (distinctive colour for every cluster)
     $iter = $model->insert(0);
@@ -1546,7 +1570,7 @@ sub on_map_list_combo_changed {
         # blank out the index combo
         $self->setup_map_index_model(undef);
     }
-    elsif ($list eq '<i>Multiselect</i>') {
+    elsif ($list eq '<i>User defined</i>') {
         if ($self->{slider}) {
             $self->{slider}->hide;
             $self->{graph_slider}->hide;
@@ -1806,14 +1830,13 @@ sub clear_highlights {
     # set all nodes to recorded/default colour
     return if !$self->{highlighted_lines};
 
-    my @nodes_remaining
-      = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-
-    foreach my $node_name (@nodes_remaining) {
+    foreach my $node_name (keys %{$self->{tree_node_name_hash}}) {
         # assume node has associated line
-        my $line = $self->{node_lines}->{$node_name};
+        my $line = $self->{node_lines}{$node_name};
         next if !$line;
-        my $colour_ref = $self->get_node_colour( node_name => $node_name ) || DEFAULT_LINE_COLOUR;
+        my $colour_ref
+          =  $self->get_node_colour( node_name => $node_name )
+          || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;
@@ -1824,13 +1847,13 @@ sub clear_highlights {
 sub highlight_node {
     my ($self, $node_ref, $node_colour) = @_;
 
+    my $all_tree_node_names = $self->{tree_node_name_hash};
+
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining
-          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-        foreach my $node_name (@nodes_remaining) {
+        foreach my $node_name (keys %$all_tree_node_names) {
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node_name};
+            my $line = $self->{node_lines}{$node_name};
             next if !$line;
             $line->set(fill_color_gdk => COLOUR_GRAY);
         }
@@ -1838,14 +1861,14 @@ sub highlight_node {
 
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
-    #  avoid some unhandled exceptions when the mouse is hovering and the display is under construction
-    if (my $line = $self->{node_lines}->{$node_name}) {  
+    #  avoid some unhandled exceptions when the mouse is
+    #  hovering and the display is under construction
+    if (my $line = $self->{node_lines}{$node_name}) {  
 
         my $colour_ref =  $node_colour 
-                       || $self->get_node_colour(node_name=>$node_name)
+                       || $self->get_node_colour(node_name => $node_name)
                        || DEFAULT_LINE_COLOUR;
 
-        
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         $line->raise_to_top;
@@ -1861,9 +1884,8 @@ sub highlight_path {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining
-          = ($self->{tree_node}->get_name, keys %{$self->{tree_node}->get_names_of_all_descendants});
-        foreach my $node_name (@nodes_remaining) {
+        my $desc = $self->{tree_node_name_hash};
+        foreach my $node_name (keys %$desc) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node_name};
             next if !$line;
@@ -2093,6 +2115,7 @@ sub set_cluster {
     return if !defined $cluster;  #  trying to avoid warnings
 
     # Clear any palette colours
+    delete $self->{node_colours_cache};
     $self->{node_palette_colours} = {};
     foreach my $node_ref (values %{$cluster->get_node_hash}) {
         #$node_ref->set_cached_value(__gui_palette_colour => undef);
@@ -2105,6 +2128,9 @@ sub set_cluster {
 
     $self->{tree_node} = $cluster->get_tree_ref;
     croak "No valid tree to plot\n" if !$self->{tree_node};
+    
+    $self->{tree_node_name_hash}
+      = $self->{tree_node}->get_names_of_all_descendants_and_self;
 
     $self->{element_to_cluster}  = {};
     $self->{selected_list_index} = {};
@@ -2221,30 +2247,41 @@ sub render_tree {
     );
     $self->{lines_group} = $lines_group;
 
+    my $legend = $self->get_legend;
+    my $legend_width = $legend ? $legend->get_width : 0;
+    
     # Scaling values to make the rendered tree render_width by render_height
-    $self->{length_scale} = $self->{render_width}  / ($self->{unscaled_width}  || 1);
-    $self->{height_scale} = $self->{render_height} / ($self->{unscaled_height} || 1);
+    $self->{length_scale}
+      = ($self->{render_width} - $legend_width)
+        / ($self->{unscaled_width}  || 1);
+    $self->{height_scale}
+      = $self->{render_height}
+      / ($self->{unscaled_height} || 1);
 
     #print "[Dendrogram] Length scale = $self->{length_scale} Height scale = $self->{height_scale}\n";
 
     # Recursive draw
     my $length_func = $self->{length_func};
     my $root_offset = $self->{render_width}
-                      - ($self->{border_len} + $self->{neg_len})
+                      - $legend_width
+                      #- $root_circ_diameter  #  using here causes issues with zoom and graph
+                      - (  $self->{border_len}
+                         + $self->{neg_len}
+                         )
                       * $self->{length_scale};
 
     $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
-    my $diameter = 0.5 * $self->{border_len} * $self->{length_scale};
+    my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
     $self->{root_circle} = Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Ellipse',
         x1 => $root_offset,
-        y1 => $root_y + $diameter / 2,
-        x2 => $root_offset + $diameter,
-        y2 => $root_y - $diameter / 2,
+        y1 => $root_y + $root_circ_diameter / 2,
+        x2 => $root_offset + $root_circ_diameter,
+        y2 => $root_y - $root_circ_diameter / 2,
         fill_color => 'brown'
     );
     # Hook up the root-circle to the root!
@@ -2328,7 +2365,12 @@ sub render_graph {
     # Note: "length" here usually means length to the right of the node (towards root)
     my $start_length = $lengths->[0]->get_value('total_length_gui') * $self->{length_scale};
     my $start_index = 0;
+    my $legend_width = 0;
+    if (my $legend = $self->get_legend) {
+        $legend_width = $legend->get_width;
+    }
     my $current_x = $self->{render_width}
+                    - $legend_width
                     - ($self->{border_len}
                        + $self->{neg_len}
                        )
@@ -2337,7 +2379,7 @@ sub render_graph {
     my $previous_y;
     my $y_offset; # this puts the lowest y-value at the bottom of the graph - no wasted space
 
-    my @num_lengths = map { $_->get_value('total_length_gui') } @$lengths;
+    #my @num_lengths = map { $_->get_value('total_length_gui') } @$lengths;
     #print "[render_graph] lengths: @num_lengths\n";
 
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {
@@ -2779,6 +2821,8 @@ sub on_resize {
         # Set visible region
         $self->{canvas}->set_scroll_region(0, 0, $size->width, $size->height);
     }
+    
+    $self->update_legend;
 
     return;
 }
@@ -2993,6 +3037,64 @@ sub get_hover_clear_cursor {
 
     return $cursor;
 }
+
+###  COPIED FROM grid.pm
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
+}
+
+sub set_legend {
+    my ($self, $legend) = @_;
+    croak "legend arg not passed" if !defined $legend;
+    $self->{legend} = $legend;
+}
+
+# Update the position and/or mode of the legend.
+sub update_legend {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    
+    return if !$legend;
+    
+    if ($self->{width_px} && $self->{height_px}) {
+        $legend->reposition($self->{width_px}, $self->{height_px});
+    }
+    
+    return;
+}
+
+sub set_legend_mode {
+    my $self = shift;
+    my $mode = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_mode($mode);
+    $self->colour_cells();
+    
+    return;
+}
+
+sub set_legend_gt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_gt_flag($flag);
+
+    return;
+}
+
+sub set_legend_lt_flag {
+    my $self = shift;
+    my $flag = shift;
+
+    my $legend = $self->get_legend;
+    $legend->set_lt_flag($flag);
+
+    return;
+}
+
 
 ##########################################################
 # Misc

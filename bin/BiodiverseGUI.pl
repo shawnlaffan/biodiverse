@@ -18,14 +18,22 @@ use English qw { -no_match_vars };
 our $VERSION = '2.00';
 
 BEGIN {
-    # export environmental variables required by pixbuf on OS X.
+    # Setup for  pixbuf on OS X.
     if ($OSNAME eq 'darwin') {
         my $par_temp = $ENV{PAR_TEMP}; # // 'Not defined';
         if ( $par_temp ) {
-            $ENV{GDK_PIXBUF_MODULE_FILE} = "$par_temp/inc/loaders.cache";
+            my $loaderscache = "$par_temp/inc/loaders.cache";
+            my $loadersquery = "$par_temp/inc/gdk-pixbuf-query-loaders";
+            $ENV{GDK_PIXBUF_MODULE_FILE} = $loaderscache;
             $ENV{GDK_PIXBUF_MODULEDIR} = "$par_temp/inc/loaders";
             $ENV{XDG_DATA_DIRS} = "$par_temp/inc/";
             $ENV{GTK_PATH} = "$par_temp/inc/";
+
+            # Create the pixbuf loaders.cache if it doesn't exist.
+            if (! -e $loaderscache) { 
+                print "$loadersquery does not exist, creating\n";
+                system ($loadersquery, "--update-cache");
+            }
         }
         $ENV{BD_NO_GUI_DEV_WARN} = 1; # Disable the startup warning.
     }

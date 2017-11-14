@@ -698,7 +698,7 @@ sub do_open_matrix {
           Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bms' );
 
         if ( defined $filename && -f $filename ) {
-            $object = Biodiverse::Tree->new( file => $filename );
+            $object = Biodiverse::Matrix->new( file => $filename );
             $object->set_param( NAME => $name )
               ;    #  override the name if the user says to
         }

@@ -17,6 +17,7 @@ install:
   - IF "%have_geo_gdal%"=="0" ppm install %BDV_PPM%/Geo-GDAL.ppd
   
   - cpanm --notest Task::Biodiverse::NoGUI
+  - cpanm List::MoreUtils
   
   #  until the remap class does not call the GUI:
   #  2017-09-18: Engine does not call the GUI

@@ -27,6 +27,7 @@ before_install:
   #  local::lib target is cached
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+  - cpanm List::MoreUtils
 
   #  just to be sure 
   - find . -name "build_gdal_travis.sh" -print

@@ -32,8 +32,8 @@ use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
 use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
-use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
-use List::BinarySearch qw /binsearch  binsearch_pos/;
+#use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
+#use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
 use Class::Inspector;
@@ -1813,7 +1813,6 @@ END_PROGRESS_TEXT
                 #  profiling suggests we get many $to_groups that are not in these lists,
                 #  so avoid some sub calls to save time 
                 if (exists $target_groups_hash{$to_group}) {
-                    #$self->delete_from_sorted_list_aa ($to_group, \@target_groups);
                     bremove {$_ cmp $to_group} @target_groups;
                     delete $target_groups_hash{$to_group};
                 }
@@ -2427,16 +2426,11 @@ sub swap_to_reach_richness_targets {
 
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
-        #$self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
         bremove {$_ cmp $from_group} @$from_cloned_groups_tmp_a;
         if (!scalar @$from_cloned_groups_tmp_a) {
             delete $cloned_bd_groups_with_label_a{$add_label};
         }
         if (!$cloned_bd->exists_label_aa ($add_label)) {
-            #$self->delete_from_sorted_list_aa (
-            #    $add_label,
-            #    $cloned_bd_label_arr,
-            #);
             bremove {$_ cmp $add_label} @$cloned_bd_label_arr;
             delete $cloned_bd_label_hash{$add_label};
         }
@@ -2530,10 +2524,6 @@ sub swap_to_reach_richness_targets {
 
             #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element_aa ($remove_label, $target_group);
-            #$self->delete_from_sorted_list_aa (
-            #    $remove_label,
-            #    $new_bd_labels_in_gps_as_array{$target_group},
-            #);
             bremove {$_ cmp $remove_label}
               @{$new_bd_labels_in_gps_as_array{$target_group}};
 
@@ -2541,10 +2531,6 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                #$self->insert_into_sorted_list_aa (
-                #    $target_group,
-                #    $groups_without_labels_a{$remove_label},
-                #);
                 binsert {$_ cmp $target_group} $target_group,
                   @{$groups_without_labels_a{$remove_label}};
             }
@@ -2588,18 +2574,10 @@ sub swap_to_reach_richness_targets {
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
-                #$self->insert_into_sorted_list_aa ( #  update the tracker
-                #    $old_gp,
-                #    $cloned_bd_groups_with_label_a{$remove_label},
-                #);
                 binsert {$_ cmp $old_gp} $old_gp,
                   @{$cloned_bd_groups_with_label_a{$remove_label}};
                 
                 if (!exists $cloned_bd_label_hash{$remove_label}) {
-                    #$self->insert_into_sorted_list_aa (
-                    #    $remove_label,
-                    #    $cloned_bd_label_arr,
-                    #);
                     binsert {$_ cmp $remove_label} $remove_label,
                       @$cloned_bd_label_arr;
                     $cloned_bd_label_hash{$remove_label}++;
@@ -2628,10 +2606,6 @@ sub swap_to_reach_richness_targets {
                 $swap_insert_count++;
                 if (exists $new_bd_labels_in_gps_as_array{$return_gp}) {
                     #  don't create the list here
-                    #$self->insert_into_sorted_list_aa (
-                    #    $remove_label,
-                    #    $new_bd_labels_in_gps_as_array{$return_gp},
-                    #);
                     binsert {$_ cmp $remove_label} $remove_label,
                       @{$new_bd_labels_in_gps_as_array{$return_gp}};
                 }
@@ -2652,7 +2626,6 @@ sub swap_to_reach_richness_targets {
                     delete $unfilled_gps_without_label{$remove_label};
                 }
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
-                    #$self->delete_from_sorted_list_aa ($return_gp, $aref);
                     bremove {$_ cmp $return_gp} @$aref;
                     if (!scalar @$aref) {
                         delete $groups_without_labels_a{$remove_label};
@@ -2667,7 +2640,6 @@ sub swap_to_reach_richness_targets {
                     delete $unfilled_groups{$last_filled};
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
-                        #$self->delete_from_sorted_list_aa ($last_filled, $list);
                         bremove {$_ cmp $last_filled} @$list;
                         if (!scalar @$list) {
                             delete $unfilled_gps_without_label{$label};
@@ -2711,15 +2683,10 @@ sub swap_to_reach_richness_targets {
         $swap_insert_count++;
         if (exists $new_bd_labels_in_gps_as_array{$target_group}) {
             #  don't create the list here
-            #$self->insert_into_sorted_list_aa (
-            #    $add_label,
-            #    $new_bd_labels_in_gps_as_array{$target_group},
-            #);
             binsert {$_ cmp $add_label} $add_label,
               @{$new_bd_labels_in_gps_as_array{$target_group}};
         }
         if (my $aref = $groups_without_labels_a{$add_label}) {
-            #$self->delete_from_sorted_list_aa ($target_group, $aref);
             bremove {$_ cmp $target_group} @$aref;
             if (!scalar @$aref) {
                 delete $groups_without_labels_a{$add_label};
@@ -2727,7 +2694,6 @@ sub swap_to_reach_richness_targets {
         }
         if (exists $unfilled_groups{$target_group}) {
             my $list = $unfilled_gps_without_label{$add_label};
-            #$self->delete_from_sorted_list_aa ($target_group, $list);
             bremove {$_ cmp $target_group} @$list;
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
             if (!scalar @$list) {
@@ -2749,7 +2715,6 @@ sub swap_to_reach_richness_targets {
             LB:
             foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
                 my $list = $unfilled_gps_without_label{$label};
-                #$self->delete_from_sorted_list_aa ($target_group, $list);
                 bremove {$_ cmp $target_group} @$list;
                 if (!scalar @$list) {
                     delete $unfilled_gps_without_label{$label};
@@ -2998,69 +2963,69 @@ sub get_tree_shuffle_metadata {
 }
 
 
-#  handlers to factor out binsearch calls into subs
-sub insert_into_sorted_list {
-    my $self = shift;
-    my %args = @_;
-    my $list = $args{list};
-    my $item = $args{item};
-
-    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-    splice @$list, $idx, 0, $item;
-
-    # skip the explicit return as a minor speedup for pre-5.20 systems
-    $idx;
-}
-
-#  array args version - should reduce sub cleanup overheads
-#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
-sub insert_into_sorted_list_aa {
-    #my ($self, $item, $list) = @_;
-
-    #my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-    #splice @$list, $idx, 0, $item;
-    my $idx  = binsearch_pos { $a cmp $b } $_[1], @{$_[2]};
-    splice @{$_[2]}, $idx, 0, $_[1];
-
-    # skip the explicit return as a minor speedup for pre-5.20 systems
-    $idx;
-}
-
-sub delete_from_sorted_list {
-    my $self = shift;
-    my %args = @_;
-    my $list = $args{list};
-    my $item = $args{item};
-    
-    my $idx  = binsearch { $a cmp $b } $item, @$list;
-    if (defined $idx) {
-        splice @$list, $idx, 1;
-    }
-
-    # skip the explicit return as a minor speedup for pre-5.20 systems
-    $idx;
-}
-
-#  array args version to reduce sub and args hash cleanup overheads
-#  using $_ to squeeze a bit more performance out of the code, since it is a hot path
-sub delete_from_sorted_list_aa {
-    #my ($self, $item, $list) = @_;
-
-    #my $idx  = binsearch { $a cmp $b } $item, @$list;
-    my $idx  = binsearch { $a cmp $b } $_[1], @{$_[2]};
-    if (defined $idx) {
-        #splice @$list, $idx, 1;
-        splice @{$_[2]}, $idx, 1;
-    }
-    elsif (DEBUG) {
-        my @caller = caller();
-        $binsearch_gives_undef++;
-        $binsearch_callers{join ' ', @caller[0,2]}++;
-    }
-
-    # skip the explicit return as a minor speedup for pre-5.20 systems
-    $idx;
-}
+##  handlers to factor out binsearch calls into subs
+#sub insert_into_sorted_list {
+#    my $self = shift;
+#    my %args = @_;
+#    my $list = $args{list};
+#    my $item = $args{item};
+#
+#    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+#    splice @$list, $idx, 0, $item;
+#
+#    # skip the explicit return as a minor speedup for pre-5.20 systems
+#    $idx;
+#}
+#
+##  array args version - should reduce sub cleanup overheads
+##  using $_ to squeeze a bit more performance out of the code, since it is a hot path
+#sub insert_into_sorted_list_aa {
+#    #my ($self, $item, $list) = @_;
+#
+#    #my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+#    #splice @$list, $idx, 0, $item;
+#    my $idx  = binsearch_pos { $a cmp $b } $_[1], @{$_[2]};
+#    splice @{$_[2]}, $idx, 0, $_[1];
+#
+#    # skip the explicit return as a minor speedup for pre-5.20 systems
+#    $idx;
+#}
+#
+#sub delete_from_sorted_list {
+#    my $self = shift;
+#    my %args = @_;
+#    my $list = $args{list};
+#    my $item = $args{item};
+#    
+#    my $idx  = binsearch { $a cmp $b } $item, @$list;
+#    if (defined $idx) {
+#        splice @$list, $idx, 1;
+#    }
+#
+#    # skip the explicit return as a minor speedup for pre-5.20 systems
+#    $idx;
+#}
+#
+##  array args version to reduce sub and args hash cleanup overheads
+##  using $_ to squeeze a bit more performance out of the code, since it is a hot path
+#sub delete_from_sorted_list_aa {
+#    #my ($self, $item, $list) = @_;
+#
+#    #my $idx  = binsearch { $a cmp $b } $item, @$list;
+#    my $idx  = binsearch { $a cmp $b } $_[1], @{$_[2]};
+#    if (defined $idx) {
+#        #splice @$list, $idx, 1;
+#        splice @{$_[2]}, $idx, 1;
+#    }
+#    elsif (DEBUG) {
+#        my @caller = caller();
+#        $binsearch_gives_undef++;
+#        $binsearch_callers{join ' ', @caller[0,2]}++;
+#    }
+#
+#    # skip the explicit return as a minor speedup for pre-5.20 systems
+#    $idx;
+#}
 
 
 sub get_prng_init_states_array {

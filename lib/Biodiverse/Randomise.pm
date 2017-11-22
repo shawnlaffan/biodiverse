@@ -31,7 +31,7 @@ use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
-use List::MoreUtils qw /first_index uniq/;
+use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
 use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
@@ -1813,7 +1813,8 @@ END_PROGRESS_TEXT
                 #  profiling suggests we get many $to_groups that are not in these lists,
                 #  so avoid some sub calls to save time 
                 if (exists $target_groups_hash{$to_group}) {
-                    $self->delete_from_sorted_list_aa ($to_group, \@target_groups);
+                    #$self->delete_from_sorted_list_aa ($to_group, \@target_groups);
+                    bremove {$_ cmp $to_group} @target_groups;
                     delete $target_groups_hash{$to_group};
                 }
 
@@ -2426,15 +2427,17 @@ sub swap_to_reach_richness_targets {
 
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
-        $self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
+        #$self->delete_from_sorted_list_aa ($from_group, $from_cloned_groups_tmp_a);
+        bremove {$_ cmp $from_group} @$from_cloned_groups_tmp_a;
         if (!scalar @$from_cloned_groups_tmp_a) {
             delete $cloned_bd_groups_with_label_a{$add_label};
         }
         if (!$cloned_bd->exists_label_aa ($add_label)) {
-            $self->delete_from_sorted_list_aa (
-                $add_label,
-                $cloned_bd_label_arr,
-            );
+            #$self->delete_from_sorted_list_aa (
+            #    $add_label,
+            #    $cloned_bd_label_arr,
+            #);
+            bremove {$_ cmp $add_label} @$cloned_bd_label_arr;
             delete $cloned_bd_label_hash{$add_label};
         }
 
@@ -2527,10 +2530,12 @@ sub swap_to_reach_richness_targets {
 
             #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element_aa ($remove_label, $target_group);
-            $self->delete_from_sorted_list_aa (
-                $remove_label,
-                $new_bd_labels_in_gps_as_array{$target_group},
-            );
+            #$self->delete_from_sorted_list_aa (
+            #    $remove_label,
+            #    $new_bd_labels_in_gps_as_array{$target_group},
+            #);
+            bremove {$_ cmp $remove_label}
+              @{$new_bd_labels_in_gps_as_array{$target_group}};
 
             #  track the removal only if the tracker hash includes $remove_label
             #  else it will get it next time it needs it
@@ -2638,7 +2643,8 @@ sub swap_to_reach_richness_targets {
                     delete $unfilled_gps_without_label{$remove_label};
                 }
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
-                    $self->delete_from_sorted_list_aa ($return_gp, $aref);
+                    #$self->delete_from_sorted_list_aa ($return_gp, $aref);
+                    bremove {$_ cmp $return_gp} @$aref;
                     if (!scalar @$aref) {
                         delete $groups_without_labels_a{$remove_label};
                     }
@@ -2652,7 +2658,8 @@ sub swap_to_reach_richness_targets {
                     delete $unfilled_groups{$last_filled};
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
-                        $self->delete_from_sorted_list_aa ($last_filled, $list);
+                        #$self->delete_from_sorted_list_aa ($last_filled, $list);
+                        bremove {$_ cmp $last_filled} @$list;
                         if (!scalar @$list) {
                             delete $unfilled_gps_without_label{$label};
                         }
@@ -2701,14 +2708,16 @@ sub swap_to_reach_richness_targets {
             );
         }
         if (my $aref = $groups_without_labels_a{$add_label}) {
-            $self->delete_from_sorted_list_aa ($target_group, $aref);
+            #$self->delete_from_sorted_list_aa ($target_group, $aref);
+            bremove {$_ cmp $target_group} @$aref;
             if (!scalar @$aref) {
                 delete $groups_without_labels_a{$add_label};
             }
         }
         if (exists $unfilled_groups{$target_group}) {
             my $list = $unfilled_gps_without_label{$add_label};
-            $self->delete_from_sorted_list_aa ($target_group, $list);
+            #$self->delete_from_sorted_list_aa ($target_group, $list);
+            bremove {$_ cmp $target_group} @$list;
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
             if (!scalar @$list) {
                 delete $unfilled_gps_without_label{$add_label};
@@ -2729,7 +2738,8 @@ sub swap_to_reach_richness_targets {
             LB:
             foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
                 my $list = $unfilled_gps_without_label{$label};
-                $self->delete_from_sorted_list_aa ($target_group, $list);
+                #$self->delete_from_sorted_list_aa ($target_group, $list);
+                bremove {$_ cmp $target_group} @$list;
                 if (!scalar @$list) {
                     delete $unfilled_gps_without_label{$label};
                 }

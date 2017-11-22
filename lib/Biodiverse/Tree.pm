@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /first_index/;
-use List::Util qw /sum min max uniq/;
+use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
@@ -2389,13 +2389,12 @@ sub trim {
                 $i / $to_do,
             );
 
-  #  need to ignore any cached descendants (and we cleanup the cache lower down)
+            #  need to ignore any cached descendants
+            #  (and we clean the cache lower down)
             my $children = $node->get_all_descendants( cache => 0 );
-          DESCENDANT:
-            foreach my $child ( keys %$children ) {
-                my $child_node = $children->{$child};
-                next NODE if !$child_node->is_internal_node;
-            }
+            my $have_named_descendant
+              = any {!$_->is_internal_node} values %$children;
+            next NODE if $have_named_descendant;
 
             #  might have already been deleted, so wrap in an eval
             my @deleted_names = eval {
@@ -2406,8 +2405,8 @@ sub trim {
         $progress->close_off;
 
         $deleted_internal_count = scalar keys %deleted_hash;
-        say
-"[TREE] Deleted $deleted_internal_count internal nodes with no named descendents";
+        say "[TREE] Deleted $deleted_internal_count internal nodes"
+           . "with no named descendents";
     }
 
     #  now some cleanup

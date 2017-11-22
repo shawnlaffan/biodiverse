@@ -2541,10 +2541,12 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                $self->insert_into_sorted_list_aa (
-                    $target_group,
-                    $groups_without_labels_a{$remove_label},
-                );
+                #$self->insert_into_sorted_list_aa (
+                #    $target_group,
+                #    $groups_without_labels_a{$remove_label},
+                #);
+                binsert {$_ cmp $target_group} $target_group,
+                  @{$groups_without_labels_a{$remove_label}};
             }
             #   unfilled_groups condition will never trigger in this if-branch
             #if (exists $unfilled_groups{$target_group}) {  
@@ -2586,15 +2588,20 @@ sub swap_to_reach_richness_targets {
                     count => $removed_count,
                     csv_object => $csv_object,
                 );
-                $self->insert_into_sorted_list_aa ( #  update the tracker
-                    $old_gp,
-                    $cloned_bd_groups_with_label_a{$remove_label},
-                );
+                #$self->insert_into_sorted_list_aa ( #  update the tracker
+                #    $old_gp,
+                #    $cloned_bd_groups_with_label_a{$remove_label},
+                #);
+                binsert {$_ cmp $old_gp} $old_gp,
+                  @{$cloned_bd_groups_with_label_a{$remove_label}};
+                
                 if (!exists $cloned_bd_label_hash{$remove_label}) {
-                    $self->insert_into_sorted_list_aa (
-                        $remove_label,
-                        $cloned_bd_label_arr,
-                    );
+                    #$self->insert_into_sorted_list_aa (
+                    #    $remove_label,
+                    #    $cloned_bd_label_arr,
+                    #);
+                    binsert {$_ cmp $remove_label} $remove_label,
+                      @$cloned_bd_label_arr;
                     $cloned_bd_label_hash{$remove_label}++;
                 }
             }
@@ -2621,10 +2628,12 @@ sub swap_to_reach_richness_targets {
                 $swap_insert_count++;
                 if (exists $new_bd_labels_in_gps_as_array{$return_gp}) {
                     #  don't create the list here
-                    $self->insert_into_sorted_list_aa (
-                        $remove_label,
-                        $new_bd_labels_in_gps_as_array{$return_gp},
-                    );
+                    #$self->insert_into_sorted_list_aa (
+                    #    $remove_label,
+                    #    $new_bd_labels_in_gps_as_array{$return_gp},
+                    #);
+                    binsert {$_ cmp $remove_label} $remove_label,
+                      @{$new_bd_labels_in_gps_as_array{$return_gp}};
                 }
 
                 my $new_richness = $new_bd->get_richness_aa ($return_gp);
@@ -2702,10 +2711,12 @@ sub swap_to_reach_richness_targets {
         $swap_insert_count++;
         if (exists $new_bd_labels_in_gps_as_array{$target_group}) {
             #  don't create the list here
-            $self->insert_into_sorted_list_aa (
-                $add_label,
-                $new_bd_labels_in_gps_as_array{$target_group},
-            );
+            #$self->insert_into_sorted_list_aa (
+            #    $add_label,
+            #    $new_bd_labels_in_gps_as_array{$target_group},
+            #);
+            binsert {$_ cmp $add_label} $add_label,
+              @{$new_bd_labels_in_gps_as_array{$target_group}};
         }
         if (my $aref = $groups_without_labels_a{$add_label}) {
             #$self->delete_from_sorted_list_aa ($target_group, $aref);

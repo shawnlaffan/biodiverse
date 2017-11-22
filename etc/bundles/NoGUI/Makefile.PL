@@ -51,7 +51,7 @@ WriteMakefile(
         "Tree::R" => "0",
         "Geo::ShapeFile" => "2.60",
         "Geo::Shapefile::Writer" => "0",
-        "List::MoreUtils" => "0.410",
+        "List::MoreUtils" => "0.425",
         "List::Util" => "1.45",
         "Class::Inspector" => "0",
         "autovivification" => "0.16",

@@ -165,7 +165,7 @@ sub delete_node {
     my %args = @_;
 
     #  get the node ref
-    my $node_ref = $self->get_node_ref( node => $args{node} );
+    my $node_ref = $self->get_node_ref_aa( $args{node} );
     return if !defined $node_ref;    #  node does not exist anyway
 
     #  get the names of all descendents
@@ -2265,7 +2265,7 @@ sub trim {
         @_,                       #  if they have no named children to keep
     );
 
-    say '[TREE] Trimming';
+    say '[TREE] Trimming tree';
 
     my $delete_internals = $args{delete_internals};
 
@@ -2280,28 +2280,53 @@ sub trim {
  #    then we work with all named nodes that don't have children we want to keep
     if ( !defined $args{trim} && defined $args{keep} ) {
 
+        my $k          = 0;
+        my $k_to_do    = scalar keys %tree_node_hash;
+        my $k_progress = Biodiverse::Progress->new( text => 'Keepers' );
+
       NAME:
         foreach my $name ( keys %tree_node_hash ) {
+            $k++;
+
             next NAME if exists $keep->{$name};
 
             my $node = $tree_node_hash{$name};
 
             next NAME if $node->is_internal_node;
-            next NAME if $node->is_root_node;      #  never delete the root node
+            #  never delete the root node
+            next NAME if $node->is_root_node;
 
-            my %children =
-              $node->get_names_of_all_descendants;    #  make sure we use a copy
-            my $child_count = scalar keys %children;
-            delete @children{ keys %$keep };
+            $k_progress->update(
+                "Checking keeper nodes ($k / $k_to_do)",
+                $k / $k_to_do,
+            );
+            
+            my $delete_flag = 1;
+            
+            if (!$node->is_terminal_node) {
+                #  returns a copy
+                my $children = $node->get_names_of_all_descendants;    
+                my $child_count = scalar keys %$children;
 
-  #  If none of the descendents are in the keep list then we can trim this node.
-  #  Otherwise add this node and all of its ancestors to the keep list.
-            if ( $child_count == scalar keys %children ) {
+                delete @$children{ keys %$keep };
+                if ($child_count == scalar keys %$children) {
+                    #  some descendants not to delete,
+                    #  so we keep this one
+                    $delete_flag = 0;
+                }
+            }
+
+            #  If none of the descendants are in the keep list then
+            #  we can trim this node.
+            #  Otherwise add this node and all of its ancestors
+            #  to the keep list.
+            if ( $delete_flag ) {
                 $trim->{$name} = $node;
             }
             else {
                 my $ancestors = $node->get_path_to_root_node;
                 foreach my $ancestor (@$ancestors) {
+                    next if $ancestor->is_internal_node;
                     $keep->{ $ancestor->get_name }++;
                 }
             }
@@ -2358,7 +2383,11 @@ sub trim {
             next NODE if !$node->is_internal_node;
             next NODE if $node->is_root_node;
 
-            $progress->update( "Checking nodes ($i / $to_do)", $i / $to_do, );
+            $progress->update(
+                  "Cleaning dangling internal nodes\n"
+                . "($i / $to_do)",
+                $i / $to_do,
+            );
 
   #  need to ignore any cached descendants (and we cleanup the cache lower down)
             my $children = $node->get_all_descendants( cache => 0 );
@@ -2370,7 +2399,8 @@ sub trim {
 
             #  might have already been deleted, so wrap in an eval
             my @deleted_names = eval {
-                $self->delete_node( node => $name, no_delete_cache => 1 ) };
+                $self->delete_node( node => $name, no_delete_cache => 1 )
+            };
             @deleted_hash{@deleted_names} = (1) x @deleted_names;
         }
         $progress->close_off;

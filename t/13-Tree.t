@@ -120,6 +120,7 @@ sub test_trim_tree {
     my $tree1 = shift || get_site_data_as_tree();
     my $tree2 = $tree1->clone;
     my $tree3 = $tree1->clone;
+    my $tree4 = $tree1->clone;
 
     my $node_count;
     my $start_node_count = $tree1->get_node_count;
@@ -138,8 +139,12 @@ sub test_trim_tree {
     my %n;
 
     #  a litle paranoia
-    is ($start_node_count, $tree2->get_node_count, 'cloned node count is the same as original');
-    is ($start_node_count, $tree3->get_node_count, 'cloned node count is the same as original');
+    is ($start_node_count, $tree2->get_node_count,
+        'cloned node count is the same as original'
+    );
+    is ($start_node_count, $tree3->get_node_count,
+        'cloned node count is the same as original'
+    );
     
     $tree1->trim (trim => \@delete_targets);
     %n = $tree1->get_named_nodes;
@@ -166,6 +171,30 @@ sub test_trim_tree {
     check_trimmings($tree3, \@exp_deleted, \@keep_targets, 'trim/keep');
     $node_count = $tree3->get_node_count;
     is ($node_count, $start_node_count - 5, 'trim/keep: node count is as expected');
+
+    #  need an internal, named node
+    #  we should delete some of its descendants but not it
+    my $internal_node_to_name
+      = $tree4->get_node_ref_aa($delete_targets[0])->get_parent->get_parent;
+    $tree4->rename_node (
+        old_name => $internal_node_to_name->get_name,
+        new_name => 'named_node',
+    );
+    my %descendants = $internal_node_to_name->get_all_named_descendants;
+    my @d    = sort keys %descendants;
+    my @dsub = splice @d, 0, 2;
+    #push @dsub, 'named_node';
+    $tree4->trim (
+        keep => \@dsub,
+    );
+    %n = $tree4->get_named_nodes;
+    ok (exists $n{named_node}, 'still have named_node');
+    foreach my $deleted (@d) {
+        ok (!exists $n{$deleted}, "deleted $deleted");
+    }
+    foreach my $kept (@dsub) {
+        ok (exists $n{$kept}, "kept $kept");
+    }
 
 }
 

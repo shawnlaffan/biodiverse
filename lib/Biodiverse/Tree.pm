@@ -2309,8 +2309,8 @@ sub trim {
                 my $child_count = scalar keys %$children;
 
                 delete @$children{ keys %$keep };
-                if ($child_count == scalar keys %$children) {
-                    #  some descendants not to delete,
+                if ($child_count != scalar keys %$children) {
+                    #  some descendants in the keep list,
                     #  so we keep this one
                     $delete_flag = 0;
                 }

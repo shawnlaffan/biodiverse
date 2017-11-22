@@ -2411,16 +2411,16 @@ sub trim {
 
     #  now some cleanup
     if ( $deleted_internal_count || $deleted_count ) {
-        $self->delete_param('TOTAL_LENGTH')
-          ;    #  need to clear this up in old trees
+        #  need to clear this up in old trees
+        $self->delete_param('TOTAL_LENGTH');
         $self->delete_cached_values;
 
         #  This avoids circular refs in the ones that were deleted
         foreach my $node ( values %tree_node_hash ) {
             $node->delete_cached_values;
         }
-        $self
-          ->delete_cached_values_below;   #  and clear the remaining node caches
+        #  and clear the remaining node caches
+        $self->delete_cached_values_below;
     }
     $keep = undef;    #  was leaking - not sure it matters, though
 

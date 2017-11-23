@@ -1587,15 +1587,45 @@ sub get_terminal_node_last_number {
 sub number_terminal_nodes {
     my $self = shift;
     my %args = @_;
+    
+    #  new alg.
+    #  Climb down the tree, taking the "leftmost" child path
+    #  When we hit a terminal, give it a number and climb back up
+    #  then climb down the next child, etc
+    #  Keep track of number of terminals encountered 
+    my $left  = $args{count_sofar} || 0;
+    my $right = $left;
 
-    #  get an array of the terminal elements (this will also cache them)
+    foreach my $child ($self->get_children) {
+        if ($child->is_terminal_node) {
+            $right++;
+            $child->set_value(TERMINAL_NODE_FIRST => $right);
+            $child->set_value(TERMINAL_NODE_LAST  => $right);
+        }
+        else {
+            $right = $child->number_terminal_nodes (count_sofar => $right);
+        }
+    }
+
+    $left += 1;
+    $self->set_value(TERMINAL_NODE_FIRST => $left);
+    $self->set_value(TERMINAL_NODE_LAST  => $right);
+
+    return $right;
+}
+
+sub _number_terminal_nodes_old_alg {
+    my $self = shift;
+    my %args = @_;
+    
+    #  get the number of terminal elements (this will also cache them)
     my @te = keys %{$self->get_terminal_elements};
 
     my $prev_child_elements = $args{count_sofar} || 1;
     $self->set_value (TERMINAL_NODE_FIRST => $prev_child_elements);
     $self->set_value (TERMINAL_NODE_LAST => $prev_child_elements + $#te);
     foreach my $child ($self->get_children) {
-        my $count = $child->number_terminal_nodes ('count_sofar' => $prev_child_elements);
+        my $count = $child->_number_terminal_nodes_old_alg ('count_sofar' => $prev_child_elements);
         $prev_child_elements += $count;
     }
 

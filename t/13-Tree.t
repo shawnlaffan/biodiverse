@@ -116,6 +116,32 @@ sub test_get_multiple_trees_from_nexus {
     is (scalar @array, 2, 'Got two trees from the site data nexus file');
 }
 
+sub test_number_terminal_nodes {
+    my $tree1 = get_site_data_as_tree();
+    my $tree2 = $tree1->clone;
+    $tree1->number_terminal_nodes;
+    $tree2->_number_terminal_nodes_old_alg;
+    my %t1_nodes = $tree1->get_node_hash;
+    my %t2_nodes = $tree2->get_node_hash;
+
+    subtest 'Terminal node nums match' => sub {
+        foreach my $name (sort keys %t1_nodes) {
+            my $node1 = $t1_nodes{$name};
+            my $node2 = $t2_nodes{$name};
+            foreach my $type (qw /TERMINAL_NODE_FIRST TERMINAL_NODE_LAST/) {
+                is (
+                    $node1->get_value($type),
+                    $node2->get_value($type),
+                    "$type matches for $name: "
+                        . $node1->get_value($type)
+                        . ' '
+                        . $node2->get_value($type),
+                )
+            }
+        }
+    };
+}
+
 sub test_trim_tree {
     my $tree1 = shift || get_site_data_as_tree();
     my $tree2 = $tree1->clone;

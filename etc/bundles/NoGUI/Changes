@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+2.000 20171123
+    - Set List::MoreUtils minimum version to 0.425 so we get the binary search subs
+
 1.990074 20170214
     - Add Statistics::Sampler::Multinomial
 

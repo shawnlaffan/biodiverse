@@ -3142,8 +3142,10 @@ sub report_error {
     #print Dumper($error);
     my $e = $error;    # keeps a copy of the object
 
-    #  messy - should check for $error->isa('Exception::Class')
-    if ( blessed $error and ( blessed $error) !~ /ProgressDialog::Cancel/ ) {
+    if ( blessed $error
+        and ( blessed $error) !~ /ProgressDialog::Cancel/
+        and $error->can ('error')
+        ) {
         warn $error->error, "\n", $error->trace->as_string, "\n";
     }
     elsif ( $title =~ /error/i ) {

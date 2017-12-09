@@ -2236,16 +2236,16 @@ sub get_node_range {
 
     return $cached_range if defined $cached_range;
 
-    my @labels   = ($self->get_name);
-    my $children =  $self->get_all_descendants;
+    my $children =  $self->get_all_named_descendants;
+    my @labels   = ($self->get_name, keys %$children);
 
-    #  collect the set of non-internal (named) nodes
-    #  Possibly should only work with terminals
-    #  which would simplify things.
-    foreach my $name (keys %$children) {
-        next if $children->{$name}->is_internal_node;
-        push (@labels, $name);
-    }
+    ##  collect the set of non-internal (named) nodes
+    ##  Possibly should only work with terminals
+    ##  which would simplify things.
+    #foreach my $name (keys %$children) {
+    #    next if $children->{$name}->is_internal_node;
+    #    push (@labels, $name);
+    #}
 
     my $range = $bd->get_range_union (labels => \@labels, return_count => 1);
 

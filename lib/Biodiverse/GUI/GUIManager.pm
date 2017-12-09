@@ -2241,11 +2241,16 @@ sub do_trim_tree_to_basedata {
         foreach my $node ( $new_tree->get_node_refs ) {
             my $range = $node->get_node_range( basedata_ref => $bd );
             $node->set_length( length => $node->get_length / $range );
-            $node->delete_cached_values;
         }
         if ($trim_to_lca) {
             $new_tree->trim_to_last_common_ancestor;
         }
+        #  clear the caches --after-- all the above method calls
+        #  that use them internally
+        foreach my $node ( $new_tree->get_node_refs ) {
+            $node->delete_cached_values;
+        }
+        $new_tree->delete_cached_values;
     }
 
     $new_tree->set_param( NAME => $chosen_name );

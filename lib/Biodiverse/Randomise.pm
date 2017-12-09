@@ -31,6 +31,7 @@ use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
+use List::MoreUtils::XS;  #  paranoia to ensure we have this loaded
 use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
 #use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 #use List::BinarySearch qw /binsearch  binsearch_pos/;

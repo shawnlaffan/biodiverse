@@ -2268,6 +2268,8 @@ sub trim {
     say '[TREE] Trimming tree';
 
     my $delete_internals = $args{delete_internals};
+    
+    my $trim_to_lca = $args{trim_to_lca};
 
     my %tree_node_hash = $self->get_node_hash;
 
@@ -2408,6 +2410,10 @@ sub trim {
         say "[TREE] Deleted $deleted_internal_count internal nodes"
            . "with no named descendents";
     }
+    
+    if ($trim_to_lca) {
+        $self->trim_to_last_common_ancestor;
+    }
 
     #  now some cleanup
     if ( $deleted_internal_count || $deleted_count ) {
@@ -2429,6 +2435,26 @@ sub trim {
     $progress = undef;
 
     return $self;
+}
+
+sub trim_to_last_common_ancestor {
+    my $self = shift;
+
+    #  Remove root nodes until they have zero or multiple children.
+    #  The zeroes are kept to avoid empty trees.
+    my $root = $self->get_root_node;
+    my @deleters;
+    while (my $children = $root->get_children) {
+        last if scalar @$children != 1;
+        push @deleters, $root;
+        my $name = $root->get_name;
+        $root = $children->[0];
+        $root->delete_parent;
+        $self->delete_from_node_hash (node => $name);
+    }
+    $root->set_length (length => 0);
+
+    return;
 }
 
 #  wrapper method so we can have a different name

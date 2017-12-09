@@ -2192,6 +2192,15 @@ sub do_trim_tree_to_basedata {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_object('wndMain') );
+    
+    my $vbox = $dlg->get_content_area;
+    my $checkbox  = Gtk2::CheckButton->new;
+    my $chk_label = Gtk2::Label->new ('Trim to last common ancestor');
+    my $hbox = Gtk2::HBox->new;
+    $hbox->pack_start ($chk_label, 1, 1, 0);
+    $hbox->pack_start ($checkbox, 1, 1, 0);
+    $vbox->pack_start ($hbox, 1, 1, 0);
+    $hbox->show_all;
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2218,9 +2227,14 @@ sub do_trim_tree_to_basedata {
     $new_tree->delete_cached_values;
     $new_tree->reset_total_length;
     $new_tree->reset_total_length_below;
+    
+    my $trim_to_lca = $checkbox->get_active;
 
     if ( !$args{no_trim} ) {
-        $new_tree->trim( keep => scalar $bd->get_labels );
+        $new_tree->trim (
+            keep => scalar $bd->get_labels,
+            trim_to_lca => $trim_to_lca,
+        );
     }
 
     if ( $args{do_range_weighting} ) {
@@ -2228,6 +2242,9 @@ sub do_trim_tree_to_basedata {
             my $range = $node->get_node_range( basedata_ref => $bd );
             $node->set_length( length => $node->get_length / $range );
             $node->delete_cached_values;
+        }
+        if ($trim_to_lca) {
+            $new_tree->trim_to_last_common_ancestor;
         }
     }
 

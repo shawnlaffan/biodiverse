@@ -1433,6 +1433,15 @@ sub get_parent {
     return $_[0]->{_PARENT};
 }
 
+sub delete_parent {
+    my $self = shift;
+    $self->{_PARENT} = undef;
+    $self->delete_cached_values;
+    #  should clear cache below unless
+    #  told otherwise
+    #$self->delete_cached_values_below;
+}
+
 sub set_parents_below {  #  sometimes the parents aren't set properly by extension subs
     my $self = shift;
     

@@ -255,6 +255,52 @@ sub test_trim_tree_after_adding_extras {
 
 }
 
+sub test_trim_tree_to_lca {
+    my $tree = Biodiverse::Tree->new;
+    #  bifurcating tree - each node has children n*2, n*2+1 
+    my @keepers = qw /1 2 3 4 5 6 7 8 9 10 11/;
+    foreach my $name (@keepers) {
+        my $node = $tree->add_node (name => $name, length => 1);
+    }
+    foreach my $node ($tree->get_node_refs) {
+        my $name = $node->get_name;
+        my $c1 = $name * 2;
+        my $c2 = $name * 2 + 1;
+        foreach my $child_name ($c1, $c2) {
+            if ($tree->exists_node (name => $child_name)) {
+                my $child_node = $tree->get_node_ref_aa ($child_name);
+                $node->add_children (children => [$child_node]);
+            }
+        }
+    }
+    #  add some dangling parents
+    my $root = $tree->get_root_node;
+    for my $uppers (qw /a b c/) {
+        my $node = $tree->add_node (name => $uppers, length => 1);
+        $node->add_children(children => [$root]);
+        $root = $node;
+    }
+
+    $tree->trim_to_last_common_ancestor;
+    
+    foreach my $should_not_exist (qw /a b c/) {
+        ok (
+            !$tree->exists_node (name => $should_not_exist),
+            "LCA: branch $should_not_exist is not in tree",
+        );
+    }
+    foreach my $should_exist (@keepers) {
+        ok (
+            $tree->exists_node (name => $should_exist),
+            "LCA: branch $should_exist is still in tree",
+        );
+    }
+    #  should be zeroed
+    is ($tree->get_root_node->get_length, 0, 'root node has length zero');
+
+    return;
+}
+
 
 sub test_ladderise {
     my $tree1 = shift || get_tree_object_from_sample_data();

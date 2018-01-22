@@ -70,6 +70,10 @@ if (!-d $out_folder) {
 #
 ###########################################
 
+#  File::BOM otherwise fails for some reason
+$ENV{BDV_PP_BUILDING}              = 1;
+$ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+
 my @links;
 
 # All the dynamic libraries to pack.

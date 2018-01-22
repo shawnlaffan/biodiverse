@@ -698,7 +698,7 @@ sub do_open_matrix {
           Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bms' );
 
         if ( defined $filename && -f $filename ) {
-            $object = Biodiverse::Tree->new( file => $filename );
+            $object = Biodiverse::Matrix->new( file => $filename );
             $object->set_param( NAME => $name )
               ;    #  override the name if the user says to
         }
@@ -2192,6 +2192,15 @@ sub do_trim_tree_to_basedata {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_object('wndMain') );
+    
+    my $vbox = $dlg->get_content_area;
+    my $checkbox  = Gtk2::CheckButton->new;
+    my $chk_label = Gtk2::Label->new ('Trim to last common ancestor');
+    my $hbox = Gtk2::HBox->new;
+    $hbox->pack_start ($chk_label, 1, 1, 0);
+    $hbox->pack_start ($checkbox, 1, 1, 0);
+    $vbox->pack_start ($hbox, 1, 1, 0);
+    $hbox->show_all;
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2218,17 +2227,30 @@ sub do_trim_tree_to_basedata {
     $new_tree->delete_cached_values;
     $new_tree->reset_total_length;
     $new_tree->reset_total_length_below;
+    
+    my $trim_to_lca = $checkbox->get_active;
 
     if ( !$args{no_trim} ) {
-        $new_tree->trim( keep => scalar $bd->get_labels );
+        $new_tree->trim (
+            keep => scalar $bd->get_labels,
+            trim_to_lca => $trim_to_lca,
+        );
     }
 
     if ( $args{do_range_weighting} ) {
         foreach my $node ( $new_tree->get_node_refs ) {
             my $range = $node->get_node_range( basedata_ref => $bd );
             $node->set_length( length => $node->get_length / $range );
+        }
+        if ($trim_to_lca) {
+            $new_tree->trim_to_last_common_ancestor;
+        }
+        #  clear the caches --after-- all the above method calls
+        #  that use them internally
+        foreach my $node ( $new_tree->get_node_refs ) {
             $node->delete_cached_values;
         }
+        $new_tree->delete_cached_values;
     }
 
     $new_tree->set_param( NAME => $chosen_name );
@@ -3142,8 +3164,10 @@ sub report_error {
     #print Dumper($error);
     my $e = $error;    # keeps a copy of the object
 
-    #  messy - should check for $error->isa('Exception::Class')
-    if ( blessed $error and ( blessed $error) !~ /ProgressDialog::Cancel/ ) {
+    if ( blessed $error
+        and ( blessed $error) !~ /ProgressDialog::Cancel/
+        and $error->can ('error')
+        ) {
         warn $error->error, "\n", $error->trace->as_string, "\n";
     }
     elsif ( $title =~ /error/i ) {

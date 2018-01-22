@@ -26,6 +26,7 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 use Ref::Util qw { :all };
+use File::BOM qw / :subs /;
 
 
 
@@ -123,7 +124,7 @@ sub load_file {
     croak "File $args{file} does not exist or is not readable\n"
       if !-r $args{file};
 
-    my $suffix = $args{file} =~ /\..+?$/;
+    (my $suffix) = $args{file} =~ /(\..+?)$/;
 
     my @importer_funcs
       = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/

@@ -116,10 +116,37 @@ sub test_get_multiple_trees_from_nexus {
     is (scalar @array, 2, 'Got two trees from the site data nexus file');
 }
 
+sub test_number_terminal_nodes {
+    my $tree1 = get_site_data_as_tree();
+    my $tree2 = $tree1->clone;
+    $tree1->number_terminal_nodes;
+    $tree2->_number_terminal_nodes_old_alg;
+    my %t1_nodes = $tree1->get_node_hash;
+    my %t2_nodes = $tree2->get_node_hash;
+
+    subtest 'Terminal node nums match' => sub {
+        foreach my $name (sort keys %t1_nodes) {
+            my $node1 = $t1_nodes{$name};
+            my $node2 = $t2_nodes{$name};
+            foreach my $type (qw /TERMINAL_NODE_FIRST TERMINAL_NODE_LAST/) {
+                is (
+                    $node1->get_value($type),
+                    $node2->get_value($type),
+                    "$type matches for $name: "
+                        . $node1->get_value($type)
+                        . ' '
+                        . $node2->get_value($type),
+                )
+            }
+        }
+    };
+}
+
 sub test_trim_tree {
     my $tree1 = shift || get_site_data_as_tree();
     my $tree2 = $tree1->clone;
     my $tree3 = $tree1->clone;
+    my $tree4 = $tree1->clone;
 
     my $node_count;
     my $start_node_count = $tree1->get_node_count;
@@ -138,8 +165,12 @@ sub test_trim_tree {
     my %n;
 
     #  a litle paranoia
-    is ($start_node_count, $tree2->get_node_count, 'cloned node count is the same as original');
-    is ($start_node_count, $tree3->get_node_count, 'cloned node count is the same as original');
+    is ($start_node_count, $tree2->get_node_count,
+        'cloned node count is the same as original'
+    );
+    is ($start_node_count, $tree3->get_node_count,
+        'cloned node count is the same as original'
+    );
     
     $tree1->trim (trim => \@delete_targets);
     %n = $tree1->get_named_nodes;
@@ -166,6 +197,30 @@ sub test_trim_tree {
     check_trimmings($tree3, \@exp_deleted, \@keep_targets, 'trim/keep');
     $node_count = $tree3->get_node_count;
     is ($node_count, $start_node_count - 5, 'trim/keep: node count is as expected');
+
+    #  need an internal, named node
+    #  we should delete some of its descendants but not it
+    my $internal_node_to_name
+      = $tree4->get_node_ref_aa($delete_targets[0])->get_parent->get_parent;
+    $tree4->rename_node (
+        old_name => $internal_node_to_name->get_name,
+        new_name => 'named_node',
+    );
+    my %descendants = $internal_node_to_name->get_all_named_descendants;
+    my @d    = sort keys %descendants;
+    my @dsub = splice @d, 0, 2;
+    #push @dsub, 'named_node';
+    $tree4->trim (
+        keep => \@dsub,
+    );
+    %n = $tree4->get_named_nodes;
+    ok (exists $n{named_node}, 'still have named_node');
+    foreach my $deleted (@d) {
+        ok (!exists $n{$deleted}, "deleted $deleted");
+    }
+    foreach my $kept (@dsub) {
+        ok (exists $n{$kept}, "kept $kept");
+    }
 
 }
 
@@ -198,6 +253,52 @@ sub test_trim_tree_after_adding_extras {
         'trimmed and original tree same after trimming extra added nodes'
     );
 
+}
+
+sub test_trim_tree_to_lca {
+    my $tree = Biodiverse::Tree->new;
+    #  bifurcating tree - each node has children n*2, n*2+1 
+    my @keepers = qw /1 2 3 4 5 6 7 8 9 10 11/;
+    foreach my $name (@keepers) {
+        my $node = $tree->add_node (name => $name, length => 1);
+    }
+    foreach my $node ($tree->get_node_refs) {
+        my $name = $node->get_name;
+        my $c1 = $name * 2;
+        my $c2 = $name * 2 + 1;
+        foreach my $child_name ($c1, $c2) {
+            if ($tree->exists_node (name => $child_name)) {
+                my $child_node = $tree->get_node_ref_aa ($child_name);
+                $node->add_children (children => [$child_node]);
+            }
+        }
+    }
+    #  add some dangling parents
+    my $root = $tree->get_root_node;
+    for my $uppers (qw /a b c/) {
+        my $node = $tree->add_node (name => $uppers, length => 1);
+        $node->add_children(children => [$root]);
+        $root = $node;
+    }
+
+    $tree->trim_to_last_common_ancestor;
+    
+    foreach my $should_not_exist (qw /a b c/) {
+        ok (
+            !$tree->exists_node (name => $should_not_exist),
+            "LCA: branch $should_not_exist is not in tree",
+        );
+    }
+    foreach my $should_exist (@keepers) {
+        ok (
+            $tree->exists_node (name => $should_exist),
+            "LCA: branch $should_exist is still in tree",
+        );
+    }
+    #  should be zeroed
+    is ($tree->get_root_node->get_length, 0, 'root node has length zero');
+
+    return;
 }
 
 

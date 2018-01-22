@@ -1193,6 +1193,11 @@ sub get_node_colour {
     return $self->{node_colours_cache}{$node_name};
 }
 
+#  squeeze a little more performance 
+sub get_node_colour_aa {
+    $_[0]->{node_colours_cache}{$_[1]};
+}
+
 # convert from a colour_ref to whatever string format we want to use.
 # not sure if this function should really be here but there's no
 # general colour module?
@@ -1514,7 +1519,7 @@ sub _dump_line_colours {
         $caller =~ s/Biodiverse::GUI::Dendrogram:://;
         print "$node_name ($caller, $caller_line): ";
 
-        my $colour_ref = $self->get_node_colour( node_name=>$node_name );
+        my $colour_ref = $self->get_node_colour_aa ($node_name);
         eval {
             say $colour_ref->to_string,
                 ' ',
@@ -1835,7 +1840,7 @@ sub clear_highlights {
         my $line = $self->{node_lines}{$node_name};
         next if !$line;
         my $colour_ref
-          =  $self->get_node_colour( node_name => $node_name )
+          =  $self->get_node_colour_aa ( $node_name )
           || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
@@ -1866,7 +1871,7 @@ sub highlight_node {
     if (my $line = $self->{node_lines}{$node_name}) {  
 
         my $colour_ref =  $node_colour 
-                       || $self->get_node_colour(node_name => $node_name)
+                       || $self->get_node_colour_aa ($node_name)
                        || DEFAULT_LINE_COLOUR;
 
         $line->set(fill_color_gdk => $colour_ref);
@@ -1897,7 +1902,7 @@ sub highlight_path {
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
         my $colour_ref =  $node_colour 
-                       || $self->get_node_colour(node_name => $node_ref->get_name)
+                       || $self->get_node_colour_aa ($node_ref->get_name)
                        || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
@@ -2457,7 +2462,7 @@ sub draw_node {
     my $length = $length_func->($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->get_node_colour(node_name=>$node_name) || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
     my $line = $self->draw_line(

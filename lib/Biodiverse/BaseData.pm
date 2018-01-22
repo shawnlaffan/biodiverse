@@ -3689,14 +3689,11 @@ sub get_range_union {
     my %shared_elements;
   LABEL:
     foreach my $label (@$labels) {
-
-#next if not $self->exists_label (label => $label);  #  skip if it does not exist - get_groups_with_label_as_hash has same effect
         my $elements_now =
-          $self->get_groups_with_label_as_hash( label => $label );
-        next LABEL
-          if !scalar
-          keys %$elements_now; #  empty hash - must be no groups with this label
-                               #  add these elements as a hash slice
+          $self->get_groups_with_label_as_hash_aa ( $label );
+        #  if empty hash then must be no groups with this label
+        next LABEL if !scalar keys %$elements_now; 
+        #  add these elements as a hash slice
         @shared_elements{ keys %$elements_now } = undef;
     }
 

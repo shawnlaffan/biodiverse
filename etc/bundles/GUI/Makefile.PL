@@ -24,7 +24,7 @@ WriteMakefile(
         },
     },
     PREREQ_PM => {
-        "Task::Biodiverse::NoGUI" => "1.0001",
+        "Task::Biodiverse::NoGUI" => "2.000",
         "Data::DumpXML" => "0",
         #"Gtk2::GladeXML" => "0",
         "Gnome2::Canvas" => "0",

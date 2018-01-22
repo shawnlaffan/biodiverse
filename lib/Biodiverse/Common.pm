@@ -26,6 +26,7 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 use Ref::Util qw { :all };
+use File::BOM qw / :subs /;
 
 
 

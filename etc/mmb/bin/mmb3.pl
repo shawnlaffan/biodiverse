@@ -83,7 +83,30 @@ my @links;
 # Could change this to only include 
 # the minimum set and then use 
 # otools -L to find all dependancies.
-my @dylibs = ('libgdal.20.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib', 'libffi.6.dylib', 'libpango-1.0.0.dylib', 'libpangocairo-1.0.0.dylib', 'libcairo.2.dylib', 'libfreetype.6.dylib', 'libgthread-2.0.0.dylib', 'libpcre.1.dylib', 'libintl.8.dylib', 'libpangoft2-1.0.0.dylib', 'libharfbuzz.0.dylib', 'libfontconfig.1.dylib', 'libpixman-1.0.dylib', 'libpng16.16.dylib', 'libgtk-quartz-2.0.0.dylib', 'libgdk-quartz-2.0.0.dylib', 'libatk-1.0.0.dylib', 'libgdk_pixbuf-2.0.0.dylib', 'libgio-2.0.0.dylib', 'libgmodule-2.0.0.dylib', 'libssl.1.0.0.dylib', 'libcrypto.1.0.0.dylib', 'libgdal.20.dylib', 'libproj.12.dylib', 'libjson-c.2.dylib', 'libfreexl.1.dylib', 'libgeos_c.1.dylib', 'libgif.4.dylib', 'libjpeg.8.dylib', 'libgeotiff.2.dylib', 'libtiff.5.dylib', 'libspatialite.7.dylib', '/usr/local/Cellar/libxml2/2.9.4/lib/libxml2.2.dylib', 'libgeos-3.5.0.dylib', 'liblwgeom-2.1.5.dylib', '/usr/local/Cellar/sqlite/3.15.2/lib/libsqlite3.0.dylib', 'libgnomecanvas-2.0.dylib', 'libart_lgpl_2.2.dylib', 'libgailutil.18.dylib');
+my @dylibs = (
+    'libgdal.20.dylib',          'libgobject-2.0.0.dylib', 
+    'libglib-2.0.0.dylib',       'libffi.6.dylib', 
+    'libpango-1.0.0.dylib',      'libpangocairo-1.0.0.dylib', 
+    'libcairo.2.dylib',          'libfreetype.6.dylib', 
+    'libgthread-2.0.0.dylib',    'libpcre.1.dylib', 
+    'libintl.8.dylib',           'libpangoft2-1.0.0.dylib', 
+    'libharfbuzz.0.dylib',       'libfontconfig.1.dylib', 
+    'libpixman-1.0.dylib',       'libpng16.16.dylib', 
+    'libgtk-quartz-2.0.0.dylib', 'libgdk-quartz-2.0.0.dylib', 
+    'libatk-1.0.0.dylib',        'libgdk_pixbuf-2.0.0.dylib', 
+    'libgio-2.0.0.dylib',        'libgmodule-2.0.0.dylib', 
+    'libssl.1.0.0.dylib',        'libcrypto.1.0.0.dylib', 
+    'libgdal.20.dylib',          'libproj.12.dylib', 
+    'libjson-c.2.dylib',         'libfreexl.1.dylib', 
+    'libgeos_c.1.dylib',         'libgif.4.dylib', 
+    'libjpeg.8.dylib',           'libgeotiff.2.dylib', 
+    'libtiff.5.dylib',           'libspatialite.7.dylib', 
+    'libgeos-3.5.0.dylib',       'liblwgeom-2.1.5.dylib', 
+    'libgnomecanvas-2.0.dylib',  'libart_lgpl_2.2.dylib', 
+    'libgailutil.18.dylib',
+    '/usr/local/Cellar/libxml2/2.9.6/lib/libxml2.2.dylib', 
+    '/usr/local/Cellar/sqlite/3.21.0/lib/libsqlite3.0.dylib', 
+);
 
 # Find the absolute paths to each supplied
 # dynamic library. Each library is supplied
@@ -92,9 +115,9 @@ my @dylibs = ('libgdal.20.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib
 # Par:Packer archive. This is where the 
 # Biodiverse binary will be able to find it.
 print "finding dynamic library paths\n";
-for my $a (@dylibs){
-    my $lib = find_dylib_in_path($a, @$lib_paths);
-    my $filename = Path::Class::file ($a)->basename;
+for my $name (@dylibs){
+    my $lib = find_dylib_in_path($name, @$lib_paths);
+    my $filename = Path::Class::file ($name)->basename;
     push @links, '-a', "$lib\;../$filename";
     print "library $lib will be included as ../$filename\n" if ($verbose);
 }
@@ -150,8 +173,8 @@ sub find_dylib_in_path {
         $file  = substr $file, 0, -6 if $file =~ m/$dlext$/;
         find ({wanted => sub {return unless /^(lib)*$file(\.|-)[\d*\.]*\.$dlext$/; $abs = $File::Find::name}, follow=>1, follow_skip=>2 },$dir );
         find ({wanted => sub {return unless /^(lib)*$file\.$dlext$/; $abs = $File::Find::name}, follow=>1, follow_skip=>2 },$dir ) if ! $abs;
-        $abs ? return $abs : next;
-        print "could not file: $file\n" if (! $abs);
+        return $abs if $abs;
+        #print "could not file: $file\n" if (! $abs);
     }
     return $abs;
 }
@@ -161,16 +184,19 @@ sub find_dylib_in_path {
 # variables.
 my $dyld_library_path = "DYLD_LIBRARY_PATH=inc:/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:";
 my $ld_library_path = "LD_LIBRARY_PATH=inc:/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:";
+
 sub create_lib_paths {
    for my $name (@$lib_paths){
-        $dyld_library_path = $dyld_library_path . $name . ":" . "inc" . $name . ":";
-        $ld_library_path   = $ld_library_path . $name . ":"  . "inc" . $name . ":";
+        $dyld_library_path .= $name . ":" . "inc" . $name . ":";
+        $ld_library_path   .= $name . ":" . "inc" . $name . ":";
     }
 
     chop $dyld_library_path;
     chop $ld_library_path;
-    print "[create_lib_paths] \$dyld_library_path: $dyld_library_path\n" if ($verbose);
-    print "[create_lib_paths] \$ld_library_path: $ld_library_path\n" if ($verbose);
+    print "[create_lib_paths] \$dyld_library_path: $dyld_library_path\n" 
+      if $verbose;
+    print "[create_lib_paths] \$ld_library_path: $ld_library_path\n" 
+      if $verbose;
 }
 
 

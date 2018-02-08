@@ -39,7 +39,7 @@ if ($opt->help) {
 
 my $script            = $opt->script;
 my $verbose           = $opt->verbose ? $opt->verbose : q{};
-my $lib_paths         = $opt->lib_paths ? $opt->lib_paths : q{/usr/local/opt};
+my $lib_paths         = $opt->lib_paths ? $opt->lib_paths : [q{/usr/local/opt}];
 my $execute           = $opt->execute ? '-x' : q{};
 my @pixbuf_loaders    = $opt->pixbuf_loaders? $opt->pixbuf_loaders : q{/usr/local/opt/gdk-pixbuf/lib/gdk-pixbuf-2.0/2.10.0/loaders}; # need a way of finding this.
 my @pixbuf_query_loader     = $opt->pixbuf_query_loader? $opt->pixbuf_query_loader : q{/usr/local/bin/gdk-pixbuf-query-loaders}; # need a way of finding this.
@@ -49,9 +49,12 @@ my @rest_of_pp_args   = @ARGV;
 #die "Script file $script does not exist or is unreadable" if !-r $script;
 
 #  assume bin folder is at parent folder level
-my $root_dir = Path::Class::file ($script)->dir->parent;
-my $bin_folder = Path::Class::dir ($root_dir, 'bin');
-my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
+my $script_root_dir = Path::Class::file ($script)->dir->parent;
+my $root_dir = Path::Class::file ($0)->dir->parent->parent->parent;
+say "Root dir is " . Path::Class::dir ($root_dir)->absolute->resolve;
+my $bin_folder = Path::Class::dir ($script_root_dir, 'bin');
+my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute->resolve;
+say "Icon file is $icon_file";
 
 my $out_folder   = $opt->out_folder // Path::Class::dir ($root_dir, 'etc','mmb','builds','Biodiverse.app','Contents','MacOS');
 
@@ -70,7 +73,7 @@ if (!-d $out_folder) {
 #
 ###########################################
 
-#  File::BOM otherwise fails for some reason
+#  File::BOM dep are otherwise not found
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
@@ -88,7 +91,7 @@ my @dylibs = ('libgdal.20.dylib', 'libgobject-2.0.0.dylib', 'libglib-2.0.0.dylib
 # packs the library at the top level of the 
 # Par:Packer archive. This is where the 
 # Biodiverse binary will be able to find it.
-print "finding dymamic libraries paths\n";
+print "finding dynamic library paths\n";
 for my $a (@dylibs){
     my $lib = find_dylib_in_path($a, @$lib_paths);
     my $filename = Path::Class::file ($a)->basename;
@@ -159,9 +162,9 @@ sub find_dylib_in_path {
 my $dyld_library_path = "DYLD_LIBRARY_PATH=inc:/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:";
 my $ld_library_path = "LD_LIBRARY_PATH=inc:/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:";
 sub create_lib_paths {
-   for my $b (@$lib_paths){
-        $dyld_library_path = $dyld_library_path . $b . ":" . "inc" . $b . ":";
-        $ld_library_path   = $ld_library_path . $b . ":"  . "inc" . $b . ":";
+   for my $name (@$lib_paths){
+        $dyld_library_path = $dyld_library_path . $name . ":" . "inc" . $name . ":";
+        $ld_library_path   = $ld_library_path . $name . ":"  . "inc" . $name . ":";
     }
 
     chop $dyld_library_path;

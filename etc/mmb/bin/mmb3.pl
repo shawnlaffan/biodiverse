@@ -98,10 +98,10 @@ my @dylibs = (
     'libssl.1.0.0.dylib',        'libcrypto.1.0.0.dylib', 
     'libgdal.20.dylib',          'libproj.12.dylib', 
     'libjson-c.2.dylib',         'libfreexl.1.dylib', 
-    'libgeos_c.1.dylib',         'libgif.4.dylib', 
-    'libjpeg.8.dylib',           'libgeotiff.2.dylib', 
+    'libgeos_c.1.dylib',         'libgif.7.dylib', 
+    'libjpeg.9.dylib',           'libgeotiff.2.dylib', 
     'libtiff.5.dylib',           'libspatialite.7.dylib', 
-    'libgeos-3.5.0.dylib',       'liblwgeom-2.1.5.dylib', 
+    'libgeos-3.6.2.dylib',       'liblwgeom-2.1.5.dylib', 
     'libgnomecanvas-2.0.dylib',  'libart_lgpl_2.2.dylib', 
     'libgailutil.18.dylib',
     '/usr/local/Cellar/libxml2/2.9.6/lib/libxml2.2.dylib', 
@@ -176,6 +176,7 @@ sub find_dylib_in_path {
         return $abs if $abs;
         #print "could not file: $file\n" if (! $abs);
     }
+    print "could not find file: $file\n" if (! $abs);
     return $abs;
 }
 

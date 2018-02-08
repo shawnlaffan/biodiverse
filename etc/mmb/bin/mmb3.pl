@@ -106,6 +106,7 @@ my @dylibs = (
     'libgailutil.18.dylib',
     '/usr/local/Cellar/libxml2/2.9.6/lib/libxml2.2.dylib', 
     '/usr/local/Cellar/sqlite/3.21.0/lib/libsqlite3.0.dylib', 
+    'libgraphite2.3.dylib',
 );
 
 # Find the absolute paths to each supplied

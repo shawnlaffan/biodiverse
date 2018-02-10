@@ -1925,6 +1925,16 @@ sub write_table_geotiff {
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
         $suffix = '.tif';
     }
+    
+    my $band_type = $args{band_type} // 'Float32';  #  should probably detect this from the data
+    #  need more
+    my %pack_codes = (
+        Float32 => 'f',
+        UInt32  => 'L',
+    );
+    my $pack_code = $pack_codes{$band_type};
+    croak "Unsupported band_type $band_type\n"
+      if !defined $pack_code;
 
     #  now process the generic stuff
     my $r = $self->raster_export_process_args ( %args );
@@ -1979,7 +1989,7 @@ END_TFW
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
                 my $value = $data_hash{$coord_id}[$i] // $no_data;
-                $bands[$i] .= pack 'f', $value;
+                $bands[$i] .= pack $pack_code, $value;
             }
         }
     }
@@ -1991,7 +2001,7 @@ END_TFW
         my $f_name = $file_names[$i];
         my $pdata  = $bands[$i];
 
-        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, 'Float32');
+        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, $band_type);
 
         my $out_band = $out_raster->GetRasterBand(1);
         $out_band->SetNoDataValue ($no_data);

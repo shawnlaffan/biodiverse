@@ -2027,7 +2027,7 @@ sub get_args {
     $sub_args = eval {$self->$metadata_sub (%args)};
     my $error = $EVAL_ERROR;
 
-    if (blessed $error) {
+    if (blessed $error and $error->can('rethrow')) {
         $error->rethrow;
     }
     elsif ($error) {

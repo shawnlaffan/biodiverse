@@ -1688,6 +1688,11 @@ sub get_bootstrap_colour {
     return $bootstrap_block->get_colour;
 }
 
+sub get_bootstrap_colour_8bit_rgb {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour_8bit_rgb;
+}
 
 # isolate dealings with the underlying object hash to one function
 sub get_bootstrap_block {

@@ -1697,7 +1697,7 @@ END_PROGRESS_TEXT
         #  we don't need the values, and slice assignment to undef is
         #  faster than straight copy (close to twice as fast)
         my %target_groups_hash;
-        @target_groups_hash{keys %all_target_groups} = ();  
+        @target_groups_hash{keys %unfilled_groups} = ();  
 
         #  don't consider groups that are full or that already have this label
         if (scalar keys %$new_bd_has_label) {
@@ -1707,10 +1707,10 @@ END_PROGRESS_TEXT
         my $check  = scalar keys %all_target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
-            delete @target_groups_hash{keys %filled_groups};
+        #    delete @target_groups_hash{keys %filled_groups};
             $check = scalar keys %target_groups_hash;
-            #   grep is not faster than the slice delete in this case
-            #my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
+        #    #   grep is not faster than the slice delete in this case
+        #    #my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
         }
         @target_groups = sort keys %target_groups_hash;
 

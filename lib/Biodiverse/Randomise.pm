@@ -1702,12 +1702,6 @@ END_PROGRESS_TEXT
         #  need a copy since we destructively sample it
         @target_groups = @unfilled_groups_sorted_arr;
 
-        my $check  = scalar keys %all_target_groups;
-        my $check2 = $check;
-        if (scalar keys %filled_groups) {
-            $check = scalar keys %target_groups_hash;
-        }
-
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
         my %tmp_gp_hash
@@ -1814,7 +1808,7 @@ END_PROGRESS_TEXT
 
                 warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
                      . "$filled_groups{$to_group}, $target_richness{$to_group}, "
-                     . "$check $check2 :: $i\n"
+                     . "$i\n"
                         if defined $to_group and exists $filled_groups{$to_group};
                 
                 # Assign this label to its new group.

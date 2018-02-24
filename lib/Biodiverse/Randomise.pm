@@ -2619,6 +2619,9 @@ sub swap_to_reach_richness_targets {
                     #  clean up the tracker hashes
                     $filled_groups{$last_filled} = $new_richness;
                     delete $unfilled_groups{$last_filled};
+                    #  THIS NEXT LOOP IS A MAJOR BOTTLENECK (bremove call)
+                    #  when working with large data sets
+                    #  need to avoid indexing in the first place?
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
                         bremove {$_ cmp $last_filled} @$list;

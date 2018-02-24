@@ -1687,21 +1687,9 @@ END_PROGRESS_TEXT
 
         $i++;
 
-        ###  get the new groups not containing this label
-        ###  - no point aiming for those that have it already
-        ###  call will croak if label does not exist, so default to a blank hash
-        #my $new_bd_has_label
-        #    = eval {$new_bd->get_groups_with_label_as_hash_aa ($label)}
-        #    || {};
-
-        #  cannot use $cloned_bd here, as it may not have the full set of groups yet
-        #  we don't need the values, and slice assignment to undef is
-        #  faster than straight copy (close to twice as fast)
-        my %target_groups_hash;
-        @target_groups_hash{keys %unfilled_groups} = ();
-        #  need a copy since we destructively sample it
         @target_groups = @unfilled_groups_sorted_arr;
-
+        my %cleared_target_gps;
+        
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
         my %tmp_gp_hash
@@ -1743,7 +1731,7 @@ END_PROGRESS_TEXT
                 #  make sure we don't select this group again
                 #  for this label this time round
                 splice (@target_groups, $j, 1);
-                delete $target_groups_hash{$to_groups[-1]};
+                $cleared_target_gps{$to_groups[-1]}++;
 
                 if ($sp_for_label_allocation) {
                     my $sp_alloc_nbr_list
@@ -1759,8 +1747,8 @@ END_PROGRESS_TEXT
                   NBR_LIST_REF:
                     foreach my $list_ref (@{$sp_alloc_nbr_list}) {
                         my @sublist = grep
-                          {   exists $target_groups_hash{$_}
-                           && !exists $filled_groups{$_}
+                          {   # exists $target_groups_hash{$_} &&
+                              !exists $filled_groups{$_}
                            && !exists $assigned{$_}
                            && $_ ne $to_groups[0]
                           } @$list_ref;
@@ -1799,11 +1787,14 @@ END_PROGRESS_TEXT
 
 #say "Grabbing $label from $from_group with count $count";
 
-                #  profiling suggests we get many $to_groups that are not in these lists,
-                #  so avoid some sub calls to save time 
-                if (exists $target_groups_hash{$to_group}) {
+                #  profiling suggests we get many $to_groups that
+                #  are not in the array list so avoid some sub calls
+                #  to save time.
+                #  This is prob because the non-spatial allocations
+                #  have already removed it when they are run.
+                if (!exists $cleared_target_gps{$to_group}) {
                     bremove {$_ cmp $to_group} @target_groups;
-                    delete $target_groups_hash{$to_group};
+                    $cleared_target_gps{$to_group}++;
                 }
 
                 warn "SELECTING GROUP THAT IS ALREADY FULL $to_group,"
@@ -1815,7 +1806,7 @@ END_PROGRESS_TEXT
                 # Use array args version for speed.
                 $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
 
-                # book-keeping for debug - need to disable before production
+                # book-keeping for debug, also an optional output
                 if ($track_label_allocation_order) {
                     $alloc_iter_hash{$label}++;
                     $sp_to_track_label_allocation_order->add_to_lists (
@@ -1870,8 +1861,8 @@ END_PROGRESS_TEXT
                   NBR_LIST_REF:
                     foreach my $list_ref (@nbr_sets) {
                         my @sublist = grep
-                          {   exists $target_groups_hash{$_}
-                           && !exists $filled_groups{$_}
+                          {   # exists $target_groups_hash{$_} &&
+                              !exists $filled_groups{$_}
                            && !exists $assigned{$_}
                            && $_ ne $to_group
                           } @$list_ref;

@@ -1662,6 +1662,7 @@ END_PROGRESS_TEXT
     my @target_groups = sort @$tg;  #  sort is prob redundant, as we overwrite @target_groups below
     my %all_target_groups;
     @all_target_groups{@target_groups} = ();
+    my @unfilled_groups_sorted_arr = sort keys %unfilled_groups;
     my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
     $i = 0;
@@ -1689,30 +1690,23 @@ END_PROGRESS_TEXT
         ###  get the new groups not containing this label
         ###  - no point aiming for those that have it already
         ###  call will croak if label does not exist, so default to a blank hash
-        my $new_bd_has_label
-            = eval {$new_bd->get_groups_with_label_as_hash_aa ($label)}
-            || {};
+        #my $new_bd_has_label
+        #    = eval {$new_bd->get_groups_with_label_as_hash_aa ($label)}
+        #    || {};
 
         #  cannot use $cloned_bd here, as it may not have the full set of groups yet
         #  we don't need the values, and slice assignment to undef is
         #  faster than straight copy (close to twice as fast)
         my %target_groups_hash;
-        @target_groups_hash{keys %unfilled_groups} = ();  
-
-        #  don't consider groups that are full or that already have this label
-        if (scalar keys %$new_bd_has_label) {
-            delete @target_groups_hash{keys %$new_bd_has_label} ;
-        }
+        @target_groups_hash{keys %unfilled_groups} = ();
+        #  need a copy since we destructively sample it
+        @target_groups = @unfilled_groups_sorted_arr;
 
         my $check  = scalar keys %all_target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
-        #    delete @target_groups_hash{keys %filled_groups};
             $check = scalar keys %target_groups_hash;
-        #    #   grep is not faster than the slice delete in this case
-        #    #my @checker_temp_test = grep {!exists $filled_groups{$_}} keys %target_groups_hash;
         }
-        @target_groups = sort keys %target_groups_hash;
 
         ###  get the remaining original groups containing the original label.
         ###  Make sure it's a copy
@@ -1852,6 +1846,7 @@ END_PROGRESS_TEXT
 
                     $filled_groups{$to_group} = $richness;
                     delete $unfilled_groups{$to_group};
+                    bremove {$_ cmp $to_group} @unfilled_groups_sorted_arr;
                     $last_filled = $to_group;
                 };
 
@@ -2405,7 +2400,7 @@ sub swap_to_reach_richness_targets {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
             say "[Randomise structured] No more labels to assign";
-            last BY_UNFILLED_GP;  
+            last BY_UNFILLED_GP;
         }
 
         #  select an unassigned label and group pair

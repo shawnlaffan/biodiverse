@@ -11,6 +11,7 @@ use Sort::Naturally qw /nsort ncmp/;
 use List::MoreUtils qw /firstidx/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 use HTML::QuickTable;
 
@@ -1468,7 +1469,7 @@ sub show_list {
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
-    if (ref($ref) eq 'HASH') {
+    if (is_hashref($ref)) {
         foreach my $key (sort keys %$ref) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
@@ -1476,14 +1477,14 @@ sub show_list {
             $model->set($iter,    0,$key ,  1,$val);
         }
     }
-    elsif (ref($ref) eq 'ARRAY') {
+    elsif (is_arrayref($ref)) {
         foreach my $elt (sort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter,    0,$elt ,  1,'');
         }
     }
-    elsif (not ref($ref)) {
+    elsif (not is_ref($ref)) {
         $iter = $model->append;
         $model->set($iter,    0, $ref,  1,'');
     }

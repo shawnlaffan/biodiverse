@@ -8,6 +8,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 use Sort::Naturally qw /nsort/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 our $VERSION = '2.00';
 
@@ -350,7 +351,7 @@ sub show_output_list {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
 
-    if (ref($list_ref) eq 'HASH') {
+    if (is_hashref($list_ref)) {
         #  sort differently if list elements are numbers or text
         my $numeric = 1;
         foreach my $key (keys %$list_ref) {
@@ -376,7 +377,7 @@ sub show_output_list {
             $model->set($iter,    0, $key ,  1, $val);
         }
     }
-    elsif (ref($list_ref) eq 'ARRAY') {
+    elsif (is_listref($list_ref)) {
         my $numeric = 1;
         foreach my $key (@$list_ref) {
             if (! looks_like_number ($key)) {

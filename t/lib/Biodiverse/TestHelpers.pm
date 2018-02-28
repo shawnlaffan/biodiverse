@@ -7,6 +7,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util::Numeric qw/isfloat/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 $| = 1;
 
@@ -314,7 +315,7 @@ sub compare_hash_vals {
     foreach my $key (sort keys %targets) {
         next BY_KEY if $not_strict && !exists $hash_got->{$key};
 
-        if (ref $hash_exp->{$key} eq 'HASH') {
+        if (is_hashref $hash_exp->{$key}) {
             subtest "Got expected hash for $key" => sub {
                 compare_hash_vals (
                     hash_got => $hash_got->{$key},
@@ -327,7 +328,7 @@ sub compare_hash_vals {
             #say join ' ', sort keys %$hash_got;
             #say join ' ', sort keys %$hash_exp;
         }
-        elsif (ref $hash_exp->{$key} eq 'ARRAY') {
+        elsif (is_arrayref $hash_exp->{$key}) {
             if ($sort_array_lists) {
                 subtest "Got expected array for $key" => sub {
                     compare_arr_sorted (
@@ -1201,8 +1202,7 @@ sub run_indices_test1_inner {
         subtest "List indices correctly marked in metadata" => sub {
             my $list_indices = $indices->get_list_indices (calculations => scalar $indices->get_valid_calculations_to_run);
             foreach my $index (sort keys %results) {
-                my $reftype = reftype ($results{$index}) // 'scalar';
-                my $is_list = ($reftype =~ /HASH|ARRAY/);
+                my $is_list = (is_hashref($results{$index}) || is_arrayref ($results{$index}));
                 if ($list_indices->{$index}) {
                     ok ($is_list, "index $index is a list");
                 }

@@ -1892,7 +1892,7 @@ sub get_remap_info {
     foreach my $type ( @$other_properties, 'Property' ) {
         my $ref = $column_settings->{$type};
         next if !defined $ref;
-        $ref = [$ref] if $ref !~ /ARRAY/;
+        $ref = [$ref] if !is_arrayref $ref;
         foreach my $i (@$ref) {
             my $t = $type;
             if ( $t eq 'Property' ) {

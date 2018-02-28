@@ -33,6 +33,7 @@ use Scalar::Util qw { blessed looks_like_number };
 use List::Util qw /any all none minstr max/;
 use List::MoreUtils::XS;  #  paranoia to ensure we have this loaded
 use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 #use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 #use List::BinarySearch qw /binsearch  binsearch_pos/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
@@ -2096,7 +2097,7 @@ sub get_rand_structured_subset {
         $sp = $bd->add_spatial_output (name => $name);
 
         my $sp_conditions = $args{spatial_conditions_for_subset};
-        if (ref ($sp_conditions // '') ne 'ARRAY') {
+        if (!is_arrayref ($sp_conditions)) {
             $sp_conditions = [$sp_conditions];
         }
 

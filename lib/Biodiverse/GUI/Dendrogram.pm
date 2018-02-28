@@ -1110,7 +1110,7 @@ sub increment_multiselect_colour {
 
     my $colour = $self->get_current_multiselect_colour;
 
-    my @colours = $self->get_gdk_colors_colorbrewer9;
+    my @colours = $self->get_gdk_colors_colorbrewer13;
 
     if (my $last_colour = $self->{last_multiselect_colour}) {
         my $i = firstidx {$last_colour->equal($_)} @colours;

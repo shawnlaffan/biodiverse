@@ -119,12 +119,21 @@ sub get_metadata_export_nexus {
 sub export_nexus {
     my ($self, %args) = @_;
 
+    #  trigger early exit if we cannot open these files.      
+    my $clr_fname = $args{file} . '_' . $list_name . '.clr';
+    my $qml_fname = $args{file} . '_' . $list_name . '.txt';
+    open my $fh_clr, '>', $clr_fname
+      or croak "Unable to open ESRI color map file for writing\n$!";
+    open my $fh_qml, '>', $qml_fname
+      or croak "Unable to open QGIS color map file for writing\n$!";
+    
     #  do the tree
     $self->SUPER::export_nexus (%args);
-    
+
+
     my $list_name = 'COLOUR';
     
-    #  no do the spatial part
+    #  now do the spatial part
     my $bd = $self->get_basedata_ref;
     my $gp = $bd->get_groups_ref;
     my $sp = $bd->add_spatial_output (
@@ -163,7 +172,7 @@ sub export_nexus {
     my %nc;  #  name cache
     foreach my $node_ref (
             sort {($nc{$a} //= $a->get_name) cmp ($nc{$b} //= $b->get_name)}
-            $self->get_terminal_node_refs
+                 $self->get_terminal_node_refs
             ) {
         my $element = $node_ref->get_name;
         next if !$gp->exists_element_aa ($element);
@@ -192,13 +201,6 @@ sub export_nexus {
         band_type => 'UInt32',
         no_data_value => 0xffffffff,
     );
-    
-    my $clr_fname = $args{file} . '_' . $list_name . '.clr';
-    my $qml_fname = $args{file} . '_' . $list_name . '.txt';
-    open my $fh_clr, '>', $clr_fname
-      or croak "Unable to open ESRI color map file for writing\n$!";
-    open my $fh_qml, '>', $qml_fname
-      or croak "Unable to open QGIS color map file for writing\n$!";
 
     foreach my $class (sort {$a <=> $b} keys %class_table) {
         say {$fh_clr} join q{ }, ($class, @{$class_table{$class}});

@@ -120,7 +120,8 @@ sub get_metadata_export_nexus {
 sub export_nexus {
     my ($self, %args) = @_;
 
-    #  trigger early exit if we cannot open these files.      
+    #  trigger early exit if we cannot open these files.
+    my $list_name = 'COLOUR';
     my $clr_fname = $args{file} . '_' . $list_name . '.clr';
     my $qml_fname = $args{file} . '_' . $list_name . '.txt';
     open my $fh_clr, '>', $clr_fname
@@ -130,9 +131,6 @@ sub export_nexus {
     
     #  do the tree
     $self->SUPER::export_nexus (%args);
-
-
-    my $list_name = 'COLOUR';
     
     #  now do the spatial part
     my $bd = $self->get_basedata_ref;

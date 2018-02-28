@@ -95,9 +95,10 @@ sub get_metadata_export_nexus {
         @$super_parameters,
         {
             name       => 'generate_geotiff',
-            label_text => 'Generate geoTIFF for colours?',
+            label_text => 'Generate a geoTIFF file of the most recently used colours?',
             tooltip    => "Should a geoTIFF file of the map be generated? "
-                        . 'It will use numbered classes and a colour map to match the colours of the tree.',
+                        . 'It will contain numbered classes and have an associated colour '
+                        . 'map to match the most recently used colours of the tree.',
             type       => 'boolean',
             default    => 0,
         },
@@ -105,8 +106,8 @@ sub get_metadata_export_nexus {
     for (@parameters) {
         bless $_, $parameter_metadata_class;
     }
-    
-    #  we want the geotiff args as well?
+
+    #  do we want to provide the geotiff args as well?
     #my $gps = $self->get_basedata_ref->get_groups_ref;
     #my %geotiff_metadata = $gps->get_metadata_export_geotiff;
 

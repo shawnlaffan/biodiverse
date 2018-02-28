@@ -2000,6 +2000,13 @@ sub get_cached_metadata {
 
     my $cache
       = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
+    #  reset the cache if the versions differ (typically they would be older),
+    #  this ensures new options are loaded
+    $cache->{__VERSION} //= 0;
+    if ($cache->{__VERSION} != $VERSION || $ENV{BD_NO_METADATA_CACHE}) {
+        %$cache = ();
+        $cache->{__VERSION} = $VERSION;
+    }
     return $cache;
 }
 

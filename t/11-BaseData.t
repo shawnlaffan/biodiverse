@@ -1325,6 +1325,29 @@ sub test_roundtrip_shapefile {
 }
 
 
+sub test_delete_labels_and_numeric_flag {
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'numericish labels',
+        CELL_SIZES => [1,1],
+    );
+    
+    $bd->add_element (group => '0:0', label => 'NA');
+    foreach my $label (1..5) {
+        $bd->add_element (group => '0:0', label => 'NA');
+    }
+    
+    ok (!$bd->labels_are_numeric, 'labels are not numeric when NA included');
+    $bd->delete_labels (labels => ['NA']);
+    ok ($bd->labels_are_numeric, 'labels are not numeric when NA deleted using delete_labels');
+    
+    #  put it back in
+    $bd->add_element (group => '0:0', label => 'NA');
+    ok (!$bd->labels_are_numeric, 'labels are not numeric when NA reinserted');
+    $bd->delete_label (label => 'NA');
+    ok ($bd->labels_are_numeric, 'labels are not numeric when NA deleted using delete_label');
+    # TODO: add_element_simple_aa, but maybe it can be left to the caller as it is simple
+}
+
 
 sub test_attach_ranges_and_sample_counts {
     my $bd = get_small_bd();

@@ -2692,6 +2692,11 @@ sub add_element {    #  run some calls to the sub hashes
             );
         }
     }
+    
+    #  we could use the labels_are_numeric method, but don't want to trigger the search in an early import
+    if (!looks_like_number $label && $self->get_param ('NUMERIC_LABELS')) {
+        $self->set_param (NUMERIC_LABELS => 0);
+    }
 
     return;
 }
@@ -2728,6 +2733,12 @@ sub add_element_simple_aa {
         #  labels is the transpose of groups
         $gp_ref->add_sub_element_aa( $group, $label, $count, $csv_object );
         $lb_ref->add_sub_element_aa( $label, $group, $count, $csv_object );
+
+        #  potential slowdown - this sub is a hot path under the randomisations...        
+        ##  we could use the labels_are_numeric method, but don't want to trigger the search in an early import
+        #if (!looks_like_number $label && $self->get_param ('NUMERIC_LABELS')) {
+        #    $self->set_param (NUMERIC_LABELS => 0);
+        #}
     }
 
     1;
@@ -3331,7 +3342,12 @@ sub delete_labels {
     }
 
     foreach my $element (@$elements) {
-        $self->delete_element( type => 'LABEL', element => $element );
+        $self->delete_element( type => 'LABELS', element => $element );
+    }
+    
+    #  clear the numeric labels flag, just in case
+    if (!$self->get_param ('NUMERIC_LABELS')) {
+        $self->delete_param ('NUMERIC_LABELS');
     }
 
     return;
@@ -3362,7 +3378,14 @@ sub delete_label {
 
     my $label = $args{label} // croak "Argument 'label' not defined\n";
 
-    return $self->delete_element( %args, type => 'LABELS', element => $label );
+    my $result = $self->delete_element( %args, type => 'LABELS', element => $label );
+    
+    #  clear the numeric labels flag, just in case we only have numeric data remaining
+    if (!$self->get_param ('NUMERIC_LABELS')) {
+        $self->delete_param ('NUMERIC_LABELS');
+    }
+    
+    return $result;
 }
 
 sub delete_group {
@@ -3383,6 +3406,9 @@ sub delete_element {
       if !defined $args{type};
 
     my $type = uc( $args{type} );
+    if ($type eq 'GROUP' || $type eq 'LABEL') {
+        $type .= 'S';  
+    }
     croak "Invalid element type in call to delete_element, $type\n"
       if $type ne 'GROUPS' && $type ne 'LABELS';
 

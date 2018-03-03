@@ -3258,7 +3258,7 @@ sub add_to_hash_list {
     #  create it if not already there
     $self->{ELEMENTS}{$element}{$list} //= {};
 
-    #  now add to it
+    #  now add to it - should do a slice assign
     $self->{ELEMENTS}{$element}{$list}
       = {%{$self->{ELEMENTS}{$element}{$list}}, %args};
 

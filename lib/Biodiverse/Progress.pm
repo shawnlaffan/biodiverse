@@ -37,10 +37,14 @@ sub new {
     #print "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui\n";
     if ($Biodiverse::Config::running_under_gui) {
         my $gui_progress;
-        eval q{
-            require Biodiverse::GUI::ProgressDialog;
-            $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
-        };
+        #  hide from Module::ScanDeps static scanning
+        #  otherwise we pack the GUI libs for simple scripts.
+        my $pkg = 'Biodiverse::GUI::ProgressDialog';
+        eval "require $pkg;\n"
+          . q{
+                #  should pass on all relevant args
+                $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  
+             };
         my $e = $EVAL_ERROR;
         if (! $e and defined $gui_progress) {
             #  if we are in the GUI then we can use a GUI progress dialogue

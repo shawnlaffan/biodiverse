@@ -130,12 +130,15 @@ foreach my $col_num ($start_col .. $#$header) {
     croak $EVAL_ERROR if $EVAL_ERROR;
     
     #  adds the .bds extension by default
-    $bd->save (filename => $out_pfx . '_' . $col_name);
+    $bd->save (
+        filename => $out_pfx . '_' . $col_name,
+        method   => 'save_to_storable',  #  avoid sereal version issues
+    );
     
     foreach my $group ($sp->get_element_list) {
         my $list = $sp->get_list_ref (
             element => $group,
-            list => 'SPATIAL_RESULTS',
+            list    => 'SPATIAL_RESULTS',
         );
         $agg_bs->add_element (element => $group);
         foreach my $stats_col_name (keys %$list) {

@@ -3256,11 +3256,12 @@ sub add_to_hash_list {
 
     delete @args{qw /list element/};
     #  create it if not already there
-    $self->{ELEMENTS}{$element}{$list} //= {};
+    my $listref = $self->{ELEMENTS}{$element}{$list} //= {};
 
     #  now add to it - should do a slice assign
-    $self->{ELEMENTS}{$element}{$list}
-      = {%{$self->{ELEMENTS}{$element}{$list}}, %args};
+    #$self->{ELEMENTS}{$element}{$list}
+    #  = {%{$self->{ELEMENTS}{$element}{$list}}, %args};
+    @$listref{keys %args} = values %args;
 
     return;
 }

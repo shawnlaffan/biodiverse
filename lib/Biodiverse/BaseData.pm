@@ -1967,7 +1967,7 @@ sub import_data_spreadsheet {
             my $i = -1;
             foreach my $val (@group_field_vals) {
                 $i++;
-                if ( !defined $val ) {
+                if ( !defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";
                 }
@@ -1976,6 +1976,7 @@ sub import_data_spreadsheet {
                 my $g_size = $group_sizes[$i];
 
                 if ( $g_size >= 0 ) {
+                    next ROW if (!(length $val) || $val eq 'NA') && $skip_lines_with_undef_groups;
                     if (   $is_lat_field
                         && $is_lat_field->{ $group_field_names[$i] } )
                     {

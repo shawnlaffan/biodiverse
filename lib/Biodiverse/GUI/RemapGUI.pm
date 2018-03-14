@@ -316,7 +316,7 @@ sub post_auto_remap_dlg {
         punct_matches => $remap_object->get_match_category(
             category => "punct_matches",
         ),
-        punct_matches => $remap_object->get_match_category(
+        typo_matches => $remap_object->get_match_category(
             category => "typo_matches",
         ),
     );

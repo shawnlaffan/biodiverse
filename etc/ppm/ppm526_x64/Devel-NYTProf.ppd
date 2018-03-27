@@ -1,0 +1,8 @@
+<SOFTPKG NAME="Devel-NYTProf" VERSION="6.05">
+    <ABSTRACT>Code profiler</ABSTRACT>
+    <AUTHOR>Tim Bunce &lt;timb@cpan.org&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.26" />
+        <CODEBASE HREF="Devel-NYTProf-6.05.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

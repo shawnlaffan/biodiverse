@@ -2067,7 +2067,7 @@ sub write_table_ers {
         foreach my $band (@band_cols) {
             $ncols = 0;
 
-            foreach my $x ($min_ids[0] .. $max_ids[1]) {
+            foreach my $x ($min_ids[0] .. $max_ids[0]) {
 
                 my $ID = "$x:$y";
                 my $value = $data_hash{$ID}[$band] // $no_data;

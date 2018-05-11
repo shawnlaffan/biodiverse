@@ -59,6 +59,8 @@ BEGIN {
         gladexml => undef,    # Main window widgets
         tabs => [],    # Stores refs to Tabs objects. In order of page index.
         progress_bars => undef,
+        list_popups   => {},
+        graph_popups  => {},
         test_val      => ''
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
@@ -145,6 +147,16 @@ sub set_dirty {
     my $self = shift;
     $self->{project}->set_dirty;
     return;
+}
+
+sub get_list_popup_state {
+    my $self = shift;
+    return $self->{list_popups};
+}
+
+sub get_graph_popup_state {
+    my $self = shift;
+    return $self->{graph_popups};
 }
 
 #  A kludge to stop keyboard events triggering during exports

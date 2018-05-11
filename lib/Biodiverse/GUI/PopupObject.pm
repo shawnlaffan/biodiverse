@@ -16,7 +16,7 @@ use Gtk2;
 sub set_value_column {
     my $popup = shift;
     my $col = shift;
-    my $list = $popup->{list};
+    my $list = $popup->{list} // return;  #  need to find where we are being sent the wrong popup
 
     $list->{colValue}->clear_attributes($list->{valueRenderer}); #!!! This (bug?) cost me a lot of time
     $list->{colValue}->set_attributes($list->{valueRenderer}, text => $col) if $col;

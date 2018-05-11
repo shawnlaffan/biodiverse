@@ -587,6 +587,7 @@ sub init_grid {
     # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $ctrl_click_closure = sub {
+        my $tool = $self->{tool};
         Biodiverse::GUI::CellPopup::cell_clicked(
             $_[0],
             $self->{grid}->get_base_struct,

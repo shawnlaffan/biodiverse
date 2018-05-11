@@ -47,7 +47,7 @@
                 <child>
                   <object class="GtkCheckButton" id="chkReuse">
                     <property name="label" translatable="yes">Re-use</property>
-                    <property name="visible">True</property>
+                    <property name="visible">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
                     <property name="tooltip-text" translatable="yes">Overwrite this dialog instead of opening a new ones</property>

@@ -592,10 +592,15 @@ sub init_grid {
             $self->{grid}->get_base_struct,
         );
     };
+
     my $click_closure = sub { $self->on_graph_popup(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
+    my $cell_enter = sub { $self->on_cell_enter(@_); };
+    my $cell_leave = sub { $self->on_cell_leave(@_); };
+
+    my $plot_max = $self->{plot_max_value};
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         frame => $frame,
@@ -609,6 +614,9 @@ sub init_grid {
         select_func     => $select_closure,
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
+        cell_enter_func => $cell_enter,
+        cell_leave_func => $cell_leave,
+        plot_max        => $plot_max,
     );
     $self->{grid}{page} = $self;
     weaken $self->{grid}{page};
@@ -1445,10 +1453,15 @@ sub on_grid_hover {
         }
 
         $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2], $group);
+
+        #if (defined $self->{popup}->{canvas}) {
+        #    Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
+        #}
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
         $self->{grid}->mark_if_exists({}, 'minus');
+
 
         $self->{dendrogram}->clear_highlights();
     }
@@ -1607,7 +1620,15 @@ sub on_end_grid_hover {
     my $self = shift;
     my $dendrogram = $self->{dendrogram}
       // return;
-
+    #my $secondary = $self->{popup}->get_secondary;
+    #if (blessed $self->{popup}){
+    #    my $secondary = $self->{popup}->get_secondary;
+    #    if ($secondary) {
+    #       #say "[on_end_grid_hover] \$secondary: $secondary";
+    #        my $secondary = $self->{popup}->get_secondary;
+    #        $self->{popup}->clear_secondary($secondary);
+    #    }
+    #}
     $dendrogram->clear_highlights;
 }
 
@@ -1870,7 +1891,6 @@ sub set_plot_min_max_values {
 
     my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
-
     my $stats = $self->{stats}{$list}{$index};
 
     if (not $stats) {

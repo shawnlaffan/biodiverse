@@ -17,28 +17,107 @@ use English qw { -no_match_vars };
 use Biodiverse::GUI::PopupObject;
 use Biodiverse::GUI::CanvasGraph;
 
+use constant COLOUR_RED         => Gtk2::Gdk::Color->new(255*257, 0, 0);
+use constant COLOUR_LILAC       => Gtk2::Gdk::Color->new(200, 200, 255);
+
 sub add_graph {
     my $popup = shift;
     my $output_ref = shift;
     my $list_name = shift;
     my $element = shift;
-    
+    my $popupobj = shift;
+    my $max = shift;
+    my $min = shift;
+
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
         );
 
-    my $canvas = $popup->{canvas};
+    my $canvas = $popup->get_canvas;
+    my $canvasobj = $popupobj->get_canvas;
 
-    my $grapher = Biodiverse::GUI::CanvasGraph->new();
-    $grapher->generate_canvas_graph(
+
+    if ($canvasobj) {
+       $canvas = $canvasobj;
+    }
+
+    my $background = $popup->get_background;
+
+    if ( ! $background ){
+        $background = Biodiverse::GUI::CanvasGraph->new(
+            canvas   => $canvas,
+            popupobj => $popupobj
+        );
+    }
+
+    my $primary = $background->get_primary;
+    if ($primary) {
+        $primary->destroy();
+    }
+
+    $background->add_primary_layer(
         graph_values => $list_ref,
+        point_colour => COLOUR_LILAC,
         canvas       => $canvas,
-        clear_canvas => 1,
+        y_max          => $max,
+        y_min          => $min
     );
-    
+
+    $popup->set_background($background);
+    $popup->set_primary($background->get_primary);
+    $popup->set_secondary($background->get_secondary);
+    $popup->set_list_ref($list_ref);
+
+
     $canvas->show();
-    $popup->set_canvas($canvas);
-    
+
     return;
+}
+
+sub add_secondary {
+    my $self = shift;
+    my $output_ref = shift;
+    my $list_name = shift;
+    my $element = shift;
+    my $popupobj = shift;
+    my $max = shift;
+    my $min = shift;
+
+    my $secondary_element = $popupobj->get_secondary_element;
+
+    no warnings qw(uninitialized);
+    return if $element eq $secondary_element;
+
+    my $list_ref = $output_ref->get_list_ref (
+        element => $element,
+        list    => $list_name,
+        );
+
+
+    my $background = $popupobj->get_background;
+    my $canvas = $popupobj->get_canvas;
+    my $secondary;
+
+    #my $point_colour = Gtk2::Gdk::Color->new(255*257, 0, 0);
+    #my $point_colour = Gtk2::Gdk::Color->parse('#7F7F7F');
+    my $point_colour = 'red';
+
+    # call graph update here if it exists.
+    my $primary = $background->get_primary;
+    $secondary = $background->get_secondary;
+
+    if ($primary) {
+        $secondary = $background->add_secondary_layer (
+            graph_values => $list_ref,
+            point_colour => $point_colour,
+            canvas       => $canvas,
+            y_max          => $max,
+            y_min          => $min
+        );
+        $secondary->raise_to_top();
+        $secondary->show();
+        $popupobj->set_secondary($secondary);
+        $popupobj->set_secondary_element($element);
+    }
 }

@@ -13,8 +13,9 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::GraphPopup;
 use Carp;
-
+use Data::Dumper;
 use Biodiverse::Metadata::Parameter;
+use Biodiverse::GUI::PopupObject;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub add_to_notebook {
@@ -622,27 +623,69 @@ sub on_graph_popup {
     my $output_ref = $self->{output_ref};
         
     my @lists = $output_ref->get_lists_across_elements;
-    
+
+    my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
+    say "[on_graph_popup] \@keys: @keys";
+    #foreach my $key_across_element (@keys_across_elements) {
+    #    say "[on_graph_popup] \$key_across_element: $key_across_element"; 
+    #}
+    #print Dumper($output_ref);
+    # Get the y max and min plot values.
+    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
+
+    my %sources;
+
+    if ( ! blessed $self->{popup}) {
+        my $popup = {};
+        bless $popup, 'Biodiverse::GUI::PopupObject';
+        $self->{popup} = $popup;
+    }
+
+    foreach my $list_name (@lists) {
+        #say "Found list $list_name";
+        next if not defined $list_name;
+        next if $list_name =~ /^_/; # leading underscore marks internal list
+        $sources{$list_name} = sub { 
+            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
+        };
+    }
+
+    my @source_list = keys %sources;
+    my $default_source = $source_list[0];
+   
+    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
+
+}
+
+sub on_add_secondary_to_graph_popup {
+    my $self = shift;
+    return if ($self->{tool} ne 'Graph');
+
+    my $element = shift;
+    my $output_ref = $self->{output_ref};
+
+    # Get the max and min plot values.
+    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
+
+    my @lists = $output_ref->get_lists_across_elements;
+
     my %sources;
 
     foreach my $list_name (@lists) {
         #say "Found list $list_name";
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
-
-        $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element);
+        $sources{$list_name} = sub {
+            Biodiverse::GUI::GraphPopup::add_secondary(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
         };
     }
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
-        
-    #say "[Tab.pm] About to call show_popup";
-    Biodiverse::GUI::Popup::show_popup($element, \%sources, $default_source, "canvas");
+
+    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
+
 }
-
-
 
 sub on_grid_select {
     my ($self, $groups, $ignore_change, $rect) = @_;
@@ -654,6 +697,7 @@ sub on_grid_select {
 
 sub on_grid_click {
     my $self = shift;
+    #say "[on_grid_click]";
 
     if ($self->{tool} eq 'ZoomOut') {
         $self->{grid}->zoom_out();
@@ -667,6 +711,46 @@ sub on_grid_click {
 
     # }
 }
+
+#sub on_grid_enter {
+#    my $self = shift;
+#    my $element = shift;
+#    say "[on_grid_enter]\$element: $element";
+#    #if (defined $self->{popup}->{canvas}) {
+#    #    Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $element);
+#    #}
+#}
+#
+#sub on_grid_leave {
+#    my $self = shift;
+#    say "[on_grid_leave]\$self: $self";
+#}
+
+
+sub handle_graph_click {
+    # my $self = shift;
+    # my $element = shift;
+    # my $basedata_ref = $self->{basedata_ref};
+
+    # my ($sources, $default_source);
+    # my $node_ref = $self->get_coloured_node_for_element($element);
+
+    # if ($node_ref) {
+    #     # This will add the "whole cluster" sources
+    #     ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
+    # }
+    # else {
+    #     # Node isn't part of any cluster - just labels then
+    #     $sources = {};
+    # }
+
+
+    # $sources = {};
+    # Biodiverse::GUI::Popup::show_popup($element, $sources, $default_source);
+
+    return;
+}
+
 
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;

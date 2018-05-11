@@ -135,6 +135,8 @@ sub new {
     $self->{select_func}     = $args{select_func};     # select a set of elements
     $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
     $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
+    $self->{cell_enter_func} = $args{cell_enter_func};  # enter a cell
+    $self->{cell_leave_func}  = $args{cell_leave_func};  # exit a cell
 
     $self->set_colour_for_undef;
 
@@ -415,7 +417,7 @@ sub set_base_struct {
 
     my @tmpcell_sizes = $data->get_cell_sizes;  #  work on a copy
     say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
-    
+
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
 
     say join q{ }, $min_x, $max_x, $min_y // '', $max_y // '';
@@ -1411,6 +1413,14 @@ sub on_event {
             my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
             $self->{canvas}->window->set_cursor($cursor);
         }
+
+        # Call client defined callback function for entering a cell
+        if (defined $self->{cell_enter_func} and not $self->{clicked_cell}) {
+            my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
+            my $f = $self->{cell_enter_func};
+            $f->($element,$cell);
+        }
+
     }
     elsif ($event->type eq 'leave-notify') {
 
@@ -1429,6 +1439,13 @@ sub on_event {
 
         # Change cursor back to default
         $self->{canvas}->window->set_cursor($self->{cursor});
+
+        # Call client defined callback function for leaving a cell
+        if (defined $self->{cell_leave_func} and not $self->{clicked_cell}) {
+            my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
+            my $f = $self->{cell_leave_func};
+            $f->($element,$cell);
+        }
 
     }
     elsif ($event->type eq 'button-press') {

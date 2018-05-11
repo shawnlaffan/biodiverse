@@ -152,7 +152,6 @@ sub make_dialog {
 
     my $dlgxml = Gtk2::Builder->new();
 
-    
     if($popup_type && $popup_type eq 'canvas') {
         $dlgxml->add_from_file($gui->get_gtk_ui_file('wndGraphPopup.ui'));
     }
@@ -281,14 +280,14 @@ sub load_dialog {
     # Set to last re-use state
     #print "[Popup] last reuse = $popup_state->{g_last_reuse}\n";
     #  canvas is always re-usable
-    if ($popup_type ne 'canvas') {
+    #if ($popup_type ne 'canvas') {
         $dlgxml->get_object('chkReuse')->set_active($popup_state->{g_last_reuse});
         $dlgxml->get_object('chkReuse')->signal_connect(toggled => \&on_reuse_toggled, [$element, $dlgxml, $canvas]);
         on_reuse_toggled($dlgxml->get_object('chkReuse'),  [$element, $dlgxml, $canvas]);
-    }
-    else {
+    #}
+    #else {
         $dlgxml->get_object('chkReuse')->set_active(1);
-    }
+    #}
 }
 
 ##########################################################
@@ -431,7 +430,6 @@ sub on_close_all {
 sub on_reuse_toggled {
     my $button = shift;
     my $args = shift;
-
 
     my ($element, $dlgxml, $canvas) = ($args->[0], $args->[1], $args->[2]);
 

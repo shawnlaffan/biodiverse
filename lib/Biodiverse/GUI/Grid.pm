@@ -136,7 +136,7 @@ sub new {
     $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
     $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
     $self->{cell_enter_func} = $args{cell_enter_func};  # enter a cell
-    $self->{cell_leave_func}  = $args{cell_leave_func};  # exit a cell
+    $self->{cell_leave_func} = $args{cell_leave_func};  # exit a cell
 
     $self->set_colour_for_undef;
 

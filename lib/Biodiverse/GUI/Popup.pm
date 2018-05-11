@@ -88,11 +88,11 @@ Parameters
 # $sources_ref points to a hash:
 #   SOURCE_NAME => $function
 sub show_popup {
-    my $element = shift;
-    my $sources_ref = shift;
+    my $element        = shift;
+    my $sources_ref    = shift;
     my $default_source = shift;
-    my $popup_type = shift // 'normal';
-    my $popupobj = shift;
+    my $popup_type     = shift // 'normal';
+    my $popupobj       = shift;
 
     my $dlgxml;
     my $canvas;

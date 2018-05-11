@@ -1,53 +1,41 @@
 language: perl
-perl:
-  - '5.24'
-  - '5.22'
+matrix:
+    include:
+        - perl: '5.26'
+          env: BD_NO_TEST_GUI=1
+        - perl: '5.24'
+          env: BD_NO_TEST_GUI=1
+        - perl: '5.24'
+          env: BD_NO_TEST_GUI=0
+        - perl: '5.22'
+          env: BD_NO_TEST_GUI=1
+#perl:
+#  - '5.24'
+#  - '5.22'
 distro: trusty
 sudo: required
 cache:
   directories:
     - perl_modules
     - gdal_builds
+#env:
+#  - BD_NO_TEST_GUI=1
+#  - BD_NO_TEST_GUI=0
+
 before_install:
 
   #  local::lib target is cached
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+  - cpanm --notest List::MoreUtils~0.425
 
-  #  now we build a gdal if it has not been cached
+  #  just to be sure 
+  - find . -name "build_gdal_travis.sh" -print
+  #- echo ${PWD}
   
-  #  should be able to specify these under env
-  - export gdal_version=2.1.3
-  - export geo_gdal_tar=Geo-GDAL-2.010301.tar.gz
-  - export geo_gdal_dir=Geo-GDAL-2.010301
-  - export gdal_home=$TRAVIS_BUILD_DIR/gdal_builds/${gdal_version}
-  - echo $gdal_home
-
-  - startdir=`pwd`
-  - mkdir -p ${gdal_home}
-  - cd ${gdal_home}
-  - pwd
-  - find $gdal_home -name 'gdal-config' -print
-  - gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`
-  - echo $gdalconfig
-  - if [ -n "$gdalconfig" ]; then build_gdal=false; else build_gdal=true; fi;
-  - echo $build_gdal
-  - if [ "$build_gdal" = true ]; then wget http://download.osgeo.org/gdal/${gdal_version}/gdal-${gdal_version}.tar.gz; fi
-  #  should use -C and --strip-components to simplify the dir structure
-  - if [ "$build_gdal" = true ]; then tar -xzf gdal-${gdal_version}.tar.gz; fi
-  - if [ "$build_gdal" = true ]; then cd gdal-${gdal_version} && ./configure --prefix=${gdal_home} && make -j4 && make install; fi
-  - cd ${startdir}
-  - if [ "$build_gdal" = true ]; then gdalconfig=`find $gdal_home -name 'gdal-config' -print | grep apps | head -1`; fi
-  - find $gdal_home -name 'gdal-config' -print
-  #  using env vars avoids cpanm parsing the --gdal-config type arguments in cpanm Geo::GDAL
-  - export PERL_GDAL_NO_DOWNLOADS=1
-  - export PERL_GDAL_SOURCE_TREE=${gdal_home}/gdal-${gdal_version}
-  - echo $PERL_GDAL_SOURCE_TREE
-
-  # Here as well as cpanfile because -v stops travis from timing out and killing the build
-  # (and -v for the whole install produces a ridiculously large log)
-  #  -v should not be needed now we build our own
-  - cpanm -v Geo::GDAL
+  #  call the gdal build script
+  #- chmod +x ./etc/build_gdal_travis.sh
+  - sh ./etc/build_gdal_travis.sh
 
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
@@ -58,14 +46,9 @@ before_install:
 
   - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
-env:
-  - BD_NO_TEST_GUI=1
-  - BD_NO_TEST_GUI=0
+
 script: prove -l -j4
 # blocklist
 branches:
   except:
   - ppm
-  #  list GUI only branches here since we lack GUI tests
-  - issue_630_export_user_tree_colours
-  - issue_633_remove_pixbuf

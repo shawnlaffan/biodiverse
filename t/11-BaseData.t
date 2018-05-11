@@ -1325,6 +1325,29 @@ sub test_roundtrip_shapefile {
 }
 
 
+sub test_delete_labels_and_numeric_flag {
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'numericish labels',
+        CELL_SIZES => [1,1],
+    );
+    
+    $bd->add_element (group => '0:0', label => 'NA');
+    foreach my $label (1..5) {
+        $bd->add_element (group => '0:0', label => 'NA');
+    }
+    
+    ok (!$bd->labels_are_numeric, 'labels are not numeric when NA included');
+    $bd->delete_labels (labels => ['NA']);
+    ok ($bd->labels_are_numeric, 'labels are not numeric when NA deleted using delete_labels');
+    
+    #  put it back in
+    $bd->add_element (group => '0:0', label => 'NA');
+    ok (!$bd->labels_are_numeric, 'labels are not numeric when NA reinserted');
+    $bd->delete_label (label => 'NA');
+    ok ($bd->labels_are_numeric, 'labels are not numeric when NA deleted using delete_label');
+    # TODO: add_element_simple_aa, but maybe it can be left to the caller as it is simple
+}
+
 
 sub test_attach_ranges_and_sample_counts {
     my $bd = get_small_bd();
@@ -2045,24 +2068,28 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 my $lr_integr = $to_node->get_list_ref (%l_args);
                 my $lr_from   = $from_node->get_list_ref (%l_args);
 
+                my $ok_count = 0;
+                my $fail_msg = '';
                 #  should refactor this - it duplicates the spatial variant
+              BY_KEY:
                 foreach my $key (sort keys %$lr_integr) {
                     no autovivification;
+                    my $exp;
                     if ($key =~ /^P_/) {
                         my $index = $key;
                         $index =~ s/^P_//;
-                        is ($lr_integr->{$key},
-                            $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
-                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
-                        );
+                        $exp = $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"};
                     }
                     else {
-                        is ($lr_integr->{$key},
-                            ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
-                            "Integrated = orig+from, $lr_integr->{$key}, $node_name, $list_name, $key",
-                        );
+                        $exp = ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0);
+                    }
+                    if ($lr_integr->{$key} ne $exp) {
+                        $fail_msg = "FAILED: Integrated = orig+from, "
+                          . "$lr_integr->{$key}, $node_name, $list_name, $key";
+                        last BY_KEY;
                     }
                 }
+                ok (!$fail_msg, "reintegrated $list_name for $node_name");
             }
 
             foreach my $sig_list_name (@sig_lists) {

@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 #use Data::Dumper;
 use Carp;
@@ -33,6 +33,7 @@ require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
 use Biodiverse::GUI::ProgressDialog;
+use Biodiverse::GUI::DeleteElementProperties;
 
 
 require Biodiverse::BaseData;
@@ -697,7 +698,7 @@ sub do_open_matrix {
           Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bms' );
 
         if ( defined $filename && -f $filename ) {
-            $object = Biodiverse::Tree->new( file => $filename );
+            $object = Biodiverse::Matrix->new( file => $filename );
             $object->set_param( NAME => $name )
               ;    #  override the name if the user says to
         }
@@ -929,6 +930,18 @@ sub do_basedata_attach_properties {
     return;
 }
 
+sub do_delete_element_properties {
+    my $self = shift;
+    my $bd   = $self->{project}->get_selected_base_data;
+
+    croak "Cannot delete properties from a basedata with existing outputs" 
+        . " (try 'duplicate without outputs')" 
+        if($bd->get_output_ref_count);
+    
+    my $delete_el_props_gui = Biodiverse::GUI::DeleteElementProperties->new();
+    my $to_delete_hash = $delete_el_props_gui->run( basedata => $bd );
+}
+
 sub do_delete_basedata {
     my $self = shift;
 
@@ -1135,6 +1148,21 @@ sub do_rename_phylogeny {
 sub do_remap {
     my ($self, %args) = @_;
 
+    if ($args{check_first}) {
+        my $default_target = $args{default_remapee};
+        my $type
+           = $default_target->isa('Biodiverse::BaseData') ? 'label'
+           : $default_target->isa('Biodiverse::Tree')     ? 'node'
+           : 'element';
+        my $message  = "Remap the $type names?";
+        my $response =
+            Biodiverse::GUI::YesNoCancel->run( {
+                header      => $message,
+                hide_cancel => 1,
+            } );
+        return if $response ne 'yes';
+    }
+
     # ask what type of remap, what is getting remapped to what etc.
     my $remap_gui = Biodiverse::GUI::RemapGUI->new();
     my $pre_remap_dlg_results 
@@ -1157,6 +1185,34 @@ sub do_remap {
     my $want_to_perform_remap = 0;
     my $generated_remap = Biodiverse::Remap->new;
 
+    croak "Unknown option $remap_type\n"
+      if not $remap_type =~ /^(?:auto|manual)_from_file|auto|none$/;;
+
+    if ( $remap_type =~ /(manual|auto)_from_file/ ) {  # load a remap file
+        my $type = $1;  #  manual or auto
+        my $col_defs = $type eq 'manual'
+            ? ['Input_element', 'Remapped_element']
+            : ['Input_element'];
+
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
+            gui => $self,
+            column_overrides => $col_defs,
+            required_cols    => $col_defs,
+        );
+
+        if ( defined $remap_data{file} ) {
+            $generated_remap->import_from_file( %remap_data, );
+
+            if ($type =~ /auto/) {
+                $remap_type = 'auto';
+                $pre_remap_dlg_results->{controller} = $generated_remap;
+            }
+
+            # TODO add in a 'review' dialog here
+            $want_to_perform_remap = 1; 
+        }
+    }
+    #  no elsif here - we can set $remap_type to auto in the previous step
     if ( $remap_type eq "auto" ) {  # guess an automatic remap
         say "Started an auto remap";
         my $controller = $pre_remap_dlg_results->{controller};
@@ -1168,21 +1224,6 @@ sub do_remap {
         # show them the remap and do exclusions etc.
         $want_to_perform_remap 
             = $remap_gui->post_auto_remap_dlg(remap_object => $generated_remap);
-    }
-    elsif ( $remap_type eq "manual" ) {  # load a remap file
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info(
-            gui          => $self,
-        );
-
-        if ( defined $remap_data{file} ) {
-            $generated_remap->import_from_file( %remap_data, );
-            
-            # TODO add in a 'review' dialog here
-            $want_to_perform_remap = 1; 
-        }
-    }
-    elsif( $remap_type ne "none") {
-        croak "Unknown option $remap_type\n";
     }
     
     return if !$want_to_perform_remap;
@@ -1198,14 +1239,14 @@ sub do_remap {
         "Biodiverse::Tree"     => "phylogeny",
         "Biodiverse::BaseData" => "basedata",
         "Biodiverse::Matrix"   => "matrix",
-        );
+    );
     
     my $function_name = $blessed_to_function_name{blessed($cloned_ref)};
     my $add_to_project_function;
 
     # the function names are frustratingly add_base_data and
     # do_rename_basedata so we have to fix that here.
-    if($function_name eq 'basedata') {
+    if ($function_name eq 'basedata') {
         $add_to_project_function = "add_base_data";
     }
     else {
@@ -2151,6 +2192,15 @@ sub do_trim_tree_to_basedata {
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_object('wndMain') );
+    
+    my $vbox = $dlg->get_content_area;
+    my $checkbox  = Gtk2::CheckButton->new;
+    my $chk_label = Gtk2::Label->new ('Trim to last common ancestor');
+    my $hbox = Gtk2::HBox->new;
+    $hbox->pack_start ($chk_label, 1, 1, 0);
+    $hbox->pack_start ($checkbox, 1, 1, 0);
+    $vbox->pack_start ($hbox, 1, 1, 0);
+    $hbox->show_all;
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -2177,17 +2227,30 @@ sub do_trim_tree_to_basedata {
     $new_tree->delete_cached_values;
     $new_tree->reset_total_length;
     $new_tree->reset_total_length_below;
+    
+    my $trim_to_lca = $checkbox->get_active;
 
     if ( !$args{no_trim} ) {
-        $new_tree->trim( keep => scalar $bd->get_labels );
+        $new_tree->trim (
+            keep => scalar $bd->get_labels,
+            trim_to_lca => $trim_to_lca,
+        );
     }
 
     if ( $args{do_range_weighting} ) {
         foreach my $node ( $new_tree->get_node_refs ) {
             my $range = $node->get_node_range( basedata_ref => $bd );
             $node->set_length( length => $node->get_length / $range );
+        }
+        if ($trim_to_lca) {
+            $new_tree->trim_to_last_common_ancestor;
+        }
+        #  clear the caches --after-- all the above method calls
+        #  that use them internally
+        foreach my $node ( $new_tree->get_node_refs ) {
             $node->delete_cached_values;
         }
+        $new_tree->delete_cached_values;
     }
 
     $new_tree->set_param( NAME => $chosen_name );
@@ -2484,7 +2547,7 @@ sub do_trim_basedata {
 
     my $text =
         "Deleted $results{DELETE_COUNT} labels"
-      . " from $results{DELETE_SUB_COUNT} groups. "
+      . " and $results{DELETE_SUB_COUNT} groups. "
       . "$name has $label_count labels remaining across "
       . "$group_count groups.\n";
 
@@ -3101,8 +3164,10 @@ sub report_error {
     #print Dumper($error);
     my $e = $error;    # keeps a copy of the object
 
-    #  messy - should check for $error->isa('Exception::Class')
-    if ( blessed $error and ( blessed $error) !~ /ProgressDialog::Cancel/ ) {
+    if ( blessed $error
+        and ( blessed $error) !~ /ProgressDialog::Cancel/
+        and $error->can ('error')
+        ) {
         warn $error->error, "\n", $error->trace->as_string, "\n";
     }
     elsif ( $title =~ /error/i ) {

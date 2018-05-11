@@ -27,7 +27,7 @@ use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 
@@ -1925,6 +1925,16 @@ sub write_table_geotiff {
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
         $suffix = '.tif';
     }
+    
+    my $band_type = $args{band_type} // 'Float32';  #  should probably detect this from the data
+    #  need more
+    my %pack_codes = (
+        Float32 => 'f',
+        UInt32  => 'L',
+    );
+    my $pack_code = $pack_codes{$band_type};
+    croak "Unsupported band_type $band_type\n"
+      if !defined $pack_code;
 
     #  now process the generic stuff
     my $r = $self->raster_export_process_args ( %args );
@@ -1979,7 +1989,7 @@ END_TFW
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
                 my $value = $data_hash{$coord_id}[$i] // $no_data;
-                $bands[$i] .= pack 'f', $value;
+                $bands[$i] .= pack $pack_code, $value;
             }
         }
     }
@@ -1991,7 +2001,7 @@ END_TFW
         my $f_name = $file_names[$i];
         my $pdata  = $bands[$i];
 
-        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, 'Float32');
+        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, $band_type);
 
         my $out_band = $out_raster->GetRasterBand(1);
         $out_band->SetNoDataValue ($no_data);
@@ -2057,7 +2067,7 @@ sub write_table_ers {
         foreach my $band (@band_cols) {
             $ncols = 0;
 
-            foreach my $x ($min_ids[0] .. $max_ids[1]) {
+            foreach my $x ($min_ids[0] .. $max_ids[0]) {
 
                 my $ID = "$x:$y";
                 my $value = $data_hash{$ID}[$band] // $no_data;
@@ -2860,33 +2870,41 @@ sub rename_element {
     croak "argument 'new_name' is undefined\n"
       if !defined $new_name;
 
+    return if $element eq $new_name;
+
     my @sub_elements =
         $self->get_sub_element_list (element => $element);
 
     my $el_hash = $self->{ELEMENTS};
     
+    my $did_something;
     #  increment the subelements
     if ($self->exists_element (element => $new_name)) {
-        my $sub_el_hash_target = $self->{ELEMENTS}{$new_name}{SUBELEMENTS};
-        my $sub_el_hash_source = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+        no autovivification;
+        my $sub_el_hash_target = $el_hash->{$new_name}{SUBELEMENTS} // {};
+        my $sub_el_hash_source = $el_hash->{$element}{SUBELEMENTS}  // {};
         foreach my $sub_element (keys %$sub_el_hash_source) {
-            #if (exists $sub_el_hash_target->{$sub_element} {
-                $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
-            #}
+            $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
+        }
+        if (scalar keys %$sub_el_hash_source || scalar keys %$sub_el_hash_target) {
+            $did_something = 1;
         }
     }
     else {
         $self->add_element (element => $new_name);
         my $el_array = $el_hash->{$new_name}{_ELEMENT_ARRAY};
         $el_hash->{$new_name} = $el_hash->{$element};
-        #  reinstate the _EL_ARRAY since it will be overwritten bythe previous line
+        #  reinstate the _EL_ARRAY since it will be overwritten by the previous line
         $el_hash->{$new_name}{_ELEMENT_ARRAY} = $el_array;
         #  the coord will need to be recalculated
         delete $el_hash->{$new_name}{_ELEMENT_COORD};
+        $did_something = 1;
     }
-    delete $el_hash->{$element};
+    if ($did_something) {  #  don't delete if we did nothing
+        delete $el_hash->{$element};
+    }
 
-    return wantarray ? @sub_elements : \@sub_elements;
+    return wantarray ? @sub_elements : \@sub_elements;;
 }
 
 sub rename_subelement {
@@ -2963,11 +2981,15 @@ sub delete_sub_element {
         delete $href->{SUBELEMENTS}{$sub_element};
     }
 
-    1;
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 #  array args version to avoid the args hash creation
 #  (benchmarking indicates it takes a meaningful slab of time)
+#  candidate for refaliasing
 sub delete_sub_element_aa {
     my ($self, $element, $sub_element) = @_;
     
@@ -2988,7 +3010,10 @@ sub delete_sub_element_aa {
     }
     delete $href->{SUBELEMENTS}{$sub_element};
 
-    scalar keys %{$href->{SUBELEMENTS}};
+    #  We only need to know if there is anything left.
+    #  This should also trigger some boolean optimisations on perl 5.26+
+    #  https://rt.perl.org/Public/Bug/Display.html?id=78288
+    !!%{$href->{SUBELEMENTS}};
 }
 
 sub exists_element {
@@ -3000,6 +3025,15 @@ sub exists_element {
 
     #  no explicit return for speed under pre-5.20 perls
     exists $self->{ELEMENTS}{$el};
+}
+
+sub exists_element_aa {
+    #my ($self, $el) = @_;
+
+    croak "element not specified\n"
+      if !defined $_[1];
+
+    exists $_[0]->{ELEMENTS}{$_[1]};
 }
 
 sub exists_sub_element {
@@ -3222,11 +3256,12 @@ sub add_to_hash_list {
 
     delete @args{qw /list element/};
     #  create it if not already there
-    $self->{ELEMENTS}{$element}{$list} //= {};
+    my $listref = $self->{ELEMENTS}{$element}{$list} //= {};
 
-    #  now add to it
-    $self->{ELEMENTS}{$element}{$list}
-      = {%{$self->{ELEMENTS}{$element}{$list}}, %args};
+    #  now add to it - should do a slice assign
+    #$self->{ELEMENTS}{$element}{$list}
+    #  = {%{$self->{ELEMENTS}{$element}{$list}}, %args};
+    @$listref{keys %args} = values %args;
 
     return;
 }
@@ -3279,6 +3314,28 @@ sub delete_lists {
     }
 
     return;
+}
+
+
+
+sub delete_properties_for_given_element {
+    my ($self, %args) = @_;
+    my $el = $args{ el };
+
+    $self->{ELEMENTS}{$el}{PROPERTIES} = {};
+}
+
+
+# delete an element property for all elements
+sub delete_element_property {
+    my ($self, %args) = @_;
+    my $prop = $args{ prop };
+
+    foreach my $el ($self->get_element_list) {
+        my %props = %{$self->{ELEMENTS}{$el}{PROPERTIES}};
+        delete $props{ $prop };
+        $self->{ELEMENTS}{$el}{PROPERTIES} = \%props;
+    }
 }
 
 sub get_lists {
@@ -3829,6 +3886,19 @@ sub get_element_property_keys {
     $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
 
     return wantarray ? @keys : \@keys;
+}
+
+# returns a hash mapping from elements to element property hashes.
+sub get_all_element_properties {
+    my ($self, %args) = @_;
+    my %element_to_props_hash;
+    
+    foreach my $element ($self->get_element_list) {
+        my $props_hash = $self->get_element_properties(element => $element);
+        $element_to_props_hash{ $element } = $props_hash;
+    }
+
+    return wantarray ? %element_to_props_hash : \%element_to_props_hash;
 }
 
 sub get_element_properties {

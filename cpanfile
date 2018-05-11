@@ -31,7 +31,7 @@ requires "Path::Class";
 requires "Tree::R";
 requires "Geo::ShapeFile", "2.60",
 requires "Geo::Shapefile::Writer";
-requires "List::MoreUtils", "0.410",
+requires "List::MoreUtils", "0.425",
 requires "List::Util", "1.45";
 requires "Class::Inspector";
 requires "autovivification", "0.16";
@@ -71,7 +71,8 @@ test_requires => sub {
     requires "Devel::Symdump";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
-    requires "Test::TempDir::Tiny"
+    requires "Test::TempDir::Tiny";
+    requires "Test::Exception";
 };
 
 feature 'GUI', 'GUI packages' => sub {
@@ -86,4 +87,5 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends';
     requires 'HTTP::Tiny';
     requires 'LWP::Simple';
+    requires 'IO::Socket::SSL';
 };

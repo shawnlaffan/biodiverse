@@ -10,16 +10,13 @@ use 5.010;
 use strict;
 use warnings;
 
-#use Text::Levenshtein qw/distance/;
-#use Text::Levenshtein::Flexible;  # substantially faster
-use Text::Fuzzy;                   # treat character swaps as 1 unit of distance
-
+use Text::Fuzzy;
 
 use List::Util qw /min/;
 
 use Biodiverse::Progress;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 sub new {
     my $class = shift;
@@ -57,7 +54,8 @@ sub generate_auto_remap {
         @new_labels = $new_source->get_labels();
     }
     
-    my @existing_labels = $existing_source->get_labels();
+    my $method = $existing_source->can ('get_labels') ? 'get_labels' : 'get_element_list';
+    my @existing_labels = $existing_source->$method;
     my $remap_results = $self->guess_remap(
         {
             existing_labels => \@existing_labels,
@@ -218,6 +216,9 @@ sub guess_remap {
             my @poss_matches;
     
             my $distance_finder = Text::Fuzzy->new( $from_label, trans => 1);
+            $distance_finder->set_max_distance ($max_distance);
+            #  call nearest on key array?
+            #  if so then specify no_exact
             
             foreach my $target_label (keys %target_labels_hash) {
                 my $distance = $distance_finder->distance( $target_label );
@@ -245,11 +246,13 @@ sub guess_remap {
             }
             else {
                 if ( scalar @$match_subset > 1) {
+                    my $count = @$match_subset;
                     $ambiguous_matches{$from_label} = $match_subset;
+                    say "No definitive match for $from_label,"
+                      . " there were $count matches with the same distance "
+                      . "($min_distance).";
                 }
                 push @unprocessed_from_labels, $from_label;
-                say "We couldn't find a definitive match for $from_label,". 
-                    " there were multiple matches with the same distance.";
             }
         }
     }

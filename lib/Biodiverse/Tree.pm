@@ -7,14 +7,14 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
-use List::Util qw /sum min max uniq/;
+use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 our $AUTOLOAD;
 
@@ -165,7 +165,7 @@ sub delete_node {
     my %args = @_;
 
     #  get the node ref
-    my $node_ref = $self->get_node_ref( node => $args{node} );
+    my $node_ref = $self->get_node_ref_aa( $args{node} );
     return if !defined $node_ref;    #  node does not exist anyway
 
     #  get the names of all descendents
@@ -266,7 +266,7 @@ sub rename_node {
         $old_name = $node_ref->get_name;
     }
 
-    croak "Cannot rename over an existing node"
+    croak "Cannot rename over an existing node ($old_name => $new_name)"
       if $self->exists_node(name => $new_name);
 
     $node_ref->rename (new_name => $new_name);
@@ -385,7 +385,9 @@ sub get_node_ref {
         #foreach my $k (keys $self->{TREE_BY_NAME}) {
         #    say "key: $k";
         #}
-        Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+        Biodiverse::Tree::NotExistsNode->throw(
+            "[Tree] $node does not exist, cannot get ref"
+        );
     }
 
     return $self->{TREE_BY_NAME}{$node};
@@ -401,7 +403,7 @@ sub get_node_ref_aa {
     no autovivification;
 
     return $self->{TREE_BY_NAME}{$node}
-      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist");
+      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist, cannot get ref (aa)");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -758,7 +760,7 @@ sub get_unique_name {
 sub export {
     my $self = shift;
     my %args = @_;
-
+    
     croak "[TREE] Export:  Argument 'file' not specified or null\n"
       if not defined $args{file}
       || length( $args{file} ) == 0;
@@ -859,9 +861,8 @@ sub get_metadata_export {
 sub get_lists_for_export {
     my $self = shift;
 
-    my @sub_list
-      ;    #  get a list of available sub_lists (these are actually hashes)
-           #foreach my $list (sort $self->get_hash_lists) {
+    my @sub_list;
+    #  get a list of available sub_lists (these are actually hashes)
     foreach my $list ( sort $self->get_list_names_below ) {    #  get all lists
         if ( $list eq 'SPATIAL_RESULTS' ) {
             unshift @sub_list, $list;
@@ -894,8 +895,17 @@ sub get_metadata_export_nexus {
             type    => 'boolean',
             default => 0,
         },
+        $self->get_lists_export_metadata,
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
+            type       => 'boolean',
+            default    => 0,
+        },
     );
     for (@parameters) {
+        next if blessed $_;
         bless $_, $parameter_metadata_class;
     }
 
@@ -916,12 +926,46 @@ sub export_nexus {
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
 
+    my $export_colours = $args{export_colours};
+    my $sub_list_name  = $args{sub_list};
+    if (($sub_list_name // '') eq '(no list)') {
+        $sub_list_name = undef;
+    }
+    my $comment_block_hash;
+    my @booters_to_cleanse;
+    if ($export_colours || defined $sub_list_name) {
+        my %comments_block;
+        my $node_refs = $self->get_node_refs;
+        foreach my $node_ref (@$node_refs) {
+            my $booter = $node_ref->get_bootstrap_block;
+            my $sub_list;
+            if (   defined $sub_list_name
+                and $sub_list = $node_ref->get_list_ref_aa ($sub_list_name)
+                ) {
+                $booter->set_value_aa ($sub_list_name => $sub_list);
+                push @booters_to_cleanse, $booter;
+            }
+            #my $boot_text = $booter->encode (
+            #    include_colour => $export_colours,
+            #);
+            #$comments_block{$node_ref->get_name} = $boot_text;
+        }
+        #$comment_block_hash = \%comments_block;
+    }
+  
     print {$fh} $self->to_nexus(
         tree_name => $self->get_param('NAME'),
         %args,
+        #comment_block_hash => $comment_block_hash,
     );
 
     $fh->close;
+
+    #  clean up if needed
+    #  should not do so if we already had such a list?
+    foreach my $booter (@booters_to_cleanse) {
+        $booter->delete_value_aa ($sub_list_name);
+    }
 
     return 1;
 }
@@ -930,7 +974,6 @@ sub get_metadata_export_newick {
     my $self = shift;
 
     my @parameters = (
-        bless(
             {
                 name       => 'use_internal_names',
                 label_text => 'Label internal nodes',
@@ -938,9 +981,11 @@ sub get_metadata_export_newick {
                 type       => 'boolean',
                 default    => 1,
             },
-            $parameter_metadata_class
-        ),
-    );
+        );
+
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }  
 
     my %args = (
         format     => 'Newick',
@@ -960,6 +1005,7 @@ sub export_newick {
 
     open( my $fh, '>', $file )
       || croak "Could not open file '$file' for writing\n";
+
     print {$fh} $self->to_newick(%args);
     $fh->close;
 
@@ -1116,6 +1162,13 @@ sub get_metadata_export_tabular_tree {
 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
             type    => 'boolean',
             default => 0,
+        },
+        {
+            name       => 'export_colours',
+            label_text => 'Export colours',
+            tooltip    => 'Include the branch colours last used to display the tree in the GUI',
+            type       => 'boolean',
+            default    => 0,
         },
     );
 
@@ -1418,7 +1471,8 @@ sub get_max_total_length {
     return $lengths[0];
 }
 
-sub get_total_tree_length {    #  calculate the total length of the tree
+#  duplicated by get_sum_of_branch_lengths, which has a clearer name
+sub get_total_tree_length { #  calculate the total length of the tree
     my $self = shift;
 
     my $length;
@@ -2211,9 +2265,11 @@ sub trim {
         @_,                       #  if they have no named children to keep
     );
 
-    say '[TREE] Trimming';
+    say '[TREE] Trimming tree';
 
     my $delete_internals = $args{delete_internals};
+    
+    my $trim_to_lca = $args{trim_to_lca};
 
     my %tree_node_hash = $self->get_node_hash;
 
@@ -2226,28 +2282,53 @@ sub trim {
  #    then we work with all named nodes that don't have children we want to keep
     if ( !defined $args{trim} && defined $args{keep} ) {
 
+        my $k          = 0;
+        my $k_to_do    = scalar keys %tree_node_hash;
+        my $k_progress = Biodiverse::Progress->new( text => 'Keepers' );
+
       NAME:
         foreach my $name ( keys %tree_node_hash ) {
+            $k++;
+
             next NAME if exists $keep->{$name};
 
             my $node = $tree_node_hash{$name};
 
             next NAME if $node->is_internal_node;
-            next NAME if $node->is_root_node;      #  never delete the root node
+            #  never delete the root node
+            next NAME if $node->is_root_node;
 
-            my %children =
-              $node->get_names_of_all_descendants;    #  make sure we use a copy
-            my $child_count = scalar keys %children;
-            delete @children{ keys %$keep };
+            $k_progress->update(
+                "Checking keeper nodes ($k / $k_to_do)",
+                $k / $k_to_do,
+            );
+            
+            my $delete_flag = 1;
+            
+            if (!$node->is_terminal_node) {
+                #  returns a copy
+                my $children = $node->get_names_of_all_descendants;    
+                my $child_count = scalar keys %$children;
 
-  #  If none of the descendents are in the keep list then we can trim this node.
-  #  Otherwise add this node and all of its ancestors to the keep list.
-            if ( $child_count == scalar keys %children ) {
+                delete @$children{ keys %$keep };
+                if ($child_count != scalar keys %$children) {
+                    #  some descendants in the keep list,
+                    #  so we keep this one
+                    $delete_flag = 0;
+                }
+            }
+
+            #  If none of the descendants are in the keep list then
+            #  we can trim this node.
+            #  Otherwise add this node and all of its ancestors
+            #  to the keep list.
+            if ( $delete_flag ) {
                 $trim->{$name} = $node;
             }
             else {
                 my $ancestors = $node->get_path_to_root_node;
                 foreach my $ancestor (@$ancestors) {
+                    next if $ancestor->is_internal_node;
                     $keep->{ $ancestor->get_name }++;
                 }
             }
@@ -2304,40 +2385,48 @@ sub trim {
             next NODE if !$node->is_internal_node;
             next NODE if $node->is_root_node;
 
-            $progress->update( "Checking nodes ($i / $to_do)", $i / $to_do, );
+            $progress->update(
+                  "Cleaning dangling internal nodes\n"
+                . "($i / $to_do)",
+                $i / $to_do,
+            );
 
-  #  need to ignore any cached descendants (and we cleanup the cache lower down)
+            #  need to ignore any cached descendants
+            #  (and we clean the cache lower down)
             my $children = $node->get_all_descendants( cache => 0 );
-          DESCENDANT:
-            foreach my $child ( keys %$children ) {
-                my $child_node = $children->{$child};
-                next NODE if !$child_node->is_internal_node;
-            }
+            my $have_named_descendant
+              = any {!$_->is_internal_node} values %$children;
+            next NODE if $have_named_descendant;
 
             #  might have already been deleted, so wrap in an eval
             my @deleted_names = eval {
-                $self->delete_node( node => $name, no_delete_cache => 1 ) };
+                $self->delete_node( node => $name, no_delete_cache => 1 )
+            };
             @deleted_hash{@deleted_names} = (1) x @deleted_names;
         }
         $progress->close_off;
 
         $deleted_internal_count = scalar keys %deleted_hash;
-        say
-"[TREE] Deleted $deleted_internal_count internal nodes with no named descendents";
+        say "[TREE] Deleted $deleted_internal_count internal nodes"
+           . "with no named descendents";
+    }
+    
+    if ($trim_to_lca) {
+        $self->trim_to_last_common_ancestor;
     }
 
     #  now some cleanup
     if ( $deleted_internal_count || $deleted_count ) {
-        $self->delete_param('TOTAL_LENGTH')
-          ;    #  need to clear this up in old trees
+        #  need to clear this up in old trees
+        $self->delete_param('TOTAL_LENGTH');
         $self->delete_cached_values;
 
         #  This avoids circular refs in the ones that were deleted
         foreach my $node ( values %tree_node_hash ) {
             $node->delete_cached_values;
         }
-        $self
-          ->delete_cached_values_below;   #  and clear the remaining node caches
+        #  and clear the remaining node caches
+        $self->delete_cached_values_below;
     }
     $keep = undef;    #  was leaking - not sure it matters, though
 
@@ -2347,6 +2436,34 @@ sub trim {
 
     return $self;
 }
+
+sub trim_to_last_common_ancestor {
+    my $self = shift;
+
+    #  Remove root nodes until they have zero or multiple children.
+    #  The zeroes are kept to avoid empty trees.
+    my $root = $self->get_root_node;
+    my @deleters;
+    while (my $children = $root->get_children) {
+        last if scalar @$children != 1;
+        push @deleters, $root;
+        my $name = $root->get_name;
+        $root = $children->[0];
+        $root->delete_parent;
+        $self->delete_from_node_hash (node => $name);
+    }
+    $root->set_length (length => 0);
+
+    return;
+}
+
+#  wrapper method so we can have a different name
+sub get_sum_of_branch_lengths {
+    my $self = shift;
+    
+    return $self->get_sum_of_branch_lengths_below;
+}
+
 
 sub numerically { $a <=> $b }
 
@@ -2702,6 +2819,8 @@ sub remap_labels_from_hash {
         next if !$self->exists_node (name => $r);
 
         my $new_name = $remap_hash->{$r};
+        next if !defined $new_name || $new_name eq $r;
+        
         $self->rename_node (
             old_name => $r,
             new_name => $new_name,
@@ -2732,7 +2851,8 @@ sub remap_labels_from_hash {
 # the auto-remap logic.
 sub get_labels {
     my $self = shift;
-    return keys( %{ $self->get_named_nodes() } );
+    my $named_nodes = $self->get_named_nodes;
+    return wantarray ? keys %$named_nodes : [keys %$named_nodes];
 }
 
 1;

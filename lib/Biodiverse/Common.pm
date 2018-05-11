@@ -26,6 +26,7 @@ use HTML::QuickTable;
 #use MRO::Compat;
 use Class::Inspector;
 use Ref::Util qw { :all };
+use File::BOM qw / :subs /;
 
 
 
@@ -45,7 +46,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 
@@ -123,7 +124,7 @@ sub load_file {
     croak "File $args{file} does not exist or is not readable\n"
       if !-r $args{file};
 
-    my $suffix = $args{file} =~ /\..+?$/;
+    (my $suffix) = $args{file} =~ /(\..+?)$/;
 
     my @importer_funcs
       = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
@@ -195,7 +196,10 @@ sub load_sereal_file {
 
     #my $structure;
     #$self = $decoder->decode($string, $structure);
-    $decoder->decode($string, $self);
+    eval {
+        $decoder->decode($string, $self);
+    };
+    croak $@ if $@;
 
     $self->set_last_file_serialisation_format ('sereal');
 
@@ -1996,9 +2000,21 @@ sub get_cached_metadata {
 
     my $cache
       = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
+    #  reset the cache if the versions differ (typically they would be older),
+    #  this ensures new options are loaded
+    $cache->{__VERSION} //= 0;
+    if ($cache->{__VERSION} != $VERSION || $ENV{BD_NO_METADATA_CACHE}) {
+        %$cache = ();
+        $cache->{__VERSION} = $VERSION;
+    }
     return $cache;
 }
 
+sub delete_cached_metadata {
+    my $self = shift;
+    
+    delete $self->{_cache}{METADATA_CACHE};
+}
 
 #my $indices_wantarray = 0;
 #  get the metadata for a subroutine
@@ -2018,7 +2034,7 @@ sub get_args {
     $sub_args = eval {$self->$metadata_sub (%args)};
     my $error = $EVAL_ERROR;
 
-    if (blessed $error) {
+    if (blessed $error and $error->can('rethrow')) {
         $error->rethrow;
     }
     elsif ($error) {

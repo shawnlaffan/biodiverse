@@ -15,10 +15,11 @@ use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
 
 use Biodiverse::BaseStruct;
+use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -54,6 +55,15 @@ sub new {
         $self->add_children(%args);
     }
 
+    if (exists $args{boot} && defined $args{boot} && length $args{boot}) {
+        #say "We found the boot arg, it is $args{boot}";
+        my $booter = $self->get_bootstrap_block;
+        $booter->decode (raw_bootstrap => $args{boot});
+        #  store the raw text somewhere that can be deleted with impunity
+        #  handy for debugging
+        $booter->set_cached_value (RAW_TEXT => $args{boot});
+    }
+    
     return $self;
 }
 
@@ -266,6 +276,24 @@ sub get_total_length {
     my $tmp = $self->get_value ('TOTAL_LENGTH');
     return $tmp if defined $tmp;
     return $self->get_length_below;  #  calculate total length otherwise
+}
+
+sub get_sum_of_branch_lengths_below {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+    
+    my $sum = $self->get_cached_value ('SUM_OF_BRANCH_LENGTHS_BELOW');
+    
+    return $sum if defined $sum;
+    
+    my %nodes = $self->get_all_descendants_and_self;
+    foreach my $node (values %nodes) {
+        $sum += $node->get_length;
+    }
+
+    $self->set_cached_value (SUM_OF_BRANCH_LENGTHS_BELOW => $sum);
+
+    return $sum;
 }
 
 sub get_longest_path_length_to_terminals {
@@ -1085,6 +1113,32 @@ sub get_path_lengths_to_root_node {
     return wantarray ? %path_lengths : \%path_lengths;
 }
 
+#  inconsistent with the non-aa version, as cache is passed
+#  as a 0 in that version to disable it
+sub get_path_lengths_to_root_node_aa {
+    my ($self, $no_cache) = @_;
+
+    if (!$no_cache) {
+        my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
+        return (wantarray ? %$path : $path) if $path;
+    }
+
+    my %path_lengths;
+    $path_lengths{$self->get_name} = $self->get_length;
+
+    my $node = $self->get_parent;
+    while ($node) {  #  undef when root node
+        $path_lengths{$node->get_name} = $node->get_length;
+        $node = $node->get_parent;
+    }
+
+    if (!$no_cache) {
+        $self->set_cached_value (PATH_LENGTHS_TO_ROOT_NODE => \%path_lengths);
+    }
+
+    return wantarray ? %path_lengths : \%path_lengths;
+}
+
 #  get all the nodes along a path from self to another node,
 #  including self and other, and the shared ancestor
 sub get_path_to_node {
@@ -1379,6 +1433,15 @@ sub get_parent {
     return $_[0]->{_PARENT};
 }
 
+sub delete_parent {
+    my $self = shift;
+    $self->{_PARENT} = undef;
+    $self->delete_cached_values;
+    #  should clear cache below unless
+    #  told otherwise
+    #$self->delete_cached_values_below;
+}
+
 sub set_parents_below {  #  sometimes the parents aren't set properly by extension subs
     my $self = shift;
     
@@ -1533,15 +1596,45 @@ sub get_terminal_node_last_number {
 sub number_terminal_nodes {
     my $self = shift;
     my %args = @_;
+    
+    #  new alg.
+    #  Climb down the tree, taking the "leftmost" child path
+    #  When we hit a terminal, give it a number and climb back up
+    #  then climb down the next child, etc
+    #  Keep track of number of terminals encountered 
+    my $left  = $args{count_sofar} || 0;
+    my $right = $left;
 
-    #  get an array of the terminal elements (this will also cache them)
+    foreach my $child ($self->get_children) {
+        if ($child->is_terminal_node) {
+            $right++;
+            $child->set_value(TERMINAL_NODE_FIRST => $right);
+            $child->set_value(TERMINAL_NODE_LAST  => $right);
+        }
+        else {
+            $right = $child->number_terminal_nodes (count_sofar => $right);
+        }
+    }
+
+    $left += 1;
+    $self->set_value(TERMINAL_NODE_FIRST => $left);
+    $self->set_value(TERMINAL_NODE_LAST  => $right);
+
+    return $right;
+}
+
+sub _number_terminal_nodes_old_alg {
+    my $self = shift;
+    my %args = @_;
+    
+    #  get the number of terminal elements (this will also cache them)
     my @te = keys %{$self->get_terminal_elements};
 
     my $prev_child_elements = $args{count_sofar} || 1;
     $self->set_value (TERMINAL_NODE_FIRST => $prev_child_elements);
     $self->set_value (TERMINAL_NODE_LAST => $prev_child_elements + $#te);
     foreach my $child ($self->get_children) {
-        my $count = $child->number_terminal_nodes ('count_sofar' => $prev_child_elements);
+        my $count = $child->_number_terminal_nodes_old_alg ('count_sofar' => $prev_child_elements);
         $prev_child_elements += $count;
     }
 
@@ -1562,11 +1655,61 @@ sub number_nodes {
     return $number;
 }
 
-#  convert the entire tree to a table structure, using a basestruct object as an intermediate
+
+sub set_bootstrap_value {
+    my ($self, %args) = @_;
+    my $key   = $args{ key   };
+    my $value = $args{ value };
+
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_value_aa( $key => $value );
+
+    return;
+}
+
+sub get_bootstrap_value {
+    my ($self, %args) = @_;
+    my $key   = $args{ key   };
+
+    my $bootstrap_block = $self->get_bootstrap_block();
+    return $bootstrap_block->get_value( key => $key );
+}
+
+sub set_bootstrap_colour_aa {
+    my ($self, $colour) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    $bootstrap_block->set_colour_aa ($colour);
+    return;
+}
+
+sub get_bootstrap_colour {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour;
+}
+
+sub get_bootstrap_colour_8bit_rgb {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour_8bit_rgb;
+}
+
+# isolate dealings with the underlying object hash to one function
+sub get_bootstrap_block {
+    my ($self) = @_;
+    return
+      $self->{_bootstrap_block}
+      ||=  Biodiverse::TreeNode::BootstrapBlock->new;
+}
+
+
+#  convert the entire tree to a table structure, using a basestruct
+#  object as an intermediate
 sub to_table {
     my $self = shift;
     my %args = @_;
     my $treename = $args{name} || "TREE";
+
     
     #  assign unique ID numbers if not already done
     defined ($self->get_value ('NODE_NUMBER')) || $self->number_nodes;
@@ -1578,6 +1721,10 @@ sub to_table {
             plot_coords_left_to_right => $args{plot_coords_left_to_right},
         );
     }
+
+    # figure out if we're meant to be exporting colours or not
+    my $export_colours
+        = !$self->get_bootstrap_block->has_exclusion( key => 'color' );
     
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
@@ -1586,7 +1733,10 @@ sub to_table {
 
 
     my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
-#    push @$data, \@header;
+    if ( $export_colours ) {
+        push @header, "COLOUR";
+    }
+    
 
     my ($parent_num, $taxon_name);
     
@@ -1608,9 +1758,18 @@ sub to_table {
         }
         my $number = $node->get_value ('NODE_NUMBER');
         my %data;
-        #  add to the basestruct object
-        @data{@header} = ($treename, $number, $parent_num, $node->get_length || 0, $taxon_name);
 
+        #  add to the basestruct object
+        if( $export_colours ) {
+            my $colour = $node->get_bootstrap_value (key => 'color');
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name, $colour);
+        }
+        else {
+            @data{@header} = ($treename, $number, $parent_num, 
+                              $node->get_length || 0, $taxon_name);
+        }
+        
         #  get the additional list data if requested
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
             my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});
@@ -1862,6 +2021,11 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         #$name = "'$name'";  #  quote otherwise
     }
     
+    # build the bootstrap block - should be conditional
+    my $bootstrap_block = $self->get_bootstrap_block();
+    my $bootstrap_string = $bootstrap_block->encode (
+        include_colour => $args{export_colours} || $args{include_colours},
+    );
 
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";
@@ -1876,28 +2040,25 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         if (defined ($name) && $use_int_names ) {
             $string .= $name;  
         }
+        $string .= $bootstrap_string;
         if (defined $self->get_length) {
             $string .= ":" . $self->get_length;
         }
-        if (defined $self->get_value($boot_name)) {
-            $string .= "[" . $self->get_value($boot_name) . "]";
-        }
-        
     }
-    else { # terminal nodes
-        #$string .= "'" . $name . "'";
+    # terminal nodes
+    else {
         $string .= $name;
+        $string .= $bootstrap_string;
+
         if (defined $self->get_length) { 
             $string .= ":" . $self->get_length;
         }
-        if (defined $self->get_value($boot_name)) { # state at nodes sometimes put as bootstrap values
-            $string .= "[" . $self->get_value($boot_name) . "]";
-        }
-        #$string .= ",";
     }
-
+    
     return $string;
 }
+
+
 
 sub print { # prints out the tree (for debugging)
     my $self = shift;
@@ -2061,6 +2222,13 @@ sub get_list_ref {
     defined $list ? $self->{$list} : undef;
 }
 
+sub get_list_ref_aa {
+    my ($self, $list) = @_;
+    no autovivification;
+    defined $list ? $self->{$list} : undef;
+}
+
+
 sub get_node_range {
     my $self = shift;
     my %args = @_;
@@ -2073,16 +2241,16 @@ sub get_node_range {
 
     return $cached_range if defined $cached_range;
 
-    my @labels   = ($self->get_name);
-    my $children =  $self->get_all_descendants;
+    my $children =  $self->get_all_named_descendants;
+    my @labels   = ($self->get_name, keys %$children);
 
-    #  collect the set of non-internal (named) nodes
-    #  Possibly should only work with terminals
-    #  which would simplify things.
-    foreach my $name (keys %$children) {
-        next if $children->{$name}->is_internal_node;
-        push (@labels, $name);
-    }
+    ##  collect the set of non-internal (named) nodes
+    ##  Possibly should only work with terminals
+    ##  which would simplify things.
+    #foreach my $name (keys %$children) {
+    #    next if $children->{$name}->is_internal_node;
+    #    push (@labels, $name);
+    #}
 
     my $range = $bd->get_range_union (labels => \@labels, return_count => 1);
 

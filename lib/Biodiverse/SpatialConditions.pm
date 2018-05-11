@@ -24,7 +24,7 @@ use Ref::Util qw { :all };
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;
@@ -2839,6 +2839,7 @@ sub sp_get_spatial_output_list_value {
 
     my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
+    my $no_die_if_not_exists = $args{no_error_if_index_not_exists};
     
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -2862,7 +2863,11 @@ sub sp_get_spatial_output_list_value {
       if not $sp->exists_element (element => $element);
 
     my $list = $sp->get_list_ref (list => $list_name, element => $element);
-    return if not exists $list->{$index};
+
+    croak "Index $index does not exist at element $element\n"
+      if !$no_die_if_not_exists && !exists $list->{$index};
+    
+    no autovivification;
 
     return $list->{$index};
 }
@@ -2872,9 +2877,29 @@ sub get_metadata_sp_spatial_output_passed_defq {
     my %args = @_;
 
     my $description =
-        q{Returns 1 if an element passed the definition query for a previously calculated spatial output.};
+        "Returns 1 if an element passed the definition query "
+        . "for a previously calculated spatial output";
 
     #my $example = $self->get_example_sp_get_spatial_output_list_value;
+    my $examples = <<"END_EX"
+#  Used for spatial or cluster type analyses:
+#  The simplest case is where the current
+#  analysis includes a def query and you
+#  want to use it in a spatial condition. 
+sp_spatial_output_passed_defq();
+
+#  Using another output in this basedata
+#  In this case the output is called 'analysis1'
+sp_spatial_output_passed_defq(
+    output => 'analysis1',
+);
+
+#  Return true if a specific element passed the def query
+sp_spatial_output_passed_defq(
+    element => '153.5:-32.5',
+);
+END_EX
+  ;
 
     my %metadata = (
         description => $description,
@@ -2882,7 +2907,7 @@ sub get_metadata_sp_spatial_output_passed_defq {
         #required_args  => [qw /output/],
         optional_args  => [qw /element output/],
         result_type    => 'always_same',
-        #example        => $example,
+        example        => $examples,
     );
 
     return $self->metadata_class->new (\%metadata);
@@ -2914,9 +2939,10 @@ sub sp_spatial_output_passed_defq {
 
         # make sure we aren't trying to access ourself
         my $my_name = $self->get_name;
-        croak "def_query can't reference itself" if(defined $my_name && 
-                                                    $my_name eq $sp_name 
-                                                    && $self->is_def_query);
+        croak "def_query can't reference itself"
+          if defined $my_name
+             && $my_name eq $sp_name 
+             && $self->is_def_query;
     }
     
     else {
@@ -2924,8 +2950,9 @@ sub sp_spatial_output_passed_defq {
         $sp = $self->get_caller_spatial_output_ref;
 
         # make sure we aren't trying to access ourself
-        croak "def_query can't reference itself" if eval{$self->is_def_query};
-        
+        croak "def_query can't reference itself"
+          if eval {$self->is_def_query};
+
         return 1
           if !eval {$self->is_def_query} && $self->get_param('VERIFYING');
     }

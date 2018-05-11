@@ -2,6 +2,8 @@ package Biodiverse::Indices::PhylogeneticRelative::DataAlias;
 use strict;
 use warnings;
 
+our $VERSION = '2.00';
+
 use Data::Alias qw /alias/;
 
 sub _calc_phylo_rpe1_inner {

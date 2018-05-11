@@ -13,7 +13,7 @@ use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
 
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::Project;
 
@@ -147,6 +147,7 @@ sub run {
     # 5. Run the remapper
     $gui->do_remap(
         default_remapee => $gui->get_project->get_selected_phylogeny,
+        check_first     => 1,
     );
         
     #  SWL:  not sure why we return undef in void context

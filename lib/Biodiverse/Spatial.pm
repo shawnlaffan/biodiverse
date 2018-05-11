@@ -14,7 +14,7 @@ use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -390,6 +390,15 @@ sub find_list_indices_across_elements {
     return wantarray ? %index_hash : \%index_hash;
 }
 
+my $INVALID_CALCS_ERROR_MESSAGE = <<'END_INVALID_CALCS_ERR_MSG'
+[SPATIAL] No valid analyses, dropping out
+Possible reasons:
+There are insufficient neighbour conditions for the chosen calculations
+(you specified one but turnover calculations, for example, require two).
+Phylogenetic calculations were selected but there is no tree.
+Numeric label calculations were selected but your labels are not numeric.
+END_INVALID_CALCS_ERR_MSG
+  ;
 
 
 #
@@ -460,7 +469,7 @@ sub sp_calc {
     );
 
     #  drop out if we have none to do and we don't have an override flag
-    croak "[SPATIAL] No valid analyses, dropping out\n"
+    croak $INVALID_CALCS_ERROR_MESSAGE
         if (        $indices_object->get_valid_calculation_count == 0
             and not $args{override_valid_analysis_check});
 

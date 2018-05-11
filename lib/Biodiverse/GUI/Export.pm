@@ -15,17 +15,19 @@ use Cwd;
 
 use List::MoreUtils qw /any none/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
 
+use 5.010;
 
 sub Run {
-    my $object = shift;
-    my $selected_format = shift // '';
-
+    my ($object, %args) = @_;
+    
+    my $selected_format = $args{selected_format} || '';
+    
     #  sometimes we get called on non-objects,
     #  eg if nothing is highlighted
     return if ! defined $object;
@@ -124,8 +126,8 @@ sub Run {
     if ($writefile eq 'yes') {
         eval {
             $object->export(
-                format   => $selected_format,
-                file     => $filename,
+                format         => $selected_format,
+                file           => $filename,
                 @$extracted_params,
             )
         };

@@ -15,7 +15,7 @@ use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 require Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -1314,6 +1314,7 @@ sub manage_empty_basedatas {
           menu_rename_basedata_labels
           menu_rename_basedata_groups
           menu_attach_basedata_properties
+          menu_delete_element_properties
           menu_basedata_reorder_axes
           menu_binarise_basedata_elements
           menu_attach_ranges_as_properties

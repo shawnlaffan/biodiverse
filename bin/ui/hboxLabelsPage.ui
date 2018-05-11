@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!-- interface-requires gtk+ 2.12 -->
+  <requires lib="gtk+" version="2.18"/>
   <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkAdjustment" id="adjustment1"/>
   <object class="GtkAdjustment" id="adjustment2"/>
@@ -175,6 +175,52 @@
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Grid</property>
                             <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitem_label_grid_colour_scale">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Control the colour scaling on the grid</property>
+                            <property name="label" translatable="yes">Colour scaling</property>
+                            <property name="use_underline">True</property>
+                            <child type="submenu">
+                              <object class="GtkMenu" id="menu2">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_auto">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip_text" translatable="yes">Switches to log scaling when max richness is &gt;20 or ratio of max richness to number of selected labels is 80% </property>
+                                    <property name="label" translatable="yes">auto</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_linear">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">linear</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radiomenuitem_grid_colouring_auto</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkRadioMenuItem" id="radiomenuitem_grid_colouring_log">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">natural log</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="draw_as_radio">True</property>
+                                    <property name="group">radiomenuitem_grid_colouring_auto</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -567,11 +613,12 @@ Does not affect the vertical connectors.</property>
                               <object class="GtkFrame" id="phylogenyGraphFrame">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="resize_mode">queue</property>
                                 <property name="label_xalign">0</property>
                                 <property name="shadow_type">none</property>
                               </object>
                               <packing>
-                                <property name="resize">True</property>
+                                <property name="resize">False</property>
                                 <property name="shrink">True</property>
                               </packing>
                             </child>

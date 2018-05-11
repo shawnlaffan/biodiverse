@@ -17,6 +17,7 @@ use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
+use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Naturally qw /ncmp/;
@@ -35,8 +36,7 @@ use English qw { -no_match_vars };
 
 #use Math::Random::MT::Auto qw /rand srand shuffle/;
 
-use
-  Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
+use Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects
 use Biodiverse::Spatial;
 use Biodiverse::RegionGrower;
@@ -51,7 +51,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use parent qw {Biodiverse::Common};
 
@@ -1638,7 +1638,7 @@ sub import_data_shapefile {
         my $fnamebase = $file->stringify;
 
 #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
-        my $shapefile = Geo::ShapeFile->new($fnamebase);
+        my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
 
         #say "have $shapefile";
 
@@ -1967,7 +1967,7 @@ sub import_data_spreadsheet {
             my $i = -1;
             foreach my $val (@group_field_vals) {
                 $i++;
-                if ( !defined $val ) {
+                if ( !defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
                     croak "record $count has an undefined coordinate\n";
                 }
@@ -1976,6 +1976,7 @@ sub import_data_spreadsheet {
                 my $g_size = $group_sizes[$i];
 
                 if ( $g_size >= 0 ) {
+                    next ROW if (!(length $val) || $val eq 'NA') && $skip_lines_with_undef_groups;
                     if (   $is_lat_field
                         && $is_lat_field->{ $group_field_names[$i] } )
                     {
@@ -2171,7 +2172,9 @@ sub run_import_post_processes {
     $groups_ref->delete_param('SAMPLE_COUNTS_ARE_FLOATS');
 
     if ( $orig_label_count != $self->get_label_count ) {
-        $labels_ref->generate_element_coords;
+        #$labels_ref->generate_element_coords;
+        #  defer recalculation until needed (saves some time)
+        $labels_ref->delete_param('AXIS_LIST_ORDER');
     }
 
     if ( $orig_group_count != $self->get_group_count ) {
@@ -2286,6 +2289,62 @@ sub assign_element_properties {
     }
 
     return $count;
+}
+
+# returns a hash. 'groups' maps to a hash mapping from element names
+# to element property hashes for this basedata's groups. 'labels'
+# likewise.
+sub get_all_element_properties {
+    my ($self, %args) = shift;
+    my %results_hash;
+    
+    my $gp = $self->get_groups_ref;
+    $results_hash{groups} = $gp->get_all_element_properties();
+    
+    my $lb = $self->get_labels_ref;
+    $results_hash{labels} = $lb->get_all_element_properties();
+
+    return wantarray ? %results_hash : \%results_hash;
+}
+
+sub delete_group_element_property {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_element_property(%args);
+}
+
+sub delete_label_element_property {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_element_property(%args);
+}
+
+sub delete_group_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_groups_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_label_element_property_aa {
+    my ($self, $prop) = @_;
+    $self->get_labels_ref->delete_element_property(prop => $prop);
+}
+
+sub delete_individual_group_properties {
+    my ($self, %args) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_label_properties {
+    my ($self, %args) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(%args);
+}
+
+sub delete_individual_group_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_groups_ref->delete_properties_for_given_element(el => $el);
+}
+
+sub delete_individual_label_properties_aa {
+    my ($self, $el) = @_;
+    $self->get_labels_ref->delete_properties_for_given_element(el => $el);
 }
 
 sub rename_labels {
@@ -2634,6 +2693,11 @@ sub add_element {    #  run some calls to the sub hashes
             );
         }
     }
+    
+    #  we could use the labels_are_numeric method, but don't want to trigger the search in an early import
+    if (!looks_like_number $label && $self->get_param ('NUMERIC_LABELS')) {
+        $self->set_param (NUMERIC_LABELS => 0);
+    }
 
     return;
 }
@@ -2670,6 +2734,12 @@ sub add_element_simple_aa {
         #  labels is the transpose of groups
         $gp_ref->add_sub_element_aa( $group, $label, $count, $csv_object );
         $lb_ref->add_sub_element_aa( $label, $group, $count, $csv_object );
+
+        #  potential slowdown - this sub is a hot path under the randomisations...        
+        ##  we could use the labels_are_numeric method, but don't want to trigger the search in an early import
+        #if (!looks_like_number $label && $self->get_param ('NUMERIC_LABELS')) {
+        #    $self->set_param (NUMERIC_LABELS => 0);
+        #}
     }
 
     1;
@@ -3273,7 +3343,12 @@ sub delete_labels {
     }
 
     foreach my $element (@$elements) {
-        $self->delete_element( type => 'LABEL', element => $element );
+        $self->delete_element( type => 'LABELS', element => $element );
+    }
+    
+    #  clear the numeric labels flag, just in case
+    if (!$self->get_param ('NUMERIC_LABELS')) {
+        $self->delete_param ('NUMERIC_LABELS');
     }
 
     return;
@@ -3304,7 +3379,14 @@ sub delete_label {
 
     my $label = $args{label} // croak "Argument 'label' not defined\n";
 
-    return $self->delete_element( %args, type => 'LABELS', element => $label );
+    my $result = $self->delete_element( %args, type => 'LABELS', element => $label );
+    
+    #  clear the numeric labels flag, just in case we only have numeric data remaining
+    if (!$self->get_param ('NUMERIC_LABELS')) {
+        $self->delete_param ('NUMERIC_LABELS');
+    }
+    
+    return $result;
 }
 
 sub delete_group {
@@ -3325,6 +3407,9 @@ sub delete_element {
       if !defined $args{type};
 
     my $type = uc( $args{type} );
+    if ($type eq 'GROUP' || $type eq 'LABEL') {
+        $type .= 'S';  
+    }
     croak "Invalid element type in call to delete_element, $type\n"
       if $type ne 'GROUPS' && $type ne 'LABELS';
 
@@ -3419,20 +3504,21 @@ sub delete_sub_element {
 sub delete_sub_element_aa {
     my ( $self, $label, $group ) = @_;
 
-    my $groups_ref = $self->get_groups_ref;
-    my $labels_ref = $self->get_labels_ref;
+    #my $groups_ref = $self->get_groups_ref;
+    #my $labels_ref = $self->get_labels_ref;
 
-#  return value of delete_sub_element_aa is the number of subelements remaining,
-#  or undef if no subelements list
+    #  return value of delete_sub_element_aa
+    #  is the number of subelements remaining,
+    #  or undef if no subelements list
 
-    if ( !( $labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
+    if ( !( $self->get_labels_ref->delete_sub_element_aa( $label, $group ) // 1 ) ) {
         $self->delete_element(
             type    => 'LABELS',
             element => $label,
         );
     }
 
-    if ( !( $groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
+    if ( !( $self->get_groups_ref->delete_sub_element_aa( $group, $label ) // 1 ) ) {
         $self->delete_element(
             type    => 'GROUPS',
             element => $group,
@@ -3630,14 +3716,11 @@ sub get_range_union {
     my %shared_elements;
   LABEL:
     foreach my $label (@$labels) {
-
-#next if not $self->exists_label (label => $label);  #  skip if it does not exist - get_groups_with_label_as_hash has same effect
         my $elements_now =
-          $self->get_groups_with_label_as_hash( label => $label );
-        next LABEL
-          if !scalar
-          keys %$elements_now; #  empty hash - must be no groups with this label
-                               #  add these elements as a hash slice
+          $self->get_groups_with_label_as_hash_aa ( $label );
+        #  if empty hash then must be no groups with this label
+        next LABEL if !scalar keys %$elements_now; 
+        #  add these elements as a hash slice
         @shared_elements{ keys %$elements_now } = undef;
     }
 
@@ -3834,6 +3917,14 @@ sub exists_label {
     my %args = @_;
     return $self->get_labels_ref->exists_element(
         element => ( $args{label} // $args{element} ) );
+}
+
+sub exists_label_aa {
+    $_[0]->get_labels_ref->exists_element_aa( $_[1] );
+}
+
+sub exists_group_aa {
+    $_[0]->get_groups_ref->exists_element_aa( $_[1] );
 }
 
 sub exists_label_in_group {
@@ -5046,6 +5137,8 @@ sub remap_labels_from_hash {
 
     foreach my $label ( keys %remap ) {
         my $remapped = $remap{$label};
+ 
+        next if !defined $remapped || $label eq $remapped;
 
         $self->rename_label(
             label            => $label,

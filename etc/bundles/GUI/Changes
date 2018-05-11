@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse
 
+2.000 2017-11-23
+    - Bump required version for Task::Biodiverse::NoGUI to 2.000
+
 1.99007 2017-01-29
     - Remove Gtk2::GladeXML from dependency list
 

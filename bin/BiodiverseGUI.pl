@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -248,9 +248,10 @@ See http://www.purl.org/biodiverse for more details.
     perl BiodiverseGUI.pl matrixfile.bms
 
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Shawn Laffan, Eugene Lubarsky, Dan Rosauer, Anthony Knittel, Michael Zhou, Anderson Ku
+Shawn Laffan, Eugene Lubarsky, Dan Rosauer, Anthony Knittel, Michael Zhou,
+Anderson Ku, Luke Fitzpatrick, Jason Mumbulla
 
 =head1 LICENSE
 

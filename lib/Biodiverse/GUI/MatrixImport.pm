@@ -9,7 +9,7 @@ use File::BOM qw / :subs /;
 
 use Gtk2;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport
@@ -188,7 +188,8 @@ sub run {
     # run the remapper
     $gui->do_remap(
         default_remapee => $gui->get_project->get_selected_matrix,
-        );
+        check_first     => 1,
+    );
 
     return $matrix_ref;
 }

@@ -3,13 +3,14 @@ package Biodiverse::Statistics;
 use strict;
 use warnings;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Carp;
 
 use POSIX qw ( ceil );
 use List::Util;
 use List::MoreUtils;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 use Statistics::Descriptive;
 use base qw /Statistics::Descriptive::Full/;
@@ -51,7 +52,7 @@ sub add_data {
   
     my $aref;
 
-    if (ref $_[0] eq 'ARRAY') {
+    if (is_arrayref $_[0]) {
       $aref = $_[0];
     }
     else {

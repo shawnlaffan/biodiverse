@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -48,6 +48,11 @@ my $EMPTY_STRING = q{};
 my $mx_class_default = 'Biodiverse::Matrix';
 my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
+use Biodiverse::Metadata::Export;
+my $export_metadata_class = 'Biodiverse::Metadata::Export';
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 #  use the "new" sub from Tree.
 
@@ -76,6 +81,134 @@ sub get_valid_indices {
 
 sub get_valid_indices_sub {
     return 'get_valid_cluster_indices';
+}
+
+
+sub get_metadata_export_nexus {
+    my ($self, %args) = @_;
+    
+    #  make sure we don't mess with the original, as it is probably cached
+    my %super_metadata = $self->SUPER::get_metadata_export_nexus (%args);
+    my $super_parameters = $super_metadata{parameters};
+    
+    my @parameters = (
+        @$super_parameters,
+        {
+            name       => 'generate_geotiff',
+            label_text => 'Generate a geoTIFF file of the most recently used colours?',
+            tooltip    => "Should a geoTIFF file of the map be generated? "
+                        . 'It will contain numbered classes and have an associated colour '
+                        . 'map to match the most recently used colours of the tree.',
+            type       => 'boolean',
+            default    => 0,
+        },
+    );
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
+    #  do we want to provide the geotiff args as well?
+    #my $gps = $self->get_basedata_ref->get_groups_ref;
+    #my %geotiff_metadata = $gps->get_metadata_export_geotiff;
+
+    $super_metadata{parameters} = \@parameters;
+    
+    return wantarray ? %super_metadata : \%super_metadata;
+}
+
+
+sub export_nexus {
+    my ($self, %args) = @_;
+
+    #  trigger early exit if we cannot open these files.
+    my $list_name = 'COLOUR';
+    my $clr_fname = $args{file} . '_' . $list_name . '.clr';
+    my $qml_fname = $args{file} . '_' . $list_name . '.txt';
+    open my $fh_clr, '>', $clr_fname
+      or croak "Unable to open ESRI color map file for writing\n$!";
+    open my $fh_qml, '>', $qml_fname
+      or croak "Unable to open QGIS color map file for writing\n$!";
+    
+    #  do the tree
+    $self->SUPER::export_nexus (%args);
+    
+    #  now do the spatial part
+    my $bd = $self->get_basedata_ref;
+    my $gp = $bd->get_groups_ref;
+    my $sp = $bd->add_spatial_output (
+        name => $self->get_name . ' (for export purposes only)'
+    );
+    if (!defined $sp->get_cell_sizes) {  #  should be set in add_spatial_output
+        $sp->set_param (CELL_SIZES => scalar $bd->get_cell_sizes);
+    }
+    $bd->delete_output (output => $sp);  #  don't leave it on the basedata
+    foreach my $element ($gp->get_element_list) {
+        $sp->add_element (element => $element);
+        #  set default colour
+        $sp->add_to_hash_list (
+            element    => $element,
+            list       => $list_name,
+            $list_name => 0,
+        );
+    }
+
+    #  black is the default "out of tree" colour in Dendrogram.pm
+    #  for branches, but grey is used for the cells
+    my $black_hex = '#000000';
+    my $grey_hex  = '#E6E6E6';
+    my $white_hex = '#FFFFFF';
+    my %colour_table = (
+        #  don't set these
+        #  - we want to separate deliberate choices from defaults
+        #  in the class table
+        #$black_hex => {arr => [0,0,0], num => 0},
+        #$grey_hex  => {arr => [230, 230, 230], num => 0},
+    );
+    my %class_table  = (0 => [230, 230, 230]);
+    my $max_num = 0;
+
+    #  sort for consistency of class nums across runs
+    my %nc;  #  name cache
+    foreach my $node_ref (
+            sort {($nc{$a} //= $a->get_name) cmp ($nc{$b} //= $b->get_name)}
+                 $self->get_terminal_node_refs
+            ) {
+        my $element = $node_ref->get_name;
+        next if !$gp->exists_element_aa ($element);
+        my $colour_hex = $node_ref->get_bootstrap_colour_8bit_rgb // $black_hex;
+
+        if (!exists $colour_table{$colour_hex}) {
+            #  still need to sanity check that we have hex rgb...
+            #  should use Convert::Color rgb8 type
+            my @rgb_arr = $colour_hex =~ /([a-fA-F\d]{2})/g;
+            @rgb_arr = map {0 + hex "0x$_"} @rgb_arr; 
+            $max_num ++;
+            $colour_table{$colour_hex} = $max_num;
+            $class_table{$max_num}     = \@rgb_arr;
+        }
+
+        my $colour_num = $colour_table{$colour_hex};
+        $sp->add_to_hash_list (
+            element    => $element,
+            list       => $list_name,
+            $list_name => $colour_num,
+        );
+    }
+    $sp->export_geotiff (
+        %args,
+        list      => $list_name,
+        band_type => 'UInt32',
+        no_data_value => 0xffffffff,
+    );
+
+    foreach my $class (sort {$a <=> $b} keys %class_table) {
+        say {$fh_clr} join q{ }, ($class, @{$class_table{$class}});
+        say {$fh_qml} join q{,}, ($class, @{$class_table{$class}}, 255, $class);
+    }
+    $fh_clr->close;
+    $fh_qml->close;
+
+    return;
 }
 
 #  the master export sub is in Biodiverse::Tree
@@ -2314,6 +2447,8 @@ sub sp_calc {
 
     #  run any global post_calcs
     $indices_object->run_postcalc_globals (%args);
+    
+    $self->delete_cached_metadata;
 
     return 1;
 }

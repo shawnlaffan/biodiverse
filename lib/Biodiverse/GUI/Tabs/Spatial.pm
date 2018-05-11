@@ -5,13 +5,14 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number refaddr/;
+use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use Time::HiRes;
 use Sort::Naturally qw /nsort/;
+use Ref::Util qw /is_ref is_hashref is_arrayref/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -277,6 +278,12 @@ sub new {
         menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
+        
+        menuitem_spatial_tree_colour_mode_hue  => {toggled  => \&on_tree_colour_mode_changed},
+        menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
+        menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
+        
+        menuitem_spatial_tree_show_legend => {toggled => \&on_show_tree_legend_changed},
     );
 
     #  bodge - should set the radio group
@@ -467,29 +474,50 @@ sub init_dendrogram {
         click_func      => $click_closure,
         select_func     => $select_closure,
         parent_tab      => $self,
+        want_legend     => 1,
+        no_use_slider_to_select_nodes => 1,
     );
 
-    $self->{dendrogram}->{page} = $self;
+    $self->{dendrogram}{page} = $self;
+    weaken $self->{dendrogram}{page};
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->init_branch_colouring_combo;
+    $self->init_dendrogram_legend;
     
     return 1;
 }
 
+sub update_branch_colouring_combo {
+    my $self = shift;
+    $self->init_branch_colouring_combo (refresh => 1);
+}
+
 sub init_branch_colouring_combo {
     my $self = shift;
+    my %args = @_;
 
-return if !defined $self->{output_ref};
+    return if !defined $self->{output_ref};
+    return if blessed ($self) =~ /Matrix/;
 
     my $xml_page = $self->{xmlPage};
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
     
     my $combo = $self->{branch_colouring_combobox};
+    my $have_combo = !!$combo;
 
-    if (!$combo && not (blessed ($self) =~ /Matrix/)) {
+    if ($args{refresh} || !$combo) {
+        #  clean up pre-existing
+        if ($have_combo) {
+            foreach my $widget (
+                    $combo,
+                    @{$self->{branch_colouring_extra_widgets} // []}
+                ) {
+                $widget->destroy;
+            }
+        }
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
@@ -506,7 +534,7 @@ return if !defined $self->{output_ref};
 
         my $list_names
           = $self->{output_ref}->get_hash_lists_across_elements;
-        foreach my $list_name (@$list_names) {
+        foreach my $list_name (nsort @$list_names) {
             next if $list_name =~ /SPATIAL_RESULTS$/;
             next if $list_name eq 'RECYCLED_SET';
             
@@ -520,12 +548,33 @@ return if !defined $self->{output_ref};
         $bottom_hbox->pack_start ($combo, 0, 0, 0);
         $separator->show;
         $label->show;
-        $combo->show;
+        $self->{branch_colouring_extra_widgets}
+          = [$separator, $label];  
     }
+
+    $combo->show;
 
     return 1;
 }
 
+sub init_dendrogram_legend {
+    my $self = shift;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+    return if !$legend;
+
+    my $combo = $self->{branch_colouring_combobox};
+    return if !$combo;
+    
+    my $selected_text = $combo->get_active_text;
+    if ($selected_text ne '<i>Turnover</i>') {
+        $legend->show;
+    }
+    else {
+        $legend->hide;
+    }
+
+}
 
 sub init_grid {
     my $self = shift;
@@ -561,8 +610,10 @@ sub init_grid {
         grid_click_func => $grid_click_closure, # Left click
         end_hover_func  => $end_hover_closure,
     );
-    $self->{grid}->{page} = $self;
-    $self->{grid}->{drag_mode} = 'select';
+    $self->{grid}{page} = $self;
+    weaken $self->{grid}{page};
+
+    $self->{grid}{drag_mode} = 'select';
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};
@@ -577,12 +628,17 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
+ 
+    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
 
     $self->warn_if_basedata_has_gt2_axes;
 
     return;
 }
-
 
 sub set_cell_outline_menuitem_active {
     my ($self, $active) = @_;
@@ -1002,7 +1058,7 @@ sub show_list {
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
-    if (ref($ref) eq 'HASH') {
+    if (is_hashref($ref)) {
         foreach my $key (sort keys %$ref) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
@@ -1010,14 +1066,14 @@ sub show_list {
             $model->set($iter,    0,$key ,  1,$val);
         }
     }
-    elsif (ref($ref) eq 'ARRAY') {
+    elsif (is_arrayref($ref)) {
         foreach my $elt (sort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter,    0,$elt ,  1,'');
         }
     }
-    elsif (not ref($ref)) {
+    elsif (not is_ref($ref)) {
         $iter = $model->append;
         $model->set($iter,    0, $ref,  1,'');
     }
@@ -1290,6 +1346,7 @@ sub on_run {
         #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
+        $self->update_branch_colouring_combo;
     }
 
     #  make sure the grid is sensitive again
@@ -1417,13 +1474,16 @@ sub highlight_paths_on_dendrogram {
     if (my $combo = $self->{branch_colouring_combobox}) {
         my $selected_text = $combo->get_active_text;
         if ($selected_text ne '<i>Turnover</i>') {
-            return $self->colour_branches_on_dendrogram (
+            $self->colour_branches_on_dendrogram (
                 list_name => $selected_text,
                 group     => $group,
             );
+            return;
         }
     }
 
+    $self->{dendrogram}->get_legend->hide;
+    
     my $tree = $self->get_current_tree;
 
     # Highlight the branches in the groups on the tree.
@@ -1476,6 +1536,21 @@ sub colour_branches_on_dendrogram {
     my $dendrogram = $self->{dendrogram};
     my $output_ref = $self->{output_ref};
 
+    my $legend = $dendrogram->get_legend;
+    
+    my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
+    if ($log_check_box->get_active) {
+        $legend->set_log_mode_on;
+    }
+    else {
+        $legend->set_log_mode_off;
+    }
+    
+    my $checkbox = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    if ($checkbox->get_active) {
+        $legend->show;
+    }
+
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
         element => $args{group},
@@ -1484,43 +1559,38 @@ sub colour_branches_on_dendrogram {
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
 
-    #  log scale as a temporary measure
-    my $logmin = log ($minmax->[0] + 1);
-    my $logmax = log ($minmax->[1] + 1);
+    $legend->set_min_max (@$minmax);
+    my ($min, $max) = @$minmax;  #  should not need to pass this
 
-    my $node_ref;
     my %done;
-    my $colour_ref;
 
   LABEL:
     foreach my $label (keys %$listref) {
         next LABEL if $done{$label};
-
+        
         # Might not match some or all nodes
-        my $success = eval {
-            $node_ref = $tree->get_node_ref (node => $label);
-        };
-        if (!$success) {
-            $colour_ref = COLOUR_BLACK;
-            $dendrogram->highlight_node ($node_ref, $colour_ref);
-            $done{$label}++;
-            next LABEL;
-        }
+        next LABEL if !$tree->exists_node(name => $label);
 
+        my $node_ref = $tree->get_node_ref (node => $label);
+        my $colour_ref;
+
+        #  Colour ourselves, and also work our way up the tree
+        #  and do our ancestors.
+        #  This ensures ancestors get the default colour
+        #  if they are not in the list or are undef. 
       NODE:
         while ($node_ref) {
             my $node_name = $node_ref->get_name;
             last NODE if $done{$node_name};
 
-            if (!exists $listref->{$node_name}) {
+            no autovivification;
+            if (!defined $listref->{$node_name}) {
                 $colour_ref = COLOUR_BLACK;
             }
             else {
-                #my $rescaled_value = ($listref->{$node_name} - $minmax->[0]) / $range;
-                #$colour_ref = $dendro_highlight_branch_colours[0];
-                my $val = log $listref->{$node_name} + 1;
+                my $val = $listref->{$node_name};
                 $colour_ref
-                  = $self->{grid}->get_colour_hue ($val, $logmin, $logmax);
+                  = $legend->get_colour ($val, $min, $max);
             }
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
@@ -1877,18 +1947,27 @@ sub recolour {
     my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
 
     my $colour_func = sub {
+        no autovivification;
+
         my $elt = shift // return;
         if (!$output_ref->group_passed_def_query(group => $elt)) {
             return $self->get_excluded_cell_colour;
         }
 
+        #  should use a method here
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->get_colour($val, $min, $max)
             : $colour_none;
     };
+    
+    my $defq_callback = sub {
+        my $elt = shift // return;
+        !$output_ref->group_passed_def_query(group => $elt);
+    };
 
     $grid->colour($colour_func);
+    #$grid->hide_some_cells($defq_callback);
     $grid->set_legend_min_max($min, $max);
 
     return;
@@ -2060,7 +2139,7 @@ sub choose_tool {
     if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
         $self->{grid}{drag_mode} = $self->{drag_modes}{$tool};
     }
-    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
+    $self->{dendrogram}{drag_mode} = $self->{drag_modes}{$tool};
 
     $self->set_display_cursors ($tool);
 }
@@ -2153,6 +2232,71 @@ sub get_options {
     my $options = $self->{options} // {};
 
     return wantarray ? %$options : $options;
+}
+
+sub on_show_tree_legend_changed {
+    my ($self, $menu_item) = @_;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+    return if !$legend;
+
+    my $check = $menu_item->get_active;
+
+    my $combo = $self->{branch_colouring_combobox};
+    return if !$combo;
+
+    #  no legend for turnover    
+    my $selected_text = $combo->get_active_text;
+    $check &&= $selected_text ne '<i>Turnover</i>';
+
+    if ($check) {
+        $legend->show;
+    }
+    else {
+        $legend->hide;
+    }
+}
+
+
+#  Too similar to on_colour_mode_changed
+#  Need to refactor the two
+sub on_tree_colour_mode_changed {
+    my ($self, $menu_item) = @_;
+    
+    my $legend = $self->{dendrogram}->get_legend;
+
+    if ($menu_item) {
+        # Just got the signal for the deselected option.
+        # Wait for signal for selected one.
+        return if !$menu_item->get_active();
+
+        my $mode = $menu_item->get_label();
+    
+        if ($mode eq 'Sat...') {
+            $mode = 'Sat';
+
+            # Pop up dialog for choosing the hue to use in saturation mode
+            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_select = $colour_dialog->get_color_selection();
+            $colour_dialog->show_all();
+            my $response = $colour_dialog->run;
+            if ($response eq 'ok') {
+                my $hue = $colour_select->get_current_color();
+                $legend->set_hue($hue);
+            }
+            $colour_dialog->destroy();
+        }
+        
+        $legend->set_mode($mode);
+    }
+
+    #  legend should be able to update itself,
+    #  but currently we need to do it through the
+    #  dendrogram or it gets zero size and is
+    #  not visible
+    $self->{dendrogram}->update_legend;
+
+    return;
 }
 
 

@@ -10,7 +10,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Biodiverse::Exception;
 use Ref::Util qw { :all };
@@ -510,10 +510,12 @@ sub to_table {
     my $self = shift;
     my %args = @_;
     
-    if ($args{type} eq 'sparse') {
+    my $type = $args{type} // '';
+
+    if ($type eq 'sparse') {
         return $self->to_table_sparse (%args);
     }
-    elsif ($args{type} eq 'gdm') {
+    elsif ($type eq 'gdm') {
         return $self->to_table_gdm (%args);
     }
     else {
@@ -1093,7 +1095,7 @@ sub remap_labels_from_hash {
     foreach my $old_name (keys %$remap_hash) {
         my $new_name = $remap_hash->{$old_name};
 
-        next if $old_name eq $new_name;
+        next if !defined $new_name || $old_name eq $new_name;
 
         $self->rename_element(
             old_name => $old_name,

@@ -7,10 +7,11 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util::Numeric qw/isfloat/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 $| = 1;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -49,6 +50,7 @@ use Exporter::Easy (
                 transform_element
                 verify_set_contents
                 write_data_to_temp_file
+                is_numeric_within_tolerance_or_exact_text
             ),
         ],
         basedata => [
@@ -313,7 +315,7 @@ sub compare_hash_vals {
     foreach my $key (sort keys %targets) {
         next BY_KEY if $not_strict && !exists $hash_got->{$key};
 
-        if (ref $hash_exp->{$key} eq 'HASH') {
+        if (is_hashref $hash_exp->{$key}) {
             subtest "Got expected hash for $key" => sub {
                 compare_hash_vals (
                     hash_got => $hash_got->{$key},
@@ -326,7 +328,7 @@ sub compare_hash_vals {
             #say join ' ', sort keys %$hash_got;
             #say join ' ', sort keys %$hash_exp;
         }
-        elsif (ref $hash_exp->{$key} eq 'ARRAY') {
+        elsif (is_arrayref $hash_exp->{$key}) {
             if ($sort_array_lists) {
                 subtest "Got expected array for $key" => sub {
                     compare_arr_sorted (
@@ -349,21 +351,16 @@ sub compare_hash_vals {
             }
         }
         else {
+            my $v1 = $hash_got->{$key} // 'undef';
+            my $v2 = $hash_exp->{$key} // 'undef';
             is_numeric_within_tolerance_or_exact_text (
                 got       => $hash_got->{$key},
                 expected  => $hash_exp->{$key},
-                message   => "Got expected value for $key, $descr_suffix",
+                message   => "Got expected value for $key "
+                           . "($v1 like $v2),"
+                           . "$descr_suffix",
                 tolerance => $tolerance,
             );
-            #my $val_got = snap_to_precision (
-            #    value     => $hash_got->{$key},
-            #    precision => $precision,
-            #);
-            #my $val_exp = snap_to_precision (
-            #    value     => $hash_exp->{$key},
-            #    precision => $precision,
-            #);
-            #is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -525,7 +522,7 @@ my %bd_cache;
 sub get_basedata_object {
     my %args = @_;
 
-    my $args_str = get_stringified_args_hash (%args);
+    #my $args_str = get_stringified_args_hash (%args);
 
     #  caching proved not to work well since all calls were different.  
     #{
@@ -1205,8 +1202,7 @@ sub run_indices_test1_inner {
         subtest "List indices correctly marked in metadata" => sub {
             my $list_indices = $indices->get_list_indices (calculations => scalar $indices->get_valid_calculations_to_run);
             foreach my $index (sort keys %results) {
-                my $reftype = reftype ($results{$index}) // 'scalar';
-                my $is_list = ($reftype =~ /HASH|ARRAY/);
+                my $is_list = (is_hashref($results{$index}) || is_arrayref ($results{$index}));
                 if ($list_indices->{$index}) {
                     ok ($is_list, "index $index is a list");
                 }

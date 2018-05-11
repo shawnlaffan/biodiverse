@@ -10,6 +10,7 @@ use Carp;
 use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
+use List::Util qw /max/;
 use File::BOM qw / :subs /;
 
 use Biodiverse::Tree;
@@ -17,7 +18,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use parent qw /Biodiverse::Common/;
 
@@ -44,7 +45,7 @@ $re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* 
 #  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
 
 my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
-$re_text_in_square_brackets = qr / (?> [^[]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
+$re_text_in_square_brackets = qr / (?> [^\[\]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
 
 
 sub new {
@@ -395,7 +396,7 @@ sub import_tabular_tree {
 
     # get column map from arguments 
     my $column_map = $args{column_map} // {};
-    my %columns = %$column_map;
+    my %col_nums = %$column_map;
 
     my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
 
@@ -412,19 +413,16 @@ sub import_tabular_tree {
 
     # set up columns to grab relevant data.  if any were not passed as args,
     # look for values with given names in header. (just add to args map)
-    my %header_cols; 
-    @header_cols{@$header} = (0..$#$header);
-    $columns{TREENAME_COL}       //= $header_cols{TREENAME};
-    $columns{LENGTHTOPARENT_COL} //= $header_cols{LENGTHTOPARENT};
-    $columns{NODENUM_COL}        //= $header_cols{NODE_NUMBER};
-    $columns{PARENT_COL}         //= $header_cols{PARENTNODE};
-    $columns{NODENAME_COL}       //= $header_cols{NAME};
+    my %header_col_nums; 
+    @header_col_nums{@$header} = (0..$#$header);
 
     # check if all required fields are defined (?)
-    foreach my $param (qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
-    #    croak "Missing parameter for $param" if (! defined($columns{$param}));
-        say "Param $param col $columns{$param}";
+    foreach my $p (sort keys %header_col_nums) { #/
+        my $param = $p . '_COL';
+        $col_nums{$param} //= $header_col_nums{$p};
+        say "Param $param col $col_nums{$param}";
     }
+    my $max_target_col = max (values %col_nums);
 
     #  read first line to get an initial default tree name
     my @data = ($csv->getline($io));
@@ -433,7 +431,7 @@ sub import_tabular_tree {
     # note use of $args{NAME} will only work if name col is not provided
     # ?? really?
     my $tree_name = $args{NAME}
-                 // $line_arr[$columns{TREENAME_COL}]
+                 // $line_arr[$col_nums{TREENAME_COL}]
                  // 'TABULAR_TREE'; 
     my $tree = Biodiverse::Tree->new (NAME => $tree_name);
     push @trees, $tree;
@@ -442,17 +440,17 @@ sub import_tabular_tree {
   LINE:
     while (my $line_array = shift @data) {
         push @data, $csv->getline ($io);
+
+        #  skip line if we don't have sufficient values - safe in all cases?
+        next LINE if $max_target_col > $#$line_array;
+        
         my %line_hash;
+        @line_hash{keys %col_nums} = @$line_array[values %col_nums];
 
-        # check all necessary values are defined (?)
-        foreach my $col_name (keys %columns) {
-            #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
-            #  skip line if we don't have sufficient values - safe in all cases?
-            next LINE if $columns{$col_name} > $#$line_array;
-            $line_hash{$col_name} = $line_array->[$columns{$col_name}]
-        }
+        my $treename_col = $line_hash{TREENAME_COL};
 
-        if (defined($line_hash{TREENAME_COL}) && $line_hash{TREENAME_COL} ne $tree_name) {  # we have started a new tree
+        # have we have started a new tree?
+        if (defined($treename_col) && $treename_col ne $tree_name) {  
             #  clean up the previous tree
             $self->assign_parents_for_tabular_tree_import (
                 tree_ref  => $tree,
@@ -460,27 +458,25 @@ sub import_tabular_tree {
             );
 
             #  and start afresh
-            $tree_name = $line_hash{TREENAME_COL};
+            $tree_name = $treename_col;
             $tree = Biodiverse::Tree->new (NAME => $tree_name);
             push @trees, $tree;
             $node_hash = {};
         }
 
-        my $node_name = $line_hash{NODENAME_COL};
-        if (!defined $node_name) {
-            $node_name = $tree->get_free_internal_name;
-            $line_hash{NODENAME_COL} = $node_name;
-        }
+        my $node_name
+          = $line_hash{NAME_COL}
+          //= $tree->get_free_internal_name;
 
         $tree->add_node (
             name   => $node_name,
             length => $line_hash{LENGTHTOPARENT_COL},
         );
 
-        my $node_number = $line_hash{NODENUM_COL};
+        my $node_number = $line_hash{NODE_NUMBER_COL};
         next if !defined $node_number;
-        # store as reference to duplicate of line_hash (instead of \%line_hash directly);
-        $node_hash->{$node_number} = {%line_hash}; 
+
+        $node_hash->{$node_number} = \%line_hash; 
     }
 
     $self->assign_parents_for_tabular_tree_import (
@@ -495,25 +491,27 @@ sub import_tabular_tree {
     return 1;
 }
 
+#  Now pass over the data again and assign parents.
+#  Needs to be post-import as we won't have all the parents
+#  loaded on the first pass.
 sub assign_parents_for_tabular_tree_import {
     my $self = shift;
     my %args = @_;
     
-    my $tree = $args{tree_ref};
+    my $tree      = $args{tree_ref};
     my $node_hash = $args{node_hash};
-    
-    #  now pass over the data again and assign parents
+
     foreach my $node_number (sort keys %$node_hash) {
-        my $node_name = $node_hash->{$node_number}{NODENAME_COL};
-        my $node_ref  = $tree->get_node_ref (node => $node_name);
+        my $node_name = $node_hash->{$node_number}{NAME_COL};
+        my $node_ref  = $tree->get_node_ref_aa ($node_name);
 
-        my $parent_number = $node_hash->{$node_number}{PARENT_COL};
-        my $parent_name   = $node_hash->{$parent_number}{NODENAME_COL};
+        my $parent_number = $node_hash->{$node_number}{PARENTNODE_COL};
+        my $parent_name   = $node_hash->{$parent_number}{NAME_COL};
 
-        if (defined $parent_name) {
-            my $parent_ref = $tree->get_node_ref (node => $parent_name);
-            $parent_ref->add_children(children => [$node_ref]);
-        }
+        next if !defined $parent_name;
+
+        my $parent_ref = $tree->get_node_ref_aa ($parent_name);
+        $parent_ref->add_children(children => [$node_ref]);
     }
     
     return;
@@ -662,7 +660,7 @@ sub parse_newick {
         }
 
         #  we have a comma or are at the end of the string, so we create this node and start a new one
-        elsif ($string =~ m/ \G (,)/xgcs) {  
+        elsif ($string =~ m/ \G (?:,)/xgcs) {  
 
             $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 

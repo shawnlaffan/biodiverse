@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -424,12 +424,56 @@ sub on_show_hide_legend {
     if ($active) {
         $grid->show_legend;
         $grid->set_legend_min_max;
+        $grid->update_legend;
     }
     else {
         $grid->hide_legend;
     }
 
 }
+
+sub on_grid_colour_scaling_changed {
+    my ($self, $checkbox) = @_;
+    
+    my $xml_page = $self->{xmlPage};
+
+    my $active = $checkbox->get_active;
+
+    if ($active) {
+        #say "[Cluster tab] Grid: Turning on log scaling mode";
+        $self->set_legend_log_mode ('on');
+    }
+    else {
+        #say "[Cluster tab] Grid: Turning off log scaling mode";
+        $self->set_legend_log_mode ('off');
+    }
+    
+    return;   
+}
+
+sub set_legend_log_mode {
+    my ($self, $mode) = @_;
+    die 'invalid mode' if $mode !~ /^(off|on)$/;
+    my $prev_mode = $self->get_legend_log_mode;
+    $self->{legend_log_mode} = $mode;
+    if ($mode eq 'on') {
+        $self->{grid}->set_legend_log_mode_on;
+    }
+    else {
+        $self->{grid}->set_legend_log_mode_off;
+    }
+    #  trigger a redisplay if needed
+    if ($prev_mode ne $mode) {
+        $self->recolour;
+        $self->{grid}->update_legend;
+    }
+}
+
+sub get_legend_log_mode {
+    my ($self) = @_;
+    $self->{legend_log_mode} //= 'off';
+}
+
 
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
@@ -466,6 +510,7 @@ sub on_colour_mode_changed {
 
     $self->{grid}->set_legend_mode($self->{colour_mode});
     $self->recolour(all_elements => 1);
+    $self->{grid}->update_legend;
 
     return;
 }
@@ -1005,14 +1050,13 @@ sub update_export_menu {
 sub do_export {
     my $args = shift;
     my $self = $args->[0];
-    my @rest_of_args;
-    if (scalar @$args > 1) {
-        @rest_of_args = @$args[1..$#$args];
-    }
 
-    Biodiverse::GUI::Export::Run($self->{output_ref}, @rest_of_args);
+    my %args_hash;
+
+    my $selected_format = $args->[1] // '';
+    
+    $args_hash{ selected_format } = $selected_format;    
+    Biodiverse::GUI::Export::Run($self->{output_ref}, %args_hash);
 }
-
-
 
 1;

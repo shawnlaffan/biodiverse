@@ -5,11 +5,11 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '1.99_006';
+our $VERSION = '2.00';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number/;
+use Scalar::Util qw /blessed looks_like_number weaken/;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Grid;
@@ -272,7 +272,14 @@ sub init_grid {
         $self->{grid}->set_base_struct ($data);
     }
 
-    $self->{grid}->{page} = $self; # Hacky
+    $self->{grid}{page} = $self; # Hacky
+    weaken $self->{grid}{page};
+
+    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    $menu_log_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
 
     $self->warn_if_basedata_has_gt2_axes;
 

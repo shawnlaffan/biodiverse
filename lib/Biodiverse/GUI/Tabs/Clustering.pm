@@ -528,10 +528,13 @@ sub init_map {
 
     my $xml_page = $self->{xmlPage};
 
-    my $ctrl_click_closure = sub { $self->on_grid_popup(@_); };
-    my $click_closure = sub { $self->on_graph_popup(@_); };
-    my $hover_closure = sub { $self->on_grid_hover(@_); };
-    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $frame   = $xml_page->get_object('mapFrame');
+    my $hscroll = $xml_page->get_object('mapHScroll');
+    my $vscroll = $xml_page->get_object('mapVScroll');
+
+    my $ctrl_click_closure      = sub { $self->on_grid_popup(@_); };
+    my $hover_closure      = sub { $self->on_grid_hover(@_); };
+    my $select_closure     = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
@@ -543,7 +546,7 @@ sub init_map {
         show_value  => 0,
         hover_func  => $hover_closure,
         ctrl_click_func  => $ctrl_click_closure,
-        click_func => $click_closure,
+        click_func => $grid_click_closure,
         select_func => $select_closure,
         grid_click_func => $grid_click_closure,
         end_hover_func  => $end_hover_closure

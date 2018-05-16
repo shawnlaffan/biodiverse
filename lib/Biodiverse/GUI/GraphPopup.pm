@@ -32,24 +32,17 @@ sub add_graph {
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
-        );
+    );
 
-    my $canvas = $popup->get_canvas;
     my $canvasobj = $popupobj->get_canvas;
+    my $canvas    = $canvasobj ? $canvasobj : $popup->get_canvas;
 
-
-    if ($canvasobj) {
-       $canvas = $canvasobj;
-    }
-
-    my $background = $popup->get_background;
-
-    if ( ! $background ){
-        $background = Biodiverse::GUI::CanvasGraph->new(
+    my $background
+       = $popup->get_background
+      || Biodiverse::GUI::CanvasGraph->new(
             canvas   => $canvas,
-            popupobj => $popupobj
+            popupobj => $popupobj,
         );
-    }
 
     my $primary = $background->get_primary;
     if ($primary) {
@@ -60,8 +53,8 @@ sub add_graph {
         graph_values => $list_ref,
         point_colour => COLOUR_LILAC,
         canvas       => $canvas,
-        y_max          => $max,
-        y_min          => $min
+        y_max        => $max,
+        y_min        => $min
     );
 
     $popup->set_background($background);
@@ -92,7 +85,7 @@ sub add_secondary {
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
-        );
+    );
 
 
     my $background = $popupobj->get_background;

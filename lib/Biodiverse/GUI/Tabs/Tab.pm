@@ -676,14 +676,29 @@ sub on_add_secondary_to_graph_popup {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub {
-            Biodiverse::GUI::GraphPopup::add_secondary(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
+            Biodiverse::GUI::GraphPopup::add_secondary(
+                @_,
+                $output_ref,
+                $list_name,
+                $element,
+                $self->{popup},
+                $y_max,
+                $y_min,
+            );
         };
     }
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
 
-    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
+    Biodiverse::GUI::Popup::show_popup(
+        @_,
+        $element,
+        \%sources,
+        $default_source,
+        'canvas',
+        $self->{popup},
+    );
 
 }
 

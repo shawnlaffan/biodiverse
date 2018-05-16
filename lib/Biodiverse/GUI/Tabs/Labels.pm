@@ -1217,15 +1217,16 @@ sub on_cell_enter {
     my $enter_element = shift;
     my $cell = shift;
 
-    if (not $self->{current_cell}) {
-        $self->{current_cell} = "";
-    }
+    $self->{current_cell} ||= "";
 
     if ($cell ne $self->{current_cell}) {
         if (defined $self->{popup}->{canvas}) {
             my $secondary = $self->{popup}->get_secondary;
             $self->{popup}->clear_secondary($secondary);
-            Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup($self, $enter_element);
+            Biodiverse::GUI::Tabs::Tab::on_add_secondary_to_graph_popup(
+                $self,
+                $enter_element,
+            );
         }
         $self->{current_cell} = $cell;
     }

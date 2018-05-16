@@ -618,14 +618,17 @@ sub set_display_cursors {
 
 sub on_graph_popup {
     my $self = shift;
-    return if ($self->{tool} ne 'Graph'); 
     my $element = shift;
+    
+    return if ($self->{tool} ne 'Graph'); 
+    
     my $output_ref = $self->{output_ref};
         
     my @lists = $output_ref->get_lists_across_elements;
+say '[on_graph_popup] @lists: ' . join (' ', @lists);
 
-    my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
-    say "[on_graph_popup] \@keys: @keys";
+    #my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
+    #say '[on_graph_popup] @keys: ' . join (' ', @keys);
     #foreach my $key_across_element (@keys_across_elements) {
     #    say "[on_graph_popup] \$key_across_element: $key_across_element"; 
     #}
@@ -646,22 +649,38 @@ sub on_graph_popup {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         $sources{$list_name} = sub { 
-            Biodiverse::GUI::GraphPopup::add_graph(@_, $output_ref, $list_name, $element, $self->{popup}, $y_max, $y_min);
+            Biodiverse::GUI::GraphPopup::add_graph(
+                @_,
+                $output_ref,
+                $list_name,
+                $element,
+                $self->{popup},
+                $y_max,
+                $y_min,
+            );
         };
     }
 
     my @source_list = keys %sources;
     my $default_source = $source_list[0];
    
-    Biodiverse::GUI::Popup::show_popup(@_, $element, \%sources, $default_source, "canvas", $self->{popup});
+    Biodiverse::GUI::Popup::show_popup(
+        @_,
+        $element,
+        \%sources,
+        $default_source,
+        'canvas',
+        $self->{popup},
+    );
 
 }
 
 sub on_add_secondary_to_graph_popup {
     my $self = shift;
+    my $element = shift;
+
     return if ($self->{tool} ne 'Graph');
 
-    my $element = shift;
     my $output_ref = $self->{output_ref};
 
     # Get the max and min plot values.

@@ -257,7 +257,9 @@ sub load_dialog {
     $combo->set_active_iter($selected_source);
 
     # Set title
-    $popup_state->{g_dialogs}{$element}->get_object(DLG_NAME)->set_title("Data for $element");
+    $popup_state->{g_dialogs}{$element}
+                ->get_object(DLG_NAME)
+                ->set_title("Data for $element");
 
     # Load first thing
     on_source_changed($combo, $popup);

@@ -627,11 +627,11 @@ sub on_graph_popup {
     my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements (
         no_private => 1,
     );
-    say '[on_graph_popup] @lists: ' . join (' ', @lists);
+    #say '[on_graph_popup] @lists: ' . join (' ', @lists);
 
     #print Dumper($output_ref);
     # Get the y max and min plot values.
-    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
+    #my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
     my %sources;
 
@@ -652,8 +652,8 @@ sub on_graph_popup {
                 $list_name,
                 $element,
                 $self->{popup},
-                $y_max,
-                $y_min,
+                #$y_max,
+                #$y_min,
             );
         };
     }

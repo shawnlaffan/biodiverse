@@ -19,7 +19,7 @@ use autovivification;
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum all/;
-use List::MoreUtils qw /first_index/;
+use List::MoreUtils qw /first_index minmax/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod floor/;
@@ -3596,6 +3596,41 @@ sub get_numeric_hash_lists {
     return wantarray ? %lists : \%lists;
 }
 
+
+#  need a better name
+#  get the min and max values for a list across all elements
+sub get_list_min_max_vals_across_elements {
+    my ($self, %args) = @_;
+    my $list_name = $args{list_name} // $args{list};
+
+    no autovivification;
+    
+    my $cache_name = 'get_list_min_max_vals_across_elements';
+    my $cached_results = $self->get_cached_value($cache_name);
+    
+    if ($cached_results) {
+        my $minmax = $cached_results->{$list_name} || [];
+        return wantarray ? @$minmax : [@$minmax];
+    }
+    
+    print "Getting minmax vals for indices in list $list_name across all elements\n";
+    
+    my $elements_hash = $self->{ELEMENTS};
+
+    my %collated;
+
+    foreach my $elt_ref (values %$elements_hash) {
+        #  dirty hack - we probably should not be looking inside these
+        my $list_ref = $elt_ref->{$list_name};
+        next if !$list_ref || !keys %$list_ref;
+        @collated{grep {defined $_} values %$list_ref} = undef;
+    }
+    my @minmax = minmax keys %collated;
+
+    $self->set_cached_value($cache_name => {$list_name => \@minmax});
+    
+    return wantarray ? @minmax : [@minmax];
+}
 
 #  get the summary stats for numeric hash keys
 #  unary weighted, so each key counts once

@@ -43,6 +43,9 @@ use constant COLOUR_LIGHT_GREY        => Gtk2::Gdk::Color->new(240, 240, 240);
 use constant INDEX_ELEMENT       => 1;  # BaseStruct element for this cell
 use constant BORDER_SIZE         => 20;
 
+
+my @bounds_names = qw /y_max y_min x_max x_min/;
+
 sub new {
     my $class   = shift;
     my %args = @_;
@@ -166,10 +169,9 @@ sub add_primary_layer {
 
     my $canvas       = $args{canvas};
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
-    my $y_max        = $args{y_max};
-    my $y_min        = $args{y_min};
-    my $x_min        = $args{x_min};
-    my $x_max        = $args{x_max};
+    
+    my %bounds;
+    @bounds{@bounds_names} = @args{@bounds_names};
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -193,7 +195,7 @@ sub add_primary_layer {
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
-        y_max         => $y_max,
+        %bounds,
         old_values    => \%graph_values,
         canvas_width  => $canvas_width,
         canvas_height => $canvas_height,
@@ -213,8 +215,7 @@ sub add_primary_layer {
             canvas        => $primary_group,
             canvas_width  => $canvas_width,
             canvas_height => $canvas_height,
-            y_max         => $y_max,
-            y_min         => $y_min
+            %bounds,
         );
     }
     $self->set_primary($primary_group);
@@ -230,9 +231,8 @@ sub add_secondary_layer {
     my %graph_values = %{$args{graph_values}};
     my $point_colour = $args{point_colour} // COLOUR_RED;
     my $canvas       = $args{canvas};
-    my $y_max          = $args{y_max};
-    my $y_min          = $args{y_min};
-
+    my %bounds;
+    @bounds{@bounds_names} = @args{@bounds_names};
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -258,26 +258,18 @@ sub add_secondary_layer {
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
-        y_max        => $y_max,
-        old_values   => \%graph_values,
-        canvas_width => $canvas_width,
+        %bounds,
+        old_values    => \%graph_values,
+        canvas_width  => $canvas_width,
         canvas_height => $canvas_height,
-        );
+    );
 
     $self->plot_points(
         graph_values => \%scaled_graph_values,
         canvas       => $secondary_group,
         point_colour => $point_colour,
-        );
+    );
     
-    # add axis labels
-    #if (%graph_values){
-    #    $self->add_axis_labels_to_graph_canvas( graph_values => \%graph_values,
-    #                                            canvas       => $secondary_group,
-    #                                            canvas_width => $canvas_width,
-    #                                            canvas_height => $canvas_height,
-    #        );
-    #}
 
    $secondary_group->raise_to_top();
    $secondary_group->show();
@@ -379,15 +371,17 @@ sub add_axis_labels_to_graph_canvas {
     my $canvas_width  = $args{canvas_width};
     my $canvas_height = $args{canvas_height};
     my $root          = $canvas;
-    my $y_max           = $args{y_max};
-    my $y_min           = $args{y_min};
+    my %bounds;
+    @bounds{@bounds_names} = @args{@bounds_names};
 
     my @x_values = keys %graph_values;
     my @y_values = values %graph_values;
-    my $min_x = min @x_values;
-    my $max_x = max @x_values;
-    my $min_y = $y_min; # min value for the plot
-    my $max_y = $y_max; # max value for the plot
+    #my $min_x = min @x_values;
+    #my $max_x = max @x_values;
+    my $min_x = $bounds{x_min};
+    my $max_x = $bounds{x_max};
+    my $min_y = $bounds{y_min}; # min value for the plot
+    my $max_y = $bounds{y_max}; # max value for the plot
     #my $min_y = min @y_values; # min value for cell
     #my $max_y = max @y_values; # max value for cell
 
@@ -434,10 +428,11 @@ sub add_axis_labels_to_graph_canvas {
             anchor => 'GTK_ANCHOR_E',
             justification =>  'right',
             text => $text,
-            );
+        );
 
     }
 }
+
 # Implements resizing
 sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
@@ -456,7 +451,7 @@ sub on_size_allocate {
         $self->resize_primary_points();
         $self->resize_axes_group();
         $self->resize_secondary_points() if $self->get_secondary;;
-        }
+    }
     
     return;
 }

@@ -20,14 +20,17 @@ use Biodiverse::GUI::CanvasGraph;
 use constant COLOUR_RED         => Gtk2::Gdk::Color->new(255*257, 0, 0);
 use constant COLOUR_LILAC       => Gtk2::Gdk::Color->new(200, 200, 255);
 
+#  DIRTY HACK
+my $self = {};
+
 sub add_graph {
     my $popup = shift;
     my $output_ref = shift;
     my $list_name = shift;
     my $element = shift;
     my $popupobj = shift;
-    my $max = shift;
-    my $min = shift;
+    my $y_max = shift;
+    my $y_min = shift;
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
@@ -53,20 +56,26 @@ sub add_graph {
     my ($x_min, $x_max);
     #  this will cache
     my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
-    #  fall back to the passed args if no stats for some reason
     if (my $stats_for_list = $stats->{$list_name}) {
         $x_max = $stats_for_list->{MAX};
         $x_min = $stats_for_list->{MIN};
     }
+    ($y_min, $y_max) = $output_ref->get_list_min_max_vals_across_elements (
+        list  => $list_name,
+    );
+    
+    my $bounds = $self->{bounds} = {
+        x_min        => $x_min,
+        x_max        => $x_max,
+        y_max        => $y_max,
+        y_min        => $y_min,
+    };
 
     $background->add_primary_layer(
         graph_values => $list_ref,
         point_colour => COLOUR_LILAC,
         canvas       => $canvas,
-        x_min        => $x_min,
-        x_max        => $x_max,
-        y_max        => $max,
-        y_min        => $min
+        %$bounds,
     );
 
     $popup->set_background($background);
@@ -113,12 +122,12 @@ sub add_secondary {
     $secondary = $background->get_secondary;
 
     if ($primary) {
+        my $bounds = $self->{bounds};
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,
             canvas       => $canvas,
-            y_max          => $max,
-            y_min          => $min
+            %$bounds,
         );
         $secondary->raise_to_top();
         $secondary->show();

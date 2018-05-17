@@ -48,6 +48,15 @@ sub add_graph {
     if ($primary) {
         $primary->destroy();
     }
+    
+    no autovivification;
+    #  this will cache
+    my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
+    #  fall back to the passed args if no stats for some reason
+    if (my $stats_for_list = $stats->{$list_name}) {
+        $max = $stats_for_list->{MAX};
+        $min = $stats_for_list->{MIN};
+    }
 
     $background->add_primary_layer(
         graph_values => $list_ref,

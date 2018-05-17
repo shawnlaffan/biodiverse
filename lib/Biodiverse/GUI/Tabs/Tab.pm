@@ -624,16 +624,11 @@ sub on_graph_popup {
     
     my $output_ref = $self->{output_ref};
         
-    my @lists = $output_ref->get_lists_across_elements (
+    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements (
         no_private => 1,
     );
     say '[on_graph_popup] @lists: ' . join (' ', @lists);
 
-    #my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
-    #say '[on_graph_popup] @keys: ' . join (' ', @keys);
-    #foreach my $key_across_element (@keys_across_elements) {
-    #    say "[on_graph_popup] \$key_across_element: $key_across_element"; 
-    #}
     #print Dumper($output_ref);
     # Get the y max and min plot values.
     my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);

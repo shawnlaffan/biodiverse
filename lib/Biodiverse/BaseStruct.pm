@@ -3604,6 +3604,8 @@ sub get_numerically_keyed_hash_stats_across_elements {
     
     no autovivification;
     
+    print "Getting stats for numerically keyed hash lists";
+    
     my $cache_name = 'get_numerically_keyed_hash_stats_across_elements';
     my $cached_results = $self->get_cached_value($cache_name);
     if ($cached_results) {
@@ -3648,6 +3650,8 @@ sub get_numerically_keyed_hash_stats_across_elements {
     }
     
     $self->set_cached_value($cache_name => \%key_stats);
+
+    print "Got stats for numerically keyed hash lists";
     
     return wantarray ? %key_stats : \%key_stats;
 }

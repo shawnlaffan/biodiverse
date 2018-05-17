@@ -49,15 +49,14 @@ sub new {
     #my %graph_values = $args{graph_values};
     #my %graph_values = %{$args{graph_values}};
 
-    my $self = {
-    }; 
+    my $self = {};
     bless $self, $class;
 
-    my $canvas = $args{canvas};
+    my $canvas   = $args{canvas};
     my $popupobj = $args{popupobj};
 
     # Make the canvas and hook it up
-    $self->{canvas}       = $args{canvas};
+    $self->{canvas} = $canvas;
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
     # Set up canvas
@@ -83,28 +82,28 @@ sub new {
     );
     #$rect->signal_connect (button_release_event => \&_do_popup_menu); 
 
-    my $width           = CANVAS_WIDTH;
-    my $height          = CANVAS_HEIGHT; 
+    my $width  = CANVAS_WIDTH;
+    my $height = CANVAS_HEIGHT; 
 
     # draw the black box that outlines the graph
     my $border = Gnome2::Canvas::Item->new (
         $self->{canvas}->root, 'Gnome2::Canvas::Rect',
-        x1 => 0.25*240-(POINT_WIDTH),
+        x1 => 0.25 * 240 - (POINT_WIDTH),
         y1 => -(POINT_HEIGHT),
         x2 => 300,   # 0.75*240+(POINT_WIDTH),
-        y2 => $height+POINT_HEIGHT,
-        fill_color_gdk => COLOUR_WHITE,
+        y2 => $height + POINT_HEIGHT,
+        fill_color_gdk    => COLOUR_WHITE,
         outline_color_gdk => COLOUR_WHITE
         #outline_color_gdk => COLOUR_BLACK
     );
 
-    $border->lower_to_bottom();
-    $rect->lower_to_bottom();
+    $border->lower_to_bottom;
+    $rect->lower_to_bottom;
 
-    $self->{width_units}  = $width  + 2*BORDER_SIZE;
-    $self->{height_units} = $height + 4*BORDER_SIZE;
+    $self->{width_units}  = $width  + 2 * BORDER_SIZE;
+    $self->{height_units} = $height + 4 * BORDER_SIZE;
 
-    $self->{back_rect} = $rect;
+    $self->{back_rect}   = $rect;
     $self->{border_rect} = $border;
 
     # Make a group for the axes. 
@@ -133,7 +132,7 @@ sub new {
         $self->{axes_group}, 'Gnome2::Canvas::Line',
         points => [0 - Y_AXIS_TICK_PADDING, 0, 0 - Y_AXIS_TICK_PADDING, $height],
         fill_color_gdk => COLOUR_LIGHT_GREY,
-        width_units => 1
+        width_units    => 1
     );
     $self->{y_line} = $y_line;
     $y_line->raise_to_top();
@@ -161,12 +160,14 @@ sub new {
 # Add the primary layer of plot values
 sub add_primary_layer {
     my ($self, %args) = @_;
+
     my %graph_values = %{$args{graph_values}};
+    return if ! %graph_values;
+
     my $canvas       = $args{canvas};
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
-    my $y_max          = $args{y_max};
-    my $y_min          = $args{y_min};
-    return if ( ! %graph_values );
+    my $y_max        = $args{y_max};
+    my $y_min        = $args{y_min};
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -190,28 +191,29 @@ sub add_primary_layer {
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
-        y_max        => $y_max,
-        old_values   => \%graph_values,
-        canvas_width => $canvas_width,
+        y_max         => $y_max,
+        old_values    => \%graph_values,
+        canvas_width  => $canvas_width,
         canvas_height => $canvas_height,
-        );
+    );
 
     # Plot the points
     $self->plot_points(
         graph_values => \%scaled_graph_values,
         canvas       => $primary_group,
         point_colour => $point_colour,
-        );
+    );
 
     # add axis labels
     if (%graph_values){
-        $self->add_axis_labels_to_graph_canvas( graph_values  => \%graph_values,
-                                                canvas        => $primary_group,
-                                                canvas_width  => $canvas_width,
-                                                canvas_height => $canvas_height,
-                                                y_max           => $y_max,
-                                                y_min           => $y_min
-            );
+        $self->add_axis_labels_to_graph_canvas(
+            graph_values  => \%graph_values,
+            canvas        => $primary_group,
+            canvas_width  => $canvas_width,
+            canvas_height => $canvas_height,
+            y_max         => $y_max,
+            y_min         => $y_min
+        );
     }
     $self->set_primary($primary_group);
 

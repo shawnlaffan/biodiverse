@@ -259,3 +259,67 @@ sub test_text_axis_name_coords {
     }
     
 }
+
+
+sub test_numerically_keyed_list_stats {
+    my $bd = Biodiverse::BaseData->new (
+        NAME       => 'test_text_axis_name_coords',
+        CELL_SIZES => [-1],
+    );
+    #  natural sort order
+    my $start_i = 0;
+    my @gp_name_arr = qw /clasp class1 class2 class10 class11 class100 class100x class100y/;
+    foreach my $gp_name (@gp_name_arr) {
+        $bd->add_element (group => $gp_name, label => 'default_label');
+        my $gps = $bd->get_groups_ref;
+        for my $i (1..3) {
+            my %hash;
+            @hash{$start_i .. $start_i+100} = ($start_i .. $start_i+100);
+            if ($gp_name eq 'class100x') {
+                if ($i == 2) {
+                    $hash{a} = undef;  #  add one non-numeric key to a single hash
+                }
+                elsif ($i == 1) {
+                    $hash{1000} = undef;  #  one large key so we get different stats
+                }
+            }
+            $gps->add_to_hash_list (
+                element => $gp_name,
+                list    => "hash$i",
+                %hash,
+            );
+        }
+    }
+    
+    my $gp = $bd->get_groups_ref;
+    my %expected;
+    
+    my $stats = $gp->get_numerically_keyed_hash_stats_across_elements;
+    #use Data::Dump;
+    #dd $stats;
+    my $expected = {
+        hash1 => {
+            MAX    => 1000,
+            MEAN   => 59.3137254901961,
+            MIN    => 0,
+            PCT025 => 3,
+            PCT05  => 5,
+            PCT95  => 96,
+            PCT975 => 98,
+            SD     => 98.4786231406912,
+        },
+        hash3 => {
+            MAX    => 100,
+            MEAN   => 50,
+            MIN    => 0,
+            PCT025 => 3,
+            PCT05  => 5,
+            PCT95  => 95,
+            PCT975 => 98,
+            SD     => 29.3001706479672,
+        },
+    };
+
+    is_deeply $stats, $expected, 'got matching stats for numeric keys';
+    
+}

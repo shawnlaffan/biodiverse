@@ -624,8 +624,10 @@ sub on_graph_popup {
     
     my $output_ref = $self->{output_ref};
         
-    my @lists = $output_ref->get_lists_across_elements;
-say '[on_graph_popup] @lists: ' . join (' ', @lists);
+    my @lists = $output_ref->get_lists_across_elements (
+        no_private => 1,
+    );
+    say '[on_graph_popup] @lists: ' . join (' ', @lists);
 
     #my @keys = $output_ref->get_hash_list_keys_across_elements(list => 'ELEMENTS');
     #say '[on_graph_popup] @keys: ' . join (' ', @keys);

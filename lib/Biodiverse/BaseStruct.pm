@@ -18,7 +18,7 @@ use autovivification;
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
-use List::Util qw /min max sum/;
+use List::Util qw /min max sum all/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
@@ -3594,6 +3594,113 @@ sub get_numeric_hash_lists {
     }
 
     return wantarray ? %lists : \%lists;
+}
+
+
+#  get the summary stats for numeric hash keys
+#  unary weighted, so each key counts once
+sub get_numerically_keyed_hash_stats_across_elements {
+    my ($self, %args) = @_;
+    
+    no autovivification;
+    
+    my $cache_name = 'get_numerically_keyed_hash_stats_across_elements';
+    my $cached_results = $self->get_cached_value($cache_name);
+    if ($cached_results) {
+        return wantarray ? %$cached_results : $cached_results;
+    }
+    
+    my @lists = $self->get_numerically_keyed_hash_lists_across_elements;
+    
+    my $elements_hash = $self->{ELEMENTS};
+
+    my %collated;
+    foreach my $listname (@lists) {
+        $collated{$listname} = {};
+    }
+    
+  SEARCH_FOR_LISTS:
+    foreach my $elt_ref (values %$elements_hash) {
+        #  dirty hack - we probably should not be looking inside these
+        foreach my $list_name (@lists) {
+            my $list_ref = $elt_ref->{$list_name};
+            next if !keys %$list_ref;
+            my $coll = $collated{$list_name};
+            @$coll{keys %$list_ref} = undef;
+        }
+    }
+    
+    my %key_stats;
+    foreach my $list_name (@lists) {
+        my $stats = $stats_class->new;
+        $stats->add_data(keys %{$collated{$list_name}});
+        my %stats_hash = (
+            MAX    => $stats->max,
+            MIN    => $stats->min,
+            MEAN   => $stats->mean,
+            SD     => $stats->standard_deviation,
+            PCT025 => scalar $stats->percentile (2.5),
+            PCT975 => scalar $stats->percentile (97.5),
+            PCT05  => scalar $stats->percentile (5),
+            PCT95  => scalar $stats->percentile (95),
+        );
+        $key_stats{$list_name} = \%stats_hash;
+    }
+    
+    $self->set_cached_value($cache_name => \%key_stats);
+    
+    return wantarray ? %key_stats : \%key_stats;
+}
+
+#  get a list of hash lists with numeric keys across all elements
+sub get_numerically_keyed_hash_lists_across_elements {
+    my $self = shift;
+    my %args = @_;
+    
+    my $no_private = 1;
+
+    no autovivification;
+
+    #  turn off caching for now - we need to update it when we analyse the data
+    #my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
+    #my $cached_lists = $self->get_cached_value ($cache_name);
+    #
+    #return wantarray ? %$cached_lists : $cached_lists
+    #  if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    
+    my %list_reftypes;
+    my (%is_numeric, %not_numeric);
+    my $elements_hash = $self->{ELEMENTS};
+
+  SEARCH_FOR_LISTS:
+    foreach my $elt (keys %$elements_hash) {
+        my $elt_ref = $elements_hash->{$elt};
+
+        #  dirty hack - we probably should not be looking inside these
+        foreach my $list_name (keys %{$elt_ref}) {
+            next
+              if $not_numeric{$list_name}
+              || $list_name =~ /^_/;
+            my $list_ref = $elt_ref->{$list_name};
+            next
+              if !is_hashref $list_ref
+              || !keys %$list_ref;
+            my $is_numeric = all {looks_like_number $_} keys %$list_ref;
+            if (!$is_numeric) {
+                $not_numeric{$list_name}++;
+            }
+            else {
+                $is_numeric{$list_name}++;
+            }
+        }
+    }
+    delete @is_numeric{keys %not_numeric};
+
+    #if (!$args{no_cache}) {
+    #    $self->set_cached_value ($cache_name => \%list_reftypes);
+    #}
+
+    return wantarray ? keys %is_numeric : \%is_numeric;
 }
 
 sub get_array_lists {

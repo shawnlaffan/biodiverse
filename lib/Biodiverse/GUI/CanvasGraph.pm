@@ -168,6 +168,8 @@ sub add_primary_layer {
     my $point_colour = $args{colour} // Gtk2::Gdk::Color->new(200, 200, 255);
     my $y_max        = $args{y_max};
     my $y_min        = $args{y_min};
+    my $x_min        = $args{x_min};
+    my $x_max        = $args{x_max};
 
     my ($canvas_width, $canvas_height) = (CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -297,15 +299,16 @@ sub plot_points {
     foreach my $x (keys %graph_values) {
         my $y = $graph_values{$x};
         my $circle = Gnome2::Canvas::Item->new (
-                                                 $root,
-                                                 'Gnome2::Canvas::Ellipse',
-                                                 x1 => $x-$point_width,
-                                                 y1 => $y-$point_height,
-                                                 x2 => $x+$point_width,
-                                                 y2 => $y+$point_height,
-                                                 fill_color => $point_colour,
-                                                 width_units => 1,
-                                                 outline_color => 'black');
+            $root,
+            'Gnome2::Canvas::Ellipse',
+            x1 => $x - $point_width,
+            y1 => $y - $point_height,
+            x2 => $x + $point_width,
+            y2 => $y + $point_height,
+            fill_color  => $point_colour,
+            width_units => 1,
+            outline_color => 'black',
+        );
         
 #        my $box = Gnome2::Canvas::Item->new ($root, 'Gnome2::Canvas::Rect',
 #                                             x1 => $x-$point_width, 
@@ -329,7 +332,7 @@ sub rescale_graph_points {
     my @x_values = keys %old_values;
     my @y_values = values %old_values;
 
-    return if(scalar @x_values == 0 || scalar @y_values == 0);
+    return if !scalar @x_values || !scalar @y_values;
     
     my $min_x = min @x_values;
     my $max_x = max @x_values;
@@ -342,10 +345,10 @@ sub rescale_graph_points {
 
     #say "x, y min max is ($min_x, $max_x), ($min_y, $max_y)";
 
-    if($max_x == $min_x) {
+    if ($max_x == $min_x) {
         ($max_x, $min_x) = (1, 0); # stop division by 0 error
     }
-    if($max_y == $min_y) {
+    if ($max_y == $min_y) {
         ($max_y, $min_y) = (1, 0); # stop division by 0 error
     }
     

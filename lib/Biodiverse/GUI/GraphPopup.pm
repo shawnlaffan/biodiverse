@@ -64,7 +64,7 @@ sub add_graph {
         point_colour => COLOUR_LILAC,
         canvas       => $canvas,
         x_min        => $x_min,
-        y_max        => $y_max;
+        x_max        => $x_max,
         y_max        => $max,
         y_min        => $min
     );

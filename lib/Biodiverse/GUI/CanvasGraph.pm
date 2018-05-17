@@ -323,27 +323,32 @@ sub plot_points {
 
 sub rescale_graph_points {
     my ($self, %args) = @_;
-    my $y_max          = $args{y_max};
-    my %old_values    = %{$args{old_values}};
+    my $old_values    = $args{old_values};
     my $canvas_width  = $args{canvas_width};
     my $canvas_height = $args{canvas_height};
 
+    my ($max_y, $min_y, $max_x, $min_x)
+      = @args{qw /y_max y_min x_max x_min/};
+
     # find the max and min for the x and y axis.
-    my @x_values = keys %old_values;
-    my @y_values = values %old_values;
+    my @x_values = keys %$old_values;
+    my @y_values = values %$old_values;
 
     return if !scalar @x_values || !scalar @y_values;
-    
-    my $min_x = min @x_values;
-    my $max_x = max @x_values;
-    my $min_y = min @y_values;
-    my $max_y = $y_max // max @y_values;
-    my $max_y_values = max @y_values;
-    if ($max_y_values > $max_y) {
-        $max_y = $max_y_values;
-   }
 
-    #say "x, y min max is ($min_x, $max_x), ($min_y, $max_y)";
+    #  this could be done better    
+    $min_x //= min @x_values;
+    $min_y //= min @y_values;
+    my $max_x_vals = max @x_values;
+    $max_x //= $max_x_vals;
+    if ($max_x_vals > $max_x) {
+        $max_x = $max_x_vals;
+    }
+    my $max_y_vals = max @y_values;
+    $max_y //= $max_y_vals;
+    if ($max_y_vals > $max_y) {
+        $max_y = $max_y_vals;
+    }
 
     if ($max_x == $min_x) {
         ($max_x, $min_x) = (1, 0); # stop division by 0 error
@@ -355,8 +360,8 @@ sub rescale_graph_points {
     my %new_values;
     
     # apply scaling formula
-    foreach my $x (keys %old_values) {
-        my $y = $old_values{$x};
+    foreach my $x (keys %$old_values) {
+        my $y = $old_values->{$x};
 
         my $new_x = (($canvas_width)*($x-$min_x) / ($max_x-$min_x));
         my $new_y = $canvas_height - (($canvas_height)*($y-$min_y) / ($max_y-$min_y));

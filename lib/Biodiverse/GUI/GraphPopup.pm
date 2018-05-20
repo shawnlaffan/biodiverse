@@ -24,13 +24,13 @@ use constant COLOUR_LILAC       => Gtk2::Gdk::Color->new(200, 200, 255);
 my $self = {};
 
 sub add_graph {
-    my $popup = shift;
+    my $popup      = shift;
     my $output_ref = shift;
-    my $list_name = shift;
-    my $element = shift;
-    my $popupobj = shift;
-    my $y_max = shift;
-    my $y_min = shift;
+    my $list_name  = shift;
+    my $element    = shift;
+    my $popupobj   = shift;
+    my $y_max      = shift;
+    my $y_min      = shift;
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
@@ -60,9 +60,10 @@ sub add_graph {
         $x_max = $stats_for_list->{MAX};
         $x_min = $stats_for_list->{MIN};
     }
-    ($y_min, $y_max) = $output_ref->get_list_min_max_vals_across_elements (
-        list  => $list_name,
-    );
+    ($y_min, $y_max)
+      = $output_ref->get_list_min_max_vals_across_elements (
+            list  => $list_name,
+        );
     
     my $bounds = $self->{bounds} = {
         x_min        => $x_min,
@@ -100,17 +101,20 @@ sub add_secondary {
 
     my $secondary_element = $popupobj->get_secondary_element;
 
-    no warnings qw(uninitialized);
-    return if $element eq $secondary_element;
+    return
+      if defined $element
+      && defined $secondary_element
+      && $element eq $secondary_element;
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
         list    => $list_name,
+        autovivify => 0,
     );
 
 
     my $background = $popupobj->get_background;
-    my $canvas = $popupobj->get_canvas;
+    my $canvas     = $popupobj->get_canvas;
     my $secondary;
 
     #my $point_colour = Gtk2::Gdk::Color->new(255*257, 0, 0);
@@ -119,7 +123,7 @@ sub add_secondary {
 
     # call graph update here if it exists.
     my $primary = $background->get_primary;
-    $secondary = $background->get_secondary;
+    $secondary  = $background->get_secondary;
 
     if ($primary) {
         my $bounds = $self->{bounds};

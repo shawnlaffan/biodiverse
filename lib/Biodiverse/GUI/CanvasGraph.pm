@@ -81,7 +81,7 @@ sub new {
 
     $self->{canvas}->root->signal_connect_swapped (
         event => \&on_background_event,
-        [$self,$popupobj],
+        [$self, $popupobj],
     );
     #$rect->signal_connect (button_release_event => \&_do_popup_menu); 
 
@@ -115,7 +115,6 @@ sub new {
         'Gnome2::Canvas::Group',
         x => 0,
         y => 0,
-
     );
     $self->{axes_group} = $axes_group;
 
@@ -150,7 +149,7 @@ sub new {
     #$self->set_legend ($legend);
 
     #$self->update_legend;
-    show_ticks_marks($self);
+    $self->show_ticks_marks;
 
     $self->resize_border_rect();
     $self->resize_background_rect();
@@ -241,7 +240,7 @@ sub add_secondary_layer {
         $canvas->root,
         'Gnome2::Canvas::Group',
         x => 0,
-        y => 0
+        y => 0,
     );
 
    $self->set_secondary($secondary_group);
@@ -482,9 +481,9 @@ sub resize_border_rect {
         my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
         if (not $self->{dragging}) {
             $self->{border_rect}->set(
-                x1 => ((max($width,  $self->{width_units})/2) - 100 - POINT_WIDTH // 1),
+                x1 => ((max($width,  $self->{width_units})/2)  - 100 - POINT_WIDTH // 1),
                 y1 => ((max($height, $self->{height_units})/2) - 100 - POINT_WIDTH // 1),
-                x2 => ((max($width,  $self->{width_units})/2) + 100 + POINT_WIDTH // 1),
+                x2 => ((max($width,  $self->{width_units})/2)  + 100 + POINT_WIDTH // 1),
                 y2 => ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1),
             );
             $self->{border_rect}->raise_to_top();
@@ -532,8 +531,9 @@ sub resize_secondary_points {
     my ($x12, $y12) = $self->{border_rect}->get('x1','y1');
     $self->{secondary}->set(
         x => $x12,
-        y => $y12
+        y => $y12,
     );
+
     $self->{secondary}->raise_to_top();
 }
 

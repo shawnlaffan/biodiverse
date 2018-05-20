@@ -21,7 +21,7 @@ use constant COLOUR_RED         => Gtk2::Gdk::Color->new(255*257, 0, 0);
 use constant COLOUR_LILAC       => Gtk2::Gdk::Color->new(200, 200, 255);
 
 #  DIRTY HACK
-my $self = {};
+my $bounds = {};
 
 sub add_graph {
     my $popup      = shift;
@@ -65,7 +65,8 @@ sub add_graph {
             list  => $list_name,
         );
     
-    my $bounds = $self->{bounds} = {
+    #  should be stored on the graph object
+    my $bounds = $bounds->{bounds} = {
         x_min        => $x_min,
         x_max        => $x_max,
         y_max        => $y_max,
@@ -126,7 +127,7 @@ sub add_secondary {
     $secondary  = $background->get_secondary;
 
     if ($primary) {
-        my $bounds = $self->{bounds};
+        my $bounds = $bounds->{bounds};
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,

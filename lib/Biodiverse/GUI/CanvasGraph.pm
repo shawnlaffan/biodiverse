@@ -60,7 +60,10 @@ sub new {
 
     # Make the canvas and hook it up
     $self->{canvas} = $canvas;
-    $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
+    $self->{canvas}->signal_connect_swapped (
+        size_allocate => \&on_size_allocate,
+        $self,
+    );
 
     # Set up canvas
     $self->{canvas}->set_center_scroll_region(0);

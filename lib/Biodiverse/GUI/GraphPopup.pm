@@ -67,10 +67,10 @@ sub add_graph {
     
     #  should be stored on the graph object
     my $bounds = $bounds->{bounds} = {
-        x_min        => $x_min,
-        x_max        => $x_max,
-        y_max        => $y_max,
-        y_min        => $y_min,
+        x_min => $x_min,
+        x_max => $x_max,
+        y_max => $y_max,
+        y_min => $y_min,
     };
 
     $background->add_primary_layer(

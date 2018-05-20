@@ -14,8 +14,13 @@ use Biodiverse::GUI::Project;
 use Biodiverse::GUI::GraphPopup;
 use Carp;
 use Data::Dumper;
+
+use Sort::Naturally qw /nsort/;
+
 use Biodiverse::Metadata::Parameter;
 use Biodiverse::GUI::PopupObject;
+
+
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 sub add_to_notebook {
@@ -658,7 +663,8 @@ sub on_graph_popup {
         };
     }
 
-    my @source_list = keys %sources;
+    #  need to cache this on an object
+    my @source_list = nsort keys %sources;
     my $default_source = $source_list[0];
    
     Biodiverse::GUI::Popup::show_popup(
@@ -683,7 +689,8 @@ sub on_add_secondary_to_graph_popup {
     # Get the max and min plot values.
     my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
-    my @lists = $output_ref->get_lists_across_elements;
+    #  should not be rebuilding this - get from existing object
+    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements;
 
     my %sources;
 

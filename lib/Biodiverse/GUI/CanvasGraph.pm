@@ -341,11 +341,12 @@ sub rescale_graph_points {
         $max_y = $max_y_vals;
     }
 
+    # avoid divide by zero errors
     if ($max_x == $min_x) {
-        ($max_x, $min_x) = (1, 0); # stop division by 0 error
+        ($max_x, $min_x) = (1, 0); 
     }
     if ($max_y == $min_y) {
-        ($max_y, $min_y) = (1, 0); # stop division by 0 error
+        ($max_y, $min_y) = (1, 0);
     }
     
     my %new_values;

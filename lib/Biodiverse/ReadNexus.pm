@@ -594,7 +594,7 @@ sub read_whole_file {
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
-    $fh->close || croak "Cannot close $file\n";
+    $fh->close or warn "Cannot close $file, $!\n";
 
     return $text;
 }

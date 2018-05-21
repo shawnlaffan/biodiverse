@@ -582,9 +582,8 @@ sub read_whole_file {
     croak "file arg not specified\n"
         if not defined $file;
 
-    #  now we open the file and suck it al in
-    my $fh;
-    open ($fh, '<:via(File::BOM)', $file)
+    #  now we open the file and suck it all in
+    open (my $fh, '<:via(File::BOM)', $file)
       or croak "[READNEXUS] cannot open $file for reading, $!\n";
 
     my $text;

@@ -480,11 +480,13 @@ sub resize_border_rect {
         # Make it centered on the visible area
         my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
         if (not $self->{dragging}) {
+            my $w2 = max($width,  $self->{width_units})  / 2;
+            my $h2 = max($height, $self->{height_units}) / 2;
             $self->{border_rect}->set(
-                x1 => ((max($width,  $self->{width_units})/2)  - 100 - POINT_WIDTH // 1),
-                y1 => ((max($height, $self->{height_units})/2) - 100 - POINT_WIDTH // 1),
-                x2 => ((max($width,  $self->{width_units})/2)  + 100 + POINT_WIDTH // 1),
-                y2 => ((max($height, $self->{height_units})/2) + 100 + POINT_WIDTH // 1),
+                x1 => ($w2 - 100 - POINT_WIDTH // 1),
+                y1 => ($h2 - 100 - POINT_WIDTH // 1),
+                x2 => ($w2 + 100 + POINT_WIDTH // 1),
+                y2 => ($h2 + 100 + POINT_WIDTH // 1),
             );
             $self->{border_rect}->raise_to_top();
         }

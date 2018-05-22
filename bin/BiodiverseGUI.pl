@@ -9,7 +9,7 @@ use 5.010;
 
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
-    $ENV{UBUNTU_MENUPROXY} = undef;  
+    $ENV{UBUNTU_MENUPROXY} = undef;
 }
 
 #no warnings 'redefine';

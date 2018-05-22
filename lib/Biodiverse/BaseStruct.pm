@@ -3612,7 +3612,7 @@ sub get_list_min_max_vals_across_elements {
         return wantarray ? @$minmax : [@$minmax];
     }
     
-    print "Getting minmax vals for indices in list $list_name across all elements\n";
+    #print "Getting minmax vals for indices in list $list_name across all elements\n";
     
     my $elements_hash = $self->{ELEMENTS};
 

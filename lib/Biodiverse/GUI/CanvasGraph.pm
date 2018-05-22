@@ -187,14 +187,6 @@ sub add_primary_layer {
 
     $self->set_primary($primary_group);
 
-    # clean out non numeric hash entries
-    foreach my $x (keys %graph_values) {
-        my $y = $graph_values{$x};
-        if(!looks_like_number($y) || !looks_like_number($x)) {
-            delete $graph_values{$x};
-        }
-    }
-
     #$self->{graph_values}  = \%graph_values;
     $self->{canvas_width}  = $canvas_width;
     $self->{canvas_height} = $canvas_height;
@@ -248,14 +240,6 @@ sub add_secondary_layer {
    $self->set_secondary($secondary_group);
 
    my $secondary = $self->get_secondary;
-
-    # clean out non numeric hash entries
-    foreach my $x (keys %graph_values) {
-        my $y = $graph_values{$x};
-        if(!looks_like_number($y) || !looks_like_number($x)) {
-            delete $graph_values{$x};
-        }
-    }
 
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
@@ -356,6 +340,10 @@ sub rescale_graph_points {
     # apply scaling formula
     foreach my $x (keys %$old_values) {
         my $y = $old_values->{$x};
+        next
+          if !defined $y
+          || !looks_like_number $x
+          || !looks_like_number $y;
 
         my $new_x = (($canvas_width)*($x-$min_x) / ($max_x-$min_x));
         my $new_y = $canvas_height - (($canvas_height)*($y-$min_y) / ($max_y-$min_y));

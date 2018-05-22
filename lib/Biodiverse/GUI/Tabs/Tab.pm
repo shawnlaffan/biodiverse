@@ -628,17 +628,6 @@ sub on_graph_popup {
     return if ($self->{tool} ne 'Graph'); 
     
     my $output_ref = $self->{output_ref};
-        
-    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements (
-        no_private => 1,
-    );
-    #say '[on_graph_popup] @lists: ' . join (' ', @lists);
-
-    #print Dumper($output_ref);
-    # Get the y max and min plot values.
-    #my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
-
-    my %sources;
 
     if ( ! blessed $self->{popup}) {
         my $popup = {};
@@ -646,19 +635,40 @@ sub on_graph_popup {
         $self->{popup} = $popup;
     }
 
+    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements (
+        no_private => 1,
+    );
+    #  this will cache
+    my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
+
+    my %sources;
+
     foreach my $list_name (@lists) {
-        #say "Found list $list_name";
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
-        $sources{$list_name} = sub { 
+
+        my ($y_min, $y_max)
+          = $output_ref->get_list_min_max_vals_across_elements (
+              list  => $list_name,
+            );
+        my $bounds = {
+            x_min => $stats->{$list_name}{MIN},
+            x_max => $stats->{$list_name}{MAX},
+            y_max => $y_max,
+            y_min => $y_min,
+        };
+        $self->{POPUP_GRAPH_BOUNDS}{$list_name} = $bounds;
+        
+        $sources{$list_name} = sub {
+            no autovivification;
+
             Biodiverse::GUI::GraphPopup::add_graph(
                 @_,
                 $output_ref,
                 $list_name,
                 $element,
                 $self->{popup},
-                #$y_max,
-                #$y_min,
+                $bounds,
             );
         };
     }
@@ -682,22 +692,23 @@ sub on_add_secondary_to_graph_popup {
     my $self = shift;
     my $element = shift;
 
-    return if ($self->{tool} ne 'Graph');
+    return if $self->{tool} ne 'Graph';
 
     my $output_ref = $self->{output_ref};
 
-    # Get the max and min plot values.
-    my ($y_max, $y_min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
-
-    #  should not be rebuilding this - get from existing object
-    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements;
+    #  should not be rebuilding these - get from existing object
+    #my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements;
+    #my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
+    my @lists = nsort keys %{$self->{POPUP_GRAPH_BOUNDS}};
 
     my %sources;
 
     foreach my $list_name (@lists) {
-        #say "Found list $list_name";
+        #  checks should be redundant
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
+        my $bounds = $self->{POPUP_GRAPH_BOUNDS}{$list_name};
+
         $sources{$list_name} = sub {
             Biodiverse::GUI::GraphPopup::add_secondary(
                 @_,
@@ -705,13 +716,12 @@ sub on_add_secondary_to_graph_popup {
                 $list_name,
                 $element,
                 $self->{popup},
-                $y_max,
-                $y_min,
+                $bounds,
             );
         };
     }
 
-    my @source_list = keys %sources;
+    my @source_list = nsort keys %sources;
     my $default_source = $source_list[0];
 
     Biodiverse::GUI::Popup::show_popup(

@@ -379,14 +379,11 @@ sub add_axis_labels_to_graph_canvas {
 
     my @x_values = keys %graph_values;
     my @y_values = values %graph_values;
-    #my $min_x = min @x_values;
-    #my $max_x = max @x_values;
+
     my $min_x = $bounds{x_min};
     my $max_x = $bounds{x_max};
-    my $min_y = $bounds{y_min}; # min value for the plot
-    my $max_y = $bounds{y_max}; # max value for the plot
-    #my $min_y = min @y_values; # min value for cell
-    #my $max_y = max @y_values; # max value for cell
+    my $min_y = $bounds{y_min};
+    my $max_y = $bounds{y_max};
 
     # add some axis labels
     my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;

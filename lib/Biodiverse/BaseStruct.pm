@@ -3608,8 +3608,7 @@ sub get_list_min_max_vals_across_elements {
     my $cache_name = 'get_list_min_max_vals_across_elements';
     my $cached_results = $self->get_cached_value($cache_name);
     
-    if ($cached_results) {
-        my $minmax = $cached_results->{$list_name} || [];
+    if (my $minmax = $cached_results->{$list_name}) {
         return wantarray ? @$minmax : [@$minmax];
     }
     

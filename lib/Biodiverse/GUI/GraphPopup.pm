@@ -29,8 +29,7 @@ sub add_graph {
     my $list_name  = shift;
     my $element    = shift;
     my $popupobj   = shift;
-    my $y_max      = shift;
-    my $y_min      = shift;
+    my $bounds_to_use = shift // warn 'no bounds!';
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,
@@ -51,27 +50,6 @@ sub add_graph {
     if ($primary) {
         $primary->destroy();
     }
-    
-    no autovivification;
-    my ($x_min, $x_max);
-    #  this will cache
-    my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
-    if (my $stats_for_list = $stats->{$list_name}) {
-        $x_max = $stats_for_list->{MAX};
-        $x_min = $stats_for_list->{MIN};
-    }
-    ($y_min, $y_max)
-      = $output_ref->get_list_min_max_vals_across_elements (
-            list  => $list_name,
-        );
-    
-    #  should be stored on the graph object
-    my $bounds_to_use = $bounds->{$list_name}{bounds} = {
-        x_min => $x_min,
-        x_max => $x_max,
-        y_max => $y_max,
-        y_min => $y_min,
-    };
 
     $background->add_primary_layer(
         graph_values => $list_ref,
@@ -97,8 +75,7 @@ sub add_secondary {
     my $list_name = shift;
     my $element = shift;
     my $popupobj = shift;
-    my $max = shift;
-    my $min = shift;
+    my $bounds_to_use = shift;
 
     my $secondary_element = $popupobj->get_secondary_element;
 
@@ -127,7 +104,7 @@ sub add_secondary {
     $secondary  = $background->get_secondary;
 
     if ($primary) {
-        my $bounds_to_use = $bounds->{$list_name}{bounds};
+        #my $bounds_to_use = $bounds->{$list_name}{bounds};
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,

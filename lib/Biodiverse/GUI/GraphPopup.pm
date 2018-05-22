@@ -20,9 +20,6 @@ use Biodiverse::GUI::CanvasGraph;
 use constant COLOUR_RED         => Gtk2::Gdk::Color->new(255*257, 0, 0);
 use constant COLOUR_LILAC       => Gtk2::Gdk::Color->new(200, 200, 255);
 
-#  DIRTY HACK
-my $bounds = {};
-
 sub add_graph {
     my $popup      = shift;
     my $output_ref = shift;
@@ -70,11 +67,11 @@ sub add_graph {
 }
 
 sub add_secondary {
-    my $self = shift;
+    my $self       = shift;
     my $output_ref = shift;
-    my $list_name = shift;
-    my $element = shift;
-    my $popupobj = shift;
+    my $list_name  = shift;
+    my $element    = shift;
+    my $popupobj   = shift;
     my $bounds_to_use = shift;
 
     my $secondary_element = $popupobj->get_secondary_element;

@@ -390,49 +390,48 @@ sub add_axis_labels_to_graph_canvas {
 
     # add some axis labels
     my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;
+    my $n_minus_1 = $number_of_axis_labels - 1;
+    my $x_range = $max_x - $min_x;
+    my $y_range = $max_y - $min_y;
 
     # x axis labels
-    foreach my $axis_label (0..($number_of_axis_labels-1)) {
-        my $x_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_width;
-        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_x - $min_x) 
-            + $min_x;
+    foreach my $axis_label (0 .. $n_minus_1) {
+        my $x_position = $axis_label / $n_minus_1 * $canvas_width;
+        my $text = $axis_label / $n_minus_1 * $x_range + $min_x;
 
         # TODO Add format choice
         $text = sprintf("%.4g", $text);
         my $x_label = Gnome2::Canvas::Item->new (
             $root, 'Gnome2::Canvas::Text',
-            x => $x_position,
-            y => $canvas_height+X_AXIS_LABEL_PADDING,
-            fill_color => 'black',
-            font => LABEL_FONT,,
-            anchor => 'GTK_ANCHOR_N',
-            justification =>  'center',
             text => $text,
+            x    => $x_position,
+            y    => $canvas_height + X_AXIS_LABEL_PADDING,
+            fill_color => 'black',
+            font       => LABEL_FONT,,
+            anchor     => 'GTK_ANCHOR_N',
+            justification =>  'center',
         );
-
     }
 
     # y axis labels
-    foreach my $axis_label (0..($number_of_axis_labels-1)) {
-        my $y_position = ($axis_label/($number_of_axis_labels-1)) * $canvas_height;
-        $y_position = $canvas_height - $y_position;
+    foreach my $axis_label (0 .. $n_minus_1) {
+        my $y_position = $axis_label / $n_minus_1 * $canvas_height;
+        $y_position    = $canvas_height - $y_position;
 
-        my $text = ($axis_label/($number_of_axis_labels-1)) * ($max_y - $min_y) 
-            + $min_y;
+        my $text = $axis_label / $n_minus_1 * $y_range + $min_y;
 
         # TODO Add format choice
         $text = sprintf("%.4f", $text);
         my $y_label = Gnome2::Canvas::Item->new (
             $root, 'Gnome2::Canvas::Text',
-            x => - Y_AXIS_LABEL_PADDING,
-            y => $y_position,
-            fill_color => 'black',
-            font => LABEL_FONT,
-            anchor => 'GTK_ANCHOR_E',
-            justification =>  'right',
             text => $text,
+            x    => -Y_AXIS_LABEL_PADDING,
+            y    => $y_position,
+            font   => LABEL_FONT,
+            anchor => 'GTK_ANCHOR_E',
+            fill_color    => 'black',
+            justification =>  'right',
         );
-
     }
 }
 

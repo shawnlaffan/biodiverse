@@ -213,9 +213,9 @@ sub load_dialog {
     my $element = shift;
     my $sources_ref    = shift;
     my $default_source = shift;
-    my $popup_type = shift // 'normal';
-    my $canvas = shift;
-    my $popupobj = shift;
+    my $popup_type     = shift // 'normal';
+    my $canvas         = shift;
+    my $popupobj       = shift;
 
     my $self->{popup} = {};
     my $popup = $self->{popup};

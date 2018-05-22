@@ -350,10 +350,20 @@ sub on_source_changed {
         );
     my $popup_state = get_popup_state($popup);
     $popup_state->{g_selected_source} = $name;
+    #my $old_list_name = $popup->{listname};
     $popup->{listname} = $name;
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
     $callback->($popup);
+    no autovivification;
+    #if (   defined $old_list_name
+    #    && $popup->{canvas}
+    #    && $name ne $old_list_name
+    #    ) {
+    #    say "Got a new popup graph list";
+    #    my $bk = $popup->{background};
+    #    $bk->add_axis_labels_to_graph_canvas;
+    #}
 
     return;
 }

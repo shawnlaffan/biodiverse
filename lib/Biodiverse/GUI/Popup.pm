@@ -350,7 +350,7 @@ sub on_source_changed {
         );
     my $popup_state = get_popup_state($popup);
     $popup_state->{g_selected_source} = $name;
-    #my $old_list_name = $popup->{listname};
+    my $old_list_name = $popup->{listname};
     $popup->{listname} = $name;
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)

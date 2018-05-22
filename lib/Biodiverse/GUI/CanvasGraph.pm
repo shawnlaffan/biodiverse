@@ -193,7 +193,7 @@ sub add_primary_layer {
     $self->{bounds} = \%bounds;
 
     # scale the values so they fit nicely in the canvas space.
-    my %scaled_graph_values = $self->rescale_graph_points(
+    my $scaled_graph_values = $self->rescale_graph_points(
         %bounds,
         old_values    => \%graph_values,
         canvas_width  => $canvas_width,
@@ -202,14 +202,14 @@ sub add_primary_layer {
 
     # Plot the points
     $self->plot_points(
-        graph_values => \%scaled_graph_values,
+        graph_values => $scaled_graph_values,
         canvas       => $primary_group,
         point_colour => $point_colour,
     );
 
     # add axis labels
     if (%graph_values){
-        $self->add_axis_labels_to_graph_canvas();
+        $self->add_axis_labels_to_graph_canvas;
     }
     $self->set_primary($primary_group);
 
@@ -242,7 +242,7 @@ sub add_secondary_layer {
    my $secondary = $self->get_secondary;
 
     # scale the values so they fit nicely in the canvas space.
-    my %scaled_graph_values = $self->rescale_graph_points(
+    my $scaled_graph_values = $self->rescale_graph_points(
         %bounds,
         old_values    => \%graph_values,
         canvas_width  => $canvas_width,
@@ -250,7 +250,7 @@ sub add_secondary_layer {
     );
 
     $self->plot_points(
-        graph_values => \%scaled_graph_values,
+        graph_values => $scaled_graph_values,
         canvas       => $secondary_group,
         point_colour => $point_colour,
     );
@@ -351,7 +351,7 @@ sub rescale_graph_points {
         $new_values{$new_x} = $new_y;
     }
 
-    return wantarray? %new_values : \%new_values;
+    return wantarray ? %new_values : \%new_values;
 }
 
 sub add_axis_labels_to_graph_canvas {
@@ -366,6 +366,8 @@ sub add_axis_labels_to_graph_canvas {
     my $max_x = $bounds->{x_max};
     my $min_y = $bounds->{y_min};
     my $max_y = $bounds->{y_max};
+    
+    say "Adding axis labels: $min_y $max_y";
 
     # add some axis labels
     my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;

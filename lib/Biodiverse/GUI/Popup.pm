@@ -217,24 +217,14 @@ sub load_dialog {
     my $canvas         = shift;
     my $popupobj       = shift;
 
-    my $self->{popup} = {};
-    my $popup = $self->{popup};
+    my $popup = $popupobj // bless {}, 'Biodiverse::GUI::PopupObject';
 
-    if ( ! defined $popupobj ) {
-        #say "[load_dialog] creating pseudo-object hash to hold everything together";
-        # Create pseudo-object hash to hold everything together
-        bless $popup, 'Biodiverse::GUI::PopupObject';
-    }
-    else {
-        $popup = $popupobj;
-    }
-
-    if ($popup_type eq "canvas") {
+    if ($popup_type eq 'canvas') {
         #  until we plot more than one graph
-        $popup->{canvas}  //= $canvas;
+        $popup->{canvas} //= $canvas;
     }
     else {
-        $popup->{list}    = $dlgxml->get_object('lstData');
+        $popup->{list} = $dlgxml->get_object('lstData');
     }
 
     my $popup_state = get_popup_state ($popup_type);

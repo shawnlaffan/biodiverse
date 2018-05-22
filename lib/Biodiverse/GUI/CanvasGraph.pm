@@ -449,7 +449,7 @@ sub on_size_allocate {
         $self->resize_background_rect();
         $self->resize_primary_points();
         $self->resize_axes_group();
-        $self->resize_secondary_points() if $self->get_secondary;;
+        $self->resize_secondary_points() if $self->get_secondary;
     }
     
     return;

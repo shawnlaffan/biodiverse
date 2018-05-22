@@ -642,8 +642,9 @@ sub on_graph_popup {
     my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
 
     my %sources;
+    my @source_list;
 
-    foreach my $list_name (@lists) {
+    foreach my $list_name (nsort @lists) {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
 
@@ -658,10 +659,9 @@ sub on_graph_popup {
             y_min => $y_min,
         };
         $self->{POPUP_GRAPH_BOUNDS}{$list_name} = $bounds;
-        
-        $sources{$list_name} = sub {
-            no autovivification;
+        push @source_list, $list_name;
 
+        $sources{$list_name} = sub {
             Biodiverse::GUI::GraphPopup::add_graph(
                 @_,
                 $output_ref,
@@ -673,8 +673,6 @@ sub on_graph_popup {
         };
     }
 
-    #  need to cache this on an object
-    my @source_list = nsort keys %sources;
     my $default_source = $source_list[0];
    
     Biodiverse::GUI::Popup::show_popup(
@@ -696,18 +694,17 @@ sub on_add_secondary_to_graph_popup {
 
     my $output_ref = $self->{output_ref};
 
-    #  should not be rebuilding these - get from existing object
-    #my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements;
-    #my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
     my @lists = nsort keys %{$self->{POPUP_GRAPH_BOUNDS}};
 
     my %sources;
+    my @source_list;
 
     foreach my $list_name (@lists) {
         #  checks should be redundant
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         my $bounds = $self->{POPUP_GRAPH_BOUNDS}{$list_name};
+        push @source_list, $list_name;
 
         $sources{$list_name} = sub {
             Biodiverse::GUI::GraphPopup::add_secondary(
@@ -721,7 +718,6 @@ sub on_add_secondary_to_graph_popup {
         };
     }
 
-    my @source_list = nsort keys %sources;
     my $default_source = $source_list[0];
 
     Biodiverse::GUI::Popup::show_popup(

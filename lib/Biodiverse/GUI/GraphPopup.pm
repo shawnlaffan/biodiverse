@@ -66,7 +66,7 @@ sub add_graph {
         );
     
     #  should be stored on the graph object
-    my $bounds = $bounds->{bounds} = {
+    my $bounds_to_use = $bounds->{$list_name}{bounds} = {
         x_min => $x_min,
         x_max => $x_max,
         y_max => $y_max,
@@ -77,7 +77,7 @@ sub add_graph {
         graph_values => $list_ref,
         point_colour => COLOUR_LILAC,
         canvas       => $canvas,
-        %$bounds,
+        %$bounds_to_use,
     );
 
     $popup->set_background($background);
@@ -127,12 +127,12 @@ sub add_secondary {
     $secondary  = $background->get_secondary;
 
     if ($primary) {
-        my $bounds = $bounds->{bounds};
+        my $bounds_to_use = $bounds->{$list_name}{bounds};
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,
             canvas       => $canvas,
-            %$bounds,
+            %$bounds_to_use,
         );
         $secondary->raise_to_top();
         $secondary->show();

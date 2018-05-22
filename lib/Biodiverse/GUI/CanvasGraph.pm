@@ -195,6 +195,11 @@ sub add_primary_layer {
         }
     }
 
+    #$self->{graph_values}  = \%graph_values;
+    $self->{canvas_width}  = $canvas_width;
+    $self->{canvas_height} = $canvas_height;
+    $self->{bounds} = \%bounds;
+
     # scale the values so they fit nicely in the canvas space.
     my %scaled_graph_values = $self->rescale_graph_points(
         %bounds,
@@ -212,13 +217,7 @@ sub add_primary_layer {
 
     # add axis labels
     if (%graph_values){
-        $self->add_axis_labels_to_graph_canvas(
-            graph_values  => \%graph_values,
-            canvas        => $primary_group,
-            canvas_width  => $canvas_width,
-            canvas_height => $canvas_height,
-            %bounds,
-        );
+        $self->add_axis_labels_to_graph_canvas();
     }
     $self->set_primary($primary_group);
 
@@ -369,21 +368,16 @@ sub rescale_graph_points {
 
 sub add_axis_labels_to_graph_canvas {
     my ($self, %args) = @_;
-    my %graph_values  = %{$args{graph_values}};
-    my $canvas        = $args{canvas};
-    my $canvas_width  = $args{canvas_width};
-    my $canvas_height = $args{canvas_height};
+    my $canvas        = $self->{primary};
+    my $canvas_width  = $self->{canvas_width};
+    my $canvas_height = $self->{canvas_height};
     my $root          = $canvas;
-    my %bounds;
-    @bounds{@bounds_names} = @args{@bounds_names};
+    my $bounds = $self->{bounds};
 
-    my @x_values = keys %graph_values;
-    my @y_values = values %graph_values;
-
-    my $min_x = $bounds{x_min};
-    my $max_x = $bounds{x_max};
-    my $min_y = $bounds{y_min};
-    my $max_y = $bounds{y_max};
+    my $min_x = $bounds->{x_min};
+    my $max_x = $bounds->{x_max};
+    my $min_y = $bounds->{y_min};
+    my $max_y = $bounds->{y_max};
 
     # add some axis labels
     my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;
@@ -689,7 +683,7 @@ sub toggle {
 }
 
 
-# set the parmary plot group
+# set the primary plot group
 sub set_primary {
     my $self = shift;
     my $primary = shift;

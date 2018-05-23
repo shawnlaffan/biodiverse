@@ -221,7 +221,7 @@ sub add_primary_layer {
 # Add the secondary layer of plot values
 sub add_secondary_layer {
     my ($self, %args) = @_;
-    my %graph_values = %{$args{graph_values}};
+    my $graph_values = $args{graph_values} // {};
     my $point_colour = $args{point_colour} // COLOUR_RED;
     my $canvas       = $args{canvas};
     my %bounds;
@@ -244,7 +244,7 @@ sub add_secondary_layer {
     # scale the values so they fit nicely in the canvas space.
     my $scaled_graph_values = $self->rescale_graph_points(
         %bounds,
-        old_values    => \%graph_values,
+        old_values    => $graph_values,
         canvas_width  => $canvas_width,
         canvas_height => $canvas_height,
     );
@@ -265,7 +265,7 @@ sub add_secondary_layer {
 
 sub plot_points {
     my ($self, %args) = @_;
-    my %graph_values  = %{$args{graph_values}};
+    my $graph_values  = $args{graph_values} // {};
     my $point_colour  = $args{point_colour};
     my $canvas        = $args{canvas};
     my $root          = $canvas;
@@ -273,8 +273,8 @@ sub plot_points {
     my ($point_width, $point_height) = (POINT_WIDTH, POINT_HEIGHT);
 
     # plot the points
-    foreach my $x (keys %graph_values) {
-        my $y = $graph_values{$x};
+    foreach my $x (keys %$graph_values) {
+        my $y = $graph_values->{$x};
         my $circle = Gnome2::Canvas::Item->new (
             $root,
             'Gnome2::Canvas::Ellipse',

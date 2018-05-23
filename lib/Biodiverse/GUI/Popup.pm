@@ -95,6 +95,7 @@ sub show_popup {
     my $default_source = shift;
     my $popup_type     = shift // 'normal';
     my $popupobj       = shift;
+    my $is_secondary      = shift;
 
     my $dlgxml;
     my $canvas;
@@ -120,8 +121,17 @@ sub show_popup {
         $popup_state->{g_reuse_dlg} = $dlgxml;
 
         $popup_state->{g_dialogs}{$element} = $dlgxml;
-        load_dialog($dlgxml, $element, $sources_ref, 
-                  $default_source, $popup_type, $canvas, $popupobj);
+
+        load_dialog (
+            dlgxml  => $dlgxml,
+            element => $element,
+            sources_ref    => $sources_ref,
+            default_source => $default_source,
+            popup_type     => $popup_type,
+            canvas         => $canvas,
+            popup_obj      => $popupobj,
+            is_secondary   => $is_secondary,
+        );
     #}
 }
 
@@ -209,13 +219,16 @@ sub make_dialog {
 
 
 sub load_dialog {
-    my $dlgxml  = shift;
-    my $element = shift;
-    my $sources_ref    = shift;
-    my $default_source = shift;
-    my $popup_type     = shift // 'normal';
-    my $canvas         = shift;
-    my $popupobj       = shift;
+    my %args = @_;
+    my $dlgxml  = $args{dlgxml};
+    my $element = $args{element};
+    my $sources_ref    = $args{sources_ref};
+    my $default_source = $args{default_source};
+    my $popup_type     = $args{popup_type} // 'normal';
+    my $canvas         = $args{canvas};
+    my $popupobj       = $args{popup_obj};
+    my $is_secondary   = $args{is_secondary};
+    
 
     my $popup = $popupobj // bless {}, 'Biodiverse::GUI::PopupObject';
 

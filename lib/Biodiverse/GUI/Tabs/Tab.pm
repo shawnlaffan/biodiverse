@@ -725,6 +725,7 @@ sub on_add_secondary_to_graph_popup {
         $default_source,
         'canvas',
         $self->{popup},
+        secondary => 1,
     );
 
 }

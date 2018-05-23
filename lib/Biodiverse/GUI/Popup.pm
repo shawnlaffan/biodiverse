@@ -95,7 +95,7 @@ sub show_popup {
     my $default_source = shift;
     my $popup_type     = shift // 'normal';
     my $popupobj       = shift;
-    my $is_secondary      = shift;
+    my $is_secondary   = shift;
 
     my $dlgxml;
     my $canvas;
@@ -241,32 +241,45 @@ sub load_dialog {
     }
 
     my $popup_state = get_popup_state ($popup_type);
-        
-    $popup->{element} = $element;
-    $popup->{sources_ref} = $sources_ref;
+    
+    if (!$is_secondary) {
+        # Set title
+        $popup_state->{g_dialogs}{$element}
+                    ->get_object(DLG_NAME)
+                    ->set_title("Data for $element");
+        $popup->{element}     = $element;
+        $popup->{sources_ref} = $sources_ref;
+    }
+    else {
+        # Set title
+        $popup_state->{g_dialogs}{$popup->{element}}
+                    ->get_object(DLG_NAME)
+                    ->set_title("Data for $popup->{element} and $element");
+        $popup->{element}     = $element;
+        $popup->{sources_ref} = $sources_ref;
+    }
 
     # Create model of available sources
     my $sources_model = make_sources_model($sources_ref);
-    #print "[Popup] Made source model\n";
 
     # Set up the combobox
     my $combo = $dlgxml->get_object('comboSources');
-    $combo->set_model($sources_model);
+    #if (!$is_secondary) {
+        $combo->set_model($sources_model);
 
-    my $selected_source =
-           find_selected_source($sources_model, $popup_state->{g_selected_source}) # first use user-selected
-        || find_selected_source($sources_model, $default_source) # then try default source
-        || $sources_model->get_iter_first;    # use first one otherwise
-    $combo->set_active_iter($selected_source);
+        my $selected_source =
+               find_selected_source($sources_model, $popup_state->{g_selected_source}) # first use user-selected
+            || find_selected_source($sources_model, $default_source) # then try default source
+            || $sources_model->get_iter_first;    # use first one otherwise
+        $combo->set_active_iter($selected_source);
 
-    # Set title
-    $popup_state->{g_dialogs}{$element}
-                ->get_object(DLG_NAME)
-                ->set_title("Data for $element");
+    #}
 
     # Load first thing
-    on_source_changed($combo, $popup);
+    on_source_changed($combo, $popup, $is_secondary);
 
+    return if $is_secondary;
+    
     # Disconnect signals (dialog might be being reused)
     $dlgxml->get_object('comboSources')->signal_handlers_disconnect_by_func(\&on_source_changed);
     $dlgxml->get_object('btnClose')->signal_handlers_disconnect_by_func(\&close_dialog);
@@ -310,7 +323,7 @@ sub make_sources_model {
     );
     my $iter;
 
-    foreach my $source_name (sort keys %{$sources_ref}) {
+    foreach my $source_name (nsort keys %{$sources_ref}) {
         $iter = $sources_model->append;
         $sources_model->set($iter,
             SOURCES_MODEL_NAME,     $source_name,
@@ -342,6 +355,7 @@ sub find_selected_source {
 sub on_source_changed {
     my $combo = shift;
     my $popup = shift;
+    my $is_secondary = shift;
 
     my $iter = $combo->get_active_iter;
 

@@ -237,9 +237,7 @@ sub add_secondary_layer {
         y => 0,
     );
 
-   $self->set_secondary($secondary_group);
-
-   my $secondary = $self->get_secondary;
+    $self->set_secondary($secondary_group);
 
     # scale the values so they fit nicely in the canvas space.
     my $scaled_graph_values = $self->rescale_graph_points(
@@ -367,7 +365,7 @@ sub add_axis_labels_to_graph_canvas {
     my $min_y = $bounds->{y_min};
     my $max_y = $bounds->{y_max};
     
-    say "Adding axis labels: $min_y $max_y";
+    #say "Adding axis labels: $min_y $max_y";
 
     # add some axis labels
     my $number_of_axis_labels = NUMBER_OF_AXIS_LABELS;

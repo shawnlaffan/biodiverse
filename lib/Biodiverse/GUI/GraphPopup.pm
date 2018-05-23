@@ -45,8 +45,7 @@ sub add_graph {
             popupobj => $popupobj,
         );
 
-    my $primary = $background->get_primary;
-    if ($primary) {
+    if (my $primary = $background->get_primary) {
         $primary->destroy();
     }
 
@@ -79,7 +78,8 @@ sub add_secondary {
     my $secondary_element = $popupobj->get_secondary_element;
 
     return
-      if defined $element
+      if !$popupobj->{force_replot}
+      && defined $element
       && defined $secondary_element
       && $element eq $secondary_element;
 
@@ -92,18 +92,19 @@ sub add_secondary {
 
     my $background = $popupobj->get_background;
     my $canvas     = $popupobj->get_canvas;
-    my $secondary;
 
     #my $point_colour = Gtk2::Gdk::Color->new(255*257, 0, 0);
     #my $point_colour = Gtk2::Gdk::Color->parse('#7F7F7F');
     my $point_colour = 'red';
 
     # call graph update here if it exists.
-    my $primary = $background->get_primary;
-    $secondary  = $background->get_secondary;
+    my $primary   = $background->get_primary;
 
     if ($primary) {
-        #my $bounds_to_use = $bounds->{$list_name}{bounds};
+        my $secondary = $background->get_secondary;
+        if ($secondary) {
+            $secondary->destroy;
+        }
         $secondary = $background->add_secondary_layer (
             graph_values => $list_ref,
             point_colour => $point_colour,

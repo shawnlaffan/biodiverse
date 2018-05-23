@@ -255,16 +255,18 @@ sub load_dialog {
         $popup_state->{g_dialogs}{$popup->{element}}
                     ->get_object(DLG_NAME)
                     ->set_title("Data for $popup->{element} and $element");
-        $popup->{element}     = $element;
-        $popup->{sources_ref} = $sources_ref;
+        $popup->{secondary_element}     = $element;
+        $popup->{secondary_sources_ref} = $sources_ref;
     }
 
-    # Create model of available sources
-    my $sources_model = make_sources_model($sources_ref);
-
-    # Set up the combobox
-    my $combo = $dlgxml->get_object('comboSources');
-    #if (!$is_secondary) {
+    my $combo = $popup->{combo};
+    
+    if (!$combo || !$is_secondary) {
+        # Create model of available sources
+        my $sources_model = make_sources_model($sources_ref);
+    
+        # Set up the combobox
+        $combo = $dlgxml->get_object('comboSources');
         $combo->set_model($sources_model);
 
         my $selected_source =
@@ -273,10 +275,15 @@ sub load_dialog {
             || $sources_model->get_iter_first;    # use first one otherwise
         $combo->set_active_iter($selected_source);
 
-    #}
+        $popup->{combo} = $combo;
+    }
 
     # Load first thing
-    on_source_changed($combo, $popup, $is_secondary);
+    on_source_changed(
+        $combo,
+        $popup,
+        ($is_secondary ? $sources_ref : undef),
+    );
 
     return if $is_secondary;
     
@@ -355,24 +362,41 @@ sub find_selected_source {
 sub on_source_changed {
     my $combo = shift;
     my $popup = shift;
-    my $is_secondary = shift;
+    my $callback_override = shift;  #  overrides the combo 
 
     my $iter = $combo->get_active_iter;
 
-    my ($name, $callback)
+    my ($list_name, $callback)
         = $combo->get_model->get(
             $iter,
             SOURCES_MODEL_NAME,
             SOURCES_MODEL_CALLBACK,
         );
     my $popup_state = get_popup_state($popup);
-    $popup_state->{g_selected_source} = $name;
+    $popup_state->{g_selected_source} = $list_name;
     my $old_list_name = $popup->{listname};
-    $popup->{listname} = $name;
+    $popup->{listname} = $list_name;
 
-    # Call the source-specific callback function (showList, showNeighbourLabels ...)
-    $callback->($popup);
-    no autovivification;
+    my $primary_callback;
+    if ($callback_override) {
+        $primary_callback = $callback;
+        $callback = $callback_override->{$list_name};
+        #  messy
+        local $popup->{element} = $popup->{secondary_element};
+        delete local $popup->{secondary_element};
+        $callback->($popup);
+    }
+    else {
+        # Call the source-specific callback function (showList, showNeighbourLabels ...)
+        $callback->($popup);
+        if ($popup->{secondary_sources_ref}) {
+            my $secondary_callback = $popup->{secondary_sources_ref}{$list_name};
+            local $popup->{force_replot} = 1;
+            $secondary_callback->($popup);
+        }
+    }
+
+    #no autovivification;
     #if (   defined $old_list_name
     #    && $popup->{canvas}
     #    && $name ne $old_list_name

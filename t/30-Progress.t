@@ -7,6 +7,9 @@ use FindBin qw/$Bin/;
 use Test::Lib;
 use rlib;
 
+#  don't test plugins
+local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+
 use Test::More tests => 2;
 use Test::NoWarnings;
 

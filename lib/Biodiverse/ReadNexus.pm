@@ -593,7 +593,7 @@ sub read_whole_file {
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
-    $fh->close or warn "Cannot close $file, $!\n";
+    $fh->close or warn "[READNEXUS] Cannot close $file, $!\n";
 
     return $text;
 }

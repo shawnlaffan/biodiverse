@@ -54,10 +54,12 @@ my $raster_idx    = 1;    # index in combo box of raster format
 my $shapefile_idx = 2;    # index in combo box
 
 # maintain reference for these, to allow referring when import method changes
+# (Not sure whey they are package lexicals)
 my $txtcsv_filter;
 my $allfiles_filter;
 my $shapefiles_filter;
 my $spreadsheets_filter;
+my $rasters_filter;
 
 my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
 Set to 'is_lat' if column contains latitude values,
@@ -1355,6 +1357,16 @@ sub make_filename_dialog {
     $spreadsheets_filter->set_name('spreadsheets');
     $filechooser->add_filter($spreadsheets_filter);
 
+    #  could use a custom filter to detect more formats
+    $rasters_filter = Gtk2::FileFilter->new();
+    $rasters_filter->add_pattern('*.tif');
+    $rasters_filter->add_pattern('*.tiff');
+    $rasters_filter->add_pattern('*.img');
+    $rasters_filter->add_pattern('*.asc');
+    $rasters_filter->add_pattern('*.flt');
+    $rasters_filter->set_name('rasters');
+    $filechooser->add_filter($rasters_filter);
+    
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect(
         'selection-changed' => \&on_file_changed,

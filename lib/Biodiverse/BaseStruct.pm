@@ -3422,12 +3422,12 @@ sub clear_lists_across_elements_cache {
 
 sub get_array_lists_across_elements {
     my $self = shift;
-    return $self->get_lists_across_elements (list_method => 'get_array_lists');
+    return $self->get_lists_across_elements (@_, list_method => 'get_array_lists');
 }
 
 sub get_hash_lists_across_elements {
     my $self = shift;
-    return $self->get_lists_across_elements (list_method => 'get_hash_lists');
+    return $self->get_lists_across_elements (@_, list_method => 'get_hash_lists');
 }
 
 

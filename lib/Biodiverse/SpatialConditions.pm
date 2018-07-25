@@ -1246,6 +1246,9 @@ END_SQR_EX
 sub sp_square {
     my $self = shift;
     my %args = @_;
+    
+    croak "Size argument to sp_square is not numeric.  Did you mean to use sp_rectangle?\n"
+      if !looks_like_number $args{size};
 
     my $size = $args{size} / 2;
 

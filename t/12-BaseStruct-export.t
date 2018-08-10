@@ -23,9 +23,40 @@ use Test::More;
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (sort @test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
+
+    done_testing;
+    return 0;
+}
+
+
+
 #  check the metadata
 #  we just want no warnings raised here?
-{
+sub test_metadata {
     my $bd = Biodiverse::BaseData->new (CELL_SIZES => [1, 1]);
     $bd->add_element (group => '0.5:0.5', label => 'a');
     
@@ -36,7 +67,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
 
 # delimited text
-{
+sub test_delimited_text {
     my $e;  #  for eval errors;
 
     #  need to test array lists - need numeric labels data set for those
@@ -106,7 +137,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
 
 
-{
+sub test_quoting {
     my $bd = get_basedata_object (
         CELL_SIZES => [2, 2],
         x_spacing => 1,

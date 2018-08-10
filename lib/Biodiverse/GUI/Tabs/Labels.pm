@@ -538,25 +538,27 @@ sub remove_selected_labels_from_list {
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
-    # Convert paths to row references
+    # Convert paths to row references first
     my @rowrefs;
     foreach my $path (@paths) {
         my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
         push @rowrefs, $treerowreference;
     }
-
+    
+    #  now we delete them
+    #  (cannot delete as we go as the paths and iters are affected by the deletions)
     foreach my $rowref (@rowrefs) {
         my $path = $rowref->get_path;
         next if !defined $path;
-        my $iter = $global_model->get_iter($path);
-        $global_model->remove($iter);
+        my $iter  = $model1->get_iter($path);
+        my $iter1 = $model1->convert_iter_to_child_iter($iter);
+        $global_model->remove($iter1);
     }
 
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
 
     #  need to update the matrix if it is displayed
-    #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
 
     delete $self->{ignore_selection_change};

@@ -18,7 +18,7 @@ use autovivification;
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
-use List::Util qw /min max sum/;
+use List::Util qw /min max sum any/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
 use Path::Class;
@@ -26,6 +26,7 @@ use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
+use Sort::Naturally qw /nsort/;
 
 our $VERSION = '2.00';
 
@@ -1095,35 +1096,13 @@ sub write_table {
 }
 
 
-#  control whether a file is written symetrically or not
-sub to_table {
-    my $self = shift;
-    my %args = @_;
-    #  modify to make the default, rather than required
-    #my $file = $args{file} || ($self->get_param('OUTPFX') . ".csv");  
-    my $as_symmetric = $args{symmetric} || 0;
-
-    croak "[BaseStruct] argument 'list' not specified\n"
-      if !defined $args{list}; 
-
-    my $list = $args{list};
-    my $check_elements;
-    if( $args{def_query} ) {
-        $check_elements = 
-            $self->get_elements_that_pass_def_query( defq => $args{def_query} );
-
-        my $length = scalar @{ $check_elements };
-        if( $length == 0 ) {
-            say "[BASESTRUCT] No elements passed the def query!";
-            $check_elements = $self->get_element_list;
-            $args{def_query} = '';
-        }
-    }
-    else {
-        $check_elements = $self->get_element_list;
-    }
+sub list_contents_are_symmetric {
+    my ($self, %args) = @_;
     
-  
+    my $list_name = $args{list_name};
+    croak 'argument list_name undefined'
+      if !defined $list_name;
+
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
@@ -1131,19 +1110,24 @@ sub to_table {
     my %list_keys;
     my $prev_list_keys;
 
-    say "[BASESTRUCT] Checking elements for list symmetry: $list";
+    my $check_elements = $self->get_element_list;
+
+    say "[BASESTRUCT] Checking elements for list symmetry: $list_name";
+    my $i = -1;
   CHECK_ELEMENTS:
-    foreach my $i (0 .. $#$check_elements) {  # sample the lot
-        my $check_element = $check_elements->[$i];
+    foreach my $check_element (@$check_elements) {  # sample the lot
+        $i++;
         last CHECK_ELEMENTS if ! defined $check_element;
 
         my $values = $self->get_list_values (
             element => $check_element,
-            list    => $list,
+            list    => $list_name,
         );
         if (is_hashref($values)) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
-                $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
+                #  This list is of different length from the previous.
+                #  Allows for zero length lists.
+                $is_asym ++;
                 last CHECK_ELEMENTS;
             }
             $prev_list_keys //= scalar keys %$values;
@@ -1164,20 +1148,42 @@ sub to_table {
         $last_contents_count = scalar keys %list_keys;
     }
 
+    return !$is_asym;
+}
+
+#  control whether a file is written symetrically or not
+sub to_table {
+    my $self = shift;
+    my %args = @_;
+
+    my $as_symmetric = $args{symmetric} || 0;
+
+    croak "[BaseStruct] neither of 'list' or 'list_names' "
+          . "arguments specified\n"
+      if !defined $args{list_names} && !defined $args{list};
+    croak "[BaseStruct] cannot specify both of 'list' "
+          . "and 'list_names' arguments\n"
+      if defined $args{list_names} && defined $args{list};
+
+    my $list_names = $args{list_names} // [$args{list}];
+
+    my $is_asym = any {!$self->list_contents_are_symmetric (list_name => $_)} @$list_names;
+    my $list_string = join ',', @$list_names;
+
     my $data;
 
     if (! $as_symmetric and $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list "
+        say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to asymmetric table";
         $data = $self->to_table_asym (%args);
     }
     elsif ($as_symmetric && $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list "
+        say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to symmetric table";
         $data = $self->to_table_asym_as_sym (%args);
     }
     else {
-        say "[BASESTRUCT] Converting symmetric data from $list "
+        say "[BASESTRUCT] Converting symmetric data from $list_string "
               . "to symmetric table";
         $data = $self->to_table_sym (%args);
     }
@@ -1233,7 +1239,7 @@ sub to_table_sym {
         element => $elements[0],
         list    => $args{list},
     );
-    my @print_order = sort keys %$list_hash_ref;
+    my @print_order = nsort keys %$list_hash_ref;
     my @quoted_print_order =
         map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
         @print_order;

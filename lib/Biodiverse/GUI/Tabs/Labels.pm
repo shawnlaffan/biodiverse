@@ -392,6 +392,9 @@ sub init_list {
         $sort_func = \&sort_by_column_numeric_labels;
         $start_col = 0;
     }
+    else {
+        $wrapper_model->set_sort_func (0, \&sort_label_column);
+    }
 
     #  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
@@ -415,6 +418,12 @@ sub init_list {
     return;
 }
 
+sub sort_label_column {
+    my ($liststore, $itera, $iterb) = @_;
+    
+    return
+      ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
+}
 
 #  sort by this column, then by labels column (always ascending)
 #  labels column should not be hardcoded if we allow re-ordering of columns

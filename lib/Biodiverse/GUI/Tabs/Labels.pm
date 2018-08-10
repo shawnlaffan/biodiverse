@@ -534,7 +534,8 @@ sub remove_selected_labels_from_list {
     my $model1 = $treeview1->get_model;
     my $model2 = $treeview2->get_model;
 
-    $self->{ignore_selection_change} = 1;
+    local $self->{ignore_selection_change} = 1;
+
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
@@ -546,7 +547,8 @@ sub remove_selected_labels_from_list {
     }
     
     #  now we delete them
-    #  (cannot delete as we go as the paths and iters are affected by the deletions)
+    #  (cannot delete as we go as the paths and iters
+    #   are affected by the deletions)
     foreach my $rowref (@rowrefs) {
         my $path = $rowref->get_path;
         next if !defined $path;
@@ -560,8 +562,6 @@ sub remove_selected_labels_from_list {
 
     #  need to update the matrix if it is displayed
     $self->on_selected_matrix_changed (redraw => 1);
-
-    delete $self->{ignore_selection_change};
 
     return;
 }

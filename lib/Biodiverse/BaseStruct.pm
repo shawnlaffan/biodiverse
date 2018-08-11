@@ -1215,7 +1215,11 @@ sub get_longest_name_array_length {
 sub to_table_sym {  
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not defined\n";
+    defined $args{list_names} || croak "list_names not defined\n";
+
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1238,11 +1242,21 @@ sub to_table_sym {
         @elements = sort $self->get_element_list;
     }
 
-    my $list_hash_ref = $self->get_hash_list_values(
-        element => $elements[0],
-        list    => $args{list},
-    );
-    my @print_order = nsort keys %$list_hash_ref;
+    #  only need to search first element,
+    #  as the lists must be present for symmetry to apply
+    my @print_order;
+    foreach my $list_name (@$list_names) {
+        my $list_hash_ref = $self->get_hash_list_values(
+            element => $elements[0],
+            list    => $list_name,
+        );
+        #  check for dups, as we don't handle them yet
+        if (@$list_names > 1) {
+            croak 'Cannot export duplicate keys across multiple lists'
+              if any {exists $list_hash_ref->{$_}} @print_order;
+        }
+        push @print_order, nsort keys %$list_hash_ref;
+    }
     my @quoted_print_order =
         map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
         @print_order;
@@ -1290,32 +1304,36 @@ sub to_table_sym {
             }
             push @basic, @array;
         }
-
-        my $list_ref = $self->get_hash_list_values(
-            element => $element,
-            list    => $args{list},
-        );
+        
+        my %aggregated_data;
+        foreach my $list_name (@$list_names) {
+            my $list_ref = $self->get_hash_list_values(
+                element => $element,
+                list    => $list_name,
+            );
+            @aggregated_data{keys %$list_ref} = values %$list_ref;
+        }
 
         if ($one_value_per_line) {  
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @data, [@basic, $key, $list_ref->{$key}];
+                    push @data, [@basic, $key, $aggregated_data{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = $list_ref->{$key} // $no_data_value;
+                    my $val = $aggregated_data{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @data, [@basic, @{$list_ref}{@print_order}];
+                push @data, [@basic, @aggregated_data{@print_order}];
             }
             else {
-                my @vals = map {defined $_ ? $_ : $no_data_value} @{$list_ref}{@print_order};
+                my @vals = map {$_ // $no_data_value} @aggregated_data{@print_order};
                 push @data, [@basic, @vals];
             }
         }

@@ -224,25 +224,51 @@ sub test_multiple_lists {
     }
     is_deeply($table, \@expected, 'asymmetric table matches for two lists');
     
+    #  now the symmetric lists
+    #  as a set up, duplicate the SPATIAL_RESULTS list
+    foreach my $element ($sp->get_element_list) {
+        my $list_ref = $sp->get_list_ref (
+            element => $element,
+            list    => 'SPATIAL_RESULTS',
+            autovivify => 0,
+        );
+        my %dup_hash  = map {($_.'_DUP') => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_NO_DUP_KEYS',
+            %dup_hash,
+        );
+        my %dup_hash2 = map {$_ => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_DUP_KEYS',
+            %dup_hash2,
+        );
+    }
+
     $table = $sp->to_table (
-        list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS2/],
+        list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS_NO_DUP_KEYS/],
         symmetric  => 1,
     );
     @expected
       = map {[split ',', $_]}
         split "\n",
         get_data_section ('sym_table_two_lists');
-    #  clean up the undefs
-    foreach my $i (0 .. $#expected) {
-        @{$expected[$i]} = map {$_ eq '' ? undef : $_} @{$expected[$i]};
-    }
-    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+    is_deeply($table, \@expected, 'symmetric table matches for two lists');
 
-    #  for test data generation
-    foreach my $line (@$table) {
-        say join ',', map {$_ // ''} @$line;
-    }
+    $table = eval {
+        $sp->to_table (
+            list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS_DUP_KEYS/],
+            symmetric  => 1,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok ($e, 'errored when duplicate keys passed to to_table under symmetric mode');
 
+    ##  for test data generation
+    #foreach my $line (@$table) {
+    #    say join ',', map {$_ // ''} @$line;
+    #}
 }
 
 sub table_headers_and_elements_are_quoted {
@@ -336,6 +362,25 @@ done_testing();
 1;
 
 __DATA__
+
+@@ sym_table_two_lists
+ELEMENT,Axis_0,Axis_1,RICHNESS_ALL,RICHNESS_SET1,RICHNESS_ALL_DUP,RICHNESS_SET1_DUP
+1:1,1,1,12,12,12,12
+1:3,1,3,20,20,20,20
+1:5,1,5,20,20,20,20
+1:7,1,7,12,12,12,12
+3:1,3,1,18,18,18,18
+3:3,3,3,30,30,30,30
+3:5,3,5,30,30,30,30
+3:7,3,7,18,18,18,18
+5:1,5,1,15,15,15,15
+5:3,5,3,25,25,25,25
+5:5,5,5,25,25,25,25
+5:7,5,7,15,15,15,15
+7:1,7,1,9,9,9,9
+7:3,7,3,15,15,15,15
+7:5,7,5,15,15,15,15
+7:7,7,7,9,9,9,9
 
 @@ asym_to_sym_table_two_lists
 ELEMENT,Axis_0,Axis_1,1:1,1:3,1:5,1:7,3:1,3:3,3:5,3:7,5:1,5:3,5:5,5:7,7:1,7:3,7:5,7:7,RICHNESS_ALL,RICHNESS_SET1

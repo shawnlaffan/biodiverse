@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use 5.010;
 use strict;
 use warnings;
 
@@ -185,8 +186,8 @@ sub test_multiple_lists {
         CELL_SIZES => [2, 2],
         x_spacing => 1,
         y_spacing => 1,
-        x_max     => 10,
-        y_max     => 10,
+        x_max     => 6,
+        y_max     => 6,
         x_min     => 0,
         y_min     => 1,
     );
@@ -195,16 +196,22 @@ sub test_multiple_lists {
     #  now make a basestruct with a symmetric list to export
     my $sp = $bd->add_spatial_output (name => 'Blahblah');
     $sp->run_analysis (
-        spatial_conditions => ['sp_self_only()'],
-        calculations       => ['calc_richness'],
+        spatial_conditions => ['sp_square_cell(size => 3)'],
+        calculations       => [qw /calc_richness calc_element_lists_used/],
     );
 
-    my $table = $gps->to_table (
-        list_names => [qw /SUBELEMENTS SPATIAL_RESULTS/],
+    my $table = $sp->to_table (
+        list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
     );
-    ok(1);
-    use Data::Dumper;
-    diag Data::Dumper::Dumper $table;  
+    my $expected_text = get_data_section ('asym_table_two_lists');
+    my @expected
+      = map {[split ',', $_]}
+        split "\n", $expected_text;
+
+    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+    #foreach my $line (@$table) {
+    #    say join ',', @$line;
+    #}  
 }
 
 sub table_headers_and_elements_are_quoted {
@@ -298,4 +305,23 @@ done_testing();
 1;
 
 __DATA__
+
+@@ asym_table_two_lists
+ELEMENT,Axis_0,Axis_1,Value
+1:1,1,1,1:1,1,1:3,1,3:1,1,3:3,1,RICHNESS_ALL,12,RICHNESS_SET1,12
+1:3,1,3,1:1,1,1:3,1,1:5,1,3:1,1,3:3,1,3:5,1,RICHNESS_ALL,20,RICHNESS_SET1,20
+1:5,1,5,1:3,1,1:5,1,1:7,1,3:3,1,3:5,1,3:7,1,RICHNESS_ALL,20,RICHNESS_SET1,20
+1:7,1,7,1:5,1,1:7,1,3:5,1,3:7,1,RICHNESS_ALL,12,RICHNESS_SET1,12
+3:1,3,1,1:1,1,1:3,1,3:1,1,3:3,1,5:1,1,5:3,1,RICHNESS_ALL,18,RICHNESS_SET1,18
+3:3,3,3,1:1,1,1:3,1,1:5,1,3:1,1,3:3,1,3:5,1,5:1,1,5:3,1,5:5,1,RICHNESS_ALL,30,RICHNESS_SET1,30
+3:5,3,5,1:3,1,1:5,1,1:7,1,3:3,1,3:5,1,3:7,1,5:3,1,5:5,1,5:7,1,RICHNESS_ALL,30,RICHNESS_SET1,30
+3:7,3,7,1:5,1,1:7,1,3:5,1,3:7,1,5:5,1,5:7,1,RICHNESS_ALL,18,RICHNESS_SET1,18
+5:1,5,1,3:1,1,3:3,1,5:1,1,5:3,1,7:1,1,7:3,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+5:3,5,3,3:1,1,3:3,1,3:5,1,5:1,1,5:3,1,5:5,1,7:1,1,7:3,1,7:5,1,RICHNESS_ALL,25,RICHNESS_SET1,25
+5:5,5,5,3:3,1,3:5,1,3:7,1,5:3,1,5:5,1,5:7,1,7:3,1,7:5,1,7:7,1,RICHNESS_ALL,25,RICHNESS_SET1,25
+5:7,5,7,3:5,1,3:7,1,5:5,1,5:7,1,7:5,1,7:7,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:1,7,1,5:1,1,5:3,1,7:1,1,7:3,1,RICHNESS_ALL,9,RICHNESS_SET1,9
+7:3,7,3,5:1,1,5:3,1,5:5,1,7:1,1,7:3,1,7:5,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:5,7,5,5:3,1,5:5,1,5:7,1,7:3,1,7:5,1,7:7,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:7,7,7,5:5,1,5:7,1,7:5,1,7:7,1,RICHNESS_ALL,9,RICHNESS_SET1,9
 

@@ -1178,7 +1178,7 @@ sub to_table {
     if (! $as_symmetric and $is_asym) {
         say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to asymmetric table";
-        $data = $self->to_table_asym (%args);
+        $data = $self->to_table_asym (%args, list_names => $list_names);
     }
     elsif ($as_symmetric && $is_asym) {
         say "[BASESTRUCT] Converting asymmetric data from $list_string "
@@ -1338,9 +1338,11 @@ sub to_table_sym {
 sub to_table_asym {  #  get the data as an asymmetric table
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not specified\n";
+    defined $args{list_names} || croak "list_names not specified\n";
 
-    my $list = $args{list};
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1395,37 +1397,38 @@ sub to_table_asym {  #  get the data as an asymmetric table
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element));
         }
-        #  get_list_values returns a list reference in scalar context - could be a hash or an array
-        my $list =  $self->get_list_values (element => $element, list => $list);
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
-            if (is_arrayref($list)) {
-                foreach my $value (@$list) {
-                    if (!defined $value) {
-                        $value = $no_data_value;
+            foreach my $list_name (@$list_names) {
+                #  get_list_values returns a list reference in scalar context
+                #  - could be a hash or an array
+                my $list_ref =  $self->get_list_values (element => $element, list => $list_name);
+                if (is_arrayref($list_ref)) {
+                    foreach my $value (@$list_ref) {
+                        #  preserve internal ordering - useful for extracting iteration based values
+                        push @data, [@basic, $value // $no_data_value];
                     }
-                    push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
+                }
+                elsif (is_hashref($list_ref)) {
+                    foreach my $key (sort keys %$list_ref) {
+                        push @data, [@basic, $key, $list_ref->{$key} // $no_data_value];
+                    }
                 }
             }
-            elsif (is_hashref($list)) {
-                my %hash = %$list;
-                foreach my $key (sort keys %hash) {
-                    push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
-                }
-            }
-            #else {  #  we have a scale - probably undef so treat it as such
-                #  atually, don't do anything for the moment.
-            #}
         }
         else {
             my @line = @basic;
-            if (is_arrayref($list)) {
-                #  preserve internal ordering - useful for extracting iteration based values
-                push @line, map {defined $_ ? $_ : $no_data_value} @$list;  
-            }
-            elsif (is_hashref($list)) {
-                my %hash = %$list;
-                foreach my $key (sort keys %hash) {
-                    push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
+            foreach my $list_name (@$list_names) {
+                #  get_list_values returns a list reference in scalar context
+                #  - could be a hash or an array
+                my $list_ref =  $self->get_list_values (element => $element, list => $list_name);
+                if (is_arrayref($list_ref)) {
+                    #  preserve internal ordering - useful for extracting iteration based values
+                    push @line, map {$_ // $no_data_value} @$list_ref;  
+                }
+                elsif (is_hashref($list_ref)) {
+                    foreach my $key (sort keys %$list_ref) {
+                        push @line, ($key, $list_ref->{$key} // $no_data_value);
+                    }
                 }
             }
             push @data, \@line;

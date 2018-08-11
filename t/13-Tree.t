@@ -521,6 +521,38 @@ sub test_export_shapefile {
 }
 
 
+sub test_to_table_group_nodes {
+    my $tree = shift // get_site_data_as_tree();
+    foreach my $node ($tree->get_node_refs) {
+        $node->add_to_lists (
+            use_ref   => 1,
+            some_list => {a => 1, b => 2, c => 3},
+        );
+    }
+
+    my $table = eval {
+        $tree->to_table_group_nodes (
+            num_clusters => 5,
+            include_node_data => 1,
+            sub_list => 'some_list',
+        );
+    };
+    my $e = $EVAL_ERROR;
+    diag $e if $e;
+    ok (!$e, 'exported to grouped table without error');
+    
+    #  now do stuff with table
+    my $header = $table->[0];
+    is_deeply ([@{$header}[-3,-2,-1]], [qw /a b c/], 'last three header cols are from extra list');
+
+    for my $i (1..3) {
+        my $row = $table->[$i]; 
+        is_deeply ([@{$row}[-3,-2,-1]], [qw /1 2 3/], "last three cols of row $i are as expected");
+    }
+
+    return;
+}
+
 sub test_export_tabular_tree {
     my $tree = shift // get_site_data_as_tree();
 

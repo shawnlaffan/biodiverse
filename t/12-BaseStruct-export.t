@@ -203,15 +203,12 @@ sub test_multiple_lists {
     my $table = $sp->to_table (
         list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
     );
-    my $expected_text = get_data_section ('asym_table_two_lists');
     my @expected
       = map {[split ',', $_]}
-        split "\n", $expected_text;
-
+        split "\n",
+        get_data_section ('asym_table_two_lists');
     is_deeply($table, \@expected, 'asymmetric table matches for two lists');
-    #foreach my $line (@$table) {
-    #    say join ',', @$line;
-    #}  
+
 }
 
 sub table_headers_and_elements_are_quoted {
@@ -305,6 +302,10 @@ done_testing();
 1;
 
 __DATA__
+
+@@ asym_to_sym_table_two_lists
+ELEMENT,Axis_0,Axis_1,Value
+
 
 @@ asym_table_two_lists
 ELEMENT,Axis_0,Axis_1,Value

@@ -1195,17 +1195,18 @@ sub to_table {
 }
 
 #  sometimes we have names of unequal length
+#  should probably cache this
 sub get_longest_name_array_length {
     my $self = shift;
 
     my $longest = -1;
     foreach my $element ($self->get_element_list) {
-        my $array = $self->get_element_name_as_array (element => $element);
-        my $len = scalar @$array;
-        if ($len > $longest) {
-            $longest = $len;
-        }
+        my $array = $self->get_element_name_as_array (
+            element => $element,
+        );
+        $longest = max ($longest, scalar @$array);
     }
+
     return $longest;
 }
 
@@ -1264,17 +1265,11 @@ sub to_table_sym {
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
-    my @header = ('ELEMENT');  
-
+    my @header = ('ELEMENT');
+    my @element_axes;
     if (! $no_element_array) {
-        my $i = 0;
-        #  get the number of element columns
-        $max_element_array_len = $self->get_longest_name_array_length - 1;
-
-        foreach my $null (0 .. $max_element_array_len) {
-            push (@header, 'Axis_' . $i);
-            $i++;
-        }
+        @element_axes = $self->get_axis_header_fields_for_table;
+        push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1298,11 +1293,11 @@ sub to_table_sym {
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
-            my @array = $self->get_element_name_as_array (element => $element);
-            if ($#array < $max_element_array_len) {  #  pad if needed
-                push @array, (undef) x ($max_element_array_len - $#array);
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
             }
-            push @basic, @array;
+            push @basic, @name_array;
         }
         
         my %aggregated_data;
@@ -1381,14 +1376,12 @@ sub to_table_asym {  #  get the data as an asymmetric table
     else {
         @elements = sort $self->get_element_list;
     }
-    push my @header, 'ELEMENT'; 
-    if (! $no_element_array) {  #  need the number of element components for the header
-        my $i = 0;
-        #  get the number of element columns
-        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  
-            push (@header, "Axis_$i");
-            $i++;
-        }
+
+    push my @header, 'ELEMENT';
+    my @element_axes;
+    if (! $no_element_array) {
+         @element_axes = $self->get_axis_header_fields_for_table;
+         push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1413,7 +1406,11 @@ sub to_table_asym {  #  get the data as an asymmetric table
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
-            push @basic, ($self->get_element_name_as_array (element => $element));
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
+            }
+            push @basic, @name_array;
         }
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             foreach my $list_name (@$list_names) {
@@ -1540,12 +1537,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     push my @header, 'ELEMENT';  #  need the number of element components for the header
+    my @element_axes;
     if (! $no_element_array) {
-        my $i = 0;
-        foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns
-            push (@header, "Axis_$i");
-            $i++;
-        }
+        @element_axes = $self->get_axis_header_fields_for_table;
+        push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1575,8 +1570,13 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         my @basic = ($el);
 
         if (! $no_element_array) {
-            push @basic, ($self->get_element_name_as_array (element => $element)) ;
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
+            }
+            push @basic, @name_array;
         }
+
         my %data_hash = %default_indices_hash;
 
         foreach my $list_name (@$list_names) {
@@ -1618,6 +1618,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     return wantarray ? @data : \@data;
+}
+
+sub get_axis_header_fields_for_table {
+    my $self = shift;
+
+    my $i = 0;
+    #  get the number of element columns
+    my $max_element_array_len = $self->get_longest_name_array_length;
+
+    my @axes;
+    foreach (0 .. $max_element_array_len - 1) {
+        push (@axes, 'Axis_' . $i);
+        $i++;
+    }
+
+    return wantarray ? @axes : \@axes;
 }
 
 #  write a table out as a series of ESRI asciigrid files, one per field based on row 0.

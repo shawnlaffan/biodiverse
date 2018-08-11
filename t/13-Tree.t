@@ -8,7 +8,7 @@ use Carp;
 use FindBin qw/$Bin/;
 use Test::Lib;
 use rlib;
-use List::Util qw /first sum/;
+use List::Util qw /first sum all/;
 
 use Test::More;
 
@@ -536,6 +536,7 @@ sub test_to_table_group_nodes {
             num_clusters => 5,
             include_node_data => 1,
             sub_list => 'some_list',
+            terminals_only => 0,
         );
     };
     my $e = $EVAL_ERROR;
@@ -550,6 +551,20 @@ sub test_to_table_group_nodes {
         my $row = $table->[$i]; 
         is_deeply ([@{$row}[-3,-2,-1]], [qw /1 2 3/], "last three cols of row $i are as expected");
     }
+    #  check one of the internals
+    my $internal_row = $table->[1];
+    is_deeply (
+        ['100___', '100___', ''],
+        [@{$internal_row}[0,1,2]],
+        'got blank second element col for internal node'
+    );
+    
+    my $header_len = @$header;
+    my $same_len   = all {scalar @{$_} == $header_len} @$table;
+    ok (
+        $same_len,
+        "all rows are same length ($header_len)",
+    );
 
     return;
 }

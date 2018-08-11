@@ -1845,7 +1845,9 @@ sub to_basestruct_group_nodes {
         NAME => 'TEMP',
     );
 
-    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendants_and_self';
+    my $get_node_method = $args{terminals_only}
+        ? 'get_terminal_elements'
+        : 'get_all_descendants_and_self';
 
     foreach my $element (sort keys %{$self->$get_node_method}) {
         $bs->add_element (element => $element);

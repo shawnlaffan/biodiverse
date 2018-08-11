@@ -1517,6 +1517,11 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
                   @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
               }
           }
+          #  check for dups
+          if (@$list_names > 1) {
+              croak "cannot export duplicated keys across multiple lists\n"
+                if any {exists $indices_hash{$_}} @print_order;
+          }
           push @print_order, sort keys %indices_hash;
     }
     my @quoted_print_order =

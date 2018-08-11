@@ -199,6 +199,37 @@ sub test_multiple_lists {
         spatial_conditions => ['sp_square_cell(size => 3)'],
         calculations       => [qw /calc_richness calc_element_lists_used/],
     );
+    
+    #  set up some additional lists
+    foreach my $element ($sp->get_element_list) {
+        my $list_ref = $sp->get_list_ref (
+            element => $element,
+            list    => 'SPATIAL_RESULTS',
+            autovivify => 0,
+        );
+        my %dup_hash  = map {($_.'_DUP') => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_NO_DUP_KEYS',
+            %dup_hash,
+        );
+        my %dup_hash2 = map {$_ => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_DUP_KEYS',
+            %dup_hash2,
+        );
+        my $el_list_ref = $sp->get_list_ref (
+            element => $element,
+            list    => 'EL_LIST_SET1',
+            autovivify => 0,
+        );
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'EL_LIST_SET1_DUP_KEYS',
+            %$el_list_ref,
+        );
+    }
 
     my (@expected, $table);
     $table = $sp->to_table (
@@ -225,27 +256,6 @@ sub test_multiple_lists {
     is_deeply($table, \@expected, 'asymmetric table matches for two lists');
     
     #  now the symmetric lists
-    #  as a set up, duplicate the SPATIAL_RESULTS list
-    foreach my $element ($sp->get_element_list) {
-        my $list_ref = $sp->get_list_ref (
-            element => $element,
-            list    => 'SPATIAL_RESULTS',
-            autovivify => 0,
-        );
-        my %dup_hash  = map {($_.'_DUP') => $list_ref->{$_}} keys %$list_ref;
-        $sp->add_to_hash_list (
-            element => $element,
-            list    => 'SPATIAL_RESULTS_NO_DUP_KEYS',
-            %dup_hash,
-        );
-        my %dup_hash2 = map {$_ => $list_ref->{$_}} keys %$list_ref;
-        $sp->add_to_hash_list (
-            element => $element,
-            list    => 'SPATIAL_RESULTS_DUP_KEYS',
-            %dup_hash2,
-        );
-    }
-
     $table = $sp->to_table (
         list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS_NO_DUP_KEYS/],
         symmetric  => 1,
@@ -264,6 +274,15 @@ sub test_multiple_lists {
     };
     my $e = $EVAL_ERROR;
     ok ($e, 'errored when duplicate keys passed to to_table under symmetric mode');
+
+    $table = eval {
+        $sp->to_table (
+            list_names => [qw /EL_LIST_SET1 EL_LIST_SET1_DUP_KEYS/],
+            symmetric  => 1,
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok ($e, 'errored when duplicate keys passed to to_table under asym to symmetric mode');
 
     ##  for test data generation
     #foreach my $line (@$table) {

@@ -200,14 +200,48 @@ sub test_multiple_lists {
         calculations       => [qw /calc_richness calc_element_lists_used/],
     );
 
-    my $table = $sp->to_table (
+    my (@expected, $table);
+    $table = $sp->to_table (
         list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
     );
-    my @expected
+    @expected
       = map {[split ',', $_]}
         split "\n",
         get_data_section ('asym_table_two_lists');
     is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+
+    $table = $sp->to_table (
+        list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
+        symmetric  => 1,
+    );
+    @expected
+      = map {[split ',', $_]}
+        split "\n",
+        get_data_section ('asym_to_sym_table_two_lists');
+    #  clean up the undefs
+    foreach my $i (0 .. $#expected) {
+        @{$expected[$i]} = map {$_ eq '' ? undef : $_} @{$expected[$i]};
+    }
+    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+    
+    $table = $sp->to_table (
+        list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS2/],
+        symmetric  => 1,
+    );
+    @expected
+      = map {[split ',', $_]}
+        split "\n",
+        get_data_section ('sym_table_two_lists');
+    #  clean up the undefs
+    foreach my $i (0 .. $#expected) {
+        @{$expected[$i]} = map {$_ eq '' ? undef : $_} @{$expected[$i]};
+    }
+    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+
+    #  for test data generation
+    foreach my $line (@$table) {
+        say join ',', map {$_ // ''} @$line;
+    }
 
 }
 
@@ -304,8 +338,23 @@ done_testing();
 __DATA__
 
 @@ asym_to_sym_table_two_lists
-ELEMENT,Axis_0,Axis_1,Value
-
+ELEMENT,Axis_0,Axis_1,1:1,1:3,1:5,1:7,3:1,3:3,3:5,3:7,5:1,5:3,5:5,5:7,7:1,7:3,7:5,7:7,RICHNESS_ALL,RICHNESS_SET1
+'1:1',1,1,1,1,,,1,1,,,,,,,,,,,12,12
+'1:3',1,3,1,1,1,,1,1,1,,,,,,,,,,20,20
+'1:5',1,5,,1,1,1,,1,1,1,,,,,,,,,20,20
+'1:7',1,7,,,1,1,,,1,1,,,,,,,,,12,12
+'3:1',3,1,1,1,,,1,1,,,1,1,,,,,,,18,18
+'3:3',3,3,1,1,1,,1,1,1,,1,1,1,,,,,,30,30
+'3:5',3,5,,1,1,1,,1,1,1,,1,1,1,,,,,30,30
+'3:7',3,7,,,1,1,,,1,1,,,1,1,,,,,18,18
+'5:1',5,1,,,,,1,1,,,1,1,,,1,1,,,15,15
+'5:3',5,3,,,,,1,1,1,,1,1,1,,1,1,1,,25,25
+'5:5',5,5,,,,,,1,1,1,,1,1,1,,1,1,1,25,25
+'5:7',5,7,,,,,,,1,1,,,1,1,,,1,1,15,15
+'7:1',7,1,,,,,,,,,1,1,,,1,1,,,9,9
+'7:3',7,3,,,,,,,,,1,1,1,,1,1,1,,15,15
+'7:5',7,5,,,,,,,,,,1,1,1,,1,1,1,15,15
+'7:7',7,7,,,,,,,,,,,1,1,,,1,1,9,9
 
 @@ asym_table_two_lists
 ELEMENT,Axis_0,Axis_1,Value

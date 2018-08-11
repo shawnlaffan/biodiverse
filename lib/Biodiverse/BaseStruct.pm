@@ -1183,12 +1183,12 @@ sub to_table {
     elsif ($as_symmetric && $is_asym) {
         say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to symmetric table";
-        $data = $self->to_table_asym_as_sym (%args);
+        $data = $self->to_table_asym_as_sym (%args, list_names => $list_names);
     }
     else {
         say "[BASESTRUCT] Converting symmetric data from $list_string "
               . "to symmetric table";
-        $data = $self->to_table_sym (%args);
+        $data = $self->to_table_sym (%args, list_names => $list_names);
     }
 
     return wantarray ? @$data : $data;
@@ -1452,9 +1452,12 @@ sub to_table_asym {  #  get the data as an asymmetric table
 sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not specified\n";
 
-    my $list = $args{list};
+    defined $args{list_names} || croak "list_names not specified\n";
+
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1476,23 +1479,28 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         $elements = $self->get_element_hash();
     }
 
-    my %indices_hash;
-
     my $quote_char = $self->get_param('QUOTES');
 
     say "[BASESTRUCT] Getting keys...";
+    
+    my @print_order;
 
-  BY_ELEMENT1:
-    foreach my $elt (keys %$elements) {
-        my $sub_list = $elements->{$elt}{$list};
-        if (is_arrayref($sub_list)) {
-            @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
-        }
-        elsif (is_hashref($sub_list)) {
-            @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
-        }
+    foreach my $list_name (@$list_names) {
+        my %indices_hash;
+
+        BY_ELEMENT1:
+          foreach my $elt (keys %$elements) {
+              #  should use a method here
+              my $sub_list = $elements->{$elt}{$list_name};
+              if (is_arrayref($sub_list)) {
+                  @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
+              }
+              elsif (is_hashref($sub_list)) {
+                  @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
+              }
+          }
+          push @print_order, sort keys %indices_hash;
     }
-    my @print_order = sort keys %indices_hash;
     my @quoted_print_order =
         map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}
         @print_order;
@@ -1534,6 +1542,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     push @data, \@header;
     
     print "[BASESTRUCT] Processing elements...\n";
+    
+    my %default_indices_hash;
+    @default_indices_hash{@print_order} = ($no_data_value) x @print_order;
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
@@ -1543,21 +1554,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
-        my $list = $self->get_list_ref (
-            element => $element,
-            list    => $list,
-            autovivify => 0,
-        );
-        my %data_hash = %indices_hash;
-        @data_hash{keys %data_hash}
-          = ($no_data_value) x scalar keys %data_hash;
-        if (is_arrayref($list)) {
-            foreach my $val (@$list) {
-                $data_hash{$val}++;  #  track dups
+        my %data_hash = %default_indices_hash;
+
+        foreach my $list_name (@$list_names) {
+            my $list = $self->get_list_ref (
+                element => $element,
+                list    => $list_name,
+                autovivify => 0,
+            );
+            if (is_arrayref($list)) {
+                foreach my $val (@$list) {
+                    $data_hash{$val}++;  #  track dups
+                }
             }
-        }
-        elsif (is_hashref($list)) {
-            @data_hash{keys %$list} = values %$list;
+            elsif (is_hashref($list)) {
+                @data_hash{keys %$list} = values %$list;
+            }
         }
 
         #  we've built the hash, now print it out

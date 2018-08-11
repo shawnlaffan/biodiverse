@@ -1427,7 +1427,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     }
                 }
                 elsif (is_hashref($list_ref)) {
-                    foreach my $key (sort keys %$list_ref) {
+                    foreach my $key (nsort keys %$list_ref) {
                         push @data, [@basic, $key, $list_ref->{$key} // $no_data_value];
                     }
                 }
@@ -1444,7 +1444,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @line, map {$_ // $no_data_value} @$list_ref;  
                 }
                 elsif (is_hashref($list_ref)) {
-                    foreach my $key (sort keys %$list_ref) {
+                    foreach my $key (nsort keys %$list_ref) {
                         push @line, ($key, $list_ref->{$key} // $no_data_value);
                     }
                 }
@@ -1522,7 +1522,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
               croak "cannot export duplicated keys across multiple lists\n"
                 if any {exists $indices_hash{$_}} @print_order;
           }
-          push @print_order, sort keys %indices_hash;
+          push @print_order, nsort keys %indices_hash;
     }
     my @quoted_print_order =
         map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}

@@ -193,7 +193,7 @@ sub test_multiple_lists {
     );
     my $gps = $bd->get_groups_ref;
 
-    #  now make a basestruct with a symmetric list to export
+    #  now make a basestruct with a symmetric and asymmetric list to export
     my $sp = $bd->add_spatial_output (name => 'Blahblah');
     $sp->run_analysis (
         spatial_conditions => ['sp_square_cell(size => 3)'],

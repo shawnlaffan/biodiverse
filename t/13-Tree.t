@@ -526,7 +526,8 @@ sub test_to_table_group_nodes {
     foreach my $node ($tree->get_node_refs) {
         $node->add_to_lists (
             use_ref   => 1,
-            some_list => {a => 1, b => 2, c => 3},
+            #  values in natural sort order of keys
+            some_list => {a1 => 1, a2 => 2, a11 => 3},
         );
     }
 
@@ -543,7 +544,7 @@ sub test_to_table_group_nodes {
     
     #  now do stuff with table
     my $header = $table->[0];
-    is_deeply ([@{$header}[-3,-2,-1]], [qw /a b c/], 'last three header cols are from extra list');
+    is_deeply ([@{$header}[-3,-2,-1]], [qw /a1 a2 a11/], 'last three header cols are from extra list');
 
     for my $i (1..3) {
         my $row = $table->[$i]; 

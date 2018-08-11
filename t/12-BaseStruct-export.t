@@ -237,7 +237,7 @@ sub test_multiple_lists {
     );
     @expected
       = map {[split ',', $_]}
-        split "\n",
+        split "[\r\n]+",
         get_data_section ('asym_table_two_lists');
     is_deeply($table, \@expected, 'asymmetric table matches for two lists');
 
@@ -247,7 +247,7 @@ sub test_multiple_lists {
     );
     @expected
       = map {[split ',', $_]}
-        split "\n",
+        split "[\r\n]+",
         get_data_section ('asym_to_sym_table_two_lists');
     #  clean up the undefs
     foreach my $i (0 .. $#expected) {
@@ -262,7 +262,7 @@ sub test_multiple_lists {
     );
     @expected
       = map {[split ',', $_]}
-        split "\n",
+        split "[\r\n]+",
         get_data_section ('sym_table_two_lists');
     is_deeply($table, \@expected, 'symmetric table matches for two lists');
 

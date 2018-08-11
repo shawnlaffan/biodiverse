@@ -1160,7 +1160,7 @@ sub to_table {
 
     croak "[BaseStruct] neither of 'list' or 'list_names' "
           . "arguments specified\n"
-      if !defined $args{list_names} && !defined $args{list};
+      if !defined $args{list_names} and !defined $args{list};
     croak "[BaseStruct] cannot specify both of 'list' "
           . "and 'list_names' arguments\n"
       if defined $args{list_names} && defined $args{list};

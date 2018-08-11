@@ -179,6 +179,34 @@ sub test_quoting {
 
 }
 
+
+sub test_multiple_lists {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [2, 2],
+        x_spacing => 1,
+        y_spacing => 1,
+        x_max     => 10,
+        y_max     => 10,
+        x_min     => 0,
+        y_min     => 1,
+    );
+    my $gps = $bd->get_groups_ref;
+
+    #  now make a basestruct with a symmetric list to export
+    my $sp = $bd->add_spatial_output (name => 'Blahblah');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_richness'],
+    );
+
+    my $table = $gps->to_table (
+        list_names => [qw /SUBELEMENTS SPATIAL_RESULTS/],
+    );
+    ok(1);
+    use Data::Dumper;
+    diag Data::Dumper::Dumper $table;  
+}
+
 sub table_headers_and_elements_are_quoted {
     my ($table, $extra_feedback) = @_;
     $extra_feedback //= '';

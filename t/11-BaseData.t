@@ -946,6 +946,7 @@ sub test_roundtrip_raster {
         { format => 'export_asciigrid'},
         { format => 'export_floatgrid'},
         { format => 'export_geotiff'},
+        { format => 'export_ers'},
     );
 
     # the raster data file won't specify the origin and cell size info, so pass as
@@ -1004,6 +1005,7 @@ sub test_roundtrip_raster {
         my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
 
         foreach my $this_file (@exported_files) {
+            next if $this_file !~ /\./;  #  must have a dot - er-mapper files do not by default
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
@@ -1020,14 +1022,34 @@ sub test_roundtrip_raster {
                     #given_label => $this_label,
                 );
             };
-            #  cope with the export name including the format
-            $new_bd->rename_label (
-                label    => $this_label,
-                new_name => $target_name,
-            );
             $e = $EVAL_ERROR;
             ok (!$e, "no exceptions importing $fname");
             diag $e if $e;
+            #  cope with the export name including the format
+            if (not $this_file =~ /ers$/) {
+                $new_bd->rename_label (
+                    label    => $this_label,
+                    new_name => $target_name,
+                );
+            }
+            else {
+                #  Workaround until we handle band names
+                #  in multiband rasters.
+                #  It means we don't properly test imports,
+                #  but it's a problem left for V3 when we
+                #  shift to Geo::GDAL::FFI
+                my $bi = 0;
+                foreach my $label (sort $bd->get_labels) {
+                    $bi++;
+                    my $renamed = $new_bd->rename_label (
+                        label    => 'band' . $bi,
+                        new_name => $label,
+                    );
+                    #  canary test that will start failing when/if
+                    #  we process band names properly
+                    ok $renamed, "Renamed ers band band$bi to $label";
+                }
+            }
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
@@ -1042,6 +1064,11 @@ sub test_roundtrip_raster {
                 is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
             }
         };
+        
+        is_deeply
+          scalar $bd->get_coord_bounds,
+          scalar $new_bd->get_coord_bounds,
+          "coord bounds match for $format";
 
         $i++;
     }

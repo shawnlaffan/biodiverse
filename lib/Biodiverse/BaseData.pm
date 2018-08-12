@@ -1326,8 +1326,8 @@ sub import_data_raster {
         my $file_base = Path::Class::File->new($file)->basename();
         say "[BASEDATA] INPUT FILE: $file";
 
-        croak
-"[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ "
+            . "- CANNOT LOAD DATA\n"
           if !( -e $file and -r $file );
 
         # process using GDAL library
@@ -1350,7 +1350,8 @@ sub import_data_raster {
                #  avoid repeated array lookups below
         my ( $tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5 ) = @tf;
 
-#  does not allow for rotations, but not sure that it should sinec Biodiverse doesn't either.
+        #  does not allow for rotations, but not sure
+        #  that it should since Biodiverse doesn't either.
         $cellsize_e ||= abs $tf_1;
         $cellsize_n ||= abs $tf_5;
 
@@ -1393,16 +1394,11 @@ sub import_data_raster {
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 
-# record if numeric values are being used for labels
-# CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
-#if (scalar @catnames == 0 && ! $labels_as_bands) {
-#    $labels_ref->{element_arrays_are_numeric} = 1;
-#}
-
             # read as preferred size blocks?
             ( $blockw, $blockh ) = $band->GetBlockSize();
-            say
-"Block size ($blockw, $blockh), full size ($data->{RasterXSize}, $data->{RasterYSize})";
+            say   "Block size ($blockw, $blockh), "
+                . "full size ($data->{RasterXSize}, "
+                . "$data->{RasterYSize})";
 
             my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};
             my $processed_count = 0;
@@ -2459,7 +2455,7 @@ sub rename_label {
 
     say "[BASEDATA] Renamed $label to $new_name";
 
-    return;
+    return 1;
 }
 
 #  should combine with rename_label

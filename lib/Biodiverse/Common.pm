@@ -855,7 +855,8 @@ sub save_to_sereal {
     use Sereal::Encoder;
 
     my $encoder = Sereal::Encoder->new({
-        undef_unknown => 1,  #  strip any code refs
+        undef_unknown    => 1,  #  strip any code refs
+        protocol_version => 3,  #  keep compatibility with older files - should be an argument
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";

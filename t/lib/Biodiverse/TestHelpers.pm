@@ -11,7 +11,7 @@ use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 $| = 1;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 
 use Data::Section::Simple qw(get_data_section);

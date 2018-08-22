@@ -21,7 +21,7 @@ use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 use Glib;
 use Gtk2;

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Ref::Util qw { :all };
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 sub new {
     my ($class, $data) = @_;

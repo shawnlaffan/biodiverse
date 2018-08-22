@@ -14,7 +14,7 @@ use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 our $AUTOLOAD;
 

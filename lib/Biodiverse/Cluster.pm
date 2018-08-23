@@ -120,18 +120,25 @@ sub get_metadata_export_nexus {
 sub export_nexus {
     my ($self, %args) = @_;
 
-    #  trigger early exit if we cannot open these files.
     my $list_name = 'COLOUR';
-    my $clr_fname = $args{file} . '_' . $list_name . '.clr';
-    my $qml_fname = $args{file} . '_' . $list_name . '.txt';
-    open my $fh_clr, '>', $clr_fname
-      or croak "Unable to open ESRI color map file for writing\n$!";
-    open my $fh_qml, '>', $qml_fname
-      or croak "Unable to open QGIS color map file for writing\n$!";
+    my ($fh_clr, $fh_qml);
+    
+    #  trigger early exit if we cannot open these files.
+    if ($args{generate_geotiff}) {
+        my $clr_fname = $args{file} . '_' . $list_name . '.clr';
+        my $qml_fname = $args{file} . '_' . $list_name . '.txt';
+        open $fh_clr, '>', $clr_fname
+          or croak "Unable to open ESRI color map file for writing\n$!";
+        open $fh_qml, '>', $qml_fname
+          or croak "Unable to open QGIS color map file for writing\n$!";
+    }
     
     #  do the tree
     $self->SUPER::export_nexus (%args);
-    
+
+    #  drop out of we don't need the geotiff    
+    return if !$args{generate_geotiff};
+
     #  now do the spatial part
     my $bd = $self->get_basedata_ref;
     my $gp = $bd->get_groups_ref;

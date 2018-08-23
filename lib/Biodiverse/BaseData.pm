@@ -2573,14 +2573,10 @@ sub get_labels_from_line_matrix {
 #       even if using List::MoreUtils and its XS implementation
 
     my %elements;
-    my @counts = @$fields_ref;
-
-    #my @x = $fields_ref->[values %$label_col_hash];
     @elements{ keys %$label_col_hash } =
       @$fields_ref[ values %$label_col_hash ];
 
     return wantarray ? %elements : \%elements;
-
 }
 
 #  process the header line and sort out which columns we want, and remap any if needed

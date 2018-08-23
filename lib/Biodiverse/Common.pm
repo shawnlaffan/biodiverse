@@ -2004,7 +2004,7 @@ sub get_cached_metadata {
     #  reset the cache if the versions differ (typically they would be older),
     #  this ensures new options are loaded
     $cache->{__VERSION} //= 0;
-    if ($cache->{__VERSION} != $VERSION || $ENV{BD_NO_METADATA_CACHE}) {
+    if ($cache->{__VERSION} ne $VERSION or $ENV{BD_NO_METADATA_CACHE}) {
         %$cache = ();
         $cache->{__VERSION} = $VERSION;
     }

@@ -523,20 +523,23 @@ sub test_export_shapefile {
 
 sub test_to_table_group_nodes {
     my $tree = shift // get_site_data_as_tree();
+    my $list_name = 'some_list';
+    
     foreach my $node ($tree->get_node_refs) {
         $node->add_to_lists (
             use_ref   => 1,
             #  values in natural sort order of keys
-            some_list => {a1 => 1, a2 => 2, a11 => 3},
+            $list_name => {a1 => 1, a2 => 2, a11 => 3},
         );
     }
 
     my $table = eval {
         $tree->to_table_group_nodes (
-            num_clusters => 5,
-            include_node_data => 1,
-            sub_list => 'some_list',
+            num_clusters   => 5,
+            sub_list       => $list_name,
             terminals_only => 0,
+            symmetric      => 1,
+            include_node_data => 1,
         );
     };
     my $e = $EVAL_ERROR;
@@ -545,11 +548,19 @@ sub test_to_table_group_nodes {
     
     #  now do stuff with table
     my $header = $table->[0];
-    is_deeply ([@{$header}[-3,-2,-1]], [qw /a1 a2 a11/], 'last three header cols are from extra list');
+    is_deeply (
+        [@{$header}[-3,-2,-1]],
+        [qw /a1 a2 a11/],
+        'last three header cols are from extra list',
+    ) or diag join ',', @$header;
 
     for my $i (1..3) {
         my $row = $table->[$i]; 
-        is_deeply ([@{$row}[-3,-2,-1]], [qw /1 2 3/], "last three cols of row $i are as expected");
+        is_deeply (
+            [@{$row}[-3,-2,-1]],
+            [qw /1 2 3/],
+            "last three cols of row $i are as expected",
+        ) or diag join ',', @$row;;
     }
     #  check one of the internals
     my $internal_row = $table->[1];

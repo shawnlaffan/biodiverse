@@ -1170,7 +1170,10 @@ sub to_table {
     croak 'list_names arg must be an array ref'
       if !is_arrayref $list_names;
 
-    my $is_asym = any {!$self->list_contents_are_symmetric (list_name => $_)} @$list_names;
+    my $is_asym
+        = any
+          {!$self->list_contents_are_symmetric (list_name => $_)}
+          @$list_names;
     my $list_string = join ',', @$list_names;
 
     my $data;

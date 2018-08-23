@@ -19,16 +19,6 @@ install:
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
   
-  #  until the remap class does not call the GUI:
-  #  2017-09-18: Engine does not call the GUI
-  #- set SIS_PPM=http://www.sisyphusion.tk/ppm
-  #  assuming if we have Geo::GDAL then we also have these from the cache
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Cairo.ppd 
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Glib.ppd 
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Pango.ppd
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gtk2.ppd
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
-
   #- cpanm --installdeps --notest --with-all-features .
 
 

@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 use Gtk2;
 use Biodiverse::RemapGuesser qw/guess_remap/;
@@ -316,7 +316,7 @@ sub post_auto_remap_dlg {
         punct_matches => $remap_object->get_match_category(
             category => "punct_matches",
         ),
-        punct_matches => $remap_object->get_match_category(
+        typo_matches => $remap_object->get_match_category(
             category => "typo_matches",
         ),
     );

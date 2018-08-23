@@ -9,6 +9,7 @@ use Time::HiRes qw /time/;
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 use Sort::Naturally qw /nsort/;
 
 use Biodiverse::GUI::GUIManager;
@@ -23,7 +24,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -1586,7 +1587,7 @@ sub show_list {
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
-    if (ref($ref) eq 'HASH') {
+    if (is_hashref($ref)) {
         foreach my $key (sort keys %$ref) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
@@ -1594,14 +1595,14 @@ sub show_list {
             $model->set($iter,    0,$key ,  1,$val);
         }
     }
-    elsif (ref($ref) eq 'ARRAY') {
+    elsif (is_arrayref($ref)) {
         foreach my $elt (sort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter, 0, $elt, 1, q{});
         }
     }
-    elsif (not ref($ref)) {
+    elsif (not is_ref($ref)) {
         $iter = $model->append;
         $model->set($iter, 0, $ref, 1, q{});
     }

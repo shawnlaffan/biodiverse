@@ -7,14 +7,14 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 our $AUTOLOAD;
 
@@ -895,6 +895,7 @@ sub get_metadata_export_nexus {
             type    => 'boolean',
             default => 0,
         },
+        $self->get_lists_export_metadata,
         {
             name       => 'export_colours',
             label_text => 'Export colours',
@@ -904,10 +905,9 @@ sub get_metadata_export_nexus {
         },
     );
     for (@parameters) {
+        next if blessed $_;
         bless $_, $parameter_metadata_class;
     }
-    
-    push @parameters, $self->get_lists_export_metadata;
 
     my %args = (
         format     => 'Nexus',

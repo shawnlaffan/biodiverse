@@ -19,7 +19,7 @@ use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -1688,6 +1688,11 @@ sub get_bootstrap_colour {
     return $bootstrap_block->get_colour;
 }
 
+sub get_bootstrap_colour_8bit_rgb {
+    my ($self) = @_;
+    my $bootstrap_block = $self->get_bootstrap_block;
+    return $bootstrap_block->get_colour_8bit_rgb;
+}
 
 # isolate dealings with the underlying object hash to one function
 sub get_bootstrap_block {
@@ -1811,7 +1816,13 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
 
     my $bs = $self->to_basestruct_group_nodes(%args);
 
-    return $bs->to_table (@_, list => 'data');
+    my $list_names = [qw/node_data/];
+
+    if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
+        $list_names = [qw/node_data sub_list/];
+    }
+
+    return $bs->to_table (@_, list_names => $list_names);    
 }
 
 sub to_basestruct_group_nodes {
@@ -1824,7 +1835,7 @@ sub to_basestruct_group_nodes {
 
     my $num_classes = $args{use_target_value} ? q{} : $args{num_clusters};
 
-    croak "One of args num_classes or use_target_value must be specified\n"
+    croak "One of args num_clusters or use_target_value must be specified\n"
         if ! ($num_classes || $args{use_target_value});
 
     my $sub_list = $args{sub_list} // '';
@@ -1834,7 +1845,9 @@ sub to_basestruct_group_nodes {
         NAME => 'TEMP',
     );
 
-    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendants_and_self';
+    my $get_node_method = $args{terminals_only}
+        ? 'get_terminal_elements'
+        : 'get_all_descendants_and_self';
 
     foreach my $element (sort keys %{$self->$get_node_method}) {
         $bs->add_element (element => $element);
@@ -1855,8 +1868,10 @@ sub to_basestruct_group_nodes {
 
     say "[TREE] Actual number of groups identified is " . scalar (keys %target_nodes);
 
+    my $want_sub_list = (defined $sub_list && $sub_list !~ /(no list)/);
+
     my $max_sublist_digits;
-    if (defined $sub_list) {
+    if ($want_sub_list) {
         $max_sublist_digits
           = length
               $self->get_max_list_length_below (
@@ -1883,8 +1898,9 @@ sub to_basestruct_group_nodes {
 
         #  get the additional list data if requested
         #  should really allow arrays here - convert to hashes?
-        if ($sub_list !~ /(no list)/) {
-            my $sub_list_ref = $node->get_list_ref (list => $sub_list) // '';
+        my $sub_list_ref;
+        if ($want_sub_list) {
+            $sub_list_ref = $node->get_list_ref (list => $sub_list) // {};
             if (is_arrayref($sub_list_ref)) {
                 $sub_list_ref = $self->array_to_hash_values (
                     list   => $sub_list_ref,
@@ -1893,9 +1909,9 @@ sub to_basestruct_group_nodes {
                     sort_array_lists => $args{sort_array_lists},
                 );
             }
-            if (is_hashref($sub_list_ref)) {
-                @data{keys %$sub_list_ref} = (values %$sub_list_ref);
-            }
+            #if (is_hashref($sub_list_ref)) {
+            #    @data{keys %$sub_list_ref} = (values %$sub_list_ref);
+            #}
         }
 
         #  loop through all the terminal elements in this cluster and assign the values
@@ -1903,9 +1919,16 @@ sub to_basestruct_group_nodes {
         foreach my $element (sort @elements) {
             $bs->add_to_hash_list (
                 element => $element,
-                list    => 'data',
+                list    => 'node_data',
                 %data,
             );
+            if ($want_sub_list) {
+                $bs->add_to_hash_list (
+                    element => $element,
+                    list    => 'sub_list',
+                    %$sub_list_ref,
+                );
+            }
         }
     }
 

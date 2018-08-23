@@ -46,7 +46,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 my $EMPTY_STRING = q{};
 
@@ -855,7 +855,8 @@ sub save_to_sereal {
     use Sereal::Encoder;
 
     my $encoder = Sereal::Encoder->new({
-        undef_unknown => 1,  #  strip any code refs
+        undef_unknown    => 1,  #  strip any code refs
+        protocol_version => 3,  #  keep compatibility with older files - should be an argument
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";
@@ -2000,6 +2001,13 @@ sub get_cached_metadata {
 
     my $cache
       = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
+    #  reset the cache if the versions differ (typically they would be older),
+    #  this ensures new options are loaded
+    $cache->{__VERSION} //= 0;
+    if ($cache->{__VERSION} != $VERSION || $ENV{BD_NO_METADATA_CACHE}) {
+        %$cache = ();
+        $cache->{__VERSION} = $VERSION;
+    }
     return $cache;
 }
 
@@ -2027,7 +2035,7 @@ sub get_args {
     $sub_args = eval {$self->$metadata_sub (%args)};
     my $error = $EVAL_ERROR;
 
-    if (blessed $error) {
+    if (blessed $error and $error->can('rethrow')) {
         $error->rethrow;
     }
     elsif ($error) {

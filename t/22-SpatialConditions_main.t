@@ -73,6 +73,8 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    test_sp_square_with_array_ref ();
+
     my @res_pairs = get_sp_cond_res_pairs_to_use (@args);
     my %conditions_to_run = get_sp_conditions_to_run (\%conditions, @args);
 
@@ -107,4 +109,24 @@ sub test_ellipse_angles_match {
             "ellipse nbr set matches for rotate_angle_deg and rotate_angle, $res_combo",
         );
     }
+}
+
+#  refs get converted to numbers so need to croak
+#  when sp_square gets one
+sub test_sp_square_with_array_ref {
+    my $bd = Biodiverse::BaseData->new (
+        CELL_SIZES => [1,1],
+        NAME => 'test_sp_square_with_array_ref',
+    );
+    my $sp_cond = Biodiverse::SpatialConditions->new(
+        basedata_ref => $bd,
+        conditions   => 'sp_square (size => [100,100])',
+    );
+    
+    my $res = eval {
+        $sp_cond->evaluate (coord_array1 => [1,1], coord_array2 => [2,2]);
+    };
+    my $e = $@;
+    ok $e, 'sp_square dies when passed a reference as the size arg';
+    
 }

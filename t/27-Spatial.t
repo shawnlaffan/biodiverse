@@ -134,7 +134,8 @@ sub check_neighbours_are_as_expected {
     my $print_results = $args{print_results} || 0;
 
     my $spatial_params = Biodiverse::SpatialConditions->new (
-        conditions => $cond,
+        basedata_ref => $bd,
+        conditions   => $cond,
     );
 
     my $neighbours = eval {

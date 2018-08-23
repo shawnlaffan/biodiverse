@@ -11,6 +11,7 @@ use Sort::Naturally qw /nsort ncmp/;
 use List::MoreUtils qw /firstidx/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
+use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 use HTML::QuickTable;
 
@@ -25,7 +26,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -391,6 +392,9 @@ sub init_list {
         $sort_func = \&sort_by_column_numeric_labels;
         $start_col = 0;
     }
+    else {
+        $wrapper_model->set_sort_func (0, \&sort_label_column);
+    }
 
     #  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
@@ -414,6 +418,12 @@ sub init_list {
     return;
 }
 
+sub sort_label_column {
+    my ($liststore, $itera, $iterb) = @_;
+    
+    return
+      ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
+}
 
 #  sort by this column, then by labels column (always ascending)
 #  labels column should not be hardcoded if we allow re-ordering of columns
@@ -533,32 +543,34 @@ sub remove_selected_labels_from_list {
     my $model1 = $treeview1->get_model;
     my $model2 = $treeview2->get_model;
 
-    $self->{ignore_selection_change} = 1;
+    local $self->{ignore_selection_change} = 1;
+
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
-    # Convert paths to row references
+    # Convert paths to row references first
     my @rowrefs;
     foreach my $path (@paths) {
         my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
         push @rowrefs, $treerowreference;
     }
-
+    
+    #  now we delete them
+    #  (cannot delete as we go as the paths and iters
+    #   are affected by the deletions)
     foreach my $rowref (@rowrefs) {
         my $path = $rowref->get_path;
         next if !defined $path;
-        my $iter = $global_model->get_iter($path);
-        $global_model->remove($iter);
+        my $iter  = $model1->get_iter($path);
+        my $iter1 = $model1->convert_iter_to_child_iter($iter);
+        $global_model->remove($iter1);
     }
 
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
 
     #  need to update the matrix if it is displayed
-    #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
-
-    delete $self->{ignore_selection_change};
 
     return;
 }
@@ -1468,7 +1480,7 @@ sub show_list {
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
-    if (ref($ref) eq 'HASH') {
+    if (is_hashref($ref)) {
         foreach my $key (sort keys %$ref) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
@@ -1476,14 +1488,14 @@ sub show_list {
             $model->set($iter,    0,$key ,  1,$val);
         }
     }
-    elsif (ref($ref) eq 'ARRAY') {
+    elsif (is_arrayref($ref)) {
         foreach my $elt (sort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter,    0,$elt ,  1,'');
         }
     }
-    elsif (not ref($ref)) {
+    elsif (not is_ref($ref)) {
         $iter = $model->append;
         $model->set($iter,    0, $ref,  1,'');
     }

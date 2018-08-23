@@ -9,7 +9,7 @@ use Sort::Naturally qw/nsort/;
 
 use Gtk2;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 use English qw { -no_match_vars };
 

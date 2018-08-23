@@ -148,12 +148,6 @@ sub _test_linkages {
     }    
 }
 
-sub test_linkages_and_check_replication {
-    cluster_test_linkages_and_check_replication (
-        type          => 'Biodiverse::Cluster',
-        linkage_funcs => \@linkages,
-    );
-}
 
 sub test_tie_breaker_croak_on_missing_args  {
     my $data = get_cluster_mini_data();
@@ -170,10 +164,6 @@ sub test_tie_breaker_croak_on_missing_args  {
     my $e = $EVAL_ERROR;
     isnt ($e, '', 'Tie breaker croaked when missing an argument');
     #note $e;
-}
-
-sub test_linkages_and_check_mx_precision {
-    cluster_test_linkages_and_check_mx_precision(type => 'Biodiverse::Cluster');
 }
 
 

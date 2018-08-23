@@ -12,7 +12,7 @@ use Ref::Util qw /is_arrayref is_hashref/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.1';
 
 sub new {
     my $class = shift;
@@ -79,6 +79,11 @@ sub set_colour_aa {
 sub get_colour {
     my $self = shift;
     return $self->{colour};
+}
+
+sub get_colour_8bit_rgb {
+    my $self = shift;
+    return $self->reformat_colour_spec (colour => $self->{colour});
 }
 
 sub delete_colour {
@@ -180,7 +185,7 @@ sub reformat_colour_spec {
     my $colour = $args{colour};
 
     #  only worry about #RRRRGGGGBBBB
-    return $colour if not $colour =~ /^#[a-fA-F\d]{12}$/;
+    return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
 
     # the way colours are selected in the dendrogram only allows for 2
     # hex digits for each color. Unless this is change, we don't lose

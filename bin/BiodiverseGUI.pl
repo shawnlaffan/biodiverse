@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-use 5.010;
+use 5.022;
 
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity

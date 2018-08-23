@@ -1,7 +1,7 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
 package Biodiverse::Indices::Phylogenetic;
-use 5.016;
+use 5.020;
 use strict;
 use warnings;
 
@@ -108,8 +108,7 @@ sub calc_pd {
     my %args = @_;
     
     my @keys = qw /PD PD_P PD_per_taxon PD_P_per_taxon/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
     
     return wantarray ? %results : \%results;
 }
@@ -140,8 +139,7 @@ sub calc_pd_node_list {
     
     my @keys = qw /PD_INCLUDED_NODE_LIST/;
 
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }
@@ -516,8 +514,7 @@ sub calc_pe {
     my %args = @_;
     
     my @keys = qw /PE_WE PE_WE_P/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
     
     return wantarray ? %results : \%results;
 }
@@ -555,8 +552,7 @@ sub calc_pe_lists {
     my %args = @_;
 
     my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }
@@ -670,8 +666,8 @@ sub calc_pe_central_lists {
 
     my $base_wt_list = $args{PE_WTLIST};
     my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
-    my $a_list  =   $args{PHYLO_A_LIST};
-    my $b_list  =   $args{PHYLO_B_LIST};
+    my $a_list  =   $args{PHYLO_A_LIST};  #  those in both lists
+    my $b_list  =   $args{PHYLO_B_LIST};  #  those only in nbr set 1
 
     my $local_range_list  = $args{PE_LOCAL_RANGELIST};
     my $global_range_list = $args{PE_RANGELIST};
@@ -680,14 +676,10 @@ sub calc_pe_central_lists {
 
     #  avoid copies and slices if there are no nodes found only in nbr set 2
     if (scalar keys %$c_list) {
-        my (%wt_list, %local_range_list_c, %global_range_list_c);
         #  Keep any node found in nbr set 1
-        @wt_list{keys %$a_list} = @{$base_wt_list}{keys %$a_list};
-        @wt_list{keys %$b_list} = @{$base_wt_list}{keys %$b_list};
-        
-        my @keepers = keys %wt_list;
-        @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
-        @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
+        my %wt_list = %{$base_wt_list}{(keys %$a_list, keys %$b_list)};
+        my %local_range_list_c  = %{$local_range_list}{keys %wt_list};
+        my %global_range_list_c = %{$global_range_list}{keys %wt_list};
 
         $results{PEC_WTLIST} = \%wt_list;
         $results{PEC_LOCAL_RANGELIST} = \%local_range_list_c;

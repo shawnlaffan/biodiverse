@@ -2,6 +2,7 @@ package Biodiverse::Indices::Endemism;
 use strict;
 use warnings;
 use Carp;
+use 5.020;
 
 our $VERSION = '2.99_001';
 
@@ -797,8 +798,7 @@ sub calc_endemism_absolute_lists {
     my %args = @_;
     
     my @keys = qw /END_ABS1_LIST END_ABS2_LIST END_ABS_ALL_LIST/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }
@@ -844,8 +844,7 @@ sub calc_endemism_absolute {
     my %args = @_;
     
     my @keys = qw /END_ABS1 END_ABS2 END_ABS_ALL END_ABS1_P END_ABS2_P END_ABS_ALL_P/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }

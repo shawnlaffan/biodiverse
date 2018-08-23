@@ -1,6 +1,6 @@
 package Biodiverse::GUI::Tabs::Randomise;
 
-use 5.016;
+use 5.020;
 use strict;
 use warnings;
 use Carp;
@@ -746,8 +746,7 @@ sub get_parameter_settings_for_func {
 
     #say join ' ', @needed_params;
 
-    my %p_subset;
-    @p_subset{@needed_params} = @param_hash{@needed_params};
+    my %p_subset = %param_hash{@needed_params};
 
     return wantarray ? %p_subset : \%p_subset;
 }

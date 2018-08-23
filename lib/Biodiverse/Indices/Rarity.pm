@@ -1,6 +1,7 @@
 package Biodiverse::Indices::Rarity;
 use strict;
 use warnings;
+use 5.020;
 
 our $VERSION = '2.99_001';
 
@@ -101,8 +102,7 @@ sub calc_rarity_central {
 
     #  extract those we want here
     my @keys = qw /RAREC_CWE RAREC_WE RAREC_RICHNESS/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }
@@ -231,8 +231,7 @@ sub calc_rarity_whole {
 
     #  extract those we want here
     my @keys = qw /RAREW_CWE RAREW_WE RAREW_RICHNESS/;
-    my %results;
-    @results{@keys} = @args{@keys};
+    my %results = %args{@keys};
 
     return wantarray ? %results : \%results;
 }

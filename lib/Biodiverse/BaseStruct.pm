@@ -3052,7 +3052,6 @@ sub delete_sub_element {
 
 #  array args version to avoid the args hash creation
 #  (benchmarking indicates it takes a meaningful slab of time)
-#  candidate for refaliasing
 sub delete_sub_element_aa {
     my ($self, $element, $sub_element) = @_;
     

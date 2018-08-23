@@ -3613,7 +3613,7 @@ sub get_group_sample_count {
 sub get_label_abundance {
     my $self = shift;
 
-    no autovivification;
+    #no autovivification;
 
     my $labels_ref = $self->get_labels_ref;
     my $props = $labels_ref->get_list_values( @_, list => 'PROPERTIES' );
@@ -3631,7 +3631,7 @@ sub get_label_abundance {
 sub get_range {
     my $self = shift;
 
-    no autovivification;
+    #no autovivification;
 
     my $labels_ref = $self->get_labels_ref;
     my $props = $labels_ref->get_list_values( @_, list => 'PROPERTIES' );
@@ -3972,24 +3972,26 @@ sub build_spatial_index {    #  builds GROUPS, not LABELS
     my $gp_object   = $self->get_groups_ref;
     my $resolutions = $args{resolutions};
     my $cell_sizes  = $gp_object->get_cell_sizes;
-    croak
-"[INDEX] Resolutions array does not match the group object ($#$resolutions != $#$cell_sizes)\n"
+    croak "[INDEX] Resolutions array does not match the "
+        . "group object ($#$resolutions != $#$cell_sizes)\n"
       if $#$resolutions != $#$cell_sizes;
 
     #  now check each axis
     for my $i ( 0 .. $#$cell_sizes ) {
         no autovivification;
-        next
-          if $cell_sizes->[$i] <=
-          0;    #  we aren't worried about text or zero axes
-        croak
-"[INDEX] Non-text group axis resolution is less than the index resolution, "
-          . "axis $i ($resolutions->[$i] < $cell_sizes->[$i])\n"
+        #  we aren't worried about text or zero axes
+        next if $cell_sizes->[$i] <= 0;
+        
+        croak "[INDEX] Non-text group axis resolution is "
+            . "less than the index resolution, "
+            . "axis $i ($resolutions->[$i] < $cell_sizes->[$i])\n"
           if $resolutions->[$i] < $cell_sizes->[$i];
+
         my $ratio = $resolutions->[$i] / $cell_sizes->[$i];
-        croak
-"[INDEX] Index resolution is not a multiple of the group axis resolution, "
-          . "axis $i  ($resolutions->[$i] vs $cell_sizes->[$i])\n"
+
+        croak "[INDEX] Index resolution is not a multiple "
+            . "of the group axis resolution, "
+            . "axis $i  ($resolutions->[$i] vs $cell_sizes->[$i])\n"
           if $ratio != int($ratio);
     }
 

@@ -512,7 +512,6 @@ sub calc_ace {
 
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
-        no autovivification;
         next if !$f_rare{$i};
         $a1 += $i * ($i-1) * $f_rare{$i};
         $a2 += $i * $f_rare{$i};
@@ -733,8 +732,6 @@ sub _get_ice_differential {
     my $self = shift;
     my %args = @_;
     
-    no autovivification;
-    
     my $k = 10;  #  later we will make this an argument
 
     my $q = $args{q} // $args{f};
@@ -861,8 +858,6 @@ sub _get_ace_differential {
     my $f = $args{f};
 
     return 1 if $f > $k;
-
-    no autovivification;
 
     my $cv_rare_h   = $args{cv};
     my $n_rare      = $args{n_rare};

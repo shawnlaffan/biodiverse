@@ -1,7 +1,7 @@
 package Biodiverse::Indices::RWTurnover;
 use strict;
 use warnings;
-use autovivification;
+#use autovivification;
 
 use 5.022;
 use feature 'refaliasing';

@@ -9,7 +9,7 @@ use Data::Dumper;
 use Ref::Util qw { :all };
 
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 use parent qw /Biodiverse::ElementProperties/;
 

@@ -29,7 +29,7 @@ use Ref::Util qw { :all };
 
 use Biodiverse::Progress;
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 use parent qw /Biodiverse::Common/;
 

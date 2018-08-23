@@ -51,7 +51,7 @@ use Geo::GDAL;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 use parent qw {Biodiverse::Common};
 

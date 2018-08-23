@@ -24,7 +24,7 @@ use Ref::Util qw { :all };
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;

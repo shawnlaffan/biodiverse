@@ -28,7 +28,7 @@ use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 use Sort::Naturally qw /nsort/;
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 

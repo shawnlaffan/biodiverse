@@ -10,7 +10,7 @@ use Scalar::Util qw /looks_like_number/;
 use Sort::Naturally qw /nsort/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 use Gtk2;
 

@@ -2,7 +2,7 @@ package Biodiverse::Indices::Rarity;
 use strict;
 use warnings;
 
-our $VERSION = '2.1';
+our $VERSION = '2.99_001';
 
 #  we need access to one sub from Endemism.pm
 use parent qw /Biodiverse::Indices::Endemism/;

@@ -4,11 +4,13 @@ package Biodiverse::Randomise;
 
 use strict;
 use warnings;
-use 5.010;
+use 5.022;
 
 use English qw / -no_match_vars /;
 
 use Sort::Naturally qw /nsort ncmp/;
+use List::Unique::DeterministicOrder;
+
 
 #  a little debug
 use constant DEBUG => 0;
@@ -2304,6 +2306,7 @@ sub swap_to_reach_richness_targets {
     #  This avoids collating them every iteration.
     my (%labels_in_unfilled_gps,
         %unfilled_gps_without_label,
+        %unfilled_gps_without_label_lu,
         %unfilled_gps_without_label_by_gp,
     );
 
@@ -2317,6 +2320,10 @@ sub swap_to_reach_richness_targets {
             else {
                 my $sublist = $unfilled_gps_without_label{$label} //= [];
                 push @$sublist, $gp;
+                my $sublist_lu
+                    = $unfilled_gps_without_label_lu{$label}
+                  //= List::Unique::DeterministicOrder->new;
+                $sublist_lu->push ($gp);
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
         }
@@ -2338,6 +2345,7 @@ sub swap_to_reach_richness_targets {
     #  keep refs of tracker hashes for debug purposes
     my %tracker_hashes = (
         labels_in_unfilled_gps           => \%labels_in_unfilled_gps,
+        unfilled_gps_without_label_lu    => \%unfilled_gps_without_label_lu,
         unfilled_gps_without_label       => \%unfilled_gps_without_label,
         unfilled_gps_without_label_by_gp => \%unfilled_gps_without_label_by_gp,
         groups_without_labels_a          => \%groups_without_labels_a,
@@ -2494,9 +2502,11 @@ sub swap_to_reach_richness_targets {
             foreach my $label (@$loser_labels_array_shuffled) {
                 no autovivification;
                 #  Do we have any unfilled groups without this label?
-                my $x = $unfilled_gps_without_label{$label} // [];
+                my $x    = $unfilled_gps_without_label{$label};
+                my $x_lu = $unfilled_gps_without_label_lu{$label};
 
-                next BY_LOSER_LABEL if !scalar @$x;
+                next BY_LOSER_LABEL if !($x && scalar @$x);
+                next BY_LOSER_LABEL if !($x_lu && $x_lu->keys);
 
                 $remove_label  = $label;
                 $removed_count = $loser_labels->{$remove_label};
@@ -2572,14 +2582,25 @@ sub swap_to_reach_richness_targets {
                 #  from the list of unfilled groups
                 my $unfilled_aref = $unfilled_gps_without_label{$remove_label} // [];
 
+                my $unfilled_list = $unfilled_gps_without_label_lu{$remove_label}
+                  // croak "ISSUES WITH RETURN GROUPS LIST DET\n";
+
+                my $key_count = $unfilled_list->keys;
+
+                croak ("ISSUES WITH RETURN GROUP KEY COUNT\n$key_count\n" . scalar @$unfilled_aref)
+                  #if !$key_count;
+                  if $key_count != @$unfilled_aref;
+
                 #  We could directly croak instead of getting an array ref,
                 #  but what if we are given an empty ref?
                 croak "ISSUES WITH RETURN GROUPS\n"
                   if !scalar @$unfilled_aref;
 
                 #  get one of the unfilled groups at random
-                $i = int $rand->rand (scalar @$unfilled_aref);
-                my $return_gp = $unfilled_aref->[$i];
+                $i = int $rand->rand ($key_count);
+                #my $return_gp = $unfilled_aref->[$i];
+                #  could delete here instead of lower down - delete_key_at_pos returns the key
+                my $return_gp = $unfilled_list->get_key_at_pos ($i) // croak 'boooyahhh2';
 
                 $new_bd->add_element_simple_aa (
                     $remove_label,  $return_gp,
@@ -2602,10 +2623,16 @@ sub swap_to_reach_richness_targets {
                 #    $return_gp, $unfilled_gps_without_label{$remove_label}
                 #);
                 #  no need to go looking for the index using a binary search - we already have it
-                splice @$unfilled_aref, $i, 1;
+                #splice @$unfilled_aref, $i, 1;
+                bremove {$_ cmp $return_gp} @$unfilled_aref;  #  book-keeping to match _lu version
+                $unfilled_list->delete_key_at_pos ($i);
+
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
                 if (!scalar @$unfilled_aref) {
                     delete $unfilled_gps_without_label{$remove_label};
+                }
+                if (!scalar $unfilled_list->keys) {
+                    delete $unfilled_gps_without_label_lu{$remove_label};
                 }
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     bremove {$_ cmp $return_gp} @$aref;
@@ -2625,9 +2652,19 @@ sub swap_to_reach_richness_targets {
                     #  need to avoid indexing in the first place?
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
+                        my $list_lu = $unfilled_gps_without_label_lu{$label};
+                        if (@$list != $list_lu->keys) {
+                            say 'blork2a ' . join ',', @$list;
+                            say 'blork2a ' . join ',', $list_lu->keys;
+                            croak 'blork2a';
+                        }
                         bremove {$_ cmp $last_filled} @$list;
                         if (!scalar @$list) {
                             delete $unfilled_gps_without_label{$label};
+                        }
+                        $list_lu->delete ($last_filled);
+                        if (!$list_lu->keys) {
+                            delete $unfilled_gps_without_label_lu{$label};
                         }
                     }
                     delete $unfilled_gps_without_label_by_gp{$last_filled};
@@ -2684,6 +2721,11 @@ sub swap_to_reach_richness_targets {
             if (!scalar @$list) {
                 delete $unfilled_gps_without_label{$add_label};
             }
+            my $list_lu = $unfilled_gps_without_label_lu{$add_label};
+            $list_lu->delete ($target_group);
+            if (!scalar $list_lu->keys) {
+                delete $unfilled_gps_without_label_lu{$add_label};
+            }
         }
 
         #  check if we've filled this group, if nothing was swapped out
@@ -2703,6 +2745,11 @@ sub swap_to_reach_richness_targets {
                 bremove {$_ cmp $target_group} @$list;
                 if (!scalar @$list) {
                     delete $unfilled_gps_without_label{$label};
+                }
+                my $list_lu = $unfilled_gps_without_label_lu{$label};
+                $list_lu->delete ($target_group);
+                if (!scalar $list_lu->keys) {
+                    delete $unfilled_gps_without_label_lu{$label};
                 }
             }
             delete $unfilled_gps_without_label_by_gp{$target_group};

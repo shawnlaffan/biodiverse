@@ -62,6 +62,26 @@ sub main {
     return 0;
 }
 
+sub test_same_results_given_same_prng_seed_subcheck {
+    my $c = 200000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
+    $bd->build_spatial_index (resolutions => [$c, $c]);
+    my $sp //= $bd->add_spatial_output (name => 'sp');
+    
+    my $r_spatially_structured_cond = "sp_circle (radius => $c)";
+    
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
+    );
+
+   
+    check_same_results_given_same_prng_seed (
+        bd => $bd,
+        function => 'rand_structured',
+    );
+}
+
 #  Should get the same result for two iterations run in one go
 #  as we do for two run sequentially (first, pause, second)
 sub test_same_results_given_same_prng_seed {

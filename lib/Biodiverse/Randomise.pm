@@ -2590,8 +2590,7 @@ sub swap_to_reach_richness_targets {
 
                 #  get one of the unfilled groups at random
                 $i = int $rand->rand ($key_count);
-                #  could delete here instead of lower down - delete_key_at_pos returns the key
-                my $return_gp = $unfilled_list->get_key_at_pos ($i);
+                my $return_gp = $unfilled_list->delete_key_at_pos ($i);
 
                 $new_bd->add_element_simple_aa (
                     $remove_label,  $return_gp,
@@ -2610,8 +2609,6 @@ sub swap_to_reach_richness_targets {
                   if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
-
-                $unfilled_list->delete_key_at_pos ($i);
 
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
                 if (!$unfilled_list) {

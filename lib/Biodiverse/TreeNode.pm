@@ -136,11 +136,16 @@ sub delete_cached_values {
     
     return if ! exists $self->{_cache};
     
-    my $keys = $args{keys} || $self->get_cached_value_keys;
-    return if not defined $keys or scalar @$keys == 0;
+    if ($args{keys}) {
+        my $keys = $args{keys};
+        return if not defined $keys or not scalar @$keys;
 
-    delete @{$self->{_cache}}{@$keys};
-    delete $self->{_cache} if !scalar keys %{$self->{_cache}};
+        delete @{$self->{_cache}}{@$keys};
+        delete $self->{_cache} if !scalar keys %{$self->{_cache}};
+    }
+    else {
+        delete $self->{_cache};
+    }
 
     return;
 }

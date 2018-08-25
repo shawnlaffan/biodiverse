@@ -2320,15 +2320,21 @@ sub swap_to_reach_richness_targets {
             else {
                 my $sublist = $unfilled_gps_without_label{$label} //= [];
                 push @$sublist, $gp;
-                my $sublist_lu
-                    = $unfilled_gps_without_label_lu{$label}
-                  //= List::Unique::DeterministicOrder->new;
-                $sublist_lu->push ($gp);
+                $unfilled_gps_without_label_lu{$label} //= $sublist;
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
         }
     }
+    #  avoid a heap of push calls by building the objects
+    #  once the arrays are populated
+    foreach my $label (keys %unfilled_gps_without_label_lu) {
+        $unfilled_gps_without_label_lu{$label}
+          = List::Unique::DeterministicOrder->new (
+                data => $unfilled_gps_without_label_lu{$label},
+            );
+    }
     my $target_has_empty_gps = any {!$_} values %filled_groups;
+    
 
     #  Track which groups do and don't have labels to avoid repeated and
     # expensive method calls to get_groups_with(out)_label_as_hash

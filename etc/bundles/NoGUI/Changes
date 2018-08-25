@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+2.99_001 20180825
+    - Add List::Unique::DeterministicOrder
+
 2.000 20171123
     - Set List::MoreUtils minimum version to 0.425 so we get the binary search subs
 

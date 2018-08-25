@@ -47,9 +47,6 @@ use Biodiverse::Indices;
 
 #  needs to be after anything which calls Biodiverse::Config, as that adds the paths needed on windows
 use Geo::GDAL;
-
-use Geo::GDAL::FFI;
-my $gdal = Geo::GDAL::FFI->new;
         
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -1334,7 +1331,7 @@ sub import_data_raster {
           if !( -e $file and -r $file );
 
         # process using GDAL library
-        my $data = $gdal->Open( $file->stringify() );
+        my $data = $self->get_gdal_object->Open( $file->stringify() );
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if !defined $data;

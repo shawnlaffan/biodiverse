@@ -6,6 +6,10 @@ use strict;
 use warnings;
 use 5.010;
 
+use Geo::GDAL::FFI;
+my $gdal = Geo::GDAL::FFI->new;
+
+
 use Carp;
 use English ( -no_match_vars );
 
@@ -50,6 +54,9 @@ our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 
+sub get_gdal_object {
+    return $gdal;
+}
 
 sub clone {
     my $self = shift;

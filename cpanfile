@@ -52,6 +52,7 @@ requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
 requires "Statistics::Sampler::Multinomial";
+requires "List::Unique::DeterministicOrder";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

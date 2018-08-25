@@ -2506,7 +2506,7 @@ sub swap_to_reach_richness_targets {
                 my $x_lu = $unfilled_gps_without_label_lu{$label};
 
                 next BY_LOSER_LABEL if !($x && scalar @$x);
-                next BY_LOSER_LABEL if !($x_lu && $x_lu->keys);
+                next BY_LOSER_LABEL if !$x_lu;
 
                 $remove_label  = $label;
                 $removed_count = $loser_labels->{$remove_label};
@@ -2631,7 +2631,7 @@ sub swap_to_reach_richness_targets {
                 if (!scalar @$unfilled_aref) {
                     delete $unfilled_gps_without_label{$remove_label};
                 }
-                if (!scalar $unfilled_list->keys) {
+                if (!$unfilled_list) {
                     delete $unfilled_gps_without_label_lu{$remove_label};
                 }
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
@@ -2653,17 +2653,12 @@ sub swap_to_reach_richness_targets {
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list = $unfilled_gps_without_label{$label};
                         my $list_lu = $unfilled_gps_without_label_lu{$label};
-                        if (@$list != $list_lu->keys) {
-                            say 'blork2a ' . join ',', @$list;
-                            say 'blork2a ' . join ',', $list_lu->keys;
-                            croak 'blork2a';
-                        }
                         bremove {$_ cmp $last_filled} @$list;
                         if (!scalar @$list) {
                             delete $unfilled_gps_without_label{$label};
                         }
                         $list_lu->delete ($last_filled);
-                        if (!$list_lu->keys) {
+                        if (!$list_lu) {
                             delete $unfilled_gps_without_label_lu{$label};
                         }
                     }
@@ -2723,7 +2718,7 @@ sub swap_to_reach_richness_targets {
             }
             my $list_lu = $unfilled_gps_without_label_lu{$add_label};
             $list_lu->delete ($target_group);
-            if (!scalar $list_lu->keys) {
+            if (!$list_lu) {
                 delete $unfilled_gps_without_label_lu{$add_label};
             }
         }
@@ -2748,7 +2743,7 @@ sub swap_to_reach_richness_targets {
                 }
                 my $list_lu = $unfilled_gps_without_label_lu{$label};
                 $list_lu->delete ($target_group);
-                if (!scalar $list_lu->keys) {
+                if (!$list_lu) {
                     delete $unfilled_gps_without_label_lu{$label};
                 }
             }

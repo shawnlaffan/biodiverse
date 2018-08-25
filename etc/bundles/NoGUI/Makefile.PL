@@ -75,6 +75,7 @@ WriteMakefile(
         "Data::Compare" => 0,
         "Test::TempDir::Tiny" => "0.016",
         "Statistics::Sampler::Multinomial" => 0,
+        "List::Unique::DeterministicOrder" => 0,
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

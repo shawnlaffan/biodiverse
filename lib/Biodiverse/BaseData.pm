@@ -45,8 +45,6 @@ use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-#  needs to be after anything which calls Biodiverse::Config, as that adds the paths needed on windows
-use Geo::GDAL;
         
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';

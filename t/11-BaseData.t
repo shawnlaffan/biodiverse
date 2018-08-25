@@ -944,9 +944,9 @@ sub test_roundtrip_raster {
     #my $format = 'export_asciigrid';
     my @out_options = (
         { format => 'export_asciigrid'},
-        { format => 'export_floatgrid'},
-        { format => 'export_geotiff'},
-        { format => 'export_ers'},
+        #{ format => 'export_floatgrid'},
+        #{ format => 'export_geotiff'},
+        #{ format => 'export_ers'},
     );
 
     # the raster data file won't specify the origin and cell size info, so pass as
@@ -1012,7 +1012,7 @@ sub test_roundtrip_raster {
             my $target_name = $this_label;
             $target_name =~ s/.*${fname_base}_//; 
             $target_name = uri_unescape($target_name);
-            #note "Working on $target_name, $this_label\n";
+            #diag "\nWorking on $target_name, $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (

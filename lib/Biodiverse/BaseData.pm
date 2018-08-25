@@ -46,7 +46,8 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 
 #  needs to be after anything which calls Biodiverse::Config, as that adds the paths needed on windows
-use Geo::GDAL;
+#use Geo::GDAL;
+use Geo::GDAL::FFI;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -1331,16 +1332,21 @@ sub import_data_raster {
           if !( -e $file and -r $file );
 
         # process using GDAL library
-        my $data = Geo::GDAL::Open( $file->stringify(), 'ReadOnly' );
+        state $gdal = Geo::GDAL::FFI->new;
+        my $data = $gdal->Open( $file->stringify() );
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if !defined $data;
 
-        say '[BASEDATA] Driver: ', $data->GetDriver()->{ShortName}, '/',
-          $data->GetDriver()->{LongName};
-        say '[BASEDATA] Size is ', $data->{RasterXSize}, ' x ',
-          $data->{RasterXSize}, ' x ', $data->{RasterCount};
-        say '[BASEDATA] Projection is ', $data->GetProjection();
+        my $gdal_driver = $data->GetDriver();
+        my $band_count  = $data->GetBands;
+        my ($xsize, $ysize) = ($data->GetWidth, $data->GetHeight);
+        say '[BASEDATA] Driver: ', $gdal_driver->GetName;
+        say "[BASEDATA] Size is $xsize x $ysize x $band_count";
+        my $info = $data->GetInfo;
+        my ($coord_sys) = grep {/Coordinate System/i} split /[\r\n]+/, $info;
+        #my $x = $data->GetProjectionString;  #  should use this?
+        say '[BASEDATA] ' . $coord_sys;
 
         my @tf = $data->GetGeoTransform();
         say '[BASEDATA] Transform is ', join( ' ', @tf );
@@ -1356,21 +1362,21 @@ sub import_data_raster {
         $cellsize_n ||= abs $tf_5;
 
         # iterate over each band
-        foreach my $b ( 1 .. $data->{RasterCount} ) {
-            my $band = $data->Band($b);
+        foreach my $b ( 1 .. $band_count ) {
+            my $band = $data->GetBand($b);
             my ( $blockw, $blockh, $maxw, $maxh );
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
-            say "Band $b, type ", $band->{DataType};
+            say "Band $b, type ", $band->GetDataType;
             if ( defined $given_label ) {
                 $this_label = $given_label;
             }
             elsif ($labels_as_bands) {
 
                 # if single band, set label as filename
-                if ( $data->{RasterCount} == 1 ) {
+                if ( $band_count == 1 ) {
                     $this_label =
                       Path::Class::File->new( $file->stringify )->basename();
                     if ($strip_file_extensions_from_names) {
@@ -1390,26 +1396,27 @@ sub import_data_raster {
 
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)
-            my @catnames = $band->CategoryNames();
+            #my @catnames = $band->GetCategoryNames();
+            #  disabled for now - not yet supported in Geo::GDAL::FFI
+            my @catnames;
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 
             # read as preferred size blocks?
             ( $blockw, $blockh ) = $band->GetBlockSize();
             say   "Block size ($blockw, $blockh), "
-                . "full size ($data->{RasterXSize}, "
-                . "$data->{RasterYSize})";
+                . "full size ($xsize, $ysize)";
 
-            my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};
+            my $target_count    = $xsize * $ysize;
             my $processed_count = 0;
 
             # read a "block" at a time
             # assume @cell_sizes is ($xsize, $ysize)
             $hpos = 0;
-            while ( $hpos < $data->{RasterYSize} ) {
+            while ( $hpos < $ysize ) {
 
                 # progress bar stuff
-                my $frac = $hpos / $data->{RasterYSize};
+                my $frac = $hpos / $ysize;
                 $progress_bar->update(
                     "Loading $file_base\n"
                       . "Cell $processed_count of $target_count\n",
@@ -1427,12 +1434,12 @@ sub import_data_raster {
                 my %gp_lb_hash;
 
                 $wpos = 0;
-                while ( $wpos < $data->{RasterXSize} ) {
-                    $maxw = min( $data->{RasterXSize}, $wpos + $blockw );
-                    $maxh = min( $data->{RasterYSize}, $hpos + $blockh );
+                while ( $wpos < $ysize ) {
+                    $maxw = min( $xsize, $wpos + $blockw );
+                    $maxh = min( $ysize, $hpos + $blockh );
 
             #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";
-                    my $lr = $band->ReadTile(
+                    my $lr = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos

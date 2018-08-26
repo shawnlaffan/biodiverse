@@ -4,6 +4,11 @@ package Biodiverse::Config;
 use 5.010;
 use strict;
 use warnings;
+
+#  avoid redefined warnings due to
+#  https://github.com/rurban/Cpanel-JSON-XS/issues/65
+use JSON::PP ();
+
 use Ref::Util qw { :all };
 
 use English ( -no_match_vars );

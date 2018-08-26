@@ -6,10 +6,6 @@ use strict;
 use warnings;
 use 5.010;
 
-use Geo::GDAL::FFI;
-my $gdal = Geo::GDAL::FFI->new;
-
-
 use Carp;
 use English ( -no_match_vars );
 
@@ -54,8 +50,16 @@ our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 
+require Geo::GDAL::FFI;
+my $gdal_instance;
 sub get_gdal_object {
-    return $gdal;
+    #  early versions did not have this method
+    $gdal_instance
+      //= (Geo::GDAL::FFI->can ('get_instance')
+           ? Geo::GDAL::FFI->get_instance
+           : Geo::GDAL::FFI->new
+    );
+    return $gdal_instance;
 }
 
 sub clone {

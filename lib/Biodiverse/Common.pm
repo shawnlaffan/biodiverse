@@ -2,9 +2,9 @@ package Biodiverse::Common;
 
 #  a set of common functions for the Biodiverse library
 
+use 5.022;
 use strict;
 use warnings;
-use 5.010;
 
 use Carp;
 use English ( -no_match_vars );

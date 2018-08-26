@@ -3,9 +3,14 @@ package Biodiverse::BaseData;
 #  package containing methods to access and store a Biodiverse BaseData object
 use 5.010;
 
-use Carp;
 use strict;
 use warnings;
+
+#  avoid redefined warnings due to
+#  https://github.com/rurban/Cpanel-JSON-XS/issues/65
+use JSON::PP ();
+
+use Carp;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;

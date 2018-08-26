@@ -67,6 +67,7 @@ WriteMakefile(
         "Sereal" => "3",
         "Cpanel::JSON::XS" => 3,
         "JSON::MaybeXS" => 1.003,
+        "JSON::PP" => 0,
         "Sort::Naturally" => 0,
         "Text::Fuzzy" => 0,
         "Ref::Util" => "0.101",
@@ -76,6 +77,7 @@ WriteMakefile(
         "Test::TempDir::Tiny" => "0.016",
         "Statistics::Sampler::Multinomial" => 0,
         "List::Unique::DeterministicOrder" => 0,
+        "Geo::GDAL::FFI" => 0.503,
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

@@ -78,6 +78,7 @@ WriteMakefile(
         "Statistics::Sampler::Multinomial" => 0,
         "List::Unique::DeterministicOrder" => 0,
         "Geo::GDAL::FFI" => 0.503,
+        "PkgConfig" => 0.21026,   #  version that works with PAR::Packer
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

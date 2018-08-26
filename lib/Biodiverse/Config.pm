@@ -118,9 +118,11 @@ BEGIN {
         Data::Compare
         Text::Levenshtein
         List::Unique::DeterministicOrder
+        Geo::GDAL::FFI
     /;
     foreach my $module (@reqd) {
         if (not eval "require $module") {
+            #say $@ if $@;
             my $feedback = <<"END_FEEDBACK"
 Cannot locate the $module package.  
 You probably need to install it using

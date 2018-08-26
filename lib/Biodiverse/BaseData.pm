@@ -1397,9 +1397,7 @@ sub import_data_raster {
 
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)
-            #my @catnames = $band->GetCategoryNames();
-            #  disabled for now - not yet supported in Geo::GDAL::FFI
-            my @catnames;
+            my @catnames = $band->GetCategoryNames();
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 

@@ -971,7 +971,7 @@ sub test_roundtrip_raster {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $tmp_dir = get_temp_dir;
+        my $tmp_dir = get_temp_dir();
         my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
@@ -1076,6 +1076,9 @@ sub test_roundtrip_raster {
 }
 
 
+#  very similar to test_roundtrip_raster,
+#  but uses a zero cellsize for the basedata (so points)
+#  and uses raster values as labels
 sub test_raster_zero_cellsize {
     my %bd_args = (
         NAME => 'test include exclude',
@@ -1125,7 +1128,7 @@ sub test_raster_zero_cellsize {
         my $format = $out_options_hash->{format};
 
         #  need to use a better approach for the name
-        my $tmp_dir = get_temp_dir;
+        my $tmp_dir = get_temp_dir();
         my $fname_base = $format; 
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  

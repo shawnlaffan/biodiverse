@@ -1433,7 +1433,7 @@ sub import_data_raster {
                 my %gp_lb_hash;
 
                 $wpos = 0;
-                while ( $wpos < $ysize ) {
+                while ( $wpos < $xsize ) {
                     $maxw = min( $xsize, $wpos + $blockw );
                     $maxh = min( $ysize, $hpos + $blockh );
 

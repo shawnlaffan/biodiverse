@@ -116,10 +116,6 @@ sub update {
 
     return if not defined $progress;  #  should croak?
 
-    if (not defined $text) {
-        $text = join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
-    }
-
     if ($progress < 0 or $progress > 1) {
         Biodiverse::GUI::ProgressDialog::Bounds->throw(
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
@@ -128,13 +124,11 @@ sub update {
 
     # get widgets and check if window closed
     my $label_widget = $self->{label_widget};
-    my $bar = $self->{progress_bar};
-    if (not defined $bar) {
-        say 'Update called when progress bar not defined, throwing';
-        Biodiverse::GUI::ProgressDialog::Cancel->throw(
+    my $bar = $self->{progress_bar}
+      // Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => 'Progress bar closed, operation cancelled',
         );
-    }
+    
 
     return if $self->{last_update_time}
               && !(  tv_interval ($self->{last_update_time})
@@ -145,10 +139,11 @@ sub update {
 
     #$self->{dlg}->present;  #  raise to top
 
+    $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
+
     # update dialog
-    if ($label_widget) {
-        $label_widget->set_markup("<b>$text</b>");
-    }
+    $label_widget->set_markup("<b>$text</b>")
+      if $label_widget;
 
     $self->{pulse} = 0;
 

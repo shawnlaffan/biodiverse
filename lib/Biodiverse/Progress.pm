@@ -91,23 +91,18 @@ sub update {
     }
 
     return if $self->{gui_only};
+    
+    my $prog_pct = int ($progress * 100);
+    return if $prog_pct % $self->{report_interval} and $self->{last_reported_prog} != -1;
+    return if $prog_pct == $self->{last_reported_prog};
 
     $text //= $NULL_STRING;
+    
+    #  do something with the text if needed
+    print $text . q{     }
+      if $self->{print_text};
 
-    #  trapped above now
-    #croak "ERROR [Progress] progress $progress is not between 0 & 1\n"
-    #  if ($progress < 0 || $progress > 1);
-
-    #  do something with the text if it differs
-    if ($self->{print_text}) {
-        print $text . q{     };  #  five spaces
-    }
     $self->{print_text} = 0;
-
-    my $prog_pct = int ($progress * 100);
-    my $interval = $self->{report_interval};
-    return if $prog_pct % $interval != 0 and $self->{last_reported_prog} != -1;
-    return if $prog_pct == $self->{last_reported_prog};
 
     $self->{last_reported_prog} = $prog_pct;
 

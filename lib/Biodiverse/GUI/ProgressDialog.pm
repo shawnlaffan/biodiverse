@@ -11,7 +11,7 @@ use 5.010;
 use Glib qw (TRUE FALSE);
 use Gtk2;
 use Carp;
-use Time::HiRes qw/tv_interval gettimeofday/;
+use Time::HiRes qw/time/;
 use Data::Dumper;
 
 require Biodiverse::Config;
@@ -63,9 +63,7 @@ sub new {
     $self->update ($text, $progress);
 
     #  set the last update time back so we always trigger on the first update
-    my $last_update_time = [gettimeofday];
-    $last_update_time->[0] -= 2 * $progress_update_interval;
-    $self->{last_update_time} = $last_update_time;
+    $self->{last_update_time} = time - 2 * $progress_update_interval;
 
     return $self;
 }
@@ -131,13 +129,10 @@ sub update {
     
 
     return if $self->{last_update_time}
-              && !(  tv_interval ($self->{last_update_time})
-                    > $self->{progress_update_interval}
-                   );
+              and time - $self->{last_update_time}
+                    < $self->{progress_update_interval};
 
-    $self->{last_update_time} = [gettimeofday];
-
-    #$self->{dlg}->present;  #  raise to top
+    $self->{last_update_time} = time;
 
     $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
 

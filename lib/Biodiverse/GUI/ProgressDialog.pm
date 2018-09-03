@@ -114,14 +114,14 @@ sub update {
 
     return if not defined $progress;  #  should croak?
 
-    if ($progress < 0 or $progress > 1) {
-        Biodiverse::GUI::ProgressDialog::Bounds->throw(
-            message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
-        );
-    }
+    $progress >= 0 and $progress <= 1
+      or Biodiverse::GUI::ProgressDialog::Bounds->throw(
+          message =>
+              "ERROR [ProgressDialog] progress is "
+            . "$progress (not between 0 & 1)",
+      );
 
-    # get widgets and check if window closed
-    my $label_widget = $self->{label_widget};
+    # check if window closed
     my $bar = $self->{progress_bar}
       // Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => 'Progress bar closed, operation cancelled',
@@ -137,14 +137,14 @@ sub update {
     $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
 
     # update dialog
-    $label_widget->set_markup("<b>$text</b>")
-      if $label_widget;
+    $self->{label_widget}->set_markup("<b>$text</b>")
+      if $self->{label_widget};
 
     $self->{pulse} = 0;
 
     $bar->set_fraction($progress);
 
-    while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+    Gtk2->main_iteration while Gtk2->events_pending;
 
     Biodiverse::GUI::GUIManager->instance->show_progress;
 

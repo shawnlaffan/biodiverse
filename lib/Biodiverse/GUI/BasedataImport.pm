@@ -245,7 +245,7 @@ sub run {
     my $max_col_spinner = {
         name    => 'max_opt_cols',
         type    => 'integer',
-        default => 100,
+        default => 150,
         label_text =>
 'Maximum number of header columns to show options for (includes remap dialogues)',
         tooltip => $max_row_spinner_tooltip_text,

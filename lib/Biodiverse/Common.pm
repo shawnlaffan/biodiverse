@@ -1764,7 +1764,7 @@ sub guess_escape_char {
     
     my $has_backslash = $string =~ /(\\+)$quote_char/s;
     #  even number of backslashes are self-escaping
-    if (not ((length $1) % 2)) {  
+    if (not ((length ($1 // '')) % 2)) {  
         $has_backslash = 0;
     }
     return $has_backslash ? '\\' : $quote_char;
@@ -1888,8 +1888,10 @@ sub get_csv_object_using_guesswork {
         #  read in a chunk of the file for guesswork
         my $fh2 = IO::File->new;
         $fh2->open ($fname, '<:via(File::BOM)');
-        while (!$fh2->eof && length ($first_char_set) < 10000) {
+        my $line_count = 0;
+        while (!$fh2->eof and $line_count < 11) {
             $first_char_set .= $fh2->getline;
+            $line_count++;
         }
         $fh2->close;
 
@@ -1911,9 +1913,12 @@ sub get_csv_object_using_guesswork {
 
     $eol //= $self->guess_eol (string => $string);
 
-    $quote_char //= $self->guess_quote_char (string => \$string, eol => $eol);
+    $quote_char //= $self->guess_quote_char (string => $string, eol => $eol);
     #  if all else fails...
     $quote_char //= $self->get_param ('QUOTES');
+    
+    my $escape_char = $self->guess_escape_char (string => $string, quote_char => $quote_char);
+    $escape_char //= $quote_char;
 
     $sep_char //= $self->guess_field_separator (
         string     => $string,
@@ -1927,6 +1932,7 @@ sub get_csv_object_using_guesswork {
         sep_char   => $sep_char,
         quote_char => $quote_char,
         eol        => $eol,
+        escape_char => $escape_char,
     );
 
     return $csv_obj;

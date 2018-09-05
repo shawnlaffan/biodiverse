@@ -1753,6 +1753,23 @@ sub guess_field_separator {
     return $sep;
 }
 
+sub guess_escape_char {
+    my $self = shift;
+    my %args = @_;  
+
+    my $string = $args{string};
+    $string = $$string if ref $string;
+
+    my $quote_char = $args{quotes} // $self->guess_quote_char (@_);
+    
+    my $has_backslash = $string =~ /(\\+)$quote_char/s;
+    #  even number of backslashes are self-escaping
+    if (not ((length $1) % 2)) {  
+        $has_backslash = 0;
+    }
+    return $has_backslash ? '\\' : $quote_char;
+}
+
 sub guess_quote_char {
     my $self = shift;
     my %args = @_;  

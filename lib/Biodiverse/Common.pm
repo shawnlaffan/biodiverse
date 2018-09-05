@@ -1889,7 +1889,9 @@ sub get_csv_object_using_guesswork {
         my $fh2 = IO::File->new;
         $fh2->open ($fname, '<:via(File::BOM)');
         my $line_count = 0;
-        while (!$fh2->eof and $line_count < 11) {
+        #  get first 11 lines or 10,000 characters
+        #  as some ALA files have 19,000 chars in the header line alone
+        while (!$fh2->eof and ($line_count < 11 or length $first_char_set < 10000)) {
             $first_char_set .= $fh2->getline;
             $line_count++;
         }

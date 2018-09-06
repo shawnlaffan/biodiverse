@@ -484,7 +484,7 @@ sub test_import {
         my $message  = $this_run->{message} || $string;
 
         my $bd = eval {
-            get_basedata_object ( %$args, );
+            get_basedata_object ( %$args );
         };
         my $error = $EVAL_ERROR;
 
@@ -1454,8 +1454,8 @@ sub test_bounds {
             x_spacing   => 1,
             y_spacing   => 1,
             CELL_SIZES  => [1, 1],
-            x_max       => 100,
-            y_max       => 100,
+            x_max       => 10,
+            y_max       => 10,
             x_min       => 1,
             y_min       => 1,
         );
@@ -1467,10 +1467,10 @@ sub test_bounds {
     my $min_bounds = $bounds->{MIN};
     my $max_bounds = $bounds->{MAX};
 
-    ok (@$min_bounds[0] == @$min_bounds[1], "min x and y are the same");
-    ok (@$min_bounds[0] == 1.5, "min is correctly 1.5");
-    ok (@$max_bounds[0] == @$max_bounds[1], "max bounds for x and y are the same");
-    ok (@$max_bounds[0] == 100.5, "max is correctly 100.5");
+    is (@$min_bounds[0], @$min_bounds[1], "min x and y are the same");
+    is (@$min_bounds[0], 1.5, "min is correctly 1.5");
+    is (@$max_bounds[0], @$max_bounds[1], "max bounds for x and y are the same");
+    is (@$max_bounds[0], 10.5, "max is correctly 10.5");
 }
 
 sub test_coords_near_zero {
@@ -1478,14 +1478,14 @@ sub test_coords_near_zero {
     #    - was getting issues with negative values one cell left/lower than
     #    they should have been for coords on the cell edge
 
-    foreach my $min (-49, -49.5) {
+    foreach my $min (-4, -4.5) {
         my $bd = eval {
             get_basedata_object (
                 x_spacing  => 1,
                 y_spacing  => 1,
                 CELL_SIZES => [1, 1],
-                x_max      => $min + 100,
-                y_max      => $min + 100,
+                x_max      => $min + 10,
+                y_max      => $min + 10,
                 x_min      => $min,
                 y_min      => $min,
             );
@@ -1515,19 +1515,19 @@ sub test_coords_near_zero {
         my $max_bounds = $bounds->{MAX};
 
         # the cells are indexed by their centroids, so for both of these cases
-        # the centroids of the x and y min will be -48.5
+        # the centroids of the x and y min will be -3.5
 
-        # for -49, the max will be 51.5 
-        # but for -49.5, the max will be 50.5
+        # for -4, the max will be 5.5 
+        # but for -4.5, the max will be 50
 
-        my $correct_min = -48.5;
-        my $correct_max = int($min+100)+0.5;
+        my $correct_min = -3.5;
+        my $correct_max = int($min+10)+0.5;
 
-        ok (@$min_bounds[0] == $correct_min, "x_min is $correct_min");
-        ok (@$min_bounds[1] == $correct_min, "y_min is $correct_min");
+        is (@$min_bounds[0], $correct_min, "x_min is $correct_min");
+        is (@$min_bounds[1], $correct_min, "y_min is $correct_min");
 
-        ok (@$max_bounds[0] == $correct_max, "x_max is $correct_max");
-        ok (@$max_bounds[1] == $correct_max, "y_max is $correct_max");
+        is (@$max_bounds[0], $correct_max, "x_max is $correct_max");
+        is (@$max_bounds[1], $correct_max, "y_max is $correct_max");
     }
     
 }
@@ -1664,8 +1664,8 @@ sub test_reorder_axes {
                 x_spacing  => 1,
                 y_spacing  => 1,
                 CELL_SIZES => [1, 1],
-                x_max      => 100,
-                y_max      => 100,
+                x_max      => 10,
+                y_max      => 10,
                 x_min      => 0,
                 y_min      => 0,
             );

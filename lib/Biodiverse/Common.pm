@@ -2115,10 +2115,10 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
         #  need to fix the precision for some floating point comparisons
         for (my $value = $min;
-             (0 + $self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
+             ($self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
              $value += $res) {
 
-            my $val = 0 + $self -> round_to_precision_aa ($value, $precision->[$depth]);
+            my $val = $self -> round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
                 foreach my $element (@$so_far) {
                     #print "$element . $sep_char . $value\n";

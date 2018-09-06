@@ -2262,7 +2262,7 @@ sub get_metadata_calc_phylo_abc {
     return $metadata_class->new(\%metadata);
 }
 
-my $_calc_phylo_abc_precision = '%.10f';
+my $_calc_phylo_abc_precision = 10 ** 10;
 
 sub calc_phylo_abc {
     my $self = shift;
@@ -2281,10 +2281,10 @@ sub calc_phylo_abc {
     #  return the values but reduce the precision to avoid
     #  floating point problems later on
 
-    $phylo_A   = 0 + $self->set_precision_aa ($phylo_A, $_calc_phylo_abc_precision);
-    $phylo_B   = 0 + $self->set_precision_aa ($phylo_B, $_calc_phylo_abc_precision);
-    $phylo_C   = 0 + $self->set_precision_aa ($phylo_C, $_calc_phylo_abc_precision);
-    $phylo_ABC = 0 + $self->set_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
+    $phylo_A   = $self->round_to_precision_aa ($phylo_A,   $_calc_phylo_abc_precision);
+    $phylo_B   = $self->round_to_precision_aa ($phylo_B,   $_calc_phylo_abc_precision);
+    $phylo_C   = $self->round_to_precision_aa ($phylo_C,   $_calc_phylo_abc_precision);
+    $phylo_ABC = $self->round_to_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
 
     my %results = (
         PHYLO_A   => $phylo_A,

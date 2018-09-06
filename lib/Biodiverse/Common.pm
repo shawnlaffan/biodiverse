@@ -2473,14 +2473,11 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         #  should really make the precision an option in the metadata
-        my $base = $self->set_precision_aa ($base_ref->{$index}, '%.10f');
-        my $comp = $self->set_precision_aa ($comp_ref->{$index}, '%.10f');
+        my $base = $self->round_to_precision_aa ($base_ref->{$index});
+        my $comp = $self->round_to_precision_aa ($comp_ref->{$index});
 
         #  make sure it gets a value of 0 if false
-        my $increment = 0;
-        if ($base > $comp) {
-            $increment = 1;
-        }
+        my $increment = $base > $comp ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  

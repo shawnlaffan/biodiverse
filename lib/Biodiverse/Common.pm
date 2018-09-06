@@ -20,7 +20,7 @@ use List::Util qw /first/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
-#use POSIX;  #  make all the POSIX functions available to the spatial parameters - do we still need this here?
+use POSIX ();
 use HTML::QuickTable;
 #use XBase;
 #use MRO::Compat;
@@ -2100,7 +2100,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
-    my $precision   = $args{precision} || [("%.10f") x scalar @$minima];
+    my $precision   = $args{precision} || [(10 ** 10) x scalar @$minima];
     my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
@@ -2115,10 +2115,10 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
         #  need to fix the precision for some floating point comparisons
         for (my $value = $min;
-             (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
+             (0 + $self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
              $value += $res) {
 
-            my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
+            my $val = 0 + $self -> round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
                 foreach my $element (@$so_far) {
                     #print "$element . $sep_char . $value\n";
@@ -2143,24 +2143,26 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
     my %args = @_;
     my $coord_ref = $args{coord};
     my $resolutions = $args{resolutions};
-    my $sep_char = $args{sep_char} || $self -> get_param('JOIN_CHAR') || $self -> get_param('JOIN_CHAR');
+    my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
     my $distance = $args{distance} || 1; #  number of cells distance to check
 
     my (@minima, @maxima);
     #  precision snap them to make comparisons easier
-    my $precision = $args{precision} || [('%.10f') x scalar @$coord_ref];
+    my $precision = $args{precision} || [(10 ** 10) x scalar @$coord_ref];
 
     foreach my $i (0..$#{$coord_ref}) {
-        $minima[$i] = 0
-            + $self->set_precision (
-                precision => $precision->[$i],
-                value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
-            );
-        $maxima[$i] = 0
-            + $self->set_precision (
-                precision => $precision->[$i],
-                value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
-            );
+        $minima[$i] = $precision->[$i]
+            ? $self->round_to_precision_aa (
+                  $coord_ref->[$i] - ($resolutions->[$i] * $distance),
+                  $precision->[$i],
+              )
+            : $coord_ref->[$i] - ($resolutions->[$i] * $distance);
+        $maxima[$i] = $precision->[$i]
+            ? $self->round_to_precision_aa (
+                  $coord_ref->[$i] + ($resolutions->[$i] * $distance),
+                  $precision->[$i],
+              )
+           : $coord_ref->[$i] + ($resolutions->[$i] * $distance);
     }
 
     return $self->get_poss_elements (
@@ -2441,6 +2443,15 @@ sub set_precision_aa {
     #  explicit return takes time, and this is a heavy usage sub
     $num;
 }
+
+
+use constant DEFAULT_PRECISION => 10 ** 10;
+sub round_to_precision_aa {
+    $_[2]
+      ? POSIX::round ($_[1] * $_[2]) / $_[2]
+      : POSIX::round ($_[1] * DEFAULT_PRECISION) / DEFAULT_PRECISION;
+}
+
 
 sub compare_lists_by_item {
     my $self = shift;

@@ -678,7 +678,7 @@ sub get_distances {
         #  trap errors from non-numeric coords
         my $d_val   = eval { $coord2 - $coord1 }; 
         $sum_D_sqr += $d_val**2;
-        $d_val = 0 + $self->set_precision_aa ($d_val, '%.10f');
+        $d_val = $self->round_to_precision_aa ($d_val);
         $d[$i] = $d_val;
         $D[$i] = abs $d_val;
         
@@ -692,19 +692,19 @@ sub get_distances {
 
             my $c_val   = eval { $d_val / $cellsize[$i] };
             $sum_C_sqr += eval { $c_val**2 } || 0;
-            $c_val = 0 + $self->set_precision_aa ($c_val, '%.10f');
+            $c_val = $self->round_to_precision_aa ($c_val);
             $c[$i] = $c_val;
             $C[$i] = abs $c_val;
         }
     }
 
-    #  use sprintf to avoid precision issues at 14 decimals or so
+    #  avoid precision issues at 14 decimals or so
     #  - a bit of a kludge, but unavoidable if using storable's clone methods.
     my $D = $params->{use_euc_distance}
-        ? 0 + $self->set_precision_aa(sqrt($sum_D_sqr), '%.10f')
+        ? $self->round_to_precision_aa(sqrt($sum_D_sqr))
         : undef;
     my $C = $params->{use_cell_distance}
-        ? 0 + $self->set_precision_aa(sqrt($sum_C_sqr), '%.10f')
+        ? $self->round_to_precision_aa(sqrt($sum_C_sqr))
         : undef;
 
     my %hash = (
@@ -1144,7 +1144,7 @@ sub sp_rectangle {
         #  coarse filter
         return if $dists->[$axis] > $sizes->[$i];
         #  now check with precision adjusted
-        my $d = $self->set_precision_aa ($dists->[$axis]);
+        my $d = $self->round_to_precision_aa ($dists->[$axis]);
         return if $d > $sizes->[$i] / 2;
     }
 
@@ -1474,9 +1474,10 @@ sub sp_ellipse {
 
     my $a_dist = ( $r_y ** 2 ) / ( $major_radius**2 );
     my $b_dist = ( $r_x ** 2 ) / ( $minor_radius**2 );
-    my $precision = '%.14f';
-    $a_dist = $self->set_precision_aa ($a_dist, $precision) + 0;
-    $b_dist = $self->set_precision_aa ($b_dist, $precision) + 0;
+    #my $precision = '%.14f';
+    my $precision = 1.4 * (10 ** 10);
+    $a_dist = $self->round_to_precision_aa ($a_dist, $precision) + 0;
+    $b_dist = $self->round_to_precision_aa ($b_dist, $precision) + 0;
 
     my $test = eval { 1 >= ( $a_dist + $b_dist ) };
     croak $EVAL_ERROR if $EVAL_ERROR;

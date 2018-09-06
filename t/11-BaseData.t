@@ -484,7 +484,7 @@ sub test_import {
         my $message  = $this_run->{message} || $string;
 
         my $bd = eval {
-            get_basedata_object ( %$args );
+            get_basedata_object ( x_max => 10, y_max => 10, %$args );
         };
         my $error = $EVAL_ERROR;
 

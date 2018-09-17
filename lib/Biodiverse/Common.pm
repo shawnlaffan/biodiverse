@@ -2,9 +2,9 @@ package Biodiverse::Common;
 
 #  a set of common functions for the Biodiverse library
 
+use 5.022;
 use strict;
 use warnings;
-use 5.010;
 
 use Carp;
 use English ( -no_match_vars );
@@ -50,6 +50,17 @@ our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 
+require Geo::GDAL::FFI;
+my $gdal_instance;
+sub get_gdal_object {
+    #  early versions did not have this method
+    $gdal_instance
+      //= (Geo::GDAL::FFI->can ('get_instance')
+           ? Geo::GDAL::FFI->get_instance
+           : Geo::GDAL::FFI->new
+    );
+    return $gdal_instance;
+}
 
 sub clone {
     my $self = shift;

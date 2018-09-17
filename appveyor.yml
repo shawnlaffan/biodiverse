@@ -11,11 +11,9 @@ install:
   - set ST=C:\strawberry
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
-  - set BDV_PPM=https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/ppm/ppm524_x64
-  - set have_geo_gdal=0
-  - FOR /F "delims=" %%i IN ('perl -MGeo::GDAL -e"print 1"') DO set have_geo_gdal=1
-  - IF "%have_geo_gdal%"=="0" ppm install %BDV_PPM%/Geo-GDAL.ppd
   
+  #  make sure something goes to screen for Alien::gdal to avoid timeouts
+  - cpanm -v Geo::GDAL::FFI | perl -ne "BEGIN {$|=1; open our $log, q{>}, q{build.log}}; print qq{\n} if 0 == ($. %% 90); print q{.}; print {$log} $_;" || type build.log
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest List::Unique::DeterministicOrder

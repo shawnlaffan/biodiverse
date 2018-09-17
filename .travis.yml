@@ -28,14 +28,10 @@ before_install:
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   - cpanm --notest List::MoreUtils~0.425
-
-  #  just to be sure 
-  - find . -name "build_gdal_travis.sh" -print
-  #- echo ${PWD}
-  
-  #  call the gdal build script
-  #- chmod +x ./etc/build_gdal_travis.sh
-  - sh ./etc/build_gdal_travis.sh
+  #  get the latest Geo::GDAL::FFI,
+  #  and make sure something happens at the command prompt
+  #  so we avoid timeouts when building Alien::gdal
+  - cpanm -v Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
 
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant

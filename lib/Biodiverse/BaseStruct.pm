@@ -13,7 +13,8 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-use autovivification;
+#use autovivification;
+
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
@@ -2048,30 +2049,37 @@ END_TFW
     my %coords;
     my @bands;
 
+    my $y_col = -1;
     foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        $y_col++;
+        my $x_col = -1;
         foreach my $x ($min_ids[0] .. $max_ids[0]) {
+            $x_col++;
 
             my $coord_id = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
                 my $value = $data_hash{$coord_id}[$i] // $no_data;
-                $bands[$i] .= pack $pack_code, $value;
+                #$bands[$i] .= pack $pack_code, $value;
+                #$bands[$i][$y] //= [];
+                $bands[$i][$y_col][$x_col] = 0+$value;
             }
         }
     }
 
     my $format = "GTiff";
-    my $driver = Geo::GDAL::GetDriverByName( $format );
+    my $driver = $self->get_gdal_object->GetDriver( $format );
 
     foreach my $i (@band_cols) {
         my $f_name = $file_names[$i];
         my $pdata  = $bands[$i];
 
-        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, $band_type);
+        my $out_raster
+          = $driver->Create($f_name, {Width => $ncols, Height => $nrows, Bands => 1, DataType => $band_type});
 
-        my $out_band = $out_raster->GetRasterBand(1);
+        my $out_band = $out_raster->GetBand();
         $out_band->SetNoDataValue ($no_data);
-        $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
+        $out_band->Write($pdata, 0, 0, $ncols, $nrows);
 
         my $f_name_tfw = $f_name . 'w';
         open(my $fh, '>', $f_name_tfw) or die "cannot open $f_name_tfw";

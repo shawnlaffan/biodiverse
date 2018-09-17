@@ -31,15 +31,7 @@ before_install:
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts
-  - cpanm -v https://github.com/ajolma/Geo-GDAL-FFI.git | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
-
-  #  just to be sure 
-  #- find . -name "build_gdal_travis.sh" -print
-  #- echo ${PWD}
-  
-  #  call the gdal build script
-  #- chmod +x ./etc/build_gdal_travis.sh
-  #- sh ./etc/build_gdal_travis.sh
+  - cpanm -v Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
 
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant

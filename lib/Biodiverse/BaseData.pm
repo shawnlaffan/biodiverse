@@ -1397,7 +1397,7 @@ sub import_data_raster {
 
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)
-            my @catnames = $band->GetCategoryNames();
+            my @catnames = $band->can ('GetCategoryNames') ? $band->GetCategoryNames : ();
             my %catname_hash;
             @catname_hash{ ( 0 .. $#catnames ) } = @catnames;
 
@@ -1468,20 +1468,24 @@ sub import_data_raster {
                         foreach my $entry (@$lineref) {
                             $gridx++;
 
-            # need to add check for empty groups when it is added as an argument
+                            # need to add check for empty groups
+                            # when it is added as an argument
                             next COLUMN
                               if defined $nodata_value
                               && $entry == $nodata_value;
 
-# data points are 0,0 at top-left of data, however grid coordinates used
-# for transformation start at bottom-left corner (transform handled by following
-# affine transformation, with y-pixel size = -1).
+                            # data points are 0,0 at top-left of data,
+                            # however grid coordinates used for
+                            # transformation start at bottom-left
+                            # corner (transform handled by following
+                            # affine transformation, with y-pixel size = -1).
 
-# find transformed position (see GDAL specs)
-#Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
-#Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
-#  then calculate "group" from this position. (defined as csv string of central points of group)
-# note "geo" coordinates are the top-left of the cell (NW)
+                            # find transformed position (see GDAL specs)
+                            #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
+                            #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
+                            #  then calculate "group" from this position.
+                            #  (defined as csv string of central points of group)
+                            # note "geo" coordinates are the top-left of the cell (NW)
                             my $egeo = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
                             my $ecell =
                               floor( ( $egeo - $cellorigin_e ) / $cellsize_e );
@@ -1493,51 +1497,42 @@ sub import_data_raster {
                             my $new_gp;
                             if ($tf_4) {    #  need to transform the y coords
                                 $ngeo = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
-                                $ncell = floor(
-                                    ( $ngeo - $cellorigin_n ) / $cellsize_n );
+                                $ncell = floor( ( $ngeo - $cellorigin_n ) / $cellsize_n );
 
-                           # subtract half cell width since position is top-left
+                                # subtract half cell width since position is top-left
                                 $grpn =
                                   $cellorigin_n +
                                   $ncell * $cellsize_n -
                                   $halfcellsize_n;
 
-                #  cannot guarantee constant groups for rotated/transformed data
-                #  so we need a new group name
+                                #  cannot guarantee constant groups
+                                #  for rotated/transformed data
+                                #  so we need a new group name
                                 $new_gp = 1;
                             }
                             else {
-          #  if $grpe has not changed then we can re-use the previous group name
+                                #  if $grpe has not changed then
+                                #  we can re-use the previous group name
                                 $new_gp = $prev_x != $grpe;
                             }
 
                             if ($new_gp) {
-
-                    #  build a new group name if needed
-                    #  no need to dequote since these will always be numbers
-                    #$grpstring = $self->list2csv (
-                    #    list        => [$grpe, $grpn],
-                    #    csv_object  => $out_csv,
-                    #);
-                    #  no need to even use the csv object to stick them together
-                    #  (this was a bottleneck due to all the csv calls)
+                                #  no need to even use the csv object to
+                                #  stick them together (this was a
+                                #  bottleneck due to all the csv calls)
                                 $grpstring = join $el_sep, ( $grpe, $grpn );
                             }
 
                             # set label if determined at cell level
                             my $count = 1;
                             if ( $labels_as_bands || defined $given_label ) {
-
-              # set count to cell value if using band as label or provided label
+                                # set count to cell value if using
+                                # band as label or provided label
                                 $count = $entry;
                             }
                             else {
                                 # set label from cell value or category if valid
-                                $this_label =
-                                  exists $catname_hash{$entry}
-                                  && $catname_hash{$entry}
-                                  ? $catname_hash{$entry}
-                                  : $entry;
+                                $this_label = $catname_hash{$entry} // $entry;
                             }
 
                             #  collate the data
@@ -1548,9 +1543,8 @@ sub import_data_raster {
                         }    # each entry on line
 
                         $gridy++;
-                        $processed_count +=
-                          scalar @$lineref;    #  saves incrementing in the loop
-
+                        #  saves incrementing inside the loop
+                        $processed_count += scalar @$lineref;
                     }    # each line in block
 
                     $wpos += $blockw;
@@ -1558,14 +1552,15 @@ sub import_data_raster {
 
                 $hpos += $blockh;
 
-                $self->add_elements_collated( %args_for_add_elements_collated,
-                    data => \%gp_lb_hash, );
+                $self->add_elements_collated(
+                    %args_for_add_elements_collated,
+                    data => \%gp_lb_hash,
+                );
 
             }    # each block in height
         }    # each raster band
 
         $progress_bar->update( 'Done', 1 );
-
     }    # each file
 
     $self->run_import_post_processes(
@@ -1575,7 +1570,7 @@ sub import_data_raster {
         orig_label_count => $orig_label_count,
     );
 
-    return 1;                     #  success
+    return 1;
 }
 
 # subroutine to read a data file as shapefile.  arguments

@@ -290,11 +290,14 @@ sub calc_chao2 {
             $part1 += $Q * (exp (-$i) - exp (-2 * $i));
             $part2 += $i *  exp (-$i) * $Q;
         }
-        $variance = $part1 - $part2 ** 2 / $R;
+        $variance = $R ? ($part1 - $part2 ** 2 / $R) : 0;
         $chao_formula = 0;
     }
 
-    $variance = max (0, $variance);
+    #  could use ($variance &&= ...) if speed ever becomes an issue here
+    if (defined $variance) {
+        $variance = max (0, $variance);
+    }
 
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (

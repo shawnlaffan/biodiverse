@@ -704,7 +704,7 @@ sub run {
         my $lb_specs     = $column_settings->{labels};
         foreach my $col (@$lb_col_order) {
             my $idx = first_index { $col eq $_->{id} } @$lb_specs;
-            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            croak "aaaaaaargghhhhh this should not happen (lbs)\n" if $idx < 0;
             push @label_col_names, $lb_specs->[$idx]{name};
         }
 
@@ -714,7 +714,7 @@ sub run {
         foreach my $col (@$gp_col_order) {
             $i++;
             my $idx = first_index { $col eq $_->{id} } @$gp_specs;
-            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            croak "aaaaaaargghhhhh this should not happen (gps)\n" if $idx < 0;
             my $name = $gp_specs->[$idx]{name};
             push @group_col_names, $name;
             if ( $gp_lb_cols{cell_is_lat}[$i] ) {

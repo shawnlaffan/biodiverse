@@ -28,6 +28,7 @@ before_install:
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   - cpanm --notest List::MoreUtils~0.425
+  - cpanm --notest Sort::Key::Natural
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal

@@ -69,6 +69,7 @@ WriteMakefile(
         "JSON::MaybeXS" => 1.003,
         "JSON::PP" => 0,
         "Sort::Naturally" => 0,
+        "Sort::Key::Natural" => 0,
         "Text::Fuzzy" => 0,
         "Ref::Util" => "0.101",
         "Text::Levenshtein" => 0,

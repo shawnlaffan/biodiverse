@@ -45,7 +45,10 @@ before_install:
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
   - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2; fi;
 
-  - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --installdeps --notest --with-all-features .; fi;
+  #- if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --installdeps --notest --with-all-features .; fi;
+  
+  - cpanm --installdeps --notest --with-all-features .
+  - echo "Installation of dependencies completed"
 
 
 script:

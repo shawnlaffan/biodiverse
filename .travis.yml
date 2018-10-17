@@ -48,7 +48,9 @@ before_install:
   - if [ "$BD_NO_TEST_GUI" = 0 ]; then cpanm --installdeps --notest --with-all-features .; fi;
 
 
-script: prove -l -j4
+script:
+  - prove -l -j4
+
 # blocklist
 branches:
   except:

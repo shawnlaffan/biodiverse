@@ -33,8 +33,8 @@ before_install:
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal
   - cpanm --notest PDL
-  - cpanm PkgConfig
-  - cpanm Alien::Build
+  - cpanm --notest PkgConfig
+  - cpanm --notest Alien::Build
   - cpanm -v Alien::gdal    | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
   - cpanm -v Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
 

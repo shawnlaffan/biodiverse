@@ -25,7 +25,7 @@ use Data::Compare ();
 use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
-use Sort::Naturally qw /ncmp/;
+use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
 #  these are here for PAR purposes to ensure they get packed
@@ -4183,8 +4183,9 @@ sub get_output_ref_count {
 
 sub get_output_refs_sorted_by_name {
     my $self = shift;
-    my @sorted = sort { ncmp ($a->get_param('NAME'),  $b->get_param('NAME')) }
-      $self->get_output_refs();
+
+    my @sorted = natkeysort { $_->get_param('NAME') }
+      $self->get_output_refs;
 
     return wantarray ? @sorted : \@sorted;
 }

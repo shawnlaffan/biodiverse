@@ -6,8 +6,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-use Sort::Key::Natural qw /natsort/;
-use Sort::Naturally qw /ncmp/;
+use Sort::Key::Natural qw /natsort mkkey_natural/;
 
 use List::MoreUtils qw /firstidx/;
 use List::Util qw /max/;
@@ -421,9 +420,11 @@ sub init_list {
 
 sub sort_label_column {
     my ($liststore, $itera, $iterb) = @_;
-    
+        
     return
-      ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
+      mkkey_natural $liststore->get($itera, 0)
+      cmp
+      mkkey_natural $liststore->get($iterb, 0);
 }
 
 #  sort by this column, then by labels column (always ascending)
@@ -441,7 +442,9 @@ sub sort_by_column {
 
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-        || $label_order * ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
+        || $label_order
+          *   mkkey_natural ($liststore->get($itera, 0))
+          cmp mkkey_natural ($liststore->get($iterb, 0));
 }
 
 sub sort_by_column_numeric_labels {
@@ -485,7 +488,7 @@ sub make_labels_model {
         {$selected_list2_name => 'Int'},
     );
 
-#my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
+
     my $label_type = 'Glib::String';
 
     my @types = ($label_type);
@@ -502,12 +505,10 @@ sub make_labels_model {
 
     my $labels = $base_ref->get_labels();
 
-    #my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : \&ncmp;
     my @sorted_labels = $base_ref->labels_are_numeric
         ? sort {$a <=> $b} @$labels
         : natsort @$labels;
 
-    #foreach my $label (sort $sort_func @labels) {
     foreach my $label (@sorted_labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);

@@ -45,7 +45,7 @@ requires "Getopt::Long::Descriptive";
 requires "Sereal", "3";
 requires "Cpanel::JSON::XS", "3";
 requires "JSON::MaybeXS", "1.003";
-requires "Sort::Naturally";
+requires "Sort::Key::Natural";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
 requires "Data::Structure::Util";

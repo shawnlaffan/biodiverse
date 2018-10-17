@@ -2741,8 +2741,8 @@ sub get_text_axis_as_coord {
         my $axes = $self->get_element_name_as_array_aa ($element);
         $this_axis{$axes->[$axis] // ''}++;
     }
-    #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
-    use Sort::Naturally;
+    #  assign a number based on the sort order.
+    #  "z" will be lowest, "a" will be highest
     @this_axis{rnatsort keys %this_axis}
       = (0 .. scalar keys %this_axis);
     $lists->[$axis] = \%this_axis;

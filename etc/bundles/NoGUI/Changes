@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+2.99_002 20181017
+    - Add Sort::Key::Natural
+
 2.99_001 20180825
     - Add List::Unique::DeterministicOrder
 

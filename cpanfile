@@ -1,5 +1,6 @@
 
-requires 'Geo::GDAL';
+requires 'Sort::Key::Natural';
+requires 'List::Unique::DeterministicOrder';
 requires 'Ref::Util';
 requires 'Scalar::Util::Numeric';
 requires 'Task::Biodiverse::NoGUI', '1.0001';

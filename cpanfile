@@ -1,5 +1,4 @@
 
-requires 'Geo::GDAL';
 requires 'Ref::Util';
 requires 'Scalar::Util::Numeric';
 requires 'Task::Biodiverse::NoGUI', '1.0001';

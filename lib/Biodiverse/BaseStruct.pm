@@ -27,7 +27,7 @@ use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natsort rnatsort/;
 
 our $VERSION = '2.99_001';
 
@@ -1260,7 +1260,7 @@ sub to_table_sym {
             croak 'Cannot export duplicate keys across multiple lists'
               if any {exists $list_hash_ref->{$_}} @print_order;
         }
-        push @print_order, nsort keys %$list_hash_ref;
+        push @print_order, natsort keys %$list_hash_ref;
     }
     my @quoted_print_order =
         map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
@@ -1428,7 +1428,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     }
                 }
                 elsif (is_hashref($list_ref)) {
-                    foreach my $key (nsort keys %$list_ref) {
+                    foreach my $key (natsort keys %$list_ref) {
                         push @data, [@basic, $key, $list_ref->{$key} // $no_data_value];
                     }
                 }
@@ -1445,7 +1445,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @line, map {$_ // $no_data_value} @$list_ref;  
                 }
                 elsif (is_hashref($list_ref)) {
-                    foreach my $key (nsort keys %$list_ref) {
+                    foreach my $key (natsort keys %$list_ref) {
                         push @line, ($key, $list_ref->{$key} // $no_data_value);
                     }
                 }
@@ -1523,7 +1523,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
               croak "cannot export duplicated keys across multiple lists\n"
                 if any {exists $indices_hash{$_}} @print_order;
           }
-          push @print_order, nsort keys %indices_hash;
+          push @print_order, natsort keys %indices_hash;
     }
     my @quoted_print_order =
         map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}
@@ -2743,7 +2743,7 @@ sub get_text_axis_as_coord {
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
     use Sort::Naturally;
-    @this_axis{reverse nsort keys %this_axis}
+    @this_axis{rnatsort keys %this_axis}
       = (0 .. scalar keys %this_axis);
     $lists->[$axis] = \%this_axis;
 

@@ -119,6 +119,7 @@ BEGIN {
         Text::Levenshtein
         List::Unique::DeterministicOrder
         Geo::GDAL::FFI
+        Sort::Key::Natural
     /;
     foreach my $module (@reqd) {
         if (not eval "require $module") {

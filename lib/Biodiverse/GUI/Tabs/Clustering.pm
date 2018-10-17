@@ -10,7 +10,7 @@ use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natsort/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -769,7 +769,7 @@ sub make_indices_model {
     my $default_index = $self->get_output_type->get_default_cluster_index;
     my $default_iter;
     # Add each analysis-function (eg: Jaccard, Endemism) row
-    foreach my $name (nsort keys %indices) {
+    foreach my $name (natsort keys %indices) {
 
         # Add to model
         my $iter = $model->append;
@@ -1631,7 +1631,7 @@ sub show_cluster_labelsABC2 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (nsort keys %{$total_labels}) {
+    foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, $total_labels->{$label});
     }
@@ -1660,7 +1660,7 @@ sub show_cluster_labelsABC3 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (nsort keys %{$total_labels}) {
+    foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter,    0,$label ,  1,$total_labels->{$label});
     }
@@ -1690,7 +1690,7 @@ sub show_cluster_labels {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
-    foreach my $label (nsort keys %total_labels) {
+    foreach my $label (natsort keys %total_labels) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
     }
@@ -1731,7 +1731,7 @@ sub show_cluster_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (nsort keys %$node_hash) {
+    foreach my $element (natsort keys %$node_hash) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

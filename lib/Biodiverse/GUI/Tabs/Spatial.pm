@@ -11,7 +11,7 @@ use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use Time::HiRes;
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_hashref is_arrayref/;
 
 use Biodiverse::GUI::GUIManager;
@@ -531,7 +531,7 @@ sub init_branch_colouring_combo {
 
         my $list_names
           = $self->{output_ref}->get_hash_lists_across_elements;
-        foreach my $list_name (nsort @$list_names) {
+        foreach my $list_name (natsort @$list_names) {
             next if $list_name =~ /SPATIAL_RESULTS$/;
             next if $list_name eq 'RECYCLED_SET';
             
@@ -766,7 +766,7 @@ sub make_output_indices_model {
     if (scalar keys %analyses_tmp) {
         @analyses = $numeric
             ? sort {$a <=> $b} keys %analyses_tmp   #  numeric
-            : nsort keys %analyses_tmp;  #  natural sort
+            : natsort keys %analyses_tmp;  #  natural sort
     }
 
 #print "Making ouput analysis model\n";
@@ -1091,7 +1091,7 @@ sub show_phylogeny_groups {
 
     # For each element, get its groups and put into %total_groups
     my %total_groups;
-    foreach my $element (nsort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $ref = eval {$basedata_ref->get_groups_with_label_as_hash(label => $element)};
 
         next if !$ref || !scalar keys %$ref;
@@ -1121,7 +1121,7 @@ sub show_phylogeny_labels {
     my $elements = $node_ref->get_terminal_elements;
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    foreach my $element (nsort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
         my $iter = $model->append;
         $model->set($iter, 0,$element,  1, $count);
@@ -1143,7 +1143,7 @@ sub show_phylogeny_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (nsort keys %$node_hash) {
+    foreach my $element (natsort keys %$node_hash) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

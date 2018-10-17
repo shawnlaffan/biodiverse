@@ -8,7 +8,7 @@ use 5.022;
 
 use English qw / -no_match_vars /;
 
-use Sort::Naturally qw /nsort ncmp/;
+use Sort::Key::Natural qw /natkeysort/;
 use List::Unique::DeterministicOrder;
 
 
@@ -465,7 +465,7 @@ sub run_randomisation {
                    $bd->get_spatial_output_refs,
                    );
     delete $args{targets};
-    @targets = sort {ncmp ($a->get_name, $b->get_name)} @targets;
+    @targets = natkeysort {$_->get_name} @targets;
 
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation

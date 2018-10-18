@@ -937,12 +937,10 @@ sub fit_grid {
         #carp "width_px and/or height_px not defined\n";
         return;
     }
-    if ($self->{width_units} == 0) {
-        $self->{width_units} = 0.00001;
-    }
-    if ($self->{height_units} == 0) {
-        $self->{height_units} = 0.00001;
-    }
+    
+    $self->{width_units}  ||= 0.00001;
+    $self->{height_units} ||= 0.00001;
+
     my $ppu_width = $self->{width_px} / ($self->{width_units} // 1);
     my $ppu_height = $self->{height_px} / ($self->{height_units} // 1);
     my $min_ppu = $ppu_width < $ppu_height ? $ppu_width : $ppu_height;

@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
-use List::MoreUtils qw /firstidx/;
+use List::MoreUtils qw /firstidx any/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
@@ -786,22 +786,25 @@ sub on_selected_matrix_changed {
 
     my $list = $xml_page->get_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
+    
+    my $labels_are_in_mx = $self->some_labels_are_in_matrix;
 
-    if (! defined $matrix_ref) {
-        $list_window->hide;     #  hide the second list
-        $col->set_visible (0);  #  hide the list 2 selection
-        #    col from list 1
+    if (!$labels_are_in_mx || ! defined $matrix_ref) {
+        #  hide the second list and the list 2 selection col
+        $list_window->hide;
+        $col->set_visible (0);
     }
     else {
         $list_window->show;
         $col->set_visible (1);
     }
 
-    $self->{matrix_drawable} = $self->get_label_count_in_matrix;
-
     # matrix
-    $self->on_sorted(%args); # (this reloads the whole matrix anyway)
-    $self->{matrix_grid}->zoom_fit();
+    $self->{matrix_drawable} = $labels_are_in_mx;
+    if ($labels_are_in_mx) {
+        $self->on_sorted(%args); # (this reloads the whole matrix anyway)
+        $self->{matrix_grid}->zoom_fit();
+    }
 
     return;
 }
@@ -1174,6 +1177,21 @@ sub get_label_count_in_matrix {
 
 #  if the counts differ then we have commonality
     return $mx_count != scalar keys %mx_elements;
+}
+
+sub some_labels_are_in_matrix {
+    my $self = shift;
+
+    return if !$self->{matrix_ref};
+
+    my $l1 = $self->{base_ref}->get_labels_ref->get_element_hash;
+    my $l2 = $self->{matrix_ref}->get_elements;
+    #  iterate through the shorter of the two key sets
+    if (scalar keys %$l1 > scalar keys %$l2) {
+        ($l1, $l2) = ($l2, $l1);
+    };
+    
+    return any {exists $l2->{$_}} keys %$l1;
 }
 
 ##################################################

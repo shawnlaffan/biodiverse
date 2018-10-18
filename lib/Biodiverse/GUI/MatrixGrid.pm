@@ -418,6 +418,8 @@ sub highlight {
         $self->{mask}->destroy;
         $self->{mask} = undef;
     }
+    
+    return if not $self->{cells_group};
 
     my @mask_rects = $self->get_mask_rects($sel_rows, $sel_cols);
     return if not @mask_rects; # if nothing to mask, return

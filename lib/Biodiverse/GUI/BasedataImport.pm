@@ -1808,7 +1808,7 @@ sub get_remap_info {
     while (<$input_fh>) {    # get first non-blank line
         $line           = $_;
         $line_unchomped = $line;
-        chomp $line;
+        $line =~ s/[\r\n]+$//;
         last if $line;
     }
     close($input_fh);

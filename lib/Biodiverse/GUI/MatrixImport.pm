@@ -23,8 +23,8 @@ use Biodiverse::Common;
 
 sub run {
     my $gui          = shift;
-    my $max_hdr_cols = shift
-      // 50;    #  too many slows the GUI, and are typically redundant
+    #  too many slows the GUI, and most are typically redundant
+    my $max_hdr_cols = shift // 50;    
 
     #########
     #  We are using the "normal" approach from here on
@@ -60,7 +60,7 @@ sub run {
 
   BY_LINE:
     while ( $line = <$fh> ) {    # get first non-blank line
-        $line =~ s/[\r\n]*$//;    #  handle mixed line endings
+        $line =~ s/[\r\n]+$//;   #  handle mixed line endings
         last BY_LINE if $line;
     }
     my $header = $line;

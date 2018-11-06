@@ -17,7 +17,7 @@ sudo: required
 cache:
   directories:
     - perl_modules
-    - gdal_builds
+    #- gdal_builds
 #env:
 #  - BD_NO_TEST_GUI=1
 #  - BD_NO_TEST_GUI=0

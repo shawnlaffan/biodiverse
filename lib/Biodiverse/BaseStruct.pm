@@ -2068,7 +2068,7 @@ END_TFW
     }
 
     my $format = "GTiff";
-    my $driver = $self->get_gdal_object->GetDriver( $format );
+    my $driver = Geo::GDAL::FFI::GetDriver( $format );
 
     foreach my $i (@band_cols) {
         my $f_name = $file_names[$i];

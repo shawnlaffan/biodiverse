@@ -1333,7 +1333,7 @@ sub import_data_raster {
           if !( -e $file and -r $file );
 
         # process using GDAL library
-        my $data = $self->get_gdal_object->Open( $file->stringify() );
+        my $data = Geo::GDAL::FFI::Open( $file->stringify() );
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if !defined $data;

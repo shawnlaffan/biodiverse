@@ -50,18 +50,6 @@ our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 
-require Geo::GDAL::FFI;
-my $gdal_instance;
-sub get_gdal_object {
-    #  early versions did not have this method
-    $gdal_instance
-      //= (Geo::GDAL::FFI->can ('get_instance')
-           ? Geo::GDAL::FFI->get_instance
-           : Geo::GDAL::FFI->new
-    );
-    return $gdal_instance;
-}
-
 sub clone {
     my $self = shift;
     my %args = @_;  #  only works with argument 'data' for now

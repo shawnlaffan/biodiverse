@@ -54,8 +54,7 @@ my $singleton;
 
 BEGIN {
     $singleton = {
-        project =>
-          undef,    # Our subclass that inherits from the main Biodiverse object
+        project  => undef,    # Our subclass that inherits from the main Biodiverse object
         gladexml => undef,    # Main window widgets
         tabs => [],    # Stores refs to Tabs objects. In order of page index.
         progress_bars => undef,
@@ -3291,6 +3290,35 @@ sub warn_outputs_exist_if_randomisation_run {
 
     return $response;
 }
+
+
+sub update_open_tabs_after_randomisation {
+    my ($self, %args) = @_;
+    
+    my $base_ref = $args{basedata_ref};
+    croak 'basedata_ref arg not defined' if !defined $base_ref;
+    
+    my $tab_array = $self->{tabs};
+    my @methods = qw /
+        update_lists_combo
+        update_output_indices_combo
+    /;
+    
+    foreach my $tab ( @$tab_array ) {
+        next if ( blessed $tab ) =~ /Outputs$/;
+        next if ( blessed $tab ) =~ /Randomise/;
+        my $bd = $tab->get_base_ref;
+        next if $base_ref ne $bd;
+        #  now we update the menus
+        foreach my $method (grep {$tab->can ($_)} @methods) {
+            $tab->$method;
+        }
+        
+    }
+    
+}
+
+
 
 1;
 

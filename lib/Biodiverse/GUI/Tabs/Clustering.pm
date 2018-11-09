@@ -1348,6 +1348,7 @@ sub on_run_analysis {
     elsif ($overwrite) {
         $bd->delete_output (output => $pre_existing);
         $project->delete_output($pre_existing);
+        delete $self->{stats};
     }
 
     if ($flag_values{keep_sp_nbrs_output}) {

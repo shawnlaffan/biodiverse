@@ -642,7 +642,6 @@ sub set_cell_outline_menuitem_active {
 
 sub update_display_list_combos {
     my ($self, %args) = @_;
-    my $list_prefix = $args{list_prefix};
 
     my @methods = qw /
         update_lists_combo
@@ -650,16 +649,12 @@ sub update_display_list_combos {
         update_branch_colouring_combo
     /;
 
-    foreach my $method (@methods) {
-        $self->$method;
-    }
+    $self->SUPER::update_display_list_combos (
+        %args,
+        methods => \@methods,
+    );
     
-    if (defined $list_prefix) {
-        my @keys = grep {m/^$list_prefix\b/} keys %{$self->{stats}};
-        foreach my $key (@keys) {
-            delete $self->{stats}{$key};
-        }
-    }
+    return;
 }
 
 sub init_lists_combo {

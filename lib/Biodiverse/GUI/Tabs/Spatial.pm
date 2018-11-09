@@ -641,7 +641,8 @@ sub set_cell_outline_menuitem_active {
 }
 
 sub update_display_list_combos {
-    my $self = shift;
+    my ($self, %args) = @_;
+    my $list_prefix = $args{list_prefix};
 
     my @methods = qw /
         update_lists_combo
@@ -652,7 +653,13 @@ sub update_display_list_combos {
     foreach my $method (@methods) {
         $self->$method;
     }
-
+    
+    if (defined $list_prefix) {
+        my @keys = grep {m/^$list_prefix\b/} keys %{$self->{stats}};
+        foreach my $key (@keys) {
+            delete $self->{stats}{$key};
+        }
+    }
 }
 
 sub init_lists_combo {

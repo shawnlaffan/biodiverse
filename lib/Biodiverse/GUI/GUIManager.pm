@@ -3297,6 +3297,7 @@ sub update_open_tabs_after_randomisation {
     
     my $base_ref = $args{basedata_ref};
     croak 'basedata_ref arg not defined' if !defined $base_ref;
+    my $list_prefix = $args{list_prefix};
     
     my $tab_array = $self->{tabs};
     
@@ -3308,7 +3309,9 @@ sub update_open_tabs_after_randomisation {
         my $bd = $tab->get_base_ref;
         next if $base_ref ne $bd;
         
-        $tab->update_display_list_combos;        
+        $tab->update_display_list_combos (
+            list_prefix => $list_prefix,
+        );
     }
     
 }

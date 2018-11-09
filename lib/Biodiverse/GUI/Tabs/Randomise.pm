@@ -722,8 +722,10 @@ sub on_run {
         $output_ref->get_param ('TOTAL_ITERATIONS')
     );
     
+    print "";
     $self->{gui}->update_open_tabs_after_randomisation (
-        basedata_ref => $basedata_ref
+        basedata_ref => $basedata_ref,
+        list_prefix  => $name,
     );
 
     $self->{project}->set_dirty;

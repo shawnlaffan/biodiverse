@@ -3299,12 +3299,6 @@ sub update_open_tabs_after_randomisation {
     croak 'basedata_ref arg not defined' if !defined $base_ref;
     
     my $tab_array = $self->{tabs};
-    my @methods = qw /
-        update_lists_combo
-        update_output_indices_combo
-        update_branch_colouring_combo
-        update_map_lists_combo
-    /;
     
     foreach my $tab ( @$tab_array ) {
         next if ( blessed $tab ) =~ /Outputs$/;
@@ -3313,11 +3307,8 @@ sub update_open_tabs_after_randomisation {
         
         my $bd = $tab->get_base_ref;
         next if $base_ref ne $bd;
-        #  now we update the menus
-        foreach my $method (grep {$tab->can ($_)} @methods) {
-            $tab->$method;
-        }
         
+        $tab->update_display_list_combos;        
     }
     
 }

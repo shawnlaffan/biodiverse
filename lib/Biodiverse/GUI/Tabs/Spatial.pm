@@ -640,6 +640,20 @@ sub set_cell_outline_menuitem_active {
     $self->{xmlPage}->get_object('menuitem_spatial_cell_show_outline')->set_active($active);
 }
 
+sub update_display_list_combos {
+    my $self = shift;
+
+    my @methods = qw /
+        update_lists_combo
+        update_output_indices_combo
+        update_branch_colouring_combo
+    /;
+
+    foreach my $method (@methods) {
+        $self->$method;
+    }
+
+}
 
 sub init_lists_combo {
     my $self = shift;

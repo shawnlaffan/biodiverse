@@ -646,6 +646,17 @@ sub hide_legend {
     $self->{grid}->hide_legend;
 }
 
+sub update_display_list_combos {
+    my $self = shift;
+
+    my @methods = qw /
+        update_map_lists_combo
+    /;
+
+    foreach my $method (@methods) {
+        $self->$method;
+    }
+}
 
 sub init_map_show_combo {
     my $self = shift;

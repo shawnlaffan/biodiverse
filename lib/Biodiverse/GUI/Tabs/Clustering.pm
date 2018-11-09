@@ -658,6 +658,11 @@ sub init_map_show_combo {
     return;
 }
 
+sub update_map_lists_combo {
+    my $self = shift;
+    $self->{dendrogram}->update_map_list_model;
+}
+
 sub init_map_list_combo {
     my $self = shift;
 

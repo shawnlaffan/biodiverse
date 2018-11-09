@@ -3302,11 +3302,14 @@ sub update_open_tabs_after_randomisation {
     my @methods = qw /
         update_lists_combo
         update_output_indices_combo
+        update_map_lists_combo
     /;
     
     foreach my $tab ( @$tab_array ) {
         next if ( blessed $tab ) =~ /Outputs$/;
-        next if ( blessed $tab ) =~ /Randomise/;
+        #  these have no lists that need to be updated
+        next if ( blessed $tab ) =~ /Randomise|SpatialMatrix/;
+        
         my $bd = $tab->get_base_ref;
         next if $base_ref ne $bd;
         #  now we update the menus

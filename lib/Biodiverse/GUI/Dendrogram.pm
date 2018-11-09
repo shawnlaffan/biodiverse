@@ -1452,6 +1452,12 @@ sub setup_map_list_model {
     return;
 }
 
+sub update_map_list_model {
+    my $self = shift;
+    
+    $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );    
+}
+
 # Provides list of map indices for tab to use as it sees fit.
 # Context sensitive on currently selected map list.
 sub get_map_indices {

@@ -2170,31 +2170,31 @@ sub link_recalculate {
     );
 
     if ($cache_abc) {
-        #  dodgy way of getting at them - what if we have calc_abc and calc_abc3 as deps?
-        my $abc = {};
         my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
-        foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
-            if (exists $as_results_from->{$calc_abc_type}) {
-                $abc = $as_results_from->{$calc_abc_type};
-                last;
-            }
-        }
+        my @abc_types
+            = grep {exists $as_results_from->{$_}}
+              qw /calc_abc3 calc_abc2 calc_abc/;
+        
+        #  don't use cache if we have more than one calc_abc result type
+        #  (although it might really only be an issue if we have types 2 and 3)
+        if (scalar @abc_types == 1) {
+            my $abc = $as_results_from->{$abc_types[0]};
 
-        #  use cache unless told not to
-        if (not defined $label_hash2 and defined $check_node_ref) {
-            $check_node_ref->set_cached_value (
-                LABEL_HASH => $abc->{label_hash2}
-            );
-        }
-        if (not defined $label_hash1) {
-            if (defined $node1_ref) {
-                $node1_ref->set_cached_value (
-                    $node1_2_cache_name => $abc->{label_hash1}
+            if (not defined $label_hash2 and defined $check_node_ref) {
+                $check_node_ref->set_cached_value (
+                    LABEL_HASH => $abc->{label_hash2}
                 );
             }
-            if (defined $node2_ref) {
-                $node2_ref->set_cached_value (
-                    $node2_1_cache_name => $abc->{label_hash1});
+            if (not defined $label_hash1) {
+                if (defined $node1_ref) {
+                    $node1_ref->set_cached_value (
+                        $node1_2_cache_name => $abc->{label_hash1}
+                    );
+                }
+                if (defined $node2_ref) {
+                    $node2_ref->set_cached_value (
+                        $node2_1_cache_name => $abc->{label_hash1});
+                }
             }
         }
     }

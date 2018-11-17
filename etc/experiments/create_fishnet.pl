@@ -8,19 +8,20 @@ use POSIX qw /ceil/;
 use Geo::GDAL::FFI;
 
 my @resolutions = (50000, 50000);
-my $extent = [0, 100000, 0, 100000];
+#my $extent = [0, 100000, 0, 100000];
 
 my ($polyfile) = @ARGV;
 
 #use Devel::Symdump;
 #my $obj = Devel::Symdump->rnew(); 
 #my @found = grep {$_ =~ /GetExtent/i} $obj->functions();
-#print join ' ', @found;
+#say join ' ', @found;
+
 
 my $layer  = Geo::GDAL::FFI::Open($polyfile)->GetLayer;
-#my $extent = Geo::GDAL::FFI::OGR_L_GetExtent([$layer]);
 
-#print $extent;
+my $extent = get_extent ($layer);
+say "Extent: " . join ' ', @$extent;
 
 my $fname = 'fish_' . int (time()) . '.shp';
 my $fishnet_l = fishnet ($fname, @$extent, @resolutions);
@@ -30,7 +31,7 @@ sub fishnet {
     my ($out_fname, $xmin, $xmax, $ymin, $ymax, $grid_height, $grid_width) = @_;
     
     my $driver = 'ESRI Shapefile';
-    $driver = 'Memory';
+    #$driver = 'Memory';
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
@@ -83,11 +84,15 @@ sub fishnet {
         $ring_X_left_origin  = $ring_X_left_origin  + $grid_width;
         $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
-    
-    #my $defn = $fishnet_lyr->GetDefn;
-    #my @geom_field_defns = $defn->GetGeomFieldDefns;
-    #print join ' ', @geom_field_defns;
+
 }
 
 
-
+sub get_extent {
+    my $layer = shift;
+    my $int = 1;
+    my $extent = [0,0,0,0];
+    my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$layer, $extent, \$int);
+    croak $e if $e;
+    return $extent;
+}

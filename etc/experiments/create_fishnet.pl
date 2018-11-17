@@ -31,7 +31,7 @@ sub fishnet {
     
     my $driver = 'ESRI Shapefile';
     $driver = 'Memory';
-    my $outLayer
+    my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
             ->CreateLayer({
@@ -42,7 +42,7 @@ sub fishnet {
                     Type => 'String'
                 }],
         });
-    my $featureDefn = $outLayer->GetDefn();
+    my $featureDefn = $fishnet_lyr->GetDefn();
 
     my $rows = ceil(($ymax - $ymin) / $grid_height);
     my $cols = ceil(($xmax - $xmin) / $grid_width);
@@ -71,10 +71,10 @@ sub fishnet {
                 . "$ring_X_left_origin  $ring_Y_top"
                 . '))';
             #say $poly;
-            my $f = Geo::GDAL::FFI::Feature->new($outLayer->GetDefn);
+            my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
             $f->SetField(name => "$countrows x $countcols");
             $f->SetGeomField([WKT => $poly]);
-            $outLayer->CreateFeature($f);
+            $fishnet_lyr->CreateFeature($f);
             # new envelope for next poly
             $ring_Y_top    = $ring_Y_top    - $grid_height;
             $ring_Y_bottom = $ring_Y_bottom - $grid_height;
@@ -83,6 +83,10 @@ sub fishnet {
         $ring_X_left_origin  = $ring_X_left_origin  + $grid_width;
         $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
+    
+    #my $defn = $fishnet_lyr->GetDefn;
+    #my @geom_field_defns = $defn->GetGeomFieldDefns;
+    #print join ' ', @geom_field_defns;
 }
 
 

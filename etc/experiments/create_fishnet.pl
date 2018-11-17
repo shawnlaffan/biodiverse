@@ -27,22 +27,15 @@ my $fishnet_l = fishnet ($fname, @$extent, @resolutions);
 
 #  adapted from https://pcjericks.github.io/py-gdalogr-cookbook/vector_layers.html#create-fishnet-grid
 sub fishnet {
-    my ($outputGridfn, $xmin, $xmax, $ymin, $ymax, $gridHeight, $gridWidth) = @_;
+    my ($out_fname, $xmin, $xmax, $ymin, $ymax, $grid_height, $grid_width) = @_;
     
-    #my $outDriver = Geo::GDAL::FFI::GetDriverByName('ESRI Shapefile');
-    #if (-e $outputGridfn) {
-    #    unlink ($outputGridfn);
-    #}
-    #my $outDataSource = $outDriver->CreateDataSource($outputGridfn);
-    #my $outLayer = $outDataSource->CreateLayer($outputGridfn,{geom_type => 'Polygon'});
     my $driver = 'ESRI Shapefile';
-    #$driver = 'Memory';
+    $driver = 'Memory';
     my $outLayer
-      #= Geo::GDAL::FFI::GetDriver('Memory')->Create->CreateLayer({
         = Geo::GDAL::FFI::GetDriver($driver)
-            ->Create ($outputGridfn)
+            ->Create ($out_fname)
             ->CreateLayer({
-                Name => $outputGridfn,
+                Name => 'Fishnet Layer',
                 GeometryType => 'Polygon',
                 Fields => [{
                     Name => 'name',
@@ -50,33 +43,32 @@ sub fishnet {
                 }],
         });
     my $featureDefn = $outLayer->GetDefn();
-    
-    my $rows = ceil(($ymax - $ymin) / $gridHeight);
-    my $cols = ceil(($xmax - $xmin) / $gridWidth);
+
+    my $rows = ceil(($ymax - $ymin) / $grid_height);
+    my $cols = ceil(($xmax - $xmin) / $grid_width);
     say "Generating fishnet of size $rows x $cols";
+
     # start grid cell envelope
-    my $ringXleftOrigin   = $xmin;
-    my $ringXrightOrigin  = $xmin + $gridWidth;
-    my $ringYtopOrigin    = $ymax;
-    my $ringYbottomOrigin = $ymax - $gridHeight;
+    my $ring_X_left_origin   = $xmin;
+    my $ring_X_right_origin  = $xmin + $grid_width;
+    my $ring_Y_top_origin    = $ymax;
+    my $ring_Y_bottom_origin = $ymax - $grid_height;
 
     # create grid cells;
     my $countcols = 0;
-    while ($countcols < $cols) {
-        $countcols ++;
+    foreach my $countcols (1 .. $cols) {
         # reset envelope for rows;
-        my $ringYtop    = $ringYtopOrigin;
-        my $ringYbottom = $ringYbottomOrigin;
+        my $ring_Y_top    = $ring_Y_top_origin;
+        my $ring_Y_bottom = $ring_Y_bottom_origin;
         my $countrows = 0;
 
-        while ($countrows < $rows) {
-            $countrows ++;
+        foreach my $countrows (1 .. $rows) {
             my $poly = 'POLYGON (('
-                . "$ringXleftOrigin  $ringYtop, "
-                . "$ringXrightOrigin $ringYtop, "
-                . "$ringXrightOrigin $ringYbottom, "
-                . "$ringXleftOrigin  $ringYbottom, "
-                . "$ringXleftOrigin  $ringYtop"
+                . "$ring_X_left_origin  $ring_Y_top, "
+                . "$ring_X_right_origin $ring_Y_top, "
+                . "$ring_X_right_origin $ring_Y_bottom, "
+                . "$ring_X_left_origin  $ring_Y_bottom, "
+                . "$ring_X_left_origin  $ring_Y_top"
                 . '))';
             #say $poly;
             my $f = Geo::GDAL::FFI::Feature->new($outLayer->GetDefn);
@@ -84,12 +76,12 @@ sub fishnet {
             $f->SetGeomField([WKT => $poly]);
             $outLayer->CreateFeature($f);
             # new envelope for next poly
-            $ringYtop    = $ringYtop    - $gridHeight;
-            $ringYbottom = $ringYbottom - $gridHeight;
+            $ring_Y_top    = $ring_Y_top    - $grid_height;
+            $ring_Y_bottom = $ring_Y_bottom - $grid_height;
         }
         # new envelope for next poly;
-        $ringXleftOrigin  = $ringXleftOrigin  + $gridWidth;
-        $ringXrightOrigin = $ringXrightOrigin + $gridWidth;
+        $ring_X_left_origin  = $ring_X_left_origin  + $grid_width;
+        $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
 }
 

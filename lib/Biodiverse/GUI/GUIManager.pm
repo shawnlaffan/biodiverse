@@ -20,7 +20,7 @@ use Path::Class ();
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
 
-use Biodiverse::Config;
+require Biodiverse::Config;
 
 require Biodiverse::GUI::Project;
 require Biodiverse::GUI::BasedataImport;
@@ -38,7 +38,6 @@ use Biodiverse::GUI::DeleteElementProperties;
 
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;
-require Biodiverse::Config;
 require Biodiverse::GUI::RemapGUI;
 require Biodiverse::Remap;
 

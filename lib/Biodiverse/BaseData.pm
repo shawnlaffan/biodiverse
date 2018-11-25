@@ -1656,7 +1656,8 @@ sub import_data_shapefile {
                 source_layer => $layer,
                 schema       => $schema,
             );
-            $layer = $f_layer;  #  assigning in previous causes failures?
+            $layer = undef;
+            $layer = $f_layer;  #  assigning in method call causes failures?
             $layer->ResetReading;
             #  update a few things
             $defn   = $layer->GetDefn;
@@ -1838,6 +1839,14 @@ sub get_fishnet_identity_layer {
     my $layer = $args{source_layer};
     my $schema = $args{schema};
     
+    my ($defn, $shape_type);
+    eval {
+        #$defn = $layer->GetDefn;
+        #$schema = $defn->GetSchema;
+        $shape_type = $schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon';
+    };
+    croak $@ if $@;
+
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
 
@@ -1845,6 +1854,7 @@ sub get_fishnet_identity_layer {
         extent => $self->_get_ogr_layer_extent ($layer),
         resolutions => \@group_sizes,
         origins     => \@group_origins,
+        shape_type  => $shape_type,
     );
 
     my $last_p = time() - 1;
@@ -1857,20 +1867,13 @@ sub get_fishnet_identity_layer {
         1;
     };
 
-    my ($defn, $shape_type);
-    eval {
-        #$defn = $layer->GetDefn;
-        #$schema = $defn->GetSchema;
-        $shape_type = $schema->{GeometryFields}[0]{Type};
-    };
-    croak $@ if $@;
     
     #  get the fishnet cells that intersect the polygons
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
     my $overlay_result
         = Geo::GDAL::FFI::GetDriver('Memory')
-            ->Create
+            ->Create ('_' . time())
             ->CreateLayer({
                 GeometryType => $shape_type,
         });
@@ -1888,6 +1891,9 @@ sub get_fishnet_identity_layer {
         }
     );
     
+    #  close fishnet data set
+    $fishnet = undef;
+    
     #my $check = $overlay_result->GetDefn->GetSchema;
     
     return $overlay_result;
@@ -1900,9 +1906,11 @@ sub get_fishnet_polygon_layer {
      # // 'ESRI Shapefile'; # 
 
     my $out_fname = $args{out_fname};
-    if (not $driver =~ /Memory/) {
+    #if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
-    }
+    #}
+    
+    my $shape_type = $args{shape_type} // 'Polygon';
 
     my $extent      = $args{extent};
     my $resolutions = $args{resolutions};
@@ -1925,16 +1933,16 @@ sub get_fishnet_polygon_layer {
 
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
-            ->Create #($out_fname // ())
+            ->Create # ($out_fname // ())
             ->CreateLayer({
                 #Name => 'Fishnet Layer',
-                GeometryType => 'Polygon',
+                GeometryType => $shape_type,
                 Fields => [{
                     Name => 'name',
                     Type => 'String'
                 }],
         });
-    my $featureDefn = $fishnet_lyr->GetDefn();
+    #my $featureDefn = $fishnet_lyr->GetDefn();
 
     my $rows = ceil(($ymax - $ymin) / $grid_height);
     my $cols = ceil(($xmax - $xmin) / $grid_width);

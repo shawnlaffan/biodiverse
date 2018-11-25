@@ -42,7 +42,7 @@ sub main {
         return 0;
     }
 
-    foreach my $sub (@test_subs) {
+    foreach my $sub (sort @test_subs) {
         no strict 'refs';
         $sub->();
     }

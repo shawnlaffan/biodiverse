@@ -1866,6 +1866,7 @@ sub get_fishnet_identity_layer {
         $last_p = time();
         1;
     };
+    #$progress = undef;
 
     
     #  get the fishnet cells that intersect the polygons
@@ -1886,7 +1887,7 @@ sub get_fishnet_identity_layer {
         $fishnet,
         {
             Result   => $overlay_result,
-            Progress => $progress,
+            #Progress => $progress,
             #Options  => $options,
         }
     );
@@ -1902,13 +1903,16 @@ sub get_fishnet_identity_layer {
 sub get_fishnet_polygon_layer {
     my ($self, %args) = @_;
     
-    my $driver = $args{driver} // 'Memory';
-     # // 'ESRI Shapefile'; # 
+    local $| = 1;
+    
+    my $driver = $args{driver};# // 'Memory';
+     $driver = 'ESRI Shapefile';
 
     my $out_fname = $args{out_fname};
     #if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
     #}
+    say "Generating fishnet file $out_fname";
     
     my $shape_type = $args{shape_type} // 'Polygon';
 
@@ -1919,6 +1923,9 @@ sub get_fishnet_polygon_layer {
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;
     my ($grid_height, $grid_width)  = @$resolutions;
     
+    
+    say "Input bounds are $xmin, $ymin, $xmax, $ymax";
+    
     if ($origins) {    
         my @ll = ($xmin, $ymin);
         foreach my $i (0,1) {
@@ -1926,16 +1933,27 @@ sub get_fishnet_polygon_layer {
             my $tmp_prec = $ll[$i] / $resolutions->[$i];
             my $offset = floor ($tmp_prec);
             #  and shift back to index units
-            $origins->[$i] = $offset * $resolutions->[$i];
+            $ll[$i] = $offset * $resolutions->[$i];
         }
-        ($xmin, $ymin) = @$origins;
+        ($xmin, $ymin) = @ll;
+        my @ur = ($xmax, $ymax);
+        foreach my $i (0,1) {
+            next if $resolutions->[$i] <= 0;
+            my $tmp_prec = $ur[$i] / $resolutions->[$i];
+            my $offset = ceil ($tmp_prec);
+            #  and shift back to index units
+            $ur[$i] = $offset * $resolutions->[$i];
+        }
+        ($xmax, $ymax) = @ur;
     }
+    
+    say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
 
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
-            ->Create # ($out_fname // ())
+            ->Create ($out_fname)
             ->CreateLayer({
-                #Name => 'Fishnet Layer',
+                Name => 'Fishnet_Layer',
                 GeometryType => $shape_type,
                 Fields => [{
                     Name => 'name',
@@ -1983,6 +2001,10 @@ sub get_fishnet_polygon_layer {
         $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
 
+    $fishnet_lyr = undef;
+    
+    $fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
+            
     return $fishnet_lyr;
 }
 

@@ -1839,13 +1839,19 @@ sub get_fishnet_identity_layer {
     my $layer = $args{source_layer};
     my $schema = $args{schema};
     
-    my ($defn, $shape_type);
+    my ($defn, $shape_type, $sr);
     eval {
         #$defn = $layer->GetDefn;
         #$schema = $defn->GetSchema;
         $shape_type = $schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon';
+        $sr = $schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef;
     };
     croak $@ if $@;
+    
+    if ($sr and not blessed $sr) {
+        $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
+    }
+
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1855,6 +1861,7 @@ sub get_fishnet_identity_layer {
         resolutions => \@group_sizes,
         origins     => \@group_origins,
         shape_type  => $shape_type,
+        spatial_reference => $sr,
     );
 
     my $last_p = time() - 1;
@@ -1873,10 +1880,12 @@ sub get_fishnet_identity_layer {
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
     my $overlay_result
-        = Geo::GDAL::FFI::GetDriver('Memory')
+        = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
             ->Create ('_' . time())
             ->CreateLayer({
-                GeometryType => $shape_type,
+                Name => 'overlay_result',
+                SpatialReference => $sr,
+                GeometryType     => $shape_type,
         });
     #  not sure these have any effect
     my $options = {
@@ -1887,7 +1896,7 @@ sub get_fishnet_identity_layer {
         $fishnet,
         {
             Result   => $overlay_result,
-            #Progress => $progress,
+            Progress => $progress,
             #Options  => $options,
         }
     );
@@ -1915,6 +1924,10 @@ sub get_fishnet_polygon_layer {
     say "Generating fishnet file $out_fname";
     
     my $shape_type = $args{shape_type} // 'Polygon';
+    my $sr = $args{spatial_reference};
+    if (!blessed $sr) {
+        $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
+    }
 
     my $extent      = $args{extent};
     my $resolutions = $args{resolutions};
@@ -1955,6 +1968,7 @@ sub get_fishnet_polygon_layer {
             ->CreateLayer({
                 Name => 'Fishnet_Layer',
                 GeometryType => $shape_type,
+                SpatialReference => $sr,
                 Fields => [{
                     Name => 'name',
                     Type => 'String'

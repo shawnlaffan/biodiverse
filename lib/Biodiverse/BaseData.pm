@@ -1662,6 +1662,7 @@ sub import_data_shapefile {
             $defn   = $layer->GetDefn;
             $schema = $defn->GetSchema;
             my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+            warn join ' ', sort keys %fld_names; 
         }
 
         #my $shape_count = $layer->GetFeatureCount();

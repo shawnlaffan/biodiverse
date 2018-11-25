@@ -1661,7 +1661,7 @@ sub import_data_shapefile {
             #  update a few things
             $defn   = $layer->GetDefn;
             $schema = $defn->GetSchema;
-            my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+            %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
             warn 'Intersected field names: ' . join ' ', sort keys %fld_names; 
         }
 

@@ -12,7 +12,7 @@ use JSON::PP ();
 
 use Carp;
 use Data::Dumper;
-use POSIX qw {fmod};
+use POSIX qw {fmod floor ceil};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use IO::File;
@@ -1640,11 +1640,27 @@ sub import_data_shapefile {
         my $schema     = $defn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
-        my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
-
-        #my $shape_type = $shapefile->type( $shapefile->shape_type );
         croak "[BASEDATA] $fnamebase: Import of feature type $shape_type is not supported.\n"
           if not $shape_type =~ /Point|Polygon/;
+
+        #  some validation
+        my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+        foreach my $key (@label_field_names) {
+            croak "Shapefile $file does not have a field called $key\n"
+              if !exists $fld_names{$key};
+        }
+
+        #  get a Fishnet Identity overlay if we have polygons        
+        if ($shape_type eq 'Polygon') {
+            $layer = $self->get_fishnet_identity_layer (
+                source_layer => $layer,
+            );
+            $layer->ResetReading;
+            #  update a few things
+            $defn   = $layer->GetDefn;
+            $schema = $defn->GetSchema;
+            my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+        }
 
         #my $shape_count = $layer->GetFeatureCount();
         #  interim solution
@@ -1655,51 +1671,33 @@ sub import_data_shapefile {
         $layer->ResetReading;
         say "have $shape_count shapes";
 
-        #  some validation
-        my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
-        #my %db_rec1 = $shapefile->get_dbf_record(1);
-        foreach my $key (@label_field_names) {
-            #croak "Shapefile $file does not have a field called $key\n"
-            #  if !exists $db_rec1{$key};
-            croak "Shapefile $file does not have a field called $key\n"
-              if !exists $fld_names{$key};
-        }
-
-        my %gp_lb_hash;
-        
-        #  awkward way to handle polys in amongst points
-        #  - need to refactor these
-        if ($shape_type eq 'Polygon') {
-            #my $gp_lb_hash_ref = $self->get_gp_lb_hash_from_polygon_file (
-            #    filename => $file,
-            #    group_field_names      => \@group_field_names,
-            #    label_field_names      => \@label_field_names,
-            #    sample_count_col_names => \@smp_count_field_names,
-            #    is_lat_field => $is_lat_field,
-            #    is_lon_field => $is_lon_field,
-            #    csv_object   => $out_csv,
-            #    skip_lines_with_undef_groups => $skip_lines_with_undef_groups,
-            #);
-            #use feature 'refaliasing';
-            #no warnings 'experimental::refaliasing';
-            #\%gp_lb_hash = $gp_lb_hash_ref;
-        }
-
         # iterate over shapes
-        my $cnt = 0;
+        my %gp_lb_hash;
+        my $count = 0;
       SHAPE:
         while (my $shape = $layer->GetNextFeature) {
-            $cnt ++;
-            #last if $shape_type eq 'Polygon';
-
-            # Get database record for this shape.
-            # Same for all features in the shape.
-            # Awkward - should just get the ones we need
-            my %db_rec = map {$_ => $shape->GetField ($_)} keys %fld_names;
+            $count ++;
 
             # just get all the points from the shape.
             my $geom   = $shape->GetGeomField;
-            my $ptlist = $geom->GetPoints;
+            my $ptlist;
+            my $default_count = 1;
+            if ($shape_type eq 'Point') {
+                $ptlist = $geom->GetPoints;
+            }
+            elsif ($shape_type eq 'Polygon') {
+                #  get the centroid until we find more efficient methods
+                $ptlist = $geom->Centroid->GetPoints;
+                #say $geom->AsText;
+                if (!scalar @smp_count_field_names  ) {
+                    $default_count = $geom->Area;
+                }
+            }
+
+            # Get database record for this shape.
+            # Same for all features in the shape.
+            # Awkward - should just get the fields we need
+            my %db_rec = map {$_ => $shape->GetField ($_)} keys %fld_names;
 
             # read over all points in the shape
             foreach my $point (@$ptlist) {
@@ -1718,7 +1716,7 @@ sub import_data_shapefile {
                 my $this_count =
                   scalar @smp_count_field_names
                   ? sum 0, @db_rec{@smp_count_field_names}
-                  : 1;
+                  : $default_count;
 
                 my @lb_fields  = @db_rec{@label_field_names};
                 my $this_label = $self->list2csv(
@@ -1740,7 +1738,7 @@ sub import_data_shapefile {
 
                     if ( $val eq '-1.79769313486232e+308' ) {
                         next SHAPE if $skip_lines_with_undef_groups;
-                        croak "record $cnt has an undefined coordinate\n";
+                        croak "record $count has an undefined coordinate\n";
                     }
 
                     my $origin = $group_origins[$i];
@@ -1805,9 +1803,9 @@ sub import_data_shapefile {
             }    # each point
 
             # progress bar stuff
-            my $frac = $cnt / $shape_count;
+            my $frac = $count / $shape_count;
             $progress_bar->update(
-                "Loading $file\n" . "Shape $cnt of $shape_count\n", $frac );
+                "Loading $file\n" . "Shape $count of $shape_count or more\n", $frac );
 
         }    # each shape
 
@@ -1830,6 +1828,147 @@ sub import_data_shapefile {
 
     return 1;    #  success
 }
+
+sub get_fishnet_identity_layer {
+    my ($self, %args) = @_;
+
+    my $layer = $args{source_layer};
+    
+    my @group_origins = $self->get_cell_origins;
+    my @group_sizes   = $self->get_cell_sizes;
+
+    my $fishnet = $self->get_fishnet_polygon_layer (
+        extent => $self->_get_ogr_layer_extent ($layer),
+        resolutions => \@group_sizes,
+        origins     => \@group_origins,
+    );
+
+    my $last_p = time() - 1;
+    my $progress = sub {
+        return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.5;
+        my ($fraction, $msg, $data) = @_;
+        local $| = 1;
+        printf "%.3g ", $fraction;
+        $last_p = time();
+        1;
+    };
+
+    #  get the fishnet cells that intersect the polygons
+    $layer->ResetReading;
+    #  create the layer now so we only get polygons back
+    my $overlay_result
+        = Geo::GDAL::FFI::GetDriver('Memory')
+            ->Create
+            ->CreateLayer({
+                GeometryType => 'Polygon',
+        });
+    #  not sure these have any effect
+    my $options = {
+        PROMOTE_TO_MULTI    => 'NO',
+        PRETEST_CONTAINMENT => 'YES',
+    };
+    $layer->Intersection(
+        $fishnet,
+        {
+            Result   => $overlay_result,
+            Progress => $progress,
+            Options  => $options,
+        }
+    );
+    
+    return $overlay_result;
+}
+
+sub get_fishnet_polygon_layer {
+    my ($self, %args) = @_;
+    
+    my $driver      = $args{driver} // 'Memory';  # // 'ESRI Shapefile'; # 
+    my $out_fname   = $args{out_fname} // ('fishnet_' . time());
+    
+    my $extent      = $args{extent};
+    my $resolutions = $args{resolutions};
+    my $origins     = $args{origins};
+
+    my ($xmin, $xmax, $ymin, $ymax) = @$extent;
+    my ($grid_height, $grid_width)  = @$resolutions;
+    
+    if ($origins) {    
+        my @ll = ($xmin, $ymin);
+        foreach my $i (0,1) {
+            next if $resolutions->[$i] <= 0;
+            my $tmp_prec = $ll[$i] / $resolutions->[$i];
+            my $offset = floor ($tmp_prec);
+            #  and shift back to index units
+            $origins->[$i] = $offset * $resolutions->[$i];
+        }
+        ($xmin, $ymin) = @$origins;
+    }
+
+    my $fishnet_lyr
+        = Geo::GDAL::FFI::GetDriver($driver)
+            ->Create ($out_fname)
+            ->CreateLayer({
+                Name => 'Fishnet Layer',
+                GeometryType => 'Polygon',
+                Fields => [{
+                    Name => 'name',
+                    Type => 'String'
+                }],
+        });
+    my $featureDefn = $fishnet_lyr->GetDefn();
+
+    my $rows = ceil(($ymax - $ymin) / $grid_height);
+    my $cols = ceil(($xmax - $xmin) / $grid_width);
+    say "Generating fishnet of size $rows x $cols";
+    say "Origins are: " . join ' ', @$origins;
+
+    # start grid cell envelope
+    my $ring_X_left_origin   = $xmin;
+    my $ring_X_right_origin  = $xmin + $grid_width;
+    my $ring_Y_top_origin    = $ymax;
+    my $ring_Y_bottom_origin = $ymax - $grid_height;
+
+    # create grid cells
+    foreach my $countcols (1 .. $cols) {
+        # reset envelope for rows;
+        my $ring_Y_top    = $ring_Y_top_origin;
+        my $ring_Y_bottom = $ring_Y_bottom_origin;
+        
+        foreach my $countrows (1 .. $rows) {
+            my $poly = 'POLYGON (('
+                . "$ring_X_left_origin  $ring_Y_top, "
+                . "$ring_X_right_origin $ring_Y_top, "
+                . "$ring_X_right_origin $ring_Y_bottom, "
+                . "$ring_X_left_origin  $ring_Y_bottom, "
+                . "$ring_X_left_origin  $ring_Y_top"
+                . '))';
+            #say $poly;
+            my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
+            $f->SetField(name => "$countrows x $countcols");
+            $f->SetGeomField([WKT => $poly]);
+            $fishnet_lyr->CreateFeature($f);
+            # new envelope for next poly
+            $ring_Y_top    = $ring_Y_top    - $grid_height;
+            $ring_Y_bottom = $ring_Y_bottom - $grid_height;
+        }
+        # new envelope for next poly;
+        $ring_X_left_origin  = $ring_X_left_origin  + $grid_width;
+        $ring_X_right_origin = $ring_X_right_origin + $grid_width;
+    }
+
+    return $fishnet_lyr;
+}
+
+#  until Geo::GDAL::FFI provides this
+sub _get_ogr_layer_extent {
+    my ($self, $layer, $force) = @_;
+    my $extent = [0,0,0,0];
+    my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$layer, $extent, $force ? 1 : 0);
+    confess Geo::GDAL::FFI::error_msg({OGRError => $e})
+      if $e;
+    return $extent;
+}
+
 
 sub import_data_spreadsheet {
     my $self = shift;

@@ -1651,10 +1651,12 @@ sub import_data_shapefile {
         }
 
         #  get a Fishnet Identity overlay if we have polygons        
-        if ($shape_type eq 'Polygon') {
-            $layer = $self->get_fishnet_identity_layer (
+        if ($shape_type =~ 'Polygon') {
+            my $f_layer = $self->get_fishnet_identity_layer (
                 source_layer => $layer,
+                schema       => $schema,
             );
+            $layer = $f_layer;  #  assigning in previous causes failures?
             $layer->ResetReading;
             #  update a few things
             $defn   = $layer->GetDefn;
@@ -1679,13 +1681,13 @@ sub import_data_shapefile {
             $count ++;
 
             # just get all the points from the shape.
-            my $geom   = $shape->GetGeomField;
+            my $geom = $shape->GetGeomField;
             my $ptlist;
             my $default_count = 1;
-            if ($shape_type eq 'Point') {
+            if ($shape_type =~ 'Point') {
                 $ptlist = $geom->GetPoints;
             }
-            elsif ($shape_type eq 'Polygon') {
+            elsif ($shape_type =~ 'Polygon') {
                 #  get the centroid until we find more efficient methods
                 $ptlist = $geom->Centroid->GetPoints;
                 #say $geom->AsText;
@@ -1707,9 +1709,9 @@ sub import_data_shapefile {
                 $db_rec{':shape_y'} = $point->[1];
                 if ($#$point > 1) {
                     $db_rec{':shape_z'} = $point->[2];
-                }
-                if ($#$point > 2) {
-                    $db_rec{':shape_m'} = $point->[3];
+                    if ($#$point > 2) {
+                        $db_rec{':shape_m'} = $point->[3];
+                    }
                 }
 
                 my @these_labels;
@@ -1833,6 +1835,7 @@ sub get_fishnet_identity_layer {
     my ($self, %args) = @_;
 
     my $layer = $args{source_layer};
+    my $schema = $args{schema};
     
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1853,6 +1856,14 @@ sub get_fishnet_identity_layer {
         1;
     };
 
+    my ($defn, $shape_type);
+    eval {
+        #$defn = $layer->GetDefn;
+        #$schema = $defn->GetSchema;
+        $shape_type = $schema->{GeometryFields}[0]{Type};
+    };
+    croak $@ if $@;
+    
     #  get the fishnet cells that intersect the polygons
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
@@ -1860,21 +1871,23 @@ sub get_fishnet_identity_layer {
         = Geo::GDAL::FFI::GetDriver('Memory')
             ->Create
             ->CreateLayer({
-                GeometryType => 'Polygon',
+                GeometryType => $shape_type,
         });
     #  not sure these have any effect
     my $options = {
         PROMOTE_TO_MULTI    => 'NO',
-        PRETEST_CONTAINMENT => 'YES',
+        #PRETEST_CONTAINMENT => 'YES',
     };
     $layer->Intersection(
         $fishnet,
         {
             Result   => $overlay_result,
             Progress => $progress,
-            Options  => $options,
+            #Options  => $options,
         }
     );
+    
+    #my $check = $overlay_result->GetDefn->GetSchema;
     
     return $overlay_result;
 }
@@ -1882,9 +1895,14 @@ sub get_fishnet_identity_layer {
 sub get_fishnet_polygon_layer {
     my ($self, %args) = @_;
     
-    my $driver      = $args{driver} // 'Memory';  # // 'ESRI Shapefile'; # 
-    my $out_fname   = $args{out_fname} // ('fishnet_' . time());
-    
+    my $driver = $args{driver} // 'Memory';
+     # // 'ESRI Shapefile'; # 
+
+    my $out_fname = $args{out_fname};
+    if (not $driver =~ /Memory/) {
+        $out_fname //= ('fishnet_' . time());
+    }
+
     my $extent      = $args{extent};
     my $resolutions = $args{resolutions};
     my $origins     = $args{origins};
@@ -1906,9 +1924,9 @@ sub get_fishnet_polygon_layer {
 
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
-            ->Create ($out_fname)
+            ->Create #($out_fname // ())
             ->CreateLayer({
-                Name => 'Fishnet Layer',
+                #Name => 'Fishnet Layer',
                 GeometryType => 'Polygon',
                 Fields => [{
                     Name => 'name',

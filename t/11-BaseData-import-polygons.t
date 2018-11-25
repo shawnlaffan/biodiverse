@@ -177,6 +177,47 @@ sub test_roundtrip_shapefile {
     
 }
 
+sub test_import_shapefile_polygon {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon_data.shp';
+
+    my $in_options_hash = {
+        group_field_names => [':shape_x', ':shape_y'],
+        label_field_names => ['BINOMIAL'],
+    };
+
+    my $new_bd = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile polygon',
+        CELL_SIZES => [100000, 100000],
+    );
+    # import as shapefile
+    my $success = eval {
+        $new_bd->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "no exceptions importing $fname");
+    diag $e if $e;
+    if ($e) {
+        diag "$fname:";
+        foreach my $ext (qw /shp dbf shx/) {
+            diag 'size: ' . -s ($fname . $ext);
+        }
+    }
+
+    my @new_labels  = sort $new_bd->get_labels;
+    my @orig_labels = ('Dromornis_planei');
+    is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+    
+    my $new_lb = $new_bd->get_labels_ref;
+    my $got = $new_bd->get_label_sample_count (label => $orig_labels[0]);
+    my $exp = 1794988604045.7;  #  prob too precise
+    is ($got, $exp, "sample counts match for $orig_labels[0] in $fname");
+    
+}
+
 
 sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');

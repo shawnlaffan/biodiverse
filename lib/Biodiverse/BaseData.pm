@@ -2001,9 +2001,9 @@ sub get_fishnet_polygon_layer {
         $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
 
-    $fishnet_lyr = undef;
-    
-    $fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
+    #$fishnet_lyr = undef;
+    #
+    #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
             
     return $fishnet_lyr;
 }

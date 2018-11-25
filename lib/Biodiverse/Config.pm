@@ -118,7 +118,6 @@ BEGIN {
         Data::Compare
         Text::Levenshtein
         List::Unique::DeterministicOrder
-        Geo::GDAL::FFI
         Sort::Key::Natural
     /;
     foreach my $module (@reqd) {

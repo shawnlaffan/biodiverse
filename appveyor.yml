@@ -12,6 +12,7 @@ install:
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
+  - cpanm -v Alien::geos::af
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   - cpanm -v Geo::GDAL::FFI | perl -ne "BEGIN {$|=1; open our $log, q{>}, q{build.log}}; print qq{\n} if 0 == ($. %% 90); print q{.}; print {$log} $_;" || type build.log
   - cpanm --notest Task::Biodiverse::NoGUI

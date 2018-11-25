@@ -1,7 +1,7 @@
 package Biodiverse::BaseData;
 
 #  package containing methods to access and store a Biodiverse BaseData object
-use 5.010;
+use 5.022;
 
 use strict;
 use warnings;
@@ -1633,59 +1633,85 @@ sub import_data_shapefile {
         # open as shapefile
         my $fnamebase = $file->stringify;
 
-#$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
+        my $layer = Geo::GDAL::FFI::Open($fnamebase)->GetLayer;
+        $layer->ResetReading;
+        my $defn = $layer->GetDefn;
+        #  needs a method
+        my $schema     = $defn->GetSchema;
+        my $shape_type = $schema->{GeometryFields}[0]{Type};
+
         my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
 
-        #say "have $shapefile";
+        #my $shape_type = $shapefile->type( $shapefile->shape_type );
+        croak "[BASEDATA] $fnamebase: Import of feature type $shape_type is not supported.\n"
+          if not $shape_type =~ /Point|Polygon/;
 
-        croak "[BASEDATA] Failed to read $file with ShapeFile\n"
-          if !defined $shapefile;    # assuming not defined on fail
-
-        my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
-          . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point/;
-
-        my $shape_count = $shapefile->shapes();
+        #my $shape_count = $layer->GetFeatureCount();
+        #  interim solution
+        my $shape_count = 0;
+        while ($layer->GetNextFeature) {
+            $shape_count++;
+        }
+        $layer->ResetReading;
         say "have $shape_count shapes";
 
         #  some validation
-        my %db_rec1 = $shapefile->get_dbf_record(1);
+        my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+        #my %db_rec1 = $shapefile->get_dbf_record(1);
         foreach my $key (@label_field_names) {
+            #croak "Shapefile $file does not have a field called $key\n"
+            #  if !exists $db_rec1{$key};
             croak "Shapefile $file does not have a field called $key\n"
-              if !exists $db_rec1{$key};
+              if !exists $fld_names{$key};
         }
 
         my %gp_lb_hash;
+        
+        #  awkward way to handle polys in amongst points
+        #  - need to refactor these
+        if ($shape_type eq 'Polygon') {
+            #my $gp_lb_hash_ref = $self->get_gp_lb_hash_from_polygon_file (
+            #    filename => $file,
+            #    group_field_names      => \@group_field_names,
+            #    label_field_names      => \@label_field_names,
+            #    sample_count_col_names => \@smp_count_field_names,
+            #    is_lat_field => $is_lat_field,
+            #    is_lon_field => $is_lon_field,
+            #    csv_object   => $out_csv,
+            #    skip_lines_with_undef_groups => $skip_lines_with_undef_groups,
+            #);
+            #use feature 'refaliasing';
+            #no warnings 'experimental::refaliasing';
+            #\%gp_lb_hash = $gp_lb_hash_ref;
+        }
 
         # iterate over shapes
+        my $cnt = 0;
       SHAPE:
-        foreach my $cnt ( 1 .. $shapefile->shapes() ) {
-            my $shape = $shapefile->get_shp_record($cnt);
+        while (my $shape = $layer->GetNextFeature) {
+            $cnt ++;
+            #last if $shape_type eq 'Polygon';
 
             # Get database record for this shape.
             # Same for all features in the shape.
-            my %db_rec = $shapefile->get_dbf_record($cnt);
-
-            #say "read shape, label $dbf_label, count $dbf_count";
-
-            my $has_z = defined $shape->z_min;
-            my $has_m = defined $shape->m_min;
+            # Awkward - should just get the ones we need
+            my %db_rec = map {$_ => $shape->GetField ($_)} keys %fld_names;
 
             # just get all the points from the shape.
-            my @ptlist = $shape->points();
+            my $geom   = $shape->GetGeomField;
+            my $ptlist = $geom->GetPoints;
 
             # read over all points in the shape
-            foreach my $point (@ptlist) {
+            foreach my $point (@$ptlist) {
 
                 #  add the coords to the db_rec hash
-                $db_rec{':shape_x'} = $point->X;
-                $db_rec{':shape_y'} = $point->Y;
-                if ($has_z) {
-                    $db_rec{':shape_z'} = $point->Z;
+                $db_rec{':shape_x'} = $point->[0];
+                $db_rec{':shape_y'} = $point->[1];
+                if ($#$point > 1) {
+                    $db_rec{':shape_z'} = $point->[2];
                 }
-                if ($has_m) {
-                    $db_rec{':shape_m'} = $point->M;
+                if ($#$point > 2) {
+                    $db_rec{':shape_m'} = $point->[3];
                 }
 
                 my @these_labels;
@@ -1694,13 +1720,6 @@ sub import_data_shapefile {
                   ? sum 0, @db_rec{@smp_count_field_names}
                   : 1;
 
-#  need to implement this
-#if ($args{use_dbf_label}) {
-#  this should be use_matrix_format, and implemented consistent with the text parser
-#my $this_label = $dbf_label;
-#my $this_count = $dbf_count;
-#}
-#else {
                 my @lb_fields  = @db_rec{@label_field_names};
                 my $this_label = $self->list2csv(
                     list       => \@lb_fields,
@@ -1708,10 +1727,11 @@ sub import_data_shapefile {
                 );
                 push @these_labels, $this_label;
 
-                #}
 
-# form group text from group fields (defined as csv string of central points of group)
-# Needs to process the data in the same way as for text imports - refactoring is in order.
+                # form group text from group fields
+                # (defined as csv string of central points of group)
+                # Needs to process the data in the same way as for
+                # text imports - refactoring is in order.
                 my @group_field_vals = @db_rec{@group_field_names};
                 my @gp_fields;
                 my $i = -1;

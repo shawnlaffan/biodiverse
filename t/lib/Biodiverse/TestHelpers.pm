@@ -714,7 +714,7 @@ sub get_temp_file_path {
 sub write_data_to_file {
     my ($fname, $data) = @_;
     open(my $fh, '>', $fname) or die "write_data_file: Cannot open $fname\n";
-    print $fh $data;
+    print {$fh} $data;
     $fh->close;
 }
 

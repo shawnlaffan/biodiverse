@@ -1648,11 +1648,27 @@ sub import_data_shapefile {
         allow_empty_groups => $args{allow_empty_groups},
         allow_empty_labels => $args{allow_empty_labels},
     );
+    
+    my @input_files = @{ $args{input_files} };
+    my $num_files = @input_files;
+    my $file_progress;
+    if (@input_files > 1) {
+        $file_progress = Biodiverse::Progress->new (gui_only => 1);
+    }
 
     # load each file, using same arguments/parameters
-    foreach my $file ( @{ $args{input_files} } ) {
+    my $file_num = 0;
+    foreach my $file ( @input_files ) {
+        $file_num++;
         $file = Path::Class::file($file)->absolute;
         say "[BASEDATA] INPUT FILE: $file";
+        
+        if ($file_progress) {
+            $file_progress->update (
+                "File $file_num of $num_files",
+                $file_num / $num_files,
+            );
+        }
 
         # open as shapefile
         my $fnamebase = $file->stringify;
@@ -1832,9 +1848,11 @@ sub import_data_shapefile {
             # progress bar stuff
             my $frac = $count / $shape_count;
             $progress_bar->update(
-                "Loading $file\n" . "Shape $count of $shape_count or more\n", $frac );
+                "Loading $file\n" . "Shape $count of $shape_count\n", $frac );
 
         }    # each shape
+
+        $progress_bar->update( 'Done', 1 );
 
         #  add the collated data
         $self->add_elements_collated(
@@ -1843,7 +1861,6 @@ sub import_data_shapefile {
         );
         %gp_lb_hash = ();    #  clear the collated list
 
-        $progress_bar->update( 'Done', 1 );
     }    # each file
 
     $self->run_import_post_processes(
@@ -1898,30 +1915,30 @@ sub get_fishnet_identity_layer {
         1;
     };
     #$progress = undef;
-
     
     #  get the fishnet cells that intersect the polygons
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
     my $overlay_result
         = Geo::GDAL::FFI::GetDriver('Memory')
-            ->Create ('_' . time())
+            ->Create ('/vsimem/_' . time() . 'db')
             ->CreateLayer({
                 #Name => 'overlay_result',
                 SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
+                #Options => {SPATIAL_INDEX => 'YES'},
         });
     #  not sure these have any effect
     my $options = {
         PROMOTE_TO_MULTI    => 'NO',
-        #PRETEST_CONTAINMENT => 'YES',
+        PRETEST_CONTAINMENT => 'YES',
     };
     $layer->Intersection(
         $fishnet,
         {
             Result   => $overlay_result,
             Progress => $progress,
-            #Options  => $options,
+            Options  => $options,
         }
     );
     
@@ -1944,6 +1961,9 @@ sub get_fishnet_polygon_layer {
     my $out_fname = $args{out_fname};
     if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
+    }
+    else {
+        $out_fname //= ('/vsimem/fishnet_' . time());
     }
     #say "Generating fishnet file $out_fname";
     
@@ -1998,6 +2018,7 @@ sub get_fishnet_polygon_layer {
                     Name => $fishnet_fld_name,
                     Type => 'String'
                 }],
+                #Options => {SPATIAL_INDEX => 'YES'},  #  not supported?
         });
     #my $featureDefn = $fishnet_lyr->GetDefn();
 

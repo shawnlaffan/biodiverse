@@ -1922,7 +1922,7 @@ sub get_fishnet_polygon_layer {
     if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
     }
-    say "Generating fishnet file $out_fname";
+    #say "Generating fishnet file $out_fname";
     
     my $shape_type = $args{shape_type} // 'Polygon';
     my $sr = $args{spatial_reference};

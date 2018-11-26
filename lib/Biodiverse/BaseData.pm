@@ -28,6 +28,24 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
+use Geo::GDAL::FFI 0.0601;
+#  dirty and underhanded
+BEGIN {
+    if ($Geo::GDAL::FFI::VERSION <= 0.0601) {
+        no strict 'refs';
+        *{Geo::GDAL::FFI::DESTROY} = sub {
+            my $self = shift;
+            #  OSRGetReferenceCount method not yet implemented
+            my $refcount = (Geo::GDAL::FFI::OSRReference ($$self)-1);
+            Geo::GDAL::FFI::OSRDereference ($$self);  #  immediately decrement 
+            if ($refcount == 0) {
+                #warn "Calling DESTROY method for $$self\n";
+                Geo::GDAL::FFI::OSRDestroySpatialReference($$self);
+            }
+        };
+    }
+}
+
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)

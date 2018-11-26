@@ -1848,9 +1848,10 @@ sub get_fishnet_identity_layer {
     };
     croak $@ if $@;
     
-    if ($sr and not blessed $sr) {
-        $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
-    }
+    $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
+    #  It is safer to not re-use a spatial reference object 
+    my $sr_clone1 = $sr->Clone;
+    my $sr_clone2 = $sr->Clone;
 
 
     my @group_origins = $self->get_cell_origins;
@@ -1861,7 +1862,7 @@ sub get_fishnet_identity_layer {
         resolutions => \@group_sizes,
         origins     => \@group_origins,
         shape_type  => $shape_type,
-        spatial_reference => $sr,
+        spatial_reference => $sr_clone1,
     );
 
     my $last_p = time() - 1;
@@ -1884,7 +1885,7 @@ sub get_fishnet_identity_layer {
             ->Create ('_' . time())
             ->CreateLayer({
                 Name => 'overlay_result',
-                SpatialReference => $sr,
+                SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
         });
     #  not sure these have any effect
@@ -1925,7 +1926,7 @@ sub get_fishnet_polygon_layer {
     
     my $shape_type = $args{shape_type} // 'Polygon';
     my $sr = $args{spatial_reference};
-    if (!blessed $sr) {
+    if (defined $sr && !blessed $sr) {
         $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
     }
 
@@ -1962,11 +1963,12 @@ sub get_fishnet_polygon_layer {
     
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
 
+    use Scalar::Util;
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
             ->CreateLayer({
-                Name => 'Fishnet_Layer',
+                Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
                 Fields => [{
@@ -2015,6 +2017,7 @@ sub get_fishnet_polygon_layer {
         $ring_X_right_origin = $ring_X_right_origin + $grid_width;
     }
 
+    #$fishnet_lyr->SyncToDisk;  #  try to flush the features
     #$fishnet_lyr = undef;
     #
     #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;

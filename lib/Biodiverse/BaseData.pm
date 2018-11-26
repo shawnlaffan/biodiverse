@@ -1613,13 +1613,18 @@ sub import_data_shapefile {
       ? $args{skip_lines_with_undef_groups}
       : 1;
 
-    my @group_field_names =
-      @{ $args{group_fields} // $args{group_field_names} };
-    my @label_field_names =
-      @{ $args{label_fields} // $args{label_field_names} };
-    my @smp_count_field_names = @{ $args{sample_count_col_names} // [] };
-    my $is_lat_field          = $args{is_lat_field};
-    my $is_lon_field          = $args{is_lon_field};
+    my @group_field_names
+      = map {lc $_}
+        @{ $args{group_fields} // $args{group_field_names} };
+    my @label_field_names
+      = map {lc $_} 
+        @{ $args{label_fields} // $args{label_field_names} };
+    my @smp_count_field_names
+      = map {lc $_}
+        @{ $args{sample_count_col_names} // [] };
+    
+    my $is_lat_field = $args{is_lat_field};
+    my $is_lon_field = $args{is_lon_field};
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1663,7 +1668,8 @@ sub import_data_shapefile {
           if not $shape_type =~ /Point|Polygon/;
 
         #  some validation
-        my %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+        #  keys are case insensitive, values store case  
+        my %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
         foreach my $key (@label_field_names) {
             croak "Shapefile $file does not have a field called $key\n"
               if !exists $fld_names{$key};
@@ -1681,7 +1687,7 @@ sub import_data_shapefile {
             #  update a few things
             $defn   = $layer->GetDefn;
             $schema = $defn->GetSchema;
-            %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
+            %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
             #warn 'Intersected field names: ' . join ' ', sort keys %fld_names; 
         }
 
@@ -1720,7 +1726,8 @@ sub import_data_shapefile {
             # Get database record for this shape.
             # Same for all features in the shape.
             # Awkward - should just get the fields we need
-            my %db_rec = map {$_ => $shape->GetField ($_)} keys %fld_names;
+            #say 'Getting fields: ' . join ' ', sort keys %fld_names;
+            my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
 
             # read over all points in the shape
             foreach my $point (@$ptlist) {
@@ -1804,9 +1811,6 @@ sub import_data_shapefile {
                 );
 
                 foreach my $this_label (@these_labels) {
-
-   #print "adding point label $this_label group $grpstring count $this_count\n";
-
                     if ( scalar @label_field_names <= 1 ) {
                         $this_label = $self->dequote_element(
                             element    => $this_label,
@@ -1814,7 +1818,7 @@ sub import_data_shapefile {
                         );
                     }
 
-            #  collate the groups and labels so we can add them in a batch later
+                    #  collate the groups and labels so we can add them in a batch later
                     if ( looks_like_number $this_count) {
                         $gp_lb_hash{$grpstring}{$this_label} += $this_count;
                     }
@@ -1982,7 +1986,7 @@ sub get_fishnet_polygon_layer {
     
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
 
-    use Scalar::Util;
+    my $fishnet_fld_name = '_fshnet_name';
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
@@ -1991,7 +1995,7 @@ sub get_fishnet_polygon_layer {
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
                 Fields => [{
-                    Name => 'name',
+                    Name => $fishnet_fld_name,
                     Type => 'String'
                 }],
         });
@@ -2024,7 +2028,7 @@ sub get_fishnet_polygon_layer {
                 . '))';
             #say $poly;
             my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
-            $f->SetField(name => "$countrows x $countcols");
+            $f->SetField($fishnet_fld_name => "$countrows x $countcols");
             $f->SetGeomField([WKT => $poly]);
             $fishnet_lyr->CreateFeature($f);
             # new envelope for next poly

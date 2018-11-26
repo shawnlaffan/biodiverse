@@ -338,7 +338,7 @@ sub run {
     }
     elsif ( $read_format eq 'shapefile' ) {
 
-        # process as shapefile
+        # process as shapefile - need to switch over the Geo::GDAL::FFI
 
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
@@ -350,9 +350,9 @@ sub run {
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
         my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
+        croak '[BASEDATA] Import of point and polygon shapefiles only is not supported.  '
           . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point/;
+          if not $shape_type =~ /Point|Polygon/;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
         if ( defined $shapefile->z_min() ) {
@@ -736,7 +736,7 @@ sub run {
 
         # process data
         foreach my $bdata ( keys %multiple_file_lists ) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->$import_method(
                     %import_params,
                     %rest_of_options,
@@ -751,7 +751,18 @@ sub run {
         }
     }
     elsif ( $read_format eq 'text' ) {
+        my $progress;
+        my $num_files = keys %multiple_file_lists;
+        if ($num_files > 1) {
+            $progress = Biodiverse::Progress->new (gui_only => 1);
+        }
+        my $file_count = 0;
+        
         foreach my $bdata ( keys %multiple_file_lists ) {
+            $file_count++;
+            if ($progress) {
+                $progress->update ("File $file_count of $num_files", $file_count / $num_files);
+            }
             $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(
                     %import_params,

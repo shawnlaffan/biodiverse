@@ -1881,10 +1881,10 @@ sub get_fishnet_identity_layer {
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
     my $overlay_result
-        = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
+        = Geo::GDAL::FFI::GetDriver('Memory')
             ->Create ('_' . time())
             ->CreateLayer({
-                Name => 'overlay_result',
+                #Name => 'overlay_result',
                 SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
         });
@@ -1915,13 +1915,13 @@ sub get_fishnet_polygon_layer {
     
     local $| = 1;
     
-    my $driver = $args{driver};# // 'Memory';
-     $driver = 'ESRI Shapefile';
+    my $driver = $args{driver} // 'Memory';
+     #$driver = 'ESRI Shapefile';
 
     my $out_fname = $args{out_fname};
-    #if (not $driver =~ /Memory/) {
+    if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
-    #}
+    }
     say "Generating fishnet file $out_fname";
     
     my $shape_type = $args{shape_type} // 'Polygon';
@@ -1968,7 +1968,7 @@ sub get_fishnet_polygon_layer {
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
             ->CreateLayer({
-                Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
+                #Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
                 Fields => [{

@@ -33,7 +33,8 @@ use Geo::GDAL::FFI 0.0601;
 BEGIN {
     if ($Geo::GDAL::FFI::VERSION <= 0.0601) {
         no strict 'refs';
-        *{Geo::GDAL::FFI::DESTROY} = sub {
+        no warnings 'redefine';
+        *Geo::GDAL::FFI::SpatialReference::DESTROY = sub {
             my $self = shift;
             #  OSRGetReferenceCount method not yet implemented
             my $refcount = (Geo::GDAL::FFI::OSRReference ($$self)-1);
@@ -1681,7 +1682,7 @@ sub import_data_shapefile {
             $defn   = $layer->GetDefn;
             $schema = $defn->GetSchema;
             %fld_names = map {$_->{Name} => 1} @{$schema->{Fields}};
-            warn 'Intersected field names: ' . join ' ', sort keys %fld_names; 
+            #warn 'Intersected field names: ' . join ' ', sort keys %fld_names; 
         }
 
         #my $shape_count = $layer->GetFeatureCount();

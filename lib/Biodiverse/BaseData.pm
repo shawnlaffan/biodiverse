@@ -2053,12 +2053,12 @@ sub get_fishnet_polygon_layer {
             $f->SetGeomField([WKT => $poly]);
             $fishnet_lyr->CreateFeature($f);
             # new envelope for next poly
-            $ring_Y_top    = $ring_Y_top    - $grid_height;
-            $ring_Y_bottom = $ring_Y_bottom - $grid_height;
+            $ring_Y_top    -= $grid_height;
+            $ring_Y_bottom -= $grid_height;
         }
         # new envelope for next poly;
-        $ring_X_left_origin  = $ring_X_left_origin  + $grid_width;
-        $ring_X_right_origin = $ring_X_right_origin + $grid_width;
+        $ring_X_left_origin  += $grid_width;
+        $ring_X_right_origin += $grid_width;
     }
 
     #$fishnet_lyr->SyncToDisk;  #  try to flush the features

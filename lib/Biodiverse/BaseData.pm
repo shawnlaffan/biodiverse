@@ -44,6 +44,23 @@ BEGIN {
                 Geo::GDAL::FFI::OSRDestroySpatialReference($$self);
             }
         };
+        
+        *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
+            my ($self, $sql, $geometry, $dialect) = @_;
+        
+            my $e = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
+                $$self, $sql, $geometry, $dialect
+            );
+            if ($e) {
+                confess Geo::GDAL::FFI::error_msg();
+            }
+        };
+
+        *Geo::GDAL::FFI::Layer::GetName = sub {
+            my ($self) = @_;
+            return $self->GetDefn->GetName;
+            #return Geo::GDAL::FFI::OGR_L_GetName($$self);
+        };
     }
 }
 
@@ -1672,10 +1689,11 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file->stringify;
-
-        my $layer = Geo::GDAL::FFI::Open($fnamebase)->GetLayer;
+        my $layer_dataset = Geo::GDAL::FFI::Open($fnamebase);
+        my $layer = $layer_dataset->GetLayer;
         $layer->ResetReading;
         my $defn = $layer->GetDefn;
+        my $layer_name = $defn->GetName;
         #  needs a method
         my $schema     = $defn->GetSchema;
         my $shape_type = $schema->{GeometryFields}[0]{Type};
@@ -1693,6 +1711,8 @@ sub import_data_shapefile {
 
         #  get a Fishnet Identity overlay if we have polygons        
         if ($shape_type =~ 'Polygon') {
+            $layer_dataset->ExecuteSQL("CREATE SPATIAL INDEX ON $layer_name");
+
             my $f_layer = $self->get_fishnet_identity_layer (
                 source_layer => $layer,
                 schema       => $schema,
@@ -1925,12 +1945,17 @@ sub get_fishnet_identity_layer {
     
     #  get the fishnet cells that intersect the polygons
     $layer->ResetReading;
+    $fishnet->ResetReading;
+    
+    my $start_time = time();
+    
     #  create the layer now so we only get polygons back
+    my $layer_name = 'overlay_result_' . Scalar::Util::refaddr ($self);
     my $overlay_result
         = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
             ->Create ('/vsimem/_' . time())
             ->CreateLayer({
-                Name => 'overlay_result_' . Scalar::Util::refaddr ($self),
+                Name => $layer_name,
                 SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
                 Options => {SPATIAL_INDEX => 'YES'},
@@ -1950,7 +1975,9 @@ sub get_fishnet_identity_layer {
             Options  => $options,
         }
     );
-    say 'Intersection complete';
+
+    my $time_taken = time() - $start_time;
+    say "Intersection completed in $time_taken seconds";
     
     #  close fishnet data set
     $fishnet = undef;
@@ -2021,11 +2048,13 @@ sub get_fishnet_polygon_layer {
     say "Driver and layer names: $driver, $out_fname";
 
     my $fishnet_fld_name = '_fsh_name';
-    my $fishnet_lyr
+    my $layer_name = 'Fishnet_Layer' . Scalar::Util::refaddr ($self);
+    my $fishnet_dataset
         = Geo::GDAL::FFI::GetDriver($driver)
-            ->Create ($out_fname)
-            ->CreateLayer({
-                Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
+            ->Create ($out_fname);
+    my $fishnet_lyr
+      = $fishnet_dataset->CreateLayer({
+                Name => $layer_name,
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
                 Fields => [{
@@ -2079,7 +2108,10 @@ sub get_fishnet_polygon_layer {
     #$fishnet_lyr = undef;
     #
     #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
-            
+    
+    #my $layer_name = $fishnet_lyr->GetName;
+    $fishnet_dataset->ExecuteSQL("CREATE SPATIAL INDEX ON $layer_name");
+
     return $fishnet_lyr;
 }
 

@@ -171,31 +171,34 @@ sub pulsate {
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
         );
     }
-    else {
-        # update dialog
-        my $label_widget = $self->{label_widget};
-        if ($label_widget) {
-            $label_widget->set_markup("<b>$text</b>");
-        }
 
-        my $bar = $self->{bar};
-        $bar->set_pulse_step ($progress);
-        #$bar->pulse;
-
-        if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
-            print "Starting pulse\n";
-            $self->{pulse} = 1;
-            my $x = Glib::Timeout->add(10, \&pulse_progress_bar, [$self, $bar]);
-            #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
-            #my $y = $x;
-        }
-
-        # process Gtk events - does this do the right thing?
-        while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-        #  bad idea this one.  It pulses without end.
-        #Gtk2->main;
+    # update dialog
+    my $label_widget = $self->{label_widget};
+    if ($label_widget) {
+        $label_widget->set_markup("<b>$text</b>");
     }
+
+    my $bar = $self->{progress_bar};
+    $bar->set_pulse_step ($progress);
+    $bar->show;
+    #$bar->pulse;
+
+    if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
+        print "Starting pulse\n";
+        $self->{pulse} = 1;
+        my $timer = Glib::Timeout->add(100, \&pulse_progress_bar, [$self, $bar]);
+        #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
+        #my $y = $x;
+        $self->{pulse} = $timer;
+        
+        #my $t2 = Glib::Timeout->add(100, sub {say 't2t2t2'});
+    }
+
+    # process Gtk events - does this do the right thing?
+    while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+
+    #  bad idea this one.  It pulses without end.
+    #Gtk2->main;
 
     return;
 }
@@ -217,18 +220,21 @@ sub pulse_progress_bar {
     my $data = shift;
     my ($self, $p_bar) = @$data[0,1];
 
-    #print "$self->{pulse}\t$p_bar\n";
+    print "$self->{pulse}\t$p_bar\n";
 
-    if ($self->{pulse} and defined $p_bar) {
+    if ($self->{pulse} and $p_bar) {
         #print "     PULSING\n";
         #$p_bar->set_pulse_step (0.1);
         $p_bar->pulse;
-        return TRUE;  #  keep going
+        
+        while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+        
+        return 1;  #  keep going
     }
 
-    #print "[PROGRESS BAR] Stop pulsing\n";
+    print "[PROGRESS BAR] Stop pulsing\n";
 
-    return FALSE;
+    return 0;
 }
 
 1;

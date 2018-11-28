@@ -1937,8 +1937,9 @@ sub get_fishnet_identity_layer {
         });
     #  not sure these have any effect
     my $options = {
-        PROMOTE_TO_MULTI    => 'NO',
-        #PRETEST_CONTAINMENT => 'YES',
+        PROMOTE_TO_MULTI        => 'NO',
+        USE_PREPARED_GEOMETRIES => 'YES',
+        PRETEST_CONTAINMENT     => 'YES',
     };
     say 'Intersecting fishnet with polygon layer';
     $layer->Intersection(

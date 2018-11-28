@@ -1961,14 +1961,15 @@ sub get_fishnet_polygon_layer {
     local $| = 1;
     
     my $driver = $args{driver} // 'Memory';
-     $driver = 'ESRI Shapefile';
+    $driver = 'ESRI Shapefile';
 
     my $out_fname = $args{out_fname};
     if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
     }
     #else {
-        $out_fname //= ('/vsimem/fishnet_' . time());
+    #  override
+    $out_fname = ('/vsimem/fishnet_' . time());
     #}
     #say "Generating fishnet file $out_fname";
     

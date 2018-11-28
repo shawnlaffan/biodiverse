@@ -1919,6 +1919,10 @@ sub get_fishnet_identity_layer {
     };
     #$progress = undef;
     
+    #my $pulse_progress = Biodiverse::Progress->new(gui_only => 1);
+    #$pulse_progress->pulsate ('pulsating');
+    #sleep(30);
+    
     #  get the fishnet cells that intersect the polygons
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
@@ -1949,6 +1953,8 @@ sub get_fishnet_identity_layer {
     
     #  close fishnet data set
     $fishnet = undef;
+    
+    #$pulse_progress->pulsate_stop;
     
     #my $check = $overlay_result->GetDefn->GetSchema;
     

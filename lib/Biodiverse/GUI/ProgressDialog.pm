@@ -212,11 +212,6 @@ sub pulsate_stop {
 }
 
 sub pulse_progress_bar {
-    #my $self = shift;
-    #my $p_bar = $self->{dlgxml}->get_object('progressbar');
-    #my $p_bar = shift;
-
-    #print "  pulsing...\n";
     my $data = shift;
     my ($self, $p_bar) = @$data[0,1];
 
@@ -227,7 +222,7 @@ sub pulse_progress_bar {
         #$p_bar->set_pulse_step (0.1);
         $p_bar->pulse;
         
-        while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+        #while (Gtk2->events_pending) { Gtk2->main_iteration(); }
         
         return 1;  #  keep going
     }

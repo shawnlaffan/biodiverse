@@ -1714,7 +1714,7 @@ sub import_data_shapefile {
             $shape_count++;
         }
         $layer->ResetReading;
-        say "have $shape_count shapes";
+        say "File has $shape_count shapes";
 
         # iterate over shapes
         my %gp_lb_hash;
@@ -1852,6 +1852,7 @@ sub import_data_shapefile {
 
         }    # each shape
 
+        $layer = undef;  #  a spot of paranoia to close the file
         $progress_bar->update( 'Done', 1 );
 
         #  add the collated data
@@ -1862,6 +1863,8 @@ sub import_data_shapefile {
         %gp_lb_hash = ();    #  clear the collated list
 
     }    # each file
+
+    $progress_bar = undef;  #  some cleanup, prob not needed
 
     $self->run_import_post_processes(
         %args,
@@ -1920,19 +1923,20 @@ sub get_fishnet_identity_layer {
     $layer->ResetReading;
     #  create the layer now so we only get polygons back
     my $overlay_result
-        = Geo::GDAL::FFI::GetDriver('Memory')
-            ->Create ('/vsimem/_' . time() . 'db')
+        = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
+            ->Create ('/vsimem/_' . time())
             ->CreateLayer({
-                #Name => 'overlay_result',
+                Name => 'overlay_result_' . Scalar::Util::refaddr ($self),
                 SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
-                #Options => {SPATIAL_INDEX => 'YES'},
+                Options => {SPATIAL_INDEX => 'YES'},
         });
     #  not sure these have any effect
     my $options = {
         PROMOTE_TO_MULTI    => 'NO',
-        PRETEST_CONTAINMENT => 'YES',
+        #PRETEST_CONTAINMENT => 'YES',
     };
+    say 'Intersecting fishnet with polygon layer';
     $layer->Intersection(
         $fishnet,
         {
@@ -1941,6 +1945,7 @@ sub get_fishnet_identity_layer {
             Options  => $options,
         }
     );
+    say 'Intersection complete';
     
     #  close fishnet data set
     $fishnet = undef;
@@ -1956,15 +1961,15 @@ sub get_fishnet_polygon_layer {
     local $| = 1;
     
     my $driver = $args{driver} // 'Memory';
-     #$driver = 'ESRI Shapefile';
+     $driver = 'ESRI Shapefile';
 
     my $out_fname = $args{out_fname};
     if (not $driver =~ /Memory/) {
         $out_fname //= ('fishnet_' . time());
     }
-    else {
+    #else {
         $out_fname //= ('/vsimem/fishnet_' . time());
-    }
+    #}
     #say "Generating fishnet file $out_fname";
     
     my $shape_type = $args{shape_type} // 'Polygon';
@@ -2005,20 +2010,21 @@ sub get_fishnet_polygon_layer {
     }
     
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
+    say "Driver and layer names: $driver, $out_fname";
 
-    my $fishnet_fld_name = '_fshnet_name';
+    my $fishnet_fld_name = '_fsh_name';
     my $fishnet_lyr
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname)
             ->CreateLayer({
-                #Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
+                Name => 'Fishnet_Layer' . Scalar::Util::refaddr ($self),
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
                 Fields => [{
                     Name => $fishnet_fld_name,
                     Type => 'String'
                 }],
-                #Options => {SPATIAL_INDEX => 'YES'},  #  not supported?
+                Options => {SPATIAL_INDEX => 'YES'},
         });
     #my $featureDefn = $fishnet_lyr->GetDefn();
 

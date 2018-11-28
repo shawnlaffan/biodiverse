@@ -1711,7 +1711,7 @@ sub import_data_shapefile {
 
         #  get a Fishnet Identity overlay if we have polygons        
         if ($shape_type =~ 'Polygon') {
-            $layer_dataset->ExecuteSQL("CREATE SPATIAL INDEX ON $layer_name");
+            $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
             my $f_layer = $self->get_fishnet_identity_layer (
                 source_layer => $layer,
@@ -2110,7 +2110,7 @@ sub get_fishnet_polygon_layer {
     #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
     
     #my $layer_name = $fishnet_lyr->GetName;
-    $fishnet_dataset->ExecuteSQL("CREATE SPATIAL INDEX ON $layer_name");
+    $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
     return $fishnet_lyr;
 }

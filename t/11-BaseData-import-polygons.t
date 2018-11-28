@@ -179,9 +179,7 @@ sub test_roundtrip_shapefile {
 
 sub test_import_shapefile_polygon {
     use FindBin qw /$Bin/;
-    my $fname = $Bin . '/data/polygon_data.shp';
-    #$fname = $Bin . '/data/x.shp';
-    $fname = $Bin . '/data/polygon_data_single_partx.shp';
+    my $fname = $Bin . '/data/polygon data.shp';
 
     my $in_options_hash = {
         group_field_names => [':shape_x', ':shape_y'],

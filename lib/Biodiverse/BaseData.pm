@@ -61,6 +61,16 @@ BEGIN {
             return $self->GetDefn->GetName;
             #return Geo::GDAL::FFI::OGR_L_GetName($$self);
         };
+        
+        *Geo::GDAL::FFI::Layer::GetExtent = sub {
+            my ($self, $layer, $force) = @_;
+            my $extent = [0,0,0,0];
+            $force = $force ? \1 : \0;
+            my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$self, $extent, $force);
+            confess Geo::GDAL::FFI::error_msg({OGRError => $e})
+              if $e;
+            return $extent;
+        };
     }
 }
 
@@ -1921,7 +1931,7 @@ sub get_fishnet_identity_layer {
     my @group_sizes   = $self->get_cell_sizes;
 
     my $fishnet = $self->get_fishnet_polygon_layer (
-        extent => $self->_get_ogr_layer_extent ($layer),
+        extent => $layer->GetExtent,
         resolutions => \@group_sizes,
         origins     => \@group_origins,
         shape_type  => $shape_type,
@@ -2113,16 +2123,6 @@ sub get_fishnet_polygon_layer {
     $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
     return $fishnet_lyr;
-}
-
-#  until Geo::GDAL::FFI provides this
-sub _get_ogr_layer_extent {
-    my ($self, $layer, $force) = @_;
-    my $extent = [0,0,0,0];
-    my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$layer, $extent, $force ? 1 : 0);
-    confess Geo::GDAL::FFI::error_msg({OGRError => $e})
-      if $e;
-    return $extent;
 }
 
 

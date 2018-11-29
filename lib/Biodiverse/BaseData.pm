@@ -34,6 +34,8 @@ BEGIN {
     if ($Geo::GDAL::FFI::VERSION <= 0.0601) {
         no strict 'refs';
         no warnings 'redefine';
+        
+        ## PR #12
         *Geo::GDAL::FFI::SpatialReference::DESTROY = sub {
             my $self = shift;
             #  OSRGetReferenceCount method not yet implemented
@@ -45,6 +47,7 @@ BEGIN {
             }
         };
         
+        ## PR #13
         *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
             my ($self, $sql, $geometry, $dialect) = @_;
         
@@ -56,12 +59,15 @@ BEGIN {
             }
         };
 
+        ## PR #14
         *Geo::GDAL::FFI::Layer::GetName = sub {
             my ($self) = @_;
             return $self->GetDefn->GetName;
             #return Geo::GDAL::FFI::OGR_L_GetName($$self);
         };
         
+        
+        ## PR #11
         *Geo::GDAL::FFI::Layer::GetExtent = sub {
             my ($self, $layer, $force) = @_;
             my $extent = [0,0,0,0];
@@ -1709,7 +1715,7 @@ sub import_data_shapefile {
         my $shape_type = $schema->{GeometryFields}[0]{Type};
 
         croak "[BASEDATA] $fnamebase: Import of feature type $shape_type is not supported.\n"
-          if not $shape_type =~ /Point|Polygon/;
+          if not $shape_type =~ /Point|Polygon|Line/;
 
         #  some validation
         #  keys are case insensitive, values store case  
@@ -1720,7 +1726,7 @@ sub import_data_shapefile {
         }
 
         #  get a Fishnet Identity overlay if we have polygons        
-        if ($shape_type =~ 'Polygon') {
+        if ($shape_type =~ 'Polygon|LineString') {
             $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
             my $f_layer = $self->get_fishnet_identity_layer (
@@ -1760,12 +1766,13 @@ sub import_data_shapefile {
             if ($shape_type =~ 'Point') {
                 $ptlist = $geom->GetPoints;
             }
-            elsif ($shape_type =~ 'Polygon') {
-                #  get the centroid until we find more efficient methods
+            elsif ($shape_type =~ 'Polygon|Line') {
+                #  use the centroid until we find more efficient methods
+                #  it will be snapped to the group coord lower down
                 $ptlist = $geom->Centroid->GetPoints;
                 #say $geom->AsText;
                 if (!scalar @smp_count_field_names  ) {
-                    $default_count = $geom->Area;
+                    $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
                 }
             }
 
@@ -1934,7 +1941,7 @@ sub get_fishnet_identity_layer {
         extent => $layer->GetExtent,
         resolutions => \@group_sizes,
         origins     => \@group_origins,
-        shape_type  => $shape_type,
+        #shape_type  => $shape_type,
         spatial_reference => $sr_clone1,
     );
 
@@ -1976,7 +1983,7 @@ sub get_fishnet_identity_layer {
         USE_PREPARED_GEOMETRIES => 'YES',
         PRETEST_CONTAINMENT     => 'YES',
     };
-    say 'Intersecting fishnet with polygon layer';
+    say 'Intersecting fishnet with feature layer';
     $layer->Intersection(
         $fishnet,
         {

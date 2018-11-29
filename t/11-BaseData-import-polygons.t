@@ -53,7 +53,7 @@ sub main {
 
 
 #can we reimport shapefiles after exporting and get the same answer
-sub test_roundtrip_shapefile {
+sub test_import_roundtrip_shapefile {
     my %bd_args = (
         NAME => 'test include exclude',
         CELL_SIZES => [1,1],
@@ -178,8 +178,12 @@ sub test_roundtrip_shapefile {
 }
 
 sub test_import_shapefile_polygon {
+    my %args = @_;
+    my $fname   = $args{fname};
+    my $is_line = $args{is_line};
+
     use FindBin qw /$Bin/;
-    my $fname = $Bin . '/data/polygon data.shp';
+    $fname //= $Bin . '/data/polygon data.shp';
 
     my $in_options_hash = {
         group_field_names => [':shape_x', ':shape_y'],
@@ -187,7 +191,7 @@ sub test_import_shapefile_polygon {
     };
 
     my $new_bd = Biodiverse::BaseData->new (
-        NAME => 'test_import_shapefile polygon',
+        NAME => 'test_import_shapefile feature data',
         CELL_SIZES => [100000, 100000],
     );
     # import as shapefile
@@ -213,9 +217,18 @@ sub test_import_shapefile_polygon {
     
     my $new_lb = $new_bd->get_labels_ref;
     my $got = $new_bd->get_label_sample_count (label => $orig_labels[0]);
-    my $exp = 1794988604045.7;  #  prob too precise
-    #is ($got, $exp, "sample counts match for $orig_labels[0] in $fname");
+    my $exp = $is_line #  dodgy and fragile type check
+        ? 15338541  
+        : 1794988604045;  #  prob too precise
+
+    is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname");
     
+}
+
+sub test_import_shapefile_polyline {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polyline data.shp';
+    test_import_shapefile_polygon (fname => $fname, is_line => 1);
 }
 
 

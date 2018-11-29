@@ -350,9 +350,9 @@ sub run {
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
         my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of point and polygon shapefiles only is not supported.  '
+        croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point|Polygon/;
+          if not $shape_type =~ /Point|Polygon|PolyLine/i;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
         if ( defined $shapefile->z_min() ) {

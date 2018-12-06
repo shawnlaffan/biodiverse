@@ -1789,6 +1789,7 @@ sub import_data_shapefile {
                     origins      => \@group_origins,
                     extent       => $layer->GetExtent,
                     shape_type   => $shape_type,
+                    inner_buffer => 'auto',
                 );
             }
         }
@@ -2113,6 +2114,13 @@ sub get_fishnet_polygon_layer {
     my $resolutions = $args{resolutions};
     my $origins     = $args{origins};
 
+    #  This avoids cases where polygon edges touch, but there are no interior overlaps.
+    #  Such cases occur when reimporting square polygons of exactly the same resolution.  
+    my $bt = $args{inner_buffer} // 0;
+    if ($bt eq 'auto') {
+        $bt = 10e-10 * ($resolutions->[0] + $resolutions->[1]) / 2;
+    }
+
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;
     my ($grid_height, $grid_width)  = @$resolutions;
     
@@ -2179,12 +2187,17 @@ sub get_fishnet_polygon_layer {
         my $ring_Y_bottom = $ring_Y_bottom_origin;
         
         foreach my $countrows (1 .. $rows) {
+            my $north = $ring_Y_top    - $bt;
+            my $south = $ring_Y_bottom + $bt;
+            my $west  = $ring_X_left_origin  + $bt;
+            my $east  = $ring_X_right_origin - $bt;
+
             my $poly = 'POLYGON (('
-                . "$ring_X_left_origin  $ring_Y_top, "
-                . "$ring_X_right_origin $ring_Y_top, "
-                . "$ring_X_right_origin $ring_Y_bottom, "
-                . "$ring_X_left_origin  $ring_Y_bottom, "
-                . "$ring_X_left_origin  $ring_Y_top"
+                . "$east $north, "
+                . "$west $north, "
+                . "$west $south, "
+                . "$east $south, "
+                . "$east $north"
                 . '))';
             #say $poly;
             my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);

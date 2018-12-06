@@ -188,6 +188,7 @@ sub test_import_shapefile_polygon {
     my $in_options_hash = {
         group_field_names => [':shape_x', ':shape_y'],
         label_field_names => ['BINOMIAL'],
+        binarise_counts   => $args{binarise_counts},
     };
 
     my $new_bd = Biodiverse::BaseData->new (
@@ -217,19 +218,48 @@ sub test_import_shapefile_polygon {
     
     my $new_lb = $new_bd->get_labels_ref;
     my $got = $new_bd->get_label_sample_count (label => $orig_labels[0]);
-    my $exp = $is_line #  dodgy and fragile type check
+    my $exp = $args{expected_total_count};
+    $exp //= $is_line #  dodgy and fragile type check
         ? 15338541  
         : 1794988604045;  #  prob too precise
 
-    is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname");
+    my $info = ($args{binarise_counts} ? '(binarised)' : '');
+    $info .= $args{is_line} ? '(polyline)' : '';
+    is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
     
 }
+
+sub test_import_shapefile_polygon_binarised {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.shp';
+    test_import_shapefile_polygon (
+        fname   => $fname,
+        binarise_counts => 1,
+        expected_total_count => 240,
+    );
+}
+
 
 sub test_import_shapefile_polyline {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polyline data.shp';
-    test_import_shapefile_polygon (fname => $fname, is_line => 1);
+    test_import_shapefile_polygon (
+        fname   => $fname,
+        is_line => 1,
+    );
 }
+
+sub test_import_shapefile_polyline_binarised {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polyline data.shp';
+    test_import_shapefile_polygon (
+        fname   => $fname,
+        is_line => 1,
+        binarise_counts => 1,
+        expected_total_count => 140,
+    );
+}
+
 
 
 sub get_import_data_small {

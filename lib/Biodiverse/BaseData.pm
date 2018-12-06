@@ -49,15 +49,40 @@ BEGIN {
         
         ## PR #13
         *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
-            my ($self, $sql, $geometry, $dialect) = @_;
-        
-            my $e = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
-                $$self, $sql, $geometry, $dialect
+            my ($self, $sql, $filter, $dialect) = @_;
+                
+            my $lyr = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
+                $$self, $sql, $$filter, $dialect
             );
-            if ($e) {
-                confess Geo::GDAL::FFI::error_msg();
+            
+            if ($lyr) {
+                if (defined wantarray) {
+                    $Geo::GDAL::FFI::parent{$lyr} = $self;
+                    return bless \$lyr, 'Geo::GDAL::FFI::Layer::ResultSet';
+                }
+                else {
+                    Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($lyr, $$self);
+                }
             }
+        
+            return undef;
         };
+
+        {
+            #  dummy class for result sets from ExecuteSQL
+            #  allows specialised destroy method
+            package Geo::GDAL::FFI::Layer::ResultSet;
+            use base qw /Geo::GDAL::FFI::Layer/;
+            
+            sub DESTROY {
+                my ($self) = @_;
+                my $parent = $Geo::GDAL::FFI::parent{$$self};
+                Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($$parent, $$self);
+                delete $Geo::GDAL::FFI::parent{$$self};
+            }
+            
+            1;
+        }
 
         ## PR #14
         *Geo::GDAL::FFI::Layer::GetName = sub {
@@ -1659,6 +1684,8 @@ sub import_data_shapefile {
     my $is_lat_field = $args{is_lat_field};
     my $is_lon_field = $args{is_lon_field};
 
+    my $binarise_counts = $args{binarise_counts};
+
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
 
@@ -1677,7 +1704,7 @@ sub import_data_shapefile {
     );
     my %args_for_add_elements_collated = (
         csv_object         => $out_csv,
-        binarise_counts    => $args{binarise_counts},
+        binarise_counts    => $binarise_counts,
         allow_empty_groups => $args{allow_empty_groups},
         allow_empty_labels => $args{allow_empty_labels},
     );
@@ -1725,22 +1752,37 @@ sub import_data_shapefile {
               if !exists $fld_names{$key};
         }
 
-        #  get a Fishnet Identity overlay if we have polygons        
+        #  get a Fishnet Identity overlay if we have polygons
+        my ($f_dataset, $f_layer);
         if ($shape_type =~ 'Polygon|LineString') {
             $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
-            my $f_layer = $self->get_fishnet_identity_layer (
-                source_layer => $layer,
-                schema       => $schema,
-            );
-            $layer = undef;
-            $layer = $f_layer;  #  assigning in method call causes failures?
-            $layer->ResetReading;
-            #  update a few things
-            $defn   = $layer->GetDefn;
-            $schema = $defn->GetSchema;
-            %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
-            #warn 'Intersected field names: ' . join ' ', sort keys %fld_names; 
+            if (!$binarise_counts) {
+                $f_layer = $self->get_fishnet_identity_layer (
+                    source_layer => $layer,
+                    schema       => $schema,
+                );
+                $layer = undef;
+                $layer = $f_layer;  #  assigning in method call causes failures?
+                $layer->ResetReading;
+                #  update a few things
+                $defn   = $layer->GetDefn;
+                $schema = $defn->GetSchema;
+                %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
+                #warn 'Intersected field names: ' . join ' ', sort keys %fld_names;
+            }
+            else {
+                #shape_type  => $shape_type,
+                #spatial_reference => $sr_clone1,
+                ($f_dataset, $f_layer) = $self->get_fishnet_polygon_layer (
+                    source_layer => $layer,
+                    schema       => $schema,
+                    resolutions  => \@group_sizes,
+                    origins      => \@group_origins,
+                    extent       => $layer->GetExtent,
+                    shape_type   => $shape_type,
+                );
+            }
         }
 
         #my $shape_count = $layer->GetFeatureCount();
@@ -1767,12 +1809,30 @@ sub import_data_shapefile {
                 $ptlist = $geom->GetPoints;
             }
             elsif ($shape_type =~ 'Polygon|Line') {
-                #  use the centroid until we find more efficient methods
-                #  it will be snapped to the group coord lower down
-                $ptlist = $geom->Centroid->GetPoints;
-                #say $geom->AsText;
-                if (!scalar @smp_count_field_names  ) {
-                    $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
+                if (!$binarise_counts) {
+                    #  use the centroid until we find more efficient methods
+                    #  it will be snapped to the group coord lower down
+                    $ptlist = $geom->Centroid->GetPoints;
+                    #say $geom->AsText;
+                    if (!scalar @smp_count_field_names  ) {
+                        $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
+                    }
+                }
+                else {
+                    #  if we had sqlite installed then the select could also get the overlapping tiles
+                    #  could also use SpatialFilter methods
+                    my $f_layer_name = $f_layer->GetName;
+                    my $tiles = $f_dataset->ExecuteSQL (
+                        qq{SELECT * FROM "$f_layer_name"},
+                        $geom,
+                    );
+                    $tiles->ResetReading;
+                    while (my $tile = $tiles->GetNextFeature) {
+                        my $tile_geom = $tile->GetGeomField;
+                        next if !$tile_geom->Intersects($geom);
+                        my $centroid = $tile_geom->Centroid->GetPoints;
+                        push @$ptlist, @$centroid;
+                    }
                 }
             }
 
@@ -2023,9 +2083,11 @@ sub get_fishnet_polygon_layer {
     $out_fname = ('/vsimem/fishnet_' . time());
     #}
     #say "Generating fishnet file $out_fname";
+    my $schema = $args{schema};
     
-    my $shape_type = $args{shape_type} // 'Polygon';
-    my $sr = $args{spatial_reference};
+    my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
+    my $sr = $args{spatial_reference} // ($schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef);
+
     if (defined $sr && !blessed $sr) {
         $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
     }
@@ -2129,7 +2191,7 @@ sub get_fishnet_polygon_layer {
     #my $layer_name = $fishnet_lyr->GetName;
     $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
-    return $fishnet_lyr;
+    return wantarray ? ($fishnet_dataset, $fishnet_lyr) : $fishnet_lyr;
 }
 
 

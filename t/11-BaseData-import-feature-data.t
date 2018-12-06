@@ -159,6 +159,11 @@ sub test_import_roundtrip_shapefile {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        
+        my @new_groups  = sort $new_bd->get_groups;
+        my @orig_groups = sort $bd->get_groups;
+        is_deeply (\@new_groups, \@orig_groups, "group lists match for $fname");
+        
 
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $fname" => sub {
@@ -177,10 +182,11 @@ sub test_import_roundtrip_shapefile {
     
 }
 
-sub test_import_shapefile_polygon {
+sub _test_import_shapefile_polygon {
     my %args = @_;
     my $fname   = $args{fname};
     my $is_line = $args{is_line};
+    my $sample_count_fields = $args{sample_count_fields};
 
     use FindBin qw /$Bin/;
     $fname //= $Bin . '/data/polygon data.shp';
@@ -189,6 +195,7 @@ sub test_import_shapefile_polygon {
         group_field_names => [':shape_x', ':shape_y'],
         label_field_names => ['BINOMIAL'],
         binarise_counts   => $args{binarise_counts},
+        sample_count_col_names => $sample_count_fields,
     };
 
     my $new_bd = Biodiverse::BaseData->new (
@@ -207,14 +214,22 @@ sub test_import_shapefile_polygon {
     diag $e if $e;
     if ($e) {
         diag "$fname:";
-        foreach my $ext (qw /shp dbf shx/) {
-            diag 'size: ' . -s ($fname . $ext);
-        }
+        #foreach my $ext (qw /shp dbf shx/) {
+        #    diag 'size: ' . -s ($fname . $ext);
+        #}
     }
+
+    my $info = ($args{binarise_counts} ? '(binarised)' : '');
+    $info .= $args{is_line} ? '(polyline)' : '';
 
     my @new_labels  = sort $new_bd->get_labels;
     my @orig_labels = ('Dromornis_planei');
     is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+
+    my @new_groups  = sort $new_bd->get_groups;
+    my $exp_gp = $is_line ? 140 : 240;
+    is (scalar @new_groups, $exp_gp, "got expected number of groups $orig_labels[0] in $fname, $info");
+    
     
     my $new_lb = $new_bd->get_labels_ref;
     my $got = $new_bd->get_label_sample_count (label => $orig_labels[0]);
@@ -223,16 +238,32 @@ sub test_import_shapefile_polygon {
         ? 15338541  
         : 1794988604045;  #  prob too precise
 
-    my $info = ($args{binarise_counts} ? '(binarised)' : '');
-    $info .= $args{is_line} ? '(polyline)' : '';
     is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
     
+}
+
+sub test_import_shapefile_polygon_default {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.shp';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        expected_total_count => 261,
+    );
+}
+
+sub test_import_shapefile_polygon_area {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.shp';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        sample_count_fields => [':shape_area'],
+    );
 }
 
 sub test_import_shapefile_polygon_binarised {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polygon data.shp';
-    test_import_shapefile_polygon (
+    _test_import_shapefile_polygon (
         fname   => $fname,
         binarise_counts => 1,
         expected_total_count => 240,
@@ -240,19 +271,30 @@ sub test_import_shapefile_polygon_binarised {
 }
 
 
-sub test_import_shapefile_polyline {
+sub test_import_shapefile_polyline_default {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polyline data.shp';
-    test_import_shapefile_polygon (
+    _test_import_shapefile_polygon (
         fname   => $fname,
         is_line => 1,
+        expected_total_count => 193,
+    );
+}
+
+sub test_import_shapefile_polyline_length {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polyline data.shp';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        is_line => 1,
+        sample_count_fields => [':shape_length'],
     );
 }
 
 sub test_import_shapefile_polyline_binarised {
     use FindBin qw /$Bin/;
     my $fname = $Bin . '/data/polyline data.shp';
-    test_import_shapefile_polygon (
+    _test_import_shapefile_polygon (
         fname   => $fname,
         is_line => 1,
         binarise_counts => 1,

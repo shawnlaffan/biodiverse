@@ -1715,6 +1715,14 @@ sub import_data_shapefile {
     if (@input_files > 1) {
         $file_progress = Biodiverse::Progress->new (gui_only => 1);
     }
+    
+    my $need_shape_geometry
+      = grep {$_ =~ /\:shape_(?:area|length)/} (
+        @label_field_names,
+        @group_field_names,
+        @smp_count_field_names
+    );
+    $need_shape_geometry = $binarise_counts ? 0 : $need_shape_geometry;
 
     # load each file, using same arguments/parameters
     my $file_num = 0;
@@ -1757,7 +1765,7 @@ sub import_data_shapefile {
         if ($shape_type =~ 'Polygon|LineString') {
             $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
-            if (!$binarise_counts) {
+            if ($need_shape_geometry) {
                 $f_layer = $self->get_fishnet_identity_layer (
                     source_layer => $layer,
                     schema       => $schema,
@@ -1801,6 +1809,12 @@ sub import_data_shapefile {
         while (my $shape = $layer->GetNextFeature) {
             $count ++;
 
+            # Get database record for this shape.
+            # Same for all features in the shape.
+            # Awkward - should just get the fields we need
+            #say 'Getting fields: ' . join ' ', sort keys %fld_names;
+            my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
+
             # just get all the points from the shape.
             my $geom = $shape->GetGeomField;
             my $ptlist;
@@ -1809,7 +1823,7 @@ sub import_data_shapefile {
                 $ptlist = $geom->GetPoints;
             }
             elsif ($shape_type =~ 'Polygon|Line') {
-                if (!$binarise_counts) {
+                if ($need_shape_geometry) {
                     #  use the centroid until we find more efficient methods
                     #  it will be snapped to the group coord lower down
                     $ptlist = $geom->Centroid->GetPoints;
@@ -1817,10 +1831,18 @@ sub import_data_shapefile {
                     if (!scalar @smp_count_field_names  ) {
                         $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
                     }
+                    if ($shape_type =~ /gon/) {
+                        # need to convert to linestring for length - implement later if we have a need
+                        $db_rec{':shape_area'}   = $geom->Area;
+                    }
+                    else {
+                        $db_rec{':shape_length'} = $geom->Length;
+                    }
                 }
                 else {
-                    #  if we had sqlite installed then the select could also get the overlapping tiles
-                    #  could also use SpatialFilter methods
+                    #  If we had sqlite installed then the select
+                    #  could also get the overlapping tiles.
+                    #  Could also use SpatialFilter methods.
                     my $f_layer_name = $f_layer->GetName;
                     my $tiles = $f_dataset->ExecuteSQL (
                         qq{SELECT * FROM "$f_layer_name"},
@@ -1830,17 +1852,12 @@ sub import_data_shapefile {
                     while (my $tile = $tiles->GetNextFeature) {
                         my $tile_geom = $tile->GetGeomField;
                         next if !$tile_geom->Intersects($geom);
+                             #&& !$tile_geom->Crosses($geom);
                         my $centroid = $tile_geom->Centroid->GetPoints;
                         push @$ptlist, @$centroid;
                     }
                 }
             }
-
-            # Get database record for this shape.
-            # Same for all features in the shape.
-            # Awkward - should just get the fields we need
-            #say 'Getting fields: ' . join ' ', sort keys %fld_names;
-            my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
 
             # read over all points in the shape
             foreach my $point (@$ptlist) {
@@ -2088,7 +2105,7 @@ sub get_fishnet_polygon_layer {
     my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
     my $sr = $args{spatial_reference} // ($schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef);
 
-    if (defined $sr && !blessed $sr) {
+    if (!blessed $sr) {
         $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
     }
 
@@ -2127,7 +2144,7 @@ sub get_fishnet_polygon_layer {
     say "Driver and layer names: $driver, $out_fname";
 
     my $fishnet_fld_name = '_fsh_name';
-    my $layer_name = 'Fishnet_Layer' . Scalar::Util::refaddr ($self);
+    my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . rand();
     my $fishnet_dataset
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname);

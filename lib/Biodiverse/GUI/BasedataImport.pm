@@ -361,6 +361,12 @@ sub run {
         if ( defined $shapefile->m_min() ) {
             push( @field_names, ':shape_m' );
         }
+        if ($shape_type =~ /PolyLine/i) {
+            push( @field_names, ':shape_length' );
+        }
+        if ($shape_type =~ /Polygon/i) {
+            push( @field_names, ':shape_area' );
+        }
 
 #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
 #  these will then be fed into make_columns_dialog

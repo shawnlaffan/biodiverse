@@ -187,6 +187,7 @@ sub _test_import_shapefile_polygon {
     my $fname   = $args{fname};
     my $is_line = $args{is_line};
     my $sample_count_fields = $args{sample_count_fields};
+    my $cell_sizes = $args{cell_sizes} || [100000,100000];
 
     use FindBin qw /$Bin/;
     $fname //= $Bin . '/data/polygon data.shp';
@@ -200,7 +201,7 @@ sub _test_import_shapefile_polygon {
 
     my $new_bd = Biodiverse::BaseData->new (
         NAME => 'test_import_shapefile feature data',
-        CELL_SIZES => [100000, 100000],
+        CELL_SIZES => $cell_sizes,
     );
     # import as shapefile
     my $success = eval {
@@ -300,6 +301,70 @@ sub test_import_shapefile_polyline_binarised {
         binarise_counts => 1,
         expected_total_count => 140,
     );
+}
+
+
+sub test_import_shapefile_polygon_odd_axes {
+    my %args = @_;
+    my $fname   = $args{fname};
+
+    use FindBin qw /$Bin/;
+    $fname //= $Bin . '/data/polygon data.shp';
+
+    my $in_options_hash = {
+        group_field_names => [':shape_x'],
+        label_field_names => ['BINOMIAL'],
+    };
+
+    my $new_bd = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature data one axis',
+        CELL_SIZES => [100000],
+    );
+    # import as shapefile
+    my $success = eval {
+        $new_bd->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    #diag $e;
+    ok ($e, "exception raised importing $fname with a single axis");
+
+    $in_options_hash = {
+        group_field_names => [':shape_x', ':shape_y'],
+        label_field_names => ['BINOMIAL'],
+    };
+
+    $new_bd = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature data one axis',
+        CELL_SIZES => [100000,-1],
+    );
+    # import as shapefile
+    $success = eval {
+        $new_bd->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+    };
+    $e = $EVAL_ERROR;
+    #diag $e;
+    ok ($e, "exception raised importing $fname with a negative axis");
+
+    $new_bd = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature data one axis',
+        CELL_SIZES => [100000,0],
+    );
+    # import as shapefile
+    $success = eval {
+        $new_bd->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+    };
+    $e = $EVAL_ERROR;
+    #diag $e;
+    ok ($e, "exception raised importing $fname with a zero axis");
 }
 
 

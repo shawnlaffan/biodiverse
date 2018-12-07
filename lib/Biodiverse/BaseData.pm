@@ -2113,6 +2113,12 @@ sub get_fishnet_polygon_layer {
     my $extent      = $args{extent};
     my $resolutions = $args{resolutions};
     my $origins     = $args{origins};
+    
+    croak "Cannot generate a fishnet for fewer than two axes\n"
+      if scalar @$resolutions < 2;
+    my $has_zero_res = grep {$_ <= 0} @$resolutions[0,1];
+    croak "Cannot generate a fishnet where one axis has a negative or zero spacing\n"
+      if $has_zero_res;
 
     #  This avoids cases where polygon edges touch, but there are no interior overlaps.
     #  Such cases occur when reimporting square polygons of exactly the same resolution.  

@@ -1763,6 +1763,9 @@ sub import_data_shapefile {
         #  get a Fishnet Identity overlay if we have polygons
         my ($f_dataset, $f_layer);
         if ($shape_type =~ 'Polygon|LineString') {
+            
+            ##  CHECK WE HAVE :shape_x and :shape_y
+            
             $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
             if ($need_shape_geometry) {

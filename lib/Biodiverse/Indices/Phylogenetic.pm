@@ -817,8 +817,14 @@ sub _calc_pd_pe_clade_contributions {
         }
 
         #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;
-        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $contr->{$node_name}
+          = $p_score
+          ? 0 + sprintf '%.11f', $wt_sum / $p_score
+          : undef;
+        $contr_p->{$node_name}
+          = $sum_of_branches
+          ? 0 + sprintf '%.11f', $wt_sum / $sum_of_branches
+          : undef;
         $clade_score->{$node_name} = $wt_sum;
     }
 

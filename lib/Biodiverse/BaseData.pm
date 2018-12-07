@@ -15,6 +15,7 @@ use Data::Dumper;
 use POSIX qw {fmod floor ceil};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
+use List::MoreUtils qw /first_index/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
@@ -1765,6 +1766,14 @@ sub import_data_shapefile {
         if ($shape_type =~ 'Polygon|LineString') {
             
             ##  CHECK WE HAVE :shape_x and :shape_y
+            my $have_shape_xy
+              = grep {$_ =~ m/\:shape_[xy]/} @group_field_names;
+            croak "Polygon and polyline imports need both "
+             . ":shape_x and :shape_y in the group names\n"
+               if $have_shape_xy < 2;
+
+            my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
+            my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
             $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
@@ -1772,6 +1781,7 @@ sub import_data_shapefile {
                 $f_layer = $self->get_fishnet_identity_layer (
                     source_layer => $layer,
                     schema       => $schema,
+                    axes         => [$shape_x_index, $shape_y_index],
                 );
                 $layer = undef;
                 $layer = $f_layer;  #  assigning in method call causes failures?
@@ -1788,8 +1798,8 @@ sub import_data_shapefile {
                 ($f_dataset, $f_layer) = $self->get_fishnet_polygon_layer (
                     source_layer => $layer,
                     schema       => $schema,
-                    resolutions  => \@group_sizes,
-                    origins      => \@group_origins,
+                    resolutions  => [@group_sizes[  $shape_x_index, $shape_y_index]],
+                    origins      => [@group_origins[$shape_x_index, $shape_y_index]],
                     extent       => $layer->GetExtent,
                     shape_type   => $shape_type,
                     inner_buffer => 'auto',
@@ -1997,8 +2007,9 @@ sub import_data_shapefile {
 sub get_fishnet_identity_layer {
     my ($self, %args) = @_;
 
-    my $layer = $args{source_layer};
+    my $layer  = $args{source_layer};
     my $schema = $args{schema};
+    my $axes   = $args{axes} // [0,1];
     
     my ($defn, $shape_type, $sr);
     eval {
@@ -2017,6 +2028,9 @@ sub get_fishnet_identity_layer {
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
+    
+    @group_origins = @group_origins[@$axes];
+    @group_sizes   = @group_sizes[@$axes];
 
     my $fishnet = $self->get_fishnet_polygon_layer (
         extent => $layer->GetExtent,
@@ -2131,8 +2145,8 @@ sub get_fishnet_polygon_layer {
     }
 
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;
-    my ($grid_height, $grid_width)  = @$resolutions;
-    
+    my ($grid_width, $grid_height)  = @$resolutions;
+    say "Height and width: $grid_height, $grid_width"; 
     
     say "Input bounds are $xmin, $ymin, $xmax, $ymax";
     

@@ -368,6 +368,48 @@ sub test_import_shapefile_polygon_odd_axes {
 }
 
 
+sub test_import_shapefile_polygon_reversed_axes {
+    my %args = @_;
+    my $fname   = $args{fname};
+
+    use FindBin qw /$Bin/;
+    $fname //= $Bin . '/data/polygon data.shp';
+
+    my $bd1 = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature reversed axes',
+        CELL_SIZES => [100000, 50000],
+    );
+    my $bd2 = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature reversed axes',
+        CELL_SIZES => [50000, 100000],
+    );
+
+    # import as shapefile
+    my $success = eval {
+        $bd1->import_data_shapefile (
+            input_files => [$fname],
+            group_field_names => [':shape_y', ':shape_x'],
+            label_field_names => ['BINOMIAL'],
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "no exception raised importing $fname with reversed axes");
+
+    # import as shapefile
+    $success = eval {
+        $bd2->import_data_shapefile (
+            input_files => [$fname],
+            group_field_names => [':shape_x', ':shape_y'],
+            label_field_names => ['BINOMIAL'],
+        );
+    };
+    
+    is ($bd1->get_label_sample_count(label => 'Dromornis_planei'),
+        $bd2->get_label_sample_count(label => 'Dromornis_planei'),
+        'got same sample counts for non-square axes',
+    );
+    
+}
 
 sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');

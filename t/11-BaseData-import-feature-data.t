@@ -411,6 +411,34 @@ sub test_import_shapefile_polygon_reversed_axes {
     
 }
 
+sub test_import_shapefile_polygon_text_axis {
+    my %args = @_;
+    my $fname   = $args{fname};
+
+    use FindBin qw /$Bin/;
+    $fname //= $Bin . '/data/polygon data.shp';
+
+    my $bd1 = Biodiverse::BaseData->new (
+        NAME => 'test_import_shapefile feature reversed axes',
+        CELL_SIZES => [-1, 100000, 50000],
+    );
+
+    # import as shapefile
+    my $success = eval {
+        $bd1->import_data_shapefile (
+            input_files => [$fname],
+            group_field_names => ['BINOMIAL', ':shape_y', ':shape_x'],
+            label_field_names => ['BINOMIAL'],
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "no exception raised importing $fname with text axis in first pos");
+
+    my @groups = sort $bd1->get_groups;
+    is ($groups[0], 'Dromornis_planei:-1750000:425000', 'got expected group name');
+}
+
+
 sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');
 }

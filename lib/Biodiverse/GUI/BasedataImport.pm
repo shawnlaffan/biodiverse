@@ -742,12 +742,14 @@ sub run {
 
         if ($read_format eq 'shapefile') {
             foreach my $bdata ( keys %multiple_file_lists ) {
+                #  not sure we want to go through the lot - what if we have 1000 point files?
                 my $shapefile  = Geo::ShapeFile->new($multiple_file_lists{$bdata}->[0]);
                 my $shape_type = $shapefile->type( $shapefile->shape_type );
                 if ($shape_type =~ /Poly/i) {
                     my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
                     croak "polygon and polyline files must have :shape_x and :shape_y columns specified\n"
                       if $have_shapexy != 2;
+                    last;  #  no need to check more if the first case passes
                 }
             }
         }

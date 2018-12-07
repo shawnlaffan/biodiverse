@@ -57,9 +57,6 @@ sub run {
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgYesNoCancel.ui'));
     my $dlg = $dlgxml->get_object(DLG_NAME);
 
-    # Put it on top of main window
-    $dlg->set_transient_for($gui->get_object('wndMain'));
-
     # set the text
     my $label = $dlgxml->get_object('lblText');
 

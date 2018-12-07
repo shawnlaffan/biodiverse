@@ -1,7 +1,7 @@
 package Biodiverse::BaseData;
 
 #  package containing methods to access and store a Biodiverse BaseData object
-use 5.010;
+use 5.022;
 
 use strict;
 use warnings;
@@ -12,9 +12,10 @@ use JSON::PP ();
 
 use Carp;
 use Data::Dumper;
-use POSIX qw {fmod};
+use POSIX qw {fmod floor ceil};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
+use List::MoreUtils qw /first_index/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
@@ -27,6 +28,83 @@ use Geo::ShapeFile;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
+
+use Geo::GDAL::FFI 0.0601;
+#  dirty and underhanded
+BEGIN {
+    if ($Geo::GDAL::FFI::VERSION <= 0.0601) {
+        no strict 'refs';
+        no warnings 'redefine';
+        
+        ## PR #12
+        *Geo::GDAL::FFI::SpatialReference::DESTROY = sub {
+            my $self = shift;
+            #  OSRGetReferenceCount method not yet implemented
+            my $refcount = (Geo::GDAL::FFI::OSRReference ($$self)-1);
+            Geo::GDAL::FFI::OSRDereference ($$self);  #  immediately decrement 
+            if ($refcount == 0) {
+                #warn "Calling DESTROY method for $$self\n";
+                Geo::GDAL::FFI::OSRDestroySpatialReference($$self);
+            }
+        };
+        
+        ## PR #13
+        *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
+            my ($self, $sql, $filter, $dialect) = @_;
+                
+            my $lyr = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
+                $$self, $sql, $$filter, $dialect
+            );
+            
+            if ($lyr) {
+                if (defined wantarray) {
+                    $Geo::GDAL::FFI::parent{$lyr} = $self;
+                    return bless \$lyr, 'Geo::GDAL::FFI::Layer::ResultSet';
+                }
+                else {
+                    Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($lyr, $$self);
+                }
+            }
+        
+            return undef;
+        };
+
+        {
+            #  dummy class for result sets from ExecuteSQL
+            #  allows specialised destroy method
+            package Geo::GDAL::FFI::Layer::ResultSet;
+            use base qw /Geo::GDAL::FFI::Layer/;
+            
+            sub DESTROY {
+                my ($self) = @_;
+                my $parent = $Geo::GDAL::FFI::parent{$$self};
+                Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($$parent, $$self);
+                delete $Geo::GDAL::FFI::parent{$$self};
+            }
+            
+            1;
+        }
+
+        ## PR #14
+        *Geo::GDAL::FFI::Layer::GetName = sub {
+            my ($self) = @_;
+            return $self->GetDefn->GetName;
+            #return Geo::GDAL::FFI::OGR_L_GetName($$self);
+        };
+        
+        
+        ## PR #11
+        *Geo::GDAL::FFI::Layer::GetExtent = sub {
+            my ($self, $layer, $force) = @_;
+            my $extent = [0,0,0,0];
+            $force = $force ? \1 : \0;
+            my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$self, $extent, $force);
+            confess Geo::GDAL::FFI::error_msg({OGRError => $e})
+              if $e;
+            return $extent;
+        };
+    }
+}
 
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
@@ -1594,13 +1672,20 @@ sub import_data_shapefile {
       ? $args{skip_lines_with_undef_groups}
       : 1;
 
-    my @group_field_names =
-      @{ $args{group_fields} // $args{group_field_names} };
-    my @label_field_names =
-      @{ $args{label_fields} // $args{label_field_names} };
-    my @smp_count_field_names = @{ $args{sample_count_col_names} // [] };
-    my $is_lat_field          = $args{is_lat_field};
-    my $is_lon_field          = $args{is_lon_field};
+    my @group_field_names
+      = map {lc $_}
+        @{ $args{group_fields} // $args{group_field_names} };
+    my @label_field_names
+      = map {lc $_} 
+        @{ $args{label_fields} // $args{label_field_names} };
+    my @smp_count_field_names
+      = map {lc $_}
+        @{ $args{sample_count_col_names} // [] };
+    
+    my $is_lat_field = $args{is_lat_field};
+    my $is_lon_field = $args{is_lon_field};
+
+    my $binarise_counts = $args{binarise_counts};
 
     my @group_origins = $self->get_cell_origins;
     my @group_sizes   = $self->get_cell_sizes;
@@ -1620,87 +1705,193 @@ sub import_data_shapefile {
     );
     my %args_for_add_elements_collated = (
         csv_object         => $out_csv,
-        binarise_counts    => $args{binarise_counts},
+        binarise_counts    => $binarise_counts,
         allow_empty_groups => $args{allow_empty_groups},
         allow_empty_labels => $args{allow_empty_labels},
     );
+    
+    my @input_files = @{ $args{input_files} };
+    my $num_files = @input_files;
+    my $file_progress;
+    if (@input_files > 1) {
+        $file_progress = Biodiverse::Progress->new (gui_only => 1);
+    }
+    
+    my $need_shape_geometry
+      = grep {$_ =~ /\:shape_(?:area|length)/} (
+        @label_field_names,
+        @group_field_names,
+        @smp_count_field_names
+    );
+    $need_shape_geometry = $binarise_counts ? 0 : $need_shape_geometry;
 
     # load each file, using same arguments/parameters
-    foreach my $file ( @{ $args{input_files} } ) {
+    my $file_num = 0;
+    foreach my $file ( @input_files ) {
+        $file_num++;
         $file = Path::Class::file($file)->absolute;
         say "[BASEDATA] INPUT FILE: $file";
+        
+        if ($file_progress) {
+            $file_progress->update (
+                "File $file_num of $num_files",
+                $file_num / $num_files,
+            );
+        }
 
         # open as shapefile
         my $fnamebase = $file->stringify;
+        my $layer_dataset = Geo::GDAL::FFI::Open($fnamebase);
+        my $layer = $layer_dataset->GetLayer;
+        $layer->ResetReading;
+        my $defn = $layer->GetDefn;
+        my $layer_name = $defn->GetName;
+        #  needs a method
+        my $schema     = $defn->GetSchema;
+        my $shape_type = $schema->{GeometryFields}[0]{Type};
 
-#$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
-        my $shapefile = Geo::ShapeFile->new($fnamebase, {no_cache => 1});
-
-        #say "have $shapefile";
-
-        croak "[BASEDATA] Failed to read $file with ShapeFile\n"
-          if !defined $shapefile;    # assuming not defined on fail
-
-        my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
-          . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point/;
-
-        my $shape_count = $shapefile->shapes();
-        say "have $shape_count shapes";
+        croak "[BASEDATA] $fnamebase: Import of feature type $shape_type is not supported.\n"
+          if not $shape_type =~ /Point|Polygon|Line/;
 
         #  some validation
-        my %db_rec1 = $shapefile->get_dbf_record(1);
+        #  keys are case insensitive, values store case  
+        my %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
         foreach my $key (@label_field_names) {
             croak "Shapefile $file does not have a field called $key\n"
-              if !exists $db_rec1{$key};
+              if !exists $fld_names{$key};
         }
 
-        my %gp_lb_hash;
+        #  get a Fishnet Identity overlay if we have polygons
+        my ($f_dataset, $f_layer);
+        if ($shape_type =~ 'Polygon|LineString') {
+            
+            ##  CHECK WE HAVE :shape_x and :shape_y
+            my $have_shape_xy
+              = grep {$_ =~ m/\:shape_[xy]/} @group_field_names;
+            croak "Polygon and polyline imports need both "
+             . ":shape_x and :shape_y in the group names\n"
+               if $have_shape_xy < 2;
+
+            my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
+            my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
+            
+            $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
+
+            if ($need_shape_geometry) {
+                $f_layer = $self->get_fishnet_identity_layer (
+                    source_layer => $layer,
+                    schema       => $schema,
+                    axes         => [$shape_x_index, $shape_y_index],
+                );
+                $layer = undef;
+                $layer = $f_layer;  #  assigning in method call causes failures?
+                $layer->ResetReading;
+                #  update a few things
+                $defn   = $layer->GetDefn;
+                $schema = $defn->GetSchema;
+                %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
+                #warn 'Intersected field names: ' . join ' ', sort keys %fld_names;
+            }
+            else {
+                #shape_type  => $shape_type,
+                #spatial_reference => $sr_clone1,
+                ($f_dataset, $f_layer) = $self->get_fishnet_polygon_layer (
+                    source_layer => $layer,
+                    schema       => $schema,
+                    resolutions  => [@group_sizes[  $shape_x_index, $shape_y_index]],
+                    origins      => [@group_origins[$shape_x_index, $shape_y_index]],
+                    extent       => $layer->GetExtent,
+                    shape_type   => $shape_type,
+                    inner_buffer => 'auto',
+                );
+            }
+        }
+
+        #my $shape_count = $layer->GetFeatureCount();
+        #  interim solution
+        my $shape_count = 0;
+        while ($layer->GetNextFeature) {
+            $shape_count++;
+        }
+        $layer->ResetReading;
+        say "File has $shape_count shapes";
 
         # iterate over shapes
+        my %gp_lb_hash;
+        my $count = 0;
       SHAPE:
-        foreach my $cnt ( 1 .. $shapefile->shapes() ) {
-            my $shape = $shapefile->get_shp_record($cnt);
+        while (my $shape = $layer->GetNextFeature) {
+            $count ++;
 
             # Get database record for this shape.
             # Same for all features in the shape.
-            my %db_rec = $shapefile->get_dbf_record($cnt);
-
-            #say "read shape, label $dbf_label, count $dbf_count";
-
-            my $has_z = defined $shape->z_min;
-            my $has_m = defined $shape->m_min;
+            # Awkward - should just get the fields we need
+            #say 'Getting fields: ' . join ' ', sort keys %fld_names;
+            my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
 
             # just get all the points from the shape.
-            my @ptlist = $shape->points();
+            my $geom = $shape->GetGeomField;
+            my $ptlist;
+            my $default_count = 1;
+            if ($shape_type =~ 'Point') {
+                $ptlist = $geom->GetPoints;
+            }
+            elsif ($shape_type =~ 'Polygon|Line') {
+                if ($need_shape_geometry) {
+                    #  use the centroid until we find more efficient methods
+                    #  it will be snapped to the group coord lower down
+                    $ptlist = $geom->Centroid->GetPoints;
+                    #say $geom->AsText;
+                    if (!scalar @smp_count_field_names  ) {
+                        $default_count = $shape_type =~ /gon/ ? $geom->Area : $geom->Length;
+                    }
+                    if ($shape_type =~ /gon/) {
+                        # need to convert to linestring for length - implement later if we have a need
+                        $db_rec{':shape_area'}   = $geom->Area;
+                    }
+                    else {
+                        $db_rec{':shape_length'} = $geom->Length;
+                    }
+                }
+                else {
+                    #  If we had sqlite installed then the select
+                    #  could also get the overlapping tiles.
+                    #  Could also use SpatialFilter methods.
+                    my $f_layer_name = $f_layer->GetName;
+                    my $tiles = $f_dataset->ExecuteSQL (
+                        qq{SELECT * FROM "$f_layer_name"},
+                        $geom,
+                    );
+                    $tiles->ResetReading;
+                    while (my $tile = $tiles->GetNextFeature) {
+                        my $tile_geom = $tile->GetGeomField;
+                        next if !$tile_geom->Intersects($geom);
+                             #&& !$tile_geom->Crosses($geom);
+                        my $centroid = $tile_geom->Centroid->GetPoints;
+                        push @$ptlist, @$centroid;
+                    }
+                }
+            }
 
             # read over all points in the shape
-            foreach my $point (@ptlist) {
+            foreach my $point (@$ptlist) {
 
                 #  add the coords to the db_rec hash
-                $db_rec{':shape_x'} = $point->X;
-                $db_rec{':shape_y'} = $point->Y;
-                if ($has_z) {
-                    $db_rec{':shape_z'} = $point->Z;
-                }
-                if ($has_m) {
-                    $db_rec{':shape_m'} = $point->M;
+                $db_rec{':shape_x'} = $point->[0];
+                $db_rec{':shape_y'} = $point->[1];
+                if ($#$point > 1) {
+                    $db_rec{':shape_z'} = $point->[2];
+                    if ($#$point > 2) {
+                        $db_rec{':shape_m'} = $point->[3];
+                    }
                 }
 
                 my @these_labels;
                 my $this_count =
                   scalar @smp_count_field_names
                   ? sum 0, @db_rec{@smp_count_field_names}
-                  : 1;
+                  : $default_count;
 
-#  need to implement this
-#if ($args{use_dbf_label}) {
-#  this should be use_matrix_format, and implemented consistent with the text parser
-#my $this_label = $dbf_label;
-#my $this_count = $dbf_count;
-#}
-#else {
                 my @lb_fields  = @db_rec{@label_field_names};
                 my $this_label = $self->list2csv(
                     list       => \@lb_fields,
@@ -1708,10 +1899,11 @@ sub import_data_shapefile {
                 );
                 push @these_labels, $this_label;
 
-                #}
 
-# form group text from group fields (defined as csv string of central points of group)
-# Needs to process the data in the same way as for text imports - refactoring is in order.
+                # form group text from group fields
+                # (defined as csv string of central points of group)
+                # Needs to process the data in the same way as for
+                # text imports - refactoring is in order.
                 my @group_field_vals = @db_rec{@group_field_names};
                 my @gp_fields;
                 my $i = -1;
@@ -1720,7 +1912,7 @@ sub import_data_shapefile {
 
                     if ( $val eq '-1.79769313486232e+308' ) {
                         next SHAPE if $skip_lines_with_undef_groups;
-                        croak "record $cnt has an undefined coordinate\n";
+                        croak "record $count has an undefined coordinate\n";
                     }
 
                     my $origin = $group_origins[$i];
@@ -1763,9 +1955,6 @@ sub import_data_shapefile {
                 );
 
                 foreach my $this_label (@these_labels) {
-
-   #print "adding point label $this_label group $grpstring count $this_count\n";
-
                     if ( scalar @label_field_names <= 1 ) {
                         $this_label = $self->dequote_element(
                             element    => $this_label,
@@ -1773,7 +1962,7 @@ sub import_data_shapefile {
                         );
                     }
 
-            #  collate the groups and labels so we can add them in a batch later
+                    #  collate the groups and labels so we can add them in a batch later
                     if ( looks_like_number $this_count) {
                         $gp_lb_hash{$grpstring}{$this_label} += $this_count;
                     }
@@ -1785,11 +1974,14 @@ sub import_data_shapefile {
             }    # each point
 
             # progress bar stuff
-            my $frac = $cnt / $shape_count;
+            my $frac = $count / $shape_count;
             $progress_bar->update(
-                "Loading $file\n" . "Shape $cnt of $shape_count\n", $frac );
+                "Loading $file\n" . "Shape $count of $shape_count\n", $frac );
 
         }    # each shape
+
+        $layer = undef;  #  a spot of paranoia to close the file
+        $progress_bar->update( 'Done', 1 );
 
         #  add the collated data
         $self->add_elements_collated(
@@ -1798,8 +1990,9 @@ sub import_data_shapefile {
         );
         %gp_lb_hash = ();    #  clear the collated list
 
-        $progress_bar->update( 'Done', 1 );
     }    # each file
+
+    $progress_bar = undef;  #  some cleanup, prob not needed
 
     $self->run_import_post_processes(
         %args,
@@ -1810,6 +2003,250 @@ sub import_data_shapefile {
 
     return 1;    #  success
 }
+
+sub get_fishnet_identity_layer {
+    my ($self, %args) = @_;
+
+    my $layer  = $args{source_layer};
+    my $schema = $args{schema};
+    my $axes   = $args{axes} // [0,1];
+    
+    my ($defn, $shape_type, $sr);
+    eval {
+        #$defn = $layer->GetDefn;
+        #$schema = $defn->GetSchema;
+        $shape_type = $schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon';
+        $sr = $schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef;
+    };
+    croak $@ if $@;
+    
+    $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
+    #  It is safer to not re-use a spatial reference object 
+    my $sr_clone1 = $sr->Clone;
+    my $sr_clone2 = $sr->Clone;
+
+
+    my @group_origins = $self->get_cell_origins;
+    my @group_sizes   = $self->get_cell_sizes;
+    
+    @group_origins = @group_origins[@$axes];
+    @group_sizes   = @group_sizes[@$axes];
+
+    my $fishnet = $self->get_fishnet_polygon_layer (
+        extent => $layer->GetExtent,
+        resolutions => \@group_sizes,
+        origins     => \@group_origins,
+        #shape_type  => $shape_type,
+        spatial_reference => $sr_clone1,
+    );
+
+    my $last_p = time() - 1;
+    my $progress = sub {
+        return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.5;
+        my ($fraction, $msg, $data) = @_;
+        local $| = 1;
+        printf "%.3g ", $fraction;
+        $last_p = time();
+        1;
+    };
+    #$progress = undef;
+    
+    #my $pulse_progress = Biodiverse::Progress->new(gui_only => 1);
+    #$pulse_progress->pulsate ('pulsating');
+    #sleep(30);
+    
+    #  get the fishnet cells that intersect the polygons
+    $layer->ResetReading;
+    $fishnet->ResetReading;
+    
+    my $start_time = time();
+    
+    #  create the layer now so we only get polygons back
+    my $layer_name = 'overlay_result_' . Scalar::Util::refaddr ($self);
+    my $overlay_result
+        = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
+            ->Create ('/vsimem/_' . time())
+            ->CreateLayer({
+                Name => $layer_name,
+                SpatialReference => $sr_clone2,
+                GeometryType     => $shape_type,
+                Options => {SPATIAL_INDEX => 'YES'},
+        });
+    #  not sure these have any effect
+    my $options = {
+        PROMOTE_TO_MULTI        => 'NO',
+        USE_PREPARED_GEOMETRIES => 'YES',
+        PRETEST_CONTAINMENT     => 'YES',
+    };
+    say 'Intersecting fishnet with feature layer';
+    $layer->Intersection(
+        $fishnet,
+        {
+            Result   => $overlay_result,
+            Progress => $progress,
+            Options  => $options,
+        }
+    );
+
+    my $time_taken = time() - $start_time;
+    say "Intersection completed in $time_taken seconds";
+    
+    #  close fishnet data set
+    $fishnet = undef;
+    
+    #$pulse_progress->pulsate_stop;
+    
+    #my $check = $overlay_result->GetDefn->GetSchema;
+    
+    return $overlay_result;
+}
+
+sub get_fishnet_polygon_layer {
+    my ($self, %args) = @_;
+    
+    local $| = 1;
+    
+    my $driver = $args{driver} // 'Memory';
+    $driver = 'ESRI Shapefile';
+
+    my $out_fname = $args{out_fname};
+    if (not $driver =~ /Memory/) {
+        $out_fname //= ('fishnet_' . time());
+    }
+    #else {
+    #  override
+    $out_fname = ('/vsimem/fishnet_' . time());
+    #}
+    #say "Generating fishnet file $out_fname";
+    my $schema = $args{schema};
+    
+    my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
+    my $sr = $args{spatial_reference} // ($schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef);
+
+    if (!blessed $sr) {
+        $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
+    }
+
+    my $extent      = $args{extent};
+    my $resolutions = $args{resolutions};
+    my $origins     = $args{origins};
+    
+    croak "Cannot generate a fishnet for fewer than two axes\n"
+      if scalar @$resolutions < 2;
+    my $has_zero_res = grep {$_ <= 0} @$resolutions[0,1];
+    croak "Cannot generate a fishnet where one axis has a negative or zero spacing\n"
+      if $has_zero_res;
+
+    #  This avoids cases where polygon edges touch, but there are no interior overlaps.
+    #  Such cases occur when reimporting square polygons of exactly the same resolution.  
+    my $bt = $args{inner_buffer} // 0;
+    if ($bt eq 'auto') {
+        $bt = 10e-10 * ($resolutions->[0] + $resolutions->[1]) / 2;
+    }
+
+    my ($xmin, $xmax, $ymin, $ymax) = @$extent;
+    my ($grid_width, $grid_height)  = @$resolutions;
+    say "Height and width: $grid_height, $grid_width"; 
+    
+    say "Input bounds are $xmin, $ymin, $xmax, $ymax";
+    
+    if ($origins) {    
+        my @ll = ($xmin, $ymin);
+        foreach my $i (0,1) {
+            next if $resolutions->[$i] <= 0;
+            my $tmp_prec = $ll[$i] / $resolutions->[$i];
+            my $offset = floor ($tmp_prec);
+            #  and shift back to index units
+            $ll[$i] = $offset * $resolutions->[$i];
+        }
+        ($xmin, $ymin) = @ll;
+        my @ur = ($xmax, $ymax);
+        foreach my $i (0,1) {
+            next if $resolutions->[$i] <= 0;
+            my $tmp_prec = $ur[$i] / $resolutions->[$i];
+            my $offset = ceil ($tmp_prec);
+            #  and shift back to index units
+            $ur[$i] = $offset * $resolutions->[$i];
+        }
+        ($xmax, $ymax) = @ur;
+    }
+    
+    say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
+    say "Driver and layer names: $driver, $out_fname";
+
+    my $fishnet_fld_name = '_fsh_name';
+    my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . rand();
+    my $fishnet_dataset
+        = Geo::GDAL::FFI::GetDriver($driver)
+            ->Create ($out_fname);
+    my $fishnet_lyr
+      = $fishnet_dataset->CreateLayer({
+                Name => $layer_name,
+                GeometryType => $shape_type,
+                SpatialReference => $sr,
+                Fields => [{
+                    Name => $fishnet_fld_name,
+                    Type => 'String'
+                }],
+                Options => {SPATIAL_INDEX => 'YES'},
+        });
+    #my $featureDefn = $fishnet_lyr->GetDefn();
+
+    my $rows = ceil(($ymax - $ymin) / $grid_height);
+    my $cols = ceil(($xmax - $xmin) / $grid_width);
+    say "Generating fishnet of size $rows x $cols";
+    say "Origins are: " . join ' ', @$origins;
+
+    # start grid cell envelope
+    my $ring_X_left_origin   = $xmin;
+    my $ring_X_right_origin  = $xmin + $grid_width;
+    my $ring_Y_top_origin    = $ymax;
+    my $ring_Y_bottom_origin = $ymax - $grid_height;
+
+    # create grid cells
+    foreach my $countcols (1 .. $cols) {
+        # reset envelope for rows;
+        my $ring_Y_top    = $ring_Y_top_origin;
+        my $ring_Y_bottom = $ring_Y_bottom_origin;
+        
+        foreach my $countrows (1 .. $rows) {
+            my $north = $ring_Y_top    - $bt;
+            my $south = $ring_Y_bottom + $bt;
+            my $west  = $ring_X_left_origin  + $bt;
+            my $east  = $ring_X_right_origin - $bt;
+
+            my $poly = 'POLYGON (('
+                . "$east $north, "
+                . "$west $north, "
+                . "$west $south, "
+                . "$east $south, "
+                . "$east $north"
+                . '))';
+            #say $poly;
+            my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
+            $f->SetField($fishnet_fld_name => "$countrows x $countcols");
+            $f->SetGeomField([WKT => $poly]);
+            $fishnet_lyr->CreateFeature($f);
+            # new envelope for next poly
+            $ring_Y_top    -= $grid_height;
+            $ring_Y_bottom -= $grid_height;
+        }
+        # new envelope for next poly;
+        $ring_X_left_origin  += $grid_width;
+        $ring_X_right_origin += $grid_width;
+    }
+
+    #$fishnet_lyr->SyncToDisk;  #  try to flush the features
+    #$fishnet_lyr = undef;
+    #
+    #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
+    
+    #my $layer_name = $fishnet_lyr->GetName;
+    $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
+
+    return wantarray ? ($fishnet_dataset, $fishnet_lyr) : $fishnet_lyr;
+}
+
 
 sub import_data_spreadsheet {
     my $self = shift;

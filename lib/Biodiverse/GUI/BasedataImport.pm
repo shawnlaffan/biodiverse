@@ -338,21 +338,23 @@ sub run {
     }
     elsif ( $read_format eq 'shapefile' ) {
 
-        # process as shapefile
+        # process as shapefile - need to switch over the Geo::GDAL::FFI
 
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
-        $fnamebase =~ s/\.[^.]+?$//
-          ; #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
+        #  use lazy quantifier so we get chars from the
+        #  last dot - should use Path::Class::File instead
+        $fnamebase =~ s/\.[^.]+?$//; 
 
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
         my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
+        #  this is all of them now...
+        croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point/;
+          if not $shape_type =~ /Point|Polygon|PolyLine/i;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
         if ( defined $shapefile->z_min() ) {
@@ -360,6 +362,12 @@ sub run {
         }
         if ( defined $shapefile->m_min() ) {
             push( @field_names, ':shape_m' );
+        }
+        if ($shape_type =~ /PolyLine/i) {
+            push( @field_names, ':shape_length' );
+        }
+        if ($shape_type =~ /Polygon/i) {
+            push( @field_names, ':shape_area' );
         }
 
 #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
@@ -732,11 +740,28 @@ sub run {
             push @sample_count_col_names, $specs->{name};
         }
 
+        if ($read_format eq 'shapefile') {
+            FILE:
+              foreach my $filelist ( values %multiple_file_lists ) {
+                foreach my $file (@$filelist) {
+                    #  not sure we want to go through the lot - what if we have 1000 point files?
+                    my $shapefile  = Geo::ShapeFile->new($file);
+                    my $shape_type = $shapefile->type( $shapefile->shape_type );
+                    if ($shape_type =~ /Poly/i) {
+                        my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
+                        croak "polygon and polyline files must have :shape_x and :shape_y columns specified\n"
+                          if $have_shapexy != 2;
+                        last FILE;  #  no need to check more if the first case passes
+                    }
+                }
+            }
+        }
+
         my $import_method = "import_data_$read_format";
 
         # process data
         foreach my $bdata ( keys %multiple_file_lists ) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->$import_method(
                     %import_params,
                     %rest_of_options,
@@ -751,7 +776,18 @@ sub run {
         }
     }
     elsif ( $read_format eq 'text' ) {
+        my $progress;
+        my $num_files = keys %multiple_file_lists;
+        if ($num_files > 1) {
+            $progress = Biodiverse::Progress->new (gui_only => 1);
+        }
+        my $file_count = 0;
+        
         foreach my $bdata ( keys %multiple_file_lists ) {
+            $file_count++;
+            if ($progress) {
+                $progress->update ("File $file_count of $num_files", $file_count / $num_files);
+            }
             $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(
                     %import_params,

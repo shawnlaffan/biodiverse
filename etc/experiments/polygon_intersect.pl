@@ -15,12 +15,13 @@ my $fishnet = Geo::GDAL::FFI::Open($fishnetfile)->GetLayer;
 
 my $last_p = time();
 my $progress = sub {
-    return if abs(time() - $last_p) < 0.5;
+    return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.5;
     my ($fraction, $msg, $data) = @_;
     local $| = 1;
     #say STDERR "$fraction $data";
     printf "%.3g ", $fraction;
     $last_p = time();
+    1;
 };
 
 #  get the fishnet cells that intersect the polygons
@@ -37,5 +38,5 @@ while (my $feature = $identity->GetNextFeature) {
     $feature_count++;
 }
 
-say "Processed $feature_count features";
+say "\nProcessed $feature_count features";
 

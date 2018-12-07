@@ -1292,7 +1292,7 @@ sub test_roundtrip_shapefile {
         #  need to use a better approach for the name
         my $fname_base = $tmp_dir . 'shapefile_' . $i; 
 
-        my $suffix = ''; # leave off, .shp will be added (or similar)
+        my $suffix = '.shp';
         my $fname = $fname_base . $suffix;  
         my @exported_files;
         my $success = eval {
@@ -1306,7 +1306,7 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
-        ok (-e $fname . '.shp', "$fname.shp exists");
+        ok (-e $fname, "$fname exists");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (

@@ -344,12 +344,14 @@ sub run {
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
-        $fnamebase =~ s/\.[^.]+?$//
-          ; #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
+        #  use lazy quantifier so we get chars from the
+        #  last dot - should use Path::Class::File instead
+        $fnamebase =~ s/\.[^.]+?$//; 
 
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
         my $shape_type = $shapefile->type( $shapefile->shape_type );
+        #  this is all of them now...
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
           if not $shape_type =~ /Point|Polygon|PolyLine/i;
@@ -736,6 +738,18 @@ sub run {
         my @sample_count_col_names;
         foreach my $specs ( @{ $column_settings->{sample_counts} } ) {
             push @sample_count_col_names, $specs->{name};
+        }
+
+        if ($read_format eq 'shapefile') {
+            foreach my $bdata ( keys %multiple_file_lists ) {
+                my $shapefile  = Geo::ShapeFile->new($multiple_file_lists{$bdata}->[0]);
+                my $shape_type = $shapefile->type( $shapefile->shape_type );
+                if ($shape_type =~ /Poly/i) {
+                    my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
+                    croak "polygon and polyline files must have :shape_x and :shape_y columns specified\n"
+                      if $have_shapexy != 2;
+                }
+            }
         }
 
         my $import_method = "import_data_$read_format";

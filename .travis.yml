@@ -1,6 +1,8 @@
 language: perl
 matrix:
     include:
+        - perl: '5.28'
+          env: BD_NO_TEST_GUI=1
         - perl: '5.26'
           env: BD_NO_TEST_GUI=1
         - perl: '5.24'

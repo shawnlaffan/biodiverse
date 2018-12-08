@@ -1725,6 +1725,10 @@ sub import_data_shapefile {
     );
     $need_shape_geometry = $binarise_counts ? 0 : $need_shape_geometry;
 
+    ##  CHECK WE NEED :shape_x and :shape_y
+    my $need_shape_xy
+      = grep {$_ =~ m/\:shape_[xy]/} @group_field_names;
+
     # load each file, using same arguments/parameters
     my $file_num = 0;
     foreach my $file ( @input_files ) {
@@ -1763,15 +1767,13 @@ sub import_data_shapefile {
 
         #  get a Fishnet Identity overlay if we have polygons
         my ($f_dataset, $f_layer);
-        if ($shape_type =~ 'Polygon|LineString') {
-            
-            ##  CHECK WE HAVE :shape_x and :shape_y
-            my $have_shape_xy
-              = grep {$_ =~ m/\:shape_[xy]/} @group_field_names;
-            croak "Polygon and polyline imports need both "
-             . ":shape_x and :shape_y in the group names\n"
-               if $have_shape_xy < 2;
+        if ($need_shape_xy && $shape_type =~ 'Polygon|LineString') {
 
+            croak "Polygon and polyline imports need both "
+             . ":shape_x and :shape_y in the group field names\n"
+               if $need_shape_xy < 2;
+
+            #  what to do if one is used twice?
             my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
             my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
@@ -1790,11 +1792,8 @@ sub import_data_shapefile {
                 $defn   = $layer->GetDefn;
                 $schema = $defn->GetSchema;
                 %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
-                #warn 'Intersected field names: ' . join ' ', sort keys %fld_names;
             }
             else {
-                #shape_type  => $shape_type,
-                #spatial_reference => $sr_clone1,
                 ($f_dataset, $f_layer) = $self->get_fishnet_polygon_layer (
                     source_layer => $layer,
                     schema       => $schema,
@@ -1829,11 +1828,14 @@ sub import_data_shapefile {
             #say 'Getting fields: ' . join ' ', sort keys %fld_names;
             my %db_rec = map {lc ($_) => ($shape->GetField ($_) // undef)} values %fld_names;
 
-            # just get all the points from the shape.
-            my $geom = $shape->GetGeomField;
-            my $ptlist;
+            my $ptlist = [];
             my $default_count = 1;
-            if ($shape_type =~ 'Point') {
+            # just get all the points from the shape.
+            my $geom = $need_shape_xy ? $shape->GetGeomField : '';
+            if ($need_shape_xy == 0) {
+                $ptlist = [[0,0]];  #  dummy list
+            }
+            elsif ($shape_type =~ 'Point') {
                 $ptlist = $geom->GetPoints;
             }
             elsif ($shape_type =~ 'Polygon|Line') {

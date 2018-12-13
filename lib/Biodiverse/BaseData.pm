@@ -29,29 +29,17 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
-use Geo::GDAL::FFI 0.0601;
+use Geo::GDAL::FFI 0.07;
 #  dirty and underhanded
 BEGIN {
-    if ($Geo::GDAL::FFI::VERSION <= 0.0601) {
+    if ($Geo::GDAL::FFI::VERSION <= 0.0701) {
         no strict 'refs';
         no warnings 'redefine';
-        
-        ## PR #12
-        *Geo::GDAL::FFI::SpatialReference::DESTROY = sub {
-            my $self = shift;
-            #  OSRGetReferenceCount method not yet implemented
-            my $refcount = (Geo::GDAL::FFI::OSRReference ($$self)-1);
-            Geo::GDAL::FFI::OSRDereference ($$self);  #  immediately decrement 
-            if ($refcount == 0) {
-                #warn "Calling DESTROY method for $$self\n";
-                Geo::GDAL::FFI::OSRDestroySpatialReference($$self);
-            }
-        };
         
         ## PR #13
         *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
             my ($self, $sql, $filter, $dialect) = @_;
-                
+            
             my $lyr = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
                 $$self, $sql, $$filter, $dialect
             );
@@ -85,24 +73,6 @@ BEGIN {
             1;
         }
 
-        ## PR #14
-        *Geo::GDAL::FFI::Layer::GetName = sub {
-            my ($self) = @_;
-            return $self->GetDefn->GetName;
-            #return Geo::GDAL::FFI::OGR_L_GetName($$self);
-        };
-        
-        
-        ## PR #11
-        *Geo::GDAL::FFI::Layer::GetExtent = sub {
-            my ($self, $layer, $force) = @_;
-            my $extent = [0,0,0,0];
-            $force = $force ? \1 : \0;
-            my $e = Geo::GDAL::FFI::OGR_L_GetExtent ($$self, $extent, $force);
-            confess Geo::GDAL::FFI::error_msg({OGRError => $e})
-              if $e;
-            return $extent;
-        };
     }
 }
 

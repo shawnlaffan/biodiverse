@@ -30,51 +30,6 @@ use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
 use Geo::GDAL::FFI 0.07;
-#  dirty and underhanded
-BEGIN {
-    if ($Geo::GDAL::FFI::VERSION <= 0.0701) {
-        no strict 'refs';
-        no warnings 'redefine';
-        
-        ## PR #13
-        *Geo::GDAL::FFI::Dataset::ExecuteSQL = sub {
-            my ($self, $sql, $filter, $dialect) = @_;
-            
-            my $lyr = Geo::GDAL::FFI::GDALDatasetExecuteSQL(
-                $$self, $sql, $$filter, $dialect
-            );
-            
-            if ($lyr) {
-                if (defined wantarray) {
-                    $Geo::GDAL::FFI::parent{$lyr} = $self;
-                    return bless \$lyr, 'Geo::GDAL::FFI::Layer::ResultSet';
-                }
-                else {
-                    Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($lyr, $$self);
-                }
-            }
-        
-            return undef;
-        };
-
-        {
-            #  dummy class for result sets from ExecuteSQL
-            #  allows specialised destroy method
-            package Geo::GDAL::FFI::Layer::ResultSet;
-            use base qw /Geo::GDAL::FFI::Layer/;
-            
-            sub DESTROY {
-                my ($self) = @_;
-                my $parent = $Geo::GDAL::FFI::parent{$$self};
-                Geo::GDAL::FFI::GDALDatasetReleaseResultSet ($$parent, $$self);
-                delete $Geo::GDAL::FFI::parent{$$self};
-            }
-            
-            1;
-        }
-
-    }
-}
 
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed

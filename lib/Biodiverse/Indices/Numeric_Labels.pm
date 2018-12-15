@@ -534,7 +534,7 @@ sub get_metadata_calc_num_labels_gistar {
     my $self = shift;
 
     my $desc = 'Getis-Ord Gi* statistic for numeric labels across both neighbour sets';
-    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %metadata = (
         description     => $desc,

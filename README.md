@@ -32,7 +32,7 @@ A **discussion group** is at http://groups.google.com.au/group/biodiverse-users 
 
 To cite Biodiverse or acknowledge its use, use the following details, substituting the version of the application that you used for "Version 1.0".
 
-* Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (2010) Biodiverse, a tool for the spatial analysis of biological and related diversity. [Ecography. Vol 33, 643-647 (Version 1.0)](http://dx.doi.org/10.1111/j.1600-0587.2010.06237.x).
+* Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (2010) Biodiverse, a tool for the spatial analysis of biological and related diversity. [Ecography. Vol 33, 643-647 (Version 1.0)](https://doi.org/10.1111/j.1600-0587.2010.06237.x).
 
 An overview of the system is also provided in Dan Rosauer's talk at TDWG2008:
 

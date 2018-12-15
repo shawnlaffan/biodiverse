@@ -60,7 +60,7 @@ END_H_DESC
 ;
     
     my $ref = 'Jones and Laffan (2008) Trans Philol Soc '
-            . 'http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x';
+            . 'https://doi.org/10.1111/j.1467-968X.2008.00209.x';
 
     my %metadata = (
         name            => 'Ratios of hierarchical labels',

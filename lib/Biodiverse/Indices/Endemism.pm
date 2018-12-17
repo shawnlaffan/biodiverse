@@ -142,7 +142,7 @@ sub get_metadata_calc_endemism_central {
                 . "but with local ranges calculated using both neighbour sets";
 
     my $ref = 'Crisp et al. (2001) J Biogeog. '
-              . 'http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x ; '
+              . 'https://doi.org/10.1046/j.1365-2699.2001.00524.x ; '
               . 'Laffan and Crisp (2003) J Biogeog. '
               . 'http://www3.interscience.wiley.com/journal/118882020/abstract';
 
@@ -194,7 +194,7 @@ sub get_metadata_calc_endemism_central {
                                . 'best applied with a small window.',
                 lumper      => 0,
                 reference   => 'Slatyer et al. (2007) J. Biogeog '
-                               . 'http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x',
+                               . 'https://doi.org/10.1111/j.1365-2699.2006.01647.x',
                 formula     => [
                     '= \sum_{t \in T} \frac {1} {R_t}',
                     ' where ',
@@ -386,7 +386,7 @@ sub metadata_for_calc_endemism_hier_part {
         description     => $descr,
         name            => "Endemism $endemism_type hierarchical partition",
         type            => 'Endemism',
-        reference       => 'Laffan et al. (2013) J Biogeog. http://dx.doi.org/10.1111/jbi.12001',
+        reference       => 'Laffan et al. (2013) J Biogeog. https://doi.org/10.1111/jbi.12001',
         formula         => $formula,
         pre_calc        => [
             "_calc_endemism_$endemism_type",
@@ -584,7 +584,7 @@ sub get_metadata_calc_endemism_whole {
                                . 'Useful if your data have sampling biases and '
                                . 'best applied with a small window.',
                 reference   => 'Slatyer et al. (2007) J. Biogeog '
-                               . 'http://dx.doi.org/10.1111/j.1365-2699.2006.01647.x',
+                               . 'https://doi.org/10.1111/j.1365-2699.2006.01647.x',
                 formula     => [
                     '= \sum_{t \in T} \frac {1} {R_t}',
                     ' where ',

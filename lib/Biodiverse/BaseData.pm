@@ -1642,6 +1642,12 @@ sub import_data_shapefile {
         $file_progress = Biodiverse::Progress->new (gui_only => 1);
     }
     
+    my @field_names_used_lc
+      = grep {not $_ =~ /^:/}
+        (@label_field_names,
+         @group_field_names,
+         @smp_count_field_names);
+
     my $need_shape_geometry
       = grep {$_ =~ /\:shape_(?:area|length)/} (
         @label_field_names,
@@ -1683,7 +1689,7 @@ sub import_data_shapefile {
           if not $shape_type =~ /Point|Polygon|Line/;
 
         #  some validation
-        #  keys are case insensitive, values store case  
+        #  keys are case insensitive, values store case
         my %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
         foreach my $key (@label_field_names) {
             croak "Shapefile $file does not have a field called $key\n"
@@ -1739,6 +1745,8 @@ sub import_data_shapefile {
         }
         $layer->ResetReading;
         say "File has $shape_count shapes";
+        
+        %fld_names = %fld_names{@field_names_used_lc};
 
         # iterate over shapes
         my %gp_lb_hash;
@@ -1757,7 +1765,7 @@ sub import_data_shapefile {
             my $default_count = 1;
             # just get all the points from the shape.
             my $geom = $need_shape_xy ? $shape->GetGeomField : '';
-            if ($need_shape_xy == 0) {
+            if (!$need_shape_xy) {
                 $ptlist = [[0,0]];  #  dummy list
             }
             elsif ($shape_type =~ 'Point') {

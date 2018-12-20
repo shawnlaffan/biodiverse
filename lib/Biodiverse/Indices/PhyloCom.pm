@@ -28,7 +28,7 @@ my $prng_class = 'Math::Random::MT::Auto';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
-my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
+my $webb_et_al_ref = 'Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358';
 
 
 my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'

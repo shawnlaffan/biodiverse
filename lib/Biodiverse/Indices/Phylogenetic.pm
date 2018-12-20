@@ -51,7 +51,7 @@ sub get_metadata_calc_pd {
             PD              => {
                 cluster       => undef,
                 description   => 'Phylogenetic diversity',
-                reference     => 'Faith (1992) Biol. Cons. http://dx.doi.org/10.1016/0006-3207(92)91201-3',
+                reference     => 'Faith (1992) Biol. Cons. https://doi.org/10.1016/0006-3207(92)91201-3',
                 formula       => [
                     '= \sum_{c \in C} L_c',
                     ' where ',
@@ -488,9 +488,9 @@ sub get_metadata_calc_pe {
                             . 'trims the tree to exclude labels not in the '
                             . 'BaseData object.',
         name            => 'Phylogenetic Endemism',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x'
-                         . '; Laity et al. (2015) http://dx.doi.org/10.1016/j.scitotenv.2015.04.113'
-                         . '; Laffan et al. (2016) http://dx.doi.org/10.1111/2041-210X.12513',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x'
+                         . '; Laity et al. (2015) https://doi.org/10.1016/j.scitotenv.2015.04.113'
+                         . '; Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -524,7 +524,7 @@ sub get_metadata_calc_pe_lists {
     my %metadata = (
         description     => 'Lists used in the Phylogenetic endemism (PE) calculations.',
         name            => 'Phylogenetic Endemism lists',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices', 
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,
@@ -581,7 +581,7 @@ END_PEC_DESC
     my %metadata = (
         description     => $desc,
         name            => 'Phylogenetic Endemism central',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         pre_calc_global => [qw /get_trimmed_tree/],
@@ -637,7 +637,7 @@ END_PEC_DESC
     my %metadata = (
         description     => $desc,
         name            => 'Phylogenetic Endemism central lists',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1148,7 +1148,7 @@ EOD
     my %metadata = (
         description     => $description,
         name            => 'Phylogenetic Endemism single',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => ['_calc_pe'],
         pre_calc_global => ['get_trimmed_tree'],
@@ -1206,7 +1206,7 @@ sub get_metadata_calc_pd_endemism {
                         .  'It is the sum of the branch lengths restricted '
                         .  'to the neighbour sets.',
         name            => 'PD-Endemism',
-        reference       => 'See Faith (2004) Cons Biol.  http://dx.doi.org/10.1111/j.1523-1739.2004.00330.x',
+        reference       => 'See Faith (2004) Cons Biol.  https://doi.org/10.1111/j.1523-1739.2004.00330.x',
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => ['calc_pe_lists'],
         pre_calc_global => [qw /get_trimmed_tree/],
@@ -1269,7 +1269,7 @@ sub get_metadata__calc_pe {
     my %metadata = (
         description     => 'Phylogenetic endemism (PE) base calcs.',
         name            => 'Phylogenetic Endemism base calcs',
-        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. https://doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Endemism Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [ qw /
             get_node_range_hash
@@ -1908,9 +1908,9 @@ sub get_metadata_calc_taxonomic_distinctness {
     };
     
     my $ref = 'Warwick & Clarke (1995) Mar Ecol Progr Ser. '
-            . 'http://dx.doi.org/10.3354/meps129301 ; '
+            . 'https://doi.org/10.3354/meps129301 ; '
             . 'Clarke & Warwick (2001) Mar Ecol Progr Ser. '
-            . 'http://dx.doi.org/10.3354/meps216265';
+            . 'https://doi.org/10.3354/meps216265';
     
     my %metadata = (
         description     => 'Taxonomic/phylogenetic distinctness and variation. '
@@ -1968,9 +1968,9 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
     };
 
     my $ref = 'Warwick & Clarke (1995) Mar Ecol Progr Ser. '
-            . 'http://dx.doi.org/10.3354/meps129301 ; '
+            . 'https://doi.org/10.3354/meps129301 ; '
             . 'Clarke & Warwick (2001) Mar Ecol Progr Ser. '
-            . 'http://dx.doi.org/10.3354/meps216265';
+            . 'https://doi.org/10.3354/meps216265';
 
     my %metadata = (
         description     => 'Taxonomic/phylogenetic distinctness and variation '
@@ -2113,7 +2113,7 @@ sub get_metadata_calc_phylo_sorenson {
         name           =>  'Phylo Sorenson',
         type           =>  'Phylogenetic Turnover',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
-        reference      => 'Bryant et al. (2008) http://dx.doi.org/10.1073/pnas.0801920105',
+        reference      => 'Bryant et al. (2008) https://doi.org/10.1073/pnas.0801920105',
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
@@ -2157,7 +2157,7 @@ sub get_metadata_calc_phylo_jaccard {
         name           =>  'Phylo Jaccard',
         type           =>  'Phylogenetic Turnover',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
-        reference      => 'Lozupone and Knight (2005) http://dx.doi.org/10.1128/AEM.71.12.8228-8235.2005',
+        reference      => 'Lozupone and Knight (2005) https://doi.org/10.1128/AEM.71.12.8228-8235.2005',
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
@@ -2481,11 +2481,11 @@ sub get_metadata_calc_phylo_aed_t {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T => {
                 description  => $descr,
-                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
         },
     );
@@ -2509,18 +2509,18 @@ sub get_metadata_calc_phylo_aed_t_wtlists {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T_WTLIST => {
                 description  => 'Abundance weighted ED per terminal taxon '
                               . '(the AED score of each taxon multiplied by its '
                               . 'abundance in the sample)',
-                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
                 type         => 'list',
             },
             PHYLO_AED_T_WTLIST_P => {
                 description  => 'Proportional contribution of each terminal taxon to the AED_T score',
-                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
                 type         => 'list',
             },
         },
@@ -2603,22 +2603,22 @@ sub get_metadata_calc_phylo_aed {
         pre_calc        => [qw /calc_abc/],
         pre_calc_global => [qw /get_aed_scores/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
                 type         => 'list',
-                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES_LIST => {
                 description  =>  'Equal splits partitioning of PD per terminal label',
                 type         => 'list',
-                reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
+                reference    => 'Redding & Mooers (2006) https://doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
             PHYLO_ED_LIST => {
                 description  =>  q{"Fair proportion" partitioning of PD per terminal label},
                 type         => 'list',
-                reference    => 'Isaac et al. (2007) http://dx.doi.org/10.1371/journal.pone.0000296',
+                reference    => 'Isaac et al. (2007) https://doi.org/10.1371/journal.pone.0000296',
             },
         },
     );

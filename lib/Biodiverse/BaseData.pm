@@ -1658,7 +1658,7 @@ sub import_data_shapefile {
     my $file_num = 0;
     foreach my $file ( @input_files ) {
         $file_num++;
-        $file = Path::Class::file($file)->absolute;
+        $file = Path::Class::file($file)->absolute->stringify;
         say "[BASEDATA] INPUT FILE: $file";
         
         if ($file_progress) {
@@ -1669,7 +1669,7 @@ sub import_data_shapefile {
         }
 
         # open as shapefile
-        my $fnamebase = $file->stringify;
+        my $fnamebase = $file;
         my $layer_dataset = Geo::GDAL::FFI::Open($fnamebase);
         my $layer = $layer_dataset->GetLayer;
         $layer->ResetReading;

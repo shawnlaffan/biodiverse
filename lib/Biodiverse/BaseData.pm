@@ -1781,21 +1781,21 @@ sub import_data_shapefile {
                     }
                 }
                 else {
-                    #  If we had sqlite installed then the select
-                    #  could also get the overlapping tiles.
-                    #  Could also use SpatialFilter methods.
                     my $f_layer_name = $f_layer->GetName;
                     my $tiles = $f_dataset->ExecuteSQL (
                         qq{SELECT * FROM "$f_layer_name"},
                         $geom,
                     );
-                    $tiles->ResetReading;
-                    while (my $tile = $tiles->GetNextFeature) {
-                        my $tile_geom = $tile->GetGeomField;
-                        next if !$tile_geom->Intersects($geom);
-                             #&& !$tile_geom->Crosses($geom);
-                        my $centroid = $tile_geom->Centroid->GetPoints;
-                        push @$ptlist, @$centroid;
+                    #  guard against empty result (paranoia)
+                    if ($tiles) {
+                        $tiles->ResetReading;
+                        while (my $tile = $tiles->GetNextFeature) {
+                            my $tile_geom = $tile->GetGeomField;
+                            #next if !$tile_geom->Intersects($geom);
+                                 #&& !$tile_geom->Crosses($geom);
+                            my $centroid = $tile_geom->Centroid->GetPoints;
+                            push @$ptlist, @$centroid;
+                        }
                     }
                 }
             }

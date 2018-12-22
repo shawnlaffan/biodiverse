@@ -1969,14 +1969,14 @@ sub get_fishnet_identity_layer {
     @group_origins = @group_origins[@$axes];
     @group_sizes   = @group_sizes[@$axes];
     
+    #  Use a subdivide approach to handle large polygons.
+    #  Should check individual features, as we only really
+    #  need this when there are large and complex features.
     my $extent = $layer->GetExtent;
     my $nx = ceil (abs ($extent->[1] - $extent->[0]) / $group_sizes[0]);
     my $ny = ceil (abs ($extent->[3] - $extent->[2]) / $group_sizes[1]);
     if (max ($nx, $ny) > 32) {
-        #  use a subdivide approach to handle large polygons
-        my @coarse_gp_sizes = @group_sizes;
-        $coarse_gp_sizes[0] *= 8;
-        $coarse_gp_sizes[1] *= 8;
+        my @coarse_gp_sizes = map {$_ * 8} @group_sizes;
         my $layer2 = $self->get_fishnet_identity_layer (
             %args,
             gp_sizes => \@coarse_gp_sizes,

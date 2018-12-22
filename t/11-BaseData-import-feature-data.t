@@ -8,6 +8,8 @@ use Path::Class;
 use Test::Lib;
 use rlib;
 
+use Utils qw /is_between/;
+
 use Data::Section::Simple qw(
     get_data_section
 );
@@ -228,19 +230,28 @@ sub _test_import_shapefile_polygon {
     is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
 
     my @new_groups  = sort $new_bd->get_groups;
-    my $exp_gp = $is_line ? 140 : 240;
+    my $exp_gp = $args{expected_gp_count} // ($is_line ? 140 : 240);
     is (scalar @new_groups, $exp_gp, "got expected number of groups $orig_labels[0] in $fname, $info");
     
     
     my $new_lb = $new_bd->get_labels_ref;
     my $got = $new_bd->get_label_sample_count (label => $orig_labels[0]);
     my $exp = $args{expected_total_count};
-    $exp //= $is_line #  dodgy and fragile type check
-        ? 15338541  
-        : 1794988604045;  #  prob too precise
-
-    is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
+    if (defined $exp) {
+        is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
+    }
+    else {
+        $exp //= $is_line #  dodgy and fragile type check
+            ? 15338541  
+            : 1794988604045;  #  prob too precise
     
+        is_between (
+            int $got,
+            $exp - 1,
+            $exp + 1,
+            "total sample counts within tolerance for $orig_labels[0] in $fname, $info",
+        );
+    }    
 }
 
 sub test_import_shapefile_polygon_default {
@@ -258,6 +269,18 @@ sub test_import_shapefile_polygon_area {
     _test_import_shapefile_polygon (
         fname   => $fname,
         sample_count_fields => [':shape_area'],
+    );
+}
+
+#  trigger the hierarchical fishnet
+sub test_import_shapefile_polygon_area_hierarchical {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.shp';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        sample_count_fields => [':shape_area'],
+        cell_sizes => [10000, 12000],
+        expected_gp_count => 14886,
     );
 }
 
@@ -289,6 +312,19 @@ sub test_import_shapefile_polyline_length {
         fname   => $fname,
         is_line => 1,
         sample_count_fields => [':shape_length'],
+    );
+}
+
+#  trigger the hierarchical fishnet
+sub test_import_shapefile_polyline_length_hierarchical {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polyline data.shp';
+    _test_import_shapefile_polygon (
+        fname   => $fname,
+        is_line => 1,
+        sample_count_fields => [':shape_length'],
+        cell_sizes => [10000, 12000],
+        expected_gp_count => 1593,
     );
 }
 

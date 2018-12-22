@@ -12,14 +12,13 @@ use JSON::PP ();
 
 use Carp;
 use Data::Dumper;
-use POSIX qw {fmod floor ceil};
+use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use List::MoreUtils qw /first_index/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
-use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
@@ -1693,7 +1692,7 @@ sub import_data_shapefile {
         my %fld_names = map {lc ($_->{Name}) => $_->{Name}} @{$schema->{Fields}};
         foreach my $key (@label_field_names) {
             croak "Shapefile $file does not have a field called $key\n"
-              if !exists $fld_names{$key};
+              if ($key !~ /^:/) && !exists $fld_names{$key};
         }
 
         #  get a Fishnet Identity overlay if we have polygons
@@ -1962,25 +1961,59 @@ sub get_fishnet_identity_layer {
 
 
     my @group_origins = $self->get_cell_origins;
-    my @group_sizes   = $self->get_cell_sizes;
+    my @group_sizes
+      = $args{gp_sizes}
+      ? @{$args{gp_sizes}}
+      : $self->get_cell_sizes;
     
     @group_origins = @group_origins[@$axes];
     @group_sizes   = @group_sizes[@$axes];
+    
+    my $extent = $layer->GetExtent;
+    my $nx = ceil (abs ($extent->[1] - $extent->[0]) / $group_sizes[0]);
+    my $ny = ceil (abs ($extent->[3] - $extent->[2]) / $group_sizes[1]);
+    if (max ($nx, $ny) > 32) {
+        #  use a subdivide approach to handle large polygons
+        my @coarse_gp_sizes = @group_sizes;
+        $coarse_gp_sizes[0] *= 8;
+        $coarse_gp_sizes[1] *= 8;
+        my $layer2 = $self->get_fishnet_identity_layer (
+            %args,
+            gp_sizes => \@coarse_gp_sizes,
+            axes     => undef,
+            source_layer => $layer,
+            inner_buffer => $args{inner_buffer} // 'auto',
+        );
+        $layer = $layer2;
+    }
 
     my $fishnet = $self->get_fishnet_polygon_layer (
         extent => $layer->GetExtent,
-        resolutions => \@group_sizes,
-        origins     => \@group_origins,
+        resolutions  => \@group_sizes,
+        origins      => \@group_origins,
+        inner_buffer => $args{inner_buffer},
         #shape_type  => $shape_type,
         spatial_reference => $sr_clone1,
     );
 
+    my $input_layer_name = $layer->GetName;
+    my $progress_text
+      = "Processing fishnet intersection for $input_layer_name\n"
+      . "Resolution this pass: $group_sizes[0] x $group_sizes[1]";
+    my $gui_progress = Biodiverse::Progress->new(
+        gui_only => 1,
+        text     => $progress_text,
+    );
     my $last_p = time() - 1;
     my $progress = sub {
-        return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.5;
+        return 1 if $_[0] < 1 and abs(time() - $last_p) < 0.3;
         my ($fraction, $msg, $data) = @_;
         local $| = 1;
         printf "%.3g ", $fraction;
+        $gui_progress->update (
+            $progress_text . ($msg // ''),
+            $fraction,
+        );
         $last_p = time();
         1;
     };
@@ -1997,7 +2030,11 @@ sub get_fishnet_identity_layer {
     my $start_time = time();
     
     #  create the layer now so we only get polygons back
-    my $layer_name = 'overlay_result_' . Scalar::Util::refaddr ($self);
+    my $layer_name
+      = join '_',
+        'overlay_result',
+        @group_sizes,
+        Scalar::Util::refaddr ($self);
     my $overlay_result
         = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
             ->Create ('/vsimem/_' . time())
@@ -2012,6 +2049,7 @@ sub get_fishnet_identity_layer {
         PROMOTE_TO_MULTI        => 'NO',
         USE_PREPARED_GEOMETRIES => 'YES',
         PRETEST_CONTAINMENT     => 'YES',
+        #SKIP_FAILURES           => 'YES',
     };
     say 'Intersecting fishnet with feature layer';
     $layer->Intersection(
@@ -2024,7 +2062,7 @@ sub get_fishnet_identity_layer {
     );
 
     my $time_taken = time() - $start_time;
-    say "Intersection completed in $time_taken seconds";
+    say "\nIntersection completed in $time_taken seconds";
     
     #  close fishnet data set
     $fishnet = undef;
@@ -2050,7 +2088,7 @@ sub get_fishnet_polygon_layer {
     }
     #else {
     #  override
-    $out_fname = ('/vsimem/fishnet_' . time());
+    $out_fname = ('/vsimem/fishnet_' . time() . int (rand()));
     #}
     #say "Generating fishnet file $out_fname";
     my $schema = $args{schema};
@@ -2076,7 +2114,7 @@ sub get_fishnet_polygon_layer {
     #  Such cases occur when reimporting square polygons of exactly the same resolution.  
     my $bt = $args{inner_buffer} // 0;
     if ($bt eq 'auto') {
-        $bt = 10e-10 * ($resolutions->[0] + $resolutions->[1]) / 2;
+        $bt = 10e-14 * ($resolutions->[0] + $resolutions->[1]) / 2;
     }
 
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;
@@ -2109,7 +2147,6 @@ sub get_fishnet_polygon_layer {
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
     say "Driver and layer names: $driver, $out_fname";
 
-    my $fishnet_fld_name = '_fsh_name';
     my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . rand();
     my $fishnet_dataset
         = Geo::GDAL::FFI::GetDriver($driver)
@@ -2119,10 +2156,6 @@ sub get_fishnet_polygon_layer {
                 Name => $layer_name,
                 GeometryType => $shape_type,
                 SpatialReference => $sr,
-                Fields => [{
-                    Name => $fishnet_fld_name,
-                    Type => 'String'
-                }],
                 Options => {SPATIAL_INDEX => 'YES'},
         });
     #my $featureDefn = $fishnet_lyr->GetDefn();
@@ -2159,7 +2192,6 @@ sub get_fishnet_polygon_layer {
                 . '))';
             #say $poly;
             my $f = Geo::GDAL::FFI::Feature->new($fishnet_lyr->GetDefn);
-            $f->SetField($fishnet_fld_name => "$countrows x $countcols");
             $f->SetGeomField([WKT => $poly]);
             $fishnet_lyr->CreateFeature($f);
             # new envelope for next poly

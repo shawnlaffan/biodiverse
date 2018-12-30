@@ -28,6 +28,7 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
+use Alien::gdal 1.14;
 use Geo::GDAL::FFI 0.07;
 
 #  these are here for PAR purposes to ensure they get packed
@@ -1983,6 +1984,7 @@ sub get_fishnet_identity_layer {
             axes     => undef,
             source_layer => $layer,
             inner_buffer => $args{inner_buffer} // 'auto',
+            #inner_buffer => 0,
         );
         $layer = $layer2;
     }
@@ -2050,6 +2052,7 @@ sub get_fishnet_identity_layer {
         USE_PREPARED_GEOMETRIES => 'YES',
         PRETEST_CONTAINMENT     => 'YES',
         #SKIP_FAILURES           => 'YES',
+        KEEP_LOWER_DIMENSION_GEOMETRIES => 'NO',
     };
     say 'Intersecting fishnet with feature layer';
     $layer->Intersection(
@@ -2064,6 +2067,88 @@ sub get_fishnet_identity_layer {
     my $time_taken = time() - $start_time;
     say "\nIntersection completed in $time_taken seconds";
     
+    #  try some spatialite sql
+    my $fishnet_ds = $fishnet->GetParentDataset;
+    my $layer_ds   = $layer->GetParentDataset;
+    my $flyr_name  = $fishnet->GetName;
+    my $fds_name   = $fishnet_ds->GetName;
+    my $in_lyr_name = $layer->GetName;
+    #FROM "$in_lyr_name", "$fds_name"."$flyr_name"
+    #SELECT ST_Intersection("$in_lyr_name".geometry, "$fds_name"."$flyr_name".geometry)
+
+#    my $sqlz = <<"END_SQLZ"
+#SELECT pkid FROM SpatialIndex WHERE
+#    f_table_name = "$fds_name.$flyr_name" AND search_frame = "$in_lyr_name.geometry"
+#END_SQLZ
+#  ;
+#    my $xxz = eval {
+#        $layer_ds->ExecuteSQL (
+#            $sqlz,
+#            undef,
+#            'SQLite',
+#        )
+#    };
+#    my $e = $@;
+    #if (!$e) {
+    #    warn join ' ', 'Yay: ', $in_lyr_name, "$fds_name.$flyr_name\n";
+    #    if ($xxz) {
+    #        my $schema = $xxz->GetDefn->GetSchema;;
+    #        warn Dumper $schema;
+    #    }
+    #}
+    #else {
+    #    warn join ' ', 'Nay: ', $in_lyr_name, "$fds_name.$flyr_name\n";
+    #}
+    
+    my $sql = <<"END_SQL"
+SELECT ST_Intersection(A.geometry, B.geometry) AS geometry, A.*, B.*
+FROM "$in_lyr_name" A, "$fds_name"."$flyr_name" B
+WHERE
+  B.rowid IN (
+       SELECT rowid FROM SpatialIndex WHERE
+            f_table_name = "$fds_name.$flyr_name" AND search_frame = "$in_lyr_name.geometry"
+  )
+  AND
+    ST_Intersects(A.geometry, B.geometry)
+END_SQL
+  ;
+  #$sql =~ s/idx_B_geometry/idx_${fds_name}.${flyr_name}_geometry/s;
+#  B.rowid IN (
+#        SELECT pkid FROM "idx_B_geometry" WHERE
+#          xmax >= MbrMinX(A.geometry) AND xmin <= MbrMaxX(A.geometry) AND
+#          ymax >= MbrMinY(A.geometry) AND ymin <= MbrMaxY(A.geometry)
+#  )
+#AND
+#  ST_Intersects(A.geometry, B.geometry)
+
+  #WHERE
+  #B.rowid IN (
+  #     SELECT rowid FROM SpatialIndex WHERE
+  #          f_table_name = B AND search_frame = A.geometry
+  #)
+  #AND
+  #  ST_Intersects(A.geometry, B.geometry)
+  
+#       SELECT rowid FROM SpatialIndex WHERE
+#            f_table_name = B AND search_frame = A.geometry
+#SELECT ST_Intersection("$in_lyr_name".geometry, "$in_lyr_name".geometry)
+#    WHERE
+#    "$fds_name"."$flyr_name".rowid IN (
+#        SELECT rowid FROM SpatialIndex WHERE
+#            f_table_name = "$fds_name".'$flyr_name' AND search_frame = "$in_lyr_name".geometry)
+#END_SQL
+#  ;
+    my $xx = eval {
+        $layer_ds->ExecuteSQL (
+            $sql,
+            undef,
+            'SQLite',
+        );
+    };
+    my $e = $@;
+    if ($e) {
+        warn 'Bzzzt';
+    }
     #  close fishnet data set
     $fishnet = undef;
     
@@ -2082,13 +2167,16 @@ sub get_fishnet_polygon_layer {
     my $driver = $args{driver} // 'Memory';
     $driver = 'ESRI Shapefile';
 
+    state $f_vsi_incr = 0;
+    $f_vsi_incr++;
+
     my $out_fname = $args{out_fname};
     if (not $driver =~ /Memory/) {
-        $out_fname //= ('fishnet_' . time());
+        $out_fname //= ('fishnet_' . $f_vsi_incr);
     }
     #else {
     #  override
-    $out_fname = ('/vsimem/fishnet_' . time() . int (rand()));
+    $out_fname = ('/vsimem/fishnet_' . $f_vsi_incr);
     #}
     #say "Generating fishnet file $out_fname";
     my $schema = $args{schema};
@@ -2146,8 +2234,11 @@ sub get_fishnet_polygon_layer {
     
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
     say "Driver and layer names: $driver, $out_fname";
+    
+    state $f_incr = 0;
+    $f_incr++;
 
-    my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . rand();
+    my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . "_$f_incr";
     my $fishnet_dataset
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname);

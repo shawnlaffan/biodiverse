@@ -2073,71 +2073,26 @@ sub get_fishnet_identity_layer {
     my $flyr_name  = $fishnet->GetName;
     my $fds_name   = $fishnet_ds->GetName;
     my $in_lyr_name = $layer->GetName;
-    #FROM "$in_lyr_name", "$fds_name"."$flyr_name"
-    #SELECT ST_Intersection("$in_lyr_name".geometry, "$fds_name"."$flyr_name".geometry)
-
-#    my $sqlz = <<"END_SQLZ"
-#SELECT pkid FROM SpatialIndex WHERE
-#    f_table_name = "$fds_name.$flyr_name" AND search_frame = "$in_lyr_name.geometry"
-#END_SQLZ
-#  ;
-#    my $xxz = eval {
-#        $layer_ds->ExecuteSQL (
-#            $sqlz,
-#            undef,
-#            'SQLite',
-#        )
-#    };
-#    my $e = $@;
-    #if (!$e) {
-    #    warn join ' ', 'Yay: ', $in_lyr_name, "$fds_name.$flyr_name\n";
-    #    if ($xxz) {
-    #        my $schema = $xxz->GetDefn->GetSchema;;
-    #        warn Dumper $schema;
-    #    }
-    #}
-    #else {
-    #    warn join ' ', 'Nay: ', $in_lyr_name, "$fds_name.$flyr_name\n";
-    #}
     
     my $sql = <<"END_SQL"
 SELECT ST_Intersection(A.geometry, B.geometry) AS geometry, A.*, B.*
-FROM "$in_lyr_name" A, "$fds_name"."$flyr_name" B
+FROM "$in_lyr_name" AS A, "$fds_name"."$flyr_name" AS B
 WHERE
+/*  Not sure why spatial index returns nothing, but assume it is the field name */
   B.rowid IN (
        SELECT rowid FROM SpatialIndex WHERE
-            f_table_name = "$fds_name.$flyr_name" AND search_frame = "$in_lyr_name.geometry"
+            f_table_name = "$fds_name"."$flyr_name" AND search_frame = "$in_lyr_name".geometry
   )
   AND
+  /**/
     ST_Intersects(A.geometry, B.geometry)
+
 END_SQL
   ;
-  #$sql =~ s/idx_B_geometry/idx_${fds_name}.${flyr_name}_geometry/s;
-#  B.rowid IN (
-#        SELECT pkid FROM "idx_B_geometry" WHERE
-#          xmax >= MbrMinX(A.geometry) AND xmin <= MbrMaxX(A.geometry) AND
-#          ymax >= MbrMinY(A.geometry) AND ymin <= MbrMaxY(A.geometry)
-#  )
-#AND
-#  ST_Intersects(A.geometry, B.geometry)
-
-  #WHERE
-  #B.rowid IN (
-  #     SELECT rowid FROM SpatialIndex WHERE
-  #          f_table_name = B AND search_frame = A.geometry
-  #)
-  #AND
-  #  ST_Intersects(A.geometry, B.geometry)
-  
-#       SELECT rowid FROM SpatialIndex WHERE
-#            f_table_name = B AND search_frame = A.geometry
-#SELECT ST_Intersection("$in_lyr_name".geometry, "$in_lyr_name".geometry)
-#    WHERE
-#    "$fds_name"."$flyr_name".rowid IN (
-#        SELECT rowid FROM SpatialIndex WHERE
-#            f_table_name = "$fds_name".'$flyr_name' AND search_frame = "$in_lyr_name".geometry)
-#END_SQL
-#  ;
+  warn $sql;
+    #$fishnet_ds->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$flyr_name"}, undef, 'SQLite');
+    #$layer_ds->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$in_lyr_name"}, undef, 'SQLite');
+    #$fishnet_ds->ExecuteSQL(qq{DROP SPATIAL INDEX ON "$flyr_name"}, undef, 'SQLite');
     my $xx = eval {
         $layer_ds->ExecuteSQL (
             $sql,
@@ -2146,8 +2101,15 @@ END_SQL
         );
     };
     my $e = $@;
-    if ($e) {
-        warn 'Bzzzt';
+    warn $e if $e;
+    if ($xx && !$e) {
+        my $feature_count_sql = 0;
+        $feature_count_sql++ while $xx->GetNextFeature;
+        my $feature_count_ogr = 0;
+        $feature_count_ogr++ while $overlay_result->GetNextFeature;
+        warn "Counts: $feature_count_sql, $feature_count_ogr";
+        $overlay_result->ResetReading;
+        $xx->ResetReading;
     }
     #  close fishnet data set
     $fishnet = undef;

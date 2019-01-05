@@ -2066,27 +2066,35 @@ sub get_fishnet_identity_layer {
 
     my $time_taken = time() - $start_time;
     say "\nIntersection completed in $time_taken seconds";
-    
+
+    my $start_time_sql = time();    
     #  try some spatialite sql
     my $fishnet_ds = $fishnet->GetParentDataset;
+    my $layer_copy = $fishnet_ds->CopyLayer($layer, $layer->GetName);
     my $layer_ds   = $layer->GetParentDataset;
     my $flyr_name  = $fishnet->GetName;
     my $fds_name   = $fishnet_ds->GetName;
     my $in_lyr_name = $layer->GetName;
+    my $ff = $fds_name;
+    $ff =~ s/.db$//;
     
     my $sql = <<"END_SQL"
-SELECT ST_Intersection(A.geometry, B.geometry) AS geometry, A.*, B.*
-FROM "$in_lyr_name" AS A, "$fds_name"."$flyr_name" AS B
+SELECT ST_Intersection(B.geometry, A.geometry) AS geometry, A.*, B.*
+FROM "$in_lyr_name" AS A, "$flyr_name" AS B
 WHERE
 /*  Not sure why spatial index returns nothing, but assume it is the field name */
   B.rowid IN (
        SELECT rowid FROM SpatialIndex WHERE
-            f_table_name = "$fds_name"."$flyr_name" AND search_frame = "$in_lyr_name".geometry
+            f_table_name = '$flyr_name'
+            AND search_frame = A.geometry
   )
+  
   AND
-  /**/
-    ST_Intersects(A.geometry, B.geometry)
-
+    ST_Intersects(B.geometry, A.geometry)
+    AND
+    -- Need to update to work with lines
+    Dimension (ST_Intersection(B.geometry, A.geometry)) == 2
+    
 END_SQL
   ;
   warn $sql;
@@ -2094,7 +2102,7 @@ END_SQL
     #$layer_ds->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$in_lyr_name"}, undef, 'SQLite');
     #$fishnet_ds->ExecuteSQL(qq{DROP SPATIAL INDEX ON "$flyr_name"}, undef, 'SQLite');
     my $xx = eval {
-        $layer_ds->ExecuteSQL (
+        $fishnet_ds->ExecuteSQL (
             $sql,
             undef,
             'SQLite',
@@ -2102,6 +2110,9 @@ END_SQL
     };
     my $e = $@;
     warn $e if $e;
+    if (!$xx) {
+        warn 'UNDEF RESULT SET';
+    }
     if ($xx && !$e) {
         my $feature_count_sql = 0;
         $feature_count_sql++ while $xx->GetNextFeature;
@@ -2111,6 +2122,10 @@ END_SQL
         $overlay_result->ResetReading;
         $xx->ResetReading;
     }
+    
+    my $end_time_sql = time() - $start_time_sql;
+    say "Time taken for sql approach: $end_time_sql seconds";
+    
     #  close fishnet data set
     $fishnet = undef;
     
@@ -2128,14 +2143,15 @@ sub get_fishnet_polygon_layer {
     
     my $driver = $args{driver} // 'Memory';
     $driver = 'ESRI Shapefile';
+    #$driver = 'SQLite';
 
     state $f_vsi_incr = 0;
     $f_vsi_incr++;
 
     my $out_fname = $args{out_fname};
-    if (not $driver =~ /Memory/) {
-        $out_fname //= ('fishnet_' . $f_vsi_incr);
-    }
+    #if (not $driver =~ /Memory/) {
+    #    $out_fname //= ('fishnet_' . $f_vsi_incr);
+    #}
     #else {
     #  override
     $out_fname = ('/vsimem/fishnet_' . $f_vsi_incr);
@@ -2146,6 +2162,15 @@ sub get_fishnet_polygon_layer {
     my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
     my $sr = $args{spatial_reference} // ($schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef);
 
+    if ($driver eq 'SQLite') {
+        #$out_fname .= '.db';
+        #  dodgy default
+        $sr //= <<END_WKT
+PROJCS["World_Mollweide",GEOGCS["GCS_WGS_1984",DATUM["WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Mollweide"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["Central_Meridian",0],UNIT["Meter",1],AUTHORITY["EPSG","54009"]]
+END_WKT
+        #'+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+    }
+    
     if (!blessed $sr) {
         $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
     }
@@ -2262,7 +2287,9 @@ sub get_fishnet_polygon_layer {
     #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
     
     #my $layer_name = $fishnet_lyr->GetName;
-    $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
+    if ($driver ne 'SQLite') {
+        $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
+    }
 
     return wantarray ? ($fishnet_dataset, $fishnet_lyr) : $fishnet_lyr;
 }

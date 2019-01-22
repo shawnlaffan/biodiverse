@@ -2067,64 +2067,64 @@ sub get_fishnet_identity_layer {
     my $time_taken = time() - $start_time;
     say "\nIntersection completed in $time_taken seconds";
 
-    my $start_time_sql = time();    
-    #  try some spatialite sql
-    my $fishnet_ds = $fishnet->GetParentDataset;
-    my $layer_copy = $fishnet_ds->CopyLayer($layer, $layer->GetName);
-    my $layer_ds   = $layer->GetParentDataset;
-    my $flyr_name  = $fishnet->GetName;
-    my $fds_name   = $fishnet_ds->GetName;
-    my $in_lyr_name = $layer->GetName;
-    my $ff = $fds_name;
-    $ff =~ s/.db$//;
-    
-    my $sql = <<"END_SQL"
-SELECT ST_Intersection(B.geometry, A.geometry) AS geometry, A.*, B.*
-FROM "$in_lyr_name" AS A, "$flyr_name" AS B
-WHERE
-/*  Not sure why spatial index returns nothing, but assume it is the field name */
-  B.rowid IN (
-       SELECT rowid FROM SpatialIndex WHERE
-            f_table_name = '$flyr_name'
-            AND search_frame = A.geometry
-  )
-  
-  AND
-    ST_Intersects(B.geometry, A.geometry)
-    AND
-    -- Need to update to work with lines
-    Dimension (ST_Intersection(B.geometry, A.geometry)) == 2
-    
-END_SQL
-  ;
-  warn $sql;
+#    my $start_time_sql = time();    
+#    #  try some spatialite sql
+#    my $fishnet_ds = $fishnet->GetParentDataset;
+#    my $layer_copy = $fishnet_ds->CopyLayer($layer, $layer->GetName);
+#    my $layer_ds   = $layer->GetParentDataset;
+#    my $flyr_name  = $fishnet->GetName;
+#    my $fds_name   = $fishnet_ds->GetName;
+#    my $in_lyr_name = $layer->GetName;
+#    my $ff = $fds_name;
+#    $ff =~ s/.db$//;
+#    
+#    my $sql = <<"END_SQL"
+#SELECT ST_Intersection(B.geometry, A.geometry) AS geometry, A.*, B.*
+#FROM "$in_lyr_name" AS A, "$flyr_name" AS B
+#WHERE
+#/*  Not sure why spatial index returns nothing, but assume it is the field name */
+#  B.rowid IN (
+#       SELECT rowid FROM SpatialIndex WHERE
+#            f_table_name = '$flyr_name'
+#            AND search_frame = A.geometry
+#  )
+#  
+#  AND
+#    ST_Intersects(B.geometry, A.geometry)
+#    AND
+#    -- Need to update to work with lines
+#    Dimension (ST_Intersection(B.geometry, A.geometry)) == 2
+#    
+#END_SQL
+#  ;
+  #warn $sql;
     #$fishnet_ds->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$flyr_name"}, undef, 'SQLite');
     #$layer_ds->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$in_lyr_name"}, undef, 'SQLite');
     #$fishnet_ds->ExecuteSQL(qq{DROP SPATIAL INDEX ON "$flyr_name"}, undef, 'SQLite');
-    my $xx = eval {
-        $fishnet_ds->ExecuteSQL (
-            $sql,
-            undef,
-            'SQLite',
-        );
-    };
-    my $e = $@;
-    warn $e if $e;
-    if (!$xx) {
-        warn 'UNDEF RESULT SET';
-    }
-    if ($xx && !$e) {
-        my $feature_count_sql = 0;
-        $feature_count_sql++ while $xx->GetNextFeature;
-        my $feature_count_ogr = 0;
-        $feature_count_ogr++ while $overlay_result->GetNextFeature;
-        warn "Counts: $feature_count_sql, $feature_count_ogr";
-        $overlay_result->ResetReading;
-        $xx->ResetReading;
-    }
-    
-    my $end_time_sql = time() - $start_time_sql;
-    say "Time taken for sql approach: $end_time_sql seconds";
+    #my $xx = eval {
+    #    $fishnet_ds->ExecuteSQL (
+    #        $sql,
+    #        undef,
+    #        'SQLite',
+    #    );
+    #};
+    #my $e = $@;
+    #warn $e if $e;
+    #if (!$xx) {
+    #    warn 'UNDEF RESULT SET';
+    #}
+    #if ($xx && !$e) {
+    #    my $feature_count_sql = 0;
+    #    $feature_count_sql++ while $xx->GetNextFeature;
+    #    my $feature_count_ogr = 0;
+    #    $feature_count_ogr++ while $overlay_result->GetNextFeature;
+    #    warn "Counts: $feature_count_sql, $feature_count_ogr";
+    #    $overlay_result->ResetReading;
+    #    $xx->ResetReading;
+    #}
+#    
+    #my $end_time_sql = time() - $start_time_sql;
+    #say "Time taken for sql approach: $end_time_sql seconds";
     
     #  close fishnet data set
     $fishnet = undef;

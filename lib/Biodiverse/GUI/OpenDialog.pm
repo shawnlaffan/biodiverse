@@ -11,7 +11,7 @@ use Gtk2;
 
 use Cwd;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Ref::Util qw { :all };

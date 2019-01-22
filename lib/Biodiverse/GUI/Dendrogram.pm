@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
@@ -1450,6 +1450,12 @@ sub setup_map_list_model {
     }
 
     return;
+}
+
+sub update_map_list_model {
+    my $self = shift;
+    
+    $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );    
 }
 
 # Provides list of map indices for tab to use as it sees fit.

@@ -6,9 +6,9 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-use Sort::Naturally qw /nsort ncmp/;
+use Sort::Key::Natural qw /natsort mkkey_natural/;
 
-use List::MoreUtils qw /firstidx/;
+use List::MoreUtils qw /firstidx any/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
@@ -26,7 +26,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -401,6 +401,9 @@ sub init_list {
         $sort_func = \&sort_by_column_numeric_labels;
         $start_col = 0;
     }
+    else {
+        $wrapper_model->set_sort_func (0, \&sort_label_column);
+    }
 
     #  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
@@ -424,6 +427,14 @@ sub init_list {
     return;
 }
 
+sub sort_label_column {
+    my ($liststore, $itera, $iterb) = @_;
+        
+    return
+      mkkey_natural $liststore->get($itera, 0)
+      cmp
+      mkkey_natural $liststore->get($iterb, 0);
+}
 
 #  sort by this column, then by labels column (always ascending)
 #  labels column should not be hardcoded if we allow re-ordering of columns
@@ -440,7 +451,9 @@ sub sort_by_column {
 
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-        || $label_order * ncmp ($liststore->get($itera, 0), $liststore->get($iterb, 0));
+        || $label_order
+          *   mkkey_natural ($liststore->get($itera, 0))
+          cmp mkkey_natural ($liststore->get($iterb, 0));
 }
 
 sub sort_by_column_numeric_labels {
@@ -484,7 +497,7 @@ sub make_labels_model {
         {$selected_list2_name => 'Int'},
     );
 
-#my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
+
     my $label_type = 'Glib::String';
 
     my @types = ($label_type);
@@ -501,12 +514,10 @@ sub make_labels_model {
 
     my $labels = $base_ref->get_labels();
 
-    #my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : \&ncmp;
     my @sorted_labels = $base_ref->labels_are_numeric
         ? sort {$a <=> $b} @$labels
-        : nsort @$labels;
+        : natsort @$labels;
 
-    #foreach my $label (sort $sort_func @labels) {
     foreach my $label (@sorted_labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
@@ -543,32 +554,34 @@ sub remove_selected_labels_from_list {
     my $model1 = $treeview1->get_model;
     my $model2 = $treeview2->get_model;
 
-    $self->{ignore_selection_change} = 1;
+    local $self->{ignore_selection_change} = 1;
+
     $treeview1->set_model(undef);
     $treeview2->set_model(undef);
 
-    # Convert paths to row references
+    # Convert paths to row references first
     my @rowrefs;
     foreach my $path (@paths) {
         my $treerowreference = Gtk2::TreeRowReference->new ($model1, $path);
         push @rowrefs, $treerowreference;
     }
-
+    
+    #  now we delete them
+    #  (cannot delete as we go as the paths and iters
+    #   are affected by the deletions)
     foreach my $rowref (@rowrefs) {
         my $path = $rowref->get_path;
         next if !defined $path;
-        my $iter = $global_model->get_iter($path);
-        $global_model->remove($iter);
+        my $iter  = $model1->get_iter($path);
+        my $iter1 = $model1->convert_iter_to_child_iter($iter);
+        $global_model->remove($iter1);
     }
 
     $treeview1->set_model ($model1);
     $treeview2->set_model ($model2);
 
     #  need to update the matrix if it is displayed
-    #  but for some reason we aren't resetting all its rows and cols
     $self->on_selected_matrix_changed (redraw => 1);
-
-    delete $self->{ignore_selection_change};
 
     return;
 }
@@ -782,22 +795,25 @@ sub on_selected_matrix_changed {
 
     my $list = $xml_page->get_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
+    
+    my $labels_are_in_mx = $self->some_labels_are_in_matrix;
 
-    if (! defined $matrix_ref) {
-        $list_window->hide;     #  hide the second list
-        $col->set_visible (0);  #  hide the list 2 selection
-        #    col from list 1
+    if (!$labels_are_in_mx || ! defined $matrix_ref) {
+        #  hide the second list and the list 2 selection col
+        $list_window->hide;
+        $col->set_visible (0);
     }
     else {
         $list_window->show;
         $col->set_visible (1);
     }
 
-    $self->{matrix_drawable} = $self->get_label_count_in_matrix;
-
     # matrix
-    $self->on_sorted(%args); # (this reloads the whole matrix anyway)
-    $self->{matrix_grid}->zoom_fit();
+    $self->{matrix_drawable} = $labels_are_in_mx;
+    if ($labels_are_in_mx) {
+        $self->on_sorted(%args); # (this reloads the whole matrix anyway)
+        $self->{matrix_grid}->zoom_fit();
+    }
 
     return;
 }
@@ -1172,6 +1188,21 @@ sub get_label_count_in_matrix {
     return $mx_count != scalar keys %mx_elements;
 }
 
+sub some_labels_are_in_matrix {
+    my $self = shift;
+
+    return if !$self->{matrix_ref};
+
+    my $l1 = $self->{base_ref}->get_labels_ref->get_element_hash;
+    my $l2 = $self->{matrix_ref}->get_elements;
+    #  iterate through the shorter of the two key sets
+    if (scalar keys %$l1 > scalar keys %$l2) {
+        ($l1, $l2) = ($l2, $l1);
+    };
+    
+    return any {exists $l2->{$_}} keys %$l1;
+}
+
 ##################################################
 # Grid events
 ##################################################
@@ -1542,7 +1573,7 @@ sub show_phylogeny_groups {
 
     # For each element, get its groups and put into %total_groups
     my %total_groups;
-    foreach my $element (nsort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $ref = eval {$basedata_ref->get_groups_with_label_as_hash(label => $element)};
 
         next if !$ref || !scalar keys %$ref;
@@ -1572,7 +1603,7 @@ sub show_phylogeny_labels {
     my $elements = $node_ref->get_terminal_elements;
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    foreach my $element (nsort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
         my $iter = $model->append;
         $model->set($iter, 0,$element,  1, $count);
@@ -1594,7 +1625,7 @@ sub show_phylogeny_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (nsort keys %$node_hash) {
+    foreach my $element (natsort keys %$node_hash) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

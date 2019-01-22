@@ -1,5 +1,6 @@
 
-requires 'Geo::GDAL';
+requires 'Sort::Key::Natural';
+requires 'List::Unique::DeterministicOrder';
 requires 'Ref::Util';
 requires 'Scalar::Util::Numeric';
 requires 'Task::Biodiverse::NoGUI', '1.0001';
@@ -45,13 +46,14 @@ requires "Getopt::Long::Descriptive";
 requires "Sereal", "3";
 requires "Cpanel::JSON::XS", "3";
 requires "JSON::MaybeXS", "1.003";
-requires "Sort::Naturally";
+requires "Sort::Key::Natural";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
 requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
 requires "Statistics::Sampler::Multinomial";
+requires "List::Unique::DeterministicOrder";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

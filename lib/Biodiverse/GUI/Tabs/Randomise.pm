@@ -1,6 +1,6 @@
 package Biodiverse::GUI::Tabs::Randomise;
 
-use 5.016;
+use 5.020;
 use strict;
 use warnings;
 use Carp;
@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Gtk2;
 use Biodiverse::Randomise;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -721,6 +721,12 @@ sub on_run {
     $self->update_iterations_count_label (
         $output_ref->get_param ('TOTAL_ITERATIONS')
     );
+    
+    print "";
+    $self->{gui}->update_open_tabs_after_randomisation (
+        basedata_ref => $basedata_ref,
+        list_prefix  => $name,
+    );
 
     $self->{project}->set_dirty;
 
@@ -746,8 +752,7 @@ sub get_parameter_settings_for_func {
 
     #say join ' ', @needed_params;
 
-    my %p_subset;
-    @p_subset{@needed_params} = @param_hash{@needed_params};
+    my %p_subset = %param_hash{@needed_params};
 
     return wantarray ? %p_subset : \%p_subset;
 }

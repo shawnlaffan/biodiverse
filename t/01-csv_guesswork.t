@@ -24,6 +24,7 @@ test_eol();
 test_guesswork();
 test_mixed_sep_chars();
 test_sep_char();
+test_escape_char();
 
 
 done_testing();
@@ -58,6 +59,56 @@ sub test_sep_char {
     
         is ($sep_char, $sep, "field separator is '$sep'");
     }
+}
+
+sub test_escape_char {
+    my $obj = Biodiverse::BaseStruct->new(name => 'x');
+
+    my $sep = ',';
+    my ($sep_char, $escape_char, $string);
+    
+    $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","""col2"""\n};
+    $sep_char = $obj->guess_field_separator(string => $string);
+    is ($sep_char, $sep, qq{field separator is , when escape char is double quote char});
+    $escape_char = $obj->guess_escape_char (string => $string);
+    
+    my $csv = Text::CSV_XS->new ({
+        sep_char    => $sep_char,
+        quote_char  => '"',
+        escape_char => $escape_char,
+    });
+    my @fld_counts;
+    foreach my $line (split "\n", $string) {
+        my $status = $csv->parse ($line);
+        my @flds = $csv->fields;
+        push @fld_counts, scalar @flds;
+    }
+    is_deeply ([2,2,2], \@fld_counts, 'got expected field counts');
+    
+    #  now with \ as escape char
+    $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","[\\"col2\\"]"\n};
+    $sep_char = $obj->guess_field_separator(string => $string);
+    is ($sep_char, $sep, "field separator is , when escape char is \\");
+    $escape_char = $obj->guess_escape_char (string => $string);
+    
+    $csv = Text::CSV_XS->new ({
+        sep_char    => $sep_char,
+        quote_char  => '"',
+        escape_char => $escape_char,
+    });
+    @fld_counts = ();
+    foreach my $line (split "\n", $string) {
+        my $status = $csv->parse ($line);
+        my @flds  = $csv->fields;
+        push @fld_counts, scalar @flds;
+    }
+    is_deeply ([2,2,2], \@fld_counts, 'got expected field counts');
+    
+    $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","col2\\\\"""\n};
+    #$sep_char = $obj->guess_field_separator(string => $string);
+    #is ($sep_char, $sep, "field separator is , when escape char is \\");
+    $escape_char = $obj->guess_escape_char (string => $string);
+    is ($escape_char, '"', 'got quote char of " when \\ is escaped');
 }
 
 sub test_mixed_sep_chars {

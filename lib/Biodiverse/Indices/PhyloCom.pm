@@ -15,7 +15,7 @@ use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -28,7 +28,7 @@ my $prng_class = 'Math::Random::MT::Auto';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
-my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
+my $webb_et_al_ref = 'Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358';
 
 
 my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'

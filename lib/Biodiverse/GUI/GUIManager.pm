@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 #use Data::Dumper;
 use Carp;
@@ -20,7 +20,7 @@ use Path::Class ();
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
 
-use Biodiverse::Config;
+require Biodiverse::Config;
 
 require Biodiverse::GUI::Project;
 require Biodiverse::GUI::BasedataImport;
@@ -38,7 +38,6 @@ use Biodiverse::GUI::DeleteElementProperties;
 
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;
-require Biodiverse::Config;
 require Biodiverse::GUI::RemapGUI;
 require Biodiverse::Remap;
 
@@ -54,8 +53,7 @@ my $singleton;
 
 BEGIN {
     $singleton = {
-        project =>
-          undef,    # Our subclass that inherits from the main Biodiverse object
+        project  => undef,    # Our subclass that inherits from the main Biodiverse object
         gladexml => undef,    # Main window widgets
         tabs => [],    # Stores refs to Tabs objects. In order of page index.
         progress_bars => undef,
@@ -3303,6 +3301,33 @@ sub warn_outputs_exist_if_randomisation_run {
 
     return $response;
 }
+
+
+sub update_open_tabs_after_randomisation {
+    my ($self, %args) = @_;
+    
+    my $base_ref = $args{basedata_ref};
+    croak 'basedata_ref arg not defined' if !defined $base_ref;
+    my $list_prefix = $args{list_prefix};
+    
+    my $tab_array = $self->{tabs};
+    
+    foreach my $tab ( @$tab_array ) {
+        next if ( blessed $tab ) =~ /Outputs$/;
+        #  these have no lists that need to be updated
+        next if ( blessed $tab ) =~ /Randomise|SpatialMatrix/;
+        
+        my $bd = $tab->get_base_ref;
+        next if $base_ref ne $bd;
+        
+        $tab->update_display_list_combos (
+            list_prefix => $list_prefix,
+        );
+    }
+    
+}
+
+
 
 1;
 

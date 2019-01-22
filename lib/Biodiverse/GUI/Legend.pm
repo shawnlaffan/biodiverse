@@ -20,7 +20,7 @@ use Tree::R;
 
 #use Geo::ShapeFile;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -448,7 +448,12 @@ sub get_colour {
         $val = $max;
     }
     if ($self->get_log_mode) {
-        $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+        if ($max != $min) {
+            $val = log (1 + 100 * ($val - $min) / ($max - $min)) / log (101);
+        }
+        else {
+            $val = 0;
+        }
         $min = 0;
         $max = 1;
     }

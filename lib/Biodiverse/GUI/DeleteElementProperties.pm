@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Gtk2;
 #use Biodiverse::RemapGuesser qw/guess_remap/;
@@ -13,7 +13,7 @@ use Gtk2;
 use Biodiverse::GUI::GUIManager;
 
 use Scalar::Util qw /blessed/;
-use Sort::Naturally;
+use Sort::Key::Natural qw /natsort/;
 
 use constant DEFAULT_DIALOG_HEIGHT => 500;
 use constant DEFAULT_DIALOG_WIDTH  => 600;
@@ -117,7 +117,7 @@ sub build_tree_from_list {
     my $title = $args{ title } // '';
     
     # fill model with content
-    foreach my $item (nsort @$list) {
+    foreach my $item (natsort @$list) {
         my $iter = $model->append(undef);
         $model->set($iter, 1, $item);
     }

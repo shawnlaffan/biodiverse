@@ -29,7 +29,7 @@ use Ref::Util qw { :all };
 
 use Biodiverse::Progress;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use parent qw /Biodiverse::Common/;
 
@@ -205,9 +205,8 @@ sub snap_to_index {
             if ($self->{VERSION}) {
                 #  how many cells away from the origin are we?
                 #  snap to 10dp precision to avoid floating point precision issues
-                my $tmp_prec = $self->set_precision_aa (
+                my $tmp_prec = $self->round_to_precision_aa (
                     $columns[$i] / $index_res[$i],
-                    '%.10f',
                 );
                 my $offset = floor ($tmp_prec);
                 #  and shift back to index units
@@ -457,7 +456,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         $ranges[$i] = $maxima->[$i] - $minima->[$i];
         $index_resolutions->[$i] =~  /^(\d*\.){1}(\d*)/;  #  match after decimal will be $2
         my $decimal_len = length (defined $2 ? $2 : q{});
-        $index_res_precision[$i] = "%.$decimal_len" . "f";  #  count the numbers at the end after the decimal place
+        #$index_res_precision[$i] = "%.$decimal_len" . "f";  #  count the numbers at the end after the decimal place
+        $index_res_precision[$i] = $decimal_len ? (10 ** $decimal_len) : undef;
     }
 
     my $subset_search_offsets;
@@ -634,11 +634,12 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 my @offset_list;
                 foreach my $i (0 .. $#$extreme_ref) {
                     push @offset_list,
-                        0
-                        + $self->set_precision_aa (
+                        $index_res_precision[$i]
+                          ? $self->round_to_precision_aa (
                                 $element_ref->[$i] - $extreme_ref->[$i],
                                 $index_res_precision[$i],
-                        );
+                          )
+                          : $element_ref->[$i] - $extreme_ref->[$i];
                 }
                 #  We only ever have numbers here so there is
                 #  no need for csv quoting to kick in.

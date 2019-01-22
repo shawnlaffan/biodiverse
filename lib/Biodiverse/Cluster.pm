@@ -15,7 +15,7 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Time::HiRes qw /time/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -120,18 +120,25 @@ sub get_metadata_export_nexus {
 sub export_nexus {
     my ($self, %args) = @_;
 
-    #  trigger early exit if we cannot open these files.
     my $list_name = 'COLOUR';
-    my $clr_fname = $args{file} . '_' . $list_name . '.clr';
-    my $qml_fname = $args{file} . '_' . $list_name . '.txt';
-    open my $fh_clr, '>', $clr_fname
-      or croak "Unable to open ESRI color map file for writing\n$!";
-    open my $fh_qml, '>', $qml_fname
-      or croak "Unable to open QGIS color map file for writing\n$!";
+    my ($fh_clr, $fh_qml);
+    
+    #  trigger early exit if we cannot open these files.
+    if ($args{generate_geotiff}) {
+        my $clr_fname = $args{file} . '_' . $list_name . '.clr';
+        my $qml_fname = $args{file} . '_' . $list_name . '.txt';
+        open $fh_clr, '>', $clr_fname
+          or croak "Unable to open ESRI color map file for writing\n$!";
+        open $fh_qml, '>', $qml_fname
+          or croak "Unable to open QGIS color map file for writing\n$!";
+    }
     
     #  do the tree
     $self->SUPER::export_nexus (%args);
-    
+
+    #  drop out of we don't need the geotiff    
+    return if !$args{generate_geotiff};
+
     #  now do the spatial part
     my $bd = $self->get_basedata_ref;
     my $gp = $bd->get_groups_ref;
@@ -2163,31 +2170,31 @@ sub link_recalculate {
     );
 
     if ($cache_abc) {
-        #  dodgy way of getting at them - what if we have calc_abc and calc_abc3 as deps?
-        my $abc = {};
         my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
-        foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
-            if (exists $as_results_from->{$calc_abc_type}) {
-                $abc = $as_results_from->{$calc_abc_type};
-                last;
-            }
-        }
+        my @abc_types
+            = grep {exists $as_results_from->{$_}}
+              qw /calc_abc3 calc_abc2 calc_abc/;
+        
+        #  don't use cache if we have more than one calc_abc result type
+        #  (although it might really only be an issue if we have types 2 and 3)
+        if (scalar @abc_types == 1) {
+            my $abc = $as_results_from->{$abc_types[0]};
 
-        #  use cache unless told not to
-        if (not defined $label_hash2 and defined $check_node_ref) {
-            $check_node_ref->set_cached_value (
-                LABEL_HASH => $abc->{label_hash2}
-            );
-        }
-        if (not defined $label_hash1) {
-            if (defined $node1_ref) {
-                $node1_ref->set_cached_value (
-                    $node1_2_cache_name => $abc->{label_hash1}
+            if (not defined $label_hash2 and defined $check_node_ref) {
+                $check_node_ref->set_cached_value (
+                    LABEL_HASH => $abc->{label_hash2}
                 );
             }
-            if (defined $node2_ref) {
-                $node2_ref->set_cached_value (
-                    $node2_1_cache_name => $abc->{label_hash1});
+            if (not defined $label_hash1) {
+                if (defined $node1_ref) {
+                    $node1_ref->set_cached_value (
+                        $node1_2_cache_name => $abc->{label_hash1}
+                    );
+                }
+                if (defined $node2_ref) {
+                    $node2_ref->set_cached_value (
+                        $node2_1_cache_name => $abc->{label_hash1});
+                }
             }
         }
     }

@@ -76,8 +76,8 @@ sub get_basedata_object_for_save_and_reload_tests {
         name       => 'Test save, reload and clone',
         x_spacing => 1,
         y_spacing => 1,
-        x_max     => 50,
-        y_max     => 50,
+        x_max     => 13,
+        y_max     => 13,
         x_min     => 1,
         y_min     => 1,
         count     => 1,
@@ -90,8 +90,8 @@ sub get_basedata_object_for_save_and_reload_tests {
     $bd->build_spatial_index (resolutions => [@cell_sizes]);
     #$bd->save_to (filename => 'xx.bdy');
 
-    my $cond = ['sp_circle (radius => 10)', 'sp_circle (radius => 20)'];
-    my $defq = '$y > 25';
+    my $cond = ['sp_circle (radius => 2.5)', 'sp_circle (radius => 5)'];
+    my $defq = '$y > 6';
 
     my $sp = $bd->add_spatial_output (
         name => 'Spatial',

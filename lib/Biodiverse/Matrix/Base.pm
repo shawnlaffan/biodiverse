@@ -10,7 +10,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Exception;
 use Ref::Util qw { :all };
@@ -177,8 +177,7 @@ sub load_data {
     my $self = shift;
     my %args = @_;
     my $file = $args{file}
-                || $self->get_param('FILE')
-                || croak "FILE NOT SPECIFIED in call to load_data\n";
+        // croak "FILE NOT SPECIFIED in call to load_data\n";
 
     my $element_properties = $args{element_properties};
     my @label_columns      = @{$self->get_param('ELEMENT_COLUMNS')};
@@ -196,25 +195,6 @@ sub load_data {
       if $label_col_count != $orig_label_col_count;
 
     say "[MATRICES] INPUT MATRIX FILE: $file";
-    #open (my $fh1, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
-    #my $header = <$fh1>;  #  get header line
-    #$fh1->close;
-
-    #my $in_sep_char = $args{sep_char};
-    #if (! defined $in_sep_char) {
-    #    $in_sep_char = $self->guess_field_separator (string => $header);
-    #}
-    #my $eol = $self->guess_eol (string => $header);
-
-    #  Re-open the file as the header is often important to us
-    #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
-    #open (my $fh2, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
-    #my $whole_file;
-    #do {
-    #    local $/ = undef;  #  slurp whole file  IS THIS A GOOD IDEA???
-    #    $whole_file = <$fh2>;
-    #};
-    #$fh2->close();  #  go back to the beginning
 
     my $IDcount = 0;
     my %label_list;

@@ -7,10 +7,10 @@ use warnings;
 use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Gtk2;
 
@@ -226,7 +226,7 @@ sub make_neighbours_model {
     my $label_hash_all = $neighbours->{label_hash_all};
     my ($in1, $in2);
 
-    foreach my $label (nsort keys %{$label_hash_all}) {
+    foreach my $label (natsort keys %{$label_hash_all}) {
 
         $in1 = exists $label_hash1->{$label} ? 1 : 0;
         $in2 = exists $label_hash2->{$label} ? 1 : 0;
@@ -271,7 +271,7 @@ sub show_all_labels {
         
         my @labels = $labels_are_numeric
             ? sort {$a <=> $b} keys %$labels_hash
-            : nsort keys %$labels_hash;
+            : natsort keys %$labels_hash;
 
         foreach my $label (@labels) {
 
@@ -317,7 +317,7 @@ sub show_properties {
             'Glib::String',
         );
 
-        foreach my $prop (nsort keys %properties) {
+        foreach my $prop (natsort keys %properties) {
 
             my $count = $properties{$prop};
             my $iter  = $model->append;
@@ -368,7 +368,7 @@ sub show_output_list {
         
         my @keys = $numeric
             ? sort {$a <=> $b} keys %$list_ref
-            : nsort keys %$list_ref;
+            : natsort keys %$list_ref;
 
         foreach my $key (@keys) {
             my $val = $list_ref->{$key} // "";  #  zeros are valid values
@@ -393,7 +393,7 @@ sub show_output_list {
         
         my @keys = $numeric
             ? sort {$a <=> $b} @$list_ref
-            : nsort keys @$list_ref;
+            : natsort keys @$list_ref;
 
         foreach my $elt (@keys) {
             #print "[Cell popup] Adding output array entry $elt\n";

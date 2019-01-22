@@ -4,7 +4,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Ref::Util qw { :all };
 
@@ -374,7 +374,7 @@ sub get_metadata_calc_lbprop_gistar {
     my $self = shift;
 
     my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets';
-    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %metadata = (
         description     => $desc,

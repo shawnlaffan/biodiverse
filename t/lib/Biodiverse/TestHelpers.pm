@@ -11,7 +11,7 @@ use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
 $| = 1;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -714,7 +714,7 @@ sub get_temp_file_path {
 sub write_data_to_file {
     my ($fname, $data) = @_;
     open(my $fh, '>', $fname) or die "write_data_file: Cannot open $fname\n";
-    print $fh $data;
+    print {$fh} $data;
     $fh->close;
 }
 

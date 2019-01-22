@@ -18,7 +18,7 @@ use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 use Biodiverse::Progress;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use parent qw /Biodiverse::Common/;
 
@@ -582,9 +582,8 @@ sub read_whole_file {
     croak "file arg not specified\n"
         if not defined $file;
 
-    #  now we open the file and suck it al in
-    my $fh;
-    open ($fh, '<:via(File::BOM)', $file)
+    #  now we open the file and suck it all in
+    open (my $fh, '<:via(File::BOM)', $file)
       or croak "[READNEXUS] cannot open $file for reading, $!\n";
 
     my $text;
@@ -594,7 +593,7 @@ sub read_whole_file {
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
-    $fh->close || croak "Cannot close $file\n";
+    $fh->close or warn "[READNEXUS] Cannot close $file, $!\n";
 
     return $text;
 }

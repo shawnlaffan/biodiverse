@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -336,7 +336,7 @@ sub get_metadata_calc_gpprop_gistar {
     my $self = shift;
 
     my $desc = 'List of Getis-Ord Gi* statistics for each group property across both neighbour sets';
-    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. https://doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %metadata = (
         description     => $desc,

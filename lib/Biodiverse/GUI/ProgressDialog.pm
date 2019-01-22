@@ -11,13 +11,13 @@ use 5.010;
 use Glib qw (TRUE FALSE);
 use Gtk2;
 use Carp;
-use Time::HiRes qw/tv_interval gettimeofday/;
+use Time::HiRes qw/time/;
 use Data::Dumper;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 my $TRUE  = 'TRUE';
 my $FALSE = 'FALSE';
@@ -63,9 +63,7 @@ sub new {
     $self->update ($text, $progress);
 
     #  set the last update time back so we always trigger on the first update
-    my $last_update_time = [gettimeofday];
-    $last_update_time->[0] -= 2 * $progress_update_interval;
-    $self->{last_update_time} = $last_update_time;
+    $self->{last_update_time} = time - 2 * $progress_update_interval;
 
     return $self;
 }
@@ -116,45 +114,37 @@ sub update {
 
     return if not defined $progress;  #  should croak?
 
-    if (not defined $text) {
-        $text = join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
-    }
+    $progress >= 0 and $progress <= 1
+      or Biodiverse::GUI::ProgressDialog::Bounds->throw(
+          message =>
+              "ERROR [ProgressDialog] progress is "
+            . "$progress (not between 0 & 1)",
+      );
 
-    if ($progress < 0 or $progress > 1) {
-        Biodiverse::GUI::ProgressDialog::Bounds->throw(
-            message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
-        );
-    }
-
-    # get widgets and check if window closed
-    my $label_widget = $self->{label_widget};
-    my $bar = $self->{progress_bar};
-    if (not defined $bar) {
-        say 'Update called when progress bar not defined, throwing';
-        Biodiverse::GUI::ProgressDialog::Cancel->throw(
+    # check if window closed
+    my $bar = $self->{progress_bar}
+      // Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => 'Progress bar closed, operation cancelled',
         );
-    }
+    
 
     return if $self->{last_update_time}
-              && !(  tv_interval ($self->{last_update_time})
-                    > $self->{progress_update_interval}
-                   );
+              and time - $self->{last_update_time}
+                    < $self->{progress_update_interval};
 
-    $self->{last_update_time} = [gettimeofday];
+    $self->{last_update_time} = time;
 
-    #$self->{dlg}->present;  #  raise to top
+    $text //= join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
 
     # update dialog
-    if ($label_widget) {
-        $label_widget->set_markup("<b>$text</b>");
-    }
+    $self->{label_widget}->set_markup("<b>$text</b>")
+      if $self->{label_widget};
 
     $self->{pulse} = 0;
 
     $bar->set_fraction($progress);
 
-    while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+    Gtk2->main_iteration while Gtk2->events_pending;
 
     Biodiverse::GUI::GUIManager->instance->show_progress;
 
@@ -181,31 +171,34 @@ sub pulsate {
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
         );
     }
-    else {
-        # update dialog
-        my $label_widget = $self->{label_widget};
-        if ($label_widget) {
-            $label_widget->set_markup("<b>$text</b>");
-        }
 
-        my $bar = $self->{bar};
-        $bar->set_pulse_step ($progress);
-        #$bar->pulse;
-
-        if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
-            print "Starting pulse\n";
-            $self->{pulse} = 1;
-            my $x = Glib::Timeout->add(10, \&pulse_progress_bar, [$self, $bar]);
-            #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
-            #my $y = $x;
-        }
-
-        # process Gtk events - does this do the right thing?
-        while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-        #  bad idea this one.  It pulses without end.
-        #Gtk2->main;
+    # update dialog
+    my $label_widget = $self->{label_widget};
+    if ($label_widget) {
+        $label_widget->set_markup("<b>$text</b>");
     }
+
+    my $bar = $self->{progress_bar};
+    $bar->set_pulse_step ($progress);
+    $bar->show;
+    #$bar->pulse;
+
+    if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
+        print "Starting pulse\n";
+        $self->{pulse} = 1;
+        my $timer = Glib::Timeout->add(100, \&pulse_progress_bar, [$self, $bar]);
+        #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
+        #my $y = $x;
+        $self->{pulse} = $timer;
+        
+        #my $t2 = Glib::Timeout->add(100, sub {say 't2t2t2'});
+    }
+
+    # process Gtk events - does this do the right thing?
+    while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+
+    #  bad idea this one.  It pulses without end.
+    #Gtk2->main;
 
     return;
 }
@@ -219,26 +212,24 @@ sub pulsate_stop {
 }
 
 sub pulse_progress_bar {
-    #my $self = shift;
-    #my $p_bar = $self->{dlgxml}->get_object('progressbar');
-    #my $p_bar = shift;
-
-    #print "  pulsing...\n";
     my $data = shift;
     my ($self, $p_bar) = @$data[0,1];
 
-    #print "$self->{pulse}\t$p_bar\n";
+    print "$self->{pulse}\t$p_bar\n";
 
-    if ($self->{pulse} and defined $p_bar) {
+    if ($self->{pulse} and $p_bar) {
         #print "     PULSING\n";
         #$p_bar->set_pulse_step (0.1);
         $p_bar->pulse;
-        return TRUE;  #  keep going
+        
+        #while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+        
+        return 1;  #  keep going
     }
 
-    #print "[PROGRESS BAR] Stop pulsing\n";
+    print "[PROGRESS BAR] Stop pulsing\n";
 
-    return FALSE;
+    return 0;
 }
 
 1;

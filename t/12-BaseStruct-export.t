@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use 5.010;
 use strict;
 use warnings;
 
@@ -23,9 +24,40 @@ use Test::More;
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (sort @test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
+
+    done_testing;
+    return 0;
+}
+
+
+
 #  check the metadata
 #  we just want no warnings raised here?
-{
+sub test_metadata {
     my $bd = Biodiverse::BaseData->new (CELL_SIZES => [1, 1]);
     $bd->add_element (group => '0.5:0.5', label => 'a');
     
@@ -36,7 +68,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
 
 # delimited text
-{
+sub test_delimited_text {
     my $e;  #  for eval errors;
 
     #  need to test array lists - need numeric labels data set for those
@@ -106,7 +138,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
 
 
-{
+sub test_quoting {
     my $bd = get_basedata_object (
         CELL_SIZES => [2, 2],
         x_spacing => 1,
@@ -146,6 +178,116 @@ use Biodiverse::TestHelpers qw /:basedata/;
     );
     table_headers_and_elements_are_quoted($table, 'SPATIAL_RESULTS');
 
+}
+
+
+sub test_multiple_lists {
+    my $bd = get_basedata_object (
+        CELL_SIZES => [2, 2],
+        x_spacing => 1,
+        y_spacing => 1,
+        x_max     => 6,
+        y_max     => 6,
+        x_min     => 0,
+        y_min     => 1,
+    );
+    my $gps = $bd->get_groups_ref;
+
+    #  now make a basestruct with a symmetric and asymmetric list to export
+    my $sp = $bd->add_spatial_output (name => 'Blahblah');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_square_cell(size => 3)'],
+        calculations       => [qw /calc_richness calc_element_lists_used/],
+    );
+    
+    #  set up some additional lists
+    foreach my $element ($sp->get_element_list) {
+        my $list_ref = $sp->get_list_ref (
+            element => $element,
+            list    => 'SPATIAL_RESULTS',
+            autovivify => 0,
+        );
+        my %dup_hash  = map {($_.'_DUP') => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_NO_DUP_KEYS',
+            %dup_hash,
+        );
+        my %dup_hash2 = map {$_ => $list_ref->{$_}} keys %$list_ref;
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'SPATIAL_RESULTS_DUP_KEYS',
+            %dup_hash2,
+        );
+        my $el_list_ref = $sp->get_list_ref (
+            element => $element,
+            list    => 'EL_LIST_SET1',
+            autovivify => 0,
+        );
+        $sp->add_to_hash_list (
+            element => $element,
+            list    => 'EL_LIST_SET1_DUP_KEYS',
+            %$el_list_ref,
+        );
+    }
+
+    my (@expected, $table);
+    $table = $sp->to_table (
+        list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
+    );
+    @expected
+      = map {[split ',', $_]}
+        split "[\r\n]+",
+        get_data_section ('asym_table_two_lists');
+    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+
+    $table = $sp->to_table (
+        list_names => [qw /EL_LIST_SET1 SPATIAL_RESULTS/],
+        symmetric  => 1,
+    );
+    @expected
+      = map {[split ',', $_]}
+        split "[\r\n]+",
+        get_data_section ('asym_to_sym_table_two_lists');
+    #  clean up the undefs
+    foreach my $i (0 .. $#expected) {
+        @{$expected[$i]} = map {$_ eq '' ? undef : $_} @{$expected[$i]};
+    }
+    is_deeply($table, \@expected, 'asymmetric table matches for two lists');
+    
+    #  now the symmetric lists
+    $table = $sp->to_table (
+        list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS_NO_DUP_KEYS/],
+        symmetric  => 1,
+    );
+    @expected
+      = map {[split ',', $_]}
+        split "[\r\n]+",
+        get_data_section ('sym_table_two_lists');
+    is_deeply($table, \@expected, 'symmetric table matches for two lists');
+
+    $table = eval {
+        $sp->to_table (
+            list_names => [qw /SPATIAL_RESULTS SPATIAL_RESULTS_DUP_KEYS/],
+            symmetric  => 1,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok ($e, 'errored when duplicate keys passed to to_table under symmetric mode');
+
+    $table = eval {
+        $sp->to_table (
+            list_names => [qw /EL_LIST_SET1 EL_LIST_SET1_DUP_KEYS/],
+            symmetric  => 1,
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok ($e, 'errored when duplicate keys passed to to_table under asym to symmetric mode');
+
+    ##  for test data generation
+    #foreach my $line (@$table) {
+    #    say join ',', map {$_ // ''} @$line;
+    #}
 }
 
 sub table_headers_and_elements_are_quoted {
@@ -239,4 +381,61 @@ done_testing();
 1;
 
 __DATA__
+
+@@ sym_table_two_lists
+ELEMENT,Axis_0,Axis_1,RICHNESS_ALL,RICHNESS_SET1,RICHNESS_ALL_DUP,RICHNESS_SET1_DUP
+1:1,1,1,12,12,12,12
+1:3,1,3,20,20,20,20
+1:5,1,5,20,20,20,20
+1:7,1,7,12,12,12,12
+3:1,3,1,18,18,18,18
+3:3,3,3,30,30,30,30
+3:5,3,5,30,30,30,30
+3:7,3,7,18,18,18,18
+5:1,5,1,15,15,15,15
+5:3,5,3,25,25,25,25
+5:5,5,5,25,25,25,25
+5:7,5,7,15,15,15,15
+7:1,7,1,9,9,9,9
+7:3,7,3,15,15,15,15
+7:5,7,5,15,15,15,15
+7:7,7,7,9,9,9,9
+
+@@ asym_to_sym_table_two_lists
+ELEMENT,Axis_0,Axis_1,1:1,1:3,1:5,1:7,3:1,3:3,3:5,3:7,5:1,5:3,5:5,5:7,7:1,7:3,7:5,7:7,RICHNESS_ALL,RICHNESS_SET1
+'1:1',1,1,1,1,,,1,1,,,,,,,,,,,12,12
+'1:3',1,3,1,1,1,,1,1,1,,,,,,,,,,20,20
+'1:5',1,5,,1,1,1,,1,1,1,,,,,,,,,20,20
+'1:7',1,7,,,1,1,,,1,1,,,,,,,,,12,12
+'3:1',3,1,1,1,,,1,1,,,1,1,,,,,,,18,18
+'3:3',3,3,1,1,1,,1,1,1,,1,1,1,,,,,,30,30
+'3:5',3,5,,1,1,1,,1,1,1,,1,1,1,,,,,30,30
+'3:7',3,7,,,1,1,,,1,1,,,1,1,,,,,18,18
+'5:1',5,1,,,,,1,1,,,1,1,,,1,1,,,15,15
+'5:3',5,3,,,,,1,1,1,,1,1,1,,1,1,1,,25,25
+'5:5',5,5,,,,,,1,1,1,,1,1,1,,1,1,1,25,25
+'5:7',5,7,,,,,,,1,1,,,1,1,,,1,1,15,15
+'7:1',7,1,,,,,,,,,1,1,,,1,1,,,9,9
+'7:3',7,3,,,,,,,,,1,1,1,,1,1,1,,15,15
+'7:5',7,5,,,,,,,,,,1,1,1,,1,1,1,15,15
+'7:7',7,7,,,,,,,,,,,1,1,,,1,1,9,9
+
+@@ asym_table_two_lists
+ELEMENT,Axis_0,Axis_1,Value
+1:1,1,1,1:1,1,1:3,1,3:1,1,3:3,1,RICHNESS_ALL,12,RICHNESS_SET1,12
+1:3,1,3,1:1,1,1:3,1,1:5,1,3:1,1,3:3,1,3:5,1,RICHNESS_ALL,20,RICHNESS_SET1,20
+1:5,1,5,1:3,1,1:5,1,1:7,1,3:3,1,3:5,1,3:7,1,RICHNESS_ALL,20,RICHNESS_SET1,20
+1:7,1,7,1:5,1,1:7,1,3:5,1,3:7,1,RICHNESS_ALL,12,RICHNESS_SET1,12
+3:1,3,1,1:1,1,1:3,1,3:1,1,3:3,1,5:1,1,5:3,1,RICHNESS_ALL,18,RICHNESS_SET1,18
+3:3,3,3,1:1,1,1:3,1,1:5,1,3:1,1,3:3,1,3:5,1,5:1,1,5:3,1,5:5,1,RICHNESS_ALL,30,RICHNESS_SET1,30
+3:5,3,5,1:3,1,1:5,1,1:7,1,3:3,1,3:5,1,3:7,1,5:3,1,5:5,1,5:7,1,RICHNESS_ALL,30,RICHNESS_SET1,30
+3:7,3,7,1:5,1,1:7,1,3:5,1,3:7,1,5:5,1,5:7,1,RICHNESS_ALL,18,RICHNESS_SET1,18
+5:1,5,1,3:1,1,3:3,1,5:1,1,5:3,1,7:1,1,7:3,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+5:3,5,3,3:1,1,3:3,1,3:5,1,5:1,1,5:3,1,5:5,1,7:1,1,7:3,1,7:5,1,RICHNESS_ALL,25,RICHNESS_SET1,25
+5:5,5,5,3:3,1,3:5,1,3:7,1,5:3,1,5:5,1,5:7,1,7:3,1,7:5,1,7:7,1,RICHNESS_ALL,25,RICHNESS_SET1,25
+5:7,5,7,3:5,1,3:7,1,5:5,1,5:7,1,7:5,1,7:7,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:1,7,1,5:1,1,5:3,1,7:1,1,7:3,1,RICHNESS_ALL,9,RICHNESS_SET1,9
+7:3,7,3,5:1,1,5:3,1,5:5,1,7:1,1,7:3,1,7:5,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:5,7,5,5:3,1,5:5,1,5:7,1,7:3,1,7:5,1,7:7,1,RICHNESS_ALL,15,RICHNESS_SET1,15
+7:7,7,7,5:5,1,5:7,1,7:5,1,7:7,1,RICHNESS_ALL,9,RICHNESS_SET1,9
 

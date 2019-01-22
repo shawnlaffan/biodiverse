@@ -1,15 +1,20 @@
 package Biodiverse::Remap;
 
+use 5.022;
 use strict;
 use warnings;
+
+#  avoid redefined warnings due to
+#  https://github.com/rurban/Cpanel-JSON-XS/issues/65
+use JSON::PP();
+
 use Carp;
-use 5.016;
 
 use Data::Dumper;
 use Ref::Util qw { :all };
 
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use parent qw /Biodiverse::ElementProperties/;
 

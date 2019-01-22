@@ -4,11 +4,16 @@ package Biodiverse::Config;
 use 5.010;
 use strict;
 use warnings;
+
+#  avoid redefined warnings due to
+#  https://github.com/rurban/Cpanel-JSON-XS/issues/65
+use JSON::PP ();
+
 use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -58,7 +63,7 @@ BEGIN {
     #  Add the gtk and gdal libs if using windows - brittle?
     #  Search up the tree until we find a dir of the requisite name
     #  and which contains a bin folder
-    if ($OSNAME eq 'MSWin32' && !$ENV{BD_NO_LIB_SEARCH}) {
+    if (0 && $OSNAME eq 'MSWin32' && !$ENV{BD_NO_LIB_SEARCH}) {
         #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
         my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
         
@@ -106,34 +111,18 @@ BEGIN {
 #  and aren't tracking announcements.
 #  Should loop this.
 BEGIN {
-    if (not eval {require Sereal}) {
-        die "Cannot locate the Sereal package.  You probably need to install it using, for example:\n"
-        . "cpanm Sereal\n"
-        . "at the command prompt.\n"
-        . "See https://metacpan.org/release/Sereal for more details about what it does.";
-    }
-    if (not eval {require JSON::MaybeXS}) {
-        die "Cannot locate the JSON::MaybeXS package.  You probably need to install it using, for example:\n"
-        . "cpanm JSON::MaybeXS\n"
-        . "at the command prompt.\n"
-        . "See https://metacpan.org/release/JSON-MaybeXS for more details about what it does.";
-    }
-    if (not eval {require Cpanel::JSON::XS}) {
-        die "Cannot locate the Cpanel::JSON::XS package.  You probably need to install it using, for example:\n"
-        . "cpanm Cpanel::JSON::XS\n"
-        . "at the command prompt.\n"
-        . "See https://metacpan.org/release/Cpanel-JSON-XS for more details about what it does.";
-    }
-    if (not eval {require Sort::Naturally}) {
-        die "Cannot locate the Sort::Naturally package.  You probably need to install it using, for example:\n"
-        . "cpanm Sort::Naturally\n"
-        . "at the command prompt.\n"
-        . "See https://metacpan.org/pod/Sort::Naturally for more details about what it does.";
-    }
     #  more general solution for anything new
-    my @reqd = qw /Text::Fuzzy Data::Structure::Util Data::Compare Text::Levenshtein/;
+    my @reqd = qw /
+        Text::Fuzzy
+        Data::Structure::Util
+        Data::Compare
+        Text::Levenshtein
+        List::Unique::DeterministicOrder
+        Sort::Key::Natural
+    /;
     foreach my $module (@reqd) {
         if (not eval "require $module") {
+            #say $@ if $@;
             my $feedback = <<"END_FEEDBACK"
 Cannot locate the $module package.  
 You probably need to install it using

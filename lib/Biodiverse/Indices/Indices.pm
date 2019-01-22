@@ -11,7 +11,7 @@ use Ref::Util qw { :all };
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -107,7 +107,7 @@ sub get_metadata_calc_redundancy {
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         reference       => 'Garcillan et al. (2003) J Veget. Sci. '
-                         . 'http://dx.doi.org/10.1111/j.1654-1103.2003.tb02174.x',
+                         . 'https://doi.org/10.1111/j.1654-1103.2003.tb02174.x',
         indices         => {
             REDUNDANCY_ALL  => {
                 description     => 'for both neighbour sets',
@@ -399,8 +399,8 @@ sub calc_jaccard {
 #        $self -> get_formula_explanation_ABC,
 #    ];
 #
-#    my $ref = 'Hayes, W.B. (1978) http://dx.doi.org/10.2307/1936649, '
-#              . 'McKenna (2003) http://dx.doi.org/10.1016/S1364-8152(02)00094-4';
+#    my $ref = 'Hayes, W.B. (1978) https://doi.org/10.2307/1936649, '
+#              . 'McKenna (2003) https://doi.org/10.1016/S1364-8152(02)00094-4';
 #    
 #    my %metadata = (
 #        name           => 'Fager',
@@ -450,7 +450,7 @@ sub get_metadata_calc_nestedness_resultant {
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
-                           . 'http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x',
+                           . 'https://doi.org/10.1111/j.1466-8238.2009.00490.x',
         pre_calc        => [qw /calc_abc/],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
@@ -470,7 +470,7 @@ sub get_metadata_calc_nestedness_resultant {
 }
 
 #  nestedness-resultant dissimilarity
-#  from Baselga (2010) http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x
+#  from Baselga (2010) https://doi.org/10.1111/j.1466-8238.2009.00490.x
 sub calc_nestedness_resultant {
     my $self = shift;
     my %args = @_;
@@ -730,7 +730,7 @@ sub get_metadata_calc_s2 {
         pre_calc        => 'calc_abc',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference   => 'Lennon et al. (2001) J Animal Ecol.  '
-                        . 'http://dx.doi.org/10.1046/j.0021-8790.2001.00563.x',
+                        . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',
         formula     => [
             '= 1 - \frac{A}{A + min(B, C)}',
             $self -> get_formula_explanation_ABC,

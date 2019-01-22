@@ -7,12 +7,12 @@ use 5.010;
 
 use Data::Dumper;
 use Carp;
-use Sort::Naturally qw/nsort/;
+use Sort::Key::Natural qw/natsort/;
 use Scalar::Util qw /blessed/;
 
 use Gtk2;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use English qw { -no_match_vars };
 
@@ -330,7 +330,7 @@ sub make_sources_model {
     );
     my $iter;
 
-    foreach my $source_name (nsort keys %{$sources_ref}) {
+    foreach my $source_name (natsort keys %{$sources_ref}) {
         $iter = $sources_model->append;
         $sources_model->set($iter,
             SOURCES_MODEL_NAME,     $source_name,

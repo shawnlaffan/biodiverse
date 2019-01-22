@@ -7,28 +7,21 @@ cache:
   - C:\strawberry
 
 install:
-  - if not exist "C:\strawberry" choco install strawberryperl --version 5.24.1.1
+  - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.24.1.1
   - set ST=C:\strawberry
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
-  - set BDV_PPM=https://raw.githubusercontent.com/shawnlaffan/biodiverse/master/etc/ppm/ppm524_x64
-  - set have_geo_gdal=0
-  - FOR /F "delims=" %%i IN ('perl -MGeo::GDAL -e"print 1"') DO set have_geo_gdal=1
-  - IF "%have_geo_gdal%"=="0" ppm install %BDV_PPM%/Geo-GDAL.ppd
   
+  #  aliens should be cached now
+  - cpanm -v Alien::geos::af
+  - cpanm -v Alien::gdal
+  #  make sure something goes to screen for Alien::gdal to avoid timeouts
+  #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
+  - cpanm Geo::GDAL::FFI 
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
-  
-  #  until the remap class does not call the GUI:
-  #  2017-09-18: Engine does not call the GUI
-  #- set SIS_PPM=http://www.sisyphusion.tk/ppm
-  #  assuming if we have Geo::GDAL then we also have these from the cache
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Cairo.ppd 
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Glib.ppd 
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Pango.ppd
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gtk2.ppd
-  #- IF %have_geo_gdal%==0 ppm install %SIS_PPM%/Gnome2-Canvas.ppd 
-
+  - cpanm --notest List::Unique::DeterministicOrder
+  - cpanm --notest Sort::Key::Natural
   #- cpanm --installdeps --notest --with-all-features .
 
 

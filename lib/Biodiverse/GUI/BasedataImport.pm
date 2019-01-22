@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Carp;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use File::Basename;
 use Gtk2;
@@ -54,10 +54,12 @@ my $raster_idx    = 1;    # index in combo box of raster format
 my $shapefile_idx = 2;    # index in combo box
 
 # maintain reference for these, to allow referring when import method changes
+# (Not sure whey they are package lexicals)
 my $txtcsv_filter;
 my $allfiles_filter;
 my $shapefiles_filter;
 my $spreadsheets_filter;
+my $rasters_filter;
 
 my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
 Set to 'is_lat' if column contains latitude values,
@@ -243,7 +245,7 @@ sub run {
     my $max_col_spinner = {
         name    => 'max_opt_cols',
         type    => 'integer',
-        default => 100,
+        default => 150,
         label_text =>
 'Maximum number of header columns to show options for (includes remap dialogues)',
         tooltip => $max_row_spinner_tooltip_text,
@@ -336,21 +338,23 @@ sub run {
     }
     elsif ( $read_format eq 'shapefile' ) {
 
-        # process as shapefile
+        # process as shapefile - need to switch over the Geo::GDAL::FFI
 
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
-        $fnamebase =~ s/\.[^.]+?$//
-          ; #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
+        #  use lazy quantifier so we get chars from the
+        #  last dot - should use Path::Class::File instead
+        $fnamebase =~ s/\.[^.]+?$//; 
 
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
         my $shape_type = $shapefile->type( $shapefile->shape_type );
-        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
+        #  this is all of them now...
+        croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point/;
+          if not $shape_type =~ /Point|Polygon|PolyLine/i;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
         if ( defined $shapefile->z_min() ) {
@@ -358,6 +362,12 @@ sub run {
         }
         if ( defined $shapefile->m_min() ) {
             push( @field_names, ':shape_m' );
+        }
+        if ($shape_type =~ /PolyLine/i) {
+            push( @field_names, ':shape_length' );
+        }
+        if ($shape_type =~ /Polygon/i) {
+            push( @field_names, ':shape_area' );
         }
 
 #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
@@ -702,7 +712,7 @@ sub run {
         my $lb_specs     = $column_settings->{labels};
         foreach my $col (@$lb_col_order) {
             my $idx = first_index { $col eq $_->{id} } @$lb_specs;
-            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            croak "aaaaaaargghhhhh this should not happen (lbs)\n" if $idx < 0;
             push @label_col_names, $lb_specs->[$idx]{name};
         }
 
@@ -712,7 +722,7 @@ sub run {
         foreach my $col (@$gp_col_order) {
             $i++;
             my $idx = first_index { $col eq $_->{id} } @$gp_specs;
-            croak "aaaaaaargghhhhh this should not happen\n" if $idx < 0;
+            croak "aaaaaaargghhhhh this should not happen (gps)\n" if $idx < 0;
             my $name = $gp_specs->[$idx]{name};
             push @group_col_names, $name;
             if ( $gp_lb_cols{cell_is_lat}[$i] ) {
@@ -730,11 +740,28 @@ sub run {
             push @sample_count_col_names, $specs->{name};
         }
 
+        if ($read_format eq 'shapefile') {
+            FILE:
+              foreach my $filelist ( values %multiple_file_lists ) {
+                foreach my $file (@$filelist) {
+                    #  not sure we want to go through the lot - what if we have 1000 point files?
+                    my $shapefile  = Geo::ShapeFile->new($file);
+                    my $shape_type = $shapefile->type( $shapefile->shape_type );
+                    if ($shape_type =~ /Poly/i) {
+                        my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
+                        croak "polygon and polyline files must have :shape_x and :shape_y columns specified\n"
+                          if $have_shapexy != 2;
+                        last FILE;  #  no need to check more if the first case passes
+                    }
+                }
+            }
+        }
+
         my $import_method = "import_data_$read_format";
 
         # process data
         foreach my $bdata ( keys %multiple_file_lists ) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->$import_method(
                     %import_params,
                     %rest_of_options,
@@ -749,7 +776,18 @@ sub run {
         }
     }
     elsif ( $read_format eq 'text' ) {
+        my $progress;
+        my $num_files = keys %multiple_file_lists;
+        if ($num_files > 1) {
+            $progress = Biodiverse::Progress->new (gui_only => 1);
+        }
+        my $file_count = 0;
+        
         foreach my $bdata ( keys %multiple_file_lists ) {
+            $file_count++;
+            if ($progress) {
+                $progress->update ("File $file_count of $num_files", $file_count / $num_files);
+            }
             $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(
                     %import_params,
@@ -1355,6 +1393,16 @@ sub make_filename_dialog {
     $spreadsheets_filter->set_name('spreadsheets');
     $filechooser->add_filter($spreadsheets_filter);
 
+    #  could use a custom filter to detect more formats
+    $rasters_filter = Gtk2::FileFilter->new();
+    $rasters_filter->add_pattern('*.tif');
+    $rasters_filter->add_pattern('*.tiff');
+    $rasters_filter->add_pattern('*.img');
+    $rasters_filter->add_pattern('*.asc');
+    $rasters_filter->add_pattern('*.flt');
+    $rasters_filter->set_name('rasters');
+    $filechooser->add_filter($rasters_filter);
+    
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect(
         'selection-changed' => \&on_file_changed,
@@ -1796,7 +1844,7 @@ sub get_remap_info {
     while (<$input_fh>) {    # get first non-blank line
         $line           = $_;
         $line_unchomped = $line;
-        chomp $line;
+        $line =~ s/[\r\n]+$//;
         last if $line;
     }
     close($input_fh);

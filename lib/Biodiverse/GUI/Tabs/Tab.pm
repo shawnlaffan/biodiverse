@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;
@@ -1184,6 +1184,25 @@ sub do_export {
     
     $args_hash{ selected_format } = $selected_format;    
     Biodiverse::GUI::Export::Run($self->{output_ref}, %args_hash);
+}
+
+sub update_display_list_combos {
+    my ($self, %args) = @_;
+    my $list_prefix = $args{list_prefix};
+    my $methods     = $args{methods} // [];
+
+    foreach my $method (@$methods) {
+        $self->$method;
+    }
+
+    if (defined $list_prefix) {
+        my @keys = grep {m/^$list_prefix\b/} keys %{$self->{stats}};
+        foreach my $key (@keys) {
+            delete $self->{stats}{$key};
+        }
+    }
+    
+    return;
 }
 
 1;

@@ -13,12 +13,13 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-use autovivification;
+#use autovivification;
+
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
-use List::Util qw /min max sum all/;
+use List::Util qw /min max sum all any/;
 use List::MoreUtils qw /first_index minmax/;
 use File::Basename;
 use Path::Class;
@@ -26,8 +27,10 @@ use POSIX qw /fmod floor/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
+use Sort::Key::Natural qw /natsort rnatsort/;
+use Geo::GDAL::FFI 0.06;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
 
@@ -1095,35 +1098,13 @@ sub write_table {
 }
 
 
-#  control whether a file is written symetrically or not
-sub to_table {
-    my $self = shift;
-    my %args = @_;
-    #  modify to make the default, rather than required
-    #my $file = $args{file} || ($self->get_param('OUTPFX') . ".csv");  
-    my $as_symmetric = $args{symmetric} || 0;
-
-    croak "[BaseStruct] argument 'list' not specified\n"
-      if !defined $args{list}; 
-
-    my $list = $args{list};
-    my $check_elements;
-    if( $args{def_query} ) {
-        $check_elements = 
-            $self->get_elements_that_pass_def_query( defq => $args{def_query} );
-
-        my $length = scalar @{ $check_elements };
-        if( $length == 0 ) {
-            say "[BASESTRUCT] No elements passed the def query!";
-            $check_elements = $self->get_element_list;
-            $args{def_query} = '';
-        }
-    }
-    else {
-        $check_elements = $self->get_element_list;
-    }
+sub list_contents_are_symmetric {
+    my ($self, %args) = @_;
     
-  
+    my $list_name = $args{list_name};
+    croak 'argument list_name undefined'
+      if !defined $list_name;
+
     #  Check if the lists in this object are symmetric.  Check the list type as well.
     #  Assumes type is constant across all elements, and that all elements have this list.
     my $last_contents_count = -1;
@@ -1131,19 +1112,24 @@ sub to_table {
     my %list_keys;
     my $prev_list_keys;
 
-    say "[BASESTRUCT] Checking elements for list symmetry: $list";
+    my $check_elements = $self->get_element_list;
+
+    say "[BASESTRUCT] Checking elements for list symmetry: $list_name";
+    my $i = -1;
   CHECK_ELEMENTS:
-    foreach my $i (0 .. $#$check_elements) {  # sample the lot
-        my $check_element = $check_elements->[$i];
+    foreach my $check_element (@$check_elements) {  # sample the lot
+        $i++;
         last CHECK_ELEMENTS if ! defined $check_element;
 
         my $values = $self->get_list_values (
             element => $check_element,
-            list    => $list,
+            list    => $list_name,
         );
         if (is_hashref($values)) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
-                $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
+                #  This list is of different length from the previous.
+                #  Allows for zero length lists.
+                $is_asym ++;
                 last CHECK_ELEMENTS;
             }
             $prev_list_keys //= scalar keys %$values;
@@ -1164,39 +1150,68 @@ sub to_table {
         $last_contents_count = scalar keys %list_keys;
     }
 
+    return !$is_asym;
+}
+
+#  control whether a file is written symetrically or not
+sub to_table {
+    my $self = shift;
+    my %args = @_;
+
+    my $as_symmetric = $args{symmetric} || 0;
+
+    croak "[BaseStruct] neither of 'list' or 'list_names' "
+          . "arguments specified\n"
+      if !defined $args{list_names} and !defined $args{list};
+    croak "[BaseStruct] cannot specify both of 'list' "
+          . "and 'list_names' arguments\n"
+      if defined $args{list_names} && defined $args{list};
+
+    my $list_names = $args{list_names} // [$args{list}];
+    
+    croak 'list_names arg must be an array ref'
+      if !is_arrayref $list_names;
+
+    my $is_asym
+        = any
+          {!$self->list_contents_are_symmetric (list_name => $_)}
+          @$list_names;
+    my $list_string = join ',', @$list_names;
+
     my $data;
 
     if (! $as_symmetric and $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list "
+        say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to asymmetric table";
-        $data = $self->to_table_asym (%args);
+        $data = $self->to_table_asym (%args, list_names => $list_names);
     }
     elsif ($as_symmetric && $is_asym) {
-        say "[BASESTRUCT] Converting asymmetric data from $list "
+        say "[BASESTRUCT] Converting asymmetric data from $list_string "
               . "to symmetric table";
-        $data = $self->to_table_asym_as_sym (%args);
+        $data = $self->to_table_asym_as_sym (%args, list_names => $list_names);
     }
     else {
-        say "[BASESTRUCT] Converting symmetric data from $list "
+        say "[BASESTRUCT] Converting symmetric data from $list_string "
               . "to symmetric table";
-        $data = $self->to_table_sym (%args);
+        $data = $self->to_table_sym (%args, list_names => $list_names);
     }
 
     return wantarray ? @$data : $data;
 }
 
 #  sometimes we have names of unequal length
+#  should probably cache this
 sub get_longest_name_array_length {
     my $self = shift;
 
     my $longest = -1;
     foreach my $element ($self->get_element_list) {
-        my $array = $self->get_element_name_as_array (element => $element);
-        my $len = scalar @$array;
-        if ($len > $longest) {
-            $longest = $len;
-        }
+        my $array = $self->get_element_name_as_array (
+            element => $element,
+        );
+        $longest = max ($longest, scalar @$array);
     }
+
     return $longest;
 }
 
@@ -1206,7 +1221,11 @@ sub get_longest_name_array_length {
 sub to_table_sym {  
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not defined\n";
+    defined $args{list_names} || croak "list_names not defined\n";
+
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1229,11 +1248,21 @@ sub to_table_sym {
         @elements = sort $self->get_element_list;
     }
 
-    my $list_hash_ref = $self->get_hash_list_values(
-        element => $elements[0],
-        list    => $args{list},
-    );
-    my @print_order = sort keys %$list_hash_ref;
+    #  only need to search first element,
+    #  as the lists must be present for symmetry to apply
+    my @print_order;
+    foreach my $list_name (@$list_names) {
+        my $list_hash_ref = $self->get_hash_list_values(
+            element => $elements[0],
+            list    => $list_name,
+        );
+        #  check for dups, as we don't handle them yet
+        if (@$list_names > 1) {
+            croak 'Cannot export duplicate keys across multiple lists'
+              if any {exists $list_hash_ref->{$_}} @print_order;
+        }
+        push @print_order, natsort keys %$list_hash_ref;
+    }
     my @quoted_print_order =
         map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
         @print_order;
@@ -1241,17 +1270,11 @@ sub to_table_sym {
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
-    my @header = ('ELEMENT');  
-
+    my @header = ('ELEMENT');
+    my @element_axes;
     if (! $no_element_array) {
-        my $i = 0;
-        #  get the number of element columns
-        $max_element_array_len = $self->get_longest_name_array_length - 1;
-
-        foreach my $null (0 .. $max_element_array_len) {
-            push (@header, 'Axis_' . $i);
-            $i++;
-        }
+        @element_axes = $self->get_axis_header_fields_for_table;
+        push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1275,38 +1298,42 @@ sub to_table_sym {
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
-            my @array = $self->get_element_name_as_array (element => $element);
-            if ($#array < $max_element_array_len) {  #  pad if needed
-                push @array, (undef) x ($max_element_array_len - $#array);
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
             }
-            push @basic, @array;
+            push @basic, @name_array;
         }
-
-        my $list_ref = $self->get_hash_list_values(
-            element => $element,
-            list    => $args{list},
-        );
+        
+        my %aggregated_data;
+        foreach my $list_name (@$list_names) {
+            my $list_ref = $self->get_hash_list_values(
+                element => $element,
+                list    => $list_name,
+            );
+            @aggregated_data{keys %$list_ref} = values %$list_ref;
+        }
 
         if ($one_value_per_line) {  
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @data, [@basic, $key, $list_ref->{$key}];
+                    push @data, [@basic, $key, $aggregated_data{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = $list_ref->{$key} // $no_data_value;
+                    my $val = $aggregated_data{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @data, [@basic, @{$list_ref}{@print_order}];
+                push @data, [@basic, @aggregated_data{@print_order}];
             }
             else {
-                my @vals = map {defined $_ ? $_ : $no_data_value} @{$list_ref}{@print_order};
+                my @vals = map {$_ // $no_data_value} @aggregated_data{@print_order};
                 push @data, [@basic, @vals];
             }
         }
@@ -1329,9 +1356,11 @@ sub to_table_sym {
 sub to_table_asym {  #  get the data as an asymmetric table
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not specified\n";
+    defined $args{list_names} || croak "list_names not specified\n";
 
-    my $list = $args{list};
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1352,14 +1381,12 @@ sub to_table_asym {  #  get the data as an asymmetric table
     else {
         @elements = sort $self->get_element_list;
     }
-    push my @header, 'ELEMENT'; 
-    if (! $no_element_array) {  #  need the number of element components for the header
-        my $i = 0;
-        #  get the number of element columns
-        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  
-            push (@header, "Axis_$i");
-            $i++;
-        }
+
+    push my @header, 'ELEMENT';
+    my @element_axes;
+    if (! $no_element_array) {
+         @element_axes = $self->get_axis_header_fields_for_table;
+         push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1384,39 +1411,44 @@ sub to_table_asym {  #  get the data as an asymmetric table
         my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
         if (! $no_element_array) {
-            push @basic, ($self->get_element_name_as_array (element => $element));
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
+            }
+            push @basic, @name_array;
         }
-        #  get_list_values returns a list reference in scalar context - could be a hash or an array
-        my $list =  $self->get_list_values (element => $element, list => $list);
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
-            if (is_arrayref($list)) {
-                foreach my $value (@$list) {
-                    if (!defined $value) {
-                        $value = $no_data_value;
+            foreach my $list_name (@$list_names) {
+                #  get_list_values returns a list reference in scalar context
+                #  - could be a hash or an array
+                my $list_ref =  $self->get_list_values (element => $element, list => $list_name);
+                if (is_arrayref($list_ref)) {
+                    foreach my $value (@$list_ref) {
+                        #  preserve internal ordering - useful for extracting iteration based values
+                        push @data, [@basic, $value // $no_data_value];
                     }
-                    push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
+                }
+                elsif (is_hashref($list_ref)) {
+                    foreach my $key (natsort keys %$list_ref) {
+                        push @data, [@basic, $key, $list_ref->{$key} // $no_data_value];
+                    }
                 }
             }
-            elsif (is_hashref($list)) {
-                my %hash = %$list;
-                foreach my $key (sort keys %hash) {
-                    push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
-                }
-            }
-            #else {  #  we have a scale - probably undef so treat it as such
-                #  atually, don't do anything for the moment.
-            #}
         }
         else {
             my @line = @basic;
-            if (is_arrayref($list)) {
-                #  preserve internal ordering - useful for extracting iteration based values
-                push @line, map {defined $_ ? $_ : $no_data_value} @$list;  
-            }
-            elsif (is_hashref($list)) {
-                my %hash = %$list;
-                foreach my $key (sort keys %hash) {
-                    push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
+            foreach my $list_name (@$list_names) {
+                #  get_list_values returns a list reference in scalar context
+                #  - could be a hash or an array
+                my $list_ref =  $self->get_list_values (element => $element, list => $list_name);
+                if (is_arrayref($list_ref)) {
+                    #  preserve internal ordering - useful for extracting iteration based values
+                    push @line, map {$_ // $no_data_value} @$list_ref;  
+                }
+                elsif (is_hashref($list_ref)) {
+                    foreach my $key (natsort keys %$list_ref) {
+                        push @line, ($key, $list_ref->{$key} // $no_data_value);
+                    }
                 }
             }
             push @data, \@line;
@@ -1440,9 +1472,12 @@ sub to_table_asym {  #  get the data as an asymmetric table
 sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $self = shift;
     my %args = @_;
-    defined $args{list} || croak "list not specified\n";
 
-    my $list = $args{list};
+    defined $args{list_names} || croak "list_names not specified\n";
+
+    my $list_names = $args{list_names};
+    croak "list_names arg is not an array ref\n"
+      if !is_arrayref $list_names;
 
     my $no_data_value      = $args{no_data_value};
     my $one_value_per_line = $args{one_value_per_line};
@@ -1464,23 +1499,33 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         $elements = $self->get_element_hash();
     }
 
-    my %indices_hash;
-
     my $quote_char = $self->get_param('QUOTES');
 
     say "[BASESTRUCT] Getting keys...";
+    
+    my @print_order;
 
-  BY_ELEMENT1:
-    foreach my $elt (keys %$elements) {
-        my $sub_list = $elements->{$elt}{$list};
-        if (is_arrayref($sub_list)) {
-            @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
-        }
-        elsif (is_hashref($sub_list)) {
-            @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
-        }
+    foreach my $list_name (@$list_names) {
+        my %indices_hash;
+
+        BY_ELEMENT1:
+          foreach my $elt (keys %$elements) {
+              #  should use a method here
+              my $sub_list = $elements->{$elt}{$list_name};
+              if (is_arrayref($sub_list)) {
+                  @indices_hash{@$sub_list} = (undef) x scalar @$sub_list;
+              }
+              elsif (is_hashref($sub_list)) {
+                  @indices_hash{keys %$sub_list} = (undef) x scalar keys %$sub_list;
+              }
+          }
+          #  check for dups
+          if (@$list_names > 1) {
+              croak "cannot export duplicated keys across multiple lists\n"
+                if any {exists $indices_hash{$_}} @print_order;
+          }
+          push @print_order, natsort keys %indices_hash;
     }
-    my @print_order = sort keys %indices_hash;
     my @quoted_print_order =
         map {$quote_el_names && !looks_like_number ($_) ? "$quote_char$_$quote_char" : $_}
         @print_order;
@@ -1497,12 +1542,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     push my @header, 'ELEMENT';  #  need the number of element components for the header
+    my @element_axes;
     if (! $no_element_array) {
-        my $i = 0;
-        foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns
-            push (@header, "Axis_$i");
-            $i++;
-        }
+        @element_axes = $self->get_axis_header_fields_for_table;
+        push @header, @element_axes;
     }
 
     if ($one_value_per_line) {
@@ -1522,6 +1565,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     push @data, \@header;
     
     print "[BASESTRUCT] Processing elements...\n";
+    
+    my %default_indices_hash;
+    @default_indices_hash{@print_order} = ($no_data_value) x @print_order;
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
@@ -1529,23 +1575,29 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         my @basic = ($el);
 
         if (! $no_element_array) {
-            push @basic, ($self->get_element_name_as_array (element => $element)) ;
-        }
-        my $list = $self->get_list_ref (
-            element => $element,
-            list    => $list,
-            autovivify => 0,
-        );
-        my %data_hash = %indices_hash;
-        @data_hash{keys %data_hash}
-          = ($no_data_value) x scalar keys %data_hash;
-        if (is_arrayref($list)) {
-            foreach my $val (@$list) {
-                $data_hash{$val}++;  #  track dups
+            my @name_array = $self->get_element_name_as_array (element => $element);
+            if (@name_array < @element_axes) {
+                push @name_array, ('') x (@element_axes - @name_array);
             }
+            push @basic, @name_array;
         }
-        elsif (is_hashref($list)) {
-            @data_hash{keys %$list} = values %$list;
+
+        my %data_hash = %default_indices_hash;
+
+        foreach my $list_name (@$list_names) {
+            my $list = $self->get_list_ref (
+                element => $element,
+                list    => $list_name,
+                autovivify => 0,
+            );
+            if (is_arrayref($list)) {
+                foreach my $val (@$list) {
+                    $data_hash{$val}++;  #  track dups
+                }
+            }
+            elsif (is_hashref($list)) {
+                @data_hash{keys %$list} = values %$list;
+            }
         }
 
         #  we've built the hash, now print it out
@@ -1571,6 +1623,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     return wantarray ? @data : \@data;
+}
+
+sub get_axis_header_fields_for_table {
+    my $self = shift;
+
+    my $i = 0;
+    #  get the number of element columns
+    my $max_element_array_len = $self->get_longest_name_array_length;
+
+    my @axes;
+    foreach (0 .. $max_element_array_len - 1) {
+        push (@axes, 'Axis_' . $i);
+        $i++;
+    }
+
+    return wantarray ? @axes : \@axes;
 }
 
 #  write a table out as a series of ESRI asciigrid files, one per field based on row 0.
@@ -1982,30 +2050,37 @@ END_TFW
     my %coords;
     my @bands;
 
+    my $y_col = -1;
     foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+        $y_col++;
+        my $x_col = -1;
         foreach my $x ($min_ids[0] .. $max_ids[0]) {
+            $x_col++;
 
             my $coord_id = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
                 my $value = $data_hash{$coord_id}[$i] // $no_data;
-                $bands[$i] .= pack $pack_code, $value;
+                #$bands[$i] .= pack $pack_code, $value;
+                #$bands[$i][$y] //= [];
+                $bands[$i][$y_col][$x_col] = 0+$value;
             }
         }
     }
 
     my $format = "GTiff";
-    my $driver = Geo::GDAL::GetDriverByName( $format );
+    my $driver = Geo::GDAL::FFI::GetDriver( $format );
 
     foreach my $i (@band_cols) {
         my $f_name = $file_names[$i];
         my $pdata  = $bands[$i];
 
-        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, $band_type);
+        my $out_raster
+          = $driver->Create($f_name, {Width => $ncols, Height => $nrows, Bands => 1, DataType => $band_type});
 
-        my $out_band = $out_raster->GetRasterBand(1);
+        my $out_band = $out_raster->GetBand();
         $out_band->SetNoDataValue ($no_data);
-        $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
+        $out_band->Write($pdata, 0, 0, $ncols, $nrows);
 
         my $f_name_tfw = $f_name . 'w';
         open(my $fh, '>', $f_name_tfw) or die "cannot open $f_name_tfw";
@@ -2667,9 +2742,9 @@ sub get_text_axis_as_coord {
         my $axes = $self->get_element_name_as_array_aa ($element);
         $this_axis{$axes->[$axis] // ''}++;
     }
-    #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
-    use Sort::Naturally;
-    @this_axis{reverse nsort keys %this_axis}
+    #  assign a number based on the sort order.
+    #  "z" will be lowest, "a" will be highest
+    @this_axis{rnatsort keys %this_axis}
       = (0 .. scalar keys %this_axis);
     $lists->[$axis] = \%this_axis;
 
@@ -2836,22 +2911,18 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
 sub add_sub_element_aa {
     my ($self, $element, $sub_element, $count, $csv_object) = @_;
 
-    #no autovivification;
-
     croak "element not specified\n"    if !defined $element;
     croak "subelement not specified\n" if !defined $sub_element;
 
     my $elts_ref = $self->{ELEMENTS};
 
-    if (! exists $elts_ref->{$element}) {
-        $self->add_element (
+    #  use ternary to avoid block overheads
+    exists $elts_ref->{$element}
+      ? delete $elts_ref->{$element}{BASE_STATS}
+      : $self->add_element (
             element    => $element,
             csv_object => $csv_object,
         );
-    }
-
-    #  previous base_stats invalid - clear them if needed
-    delete $elts_ref->{$element}{BASE_STATS};
 
     $elts_ref->{$element}{SUBELEMENTS}{$sub_element} += ($count // 1);
 
@@ -2989,14 +3060,11 @@ sub delete_sub_element {
 
 #  array args version to avoid the args hash creation
 #  (benchmarking indicates it takes a meaningful slab of time)
-#  candidate for refaliasing
 sub delete_sub_element_aa {
     my ($self, $element, $sub_element) = @_;
     
     croak "element not specified\n" if !defined $element;
     croak "subelement not specified\n" if !defined $sub_element;
-
-    no autovivification;
 
     my $href = $self->{ELEMENTS}{$element}
      // return;
@@ -3422,12 +3490,12 @@ sub clear_lists_across_elements_cache {
 
 sub get_array_lists_across_elements {
     my $self = shift;
-    return $self->get_lists_across_elements (list_method => 'get_array_lists');
+    return $self->get_lists_across_elements (@_, list_method => 'get_array_lists');
 }
 
 sub get_hash_lists_across_elements {
     my $self = shift;
-    return $self->get_lists_across_elements (list_method => 'get_hash_lists');
+    return $self->get_lists_across_elements (@_, list_method => 'get_hash_lists');
 }
 
 

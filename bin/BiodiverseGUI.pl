@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-use 5.010;
+use 5.022;
 
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 local $OUTPUT_AUTOFLUSH = 1;
 

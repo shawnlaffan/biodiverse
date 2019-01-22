@@ -2,9 +2,9 @@ package Biodiverse::Common;
 
 #  a set of common functions for the Biodiverse library
 
+use 5.022;
 use strict;
 use warnings;
-use 5.010;
 
 use Carp;
 use English ( -no_match_vars );
@@ -20,7 +20,7 @@ use List::Util qw /first/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
-#use POSIX;  #  make all the POSIX functions available to the spatial parameters - do we still need this here?
+use POSIX ();
 use HTML::QuickTable;
 #use XBase;
 #use MRO::Compat;
@@ -46,10 +46,9 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 my $EMPTY_STRING = q{};
-
 
 sub clone {
     my $self = shift;
@@ -855,7 +854,8 @@ sub save_to_sereal {
     use Sereal::Encoder;
 
     my $encoder = Sereal::Encoder->new({
-        undef_unknown => 1,  #  strip any code refs
+        undef_unknown    => 1,  #  strip any code refs
+        protocol_version => 3,  #  keep compatibility with older files - should be an argument
     });
 
     open (my $fh, '>', $file) or die "Cannot open $file";
@@ -1752,6 +1752,23 @@ sub guess_field_separator {
     return $sep;
 }
 
+sub guess_escape_char {
+    my $self = shift;
+    my %args = @_;  
+
+    my $string = $args{string};
+    $string = $$string if ref $string;
+
+    my $quote_char = $args{quotes} // $self->guess_quote_char (@_);
+    
+    my $has_backslash = $string =~ /(\\+)$quote_char/s;
+    #  even number of backslashes are self-escaping
+    if (not ((length ($1 // '')) % 2)) {  
+        $has_backslash = 0;
+    }
+    return $has_backslash ? '\\' : $quote_char;
+}
+
 sub guess_quote_char {
     my $self = shift;
     my %args = @_;  
@@ -1870,8 +1887,12 @@ sub get_csv_object_using_guesswork {
         #  read in a chunk of the file for guesswork
         my $fh2 = IO::File->new;
         $fh2->open ($fname, '<:via(File::BOM)');
-        while (!$fh2->eof && length ($first_char_set) < 10000) {
+        my $line_count = 0;
+        #  get first 11 lines or 10,000 characters
+        #  as some ALA files have 19,000 chars in the header line alone
+        while (!$fh2->eof and ($line_count < 11 or length $first_char_set < 10000)) {
             $first_char_set .= $fh2->getline;
+            $line_count++;
         }
         $fh2->close;
 
@@ -1893,9 +1914,12 @@ sub get_csv_object_using_guesswork {
 
     $eol //= $self->guess_eol (string => $string);
 
-    $quote_char //= $self->guess_quote_char (string => \$string, eol => $eol);
+    $quote_char //= $self->guess_quote_char (string => $string, eol => $eol);
     #  if all else fails...
     $quote_char //= $self->get_param ('QUOTES');
+    
+    my $escape_char = $self->guess_escape_char (string => $string, quote_char => $quote_char);
+    $escape_char //= $quote_char;
 
     $sep_char //= $self->guess_field_separator (
         string     => $string,
@@ -1909,6 +1933,7 @@ sub get_csv_object_using_guesswork {
         sep_char   => $sep_char,
         quote_char => $quote_char,
         eol        => $eol,
+        escape_char => $escape_char,
     );
 
     return $csv_obj;
@@ -2003,7 +2028,7 @@ sub get_cached_metadata {
     #  reset the cache if the versions differ (typically they would be older),
     #  this ensures new options are loaded
     $cache->{__VERSION} //= 0;
-    if ($cache->{__VERSION} != $VERSION || $ENV{BD_NO_METADATA_CACHE}) {
+    if ($cache->{__VERSION} ne $VERSION or $ENV{BD_NO_METADATA_CACHE}) {
         %$cache = ();
         $cache->{__VERSION} = $VERSION;
     }
@@ -2074,7 +2099,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
-    my $precision   = $args{precision} || [("%.10f") x scalar @$minima];
+    my $precision   = $args{precision} || [(10 ** 10) x scalar @$minima];
     my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
@@ -2089,10 +2114,10 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
         #  need to fix the precision for some floating point comparisons
         for (my $value = $min;
-             (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
+             ($self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
              $value += $res) {
 
-            my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
+            my $val = $self -> round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
                 foreach my $element (@$so_far) {
                     #print "$element . $sep_char . $value\n";
@@ -2117,24 +2142,26 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
     my %args = @_;
     my $coord_ref = $args{coord};
     my $resolutions = $args{resolutions};
-    my $sep_char = $args{sep_char} || $self -> get_param('JOIN_CHAR') || $self -> get_param('JOIN_CHAR');
+    my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
     my $distance = $args{distance} || 1; #  number of cells distance to check
 
     my (@minima, @maxima);
     #  precision snap them to make comparisons easier
-    my $precision = $args{precision} || [('%.10f') x scalar @$coord_ref];
+    my $precision = $args{precision} || [(10 ** 10) x scalar @$coord_ref];
 
     foreach my $i (0..$#{$coord_ref}) {
-        $minima[$i] = 0
-            + $self->set_precision (
-                precision => $precision->[$i],
-                value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
-            );
-        $maxima[$i] = 0
-            + $self->set_precision (
-                precision => $precision->[$i],
-                value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
-            );
+        $minima[$i] = $precision->[$i]
+            ? $self->round_to_precision_aa (
+                  $coord_ref->[$i] - ($resolutions->[$i] * $distance),
+                  $precision->[$i],
+              )
+            : $coord_ref->[$i] - ($resolutions->[$i] * $distance);
+        $maxima[$i] = $precision->[$i]
+            ? $self->round_to_precision_aa (
+                  $coord_ref->[$i] + ($resolutions->[$i] * $distance),
+                  $precision->[$i],
+              )
+           : $coord_ref->[$i] + ($resolutions->[$i] * $distance);
     }
 
     return $self->get_poss_elements (
@@ -2416,6 +2443,15 @@ sub set_precision_aa {
     $num;
 }
 
+
+use constant DEFAULT_PRECISION => 10 ** 10;
+sub round_to_precision_aa {
+    $_[2]
+      ? POSIX::round ($_[1] * $_[2]) / $_[2]
+      : POSIX::round ($_[1] * DEFAULT_PRECISION) / DEFAULT_PRECISION;
+}
+
+
 sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
@@ -2436,14 +2472,11 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         #  should really make the precision an option in the metadata
-        my $base = $self->set_precision_aa ($base_ref->{$index}, '%.10f');
-        my $comp = $self->set_precision_aa ($comp_ref->{$index}, '%.10f');
+        my $base = $self->round_to_precision_aa ($base_ref->{$index});
+        my $comp = $self->round_to_precision_aa ($comp_ref->{$index});
 
         #  make sure it gets a value of 0 if false
-        my $increment = 0;
-        if ($base > $comp) {
-            $increment = 1;
-        }
+        my $increment = $base > $comp ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  

@@ -15,7 +15,7 @@ use Carp;
 use POSIX qw /floor/;
 use List::Util qw /min max/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -419,6 +419,8 @@ sub highlight {
         $self->{mask}->destroy;
         $self->{mask} = undef;
     }
+    
+    return if not $self->{cells_group};
 
     my @mask_rects = $self->get_mask_rects($sel_rows, $sel_cols);
     return if not @mask_rects; # if nothing to mask, return
@@ -938,12 +940,10 @@ sub fit_grid {
         #carp "width_px and/or height_px not defined\n";
         return;
     }
-    if ($self->{width_units} == 0) {
-        $self->{width_units} = 0.00001;
-    }
-    if ($self->{height_units} == 0) {
-        $self->{height_units} = 0.00001;
-    }
+    
+    $self->{width_units}  ||= 0.00001;
+    $self->{height_units} ||= 0.00001;
+
     my $ppu_width = $self->{width_px} / ($self->{width_units} // 1);
     my $ppu_height = $self->{height_px} / ($self->{height_units} // 1);
     my $min_ppu = $ppu_width < $ppu_height ? $ppu_width : $ppu_height;

@@ -13,7 +13,7 @@ use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
 
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::GUI::Project;
 
@@ -165,24 +165,25 @@ sub get_column_use {
 
     # Get header columns
     say "[GUI] Discovering columns from $tree_filename";
-    my $line;
+    my ($line, $line_unchomped);
 
     open( my $fh, '<:via(File::BOM)', $tree_filename );
     while (<$fh>) {    # get first non-blank line
         $line = $_;
+        $line_unchomped = $line;
 
-        #$line =~ s/[\r\n]$//;
-        chomp $line;
+        $line =~ s/[\r\n]+$//;
+        #chomp $line;
         last if $line;
     }
     $fh->close;
 
     my $sep = $gui->get_project->guess_field_separator( string => $line );
-    my $eol = $gui->get_project->guess_eol( string => $line );
+    my $eol = $gui->get_project->guess_eol( string => $line_unchomped );
     my @headers_full = $gui->get_project->csv2list(
         'string' => $line,
         sep_char => $sep,
-        eol      => $eol
+        eol      => $eol,
     );
 
     # add non-blank columns with labels, and generic for blank columns
@@ -295,7 +296,8 @@ sub get_remap_info {
     open( my $fh, '<:via(File::BOM)', $filename );
     while (<$fh>) {    # get first non-blank line
         $line = $_;
-        chomp $line;
+        #chomp $line;
+        $line =~ s/[\r\n]+$//;
         last if $line;
     }
     $fh->close;

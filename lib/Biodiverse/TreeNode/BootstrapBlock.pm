@@ -1,18 +1,21 @@
 package Biodiverse::TreeNode::BootstrapBlock;
 
+use 5.022;
 use strict;
 use warnings;
 use Carp;
 
-use 5.016;
+#  avoid redefined warnings due to
+#  https://github.com/rurban/Cpanel-JSON-XS/issues/65
+use JSON::PP ();
 
-use Cpanel::JSON::XS;
+use JSON::MaybeXS;
 use Data::Structure::Util qw( unbless );
 use Ref::Util qw /is_arrayref is_hashref/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 sub new {
     my $class = shift;

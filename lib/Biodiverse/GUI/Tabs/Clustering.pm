@@ -10,7 +10,7 @@ use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natsort/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -24,7 +24,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -648,6 +648,20 @@ sub hide_legend {
     $self->{grid}->hide_legend;
 }
 
+sub update_display_list_combos {
+    my ($self, %args) = @_;
+    
+    my @methods = qw /
+        update_map_lists_combo
+    /;
+    
+    $self->SUPER::update_display_list_combos (
+        %args,
+        methods => \@methods,
+    );
+    
+    return;
+}
 
 sub init_map_show_combo {
     my $self = shift;
@@ -658,6 +672,11 @@ sub init_map_show_combo {
     $combo->add_attribute($renderer, markup => 0);
 
     return;
+}
+
+sub update_map_lists_combo {
+    my $self = shift;
+    $self->{dendrogram}->update_map_list_model;
 }
 
 sub init_map_list_combo {
@@ -771,7 +790,7 @@ sub make_indices_model {
     my $default_index = $self->get_output_type->get_default_cluster_index;
     my $default_iter;
     # Add each analysis-function (eg: Jaccard, Endemism) row
-    foreach my $name (nsort keys %indices) {
+    foreach my $name (natsort keys %indices) {
 
         # Add to model
         my $iter = $model->append;
@@ -1331,6 +1350,7 @@ sub on_run_analysis {
     elsif ($overwrite) {
         $bd->delete_output (output => $pre_existing);
         $project->delete_output($pre_existing);
+        delete $self->{stats};
     }
 
     if ($flag_values{keep_sp_nbrs_output}) {
@@ -1634,7 +1654,7 @@ sub show_cluster_labelsABC2 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (nsort keys %{$total_labels}) {
+    foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, $total_labels->{$label});
     }
@@ -1663,7 +1683,7 @@ sub show_cluster_labelsABC3 {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
-    foreach my $label (nsort keys %{$total_labels}) {
+    foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter,    0,$label ,  1,$total_labels->{$label});
     }
@@ -1693,7 +1713,7 @@ sub show_cluster_labels {
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
-    foreach my $label (nsort keys %total_labels) {
+    foreach my $label (natsort keys %total_labels) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
     }
@@ -1734,7 +1754,7 @@ sub show_cluster_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (nsort keys %$node_hash) {
+    foreach my $element (natsort keys %$node_hash) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

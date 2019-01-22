@@ -1,11 +1,15 @@
 package Biodiverse::Indices::RWTurnover;
 use strict;
 use warnings;
-use autovivification;
+#use autovivification;
+
+use 5.022;
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
 
 use Carp;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -124,43 +128,34 @@ sub calc_phylo_rw_turnover {
     my $self = shift;
     my %args = @_;
 
-    my $el_list1    = [keys %{$args{element_list1}}];
-    my $el_list2    = [keys %{$args{element_list2}}];
+    my @el_list1 = keys %{$args{element_list1}};
+    my @el_list2 = keys %{$args{element_list2}};
 
-    my $node_ranges = $args{node_range_hash};
-    #my $weights     = $args{PE_WTLIST};
-    #  use an alias to avoid deref overheads with large data sets
-    #alias my %weights = %{$args{PE_WTLIST}};
-    #  reinstate alias approach when perl 5.22
-    #  is the min perl version and we can use refalias
-    my $weights = $args{PE_WTLIST};
-    my ($a, $b, $c) = (0, 0, 0);
-    
-    my $parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
+    \my %node_ranges = $args{node_range_hash};
+    \my %weights     = $args{PE_WTLIST};
+    \my %parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
+
+    my ($a, $b, $c) = (0, 0, 0);    
     my %done;
 
     NODE:
-    foreach my $node (keys %$weights) {
-        no autovivification;
+    foreach my $node (keys %weights) {
 
         next NODE if exists $done{$node};
 
-        my $wt = $weights->{$node};
+        my $wt = $weights{$node};
 
-        my $range_hash = $node_ranges->{$node};
+        \my %range_hash = $node_ranges{$node};
 
         #  Which neighbour sets does our node have terminals in?
         #  This is the "slow" bit of this sub...
-        #  any() takes twice as long as foreach
-        #  Could use alias here, or add a Biodiverse::Utils xsub
-        #my $in_set1 = any {exists $range_hash->{$_}} @$el_list1;  
-        #my $in_set2 = any {exists $range_hash->{$_}} @$el_list2;
+        #  List::Util::any() takes twice as long as foreach
         my ($in_set1, $in_set2);
-        foreach my $el (@$el_list1) {
-            last if $in_set1 = exists $range_hash->{$el};
+        foreach my $el (@el_list1) {
+            last if $in_set1 = exists $range_hash{$el};
         }
-        foreach my $el (@$el_list2) {
-            last if $in_set2 = exists $range_hash->{$el};
+        foreach my $el (@el_list2) {
+            last if $in_set2 = exists $range_hash{$el};
         }
 
         if ($in_set1) {
@@ -168,9 +163,9 @@ sub calc_phylo_rw_turnover {
                 $a += $wt;
                 $done{$node}++;
                 my $pnode = $node;  #  initial parent node key
-                while (my $pnode = $parent_name_hash->{$pnode}) {
+                while ($pnode = $parent_name_hash{$pnode}) {
                     last if exists $done{$pnode};
-                    $a += $weights->{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
+                    $a += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
                     $done{$pnode}++;
                 }
             }

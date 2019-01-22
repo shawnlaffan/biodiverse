@@ -8,7 +8,7 @@ use Carp;
 
 use List::Util qw /max min sum/;
 
-our $VERSION = '2.00';
+our $VERSION = '2.99_001';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -290,11 +290,14 @@ sub calc_chao2 {
             $part1 += $Q * (exp (-$i) - exp (-2 * $i));
             $part2 += $i *  exp (-$i) * $Q;
         }
-        $variance = $part1 - $part2 ** 2 / $R;
+        $variance = $R ? ($part1 - $part2 ** 2 / $R) : 0;
         $chao_formula = 0;
     }
 
-    $variance = max (0, $variance);
+    #  could use ($variance &&= ...) if speed ever becomes an issue here
+    if (defined $variance) {
+        $variance = max (0, $variance);
+    }
 
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (
@@ -512,7 +515,6 @@ sub calc_ace {
 
     my ($a1, $a2);  #  $a names from SpadeR
     for my $i (1 .. 10) {
-        no autovivification;
         next if !$f_rare{$i};
         $a1 += $i * ($i-1) * $f_rare{$i};
         $a2 += $i * $f_rare{$i};
@@ -733,8 +735,6 @@ sub _get_ice_differential {
     my $self = shift;
     my %args = @_;
     
-    no autovivification;
-    
     my $k = 10;  #  later we will make this an argument
 
     my $q = $args{q} // $args{f};
@@ -861,8 +861,6 @@ sub _get_ace_differential {
     my $f = $args{f};
 
     return 1 if $f > $k;
-
-    no autovivification;
 
     my $cv_rare_h   = $args{cv};
     my $n_rare      = $args{n_rare};

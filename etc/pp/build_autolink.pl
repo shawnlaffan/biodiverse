@@ -174,10 +174,10 @@ sub get_sis_theme_stuff {
     my $source_dir = Path::Class::dir ($base, $sharedir);
     my $dest_dir   = Path::Class::dir ($sharedir);
     push @path_args, ('-a', "$source_dir;$dest_dir");
-    #my $subdir = 'lib/auto/Cairo/etc';
-    #$source_dir = Path::Class::dir ($base, $subdir);
-    #$dest_dir   = Path::Class::dir ($subdir);
-    #push @path_args, ('-a', "$source_dir;$dest_dir");
+    my $subdir = 'lib/auto/Cairo/etc';
+    $source_dir = Path::Class::dir ($base, $subdir);
+    $dest_dir   = Path::Class::dir ($subdir);
+    push @path_args, ('-a', "$source_dir;$dest_dir");
 
     # packs libwimp.dll etc
     my $gtk2dir = 'lib/gtk-2.0';

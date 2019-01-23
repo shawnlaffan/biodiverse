@@ -15,7 +15,7 @@ use Biodiverse::GUI::GraphPopup;
 use Carp;
 use Data::Dumper;
 
-use Sort::Naturally qw /nsort/;
+use Sort::Key::Natural qw /natkeysort/;
 
 use Biodiverse::Metadata::Parameter;
 use Biodiverse::GUI::PopupObject;
@@ -644,7 +644,7 @@ sub on_graph_popup {
     my %sources;
     my $default_source;
 
-    foreach my $list_name (nsort @lists) {
+    foreach my $list_name (natkeysort @lists) {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         
@@ -673,7 +673,7 @@ sub on_graph_popup {
             );
         };
     }
-   
+
     Biodiverse::GUI::Popup::show_popup(
         @_,
         $element,
@@ -693,15 +693,15 @@ sub on_add_secondary_to_graph_popup {
 
     my $output_ref = $self->{output_ref};
 
-    my @lists = nsort keys %{$self->{POPUP_GRAPH_BOUNDS}};
-
     my %sources;
     my $default_source;
 
+    my @lists
+      = natkeysort
+        grep {defined $_ and not $_ =~ /^_/}
+        keys %{$self->{POPUP_GRAPH_BOUNDS}};
+
     foreach my $list_name (@lists) {
-        #  checks should be redundant
-        next if not defined $list_name;
-        next if $list_name =~ /^_/; # leading underscore marks internal list
         
         $default_source //= $list_name;
         my $bounds = $self->{POPUP_GRAPH_BOUNDS}{$list_name};

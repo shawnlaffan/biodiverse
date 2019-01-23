@@ -365,6 +365,8 @@ sub on_source_changed {
     my $callback_override = shift;  #  overrides the combo 
 
     my $iter = $combo->get_active_iter;
+    
+    return if !$iter;
 
     my ($list_name, $callback)
         = $combo->get_model->get(

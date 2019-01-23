@@ -249,6 +249,7 @@ sub load_dialog {
         $popup_state->{g_dialogs}{$element}
                     ->get_object(DLG_NAME)
                     ->set_title("Data for $element");
+        $popup->{previous_element} = $popup->{element} // '';
         $popup->{element}     = $element;
         $popup->{sources_ref} = $sources_ref;
     }
@@ -281,11 +282,13 @@ sub load_dialog {
     }
 
     # Load first thing
-    on_source_changed(
-        $combo,
-        $popup,
-        ($is_secondary ? $sources_ref : undef),
-    );
+    if ($popup->{element} ne $popup->{previous_element}) {
+        on_source_changed(
+            $combo,
+            $popup,
+            ($is_secondary ? $sources_ref : undef),
+        );
+    }
 
     return if $is_secondary;
     
@@ -392,7 +395,7 @@ sub on_source_changed {
     }
     else {
         # Call the source-specific callback function (showList, showNeighbourLabels ...)
-        $callback->($popup);
+        $callback->($popup);    
         if ($popup->{secondary_sources_ref}) {
             my $secondary_callback = $popup->{secondary_sources_ref}{$list_name};
             local $popup->{force_replot} = 1;

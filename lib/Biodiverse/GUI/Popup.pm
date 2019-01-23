@@ -161,8 +161,10 @@ sub make_dialog {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     my $dlgxml = Gtk2::Builder->new();
+    
+    my $use_graph = $popup_type && $popup_type eq 'canvas';
 
-    if($popup_type && $popup_type eq 'canvas') {
+    if($use_graph) {
         $dlgxml->add_from_file($gui->get_gtk_ui_file('wndGraphPopup.ui'));
     }
     else {
@@ -182,7 +184,7 @@ sub make_dialog {
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
     my $canvas;
     
-    if($popup_type && $popup_type eq 'canvas') {
+    if ($use_graph) {
     #    if (! $canvas) {
             #  get the frame and add a canvas to it
             my $frame = $dlgxml->get_object('graphDrawingFrame');

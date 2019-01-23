@@ -635,32 +635,45 @@ sub on_graph_popup {
         $self->{popup} = $popup;
     }
 
-    my @lists = $output_ref->get_numerically_keyed_hash_lists_across_elements (
-        no_private => 1,
-    );
+    my @lists;
+    my $cached_lists = $self->{POPUP_GRAPH_LISTS};
+    if (!$cached_lists) {
+        #  caching is disabled in this method atm
+        @lists = natsort (
+            $output_ref->get_numerically_keyed_hash_lists_across_elements (
+                no_private => 1,
+            )
+        );    
+    }
+    else {
+        @lists = @$cached_lists;
+    }
     #  this will cache
     my $stats = $output_ref->get_numerically_keyed_hash_stats_across_elements;
 
     my %sources;
     my $default_source;
 
-    foreach my $list_name (natsort @lists) {
+    foreach my $list_name (@lists) {
         next if not defined $list_name;
         next if $list_name =~ /^_/; # leading underscore marks internal list
         
         $default_source //= $list_name;
 
-        my ($y_min, $y_max)
-          = $output_ref->get_list_min_max_vals_across_elements (
-              list  => $list_name,
-            );
-        my $bounds = {
-            x_min => $stats->{$list_name}{MIN},
-            x_max => $stats->{$list_name}{MAX},
-            y_max => $y_max,
-            y_min => $y_min,
-        };
-        $self->{POPUP_GRAPH_BOUNDS}{$list_name} = $bounds;
+        my $bounds = $self->{POPUP_GRAPH_BOUNDS}{$list_name};
+        if (!$bounds) {
+            my ($y_min, $y_max)
+              = $output_ref->get_list_min_max_vals_across_elements (
+                  list  => $list_name,
+                );
+            $bounds = {
+                x_min => $stats->{$list_name}{MIN},
+                x_max => $stats->{$list_name}{MAX},
+                y_max => $y_max,
+                y_min => $y_min,
+            };
+            $self->{POPUP_GRAPH_BOUNDS}{$list_name} = $bounds;
+        }
 
         $sources{$list_name} = sub {
             Biodiverse::GUI::GraphPopup::add_graph(

@@ -28,7 +28,7 @@ sub add_graph {
     my $popupobj   = shift;
     my $bounds_to_use = shift // warn 'no bounds!';
     
-    say "Bounds for $list_name: " . join (' ', %$bounds_to_use);
+    say "Bounds for $list_name: " . join (' ', %$bounds_to_use{sort keys %$bounds_to_use});
 
     my $list_ref = $output_ref->get_list_ref (
         element => $element,

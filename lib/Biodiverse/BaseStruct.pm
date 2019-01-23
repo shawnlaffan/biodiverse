@@ -3768,13 +3768,13 @@ sub get_numerically_keyed_hash_lists_across_elements {
     no autovivification;
 
     #  turn off caching for now - we need to update it when we analyse the data
-    #my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
-    #my $cached_lists = $self->get_cached_value ($cache_name);
-    #
-    #return wantarray ? %$cached_lists : $cached_lists
-    #  if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    #  some time later - reinstate caching
+    my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
+    my $cached_lists = $self->get_cached_value ($cache_name);
     
-    my %list_reftypes;
+    return wantarray ? %{$cached_lists->{numeric}} : $cached_lists->{numeric}
+      if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    
     my (%is_numeric, %not_numeric);
     my $elements_hash = $self->{ELEMENTS};
 
@@ -3801,10 +3801,15 @@ sub get_numerically_keyed_hash_lists_across_elements {
         }
     }
     delete @is_numeric{keys %not_numeric};
+    
+    my %list_reftypes = (
+        numeric     => \%is_numeric,
+        not_numeric => \%not_numeric,
+    );
 
-    #if (!$args{no_cache}) {
-    #    $self->set_cached_value ($cache_name => \%list_reftypes);
-    #}
+    if (!$args{no_cache}) {
+        $self->set_cached_value ($cache_name => \%list_reftypes);
+    }
 
     return wantarray ? keys %is_numeric : \%is_numeric;
 }

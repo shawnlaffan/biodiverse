@@ -22,7 +22,7 @@ install:
   - set MAKEFLAGS="-j 2"
   - cpanm --notest --installdeps PDL
   - cpanm --notest --installdeps Alien::gdal
-  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
   - ppm install Alien-gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git

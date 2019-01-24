@@ -7,8 +7,8 @@ cache:
   - C:\Strawberry
 
 install:
-  #- if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.28.1.1
-  - appveyor-retry choco upgrade strawberryperl --version 5.28.1.1
+  - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.28.1.1
+  #- appveyor-retry choco upgrade strawberryperl --version 5.28.1.1
   - set ST=C:\Strawberry
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
@@ -22,8 +22,8 @@ install:
   - set MAKEFLAGS="-j 2"
   #- cpanm --notest --installdeps PDL
   #- cpanm --notest --installdeps Alien::gdal
-  #- ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
-  #- ppm install Alien-gdal
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
+  - ppm install Alien-gdal
   ##  make sure something goes to screen for Alien::gdal to avoid timeouts
   ##- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
   #- cpanm --notest Geo::GDAL::FFI

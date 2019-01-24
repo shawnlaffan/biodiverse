@@ -26,7 +26,8 @@ install:
   - ppm install Alien-gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
-  - cpanm --notest Geo::GDAL::FFI 
+  - cpanm --notest Geo::GDAL::FFI
+  - cpanm --notest -v Sereal
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest List::Unique::DeterministicOrder

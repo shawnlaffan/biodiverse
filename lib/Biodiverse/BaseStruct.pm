@@ -3708,14 +3708,12 @@ sub get_numerically_keyed_hash_stats_across_elements {
     
     my $cache_name = 'get_numerically_keyed_hash_stats_across_elements';
     my $cached_results = $self->get_cached_value($cache_name);
-    if ($cached_results) {
-        return wantarray ? %$cached_results : $cached_results;
-    }
+    return wantarray ? %$cached_results : $cached_results
+      if $cached_results;
     
     print "Getting stats for numerically keyed hash lists\n";
 
     my @lists = $self->get_numerically_keyed_hash_lists_across_elements;
-    
     my $elements_hash = $self->{ELEMENTS};
 
     my %collated;
@@ -3752,8 +3750,6 @@ sub get_numerically_keyed_hash_stats_across_elements {
     }
     
     $self->set_cached_value($cache_name => \%key_stats);
-
-    print "Got stats for numerically keyed hash lists\n";
     
     return wantarray ? %key_stats : \%key_stats;
 }
@@ -3771,9 +3767,10 @@ sub get_numerically_keyed_hash_lists_across_elements {
     #  some time later - reinstate caching
     my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
     my $cached_lists = $self->get_cached_value ($cache_name);
-    
-    return wantarray ? %{$cached_lists->{numeric}} : $cached_lists->{numeric}
-      if $cached_lists && !($args{no_cache} || $args{rebuild_cache});
+    if ($cached_lists && !($args{no_cache} || $args{rebuild_cache})) {
+        my $href = $cached_lists->{numeric};
+        return wantarray ? keys %$href : [keys %$href];
+    }
     
     my (%is_numeric, %not_numeric);
     my $elements_hash = $self->{ELEMENTS};
@@ -3811,7 +3808,7 @@ sub get_numerically_keyed_hash_lists_across_elements {
         $self->set_cached_value ($cache_name => \%list_reftypes);
     }
 
-    return wantarray ? keys %is_numeric : \%is_numeric;
+    return wantarray ? keys %is_numeric : [keys %is_numeric];
 }
 
 sub get_array_lists {

@@ -14,8 +14,8 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
   #  aliens should be cached now
-  - set BDV_PPM=http://biodiverse.unsw.edu.au/downloads/ppm/
-  - FOR /F "delims=" %i IN ('ppm query Alien::proj') DO set have_ppms=1
+  - set BDV_PPM=http://biodiverse.unsw.edu.au/downloads/ppm
+  - FOR /F "delims=" %i IN ('ppm query Alien-proj') DO set have_ppms=1
   - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-geos-af.ppd
   - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-proj.ppd
   - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-freexl.ppd

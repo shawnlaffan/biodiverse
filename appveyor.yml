@@ -3,8 +3,8 @@ branches:
     - /travis/
 skip_tags: true
 
-cache:
-  - C:\strawberry
+#cache:
+#  - C:\strawberry
 
 install:
   #- if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.28.1.1

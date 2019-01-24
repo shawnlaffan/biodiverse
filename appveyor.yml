@@ -16,6 +16,8 @@ install:
   #  aliens should be cached now
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-geos-af.ppd
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-proj.ppd
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-freexl.ppd
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-sqlite.ppd
   - cpanm -v Alien::gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git

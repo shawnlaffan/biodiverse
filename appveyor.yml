@@ -20,22 +20,23 @@ install:
   - ppm install Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
   - ppm install Alien-MSYS
   - set MAKEFLAGS="-j 2"
-  - cpanm --notest --installdeps PDL
-  - cpanm --notest --installdeps Alien::gdal
-  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
-  - ppm install Alien-gdal
-  #  make sure something goes to screen for Alien::gdal to avoid timeouts
-  #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
-  - cpanm --notest Geo::GDAL::FFI
-  - cpanm --notest -v Sereal
-  - cpanm --notest Task::Biodiverse::NoGUI
-  - cpanm --notest List::MoreUtils~0.425
-  - cpanm --notest List::Unique::DeterministicOrder
-  - cpanm --notest Sort::Key::Natural
-  #- cpanm --installdeps --notest --with-all-features .
+  #- cpanm --notest --installdeps PDL
+  #- cpanm --notest --installdeps Alien::gdal
+  #- ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
+  #- ppm install Alien-gdal
+  ##  make sure something goes to screen for Alien::gdal to avoid timeouts
+  ##- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
+  #- cpanm --notest Geo::GDAL::FFI
+  #- cpanm --notest -v Sereal
+  #- cpanm --notest Task::Biodiverse::NoGUI
+  #- cpanm --notest List::MoreUtils~0.425
+  #- cpanm --notest List::Unique::DeterministicOrder
+  #- cpanm --notest Sort::Key::Natural
+  ##- cpanm --installdeps --notest --with-all-features .
 
 
 build_script:
   - set BD_NO_TEST_GUI=1
-  - prove -l
+  #- prove -l
+  - perl -e "1"
 

@@ -3,8 +3,8 @@ branches:
     - /travis/
 skip_tags: true
 
-#cache:
-#  - C:\strawberry
+cache:
+  - C:\strawberry
 
 install:
   #- if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.28.1.1
@@ -15,6 +15,7 @@ install:
   
   #  aliens should be cached now
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-geos-af.ppd
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-proj.ppd
   - cpanm -v Alien::gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git

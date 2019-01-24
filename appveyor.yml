@@ -15,13 +15,12 @@ install:
   
   #  aliens should be cached now
   - set BDV_PPM=http://biodiverse.unsw.edu.au/downloads/ppm
-  - set have_ppms=0
   #- FOR /F "delims=" %i IN ('ppm query Alien-proj') DO set have_ppms=1
-  - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-geos-af.ppd
-  - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-proj.ppd
-  - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-freexl.ppd
-  - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-sqlite.ppd
-  - IF [%have_ppms%]==0 ppm install %BDV_PPM%/Alien-spatialite.ppd
+  - ppm install %BDV_PPM%/Alien-geos-af.ppd
+  - ppm install %BDV_PPM%/Alien-proj.ppd
+  - ppm install %BDV_PPM%/Alien-freexl.ppd
+  - ppm install %BDV_PPM%/Alien-sqlite.ppd
+  - ppm install %BDV_PPM%/Alien-spatialite.ppd
   - cpanm -v Alien::gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git

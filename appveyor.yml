@@ -14,21 +14,15 @@ install:
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
   
   #  aliens should be cached now
-  #- set BDV_PPM=http://biodiverse.unsw.edu.au/downloads/ppm
-  #- FOR /F "delims=" %i IN ('ppm query Alien-proj') DO set have_ppms=1
-  #- ppm install %BDV_PPM%/Alien-geos-af.ppd
-  #- ppm install %BDV_PPM%/Alien-proj.ppd
-  #- ppm install %BDV_PPM%/Alien-freexl.ppd
-  #- ppm install %BDV_PPM%/Alien-sqlite.ppd
-  #- ppm install %BDV_PPM%/Alien-spatialite.ppd
+  - cpanm -quiet --notest Module::Compile
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   #- ppm verify --upgrade Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
   - ppm install Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
+  - ppm install Alien-MSYS
   - set MAKEFLAGS="-j2"
   - cpanm -v Alien::gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
-  - cpanm -quiet --notest Module::Compile
   - cpanm Geo::GDAL::FFI 
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425

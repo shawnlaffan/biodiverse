@@ -21,6 +21,7 @@ install:
   #- ppm install %BDV_PPM%/Alien-freexl.ppd
   #- ppm install %BDV_PPM%/Alien-sqlite.ppd
   #- ppm install %BDV_PPM%/Alien-spatialite.ppd
+  - ppm install PDL
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   #- ppm verify --upgrade Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
   - ppm install Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite

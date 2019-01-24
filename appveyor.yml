@@ -18,6 +18,7 @@ install:
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-proj.ppd
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-freexl.ppd
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-sqlite.ppd
+  - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/Alien-spatialite.ppd
   - cpanm -v Alien::gdal
   #  make sure something goes to screen for Alien::gdal to avoid timeouts
   #- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git

@@ -20,9 +20,9 @@ install:
   #- ppm verify --upgrade Alien-MSYS
   #- ppm install Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
   #- ppm install Alien-MSYS
-  - cpanm --force --notest Alien::geos::af Alien::proj Alien::freexl
-  - cpanm --force --notest Alien::sqlite
-  - cpanm --force --notest Alien::spatialite
+  - cpanm --force -v --notest Alien::geos::af Alien::proj Alien::freexl
+  - cpanm --force -v --notest Alien::sqlite
+  - cpanm --force -v --notest Alien::spatialite
   #- set MAKEFLAGS="-j 2"
   #- cpanm --notest --installdeps PDL
   #- cpanm --notest --installdeps Alien::gdal
@@ -31,7 +31,7 @@ install:
   ##  make sure something goes to screen for Alien::gdal to avoid timeouts
   ##- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
   - cpanm --notest Geo::GDAL::FFI
-  - cpanm --notest -v Sereal
+  - cpanm --notest Sereal
   - cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest List::Unique::DeterministicOrder
@@ -41,6 +41,6 @@ install:
 
 build_script:
   - set BD_NO_TEST_GUI=1
-  #- prove -l
-  - perl -e "1"
+  - prove -l
+  #- perl -e "1"
 

@@ -20,9 +20,9 @@ install:
   #- ppm verify --upgrade Alien-MSYS
   #- ppm install Alien-geos-af Alien-proj Alien-freexl Alien-sqlite Alien-spatialite
   #- ppm install Alien-MSYS
-  - cpanm --notest Alien-geos-af Alien-proj Alien-freexl
-  - cpanm --notest Alien-sqlite
-  - cpanm --notest Alien-spatialite
+  - cpanm --notest Alien::geos::af Alien::proj Alien::freexl
+  - cpanm --notest Alien::sqlite
+  - cpanm --notest Alien::spatialite
   #- set MAKEFLAGS="-j 2"
   #- cpanm --notest --installdeps PDL
   #- cpanm --notest --installdeps Alien::gdal

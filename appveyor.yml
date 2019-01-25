@@ -28,7 +28,7 @@ install:
   #- cpanm --notest --installdeps Alien::gdal
   - ppm install http://biodiverse.unsw.edu.au/downloads/ppm/PDL.ppd
   #- ppm install Alien-gdal
-  - cpanm -v Alien::gdal
+  - cpanm -v Alien::gdal~1.15
   ##  make sure something goes to screen for Alien::gdal to avoid timeouts
   ##- cpanm -v https://github.com/shawnlaffan/perl-alien-gdal.git
   - cpanm --notest Geo::GDAL::FFI

@@ -255,6 +255,77 @@ sub test_trim_tree_after_adding_extras {
 
 }
 
+sub test_insert_into_lineage {
+    my $tree = Biodiverse::Tree->new;
+    #  bifurcating tree - each node has children n*2, n*2+1 
+    my @names = qw /1 2 3 4 5 6 7 8 9 10 11/;
+    foreach my $name (@names) {
+        my $node = $tree->add_node (name => $name, length => 1);
+    }
+    foreach my $node ($tree->get_node_refs) {
+        my $name = $node->get_name;
+        my $c1 = $name * 2;
+        my $c2 = $name * 2 + 1;
+        foreach my $child_name ($c1, $c2) {
+            if ($tree->exists_node (name => $child_name)) {
+                my $child_node = $tree->get_node_ref_aa ($child_name);
+                $node->add_children (children => [$child_node]);
+            }
+        }
+    }
+    
+    my @sorted_terminal_node_refs = $tree->get_terminal_node_refs_sorted_by_name;
+    my $target1 = $sorted_terminal_node_refs[0];
+    my $target2 = $sorted_terminal_node_refs[5];
+    
+    my $insert_name1 = 'insert1';
+    my $expected_name1 = '3 ancestral split';
+    my $lineage = $target1->get_path_to_root_node;
+    my @expected_names = map {$_->get_name} @$lineage;
+    splice @expected_names, 2, 0, $expected_name1;
+    my $new1 = Biodiverse::TreeNode->new (
+        name   => $insert_name1,
+        length => 1.5,
+    );
+    $target1->splice_into_lineage (
+        new_node => $new1,
+    );
+    #$target1->delete_cached_values;
+    ok $tree->exists_node (name => $insert_name1), 'tree contains new node';
+    is ($target1->get_parent->get_length, 0.5, 'got expected length');
+    $lineage = $target1->get_path_to_root_node;
+    my @got_names = map {$_->get_name} @$lineage;
+    
+    is_deeply
+      \@got_names,
+      \@expected_names,
+      'got expected names in lineage after first splice';
+
+    #  too long, so should become a child of the root node
+    my $insert_name2 = '?? ancestral split';
+    $lineage = $target2->get_path_to_root_node;
+    @expected_names = map {$_->get_name} @$lineage;
+    #splice @expected_names, -1, 0, $insert_name2;
+    my $new2 = Biodiverse::TreeNode->new (
+        name   => $insert_name2,
+        length => 1001.5,
+    );
+    $target1->splice_into_lineage (
+        new_node => $new2,
+    );
+    $lineage = $target2->get_path_to_root_node;
+    @got_names = map {$_->get_name} @$lineage;
+    
+    is_deeply
+      \@got_names,
+      \@expected_names,
+      'got expected names in lineage after splice of long branch';
+
+    return;
+}
+
+
+
 sub test_trim_tree_to_lca {
     my $tree = Biodiverse::Tree->new;
     #  bifurcating tree - each node has children n*2, n*2+1 

@@ -615,6 +615,20 @@ sub get_terminal_node_refs {
     return wantarray ? @node_list : \@node_list;
 }
 
+sub get_terminal_node_refs_sorted_by_name {
+    my $self = shift;
+    my @node_list;
+
+    foreach my $node_ref ( values %{ $self->get_node_hash } ) {
+        next if !$node_ref->is_terminal_node;
+        push @node_list, $node_ref;
+    }
+
+    @node_list = sort {$a->get_name <=> $b->get_name} @node_list;
+
+    return wantarray ? @node_list : \@node_list;
+}
+
 #  don't cache these results as they can change as clusters are built
 sub get_root_nodes {    #  if there are several root nodes
     my $self = shift;

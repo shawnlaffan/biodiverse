@@ -210,6 +210,13 @@ sub set_length {
     return;
 }
 
+sub set_length_aa {
+    my ($self, $length) = @_;
+    $self->{NODE_VALUES}{LENGTH} = 0 + ($length // $default_length);
+
+    return;
+}
+
 sub get_length {
     return $_[0]->{NODE_VALUES}{LENGTH} // $default_length;
 }
@@ -580,6 +587,48 @@ sub get_child_count {
 sub get_child_count_below {
     my $self = shift;
     return $self->get_terminal_element_count (@_);
+}
+
+sub splice_into_lineage {
+    my ($self, %args) = @_;
+    my $new_node = $args{new_node};
+    my $dist_from_tip = $args{dist_from_tip}
+      // $new_node->get_length
+      // 0;
+    my $name_suffix = $args{name_suffix} // ' ancestral split';
+    my $no_cache_cleanup = $args{no_cache_cleanup};
+    
+    my $len = $self->get_length;
+    if ($len == $dist_from_tip) {
+        $self->get_parent->add_children (children => [$new_node]);
+        return $new_node;
+    }
+    my $target = $self;
+    my $cum_len = $len;
+    while ($cum_len < $dist_from_tip && !$target->is_root_node) {
+        $target = $target->get_parent;
+        $cum_len += $target->get_length;
+    }
+    #  cut the branch
+    if (!$target->is_root_node) {
+        my $new_len = $cum_len - $dist_from_tip;
+        my $new_ancestral_branch = Biodiverse::TreeNode->new (
+            name   => $target->get_name . $name_suffix,
+            length => $new_len,
+        );
+        $new_ancestral_branch->set_parent_aa ($target->get_parent);
+        $target->get_parent->add_children (children => [$new_ancestral_branch]);
+        $target->set_length_aa ($target->get_length - $new_len);
+        $target->set_parent_aa ($new_ancestral_branch);
+    }
+    else {
+        $target->add_children (children => [$new_node]);
+    }
+    if (!$no_cache_cleanup) {
+        #  option allows one to avoid quadratic behaviour
+        $self->get_root_node->delete_cached_values_below;
+    }
+    return;
 }
 
 
@@ -1433,6 +1482,14 @@ sub set_parent {
     
     return;
 }
+
+#  more for convenience of calling
+#  can optimise if profiling shows it is needed
+sub set_parent_aa {
+    my ($self, $parent) = @_;
+    return $self->set_parent (parent => $parent);
+}
+
 
 sub get_parent {
     return $_[0]->{_PARENT};

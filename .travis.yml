@@ -51,3 +51,4 @@ script: prove -l -j4
 branches:
   except:
   - ppm
+  - /appveyor/

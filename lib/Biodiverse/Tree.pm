@@ -11,6 +11,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
+use Sort::Key::Natural qw /natkeysort/;
 
 use English qw ( -no_match_vars );
 
@@ -643,7 +644,7 @@ sub get_terminal_node_refs_sorted_by_name {
         push @node_list, $node_ref;
     }
 
-    @node_list = sort {$a->get_name <=> $b->get_name} @node_list;
+    @node_list = natkeysort {$_->get_name} @node_list;
 
     return wantarray ? @node_list : \@node_list;
 }

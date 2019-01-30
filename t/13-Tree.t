@@ -287,8 +287,9 @@ sub test_insert_into_lineage {
         name   => $insert_name1,
         length => 1.5,
     );
-    $target1->splice_into_lineage (
+    $tree->splice_into_lineage (
         new_node => $new1,
+        target_node => $target1,
     );
     #$target1->delete_cached_values;
     ok $tree->exists_node (name => $insert_name1), 'tree contains new node';
@@ -310,8 +311,9 @@ sub test_insert_into_lineage {
         name   => $insert_name2,
         length => 1001.5,
     );
-    $target1->splice_into_lineage (
+    $tree->splice_into_lineage (
         new_node => $new2,
+        target_node => $target2,
     );
     $lineage = $target2->get_path_to_root_node;
     @got_names = map {$_->get_name} @$lineage;

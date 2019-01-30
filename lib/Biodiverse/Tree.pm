@@ -231,6 +231,23 @@ sub add_node {
     return $node;
 }
 
+sub splice_into_lineage {
+    my ($self, %args) = @_;
+    my $target   = $args{target_node};
+    my $new_node = $args{new_node};
+    my $no_cache_cleanup = $args{no_cache_cleanup};
+    
+    croak "New node must be defined\n" if !defined $new_node;
+    
+    $self->add_node (node_ref => $new_node);
+    my $result = $target->splice_into_lineage (%args);
+    if (!$no_cache_cleanup) {
+        $self->delete_cached_values;
+    }
+    
+    return $result;
+}
+
 sub add_to_node_hash {
     my $self     = shift;
     my %args     = @_;

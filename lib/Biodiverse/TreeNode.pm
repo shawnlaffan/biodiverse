@@ -599,27 +599,30 @@ sub splice_into_lineage {
     my $no_cache_cleanup = $args{no_cache_cleanup};
     
     my $len = $self->get_length;
-    if ($len == $dist_from_tip) {
-        $self->get_parent->add_children (children => [$new_node]);
-        return $new_node;
-    }
+    #if ($len == $dist_from_tip) {
+    #    $self->get_parent->add_children (children => [$new_node]);
+    #    return $new_node;
+    #}
     my $target = $self;
     my $cum_len = $len;
     while ($cum_len < $dist_from_tip && !$target->is_root_node) {
         $target = $target->get_parent;
         $cum_len += $target->get_length;
     }
+    
+    my $new_parent = $target;
     #  cut the branch
     if (!$target->is_root_node) {
         my $new_len = $cum_len - $dist_from_tip;
-        my $new_ancestral_branch = Biodiverse::TreeNode->new (
+        $new_parent = Biodiverse::TreeNode->new (
             name   => $target->get_name . $name_suffix,
             length => $new_len,
         );
-        $new_ancestral_branch->set_parent_aa ($target->get_parent);
-        $target->get_parent->add_children (children => [$new_ancestral_branch]);
+        $new_parent->set_parent_aa ($target->get_parent);
+        $target->get_parent->add_children (children => [$new_parent]);
         $target->set_length_aa ($target->get_length - $new_len);
-        $target->set_parent_aa ($new_ancestral_branch);
+        $target->set_parent_aa ($new_parent);
+        $new_parent = $new_parent;
     }
     else {
         $target->add_children (children => [$new_node]);
@@ -628,7 +631,8 @@ sub splice_into_lineage {
         #  option allows one to avoid quadratic behaviour
         $self->get_root_node->delete_cached_values_below;
     }
-    return;
+
+    return $new_parent;
 }
 
 

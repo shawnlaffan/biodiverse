@@ -159,8 +159,8 @@ sub delete_cached_values_below {
     my %args = @_;
 
     #  this approach seems to avoid memory leaks
-    my %descendents = $self->get_all_descendants (cache => 0);
-    foreach my $node (values %descendents) {
+    my $descendents = $self->get_all_descendants (cache => 0);
+    foreach my $node (values %$descendents) {
         $node->delete_cached_values (%args);
     }
     $self->delete_cached_values (%args);

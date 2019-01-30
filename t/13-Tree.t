@@ -277,6 +277,7 @@ sub test_insert_into_lineage {
     my @sorted_terminal_node_refs = $tree->get_terminal_node_refs_sorted_by_name;
     my $target1 = $sorted_terminal_node_refs[0];
     my $target2 = $sorted_terminal_node_refs[5];
+    my $target3 = $sorted_terminal_node_refs[2];
     
     my $insert_name1 = 'insert1';
     my $expected_name1 = '3 ancestral split';
@@ -323,6 +324,25 @@ sub test_insert_into_lineage {
       \@expected_names,
       'got expected names in lineage after splice of long branch';
 
+    #  check lineages fail (until we implement them)
+    my $new3 = Biodiverse::TreeNode->new (
+        name   => 'lineage_root',
+        length => 1.5,
+    );
+    my $new4 = Biodiverse::TreeNode->new (
+        name   => 'lineage_child',
+        length => 1.5,
+    );
+    $new3->add_children (children => [$new4]);
+    eval {
+        $tree->splice_into_lineage (
+            target_node => $target3,
+            new_node    => $new3,
+        );
+    };
+    my $e = $@;
+    ok ($e, 'got an error splicing a lineage into a tree');
+    
     return;
 }
 

@@ -238,7 +238,9 @@ sub splice_into_lineage {
     my $no_cache_cleanup = $args{no_cache_cleanup};
     
     croak "New node must be defined\n" if !defined $new_node;
-    
+    croak "New node is not a terminal.  Splicing of full trees is not yet supported\n"
+      if !$new_node->is_terminal_node;
+
     $self->add_node (node_ref => $new_node);
     my $result = $target->splice_into_lineage (%args);
     if (!$no_cache_cleanup) {

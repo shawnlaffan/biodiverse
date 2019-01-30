@@ -243,12 +243,15 @@ sub splice_into_lineage {
       if !$new_node->is_terminal_node;
 
     $self->add_node (node_ref => $new_node);
-    my $result = $target->splice_into_lineage (%args);
+    my $new_parent = $target->splice_into_lineage (%args);
+    if (!$self->exists_node(node_ref => $new_parent)) {
+        $self->add_node (node_ref => $new_parent);
+    }
     if (!$no_cache_cleanup) {
         $self->delete_cached_values;
     }
     
-    return $result;
+    return $new_parent;
 }
 
 sub add_to_node_hash {

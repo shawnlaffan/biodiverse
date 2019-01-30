@@ -294,6 +294,7 @@ sub test_insert_into_lineage {
     );
     #$target1->delete_cached_values;
     ok $tree->exists_node (name => $insert_name1), 'tree contains new node';
+    ok $tree->exists_node (node_ref => $new1->get_parent), 'tree contains new node parent';
     is ($target1->get_parent->get_length, 0.5, 'got expected length');
     $lineage = $target1->get_path_to_root_node;
     my @got_names = map {$_->get_name} @$lineage;

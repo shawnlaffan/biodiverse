@@ -212,6 +212,7 @@ sub set_length {
 
 sub set_length_aa {
     my ($self, $length) = @_;
+    croak if !defined $length;
     $self->{NODE_VALUES}{LENGTH} = 0 + ($length // $default_length);
 
     return;
@@ -621,7 +622,8 @@ sub splice_into_lineage {
         my $grandparent = $target->get_parent;
         $new_parent->set_parent_aa ($grandparent);
         $grandparent->add_children (children => [$new_parent]);
-        $target->set_length_aa ($target->get_length - $new_len);
+        my $new_target_len = $target->get_length - $new_len;
+        $target->set_length_aa ($new_target_len);
         $target->set_parent_aa ($new_parent);
         $new_node->set_parent_aa ($new_parent);
         $new_parent->add_children(children => [$target, $new_node]);

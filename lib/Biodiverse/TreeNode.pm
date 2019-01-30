@@ -618,11 +618,13 @@ sub splice_into_lineage {
             name   => $target->get_name . $name_suffix,
             length => $new_len,
         );
-        $new_parent->set_parent_aa ($target->get_parent);
-        $target->get_parent->add_children (children => [$new_parent]);
+        my $grandparent = $target->get_parent;
+        $new_parent->set_parent_aa ($grandparent);
+        $grandparent->add_children (children => [$new_parent]);
         $target->set_length_aa ($target->get_length - $new_len);
         $target->set_parent_aa ($new_parent);
-        $new_parent = $new_parent;
+        $new_node->set_parent_aa ($new_parent);
+        $new_parent->add_children(children => [$target, $new_node]);
     }
     else {
         $target->add_children (children => [$new_node]);

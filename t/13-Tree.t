@@ -303,6 +303,15 @@ sub test_insert_into_lineage {
       \@expected_names,
       'got expected names in lineage after first splice';
 
+    $lineage = $new1->get_path_to_root_node;
+    @got_names = map {$_->get_name} @$lineage;
+    diag join ' : ', @got_names;
+    is_deeply
+      \@got_names,
+      ['insert1', '3 ancestral split', '1'],
+      'got expected lineage names for newly inserted node';
+    
+    
     #  too long, so should become a child of the root node
     my $insert_name2 = '?? ancestral split';
     $lineage = $target2->get_path_to_root_node;

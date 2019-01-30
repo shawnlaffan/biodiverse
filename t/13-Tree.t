@@ -306,7 +306,7 @@ sub test_insert_into_lineage {
 
     $lineage = $new1->get_path_to_root_node;
     @got_names = map {$_->get_name} @$lineage;
-    diag join ' : ', @got_names;
+    #diag join ' : ', @got_names;
     is_deeply
       \@got_names,
       ['insert1', '3 ancestral split', '1'],

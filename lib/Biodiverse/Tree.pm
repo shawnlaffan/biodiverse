@@ -243,12 +243,18 @@ sub splice_into_lineage {
       if !$new_node->is_terminal_node;
 
     $self->add_node (node_ref => $new_node);
-    my $new_parent = $target->splice_into_lineage (%args);
+    my $new_parent = $target->splice_into_lineage (
+        %args,
+        no_cache_cleanup => 1,  #  we will handle it
+    );
     if (!$self->exists_node(node_ref => $new_parent)) {
         $self->add_node (node_ref => $new_parent);
     }
     if (!$no_cache_cleanup) {
         $self->delete_cached_values;
+        foreach my $node (values %{$self->{TREE_BY_NAME}}) {
+            $node->delete_cached_values;
+        }
     }
     
     return $new_parent;

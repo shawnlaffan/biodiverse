@@ -1537,8 +1537,11 @@ sub is_root_node {
 sub get_root_node {
     my $self = shift;
     
-    return $self if $self->is_root_node;
-    return $self->get_parent->get_root_node;
+    while (my $parent = $self->get_parent) {
+        $self = $parent;
+    }
+    
+    return $self;
 }
 
 #  assign some plot coords to the nodes to allow reconstruction of

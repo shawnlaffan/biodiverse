@@ -57,4 +57,23 @@ sub get_default_value {
     return $default;
 }
 
+sub clone {
+    my $self = shift;
+
+    my ($cloneref, $e);
+
+    my $encoder = Sereal::Encoder->new({
+        undef_unknown => 1,  #  strip any code refs
+    });
+    my $decoder = Sereal::Decoder->new();
+    eval {
+        $decoder->decode ($encoder->encode($self), $cloneref);
+    };
+    $e = $@;
+    
+    croak $e if $e;
+
+    return $cloneref;
+}
+
 1;

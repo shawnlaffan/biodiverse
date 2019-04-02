@@ -11,7 +11,7 @@ use Ref::Util qw { :all };
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '2.99_001';
+our $VERSION = '2.99_002';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

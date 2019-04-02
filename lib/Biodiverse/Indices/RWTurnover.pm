@@ -9,7 +9,7 @@ no warnings 'experimental::refaliasing';
 
 use Carp;
 
-our $VERSION = '2.99_001';
+our $VERSION = '2.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

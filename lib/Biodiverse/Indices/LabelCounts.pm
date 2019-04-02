@@ -3,7 +3,7 @@ package Biodiverse::Indices::LabelCounts;
 use strict;
 use warnings;
 
-our $VERSION = '2.99_001';
+our $VERSION = '2.99_002';
 
 use Biodiverse::Statistics;
 

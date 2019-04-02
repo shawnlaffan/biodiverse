@@ -15,7 +15,7 @@ BEGIN {
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '2.99_001';
+our $VERSION = '2.99_002';
 
 local $OUTPUT_AUTOFLUSH = 1;
 

@@ -7,7 +7,7 @@ use warnings;
 #  This is a stub for backwards compatibility.
 #  All the content is now in Biodiverse::SpatialConditions
 
-our $VERSION = '2.99_001';
+our $VERSION = '2.99_002';
 
 use parent qw /Biodiverse::SpatialConditions/;
 

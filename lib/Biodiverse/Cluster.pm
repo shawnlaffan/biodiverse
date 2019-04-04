@@ -1128,6 +1128,8 @@ sub cluster_matrix_elements {
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
+    
+    my $show_gui_progress = 1;
 
   PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
@@ -1205,13 +1207,19 @@ sub cluster_matrix_elements {
         #  possibly we should return a list of other matrix elements where the length
         #  difference is 0 and which therefore could be merged now rather than next iteration
         #  but that is not guaranteed to work for all combinations of index and linkage
+        my $start_time = time();
         $self->run_linkage (
-            node1            => $node1,
-            node2            => $node2,
-            new_node_name    => $new_node_name,
-            linkage_function => $linkage_function,
+            node1             => $node1,
+            node2             => $node2,
+            new_node_name     => $new_node_name,
+            linkage_function  => $linkage_function,
+            show_gui_progress => $show_gui_progress,
             #merge_track_matrix => $merged_mx,
         );
+        if ($show_gui_progress and (time() - $start_time) < 1) {
+            #  no need to show the progress bar if it is deleted before any updates
+            $show_gui_progress = undef;
+        }
 
         $prev_min_value = $most_similar_val;
 
@@ -2229,7 +2237,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my @check_node_array = sort $matrix_with_elements->get_elements_as_array;
     my $num_nodes = scalar @check_node_array;
     my $progress;
-    if ($num_nodes > 100) {
+    if ($args{show_gui_progress} && $num_nodes > 500) {
         $progress = Biodiverse::Progress->new (
             text     => "Running linkage for $num_nodes",
             gui_only => 1,

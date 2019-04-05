@@ -394,6 +394,67 @@ sub test_binarise_sample_counts {
 }
 
 
+sub test_coarsen_cell_sizes {
+    my $bd1   = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    my $bdc_22 = Biodiverse::BaseData->new(CELL_SIZES => [2, 2]);
+    my $bdc_21 = Biodiverse::BaseData->new(CELL_SIZES => [2, 1]);
+    
+    my $join_char = $bd1->get_param('JOIN_CHAR');
+    my @labels = ('a' .. 'zzz');
+    #  completely filled;
+    foreach my $x (0 .. 49) {
+        foreach my $y (0 .. 49) {
+            my $label = $labels[$y];
+            my $gp = join $join_char, $x+0.5, $y+0.5;
+            $bd1->add_element (group => $gp, label => $label);
+            my $gp2 = join $join_char, ($x - $x % 2) + 1, ($y - $y % 2) + 1;
+            $bdc_22->add_element (group => $gp2, label => $label);
+            my $gp3 = join $join_char, ($x - $x % 2) + 1, $y + 0.5;
+            $bdc_21->add_element (group => $gp3, label => $label);
+        }
+    }
+    
+    #  simple cases
+    my %sizes = (
+        22 => [$bdc_22, [2,2]],
+        21 => [$bdc_21, [2,1]],
+    );
+
+    for my $size_key (keys %sizes) {
+        my $sizes = $sizes{$size_key}[1];
+        my $bd_c  = $sizes{$size_key}[0];
+
+        my $bd2 = $bd1->clone_with_coarser_cell_sizes (
+            cell_sizes => $sizes,
+        );
+    
+        is_deeply ([$bd2->get_cell_sizes], $sizes, 'got expected cell sizes');
+        is ($bd2->get_label_count, $bd1->get_label_count, 'same number of labels');
+        is ($bd2->get_group_count, $bd_c->get_group_count, 'correct number of groups');
+        is_deeply ([sort $bd_c->get_groups], [sort $bd_c->get_groups], 'got expected groups');
+        is_deeply ([sort $bd_c->get_labels], [sort $bd_c->get_labels], 'got expected labels');
+    }
+    
+    
+    #  need some dies_ok calls here
+    my %die_calls = (
+        'zero axis' => [0,1],
+        'insufficient axes' => [2],
+        'smaller axes'   => [0.5,0.5],
+        'no axes'  => undef,
+        'too many axes' => [2,2,2],
+        #'unchanged axes' => [1,1],  #  no - user can just get a clone
+    );
+    foreach my $text (sort keys %die_calls) {
+        my $cell_sizes = $die_calls{$text};
+        dies_ok (
+            sub {$bd1->clone_with_coarser_cell_sizes (cell_sizes => $cell_sizes)},
+            "dies on $text",
+        );
+    }
+    
+}
+
 sub test_remap_labels_from_hash {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 

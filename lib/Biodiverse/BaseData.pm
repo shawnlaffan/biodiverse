@@ -373,6 +373,83 @@ sub clone {
     return $cloneref;
 }
 
+sub clone_with_coarser_cell_sizes {
+    my ($self, %args) = @_;
+    
+    my $new_cell_sizes     = $args{cell_sizes};
+    my $new_cell_origins   = $args{cell_origins}
+                           // $self->get_cell_origins;
+    my $current_cell_sizes = $self->get_cell_sizes;
+    
+    croak "No new cell sizes passed, process is futile\n"
+      if !$new_cell_sizes;
+    croak "New cell sizes have incorrect dimensions\n"
+      if scalar @$new_cell_sizes != scalar @$current_cell_sizes;
+
+    #  per-axis sanity checks
+    my $same_count = 0;
+    foreach my $i (0 .. $#$current_cell_sizes) {
+        my $current = $current_cell_sizes->[$i];
+        my $new     = $new_cell_sizes->[$i];
+        
+        croak "cannot coarsen a non-numeric axis (axis $i)\n"
+          if $current < 0 and $current != $new;
+        croak "new axis size is less than current"
+          if $current > $new;
+        #  could lead to precision issues later
+        my $fmod = ($current and $new) ? fmod ($new / $current, 1) : 0;
+        croak "new size for axis $i of $new is not a multiple of current ($current)"
+          if ($current and $new) and $fmod;
+        if ($current == $new) {
+            $same_count++;
+        }
+    }      
+    
+    my $new_bd = Biodiverse::BaseData->new (
+        NAME => $args{name} // (($self->get_name // '') . '_but_coarser'),
+        CELL_SIZES   => $new_cell_sizes,
+        CELL_ORIGINS => $new_cell_origins,
+    );
+    
+    my $out_csv = $self->get_csv_object(
+        sep_char   => $self->get_param('JOIN_CHAR'),
+        quote_char => $self->get_param('QUOTES'),
+    );
+
+    my $gps = $self->get_groups;
+    foreach my $group (@$gps) {
+        my @gp_fields;
+        my $gp_array = $self->get_group_element_as_array (element => $group);
+        foreach my $i (0 .. $#$gp_array) {
+            my $origin = $new_cell_origins->[$i];
+            my $g_size = $new_cell_sizes->[$i];
+            if ( $g_size > 0 ) {
+                my $cell = floor( ( $gp_array->[$i] - $origin ) / $g_size );
+                my $grp_centre =
+                  $origin + $cell * $g_size + ( $g_size / 2 );
+                push @gp_fields, $grp_centre;
+            }
+            else {
+                push @gp_fields, $gp_array->[$i];
+            }
+        }
+        my $grpstring = $self->list2csv(
+            list       => \@gp_fields,
+            csv_object => $out_csv,
+        );
+        my $labels = $self->get_labels_in_group_as_hash (group => $group);
+        foreach my $label (keys %$labels) {
+            $new_bd->add_element (
+                group => $grpstring,
+                label => $label,
+                sample_counts => $labels->{$label},
+            );
+        }
+    }
+    
+    return $new_bd;
+}
+
 sub _describe {
     my $self = shift;
 
@@ -3240,7 +3317,7 @@ sub get_group_element_as_array {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
+    my $element = $args{element} // $args{group};
     croak "element not specified\n"
       if !defined $element;
 

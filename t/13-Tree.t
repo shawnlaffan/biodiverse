@@ -384,6 +384,9 @@ sub test_trim_tree_to_lca {
         $root = $node;
     }
 
+    #  nasty test as it knows too much
+    is ($tree->get_tree_ref->get_name, 'c', 'initial root node has correct name');
+
     $tree->trim_to_last_common_ancestor;
     
     foreach my $should_not_exist (qw /a b c/) {
@@ -400,6 +403,10 @@ sub test_trim_tree_to_lca {
     }
     #  should be zeroed
     is ($tree->get_root_node->get_length, 0, 'root node has length zero');
+    is ($tree->get_root_node->get_name, '1', 'root node has correct name');
+    #  nasty test as it knows too much
+    is ($tree->get_tree_ref->get_name, '1', 'trimmed root node has correct name');
+    
 
     return;
 }

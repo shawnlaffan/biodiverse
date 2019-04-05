@@ -2496,6 +2496,14 @@ sub trim_to_last_common_ancestor {
         $self->delete_from_node_hash (node => $name);
     }
     $root->set_length (length => 0);
+    #  total_length_gui _y
+    
+    #  reset the tree node 
+    $self->{TREE} = $root;
+    $self->delete_cached_values_below;
+    
+    my $check = $self->get_root_node;
+
 
     return;
 }

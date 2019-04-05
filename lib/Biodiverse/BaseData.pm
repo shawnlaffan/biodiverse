@@ -384,9 +384,9 @@ sub clone_with_coarser_cell_sizes {
     
     croak "No new cell sizes passed, process is futile\n"
       if !$new_cell_sizes;
-    croak "New cell sizes have incorrect dimensions\n"
+    croak "New cell size array has incorrect dimensions\n"
       if scalar @$new_cell_sizes != scalar @$current_cell_sizes;
-    croak "New cell origins have incorrect dimensions\n"
+    croak "New cell origins array has incorrect dimensions\n"
       if scalar @$new_cell_origins != scalar @$current_cell_origins;
 
     #  per-axis sanity checks

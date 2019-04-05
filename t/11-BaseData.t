@@ -453,8 +453,8 @@ sub test_coarsen_cell_sizes {
         'no axes'           => [],
         'too many axes'     => [[2,2,2]],
         'insufficient axes' => [[2]],
-        'bung axes'         => [[2,2], [1.5,1]],
-        #'unchanged axes' => [1,1],  #  no - user can just get a clone
+        'bung axis origins' => [[2,2], [1.5,1]],
+        #'unchanged axes' => [1,1],  #  no - user can just get a clone the hard way
     );
     foreach my $text (sort keys %die_calls) {
         my $cell_sizes   = $die_calls{$text}[0];
@@ -462,8 +462,8 @@ sub test_coarsen_cell_sizes {
 
         dies_ok (
             sub {$bd1->clone_with_coarser_cell_sizes (
-                    cell_sizes   => $cell_sizes,
-                    cell_origins => $cell_origins,
+                cell_sizes   => $cell_sizes,
+                cell_origins => $cell_origins,
             )},
             "dies on $text",
         );

@@ -12,6 +12,7 @@ use Data::Dumper;
 use Path::Class;
 use List::Util 1.45 qw /uniq/;
 use Test::Lib;
+use POSIX qw /floor/;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -395,15 +396,16 @@ sub test_binarise_sample_counts {
 
 
 sub test_coarsen_cell_sizes {
-    my $bd1   = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
+    my $bd1    = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
     my $bdc_22 = Biodiverse::BaseData->new(CELL_SIZES => [2, 2]);
     my $bdc_21 = Biodiverse::BaseData->new(CELL_SIZES => [2, 1]);
+    my $bdc_21_11 = Biodiverse::BaseData->new(CELL_SIZES => [2, 1], CELL_ORIGINS => [1,1]);
     
     my $join_char = $bd1->get_param('JOIN_CHAR');
     my @labels = ('a' .. 'zzz');
     #  completely filled;
-    foreach my $x (0 .. 49) {
-        foreach my $y (0 .. 49) {
+    foreach my $x (0 .. 19) {
+        foreach my $y (0 .. 19) {
             my $label = $labels[$y];
             my $gp = join $join_char, $x+0.5, $y+0.5;
             $bd1->add_element (group => $gp, label => $label);
@@ -411,6 +413,11 @@ sub test_coarsen_cell_sizes {
             $bdc_22->add_element (group => $gp2, label => $label);
             my $gp3 = join $join_char, ($x - $x % 2) + 1, $y + 0.5;
             $bdc_21->add_element (group => $gp3, label => $label);
+            #  really need to abstract the cell coord calcs into a sub
+            my $gx_tmp = floor ( ( $x - 1 ) / 2 );
+            my $gx = 1 + $gx_tmp * 2 + ( 2 / 2 );
+            my $gp4 = join $join_char, $gx, $y + .5;
+            $bdc_21_11->add_element (group => $gp4, label => $label);
         }
     }
     
@@ -418,37 +425,46 @@ sub test_coarsen_cell_sizes {
     my %sizes = (
         22 => [$bdc_22, [2,2]],
         21 => [$bdc_21, [2,1]],
+        '21_11' => [$bdc_21_11, [2,1], [1,1]],
     );
 
-    for my $size_key (keys %sizes) {
-        my $sizes = $sizes{$size_key}[1];
+    for my $size_key (sort keys %sizes) {
         my $bd_c  = $sizes{$size_key}[0];
+        my $sizes = $sizes{$size_key}[1];
+        my $origins = $sizes{$size_key}[2];
 
         my $bd2 = $bd1->clone_with_coarser_cell_sizes (
-            cell_sizes => $sizes,
+            cell_sizes   => $sizes,
+            cell_origins => $origins,
         );
     
-        is_deeply ([$bd2->get_cell_sizes], $sizes, 'got expected cell sizes');
-        is ($bd2->get_label_count, $bd1->get_label_count, 'same number of labels');
-        is ($bd2->get_group_count, $bd_c->get_group_count, 'correct number of groups');
-        is_deeply ([sort $bd_c->get_groups], [sort $bd_c->get_groups], 'got expected groups');
-        is_deeply ([sort $bd_c->get_labels], [sort $bd_c->get_labels], 'got expected labels');
+        is_deeply ([$bd2->get_cell_sizes], $sizes, "got expected cell sizes $size_key");
+        is ($bd2->get_label_count, $bd1->get_label_count, "same number of labels $size_key");
+        is ($bd2->get_group_count, $bd_c->get_group_count, "correct number of groups $size_key");
+        is_deeply ([sort $bd2->get_groups], [sort $bd_c->get_groups], "got expected groups $size_key");
+        is_deeply ([sort $bd2->get_labels], [sort $bd_c->get_labels], "got expected labels $size_key");
     }
     
     
     #  need some dies_ok calls here
     my %die_calls = (
-        'zero axis' => [0,1],
-        'insufficient axes' => [2],
-        'smaller axes'   => [0.5,0.5],
-        'no axes'  => undef,
-        'too many axes' => [2,2,2],
+        'zero axis'         => [[0,1]],
+        'smaller axes'      => [[0.5,0.5]],
+        'no axes'           => [],
+        'too many axes'     => [[2,2,2]],
+        'insufficient axes' => [[2]],
+        'bung axes'         => [[2,2], [1.5,1]],
         #'unchanged axes' => [1,1],  #  no - user can just get a clone
     );
     foreach my $text (sort keys %die_calls) {
-        my $cell_sizes = $die_calls{$text};
+        my $cell_sizes   = $die_calls{$text}[0];
+        my $cell_origins = $die_calls{$text}[1];
+
         dies_ok (
-            sub {$bd1->clone_with_coarser_cell_sizes (cell_sizes => $cell_sizes)},
+            sub {$bd1->clone_with_coarser_cell_sizes (
+                    cell_sizes   => $cell_sizes,
+                    cell_origins => $cell_origins,
+            )},
             "dies on $text",
         );
     }

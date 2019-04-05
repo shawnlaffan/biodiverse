@@ -379,12 +379,15 @@ sub clone_with_coarser_cell_sizes {
     my $new_cell_sizes     = $args{cell_sizes};
     my $new_cell_origins   = $args{cell_origins}
                            // $self->get_cell_origins;
-    my $current_cell_sizes = $self->get_cell_sizes;
+    my $current_cell_sizes   = $self->get_cell_sizes;
+    my $current_cell_origins = $self->get_cell_origins;
     
     croak "No new cell sizes passed, process is futile\n"
       if !$new_cell_sizes;
     croak "New cell sizes have incorrect dimensions\n"
       if scalar @$new_cell_sizes != scalar @$current_cell_sizes;
+    croak "New cell origins have incorrect dimensions\n"
+      if scalar @$new_cell_origins != scalar @$current_cell_origins;
 
     #  per-axis sanity checks
     my $same_count = 0;
@@ -397,12 +400,23 @@ sub clone_with_coarser_cell_sizes {
         croak "new axis size is less than current"
           if $current > $new;
         #  could lead to precision issues later
-        my $fmod = ($current and $new) ? fmod ($new / $current, 1) : 0;
+        my $fmod = ($current and $new and $current ne $new)
+          ? fmod ($new / $current, 1)
+          : 0;
         croak "new size for axis $i of $new is not a multiple of current ($current)"
           if ($current and $new) and $fmod;
         if ($current == $new) {
             $same_count++;
         }
+        
+        my $current_o = $current_cell_origins->[$i];
+        my $new_o     = $new_cell_origins->[$i];
+        $fmod = ($current_o ne $new_o)
+          ? fmod (abs ($new_o - $current_o) / $current, 1)
+          : 0;
+        croak "new origin for axis $i of $new_o does not conform "
+            . "with current ($current_o) and axis size ($current)"
+          if $fmod;
     }      
     
     my $new_bd = Biodiverse::BaseData->new (

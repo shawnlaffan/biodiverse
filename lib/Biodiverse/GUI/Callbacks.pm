@@ -337,6 +337,9 @@ my %data_funcs = (
     on_trim_tree_to_basedata => {
         METHOD => 'do_trim_tree_to_basedata',
     },
+    on_trim_tree_to_lca => {
+        METHOD => 'do_trim_tree_to_lca',
+    },
     on_trim_matrix_to_basedata => {
         METHOD => 'do_trim_matrix_to_basedata',
     },

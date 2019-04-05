@@ -1407,6 +1407,7 @@ sub set_phylogeny_buttons {
         menu_phylogeny_describe
         menu_convert_phylogeny_to_matrix
         menu_trim_tree_to_basedata
+        menu_trim_tree_to_lca
         menu_phylogeny_export
         menu_phylogeny_delete_cached_values
         menu_range_weight_tree_branches

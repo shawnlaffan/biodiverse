@@ -508,6 +508,14 @@ Assumes a dissimilarity matrix, so take care.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_trim_tree_to_lca">
+            <property name="name">menu_trim_tree_to_last_common_ancestor</property>
+            <property name="tooltip" translatable="yes">Delete tree branches above the last common ancestor of the tips</property>
+            <property name="label" translatable="yes">Trim to last common ancestor</property>
+            <signal handler="on_trim_tree_to_lca" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_range_weight_tree_branches">
             <property name="name">menu_range_weight_tree_branches</property>
             <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
@@ -769,6 +777,7 @@ This cannot be undone.  </property>
           <separator/>
           <menuitem action="menu_convert_phylogeny_to_matrix"/>
           <menuitem action="menu_trim_tree_to_basedata"/>
+          <menuitem action="menu_trim_tree_to_lca"/>
           <menuitem action="menu_range_weight_tree_branches"/>
           <menuitem action="menu_equalise_tree_branches"/>
           <menuitem action="menu_rescale_tree_branches2"/>

@@ -173,6 +173,14 @@ This will create a new basedata with the corrected axis orders. </property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_basedata_coarsen_axis_resolutions">
+            <property name="name">menu_basedata_coarsen_axis_resolutions</property>
+            <property name="tooltip" translatable="yes">Create a new basedata with coarser axis resolutions (cell sizes).</property>
+            <property name="label" translatable="yes">Duplicate with coarser cell sizes</property>
+            <signal handler="on_basedata_coarsen_axis_resolutions" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_basedata_transpose">
             <property name="name">menu_basedata_transpose</property>
             <property name="tooltip" translatable="yes">Create a new basedata with the labels and groups transposed -
@@ -726,6 +734,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_basedata_duplicate"/>
           <menuitem action="menu_basedata_duplicate_no_outputs"/>
           <menuitem action="menu_basedata_reorder_axes"/>
+          <menuitem action="menu_basedata_coarsen_axis_resolutions"/>
           <menuitem action="menu_basedata_transpose"/>
           <menuitem action="menu_merge_basedatas"/>
           <menuitem action="menu_basedata_auto_remap"/>

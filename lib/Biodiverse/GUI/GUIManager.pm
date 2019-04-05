@@ -1503,6 +1503,44 @@ sub do_duplicate_basedata {
     return;
 }
 
+sub do_basedata_coarsen_axis_resolutions {
+    my $self = shift;
+
+    my $object = $self->{project}->get_selected_base_data();
+
+    # Show the Get Name dialog
+    my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
+    $dlg->set_transient_for( $self->get_object('wndMain') );
+
+    my $txt_name = $dlgxml->get_object('txtName');
+    my $name     = $object->get_param('NAME');
+
+    # If ends with a number increment it
+    if ( $name =~ /(.*)([0-9]+)$/ ) {
+        $name = $1 . ( $2 + 1 );
+    }
+    else {
+        $name .= '1';
+    }
+    $txt_name->set_text($name);
+
+    my $response = $dlg->run();
+    if ( $response eq 'ok' ) {
+        my $chosen_name = $txt_name->get_text;
+
+        # This uses the dclone method from Storable
+        my $cloned = $object->clone(@_);    #  pass on the args
+        $cloned->set_param( NAME => $chosen_name
+              || $object->get_param('NAME') . "_CLONED" );
+        $self->{project}->add_base_data($cloned);
+    }
+
+    $dlg->destroy();
+
+    $self->set_dirty;
+    return;
+}
+
 sub do_rename_basedata_labels {
     my $self = shift;
     $self->_do_rename_basedata_groups_or_labels('rename_labels');

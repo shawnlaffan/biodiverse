@@ -1506,15 +1506,9 @@ sub do_duplicate_basedata {
 sub do_basedata_coarsen_axis_resolutions {
     my $self = shift;
 
-    my $object = $self->{project}->get_selected_base_data();
+    my $bd = $self->{project}->get_selected_base_data();
 
-    # Show the Get Name dialog
-    my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
-    $dlg->set_transient_for( $self->get_object('wndMain') );
-
-    my $txt_name = $dlgxml->get_object('txtName');
-    my $name     = $object->get_param('NAME');
-
+    my $name = $bd->get_name;
     # If ends with a number increment it
     if ( $name =~ /(.*)([0-9]+)$/ ) {
         $name = $1 . ( $2 + 1 );
@@ -1522,22 +1516,54 @@ sub do_basedata_coarsen_axis_resolutions {
     else {
         $name .= '1';
     }
-    $txt_name->set_text($name);
+
+    ###  NEED to generate:
+    ###  the name field,
+    ###  a table for the resolutions, and
+    ###  a table for the origins.
+    my $name_dlg = Gtk2::Entry->new ();
+    $name_dlg->set_text ($name);
+    #my $resolution_table = $self->get_resolution_table_widget (
+    #    basedata => $bd,
+    #);
+    #my $origin_table = $self->get_resolution_table_widget (
+    #    basedata => $bd,
+    #);
+
+    my $dlg = Gtk2::Dialog->new (
+        'Coarse resolution basedata',
+        $self->get_object('wndMain'),
+        'modal',
+        'gtk-ok'       => 'ok',
+        'gtk-cancel'   => 'cancel',
+    );
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start ($name_dlg, 1, 1, 0);
+    #$vbox->pack_start ($resolution_table);
+    #$vbox->pack_start ($origin_table);
+    $vbox->show_all();
+
+    # Show the Get Name dialog
+    $dlg->set_transient_for( $self->get_object('wndMain') );
 
     my $response = $dlg->run();
-    if ( $response eq 'ok' ) {
-        my $chosen_name = $txt_name->get_text;
-
-        # This uses the dclone method from Storable
-        my $cloned = $object->clone(@_);    #  pass on the args
-        $cloned->set_param( NAME => $chosen_name
-              || $object->get_param('NAME') . "_CLONED" );
-        $self->{project}->add_base_data($cloned);
+    if ($response ne 'ok') {
+        $dlg->destroy;
+        return;
     }
-
+    
+    my $chosen_name = $name_dlg->get_text;
     $dlg->destroy();
 
+    my $cloned = $bd->clone_with_coarser_cell_sizes(
+        name         => $chosen_name,
+        cell_sizes   => [],
+        cell_origins => [],
+    );
+    
+    $self->{project}->add_base_data($cloned);
     $self->set_dirty;
+
     return;
 }
 

@@ -1524,21 +1524,30 @@ sub do_basedata_coarsen_axis_resolutions {
     ###  a table for the origins.
     my $name_entry = Gtk2::Entry->new ();
     $name_entry->set_text ($name);
-    my $name_label = Gtk2::Label->new ('New name: ');
+    my $name_label = Gtk2::Label->new ();
+    $name_label->set_markup('<b>New name:</b> ');
     my $name_dlg = Gtk2::HBox->new;
     $name_dlg->pack_start ($name_label, 1, 1, 0);
     $name_dlg->pack_start ($name_entry, 1, 1, 0);
 
     my $resolution_label = Gtk2::Label->new;
     $resolution_label->set_markup (
-        "New resolutions\n <i>(must be integer multiples of current)</i>"
+        "\n<b>New resolutions</b>\n <i>Must be incremented by current axis sizes.</i>\n"
     );
     my $resolution_table = $self->get_resolution_table_widget (
         basedata => $bd,
     );
-    #my $origin_table = $self->get_resolution_table_widget (
-    #    basedata => $bd,
-    #);
+    my $origin_label = Gtk2::Label->new;
+    $origin_label->set_markup (
+          "\n<b>New origins</b>\n"
+        . "<i>Must be incremented by current axis sizes.\n"
+        . "There is also little purpose in using values \n"
+        . qq{exceeding the new cell sizes as these \n }
+        . qq{are "snapping" values.</i>\n}
+    );
+    my $origin_table = $self->get_origin_table_widget (
+        basedata => $bd,
+    );
 
     my $dlg = Gtk2::Dialog->new (
         'Coarse resolution basedata',
@@ -1549,10 +1558,15 @@ sub do_basedata_coarsen_axis_resolutions {
     );
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start ($name_dlg, 1, 1, 0);
-    $vbox->pack_start (Gtk2::HSeparator->new, 1, 1, 0);
-    $vbox->pack_start ($resolution_label, 1, 1, 0);
+    #$vbox->pack_start (Gtk2::HSeparator->new, 1, 1, 0);
+    my $align1 = Gtk2::Alignment->new(0, 0.5, 0, 0.25);
+    $align1->add($resolution_label);
+    $vbox->pack_start ($align1, 0, 0, 0);
     $vbox->pack_start ($resolution_table, 1, 1, 0);
-    #$vbox->pack_start ($origin_table, 1, 1, 0);
+    my $align2 = Gtk2::Alignment->new(0, 0.5, 0, 0.25);
+    $align2->add($origin_label);
+    $vbox->pack_start ($align2, 0, 0, 0);
+    $vbox->pack_start ($origin_table, 1, 1, 0);
     $vbox->show_all();
 
     # Show the Get Name dialog
@@ -1585,7 +1599,7 @@ sub get_resolution_table_widget {
 
     my @cellsize_array = $bd->get_cell_sizes;
     my @origins_array  = $bd->get_cell_origins;
-    
+        
     my %coord_bounds   = $bd->get_coord_bounds;
 
     my $table = Gtk2::Table->new (0, 0, 0);
@@ -1604,11 +1618,12 @@ sub get_resolution_table_widget {
     $tooltip_group->set_tip( $decr_button,
         'Decrease all the axes by their default increments', undef, );
 
-    my $i = 0;
+    my $i = -1;
     my @resolution_widgets;
 
   BY_AXIS:
     foreach my $cellsize (@cellsize_array) {
+        $i++;
 
         my $is_text_axis = 0;
 
@@ -1684,11 +1699,159 @@ sub get_resolution_table_widget {
 
         $label->show;
         $widget->show;
-
-        $i++;
     }
 
     #  attach signal handlers
+    my $j = 0;
+    # ensure it is a valid multiple from origin
+    foreach my $widget (@resolution_widgets) {
+        $widget->signal_connect (
+            'value-changed' => sub {
+                my $val = $widget->get_value;
+                my $fmod = fmod (
+                  ($val - $origins_array[$j]),
+                  $cellsize_array[$j],
+                );
+                if ($fmod) {
+                    $val -= $fmod;
+                    $widget->set_value ($val);
+                }
+                return;
+            }
+        );
+        $i++;
+    }
+    $incr_button->signal_connect(
+        clicked => sub {
+            foreach my $widget (@resolution_widgets) {
+                my $increment = $widget->get_adjustment->step_increment;
+                $widget->set_value($widget->get_value + $increment);
+            }
+        },
+    );
+    $decr_button->signal_connect(
+        clicked => sub {
+            foreach my $widget (@resolution_widgets) {
+                my $increment = $widget->get_adjustment->step_increment;
+                $widget->set_value($widget->get_value - $increment);
+            }
+        },
+    );
+    
+    return $table;
+}
+
+#  lots of copy-paste here from get_resolution_table_widget,
+#  but integrating the two is not simple
+sub get_origin_table_widget {
+    my ($self, %args) = @_;
+    my $bd = $args{basedata} // $self->{project}->get_selected_base_data();
+
+    my @cellsize_array = $bd->get_cell_sizes;
+    my @origins_array  = $bd->get_cell_origins;
+        
+    my %coord_bounds   = $bd->get_coord_bounds;
+
+    my $table = Gtk2::Table->new (0, 0, 0);
+
+    my $tooltip_group = Gtk2::Tooltips->new;
+
+    my $rows = $table->get('n-rows');
+    $rows++;
+
+    my $incr_button = Gtk2::Button->new_with_label('Increment all');
+    $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
+    $tooltip_group->set_tip( $incr_button,
+        'Increase all the axes by their default increments', undef, );
+    my $decr_button = Gtk2::Button->new_with_label('Decrement all');
+    $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
+    $tooltip_group->set_tip( $decr_button,
+        'Decrease all the axes by their default increments', undef, );
+
+    my $i = -1;
+    my @resolution_widgets;
+
+  BY_AXIS:
+    foreach my $origin (@origins_array) {
+        $i++;
+        my $cellsize = $cellsize_array[$i];
+
+        my $is_text_axis = 0;
+
+        my $init_value = $origin;
+
+        my $min_val   = -10E10;
+        my $max_val   =  10E10;
+        my $step_incr = $cellsize;
+
+        if ( $cellsize == 0 ) {    #  allow some change for points
+            #  avoid precision issues later on when predicting offsets
+            $step_incr = 0 + sprintf "%.10f",
+              ( $coord_bounds{MAX}[$i] - $coord_bounds{MIN}[$i] ) / 20;
+        }
+        elsif ( $cellsize < 0 ) {       #  allow no change for text
+            $init_value   = 0;
+            $min_val      = 0;
+            $max_val      = 0;
+            $is_text_axis = 1;
+            $step_incr    = 0;
+        }
+
+        my $page_incr = $step_incr * 10;
+
+        my $label_text = "Axis $i";
+
+        $rows = $table->get('n-rows');
+        $rows++;
+        $table->set( 'n-rows' => $rows );
+
+        # Make the label
+        my $label = Gtk2::Label->new;
+        $label->set_text($label_text);
+
+        #  make the widget
+        my $adj = Gtk2::Adjustment->new(
+            $init_value, $min_val,   $max_val,
+            $step_incr,  $page_incr, 0,
+        );
+        my $widget = Gtk2::SpinButton->new( $adj, $init_value, 10, );
+
+        $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
+        $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
+
+        push @resolution_widgets, $widget;
+
+        # Add a tooltip
+        my $tip_text = "Set the index size for axis $i\n"
+          . "Middle click the arrows to change by $page_incr.\n";
+        if ($is_text_axis) {
+            $tip_text = "Text axis origins cannot be changed";
+        }
+        else {
+            if ( $cellsize == 0 ) {
+                $tip_text .=
+                    "The default value and increment are calculated as 1/20th "
+                  . "of the axis extent, rounded to the nearest 10 decimal places";
+            }
+            else {
+                $tip_text .=
+                  "The default value and increment are equal to "
+                   . "the origin and cell size, respectively";
+            }
+        }
+
+        $tooltip_group->set_tip( $widget, $tip_text, undef );
+        $tooltip_group->set_tip( $label,  $tip_text, undef );
+
+        if ($is_text_axis) {
+            $widget->set_sensitive(0);
+        }
+
+        $label->show;
+        $widget->show;
+    }
+
+    #  attach signal handlers - this could be factored out into a sub
     my $j = 0;
     # ensure it is a valid multiple from origin
     foreach my $widget (@resolution_widgets) {

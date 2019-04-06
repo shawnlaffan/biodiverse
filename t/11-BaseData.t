@@ -417,7 +417,11 @@ sub test_coarsen_cell_sizes {
             my $gx_tmp = floor ( ( $x - 1 ) / 2 );
             my $gx = 1 + $gx_tmp * 2 + ( 2 / 2 );
             my $gp4 = join $join_char, $gx, $y + .5;
-            $bdc_21_11->add_element (group => $gp4, label => $label);
+            $bdc_21_11->add_element (
+                group => $gp4,
+                label => $label,
+                count => 1 + $y + $x * 20,
+            );
         }
     }
     
@@ -443,6 +447,14 @@ sub test_coarsen_cell_sizes {
         is ($bd2->get_group_count, $bd_c->get_group_count, "correct number of groups $size_key");
         is_deeply ([sort $bd2->get_groups], [sort $bd_c->get_groups], "got expected groups $size_key");
         is_deeply ([sort $bd2->get_labels], [sort $bd_c->get_labels], "got expected labels $size_key");
+        
+        my @expected_sample_counts = map {$bd1->get_label_sample_count (label => $_)} sort $bd1->get_labels;
+        my @sample_counts          = map {$bd2->get_label_sample_count (label => $_)} sort $bd2->get_labels;
+        is_deeply (
+            \@sample_counts,
+            \@expected_sample_counts,
+            'Got expected sample counts',
+        );
     }
     
     

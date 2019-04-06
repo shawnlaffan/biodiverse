@@ -456,7 +456,7 @@ sub clone_with_coarser_cell_sizes {
             $new_bd->add_element (
                 group => $grpstring,
                 label => $label,
-                sample_counts => $labels->{$label},
+                count => $labels->{$label},
             );
         }
     }

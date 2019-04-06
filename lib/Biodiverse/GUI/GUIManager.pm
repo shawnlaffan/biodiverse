@@ -1534,7 +1534,8 @@ sub do_basedata_coarsen_axis_resolutions {
     $resolution_label->set_markup (
         "\n<b>New resolutions</b>\n <i>Must be incremented by current axis sizes.</i>\n"
     );
-    my $resolution_table = $self->get_resolution_table_widget (
+    my ($resolution_table, $resolution_widgets)
+      = $self->get_resolution_table_widget (
         basedata => $bd,
     );
     my $origin_label = Gtk2::Label->new;
@@ -1545,12 +1546,13 @@ sub do_basedata_coarsen_axis_resolutions {
         . qq{exceeding the new cell sizes as these \n }
         . qq{are "snapping" values.</i>\n}
     );
-    my $origin_table = $self->get_origin_table_widget (
+    my ($origin_table, $origin_widgets)
+      = $self->get_origin_table_widget (
         basedata => $bd,
     );
 
     my $dlg = Gtk2::Dialog->new (
-        'Coarse resolution basedata',
+        'Coarsen basedata resolution',
         $self->get_object('wndMain'),
         'modal',
         'gtk-ok'       => 'ok',
@@ -1579,12 +1581,14 @@ sub do_basedata_coarsen_axis_resolutions {
     }
     
     my $chosen_name = $name_entry->get_text;
+    my @cell_sizes   = map {$_->get_value} @$resolution_widgets;
+    my @cell_origins = map {$_->get_value} @$origin_widgets;
     $dlg->destroy();
 
     my $cloned = $bd->clone_with_coarser_cell_sizes(
         name         => $chosen_name,
-        cell_sizes   => [],
-        cell_origins => [],
+        cell_sizes   => \@cell_sizes,
+        cell_origins => \@cell_origins,
     );
     
     $self->{project}->add_base_data($cloned);
@@ -1702,9 +1706,10 @@ sub get_resolution_table_widget {
     }
 
     #  attach signal handlers
-    my $j = 0;
+    my $j = -1;
     # ensure it is a valid multiple from origin
     foreach my $widget (@resolution_widgets) {
+        $j++;
         $widget->signal_connect (
             'value-changed' => sub {
                 my $val = $widget->get_value;
@@ -1719,7 +1724,6 @@ sub get_resolution_table_widget {
                 return;
             }
         );
-        $i++;
     }
     $incr_button->signal_connect(
         clicked => sub {
@@ -1738,7 +1742,7 @@ sub get_resolution_table_widget {
         },
     );
     
-    return $table;
+    return ($table, \@resolution_widgets);
 }
 
 #  lots of copy-paste here from get_resolution_table_widget,
@@ -1888,7 +1892,7 @@ sub get_origin_table_widget {
         },
     );
     
-    return $table;
+    return ($table, \@resolution_widgets);
 }
 
 sub do_rename_basedata_labels {

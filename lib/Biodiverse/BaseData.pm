@@ -411,7 +411,7 @@ sub clone_with_coarser_cell_sizes {
         
         my $current_o = $current_cell_origins->[$i];
         my $new_o     = $new_cell_origins->[$i];
-        $fmod = ($current_o ne $new_o)
+        $fmod = ($current and $current_o ne $new_o)
           ? fmod (abs ($new_o - $current_o) / $current, 1)
           : 0;
         croak "new origin for axis $i of $new_o does not conform "

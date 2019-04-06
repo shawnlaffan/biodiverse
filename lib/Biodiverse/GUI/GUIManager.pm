@@ -1529,7 +1529,10 @@ sub do_basedata_coarsen_axis_resolutions {
     $name_dlg->pack_start ($name_label, 1, 1, 0);
     $name_dlg->pack_start ($name_entry, 1, 1, 0);
 
-    my $resolution_label = Gtk2::Label->new('New resolutions (must be integer multiples of current)');
+    my $resolution_label = Gtk2::Label->new;
+    $resolution_label->set_markup (
+        "New resolutions\n <i>(must be integer multiples of current)</i>"
+    );
     my $resolution_table = $self->get_resolution_table_widget (
         basedata => $bd,
     );
@@ -1585,7 +1588,7 @@ sub get_resolution_table_widget {
     
     my %coord_bounds   = $bd->get_coord_bounds;
 
-    my $table = Gtk2::Table->new (1, 1, 1);
+    my $table = Gtk2::Table->new (0, 0, 0);
 
     my $tooltip_group = Gtk2::Tooltips->new;
 

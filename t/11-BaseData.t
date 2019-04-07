@@ -395,7 +395,7 @@ sub test_binarise_sample_counts {
 }
 
 
-sub test_coarsen_cell_sizes {
+sub test_reduce_resolution {
     my $bd1    = Biodiverse::BaseData->new(CELL_SIZES => [1, 1]);    
     my $bdc_22 = Biodiverse::BaseData->new(CELL_SIZES => [2, 2]);
     my $bdc_21 = Biodiverse::BaseData->new(CELL_SIZES => [2, 1]);
@@ -437,7 +437,7 @@ sub test_coarsen_cell_sizes {
         my $sizes = $sizes{$size_key}[1];
         my $origins = $sizes{$size_key}[2];
 
-        my $bd2 = $bd1->clone_with_coarser_cell_sizes (
+        my $bd2 = $bd1->clone_with_reduced_resolution (
             cell_sizes   => $sizes,
             cell_origins => $origins,
         );

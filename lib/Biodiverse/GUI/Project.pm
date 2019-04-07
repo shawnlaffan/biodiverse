@@ -1290,7 +1290,7 @@ sub manage_empty_basedatas {
           menu_basedata_save
           menu_basedata_duplicate
           menu_basedata_duplicate_no_outputs
-          menu_basedata_coarsen_axis_resolutions
+          menu_basedata_reduce_axis_resolutions
           menu_basedata_transpose
           menu_basedata_rename
           menu_basedata_describe

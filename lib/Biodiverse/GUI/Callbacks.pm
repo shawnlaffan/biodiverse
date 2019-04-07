@@ -243,8 +243,8 @@ my %data_funcs = (
         METHOD => 'do_duplicate_basedata',
         ARGS   => { no_outputs => 1, }
     },
-    on_basedata_coarsen_axis_resolutions => {
-        METHOD => 'do_basedata_coarsen_axis_resolutions',
+    on_basedata_reduce_axis_resolutions => {
+        METHOD => 'do_basedata_reduce_axis_resolutions',
     },
     on_basedata_export_groups => {
         METHOD => 'do_export_groups',

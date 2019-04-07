@@ -1504,7 +1504,7 @@ sub do_duplicate_basedata {
     return;
 }
 
-sub do_basedata_coarsen_axis_resolutions {
+sub do_basedata_reduce_axis_resolutions {
     my $self = shift;
 
     my $bd = $self->{project}->get_selected_base_data();
@@ -1552,7 +1552,7 @@ sub do_basedata_coarsen_axis_resolutions {
     );
 
     my $dlg = Gtk2::Dialog->new (
-        'Coarsen basedata resolution',
+        'Reduce basedata resolution',
         $self->get_object('wndMain'),
         'modal',
         'gtk-ok'       => 'ok',
@@ -1585,7 +1585,7 @@ sub do_basedata_coarsen_axis_resolutions {
     my @cell_origins = map {$_->get_value} @$origin_widgets;
     $dlg->destroy();
 
-    my $cloned = $bd->clone_with_coarser_cell_sizes(
+    my $cloned = $bd->clone_with_reduced_reslution (
         name         => $chosen_name,
         cell_sizes   => \@cell_sizes,
         cell_origins => \@cell_origins,

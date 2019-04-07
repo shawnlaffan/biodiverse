@@ -373,7 +373,7 @@ sub clone {
     return $cloneref;
 }
 
-sub clone_with_coarser_cell_sizes {
+sub clone_with_reduced_resolution {
     my ($self, %args) = @_;
     
     my $new_cell_sizes     = $args{cell_sizes};
@@ -395,7 +395,7 @@ sub clone_with_coarser_cell_sizes {
         my $current = $current_cell_sizes->[$i];
         my $new     = $new_cell_sizes->[$i];
         
-        croak "cannot coarsen a non-numeric axis (axis $i)\n"
+        croak "cannot change resolution of a non-numeric axis (axis $i)\n"
           if $current < 0 and $current != $new;
         croak "new axis size is less than current"
           if $current > $new;

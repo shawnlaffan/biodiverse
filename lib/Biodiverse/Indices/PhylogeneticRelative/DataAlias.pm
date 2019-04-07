@@ -2,7 +2,7 @@ package Biodiverse::Indices::PhylogeneticRelative::DataAlias;
 use strict;
 use warnings;
 
-our $VERSION = '2.99_002';
+our $VERSION = '2.99_003';
 
 use Data::Alias qw /alias/;
 

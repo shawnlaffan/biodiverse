@@ -11,7 +11,7 @@ use Readonly;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '2.99_002';
+our $VERSION = '2.99_003';
 
 #sub new {
 #    my ($class, $data) = @_;

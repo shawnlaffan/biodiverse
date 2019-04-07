@@ -1585,7 +1585,7 @@ sub do_basedata_reduce_axis_resolutions {
     my @cell_origins = map {$_->get_value} @$origin_widgets;
     $dlg->destroy();
 
-    my $cloned = $bd->clone_with_reduced_reslution (
+    my $cloned = $bd->clone_with_reduced_resolution (
         name         => $chosen_name,
         cell_sizes   => \@cell_sizes,
         cell_origins => \@cell_origins,

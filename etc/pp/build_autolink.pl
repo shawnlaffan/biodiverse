@@ -113,6 +113,14 @@ if ($script =~ 'BiodiverseGUI.pl') {
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
 my @icon_file_arg  = $icon_file ? ('-a', "$icon_file;$icon_file_base") : ();
 
+#  make sure we get the aliens
+#  last two might not be used long term
+my @aliens = qw /
+    Alien::gdal       Alien::geos::af
+    Alien::proj       Alien::sqlite
+    Alien::spatialite Alien::freexl
+/;
+push @rest_of_pp_args, map {; '-M' => $_} @aliens;
 
 my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 
@@ -131,7 +139,6 @@ my @cmd = (
     @gtk_path_arg,
     @icon_file_arg,
     $execute,
-    @links,
     @rest_of_pp_args,
     '-o',
     $output_binary_fullpath,

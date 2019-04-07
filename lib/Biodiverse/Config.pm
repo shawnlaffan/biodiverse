@@ -257,7 +257,7 @@ if ($ENV{BDV_PP_BUILDING}) {
     say "using $0";
     use File::BOM qw / :subs /;          #  we need File::BOM.
     open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-      or croak "Cannot open $Bin via File::BOM\n";
+      or croak "Cannot open $0 via File::BOM\n";
     $fh->close;
     
     #  more File::BOM issues
@@ -280,6 +280,11 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Math::BigInt;
     
     use Alien::gdal ();
+    use Alien::geos::af ();
+    use Alien::proj ();
+    use Alien::sqlite ();
+    eval 'use Alien::spatialite';  #  might not have this one
+    eval 'use Alien::freexl';      #  might not have this one
 }
 
 

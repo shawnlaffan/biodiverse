@@ -2127,8 +2127,8 @@ sub get_fishnet_identity_layer {
         @group_sizes,
         Scalar::Util::refaddr ($self);
     my $overlay_result
-        = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
-            ->Create ($self->_get_scratch_name(prefix => '/vsimem/_'))
+        = Geo::GDAL::FFI::GetDriver('GPKG')
+            ->Create ($self->_get_scratch_name(prefix => '/vsimem/_', suffix => '.gpkg'))
             ->CreateLayer({
                 Name => $layer_name,
                 SpatialReference => $sr_clone2,
@@ -2151,7 +2151,16 @@ sub get_fishnet_identity_layer {
             Options  => $options,
         }
     );
-
+    
+    #  this is dirty and underhanded    
+    if (@Geo::GDAL::FFI::errors) {
+        if ($Geo::GDAL::FFI::errors[0] =~ /A geometry of type MULTI(POLYGON|LINESTRING) is inserted into layer/) {
+            shift @Geo::GDAL::FFI::errors;
+        }
+        croak Geo::GDAL::FFI::error_msg()
+          if @Geo::GDAL::FFI::errors;
+    }
+    
     my $time_taken = time() - $start_time;
     say "\nIntersection completed in $time_taken seconds";
     

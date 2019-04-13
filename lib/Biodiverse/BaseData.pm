@@ -2128,7 +2128,7 @@ sub get_fishnet_identity_layer {
         Scalar::Util::refaddr ($self);
     my $overlay_result
         = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
-            ->Create ('/vsimem/_' . time())
+            ->Create ($self->_get_scratch_name(prefix => '/vsimem/_'))
             ->CreateLayer({
                 Name => $layer_name,
                 SpatialReference => $sr_clone2,
@@ -2179,7 +2179,9 @@ sub get_fishnet_polygon_layer {
     }
     #else {
     #  override
-    $out_fname = ('/vsimem/fishnet_' . time() . int (rand()));
+    $out_fname = $self->_get_scratch_name(
+        prefix => '/vsimem/fishnet_',
+    );
     #}
     #say "Generating fishnet file $out_fname";
     my $schema = $args{schema};
@@ -2238,7 +2240,9 @@ sub get_fishnet_polygon_layer {
     say "Fishnet bounds are $xmin, $ymin, $xmax, $ymax";
     say "Driver and layer names: $driver, $out_fname";
 
-    my $layer_name = 'Fishnet_Layer_' . Scalar::Util::refaddr ($self) . rand();
+    my $layer_name = $self->_get_scratch_name (
+        prefix => 'Fishnet_Layer'
+    );
     my $fishnet_dataset
         = Geo::GDAL::FFI::GetDriver($driver)
             ->Create ($out_fname);
@@ -2305,6 +2309,24 @@ sub get_fishnet_polygon_layer {
     return wantarray ? ($fishnet_dataset, $fishnet_lyr) : $fishnet_lyr;
 }
 
+#  get a temporary name 
+sub _get_scratch_name {
+    my ($self, %args) = @_;
+
+    state $i = 0;
+    $i++;
+
+    my $name
+      = join '_',
+          (($args{prefix} // 'temp'),
+          Scalar::Util::refaddr ($self),
+          $i,
+          int (1000 * rand()),
+          ($args{suffix} // '')
+        );
+
+    return $name;
+}
 
 sub import_data_spreadsheet {
     my $self = shift;

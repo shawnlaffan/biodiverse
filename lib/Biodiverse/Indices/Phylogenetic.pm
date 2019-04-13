@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '2.99_003';
+our $VERSION = '2.99_004';
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 

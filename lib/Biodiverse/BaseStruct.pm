@@ -30,7 +30,7 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 use Geo::GDAL::FFI 0.06;
 
-our $VERSION = '2.99_003';
+our $VERSION = '2.99_004';
 
 my $EMPTY_STRING = q{};
 

@@ -19,7 +19,7 @@ use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '2.99_003';
+our $VERSION = '2.99_004';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };

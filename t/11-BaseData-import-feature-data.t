@@ -249,7 +249,7 @@ sub _test_import_shapefile_polygon {
             int $got,
             $exp - 1,
             $exp + 1,
-            "total sample counts within tolerance for $orig_labels[0] in $fname, $info",
+            "total sample counts $got within tolerance from $exp for $orig_labels[0] in $fname, $info",
         );
     }    
 }

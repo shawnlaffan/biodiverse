@@ -2140,6 +2140,7 @@ sub get_fishnet_identity_layer {
         PROMOTE_TO_MULTI        => 'NO',
         USE_PREPARED_GEOMETRIES => 'YES',
         PRETEST_CONTAINMENT     => 'YES',
+        KEEP_LOWER_DIMENSION_GEOMETRIES => 'NO',  #  be explicit
         #SKIP_FAILURES           => 'YES',
     };
     say 'Intersecting fishnet with feature layer';
@@ -2154,7 +2155,8 @@ sub get_fishnet_identity_layer {
     
     #  this is dirty and underhanded    
     if (@Geo::GDAL::FFI::errors) {
-        if ($Geo::GDAL::FFI::errors[0] =~ /A geometry of type MULTI(POLYGON|LINESTRING) is inserted into layer/) {
+        if ($Geo::GDAL::FFI::errors[0]
+              =~ /A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/) {
             shift @Geo::GDAL::FFI::errors;
         }
         croak Geo::GDAL::FFI::error_msg()
@@ -2217,6 +2219,8 @@ sub get_fishnet_polygon_layer {
     my $bt = $args{inner_buffer} // 0;
     if ($bt eq 'auto') {
         $bt = 10e-14 * ($resolutions->[0] + $resolutions->[1]) / 2;
+        #  experiment, need to check tests before instating
+        #$bt = max (10e-14, 10e-14 / 2 * ($resolutions->[0] + $resolutions->[1]));
     }
 
     my ($xmin, $xmax, $ymin, $ymax) = @$extent;

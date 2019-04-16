@@ -1889,8 +1889,6 @@ sub import_data_shapefile {
                         $tiles->ResetReading;
                         while (my $tile = $tiles->GetNextFeature) {
                             my $tile_geom = $tile->GetGeomField;
-                            #next if !$tile_geom->Intersects($geom);
-                                 #&& !$tile_geom->Crosses($geom);
                             my $centroid = $tile_geom->Centroid->GetPoints;
                             push @$ptlist, @$centroid;
                         }
@@ -2154,14 +2152,15 @@ sub get_fishnet_identity_layer {
     );
     
     #  this is dirty and underhanded    
-    if (@Geo::GDAL::FFI::errors) {
-        if ($Geo::GDAL::FFI::errors[0]
-              =~ /A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/) {
-            shift @Geo::GDAL::FFI::errors;
+    #if (@Geo::GDAL::FFI::errors) {
+        while (@Geo::GDAL::FFI::errors) {
+            shift @Geo::GDAL::FFI::errors
+              if $Geo::GDAL::FFI::errors[0]
+                =~ /A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/;
         }
         croak Geo::GDAL::FFI::error_msg()
           if @Geo::GDAL::FFI::errors;
-    }
+    #}
     
     my $time_taken = time() - $start_time;
     say "\nIntersection completed in $time_taken seconds";

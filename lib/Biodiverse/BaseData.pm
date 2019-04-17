@@ -2550,22 +2550,6 @@ sub build_spatial_index {    #  builds GROUPS, not LABELS
     return $index;
 }
 
-#sub delete_spatial_index {
-#    my $self = shift;
-#
-#    my $name = $self->get_param ('NAME');
-#
-#    if ($self->get_param ('SPATIAL_INDEX')) {
-#        print "[Basedata] Deleting spatial index from $name\n";
-#        $self->delete_param('SPATIAL_INDEX');
-#        return 1;
-#    }
-#
-#    #print "[Basedata] Unable to delete a spatial index that does not exist\n";
-#
-#    return;
-#}
-
 sub rebuild_spatial_index {
     my $self = shift;
 
@@ -2986,23 +2970,6 @@ sub add_matrix_output {
     else {    #  create a new object
         croak 'Creation of matrix new objects is not supported - '
           . "they are added by the clustering system\n";
-
-#croak "[BASEDATA] argument name not specified\n"
-#    if (! defined $args{name});
-#
-#$name = $args{name};
-#delete $args{name};
-#
-#croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
-#    if defined $self->{MATRIX_OUTPUTS}{$name};
-#
-#$object = $class->new (
-#    QUOTES       => $self->get_param('QUOTES'),
-#    JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
-#    %args,
-#    NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
-#    BASEDATA_REF => $self,
-#);
     }
 
     $self->{MATRIX_OUTPUTS}{$name} =

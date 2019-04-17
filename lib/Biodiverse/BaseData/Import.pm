@@ -1,7 +1,7 @@
 package Biodiverse::BaseData::Import;
 use strict;
 use warnings;
-use 5.026;
+use 5.022;
 
 our $VERSION = '2.99_004';
 

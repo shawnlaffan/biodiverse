@@ -2141,22 +2141,34 @@ sub get_fishnet_identity_layer {
         KEEP_LOWER_DIMENSION_GEOMETRIES => 'NO',  #  be explicit
         #SKIP_FAILURES           => 'YES',
     };
+    
+    my $skip_error_re = qr/A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/;
     say 'Intersecting fishnet with feature layer';
-    $layer->Intersection(
-        $fishnet,
-        {
-            Result   => $overlay_result,
-            Progress => $progress,
-            Options  => $options,
+    eval {
+        $layer->Intersection(
+            $fishnet,
+            {
+                Result   => $overlay_result,
+                Progress => $progress,
+                Options  => $options,
+            }
+        );
+    };
+    if (my $err = $@) {
+        my @errors = split "\n", $err;
+        while (@errors and $errors[0] =~ $skip_error_re) {
+            shift @errors;
         }
-    );
+        croak join "\n", @errors
+          if @errors;
+    }
     
     #  this is dirty and underhanded    
     #if (@Geo::GDAL::FFI::errors) {
-        while (@Geo::GDAL::FFI::errors) {
+        while (@Geo::GDAL::FFI::errors
+               and $Geo::GDAL::FFI::errors[0] =~ $skip_error_re
+            ) {
             shift @Geo::GDAL::FFI::errors
-              if $Geo::GDAL::FFI::errors[0]
-                =~ /A geometry of type (MULTI(POLYGON|LINESTRING)|GEOMETRYCOLLECTION) is inserted into layer/;
         }
         croak Geo::GDAL::FFI::error_msg()
           if @Geo::GDAL::FFI::errors;

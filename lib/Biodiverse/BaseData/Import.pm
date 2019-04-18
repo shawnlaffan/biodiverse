@@ -2040,4 +2040,123 @@ sub run_import_post_processes {
     return 1;
 }
 
+
+sub get_labels_from_line {
+    my $self = shift;
+    my %args = @_;
+
+    #  these assignments look redundant, but this makes for cleaner code
+    my $fields_ref           = $args{fields_ref};
+    my $csv_object           = $args{csv_object};
+    my $label_columns        = $args{label_columns};
+    my $sample_count_columns = $args{sample_count_columns};
+    my $label_properties     = $args{label_properties};
+    my $use_label_properties = $args{use_label_properties};
+    my $line_num             = $args{line_num};
+    my $file                 = $args{file};
+
+ #  return a set of results that are the label and its corresponding count value
+    my %elements;
+
+    #  get the label for this row  using a slice
+    my @tmp   = @$fields_ref[@$label_columns];
+    my $label = $self->list2csv(
+        list       => \@tmp,
+        csv_object => $csv_object,
+    );
+
+    #  get the sample count
+    my $sample_count;
+    foreach my $column (@$sample_count_columns) {
+        my $col_value = $fields_ref->[$column] // 0;
+
+#  need this check now?  Not sure it worked properly anyway, as it could return early
+        if ( $args{allow_empty_groups} or $args{allow_empty_labels} ) {
+            return if not defined $col_value;    #  only skip undefined records
+        }
+
+        if ( !looks_like_number($col_value) )
+        {    #  check the record if we get this far
+            croak "[BASEDATA] Field $column in line $line_num "
+              . "does not look like a number, File $file\n";
+        }
+        $sample_count += $col_value;
+    }
+
+    #  set default count - should only get valid records if we get this far
+    $sample_count //= 1;
+
+    #$elements{$label} = $sample_count if $sample_count;
+    $elements{$label} = $sample_count;
+
+    return wantarray ? %elements : \%elements;
+}
+
+#  parse a line from a matrix format file and return all the elements in it
+sub get_labels_from_line_matrix {
+    my $self = shift;
+    my %args = @_;
+
+    #return;  #  temporary drop out
+
+    #  these assignments look redundant, but this makes for cleaner code and
+    #  the compiler should optimise it all away
+    my $fields_ref           = $args{fields_ref};
+    my $csv_object           = $args{csv_object};
+    my $label_array          = $args{label_array};
+    my $label_properties     = $args{label_properties};
+    my $use_label_properties = $args{use_label_properties};
+    my $line_num             = $args{line_num};
+    my $file                 = $args{file};
+    my $label_col_hash       = $args{label_col_hash};
+
+#  these are superseded by $label_col_hash
+#my $label_start_col     = $args{label_start_col};
+#my $label_end_col       = $args{label_end_col} || $#$fields_ref;  #  not yet supported by GUI (03Oct2009)
+
+#  All we need to do is get a hash of the labels with their relevant column values
+#  Any processing of null or zero fields is handled by calling subs
+#  All label remapping has already been handled by get_label_columns_for_matrix_import (assuming it is not renamed)
+#  Could possibly check for zero count values, but that adds another loop which might slow things too much,
+#       even if using List::MoreUtils and its XS implementation
+
+    my %elements;
+    @elements{ keys %$label_col_hash } =
+      @$fields_ref[ values %$label_col_hash ];
+
+    return wantarray ? %elements : \%elements;
+}
+
+#  process the header line and sort out which columns we want, and remap any if needed
+sub get_label_columns_for_matrix_import {
+    my $self = shift;
+    my %args = @_;
+
+    my $csv_object           = $args{csv_object};
+    my $label_array          = $args{label_array};
+    my $label_properties     = $args{label_properties};
+    my $use_label_properties = $args{use_label_properties};
+
+    my $label_start_col = $args{label_start_col};
+    my $label_end_col = $args{label_end_col} // $#$label_array;
+
+    my %label_hash;
+  LABEL_COLS:
+    for my $i ( $label_start_col .. $label_end_col ) {
+
+        #  get the label for this row from the header
+        my @tmp   = $label_array->[$i];
+        my $label = $self->list2csv(
+            list       => \@tmp,
+            csv_object => $csv_object,
+        );
+
+        $label_hash{$label} = $i;
+    }
+
+#  this will be a label/column hash which we can use to slice data from the matrix row arrays
+    return wantarray ? %label_hash : \%label_hash;
+}
+
+
 1;

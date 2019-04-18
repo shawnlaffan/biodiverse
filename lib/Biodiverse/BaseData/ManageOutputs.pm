@@ -15,6 +15,114 @@ use Sort::Key::Natural qw /natkeysort/;
 
 our $EMPTY_STRING = q{};
 
+sub rename_output {
+    my $self = shift;
+    my %args = @_;
+
+    my $object = $args{output};
+    croak 'Argument "output" not defined'
+      if !defined $object;
+
+    my $new_name = $args{new_name};
+    my $name     = $object->get_name;
+
+    my $class = ( blessed $object) // $EMPTY_STRING;
+
+    my $o_type =
+        $class =~ /Spatial/                   ? 'SPATIAL_OUTPUTS'
+      : $class =~ /Cluster|RegionGrower|Tree/ ? 'CLUSTER_OUTPUTS'
+      : $class =~ /Matrix/                    ? 'MATRIX_OUTPUTS'
+      : $class =~ /Randomise/                 ? 'RANDOMISATION_OUTPUTS'
+      :                                         undef;
+
+    croak "[BASEDATA] Cannot rename this type of output: $class\n"
+      if !$o_type;
+
+    my $hash_ref = $self->{$o_type};
+
+    my $type = $class;
+    $type =~ s/.*://;
+    say "[BASEDATA] Renaming output $name to $new_name, type is $type";
+
+    # only if it exists in this basedata
+    if ( exists $hash_ref->{$name} ) {
+
+        croak
+"Cannot rename $type output $name to $new_name.  Name is already in use\n"
+          if exists $hash_ref->{$new_name};
+
+        $hash_ref->{$new_name} = $object;
+        $hash_ref->{$name}     = undef;
+        delete $hash_ref->{$name};
+
+        $object->rename( new_name => $new_name );
+    }
+    else {
+        warn "[BASEDATA] Cannot locate object with name $name\n"
+          . 'Currently have '
+          . join( ' ', sort keys %$hash_ref ) . "\n";
+    }
+
+    $object = undef;
+    return;
+}
+
+#  deletion of randomisations is more complex than spatial and cluster outputs
+sub do_rename_randomisation_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my $object   = $args{output};
+    my $name     = $object->get_name;
+    my $new_name = $args{new_name};
+
+    croak "Argument new_name not defined\n"
+      if !defined $new_name;
+
+    #  loop over the spatial outputs and rename the lists
+  BY_SPATIAL_OUTPUT:
+    foreach my $sp_output ( $self->get_spatial_output_refs ) {
+        my @lists =
+          grep { $_ =~ /^$name>>/ } $sp_output->get_lists_across_elements;
+
+        foreach my $list (@lists) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name>>/$new_name>>/;
+            foreach my $element ( $sp_output->get_element_list ) {
+                $sp_output->rename_list(
+                    list     => $list,
+                    element  => $element,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $sp_output->delete_cached_values;
+    }
+
+    #  and now the cluster outputs
+    my @node_lists = ( $name, $name . '_ID_LDIFFS', $name . '_DATA', );
+
+  BY_CLUSTER_OUTPUT:
+    foreach my $cl_output ( $self->get_cluster_output_refs ) {
+        my @lists = grep { $_ =~ /^$name>>/ } $cl_output->get_list_names_below;
+        my @lists_to_rename = ( @node_lists, @lists );
+
+        foreach my $list (@lists_to_rename) {
+            my $new_list_name = $list;
+            $new_list_name =~ s/^$name/$new_name/;
+
+            foreach my $node_ref ( $cl_output->get_node_refs ) {
+                $node_ref->rename_list(
+                    list     => $list,
+                    new_name => $new_list_name,
+                );
+            }
+        }
+        $cl_output->delete_cached_values;
+    }
+
+    return;
+}
 
 sub delete_output {
     my $self = shift;

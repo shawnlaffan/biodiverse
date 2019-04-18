@@ -73,6 +73,7 @@ sub test_def_query {
     my $tally = eval {
         $bd2->run_exclusions (exclusion_hash => $exclusion_hash);
     };
+    diag $@ if $@;
     is ($tally->{GROUPS_count}, 100, 'Deleted 100 groups using def query');
     is ($tally->{LABELS_count}, 100, 'Deleted 100 labels using def query');
 }
@@ -92,6 +93,7 @@ sub test_delete_empties {
             delete_empty_groups => 0,
         );
     };
+    diag $@ if $@;
     #my $desc2 = $bd2->describe;
     is ($bd2->get_group_count, $bd->get_group_count, 'Deleted no groups using def query when empty groups are retained');
     is ($bd2->get_label_count, 0, 'Deleted all labels using def query');
@@ -108,7 +110,8 @@ sub test_delete_empties {
             delete_empty_labels => 0,
         );
     };
-    is ($bd3->get_label_count, $bd->get_label_count, 'Deleted no abels using def query when empty labels are retained');
+    diag $@ if $@;
+    is ($bd3->get_label_count, $bd->get_label_count, 'Deleted no labels using def query when empty labels are retained');
     is ($bd3->get_group_count, 0, 'Deleted all groups using def query');
     
 }

@@ -1751,7 +1751,7 @@ sub show_cluster_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (natsort keys %$node_hash) {
+    foreach my $element (__PACKAGE__->sort_list_with_tree_names_aa ([keys %$node_hash])) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

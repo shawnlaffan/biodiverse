@@ -753,13 +753,12 @@ sub make_output_indices_model {
     my $list_name = $self->{selected_list};
     my $output_ref = $self->{output_ref};
 
-    # SWL: Get possible analyses by sampling all elements - this allows for asymmetric lists
-    #my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
+    # SWL: Get possible analyses by sampling all elements
+    #  - this allows for asymmetric lists
     my $elements = $output_ref->get_element_hash() || {};
 
     my %analyses_tmp;
     foreach my $elt (keys %$elements) {
-        #%analyses_tmp = (%analyses_tmp, %{$elements->{$elt}{$list_name}});
         next if ! exists $elements->{$elt}{$list_name};
         my $hash = $elements->{$elt}{$list_name};
         if (scalar keys %$hash) {
@@ -767,26 +766,7 @@ sub make_output_indices_model {
         }
     }
 
-    #  are they numeric?  if so then we sort differently.
-    my $numeric = 1;
-
-    CHECK_NUMERIC:
-    foreach my $model (keys %analyses_tmp) {
-        if (not looks_like_number ($model)) {
-            $numeric = 0;
-            last CHECK_NUMERIC;
-        }
-    }
-
-    my @analyses;
-    if (scalar keys %analyses_tmp) {
-        @analyses = $numeric
-            ? sort {$a <=> $b} keys %analyses_tmp   #  numeric
-            : natsort keys %analyses_tmp;  #  natural sort
-    }
-
-#print "Making ouput analysis model\n";
-#print join (" ", @analyses) . "\n";
+    my @analyses = natsort keys %analyses_tmp;
 
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');

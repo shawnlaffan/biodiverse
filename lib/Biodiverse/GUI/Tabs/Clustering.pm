@@ -1608,7 +1608,7 @@ sub show_list {
     my $iter;
 
     if (is_hashref($ref)) {
-        foreach my $key (natsort keys %$ref) {
+        foreach my $key (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$ref])) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
             $iter = $model->append;
@@ -1616,7 +1616,7 @@ sub show_list {
         }
     }
     elsif (is_arrayref($ref)) {
-        foreach my $elt (natsort @$ref) {
+        foreach my $elt (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([@$ref])) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter, 0, $elt, 1, q{});
@@ -1702,7 +1702,7 @@ sub show_cluster_labels {
 
     # For each element, get its labels and put into %total_labels
     my %total_labels;
-    foreach my $element (natsort keys %{$elements}) {
+    foreach my $element (keys %{$elements}) {
         my $labels = $basedata_ref->get_labels_in_group_as_hash_aa($element);
         #print Data::Dumper::Dumper(\%labels);
         @total_labels{keys %$labels} = undef;

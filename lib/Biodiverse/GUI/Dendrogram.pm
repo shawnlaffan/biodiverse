@@ -1460,6 +1460,7 @@ sub update_map_list_model {
 
 # Provides list of map indices for tab to use as it sees fit.
 # Context sensitive on currently selected map list.
+# Is it used anywhere?
 sub get_map_indices {
     my $self = shift;
     if (not defined $self->{analysis_list_name}) {
@@ -1470,7 +1471,8 @@ sub get_map_indices {
         list => $self->{analysis_list_name},
     );
 
-    return [keys %$list_ref];
+    #  clunky - need to shift that method to a more general class
+    return scalar Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$list_ref]);
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
@@ -1494,7 +1496,7 @@ sub setup_map_index_model {
         my $selected_index = $self->{selected_list_index}{$indices};
         my $selected_iter = undef;
 
-        foreach my $key (sort keys %$indices) {
+        foreach my $key (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$indices])) {
             #print "[Dendrogram] Adding map analysis $key\n";
             $iter = $model->append;
             $model->set($iter, 0, $key);

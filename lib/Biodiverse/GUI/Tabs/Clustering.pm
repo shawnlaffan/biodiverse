@@ -401,7 +401,7 @@ sub setup_tie_breaker_widgets {
         my $index_combo = Gtk2::ComboBox->new_text;
         my $l = 0;
         my $use_iter;
-        foreach my $index (qw /none random/, sort keys %valid_indices) {
+        foreach my $index (qw /none random/, natsort keys %valid_indices) {
             $index_combo->append_text ($index);
             if (defined $tie_breakers->[$j] && $tie_breakers->[$j] eq $index) {
                 $use_iter = $l;
@@ -1608,7 +1608,7 @@ sub show_list {
     my $iter;
 
     if (is_hashref($ref)) {
-        foreach my $key (sort keys %$ref) {
+        foreach my $key (natsort keys %$ref) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
             $iter = $model->append;
@@ -1616,7 +1616,7 @@ sub show_list {
         }
     }
     elsif (is_arrayref($ref)) {
-        foreach my $elt (sort @$ref) {
+        foreach my $elt (natsort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter, 0, $elt, 1, q{});
@@ -1702,7 +1702,7 @@ sub show_cluster_labels {
 
     # For each element, get its labels and put into %total_labels
     my %total_labels;
-    foreach my $element (sort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $labels = $basedata_ref->get_labels_in_group_as_hash_aa($element);
         #print Data::Dumper::Dumper(\%labels);
         @total_labels{keys %$labels} = undef;
@@ -1729,7 +1729,7 @@ sub show_cluster_elements {
     my $elements = $node_ref->get_terminal_elements;
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    foreach my $element (sort keys %{$elements}) {
+    foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
         my $iter = $model->append;
         $model->set($iter,    0,$element ,  1,$count);

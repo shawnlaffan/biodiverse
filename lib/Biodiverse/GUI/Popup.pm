@@ -5,7 +5,7 @@ use warnings;
 
 use Data::Dumper;
 use Carp;
-use Sort::Key::Natural qw/natsort/;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use Gtk2;
 
@@ -226,7 +226,7 @@ sub make_sources_model {
     );
     my $iter;
 
-    foreach my $source_name (natsort keys %{$sources_ref}) {
+    foreach my $source_name (sort_list_with_tree_names_aa ([keys %{$sources_ref}])) {
         $iter = $sources_model->append;
         $sources_model->set($iter,
             SOURCES_MODEL_NAME,     $source_name,

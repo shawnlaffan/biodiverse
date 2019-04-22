@@ -9,6 +9,7 @@ use Carp;
 use Scalar::Util qw /looks_like_number/;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 our $VERSION = '2.99_004';
 
@@ -226,7 +227,7 @@ sub make_neighbours_model {
     my $label_hash_all = $neighbours->{label_hash_all};
     my ($in1, $in2);
 
-    foreach my $label (natsort keys %{$label_hash_all}) {
+    foreach my $label (sort_list_with_tree_names_aa ([keys %{$label_hash_all}])) {
 
         $in1 = exists $label_hash1->{$label} ? 1 : 0;
         $in2 = exists $label_hash2->{$label} ? 1 : 0;
@@ -271,7 +272,7 @@ sub show_all_labels {
         
         my @labels = $labels_are_numeric
             ? sort {$a <=> $b} keys %$labels_hash
-            : natsort keys %$labels_hash;
+            : sort_list_with_tree_names_aa ([keys %$labels_hash]);
 
         foreach my $label (@labels) {
 

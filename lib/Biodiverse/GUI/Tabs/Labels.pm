@@ -12,6 +12,7 @@ use List::MoreUtils qw /firstidx any/;
 use List::Util qw /max/;
 use Scalar::Util qw /weaken/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use HTML::QuickTable;
 
@@ -1590,7 +1591,7 @@ sub show_phylogeny_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (natsort keys %$node_hash) {
+    foreach my $element (sort_list_with_tree_names_aa ([keys %$node_hash])) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

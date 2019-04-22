@@ -985,6 +985,9 @@ sub list_contents_are_symmetric {
             element => $check_element,
             list    => $list_name,
         );
+        
+        $values //= {};
+
         if (is_hashref($values)) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 #  This list is of different length from the previous.

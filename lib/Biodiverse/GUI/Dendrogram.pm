@@ -21,6 +21,7 @@ our $VERSION = '2.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 ##########################################################
 # Rendering constants
@@ -1472,7 +1473,7 @@ sub get_map_indices {
     );
 
     #  clunky - need to shift that method to a more general class
-    return scalar Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$list_ref]);
+    return scalar sort_list_with_tree_names_aa ([keys %$list_ref]);
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
@@ -1496,7 +1497,7 @@ sub setup_map_index_model {
         my $selected_index = $self->{selected_list_index}{$indices};
         my $selected_iter = undef;
 
-        foreach my $key (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$indices])) {
+        foreach my $key (sort_list_with_tree_names_aa ([keys %$indices])) {
             #print "[Dendrogram] Adding map analysis $key\n";
             $iter = $model->append;
             $model->set($iter, 0, $key);

@@ -23,6 +23,7 @@ use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 our $VERSION = '2.99_004';
 
@@ -1608,7 +1609,7 @@ sub show_list {
     my $iter;
 
     if (is_hashref($ref)) {
-        foreach my $key (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([keys %$ref])) {
+        foreach my $key (sort_list_with_tree_names_aa ([keys %$ref])) {
             my $val = $ref->{$key};
             #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
             $iter = $model->append;
@@ -1616,7 +1617,7 @@ sub show_list {
         }
     }
     elsif (is_arrayref($ref)) {
-        foreach my $elt (Biodiverse::GUI::Tabs::Tab->sort_list_with_tree_names_aa ([@$ref])) {
+        foreach my $elt (sort_list_with_tree_names_aa ([@$ref])) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
             $model->set($iter, 0, $elt, 1, q{});
@@ -1751,7 +1752,7 @@ sub show_cluster_descendents {
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
-    foreach my $element (__PACKAGE__->sort_list_with_tree_names_aa ([keys %$node_hash])) {
+    foreach my $element (sort_list_with_tree_names_aa ([keys %$node_hash])) {
         my $count = $node_hash->{$element};
         my $iter  = $model->append;
         $model->set($iter, 0, $element, 1, $count);

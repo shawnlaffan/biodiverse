@@ -23,6 +23,8 @@ use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Spatial;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
+
 use Data::Dumper;
 
 use parent qw {
@@ -767,7 +769,7 @@ sub make_output_indices_model {
     }
 
     my @analyses
-      = $self->sort_list_with_tree_names_aa ([keys %analyses_tmp]);
+      = sort_list_with_tree_names_aa ([keys %analyses_tmp]);
 
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');

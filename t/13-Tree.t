@@ -675,8 +675,8 @@ sub test_to_table_group_nodes {
     #  check one of the internals
     my $internal_row = $table->[1];
     is_deeply (
-        ['100___', '100___', ''],
         [@{$internal_row}[0,1,2]],
+        ['100___', '100___', ''],
         'got blank second element col for internal node'
     );
     

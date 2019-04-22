@@ -1434,7 +1434,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
-        my $el = looks_like_number ($element) ? $element : "$quote_char$element$quote_char";
+        my $el = $quote_el_names ? "$quote_char$element$quote_char" : $element;
         my @basic = ($el);
 
         if (! $no_element_array) {

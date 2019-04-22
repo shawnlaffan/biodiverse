@@ -753,7 +753,7 @@ sub make_output_indices_model {
     my $list_name = $self->{selected_list};
     my $output_ref = $self->{output_ref};
 
-    # SWL: Get possible analyses by sampling all elements
+    # SWL: Get possible indices by sampling all elements
     #  - this allows for asymmetric lists
     my $elements = $output_ref->get_element_hash() || {};
 
@@ -762,11 +762,12 @@ sub make_output_indices_model {
         next if ! exists $elements->{$elt}{$list_name};
         my $hash = $elements->{$elt}{$list_name};
         if (scalar keys %$hash) {
-            @analyses_tmp{keys %$hash} = values %$hash;
+            @analyses_tmp{keys %$hash} = undef;
         }
     }
 
-    my @analyses = natsort keys %analyses_tmp;
+    my @analyses
+      = $self->sort_list_with_tree_names_aa ([keys %analyses_tmp]);
 
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');

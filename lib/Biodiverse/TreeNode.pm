@@ -1904,7 +1904,8 @@ sub to_basestruct_group_nodes {
 
     delete $args{target_value} if !$args{use_target_value};
 
-    $self->number_nodes if ! defined $self->get_value ('NODE_NUMBER');  #  assign unique labels to nodes if needed
+    #  assign unique labels to nodes if needed
+    $self->number_nodes if ! defined $self->get_value ('NODE_NUMBER');
 
     my $num_classes = $args{use_target_value} ? q{} : $args{num_clusters};
 

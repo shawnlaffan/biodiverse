@@ -1078,6 +1078,9 @@ sub add_to_lists {  #  add to a list, create if not already there.
     croak "element not specified\n" if not defined $args{element};
     my $element = $args{element};
     delete $args{element};
+    
+    croak "Cannot add list to non-existent element $element"
+      if !exists $self->{ELEMENTS}{$element};
 
     my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
     delete $args{use_ref};  #  should it be in its own sub?

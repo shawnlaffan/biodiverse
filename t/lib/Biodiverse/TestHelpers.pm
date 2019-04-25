@@ -493,7 +493,7 @@ sub get_basedata_test_data {
         foreach my $j ($args{y_min} .. $args{y_max}) {
             my $jj = $j * $args{y_spacing};
             if ($use_rand_counts) {
-                $count = int (rand() * 1000);
+                $count = int (rand() * 1000) || 1;
             }
             my $label = $numeric_labels ? $i : $label_callback->($i, $j);
             $data .= "$label,$ii,$jj,$count\n";

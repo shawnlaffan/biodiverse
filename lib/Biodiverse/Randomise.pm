@@ -2955,71 +2955,6 @@ sub get_tree_shuffle_metadata {
 }
 
 
-##  handlers to factor out binsearch calls into subs
-#sub insert_into_sorted_list {
-#    my $self = shift;
-#    my %args = @_;
-#    my $list = $args{list};
-#    my $item = $args{item};
-#
-#    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-#    splice @$list, $idx, 0, $item;
-#
-#    # skip the explicit return as a minor speedup for pre-5.20 systems
-#    $idx;
-#}
-#
-##  array args version - should reduce sub cleanup overheads
-##  using $_ to squeeze a bit more performance out of the code, since it is a hot path
-#sub insert_into_sorted_list_aa {
-#    #my ($self, $item, $list) = @_;
-#
-#    #my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
-#    #splice @$list, $idx, 0, $item;
-#    my $idx  = binsearch_pos { $a cmp $b } $_[1], @{$_[2]};
-#    splice @{$_[2]}, $idx, 0, $_[1];
-#
-#    # skip the explicit return as a minor speedup for pre-5.20 systems
-#    $idx;
-#}
-#
-#sub delete_from_sorted_list {
-#    my $self = shift;
-#    my %args = @_;
-#    my $list = $args{list};
-#    my $item = $args{item};
-#    
-#    my $idx  = binsearch { $a cmp $b } $item, @$list;
-#    if (defined $idx) {
-#        splice @$list, $idx, 1;
-#    }
-#
-#    # skip the explicit return as a minor speedup for pre-5.20 systems
-#    $idx;
-#}
-#
-##  array args version to reduce sub and args hash cleanup overheads
-##  using $_ to squeeze a bit more performance out of the code, since it is a hot path
-#sub delete_from_sorted_list_aa {
-#    #my ($self, $item, $list) = @_;
-#
-#    #my $idx  = binsearch { $a cmp $b } $item, @$list;
-#    my $idx  = binsearch { $a cmp $b } $_[1], @{$_[2]};
-#    if (defined $idx) {
-#        #splice @$list, $idx, 1;
-#        splice @{$_[2]}, $idx, 1;
-#    }
-#    elsif (DEBUG) {
-#        my @caller = caller();
-#        $binsearch_gives_undef++;
-#        $binsearch_callers{join ' ', @caller[0,2]}++;
-#    }
-#
-#    # skip the explicit return as a minor speedup for pre-5.20 systems
-#    $idx;
-#}
-
-
 sub get_prng_init_states_array {
     my $self = shift;
     my $state_data = $self->get_prng_state_data;
@@ -3076,12 +3011,7 @@ sub get_prng_state_data {
 }
 
 
-#  these appear redundant but might help with mem leaks
-#our $AUTOLOAD;
-#sub AUTOLOAD { my $method = shift;
-#              croak "Cannot call method Autoloading not supported in this package";
-#              }
-#sub DESTROY {}
+
 
 1;
 

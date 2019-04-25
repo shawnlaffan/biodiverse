@@ -2784,12 +2784,6 @@ sub sp_in_label_range {
     return $exists;
 }
 
-
-
-#sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
-#sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
-
-
 sub get_example_sp_get_spatial_output_list_value {
 
     my $ex = <<"END_EXAMPLE_GSOLV"

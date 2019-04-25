@@ -956,13 +956,6 @@ sub get_output_type {
     return 'Biodiverse::Cluster';
 }
 
-#sub on_close {
-#    my $self = shift;
-#    $self->{gui}->remove_tab($self);
-#
-#    return;
-#}
-
 sub remove {
     my $self = shift;
 
@@ -977,54 +970,6 @@ sub remove {
 ##################################################
 # Running the thing
 ##################################################
-
-#sub get_no_cache_abc_value {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_no_cache_abc');
-#
-#    return $widget->get_active;
-#}
-#
-#sub get_build_matrices_only {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_build_matrices_only');
-#
-#    return $widget->get_active;
-#}
-#
-#sub get_output_gdm_format {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_output_gdm_format');
-#
-#    return $widget->get_active;
-#}
-#
-#sub get_keep_spatial_nbrs_output {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_keep_spatial_nbrs_output');
-#
-#    return $widget->get_active;
-#}
-#
-#sub get_no_clone_matrices {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_no_clone_matrices');
-#
-#    return $widget->get_active;
-#}
-#
-#sub get_clear_singletons {
-#    my $self = shift;
-#
-#    my $widget = $self->{xmlPage}->get_object('chk_clear_singletons');
-#
-#    return $widget->get_active;
-#}
 
 my @chk_flags = qw /
     no_cache_abc
@@ -1135,15 +1080,6 @@ sub get_output_file_handles {
 
     return wantarray ? @handles : \@handles;
 }
-
-#sub close_output_file_handles {
-#    my $self = shift;
-#    my %args = @_;
-#
-#    my $handles = $args{file_handles};
-#
-#    foreach my $fh ()
-#}
 
 sub get_selected_metric {
     my $self = shift;

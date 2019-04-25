@@ -704,26 +704,6 @@ sub export_shapefile {
         }
     }
 
-
-# code for multiple labels per shape
-# 
-#    # find all labels.  only possible by examining all the groups,
-#    # unless labels are passed as a parameter
-#    my %label_hash;
-#    foreach my $element (@elements) {
-#        my %label_counts = $self->get_sub_element_hash (
-#            element => $element
-#        );
-#        @label_hash{keys %label_counts} = values %label_counts;
-#    }
-#    my @label_count_specs;
-#    my $l_idx = 0;
-#    foreach my $this_label (keys %label_hash) {
-#        $l_idx++;
-#        push @label_count_specs, [ "label_${l_idx}" => 'C', 100];
-#        push @label_count_specs, [ "count_${l_idx}" => 'N', 8, 0];
-#    }
-
     my @label_count_specs;
     if (defined $list_name) {  # repeated polys per list item
         push @label_count_specs, (
@@ -771,32 +751,6 @@ sub export_shapefile {
             ];
         }
 
-# merging duplicated code, not clear about differences yet
-#        # get labels and counts in this cell
-#        my %label_counts = $self->get_sub_element_hash (
-#            element => $element
-#        );
-        #foreach my $this_label (keys %label_counts) {
-        #    #say "$this_label count $label_counts{$this_label}";
-        #   { name => $name, type => 'N', length => 8,  decimals => 0 } 
-        #}
-        # write a separate shape for each label
-#        foreach my $label (keys %label_counts) {
-#            
-#            $shp_writer->add_shape(
-#                $shape,
-#                {
-#                    element => $element,
-#                    %axis_col_data,
-#                    label => $label,
-#                    count => $label_counts{$label}
-##                    %label_counts
-#                },
-#            );
-#        }
-
-
-
         #  temporary - this needs to be handled differently
         if ($list_name) {
             my %list_data = $self->get_list_values (
@@ -832,88 +786,6 @@ sub export_shapefile {
 
     return;
 }
-
-#sub export_shapefile_point {
-#    my $self = shift;
-#    my %args = @_;
-#    
-#    $args{file} =~ s/\.shp$//;
-#    my $file = $args{file};
-#
-#    say "Exporting to point shapefile $file";
-#
-#    my @elements    = $self->get_element_list;
-#    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
-#    my @axes_to_use = (0, 1);
-#
-#    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
-#
-#    my @axis_col_specs;
-#    foreach my $axis (0 .. $#$first_el_coord) {
-#        #  width and decimals needs automation
-#        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
-#    }
-#
-#    my $shp_writer = Geo::Shapefile::Writer->new (
-#        $file, 'POINT',
-#        [ element => 'C', 100 ],
-#        @axis_col_specs,
-#    );
-#
-#  NODE:
-#    foreach my $element (@elements) {
-#        my $coord_axes = $self->get_element_name_coord (element => $element);
-#        my $name_axes  = $self->get_element_name_as_array (element => $element);
-#
-#        my %axis_col_data;
-#        foreach my $axis (0 .. $#$first_el_coord) {
-#            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
-#        }
-#
-#        my $shape = [
-#            $coord_axes->[$axes_to_use[0]],
-#            $coord_axes->[$axes_to_use[1]]
-#        ];
-#
-#        $shp_writer->add_shape(
-#            $shape,
-#            {
-#                element => $element,
-#                %axis_col_data,
-#            },
-#        );
-#    }
-#
-#    $shp_writer->finalize();
-#
-#    return;
-#}
-
-#sub get_metadata_export_shapefile_point {
-#    my $self = shift;
-#
-#    my %args = (
-#        format => 'Shapefile_Point',
-#        parameters => [
-#            {
-#                name => 'file',
-#                type => 'file'
-#            }, # GUI supports just one of these
-#            {
-#                type => 'comment',
-#                label_text =>
-#                      'Note: To attach any lists you will need to run a second '
-#                    . 'export to the delimited text format and then join them.  '
-#                    . 'This is needed because shapefiles do not have an undefined value '
-#                    . 'and field names can only be 11 characters long.',
-#            }
-#        ],
-#    );
-#
-#    return wantarray ? %args : \%args;
-#}
-
-
 
 sub get_lists_for_export {
     my $self = shift;

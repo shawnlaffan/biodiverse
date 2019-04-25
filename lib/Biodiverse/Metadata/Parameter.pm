@@ -13,14 +13,6 @@ use parent qw /Biodiverse::Metadata/;
 
 our $VERSION = '2.99_004';
 
-#sub new {
-#    my ($class, $data) = @_;
-#    $data //= {};
-#    
-#    my $self = bless $data, $class;
-#    return $self;
-#}
-
 
 #  Poss too many, but we are a catch-all class.
 my %methods_and_defaults = (

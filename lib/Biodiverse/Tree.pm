@@ -143,13 +143,6 @@ sub _describe {
 sub set_parents_below {
     my $self = shift;
 
-#my @root_nodes = $self->get_root_node_refs;
-#
-#foreach my $root_node ($self->get_root_node_refs) {
-#    next if ! $root_node->is_root_node;  #  may have been fixed on a previous iteration, so skip it
-#    $root_node->set_parents_below;
-#}
-
     foreach my $node ( $self->get_node_refs ) {
         foreach my $child ( $node->get_children ) {
             $child->set_parent( parent => $node );
@@ -1403,40 +1396,6 @@ sub export_range_table {
     return 1;
 }
 
-#  Grab all the basestruct export methods and add them here.
-#  The key difference is that we now add "grouped" to the front of the methods.
-#  We also then need to add the grouping metadata to the extracted metadata.
-#  Override the additional list option to ensure we get the available lists in
-#  the object being exported.
-#  Hold that - might be simpler to create a temp basestruct and emulate the matrix kludge
-#__PACKAGE__->_make_grouped_export_accessors();
-#
-#sub _make_grouped_export_accessors {
-#    my ($pkg) = @_;
-#
-#    my $bs = Biodiverse::BaseStruct->new(
-#        NAME => 'getting_export_methods',
-#    );
-#    my $metadata = $bs->get_metadata_export;
-#
-#    #use Data::Dump qw /pp/;
-#    #pp $metadata;
-#
-#    no strict 'refs';
-#    #while (my ($sub, $url) = each %$methods) {
-#    #    *{$pkg. '::' .$sub} =
-#    #        do {
-#    #            sub {
-#    #                my $gui = shift;
-#    #                my $link = $url;
-#    #                open_browser_and_show_url ($gui, $url);
-#    #                return;
-#    #            };
-#    #        };
-#    #}
-#
-#    return;
-#}
 
 sub get_lists_export_metadata {
     my $self = shift;

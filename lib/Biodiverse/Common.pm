@@ -1282,43 +1282,6 @@ sub write_table_json {  #  dump the table to a JSON file.
     return;
 }
 
-#sub write_table_shapefile {
-#    carp "Shapefile export not supported due to bugs in shapelib library.\n";
-#    return;
-#    
-#    my $self = shift;
-#    my %args = @_;
-#    my $data = $args{data} || croak "data arg not specified\n";
-#    is_arrayref($data) || croak "data arg must be an array ref\n";
-#    my $file = $args{file} || croak "file arg not specified\n";
-#    
-#    my $header = shift (@$data);
-#    
-#    my $shape = Geo::Shapelib -> new ({
-#                                       Name => $file,
-#                                       Shapetype => POINT,  #  point
-#                                       FieldNames => $header,
-#                                       FieldTypes => ['String', ('Double') x $#$header]
-#                                       }
-#                                      );
-#    
-#    my $i = 0;
-#    foreach my $record (@$data) {
-#        push @{$shape -> {Shapes}}, { Vertices => [[$record->[1],$record->[2],0,0]],
-#                                      #ShapeId => $i,  #  for debug - normally set by code
-#                                      #SHPType => POINT,
-#                                      };
-#        push @{$shape -> {ShapeRecords}}, $record;
-#        $i++;
-#        last if $i == 5;
-#    }
-#    $shape -> set_bounds;
-#    #$shape -> dump;
-#    $shape -> save;
-#    $shape -> close;
-#    
-#}
-
 sub write_table_html {
     my $self = shift;
     my %args = @_;
@@ -1981,12 +1944,6 @@ sub get_next_line_set {
     return wantarray ? @lines : \@lines;
 }
 
-## a pass-through method
-#sub get_metadata {
-#    my $self = shift;
-#    return $self->get_args(@_);
-#}
-
 sub get_metadata {
     my $self = shift;
     my %args = @_;
@@ -2136,8 +2093,9 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     return $so_far;
 }
 
-sub get_surrounding_elements {  #  generate a list of values around a single point at a specified resolution
-                              #  calculates the min and max and call getPossIndexValues
+#  generate a list of values around a single point at a specified resolution
+#  calculates the min and max and call get_poss_index_values
+sub get_surrounding_elements {
     my $self = shift;
     my %args = @_;
     my $coord_ref = $args{coord};

@@ -312,11 +312,5 @@ sub get_options {
 }
 
 
-#sub get_copy_widget {
-#    my $self = shift;
-#    
-#    my $widget = Gtk2::ComboBox->new;
-#}
-
 1;
 

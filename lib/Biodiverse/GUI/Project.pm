@@ -654,28 +654,8 @@ sub add_phylogeny {
 
     $self->set_dirty();
 
-    #return $phylogeny_ref;
     return;
 }
-
-# Add a phylogeny object
-#sub add_phylogeny_orig {
-#    my $self = shift;
-#    my $name = shift;
-#
-#    my $phylogeny_ref = Biodiverse::ReadNexus->new;
-#    $phylogeny_ref->set_param('NAME' , $name) if $name;
-#
-#    push (@{$self->{PHYLOGENIES}}, $phylogeny_ref);
-#
-#    # update model
-#    $self->phylogeny_row_add($phylogeny_ref);
-#    $self->manage_empty_phylogenies();
-#    $self->select_phylogeny($phylogeny_ref);
-#
-#    $self->set_dirty();
-#    return $phylogeny_ref;
-#}
 
 sub select_base_data {
     my $self         = shift;

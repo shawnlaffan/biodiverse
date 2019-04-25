@@ -1737,27 +1737,6 @@ sub get_trimmed_tree {
     $b_score = scalar (keys %tmp_combo)
        - scalar (keys %tmp2);
 
-#  tmp
-#$tree->delete_cached_values;
-#$tree->delete_cached_values_below;
-#use Data::Dump qw /dump/;
-#local $Data::Dumper::Purity    = 1;
-#local $Data::Dumper::Terse     = 1;
-#local $Data::Dumper::Sortkeys  = 1;
-#local $Data::Dumper::Indent    = 1;
-#local $Data::Dumper::Quotekeys = 0;    
-#say dump [keys %{$tree->{_cache}}];
-#foreach my $node (sort {$a->get_name cmp $b->get_name} $tree->get_node_refs) {
-#    no autovivification;
-#    next if !$node->{_cache};
-#    say $node->get_name;
-#    say dump keys %{$node->{_cache}};
-#    #$node->{_cache} = undef;
-#    #"TERMINAL_ELEMENTS", "LENGTH_BELOW", "DESCENDENTS"
-#    #delete $node->{_cache}{PATH_TO_ROOT_NODE};
-#    #delete $node->{_cache}{DESCENDENTS};
-#}
-
     if (!$b_score) {
         say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
         my %results = (trimmed_tree => $tree);

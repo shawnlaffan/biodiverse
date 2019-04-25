@@ -10,15 +10,6 @@ our $VERSION = '2.99_004';
 
 use parent qw /Biodiverse::Metadata/;
 
-#sub new {
-#    my ($class, $data) = @_;
-#    $data //= {};
-#    
-#    my $self = bless $data, $class;
-#    return $self;
-#}
-
-
 my %methods_and_defaults = (
     description    => 'no_description',
     result_type    => 'no_type',

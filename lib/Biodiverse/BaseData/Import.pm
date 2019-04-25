@@ -2110,10 +2110,6 @@ sub get_labels_from_line_matrix {
     my $file                 = $args{file};
     my $label_col_hash       = $args{label_col_hash};
 
-#  these are superseded by $label_col_hash
-#my $label_start_col     = $args{label_start_col};
-#my $label_end_col       = $args{label_end_col} || $#$fields_ref;  #  not yet supported by GUI (03Oct2009)
-
 #  All we need to do is get a hash of the labels with their relevant column values
 #  Any processing of null or zero fields is handled by calling subs
 #  All label remapping has already been handled by get_label_columns_for_matrix_import (assuming it is not renamed)

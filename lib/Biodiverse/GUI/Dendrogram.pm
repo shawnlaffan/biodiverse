@@ -229,26 +229,6 @@ sub get_parent_tab {
     return $self->{parent_tab};
 }
 
-#  
-#sub DESTROY {
-#    my $self = shift;
-#    
-#    no warnings "uninitialized";
-#    
-#    warn "[Dendrogram] Starting object cleanup\n";
-#    
-#    foreach my $key (keys %$self) {
-#        if ((ref $self->{$key}) =~ '::') {
-#            warn "Deleting $key - $self->{$key}\n";
-#            $self->{$key}->DESTROY if $self->{$key}->can ('DESTROY');
-#        }
-#        delete $self->{$key};
-#    }
-#    $self = undef;
-#    
-#    warn "[Dendrogram] Completed object cleanup\n";
-#}
-
 sub destroy {
     my $self = shift;
 

@@ -1830,15 +1830,6 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 #
 #  miscellaneous local routines
 
-#sub min {
-#    no warnings 'uninitialized';
-#    $_[0] < $_[1] ? $_[0] : $_[1];
-#}
-#
-#sub max {
-#    no warnings 'uninitialized';
-#    $_[0] > $_[1] ? $_[0] : $_[1];
-#}
 
 sub numerically {$a <=> $b};
 

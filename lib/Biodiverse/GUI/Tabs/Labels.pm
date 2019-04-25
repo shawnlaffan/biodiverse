@@ -464,13 +464,6 @@ sub sort_by_column_numeric_labels {
         || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));
 }
 
-#sub on_interactive_search {
-#    my $self = shift;
-#    my $id   = shift;
-#
-#    print "Interactive searching $id";
-#}
-
 # Creates a TreeView model of all labels
 sub make_labels_model {
     my $self = shift;
@@ -1035,14 +1028,6 @@ sub set_selected_list_cols {
         ? $labels_model_list1_sel_col
         : $labels_model_list2_sel_col;
 
-#my $selection_array
-#    = $rowcol eq 'rows'
-#        ? $self->{selected_rows}
-#        : $self->{selected_cols};
-
-#my %selection_hash;
-#@selection_hash{@$selection_array} = (1) x scalar @$selection_array;
-
     my $max_iter = $self->{base_ref}-> get_label_count() - 1;
 
 #  get the selection changes
@@ -1058,13 +1043,7 @@ sub set_selected_list_cols {
         my $value = $selection->iter_is_selected ($iter) || 0;
 
         if ($value != $orig_value) {
-#print "[Labels] $rowcol : ",
-#      "Changing $orig_label to $value, ",
-#      "Cell iter $cell_iter\n"
-#      #$iter . ' ' . $sorted_iter,
-#      ;
             push (@changed_iters, [$iter1, $value]);
-#$global_model->set($iter1, $change_col, $value);
         }
     }
 
@@ -1294,17 +1273,7 @@ sub on_grid_select {
 
     return;
 }
-#
-#sub on_grid_click {
-#    my $self = shift;
-#
-#    if ($self->{tool} eq 'ZoomOut') {
-#        $self->{grid}->zoom_out();
-#    }
-#    elsif ($self->{tool} eq 'ZoomFit') {
-#        $self->{grid}->zoom_fit();
-#    }
-#}
+
 
 ##################################################
 # Phylogeny events

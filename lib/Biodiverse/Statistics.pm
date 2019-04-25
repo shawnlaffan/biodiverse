@@ -24,14 +24,6 @@ my %fields = (
     #standard_deviation => undef,
 );
 
-#__PACKAGE__->_make_private_accessors(
-#    [qw(
-#        skewness kurtosis
-#       )
-#    ]
-#);
-#__PACKAGE__->_make_accessors([qw(presorted _reserved _trimmed_mean_cache)]);
-
 
 #  same as from Statistics::Descriptive::Full::new
 ##Have to override the base method to add the data to the object
@@ -239,12 +231,6 @@ sub median {
     return $self->SUPER::median;
 }
 
-#sub mean {
-#    my $self = shift;
-#    return undef if ! $self->count;
-#    
-#    return $self->SUPER::mean;
-#}
 
 sub sd {
     my $self = shift;

@@ -546,21 +546,6 @@ sub get_element_count {
     return scalar keys %{ $self->{ELEMENTS} };
 }
 
-#sub get_element_pair_count {
-#    my $self = shift;
-#
-#    #my $count = 0;
-#    #for my $value (values %{$self->{ELEMENTS}}) {
-#    #    $count += $value;
-#    #}
-#    my $count = sum values %{$self->{ELEMENTS}};
-#    $count /= 2;  #  correct for double counting
-#    #  IS THIS CORRECTION VALID?  We can have symmetric and non-symmetric matrices, so a:b and b:a
-#    #  It depends on how they are tracked, though.
-#
-#    return $count;
-#}
-
 sub get_element_pairs_with_value {
     my $self = shift;
     my %args = @_;

@@ -2501,14 +2501,6 @@ sub get_embedded_matrix {
     return;
 }
 
-#sub max {
-#    return $_[0] > $_[1] ? $_[0] : $_[1];
-#}
-
-#sub min {
-#    return $_[0] < $_[1] ? $_[0] : $_[1];
-#}
-
 1;
 
 __END__

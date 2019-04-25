@@ -92,11 +92,6 @@ sub delete_values {
     return;
 }
 
-#sub get_value_keys {
-#    my $self = shift;
-#    return keys %{$self};
-#}
-
 #  set any value - allows user specified additions to the core stuff
 sub set_cached_value {
     my $self = shift;
@@ -2382,21 +2377,6 @@ sub shuffle_terminal_names {
 
 
 sub numerically {$a <=> $b}
-
-#sub DESTROY {
-#    my $self = shift;
-#    #my $name = $self->get_name;
-#    #print "DESTROYING $name\n";
-#    $self->{_PARENT} = undef;  #  free the parent
-#    #  destroy the children
-#    foreach my $child ($self->get_children) {
-#        $child->DESTROY if defined $child;
-#    }
-#    $self->{_CHILDREN} = undef;  
-#    
-#    #print "DESTROYED $name\n";
-#    #  perl can handle the rest
-#}
 
 1;
 

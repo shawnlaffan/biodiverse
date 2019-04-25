@@ -191,14 +191,14 @@ sub calc_compare_dissim_matrix_values {
 
     my (%tmp, %tmp2);
     #  delete elements from label_list1 that are not in the matrix
-    my $labels_in_matrix = $matrix -> get_elements;
+    my $labels_in_matrix = $matrix->get_elements;
     
-    $label_list1 = $self -> get_list_intersection (
+    $label_list1 = $self->get_list_intersection (
         list1 => [keys %$labels_in_matrix],
         list2 => [keys %$label_list1],
     );
 
-    $label_list2 = $self -> get_list_intersection (
+    $label_list2 = $self->get_list_intersection (
         list1 => [keys %$labels_in_matrix],
         list2 => [keys %$label_list2],
     );

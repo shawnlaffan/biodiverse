@@ -32,11 +32,11 @@ Readonly my $RE_ABC_REQUIRED_ARGS => qr /(?:element_list|(?:label_)(?:hash|list)
 #
 #sub debug_print_nothing {
 #    my $self = shift;
-#    my $count = $self -> get_param_as_ref ('DEBUG_PRINT_NOTHING_COUNT');
+#    my $count = $self->get_param_as_ref ('DEBUG_PRINT_NOTHING_COUNT');
 #    if (not defined $count) {
 #        my $x = 0;
 #        $count = \$x;
-#        $self -> set_param ('DEBUG_PRINT_NOTHING_COUNT' => $count);
+#        $self->set_param ('DEBUG_PRINT_NOTHING_COUNT' => $count);
 #    };
 #
 #    print "$$count\n";
@@ -234,7 +234,7 @@ sub get_formula_explanation_ABC {
 #        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
 #        formula         => [
 #             '= 1 - \frac{A}{B + C}',
-#            $self -> get_formula_explanation_ABC,
+#            $self->get_formula_explanation_ABC,
 #        ],
 #        indices         => {
 #            KULCZYNSKI1      => {
@@ -271,7 +271,7 @@ sub get_metadata_calc_kulczynski2 {
         description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
         formula         => [
             '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
-            $self -> get_formula_explanation_ABC,
+            $self->get_formula_explanation_ABC,
         ],
         indices         => {
             KULCZYNSKI2      => {
@@ -315,7 +315,7 @@ sub get_metadata_calc_sorenson {
                          . "Czechanowski index, and numerically the same as Whittaker's beta.",
         formula         => [
             '= 1 - \frac{2A}{2A + B + C}',
-            $self -> get_formula_explanation_ABC,
+            $self->get_formula_explanation_ABC,
         ],
         indices         => {
             SORENSON      => {
@@ -358,7 +358,7 @@ sub get_metadata_calc_jaccard {
         pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
-            $self -> get_formula_explanation_ABC,
+            $self->get_formula_explanation_ABC,
         ],
         indices         => {
             JACCARD       => {
@@ -396,7 +396,7 @@ sub calc_jaccard {
 #    my $formula = [
 #        '= 1 - \frac{A}{\sqrt {(A + B)(A + C)}} '
 #        . '- \frac {1} {2 \sqrt {max [(A + B), (A + C)]}}',
-#        $self -> get_formula_explanation_ABC,
+#        $self->get_formula_explanation_ABC,
 #    ];
 #
 #    my $ref = 'Hayes, W.B. (1978) https://doi.org/10.2307/1936649, '
@@ -456,7 +456,7 @@ sub get_metadata_calc_nestedness_resultant {
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
             . '= SORENSON - S2',
-            $self -> get_formula_explanation_ABC,
+            $self->get_formula_explanation_ABC,
         ],
         indices         => {
             NEST_RESULTANT  => {
@@ -689,7 +689,7 @@ sub get_metadata_calc_beta_diversity {
                 description => 'The other beta',
                 formula         => [  #'ABC / ((A+B + A+C) / 2) - 1'
                     '= \frac{A + B + C}{max((A+B), (A+C))} - 1',
-                    $self -> get_formula_explanation_ABC,
+                    $self->get_formula_explanation_ABC,
                 ],
                 #formula     => 'ABC / max (A+B, A+C) - 1',
             },
@@ -733,7 +733,7 @@ sub get_metadata_calc_s2 {
                         . 'https://doi.org/10.1046/j.0021-8790.2001.00563.x',
         formula     => [
             '= 1 - \frac{A}{A + min(B, C)}',
-            $self -> get_formula_explanation_ABC,
+            $self->get_formula_explanation_ABC,
         ],
         indices         => {
             S2 => {
@@ -876,7 +876,7 @@ sub get_metadata_calc_tx_rao_qe {
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         formula         => [
-            $self -> get_formula_qe,
+            $self->get_formula_qe,
             'd_{ij}',
             ' is a value of zero if ',
             'i = j',
@@ -905,7 +905,7 @@ sub calc_tx_rao_qe {
     my $self = shift;
     my %args = @_;
 
-    my $r = $self -> _calc_rao_qe (@_, use_matrix => 0);
+    my $r = $self->_calc_rao_qe (@_, use_matrix => 0);
     my %results = (
         TX_RAO_TN        => $r->{RAO_TN},
         TX_RAO_TLABELS   => $r->{RAO_TLABELS},
@@ -927,7 +927,7 @@ sub get_metadata_calc_mx_rao_qe {
         required_args   => ['matrix_ref'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         formula     => [
-            $self -> get_formula_qe,
+            $self->get_formula_qe,
             'd_{ij}',
             ' is the matrix value for the pair of labels ',
             'ij',
@@ -954,7 +954,7 @@ sub calc_mx_rao_qe {
     my $self = shift;
     my %args = @_;
 
-    my $r = $self -> _calc_rao_qe (@_, use_matrix => 1);
+    my $r = $self->_calc_rao_qe (@_, use_matrix => 1);
     my %results = (MX_RAO_TN        => $r->{RAO_TN},
                    MX_RAO_TLABELS   => $r->{RAO_TLABELS},
                    MX_RAO_QE        => $r->{RAO_QE},
@@ -980,8 +980,8 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         }
 
         #  don't want elements from full_label_list that are not in the matrix 
-        my $labels_in_matrix = $matrix -> get_elements;
-        my $labels_in_mx_and_full_list = $self -> get_list_intersection (
+        my $labels_in_matrix = $matrix->get_elements;
+        my $labels_in_mx_and_full_list = $self->get_list_intersection (
             list1 => [keys %$labels_in_matrix],
             list2 => [keys %$full_label_list],
         );
@@ -1124,7 +1124,7 @@ sub calc_local_range_stats {
     if (scalar keys %{$args{label_hash_all}}) {
         $stats = $stats_class->new;
         #my @barry = values %{$args{label_hash_all}};
-        $stats -> add_data (values %{$args{label_hash_all}});
+        $stats->add_data (values %{$args{label_hash_all}});
         $results{ABC2_MEAN_ALL} = $stats->mean;
         $results{ABC2_SD_ALL}   = $stats->standard_deviation;
     }
@@ -1403,7 +1403,7 @@ sub calc_d {
     my $bd = $self->get_basedata_ref;
 
     my $count = eval {
-        $bd -> get_label_count - $args{ABC};
+        $bd->get_label_count - $args{ABC};
     };
 
     my %results = (ABC_D => $count);
@@ -1631,7 +1631,7 @@ sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across gr
     my $self = shift;
     #my %args = @_;
 
-    return $self -> _calc_abc(@_, count_labels => 1);
+    return $self->_calc_abc(@_, count_labels => 1);
 }
 
 sub get_metadata_calc_abc3 {

@@ -132,22 +132,22 @@ sub calc_iei_stats {
     my $n = $stats->count;
     
     if ($n) {
-        my $sd    = eval {$stats -> standard_deviation};
-        my $mean  = eval {$stats -> mean};
+        my $sd    = eval {$stats->standard_deviation};
+        my $mean  = eval {$stats->mean};
         my $cv    = defined $sd ? $sd / $mean : undef;
-        my $gmean = eval {$stats -> geometric_mean};  #  put these here to trap some errors
+        my $gmean = eval {$stats->geometric_mean};  #  put these here to trap some errors
 
         %results = (
             IEI_GMEAN   => $gmean,
             IEI_MEAN    => $mean,
             IEI_SD      => $sd,
-            IEI_N       => $stats -> count,
-            IEI_RANGE   => $stats -> sample_range,
-            IEI_SKEW    => $stats -> skewness,
-            IEI_KURT    => $stats -> kurtosis,
+            IEI_N       => $stats->count,
+            IEI_RANGE   => $stats->sample_range,
+            IEI_SKEW    => $stats->skewness,
+            IEI_KURT    => $stats->kurtosis,
             IEI_CV      => $cv,
-            IEI_MIN     => $stats -> min,
-            IEI_MAX     => $stats -> max,
+            IEI_MIN     => $stats->min,
+            IEI_MAX     => $stats->max,
         );
     }
     #  statistics::descriptive uses a default mean of zero if no values - not what we want
@@ -201,7 +201,7 @@ sub get_iei_data_for_elements {
     
     my $bd = $self->get_basedata_ref;
 
-    if (! $bd -> labels_are_numeric) {
+    if (! $bd->labels_are_numeric) {
         my %results = (IEI_STATS_OBJECT => undef);
         return wantarray ? %results : \%results;  
     }
@@ -254,7 +254,7 @@ sub get_iei_data_for_elements {
             #  get it if not cached
             if (! exists $hash_cache->{$element}) {
                 my %labels
-                    = $bd -> get_labels_in_group_as_hash_aa ($element);
+                    = $bd->get_labels_in_group_as_hash_aa ($element);
                 my @sorted_labels = sort numerically keys %labels;
 
                 #  add to the cache
@@ -352,7 +352,7 @@ sub get_iei_stats_object {
     #  or a basedata object otherwise
     my $bd = $self->get_basedata_ref;
 
-    if (! $bd -> labels_are_numeric) {
+    if (! $bd->labels_are_numeric) {
         my %results = (IEI_STATS_OBJECT => undef);
         return wantarray ? %results : \%results;  
     }
@@ -384,9 +384,9 @@ sub get_iei_stats_object {
 
     
     my $stats = $stats_package->new;
-    $stats -> add_data (\@interval_array);
+    $stats->add_data (\@interval_array);
     
-    $stats -> sort_data;
+    $stats->sort_data;
     
     #my $x = $hash_cache;
     #  the hash saves extracting it from the stats object again later
@@ -439,7 +439,7 @@ sub cleanup_iei_element_cache {
     my $hash_cache  = $args{IEI_ELEMENT_HASH_CACHE};
     my $array_cache = $args{IEI_ELEMENT_ARRAY_CACHE};
     my $results_are_recyclable          # param will be renamed at some stage
-        = $self -> get_param ('RESULTS_ARE_RECYCLABLE');
+        = $self->get_param ('RESULTS_ARE_RECYCLABLE');
 
     print $EMPTY_STRING;
 
@@ -508,12 +508,12 @@ sub _calc_iei_summary_stats_per_nbrhood {
         next BY_ELEMENT if scalar @$data == 0;
 
         my $stats = $stats_package->new;
-        $stats -> add_data ($data);
-        $stats -> sort_data;
+        $stats->add_data ($data);
+        $stats->sort_data;
 
         FUNC:
         foreach my $stat_func (keys %$stat_arrays) {
-            my $result = eval {$stats -> $stat_func };
+            my $result = eval {$stats->$stat_func };
             next FUNC if not defined $result;
             push @{$stat_arrays->{$stat_func}}, $result;
         }
@@ -527,7 +527,7 @@ sub _calc_iei_summary_stats_per_nbrhood {
         #  only calc if we have samples, but always do the sample count
         if ($stat eq 'count' || scalar @{$stat_arrays->{$stat}}) { 
             my $stats = $stats_package->new;
-            $stats -> add_data ($stat_arrays->{$stat});
+            $stats->add_data ($stat_arrays->{$stat});
             $results{$key} = eval {$stats->mean};
         }
         else {

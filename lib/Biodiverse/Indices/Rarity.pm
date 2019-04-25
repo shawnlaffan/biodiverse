@@ -162,7 +162,7 @@ sub _calc_rarity_central {
     my $self = shift;
     my %args = @_;
 
-    my %hash = $self -> _calc_endemism (
+    my %hash = $self->_calc_endemism (
         %args,
         end_central => 1,
         function    => 'get_label_abundance',
@@ -279,7 +279,7 @@ sub calc_rarity_whole_lists {
     my $self = shift;
     my %args = @_;
 
-    #my $hashRef = $self -> _calc_endemism(%args, end_central => 1);
+    #my $hashRef = $self->_calc_endemism(%args, end_central => 1);
 
     my %results = (
         RAREW_WTLIST     => $args{RAREW_WTLIST},
@@ -293,7 +293,7 @@ sub _calc_rarity_whole {
     my $self = shift;
     my %args = @_;
 
-    my %hash = $self -> _calc_endemism (
+    my %hash = $self->_calc_endemism (
         %args,
         end_central => 0,
         function    => 'get_label_abundance',

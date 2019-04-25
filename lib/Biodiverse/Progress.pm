@@ -139,7 +139,7 @@ sub reset {
 sub pulsate {
     my $self = shift;
     
-    eval {$self->{gui_progress} -> pulsate (@_)};
+    eval {$self->{gui_progress}->pulsate (@_)};
 
     return;
 }
@@ -147,7 +147,7 @@ sub pulsate {
 sub pulsate_stop {
     my $self = shift;
     
-    eval {$self->{gui_progress} -> pulsate_stop (@_)};
+    eval {$self->{gui_progress}->pulsate_stop (@_)};
     
     return;
 }
@@ -155,7 +155,7 @@ sub pulsate_stop {
 sub pulse_progress_bar {
     my $self = shift;
     
-    eval {$self->{gui_progress} -> pulsate_progress_bar (@_)};
+    eval {$self->{gui_progress}->pulsate_progress_bar (@_)};
     
     return;
 }

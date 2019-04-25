@@ -109,7 +109,7 @@ sub _get_gpprop_names {
 
         $names = $gp->get_element_property_keys;
 
-        $self -> set_param (GPPROP_NAMES => $names);
+        $self->set_param (GPPROP_NAMES => $names);
     }    
 
     return wantarray ? @$names : $names;

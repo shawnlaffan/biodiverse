@@ -100,13 +100,13 @@ sub rename_object {
 
 sub get_last_update_time {
     my $self = shift;
-    return $self -> get_param ('LAST_UPDATE_TIME');
+    return $self->get_param ('LAST_UPDATE_TIME');
 }
 
 sub set_last_update_time {
     my $self = shift;
     my $time = shift || time;
-    $self -> set_param (LAST_UPDATE_TIME => $time);
+    $self->set_param (LAST_UPDATE_TIME => $time);
     
     return;
 }
@@ -231,7 +231,7 @@ sub load_storable_file {
     $self = retrieve($file);
     if ($Storable::VERSION le '2.15') {
         foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-            $self -> $fn if $self->can($fn);
+            $self->$fn if $self->can($fn);
         }
     }
     $self->set_last_file_serialisation_format ('storable');
@@ -255,7 +255,7 @@ sub __load_xml_file {
     my $data = $xml->parsefile($args{file});
     $self = shift (@$data);  #  parsefile returns a list, we want the first (and only) element
     foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self -> $fn if $self->can($fn);
+        $self->$fn if $self->can($fn);
     }
     
     return $self;
@@ -310,7 +310,7 @@ sub load_data_dumper_file {
 
     #  yaml does not handle waek refs, so we need to put them back in
     #foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-    #    $self -> $fn if $self->can($fn);
+    #    $self->$fn if $self->can($fn);
     #}
 
     return $self;
@@ -392,10 +392,10 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
 
     local $/ = undef;
     my $data = <$fh>;
-    $fh -> close;
+    $fh->close;
     
     my %params = eval ($data);
-    $self -> set_param(%params);
+    $self->set_param(%params);
     
     return;
 }
@@ -578,7 +578,7 @@ sub set_default_params {
     #  receiving the same data structures
     my $params = $self->clone (data => $user_defined_params{$package});
     
-    $self -> set_params (%$params);  
+    $self->set_params (%$params);  
     
     return;
 }
@@ -754,7 +754,7 @@ sub update_log {
     my $self = shift;
     my %args = @_;
 
-    if ($self -> get_param ('RUN_FROM_GUI')) {
+    if ($self->get_param ('RUN_FROM_GUI')) {
 
         $args{type} = 'update_log';
         $self->dump_to_yaml (data => \%args);
@@ -1112,10 +1112,10 @@ sub write_table {
     }
 
     if ($suffix =~ /csv|txt/i) {
-        $self -> write_table_csv (%args);
+        $self->write_table_csv (%args);
     }
     #elsif ($suffix =~ /dbf/i) {
-    #    $self -> write_table_dbf (%args);
+    #    $self->write_table_dbf (%args);
     #}
     elsif ($suffix =~ /htm/i) {
         $self->write_table_html (%args);
@@ -1202,7 +1202,7 @@ sub write_table_csv {
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    if ($fh -> close) {
+    if ($fh->close) {
         say "[COMMON] Write to file $file successful";
     }
     else {
@@ -1234,7 +1234,7 @@ sub write_table_xml {  #  dump the table to an xml file.
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    if ($fh -> close) {
+    if ($fh->close) {
         print "[COMMON] Write to file $file successful\n";
     }
     else {
@@ -1289,7 +1289,7 @@ sub write_table_html {
     is_arrayref($data) || croak "data arg must be an array ref\n";
     my $file = $args{file} || croak "file arg not specified\n";
 
-    my $qt = HTML::QuickTable -> new();
+    my $qt = HTML::QuickTable->new();
 
     my $table = $qt->render($args{data});
 
@@ -1300,7 +1300,7 @@ sub write_table_html {
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    if ($fh -> close) {
+    if ($fh->close) {
         print "[COMMON] Write to file $file successful\n"
     }
     else {
@@ -1931,7 +1931,7 @@ sub get_next_line_set {
             $csv->SetDiag (0);
         }
         if ($csv->eof) {
-            #$self -> set_param (IMPORT_TOTAL_CHUNK_TEXT => $$chunk_count);
+            #$self->set_param (IMPORT_TOTAL_CHUNK_TEXT => $$chunk_count);
             #pop @lines if not defined $line;  #  undef returned for last line in some cases
             last;
         }
@@ -2074,7 +2074,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
              ($self->round_to_precision_aa ($value, $precision->[$depth])) <= $max;
              $value += $res) {
 
-            my $val = $self -> round_to_precision_aa ($value, $precision->[$depth]);
+            my $val = $self->round_to_precision_aa ($value, $precision->[$depth]);
             if ($depth > 0) {
                 foreach my $element (@$so_far) {
                     #print "$element . $sep_char . $value\n";
@@ -2269,11 +2269,11 @@ sub store_rand_state {  #  we cannot store the object itself, as it does not ser
     croak "rand_object not specified correctly\n" if ! blessed $args{rand_object};
 
     my $rand = $args{rand_object};
-    my @state = $rand -> get_state;  #  make a copy - might reduce mem issues?
+    my @state = $rand->get_state;  #  make a copy - might reduce mem issues?
     croak "PRNG state not defined\n" if ! scalar @state;
 
     my $state = \@state;
-    $self -> set_param (RAND_LAST_STATE => $state);
+    $self->set_param (RAND_LAST_STATE => $state);
 
     if (defined wantarray) {
         return wantarray ? @state : $state;
@@ -2288,11 +2288,11 @@ sub store_rand_state_init {
     croak "rand_object not specified correctly\n" if ! blessed $args{rand_object};
 
     my $rand = $args{rand_object};
-    my @state = $rand -> get_state;
+    my @state = $rand->get_state;
 
     my $state = \@state;
 
-    $self -> set_param (RAND_INIT_STATE => $state);
+    $self->set_param (RAND_INIT_STATE => $state);
 
     if (defined wantarray) {
         return wantarray ? @state : $state;
@@ -2642,13 +2642,13 @@ sub get_sig_rank_from_comp_results {
 #   
 #    my %refs = (
 #                array => {sigil => "@",
-#                           data => [Devel::Symdump -> arrays ($package)],
+#                           data => [Devel::Symdump->arrays ($package)],
 #                          },
 #                hash  => {sigil => "%",
-#                           data => [Devel::Symdump -> hashes ($package)],
+#                           data => [Devel::Symdump->hashes ($package)],
 #                          },
 #                #scalars => {sigil => '$',
-#                #           data => [Devel::Symdump -> hashes],
+#                #           data => [Devel::Symdump->hashes],
 #                #          },
 #                );
 #
@@ -2756,7 +2756,7 @@ or want to clone an existing object
 
 =over 4
 
-=item $self = $old_object -> clone;
+=item $self = $old_object->clone;
 
 (This uses the Storable::dclone method).
 

@@ -70,11 +70,11 @@ sub test_drop_axis {
 
     #  some fails
     dies_ok (
-        sub {$bd->drop_element_axis (axis => 20)},
+        sub {$bd->drop_element_axis (axis => 20, type => 'label')},
         'axis too large',
     );
     dies_ok (
-        sub {$bd->drop_element_axis (axis => -20)},
+        sub {$bd->drop_element_axis (axis => -20, type => 'label')},
         'neg axis too large',
     );
     dies_ok (
@@ -100,8 +100,16 @@ sub test_drop_axis {
     @origin = $gp->get_cell_origins;
     is ($#origin, 1, 'group cell origins');
     
-    #  origins
-    
+    my $bd_with_outputs = $bd_base->clone;
+    my $sp = $bd_with_outputs->add_spatial_output (name => 'spatialisationater');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_richness'],
+    );
+    dies_ok (
+        sub {$bd_with_outputs->drop_element_axis (axis => 1, type => 'label')},
+        'dies with existing outputs',
+    );
 }
 
 

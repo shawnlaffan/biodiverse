@@ -866,6 +866,9 @@ sub drop_element_axis {
     my $type = $args{type} // croak "type arg not specified\n";
     croak "type arg must be label or group, not $type"
       if not $type =~ /^(label|group)$/;
+    
+    croak "Cannot drop axes from basedata with outputs\n"
+      if $self->get_output_ref_count;
 
     my $target = $type eq 'label'
       ? $self->get_labels_ref

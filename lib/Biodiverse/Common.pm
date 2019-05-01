@@ -1326,8 +1326,10 @@ sub list2csv {  #  return a csv string from a list of values
     }
     else {
         croak "list2csv CSV combine() failed for some reason: "
-              . $csv_line->error_input
-              . ", line $.\n";
+              . ($csv_line->error_input // '')
+              . ", line "
+              . ($. // '')
+              . "\n";
     }
 
     return;

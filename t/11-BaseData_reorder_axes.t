@@ -91,6 +91,8 @@ sub test_drop_axis {
     $lb = $bd->get_labels_ref;
     $gp = $bd->get_groups_ref;    
     is ($lb->get_axis_count, 2, 'got expected label axis count after deletion');
+    
+    ok ($bd->exists_label_aa ('0.5_:5_'), 'check label exists');
 
     $bd = $bd_base->clone;
     $lb = $bd->get_labels_ref;
@@ -103,6 +105,10 @@ sub test_drop_axis {
     @origin = $gp->get_cell_origins;
     is ($#origin, 1, 'group cell origins');
     is ($gp->get_axis_count, 2, 'got expected group axis count after deletion');
+
+    ok ($bd->exists_group_aa ('0.5:50'), 'check group exists');
+    $bd->drop_element_axis (axis => 0, type => 'group');
+    ok ($bd->exists_group_aa ('50'), 'check group exists, second deletion');
 
 
     my $bd_with_outputs = $bd_base->clone;

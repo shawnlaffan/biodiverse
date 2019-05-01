@@ -905,12 +905,19 @@ sub drop_element_axis {
         );
     }
     
+    #  simplify logic below
+    if ($axis < 0) {
+        $axis += @$axis;
+    }
     my $cell_sizes = $target->get_param('CELL_SIZES');
-    say "Splicing $axis from sizes (" . (join ' ', @$cell_sizes) . ')'; 
+    #say "Splicing item $axis from sizes (" . (join ' ', @$cell_sizes) . ')';
     splice @$cell_sizes, $axis, 1;
     my $cell_origins = $target->get_param('CELL_ORIGINS');
-    say "Splicing $axis from origins (" . (join ' ', @$cell_origins) . ')';
-    splice @$cell_origins, $axis, 1;
+    #  looks like we can get mismatches in cell size and origin array lengths
+    if ($axis < @$cell_origins) {
+        #say "Splicing item $axis from origins (" . (join ' ', @$cell_origins) . ')';
+        splice @$cell_origins, $axis, 1;
+    }
     
     if ($type eq 'group') {
         my $bd_cell_sizes = $self->get_param('CELL_SIZES');
@@ -918,7 +925,7 @@ sub drop_element_axis {
             splice @$bd_cell_sizes, $axis, 1;
         }
         my $bd_cell_origins = $self->get_param('CELL_ORIGINS');
-        if ($bd_cell_origins ne $cell_origins) {  #  check if same ref 
+        if ($bd_cell_origins ne $cell_origins and $axis < @$bd_cell_origins) {  #  check if same ref 
             splice @$bd_cell_origins, $axis, 1;
         }
     }

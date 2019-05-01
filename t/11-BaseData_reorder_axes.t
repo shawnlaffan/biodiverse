@@ -63,8 +63,7 @@ sub test_drop_axis {
     my $bd = $bd_base->clone;
     
     $lb = $bd->get_labels_ref;
-    $gp = $bd->get_groups_ref;
-    
+    $gp = $bd->get_groups_ref;    
     is ($lb->get_axis_count, 3, 'got expected label axis count');
     is ($gp->get_axis_count, 3, 'got expected group axis count');
 
@@ -89,6 +88,10 @@ sub test_drop_axis {
     @origin = $lb->get_cell_origins;
     is ($#origin, 1, 'label cell origins');
     
+    $lb = $bd->get_labels_ref;
+    $gp = $bd->get_groups_ref;    
+    is ($lb->get_axis_count, 2, 'got expected label axis count after deletion');
+
     $bd = $bd_base->clone;
     $lb = $bd->get_labels_ref;
     $gp = $bd->get_groups_ref;
@@ -99,7 +102,9 @@ sub test_drop_axis {
     is ($#res, 1, 'group cell size array');
     @origin = $gp->get_cell_origins;
     is ($#origin, 1, 'group cell origins');
-    
+    is ($gp->get_axis_count, 2, 'got expected group axis count after deletion');
+
+
     my $bd_with_outputs = $bd_base->clone;
     my $sp = $bd_with_outputs->add_spatial_output (name => 'spatialisationater');
     $sp->run_analysis (

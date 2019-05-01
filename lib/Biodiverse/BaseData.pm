@@ -906,8 +906,10 @@ sub drop_element_axis {
     }
     
     my $cell_sizes = $target->get_param('CELL_SIZES');
+    say "Splicing $axis from sizes (" . (join ' ', @$cell_sizes) . ')'; 
     splice @$cell_sizes, $axis, 1;
     my $cell_origins = $target->get_param('CELL_ORIGINS');
+    say "Splicing $axis from origins (" . (join ' ', @$cell_origins) . ')';
     splice @$cell_origins, $axis, 1;
     
     if ($type eq 'group') {

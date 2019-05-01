@@ -107,6 +107,7 @@ sub rename {
     return;
 }
 
+#  a bit fragile
 sub get_axis_count {
     my $self = shift;
 

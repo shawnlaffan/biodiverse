@@ -843,6 +843,83 @@ sub _rename_groups_or_labels {
     return;
 }
 
+sub drop_label_axis {
+    my ($self, %args) = @_;
+    return $self->drop_element_axis (
+        %args,
+        type => 'label',
+    );
+}
+
+sub drop_group_axis {
+    my ($self, %args) = @_;
+    return $self->drop_element_axis (
+        %args,
+        type => 'group',
+    );
+}
+
+
+sub drop_element_axis {
+    my ($self, %args) = @_;
+    
+    my $type = $args{type} // croak "type arg not specified\n";
+    croak "type arg must be label or group, not $type"
+      if not $type =~ /^(label|group)$/;
+
+    my $target = $type eq 'label'
+      ? $self->get_labels_ref
+      : $self->get_groups_ref;
+    my $rename_method = "rename_${type}";
+
+    my $axis = $args{axis};
+    croak "Axis arg must be numeric\n"
+      if !looks_like_number $axis;
+    croak "Axis arg too large\n"
+      if abs($axis) > $target->get_axis_count;
+    
+
+    my $quotes  = $self->get_param('QUOTES');      #  for storage, not import
+    my $el_sep  = $self->get_param('JOIN_CHAR');
+    my $csv = $self->get_csv_object(
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+
+    foreach my $element ($target->get_element_list) {
+        my @el_array = $target->get_element_name_as_array_aa ($element);
+        next if abs($axis) > $#el_array;  #  labels do not yet have fixed item length
+        splice @el_array, $axis, 1;
+        my $new_name = $self->list2csv(
+            list       => \@el_array,
+            csv_object => $csv
+        );
+        #  in-place rename, could lead to grief?
+        $self->$rename_method (
+            $type    => $element,
+            new_name => $new_name,
+        );
+    }
+    
+    my $cell_sizes = $target->get_param('CELL_SIZES');
+    splice @$cell_sizes, $axis, 1;
+    my $cell_origins = $target->get_param('CELL_ORIGINS');
+    splice @$cell_origins, $axis, 1;
+    
+    if ($type eq 'group') {
+        my $bd_cell_sizes = $self->get_param('CELL_SIZES');
+        if ($bd_cell_sizes ne $cell_sizes) {  #  check if same ref 
+            splice @$bd_cell_sizes, $axis, 1;
+        }
+        my $bd_cell_origins = $self->get_param('CELL_ORIGINS');
+        if ($bd_cell_origins ne $cell_origins) {  #  check if same ref 
+            splice @$bd_cell_origins, $axis, 1;
+        }
+    }
+    
+    return;
+}
+
 #  should probably wipe the cache if we do rename something
 sub rename_label {
     my $self = shift;
@@ -872,8 +949,10 @@ sub rename_label {
         return;
     }
 
-    my @sub_elements =
-      $lb->rename_element( element => $label, new_name => $new_name );
+    my @sub_elements = $lb->rename_element(
+        element  => $label,
+        new_name => $new_name
+    );
     foreach my $group (@sub_elements) {
         $gp->rename_subelement(
             element     => $group,
@@ -910,8 +989,10 @@ sub rename_group {
         return;
     }
 
-    my @sub_elements =
-      $gp->rename_element( element => $group, new_name => $new_name );
+    my @sub_elements = $gp->rename_element(
+        element  => $group,
+        new_name => $new_name,
+    );
     foreach my $sub_element (@sub_elements) {
         $lb->rename_subelement(
             element     => $sub_element,

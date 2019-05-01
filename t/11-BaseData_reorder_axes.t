@@ -8,6 +8,7 @@ use English qw { -no_match_vars };
 use Carp;
 
 use Test::Lib;
+use Test::Most;
 use rlib;
 
 local $| = 1;
@@ -35,10 +36,75 @@ sub main {
     
 
     test_reorder_axes();
-    
+    test_drop_axis();
+
     done_testing;
     return 0;
 }
+
+
+sub test_drop_axis {
+    my $bd_base = Biodiverse::BaseData->new (
+        NAME       => 'bzork',
+        CELL_SIZES => [1, 10, 100],
+    );
+    
+    foreach my $i (1..10) {
+        my $gp = join ':', $i-0.5, $i*10-5, $i*100-50;
+        my $lb = join '_:', $i-0.5, $i*10-5, $i*100-50;
+        $bd_base->add_element (
+            group => $gp,
+            label => $lb,
+        );
+    }
+    
+    my (@res, @origin, $gp, $lb);
+    
+    my $bd = $bd_base->clone;
+    
+    $lb = $bd->get_labels_ref;
+    $gp = $bd->get_groups_ref;
+    
+    is ($lb->get_axis_count, 3, 'got expected label axis count');
+    is ($gp->get_axis_count, 3, 'got expected group axis count');
+
+    #  some fails
+    dies_ok (
+        sub {$bd->drop_element_axis (axis => 20)},
+        'axis too large',
+    );
+    dies_ok (
+        sub {$bd->drop_element_axis (axis => -20)},
+        'neg axis too large',
+    );
+    dies_ok (
+        sub {$bd->drop_element_axis (axis => 'glert', type => 'label')},
+        'non-numeric axis',
+    );
+    
+    $bd->drop_element_axis (axis => 2, type => 'label');
+    is ($lb->get_axis_count, 2, 'label axis count reduced');
+    @res = $lb->get_cell_sizes;
+    is ($#res, 1, 'label cell size array');
+    @origin = $lb->get_cell_origins;
+    is ($#origin, 1, 'label cell origins');
+    
+    $bd = $bd_base->clone;
+    $lb = $bd->get_labels_ref;
+    $gp = $bd->get_groups_ref;
+    
+    $bd->drop_element_axis (axis => 1, type => 'group');
+    is ($gp->get_axis_count, 2, 'group axis count reduced');
+    @res = $gp->get_cell_sizes;
+    is ($#res, 1, 'group cell size array');
+    @origin = $gp->get_cell_origins;
+    is ($#origin, 1, 'group cell origins');
+    
+    #  origins
+    
+}
+
+
 
 sub _repeat_test_reorder_axes {
     test_reorder_axes() for (1..1000);

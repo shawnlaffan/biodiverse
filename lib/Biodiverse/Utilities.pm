@@ -7,8 +7,12 @@ use Carp;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /:all/;
 
+our $VERSION = '2.99_004';
+
 our @ISA = qw (Exporter);
+our @EXPORT = ();
 our @EXPORT_OK = qw /sort_list_with_tree_names_aa/;
+
 
 
 #  verbose name...

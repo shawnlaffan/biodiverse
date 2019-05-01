@@ -184,15 +184,13 @@ sub run_axis_selector_dialog {
     my $col_names_for_dialog = $type eq 'labels'
       ? [ 0 .. ( $bd->get_labels_ref->get_axis_count - 1 ) ]
       : [ 0 .. ( $bd->get_groups_ref->get_axis_count - 1 ) ];
-    my $choices = ['Keep', 'Drop'];
 
     my @parameters;
     foreach my $i (@$col_names_for_dialog) {
         push @parameters,
             {
                 name    => 'Axis_' . $i,
-                type    => 'choice',
-                choices => $choices,
+                type    => 'boolean',
                 default => 0,
             };
     }
@@ -202,12 +200,10 @@ sub run_axis_selector_dialog {
         bless $_, $parameter_metadata_class;
     }
 
-    #my $params = \@parameters;
-
     $dlgxml = Gtk2::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
     $dlg = $dlgxml->get_object('dlgImportParameters');
-    $dlg->set_title( 'Drop axes' );
+    $dlg->set_title( 'Axes to drop' );
 
     # Build widgets for parameters
     my $table_name = 'tableImportParameters';
@@ -225,13 +221,14 @@ sub run_axis_selector_dialog {
 
     my %properties_params = $parameters_table->extract($extractors);
     
-    #  reformat into drop/keep
-    #  (not that we need the keepers)
+    #  Reformat into drop/keep.
+    #  If @keep is empty then we are trying
+    #  to drop all axes, leading to badness. 
     my (@drop, @keep);
     foreach my $key (keys %properties_params) {
         my $i = $key;
         $i =~ s/^Axis_//;
-        if ($properties_params{$key} eq 'Drop') {  
+        if ($properties_params{$key}) {  
             push @drop, $i;
         }
         else {

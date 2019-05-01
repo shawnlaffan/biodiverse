@@ -117,6 +117,136 @@ sub do_basedata_reorder_axes {
     return;
 }
 
+
+sub do_basedata_drop_axes {
+    my $self = shift;
+
+    my $new_name = $self->get_new_basedata_name( suffix => '_X' );
+    return if not $new_name;
+
+    my $bd = $self->{project}->get_selected_base_data();
+
+    my $options = $self->run_axis_selector_dialog ($bd);
+
+    return if !$options;
+
+    my $to_drop = $options->{drop};
+    return if !$to_drop || !@$to_drop;
+
+    my $to_keep = $options->{keep};    
+    croak "Cannot delete all axes from a basedata\n"
+      if !$to_keep || !@$to_keep;
+
+    my $type = $options->{type};
+    $type =~ s/s$//;
+
+    my $new_bd = $bd->clone (no_outputs => 1);
+    #  do stuff here, currently one axis at a time
+    #  make sure we work from the end
+    #  (there are no negative $drop_i values in the GUI)
+    foreach my $drop_i (reverse sort {$a <=> $b} @$to_drop) {
+        $new_bd->drop_element_axis (
+            type => $type,
+            axis => $drop_i,
+        );
+    }
+
+    $new_bd->set_param( NAME => $new_name );
+    $self->{project}->add_base_data($new_bd);
+
+    $self->set_dirty();
+
+    return;
+}
+
+sub run_axis_selector_dialog {
+    my ($self, $bd) = @_;
+
+    $bd //= $self->{project}->get_selected_base_data();
+
+    # are we attaching groups or labels?
+    my $gui    = $self;                  #  copied code from elsewhere
+    my $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgGroupsLabels.ui') );
+    my $dlg = $dlgxml->get_object('dlgGroupsLabels');
+    $dlg->set_transient_for( $gui->get_object('wndMain') );
+    $dlg->set_modal(1);
+    my $label = $dlgxml->get_object('label_dlg_groups_labels');
+    $label->set_text('Drop group or label axes?');
+    $dlg->set_title('Axis selector');
+    my $response = $dlg->run();
+    $dlg->destroy();
+
+    return if not $response =~ /^(yes|no)$/;
+
+    my $type = $response eq 'yes' ? 'labels' : 'groups';
+
+    my $col_names_for_dialog = $type eq 'labels'
+      ? [ 0 .. ( $bd->get_labels_ref->get_axis_count - 1 ) ]
+      : [ 0 .. ( $bd->get_groups_ref->get_axis_count - 1 ) ];
+    my $choices = ['Keep', 'Drop'];
+
+    my @parameters;
+    foreach my $i (@$col_names_for_dialog) {
+        push @parameters,
+            {
+                name    => 'Axis_' . $i,
+                type    => 'choice',
+                choices => $choices,
+                default => 0,
+            };
+    }
+    use Biodiverse::Metadata::Parameter;
+    my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
+    for (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
+    #my $params = \@parameters;
+
+    $dlgxml = Gtk2::Builder->new();
+    $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
+    $dlg = $dlgxml->get_object('dlgImportParameters');
+    $dlg->set_title( 'Drop axes' );
+
+    # Build widgets for parameters
+    my $table_name = 'tableImportParameters';
+    my $table      = $dlgxml->get_object($table_name);
+
+    # (passing $dlgxml because generateFile uses existing widget on the dialog)
+    my $parameters_table = Biodiverse::GUI::ParametersTable->new;
+    my $extractors = $parameters_table->fill( \@parameters, $table, $dlgxml );
+
+    $dlg->show_all;
+    $response = $dlg->run;
+    $dlg->destroy;
+
+    return wantarray ? () : {} if $response ne 'ok';
+
+    my %properties_params = $parameters_table->extract($extractors);
+    
+    #  reformat into drop/keep
+    #  (not that we need the keepers)
+    my (@drop, @keep);
+    foreach my $key (keys %properties_params) {
+        my $i = $key;
+        $i =~ s/^Axis_//;
+        if ($properties_params{$key} eq 'Drop') {  
+            push @drop, $i;
+        }
+        else {
+            push @keep, $i;
+        }
+    }
+    my %results = (
+        drop => \@drop,
+        keep => \@keep,
+        type => $type,
+    );
+    
+    return wantarray? %results : \%results; 
+}
+
 sub do_basedata_attach_label_abundances_as_properties {
     my $self = shift;
 

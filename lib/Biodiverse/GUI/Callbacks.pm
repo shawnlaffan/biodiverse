@@ -337,6 +337,9 @@ my %data_funcs = (
     on_basedata_reorder_axes => {
         METHOD => 'do_basedata_reorder_axes',
     },
+    on_basedata_drop_axes => {
+        METHOD => 'do_basedata_drop_axes',
+    },
     on_trim_tree_to_basedata => {
         METHOD => 'do_trim_tree_to_basedata',
     },

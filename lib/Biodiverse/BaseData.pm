@@ -898,6 +898,7 @@ sub drop_element_axis {
         $self->$rename_method (
             $type    => $element,
             new_name => $new_name,
+            silent   => 1,
         );
     }
     
@@ -964,7 +965,8 @@ sub rename_label {
         $self->set_param( NUMERIC_LABELS => 0 );
     }
 
-    say "[BASEDATA] Renamed $label to $new_name";
+    say "[BASEDATA] Renamed $label to $new_name"
+      if !$args{silent};
 
     return 1;
 }
@@ -1001,7 +1003,8 @@ sub rename_group {
         );
     }
 
-    say "[BASEDATA] Renamed $group to $new_name";
+    say "[BASEDATA] Renamed $group to $new_name"
+      if !$args{silent};
 
     return;
 }

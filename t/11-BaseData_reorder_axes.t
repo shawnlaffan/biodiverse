@@ -110,6 +110,10 @@ sub test_drop_axis {
     $bd->drop_element_axis (axis => 0, type => 'group');
     ok ($bd->exists_group_aa ('50'), 'check group exists, second deletion');
 
+    dies_ok (
+        sub {$bd->drop_element_axis (axis => 0, type => 'group')},
+        'dies if no axes will be left',
+    );
 
     my $bd_with_outputs = $bd_base->clone;
     my $sp = $bd_with_outputs->add_spatial_output (name => 'spatialisationater');

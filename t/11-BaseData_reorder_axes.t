@@ -109,6 +109,10 @@ sub test_drop_axis {
     ok ($bd->exists_group_aa ('0.5:50'), 'check group exists');
     $bd->drop_element_axis (axis => 0, type => 'group');
     ok ($bd->exists_group_aa ('50'), 'check group exists, second deletion');
+    
+    my $orig_samp_count = $bd_base->get_label_sample_count (element => '0.5_:5_:50_');
+    my $new_samp_count  = $bd->get_label_sample_count (element => '0.5_:5_');
+    is ($new_samp_count, $orig_samp_count, "Label sample counts match after dropped axis");
 
     dies_ok (
         sub {$bd->drop_element_axis (axis => 0, type => 'group')},

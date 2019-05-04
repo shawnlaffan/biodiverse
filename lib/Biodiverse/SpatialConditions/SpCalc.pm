@@ -1912,7 +1912,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
         description => $description,
         index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
         required_args  => [qw /output index/],
-        optional_args  => [qw /list element/],
+        optional_args  => [qw /list element no_error_if_no_index/],
         result_type    => 'always_same',
         example        => $example,
     );
@@ -1927,7 +1927,7 @@ sub sp_get_spatial_output_list_value {
 
     my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
-    my $no_die_if_not_exists = $args{no_error_if_index_not_exists};
+    my $no_die_if_not_exists = $args{no_error_if_no_index};
     
     my $h = $self->get_param('CURRENT_ARGS');
 
@@ -1953,6 +1953,9 @@ sub sp_get_spatial_output_list_value {
     my $list = $sp->get_list_ref (list => $list_name, element => $element);
 
     croak "Index $index does not exist at element $element\n"
+        . "If the index name is not misspelt then you can add "
+        . "an argument to the call to skip this error:\n"
+        . "    no_error_if_no_index  => 1\n"
       if !$no_die_if_not_exists && !exists $list->{$index};
     
     no autovivification;

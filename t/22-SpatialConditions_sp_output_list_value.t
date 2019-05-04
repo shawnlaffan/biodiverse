@@ -81,14 +81,14 @@ sub test_sp_get_spatial_output_list_value {
     my $sp_to_test2 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value2');
     $sp_to_test2->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ['sp_get_spatial_output_list_value (output => "get_vals_from", list => "SPATIAL_RESULTS", index => "NONEXISTENT", no_error_if_index_not_exists => 1)'],
+        spatial_conditions => ['sp_get_spatial_output_list_value (output => "get_vals_from", list => "SPATIAL_RESULTS", index => "NONEXISTENT", no_error_if_no_index => 1)'],
     );
     $expected = {
         ENDW_CWE    => undef, ENDW_RICHNESS => 0,
         ENDW_SINGLE => undef, ENDW_WE => undef,
     };
     $list_ref = $sp_to_test2->get_list_ref (element => '1:1', list => 'SPATIAL_RESULTS');
-    is_deeply ($list_ref, $expected, 'got expected SPATIAL_RESULTS list when no_error_if_index_not_exists is true');
+    is_deeply ($list_ref, $expected, 'got expected SPATIAL_RESULTS list when no_error_if_no_index is true');
 
     my $sp_to_test3 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value3');
     dies_ok {

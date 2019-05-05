@@ -9,6 +9,9 @@ use warnings;
 use Carp;
 use English ( -no_match_vars );
 
+use constant ON_WINDOWS => ($OSNAME eq 'MSWin32'); 
+use if ON_WINDOWS, 'Win32::LongPath';
+
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
@@ -1823,6 +1826,55 @@ sub guess_eol {
     return $eol // "\n";
 }
 
+sub get_file_handle {
+    my ($self, %args) = @_;
+    
+    my $file_name = $args{file_name};
+
+    my $layers = $args{layers};
+    if ($args{use_bom}) {
+        $layers //= '<:via(File::BOM)';
+    }
+    
+    my $fh;
+    
+    if (-e $file_name and -r $file_name) {
+        open $fh, $layers, $file_name
+          or die "Unable to open $file_name, $!";
+    }
+    elsif (ON_WINDOWS) {
+        openL (\$fh, '<:via(File::BOM)', $file_name)
+          or die ("unable to open $file_name ($^E)");
+    }
+    else {
+        croak "[BASEDATA] $file_name DOES NOT EXIST OR CANNOT BE READ "
+            . "- CANNOT LOAD DATA\n";
+    }
+
+    return $fh;
+}
+
+sub get_file_size {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    my $file_size;
+
+    if (-e $file_name) {
+        $file_size = -s $file_name;
+    }
+    elsif (ON_WINDOWS) {
+        my $stat = statL ($file_name)
+          or die ("unable to get stat for $file_name ($^E)");
+        $file_size = $stat->{size};
+    }
+    else {
+        croak "[BASEDATA] $file_name DOES NOT EXIST OR CANNOT BE READ\n";
+    }
+
+    return $file_size;
+}
 
 sub get_csv_object_using_guesswork {
     my $self = shift;

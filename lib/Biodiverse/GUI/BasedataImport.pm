@@ -390,7 +390,8 @@ sub run {
 
             my $fh;
 
-# have unicode filename issues - see https://github.com/shawnlaffan/biodiverse/issues/272
+            # have unicode filename issues -
+            #  see https://github.com/shawnlaffan/biodiverse/issues/272
             if ( not open $fh, '<:via(File::BOM)', $filename_utf8 ) {
                 my $exists = -e $filename_utf8 || 0;
                 my $msg = "Unable to open $filenames[0].\n";
@@ -404,7 +405,8 @@ sub run {
             }
 
             my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
-                fname => $filename_utf8, );
+                fname => $filename_utf8,
+            );
 
      #  Sometimes we have \r as a separator which messes up the csv2list calls
      #  We should really just use csv->get_line directly, but csv2list has other

@@ -124,7 +124,7 @@ sub load_file {
       if ! defined ($args{file});
       
     croak "File $args{file} does not exist or is not readable\n"
-      if !-r $args{file};
+      if !$self->file_is_readable (file_name => $args{file});
 
     (my $suffix) = $args{file} =~ /(\..+?)$/;
 
@@ -159,7 +159,7 @@ sub load_sereal_file {
 
     my $file = Path::Class::file($args{file})->absolute;
     croak "[BASEDATA] File $file does not exist\n"
-      if !-e $file;
+      if !$self->file_exists(file_name => $file);
 
     croak "[BASEDATA] File $file does not have the correct suffix\n"
        if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
@@ -170,7 +170,9 @@ sub load_sereal_file {
 
     my $string;
 
-    open my $fh, '<', $file or die 'Cannot open $file, $!';
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+    );
     $fh->binmode;
     read $fh, $string, 100;  #  get first 100 chars for testing
     $fh->close;
@@ -191,7 +193,9 @@ sub load_sereal_file {
     #  now get the whole file
     {
         local $/ = undef;
-        open my $fh, '<', $file or die 'Cannot open $file';
+        my $fh = $self->get_file_handle (
+            file_name => $file,
+        );
         binmode $fh;
         $string = <$fh>;
     }
@@ -218,19 +222,23 @@ sub load_storable_file {
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
 
     my $file = Path::Class::file($args{file})->absolute;
-    if (! -e $file) {
-        croak "[BASEDATA] File $file does not exist\n";
-    }
 
-    if (!$args{ignore_suffix} && ($file !~ /$suffix$/)) {
-        croak "[BASEDATA] File $file does not have the correct suffix\n";
-    }
+    croak "[BASEDATA] Unicode file names not supported for Storable format,"
+        . "please rename $file and try again\n"
+      if !-e $file && !$self->file_exists (file_name => $file);
+
+    croak "[BASEDATA] File $file does not exist\n"
+      if !-e $file;
+
+    croak "[BASEDATA] File $file does not have the correct suffix\n"
+      if !$args{ignore_suffix} && ($file !~ /$suffix$/);
 
     #  attempt reconstruction of code refs -
     #  NOTE THAT THIS IS NOT YET SAFE FROM MALICIOUS DATA
     #local $Storable::Eval = 1;
 
     #  load data from storable file, ignores rest of the args
+    #  could use fd_retrieve, but code does not pass all tests
     $self = retrieve($file);
     if ($Storable::VERSION le '2.15') {
         foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
@@ -250,7 +258,7 @@ sub __load_xml_file {
     return if ! defined ($args{file});
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_XML');
 
-    return if ! -e $args{file};
+    return if ! $self->file_exists (file_name => $args{file});
     return if ! ($args{file} =~ /$suffix$/);
 
     #  load data from bdx file, ignores rest of the args
@@ -271,7 +279,7 @@ sub load_yaml_file {
     return if ! defined ($args{file});
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
 
-    return if ! -e $args{file};
+    return if ! $self->file_exists (file_name => $args{file});
     return if ! ($args{file} =~ /$suffix$/);
 
     #my $loaded = YAML::XS::LoadFile ($args{file});
@@ -300,13 +308,13 @@ sub load_data_dumper_file {
     return if ! defined ($args{file});
     #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
 
-    return if ! -e $args{file};
+    return if ! $self->file_exists (file_name => $args{file});
     #return if ! ($args{file} =~ /$suffix$/);
 
     my $data;
     {
         local $/ = undef;
-        open(my $fh, '<', $args{file}) or die "Cannot open $args{file}\n";
+        my $fh = $self->get_file_handle (file_name => $args{file});
         $data = <$fh>;
     }
     $self = eval $data;
@@ -895,7 +903,8 @@ sub save_to_storable {
     local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    my $e = $EVAL_ERROR;
+    croak $e if $e;
 
     return $file;
 }
@@ -1829,12 +1838,14 @@ sub guess_eol {
 sub get_file_handle {
     my ($self, %args) = @_;
     
-    my $file_name = $args{file_name};
+    my $file_name = $args{file_name}
+      // croak 'file_name not specified';
 
     my $layers = $args{layers};
     if ($args{use_bom}) {
         $layers //= '<:via(File::BOM)';
     }
+    $layers //= '<';
     
     my $fh;
     
@@ -1843,7 +1854,7 @@ sub get_file_handle {
           or die "Unable to open $file_name, $!";
     }
     elsif (ON_WINDOWS) {
-        openL (\$fh, '<:via(File::BOM)', $file_name)
+        openL (\$fh, $layers, $file_name)
           or die ("unable to open $file_name ($^E)");
     }
     else {
@@ -1852,6 +1863,35 @@ sub get_file_handle {
     }
 
     return $fh;
+}
+
+sub file_exists {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    return 1 if -e $file_name;
+    
+    if (ON_WINDOWS) {
+        return testL ('e', $file_name);
+    }
+
+    return;
+}
+
+sub file_is_readable {
+    my ($self, %args) = @_;
+
+    my $file_name = $args{file_name};
+
+    return 1 if -r $file_name;
+    
+    if (ON_WINDOWS) {
+        #  Win32::LongPath always returns 1 for r
+        return testL ('e', $file_name) && testL ('r', $file_name);
+    }
+
+    return;
 }
 
 sub get_file_size {

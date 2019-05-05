@@ -731,7 +731,7 @@ sub import_data_raster {
 
         croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ "
             . "- CANNOT LOAD DATA\n"
-          if !( -e $file and -r $file );
+          if !$self->file_is_readable (file_name => $file);
 
         # process using GDAL library
         my $data = Geo::GDAL::FFI::Open( $file->stringify() );

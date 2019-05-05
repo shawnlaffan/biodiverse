@@ -2,9 +2,11 @@ package Biodiverse::BaseData::Import;
 use strict;
 use warnings;
 use 5.022;
+use English qw { -no_match_vars };
 
 our $VERSION = '2.99_004';
 
+use constant ON_WINDOWS => $OSNAME eq 'MSWin32';
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -22,6 +24,7 @@ use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
 use Geo::ShapeFile;
+use if ON_WINDOWS => 'Win32::LongPath';
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
@@ -35,9 +38,6 @@ use Geo::GDAL::FFI 0.07;
 require Spreadsheet::ReadSXC;
 require Spreadsheet::ParseExcel;
 require Spreadsheet::ParseXLSX;
-
-use English qw { -no_match_vars };
-
 
 #  how much input file to read in one go
 our $input_file_chunk_size   = 10000000;
@@ -312,18 +312,28 @@ sub import_data {
         my $file_base = $file->basename;
 
         my $file_handle = IO::File->new;
+        my $file_size_bytes;
 
         if ( -e $file and -r $file ) {
             $file_handle->open( $file, '<:via(File::BOM)' );
+            $file_size_bytes = -s $file;
+        }
+        elsif (ON_WINDOWS) {
+            #warn "Using LongPath\n";
+            openL (\$file_handle, '<:via(File::BOM)', $file)
+              or die ("unable to open $file ($^E)");
+            my $stat = statL ($file)
+              or die ("unable to get stat for $file ($^E)");
+            $file_size_bytes = $stat->{size};
         }
         else {
-            croak
-"[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n";
+            croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ "
+                . "- CANNOT LOAD DATA\n";
         }
 
         my $file_size_Mb = $self->set_precision(
             precision => "%.3f",
-            value     => ( -s $file )
+            value     => $file_size_bytes
           ) /
           $bytes_per_MB;
 

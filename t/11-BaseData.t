@@ -100,6 +100,7 @@ sub main {
 
 
 sub test_import_unicode_name {
+    use utf8;
     use FindBin;
     my $fname = 'años.txt';
     my $dir = "$FindBin::Bin/data";
@@ -110,13 +111,16 @@ sub test_import_unicode_name {
     
     lives_ok (sub {
         $bd->import_data (
-                file => "$dir/años.txt",
+                input_files   => ["$dir/años.txt"],
                 group_columns => [3,4],
                 label_columns => [1,2],
             )
         },
-        'imported data with unicode file name without an exception'
+        'imported csv data in file with unicode name without an exception'
     );
+    
+    diag 'Groups: ' . $bd->get_group_count;
+    diag 'Labels: ' . $bd->get_label_count;
     
 }
 

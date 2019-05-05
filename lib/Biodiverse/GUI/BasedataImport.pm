@@ -388,29 +388,19 @@ sub run {
 
         if ( $read_format eq 'text' ) {
 
-            my $fh;
-
-            # have unicode filename issues -
-            #  see https://github.com/shawnlaffan/biodiverse/issues/272
-            if ( not open $fh, '<:via(File::BOM)', $filename_utf8 ) {
-                my $exists = -e $filename_utf8 || 0;
-                my $msg = "Unable to open $filenames[0].\n";
-                $msg .=
-                  $exists
-                  ? "Check file read permissions."
-                  : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
-                  . "See https://github.com/shawnlaffan/biodiverse/issues/272";
-                $msg .= "\n";
-                croak $msg;
-            }
+            my $fh = $gui->get_project->get_file_handle (
+               file_name => $filename_utf8,
+               use_bom   => 1,
+            );
 
             my $csv_obj = $gui->get_project->get_csv_object_using_guesswork(
                 fname => $filename_utf8,
             );
 
-     #  Sometimes we have \r as a separator which messes up the csv2list calls
-     #  We should really just use csv->get_line directly, but csv2list has other
-     #  error handling code
+            #  Sometimes we have \r as a separator which messes
+            #  up the csv2list calls.  We should really just use
+            #  csv->get_line directly, but csv2list has other
+            #  error handling code
             local $/ = $csv_obj->eol;
 
             my $line = <$fh>;
@@ -881,9 +871,10 @@ sub check_if_r_data_frame {
     my $package = 'Biodiverse::Common';
     my $csv = $args{csv_object} // $package->get_csv_object(@_);
 
-    my $fh;
-    open( $fh, '<:via(File::BOM)', $args{file} )
-      || croak "Unable to open file $args{file}\n";
+    my $fh = $package->get_file_handle (
+        file_name => $args{file},
+        use_bom   => 1,
+    );
 
     my @lines = $package->get_next_line_set(
         target_line_count => 10,

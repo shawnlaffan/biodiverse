@@ -99,6 +99,28 @@ sub main {
 }
 
 
+sub test_import_unicode_name {
+    use FindBin;
+    my $fname = 'años.txt';
+    my $dir = "$FindBin::Bin/data";
+    my $bd = Biodiverse::BaseData->new(
+        NAME => 'años.txt',
+        CELL_SIZES => [100000, 100000],
+    );
+    
+    lives_ok (sub {
+        $bd->import_data (
+                file => "$dir/años.txt",
+                group_columns => [3,4],
+                label_columns => [1,2],
+            )
+        },
+        'imported data with unicode file name without an exception'
+    );
+    
+}
+
+
 sub test_rename_outputs {
     my $bd = get_basedata_object (
         CELL_SIZES => [1,1],

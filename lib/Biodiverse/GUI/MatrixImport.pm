@@ -5,7 +5,6 @@ use warnings;
 use File::Basename;
 use Carp;
 use Ref::Util qw { :all };
-use File::BOM qw / :subs /;
 
 use Gtk2;
 

@@ -118,10 +118,36 @@ sub test_import_unicode_name {
         },
         'imported csv data in file with unicode name without an exception'
     );
+
+    #  and a matrix
+    use Biodiverse::Matrix;
+    $fname = "$dir/años_mx_sparse.txt";
+    my $mx = Biodiverse::Matrix->new (name => $fname);
+
+    lives_ok (
+        sub {
+            $mx->import_data_sparse (
+                file => $fname,
+                label_row_columns => [0],
+                label_col_columns => [1],
+                value_column      =>  2,
+            );
+        },
+        'imported sparse matrix csv data in file with unicode name without an exception'
+    );
     
-    diag 'Groups: ' . $bd->get_group_count;
-    diag 'Labels: ' . $bd->get_label_count;
-    
+    $fname = "$dir/años_mx.txt";
+    $mx = Biodiverse::Matrix->new (name => $fname);
+
+    lives_ok (
+        sub {
+            $mx->import_data (
+                file => $fname,
+            );
+        },
+        'imported matrix csv data in file with unicode name without an exception'
+    );
+
 }
 
 

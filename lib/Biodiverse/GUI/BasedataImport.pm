@@ -13,7 +13,6 @@ use File::Basename;
 use Gtk2;
 use Glib;
 use Text::Wrapper;
-use File::BOM qw / :subs /;
 use Scalar::Util qw /looks_like_number blessed/;
 use Geo::ShapeFile 2.54;    #  min version we neeed is 2.54
 use List::Util qw /all min/;
@@ -1830,8 +1829,10 @@ sub get_remap_info {
     # Get header columns
     say "[GUI] Discovering columns from $filename";
 
-    open( my $input_fh, '<:via(File::BOM)', $filename )
-      or croak "Cannot open $filename\n";
+    my $input_fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
 
     my ( $line, $line_unchomped );
     while (<$input_fh>) {    # get first non-blank line

@@ -1902,8 +1902,7 @@ sub get_csv_object_using_guesswork {
         my $first_char_set = '';
 
         #  read in a chunk of the file for guesswork
-        my $fh2 = IO::File->new;
-        $fh2->open ($fname, '<:via(File::BOM)');
+        my $fh2 = $self->get_file_handle (file_name => $fname, use_bom => 1);
         my $line_count = 0;
         #  get first 11 lines or 10,000 characters
         #  as some ALA files have 19,000 chars in the header line alone

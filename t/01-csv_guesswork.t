@@ -25,10 +25,25 @@ test_guesswork();
 test_mixed_sep_chars();
 test_sep_char();
 test_escape_char();
-
+test_unicode_filename();
 
 done_testing();
 
+sub test_unicode_filename {
+    use utf8;
+    use FindBin;
+    my $fname = "$FindBin::Bin/data/años.txt";
+
+    my $obj = Biodiverse::BaseStruct->new(name => 'x');
+
+    #  A basic test, but we only care that it loads without exception here.
+    #  There is more thorough testing in test_guesswork()
+    my $csv = eval {
+        $obj->get_csv_object_using_guesswork (fname => $fname);
+    };
+    is ($@, '', 'no excpetion when using unicode file name');
+    is ($csv->sep_char, ',', 'got expected char');
+}
 
 sub test_eol {
     my $obj = Biodiverse::BaseStruct->new(name => 'x');

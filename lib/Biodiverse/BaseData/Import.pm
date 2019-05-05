@@ -6,7 +6,7 @@ use English qw { -no_match_vars };
 
 our $VERSION = '2.99_004';
 
-use constant ON_WINDOWS => $OSNAME eq 'MSWin32';
+use constant ON_WINDOWS => ($OSNAME eq 'MSWin32');
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -24,7 +24,7 @@ use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
 use Geo::ShapeFile;
-use if ON_WINDOWS => 'Win32::LongPath';
+use if ON_WINDOWS, 'Win32::LongPath';
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;

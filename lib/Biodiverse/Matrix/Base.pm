@@ -8,7 +8,6 @@ use English qw / -no_match_vars/;
 
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
-use File::BOM qw /:subs/;
 
 our $VERSION = '2.99_004';
 
@@ -215,7 +214,10 @@ sub load_data {
 
     my $lines_to_read_per_chunk = 50000;  #  needs to be a big matrix to go further than this
 
-    open (my $fh, '<:via(File::BOM)', $file) or croak "Could not open $file for reading\n";
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        use_bom   => 1,
+    );
 
     my $lines = $self->get_next_line_set (
         file_handle         => $fh,
@@ -371,8 +373,10 @@ sub import_data_sparse {
 
     #  Re-open the file as the header is often important to us
     #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
-    my $fh = IO::File->new;
-    $fh->open ($file, '<:via(File::BOM)') or croak "Unable to open $file";
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        use_bom   => 1,
+    );
 
     my $lines = $self->get_next_line_set (
         file_handle         => $fh,

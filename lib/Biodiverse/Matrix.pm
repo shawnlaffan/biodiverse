@@ -14,11 +14,9 @@ use English ( -no_match_vars );
 
 use Carp;
 
-#use Data::Dumper;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 
-#use File::BOM qw /:subs/;
 use Ref::Util qw { :all };
 use Biodiverse::Progress;
 

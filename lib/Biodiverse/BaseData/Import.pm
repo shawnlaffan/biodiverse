@@ -15,8 +15,6 @@ use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use List::MoreUtils qw /first_index/;
-use IO::File;
-use File::BOM qw /:subs/;
 use Path::Class;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;

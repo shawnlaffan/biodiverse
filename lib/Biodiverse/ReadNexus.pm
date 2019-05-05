@@ -11,7 +11,6 @@ use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
 use List::Util qw /max/;
-use File::BOM qw / :subs /;
 
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
@@ -583,9 +582,11 @@ sub read_whole_file {
         if not defined $file;
 
     #  now we open the file and suck it all in
-    open (my $fh, '<:via(File::BOM)', $file)
-      or croak "[READNEXUS] cannot open $file for reading, $!\n";
-
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        use_bom   => 1,
+    );
+    
     my $text;
     {
         local $/ = undef;

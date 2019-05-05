@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use Carp;
 use Scalar::Util qw/looks_like_number/;
-use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
@@ -158,8 +157,11 @@ sub import_data {
     );
 
     my $lines_to_read_per_chunk = 50000;
-
-    open (my $fh, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
+    
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        use_bom   => 1,
+    );
     
     my $lines = $self->get_next_line_set (
         progress            => $args{progress_bar},

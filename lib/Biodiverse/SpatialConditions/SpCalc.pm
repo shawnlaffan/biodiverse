@@ -1947,16 +1947,43 @@ sub sp_get_spatial_output_list_value {
                 . $bd->get_param ('NAME')
                 . "\n";
 
-    croak "element $element is not in spatial output\n"
+    croak "element $element is not in spatial output $sp_name\n"
       if not $sp->exists_element (element => $element);
 
-    my $list = $sp->get_list_ref (list => $list_name, element => $element);
+    my $list = $sp->get_list_ref (
+        list    => $list_name,
+        element => $element,
+    );
+    
+    my $idx_ex_cache_name
+      = 'sp_get_spatial_output_list_value_list_exists';
 
-    croak "Index $index does not exist at element $element\n"
-        . "If the index name is not misspelt then you can add "
-        . "an argument to the call to skip this error:\n"
-        . "    no_error_if_no_index  => 1\n"
-      if !$no_die_if_not_exists && !exists $list->{$index};
+    if (   !exists $list->{$index}
+        && !$no_die_if_not_exists
+        && !$self->get_cached_value ($idx_ex_cache_name)
+        ) {
+        #  See if the index exists in another element.
+        #  Croak if it is in none, as that is
+        #  probably a typo.
+        my $found_index;
+        foreach my $el ($sp->get_element_list) {
+            my $list = $sp->get_list_ref (
+                list    => $list_name,
+                element => $el,
+            );
+            $found_index ||= exists $list->{$index};
+            last if $found_index;
+        }
+        
+        croak "Index $index does not exist across "
+            . "elements of spatial output $sp_name\n"
+          if !$found_index;
+    };
+    
+    #  in the event of a missing list in another element
+    $self->set_cached_value (
+        $idx_ex_cache_name => 1,
+    );
     
     no autovivification;
 

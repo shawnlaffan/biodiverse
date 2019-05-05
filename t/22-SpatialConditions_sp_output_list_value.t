@@ -106,4 +106,16 @@ sub test_sp_get_spatial_output_list_value {
         )
     } 'error thrown when non-existent output accessed';
 
+    $sp1->add_to_hash_list (
+        element => '5:5',
+        list    => 'extra_list',
+        key1    => 1,
+    );
+    my $sp_to_test5 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value5');
+    lives_ok {
+        $sp_to_test5->run_analysis (
+            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            spatial_conditions => ['sp_get_spatial_output_list_value (output => "get_vals_from", list => "extra_list", index => "key1")'],
+        )
+    } 'no error thrown when index in subset of elements';
 }

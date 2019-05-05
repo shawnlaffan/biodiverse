@@ -177,8 +177,13 @@ sub new {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
         my $cell_x = $cell_sizes->[0];
         $cell_x =~ s/,/\./;  #  convert radix char to c-locale used in rest of the system
-        $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = $cell_x > 0 ? "sp_circle (radius => $cell_x)" : '';
+        $initial_sp1
+          = "sp_self_only ()\n"
+          . "# sp_self_only will generate a single cell neighbour set";
+        $initial_sp2 = $cell_x > 0
+          ?   "#  Specify a neighbour set 2 for turnover and related window calculations"
+            . "#  sp_circle (radius => $cell_x)\n"
+          : $NULL_STRING;
     }
 
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new(

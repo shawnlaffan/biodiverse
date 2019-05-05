@@ -700,10 +700,10 @@ sub do_open_matrix {
         my ( $name, $filename ) =
           Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bms' );
 
-        if ( defined $filename && -f $filename ) {
+        if ( defined $filename && $self->file_exists (file_name => $filename) ) {
             $object = Biodiverse::Matrix->new( file => $filename );
-            $object->set_param( NAME => $name )
-              ;    #  override the name if the user says to
+            #  override the name if the user says to
+            $object->set_param( NAME => $name );
         }
     }
 
@@ -722,10 +722,10 @@ sub do_open_phylogeny {
         my ( $name, $filename ) =
           Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bts' );
 
-        if ( defined $filename && -f $filename ) {
+        if ( defined $filename && $self->file_exists (file_name => $filename) ) {
             $object = Biodiverse::Tree->new( file => $filename );
-            $object->set_param( NAME => $name )
-              ;    #  override the name if the user says to
+            #  override the name if the user says to
+            $object->set_param( NAME => $name );
         }
     }
 
@@ -741,12 +741,13 @@ sub do_open_basedata {
 
     my ( $name, $filename ) =
       Biodiverse::GUI::OpenDialog::Run( 'Open Object', 'bds' );
-    if ( defined $filename && -f $filename ) {
+
+    if ( defined $filename && $self->file_exists (file_name => $filename) ) {
         my $object = Biodiverse::BaseData->new( file => $filename );
         croak "Unable to load basedata object from $filename"
           if !defined $object;
-        $object->set_param( NAME => $name )
-          ;    #  override the name if the user says to
+        #  override the name if the user says to
+        $object->set_param( NAME => $name );
         $self->{project}->add_base_data($object);
     }
 

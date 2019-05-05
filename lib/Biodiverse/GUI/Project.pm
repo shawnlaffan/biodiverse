@@ -1528,7 +1528,7 @@ sub init_overlay_hash {
 
     foreach my $name ( @{ $self->{OVERLAYS} } ) {
 
-        if ( -r $name ) {
+        if ( Biodiverse::Common->file_is_readable (file_name => $name) ) {
 
             # Set hash entry to undef - will load on demand
             $self->{overlay_objects}{$name} = undef;

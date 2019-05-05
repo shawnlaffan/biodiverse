@@ -167,7 +167,10 @@ sub get_column_use {
     say "[GUI] Discovering columns from $tree_filename";
     my ($line, $line_unchomped);
 
-    open( my $fh, '<:via(File::BOM)', $tree_filename );
+    my $fh = Biodiverse::Common->get_file_handle (
+        file_name => $tree_filename,
+        use_bom   => 1,
+    );
     while (<$fh>) {    # get first non-blank line
         $line = $_;
         $line_unchomped = $line;
@@ -293,7 +296,10 @@ sub get_remap_info {
     say "[GUI] Discovering columns from $filename";
     my $line;
 
-    open( my $fh, '<:via(File::BOM)', $filename );
+    my $fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
     while (<$fh>) {    # get first non-blank line
         $line = $_;
         #chomp $line;

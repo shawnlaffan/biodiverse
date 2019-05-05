@@ -54,8 +54,10 @@ sub run {
 
     my $line;
 
-    open( my $fh, '<:via(File::BOM)', $filename )
-      || croak "Unable to open $filename\n";
+    my $fh = Biodiverse::Common->get_file_handle (
+        file_name => $filename,
+        use_bom   => 1,
+    );
 
   BY_LINE:
     while ( $line = <$fh> ) {    # get first non-blank line

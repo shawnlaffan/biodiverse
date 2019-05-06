@@ -1733,31 +1733,10 @@ sub import_data_spreadsheet {
         if ( blessed $book || !ref $book ) {    #  we have a file name
             my $file = Path::Class::file($book)->absolute;
             say "[BASEDATA] INPUT FILE: $file";
-
-            # open as spreadsheet
-            my $fnamebase = $file->stringify;
-            if ($fnamebase =~ /\.(xls(x?))$/) {
-                #  we can use file handles for excel
-                my $extension = $1;
-                my $fh = $self->get_file_handle (
-                    file_name => $fnamebase,
-                );
-                $book = ReadData($fh, parser => $extension);
-            }
-            else {
-                #  ods reader does not support file handles
-                #  so we might hit the unicode bug
-                #  (could potentially read the whole file and pass it on?)
-                $book = ReadData($fnamebase);
-                if (!$book && $self->exists_file (file_name => $fnamebase)) {
-                    croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
-                        . "If the file name contains non-ascii characters "
-                        . "then try renaming it using ascii only.\n";
-                }
-            }
-
-            croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
-              if !defined $book;                # assuming undef on fail
+            
+            $book = $self->get_book_struct_from_spreadsheet_file (
+                file_name => $file,
+            );
         }
 
         my $sheet_id = $sheet_array[$file_i] // 1;

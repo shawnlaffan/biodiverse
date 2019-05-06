@@ -30,8 +30,7 @@ use HTML::QuickTable;
 use Class::Inspector;
 use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
-
-
+use Spreadsheet::Read;
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -1871,6 +1870,44 @@ sub get_file_size {
     }
 
     return $file_size;
+}
+
+sub get_book_struct_from_spreadsheet_file {
+    my ($self, %args) = @_;
+
+    #use SpreadSheet::Read;
+    my $book;
+    my $file = $args{file_name}
+      // croak 'file_name argument not passed';
+    
+    #  stringify any Path::Class etc objects
+    $file = "$file";
+
+    if ($file =~ /\.(xls(x?))$/) {
+        #  we can use file handles for excel
+        my $extension = $1;
+        my $fh = $self->get_file_handle (
+            file_name => $file,
+        );
+        $book = ReadData($fh, parser => $extension);
+    }
+    else {
+        #  ods reader does not support file handles
+        #  so we might hit the unicode bug
+        #  (could potentially read the whole file and pass it on?)
+        $book = ReadData($file);
+        if (!$book && $self->exists_file (file_name => $file)) {
+            croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
+                . "If the file name contains non-ascii characters "
+                . "then try renaming it using ascii only.\n";
+        }
+    }
+
+    # assuming undef on fail
+    croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
+      if !defined $book;
+
+    return $book;
 }
 
 sub get_csv_object_using_guesswork {

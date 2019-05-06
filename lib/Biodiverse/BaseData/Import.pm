@@ -310,9 +310,7 @@ sub import_data {
             file_name => $file,
             use_bom   => 1,
         );
-        my $file_size_bytes = $self->get_file_size (
-            file_name => $file,
-        );
+        my $file_size_bytes = $self->get_file_size_aa ($file);
 
         my $file_size_Mb = $self->set_precision(
             precision => "%.3f",

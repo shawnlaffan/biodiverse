@@ -1835,6 +1835,10 @@ sub file_exists {
     return;
 }
 
+sub file_is_readable_aa {
+    $_[0]->file_is_readable (file_name => $_[1]);
+}
+
 sub file_is_readable {
     my ($self, %args) = @_;
 
@@ -1848,6 +1852,10 @@ sub file_is_readable {
     }
 
     return;
+}
+
+sub get_file_size_aa {
+    $_[0]->get_file_size (file_name => $_[1]);
 }
 
 sub get_file_size {

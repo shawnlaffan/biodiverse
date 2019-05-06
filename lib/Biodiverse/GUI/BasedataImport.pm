@@ -14,12 +14,11 @@ use Gtk2;
 use Glib;
 use Text::Wrapper;
 use Scalar::Util qw /looks_like_number blessed/;
-use Geo::ShapeFile 2.54;    #  min version we neeed is 2.54
 use List::Util qw /all min/;
 use List::MoreUtils qw /first_index/;
 use Spreadsheet::Read 0.60;
 use Ref::Util qw { :all };
-
+use Geo::GDAL::FFI;
 
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -336,30 +335,28 @@ sub run {
         );
     }
     elsif ( $read_format eq 'shapefile' ) {
-
-        # process as shapefile - need to switch over the Geo::GDAL::FFI
-
+        
         # find available columns from first file, assume all the same
         croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
-        #  use lazy quantifier so we get chars from the
-        #  last dot - should use Path::Class::File instead
-        $fnamebase =~ s/\.[^.]+?$//; 
+        my $shapefile  = eval {
+            Geo::GDAL::FFI::Open($fnamebase);
+        };
+        croak "$@\n" if $@;
+        my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+        my $shape_type = $schema->{GeometryFields}[0]{Type};
 
-        my $shapefile = Geo::ShapeFile->new($fnamebase);
-
-        my $shape_type = $shapefile->type( $shapefile->shape_type );
-        #  this is all of them now...
+        #  this is all of the standards now, but not all those supported by GDAL
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
           if not $shape_type =~ /Point|Polygon|PolyLine/i;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
-        if ( defined $shapefile->z_min() ) {
+        if ( $shape_type =~ /25D|Z/ ) {
             push( @field_names, ':shape_z' );
         }
-        if ( defined $shapefile->m_min() ) {
+        if ( $shape_type =~ /M/ ) {
             push( @field_names, ':shape_m' );
         }
         if ($shape_type =~ /PolyLine/i) {
@@ -369,10 +366,9 @@ sub run {
             push( @field_names, ':shape_area' );
         }
 
-#  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
-#  these will then be fed into make_columns_dialog
-        my $fld_names = $shapefile->get_dbf_field_names // [];
-        push @field_names, @$fld_names;
+        #  Add the remaining columns from the dbf,
+        #  these will then be fed into make_columns_dialog
+        push @field_names, map {$_->{Name}} @{$schema->{Fields}};
 
         $col_names_for_dialog = \@field_names;
     }
@@ -736,11 +732,15 @@ sub run {
               foreach my $filelist ( values %multiple_file_lists ) {
                 foreach my $file (@$filelist) {
                     #  not sure we want to go through the lot - what if we have 1000 point files?
-                    my $shapefile  = Geo::ShapeFile->new($file);
-                    my $shape_type = $shapefile->type( $shapefile->shape_type );
+                    my $shapefile  = eval {
+                        Geo::GDAL::FFI::Open($file);
+                    };
+                    croak $@ if $@;
+                    my $schema     = $shapefile->GetLayer->GetDefn->GetSchema;
+                    my $shape_type = $schema->{GeometryFields}[0]{Type};
                     if ($shape_type =~ /Poly/i) {
                         my $have_shapexy = grep {$_ =~ /\:shape_[xy]/} @group_col_names;
-                        croak "polygon and polyline files must have :shape_x and :shape_y columns specified\n"
+                        croak "polygon and polyline imports must have :shape_x and :shape_y columns specified\n"
                           if $have_shapexy != 2;
                         last FILE;  #  no need to check more if the first case passes
                     }

@@ -250,27 +250,6 @@ sub load_storable_file {
     return $self;
 }
 
-#  REDUNDANT
-sub __load_xml_file {
-    my $self = shift;  #  gets overwritten if the file passes the tests
-    my %args = @_;
-
-    return if ! defined ($args{file});
-    my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_XML');
-
-    return if ! $self->file_exists_aa ($args{file});
-    return if ! ($args{file} =~ /$suffix$/);
-
-    #  load data from bdx file, ignores rest of the args
-    my $xml = Data::DumpXML::Parser->new;
-    my $data = $xml->parsefile($args{file});
-    $self = shift (@$data);  #  parsefile returns a list, we want the first (and only) element
-    foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self->$fn if $self->can($fn);
-    }
-    
-    return $self;
-}
 
 sub load_yaml_file {
     my $self = shift;  #  gets overwritten if the file passes the tests
@@ -299,32 +278,6 @@ sub load_yaml_file {
     }
 
     return $loaded;
-}
-
-sub load_data_dumper_file {
-    my $self = shift;  #  gets overwritten if the file passes the tests
-    my %args = @_;
-
-    return if ! defined ($args{file});
-    #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
-
-    return if ! $self->file_exists_aa ($args{file});
-    #return if ! ($args{file} =~ /$suffix$/);
-
-    my $data;
-    {
-        local $/ = undef;
-        my $fh = $self->get_file_handle (file_name => $args{file});
-        $data = <$fh>;
-    }
-    $self = eval $data;
-
-    #  yaml does not handle waek refs, so we need to put them back in
-    #foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-    #    $self->$fn if $self->can($fn);
-    #}
-
-    return $self;
 }
 
 sub set_basedata_ref {

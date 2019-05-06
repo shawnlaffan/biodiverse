@@ -124,7 +124,7 @@ sub test_import_spreadsheet_dms_coords {
         );
     };
     $e = $EVAL_ERROR;
-    note $e if $e;
+    diag $e if $e;
     ok (!$e, 'import spreadsheet with DMS coords produced no error');
 
     my @gp_names = $bd1->get_groups;

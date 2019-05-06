@@ -427,9 +427,28 @@ sub run {
             close $fh;
         }
         else {                    #  we have a spreadsheet
-            my $book = Spreadsheet::Read::ReadData($filename_utf8);
-            croak "Unable to read spreadsheet $filename_utf8\n"
-              if !$book;
+            #  this is almost the same as in BaseData::Import
+            use Spreadsheet::Read;
+            my $book;
+            if ($filename_utf8 =~ /(xls(?:x?))$/) {
+                my $extension = $1;
+                my $fh = Biodiverse::Common->get_file_handle (
+                    file_name => $filename_utf8,
+                );
+                $book = ReadData($fh, parser => $extension);
+            }
+            else {
+                #  ods data, no filehandle option
+                $book = ReadData($filename_utf8);
+            }
+            if (!$book) {
+                my $err = "Unable to read spreadsheet $filename_utf8\n";
+                if (Biodiverse::Common->file_exists (file_name => $filename_utf8)) {
+                    $err .= "If the file name contains non-ascii characters "
+                          . "then try renaming it using ascii only.\n";
+                }
+                croak $err;
+            }
 
             #  need to sort the sheets by file order
             my $sheets = $book->[0]{sheet};

@@ -1726,8 +1726,8 @@ sub import_data_spreadsheet {
     foreach my $book ( @{ $args{input_files} } ) {
         $file_i++;
 
-        croak
-"[BASEDATA] Undefined input_file array item passed to import_data_spreadsheet\n"
+        croak "[BASEDATA] Undefined input_file array item "
+            . "passed to import_data_spreadsheet\n"
           if !defined $book;    # assuming undef on fail
 
         if ( blessed $book || !ref $book ) {    #  we have a file name
@@ -1736,7 +1736,25 @@ sub import_data_spreadsheet {
 
             # open as spreadsheet
             my $fnamebase = $file->stringify;
-            $book = ReadData($fnamebase);
+            if ($fnamebase =~ /\.(xls(x?))$/) {
+                #  we can use file handles for excel
+                my $extension = $1;
+                my $fh = $self->get_file_handle (
+                    file_name => $fnamebase,
+                );
+                $book = ReadData($fh, parser => $extension);
+            }
+            else {
+                #  ods reader does not support file handles
+                #  so we might hit the unicode bug
+                #  (could potentially read the whole file and pass it on?)
+                $book = ReadData($fnamebase);
+                if (!$book && $self->exists_file (file_name => $fnamebase)) {
+                    croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
+                        . "If the file name contains non-ascii characters "
+                        . "then try renaming it using ascii only.\n";
+                }
+            }
 
             croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
               if !defined $book;                # assuming undef on fail
@@ -1754,13 +1772,13 @@ sub import_data_spreadsheet {
         my $i = -1;
         my %db_rec1 = map { $_ => ++$i } @$header;
         foreach my $key (@label_field_names) {
-            croak
-"Spreadsheet does not have a field called $key in book $sheet_id\n"
+            croak "Spreadsheet does not have a field "
+                . "called $key in book $sheet_id\n"
               if !exists $db_rec1{$key};
         }
         foreach my $key (@group_field_names) {
-            croak
-"Spreadsheet does not have a field called $key in book $sheet_id\n"
+            croak "Spreadsheet does not have a field "
+                . "called $key in book $sheet_id\n"
               if !exists $db_rec1{$key};
         }
 
@@ -1801,12 +1819,14 @@ sub import_data_spreadsheet {
         foreach my $row (@rows) {
             $count++;
 
+            #  inefficient - we should get the row numbers and slice on them
             my %db_rec;
-            @db_rec{@$header} = @$row
-              ; #  inefficient - we should get the row numbers and slice on them
+            @db_rec{@$header} = @$row;
 
-# form group text from group fields (defined as csv string of central points of group)
-# Needs to process the data in the same way as for text imports - refactoring is in order.
+            # form group text from group fields
+            # (defined as csv string of central points of group)
+            # Needs to process the data in the same way
+            # as for text imports - refactoring is in order.
             my @group_field_vals = @db_rec{@group_field_names};
             my @gp_fields;
             my $i = -1;

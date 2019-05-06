@@ -82,7 +82,7 @@ sub on_file_selection {
     my $builder = shift;
 
     my $filename = $chooser->get_filename();
-    if ($filename && Biodiverse::Common->file_exists (file_name => $filename)) {
+    if ($filename && Biodiverse::Common->file_exists_aa ($filename)) {
     
         my($name, $dir, $suffix) = fileparse($filename, qr/\.[^.]*/);
         

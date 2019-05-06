@@ -159,7 +159,7 @@ sub load_sereal_file {
 
     my $file = Path::Class::file($args{file})->absolute;
     croak "[BASEDATA] File $file does not exist\n"
-      if !$self->file_exists(file_name => $file);
+      if !$self->file_exists_aa ($file);
 
     croak "[BASEDATA] File $file does not have the correct suffix\n"
        if !$args{ignore_suffix} && ($file !~ /\.$expected_suffix$/);
@@ -225,7 +225,7 @@ sub load_storable_file {
 
     croak "[BASEDATA] Unicode file names not supported for Storable format,"
         . "please rename $file and try again\n"
-      if !-e $file && !$self->file_exists (file_name => $file);
+      if !-e $file && $self->file_exists_aa ($file);
 
     croak "[BASEDATA] File $file does not exist\n"
       if !-e $file;
@@ -258,7 +258,7 @@ sub __load_xml_file {
     return if ! defined ($args{file});
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_XML');
 
-    return if ! $self->file_exists (file_name => $args{file});
+    return if ! $self->file_exists_aa ($args{file});
     return if ! ($args{file} =~ /$suffix$/);
 
     #  load data from bdx file, ignores rest of the args
@@ -279,7 +279,7 @@ sub load_yaml_file {
     return if ! defined ($args{file});
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
 
-    return if ! $self->file_exists (file_name => $args{file});
+    return if ! $self->file_exists_aa ($args{file});
     return if ! ($args{file} =~ /$suffix$/);
 
     #my $loaded = YAML::XS::LoadFile ($args{file});
@@ -308,7 +308,7 @@ sub load_data_dumper_file {
     return if ! defined ($args{file});
     #my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
 
-    return if ! $self->file_exists (file_name => $args{file});
+    return if ! $self->file_exists_aa ($args{file});
     #return if ! ($args{file} =~ /$suffix$/);
 
     my $data;
@@ -1863,6 +1863,10 @@ sub get_file_handle {
     }
 
     return $fh;
+}
+
+sub file_exists_aa {
+    $_[0]->file_exists (file_name => $_[1]);
 }
 
 sub file_exists {

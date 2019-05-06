@@ -443,7 +443,7 @@ sub run {
             }
             if (!$book) {
                 my $err = "Unable to read spreadsheet $filename_utf8\n";
-                if (Biodiverse::Common->file_exists (file_name => $filename_utf8)) {
+                if (Biodiverse::Common->file_exists_aa ($filename_utf8)) {
                     $err .= "If the file name contains non-ascii characters "
                           . "then try renaming it using ascii only.\n";
                 }

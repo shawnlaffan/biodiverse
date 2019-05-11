@@ -13,7 +13,7 @@ use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
 use Math::Polygon;
-use Geo::ShapeFile;
+use Geo::ShapeFile 3.00;
 use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed/;

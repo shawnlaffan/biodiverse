@@ -181,7 +181,8 @@ sub new {
           = "sp_self_only ()\n"
           . "# sp_self_only will generate a single cell neighbour set";
         $initial_sp2 = $cell_x > 0
-          ?   "#  Specify a neighbour set 2 for turnover and related window calculations"
+          ?   "#  Specify a neighbour set 2 for turnover and related window calculations\n"
+            . "#  Uncomment the line for it to have an effect\n"
             . "#  sp_circle (radius => $cell_x)\n"
           : $NULL_STRING;
     }

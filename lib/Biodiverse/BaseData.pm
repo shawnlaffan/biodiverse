@@ -1111,9 +1111,11 @@ sub add_element_simple_aa {
 
     $count //= 1;
 
+    #  one of these next conditions will break
+    #  if neither label nor group is defined
+
     my $gp_ref = $self->get_groups_ref;
-    if ( not defined $label )
-    {    #  one of these will break if neither label nor group is defined
+    if ( not defined $label ) {
         $gp_ref->add_element(
             element    => $group,
             csv_object => $csv_object,
@@ -1791,8 +1793,6 @@ sub get_group_sample_count {
 sub get_label_abundance {
     my $self = shift;
 
-    #no autovivification;
-
     my $labels_ref = $self->get_labels_ref;
     my $props = $labels_ref->get_list_values( @_, list => 'PROPERTIES' );
 
@@ -1808,8 +1808,6 @@ sub get_label_abundance {
 #  take the max if range is < variety
 sub get_range {
     my $self = shift;
-
-    #no autovivification;
 
     my $labels_ref = $self->get_labels_ref;
     my $props = $labels_ref->get_list_values( @_, list => 'PROPERTIES' );

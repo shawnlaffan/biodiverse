@@ -642,7 +642,9 @@ sub test_export_tabular_tree {
 
     state $tabular_tree_num;
     $tabular_tree_num++;
-    my $fname = get_temp_file_path("tabular_tree_export_${tabular_tree_num}.csv");
+    my $fname = get_temp_file_path(
+        "tabular_tree_eẍṗört_${tabular_tree_num}.csv"
+    );
 
     #note "File name is $fname";
     my $success = eval {

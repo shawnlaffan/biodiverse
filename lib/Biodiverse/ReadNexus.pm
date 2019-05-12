@@ -399,7 +399,7 @@ sub import_tabular_tree {
 
     my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
 
-    #  use scalar asaa file handle
+    #  use scalar as a file handle
     open my $io, '<', \$data
       or croak "Could not open scalar variable \$data as a file handle\n";
 

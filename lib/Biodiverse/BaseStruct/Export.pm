@@ -770,7 +770,7 @@ sub export_shapefile {
             );
 
             # write a separate shape for each label
-            foreach my $key (sort keys %list_data) {
+            foreach my $key (natsort keys %list_data) {
                 my %data = (
                     ELEMENT => $element,
                     %axis_col_data,

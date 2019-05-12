@@ -4,6 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 use Carp;
+use utf8;
 
 use FindBin qw/$Bin/;
 use Test::Lib;
@@ -728,11 +729,40 @@ sub test_export_nexus {
 
 }
 
+sub test_export_newick {
+    my $tree = shift // get_site_data_as_tree();
+    
+    my %args = (
+        tree => $tree,
+        format => 'newick',
+    );
+    
+    _test_export_nexus (
+        %args,
+        no_translate_block => 0,
+    );
+    _test_export_nexus (
+        %args,
+        no_translate_block => 1,
+        use_internal_names => 1,
+    );
+    #  need to double check newick handles bootstrap blocks
+    #_test_export_nexus (
+    #    %args,
+    #    no_translate_block => 0,
+    #    check_bootstrap_values => 1,
+    #);
+
+}
 
 sub _test_export_nexus {
     my %args = @_;
     my $tree = $args{tree};
     delete $args{tree};
+    
+    my $format = $args{format} // 'nexus';
+    my $method = "export_$format";
+    my $file_suffix = $format eq 'nexus' ? '.nex' : '.nwk';
 
     if ($args{check_bootstrap_values}) {
         # add some bootstrap values to export
@@ -759,20 +789,22 @@ sub _test_export_nexus {
     }
     chop $test_suffix;
     
+    state $tree_export_num = 0;
+    $tree_export_num++;
+
     my $fname = get_temp_file_path (
-        'tree_export_'
-        . int (1000 * rand()) . '.nex',
+        "tree_export_ţřêḙ_$tree_export_num$file_suffix",
     );
-    note "File name is $fname";
+    #note "File name is $fname";
     my $success = eval {
-        $tree->export_nexus (
+        $tree->$method (
             file => $fname,
             %args,
         );
     };
     my $e = $EVAL_ERROR;
     diag $e if $e;
-    ok (!$e, 'exported to nexus without error' . $test_suffix);
+    ok (!$e, "ran $method without error" . $test_suffix);
 
     #  now reimport it
     my $nex = Biodiverse::ReadNexus->new();

@@ -959,8 +959,10 @@ sub export_nexus {
 
     my $file = $args{file};
     say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
-    open( my $fh, '>', $file )
-      || croak "Could not open file '$file' for writing\n";
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        mode      => '>',
+    );
 
     my $export_colours = $args{export_colours};
     my $sub_list_name  = $args{sub_list};
@@ -1039,8 +1041,10 @@ sub export_newick {
 
     print "[TREE] WRITING TO TREE TO NEWICK FILE $file\n";
 
-    open( my $fh, '>', $file )
-      || croak "Could not open file '$file' for writing\n";
+    my $fh = $self->get_file_handle (
+        file_name => $file,
+        mode      => '>',
+    );
 
     print {$fh} $self->to_newick(%args);
     $fh->close;

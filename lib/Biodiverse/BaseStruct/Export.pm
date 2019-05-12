@@ -659,8 +659,7 @@ sub export_shapefile {
     my @elements;
     if ($def_query) {
         @elements = $self->get_elements_that_pass_def_query(defq => $def_query);
-        my $length = scalar @elements;
-        if( $length == 0) {
+        if( !scalar @elements) {
             say "[BaseStruct] No elements passed the def query!";
             @elements = $self->get_element_list;
             $args{def_query} = '';
@@ -670,26 +669,19 @@ sub export_shapefile {
         @elements = $self->get_element_list;
     }
 
-    
-
     my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
-    if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
+    if (uc ($shape_type) eq 'POINT' && scalar @cell_sizes > 2) {
         @axes_to_use = (0, 1, 2);  #  we use Z in this case
     }
 
     my $half_csizes = [];
     foreach my $size (@cell_sizes[@axes_to_use]) {
-        # disabled checking for sizes, specify shapetype='point' instead
-        #return $self->_export_shape_point (%args)
-        #  if $size == 0;  #  we are a point file
-
-        my $half_size = $size > 0 ? $size / 2 : 0.5;
-
-        push @$half_csizes, $half_size;
+        push @$half_csizes, $size > 0 ? $size / 2 : 0.5;
     }
 
-    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+    my $first_el_coord
+      = $self->get_element_name_coord (element => $elements[0]);
 
     my @axis_col_specs_gdal;
     foreach my $axis (0 .. $#$first_el_coord) {
@@ -708,9 +700,9 @@ sub export_shapefile {
         }
     }
 
-    my @label_count_specs_gdal;
+    my @list_col_specs_gdal;
     if (defined $list_name) {  # repeated polys per list item
-        push @label_count_specs_gdal,
+        push @list_col_specs_gdal,
           {Name => 'KEY',   Type => 'String'},
           {Name => 'VALUE', Type => 'Real'},
     }
@@ -726,7 +718,7 @@ sub export_shapefile {
                 Type => 'String'
             },
             @axis_col_specs_gdal,
-            @label_count_specs_gdal,
+            @list_col_specs_gdal,
         ],
     });
 
@@ -735,10 +727,10 @@ sub export_shapefile {
         my $coord_axes = $self->get_element_name_coord (element => $element);
         my $name_axes  = $self->get_element_name_as_array (element => $element);
 
-        my %axis_col_data;
-        foreach my $axis (0 .. $#$first_el_coord) {
-            $axis_col_data{'AXIS_' . $axis} = $name_axes->[$axis];
-        }
+        my %axis_col_data
+          = (map
+            {; "AXIS_$_" => $name_axes->[$_]}
+            (0 .. $#$first_el_coord));
 
         my $wkt;
         if ($shape_type eq 'POLYGON')  { 

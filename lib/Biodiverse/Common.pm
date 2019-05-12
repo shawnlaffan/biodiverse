@@ -1800,19 +1800,19 @@ sub get_file_handle {
     }
     
     my $fh;
-    
-    if (-e $file_name and -r $file_name) {
-        open $fh, $mode, $file_name
-          or die "Unable to open $file_name, $!";
-    }
-    elsif (ON_WINDOWS) {
+
+    if (ON_WINDOWS) {
         openL (\$fh, $mode, $file_name)
           or die ("unable to open $file_name ($^E)");
     }
     else {
-        croak "[BASEDATA] CANNOT GET FILE HANDLE FOR $file_name\n"
-            . "MODE IS $mode\n";
+        open $fh, $mode, $file_name
+          or die "Unable to open $file_name, $!";
     }
+    
+    croak "CANNOT GET FILE HANDLE FOR $file_name\n"
+        . "MODE IS $mode\n"
+      if !$fh;
 
     return $fh;
 }

@@ -3,8 +3,8 @@ use 5.010;
 use strict;
 use warnings;
 
-use strict;
-use warnings;
+use utf8;
+
 use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util qw /blessed/;
@@ -335,7 +335,7 @@ sub run_basestruct_export_to_table {
     }
     $feedback_text =~ s/, $//;
     
-    my $filename1 = get_temp_file_path('biodiverse_export_test_XXXXX.csv');
+    my $filename1 = get_temp_file_path('bioðiverse_export_tesŧ_XXXXX.csv');
 
     eval {
         $gp->export_table_delimited_text (
@@ -365,8 +365,8 @@ sub run_basestruct_export_to_table {
     #  Now compare the two files.  They should be identical.  
     {
         local $/ = undef;  #  slurp mode
-        open my $fh1, '<', $filename1 or croak "Could not open $filename1";
-        open my $fh2, '<', $filename2 or croak "Could not open $filename2";
+        my $fh1 = $gp->get_file_handle (file_name => $filename1);
+        my $fh2 = $gp->get_file_handle (file_name => $filename2);
         
         my $file1 = <$fh1>;
         my $file2 = <$fh2>;

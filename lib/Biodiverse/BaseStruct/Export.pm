@@ -276,7 +276,10 @@ sub export_table_delimited_text {
     my $filename = $args{file} || croak "file arg not specified\n";
     my $fh;
     if (!$args{_no_fh}) {  #  allow control of $fh for test purposes
-        open $fh, '>', $filename or croak "Could not open $filename\n";
+        $fh = $self->get_file_handle (
+            mode      => '>',
+            file_name => $filename,
+        );
     }
 
     my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);

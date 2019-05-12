@@ -1793,25 +1793,25 @@ sub get_file_handle {
     my $file_name = $args{file_name}
       // croak 'file_name not specified';
 
-    my $layers = $args{layers};
+    my $mode = $args{mode} // $args{layers};
+    $mode ||= '<';
     if ($args{use_bom}) {
-        $layers //= '<:via(File::BOM)';
+        $mode .= ':via(File::BOM)';
     }
-    $layers //= '<';
     
     my $fh;
     
     if (-e $file_name and -r $file_name) {
-        open $fh, $layers, $file_name
+        open $fh, $mode, $file_name
           or die "Unable to open $file_name, $!";
     }
     elsif (ON_WINDOWS) {
-        openL (\$fh, $layers, $file_name)
+        openL (\$fh, $mode, $file_name)
           or die ("unable to open $file_name ($^E)");
     }
     else {
-        croak "[BASEDATA] $file_name DOES NOT EXIST OR CANNOT BE READ "
-            . "- CANNOT LOAD DATA\n";
+        croak "[BASEDATA] CANNOT GET FILE HANDLE FOR $file_name\n"
+            . "MODE IS $mode\n";
     }
 
     return $fh;

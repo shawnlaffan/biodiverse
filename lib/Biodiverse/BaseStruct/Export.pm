@@ -1620,18 +1620,20 @@ sub write_table_divagis {
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
-        my $fh;
-        my $success = open ($fh, '>', $filename);
-        croak "Cannot open $filename\n"
-          if ! $success;
+        my $fh = $self->get_file_handle (
+            file_name => $filename,
+            mode      => '>',
+        );
 
         binmode $fh;
         $fh[$i] = $fh;
 
         my $header_file = $filename;
         $header_file =~ s/$suffix$/\.grd/;
-        $success = open (my $fh_hdr, '>', $header_file);
-        croak "Cannot open $header_file\n" if ! $success;
+        my $fh_hdr = $self->get_file_hande (
+            file_name => $header_file,
+            mode      => '>',
+        );
 
         my $time = localtime;
         my $create_time = ($time->year + 1900) . ($time->mon + 1) . $time->mday;
@@ -1639,7 +1641,10 @@ sub write_table_divagis {
         my $maxx = $max[0] + $res[0] / 2;
         my $miny = $min[1] - $res[1] / 2;
         my $maxy = $max[1] + $res[1] / 2;
-        my $stats = $self->get_list_value_stats (list => $args{list}, index => $header->[$i]);
+        my $stats = $self->get_list_value_stats (
+            list  => $args{list},
+            index => $header->[$i],
+        );
 
         my $diva_hdr = <<"DIVA_HDR"
 [General]
@@ -1669,7 +1674,7 @@ Transparent=1
 
 DIVA_HDR
   ;
-        print $fh_hdr $diva_hdr;
+        print {$fh_hdr} $diva_hdr;
         $fh_hdr->close;
     }
 

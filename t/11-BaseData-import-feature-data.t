@@ -56,6 +56,8 @@ sub main {
 
 #can we reimport shapefiles after exporting and get the same answer
 sub test_import_roundtrip_shapefile {
+    use utf8;
+
     my %bd_args = (
         NAME => 'test include exclude',
         CELL_SIZES => [1,1],
@@ -111,8 +113,9 @@ sub test_import_roundtrip_shapefile {
         #local $Data::Dumper::Terse    = 1;
         #say Dumper $out_options_hash;
 
-        #  need to use a better approach for the name
-        my $fname_base = $tmp_dir . 'shapefile_' . $i; 
+        #  need to use a better approach for the name,
+        #  but the unicode chars help test 
+        my $fname_base = $tmp_dir . '/shæþefile_' . $i; 
 
         my $suffix = ''; # leave off, .shp will be added (or similar)
         my $fname = $fname_base . $suffix;  
@@ -128,7 +131,10 @@ sub test_import_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
-        ok (-e $fname . '.shp', "$fname.shp exists");
+        ok (
+            Biodiverse::Common->file_exists_aa ($fname . '.shp'),
+            "$fname.shp exists",
+        );
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -153,7 +159,7 @@ sub test_import_roundtrip_shapefile {
         if ($e) {
             diag "$fname:";
             foreach my $ext (qw /shp dbf shx/) {
-                diag 'size: ' . -s ($fname . $ext);
+                diag 'size: ' . Biodiverse::Common->get_file_size_aa ($fname . $ext);
             }
         }
         

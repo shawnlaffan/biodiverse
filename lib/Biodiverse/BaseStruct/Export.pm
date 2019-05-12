@@ -1419,18 +1419,16 @@ sub write_table_asciigrid {
         $file_names[$i] = $filename;
         push @$file_list_ref, $filename; # record file in list
 
-        my $fh;
-        my $success = open ($fh, '>', $filename);
-        croak "Cannot open $filename\n"
-          if ! $success;
+        my $this_fh
+          = $self->get_file_handle (file_name => $filename, mode => '>');
 
-        $fh[$i] = $fh;
-        print $fh "nrows $nrows\n";
-        print $fh "ncols $ncols\n";
-        print $fh "xllcenter $min[0]\n";
-        print $fh "yllcenter $min[1]\n";
-        print $fh "cellsize $res[0]\n";  #  CHEATING 
-        print $fh "nodata_value $no_data\n";
+        $fh[$i] = $this_fh;
+        print $this_fh "nrows $nrows\n";
+        print $this_fh "ncols $ncols\n";
+        print $this_fh "xllcenter $min[0]\n";
+        print $this_fh "yllcenter $min[1]\n";
+        print $this_fh "cellsize $res[0]\n";  #  CHEATING 
+        print $this_fh "nodata_value $no_data\n";
     }
 
     my %coords;
@@ -1520,18 +1518,17 @@ sub write_table_floatgrid {
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
-        my $fh;
-        my $success = open ($fh, '>', $filename);
-        croak "Cannot open $filename\n"
-          if ! $success;
+        my $this_fh = $self->get_file_handle (file_name => $filename, mode => '>');
 
-        binmode $fh;
-        $fh[$i] = $fh;
+        binmode $this_fh;
+        $fh[$i] = $this_fh;
 
         my $header_file = $filename;
         $header_file =~ s/$suffix$/\.hdr/;
-        $success = open (my $fh_hdr, '>', $header_file);
-        croak "Cannot open $header_file\n" if ! $success;
+        my $fh_hdr = $self->get_file_handle (
+            file_name => $header_file,
+            mode      => '>',
+        );
 
         print $fh_hdr "nrows $nrows\n";
         print $fh_hdr "ncols $ncols\n";

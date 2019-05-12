@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 #  Tests for basedata import
 #  Need to add tests for the number of elements returned,
 #  amongst the myriad of other things that a basedata object does.
@@ -7,6 +5,11 @@
 use 5.010;
 use strict;
 use warnings;
+use utf8;
+
+use constant ON_WINDOWS => ($^O eq 'MSWin32');
+use if ON_WINDOWS, 'Win32';
+
 use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
@@ -1059,7 +1062,7 @@ sub test_roundtrip_raster {
     );
 
     my $fname = write_data_to_temp_file(get_import_data_small());
-    note("testing filename $fname");
+    #note("testing filename $fname");
     my $e;
 
     #  get the original - should add some labels with special characters
@@ -1071,11 +1074,14 @@ sub test_roundtrip_raster {
             label_columns => [1, 2],
         );
     };
-    $e = $EVAL_ERROR;
-    ok (!$e, 'import vanilla with no exceptions raised');
+    is ($@, '', 'import vanilla with no exceptions raised');
     
     # not sure why this is used
-    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
+    $bd->add_element (
+        group => '1.5:1.5',
+        label => 'bazungalah:smith',
+        count => 25,
+    );
     
     my $lb = $bd->get_labels_ref;
     my $gp = $bd->get_groups_ref;
@@ -1086,8 +1092,8 @@ sub test_roundtrip_raster {
     my @out_options = (
         { format => 'export_asciigrid'},
         { format => 'export_floatgrid'},
-        { format => 'export_geotiff'},
-        { format => 'export_ers'},
+        #{ format => 'export_geotiff'},
+        #{ format => 'export_ers'},
     );
 
     # the raster data file won't specify the origin and cell size info, so pass as
@@ -1112,8 +1118,9 @@ sub test_roundtrip_raster {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
+        #  but we want unicode in there
         my $tmp_dir = get_temp_dir();
-        my $fname_base = $format;
+        my $fname_base = $format . "_rǻṩẗèŕ";
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;
@@ -1124,9 +1131,7 @@ sub test_roundtrip_raster {
                 list      => 'SUBELEMENTS',
             );
         };
-        $e = $EVAL_ERROR;
-        ok (!$e, "no exceptions exporting $format to $fname");
-        diag $e if $e;
+        is ($@, '', "no exceptions exporting $format to $fname");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -1143,15 +1148,20 @@ sub test_roundtrip_raster {
         # albeit that would be just as contorted in the end.
 
         #  make sure we skip world and hdr files 
-        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+        my @exported_files = glob "$tmp_dir/*";
+        if (ON_WINDOWS) {
+            @exported_files = map {Win32::GetLongPathName($_)} @exported_files;
+        }
+        @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} @exported_files;
 
         foreach my $this_file (@exported_files) {
             next if $this_file !~ /\./;  #  must have a dot - er-mapper files do not by default
+            
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
             my $target_name = $this_label;
-            $target_name =~ s/.*${fname_base}_//; 
+            $target_name =~ s/.*${fname_base}_//;
             $target_name = uri_unescape($target_name);
             #diag "\nWorking on $target_name, $this_label\n";
 
@@ -1163,9 +1173,8 @@ sub test_roundtrip_raster {
                     #given_label => $this_label,
                 );
             };
-            $e = $EVAL_ERROR;
-            ok (!$e, "no exceptions importing $fname");
-            diag $e if $e;
+            is ($@, '', "no exceptions importing $fname");
+
             #  cope with the export name including the format
             if (not $this_file =~ /ers$/) {
                 $new_bd->rename_label (

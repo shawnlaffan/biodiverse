@@ -962,8 +962,16 @@ sub escape_filename {
       if !defined $string;
 
     use URI::Escape::XS qw/uri_escape/;
+    my $escaped_string;
+    my @letters = split '', $string;
+    foreach my $letter (@letters) {
+        if ($letter =~ /\W/ && $letter !~ / /) {
+            $letter = uri_escape ($letter);
+        }
+        $escaped_string .= $letter;
+    }
     
-    return uri_escape ($string);
+    return $escaped_string;
 }
 
 sub get_tooltip_sparse_normal {

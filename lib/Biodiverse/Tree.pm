@@ -1110,8 +1110,8 @@ sub export_tabular_tree {
         $name = $self->get_param('NAME');
     }
 
-    $args{use_internal_names} //=
-      1;    #  we need this to be set for the round trip
+    #  we need this to be set for the round trip
+    $args{use_internal_names} //= 1;
 
     # show the type of what is being exported
 
@@ -1141,27 +1141,27 @@ sub get_metadata_export_table_grouped {
         {
             name       => 'use_target_value',
             label_text => "Set number of groups\nusing a cutoff value",
-            tooltip =>
-'Overrides the "Number of groups" setting.  Uses length by default.',
-            type    => 'boolean',
-            default => 0,
+            tooltip    => 'Overrides the "Number of groups" setting.  '
+                        . 'Uses length by default.',
+            type       => 'boolean',
+            default    => 0,
         },
         {
             name       => 'target_value',
             label_text => 'Value for cutoff',
             tooltip    => 'Group the nodes using some threshold value.  '
-              . 'This is analogous to the grouping when using '
-              . 'the slider bar on the dendrogram plots.',
+                        . 'This is analogous to the grouping when using '
+                        . 'the slider bar on the dendrogram plots.',
             type    => 'float',
             default => 0,
         },
         {
             name       => 'group_by_depth',
             label_text => "Group clusters by depth\n(default is by length)",
-            tooltip =>
-'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.',
-            type    => 'boolean',
-            default => 0,
+            tooltip    => 'Use depth to define the groupings.  '
+                        . 'When a cutoff is used, it will be in units of node depth.',
+            type       => 'boolean',
+            default    => 0,
         },
         {
             name       => 'symmetric',
@@ -1185,10 +1185,10 @@ sub get_metadata_export_table_grouped {
         {
             name       => 'sort_array_lists',
             label_text => 'Sort array lists',
-            tooltip =>
-'Should any array list results be sorted before exprting?  Turn this off if the original order is important.',
-            type    => 'boolean',
-            default => 1,
+            tooltip    => 'Should any array list results be sorted before exporting? '
+                        . 'Turn this off if the original order is important.',
+            type       => 'boolean',
+            default    => 1,
         },
         {
             name       => 'terminals_only',
@@ -1217,8 +1217,8 @@ sub export_table_grouped {
 
     my $file = $args{file};
 
-    print
-"[TREE] WRITING TO TREE TO TABLE STRUCTURE USING TERMINAL ELEMENTS, FILE $file\n";
+    print "[TREE] WRITING TO TREE TO TABLE STRUCTURE "
+        . "USING TERMINAL ELEMENTS, FILE $file\n";
 
     my $data = $self->to_table_group_nodes(@_);
 
@@ -1330,11 +1330,9 @@ sub get_table_export_metadata {
         {
             name       => 'quote_char',
             label_text => 'Quote character',
-
-            #tooltip    => 'For delimited text exports only',
-            type    => 'choice',
-            choices => \@quote_chars,
-            default => 0
+            type       => 'choice',
+            choices    => \@quote_chars,
+            default    => 0
         },
     ];
     for (@$table_metadata_defaults) {

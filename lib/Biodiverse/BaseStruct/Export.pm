@@ -1972,7 +1972,7 @@ END_OF_ERS_HEADER_START
     my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
     my $header_fh = $self->get_file_handle (
         file_name => $header_file,
-        mode => '>',
+        mode      => '>:utf8',
     );
 
     say {$header_fh} (join "\n", @header);

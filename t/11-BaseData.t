@@ -1093,7 +1093,7 @@ sub test_roundtrip_raster {
         { format => 'export_asciigrid'},
         { format => 'export_floatgrid'},
         #{ format => 'export_geotiff'},
-        #{ format => 'export_ers'},
+        { format => 'export_ers'},
     );
 
     # the raster data file won't specify the origin and cell size info, so pass as

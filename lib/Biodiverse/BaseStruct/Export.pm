@@ -1856,10 +1856,10 @@ sub write_table_ers {
     #my %stats;
 
     my $data_file = Path::Class::file($path, $name)->stringify;
-    my $success = open (my $ofh, '>', $data_file);
-    if (! $success) {
-        croak "Could not open output file $data_file\n";
-    }
+    my $ofh = $self->get_file_handle (
+        file_name => $data_file,
+        mode      => '>',
+    );
     binmode $ofh;
 
     my ($ncols, $nrows) = (0, 0);
@@ -1962,8 +1962,10 @@ END_OF_ERS_HEADER_START
     );
 
     my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
-    open (my $header_fh, '>', $header_file)
-      or croak "Could not open header file $header_file\n";
+    my $header_fh = $self->get_file_handle (
+        file_name => $header_file,
+        mode => '>',
+    );
 
     say {$header_fh} join ("\n", @header);
 

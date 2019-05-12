@@ -601,9 +601,7 @@ sub test_to_table_group_nodes {
             include_node_data => 1,
         );
     };
-    my $e = $EVAL_ERROR;
-    diag $e if $e;
-    ok (!$e, 'exported to grouped table without error');
+    is ($@, '', 'exported to grouped table without error');
     
     #  now do stuff with table
     my $header = $table->[0];
@@ -642,7 +640,9 @@ sub test_to_table_group_nodes {
 sub test_export_tabular_tree {
     my $tree = shift // get_site_data_as_tree();
 
-    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()) . '.csv');
+    state $tabular_tree_num;
+    $tabular_tree_num++;
+    my $fname = get_temp_file_path("tabular_tree_export_${tabular_tree_num}.csv");
 
     #note "File name is $fname";
     my $success = eval {
@@ -650,9 +650,7 @@ sub test_export_tabular_tree {
             file => $fname,
         );
     };
-    my $e = $EVAL_ERROR;
-    diag $e if $e;
-    ok (!$e, 'exported to tabular without error');
+    is ($@, '', 'exported to tabular without error');
     
     #  now reimport it
     my $column_map = {};

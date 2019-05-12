@@ -5,6 +5,9 @@ use 5.010;
 use strict;
 use warnings;
 
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
+
 #  avoid redefined warnings due to
 #  https://github.com/rurban/Cpanel-JSON-XS/issues/65
 use JSON::PP ();

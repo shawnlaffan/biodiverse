@@ -1092,7 +1092,7 @@ sub test_roundtrip_raster {
     my @out_options = (
         { format => 'export_asciigrid'},
         { format => 'export_floatgrid'},
-        #{ format => 'export_geotiff'},
+        { format => 'export_geotiff'},
         { format => 'export_ers'},
     );
 
@@ -1131,7 +1131,7 @@ sub test_roundtrip_raster {
                 list      => 'SUBELEMENTS',
             );
         };
-        is ($@, '', "no exceptions exporting $format to $fname");
+        is ($@, '', "no exceptions exporting $format");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -1173,7 +1173,7 @@ sub test_roundtrip_raster {
                     #given_label => $this_label,
                 );
             };
-            is ($@, '', "no exceptions importing $fname");
+            is ($@, '', "no exceptions importing");
 
             #  cope with the export name including the format
             if (not $this_file =~ /ers$/) {
@@ -1203,7 +1203,7 @@ sub test_roundtrip_raster {
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        is_deeply (\@new_labels, \@orig_labels, "label lists match");
 
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $format" => sub {
@@ -1211,14 +1211,19 @@ sub test_roundtrip_raster {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
 
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
+                is_deeply (
+                    $new_list,
+                    $orig_list,
+                    "SUBELEMENTS match for $label, $format"
+                );
             }
         };
         
-        is_deeply
+        is_deeply (
           scalar $bd->get_coord_bounds,
           scalar $new_bd->get_coord_bounds,
-          "coord bounds match for $format";
+          "coord bounds match for $format"
+        );
 
         $i++;
     }
@@ -1290,10 +1295,8 @@ sub test_raster_zero_cellsize {
                 list      => 'SUBELEMENTS',
             );
         };
-        $e = $EVAL_ERROR;
-        ok (!$e, "no exceptions exporting $format to $fname");
-        diag $e if $e;
-
+        is ($@, '', "no exceptions exporting $format");
+        
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
             name         => $fname,
@@ -1313,12 +1316,12 @@ sub test_raster_zero_cellsize {
 
         foreach my $this_file (@exported_files) {
             # find label name from file name
-#say $this_file;
+
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; 
             $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
-            note "got label $this_label\n";
+            #note "got label $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
@@ -1328,15 +1331,17 @@ sub test_raster_zero_cellsize {
                     given_label => $this_label,
                 );
             };
-            $e = $EVAL_ERROR;
-            ok (!$e, "no exceptions importing $fname");
-            diag $e if $e;
+            is ($@, '', "no exceptions importing");
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        is_deeply (\@new_labels, \@orig_labels, "label lists match");
         
-        is_deeply ($new_bd->get_group_count, $bd->get_group_count, 'got expected group count');
+        is_deeply (
+            $new_bd->get_group_count,
+            $bd->get_group_count,
+            'got expected group count',
+        );
 
         $i++;
     }

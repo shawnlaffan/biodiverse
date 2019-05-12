@@ -1804,14 +1804,22 @@ END_TFW
         my $pdata  = $bands[$i];
 
         my $out_raster
-          = $driver->Create($f_name, {Width => $ncols, Height => $nrows, Bands => 1, DataType => $band_type});
+          = $driver->Create($f_name, {
+                Width    => $ncols,
+                Height   => $nrows,
+                Bands    => 1,
+                DataType => $band_type
+            });
 
         my $out_band = $out_raster->GetBand();
         $out_band->SetNoDataValue ($no_data);
         $out_band->Write($pdata, 0, 0, $ncols, $nrows);
 
         my $f_name_tfw = $f_name . 'w';
-        open(my $fh, '>', $f_name_tfw) or die "cannot open $f_name_tfw";
+        my $fh = $self->get_file_handle (
+            file_name => $f_name_tfw,
+            mode      => '>',
+        );
         print {$fh} $tfw;
         $fh->close;
     }
@@ -1967,7 +1975,7 @@ END_OF_ERS_HEADER_START
         mode => '>',
     );
 
-    say {$header_fh} join ("\n", @header);
+    say {$header_fh} (join "\n", @header);
 
     croak "Unable to write to $header_file\n"
       if !$header_fh->close;

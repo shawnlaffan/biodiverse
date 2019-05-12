@@ -18,7 +18,7 @@ use Time::localtime;
 use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
-use Geo::GDAL::FFI 0.06;
+use Geo::GDAL::FFI 0.06 qw /GetDriver/;
 
 my $EMPTY_STRING = q{};
 
@@ -692,24 +692,37 @@ sub export_shapefile {
     my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
 
     my @axis_col_specs;
+    my @axis_col_specs_gdal;
     foreach my $axis (0 .. $#$first_el_coord) {
         my $csize = $cell_sizes[$axis];
         if ($csize < 0) {
             #  should check actual sizes
             push @axis_col_specs, [ ('axis_' . $axis) => 'C', 100];
+            push @axis_col_specs_gdal,
+              { Name => ('axis_' . $axis),
+                Type => 'String',
+              };
         }
         else {
             #  width and decimals needs automation
             push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+            push @axis_col_specs_gdal,
+              { Name => ('axis_' . $axis),
+                Type => 'Real',
+              };
         }
     }
 
     my @label_count_specs;
+    my @label_count_specs_gdal;
     if (defined $list_name) {  # repeated polys per list item
         push @label_count_specs, (
             [ key   => 'C', 100  ],
             [ value => 'F', 16, 3 ],
         );
+        push @label_count_specs_gdal,
+          {Name => 'key',   Type => 'String'},
+          {Name => 'value', Type => 'Real'},
     }
 
     my $shp_writer = Geo::Shapefile::Writer->new (
@@ -718,6 +731,22 @@ sub export_shapefile {
         @axis_col_specs,
         @label_count_specs,
     );
+    
+    my $layer = GetDriver('ESRI Shapefile')
+    ->Create($file . '_xx.shp')
+    ->CreateLayer({
+        Name => 'export',
+        #SpatialReference => '',
+        GeometryType => ucfirst (lc $shape_type),
+        Fields => [
+            {
+                Name => 'element',
+                Type => 'String'
+            },
+            @axis_col_specs_gdal,
+            @label_count_specs_gdal,
+        ],
+    });
 
   NODE:
     foreach my $element (@elements) {
@@ -730,6 +759,7 @@ sub export_shapefile {
         }
 
         my $shape;
+        my $wkt;
         if ($shape_type eq 'POLYGON')  { 
             my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
             my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
@@ -743,15 +773,25 @@ sub export_shapefile {
                 [$max_x, $min_y],
                 [$min_x, $min_y],  #  close off
             ]];
+            $wkt = 'POLYGON (('
+                . "$min_x $min_y, "
+                . "$min_x $max_y, "
+                . "$max_x $max_y, "
+                . "$max_x $min_y, "
+                . "$min_x $min_y"
+                . '))';
         }
-        elsif ($shape_type eq 'POINT') { 
-            $shape = [
+        elsif ($shape_type eq 'POINT') {
+            my @pts = (
                 $coord_axes->[$axes_to_use[0]],
                 $coord_axes->[$axes_to_use[1]],
-            ];
+            );
+            $shape = \@pts;
+            $wkt = "POINT ($pts[0] $pts[1])";
         }
 
         #  temporary - this needs to be handled differently
+        my @data_for_gdal_layer;
         if ($list_name) {
             my %list_data = $self->get_list_values (
                 element => $element,
@@ -760,29 +800,43 @@ sub export_shapefile {
 
             # write a separate shape for each label
             foreach my $key (sort keys %list_data) {
+                my %data = (
+                    element => $element,
+                    %axis_col_data,
+                    key     => $key,
+                    value   => ($list_data{$key} // $nodata),
+                );
                 $shp_writer->add_shape(
                     $shape,
-                    {
-                        element => $element,
-                        %axis_col_data,
-                        key     => $key,
-                        value   => ($list_data{$key} // $nodata),
-                    },
+                    \%data,
                 );
+                push @data_for_gdal_layer, \%data;
             }
         }
         else {
+            my %data = (
+                element => $element,
+                %axis_col_data,
+            );
             $shp_writer->add_shape(
                 $shape,
-                {
-                    element => $element,
-                    %axis_col_data,
-                },
+                \%data,
             );
+            push @data_for_gdal_layer, \%data;
+        }
+        foreach my $data_hr (@data_for_gdal_layer) {
+            my $f = Geo::GDAL::FFI::Feature->new($layer->GetDefn);
+            foreach my $key (keys %$data_hr) {
+                $f->SetField($key => $data_hr->{$key});
+            }
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+            $f->SetGeomField($g);
+            $layer->CreateFeature($f);
         }
     }
 
     $shp_writer->finalize();
+    $layer = undef;
 
     return;
 }

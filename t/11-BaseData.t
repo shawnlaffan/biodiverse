@@ -1178,10 +1178,12 @@ sub test_roundtrip_raster {
 
             #  cope with the export name including the format
             if (not $this_file =~ /ers$/) {
+                my $new_name = $target_name;
+                $new_name =~ s/^.+_//;
                 diag "Renaming $this_label to $target_name";
                 $new_bd->rename_label (
                     label    => $this_label,
-                    new_name => $target_name,
+                    new_name => $new_name,
                 );
             }
             else {

@@ -316,30 +316,6 @@ sub export_table_html {
     return;
 }
 
-sub get_metadata_export_table_xml {
-    my $self = shift;
-
-    my %args = (
-        format => 'XML table',
-        parameters => [
-            $self->get_common_export_metadata(),
-            $self->get_table_export_metadata()
-        ],
-    ); 
-
-    return wantarray ? %args : \%args;
-}
-
-sub export_table_xml {
-    my $self = shift;
-    my %args = @_;
-
-    my $table = $self->to_table (symmetric => 1, %args);
-
-    $self->write_table_xml (%args, data => $table);
-
-    return;
-}
 
 sub get_metadata_export_table_yaml {
     my $self = shift;

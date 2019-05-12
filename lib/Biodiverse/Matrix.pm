@@ -667,10 +667,6 @@ Create a new matrices object.
 
 Optionally pass a hash of parameters to be set.
 
-If %params contains an item 'file_xml' then it attempts to open the file
-referred to and returns that as an object if successful
-(see C<Biodiverse::Common::load_xml_file>).
-
 =item $self->add_element('element1' => $element1, 'element2' => $element2, 'value' => $value);
 
 Adds an element pair and their value to the object.

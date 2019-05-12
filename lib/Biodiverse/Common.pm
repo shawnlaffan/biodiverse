@@ -12,7 +12,6 @@ use English ( -no_match_vars );
 use constant ON_WINDOWS => ($OSNAME eq 'MSWin32'); 
 use if ON_WINDOWS, 'Win32::LongPath';
 
-use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 #use YAML::XS;
@@ -861,28 +860,6 @@ sub save_to_storable {
     return $file;
 }
 
-#  Dump the whole object to an xml file.
-#  Get the prefix from $self{PARAMS}, or some other default.
-sub save_to_xml {  
-    my $self = shift;
-    my %args = @_;
-
-    my $file = $args{filename};
-    if (! defined $file) {
-        my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        my $suffix = $self->get_param('OUTSUFFIX') || 'xml';
-        $file = Path::Class::file($file || ($prefix . '.' . $suffix));
-    }
-    $file = Path::Class::file($file)->absolute;
-
-    print "[COMMON] WRITING TO XML FORMAT FILE $file\n";
-
-    open (my $fh, '>', $file);
-    print $fh dump_xml ($self);
-    $fh->close;
-
-    return $file;
-}
 
 #  Dump the whole object to a yaml file.
 #  Get the prefix from $self{PARAMS}, or some other default.
@@ -973,26 +950,6 @@ sub dump_to_json {
     return $args{filename};
 }
 
-sub dump_to_xml {
-    my $self = shift;
-    my %args = @_;
-
-    my $data = $args{data};
-
-    my $file = $args{filename};
-    if (defined $file) {
-        $file = Path::Class::file($args{filename})->absolute;
-        say "WRITING TO XML FORMAT FILE $file";
-        open (my $fh, '>', $file);
-        print $fh dump_xml ($data);
-        $fh->close;
-    }
-    else {
-        print dump_xml ($data);
-    }
-
-    return $file;
-}
 
 #  escape any special characters in a file name
 #  just a wrapper around URI::Escape::XS::escape_uri
@@ -1084,9 +1041,6 @@ sub write_table {
     elsif ($suffix =~ /htm/i) {
         $self->write_table_html (%args);
     }
-    elsif ($suffix =~ /xml/i) {
-        $self->write_table_xml (%args);
-    }
     elsif ($suffix =~ /yml/i) {
         $self->write_table_yaml (%args);
     }
@@ -1152,8 +1106,7 @@ sub write_table_csv {
 
     my $csv_obj = $self->get_csv_object_for_export (%args);
 
-    open (my $fh, '>', $file)
-        || croak "Could not open $file for writing\n";
+    my $fh = $self->get_file_handle (file_name => $file, mode => '>');
 
     eval {
         foreach my $line_ref (@$data) {
@@ -1168,38 +1121,6 @@ sub write_table_csv {
 
     if ($fh->close) {
         say "[COMMON] Write to file $file successful";
-    }
-    else {
-        croak "[COMMON] Unable to close $file\n";
-    };
-
-    return;
-}
-
-
-sub write_table_xml {  #  dump the table to an xml file.
-    my $self = shift;
-    my %args = @_;
-
-    my $data = $args{data} || croak "data arg not specified\n";
-    is_arrayref($data) || croak "data arg must be an array ref\n";
-    my $file = $args{file} || croak "file arg not specified\n";
-
-    if (-e $file) {
-        print "[COMMON] $file exists - deleting... ";
-        croak "COULD NOT OVERWRITE $file - check permissions and file locks\n"
-            if ! unlink $file;
-        print "\n";
-    }
-
-    open (my $fh, '>', $file);
-    eval {
-        print $fh dump_xml($data)
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
-
-    if ($fh->close) {
-        print "[COMMON] Write to file $file successful\n";
     }
     else {
         croak "[COMMON] Unable to close $file\n";
@@ -2904,47 +2825,9 @@ Returns the parameters hash.
 
 =item  $self->load_file (file => $filename);
 
-Loads an object written using the Storable format.  Must satisfy the OUTSUFFIX parameter
+Loads an object written using the Storable or Sereal format.
+Must satisfy the OUTSUFFIX parameter
 for the object type being loaded.
-
-=item  $self->write  (embed_source_data => 0, embed_matrix => 0,
-                     embed_basedata => 0);
-
-=item  $self->write2 (embed_source_data => 0, embed_matrix => 0,
-                     embed_basedata => 0);
-
-Dump the whole object to an xml file using the Storable package.
-Get the filename prefix from argument OUTPFX, the parameter OUTPFX,
-the parameter NAME or use BIODIVERSE if none of the others are defined.
-The filename extension is taken from parameter OUTSUFFIX.
-The embed arguments are used to
-remove the references to the parent Biodiverse::BaseData object and
-any Biodiverse::Matrix objects so they aren't included.  If these are set to
-true then C<write()> calls C<write2()>, passing on all arguments.
-C<embed_source_data> must be set for C<embed_basedata> and C<embed_matrix> to
-have any effect.
-
-=item  $self->load_xml_file (file => $filename);  DISABLED 
-
-Loads an object written using the Data::DumpXML format.  Must satisfy the OUTSUFFIX parameter
-for the object type being loaded.
-
-=item  $self->write_xml  (embed_source_data => 0, embed_matrix => 0,
-                     embed_basedata => 0);
-
-=item  $self->write_xml2 (embed_source_data => 0, embed_matrix => 0,
-                     embed_basedata => 0);
-
-Dump the whole object to an xml file using Data::DumpXML.
-Get the filename prefix from argument OUTPFX, the parameter OUTPFX,
-the parameter NAME or use BIODIVERSE if none of the others are defined.
-The filename extension is taken from parameter OUTSUFFIX_XML.
-The embed arguments are used to
-remove the references to the parent Biodiverse::BaseData object and
-any Biodiverse::Matrix objects so they aren't included.  If these are set to
-true then C<write_xml()> calls C<write_xml2()>, passing on all arguments.
-C<embed_source_data> must be set for C<embed_basedata> and C<embed_matrix> to
-have any effect.
 
 =back
 

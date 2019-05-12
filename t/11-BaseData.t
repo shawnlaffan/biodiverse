@@ -1142,9 +1142,10 @@ sub test_roundtrip_raster {
         
         use URI::Escape::XS qw/uri_unescape/;
 
-        # each band was written to a separate file, load each in turn and add to
-        # the basedata object
-        # Should import the lot at once and then rename the labels to their unescaped form
+        # each band was written to a separate file,
+        # load each in turn and add to the basedata object
+        # Should import the lot at once and then rename
+        # the labels to their unescaped form
         # albeit that would be just as contorted in the end.
 
         #  make sure we skip world and hdr files 
@@ -1177,6 +1178,7 @@ sub test_roundtrip_raster {
 
             #  cope with the export name including the format
             if (not $this_file =~ /ers$/) {
+                diag "Renaming $this_label to $target_name";
                 $new_bd->rename_label (
                     label    => $this_label,
                     new_name => $target_name,

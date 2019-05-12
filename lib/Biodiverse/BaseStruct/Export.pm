@@ -671,8 +671,10 @@ sub export_shapefile {
 
     my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
-    if (uc ($shape_type) eq 'POINT' && scalar @cell_sizes > 2) {
+    my $use_z;
+    if (scalar @cell_sizes > 2) {
         @axes_to_use = (0, 1, 2);  #  we use Z in this case
+        $use_z = 1;
     }
 
     my $half_csizes = [];
@@ -733,29 +735,33 @@ sub export_shapefile {
             (0 .. $#$first_el_coord));
 
         my $wkt;
-        if ($shape_type eq 'POLYGON')  { 
-            my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
-            my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
-            my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
-            my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+        my $z_wkt = $use_z ? ' Z' : '';
+        if ($shape_type eq 'POLYGON')  {
+            my ($x, $y) = @{$coord_axes}[@axes_to_use];
+            my ($width, $height) = @{$half_csizes}[@axes_to_use];
+            my $min_x = $x - $width;
+            my $max_x = $x + $width;
+            my $min_y = $y - $height;
+            my $max_y = $y + $height;
+            my $z = $use_z
+                  ? $coord_axes->[$axes_to_use[2]]
+                  : '';
 
-            $wkt = 'POLYGON (('
-                . "$min_x $min_y, "
-                . "$min_x $max_y, "
-                . "$max_x $max_y, "
-                . "$max_x $min_y, "
-                . "$min_x $min_y"
-                . '))';
+            $wkt = "POLYGON$z_wkt (("
+                 . "$min_x $min_y $z, "
+                 . "$min_x $max_y $z, "
+                 . "$max_x $max_y $z, "
+                 . "$max_x $min_y $z, "
+                 . "$min_x $min_y $z"
+                 . '))';
         }
         elsif ($shape_type eq 'POINT') {
-            my @pt = (
-                $coord_axes->[$axes_to_use[0]],
-                $coord_axes->[$axes_to_use[1]],
-            );
-            $wkt = "POINT ($pt[0] $pt[1])";
+            my @pt = @{$coord_axes}[@axes_to_use];
+            $wkt = "POINT$z_wkt ("
+                 . join (' ', @pt)
+                 . ")";
         }
 
-        #  temporary - this needs to be handled differently
         my @data_for_gdal_layer;
         if ($list_name) {
             my %list_data = $self->get_list_values (

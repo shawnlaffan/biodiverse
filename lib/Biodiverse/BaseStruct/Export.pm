@@ -15,7 +15,6 @@ use File::Basename;
 use Path::Class;
 use POSIX qw /fmod floor/;
 use Time::localtime;
-use Geo::Shapefile::Writer;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 use Geo::GDAL::FFI 0.06 qw /GetDriver/;

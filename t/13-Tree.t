@@ -578,58 +578,6 @@ sub test_node_hash_keys_match_node_names {
     return;
 }
 
-sub test_export_shapefile {
-    my $tree = shift // get_site_data_as_tree();
-
-    my $fname = get_temp_file_path('tree_export_' . int (1000 * rand()));
-
-    my $success = eval {
-        $tree->export_shapefile (
-            file => $fname,
-            plot_left_to_right    => 1,
-            vertical_scale_factor => undef,
-        );
-    };
-    my $e = $EVAL_ERROR;
-    diag $e if $e;
-    ok (!$e, 'exported to shapefile without error');
-
-    my $subtest_success = subtest 'shapefile matches tree' => sub {
-        use Geo::ShapeFile;
-        my $shapefile = new Geo::ShapeFile($fname);
-
-        for my $i (1 .. $shapefile->shapes()) {
-            my $shape = $shapefile->get_shp_record($i);
-    
-            my %db = $shapefile->get_dbf_record($i);
-    
-            next if $db{LINE_TYPE} eq 'vertical connector';
-    
-            my $node_name = $db{NAME};
-            my $node_ref = $tree->get_node_ref (node => $node_name);
-            
-            my $shp_len_val = sprintf '%.10f', $db{LENGTH};
-            my $tree_len    = sprintf '%.10f', $node_ref->get_length;
-    
-            is ($shp_len_val, $tree_len, "DB length matches for $node_name");
-
-            my ($start, $end) = $shape->points;
-            my $shape_len     = sprintf '%.10f', $start->distance_from($end);
-            is ($shape_len, $tree_len, "Shape length matches for $node_name");
-
-            my $parent_node = $node_ref->get_parent;
-            my $parent_name = $parent_node ? $parent_node->get_name : q{};
-            is ($db{PARENT}, $parent_name, "Parent name matches for $node_name");
-        }
-    };
-
-    if ($subtest_success) {
-        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
-    }
-
-    return;
-}
-
 
 sub test_to_table_group_nodes {
     my $tree = shift // get_site_data_as_tree();

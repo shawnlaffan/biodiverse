@@ -132,11 +132,19 @@ sub load_file {
       : qw /load_sereal_file load_storable_file load_yaml_file/;
 
     my $object;
+    my @errs;
     foreach my $func (@importer_funcs) {
         $object = eval {$self->$func (%args)};
-        #warn $EVAL_ERROR if $EVAL_ERROR;
+        if ($EVAL_ERROR) {
+            push @errs, "Trying $func:";
+            push @errs, $EVAL_ERROR;
+        }
         last if defined $object;
     }
+    
+    croak "Unable to open object file $args{file}\n"
+         . join "\n", @errs
+      if !$object;
 
     return $object;
 }
@@ -182,7 +190,8 @@ sub load_sereal_file {
     }
     elsif ($type eq '0') {
         say "Possibly utf8 encoded Sereal document";
-        croak "Won't open $file as a Sereal document";
+        croak "Possibly utf8 encoded Sereal document"
+            . "Won't open $file as a Sereal document";
     }
     else {
         say "Sereal document version $type";
@@ -221,14 +230,14 @@ sub load_storable_file {
 
     my $file = Path::Class::file($args{file})->absolute;
 
-    croak "[BASEDATA] Unicode file names not supported for Storable format,"
+    croak "Unicode file names not supported for Storable format,"
         . "please rename $file and try again\n"
       if !-e $file && $self->file_exists_aa ($file);
 
-    croak "[BASEDATA] File $file does not exist\n"
+    croak "File $file does not exist\n"
       if !-e $file;
 
-    croak "[BASEDATA] File $file does not have the correct suffix\n"
+    croak "File $file does not have the correct suffix\n"
       if !$args{ignore_suffix} && ($file !~ /$suffix$/);
 
     #  attempt reconstruction of code refs -
@@ -254,12 +263,13 @@ sub load_yaml_file {
     my %args = @_;
 
     return if ! defined ($args{file});
-    my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX_YAML') || $EMPTY_STRING;
+    my $suffix = $args{suffix}
+              || $self->get_param('OUTSUFFIX_YAML')
+              || $EMPTY_STRING;
 
     return if ! $self->file_exists_aa ($args{file});
     return if ! ($args{file} =~ /$suffix$/);
 
-    #my $loaded = YAML::XS::LoadFile ($args{file});
     my $loaded = YAML::Syck::LoadFile ($args{file});
 
     #  yaml does not handle weak refs, so we need to put them back in

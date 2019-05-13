@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 #  Tests for object clone, save and reload.
 #  Assures us that the data can be serialised, saved out and then reloaded
 #  validly.
@@ -51,6 +49,7 @@ sub main {
     }
 
     test_save_and_reload_no_suffix ($bd);
+    test_save_and_reload_bung_file ($bd);
 
     #  do we get a consistent clone/saved version?
     foreach my $type (sort keys %objects_to_test) {
@@ -198,5 +197,21 @@ sub test_save_and_reload_non_existent_folder {
     
 }
 
+sub test_save_and_reload_bung_file {
+    my $object = shift;
+
+    state $iter;
+    $iter++;
+    my $fname = get_temp_file_path("biodiverse$iter.bds");
+    open my $fh, '>', $fname
+      or die "Unable to open $fname, $!";
+    print {$fh} "blahdeblahblahblah\n";
+    $fh->close;
+    undef $fh;
+    
+    dies_ok {
+        $object->load_file (file => $fname);
+    } "Error raised on loading non-conformant file";
+}
 
 1;

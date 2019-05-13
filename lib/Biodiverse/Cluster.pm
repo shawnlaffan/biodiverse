@@ -127,10 +127,22 @@ sub export_nexus {
     if ($args{generate_geotiff}) {
         my $clr_fname = $args{file} . '_' . $list_name . '.clr';
         my $qml_fname = $args{file} . '_' . $list_name . '.txt';
-        open $fh_clr, '>', $clr_fname
-          or croak "Unable to open ESRI color map file for writing\n$!";
-        open $fh_qml, '>', $qml_fname
-          or croak "Unable to open QGIS color map file for writing\n$!";
+        $fh_clr = eval {
+            $self->get_file_handle (
+                file_name => $clr_fname,
+                mode      => '>',
+            );
+        };
+        croak "Unable to open ESRI color map file for writing\n$@"
+          if $@;
+        $fh_qml = eval {
+            $self->get_file_handle (
+                file_name => $qml_fname,
+                mode      => '>',
+            );
+        };
+        croak "Unable to open QGIS color map file for writing\n$@"
+          if $@;
     }
     
     #  do the tree

@@ -862,12 +862,20 @@ sub export_delimited_text {
     }
     
     my $fh;
-    if (!$args{_no_fh}) {  #  allow control of $fh for test purposes
-        open $fh, '>', $filename or croak "Could not open $filename\n";
+    #  allow control of $fh for test purposes
+    if (!$args{_no_fh}) {
+        $fh = $self->get_file_handle (
+            file_name => $filename,
+            mode      => '>',
+        );
     }
     my $csv_obj = $self->get_csv_object_for_export (%args);
 
-    my $table = $self->to_table (%args, file_handle => $fh, csv_object => $csv_obj);
+    my $table = $self->to_table (
+        %args,
+        file_handle => $fh,
+        csv_object  => $csv_obj,
+    );
 
     if (scalar @$table) {
         eval {

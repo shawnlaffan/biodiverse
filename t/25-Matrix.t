@@ -1,9 +1,9 @@
-#!/usr/bin/perl -w
-#
 #  tests for both normal and lowmem matrices, where they overlap in methods
 use 5.010;
 use strict;
 use warnings;
+use utf8;
+
 
 use FindBin qw/$Bin/;
 use Test::Lib;
@@ -253,7 +253,9 @@ sub test_cluster_analysis {
 sub test_import_sparse_format {
     my $mx = create_matrix_object();
 
-    my $fname = rand() . 'tmp_mx.csv';
+    state $imp_sparse_fnum;
+    $imp_sparse_fnum++;
+    my $fname = "tmp_ḿx_sparse_${imp_sparse_fnum}.csv";
 
     $mx->export (
         format => 'Delimited text',

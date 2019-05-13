@@ -278,7 +278,7 @@ sub export_prng_init_state {
 
     my $filename = $args{file};
 
-    open (my $fh, '>', $filename) || croak "Unable to open $filename\n";
+    my $fh = $self->get_file_handle (file_name => $filename, mode => '>');
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 
@@ -310,7 +310,7 @@ sub export_prng_current_state {
 
     my $filename = $args{file};
 
-    open (my $fh, '>', $filename) || croak "Unable to open $filename\n";
+    my $fh = $self->get_file_handle (file_name => $filename, mode => '>');
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
 

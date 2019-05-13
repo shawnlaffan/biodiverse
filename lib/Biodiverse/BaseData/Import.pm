@@ -1748,7 +1748,7 @@ sub import_data_spreadsheet {
 
         #  some validation (and get the col numbers)
         my $i = -1;
-        my %db_rec1 = map { $_ => ++$i } @$header;
+        my %db_rec1 = map { ($_ // '') => ++$i } @$header;
         foreach my $key (@label_field_names) {
             croak "Spreadsheet does not have a field "
                 . "called $key in book $sheet_id\n"

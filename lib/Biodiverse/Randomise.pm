@@ -423,11 +423,8 @@ sub run_randomisation {
     delete $args{function};  #  don't want to pass unnecessary args on to the function
     $self->set_param (FUNCTION => $function);  #  store it
 
-    my $iterations = $args{iterations} || 1;
-    delete $args{iterations};
-
-    my $max_iters = $args{max_iters};
-    delete $args{max_iters};
+    my $iterations = delete $args{iterations} || 1;
+    my $max_iters  = delete $args{max_iters};
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
 
@@ -789,10 +786,13 @@ sub _get_randomised_basedata {
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     #  do we have one or more valid conditions which imply a subset is needed?
-    my $check = join '', map {$_ // ''} ($args{spatial_conditions_for_subset}, $args{definition_query});
-    $check =~ s/\s//g;
+    my $using_subsets
+      = join '',
+        map {$_ // ''}
+        @args{qw /spatial_conditions_for_subset definition_query/};
+    $using_subsets =~ s/\s//g;
 
-    if (length $check) {
+    if (length $using_subsets) {
         $rand_bd = $self->get_rand_structured_subset(%args);
         $bd->transfer_label_properties (
             %args,
@@ -1194,8 +1194,8 @@ sub rand_csr_by_group {
 
     my $progress_bar = Biodiverse::Progress->new();
 
-    my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
-    delete $args{rand_object};
+    #  can't store MRMA objects to all output formats and then recreate
+    my $rand = delete $args{rand_object};
 
     my $progress_text = "rand_csr_by_group: complete spatial randomisation\n";
 
@@ -1527,8 +1527,8 @@ sub rand_structured {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
-    my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
-    delete $args{rand_object};
+    #  can't store MRMA objects to all output formats and then recreate
+    my $rand = delete $args{rand_object};  
 
     my $sp_for_label_allocation = $self->get_spatial_output_for_label_allocation (%args);
 
@@ -1559,7 +1559,8 @@ sub rand_structured {
 
     my $progress_bar = Biodiverse::Progress->new();
 
-    #  need to get these from the ARGS param if available - should also croak if negative
+    #  need to get these from the ARGS param if available
+    #  - should also croak if negative
     my $multiplier = $args{richness_multiplier} // 1;
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');
@@ -2088,8 +2089,8 @@ sub get_rand_structured_subset {
 
     my $progress_bar = Biodiverse::Progress->new();
 
-    my $rand_object = $args{rand_object};  #  can't store to all output formats and then recreate
-    delete $args{rand_object};
+    #  can't store MRMA objects to all output formats and then recreate
+    my $rand_object = delete $args{rand_object};  
 
     my $sp = $self->get_param('SUBSET_SPATIAL_OUTPUT');
     #  build one if we don't have it cached

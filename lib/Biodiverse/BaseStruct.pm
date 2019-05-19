@@ -1252,8 +1252,19 @@ sub get_lists_across_elements {
 
     #  get from cache
     my $cache_name_listnames   = "LISTS_ACROSS_ELEMENTS_${list_method}_${no_private}";
-    my $cache_name_last_update = "LISTS_ACROSS_ELEMENTS_MAX_SEARCH_${list_method}_${no_private}";
-    my $cache_name_max_search  = "LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME_${list_method}_${no_private}";
+    my $cache_name_max_search  = "LISTS_ACROSS_ELEMENTS_MAX_SEARCH_${list_method}_${no_private}";
+    my $cache_name_last_update = "LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME_${list_method}_${no_private}";
+
+    my $last_cache_time
+        = $self->get_cached_value ($cache_name_last_update)
+          || time;
+
+    #  we were caching the wrong order, so reset if need be 
+    if ($last_cache_time < 1472007422) {
+        $self->delete_cached_values (
+            keys => [$cache_name_last_update, $cache_name_last_update],
+        );
+    }
 
     my $cached_list = $self->get_cached_value ($cache_name_listnames);
     my $cached_list_max_search
@@ -1264,10 +1275,6 @@ sub get_lists_across_elements {
     if (!defined $last_update_time) {  #  store for next time
         $self->set_last_update_time (time - 10); # ensure older given time precision
     }
-
-    my $last_cache_time
-        = $self->get_cached_value ($cache_name_last_update)
-          || time;
 
     my $time_diff = defined $last_update_time
                     ? $last_cache_time - $last_update_time

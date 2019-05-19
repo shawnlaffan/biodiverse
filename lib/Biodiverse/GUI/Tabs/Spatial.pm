@@ -1946,25 +1946,42 @@ sub recolour {
     return if !defined $index;
 
     my $colour_none = $self->get_undef_cell_colour // COLOUR_WHITE;
+    my $colour_cache
+      = $output_ref->get_cached_value_dor_set_default_aa (
+        GUI_CELL_COLOURS => {},
+    );
+    #  warm up the cache.  
+    #  we otherwise get hard crashes if we try
+    #  to autoviv the cache hash in the callback
+    my $ccache = $colour_cache->{$list}{$index} //= {};
 
     my $colour_func = sub {
-        no autovivification;
-
         my $elt = shift // return;
-        return $self->get_excluded_cell_colour
-          if !$output_ref->group_passed_def_query(group => $elt);
 
-        #  should use a method here
-        my $val = $elements_hash->{$elt}{$list}{$index};
-        return defined $val
-            ? $grid->get_colour($val, $min, $max)
-            : $colour_none;
+        my $colour;
+        if (!$output_ref->group_passed_def_query_aa($elt)) {
+            $colour = $self->get_excluded_cell_colour;
+        }
+        else {
+            no autovivification;
+            #  should use a method here
+            my $val = $elements_hash->{$elt}{$list}{$index};
+            $colour = defined $val
+              ? $grid->get_colour($val, $min, $max)
+              : $colour_none;
+        }
+        
+        my $colour_string = $colour->to_string;
+        $ccache->{$elt}
+          = $output_ref->rgb_12bit_to_8bit_aa ($colour_string);
+
+        return $colour;
     };
     
-    my $defq_callback = sub {
-        my $elt = shift // return;
-        !$output_ref->group_passed_def_query(group => $elt);
-    };
+    #my $defq_callback = sub {
+    #    my $elt = shift // return;
+    #    !$output_ref->group_passed_def_query(group => $elt);
+    #};
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);

@@ -2735,6 +2735,31 @@ sub get_sig_rank_from_comp_results {
 #    return;
 #}
 
+sub rgb_12bit_to_8bit_aa {
+    my ($self, $colour) = @_;
+    
+    return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
+
+    my $proper_form_string = "#";
+    my @wanted_indices = (1, 2, 5, 6, 9, 10);
+    foreach my $index (@wanted_indices) {
+        $proper_form_string .= substr($colour, $index, 1);
+    }
+
+    return $proper_form_string;
+}
+
+sub rgb_12bit_to_8bit  {
+    my ($self, %args) = @_;
+    my $colour = $args{colour};
+
+    #  only worry about #RRRRGGGGBBBB
+    return $colour if !defined $colour || $colour !~ /^#[a-fA-F\d]{12}$/;
+
+    return $self->rgb_12bit_to_8bit_aa ($colour);    
+}
+
+
 sub numerically {$a <=> $b};
 
 sub min {$_[0] < $_[1] ? $_[0] : $_[1]};

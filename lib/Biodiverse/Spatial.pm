@@ -1338,6 +1338,11 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
+#  syntactic sugar
+sub group_passed_def_query_aa {
+    $_[0]->group_passed_def_query (group => $_[1])
+}
+
 sub group_passed_def_query {
     my $self = shift;
     my %args = @_;
@@ -1349,7 +1354,7 @@ sub group_passed_def_query {
 
     my $passed = $self->get_param('PASS_DEF_QUERY');
 
-    no autovivification;
+    #no autovivification;
 
     #  return true if no def query was run
     return $passed ? $passed->{$group} : 1;  

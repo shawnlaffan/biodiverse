@@ -1951,9 +1951,8 @@ sub recolour {
         no autovivification;
 
         my $elt = shift // return;
-        if (!$output_ref->group_passed_def_query(group => $elt)) {
-            return $self->get_excluded_cell_colour;
-        }
+        return $self->get_excluded_cell_colour
+          if !$output_ref->group_passed_def_query(group => $elt);
 
         #  should use a method here
         my $val = $elements_hash->{$elt}{$list}{$index};

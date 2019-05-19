@@ -217,10 +217,11 @@ sub set_legend {
 # Update the position and/or mode of the legend.
 sub update_legend {
     my $self = shift;
-    my $legend = $self->get_legend;
-    if ($self->{width_px} && $self->{height_px}) {
-        $legend->reposition($self->{width_px}, $self->{height_px});
-    }
+
+    return if !($self->{width_px} && $self->{height_px});
+
+    $self->get_legend->reposition($self->{width_px}, $self->{height_px});
+
     return;
 }
 
@@ -890,7 +891,7 @@ sub get_colour_from_chooser {
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
     my $legend = $self->get_legend;
-    return if ! ($legend);
+    return if ! $legend;
     $legend->set_min_max($min,$max);
 }
 

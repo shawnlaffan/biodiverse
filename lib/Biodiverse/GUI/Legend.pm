@@ -433,8 +433,8 @@ sub set_colour_for_undef {
 }
 
 my %colour_methods = (
-    Hue => 'get_colour_hue',
-    Sat => 'get_colour_saturation',
+    Hue  => 'get_colour_hue',
+    Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
 );
 

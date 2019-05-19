@@ -395,6 +395,34 @@ sub get_nodata_export_metadata {
     return wantarray ? @$metadata : $metadata;
 }
 
+sub get_raster_colour_table_export_metadata {
+    my $self = shift;
+
+    my $tooltip = <<'TOOLTIP'
+Generate colour table files 
+to reproduce colour stretches 
+in GIS software.  Provides the 
+last colours used for display 
+so has no effect for indices
+that have not been displayed.
+TOOLTIP
+  ;
+
+    my $metadata = [ 
+        {
+            name        => 'generate_colour_tables',
+            label_text  => 'Generate colour tables',
+            tooltip     => $tooltip,
+            type        => 'boolean',
+            default     => 0
+        },   
+    ];
+    foreach (@$metadata) {
+        bless $_, $parameter_metadata_class;
+    }
+
+    return wantarray ? @$metadata : $metadata;
+}
 
 sub get_raster_export_metadata {
     my $self = shift;
@@ -486,6 +514,7 @@ sub get_metadata_export_geotiff {
         parameters => [
             $self->get_common_export_metadata(),
             $self->get_raster_export_metadata(),
+            $self->get_raster_colour_table_export_metadata(),
         ],
     ); 
 
@@ -1727,6 +1756,8 @@ sub write_table_geotiff {
         $suffix = '.tif';
     }
     
+    my $generate_colour_tables = $args{generate_colour_tables};
+    
     my $band_type = $args{band_type} // 'Float32';  #  should probably detect this from the data
     #  need more
     my %pack_codes = (
@@ -1771,6 +1802,7 @@ END_TFW
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
 
     my @file_names;
+    my %index_fname_hash;
     foreach my $i (@band_cols) {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
@@ -1778,6 +1810,7 @@ END_TFW
         my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename   .= $suffix;
         $file_names[$i] = $filename;
+        $index_fname_hash{$header->[$i]} = $filename;
     }
 
     my %coords;
@@ -1827,6 +1860,99 @@ END_TFW
         );
         print {$fh} $tfw;
         $fh->close;
+    }
+    
+    my $zz;
+    if ($generate_colour_tables) {
+        #  should generate a three band RGB tiff
+        #https://gis.stackexchange.com/questions/247906/how-to-create-an-rgb-geotiff-file-raster-from-bands-using-the-gdal-python-module
+        my $cached_colours = $self->get_cached_value ('GUI_CELL_COLOURS');
+        my $list_name = $args{list};  #  should handle list_names also
+        foreach my $index (keys %index_fname_hash) {
+            my $href = $cached_colours->{$list_name}{$index};
+            next if !$href;
+            
+            #  local override
+            my $no_data = 0;
+            
+            my $bs = Biodiverse::BaseStruct->new (
+                NAME => $index_fname_hash{$index},
+                CELL_SIZES   => [$self->get_cell_sizes],
+                CELL_ORIGINS => [$self->get_cell_origins],
+            );
+            foreach my $elt (keys %$href) {
+                my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
+                @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
+                my %rgb_hash;
+                @rgb_hash{qw /red green blue/} = @rgb_arr;
+                $bs->add_element (element => $elt);
+                $bs->add_lists (
+                    element => $elt,
+                    rgb     => \%rgb_hash,
+                );
+            }
+            my $data_table = $bs->to_table (list => 'rgb', symmetric => 1);
+            my $r = $self->raster_export_process_args (
+                %args,
+                data => $data_table,
+                no_data_value => $no_data,
+            );
+            my $rgb_data_hash = $r->{DATA_HASH};
+            my $y_col = -1;
+            my @rgb_band_cols = (5,4,3);  #  rgb alpha sorted
+            my @rgb_band_data;
+            foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+                $y_col++;
+                my $x_col = -1;
+                foreach my $x ($min_ids[0] .. $max_ids[0]) {
+                    $x_col++;
+                    my $coord_id = join (':', $x, $y);
+                    foreach my $i (@rgb_band_cols) { 
+                        next if $coord_cols_hash{$i};  #  skip if it is a coordinate
+                        my $value = $rgb_data_hash->{$coord_id}[$i];
+                        if (defined $value) {
+                            $rgb_band_data[$i][$y_col][$x_col] = 0+$value;
+                            $rgb_band_data[6][$y_col][$x_col]  //= 2**16-1;
+                        }
+                        else {
+                            $rgb_band_data[$i][$y_col][$x_col] = 0;
+                            $rgb_band_data[6][$y_col][$x_col]  = 0;
+                        }
+                    }
+                }
+            }
+            
+            #my $options = {PHOTOMETRIC => 'RGB', PROFILE => 'GeoTIFF'};
+            #my $options = {ALPHA => 'YES'};
+            my $f_name = $index_fname_hash{$index};
+            $f_name =~ s/.tif$/_rgb.tif/;
+            my $out_raster
+              = $driver->Create($f_name, {
+                    Width    => $ncols,
+                    Height   => $nrows,
+                    Bands    => 4,
+                    DataType => 'UInt16',
+                    #Options  => $options,
+                });
+            my $band_id = 0;
+            #  rgba sort order
+            foreach my $rgb_data (@rgb_band_data[5,4,3,6]) {
+                next if !defined $rgb_data;
+                $band_id++;
+                say "Band ID is $band_id";
+                my $out_band = $out_raster->GetBand($band_id);
+                #$out_band->SetNoDataValue ($no_data);
+                $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
+            }
+            
+            my $f_name_tfw = $f_name . 'w';
+            my $fh = $self->get_file_handle (
+                file_name => $f_name_tfw,
+                mode      => '>',
+            );
+            print {$fh} $tfw;
+            $fh->close;
+        }
     }
 
     return;

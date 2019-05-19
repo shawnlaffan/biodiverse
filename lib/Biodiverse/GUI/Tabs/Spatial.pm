@@ -1953,6 +1953,8 @@ sub recolour {
     #  warm up the cache.  
     #  we otherwise get hard crashes if we try
     #  to autoviv the cache hash in the callback
+    say 'WARNING - CLEARING CACHE FOR DEBUG';
+    delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
 
     my $colour_func = sub {
@@ -1971,9 +1973,7 @@ sub recolour {
               : $colour_none;
         }
         
-        my $colour_string = $colour->to_string;
-        $ccache->{$elt}
-          = $output_ref->rgb_12bit_to_8bit_aa ($colour_string);
+        $ccache->{$elt} = $colour->to_string;
 
         return $colour;
     };

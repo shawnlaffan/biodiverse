@@ -395,23 +395,24 @@ sub get_nodata_export_metadata {
     return wantarray ? @$metadata : $metadata;
 }
 
-sub get_raster_colour_table_export_metadata {
+sub get_rgb_geotiff_export_metadata {
     my $self = shift;
 
     my $tooltip = <<'TOOLTIP'
-Generate colour table files 
-to reproduce colour stretches 
-in GIS software.  Provides the 
-last colours used for display 
-so has no effect for indices
-that have not been displayed.
+Generate RGBA format TIFF files
+of each index that has been
+displayed in the GUI.
+This allows reproduction of
+colour stretches using GIS software.
+Indices that have not been
+displayed are not exported.
 TOOLTIP
   ;
 
     my $metadata = [ 
         {
-            name        => 'generate_colour_tables',
-            label_text  => 'Generate colour tables',
+            name        => 'generate_rgb_rasters',
+            label_text  => 'Generate RGB rasters',
             tooltip     => $tooltip,
             type        => 'boolean',
             default     => 0
@@ -514,6 +515,7 @@ sub get_metadata_export_geotiff {
         parameters => [
             $self->get_common_export_metadata(),
             $self->get_raster_export_metadata(),
+            $self->get_rgb_geotiff_export_metadata(),
         ],
     ); 
 
@@ -526,7 +528,7 @@ sub export_geotiff {
 
     my $table = $self->to_table (%args, symmetric => 1);
 
-    $self->write_table_geotiff_rgb (%args, data => $table);
+    $self->write_table_geotiff (%args, data => $table);
 
     return;
 }
@@ -1775,7 +1777,7 @@ sub write_table_geotiff {
         $suffix = '.tif';
     }
     
-    my $generate_colour_tables = $args{generate_colour_tables};
+    my $generate_rgb_rasters = $args{generate_rgb_rasters};
     
     my $band_type = $args{band_type} // 'Float32';  #  should probably detect this from the data
     #  need more
@@ -1863,84 +1865,8 @@ sub write_table_geotiff {
     }
     
 
-    if ($generate_colour_tables) {
-        #  generate a four band RGB tiff
-        #  https://gis.stackexchange.com/questions/247906/how-to-create-an-rgb-geotiff-file-raster-from-bands-using-the-gdal-python-module
-        my $cached_colours = $self->get_cached_value ('GUI_CELL_COLOURS');
-        my $list_name = $args{list};  #  should handle list_names also
-        foreach my $index (keys %index_fname_hash) {
-            my $href = $cached_colours->{$list_name}{$index};
-            next if !$href;
-            
-            #  local override
-            my $no_data = 0;
-            
-            my $bs = Biodiverse::BaseStruct->new (
-                NAME => $index_fname_hash{$index},
-                CELL_SIZES   => [$self->get_cell_sizes],
-                CELL_ORIGINS => [$self->get_cell_origins],
-            );
-            foreach my $elt (keys %$href) {
-                my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
-                @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
-                my %rgb_hash;
-                @rgb_hash{qw /red green blue/} = @rgb_arr;
-                $bs->add_element (element => $elt);
-                $bs->add_lists (
-                    element => $elt,
-                    rgb     => \%rgb_hash,
-                );
-            }
-            my $data_table = $bs->to_table (list => 'rgb', symmetric => 1);
-            my $r = $self->raster_export_process_args (
-                %args,
-                data => $data_table,
-                no_data_value => $no_data,
-            );
-            my $rgb_data_hash = $r->{DATA_HASH};
-            my $y_col = -1;
-            my @rgb_band_cols = (5,4,3);  #  rgb alpha sorted
-            my @rgb_band_data;
-            foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
-                $y_col++;
-                my $x_col = -1;
-                foreach my $x ($min_ids[0] .. $max_ids[0]) {
-                    $x_col++;
-                    my $coord_id = join (':', $x, $y);
-                    foreach my $i (@rgb_band_cols) { 
-                        next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                        my $value = $rgb_data_hash->{$coord_id}[$i];
-                        if (defined $value) {
-                            $rgb_band_data[$i][$y_col][$x_col] = 0+$value;
-                            $rgb_band_data[6][$y_col][$x_col]  //= 2**16-1;
-                        }
-                        else {
-                            $rgb_band_data[$i][$y_col][$x_col] = 0;
-                            $rgb_band_data[6][$y_col][$x_col]  = 0;
-                        }
-                    }
-                }
-            }
-            
-            my $f_name = $index_fname_hash{$index};
-            $f_name =~ s/$suffix$/_rgb$suffix/;
-            my $out_raster
-              = $driver->Create($f_name, {
-                    Width    => $ncols,
-                    Height   => $nrows,
-                    Bands    => 4,
-                    DataType => 'UInt16',
-                });
-            $out_raster->SetGeoTransform ($tfw_tfm);
-            my $band_id = 0;
-            #  ensure rgba sort order
-            foreach my $rgb_data (@rgb_band_data[5,4,3,6]) {
-                next if !defined $rgb_data;
-                $band_id++;
-                my $out_band = $out_raster->GetBand($band_id);
-                $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
-            }
-        }
+    if ($generate_rgb_rasters) {
+        $self->write_rgb_geotiff (%args);
     }
 
     return;

@@ -1635,9 +1635,6 @@ sub write_table_divagis {
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
-    #  are we LSB or MSB?
-    my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
-
     my @fh;  #  file handles
     my @file_names;
     foreach my $i (@band_cols) {
@@ -1791,9 +1788,6 @@ sub write_table_geotiff {
     my $ul_ceny = $max[1] + 0.5 * $res[1];
     my $tfw_tfm = [$ul_cenx, $res[0], 0, $ul_ceny, 0, -$res[1]];
 
-    #  are we LSB or MSB?
-    my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
-
     my @file_names;
     my %index_fname_hash;
     foreach my $i (@band_cols) {
@@ -1846,10 +1840,10 @@ sub write_table_geotiff {
         $out_band->Write($pdata, 0, 0, $ncols, $nrows);
     }
     
-    my $zz;
+
     if ($generate_colour_tables) {
-        #  should generate a three band RGB tiff
-        #https://gis.stackexchange.com/questions/247906/how-to-create-an-rgb-geotiff-file-raster-from-bands-using-the-gdal-python-module
+        #  generate a four band RGB tiff
+        #  https://gis.stackexchange.com/questions/247906/how-to-create-an-rgb-geotiff-file-raster-from-bands-using-the-gdal-python-module
         my $cached_colours = $self->get_cached_value ('GUI_CELL_COLOURS');
         my $list_name = $args{list};  #  should handle list_names also
         foreach my $index (keys %index_fname_hash) {
@@ -1907,24 +1901,21 @@ sub write_table_geotiff {
             }
             
             my $f_name = $index_fname_hash{$index};
-            $f_name =~ s/.tif$/_rgb.tif/;
+            $f_name =~ s/$suffix$/_rgb$suffix/;
             my $out_raster
               = $driver->Create($f_name, {
                     Width    => $ncols,
                     Height   => $nrows,
                     Bands    => 4,
                     DataType => 'UInt16',
-                    #Options  => $options,
                 });
             $out_raster->SetGeoTransform ($tfw_tfm);
             my $band_id = 0;
-            #  rgba sort order
+            #  ensure rgba sort order
             foreach my $rgb_data (@rgb_band_data[5,4,3,6]) {
                 next if !defined $rgb_data;
                 $band_id++;
-                say "Band ID is $band_id";
                 my $out_band = $out_raster->GetBand($band_id);
-                #$out_band->SetNoDataValue ($no_data);
                 $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
             }
         }

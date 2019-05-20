@@ -514,7 +514,6 @@ sub get_metadata_export_geotiff {
         parameters => [
             $self->get_common_export_metadata(),
             $self->get_raster_export_metadata(),
-            $self->get_raster_colour_table_export_metadata(),
         ],
     ); 
 
@@ -527,7 +526,30 @@ sub export_geotiff {
 
     my $table = $self->to_table (%args, symmetric => 1);
 
-    $self->write_table_geotiff (%args, data => $table);
+    $self->write_table_geotiff_rgb (%args, data => $table);
+
+    return;
+}
+
+sub get_metadata_export_rgb_geotiff {
+    my $self = shift;
+
+    my %args = (
+        format => 'RGB GeoTIFF',
+        parameters => [
+            $self->get_common_export_metadata(),
+            #$self->get_raster_export_metadata(),
+        ],
+    ); 
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_rgb_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    $self->write_rgb_geotiff (%args);
 
     return;
 }
@@ -1923,6 +1945,127 @@ sub write_table_geotiff {
 
     return;
 }
+
+#  write a table out as a series of ESRI floatgrid files,
+#  one per field based on row 0.
+#  Skip any fields that contain non-numeric values
+sub write_rgb_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{file} || croak "file arg not specified\n";
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
+        $suffix = '.tif';
+    }
+
+    my $format = "GTiff";
+    my $driver = Geo::GDAL::FFI::GetDriver( $format );
+
+    #  generate a four band RGB tiff
+    #  https://gis.stackexchange.com/questions/247906/how-to-create-an-rgb-geotiff-file-raster-from-bands-using-the-gdal-python-module
+    my $cached_colours = $self->get_cached_value ('GUI_CELL_COLOURS');
+    my $list_name = $args{list};  #  should handle {list_names} also
+    my $indices = $self->get_hash_list_keys_across_elements (list => $list_name);
+
+    foreach my $index (@$indices) {
+        no autovivification;
+        my $href = $cached_colours->{$list_name}{$index};
+        next if !$href;
+        
+        my $this_file = "${name}_${index}_rgb";
+        $this_file = $self->escape_filename (string => $this_file);
+
+        my $f_name = Path::Class::file($path, $this_file)->stringify;
+        $f_name   .= $suffix;
+
+        #  we really should cache using a basestruct        
+        my $bs = Biodiverse::BaseStruct->new (
+            NAME => $f_name,
+            CELL_SIZES   => [$self->get_cell_sizes],
+            CELL_ORIGINS => [$self->get_cell_origins],
+        );
+        foreach my $elt (keys %$href) {
+            my @rgb_arr = $href->{$elt} =~ /([a-fA-F\d]{4})/g;
+            @rgb_arr = map {0 + hex "0x$_"} @rgb_arr;
+            my %rgb_hash;
+            @rgb_hash{qw /red green blue/} = @rgb_arr;
+            $bs->add_element (element => $elt);
+            $bs->add_lists (
+                element => $elt,
+                rgb     => \%rgb_hash,
+            );
+        }
+        my $data_table = $bs->to_table (list => 'rgb', symmetric => 1);
+        my $r = $self->raster_export_process_args (
+            %args,
+            data => $data_table,
+            no_data_value => 0,
+        );
+        my @min       = @{$r->{MIN}};
+        my @max       = @{$r->{MAX}};
+        my @min_ids   = @{$r->{MIN_IDS}};
+        my @max_ids   = @{$r->{MAX_IDS}};
+        my @band_cols = @{$r->{BAND_COLS}};
+        my $header    =   $r->{HEADER};
+        #my $no_data   =   $r->{NODATA};
+        my @res       = @{$r->{RESOLUTIONS}};
+        my $ncols     =   $r->{NCOLS};
+        my $nrows     =   $r->{NROWS};
+    
+        my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
+    
+        my $ll_cenx = $min[0] - 0.5 * $res[0];
+        my $ul_cenx = $min[0] - 0.5 * $res[0];
+        my $ll_ceny = $min[1] - 0.5 * $res[1];
+        my $ul_ceny = $max[1] + 0.5 * $res[1];
+        my $tfw_tfm = [$ul_cenx, $res[0], 0, $ul_ceny, 0, -$res[1]];
+        my $rgb_data_hash = $r->{DATA_HASH};
+        my $y_col = -1;
+        my @rgb_band_cols = (5,4,3);  #  rgb alpha sorted
+        my @rgb_band_data;
+        foreach my $y (reverse ($min_ids[1] .. $max_ids[1])) {
+            $y_col++;
+            my $x_col = -1;
+            foreach my $x ($min_ids[0] .. $max_ids[0]) {
+                $x_col++;
+                my $coord_id = join (':', $x, $y);
+                foreach my $i (@rgb_band_cols) { 
+                    next if $coord_cols_hash{$i};  #  skip if it is a coordinate
+                    my $value = $rgb_data_hash->{$coord_id}[$i];
+                    if (defined $value) {
+                        $rgb_band_data[$i][$y_col][$x_col] = 0+$value;
+                        $rgb_band_data[6][$y_col][$x_col]  //= 2**16-1;
+                    }
+                    else {
+                        $rgb_band_data[$i][$y_col][$x_col] = 0;
+                        $rgb_band_data[6][$y_col][$x_col]  = 0;
+                    }
+                }
+            }
+        }
+        
+        my $out_raster
+          = $driver->Create($f_name, {
+                Width    => $ncols,
+                Height   => $nrows,
+                Bands    => 4,
+                DataType => 'UInt16',
+            });
+        $out_raster->SetGeoTransform ($tfw_tfm);
+        my $band_id = 0;
+        #  ensure rgba sort order
+        foreach my $rgb_data (@rgb_band_data[5,4,3,6]) {
+            #next if !defined $rgb_data;
+            $band_id++;
+            my $out_band = $out_raster->GetBand($band_id);
+            $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
+        }
+    }
+
+    return;
+}
+
 
 #  write a table out as an ER-Mapper ERS BIL file.
 sub write_table_ers {

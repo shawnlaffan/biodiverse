@@ -1785,18 +1785,11 @@ sub write_table_geotiff {
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
-    my $ll_cenx = $min[0];  # - 0.5 * $res[0];
-    my $ul_ceny = $max[1];  # - 0.5 * $res[1];
-
-    my $tfw = <<"END_TFW"
-$res[0]
-0
-0
--$res[1]
-$ll_cenx
-$ul_ceny
-END_TFW
-  ;
+    my $ll_cenx = $min[0] - 0.5 * $res[0];
+    my $ul_cenx = $min[0] - 0.5 * $res[0];
+    my $ll_ceny = $min[1] - 0.5 * $res[1];
+    my $ul_ceny = $max[1] + 0.5 * $res[1];
+    my $tfw_tfm = [$ul_cenx, $res[0], 0, $ul_ceny, 0, -$res[1]];
 
     #  are we LSB or MSB?
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
@@ -1827,8 +1820,6 @@ END_TFW
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
                 my $value = $data_hash{$coord_id}[$i] // $no_data;
-                #$bands[$i] .= pack $pack_code, $value;
-                #$bands[$i][$y] //= [];
                 $bands[$i][$y_col][$x_col] = 0+$value;
             }
         }
@@ -1849,17 +1840,10 @@ END_TFW
                 DataType => $band_type
             });
 
+        $out_raster->SetGeoTransform ($tfw_tfm);
         my $out_band = $out_raster->GetBand();
         $out_band->SetNoDataValue ($no_data);
         $out_band->Write($pdata, 0, 0, $ncols, $nrows);
-
-        my $f_name_tfw = $f_name . 'w';
-        my $fh = $self->get_file_handle (
-            file_name => $f_name_tfw,
-            mode      => '>',
-        );
-        print {$fh} $tfw;
-        $fh->close;
     }
     
     my $zz;
@@ -1922,8 +1906,6 @@ END_TFW
                 }
             }
             
-            #my $options = {PHOTOMETRIC => 'RGB', PROFILE => 'GeoTIFF'};
-            #my $options = {ALPHA => 'YES'};
             my $f_name = $index_fname_hash{$index};
             $f_name =~ s/.tif$/_rgb.tif/;
             my $out_raster
@@ -1934,6 +1916,7 @@ END_TFW
                     DataType => 'UInt16',
                     #Options  => $options,
                 });
+            $out_raster->SetGeoTransform ($tfw_tfm);
             my $band_id = 0;
             #  rgba sort order
             foreach my $rgb_data (@rgb_band_data[5,4,3,6]) {
@@ -1944,14 +1927,6 @@ END_TFW
                 #$out_band->SetNoDataValue ($no_data);
                 $out_band->Write($rgb_data, 0, 0, $ncols, $nrows);
             }
-            
-            my $f_name_tfw = $f_name . 'w';
-            my $fh = $self->get_file_handle (
-                file_name => $f_name_tfw,
-                mode      => '>',
-            );
-            print {$fh} $tfw;
-            $fh->close;
         }
     }
 

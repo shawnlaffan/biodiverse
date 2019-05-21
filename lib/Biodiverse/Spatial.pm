@@ -734,7 +734,7 @@ sub sp_calc {
                 list    => 'RESULTS_SAME_AS',
             );
 
-        my @nbr_list = $self->get_nbrs_for_element (
+        my $nbr_list = $self->get_nbrs_for_element (
             element       => $element,
             use_nbrs_from => $use_nbrs_from,
             elements_to_exclude => \@elements_to_exclude,
@@ -742,8 +742,8 @@ sub sp_calc {
         );
 
         my %elements = (
-            element_list1 => $nbr_list[0],
-            element_list2 => $nbr_list[1],
+            element_list1 => $nbr_list->[0],
+            element_list2 => $nbr_list->[1],
         );
 
         #  this is the meat of it all
@@ -788,7 +788,7 @@ sub sp_calc {
             #  - does not affect calcs, only recycled results.
             %nbrs_1 = map  {$_ => 1}
                       grep {exists $elements_to_use{$_}}
-                      @{$nbr_list[0]};
+                      @{$nbr_list->[0]};
 
           RECYC:
             foreach my $first_nbr (keys %nbrs_1) {
@@ -798,7 +798,7 @@ sub sp_calc {
                     #  copy the neighbour sets for those that are recyclable
                     $self->recycle_nbr_lists (
                         recyclable_nbrhoods => $recyclable_nbrhoods,
-                        nbr_lists           => \@nbr_list,
+                        nbr_lists           => $nbr_list,
                         nbrs_1              => \%nbrs_1,
                         definition_query    => $definition_query,
                         pass_def_query      => $pass_def_query,

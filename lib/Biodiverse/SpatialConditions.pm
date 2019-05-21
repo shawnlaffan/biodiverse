@@ -726,13 +726,11 @@ sub get_distances {
 
 #  evaluate a pair of coords
 sub evaluate {
-    my $self = shift // croak "\$self is undefined";
-    my %args = (
-        calc_distances => $self->get_param('CALC_DISTANCES'),
-        @_,
-    );
+    my ($self, %args) = @_;
 
-    my $code_ref = $self->get_conditions_code_ref (%args);
+    my $code_ref = $self->get_conditions_code_ref;
+
+    $args{calc_distances} //= $self->get_param('CALC_DISTANCES');
 
     #  no explicit return here for speed reasons
     $self->$code_ref (%args);

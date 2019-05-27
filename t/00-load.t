@@ -12,7 +12,7 @@ use rlib;
 
 #  need to move GUI modules into their own test file
 BEGIN {
-    if (!$ENV{BD_NO_TEST_GUI}) {
+    if ($ENV{BD_TEST_GUI}) {
         eval 'use Biodiverse::GUI::GUIManager';  #  trigger loading of Gtk libs on Windows
     }
 }
@@ -31,7 +31,7 @@ sub Wanted {
     #  avoid ref/data alias as only one works at a time
     return if $filename =~ m/(?:Data|Ref)Alias\.pm$/;
     #  ignore GUI files
-    return if $ENV{BD_NO_TEST_GUI} && $filename =~ m/GUI/;
+    return if !$ENV{BD_TEST_GUI} && $filename =~ m/GUI/;
 
     $filename =~ s/\.pm$//;
     if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {

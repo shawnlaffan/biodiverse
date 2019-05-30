@@ -150,8 +150,8 @@ sub get_metadata_import_data_raster {
     my @parameters = (
         {
             name       => 'labels_as_bands',
-            label_text => 'Read bands as labels?',
-            tooltip => 'When reading raster data, does each band represent a '
+            label_text => 'Use band names as labels?',
+            tooltip => 'When reading raster data, does each band name represent a '
               . 'label (eg species)?',
             type    => 'boolean',
             default => 1,

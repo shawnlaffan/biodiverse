@@ -1374,24 +1374,20 @@ sub make_filename_dialog {
     $txtcsv_filter->add_pattern('*.csv');
     $txtcsv_filter->add_pattern('*.txt');
     $txtcsv_filter->set_name('txt and csv files');
-    $filechooser->add_filter($txtcsv_filter);
 
     $allfiles_filter = Gtk2::FileFilter->new();
     $allfiles_filter->add_pattern('*');
     $allfiles_filter->set_name('all files');
-    $filechooser->add_filter($allfiles_filter);
 
     $shapefiles_filter = Gtk2::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->set_name('shapefiles');
-    $filechooser->add_filter($shapefiles_filter);
 
     $spreadsheets_filter = Gtk2::FileFilter->new();
     $spreadsheets_filter->add_pattern('*.xlsx');
     $spreadsheets_filter->add_pattern('*.xls');
     $spreadsheets_filter->add_pattern('*.ods');
     $spreadsheets_filter->set_name('spreadsheets');
-    $filechooser->add_filter($spreadsheets_filter);
 
     #  could use a custom filter to detect more formats
     $rasters_filter = Gtk2::FileFilter->new();
@@ -1401,8 +1397,14 @@ sub make_filename_dialog {
     $rasters_filter->add_pattern('*.asc');
     $rasters_filter->add_pattern('*.flt');
     $rasters_filter->set_name('rasters');
-    $filechooser->add_filter($rasters_filter);
     
+    $filechooser->add_filter($txtcsv_filter);
+    $filechooser->add_filter($rasters_filter);
+    $filechooser->add_filter($shapefiles_filter);
+    $filechooser->add_filter($spreadsheets_filter);
+    $filechooser->add_filter($allfiles_filter);
+
+
     $filechooser->set_select_multiple(1);
     $filechooser->signal_connect(
         'selection-changed' => \&on_file_changed,
@@ -1438,19 +1440,14 @@ sub on_import_method_changed {
     my $active_choice = lc $format_combo->get_active_text;
     my $f_widget      = $dlgxml->get_object($filechooser_input);
 
-    # find which is selected
-    if ( $active_choice eq 'text' ) {
-        $f_widget->set_filter($txtcsv_filter);
-    }
-    elsif ( $active_choice eq 'raster' ) {
-        $f_widget->set_filter($allfiles_filter);
-    }
-    elsif ( $active_choice eq 'shapefile' ) {
-        $f_widget->set_filter($shapefiles_filter);
-    }
-    elsif ( $active_choice eq 'spreadsheet' ) {
-        $f_widget->set_filter($spreadsheets_filter);
-    }
+    my %filters = (
+        text        => $txtcsv_filter,
+        raster      => $rasters_filter,
+        shapefile   => $shapefiles_filter,
+        spreadsheet => $spreadsheets_filter,
+    );
+
+    $f_widget->set_filter($filters{$active_choice});
 
     return;
 }

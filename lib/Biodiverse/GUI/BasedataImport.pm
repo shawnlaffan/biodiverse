@@ -703,12 +703,12 @@ sub run {
         my $lb_specs = $column_settings->{labels};
         my $mx_format = $args{data_in_matrix_form};
 
-        if ($mx_format) {
-            foreach my $col (@$lb_col_order) {
-                my $idx = first_index { $col eq $_->{id} } @$lb_specs;
-                croak "aaaaaaargghhhhh this should not happen (lbs)\n" if $idx < 0;
-                push @label_col_names, $lb_specs->[$idx]{name};
-            }
+        foreach my $col (@$lb_col_order) {
+            my $idx = first_index { $col eq $_->{id} } @$lb_specs;
+            croak "Cannot find name for field $col.  "
+                . "Check that all columns have names.\n"
+                if $idx < 0;
+            push @label_col_names, $lb_specs->[$idx]{name};
         }
 
         my $gp_col_order = $gp_lb_cols{group_columns};

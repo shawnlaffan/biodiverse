@@ -1003,6 +1003,9 @@ sub import_data_shapefile {
     my @smp_count_field_names
       = map {lc $_}
         @{ $args{sample_count_col_names} // [] };
+        
+    croak "No label field names passed\n"
+      if !@label_field_names;
     
     my $is_lat_field = $args{is_lat_field};
     my $is_lon_field = $args{is_lon_field};

@@ -746,7 +746,7 @@ sub import_data_raster {
         my $info = $data->GetInfo;
         my ($coord_sys) = grep {/Coordinate System/i} split /[\r\n]+/, $info;
         #my $x = $data->GetProjectionString;  #  should use this?
-        say '[BASEDATA] ' . $coord_sys;
+        say '[BASEDATA] ' . ($coord_sys // '');
 
         my @tf = $data->GetGeoTransform();
         say '[BASEDATA] Transform is ', join( ' ', @tf );

@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/shawnlaffan/biodiverse.svg?branch=master)](https://travis-ci.org/shawnlaffan/biodiverse)
 [![Build status](https://ci.appveyor.com/api/projects/status/9dnh2co30sfbl3i2/branch/master?svg=true)](https://ci.appveyor.com/project/shawnlaffan/biodiverse/branch/master)
-
+[![DOI](https://zenodo.org/badge/33012718.svg)](https://zenodo.org/badge/latestdoi/33012718)
 
 # Biodiverse
 

@@ -1,28 +1,19 @@
 language: perl
 matrix:
     include:
+        - perl: '5.30'
         - perl: '5.28'
-          env: BD_TEST_GUI=0
         - perl: '5.26'
-          env: BD_TEST_GUI=0
-        #- perl: '5.24'
-        #  env: BD_NO_TEST_GUI=1
         - perl: '5.24'
           env: BD_TEST_GUI=1
         - perl: '5.22'
-          env: BD_TEST_GUI=0
-#perl:
-#  - '5.24'
-#  - '5.22'
+
+
 distro: trusty
 sudo: required
 cache:
   directories:
     - perl_modules
-    #- gdal_builds
-#env:
-#  - BD_NO_TEST_GUI=1
-#  - BD_NO_TEST_GUI=0
 
 before_install:
 

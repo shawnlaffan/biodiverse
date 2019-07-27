@@ -7,8 +7,7 @@ use Carp;
 use Gtk2;
 
 use Data::Dumper;
-use Browser::Open qw( open_browser );
-#use Path::Class;
+use Browser::Start qw( open_url );
 
 use English qw { -no_match_vars };
 #use LWP::Simple;
@@ -78,7 +77,7 @@ sub open_browser_and_show_url {
         system ('start', $link);
     }
     else {
-        my $check_open = open_browser ($link);
+        my $check_open = open_url ($link);
     }
 
     my $text =<<"END_LINK_TEXT"
@@ -92,20 +91,6 @@ $link
 END_LINK_TEXT
 ;
 
-    #my $window = Gtk2::Window->new;
-    #$window->set_title ('Help link');
-    #$window->set_modal (1);
-    #
-    #my $label = Gtk2::Label->new();
-    #$window->add ($label);
-    #
-    #$label->set_use_markup (1);
-    #$label->set_markup ($text);
-    #$label->set_padding (10, 10);
-    #$label->set_selectable (1);
-    #$label->select_region (1, 5);
-    #
-    #$window->show_all;
     
     my $dlg = Gtk2::Dialog->new(
         'Help link',

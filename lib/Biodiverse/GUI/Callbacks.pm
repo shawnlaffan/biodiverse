@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-use Browser::Open qw( open_browser );    #  needed for the about dialogue
+use Browser::Start qw( open_url );    #  needed for the about dialogue
 
 our $VERSION = '2.99_004';
 
@@ -140,7 +140,7 @@ sub on_about_activate {
                 system( 'start', $url );
             }
             else {
-                my $check_open = open_browser($url);
+                my $check_open = open_url ($url);
             }
             return 1;
         }

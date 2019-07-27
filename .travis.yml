@@ -32,6 +32,7 @@ before_install:
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
+  - cpanm --notest Browser::Start
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal

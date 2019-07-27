@@ -30,6 +30,7 @@ install:
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Win32::LongPath
   - cpanm --notest Geo::ShapeFile@3.00
+  - cpanm --notest Browser::Start
   ##- cpanm --installdeps --notest --with-all-features .
 
 

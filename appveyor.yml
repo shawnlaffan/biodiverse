@@ -35,7 +35,6 @@ install:
 
 
 build_script:
-  - set BD_NO_TEST_GUI=1
   - prove -l
   #- perl -e "1"
 

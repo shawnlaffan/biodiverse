@@ -851,7 +851,7 @@ sub get_result_type {
         return $type;
     }
 
-    my $condition = $self->get_conditions;
+    my $condition = $self->get_conditions_parsed;
 
     #  Check if always true
     my $check = looks_like_number($condition)
@@ -867,7 +867,7 @@ sub get_result_type {
     $check = $condition =~ /^0*$/               #  one or more zeros
         or $condition =~ /^\$[DC]\s*<\s*0$/     #  $D<0, $C<0 with whitespace
         ;
-    if ($check) {
+    if ($check or $condition eq '' or $condition =~ /^[\r\n]$/) {
         $self->set_param( 'RESULT_TYPE' => 'always_false' );
         return 'always_false';
     }

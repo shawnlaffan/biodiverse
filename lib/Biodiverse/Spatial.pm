@@ -547,15 +547,20 @@ sub sp_calc {
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
-                say "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.";
+                say "[SPATIAL] All groups are neighbours.  "
+                  . "Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($result_type eq 'self_only') {
-                say "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.";
+                say "[SPATIAL] No neighbours, processing group only.  "
+                  . "Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
-            elsif ($ignore_index || $sp_cond_obj->get_param ('INDEX_NO_USE')) { #  or if the conditions won't cooperate with the index
-                say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";  #  put this feedback in the spatialparams?
+            elsif ($ignore_index
+                   || $result_type eq 'always_false'
+                   || $sp_cond_obj->get_param ('INDEX_NO_USE')) {
+                #  the conditions won't cooperate with the index
+                say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             else {

@@ -15,6 +15,10 @@ install:
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile
+  
+  #  need a more recent version for Alien::gdal
+  
+  - cpanm --quiet --notest Alien::Build
   ##  make sure something goes to screen for aliens to avoid timeouts
   - cpanm -v --notest Alien::geos::af Alien::proj Alien::freexl
   - cpanm -v --notest Alien::sqlite

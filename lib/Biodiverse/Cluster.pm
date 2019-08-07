@@ -497,17 +497,16 @@ sub export_shapefile {
 
         my @data_for_gdal_layer;
         if ($list_name) {
-            my %list_data = $branch->get_list_values (
-                #element => $branch_name,
-                list    => $list_name,
-            );
+            my $list_data = $branch->get_list_ref (list => $list_name) // {};
 
             # write a separate shape for each label
-            foreach my $key (natsort keys %list_data) {
+            foreach my $key (natsort keys %$list_data) {
+                #  skip text vals for now
+                next if !looks_like_number ($list_data->{$key} // $nodata);
                 my %data = (
                     BRANCH  => $branch_name,
                     KEY     => $key,
-                    VALUE   => ($list_data{$key} // $nodata),
+                    VALUE   => ($list_data->{$key} // $nodata),
                 );
                 push @data_for_gdal_layer, \%data;
             }

@@ -3,6 +3,8 @@ package Biodiverse::Cluster;
 
 use 5.010;
 
+our $VERSION = '2.99_004';
+
 use Carp;
 use strict;
 use warnings;
@@ -13,9 +15,11 @@ use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
+use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /time/;
+use Sort::Key::Natural qw /natsort/;
 
-our $VERSION = '2.99_004';
+use Geo::GDAL::FFI;
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -24,6 +28,7 @@ use Biodiverse::SpatialConditions;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
+use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use Ref::Util qw { :all };
 
@@ -305,6 +310,231 @@ sub export_matrices {
 
     return;
 }
+
+
+my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
+Note: If you export a list then each shape (point or polygon) 
+will be repeated for each list item.
+
+Choose the __no_list__ option to not do this,
+in which case to attach any lists you will need to run a second 
+export to the delimited text format and then join them.  
+This is needed because shapefile field names can only be
+11 characters long and cannot contain non-alphanumeric characters.
+
+Note also that shapefiles do not have an undefined value 
+so any undefined values will be converted to zeroes.
+
+Export of array lists to shapefiles is not supported. 
+END_OF_SHAPE_COMMENT
+  ;
+
+sub get_metadata_export_shapefile {
+    my $self = shift;
+    #  get the available lists
+    my @lists = $self->get_lists_for_export (no_array_lists => 1);
+    unshift @lists, '__no_list__';
+
+    #  nodata won't have much effect until we make the outputs symmetric
+    #my @nodata_meta = $self->get_nodata_export_metadata;
+
+    my @parameters = (
+        {  # GUI supports just one of these
+            name => 'file',
+            type => 'file'
+        },
+        {
+            name        => 'list',
+            label_text  => 'List to export',
+            type        => 'choice',
+            choices     => \@lists,
+            default     => 0,
+        },
+        {
+            name        => 'shapetype',
+            label_text  => 'Shape type',
+            type        => 'choice',
+            choices     => [qw /POLYGON POINT/],
+            default     => 0,
+        },
+        #@nodata_meta,
+        {
+            type        => 'comment',
+            label_text  => $shape_export_comment_text,
+        },
+    );
+    foreach (@parameters) {
+        bless $_, $parameter_metadata_class;
+    }
+
+    my %args = (
+        format     => 'Shapefile',
+        parameters => \@parameters,
+    );
+    
+    return wantarray ? %args : \%args;
+}
+
+sub export_shapefile {
+    my $self = shift;
+    my %args = (nodata_value => -2**128, @_);
+
+    $args{file} =~ s/\.shp$//i;
+    my $file    = $args{file};
+
+    my $list_name = $args{list};
+    if (defined $list_name && $list_name eq '__no_list__') {
+        $list_name = undef;
+    }
+
+    my $nodata = $args{nodata_value};
+    if (!looks_like_number $nodata) {
+        $nodata = -1 * 2**128;
+    }
+
+    # we are writing as 2D or 3D points or polygons,
+    # only Point, PointZ or Polygon are used
+    my $shape_type = uc ($args{shapetype} // 'POLYGON');
+    croak "Invalid shapetype for shapefile export\n"
+      if $shape_type ne 'POINT' and $shape_type ne 'POLYGON';
+
+    say "Exporting to shapefile $file";
+
+    my $def_query = $args{def_query};
+    
+    my $bd = $self->get_basedata_ref;
+    my $gp = $bd->get_groups_ref;
+    my @cell_sizes  = $bd->get_cell_sizes;  #  get a copy
+    my @axes_to_use = (0, 1);
+    my $use_z;
+    if (scalar @cell_sizes > 2) {
+        @axes_to_use = (0, 1, 2);  #  we use Z in this case
+        $use_z = 1;
+    }
+
+    my $half_csizes = [];
+    foreach my $size (@cell_sizes[@axes_to_use]) {
+        push @$half_csizes, $size > 0 ? $size / 2 : 0.5;
+    }
+
+    my @list_col_specs_gdal;
+    if (defined $list_name) {  # repeated polys per list item
+        push @list_col_specs_gdal,
+          {Name => 'KEY',   Type => 'String'},
+          {Name => 'VALUE', Type => 'Real'},
+    }
+
+    my $layer = Geo::GDAL::FFI::GetDriver('ESRI Shapefile')
+    ->Create($file . '.shp')
+    ->CreateLayer({
+        Name => 'export',
+        GeometryType => ucfirst (lc $shape_type),
+        Fields => [
+            {
+                Name => 'BRANCH',
+                Type => 'String'
+            },
+            @list_col_specs_gdal,
+        ],
+    });
+
+    #  need the list of branches
+    my $branches = $self->get_node_hash;
+    
+  NODE:
+    foreach my $branch_name (sort_list_with_tree_names_aa ([keys %$branches])) {
+        my $branch = $branches->{$branch_name};
+        my $terminals  = $branch->get_terminal_elements;
+        
+        my $wkt;
+        my $z_wkt = $use_z ? ' Z' : '';
+        if ($shape_type eq 'POLYGON') {
+            $wkt = "MULTIPOLYGON$z_wkt (";
+        }
+        else {
+            $wkt = "MULTIPOINT$z_wkt (";
+        }
+
+        #  add a shape for each of the terminals
+        foreach my $element (natsort keys %$terminals) {
+
+            my $coord_axes = $gp->get_element_name_coord (element => $element);
+            #my $name_axes  = $gp->get_element_name_as_array (element => $element);
+
+            if ($shape_type eq 'POLYGON')  {
+                my ($x, $y) = @{$coord_axes}[@axes_to_use];
+                my ($width, $height) = @{$half_csizes}[@axes_to_use];
+                my $min_x = $x - $width;
+                my $max_x = $x + $width;
+                my $min_y = $y - $height;
+                my $max_y = $y + $height;
+                my $z = $use_z
+                      ? $coord_axes->[$axes_to_use[2]]
+                      : '';
+    
+                $wkt .= "(("
+                     . "$min_x $min_y $z, "
+                     . "$min_x $max_y $z, "
+                     . "$max_x $max_y $z, "
+                     . "$max_x $min_y $z, "
+                     . "$min_x $min_y $z"
+                     . ')), ';
+            }
+            elsif ($shape_type eq 'POINT') {
+                my @pt = @{$coord_axes}[@axes_to_use];
+                $wkt .= "("
+                     . join (' ', @pt)
+                     . "), ";
+            }
+        }
+
+        # close off the geometry
+        $wkt =~ s/, $//;
+        $wkt .= ")";
+
+        my $branch_name = $branch->get_name;
+
+        my @data_for_gdal_layer;
+        if ($list_name) {
+            my %list_data = $branch->get_list_values (
+                #element => $branch_name,
+                list    => $list_name,
+            );
+
+            # write a separate shape for each label
+            foreach my $key (natsort keys %list_data) {
+                my %data = (
+                    BRANCH  => $branch_name,
+                    KEY     => $key,
+                    VALUE   => ($list_data{$key} // $nodata),
+                );
+                push @data_for_gdal_layer, \%data;
+            }
+        }
+        else {
+            my %data = (
+                BRANCH => $branch_name,
+            );
+            push @data_for_gdal_layer, \%data;
+        }
+
+        foreach my $data_hr (@data_for_gdal_layer) {
+            my $f = Geo::GDAL::FFI::Feature->new($layer->GetDefn);
+            foreach my $key (keys %$data_hr) {
+                $f->SetField(uc ($key) => $data_hr->{$key});
+            }
+            my $g = Geo::GDAL::FFI::Geometry->new(WKT => $wkt);
+            $f->SetGeomField($g);
+            $layer->CreateFeature($f);
+        }
+    }
+
+    #  close off
+    $layer = undef;
+
+    return;
+}
+
 
 #  some of this can be refactored wth Spatial::get_spatial_conditions_ref
 sub process_spatial_conditions_and_def_query {

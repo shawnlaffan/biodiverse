@@ -359,6 +359,7 @@ sub get_metadata_export_shapefile {
         },
         #@nodata_meta,
         {
+            name        => 'shape_export_comment',
             type        => 'comment',
             label_text  => $shape_export_comment_text,
         },

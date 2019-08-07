@@ -644,6 +644,7 @@ sub get_metadata_export_shapefile {
                 'will be exported.',
         },
         {
+            name        => 'shape_export_comment',
             type        => 'comment',
             label_text  => $shape_export_comment_text,
         },

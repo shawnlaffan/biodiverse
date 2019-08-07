@@ -2249,17 +2249,26 @@ sub get_lists {
 }
 
 sub get_list_names {
-    my $self = shift;
-    return wantarray ? keys %$self : [keys %$self];
+    my ($self, %args) = @_;
+
+    return wantarray ? keys %$self : [keys %$self]
+      if !$args{no_array_lists};
+
+    my @lists = grep {is_hashref $self->{$_}} keys %$self;
+    return wantarray ? @lists : \@lists;
 }
 
-#  get a list of all the lists contained in the tree below and including this node
+#  get a list of all the lists contained in the
+#  tree below and including this node
+#  Could linearise this
 sub get_list_names_below {
     my $self = shift;
     my %args = @_;
     
     my %list_hash;
-    my $lists = $self->get_list_names;
+    my $lists = $self->get_list_names (
+        no_array_lists => $args{no_array_lists},
+    );
     @list_hash{@$lists} = 1 x scalar @$lists;
     
     foreach my $child ($self->get_children) {
@@ -2267,7 +2276,8 @@ sub get_list_names_below {
         @list_hash{@$lists} = 1 x scalar @$lists;
     }
     
-    if (! $args{show_hidden_lists}) {  # a bit of repeated cleanup, but we need to guarantee we get them if needed
+    # a bit of repeated cleanup, but we need to guarantee we get them if needed
+    if (! $args{show_hidden_lists}) {
         foreach my $key (keys %list_hash) {
             delete $list_hash{$key} if $key =~ /^_/;
         }

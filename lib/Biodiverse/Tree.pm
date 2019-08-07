@@ -899,7 +899,7 @@ sub get_lists_for_export {
 
     my @sub_list;
     #  get a list of available sub_lists (these are actually hashes)
-    foreach my $list ( sort $self->get_list_names_below ) {    #  get all lists
+    foreach my $list ( sort $self->get_list_names_below (no_array_lists => 1) ) {    #  get all lists
         if ( $list eq 'SPATIAL_RESULTS' ) {
             unshift @sub_list, $list;
         }

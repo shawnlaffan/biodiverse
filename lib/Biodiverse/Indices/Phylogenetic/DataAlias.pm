@@ -2,7 +2,7 @@ package Biodiverse::Indices::Phylogenetic::DataAlias;
 use strict;
 use warnings;
 
-our $VERSION = '2.99_004';
+our $VERSION = '2.99_005';
 
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';

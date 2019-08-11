@@ -13,7 +13,7 @@ use Biodiverse::GUI::Export;
 
 use English ( -no_match_vars );
 
-our $VERSION = '2.99_004';
+our $VERSION = '2.99_005';
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
 

@@ -24,7 +24,7 @@ use Time::localtime;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 
-our $VERSION = '2.99_004';
+our $VERSION = '2.99_005';
 
 my $EMPTY_STRING = q{};
 

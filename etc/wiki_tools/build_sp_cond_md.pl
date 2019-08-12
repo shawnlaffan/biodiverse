@@ -76,6 +76,10 @@ As with any system, there must be compromises between ease of use and system fle
 
 The neighbourhood and definition query interfaces have a syntax verification button to check that the syntax is valid. This does not, however, guarantee your parameters will work, only that it is valid Perl code. (The reality here is that we will just evaluate the parameter statement with some default values and warn you if the system raises some sort of error or exception).
 
+## Locale issues ##
+
+If you are using a locale where the radix character (the decimal place marker) is a comma then you need to remember to use a dot instead.  For example, this code `sp_circle (radius => 5,3)` should be `sp_circle (radius => 5.3)` or you will receive warnings about uneven arguments used to define a hash.
+
 # Evaluation #
 
 This is a brief description of the evaluation process used to determine the set of neighbours for a group.

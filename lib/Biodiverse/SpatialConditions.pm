@@ -977,7 +977,8 @@ sub get_conditions_metadata_as_markdown {
         my $example = $metadata->get_example;
         my @ex = split "\n", $example;
         my @len_check = grep {length ($_) > 78} @ex;
-        croak (join "\n", $sub_name, @len_check) if scalar @len_check;
+        croak ("Text exceeds 72 chars width\n" . join "\n", $sub_name, @len_check)
+          if scalar @len_check;
         croak "$sub_name has no example" if !$example || $example eq 'no_example';
 
         push @md_this_sub, "**Example:**\n```perl\n$example\n```";

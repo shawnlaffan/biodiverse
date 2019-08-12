@@ -1838,8 +1838,9 @@ sub get_metadata_sp_in_label_range {
         index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
         example       =>
               qq{# Are we in the range of label called Genus:Sp1?\n}
-            . q{sp_in_label_range(label => 'Genus:Sp1')}
-            . q{#  The type argument determines is the processing or neighbour group is assessed}
+            . qq{sp_in_label_range(label => 'Genus:Sp1')\n}
+            . qq{# The type argument determines if the \n}
+            . qq{processing or neighbour group is assessed\n}
     );
 
     return $self->metadata_class->new (\%metadata);

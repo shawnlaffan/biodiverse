@@ -229,6 +229,8 @@ sub rebuild_value_index {
     return $self;
 }
 
+use constant LOCALE_USES_COMMA_RADIX => (sprintf ('%.6f', 0.5) =~ /,/);
+
 sub get_value_index_key {
     my $self = shift;
     my %args = @_;
@@ -239,6 +241,10 @@ sub get_value_index_key {
 
     if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
         $val = sprintf $prec, $val;
+        #  this is compiled away if false
+        if (LOCALE_USES_COMMA_RADIX) {
+            $val =~ s{,}{\.};  #  replace any comma with a decimal
+        }
     }
 
     return $val;
@@ -309,7 +315,11 @@ my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
 sub get_min_value {
     my $self = shift;
-
+    
+    #  make all numeric warnings fatal to catch locale/sprintf issues
+    #  in the value index
+    use warnings FATAL => qw { numeric };
+    
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
 
@@ -333,6 +343,10 @@ sub get_min_value {
 sub get_max_value {
     my $self = shift;
 
+    #  make all numeric warnings fatal to catch locale/sprintf issues
+    #  in the value index
+    use warnings FATAL => qw { numeric };
+  
     my $val_hash = $self->{BYVALUE};
     my $max_key  = max keys %$val_hash;
     my $max      = $ludicrously_extreme_neg_val;

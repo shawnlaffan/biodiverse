@@ -321,7 +321,18 @@ sub get_min_value {
     use warnings FATAL => qw { numeric };
     
     my $val_hash = $self->{BYVALUE};
-    my $min_key  = min keys %$val_hash;
+    my $min_key  = eval {min keys %$val_hash};
+    my $e = $@;
+    if ($e) {
+        if ($e =~ /isn't numeric/) {
+            my $msg = "There are locale issues with the matrix value index keys.  \n"
+                    . "Please rebuild the matrix.  You might need to delete this \n"
+                    . "matrix and any cluster analyses that depend on it to do so.\n"
+                    . "You could also duplicate the basedata without outputs";
+            croak $msg;
+        }
+        croak $e;
+    }    
 
 #  Special case the zeroes - only valid for index precisions using %.g
 #  Useful for cluster analyses with many zero values due to identical assemblages

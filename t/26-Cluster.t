@@ -381,6 +381,7 @@ sub test_exception_for_invalid_linkage {
         1;
     };
     $e = $@;
+    diag $e if $e;
     ok (!$e, 'no exception thrown when no linkage function passed');
     
 }

@@ -327,7 +327,7 @@ sub get_min_value {
         if ($e =~ /isn't numeric/) {
             my $msg = "There are locale issues with the matrix value index keys.  \n"
                     . "Please rebuild the matrix.  You might need to delete this \n"
-                    . "matrix and any cluster analyses that depend on it to do so.\n"
+                    . "matrix and any analyses that depend on it to do so.\n"
                     . "You could also duplicate the basedata without outputs";
             croak $msg;
         }
@@ -359,7 +359,20 @@ sub get_max_value {
     use warnings FATAL => qw { numeric };
   
     my $val_hash = $self->{BYVALUE};
-    my $max_key  = max keys %$val_hash;
+    my $max_key  = eval {max keys %$val_hash};
+    my $e = $@;
+    if ($e) {
+        if ($e =~ /isn't numeric/) {
+            my $msg = "There are locale issues with the matrix value index keys.  \n"
+                    . "Please rebuild the matrix.  You might need to delete this \n"
+                    . "matrix and any analyses that depend on it to do so.\n"
+                    . "You could also duplicate the basedata without outputs";
+            croak $msg;
+        }
+        croak $e;
+    }
+    
+    
     my $max      = $ludicrously_extreme_neg_val;
 
     my $element_hash = $val_hash->{$max_key};

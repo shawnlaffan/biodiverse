@@ -3,6 +3,7 @@ matrix:
     include:
         - perl: '5.30'
         - perl: '5.28'
+          env: LANG="de_DE"
         - perl: '5.26'
         - perl: '5.24'
           env: BD_TEST_GUI=1

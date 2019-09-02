@@ -24,9 +24,6 @@ use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
 
-#  are we running as a PerlApp executable?
-my $perl_app_tool = $PerlApp::TOOL;
-
 #  add the lib folder if needed
 use rlib;
 

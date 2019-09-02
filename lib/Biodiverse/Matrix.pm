@@ -313,6 +313,19 @@ sub to_tree {
 my $ludicrously_extreme_pos_val = 10**20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
+my $locale_comma_error = <<'EOLCOMMA'
+There are locale issues with the matrix value index keys.
+The index was built with a comma as the radix character,
+which is not portable.
+
+Please rebuild the matrix.  You might need to delete this
+matrix and any analyses that depend on it to do so.
+You could also duplicate the basedata without outputs
+and use that instead.
+EOLCOMMA
+  ;
+
+
 sub get_min_value {
     my $self = shift;
     
@@ -322,17 +335,12 @@ sub get_min_value {
     
     my $val_hash = $self->{BYVALUE};
     my $min_key  = eval {min keys %$val_hash};
-    my $e = $@;
-    if ($e) {
-        if ($e =~ /isn't numeric/) {
-            my $msg = "There are locale issues with the matrix value index keys.  \n"
-                    . "Please rebuild the matrix.  You might need to delete this \n"
-                    . "matrix and any analyses that depend on it to do so.\n"
-                    . "You could also duplicate the basedata without outputs";
-            croak $msg;
-        }
+
+    if (my $e = $@) {
+        croak $locale_comma_error
+          if $e =~ /isn't numeric/;
         croak $e;
-    }    
+    }
 
 #  Special case the zeroes - only valid for index precisions using %.g
 #  Useful for cluster analyses with many zero values due to identical assemblages
@@ -360,26 +368,18 @@ sub get_max_value {
   
     my $val_hash = $self->{BYVALUE};
     my $max_key  = eval {max keys %$val_hash};
-    my $e = $@;
-    if ($e) {
-        if ($e =~ /isn't numeric/) {
-            my $msg = "There are locale issues with the matrix value index keys.  \n"
-                    . "Please rebuild the matrix.  You might need to delete this \n"
-                    . "matrix and any analyses that depend on it to do so.\n"
-                    . "You could also duplicate the basedata without outputs";
-            croak $msg;
-        }
+
+    if (my $e = $@) {
+        croak $locale_comma_error
+          if $e =~ /isn't numeric/;
         croak $e;
     }
-    
     
     my $max      = $ludicrously_extreme_neg_val;
 
     my $element_hash = $val_hash->{$max_key};
     while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
         foreach my $el2 ( keys %$hash_ref ) {
-
-#my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
             my $val = $self->get_defined_value_aa( $el1, $el2 );
             $max = max( $max, $val );
         }

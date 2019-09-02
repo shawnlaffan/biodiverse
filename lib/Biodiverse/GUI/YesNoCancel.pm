@@ -7,7 +7,7 @@ use Gtk2;
 
 use English ( -no_match_vars );
 
-our $VERSION = '2.99_005';
+our $VERSION = '3.00;
 
 use Biodiverse::GUI::GUIManager;
 

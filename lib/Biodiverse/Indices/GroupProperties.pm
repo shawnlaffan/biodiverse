@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '2.99_005';
+our $VERSION = '3.00;
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

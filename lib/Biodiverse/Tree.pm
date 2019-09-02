@@ -15,7 +15,7 @@ use Sort::Key::Natural qw /natkeysort/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '2.99_005';
+our $VERSION = '3.00;
 
 our $AUTOLOAD;
 

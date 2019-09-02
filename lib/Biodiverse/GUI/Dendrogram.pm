@@ -17,7 +17,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '2.99_005';
+our $VERSION = '3.00;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;

@@ -10,7 +10,7 @@ my $NULL_STRING = q//;
 require Biodiverse::Config;
 use Biodiverse::Exception;
 
-our $VERSION = '3.00;
+our $VERSION = '3.00';
 
 sub new {
     my $class = shift;

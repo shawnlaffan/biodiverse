@@ -15,7 +15,7 @@ use Carp;
 use POSIX qw /floor/;
 use List::Util qw /min max/;
 
-our $VERSION = '3.00;
+our $VERSION = '3.00';
 
 use Gtk2;
 use Gnome2::Canvas;

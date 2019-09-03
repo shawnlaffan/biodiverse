@@ -16,7 +16,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '3.00;
+our $VERSION = '3.00';
 
 use Biodiverse::Config;
 use Biodiverse::BaseData;

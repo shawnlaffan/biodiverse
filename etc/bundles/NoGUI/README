@@ -1,9 +1,8 @@
-Task::Biodiverse::NoGUI version 0.19
+Task::Biodiverse::NoGUI
 =================================
 
 Task to install Biodiverse dependencies for non-GUI use.
 
-Version 0.19
 
 INSTALLATION
 
@@ -16,11 +15,11 @@ To install this module type the following:
 
 DEPENDENCIES
 
-None.
+Lots.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2013 by Shawn Laffan
+Copyright (C) 2013-present by Shawn Laffan
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.9 or,

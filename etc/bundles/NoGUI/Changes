@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+3.00 20190903
+    - Update for release 3.00
+
 2.99_002 20181017
     - Add Sort::Key::Natural
 

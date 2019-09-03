@@ -78,7 +78,7 @@ WriteMakefile(
         "Test::TempDir::Tiny" => "0.016",
         "Statistics::Sampler::Multinomial" => 0,
         "List::Unique::DeterministicOrder" => 0,
-        "Geo::GDAL::FFI" => 0.503,
+        "Geo::GDAL::FFI" => 0.07,
         "PkgConfig" => 0.21026,   #  version that works with PAR::Packer
     },
     BUILD_REQUIRES => {

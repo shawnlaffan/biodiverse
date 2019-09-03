@@ -49,7 +49,7 @@ WriteMakefile(
         "Math::Polygon" => "0",
         "Path::Class" => "0",
         "Tree::R" => "0",
-        "Geo::ShapeFile" => "2.60",
+        "Geo::ShapeFile" => "3.00",
         "Geo::Shapefile::Writer" => "0",
         "List::MoreUtils" => "0.425",
         "List::Util" => "1.45",

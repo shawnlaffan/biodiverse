@@ -3,7 +3,7 @@ package Task::Biodiverse;
 use strict;
 use warnings;
 
-our $VERSION = '2.99';
+our $VERSION = '3.00';
 
 
 1;

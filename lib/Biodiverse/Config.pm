@@ -60,54 +60,6 @@ BEGIN {
     }
     #print $ENV{PATH};
 };
-  
-BEGIN {
-    #  THIS SHOULD NO LONGER BE NEEDED
-    #  Add the gtk and gdal libs if using windows - brittle?
-    #  Search up the tree until we find a dir of the requisite name
-    #  and which contains a bin folder
-    if (0 && $OSNAME eq 'MSWin32' && !$ENV{BD_NO_LIB_SEARCH}) {
-        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
-        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
-        
-
-        my @paths;
-        use Config;
-        my $use_x64 = $Config{archname} =~ /x(?:86_)?64/;
-        my $gtk_dir  = $use_x64 ? 'gtk_win64'  : 'gtk_win32';  #  maybe should use ivsize?
-        my $gdal_dir = $use_x64 ? 'gdal_win64' : 'gdal_win32';
-
-        #  add the gtk and gdal bin dirs to the path
-        foreach my $g_dir ($gtk_dir, $gdal_dir) {
-            my $origin_dir = Path::Class::file($prog_name)->dir;
-
-          ORIGIN_DIR:
-            while ($origin_dir) {
-
-                foreach my $inner_path (
-                  Path::Class::dir($origin_dir, $g_dir,),
-                  Path::Class::dir($origin_dir, $g_dir, 'c'),
-                  ) {
-                    #say "Checking $inner_path";
-                    my $bin_path = Path::Class::dir($inner_path, 'bin');
-                    if (-d $bin_path) {
-                        #say "Adding $bin_path to the path";
-                        push @paths, $bin_path;
-                    }
-                }
-    
-                my $old_dir = $origin_dir;
-                $origin_dir = $origin_dir->parent;
-                last ORIGIN_DIR if $old_dir eq $origin_dir;
-            }
-        }
-
-        my $sep = ';';  #  should get from system, but this block only works on windows anyway
-        say 'Prepending to path: ', join ' ', @paths;
-        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-
-    }
-}
 
 #  Check for installed dependencies and warn if not present.
 #  Useful when users are running off the source code install
@@ -148,13 +100,8 @@ sub add_lib_paths {
     #  set user defined libs not collected by the perl interpreter,
     #  eg when using the perlapp exe file
     if ( defined $ENV{$var} ) {
-        my $sep = q{:};    #  path list separator for *nix systems
-
-        if ( $OSNAME eq 'MSWin32' ) {
-            $sep = q{;};
-        }
-        
-        my @paths = grep {-d} split $sep, $ENV{$var};
+        use Config;
+        my @paths = grep {-d} split $Config{path_sep}, $ENV{$var};
         push @lib_paths, @paths;
     }
 
@@ -209,7 +156,7 @@ sub use_base {
     }
     else {
         warn "File $file does not exist\n";
-        warn "Loading extensions directly from environment variable is deprecated\n";
+        warn "Loading extensions directly from environment variable is not supported\n";
         warn "Nothing loaded\n";
     }
 

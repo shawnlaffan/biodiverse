@@ -22,7 +22,7 @@ install:
   ##  make sure something goes to screen for aliens to avoid timeouts
   - cpanm -v --notest Alien::geos::af Alien::proj Alien::freexl
   - cpanm -v --notest Alien::sqlite
-  - cpanm -v --notest Alien::spatialite
+  #- cpanm -v --notest Alien::spatialite
   - cpanm -v Alien::gdal
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   - ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL

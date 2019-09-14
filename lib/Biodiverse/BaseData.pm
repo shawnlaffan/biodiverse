@@ -27,13 +27,13 @@ use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
 use Geo::GDAL::FFI 0.07;
-
-
+#  silence a used-once warning - clunky
+{
+    my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+}
 #require Spreadsheet::XLSX;  latest version does not install
 
 use English qw { -no_match_vars };
-
-#use Math::Random::MT::Auto qw /rand srand shuffle/;
 
 use Biodiverse::BaseStruct; #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects

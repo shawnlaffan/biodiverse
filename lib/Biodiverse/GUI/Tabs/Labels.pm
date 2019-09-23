@@ -444,8 +444,8 @@ sub sort_by_column {
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
         || $label_order
-          *   mkkey_natural ($liststore->get($itera, 0))
-          cmp mkkey_natural ($liststore->get($iterb, 0));
+          *   (mkkey_natural ($liststore->get($itera, 0))
+          cmp mkkey_natural ($liststore->get($iterb, 0)));
 }
 
 sub sort_by_column_numeric_labels {
@@ -461,7 +461,7 @@ sub sort_by_column_numeric_labels {
 
     return
         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-        || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));
+        || $label_order * ((0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0)));
 }
 
 # Creates a TreeView model of all labels

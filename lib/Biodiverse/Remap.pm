@@ -180,3 +180,5 @@ sub import_from_file {
     $self->import_data(%args);
     $self->dequote_all_elements();
 }
+
+1;

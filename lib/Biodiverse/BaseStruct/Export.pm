@@ -18,6 +18,10 @@ use Time::localtime;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 use Geo::GDAL::FFI 0.06 qw /GetDriver/;
+#  silence a used-once warning - clunky
+{
+    my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+}
 
 my $EMPTY_STRING = q{};
 

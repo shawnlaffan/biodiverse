@@ -23,8 +23,8 @@ use parent qw /Biodiverse::Common/;
 
 #  hunt for any decimal number format
 use Regexp::Common qw /number delimited/;
-my $RE_NUMBER = qr /$RE{num}{real}/xms;
-my $RE_QUOTED = qr /$RE{delimited}{-delim=>"'"}{-esc=>"'"}/;
+my $RE_NUMBER = qr /$RE{num}{real}/xmso;
+my $RE_QUOTED = qr /$RE{delimited}{-delim=>"'"}{-esc=>"'"}/o;
 
 my $RE_TEXT_IN_QUOTES
     = qr{
@@ -33,7 +33,7 @@ my $RE_TEXT_IN_QUOTES
         (.+)  #  text inside quotes is \2 and $2
         \1
         \z
-    }xms;
+    }xmso;
 
 my $EMPTY_STRING = q{};
 
@@ -42,6 +42,7 @@ my $re_text_in_brackets;  #  straight from Friedl, page 330.  Could be overkill,
 $re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo; #/
 #  poss alternative for perl 5.10 and later:  qr /(\\((?:[^()]++|(?-1))*+\\))/xo
 #  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
+#$re_text_in_brackets = qr / ( \( (?: [^()]++ | (?-1) ) \) )* /xo;
 
 my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
 $re_text_in_square_brackets = qr / (?> [^\[\]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
@@ -653,14 +654,8 @@ sub parse_newick {
         #print "Nodecount is $$node_count\n";
         #print "Position is " . (pos $string) . " of $str_len\n";
 
-        #  march through any whitespace and newlines
-        if ($string =~ m/ \G [\s\n\r]+ /xgcs) {  
-            #print "found some whitespace\n";
-            #print "Position is " . (pos $string) . " of $str_len\n";
-        }
-
         #  we have a comma or are at the end of the string, so we create this node and start a new one
-        elsif ($string =~ m/ \G (?:,)/xgcs) {  
+        if ($string =~ m/ \G (?:,)/xgcs) {  
 
             $name //= $tree->get_free_internal_name (exclude => $translate_hash);
 
@@ -779,6 +774,11 @@ sub parse_newick {
             #my $x = $length;
         }
 
+        #  march through any whitespace and newlines
+        elsif ($string =~ m/ \G [\s\n\r]+ /xgcs) {  
+            #print "found some whitespace\n";
+            #print "Position is " . (pos $string) . " of $str_len\n";
+        }
         #  next value is a name, but it can be empty
         #  anything except special chars is fair game
         elsif ($string =~ m/ \G ( [^(),:'\[\]]* )  /xgcs) {  

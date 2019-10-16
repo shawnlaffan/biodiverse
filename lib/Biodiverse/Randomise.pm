@@ -12,20 +12,6 @@ use Sort::Key::Natural qw /natkeysort/;
 use List::Unique::DeterministicOrder;
 
 
-#  a little debug
-use constant DEBUG => 0;
-my $binsearch_gives_undef = 0;
-my %binsearch_callers;
-END {
-    if (DEBUG) {
-        say " ===== ";
-        say "BINSEARCH WAS UNDEF:  $binsearch_gives_undef";
-        say Data::Dumper::Dumper \%binsearch_callers;
-        say " ===== ";
-    }
-}
-
-
 #use Devel::Symdump;
 use Data::Dumper qw { Dumper };
 use Carp;

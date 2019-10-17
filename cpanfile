@@ -84,7 +84,7 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'Gtk2';
     requires "Pango";
     #requires 'Gtk2::GladeXML';   
-    requires 'Browser::Open';
+    requires 'Browser::Start';
     requires 'Gnome2::Canvas';
     requires 'ExtUtils::Depends';
     requires 'HTTP::Tiny';

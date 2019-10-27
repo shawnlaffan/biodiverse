@@ -396,7 +396,7 @@ sub test_checkpoint_cwd_check {
     my $old_wd = getcwd();
     my $new_wd = get_temp_dir();
     chdir $new_wd;
-    diag getcwd();
+    note getcwd();
     
     my $rand_name = 'test_checkpoint_cwd_check';
 
@@ -424,6 +424,6 @@ sub test_checkpoint_cwd_check {
     
     #chmod 0777, '.';
     chdir $old_wd;
-    diag getcwd();
+    note getcwd();
 
 }

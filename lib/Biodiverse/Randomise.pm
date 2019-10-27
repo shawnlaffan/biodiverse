@@ -706,7 +706,7 @@ sub run_randomisation {
 
 sub verify_cwd_is_writeable_for_checkpoints {
     my ($self, %args) = @_;
-    return 1;
+    
     if (   defined $args{save_checkpoint}
         && $args{save_checkpoint} >= 0) {
         use Cwd;

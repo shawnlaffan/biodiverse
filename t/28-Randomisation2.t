@@ -413,13 +413,14 @@ sub test_checkpoint_cwd_check {
     $rand = $bd->add_randomisation_output (name => $rand_name . '2');
     chmod 0444, '.';
     
-    dies_ok {
+    throws_ok {
         $rand->run_analysis (
             function   => 'rand_csr_by_group',
             iterations => 9,
             save_checkpoint => 1,
         );
-    } 'should be unable to write checkpoints';
+    } qr /Unable to save checkpoint files to current working directory/,
+    'should be unable to write checkpoints';
     
     #chmod 0777, '.';
     chdir $old_wd;

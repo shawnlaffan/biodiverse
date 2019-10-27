@@ -24,7 +24,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
+use Biodiverse::TestHelpers qw /:cluster :element_properties :tree :utils/;
 use Biodiverse::Cluster;
 
 use Biodiverse::Randomise;
@@ -367,3 +367,62 @@ sub node_calcs_gave_expected_results {
 }
 
 
+sub test_checkpoint_cwd_check {
+    use Cwd;
+    
+    if ($^O =~ /mswin/i) {
+        note 'checkpoint_cwd_check not tested on windows';
+        ok (1);
+        return;
+    }
+    
+    my $bd = Biodiverse::BaseData->new (
+        NAME       => 'test_checkpoint_cwd',
+        CELL_SIZES => [2, 2],
+    );
+    $bd->add_element_simple_aa ('a', '1:1');
+    $bd->add_element_simple_aa ('b', '1:1');
+    $bd->add_element_simple_aa ('a', '3:1');
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'xxx');
+    
+    $sp->run_analysis (
+        calculations       => [qw /calc_richness/],
+        spatial_conditions => ['sp_self_only'],
+    );
+
+    
+    my $old_wd = getcwd();
+    my $new_wd = get_temp_dir();
+    chdir $new_wd;
+    diag getcwd();
+    
+    my $rand_name = 'test_checkpoint_cwd_check';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    
+    lives_ok {
+        $rand->run_analysis (
+            function   => 'rand_csr_by_group',
+            iterations => 9,
+            save_checkpoint => 1,
+        );
+    };
+    
+    $rand = $bd->add_randomisation_output (name => $rand_name . '2');
+    chmod 0444, '.';
+    
+    dies_ok {
+        $rand->run_analysis (
+            function   => 'rand_csr_by_group',
+            iterations => 9,
+            save_checkpoint => 1,
+        );
+    } 'should be unable to write checkpoints';
+    
+    #chmod 0777, '.';
+    chdir $old_wd;
+    diag getcwd();
+
+}

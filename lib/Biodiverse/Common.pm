@@ -1819,6 +1819,23 @@ sub get_file_size {
     return $file_size;
 }
 
+sub unlink_file {
+    my ($self, %args) = @_;
+    my $file_name = $args{file_name}
+      // croak 'file_name arg not specified';
+    
+    my $count = 0;
+    if (ON_WINDOWS) {
+        $count = unlinkL ($file_name) or die "unable to delete file ($^E)";
+    }
+    else {
+        $count = unlink ($file_name) or die "unable to delete file ($^E)";
+    }
+
+    return $count;
+}
+
+
 sub get_book_struct_from_spreadsheet_file {
     my ($self, %args) = @_;
 

@@ -437,6 +437,12 @@ sub run_randomisation {
     #$args{spatial_conditions_for_subset} //= $args{spatial_condition};
     croak "spatial_condition argument is deprecated - use spatial_conditions_for_subset\n"
       if defined $args{spatial_condition};
+      
+    if (defined $args{save_checkpoint}) {
+        $self->verify_cwd_is_writeable_for_checkpoints (
+            save_checkpoint => $args{save_checkpoint},
+        );
+    }
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -697,6 +703,35 @@ sub run_randomisation {
     return $return_success_code;
 }
 
+
+sub verify_cwd_is_writeable_for_checkpoints {
+    my ($self, %args) = @_;
+    return 1;
+    if (   defined $args{save_checkpoint}
+        && $args{save_checkpoint} >= 0) {
+        use Cwd;
+        my $cwd = getcwd();
+        my $file_name
+          = $self->get_basedata_ref->get_param ('NAME')
+          . '.bds.tmp';
+        my $fh = eval {
+            $self->get_file_handle (
+                file_name => $file_name,
+                mode      => '>',
+            );
+        };
+        if (my $e = $@) {
+            croak "Unable to save checkpoint files to current working directory\n"
+                . "(Currently in $cwd)\n"
+                . "Are you sure you need these files?\n"
+                . $e;
+        }
+        $fh->close;
+        $self->unlink_file(file_name => $file_name)
+          or croak "unable to delete test file $file_name";
+    }
+    return 1;
+}
 
 sub get_randomised_basedata {
     my $self = shift;

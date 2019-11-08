@@ -32,9 +32,11 @@ my $bandaid_text = '(This is a bandaid solution until we get hyperlinks working)
 
 my $base_url = 'http://purl.org/biodiverse/wiki/';
 
+my $wiki_indices_page = $VERSION =~ /_/ ? 'IndicesDevVersion': 'Indices';
+
 my %subs_and_urls = (
     help_show_link_to_web_help         => $base_url . 'Home',
-    help_show_calculations_and_indices => $base_url . 'Indices',
+    help_show_calculations_and_indices => $base_url . $wiki_indices_page,
     help_show_spatial_conditions       => $base_url . 'SpatialConditions',
     help_show_release_notes            => $base_url . 'ReleaseNotes',
     help_show_citation                 => $base_url . 'PublicationsList',

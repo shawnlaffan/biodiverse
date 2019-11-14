@@ -485,7 +485,7 @@ sub add_children {
     }
 
 
-  CHILD:  #  use a slice to retain the order in which they were passed
+  CHILD:  #  use an array to retain the order in which they were passed
     foreach my $child (@$children) {
         #  don't re-add our own child
         next CHILD if $use_skip && $skip{$child};

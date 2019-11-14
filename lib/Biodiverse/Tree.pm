@@ -220,7 +220,7 @@ sub add_node {
     my $self = shift;
     my %args = @_;
     my $node = $args{node_ref} || Biodiverse::TreeNode->new(@_);
-    $self->add_to_node_hash( node_ref => $node );
+    $self->add_to_node_hash_aa ( $node );
 
     return $node;
 }
@@ -254,12 +254,12 @@ sub splice_into_lineage {
 }
 
 sub add_to_node_hash {
-    my $self     = shift;
-    my %args     = @_;
+    my ($self, %args) = @_;
+
     my $node_ref = $args{node_ref};
     my $name     = $node_ref->get_name;
 
-    if ( $self->exists_node( name => $name ) ) {
+    if ( $self->exists_node_name_aa( $name ) ) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
             message => "Node $name already exists in this tree\n",
             name    => $name,
@@ -267,7 +267,23 @@ sub add_to_node_hash {
     }
 
     $self->{TREE_BY_NAME}{$name} = $node_ref;
-    return $node_ref if defined wantarray;
+    #return $node_ref if defined wantarray;
+}
+
+sub add_to_node_hash_aa {
+    my ($self, $node_ref) = @_;
+
+    my $name = $node_ref->get_name;
+
+    if ( $self->exists_node_name_aa( $name ) ) {
+        Biodiverse::Tree::NodeAlreadyExists->throw(
+            message => "Node $name already exists in this tree\n",
+            name    => $name,
+        );
+    }
+
+    $self->{TREE_BY_NAME}{$name} = $node_ref;
+    #return $node_ref if defined wantarray;
 }
 
 sub rename_node {
@@ -311,6 +327,10 @@ sub exists_node {
         }
     }
     return exists $self->{TREE_BY_NAME}{$name};
+}
+
+sub exists_node_name_aa {
+    return exists $_[0]->{TREE_BY_NAME}{$_[1]};
 }
 
 #  get a single root node - assumes we only care about one if we use this approach.
@@ -654,21 +674,27 @@ sub get_terminal_node_refs_sorted_by_name {
 #  don't cache these results as they can change as clusters are built
 sub get_root_nodes {    #  if there are several root nodes
     my $self = shift;
-    my %args = @_;
 
     my %node_list;
     my $node_hash = $self->get_node_hash;
 
-    foreach my $node_ref ( values %$node_hash ) {
-        next if !defined $node_ref;
-        if ( $node_ref->is_root_node ) {
-            $node_list{ $node_ref->get_name } = $node_ref;
-        }
-    }
+    my @roots = grep {defined $_ && $_->is_root_node} values %$node_hash;
+    my @names = map {$_->get_name} @roots;
+    @node_list{@names} = @roots;
+    #foreach my $node_ref ( values %$node_hash ) {
+    #    next if !defined $node_ref;
+    #    if ( $node_ref->is_root_node ) {
+    #        $node_list{ $node_ref->get_name } = $node_ref;
+    #    }
+    #}
 
     return wantarray ? %node_list : \%node_list;
 }
 
+#  we should never have many, so we can
+#  get away with array context
+#  and passing through to get_root_nodes,
+#  only to throw away the names
 sub get_root_node_refs {
     my $self = shift;
 

@@ -869,7 +869,7 @@ sub add_node_to_tree {
     my $translate_hash = $args{translate_hash};
 
 
-    if (defined $name && $tree->exists_node (name => $name)) {
+    if (defined $name && $tree->exists_node_name_aa ($name)) {
         $name = $tree->get_unique_name(
             prefix  => $name,
             exclude => $translate_hash,

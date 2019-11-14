@@ -38,17 +38,16 @@ our $default_length = 0;
 sub new {
     my $class = shift;
     my %args = @_;
-    my %params = ( _CHILDREN => [] );
-    my $self = \%params;
 
+    my $self = {_CHILDREN => []};
     bless $self, $class;
 
     #  now we loop through and add any specified arguments
-    $self->set_length(length => $args{length});
-    $self->set_name(name => $args{name});
+    $self->set_length_aa ( $args{length});
+    $self->set_name_aa ( $args{name} );
 
     if (exists $args{parent}) {
-        $self->set_parent(%args);
+        $self->set_parent_aa($args{parent});
     }
 
     if (exists $args{children}) {
@@ -187,6 +186,15 @@ sub set_name {
     return;
 }
 
+sub set_name_aa {
+    croak "name argument missing\n" if not defined $_[1];
+
+    $_[0]->{NODE_VALUES}{NAME} = $_[1];
+    
+    return;
+}
+
+
 sub get_name {
     $_[0]->{NODE_VALUES}{NAME}
       // croak "name parameter missing or undefined\n";
@@ -207,9 +215,7 @@ sub set_length {
 
 sub set_length_aa {
     my ($self, $length) = @_;
-    croak if !defined $length;
     $self->{NODE_VALUES}{LENGTH} = 0 + ($length // $default_length);
-
     return;
 }
 
@@ -501,7 +507,7 @@ sub add_children {
             $child = Biodiverse::TreeNode->new(name => $child);
         }
         push @{$self->{_CHILDREN}}, $child;
-        $child->set_parent(parent => $self);
+        $child->set_parent_aa($self);
     }
 
     return;
@@ -1486,11 +1492,18 @@ sub set_parent {
     return;
 }
 
-#  more for convenience of calling
-#  can optimise if profiling shows it is needed
 sub set_parent_aa {
     my ($self, $parent) = @_;
-    return $self->set_parent (parent => $parent);
+
+    return if $self->{_PARENT} && $parent eq $self->{_PARENT};
+
+    #croak 'parent Reference not same type as child (' . blessed ($self) . ")\n"
+    #    if blessed($parent) ne blessed($self);
+
+    $self->{_PARENT} = $parent;
+    weaken ($self->{_PARENT});
+
+    return;
 }
 
 
@@ -1519,10 +1532,8 @@ sub set_parents_below {  #  sometimes the parents aren't set properly by extensi
 }
 
 sub weaken_parent_ref {
-    my $self = shift;
-
-    return if !$self->{_PARENT} or isweak ($self->{_PARENT});
-    return weaken ($self->{_PARENT});
+    return if !$_[0]->{_PARENT} or isweak ($_[0]->{_PARENT});
+    return weaken ($_[0]->{_PARENT});
 }
 
 sub is_root_node {

@@ -423,9 +423,9 @@ sub sort_label_column {
     my ($liststore, $itera, $iterb) = @_;
         
     return
-      mkkey_natural $liststore->get($itera, 0)
+      mkkey_natural ($liststore->get($itera, 0))
       cmp
-      mkkey_natural $liststore->get($iterb, 0);
+      mkkey_natural ($liststore->get($iterb, 0));
 }
 
 #  sort by this column, then by labels column (always ascending)

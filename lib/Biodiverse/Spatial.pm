@@ -470,7 +470,7 @@ sub sp_calc {
 
     #  drop out if we have none to do and we don't have an override flag
     croak $INVALID_CALCS_ERROR_MESSAGE
-        if (        $indices_object->get_valid_calculation_count == 0
+        if (!$indices_object->get_valid_calculation_count
             and not $args{override_valid_analysis_check});
 
     my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;

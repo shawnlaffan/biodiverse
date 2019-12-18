@@ -1558,7 +1558,7 @@ sub get_node_range {
     
     #  sometimes a child node has the full set,
     #  so there is no need to keep collating
-    my $max_group_count = $bd->get_group_count;
+    my $max_poss_group_count = $bd->get_group_count;
 
     my $return_count = !wantarray && !$args{return_list};
 
@@ -1579,7 +1579,7 @@ sub get_node_range {
             @groups{keys %$gp_list} = undef;
         }
     }
-    if (scalar @$children && $max_group_count != keys %groups) {
+    if (scalar @$children && $max_poss_group_count != keys %groups) {
       CHILD:
         foreach my $child (@$children) {
             my $cached_list = $cache->{$child};
@@ -1602,7 +1602,7 @@ sub get_node_range {
                     @groups{keys %$cached_list} = undef;
                 }
             }
-            last CHILD if $max_group_count == keys %groups;
+            last CHILD if $max_poss_group_count == keys %groups;
         }
     }
 

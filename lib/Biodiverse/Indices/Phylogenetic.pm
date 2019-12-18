@@ -1516,12 +1516,13 @@ sub get_node_range_hash {
         
         my $node_name = $node->get_name;
         if ($return_lists) {
-            my %range = $self->get_node_range (
+            my $range = $self->get_node_range (
                 %args,
-                node_ref => $node,
+                return_list => 1,
+                node_ref    => $node,
             );
             my %range_hash;
-            @range_hash{keys %range} = ();  #  looks like double handling here...
+            @range_hash{@$range} = ();
             $node_range{$node_name} = \%range_hash;
         }
         else {

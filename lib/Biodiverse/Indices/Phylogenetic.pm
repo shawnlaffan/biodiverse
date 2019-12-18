@@ -1565,6 +1565,11 @@ sub get_node_range {
     my $cache_name = 'NODE_RANGE_LISTS';
     my $cache      = $self->get_cached_value_dor_set_default_aa ($cache_name, {});
 
+    if (my $groups = $cache->{$node_ref}) {
+        return scalar keys %$groups if $return_count;
+        return wantarray ? %$groups : [keys %$groups];
+    }
+
     my $node_name = $node_ref->get_name;
     my %groups;
 

@@ -1507,8 +1507,13 @@ sub get_node_range_hash {
         $progress,
     );
 
-    #  sort by depth so we start from the terminals and avoid recursion in get_node_range
-    foreach my $node (sort {$b->get_depth <=> $a->get_depth} values %$nodes) {
+    #  sort by depth so we start from the terminals
+    #  and avoid recursion in get_node_range
+    my %d;
+    foreach my $node (
+      sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
+      values %$nodes) {
+        
         my $node_name = $node->get_name;
         if ($return_lists) {
             my %range = $self->get_node_range (

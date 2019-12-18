@@ -1575,8 +1575,8 @@ sub get_node_range {
 
     my $children = $node_ref->get_children // [];
 
-    if (  !$node_ref->is_internal_node && $bd->exists_label(label => $node_name)) {
-        my $gp_list = $bd->get_groups_with_label_as_hash (label => $node_name);
+    if (  !$node_ref->is_internal_node && $bd->exists_label_aa($node_name)) {
+        my $gp_list = $bd->get_groups_with_label_as_hash_aa ($node_name);
         if (HAVE_PANDA_LIB) {
             Panda::Lib::hash_merge (\%groups, $gp_list, Panda::Lib::MERGE_LAZY());
         }

@@ -177,7 +177,7 @@ sub calc_phylo_rw_turnover {
                 while ($pnode = $parent_name_hash{$pnode}) {
                     last if $done{$pnode};
                     $aa += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
-                    $done{$pnode}++;
+                    $done{$pnode} = $done_marker;
                 }
             }
             else {

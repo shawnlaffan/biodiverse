@@ -141,7 +141,7 @@ sub calc_phylo_rw_turnover {
     NODE:
     foreach my $node (keys %weights) {
 
-        next NODE if exists $done{$node};
+        next NODE if $done{$node};
 
         my $wt = $weights{$node};
 

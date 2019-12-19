@@ -79,3 +79,91 @@ sub test_linkages_and_check_mx_precision {
     cluster_test_linkages_and_check_mx_precision(type => 'Biodiverse::Cluster');
 }
 
+sub test_phylo_rw_turnover_mx {
+    my $data = get_data_section('CLUSTER_MINI_DATA');
+    $data =~ s/(?<!\w)\n+\z//m;  #  clear trailing newlines
+    
+    my $bd = Biodiverse::BaseData->new (
+        CELL_SIZES => [1,1],
+        NAME       => 'phylo_rw_turnover',
+    );
+    my @data = split "\n", $data;
+    shift @data;
+    foreach my $line (@data) {
+        my @line = split ',', $line;
+        last if !@line;
+        my $gp = join ':', ($line[1] + 0.5, $line[2] + 0.5);
+        $bd->add_element (
+            group => $gp,
+            label => $line[0],
+        );
+    }
+    
+    my $nwk = '((a:1,b:1),(c:1,d:1),e:1)';
+    my $tree = Biodiverse::Tree->new;
+    my %terminals;
+    my $i = 1;
+    foreach my $branch (qw /a b c d e f/) {
+        $terminals{$branch}
+          = $tree->add_node (name => $branch, length => $i);
+          $i+=0.2;
+    }
+    my $internal1 = $tree->add_node (name => '1___', length => 1);
+    $internal1->add_children (children => [@terminals{qw/a b/}]);
+    my $internal2 = $tree->add_node (name => '2___', length => 1);
+    $internal2->add_children (children => [@terminals{qw/c d/}]);
+    my $internal3 = $tree->add_node (name => '3___', length => 1);
+    $internal3->add_children (children => [@terminals{qw/e f/}]);
+    my $internal4 = $tree->add_node (name => '4___', length => 1);
+    $internal4->add_children (children => [$internal1, $internal2]);
+    my $internal5 = $tree->add_node (name => '5___', length => 1);
+    $internal5->add_children (children => [$internal3, $internal4]);
+    
+    my $cl = $bd->add_cluster_output (name => 'cl');
+    $cl->run_analysis (
+        prng_seed  => 12345,
+        index      => 'PHYLO_RW_TURNOVER',
+        tree_ref   => $tree,
+        cluster_tie_breaker => [PE_WE => 'max'],
+    );
+    say $cl->to_newick;
+    my $mx_arr = $cl->get_orig_matrices;
+    my $mx = $mx_arr->[0];
+    
+    my %expected = (
+        PCT975 => 0.805970149253731,
+        PCT95  => 0.805970149253731,
+        MIN    => 0,
+        PCT025 => 0,
+        PCT05  => 0.32,
+        MAX    => 0.805970149253731,
+        MEAN   => 0.162,
+    );
+
+    my $stats = $mx->get_summary_stats;
+    is_deeply ($stats, \%expected, 'got expected stats for phylo_rw_turnover mx');
+}
+
+
+__DATA__
+
+@@ CLUSTER_MINI_DATA
+label,x,y,samples
+a,1,1,1
+b,1,1,1
+c,1,1,1
+d,1,1,1
+e,1,1,1
+f,1,1,1
+a,1,2,1
+b,1,2,1
+c,1,2,1
+a,2,1,1
+b,2,1,1
+a,2,2,1
+b,2,2,1
+c,2,2,1
+a,3,1,1
+b,3,1,1
+a,3,2,1
+b,3,2,1

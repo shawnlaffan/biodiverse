@@ -131,6 +131,10 @@ sub calc_phylo_rw_turnover {
     my @el_list1 = keys %{$args{element_list1}};
     my @el_list2 = keys %{$args{element_list2}};
 
+    my $pairwise_mode
+      = $self->get_pairwise_mode
+      || (@el_list1 == 1 && @el_list2 == 1);
+
     \my %node_ranges = $args{node_range_hash};
     \my %weights     = $args{PE_WTLIST};
     \my %parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
@@ -151,11 +155,17 @@ sub calc_phylo_rw_turnover {
         #  This is the "slow" bit of this sub...
         #  List::Util::any() takes twice as long as foreach
         my ($in_set1, $in_set2);
-        foreach my $el (@el_list1) {
-            last if $in_set1 = exists $range_hash{$el};
+        if ($pairwise_mode) {  #  no loops needed
+            $in_set1 = exists $range_hash{$el_list1[0]};
+            $in_set2 = exists $range_hash{$el_list2[0]};
         }
-        foreach my $el (@el_list2) {
-            last if $in_set2 = exists $range_hash{$el};
+        else {
+            foreach my $el (@el_list1) {
+                last if $in_set1 = exists $range_hash{$el};
+            }
+            foreach my $el (@el_list2) {
+                last if $in_set2 = exists $range_hash{$el};
+            }
         }
 
         if ($in_set1) {

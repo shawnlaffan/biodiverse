@@ -135,7 +135,7 @@ sub calc_phylo_rw_turnover {
     \my %weights     = $args{PE_WTLIST};
     \my %parent_name_hash = $args{TRIMMED_TREE_PARENT_NAME_HASH};
 
-    my ($a, $b, $c) = (0, 0, 0);    
+    my ($aa, $bb, $cc) = (0, 0, 0);    
     my %done;
 
     NODE:
@@ -160,33 +160,33 @@ sub calc_phylo_rw_turnover {
 
         if ($in_set1) {
             if ($in_set2) {  #  we are in both nbr sets, therefore so are our ancestors
-                $a += $wt;
+                $aa += $wt;
                 $done{$node}++;
                 my $pnode = $node;  #  initial parent node key
                 while ($pnode = $parent_name_hash{$pnode}) {
-                    last if exists $done{$pnode};
-                    $a += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
+                    last if $done{$pnode};
+                    $aa += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
                     $done{$pnode}++;
                 }
             }
             else {
-                $b += $wt;
+                $bb += $wt;
                 $done{$node}++;
             }
         }
         elsif ($in_set2) {
-            $c += $wt;
+            $cc += $wt;
             $done{$node}++;
         }
     }
 
-    my $dissim_is_valid = ($a || $b) && ($a || $c);
+    my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
 
     my %results = (
-        PHYLO_RW_TURNOVER_A => $a,
-        PHYLO_RW_TURNOVER_B => $b,
-        PHYLO_RW_TURNOVER_C => $c,
-        PHYLO_RW_TURNOVER   => eval {$dissim_is_valid ? 1 - ($a / ($a + $b + $c)) : undef},
+        PHYLO_RW_TURNOVER_A => $aa,
+        PHYLO_RW_TURNOVER_B => $bb,
+        PHYLO_RW_TURNOVER_C => $cc,
+        PHYLO_RW_TURNOVER   => eval {$dissim_is_valid ? 1 - ($aa / ($aa + $bb + $cc)) : undef},
     );
 
     return wantarray ? %results : \%results;

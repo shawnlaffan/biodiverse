@@ -141,6 +141,7 @@ sub calc_phylo_rw_turnover {
 
     my ($aa, $bb, $cc) = (0, 0, 0);    
     my %done;
+    my $done_marker = \1;  #  squeeze more speed by not creating new SVs
 
     NODE:
     foreach my $node (keys %weights) {
@@ -171,7 +172,7 @@ sub calc_phylo_rw_turnover {
         if ($in_set1) {
             if ($in_set2) {  #  we are in both nbr sets, therefore so are our ancestors
                 $aa += $wt;
-                $done{$node}++;
+                $done{$node} = $done_marker;
                 my $pnode = $node;  #  initial parent node key
                 while ($pnode = $parent_name_hash{$pnode}) {
                     last if $done{$pnode};
@@ -181,12 +182,12 @@ sub calc_phylo_rw_turnover {
             }
             else {
                 $bb += $wt;
-                $done{$node}++;
+                $done{$node} = $done_marker;
             }
         }
         elsif ($in_set2) {
             $cc += $wt;
-            $done{$node}++;
+            $done{$node} = $done_marker;
         }
     }
 

@@ -159,6 +159,7 @@ sub calc_phylo_rw_turnover {
         #  This is the "slow" bit of this sub...
         #  List::Util::any() takes twice as long as foreach
         #my ($in_set1, $in_set2);
+        #  exists test is slower than boolean value, but range hash vals are undef
         if ($pairwise_mode) {  #  no loops needed
             $in_set1 = exists $range_hash{$el_list1[0]};
             $in_set2 = exists $range_hash{$el_list2[0]};

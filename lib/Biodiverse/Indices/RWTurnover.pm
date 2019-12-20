@@ -142,6 +142,9 @@ sub calc_phylo_rw_turnover {
     my ($aa, $bb, $cc) = (0, 0, 0);    
     my %done;
     my $done_marker = \1;  #  squeeze more speed by not creating new SVs
+    #  micro-optimisation to not recreate these each iter
+    #  Care needs to be taken if assignment code below is modified
+    my ($in_set1, $in_set2);
 
     NODE:
     foreach my $node (keys %weights) {
@@ -155,7 +158,7 @@ sub calc_phylo_rw_turnover {
         #  Which neighbour sets does our node have terminals in?
         #  This is the "slow" bit of this sub...
         #  List::Util::any() takes twice as long as foreach
-        my ($in_set1, $in_set2);
+        #my ($in_set1, $in_set2);
         if ($pairwise_mode) {  #  no loops needed
             $in_set1 = exists $range_hash{$el_list1[0]};
             $in_set2 = exists $range_hash{$el_list2[0]};

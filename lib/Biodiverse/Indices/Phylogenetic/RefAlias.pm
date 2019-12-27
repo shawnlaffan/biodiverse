@@ -100,12 +100,20 @@ sub _calc_pe {
                 @ranges{keys %$hash_ref} = values %$hash_ref;
             }
 
-            # weights need to be summed
             # refalias might be a nano-optimisation here...
             \my %wt_hash = $results_this_gp->{PE_WTLIST};
-            foreach my $node (keys %wt_hash) {
-                $wts{$node} += $wt_hash{$node};
-                $local_ranges{$node}++;
+
+            # weights need to be summed,
+            # unless we are starting from a blank slate
+            if (keys %wts) {
+                foreach my $node (keys %wt_hash) {
+                    $wts{$node} += $wt_hash{$node};
+                    $local_ranges{$node}++;
+                }
+            }
+            else {
+                %wts = %wt_hash;
+                @local_ranges{keys %wt_hash} = (1) x scalar keys %wt_hash;
             }
         }
     }

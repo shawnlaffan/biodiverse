@@ -2024,10 +2024,9 @@ sub get_labels_in_group_as_hash {
     $self->get_groups_ref->get_sub_element_hash_aa( $args{group} );
 }
 
-#  get a hash of the labels that occur in $group
+#  get a hash of the labels that occur in a group
 sub get_labels_in_group_as_hash_aa {
-    my ( $self, $group ) = @_;
-    $self->get_groups_ref->get_sub_element_hash_aa($group);
+    $_[0]->get_groups_ref->get_sub_element_hash_aa($_[1]);
 }
 
 #  get the complement of the labels in a group
@@ -2047,9 +2046,7 @@ sub get_labels_not_in_group {
 }
 
 sub get_label_count {
-    my $self = shift;
-
-    return $self->get_labels_ref->get_element_count;
+    $_[0]->get_labels_ref->get_element_count;
 }
 
 #  get the number of columns used to build the labels

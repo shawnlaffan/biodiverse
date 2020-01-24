@@ -32,6 +32,20 @@ sub _calc_pe {
 
     my (%ranges, %wts, %local_ranges, %results);
 
+    #  prob a micro-optimisation, but might avoid
+    #  some looping below when collating weights
+    #  and one group has many more labels than the other
+    if (@$element_list_all == 2) {
+        my $count0 = $bd->get_richness_aa ($element_list_all->[0]);
+        my $count1 = $bd->get_richness_aa ($element_list_all->[1]);
+        if ($count1 > $count0) {
+            $element_list_all = [
+                $element_list_all->[1],
+                $element_list_all->[0],
+            ];
+        }
+    }
+
     foreach my $group (@$element_list_all) {
         my $results_this_gp;
         #  use the cached results for a group if present

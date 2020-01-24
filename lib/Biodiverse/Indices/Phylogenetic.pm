@@ -1624,7 +1624,7 @@ sub get_metadata_get_global_node_abundance_hash {
     my %metadata = (
         name            => 'get_global_node_abundance_hash',
         description     => 'Get a hash of all nodes and their corresponding abundances in the basedata',
-        pre_calc_global => ['get_trimmed_tree'],
+        pre_calc_global => ['get_trimmed_tree', 'get_node_abundance_global_cache'],
         indices         => {
             global_node_abundance_hash => {
                 description => 'Global node abundance hash',
@@ -1681,22 +1681,51 @@ sub get_global_node_abundance_hash {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_get_node_abundance_global_cache {
+    my %metadata = (
+        name            => 'get_node_abundance_global',
+        description     => 'Get a version of the tree trimmed to contain only labels in the basedata',
+        indices         => {
+            node_abundance_global_cache => {
+                description => 'Cache for global node abundances',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_node_abundance_global_cache {
+    my $self = shift;
+  
+    my %results = (
+        node_abundance_global_cache => {},
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_node_abundance_global {
     my $self = shift;
     my %args = @_;
 
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
+    my $cache = $args{node_abundance_global_cache} // croak 'no node_abundance_global_cache';
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
     
     my $abundance = 0;
     if ($node_ref->is_terminal_node) {
-        $abundance += $bd->get_label_sample_count (element => $node_ref->get_name);
+        $abundance += ($cache->{$node_ref->get_name}
+                       //= $bd->get_label_sample_count (element => $node_ref->get_name)
+                       );
     }
     else {
         my $children =  $node_ref->get_terminal_elements;
         foreach my $name (keys %$children) {
-            $abundance += $bd->get_label_sample_count (element => $name);
+            $abundance += ($cache->{$name}
+                           //= $bd->get_label_sample_count (element => $name)
+                          );
         }
     }
 

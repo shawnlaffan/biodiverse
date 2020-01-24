@@ -929,8 +929,8 @@ sub get_terminal_elements {
         $list{$self->get_name} = 1;
     }
     else {
-        my %descendents = $self->get_all_descendants;
-        my %terminals   = pairgrep {$b->is_terminal_node} %descendents;
+        my $descendents = $self->get_all_descendants;
+        my %terminals   = pairgrep {$b->is_terminal_node} %$descendents;
         @list{keys %terminals} = (1) x scalar keys %terminals;
     }    
 

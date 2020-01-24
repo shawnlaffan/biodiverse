@@ -1620,6 +1620,32 @@ sub get_node_range {
 }
 
 
+sub get_metadata_get_global_node_terminal_count_cache {
+    my %metadata = (
+        name            => 'get_global_node_terminal_count_cache',
+        description     => 'Get a cache for all nodes and their terminal counts',
+        pre_calc_global => [],
+        indices         => {
+            global_node_terminal_count_cache => {
+                description => 'Global node terminal count cache',
+            }
+        }
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_global_node_terminal_count_cache {
+    my $self = shift;
+
+    my %results = (
+        global_node_terminal_count_cache => {},
+    );
+    
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_get_global_node_abundance_hash {
     my %metadata = (
         name            => 'get_global_node_abundance_hash',
@@ -2681,7 +2707,11 @@ sub get_metadata_get_aed_scores {
         name            => 'get_aed_scores',
         description     => 'A hash of the ES, ED and BED scores for each label',
         pre_calc        => [qw /calc_abc/],
-        pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
+        pre_calc_global => [
+            qw /get_trimmed_tree
+                get_global_node_abundance_hash
+                get_global_node_terminal_count_cache
+              /],
         indices         => {
             ES_SCORES => {
                 description => 'Hash of ES scores for each label'
@@ -2704,6 +2734,7 @@ sub get_aed_scores {
 
     my $tree = $args{trimmed_tree};
     my $node_abundances = $args{global_node_abundance_hash};
+    my $terminal_count_cache = $args{global_node_terminal_count_cache};
     my (%es_wts, %ed_wts, %aed_wts);
     my $terminal_elements = $tree->get_root_node->get_terminal_elements;
 
@@ -2730,10 +2761,13 @@ sub get_aed_scores {
       TRAVERSE_TO_ROOT:
         while ($node_ref = $node_ref->get_parent) {
             my $node_len = $node_ref->get_length;
+            my $name     = $node_ref->get_name;
 
             $es_wt  /= $node_ref->get_child_count;  #  es uses a cumulative scheme
-            $ed_wt  =  1 / $node_ref->get_terminal_element_count;
-            $aed_wt =  1 / $node_abundances->{$node_ref->get_name};
+            $ed_wt  =  1 / ($terminal_count_cache->{$name}
+                            //= $node_ref->get_terminal_element_count
+                            );
+            $aed_wt =  1 / $node_abundances->{$name};
 
             $es_sum  += $node_len * $es_wt;
             $ed_sum  += $node_len * $ed_wt;

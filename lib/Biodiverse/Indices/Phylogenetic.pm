@@ -1684,7 +1684,7 @@ sub get_global_node_abundance_hash {
 sub get_metadata_get_node_abundance_global_cache {
     my %metadata = (
         name            => 'get_node_abundance_global',
-        description     => 'Get a version of the tree trimmed to contain only labels in the basedata',
+        description     => 'Get a cache for the global node abundances',
         indices         => {
             node_abundance_global_cache => {
                 description => 'Cache for global node abundances',

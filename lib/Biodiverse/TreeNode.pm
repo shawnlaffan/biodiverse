@@ -1,5 +1,5 @@
 package Biodiverse::TreeNode;
-use 5.010;
+use 5.020;
 use strict;
 use warnings;
 no warnings 'recursion';
@@ -909,8 +909,6 @@ sub get_terminal_node_refs {
 }
 
 #  get all the elements in the terminal nodes
-#  need to add a cache option to reduce the amount of tree walking
-#  - use  hash for this, but return the keys
 sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
@@ -926,12 +924,14 @@ sub get_terminal_elements {
     my %list;
 
     if ($self->is_terminal_node) {
-        $list{$self->get_name} = 1;
+        #  save a smidge of memory for large trees
+        $list{$self->get_name} = \1;
     }
     else {
-        my $descendents = $self->get_all_descendants;
-        my %terminals   = pairgrep {$b->is_terminal_node} %$descendents;
-        @list{keys %terminals} = (1) x scalar keys %terminals;
+        foreach my $child ($self->get_children) {
+            my $terminals = $child->get_terminal_elements(%args);
+            @list{keys %$terminals} = values %$terminals;            
+        }
     }    
 
     #  the values are really a hash, and need to be coerced into one when used

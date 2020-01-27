@@ -172,11 +172,9 @@ sub calc_pd_terminal_node_list {
 
     #  loop over nodes and just keep terminals
     my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
-    my @keys = keys %$pd_included_node_list;
-    my %node_hash = %{$tree_ref->get_node_hash};
 
     my %terminals;
-    foreach my $node_name (@keys) {
+    foreach my $node_name (keys %$pd_included_node_list) {
         next if ! $tree_ref->get_node_ref_aa($node_name)->is_terminal_node;
         $terminals{$node_name} = $pd_included_node_list->{$node_name};
     }

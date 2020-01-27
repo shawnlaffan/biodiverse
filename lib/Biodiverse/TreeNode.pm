@@ -1443,21 +1443,20 @@ sub get_hash_lists_below {
 sub is_tree_node {  
     my $self = shift;
     my %args = @_;
-    my $b = blessed $args{node};
-    return if !$b;
-    return $b eq blessed ($self);
+    my $class = blessed $args{node};
+    return if !$class;
+    return $class eq blessed ($self);
 }
 
 sub is_tree_node_aa {
     my ($self, $node) = @_;
-    my $b = blessed $node;
-    return if !$b;
-    return $b eq blessed ($self);
+    my $class = blessed $node;
+    return if !$class;
+    return $class eq blessed ($self);
 }
 
 sub is_terminal_node {
-    my $self = shift;
-    return !$self->get_child_count;  #  terminal if it has no children
+    !$_[0]->get_child_count;  #  terminal if it has no children
 }
 
 #  check if it is a "named" node, or internal (name ends in three underscores)

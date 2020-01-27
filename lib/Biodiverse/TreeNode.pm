@@ -13,6 +13,7 @@ use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
+use Readonly;
 
 use Biodiverse::BaseStruct;
 use Biodiverse::TreeNode::BootstrapBlock;
@@ -909,6 +910,7 @@ sub get_terminal_node_refs {
 }
 
 #  get all the elements in the terminal nodes
+my Readonly $get_terminal_elements_cache_val = \1;
 sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
@@ -925,7 +927,7 @@ sub get_terminal_elements {
 
     if ($self->is_terminal_node) {
         #  save a smidge of memory for large trees
-        $list{$self->get_name} = \1;
+        $list{$self->get_name} = $get_terminal_elements_cache_val;
     }
     else {
         foreach my $child ($self->get_children) {

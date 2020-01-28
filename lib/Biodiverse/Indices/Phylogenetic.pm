@@ -794,27 +794,21 @@ sub _calc_pd_pe_clade_contributions {
     my $contr_p = {};
     my $clade_score = {};
 
-    #  should make a copy?
-    my $node_refs  = $sub_tree->get_node_refs;
-    #  depths should be the same across main and sub trees
+    #  depths are (should be) the same across main and sub trees
     my $depth_hash = $main_tree->get_node_name_depth_hash;
     my $node_hash  = $sub_tree->get_node_hash;
-    
-    my @by_depth
-      = map {$_->[0]}
-        sort {$b->[1] <=> $a->[1]}
-        map {[$_, $depth_hash->{$_->get_name}]}
-        @$node_refs;
-    
+
+    my @names_by_depth
+      = sort {$depth_hash->{$b} <=> $depth_hash->{$a}}
+        keys %$node_hash;
 
   NODE_REF:
-    foreach my $node_ref (@by_depth) {
-        #no autovivification;
+    foreach my $node_name (@names_by_depth) {
 
-        my $node_name = $node_ref->get_name;
+        #my $node_name = $node_ref->get_name;
 
         my $wt_sum = $wt_list->{$node_name};
-        foreach my $child_ref ($node_ref->get_children) {
+        foreach my $child_ref ($node_hash->{$node_name}->get_children) {
             my $child_name = $child_ref->get_name;
             $wt_sum += $clade_score->{$child_name};
         }

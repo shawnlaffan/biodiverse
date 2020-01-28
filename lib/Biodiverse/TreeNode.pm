@@ -577,10 +577,8 @@ sub delete_children {
 }
 
 sub get_children {
-    my $self = shift;
-    return if not defined $self->{_CHILDREN};
-    my @children = @{$self->{_CHILDREN}};
-    return wantarray ? @children : \@children;
+    return if not defined $_[0]->{_CHILDREN};
+    return wantarray ? @{$_[0]->{_CHILDREN}} : [@{$_[0]->{_CHILDREN}}];
 }
 
 sub get_child_count {

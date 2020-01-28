@@ -475,7 +475,9 @@ sub add_children {
     
     #  Remove any duplicates.
     #  Could use a hash but we need to retain the insertion order
-    $children = [uniq @$children];
+    if (@$children > 1) {
+        $children = [uniq @$children];
+    }
 
     # need to skip any that already exist
     my $existing_children = $self->get_children;

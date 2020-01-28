@@ -1450,11 +1450,12 @@ sub is_tree_node {
     return $class eq blessed ($self);
 }
 
+#  could use isa operator in 5.32 and later
 sub is_tree_node_aa {
-    my ($self, $node) = @_;
-    my $class = blessed $node;
+    #my ($self, $node) = @_;
+    my $class = blessed $_[1];
     return if !$class;
-    return $class eq blessed ($self);
+    return $class eq blessed ($_[0]);
 }
 
 sub is_terminal_node {

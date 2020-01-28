@@ -804,7 +804,7 @@ sub _calc_pd_pe_clade_contributions {
 
   NODE_REF:
     foreach my $node_ref (@by_depth) {
-        no autovivification;
+        #no autovivification;
 
         my $node_name = $node_ref->get_name;
 
@@ -977,13 +977,16 @@ sub _calc_pd_pe_clade_loss {
       @args{@score_names};
 
     my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
+    my $node_name;  #  reuse to avoid repeated SV destruction
 
   NODE:
     foreach my $node_ref ($sub_tree->get_node_refs) {
-        #  skip if we have already done this one
-        next NODE if defined $loss_score{$node_ref->get_name};
+        $node_name = $node_ref->get_name;
 
-        my @ancestors = ($node_ref->get_name);
+        #  skip if we have already done this one
+        next NODE if defined $loss_score{$node_name};
+
+        my @ancestors = ($node_name);
 
         #  Find the ancestors with no children outside this clade
         #  We are using a subtree, so the node only needs one sibling

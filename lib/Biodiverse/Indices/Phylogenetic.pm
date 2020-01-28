@@ -795,12 +795,17 @@ sub _calc_pd_pe_clade_contributions {
     my $clade_score = {};
 
     #  should make a copy?
-    my $node_refs = $sub_tree->get_node_refs;
+    my $node_refs  = $sub_tree->get_node_refs;
+    #  depths should be the same across main and sub trees
+    my $depth_hash = $main_tree->get_node_name_depth_hash;
+    my $node_hash  = $sub_tree->get_node_hash;
+    
     my @by_depth
       = map {$_->[0]}
         sort {$b->[1] <=> $a->[1]}
-        map {[$_, $_->get_depth]}
+        map {[$_, $depth_hash->{$_->get_name}]}
         @$node_refs;
+    
 
   NODE_REF:
     foreach my $node_ref (@by_depth) {

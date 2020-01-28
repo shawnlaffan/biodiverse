@@ -567,6 +567,27 @@ sub get_node_hash_by_depth {
     return wantarray ? %by_value : \%by_value;
 }
 
+#  get a hash of the node names with values as the depths
+sub get_node_name_depth_hash {
+    my $self = shift;
+    
+    if (my $cached = $self->get_cached_value ('NODE_NAME_DEPTH_HASH')) {
+        return wantarray ? %$cached : $cached;
+    }
+    
+    my $node_hash = $self->get_node_hash;
+    
+    my %names_and_depths
+      = map {$_->[0] => $_->[2]}
+        sort {$b->[2] <=> $a->[2]}
+        map {[$_, $node_hash->{$_}, $node_hash->{$_}->get_depth]}
+        keys %$node_hash;
+    
+    $self->set_cached_value (NODE_NAME_DEPTH_HASH => \%names_and_depths);
+    
+    return wantarray ? %names_and_depths : \%names_and_depths;
+}
+
 #  get a set of stats for one of the hash lists in the tree.
 #  Should be called get_list_value_stats
 #  should just return the stats object

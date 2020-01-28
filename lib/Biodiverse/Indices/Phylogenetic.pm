@@ -805,8 +805,6 @@ sub _calc_pd_pe_clade_contributions {
   NODE_REF:
     foreach my $node_name (@names_by_depth) {
 
-        #my $node_name = $node_ref->get_name;
-
         my $wt_sum = $wt_list->{$node_name};
         foreach my $child_ref ($node_hash->{$node_name}->get_children) {
             my $child_name = $child_ref->get_name;
@@ -1866,9 +1864,9 @@ sub get_sub_tree {
 
             my $parent_name = $parent->get_name;
             my $st_parent;
-            if ($subtree->exists_node (name => $parent_name)) {
+            if ($subtree->exists_node_name_aa ($parent_name)) {
                 $st_parent = eval {
-                    $subtree->get_node_ref (node => $parent_name);
+                    $subtree->get_node_ref_aa ($parent_name);
                 };
             }
             my $last = defined $st_parent;  #  we have the rest of the path in this case

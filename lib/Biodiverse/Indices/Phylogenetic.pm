@@ -808,7 +808,7 @@ sub _calc_pd_pe_clade_contributions {
 
         my $node_name = $node_ref->get_name;
 
-        my $wt_sum = $wt_list->{$node_ref->get_name};
+        my $wt_sum = $wt_list->{$node_name};
         foreach my $child_ref ($node_ref->get_children) {
             my $child_name = $child_ref->get_name;
             $wt_sum += $clade_score->{$child_name};

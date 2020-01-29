@@ -482,7 +482,7 @@ sub add_children {
     }
 
     # need to skip any that already exist
-    my $existing_children = $self->get_children;
+    my $existing_children = $self->{_CHILDREN};
     my (%skip, $use_skip);
     if (scalar @$existing_children) {
         $use_skip = 1;

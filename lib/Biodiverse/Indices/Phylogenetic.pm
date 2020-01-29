@@ -974,10 +974,11 @@ sub _calc_pd_pe_clade_loss {
 
     my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
     my $node_name;  #  reuse to avoid repeated SV destruction
+    my (%child_counts, %node_names);  #  avoid some method calls
 
   NODE:
     foreach my $node_ref ($sub_tree->get_node_refs) {
-        $node_name = $node_ref->get_name;
+        $node_name = ($node_names{$node_ref} //= $node_ref->get_name);
 
         #  skip if we have already done this one
         next NODE if defined $loss_score{$node_name};
@@ -989,9 +990,9 @@ sub _calc_pd_pe_clade_loss {
       PARENT:
         while (my $parent = $node_ref->get_parent) {
             last PARENT
-              if $parent->get_child_count > 1;
+              if ($child_counts{$parent} //= $parent->get_child_count) > 1;
 
-            push @ancestors, $parent->get_name;
+            push @ancestors, ($node_names{$parent} //= $parent->get_name);
             $node_ref = $parent;
         }
 

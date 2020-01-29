@@ -469,6 +469,8 @@ sub add_children {
     my %args = @_;
     my $children = $args{children}
       // return;  #  should croak
+    #  save some checking below (based on a promise)
+    my $children_are_treenodes = $args{is_treenodes};
 
     croak "TreeNode WARNING: children argument not an array ref\n"
       if !is_arrayref($children);
@@ -493,7 +495,7 @@ sub add_children {
         #  don't re-add our own child
         next CHILD if $use_skip && $skip{$child};
 
-        if ($self->is_tree_node_aa($child)) {
+        if ($children_are_treenodes || $self->is_tree_node_aa($child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
                     my $name = $self->get_name;

@@ -1877,7 +1877,10 @@ sub get_sub_tree {
                     length => $parent->get_length,
                 );
             }
-            $st_parent->add_children (children => [$st_node_ref]);
+            $st_parent->add_children (
+                children     => [$st_node_ref],
+                is_treenodes => 1,
+            );
 
             last NODE_IN_PATH if $last;
 

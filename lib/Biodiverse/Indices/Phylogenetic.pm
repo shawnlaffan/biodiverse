@@ -172,12 +172,13 @@ sub calc_pd_terminal_node_list {
 
     #  loop over nodes and just keep terminals
     my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
+    #  this is awkward - we should be able to use the Tree method directly,
+    #  but it does odd things.
+    my $tree_terminals = $tree_ref->get_root_node->get_terminal_elements ();
 
-    my %terminals;
-    foreach my $node_name (keys %$pd_included_node_list) {
-        next if ! $tree_ref->get_node_ref_aa($node_name)->is_terminal_node;
-        $terminals{$node_name} = $pd_included_node_list->{$node_name};
-    }
+    #  we could just use the ABC lists  
+    my @terminal_keys = grep {exists $tree_terminals->{$_}} keys %$pd_included_node_list;
+    my %terminals = %$pd_included_node_list{@terminal_keys};
 
     my %results = (
         PD_INCLUDED_TERMINAL_NODE_LIST => \%terminals,

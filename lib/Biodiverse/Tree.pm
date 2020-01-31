@@ -725,7 +725,19 @@ sub get_root_node_refs {
 }
 
 sub get_root_node {
-    my $self = shift;
+    my ($self, %args) = @_;
+    
+    if ($args{tree_has_one_root_node}) {
+        #  We can be sure there is only one,
+        #  so avoid a full search of all nodes.
+        #  Pick one and climb up.
+        my $node_hash = $self->get_node_hash;
+        my $tester = (values %$node_hash)[0];
+        while (my $parent = $tester->get_parent) {
+            $tester = $parent;
+        }
+        return wantarray ? ($tester->get_name => $tester) : $tester;
+    }
 
     my $root_nodes = $self->get_root_nodes;
     croak "More than one root node\n" if scalar keys %$root_nodes > 1;

@@ -172,9 +172,10 @@ sub calc_pd_terminal_node_list {
 
     #  loop over nodes and just keep terminals
     my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
-    #  this is awkward - we should be able to use the Tree method directly,
+    #  this is awkward - we should be able to use Tree::get_terminal_elements directly,
     #  but it does odd things.
-    my $tree_terminals = $tree_ref->get_root_node->get_terminal_elements ();
+    my $root_node      = $tree_ref->get_root_node(tree_has_one_root_node => 1);
+    my $tree_terminals = $root_node->get_terminal_elements;
 
     #  we could just use the ABC lists  
     my @terminal_keys = grep {exists $tree_terminals->{$_}} keys %$pd_included_node_list;

@@ -727,16 +727,16 @@ sub get_root_node_refs {
 sub get_root_node {
     my $self = shift;
 
-    my %root_nodes = $self->get_root_nodes;
-    croak "More than one root node\n" if scalar keys %root_nodes > 1;
+    my $root_nodes = $self->get_root_nodes;
+    croak "More than one root node\n" if scalar keys %$root_nodes > 1;
 
-    my @refs          = values %root_nodes;
+    my @refs          = values %$root_nodes;
     my $root_node_ref = $refs[0];
 
     croak $root_node_ref->get_name . " is not a root node!\n"
       if !$root_node_ref->is_root_node;
 
-    return wantarray ? %root_nodes : $root_node_ref;
+    return wantarray ? %$root_nodes : $root_node_ref;
 }
 
 #  get all nodes that aren't internal

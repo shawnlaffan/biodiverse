@@ -1156,9 +1156,9 @@ sub test_roundtrip_raster {
         my @exported_files = grep {!/^[.]{1,2}$/} readdir($dh);
         closedir ($dh);
         ok (scalar @exported_files, 'got some files from the readdir');
-        
+        @exported_files = map {"$tmp_dir/$_"} @exported_files;
         if (ON_WINDOWS) {
-            @exported_files = map {Win32::GetLongPathName("$tmp_dir/$_")} @exported_files;
+            @exported_files = map {Win32::GetLongPathName($_)} @exported_files;
         }
         #  make sure we skip world and hdr files
         @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} @exported_files;

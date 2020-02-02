@@ -269,7 +269,9 @@ sub load_yaml_file {
 
     return if ! $self->file_exists_aa ($args{file});
     return if ! ($args{file} =~ /$suffix$/);
-
+    
+    local $YAML::Syck::LoadBlessed = 1 if $args{loadblessed};
+    
     my $loaded = YAML::Syck::LoadFile ($args{file});
 
     #  yaml does not handle weak refs, so we need to put them back in

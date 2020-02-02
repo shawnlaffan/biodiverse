@@ -136,8 +136,9 @@ sub test_save_and_reload {
     } "Saved to file, suffix is $suffix_feedback";
 
     my $new_object;
+    my %load_args = $suffix =~ /b[dtm]y/ ? (loadblessed => 1) : ();
     lives_ok {
-        $new_object = eval {$class->new (file => $fname)}
+        $new_object = eval {$class->new (file => $fname, %load_args)}
     } "Opened without exception thrown, suffix is $suffix_feedback";
 
     #  if we are using storable then check it is set as the last serialisation format

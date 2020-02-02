@@ -1148,12 +1148,23 @@ sub test_roundtrip_raster {
         # the labels to their unescaped form
         # albeit that would be just as contorted in the end.
 
-        #  make sure we skip world and hdr files 
-        my @exported_files = glob "$tmp_dir/*";
+        #  get the list of files, but use readdir as glob can be sensitive
+        #  (although that issue might not have been glob's fault)
+        #my @exported_files = glob "$tmp_dir/*";
+        my $dh;
+        opendir($dh, $tmp_dir) or die "Unable to open $tmp_dir";
+        #  no . or ..
+        my @exported_files = grep {$_ !~ m/^\.+$/} readdir($dh);
+        closedir ($dh);
+        ok (scalar @exported_files, 'got some files from the readdir');
+        
         if (ON_WINDOWS) {
-            @exported_files = map {Win32::GetLongPathName($_)} @exported_files;
+            @exported_files = map {Win32::GetLongPathName("$tmp_dir/$_")} @exported_files;
         }
+        #  make sure we skip world and hdr files
         @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} @exported_files;
+
+
 
         foreach my $this_file (@exported_files) {
             next if $this_file !~ /\./;  #  must have a dot - er-mapper files do not by default

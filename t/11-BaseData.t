@@ -1153,7 +1153,7 @@ sub test_roundtrip_raster {
         #my @exported_files = glob "$tmp_dir/*";
         opendir(my $dh, $tmp_dir) or die "Unable to open $tmp_dir";
         #  no . or ..
-        my @exported_files = grep {$_ !~ m/^\.+$/} readdir($dh);
+        my @exported_files = grep {!/^[.]{1,2}$/} readdir($dh);
         closedir ($dh);
         ok (scalar @exported_files, 'got some files from the readdir');
         

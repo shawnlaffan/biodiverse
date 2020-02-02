@@ -1151,8 +1151,7 @@ sub test_roundtrip_raster {
         #  get the list of files, but use readdir as glob can be sensitive
         #  (although that issue might not have been glob's fault)
         #my @exported_files = glob "$tmp_dir/*";
-        my $dh;
-        opendir($dh, $tmp_dir) or die "Unable to open $tmp_dir";
+        opendir(my $dh, $tmp_dir) or die "Unable to open $tmp_dir";
         #  no . or ..
         my @exported_files = grep {$_ !~ m/^\.+$/} readdir($dh);
         closedir ($dh);

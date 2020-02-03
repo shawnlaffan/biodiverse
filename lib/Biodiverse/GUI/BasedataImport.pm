@@ -1716,10 +1716,10 @@ sub add_row {
     }
 
     # Cell sizes/snaps
-    my $adj1 = Gtk2::Adjustment->new( 100000, 0, 10000000, 100, 10000, 0 );
+    my $adj1 = Gtk2::Adjustment->new( 100000, 0, 100000000, 100, 10000, 0 );
     my $spin1 = Gtk2::SpinButton->new( $adj1, 100, $dp );
 
-    my $adj2 = Gtk2::Adjustment->new( 0, -1000000, 1000000, 100, 10000, 0 );
+    my $adj2 = Gtk2::Adjustment->new( 0, -100000000, 100000000, 100, 10000, 0 );
     my $spin2 = Gtk2::SpinButton->new( $adj2, 100, $dp );
 
     foreach my $spin ( $spin1, $spin2 ) {

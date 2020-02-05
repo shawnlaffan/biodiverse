@@ -15,7 +15,7 @@ use List::MoreUtils qw /firstidx/;
 
 use Gtk2;
 use Gnome2::Canvas;
-use POSIX; # for ceil()
+use POSIX qw /ceil/; # for ceil()
 
 our $VERSION = '3.00';
 

@@ -108,6 +108,16 @@ sub new {
     $self->init_list('listLabels1');
     $self->init_list('listLabels2');
 
+    # "open up" the panes
+    #  need to do this before displaying the dendrogram
+    #  as a resize triggers a complete redraw
+    #  (something to be fixed sometime)
+    $self->queue_set_pane(0.5, 'hpaneLabelsTop');
+    $self->queue_set_pane(0.5, 'hpaneLabelsBottom');
+    $self->queue_set_pane(0.5, 'vpaneLabels');
+    # vpaneLists is done after hpaneLabelsTop, since this panel isn't able to get
+    # its max size before hpaneLabelsTop is resized
+    
     if (! $self->init_grid()) {       #  close if user cancelled during display
         $self->on_close;
         croak "User cancelled grid initialisation, closing\n";
@@ -135,12 +145,6 @@ sub new {
     );
     $self->on_selected_phylogeny_changed();
 
-    # "open up" the panes
-    $self->queue_set_pane(0.5, 'hpaneLabelsTop');
-    $self->queue_set_pane(0.5, 'hpaneLabelsBottom');
-    $self->queue_set_pane(0.5, 'vpaneLabels');
-    # vpaneLists is done after hpaneLabelsTop, since this panel isn't able to get
-    # its max size before hpaneLabelsTop is resized
 
     # Panes will modify this to keep track of which one the mouse is currently
     # over

@@ -301,6 +301,11 @@ sub import_data {
     my $orig_group_count           = $self->get_group_count;
     my $orig_label_count           = $self->get_label_count;
 
+    my $out_csv = $self->get_csv_object(
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    
 #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file ( @{ $args{input_files} } ) {
         $file = Path::Class::file($file)->absolute;
@@ -336,10 +341,6 @@ sub import_data {
             sep_char   => $sep,
             quote_char => $input_quote_char,
             binary     => $input_binary,
-        );
-        my $out_csv = $self->get_csv_object(
-            sep_char   => $el_sep,
-            quote_char => $quotes,
         );
 
         my $lines = $self->get_next_line_set(

@@ -1742,7 +1742,7 @@ sub get_file_handle {
     
     my $fh;
 
-    if (ON_WINDOWS) {
+    if (ON_WINDOWS && !-e $file_name) {
         openL (\$fh, $mode, $file_name)
           or die ("unable to open $file_name ($^E)");
     }

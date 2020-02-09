@@ -23,12 +23,16 @@ before_install:
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
+  
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal
   - cpanm -v --notest Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
   - cpanm --notest Task::Biodiverse::NoGUI
 
+  #  test this on a subset, for which the GUI stuff will work well enough
+  - if [ $BD_TEST_GUI ]; then cpanm Data::Recursive; fi;
+  
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
   - if [ $BD_TEST_GUI ]; then sudo apt-get install libgnomecanvas2-dev; fi;

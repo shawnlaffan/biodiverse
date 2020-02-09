@@ -36,6 +36,7 @@ install:
   - cpanm --notest Win32::LongPath
   - cpanm --notest Geo::ShapeFile@3.00
   - cpanm --notest Browser::Start
+  - cpanm Data::Recursive
   ##- cpanm --installdeps --notest --with-all-features .
 
 

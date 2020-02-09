@@ -3,3 +3,5 @@
 nytprof.out
 /nyt*
 /cover_db
+/z_test_shapefiles
+/etc/experiments/polyintersect

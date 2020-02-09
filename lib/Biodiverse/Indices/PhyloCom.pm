@@ -353,15 +353,15 @@ sub _calc_phylo_mpd_mntd {
         #  next steps only if we added something
         next BY_LABEL if !$j;
 
-            #  weighting scheme won't work with non-integer wts - need to use weighted stats
-            push @mpd_path_lengths, @mpd_path_lengths_this_node;
-            my $min = min (@mntd_path_lengths_this_node);
-            push @mntd_path_lengths, $min;
-            if ($use_wts) {
-                push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
-                push @mntd_wts, $label_count1;
-            }
+        #  weighting scheme won't work with non-integer wts - need to use weighted stats
+        push @mpd_path_lengths, @mpd_path_lengths_this_node;
+        my $min = min (@mntd_path_lengths_this_node);
+        push @mntd_path_lengths, $min;
+        if ($use_wts) {
+            push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
+            push @mntd_wts, $label_count1;
         }
+    }
 
     my %results;
 

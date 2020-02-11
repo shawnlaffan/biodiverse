@@ -1206,6 +1206,22 @@ sub get_path_lengths_to_root_node_aa {
     return wantarray ? %path_lengths : \%path_lengths;
 }
 
+sub get_distance_to_root_node {
+    my ($self, %args) = shift;
+    my $cache_key = 'PATH_DISTANCE_TO_ROOT_NODE';
+    
+    if ($args{cache}) {
+        my $dist = $self->get_cached_value ($cache_key);
+        return $dist if defined $dist;
+    }
+    
+    my $path = $self->get_path_lengths_to_root_node_aa;
+    my $distance = sum values %$path;
+    $self->set_cached_value ($cache_key => $distance);
+    
+    return $distance;
+}
+
 #  get all the nodes along a path from self to another node,
 #  including self and other, and the shared ancestor
 sub get_path_to_node {

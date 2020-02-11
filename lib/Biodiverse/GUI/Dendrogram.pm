@@ -2264,7 +2264,12 @@ sub render_tree {
                          )
                       * $self->{length_scale};
 
-    $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
+    $self->draw_tree (
+        root_offset => $root_offset,
+        length_func => $length_func,
+        length_scale => $self->{length_scale},
+        height_scale => $self->{height_scale},
+    );
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
@@ -2488,19 +2493,23 @@ say "$node_name, $y, $current_xpos, $new_current_xpos";
 }
 
 
-sub draw_node {
-    my ($self, $node, $root_offset, $length_func, $length_scale, $height_scale, $line_width) = @_;
+sub draw_tree {
+    my ($self, %args) = @_;
+    my $root_offset  = $args{root_offset};
+    my $length_func  = $args{length_func}
+                     // $self->{length_func};
+    my $length_scale = $args{length_scale};
+    my $height_scale = $args{height_scale};
+    my $line_width   = $args{line_width}
+                     // $self->get_branch_line_width;
 
-    return if !$node;
+    my $tree = $self->{cluster};
 
-    $line_width //= $self->get_branch_line_width;
-
-    #  inefficient
-    my $node_hash = $node->get_all_descendants_and_self;
+    my $node_hash = $tree->get_node_hash;
     
     use List::Util qw /sum/;
     
-    foreach my $node_name (sort keys %$node_hash) {
+    foreach my $node_name (keys %$node_hash) {
         my $node = $node_hash->{$node_name};
         #  need new func to handle depths
         my $path_to_root = $node->get_path_lengths_to_root_node;
@@ -2513,8 +2522,6 @@ sub draw_node {
         
         my $y = $node->get_value('_y') * $height_scale;
         my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
-
-say "$node_name, $y, $start_xpos, $end_xpos";
 
         # Draw our horizontal line
         my $line = $self->draw_line(
@@ -2529,6 +2536,7 @@ say "$node_name, $y, $start_xpos, $end_xpos";
         $self->{node_lines}->{$node_name} = $line;
     
         my ($ymin, $ymax);
+        #  should be able to use first and last child
         foreach my $child ($node->get_children) {
             my $child_y = $child->get_value ('_y') * $height_scale;
             $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);

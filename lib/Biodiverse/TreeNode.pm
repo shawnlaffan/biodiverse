@@ -1207,7 +1207,8 @@ sub get_path_lengths_to_root_node_aa {
 }
 
 sub get_distance_to_root_node {
-    my ($self, %args) = shift;
+    my $self = shift;
+    my %args = (cache => 1, @_);
     my $cache_key = 'PATH_DISTANCE_TO_ROOT_NODE';
     
     if ($args{cache}) {

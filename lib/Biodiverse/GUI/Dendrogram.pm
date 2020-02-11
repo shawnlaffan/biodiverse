@@ -2439,7 +2439,7 @@ sub resize_background_rect {
 # Drawing
 ##########################################################
 
-sub draw_node {
+sub __draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale, $line_width) = @_;
 
     return if !$node;
@@ -2452,7 +2452,7 @@ sub draw_node {
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
     my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
-
+say "$node_name, $y, $current_xpos, $new_current_xpos";
     # Draw our horizontal line
     my $line = $self->draw_line(
         [$current_xpos, $y, $new_current_xpos, $y],
@@ -2485,6 +2485,68 @@ sub draw_node {
         );
     }
     return $y;
+}
+
+
+sub draw_node {
+    my ($self, $node, $root_offset, $length_func, $length_scale, $height_scale, $line_width) = @_;
+
+    return if !$node;
+
+    $line_width //= $self->get_branch_line_width;
+
+    #  inefficient
+    my $node_hash = $node->get_all_descendants_and_self;
+    
+    use List::Util qw /sum/;
+    
+    foreach my $node_name (sort keys %$node_hash) {
+        my $node = $node_hash->{$node_name};
+        #  need new func to handle depths
+        my $path_to_root = $node->get_path_lengths_to_root_node;
+        my $path_length  = sum (values %$path_to_root);
+        
+        my $length   = $length_func->($node) * $length_scale;
+
+        my $end_xpos = $root_offset - $path_length * $length_scale;
+        my $start_xpos   = $end_xpos  + $length;
+        
+        my $y = $node->get_value('_y') * $height_scale;
+        my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
+
+say "$node_name, $y, $start_xpos, $end_xpos";
+
+        # Draw our horizontal line
+        my $line = $self->draw_line(
+            [$start_xpos, $y, $end_xpos, $y],
+            $colour_ref,
+            $line_width,
+        );
+        $line->signal_connect_swapped (event => \&on_event, $self);
+        $line->{node} =  $node; # Remember the node (for hovering, etc...)
+    
+        # Remember line (for colouring, etc...)
+        $self->{node_lines}->{$node_name} = $line;
+    
+        my ($ymin, $ymax);
+        foreach my $child ($node->get_children) {
+            my $child_y = $child->get_value ('_y') * $height_scale;
+            $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
+            $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
+        }
+    
+        # Vertical line
+        if (defined $ymin) { 
+            $self->draw_line(
+                [$end_xpos, $ymin, $end_xpos, $ymax],
+                DEFAULT_LINE_COLOUR_VERT,
+                NORMAL_WIDTH,
+            );
+        }
+    }
+    #return $y;
+    
+    return;
 }
 
 sub draw_line {

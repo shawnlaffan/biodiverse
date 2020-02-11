@@ -2444,55 +2444,6 @@ sub resize_background_rect {
 # Drawing
 ##########################################################
 
-sub __draw_node {
-    my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale, $line_width) = @_;
-
-    return if !$node;
-
-    $line_width //= $self->get_branch_line_width;
-
-    my $node_name = $node->get_name;
-
-    my $length = $length_func->($node) * $length_scale;
-    my $new_current_xpos = $current_xpos - $length;
-    my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
-say "$node_name, $y, $current_xpos, $new_current_xpos";
-    # Draw our horizontal line
-    my $line = $self->draw_line(
-        [$current_xpos, $y, $new_current_xpos, $y],
-        $colour_ref,
-        $line_width,
-    );
-    $line->signal_connect_swapped (event => \&on_event, $self);
-    $line->{node} =  $node; # Remember the node (for hovering, etc...)
-
-    # Remember line (for colouring, etc...)
-    $self->{node_lines}->{$node_name} = $line;
-
-    # Draw children
-    my ($ymin, $ymax);
-    my @arg_arr = ($new_current_xpos, $length_func, $length_scale, $height_scale, $line_width);
-
-    foreach my $child ($node->get_children) {
-        my $child_y = $self->draw_node($child, @arg_arr);
-
-        $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
-        $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
-    }
-
-    # Vertical line
-    if (defined $ymin) { 
-        $self->draw_line(
-            [$new_current_xpos, $ymin, $new_current_xpos, $ymax],
-            DEFAULT_LINE_COLOUR_VERT,
-            NORMAL_WIDTH,
-        );
-    }
-    return $y;
-}
-
-
 sub draw_tree {
     my ($self, %args) = @_;
     my $root_offset  = $args{root_offset};

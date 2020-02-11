@@ -2503,23 +2503,16 @@ sub draw_tree {
     my $line_width   = $args{line_width}
                      // $self->get_branch_line_width;
 
-    my $tree = $self->{cluster};
+    my $tree_ref  = $self->{cluster};
+    my $node_hash = $tree_ref->get_node_hash;
 
-    my $node_hash = $tree->get_node_hash;
-    
-    use List::Util qw /sum/;
-    
     foreach my $node_name (keys %$node_hash) {
         my $node = $node_hash->{$node_name};
-        #  need new func to handle depths
-        my $path_to_root = $node->get_path_lengths_to_root_node;
-        my $path_length  = sum (values %$path_to_root);
-        
-        my $length   = $length_func->($node) * $length_scale;
+        my $path_length  = $node->get_distance_to_root_node;
 
-        my $end_xpos = $root_offset - $path_length * $length_scale;
-        my $start_xpos   = $end_xpos  + $length;
-        
+        my $end_xpos   = $root_offset - $path_length * $length_scale;
+        my $start_xpos = $end_xpos + $length_func->($node) * $length_scale;
+
         my $y = $node->get_value('_y') * $height_scale;
         my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
 

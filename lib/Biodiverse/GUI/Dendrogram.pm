@@ -2045,11 +2045,13 @@ sub set_plot_mode {
         $self->{length_func}     = \&Biodiverse::TreeNode::get_length;
         $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
         $self->{neg_length_func} = \&get_max_negative_length;
+        $self->{dist_to_root_func} = \&Biodiverse::TreeNode::get_distance_to_root_node;
     }
     elsif ($plot_mode eq 'depth') {
         $self->{length_func}     = sub { return 1; }; # each node is "1" depth level below the previous one
         $self->{max_length_func} = \&Biodiverse::TreeNode::get_depth_below;
         $self->{neg_length_func} = sub { return 0; };
+        $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
     #elsif ($plot_mode eq 'range_weighted') {  #  experimental - replaced by method to convert the tree's branch lengths
     #    #  need to get the node range table
@@ -2453,13 +2455,15 @@ sub draw_tree {
     my $height_scale = $args{height_scale};
     my $line_width   = $args{line_width}
                      // $self->get_branch_line_width;
+    my $dist_to_root_func = $args{dist_to_root_func}
+                         // $self->{dist_to_root_func};
 
     my $tree_ref  = $self->{cluster};
     my $node_hash = $tree_ref->get_node_hash;
 
     foreach my $node_name (keys %$node_hash) {
         my $node = $node_hash->{$node_name};
-        my $path_length  = $node->get_distance_to_root_node;
+        my $path_length  = $dist_to_root_func->($node);
 
         my $end_xpos   = $root_offset - $path_length * $length_scale;
         my $start_xpos = $end_xpos + $length_func->($node) * $length_scale;

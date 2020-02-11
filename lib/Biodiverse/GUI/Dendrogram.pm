@@ -2049,7 +2049,7 @@ sub set_plot_mode {
     }
     elsif ($plot_mode eq 'depth') {
         $self->{length_func}     = sub { return 1; }; # each node is "1" depth level below the previous one
-        $self->{max_length_func} = \&Biodiverse::TreeNode::get_depth_below;
+        $self->{max_length_func} = sub {$_[0]->get_depth_below + 1};
         $self->{neg_length_func} = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }

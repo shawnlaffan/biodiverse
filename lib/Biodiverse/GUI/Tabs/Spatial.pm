@@ -881,7 +881,9 @@ sub on_selected_phylogeny_changed {
     # phylogenies
     my $phylogeny = $self->get_current_tree;
 
-    $self->{dendrogram}->clear;
+    if ($self->{dendrogram}) {
+        $self->{dendrogram}->clear;
+    }
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
         $self->set_phylogeny_options_sensitive(1);

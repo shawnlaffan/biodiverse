@@ -20,6 +20,12 @@ use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
+use constant HAVE_DATA_RECURSIVE
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
+
+  
+#warn "Using Data::Recursive\n" if HAVE_DATA_RECURSIVE;
+  
 BEGIN {
     if ($PERL_VERSION lt 'v5.22.0') {
         eval 'use parent qw /Biodiverse::Indices::Phylogenetic::DataAlias/';
@@ -1577,7 +1583,10 @@ sub get_node_range {
 
     if (  !$node_ref->is_internal_node && $bd->exists_label_aa($node_name)) {
         my $gp_list = $bd->get_groups_with_label_as_hash_aa ($node_name);
-        if (HAVE_PANDA_LIB) {
+        if (HAVE_DATA_RECURSIVE) {
+            Data::Recursive::hash_merge (\%groups, $gp_list, Data::Recursive::LAZY());
+        }
+        elsif (HAVE_PANDA_LIB) {
             Panda::Lib::hash_merge (\%groups, $gp_list, Panda::Lib::MERGE_LAZY());
         }
         else {
@@ -1592,7 +1601,10 @@ sub get_node_range {
                 #  bodge to work around inconsistent returns
                 #  (can be a key count, a hash, or an array ref of keys)
                 my $c = $self->get_node_range (node_ref => $child, return_list => 1);
-                if (HAVE_PANDA_LIB) {
+                if (HAVE_DATA_RECURSIVE) {
+                    Data::Recursive::hash_merge (\%groups, $c, Data::Recursive::LAZY());
+                }
+                elsif (HAVE_PANDA_LIB) {
                     Panda::Lib::hash_merge (\%groups, $c, Panda::Lib::MERGE_LAZY());
                 }
                 else {
@@ -1600,7 +1612,10 @@ sub get_node_range {
                 }
             }
             else {
-                if (HAVE_PANDA_LIB) {
+                if (HAVE_DATA_RECURSIVE) {
+                    Data::Recursive::hash_merge (\%groups, $cached_list, Data::Recursive::LAZY());
+                }
+                elsif (HAVE_PANDA_LIB) {
                     Panda::Lib::hash_merge (\%groups, $cached_list, Panda::Lib::MERGE_LAZY());
                 }
                 else {    
@@ -2405,7 +2420,11 @@ sub _calc_phylo_abc_lists {
     }
     else {
         my %A;
-        if (HAVE_PANDA_LIB) {
+        if (HAVE_DATA_RECURSIVE) {
+            Data::Recursive::hash_merge (\%A, $nodes_in_path1, Data::Recursive::LAZY());
+            Data::Recursive::hash_merge (\%A, $nodes_in_path2, Data::Recursive::LAZY());
+        }
+        elsif (HAVE_PANDA_LIB) {
             Panda::Lib::hash_merge (\%A, $nodes_in_path1, Panda::Lib::MERGE_LAZY());
             Panda::Lib::hash_merge (\%A, $nodes_in_path2, Panda::Lib::MERGE_LAZY());
         }

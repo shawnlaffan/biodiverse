@@ -14,6 +14,9 @@ use Math::BigInt ();
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
+use constant HAVE_DATA_RECURSIVE
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
+
 
 our $VERSION = '3.00';
 
@@ -319,7 +322,10 @@ sub _calc_phylo_mpd_mntd {
                         ancestral_node => $last_ancestor,
                         %args,
                     );
-                    if (HAVE_PANDA_LIB) {
+                    if (HAVE_DATA_RECURSIVE) {
+                        Data::Recursive::hash_merge (\%path, $sub_path, Data::Recursive::LAZY());
+                    }
+                    elsif (HAVE_PANDA_LIB) {
                         Panda::Lib::hash_merge (\%path, $sub_path, Panda::Lib::MERGE_LAZY());
                     }
                     else {
@@ -347,15 +353,15 @@ sub _calc_phylo_mpd_mntd {
         #  next steps only if we added something
         next BY_LABEL if !$j;
 
-            #  weighting scheme won't work with non-integer wts - need to use weighted stats
-            push @mpd_path_lengths, @mpd_path_lengths_this_node;
-            my $min = min (@mntd_path_lengths_this_node);
-            push @mntd_path_lengths, $min;
-            if ($use_wts) {
-                push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
-                push @mntd_wts, $label_count1;
-            }
+        #  weighting scheme won't work with non-integer wts - need to use weighted stats
+        push @mpd_path_lengths, @mpd_path_lengths_this_node;
+        my $min = min (@mntd_path_lengths_this_node);
+        push @mntd_path_lengths, $min;
+        if ($use_wts) {
+            push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
+            push @mntd_wts, $label_count1;
         }
+    }
 
     my %results;
 

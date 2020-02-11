@@ -2053,13 +2053,6 @@ sub set_plot_mode {
         $self->{neg_length_func} = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
-    #elsif ($plot_mode eq 'range_weighted') {  #  experimental - replaced by method to convert the tree's branch lengths
-    #    #  need to get the node range table
-    #    my $bd = $self->{basedata_ref};
-    #    $self->{length_func}     = sub {my ($node, %args) = @_; return $node->get_length / $node->get_node_range (basedata_ref => $bd)};
-    #    $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-    #    $self->{neg_length_func} = \&get_max_negative_length;
-    #}
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
     }

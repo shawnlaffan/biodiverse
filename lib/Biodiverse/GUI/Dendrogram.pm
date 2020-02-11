@@ -2455,17 +2455,20 @@ sub draw_tree {
     my $node_hash = $tree_ref->get_node_hash;
     
     my $progress = Biodiverse::Progress->new (
+        text => 'Plotting tree',
         gui_only => 1,
     );
     my $num_nodes = keys %$node_hash;
     my $i = 0;
 
     foreach my $node_name (keys %$node_hash) {
-        $i++;
-        $progress->update (
-            "Plotting tree\nNode $i of $num_nodes",
-            $i / $num_nodes,
-        );
+        #  no progress - profiling suggests it chews up
+        #  huge amounts of time on redrawing
+        #$i++;
+        #$progress->update (
+        #    "Plotting tree node $i of $num_nodes",
+        #    $i / $num_nodes,
+        #);
         
         my $node = $node_hash->{$node_name};
         my $path_length  = $dist_to_root_func->($node);

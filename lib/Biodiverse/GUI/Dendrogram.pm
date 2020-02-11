@@ -2042,15 +2042,15 @@ sub set_plot_mode {
 
     # Work out how to get the "length" based on mode
     if ($plot_mode eq 'length') {
-        $self->{length_func}     = \&Biodiverse::TreeNode::get_length;
-        $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-        $self->{neg_length_func} = \&get_max_negative_length;
-        $self->{dist_to_root_func} = \&Biodiverse::TreeNode::get_distance_to_root_node;
+        $self->{length_func}       = sub {$_[0]->get_length};
+        $self->{max_length_func}   = sub {$_[0]->get_max_total_length};
+        $self->{neg_length_func}   = \&get_max_negative_length;
+        $self->{dist_to_root_func} = sub {$_[0]->get_distance_to_root_node};
     }
     elsif ($plot_mode eq 'depth') {
-        $self->{length_func}     = sub { return 1; }; # each node is "1" depth level below the previous one
-        $self->{max_length_func} = sub {$_[0]->get_depth_below + 1};
-        $self->{neg_length_func} = sub { return 0; };
+        $self->{length_func}       = sub { return 1; }; # each node is "1" depth level below the previous one
+        $self->{max_length_func}   = sub {$_[0]->get_depth_below + 1};
+        $self->{neg_length_func}   = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
     else {

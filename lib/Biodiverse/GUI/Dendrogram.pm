@@ -2004,9 +2004,9 @@ sub make_total_length_array {
 
     # Sort it
     @array = sort {
-        ($cache{$a} // do {$cache{$a} = $a->get_value('total_length_gui')})
+        ($cache{$a} //= $a->get_value('total_length_gui'))
           <=>
-        ($cache{$b} // do {$cache{$b} = $b->get_value('total_length_gui')})
+        ($cache{$b} //= $b->get_value('total_length_gui'))
         }
         @array;
 

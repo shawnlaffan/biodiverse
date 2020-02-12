@@ -2364,7 +2364,7 @@ sub render_graph {
     #  starting from the top of the tree
     # Note: "length" here usually means length to the right of the node (towards root)
     my $max_len_func = $self->{max_length_func};
-    my $start_length = $max_len_func->($lengths->[0]) * $self->{length_scale};
+    my $start_length = 0;
     my $start_index  = 0;
     my $legend_width = 0;
     if (my $legend = $self->get_legend) {

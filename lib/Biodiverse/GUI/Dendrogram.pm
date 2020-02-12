@@ -2047,7 +2047,7 @@ sub set_plot_mode {
     # Work out how to get the "length" based on mode
     if ($plot_mode eq 'length') {
         $self->{length_func}       = sub {$_[0]->get_length};
-        $self->{max_length_func}   = sub {$_[0]->get_max_total_length};
+        $self->{max_length_func}   = sub {$_[0]->get_max_total_length (cache => 1)};
         $self->{neg_length_func}   = \&get_max_negative_length;
         $self->{dist_to_root_func} = sub {$_[0]->get_distance_to_root_node};
     }
@@ -2467,6 +2467,8 @@ sub draw_tree {
     #);
     my $num_nodes = keys %$node_hash;
     my $i = 0;
+    
+    say "Plotting tree with $num_nodes branches";
 
     foreach my $node_name (keys %$node_hash) {
         #  no progress - profiling suggests it chews up

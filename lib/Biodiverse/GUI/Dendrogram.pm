@@ -2384,44 +2384,44 @@ sub render_graph {
     #print "[render_graph] lengths: @num_lengths\n";
 
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {
+  NODE:
     foreach my $i (0 .. $#{$lengths}) {
 
         my $this_length = $max_len_func->($lengths->[$i]) * $self->{length_scale};
 
         # Start a new segment. We do this if since a few nodes can "line up" and thus have the same length
-        if ($this_length > $start_length) {
+        next NODE if $this_length <= $start_length;
 
-            my $segment_length = ($this_length - $start_length);
-            $start_length = $this_length;
+        my $segment_length = ($this_length - $start_length);
+        $start_length = $this_length;
 
-            # Line height proportional to the percentage of nodes to the left of this one
-            # At the start, it is max to give value zero - the y-axis goes top-to-bottom
-            $y_offset = $y_offset || $#{$lengths};
-            my $segment_y = ($i * $graph_height_units) / $y_offset;
-            #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
+        # Line height proportional to the percentage of nodes to the left of this one
+        # At the start, it is max to give value zero - the y-axis goes top-to-bottom
+        $y_offset = $y_offset || $#{$lengths};
+        my $segment_y = ($i * $graph_height_units) / $y_offset;
+        #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
 
-            my $hline =  Gnome2::Canvas::Item->new (
+        my $hline =  Gnome2::Canvas::Item->new (
+            $graph_group,
+            'Gnome2::Canvas::Line',
+            points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
+            fill_color_gdk  => COLOUR_BLACK,
+            width_pixels    => NORMAL_WIDTH
+        );
+
+        # Now the vertical line
+        if ($previous_y) {
+            my $vline = Gnome2::Canvas::Item->new (
                 $graph_group,
                 'Gnome2::Canvas::Line',
-                points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
+                points          => [$current_x, $previous_y, $current_x, $segment_y],
                 fill_color_gdk  => COLOUR_BLACK,
                 width_pixels    => NORMAL_WIDTH
             );
-
-            # Now the vertical line
-            if ($previous_y) {
-                my $vline = Gnome2::Canvas::Item->new (
-                    $graph_group,
-                    'Gnome2::Canvas::Line',
-                    points          => [$current_x, $previous_y, $current_x, $segment_y],
-                    fill_color_gdk  => COLOUR_BLACK,
-                    width_pixels    => NORMAL_WIDTH
-                );
-            }
-
-            $previous_y = $segment_y;
-            $current_x -= $segment_length;
         }
+
+        $previous_y = $segment_y;
+        $current_x -= $segment_length;
 
     }
 

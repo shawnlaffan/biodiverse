@@ -1995,18 +1995,22 @@ sub initYCoordsInner {
 #  (ie: excluding the node's own length)
 sub make_total_length_array {
     my $self = shift;
-    my @array;
+    #my @array;
     my $lf = $self->{length_func};
+    $lf = $self->{max_length_func};
 
-    make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
+    #make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
+    my $tree_ref = $self->{cluster};
+    my $node_hash = $tree_ref->get_node_hash;
+    my @array = values %$node_hash;
 
     my %cache;
 
     # Sort it
     @array = sort {
-        ($cache{$a} //= $a->get_value('total_length_gui'))
+        ($cache{$a} //= $lf->($a))
           <=>
-        ($cache{$b} //= $b->get_value('total_length_gui'))
+        ($cache{$b} //= $lf->($b))
         }
         @array;
 
@@ -2015,20 +2019,20 @@ sub make_total_length_array {
     return;
 }
 
-sub make_total_length_array_inner {
-    my ($node, $length_so_far, $array, $lf) = @_;
-
-    $node->set_value(total_length_gui => $length_so_far);
-    push @{$array}, $node;
-
-    # Do the children
-    my $length_total = $lf->($node) + $length_so_far;
-    foreach my $child ($node->get_children) {
-        make_total_length_array_inner($child, $length_total, $array, $lf);
-    }
-
-    return;
-}
+#sub make_total_length_array_inner {
+#    my ($node, $length_so_far, $array, $lf) = @_;
+#
+#    $node->set_value(total_length_gui => $length_so_far);
+#    push @{$array}, $node;
+#
+#    # Do the children
+#    my $length_total = $lf->($node) + $length_so_far;
+#    foreach my $child ($node->get_children) {
+#        make_total_length_array_inner($child, $length_total, $array, $lf);
+#    }
+#
+#    return;
+#}
 
 ##########################################################
 # Drawing the tree
@@ -2217,6 +2221,8 @@ sub render_tree {
     return if $render_props_tree eq ($self->{last_render_props_tree} // '');
     $self->{last_render_props_tree} = $render_props_tree;
 
+    #say $render_props_tree;
+    
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
     $self->clear_highlights;
@@ -2326,7 +2332,7 @@ sub render_graph {
 
     my $render_props_graph = join ',', (
         #$self->{graph_height_px},
-        $self->{render_width},
+        #$self->{render_width},
         $self->{unscaled_width},
         $self->{unscaled_height},
         $self->{render_width},
@@ -2357,8 +2363,9 @@ sub render_graph {
     # Draw the graph from right-to-left
     #  starting from the top of the tree
     # Note: "length" here usually means length to the right of the node (towards root)
-    my $start_length = $lengths->[0]->get_value('total_length_gui') * $self->{length_scale};
-    my $start_index = 0;
+    my $max_len_func = $self->{max_length_func};
+    my $start_length = $max_len_func->($lengths->[0]) * $self->{length_scale};
+    my $start_index  = 0;
     my $legend_width = 0;
     if (my $legend = $self->get_legend) {
         $legend_width = $legend->get_width;
@@ -2379,7 +2386,7 @@ sub render_graph {
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {
     foreach my $i (0 .. $#{$lengths}) {
 
-        my $this_length = $lengths->[$i]->get_value('total_length_gui') * $self->{length_scale};
+        my $this_length = $max_len_func->($lengths->[$i]) * $self->{length_scale};
 
         # Start a new segment. We do this if since a few nodes can "line up" and thus have the same length
         if ($this_length > $start_length) {
@@ -2454,10 +2461,10 @@ sub draw_tree {
     my $tree_ref  = $self->{cluster};
     my $node_hash = $tree_ref->get_node_hash;
     
-    my $progress = Biodiverse::Progress->new (
-        text => 'Plotting tree',
-        gui_only => 1,
-    );
+    #my $progress = Biodiverse::Progress->new (
+    #    text => 'Plotting tree',
+    #    gui_only => 1,
+    #);
     my $num_nodes = keys %$node_hash;
     my $i = 0;
 

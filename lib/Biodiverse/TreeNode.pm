@@ -2312,8 +2312,12 @@ sub get_list_names_below {
     );
     @list_hash{@$lists} = 1 x scalar @$lists;
     
-    foreach my $child ($self->get_children) {
-        $lists = $child->get_list_names_below (%args);
+    my $descendants = $self->get_all_descendants;
+    
+    foreach my $child (values %$descendants) {
+        $lists = $child->get_list_names (
+            no_array_lists => $args{no_array_lists},
+        );
         @list_hash{@$lists} = 1 x scalar @$lists;
     }
     

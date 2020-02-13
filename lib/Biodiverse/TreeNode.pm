@@ -2145,11 +2145,14 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         #$name = "'$name'";  #  quote otherwise
     }
     
-    # build the bootstrap block - should be conditional
-    my $bootstrap_block = $self->get_bootstrap_block();
-    my $bootstrap_string = $bootstrap_block->encode (
-        include_colour => $args{export_colours} || $args{include_colours},
-    );
+    # build the bootstrap block if needed
+    my $bootstrap_string = '';
+    if ($args{export_colours} || $args{include_colours}) {
+        my $bootstrap_block = $self->get_bootstrap_block();
+        $bootstrap_string = $bootstrap_block->encode (
+            include_colour => $args{export_colours} || $args{include_colours},
+        );
+    }
 
     my $length = $self->get_length;
     if (! $self->is_terminal_node) {   #  not a terminal node

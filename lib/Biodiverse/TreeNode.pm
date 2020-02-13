@@ -2061,10 +2061,10 @@ sub to_nexus {
         #  SWL 20140911: There is no support for external remaps now, so do we need th checks?   
         if (! defined $args{remap} && ! $args{no_remap}) {
             #  get a hash of all the nodes in the tree.
-            my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
+            my $nodes = $self->get_all_descendants;
     
             my $i = 0;
-            foreach my $node (values %nodes) {
+            foreach my $node ($self, values %$nodes) {
                 #  no remap for internals - TreeView does not like it
                 next if ! $args{use_internal_names} && $node->is_internal_node;  
                 $remap{$node->get_name} = $i;

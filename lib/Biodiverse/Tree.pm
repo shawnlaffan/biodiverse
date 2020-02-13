@@ -893,10 +893,14 @@ sub get_metadata_export {
     #  loop through subs and get their metadata
     my %params_per_sub;
     my %component_map;
+    my $sub_list_meta;
 
   LOOP_EXPORT_SUB:
     foreach my $sub ( sort keys %subs ) {
-        my %sub_args = $self->get_args( sub => $sub );
+        my %sub_args = $self->get_args(
+            sub      => $sub,
+            sub_list_meta => $sub_list_meta,
+        );
 
         my $format = $sub_args{format};
 
@@ -919,6 +923,11 @@ sub get_metadata_export {
 
             $component_map{$format} = shift @keys;
             $params_array = shift @values;
+        }
+        
+        if (!$sub_list_meta) {
+            my @x = grep {$_->get_name eq 'sub_list'} @$params_array;
+            if (@x) {$sub_list_meta = $x[0]}
         }
 
         $params_per_sub{$format} = $params_array;
@@ -972,7 +981,7 @@ sub get_lists_for_export {
 }
 
 sub get_metadata_export_nexus {
-    my $self = shift;
+    my ($self, %args) = @_;
 
     my @parameters = (
         {
@@ -990,7 +999,7 @@ sub get_metadata_export_nexus {
             type    => 'boolean',
             default => 0,
         },
-        $self->get_lists_export_metadata,
+        $args{sub_list_meta} || $self->get_lists_export_metadata,
         {
             name       => 'export_colours',
             label_text => 'Export colours',
@@ -1004,12 +1013,12 @@ sub get_metadata_export_nexus {
         bless $_, $parameter_metadata_class;
     }
 
-    my %args = (
+    my %metadata = (
         format     => 'Nexus',
         parameters => \@parameters,
     );
 
-    return wantarray ? %args : \%args;
+    return wantarray ? %metadata : \%metadata;
 }
 
 sub export_nexus {
@@ -1113,10 +1122,10 @@ sub export_newick {
 
 
 sub get_metadata_export_tabular_tree {
-    my $self = shift;
+    my ($self, %args) = @_;
 
     my @parameters = (
-        $self->get_lists_export_metadata(),
+        $args{sub_list_meta} || $self->get_lists_export_metadata(),
         $self->get_table_export_metadata(),
         {
             name       => 'include_plot_coords',
@@ -1155,12 +1164,12 @@ sub get_metadata_export_tabular_tree {
         bless $_, $parameter_metadata_class;
     }
 
-    my %args = (
+    my %metadata = (
         format     => 'Tabular tree',
         parameters => \@parameters,
     );
 
-    return wantarray ? %args : \%args;
+    return wantarray ? %metadata : \%metadata;
 }
 
 #  generic - should be factored out
@@ -1191,10 +1200,10 @@ sub export_tabular_tree {
 }
 
 sub get_metadata_export_table_grouped {
-    my $self = shift;
+    my ($self, %args) = @_;
 
     my @parameters = (
-        $self->get_lists_export_metadata(),
+        $args{sub_list_meta} || $self->get_lists_export_metadata(),
         {
             name       => 'num_clusters',
             label_text => 'Number of groups',
@@ -1266,12 +1275,12 @@ sub get_metadata_export_table_grouped {
         bless $_, $parameter_metadata_class;
     }
 
-    my %args = (
+    my %metadata = (
         format     => 'Table grouped',
         parameters => \@parameters,
     );
 
-    return wantarray ? %args : \%args;
+    return wantarray ? %metadata : \%metadata;
 }
 
 sub export_table_grouped {

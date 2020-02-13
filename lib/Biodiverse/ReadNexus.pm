@@ -11,6 +11,7 @@ use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
 use List::Util qw /max/;
+use Time::HiRes qw /time/;
 
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
@@ -152,12 +153,17 @@ sub import_newick {
 
     my $count = 0;
     my $node_count = \$count;
+    
+    my $start_time = time();
 
     $self->parse_newick (
         string          => $newick,
         tree            => $tree,
         node_count      => $node_count,
     );
+    
+    my $elapsed_time = time() - $start_time;
+    say "Elapsed time:  $elapsed_time";
     
     $self->add_tree (tree => $tree);
 
@@ -194,6 +200,8 @@ sub import_phylip {
         my $tree_name = 'anonymous_' . $i;
         my $tree = Biodiverse::Tree->new (NAME => $tree_name);
 
+        my $start_time = time();
+        
         $i++;
         $progress->update("Tree $i of $target_count\n$tree_name", $i / $target_count);
 
@@ -213,6 +221,9 @@ sub import_phylip {
                 type    => 'phylip',
             );
         }
+        
+        my $elapsed_time = time() - $start_time;
+        say "Elapsed_time: $elapsed_time";
 
         $self->add_tree (tree => $tree);
     }
@@ -367,12 +378,17 @@ sub import_nexus {
             my $count = 0;
             my $node_count = \$count;
 
+            my $start_time = time();
+
             $self->parse_newick (
                 string          => $rest,
                 tree            => $tree,
                 node_count      => $node_count,
                 translate_hash  => \%translate,
             );
+            
+            my $elapsed_time = time() - $start_time;
+            say "Elapsed time: $elapsed_time";
 
             $self->add_tree (tree => $tree);
     }
@@ -606,6 +622,8 @@ sub parse_newick {
     my $self = shift;
     my %args = @_;
 
+    no warnings 'recursion';
+    
     my $string    = $args{string};
     my $str_len   = length ($string);
     my $tree      = $args{tree};

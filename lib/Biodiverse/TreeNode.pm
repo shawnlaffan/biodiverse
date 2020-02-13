@@ -2102,13 +2102,17 @@ sub to_nexus {
         csv_object => $csv_obj,
         list       => [$tree_name],
     );
+    
+    #  need to ensure any names are quoted in the newick portion
+    #  as colons wreak havoc otherwise
+    $csv_obj->always_quote (1);
 
     $string .= "#NEXUS\n";
     $string .= "[ID: $tree_name]\n";
     $string .= "begin trees;\n";
     $string .= "\t[Export of a $type tree using Biodiverse::TreeNode version $VERSION]\n";
     $string .= $translate_table_block;
-    $string .= "\tTree $tree_name = " . $self->to_newick (remap => \%remap, %args) . ";\n";
+    $string .= "\tTree $tree_name = " . $self->to_newick (remap => \%remap, csv_object => $csv_obj, %args) . ";\n";
     $string .= "end;\n\n";
 
     return $string;
@@ -2131,11 +2135,12 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     }
     else {
         my $quote_char = q{'};
-        my $csv_obj = $self->get_csv_object (
-            quote_char   => $quote_char,
-            escape_char  => $quote_char,
-            always_quote => 1,
-        );
+        my $csv_obj = $args{csv_object} ||
+             $self->get_csv_object (
+                quote_char   => $quote_char,
+                escape_char  => $quote_char,
+                always_quote => 1,
+            );
         $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
         #$name = "'$name'";  #  quote otherwise
     }
@@ -2146,6 +2151,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         include_colour => $args{export_colours} || $args{include_colours},
     );
 
+    my $length = $self->get_length;
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";
         foreach my $child ($self->get_children) { # internal nodes
@@ -2160,8 +2166,8 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
             $string .= $name;  
         }
         $string .= $bootstrap_string;
-        if (defined $self->get_length) {
-            $string .= ":" . $self->get_length;
+        if (defined $length) {
+            $string .= ":" . $length;
         }
     }
     # terminal nodes
@@ -2169,8 +2175,8 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         $string .= $name;
         $string .= $bootstrap_string;
 
-        if (defined $self->get_length) { 
-            $string .= ":" . $self->get_length;
+        if (defined $length) { 
+            $string .= ":" . $length;
         }
     }
     

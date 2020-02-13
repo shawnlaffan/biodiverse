@@ -1035,7 +1035,8 @@ sub export_nexus {
     my $export_colours = $args{export_colours};
     my $sub_list_name  = $args{sub_list};
     if (($sub_list_name // '') eq '(no list)') {
-        $sub_list_name = undef;
+        $sub_list_name  = undef;
+        $args{sub_list} = undef;
     }
     my $comment_block_hash;
     my @booters_to_cleanse;

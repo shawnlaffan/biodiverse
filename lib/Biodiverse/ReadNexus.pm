@@ -188,7 +188,9 @@ sub import_phylip {
     }
 
     #  lazy split - does not allow for quoted semicolons
-    my @newicks = split /;/, $data;
+    my @newicks
+      = grep {length $_ && $_ =~ /\S/}
+        split /;/, $data;
 
     my $progress = Biodiverse::Progress->new;
     my $target_count = scalar @newicks;
@@ -582,7 +584,7 @@ sub process_zero_length_trees {
 
         say '[READNEXUS] All nodes are of length zero, converting all to length 1';
         foreach my $node (values %$nodes) {
-            $node->set_length (length => 1);
+            $node->set_length_aa (1);
         }
     }
 

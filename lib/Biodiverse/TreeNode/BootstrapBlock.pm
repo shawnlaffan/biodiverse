@@ -156,6 +156,7 @@ sub encode {
             #  to ensure uniqueness if multiple lists are one day attached
             my @arr
               = map {$boot_key . '__' . $_ . '=' . $value->{$_}}
+                grep {defined $value->{$_}}
                 sort keys %$value;
             my $formatted = join (',', @arr);
             push @bootstrap_strings, $formatted;

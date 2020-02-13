@@ -1995,18 +1995,22 @@ sub initYCoordsInner {
 #  (ie: excluding the node's own length)
 sub make_total_length_array {
     my $self = shift;
-    my @array;
+    #my @array;
     my $lf = $self->{length_func};
+    $lf = $self->{max_length_func};
 
-    make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
+    #make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
+    my $tree_ref = $self->{cluster};
+    my $node_hash = $tree_ref->get_node_hash;
+    my @array = values %$node_hash;
 
     my %cache;
 
     # Sort it
     @array = sort {
-        ($cache{$a} // do {$cache{$a} = $a->get_value('total_length_gui')})
+        ($cache{$a} //= $lf->($a))
           <=>
-        ($cache{$b} // do {$cache{$b} = $b->get_value('total_length_gui')})
+        ($cache{$b} //= $lf->($b))
         }
         @array;
 
@@ -2015,20 +2019,20 @@ sub make_total_length_array {
     return;
 }
 
-sub make_total_length_array_inner {
-    my ($node, $length_so_far, $array, $lf) = @_;
-
-    $node->set_value(total_length_gui => $length_so_far);
-    push @{$array}, $node;
-
-    # Do the children
-    my $length_total = $lf->($node) + $length_so_far;
-    foreach my $child ($node->get_children) {
-        make_total_length_array_inner($child, $length_total, $array, $lf);
-    }
-
-    return;
-}
+#sub make_total_length_array_inner {
+#    my ($node, $length_so_far, $array, $lf) = @_;
+#
+#    $node->set_value(total_length_gui => $length_so_far);
+#    push @{$array}, $node;
+#
+#    # Do the children
+#    my $length_total = $lf->($node) + $length_so_far;
+#    foreach my $child ($node->get_children) {
+#        make_total_length_array_inner($child, $length_total, $array, $lf);
+#    }
+#
+#    return;
+#}
 
 ##########################################################
 # Drawing the tree
@@ -2042,22 +2046,17 @@ sub set_plot_mode {
 
     # Work out how to get the "length" based on mode
     if ($plot_mode eq 'length') {
-        $self->{length_func}     = \&Biodiverse::TreeNode::get_length;
-        $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-        $self->{neg_length_func} = \&get_max_negative_length;
+        $self->{length_func}       = sub {$_[0]->get_length};
+        $self->{max_length_func}   = sub {$_[0]->get_max_total_length (cache => 1)};
+        $self->{neg_length_func}   = \&get_max_negative_length;
+        $self->{dist_to_root_func} = sub {$_[0]->get_distance_to_root_node};
     }
     elsif ($plot_mode eq 'depth') {
-        $self->{length_func}     = sub { return 1; }; # each node is "1" depth level below the previous one
-        $self->{max_length_func} = \&Biodiverse::TreeNode::get_depth_below;
-        $self->{neg_length_func} = sub { return 0; };
+        $self->{length_func}       = sub { return 1; }; # each node is "1" depth level below the previous one
+        $self->{max_length_func}   = sub {$_[0]->get_depth_below + 1};
+        $self->{neg_length_func}   = sub { return 0; };
+        $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
-    #elsif ($plot_mode eq 'range_weighted') {  #  experimental - replaced by method to convert the tree's branch lengths
-    #    #  need to get the node range table
-    #    my $bd = $self->{basedata_ref};
-    #    $self->{length_func}     = sub {my ($node, %args) = @_; return $node->get_length / $node->get_node_range (basedata_ref => $bd)};
-    #    $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-    #    $self->{neg_length_func} = \&get_max_negative_length;
-    #}
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
     }
@@ -2222,6 +2221,8 @@ sub render_tree {
     return if $render_props_tree eq ($self->{last_render_props_tree} // '');
     $self->{last_render_props_tree} = $render_props_tree;
 
+    #say $render_props_tree;
+    
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
     $self->clear_highlights;
@@ -2264,7 +2265,12 @@ sub render_tree {
                          )
                       * $self->{length_scale};
 
-    $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
+    $self->draw_tree (
+        root_offset => $root_offset,
+        length_func => $length_func,
+        length_scale => $self->{length_scale},
+        height_scale => $self->{height_scale},
+    );
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
@@ -2326,7 +2332,7 @@ sub render_graph {
 
     my $render_props_graph = join ',', (
         #$self->{graph_height_px},
-        $self->{render_width},
+        #$self->{render_width},
         $self->{unscaled_width},
         $self->{unscaled_height},
         $self->{render_width},
@@ -2357,8 +2363,9 @@ sub render_graph {
     # Draw the graph from right-to-left
     #  starting from the top of the tree
     # Note: "length" here usually means length to the right of the node (towards root)
-    my $start_length = $lengths->[0]->get_value('total_length_gui') * $self->{length_scale};
-    my $start_index = 0;
+    my $max_len_func = $self->{max_length_func};
+    my $start_length = 0;
+    my $start_index  = 0;
     my $legend_width = 0;
     if (my $legend = $self->get_legend) {
         $legend_width = $legend->get_width;
@@ -2377,44 +2384,44 @@ sub render_graph {
     #print "[render_graph] lengths: @num_lengths\n";
 
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {
+  NODE:
     foreach my $i (0 .. $#{$lengths}) {
 
-        my $this_length = $lengths->[$i]->get_value('total_length_gui') * $self->{length_scale};
+        my $this_length = $max_len_func->($lengths->[$i]) * $self->{length_scale};
 
         # Start a new segment. We do this if since a few nodes can "line up" and thus have the same length
-        if ($this_length > $start_length) {
+        next NODE if $this_length <= $start_length;
 
-            my $segment_length = ($this_length - $start_length);
-            $start_length = $this_length;
+        my $segment_length = ($this_length - $start_length);
+        $start_length = $this_length;
 
-            # Line height proportional to the percentage of nodes to the left of this one
-            # At the start, it is max to give value zero - the y-axis goes top-to-bottom
-            $y_offset = $y_offset || $#{$lengths};
-            my $segment_y = ($i * $graph_height_units) / $y_offset;
-            #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
+        # Line height proportional to the percentage of nodes to the left of this one
+        # At the start, it is max to give value zero - the y-axis goes top-to-bottom
+        $y_offset = $y_offset || $#{$lengths};
+        my $segment_y = ($i * $graph_height_units) / $y_offset;
+        #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
 
-            my $hline =  Gnome2::Canvas::Item->new (
+        my $hline =  Gnome2::Canvas::Item->new (
+            $graph_group,
+            'Gnome2::Canvas::Line',
+            points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
+            fill_color_gdk  => COLOUR_BLACK,
+            width_pixels    => NORMAL_WIDTH
+        );
+
+        # Now the vertical line
+        if ($previous_y) {
+            my $vline = Gnome2::Canvas::Item->new (
                 $graph_group,
                 'Gnome2::Canvas::Line',
-                points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
+                points          => [$current_x, $previous_y, $current_x, $segment_y],
                 fill_color_gdk  => COLOUR_BLACK,
                 width_pixels    => NORMAL_WIDTH
             );
-
-            # Now the vertical line
-            if ($previous_y) {
-                my $vline = Gnome2::Canvas::Item->new (
-                    $graph_group,
-                    'Gnome2::Canvas::Line',
-                    points          => [$current_x, $previous_y, $current_x, $segment_y],
-                    fill_color_gdk  => COLOUR_BLACK,
-                    width_pixels    => NORMAL_WIDTH
-                );
-            }
-
-            $previous_y = $segment_y;
-            $current_x -= $segment_length;
         }
+
+        $previous_y = $segment_y;
+        $current_x -= $segment_length;
 
     }
 
@@ -2439,52 +2446,80 @@ sub resize_background_rect {
 # Drawing
 ##########################################################
 
-sub draw_node {
-    my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale, $line_width) = @_;
+sub draw_tree {
+    my ($self, %args) = @_;
+    my $root_offset  = $args{root_offset};
+    my $length_func  = $args{length_func}
+                     // $self->{length_func};
+    my $length_scale = $args{length_scale};
+    my $height_scale = $args{height_scale};
+    my $line_width   = $args{line_width}
+                     // $self->get_branch_line_width;
+    my $dist_to_root_func = $args{dist_to_root_func}
+                         // $self->{dist_to_root_func};
 
-    return if !$node;
+    my $tree_ref  = $self->{cluster};
+    my $node_hash = $tree_ref->get_node_hash;
+    
+    #my $progress = Biodiverse::Progress->new (
+    #    text => 'Plotting tree',
+    #    gui_only => 1,
+    #);
+    my $num_nodes = keys %$node_hash;
+    my $i = 0;
+    
+    say "Plotting tree with $num_nodes branches";
 
-    $line_width //= $self->get_branch_line_width;
+    foreach my $node_name (keys %$node_hash) {
+        #  no progress - profiling suggests it chews up
+        #  huge amounts of time on redrawing
+        #$i++;
+        #$progress->update (
+        #    "Plotting tree node $i of $num_nodes",
+        #    $i / $num_nodes,
+        #);
+        
+        my $node = $node_hash->{$node_name};
+        my $path_length  = $dist_to_root_func->($node);
 
-    my $node_name = $node->get_name;
+        my $end_xpos   = $root_offset - $path_length * $length_scale;
+        my $start_xpos = $end_xpos + $length_func->($node) * $length_scale;
 
-    my $length = $length_func->($node) * $length_scale;
-    my $new_current_xpos = $current_xpos - $length;
-    my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
+        my $y = $node->get_value('_y') * $height_scale;
+        my $colour_ref = $self->get_node_colour_aa ($node_name) || DEFAULT_LINE_COLOUR;
 
-    # Draw our horizontal line
-    my $line = $self->draw_line(
-        [$current_xpos, $y, $new_current_xpos, $y],
-        $colour_ref,
-        $line_width,
-    );
-    $line->signal_connect_swapped (event => \&on_event, $self);
-    $line->{node} =  $node; # Remember the node (for hovering, etc...)
-
-    # Remember line (for colouring, etc...)
-    $self->{node_lines}->{$node_name} = $line;
-
-    # Draw children
-    my ($ymin, $ymax);
-    my @arg_arr = ($new_current_xpos, $length_func, $length_scale, $height_scale, $line_width);
-
-    foreach my $child ($node->get_children) {
-        my $child_y = $self->draw_node($child, @arg_arr);
-
-        $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
-        $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
-    }
-
-    # Vertical line
-    if (defined $ymin) { 
-        $self->draw_line(
-            [$new_current_xpos, $ymin, $new_current_xpos, $ymax],
-            DEFAULT_LINE_COLOUR_VERT,
-            NORMAL_WIDTH,
+        # Draw our horizontal line
+        my $line = $self->draw_line(
+            [$start_xpos, $y, $end_xpos, $y],
+            $colour_ref,
+            $line_width,
         );
+        $line->signal_connect_swapped (event => \&on_event, $self);
+        $line->{node} =  $node; # Remember the node (for hovering, etc...)
+    
+        # Remember line (for colouring, etc...)
+        $self->{node_lines}->{$node_name} = $line;
+    
+        my ($ymin, $ymax);
+        #  should be able to use first and last child
+        foreach my $child ($node->get_children) {
+            my $child_y = $child->get_value ('_y') * $height_scale;
+            $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
+            $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
+        }
+    
+        # Vertical line
+        if (defined $ymin) { 
+            $self->draw_line(
+                [$end_xpos, $ymin, $end_xpos, $ymax],
+                DEFAULT_LINE_COLOUR_VERT,
+                NORMAL_WIDTH,
+            );
+        }
     }
-    return $y;
+    #return $y;
+    
+    return;
 }
 
 sub draw_line {

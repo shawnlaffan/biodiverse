@@ -31,7 +31,8 @@ before_install:
   - cpanm --notest Task::Biodiverse::NoGUI
 
   #  test this on a subset, for which the GUI stuff will work well enough
-  - if [ $BD_TEST_GUI ]; then cpanm Data::Recursive; fi;
+  #  disable for now
+  #- if [ $BD_TEST_GUI ]; then cpanm Data::Recursive; fi;
   
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant

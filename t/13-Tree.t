@@ -1,6 +1,4 @@
-#!/usr/bin/perl -w
-
-use 5.010;
+use 5.022;
 use strict;
 use warnings;
 use Carp;
@@ -642,8 +640,10 @@ sub test_export_tabular_tree {
 
     state $tabular_tree_num;
     $tabular_tree_num++;
+    my $xchar = "\N{LATIN SMALL LETTER X WITH DIAERESIS}";
+    my $pchar = "\N{LATIN CAPITAL LETTER P WITH ACUTE}";
     my $fname = get_temp_file_path(
-        "tabular_tree_eẍṗört_${tabular_tree_num}.csv"
+        "tabular_tree_e${xchar}${pchar}_${tabular_tree_num}.csv"
     );
 
     #note "File name is $fname";
@@ -792,8 +792,10 @@ sub _test_export_nexus {
     state $tree_export_num = 0;
     $tree_export_num++;
 
+    my $echar1 = "\N{LATIN CAPITAL LETTER E WITH CIRCUMFLEX}";
+    my $echar2 = "\N{LATIN SMALL LETTER E WITH CIRCUMFLEX}";
     my $fname = get_temp_file_path (
-        "tree_export_ţřêḙ_$tree_export_num$file_suffix",
+        "tree_export_tr${echar1}${echar2}_$tree_export_num$file_suffix",
     );
     #note "File name is $fname";
     my $success = eval {

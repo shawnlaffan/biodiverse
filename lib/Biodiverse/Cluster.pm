@@ -1516,7 +1516,7 @@ sub get_most_similar_pair {
     #  need to get all the pairs
     my $csv = $self->get_csv_object;
     my @pairs;
-    my $pair_key_cache = $self->get_cached_value_dor_set_default_aa ('CLUSTER_TIE_BREAKER_STRINGIFIED_PAIR_KEYS', {});
+    my $pair_key_cache = $self->get_cached_value_dor_set_default_aa ('TIE_BREAKER_STRINGIFIED_PAIR_KEYS', {});
     foreach my $name1 (keys %$keys_ref) {
         my $ref = $keys_ref->{$name1};
         foreach my $name2 (keys %$ref) {
@@ -1706,7 +1706,13 @@ sub clear_tie_breaker_caches {
     my $self = shift;
 
     $self->delete_cached_values (
-        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+        keys => [
+          qw /
+            TIEBREAKER_CACHE
+            TIEBREAKER_CMP_CACHE
+            TIE_BREAKER_STRINGIFIED_PAIR_KEYS
+          /
+        ],
     );
 
     return;
@@ -2144,9 +2150,6 @@ sub cluster {
 
     $self->set_last_update_time;
     
-    #  a spot of cleanup - should track such names at the package level
-    $self->delete_cached_value ('CLUSTER_TIE_BREAKER_STRINGIFIED_PAIR_KEYS');
-
     #  returns undef if in void context (probably unecessary complexity?)
     #return defined wantarray ? $root_node : undef;
     $self->set_param(COMPLETED => 1);

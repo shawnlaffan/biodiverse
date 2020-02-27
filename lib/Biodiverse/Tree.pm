@@ -400,8 +400,7 @@ sub get_terminal_element_count {
 
     my $node_ref;
     if ( defined $args{node} ) {
-        my $node = $args{node};
-        $node_ref = $self->get_node_ref( node => $node );
+        $node_ref = $self->get_node_ref_aa ( $args{node} );
     }
     else {
         $node_ref = $self->get_tree_ref;

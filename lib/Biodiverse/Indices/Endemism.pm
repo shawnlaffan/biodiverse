@@ -673,9 +673,7 @@ sub get_metadata__calc_endemism_whole {
 #  wrapper sub
 sub _calc_endemism_whole {
     my $self = shift;
-    my %args = @_;
-
-    return $self->_calc_endemism(%args, end_central => 0);
+    return $self->_calc_endemism(@_, end_central => 0);
 }
 
 #  Calculate endemism.  Private method called by others

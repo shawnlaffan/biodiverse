@@ -285,12 +285,10 @@ sub reset_total_length_below {
 
 
 sub get_total_length {
-    my $self = shift;
-    
     #  use the stored value if exists
-    my $tmp = $self->get_value ('TOTAL_LENGTH');
-    return $tmp if defined $tmp;
-    return $self->get_length_below;  #  calculate total length otherwise
+    #  calculate otherwise
+    $_[0]->get_value ('TOTAL_LENGTH')
+      // $_[0]->get_length_below;
 }
 
 sub get_sum_of_branch_lengths_below {

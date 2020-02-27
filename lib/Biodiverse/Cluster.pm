@@ -1489,7 +1489,7 @@ sub cluster_matrix_elements {
 }
 
 sub get_most_similar_pair {
-    my $self= shift;
+    my $self = shift;
     my %args = @_;
     
     my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";

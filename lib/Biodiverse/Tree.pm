@@ -385,7 +385,7 @@ sub get_terminal_elements {
     my $node = $args{node}
       || croak "node not specified in call to get_terminal_elements\n";
 
-    my $node_ref = $self->get_node_ref( node => $node );
+    my $node_ref = $self->get_node_ref_aa ( $node );
 
     return $node_ref->get_terminal_elements( cache => $args{cache} )
       if defined $node_ref;
@@ -1514,7 +1514,7 @@ sub to_matrix {
 
             my %path;
             foreach my $node_name ( $name1, $name2 ) {
-                my $node_ref = $self->get_node_ref( node => $node_name );
+                my $node_ref = $self->get_node_ref_aa ( $node_name );
                 my $sub_path = $node_ref->get_path_lengths_to_ancestral_node(
                     ancestral_node => $last_ancestor,
                     %args,
@@ -1715,7 +1715,7 @@ sub get_last_shared_ancestor_for_nodes {
 
     #my $node = $self->get_root_node;
     my $first_name = shift @node_names;
-    my $first_node = $self->get_node_ref( node => $first_name );
+    my $first_node = $self->get_node_ref_aa ( $first_name );
 
     return $first_node if !scalar @node_names;
 
@@ -1733,7 +1733,7 @@ sub get_last_shared_ancestor_for_nodes {
         #  as undefined ancestors can occur if we have multiple root nodes.
         last PATH if $common_anc_idx == $#reference_path;
 
-        my $node_ref = $self->get_node_ref( node => $node_name );
+        my $node_ref = $self->get_node_ref_aa ( $node_name );
         my @path = $node_ref->get_path_to_root_node;
 
         #  Start from an equivalent relative depth to avoid needless
@@ -2080,7 +2080,7 @@ sub reintegrate_after_parallel_randomisations {
     foreach my $list_name (@rand_lists) {
         foreach my $to_node (@$node_list) {
             my $node_name = $to_node->get_name;
-            my $from_node = $from->get_node_ref(node => $node_name);
+            my $from_node = $from->get_node_ref_aa ($node_name);
             my %l_args = (list => $list_name);
             my $lr_to   = $to_node->get_list_ref (%l_args);
             my $lr_from = $from_node->get_list_ref (%l_args);
@@ -2109,7 +2109,7 @@ sub reintegrate_after_parallel_randomisations {
     }
 
     foreach my $to_node (@$node_list) {
-        my $from_node = $from->get_node_ref (node => $to_node->get_name);
+        my $from_node = $from->get_node_ref_aa ($to_node->get_name);
 
         foreach my $rand_name (@randomisations_to_reintegrate) {
             #  need to handle the data lists

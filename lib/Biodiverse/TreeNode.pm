@@ -853,17 +853,11 @@ sub raise_zerolength_children {
     my $child_count = @$children;
 
     if (! $self->is_root_node) {
-        #  raise all children with length zero to be children of the parent node
-        #  no - make that those with the same total length as their parent
+        #  raise children with the same total length as their parent
         foreach my $child (@$children) {
-            #$child_count ++;
-            #next if $self->is_root_node;
-            #if ($child->get_length == 0) {
             if ($child->get_total_length == $self->get_total_length) {
                 #  add_children takes care of the parent refs
                 $self->get_parent->add_children(children => [$child]);
-                #  the length will be the same as this node - no it will not.  
-                #$child->set_length('length' => $self->get_length);
                 $results{raised_count} ++;
             }
         }
@@ -873,7 +867,6 @@ sub raise_zerolength_children {
     if ($results{raised_count} == $child_count) {
         $self->get_parent->delete_child (child => $self);
         push @{$results{empty_node_names}}, $self->get_name;  #  add to list of names deleted
-        #return wantarray ? %results : \%results;
     }
     #  one child left - raise it and recalculate the length.  It is not healthy to be an only child.
     elsif (! $self->is_root_node && $results{raised_count} == ($child_count - 1)) {
@@ -886,7 +879,6 @@ sub raise_zerolength_children {
         $self->get_parent->delete_child (child => $self);
         $results{raised_count} ++;
         push @{$results{empty_node_names}}, $self->get_name;  #  add to list of names deleted
-        #return wantarray ? %results : \%results;
     }
     
     #  now loop through any children and flatten them

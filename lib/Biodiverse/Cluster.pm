@@ -1516,10 +1516,13 @@ sub get_most_similar_pair {
     #  need to get all the pairs
     my $csv = $self->get_csv_object;
     my @pairs;
+    my $pair_key_cache = $self->get_cached_value_dor_set_default_aa ('CLUSTER_TIE_BREAKER_STRINGIFIED_PAIR_KEYS', {});
     foreach my $name1 (keys %$keys_ref) {
         my $ref = $keys_ref->{$name1};
         foreach my $name2 (keys %$ref) {
-            my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
+            my $stringified
+                = $pair_key_cache->{$name1}{$name2}
+              //= $self->list2csv (list => [$name1, $name2], csv_object => $csv);
             #  need to use terminal names - allows to link_recalculate
             #  stringified form is stripped at the end
             push @pairs, [$name1, $name2, $stringified];
@@ -2140,6 +2143,9 @@ sub cluster {
     $self->set_param (COMPLETED => 1);
 
     $self->set_last_update_time;
+    
+    #  a spot of cleanup - should track such names at the package level
+    $self->delete_cached_value ('CLUSTER_TIE_BREAKER_STRINGIFIED_PAIR_KEYS');
 
     #  returns undef if in void context (probably unecessary complexity?)
     #return defined wantarray ? $root_node : undef;

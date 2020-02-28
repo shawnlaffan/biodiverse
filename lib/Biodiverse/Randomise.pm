@@ -710,7 +710,7 @@ sub verify_cwd_is_writeable_for_checkpoints {
     if (   defined $args{save_checkpoint}
         && $args{save_checkpoint} >= 0) {
         use Cwd;
-        my $cwd = getcwd();
+        my $cwd = getcwd() // '';
         my $file_name
           = $self->get_basedata_ref->get_param ('NAME')
           . '.bds.tmp';

@@ -22,6 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install GDAL and its deps
+        run: brew install gdal
+        
       - name: Set up Perl
         run: |
           brew install perl

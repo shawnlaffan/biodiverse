@@ -1120,7 +1120,10 @@ sub test_roundtrip_raster {
         #  need to use a better approach for the name
         #  but we want unicode in there
         my $tmp_dir = get_temp_dir();
-        my $fname_base = $format . "_rǻṩẗèŕ";
+        my $uni_a = "\N{LATIN SMALL LETTER A WITH BREVE}";
+        my $uni_r = "\N{LATIN SMALL LETTER R WITH ACUTE}";
+        my $uni_s = "\N{LATIN SMALL LETTER S WITH CARON}";
+        my $fname_base = $format . "_r${uni_a}${uni_s}te${uni_r}";
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;

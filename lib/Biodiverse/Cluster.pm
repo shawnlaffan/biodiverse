@@ -1588,19 +1588,19 @@ sub get_most_similar_pair_using_tie_breaker {
                 }
                 push @el_lists, $el_list;
             }
-            my %results = $indices_object->run_calculations(
+            my $results = $indices_object->run_calculations(
                 %$analysis_args,
                 element_list1 => $el_lists[0],
                 element_list2 => $el_lists[1],
             );
             #  Add values for non-index options.
             #  This allows us to keep them consistent across repeated analysis runs
-            $results{random} = $rand->rand;  
-            $results{none}   = 0;
+            $results->{random} = $rand->rand;  
+            $results->{none}   = 0;
 
             #  Create an array of tie breaker results in the order they are needed
             #  We grab the pair from the end of the array after the tie breaking
-            $tie_scores = [@results{@$breaker_keys}, $pair];
+            $tie_scores = [@$results{@$breaker_keys}, $pair];
             $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $tie_scores;
         }
 

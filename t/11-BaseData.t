@@ -1169,7 +1169,8 @@ sub test_roundtrip_raster {
 
 
         foreach my $this_file (@exported_files) {
-            next if $this_file !~ /\./;  #  must have a dot - er-mapper files do not by default
+            #  must have a file extension - er-mapper files do not by default
+            next if $this_file !~ /\.\w\w\w\w?$/;
             
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
@@ -1196,7 +1197,7 @@ sub test_roundtrip_raster {
                 $new_bd->rename_label (
                     label    => $this_label,
                     new_name => $new_name,
-                ) or diag "Could not rename $this_label to $new_name";
+                ) or diag "ER-Mapper file: Could not rename label $this_label to $new_name";
             }
             else {
                 #  Workaround until we handle band names

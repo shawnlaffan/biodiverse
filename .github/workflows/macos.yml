@@ -1,0 +1,53 @@
+name: macos
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+env:
+  PERL5LIB: /Users/runner/perl5/lib/perl5
+  PERL_LOCAL_LIB_ROOT: /Users/runner/perl5
+  PERL_MB_OPT: --install_base /Users/runner/perl5
+  PERL_MM_OPT: INSTALL_BASE=/Users/runner/perl5
+
+jobs:
+  perl:
+
+    runs-on: macOS-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Perl
+        run: |
+          brew install perl
+          curl https://cpanmin.us | perl - App::cpanminus -n
+          echo "##[add-path]/Users/runner/perl5/bin"
+
+      - name: perl -V
+        run: perl -V
+
+      - name: Prepare for cache
+        run: |
+          perl -V > perlversion.txt
+          ls -l perlversion.txt
+
+      - name: Cache CPAN modules
+        uses: actions/cache@v1
+        with:
+          path: ~/perl5
+          key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+
+      - name: Install Dynamic Dependencies
+        run: cpanm Task::Biodiverse::NoGUI
+      - name: Install Geo::GDAL::FFI
+        run: - cpanm -v --notest Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
+      - name: Run Tests
+        run: prove -l -j4
+        

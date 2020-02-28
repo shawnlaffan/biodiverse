@@ -45,7 +45,7 @@ jobs:
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
 
       - name: Install Dynamic Dependencies
-        run: cpanm Task::Biodiverse::NoGUI
+        run: cpanm --notest Task::Biodiverse::NoGUI
       - name: Install Geo::GDAL::FFI
         run: cpanm -v --notest Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
       - name: Run Tests

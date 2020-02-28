@@ -1197,7 +1197,7 @@ sub test_roundtrip_raster {
                 $new_bd->rename_label (
                     label    => $this_label,
                     new_name => $new_name,
-                ) or diag "ER-Mapper file: Could not rename label $this_label to $new_name";
+                ) or diag "Raster roundtripper: Could not rename label $this_label to $new_name";
             }
             else {
                 #  Workaround until we handle band names

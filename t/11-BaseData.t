@@ -1167,7 +1167,6 @@ sub test_roundtrip_raster {
         @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} @exported_files;
 
 
-
         foreach my $this_file (@exported_files) {
             #  must have a file extension - er-mapper files do not by default
             next if $this_file !~ /\.\w\w\w\w?$/;

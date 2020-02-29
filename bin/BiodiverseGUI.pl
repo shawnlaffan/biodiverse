@@ -102,10 +102,11 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
-
-# Go!
-Gtk2->main;
-
+#  hack for exe building
+if (!$ENV{BDV_PP_BUILDING}) {
+    # Go!
+    Gtk2->main;
+}
 
 #  go back home (unless it has been deleted while we were away)
 $eval_result = eval { chdir($caller_dir) };

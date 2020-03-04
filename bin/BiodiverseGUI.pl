@@ -102,8 +102,8 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
-#  hack for exe building
-if (!$ENV{BDV_PP_BUILDING}) {
+#  hack for exe building under github actions
+if (!($^O eq 'darwin' && $ENV{BDV_PP_BUILDING})) {
     # Go!
     Gtk2->main;
 }

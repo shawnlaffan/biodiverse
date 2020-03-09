@@ -128,9 +128,9 @@ $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my @cmd = (
-    'perl',
+    $^X,
     "$Bin/pp_autolink.pl",
-    #$verbose,
+    ($verbose ? '-v' : ()),
     '-u',
     '-B',
     '-z',
@@ -144,12 +144,12 @@ my @cmd = (
     $output_binary_fullpath,
     $script_fullname,
 );
-if ($verbose) {
-    splice @cmd, 1, 0, $verbose;
-}
+#if ($verbose) {
+#    splice @cmd, 1, 0, $verbose;
+#}
 
 
-say join ' ', "\nCOMMAND TO RUN:\n", @cmd;
+say "\nCOMMAND TO RUN:\n" . join ' ', @cmd;
 
 system @cmd;
 

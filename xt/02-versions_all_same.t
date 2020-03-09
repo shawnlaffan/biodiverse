@@ -45,11 +45,14 @@ note ( "Testing Biodiverse $version, Perl $], $^X" );
 require App::Biodiverse;
 my $blah = $App::Biodiverse::VERSION;
 
+FILE:
 while (my $file = shift @files) {
     my $loaded = eval qq{ require $file };
     my $msg_extra = q{};
     if (!$loaded) {
         $msg_extra = " (Unable to load $file).";
+        diag "Unable to load $file, skipping";
+        next FILE;
     }
     my $this_version = eval '$' . $file . q{::VERSION};
     my $msg = "$file is $version." . $msg_extra;

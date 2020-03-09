@@ -1,3 +1,7 @@
+## THIS IS NOW REDUNDANT
+## see the mac source installation instructions at
+## https://github.com/shawnlaffan/biodiverse/wiki/InstallationMacOSSource
+
 #!/usr/bin/sh
 
 #  All the macports install commands in one script

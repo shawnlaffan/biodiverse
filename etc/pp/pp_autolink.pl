@@ -6,13 +6,15 @@ use 5.020;
 use warnings;
 use strict;
 
+our $VERSION = '1.00';
+
 use Carp;
 use English qw / -no_match_vars/;
 
 use Data::Dump       qw/ dd /;
 use File::Which      qw( which );
 use Capture::Tiny    qw/ capture /;
-use List::Util       qw( uniq );
+use List::Util       qw( uniq any );
 use File::Find::Rule qw/ rule find /;
 use Path::Tiny       qw/ path /;
 use Cwd              qw/ abs_path /;
@@ -21,7 +23,7 @@ use Module::ScanDeps;
 
 use Config;
 
-my $RE_DLL_EXT = qr/\.$Config::Config{so}/i;
+my $RE_DLL_EXT = qr/\.$Config::Config{so}$/i;
 
 #  messy arg handling - ideally would use a GetOpts variant that allows
 #  pass through to pp without needing to set them after --
@@ -70,16 +72,37 @@ sub get_autolink_list {
     
     my $env_sep  = $OSNAME =~ /MSWin/i ? ';' : ':';
     my @exe_path = split $env_sep, $ENV{PATH};
+    
+    my @system_paths;
 
     if ($OSNAME =~ /MSWin32/i) {
         #  skip anything under the C:\Windows folder
+        #  and no longer existant folders 
         my $system_root = $ENV{SystemRoot};
-        @exe_path = grep {$_ !~ m|^\Q$system_root\E|i} @exe_path;
+        @system_paths = grep {$_ =~ m|^\Q$system_root\E|i} @exe_path;
+        @exe_path = grep {(-e $_) and $_ !~ m|^\Q$system_root\E|i} @exe_path;
         #say "PATHS: " . join ' ', @exe_path;
     }
     #  what to skip for linux or mac?
+    
+    #  get all the DLLs in the path - saves repeated searching lower down
+    my @dll_files = File::Find::Rule->file()
+                            ->name( '*.dll' )
+                            ->maxdepth(1)
+                            ->in( @exe_path );
+    my %dll_file_hash;
+    foreach my $file (@dll_files) {
+        my $basename = path($file)->basename;
+        $dll_file_hash{$basename} //= $file;  #  we only want the first in the path
+    }
 
-    my @dlls = get_dep_dlls ($script, $no_execute_flag);
+
+    #  lc is dirty and underhanded
+    #  - need to find a different approach to get
+    #  canonical file name while handling case 
+    my @dlls =
+      map {lc $_}
+      get_dep_dlls ($script, $no_execute_flag);
     
     #say join "\n", @dlls;
     
@@ -87,6 +110,8 @@ sub get_autolink_list {
     my %full_list;
     my %searched_for;
     my $iter = 0;
+    
+    my @missing;
 
   DLL_CHECK:
     while (1) {
@@ -102,36 +127,31 @@ sub get_autolink_list {
             exit;
         }
         @dlls = $stdout =~ /DLL.Name:\s*(\S+)/gmi;
-        #  extra grep is wasteful but useful for debug 
+        
+        #  extra grep appears wasteful but useful for debug 
         #  since we can easily disable it
         @dlls
           = sort
             grep {!exists $full_list{$_}}
             grep {$_ !~ /$re_skippers/}
             uniq
+            map {lc $_}
             @dlls;
         
         if (!@dlls) {
             say 'no more DLLs';
             last DLL_CHECK;
         }
-        
-        #say join "\n", @dlls;
-        
+                
         my @dll2;
         foreach my $file (@dlls) {
             next if $searched_for{$file};
-            #  don't recurse
-            my $rule = File::Find::Rule->new->maxdepth(1);
-            $rule->file;
-            #  need case insensitive match for Windows
-            $rule->name (qr/^\Q$file\E$/i);
-            $rule->start (@exe_path);
-            #  don't search the whole path every time
-          MATCH:
-            while (my $f = $rule->match) {
-                push @dll2, $f;
-                last MATCH;
+        
+            if (exists $dll_file_hash{$file}) {
+                push @dll2, $dll_file_hash{$file};
+            }
+            else {
+                push @missing, $file;
             }
     
             $searched_for{$file}++;
@@ -145,6 +165,20 @@ sub get_autolink_list {
     }
     
     my @l2 = sort keys %full_list;
+    
+    if (@missing) {
+        my @missing2;
+      MISSING:
+        foreach my $file (uniq @missing) {
+            next MISSING
+              if any {-e "$_/$file"} @system_paths;
+            push @missing2, $file;
+        }
+        
+        say STDERR "\nUnable to locate these DLLS, packed script might not work: "
+        . join  ' ', sort {$a cmp $b} @missing2;
+        say '';
+    }
 
     return wantarray ? @l2 : \@l2;
 }
@@ -156,6 +190,7 @@ sub get_dll_skipper_regexp {
         libstdc\+\+\-6
         libgcc_s_seh\-1
         libwinpthread\-1
+        libgcc_s_sjlj\-1
     /;
     my $sk = join '|', @skip;
     my $qr_skip = qr /^(?:$sk)$RE_DLL_EXT$/;
@@ -197,14 +232,24 @@ sub get_dep_dlls {
     my $inc_path_re = qr /^($paths)/i;
     #say $inc_path_re;
 
+    #say "DEPS HASH:" . join "\n", keys %$deps_hash;
     my %dll_hash;
+    my @aliens;
     foreach my $package (keys %$deps_hash) {
         #  could access {uses} directly, but this helps with debug
+        #state $checker++;
+        #if ($checker == 1) {
+        #    use Data::Dump;
+        #    dump $deps_hash->{$package};
+        #}
         my $details = $deps_hash->{$package};
-        my $uses    = $details->{uses};
-        next if !$uses;
+        my @uses = @{$details->{uses} // []};
+        if ($details->{key} =~ m{^Alien/.+\.pm$}) {
+            push @aliens, $package;
+        }
+        next if !@uses;
         
-        foreach my $dll (grep {$_ =~ $RE_DLL_EXT} @$uses) {
+        foreach my $dll (grep {$_ =~ $RE_DLL_EXT} @uses) {
             my $dll_path = $deps_hash->{$package}{file};
             #  Remove trailing component of path after /lib/
             if ($dll_path =~ m/$inc_path_re/) {
@@ -222,6 +267,27 @@ sub get_dep_dlls {
             $dll_hash{$dll_path}++;
         }
     }
+    #  handle aliens
+  ALIEN:
+    foreach my $package (@aliens) {
+        next if $package =~ m{^Alien/(Base|Build)};
+        my $package_inc_name = $package;
+        $package =~ s{/}{::}g;
+        $package =~ s/\.pm$//;
+        if (!$INC{$package_inc_name}) {
+            #  if the execute flag was off then try to load the package
+            eval "require $package";
+            if ($@) {
+                say "Unable to require $package, skipping (error is $@)";
+                next ALIEN;
+            }
+        }
+        next ALIEN if !$package->can ('dynamic_libs');  # some older aliens might not be able to
+        say "Finding dynamic libs for $package";
+        foreach my $path ($package->dynamic_libs) {
+            $dll_hash{$path}++;
+        }
+    } 
     
     my @dll_list = sort keys %dll_hash;
     return wantarray ? @dll_list : \@dll_list;

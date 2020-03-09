@@ -10,7 +10,6 @@ use Carp;
 use JSON::PP ();
 
 use JSON::MaybeXS;
-use Data::Structure::Util qw( unbless );
 use Ref::Util qw /is_arrayref is_hashref/;
 
 use parent qw /Biodiverse::Common/;

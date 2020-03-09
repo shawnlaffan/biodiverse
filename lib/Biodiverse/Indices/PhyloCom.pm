@@ -18,7 +18,7 @@ use constant HAVE_DATA_RECURSIVE
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
 
 
-our $VERSION = '3.00';
+our $VERSION = '3.1';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

@@ -20,7 +20,7 @@ BEGIN {
 
 use Carp;
 
-our $VERSION = '3.00';
+our $VERSION = '3.1';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

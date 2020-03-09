@@ -9,7 +9,7 @@ use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 use Gtk2;
 
-our $VERSION = '3.00';
+our $VERSION = '3.1';
 
 use English qw { -no_match_vars };
 

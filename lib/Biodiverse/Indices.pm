@@ -20,7 +20,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '3.00';
+our $VERSION = '3.1';
 
 my $EMPTY_STRING = q{};
 

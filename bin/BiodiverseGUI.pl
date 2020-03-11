@@ -4,10 +4,39 @@ use Carp;
 
 use 5.022;
 
+#use File::Basename;
+use Cwd;
+use FindBin qw ( $Bin );
+use Path::Class ();
+
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
-    $ENV{UBUNTU_MENUPROXY} = undef;  
+    $ENV{UBUNTU_MENUPROXY} = undef;
+
+    if ($^O eq 'darwin' && $ENV{PAR_0}) {  #  we are running under PAR on a mac
+        $ENV{GDK_PIXBUF_MODULEDIR}
+          = Path::Class::file (
+            $ENV{PAR_TEMP},
+            'inc',
+            'gdk-pixbuf-2.0', '2.10.0',
+             'loaders');
+        say "Setting GDK_PIXBUF_MODULEDIR to $ENV{GDK_PIXBUF_MODULEDIR}";
+        say "BUT IT DOES NOT EXIST" if !-d $ENV{GDK_PIXBUF_MODULEDIR};
+        $ENV{PATH} = "$ENV{PAR_TEMP}/inc:" . $ENV{PATH};
+        use File::Which;
+        my $loc = which ('gdk-pixbuf-query-loaders');
+        say '++++ gdk-pixbuf-query-loaders is at ' . $loc;
+        say 'running system call';
+        my $cache = `$loc`;
+        warn "system call to $loc failed: $?"
+          if $?;
+
+        system ('gdk-pixbuf-query-loaders', '--update-cache') == 0
+          or warn 'could not update gdk-pixbuf-query-loaders cache';
+    }
 }
+
+
 
 #no warnings 'redefine';
 no warnings 'once';
@@ -16,10 +45,6 @@ our $VERSION = '3.1';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
-#use File::Basename;
-use Cwd;
-use FindBin qw ( $Bin );
-use Path::Class ();
 
 #  add the lib folder if needed
 use rlib;
@@ -147,7 +172,7 @@ sub get_ui_path {
         return $ui_path_str;
     }
 
-    #  get the ui path relative to $Bin 
+    #  get the ui path relative to $Bin
     $ui_path = Path::Class::file( $Bin, 'ui' )->stringify;
     if (! -e $ui_path) {
         $ui_path = Path::Class::file( $Bin, 'bin', 'ui', )->stringify;
@@ -157,7 +182,7 @@ sub get_ui_path {
 
     say "Using ui files in $ui_path";
 
-    return $ui_path;    
+    return $ui_path;
 }
 
 

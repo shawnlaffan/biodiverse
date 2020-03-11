@@ -235,6 +235,8 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Alien::sqlite ();
     eval 'use Alien::spatialite';  #  might not have this one
     eval 'use Alien::freexl';      #  might not have this one
+
+    use IO::Socket::SSL;
 }
 
 

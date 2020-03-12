@@ -26,6 +26,7 @@ before_install:
   
   #  there are proj issues with cpan Alien::gdal and proj >=7 and gdal>3
   - cpanm --notest --installdeps Alien::proj
+  - cpanm --notest Alien::curl 
   - export ALIEN_PROJ_CONFIG_ARGS='--without-curl --without-libtiff'
   - perl -e 'eval {require Alien::proj; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-proj.git
   - cpanm --notest -v --installdeps Alien::gdal

@@ -236,7 +236,9 @@ if ($ENV{BDV_PP_BUILDING}) {
     eval 'use Alien::spatialite';  #  might not have this one
     eval 'use Alien::freexl';      #  might not have this one
 
-    use IO::Socket::SSL;
+    #  GUI needs this for help,
+    #  so don't trigger for engine-only
+    eval 'use IO::Socket::SSL';
 }
 
 

@@ -49,7 +49,7 @@ jobs:
 
       - name: Install Dynamic Dependencies
         run: |
-          cpanm --notest IO::Socket::SSL
+          # cpanm --notest IO::Socket::SSL
           cpanm --notest Task::Biodiverse::NoGUI
       
       - name: Run Tests

@@ -25,6 +25,7 @@ before_install:
   - cpanm --notest Geo::ShapeFile@3.00
   
   #  there are proj issues with cpan Alien::gdal and proj >=7 and gdal>3
+  - perl -e 'eval {require Alien::gdal; 1} || exit 1' || ALIEN_INSTALL_TYPE=share cpanm --notest --installdeps https://github.com/shawnlaffan/perl-alien-gdal.git
   - perl -e 'eval {require Alien::gdal; 1} || exit 1' || ALIEN_INSTALL_TYPE=share cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git
   
   #  get the latest Geo::GDAL::FFI,

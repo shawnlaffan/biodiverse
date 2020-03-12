@@ -13,26 +13,29 @@ BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
     $ENV{UBUNTU_MENUPROXY} = undef;
 
-    if ($^O eq 'darwin' && $ENV{PAR_0}) {  #  we are running under PAR on a mac
+    #  if running under PAR on a mac
+    if ($^O eq 'darwin' && $ENV{PAR_0}) {
+        say '++++';
+        my $gdk_base = ("$ENV{PAR_TEMP}/inc/gdk-pixbuf-2.0/2.10.0");
         $ENV{GDK_PIXBUF_MODULEDIR}
-          = Path::Class::file (
-            $ENV{PAR_TEMP},
-            'inc',
-            'gdk-pixbuf-2.0', '2.10.0',
-             'loaders');
+          = Path::Class::file ($gdk_base, 'loaders');
         say "Setting GDK_PIXBUF_MODULEDIR to $ENV{GDK_PIXBUF_MODULEDIR}";
         say "BUT IT DOES NOT EXIST" if !-d $ENV{GDK_PIXBUF_MODULEDIR};
+        my $gdk_cache_file
+          = Path::Class::file ($gdk_base, 'loaders.cache');
+        say "Setting GDK_PIXBUF_MODULE_FILE to $gdk_cache_file";
+        $ENV{GDK_PIXBUF_MODULE_FILE} = $gdk_cache_file;
         $ENV{PATH} = "$ENV{PAR_TEMP}/inc:" . $ENV{PATH};
         use File::Which;
         my $loc = which ('gdk-pixbuf-query-loaders');
-        say '++++ gdk-pixbuf-query-loaders is at ' . $loc;
-        say 'running system call';
+        say 'gdk-pixbuf-query-loaders is at ' . $loc;
+        say 'running gdk-pixbuf-query-loaders system calls';
         my $cache = `$loc`;
         warn "system call to $loc failed: $?"
           if $?;
-
         system ('gdk-pixbuf-query-loaders', '--update-cache') == 0
-          or warn 'could not update gdk-pixbuf-query-loaders cache';
+          or warn "++++ could not update gdk-pixbuf-query-loaders cache: $?";
+        say '++++';
     }
 }
 

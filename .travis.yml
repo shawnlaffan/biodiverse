@@ -24,6 +24,9 @@ before_install:
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
   
+  #  there are proj issues with cpan Alien::gdal and proj >=7 and gdal>3
+  - perl -MAlien::gdal -e '1' || ALIEN_INSTALL_TYPE=share cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git
+  
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal

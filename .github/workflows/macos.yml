@@ -48,7 +48,9 @@ jobs:
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
 
       - name: Install Dynamic Dependencies
-        run: cpanm --notest Task::Biodiverse::NoGUI
+        run: |
+          cpanm --notest IO::Socket::SSL
+          cpanm --notest Task::Biodiverse::NoGUI
       
       - name: Run Tests
         run: prove -l -j4

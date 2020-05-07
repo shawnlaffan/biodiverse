@@ -1083,13 +1083,13 @@ sub test_depth {
     };
 }
 
-sub test_nwk_with_trailing_comment {
+sub test_newick_with_trailing_comment {
     my $nwk = get_cluster_mini_data_newick();
     $nwk .= '[trailing comment]';
     
     my $read_nex = Biodiverse::ReadNexus->new();
     lives_ok  {
-        $read_nex->import_data (data => $nwk)
+        $read_nex->import_newick (data => $nwk)
     }, 'can read newick with trailing comment';
     
 }

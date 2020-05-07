@@ -116,7 +116,13 @@ sub decode {
     # decoder doesn't work without them.
     $input = $self->fix_up_unquoted_bootstrap_block( block => $input );
 
-    my $decoded_hash = decode_json $input;
+    #  should we be assuming json?
+    my $decoded_hash = eval {decode_json $input};
+    if ($@) {
+        $decoded_hash = {
+            content => $input,
+        };
+    };
 
     foreach my $key (keys %$decoded_hash) {
         if ($key eq '!color') {

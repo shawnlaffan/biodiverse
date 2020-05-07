@@ -10,6 +10,7 @@ use rlib;
 use List::Util qw /first sum all/;
 
 use Test::More;
+use Test::Exception;
 
 use English qw / -no_match_vars /;
 local $| = 1;
@@ -1080,6 +1081,17 @@ sub test_depth {
             is ($nodes{$num}->get_depth, $exp_depth, "Expected depth for node $num ($exp_depth)");
         }
     };
+}
+
+sub test_nwk_with_trailing_comment {
+    my $nwk = get_cluster_mini_data_newick();
+    $nwk .= '[trailing comment]';
+    
+    my $read_nex = Biodiverse::ReadNexus->new();
+    lives_ok  {
+        $read_nex->import_data (data => $nwk)
+    }, 'can read newick with trailing comment';
+    
 }
 
 ######################################

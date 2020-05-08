@@ -350,7 +350,7 @@ sub run {
         #  this is all of the standards now, but not all those supported by GDAL
         croak '[BASEDATA] Import of point, polygon and polyline shapefiles only is supported.  '
           . "$fnamebase is type $shape_type\n"
-          if not $shape_type =~ /Point|Polygon|PolyLine/i;
+          if not $shape_type =~ /Point|Polygon|Line/i;
 
         my @field_names = qw {:shape_x :shape_y};    # we always have x,y data
         if ( $shape_type =~ /25D|Z/ ) {

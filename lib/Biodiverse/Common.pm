@@ -1815,7 +1815,7 @@ sub get_file_size {
         $file_size = $stat->{size};
     }
     else {
-        croak "[BASEDATA] $file_name DOES NOT EXIST OR CANNOT BE READ\n";
+        croak "[BASEDATA] get_file_size $file_name DOES NOT EXIST OR CANNOT BE READ\n";
     }
 
     return $file_size;

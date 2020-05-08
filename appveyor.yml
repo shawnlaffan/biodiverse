@@ -7,7 +7,7 @@ cache:
   - C:\Strawberry
 
 install:
-  - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.28.1.1
+  - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.30.2.1
   #- appveyor-retry choco upgrade strawberryperl --version 5.28.1.1
   - set ST=C:\Strawberry
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%

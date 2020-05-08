@@ -245,6 +245,10 @@ sub _test_import_shapefile_polygon {
     my $exp = $args{expected_total_count};
     if (defined $exp) {
         is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
+        #if ($got ne $exp) {
+            $new_bd->save_to (filename => './failure2.bds');
+        #}
+        
     }
     else {
         $exp //= $is_line #  dodgy and fragile type check
@@ -307,7 +311,7 @@ sub test_import_shapefile_polyline_default {
     _test_import_shapefile_polygon (
         fname   => $fname,
         is_line => 1,
-        expected_total_count => 193,
+        expected_total_count => 369,
     );
 }
 

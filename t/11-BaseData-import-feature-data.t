@@ -4,6 +4,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
+use Path::Tiny qw /path/;
 
 use Test::Lib;
 use rlib;
@@ -115,10 +116,10 @@ sub test_import_roundtrip_shapefile {
 
         #  need to use a better approach for the name,
         #  but the unicode chars help test 
-        my $fname_base = $tmp_dir . '/shæþefile_' . $i; 
+        my $fname_base = path($tmp_dir, 'shæþefile_' . $i)->stringify;
 
         my $suffix = ''; # leave off, .shp will be added (or similar)
-        my $fname = $fname_base . $suffix;  
+        my $fname = $fname_base . $suffix;
         my @exported_files;
         my $success = eval {
             $gp->export (

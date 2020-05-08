@@ -1314,7 +1314,10 @@ sub import_data_shapefile {
 
         }    # each shape
 
-        $layer = undef;  #  a spot of paranoia to close the file
+        $f_layer   = undef;
+        $f_dataset = undef;
+        $layer     = undef;  #  a spot of paranoia to close the files
+        $layer_dataset = undef;
         $progress_bar->update( 'Done', 1 );
 
         #  add the collated data
@@ -1430,15 +1433,23 @@ sub get_fishnet_identity_layer {
     my $start_time = time();
     
     #  create the layer now so we only get polygons back
+    state $ds_incr;
+    $ds_incr++;
     my $layer_name
       = join '_',
         'overlay_result',
+        $ds_incr,
         @group_sizes,
         Scalar::Util::refaddr ($self);
+    my $ds_name = $self->_get_scratch_name(
+        prefix => "/vsimem/_ds${ds_incr}_",
+        #prefix => 'C:/shawn/git/biodiverse/_',
+        suffix => '.gpkg',
+    );
+    my $overlay_ds
+      = Geo::GDAL::FFI::GetDriver('GPKG')->Create ($ds_name);
     my $overlay_result
-        = Geo::GDAL::FFI::GetDriver('GPKG')
-            ->Create ($self->_get_scratch_name(prefix => '/vsimem/_', suffix => '.gpkg'))
-            ->CreateLayer({
+        = $overlay_ds->CreateLayer({
                 Name => $layer_name,
                 SpatialReference => $sr_clone2,
                 GeometryType     => $shape_type,
@@ -1505,21 +1516,32 @@ sub get_fishnet_polygon_layer {
     
     my $driver = $args{driver} // 'Memory';
     $driver = 'ESRI Shapefile';
+    $driver = 'GPKG';
 
     my $out_fname = $args{out_fname};
-    if (not $driver =~ /Memory/) {
-        $out_fname //= ('fishnet_' . time());
-    }
+    #if (not $driver =~ /Memory/) {
+    #    $out_fname //= ('fishnet_' . time());
+    #}
     #else {
     #  override
+    state $run_count;
+    $run_count ++;
     $out_fname = $self->_get_scratch_name(
-        prefix => '/vsimem/fishnet_',
+        prefix => "/vsimem/fishnet_${run_count}_",
+        #prefix => './fishnet_',
+        #  fragile
+        suffix => $driver =~ 'GPKG' ? '.gpkg' : '.shp',  
     );
+    die "$out_fname exists" if -e $out_fname;
     #}
     #say "Generating fishnet file $out_fname";
     my $schema = $args{schema};
     
     my $shape_type = $args{shape_type} // ($schema ? $schema->{GeometryFields}[0]{Type} : 'Polygon');
+    $shape_type = $shape_type =~ /25D$/i
+                ? 'Polygon25D' : 'Polygon';
+    $shape_type = 'Polygon';
+        
     my $sr = $args{spatial_reference} // ($schema ? $schema->{GeometryFields}[0]{SpatialReference} : undef);
 
     if (!blessed $sr) {
@@ -1632,14 +1654,6 @@ sub get_fishnet_polygon_layer {
         $ring_X_left_origin  += $grid_width;
         $ring_X_right_origin += $grid_width;
     }
-
-    #$fishnet_lyr->SyncToDisk;  #  try to flush the features
-    #$fishnet_lyr = undef;
-    #
-    #$fishnet_lyr = Geo::GDAL::FFI::Open ("$out_fname/Fishnet_Layer.shp")->GetLayer;
-    
-    #my $layer_name = $fishnet_lyr->GetName;
-    $fishnet_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"});
 
     return wantarray ? ($fishnet_dataset, $fishnet_lyr) : $fishnet_lyr;
 }

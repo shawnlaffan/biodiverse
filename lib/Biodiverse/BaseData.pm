@@ -30,6 +30,7 @@ use Geo::GDAL::FFI 0.07;
 #  silence a used-once warning - clunky
 {
     my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+    my $xx_frob_temp_zert = $FFI::Platypus::keep;
 }
 #require Spreadsheet::XLSX;  latest version does not install
 

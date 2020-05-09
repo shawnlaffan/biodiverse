@@ -1,0 +1,106 @@
+name: Windows
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+env:
+  PERL5LIB: c:\cx\lib\perl5
+  PERL_LOCAL_LIB_ROOT: c:/cx
+  PERL_MB_OPT: --install_base C:/cx
+  PERL_MM_OPT: INSTALL_BASE=C:/cx
+  ALIEN_BUILD_PRELOAD: Fetch::Cache
+  AUTOMATED_TESTING: 1
+
+jobs:
+  perl:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Perl
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+  
+      - name: perl -V
+        run: perl -V
+        
+      - name: Prepare for CPAN cache
+        run: |
+          perl -V > perlversion.txt
+          dir perlversion.txt
+
+      - name: Cache CPAN modules
+        uses: actions/cache@v1
+        with:
+          path: c:\cx
+          key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+
+      - name: Prepare for Alien cache
+        run: |
+          perl -V > aliencache.txt
+          echo 'aliens' >> aliencache.txt
+          dir aliencache.txt
+
+      - name: Cache Alien downloads
+        uses: actions/cache@v1
+        with:
+          path: $HOMEPATH\.alienbuild
+          key: ${{ runner.os }}-build-${{ hashFiles('aliencache.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('aliencache.txt') }}
+
+      #- name: Install Dependencies
+      #  run: curl -sL https://git.io/cpm | perl - install -g --show-build-log-on-failure
+  
+      - name: Install dependencies 1
+        run: |
+          #cpanm --notest local::lib
+          #eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
+          cpanm --quiet --notest Alien::Build
+          cpanm --quiet --notest Alien::Build::MM
+          cpanm --quiet --notest Sort::Versions
+          cpanm --quiet --notest PkgConfig
+          cpanm --quiet --notest Alien::Build::Plugin::Cleanse::BuildDir
+          cpanm --quiet --notest File::Find::Rule
+          cpanm --quiet --notest Alien::Build::Plugin::Fetch::Cache
+          cpanm --quiet --notest Env::ShellWords
+
+      - name: Install dependencies Alien::MSYS
+        run: |
+          cpanm --notest Alien::MSYS
+
+      - name: Install dependencies Alien::sqlite
+        run: |
+          cpanm -v Alien::sqlite~1.05
+
+      - name: Install dependencies Alien::proj
+        run: |
+          cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
+
+      - name: Install dependencies Alien::geos::af
+        run: |
+          cpanm -v Alien::geos::af
+
+      - name: Install dependencies for Alien::gdal
+        run: |
+          cpanm --notest --installdeps Alien::gdal
+          cpanm -v Alien::gdal
+          
+      - name: Install task deps
+        run: |
+          cpanm --notest Task::Biodiverse::NoGUI
+  
+      # Runs a set of commands using the runners shell
+      - name: Build
+        run: |
+          prove 
+          

@@ -20,7 +20,7 @@ install:
   
   - cpanm --quiet --notest Alien::Build
   ##  make sure something goes to screen for aliens to avoid timeouts
-  - cpanm -v --reinstall Alien::geos::af
+  #- cpanm -v --reinstall Alien::geos::af
   - cpanm -v --notest Alien::geos::af Alien::proj 
   - cpanm -v --notest Alien::sqlite
   #- cpanm -v --notest Alien::freexl

@@ -55,9 +55,18 @@ foreach my $file (@files) {
 
 diag '';
 diag 'Alien versions:';
+my %alien_versions;
 foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
     eval 'require $alien';
     diag "$alien: " . $alien->version;
+    $alien_versions{$alien} = $alien->version;
+}
+
+if ($alien_versions{Alien::gdal} ge 3) {
+    ok ($alien_versions{Alien::proj} ge 7, 'Alien proj is >=7 when gdal >=3');
+}
+else {
+    ok ($alien_versions{Alien::proj} lt 7, 'Alien proj is <7 when gdal <3');
 }
 
 done_testing();

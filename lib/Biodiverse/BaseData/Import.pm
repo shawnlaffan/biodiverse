@@ -1110,7 +1110,8 @@ sub import_data_shapefile {
             my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
             my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
-            if (-w Path::Class::file($file)->dir->stringify) {
+            if (-w Path::Class::file($fnamebase)->dir->stringify
+                && -w $fnamebase) {
                 #  only works for shapefiles
                 eval {
                     $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"})

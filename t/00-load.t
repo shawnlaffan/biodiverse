@@ -53,6 +53,11 @@ foreach my $file (@files) {
     use_ok ( $file );
 }
 
-
+diag '';
+diag 'Alien versions:';
+foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
+    eval 'require $alien';
+    diag "$alien: " . $alien->version;
+}
 
 done_testing();

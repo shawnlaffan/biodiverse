@@ -1116,6 +1116,14 @@ sub import_data_shapefile {
                 eval {
                     $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"})
                 };
+                while (@Geo::GDAL::FFI::errors
+                       #and $Geo::GDAL::FFI::errors[0] =~ $skip_error_re
+                    ) {
+                    shift @Geo::GDAL::FFI::errors
+                }
+                croak Geo::GDAL::FFI::error_msg()
+                  if @Geo::GDAL::FFI::errors;
+
                 warn $@ if $@;
             }
 
@@ -1523,7 +1531,7 @@ sub get_fishnet_polygon_layer {
     local $| = 1;
     
     my $driver = $args{driver} // 'Memory';
-    $driver = 'ESRI Shapefile';
+    #$driver = 'ESRI Shapefile';
     $driver = 'GPKG';
 
     my $out_fname = $args{out_fname};

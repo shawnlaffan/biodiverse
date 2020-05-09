@@ -16,6 +16,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use List::MoreUtils qw /first_index/;
 use Path::Class;
+#use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
@@ -1109,10 +1110,13 @@ sub import_data_shapefile {
             my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
             my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
-            #eval {
-            #    $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"})
-            #};
-            #warn $@ if $@;
+            if (-w Path::Class::file($file)->dir->stringify) {
+                #  only works for shapefiles
+                eval {
+                    $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"})
+                };
+                warn $@ if $@;
+            }
 
             if ($need_shape_geometry) {
                 $f_layer = $self->get_fishnet_identity_layer (

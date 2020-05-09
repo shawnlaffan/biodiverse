@@ -90,7 +90,7 @@ jobs:
         run: |
           cpanm -v Alien::geos::af
 
-      - name: Install dependencies for Alien::gdal
+      - name: Install dependencies Alien::gdal
         run: |
           cpanm --notest --installdeps Alien::gdal
           cpanm -v Alien::gdal

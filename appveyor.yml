@@ -25,7 +25,7 @@ install:
   - cpanm -v --notest Alien::sqlite
   #- cpanm -v --notest Alien::freexl
   #- cpanm -v --notest Alien::spatialite
-  - cpanm -v --reinstall Alien::gdal
+  - cpanm -v Alien::gdal
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   - ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
   - cpanm --notest Geo::GDAL::FFI

@@ -63,10 +63,14 @@ foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
 }
 
 if ($alien_versions{Alien::gdal} ge 3) {
-    ok ($alien_versions{Alien::proj} ge 7, 'Alien proj is >=7 when gdal >=3');
+    if ($alien_versions{Alien::proj} lt 7) {
+        diag 'Alien proj is <7 when gdal >=3';
+    }
 }
 else {
-    ok ($alien_versions{Alien::proj} lt 7, 'Alien proj is <7 when gdal <3');
+    if ($alien_versions{Alien::proj} ge 7) {
+        diag 'Alien proj is >=7 when gdal <3';
+    }
 }
 
 done_testing();

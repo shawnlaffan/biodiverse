@@ -84,7 +84,8 @@ jobs:
 
       - name: Install dependencies Alien::proj
         run: |
-          cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
+          #cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
+          cpanm -v --notest Alien::proj
 
       - name: Install dependencies Alien::geos::af
         run: |
@@ -100,7 +101,7 @@ jobs:
           cpanm --notest Task::Biodiverse::NoGUI
   
       # Runs a set of commands using the runners shell
-      - name: Build
+      - name: Run tests
         run: |
           prove 
           

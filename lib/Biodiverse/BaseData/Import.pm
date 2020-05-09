@@ -1117,14 +1117,13 @@ sub import_data_shapefile {
                     $layer_dataset->ExecuteSQL(qq{CREATE SPATIAL INDEX ON "$layer_name"})
                 };
                 while (@Geo::GDAL::FFI::errors
-                       #and $Geo::GDAL::FFI::errors[0] =~ $skip_error_re
+                       and $Geo::GDAL::FFI::errors[0]
+                         =~ /CreateSpatialIndex \: unsupported operation on a read-only datasource./
                     ) {
                     shift @Geo::GDAL::FFI::errors
                 }
                 croak Geo::GDAL::FFI::error_msg()
                   if @Geo::GDAL::FFI::errors;
-
-                warn $@ if $@;
             }
 
             if ($need_shape_geometry) {

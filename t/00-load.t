@@ -54,11 +54,11 @@ foreach my $file (@files) {
 }
 
 diag '';
-diag 'Alien versions:';
+diag 'Aliens:';
 my %alien_versions;
 foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
     eval 'require $alien';
-    diag "$alien: " . $alien->version;
+    diag sprintf "%s: version: %s, install type: %s", $alien, $alien->version, $alien->install_type;
     $alien_versions{$alien} = $alien->version;
 }
 

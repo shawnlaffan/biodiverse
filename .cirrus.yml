@@ -4,6 +4,7 @@ freebsd_instance:
 task:
   env:
     AUTOMATED_TESTING: 1
+    MAKEFLAGS: -j4
 
   cpan_cache:
     folder: perl_modules

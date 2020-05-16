@@ -21,6 +21,7 @@ task:
     - cpanm --notest Alien::gdal
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm Geo::GDAL::FFI
+    - cpanm --notest Task::Biodiverse::NoGUI
 
   script:
     - prove -l

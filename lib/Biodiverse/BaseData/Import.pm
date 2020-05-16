@@ -1372,6 +1372,10 @@ sub get_fishnet_identity_layer {
     };
     croak $@ if $@;
     
+    if (not $shape_type =~ /^multi/i) {
+        $shape_type = "Multi$shape_type";
+    }
+
     $sr = Geo::GDAL::FFI::SpatialReference->new($sr);
     #  It is safer to not re-use a spatial reference object 
     my $sr_clone1 = $sr->Clone;
@@ -1472,7 +1476,7 @@ sub get_fishnet_identity_layer {
         });
     #  not sure these have any effect
     my $options = {
-        PROMOTE_TO_MULTI        => 'NO',
+        PROMOTE_TO_MULTI        => 'YES',
         USE_PREPARED_GEOMETRIES => 'YES',
         PRETEST_CONTAINMENT     => 'YES',
         KEEP_LOWER_DIMENSION_GEOMETRIES => 'NO',  #  be explicit

@@ -21,12 +21,12 @@ task:
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
     - cpanm --installdeps --notest Alien::libtiff
-    - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
+    - cpanm -v Alien::libtiff
     - cpanm --installdeps --notest Alien::proj
-    - MAKEFLAGS=-j4 cpanm -v Alien::proj
-    - MAKEFLAGS=-j4 cpanm -v Alien::geos::af
+    - cpanm -v Alien::proj
+    - cpanm -v Alien::geos::af
     - cpanm --installdeps --notest Alien::gdal
-    - MAKEFLAGS=-j4 cpanm -v --notest Alien::gdal
+    - cpanm -v --notest Alien::gdal
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm Geo::GDAL::FFI
     - cpanm --notest Task::Biodiverse::NoGUI

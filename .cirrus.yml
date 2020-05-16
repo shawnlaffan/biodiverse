@@ -8,7 +8,7 @@ task:
 
   cpan_cache:
     folder: perl_modules
-    reupload_on_changes: true # set to false if there is a fingerprint script
+    reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
       - echo $CIRRUS_OS
     #  #- perl -v
@@ -24,6 +24,7 @@ task:
     - cpanm -v Alien::geos::af
     - cpanm --installdeps --notest Alien::gdal
     - cpanm -v --notest Alien::gdal
+    - MAKEFLAGS=-j1 cpanm PDL
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm Geo::GDAL::FFI
     - cpanm --notest Task::Biodiverse::NoGUI

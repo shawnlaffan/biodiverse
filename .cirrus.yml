@@ -29,6 +29,7 @@ task:
     - cpanm --notest Task::Biodiverse::NoGUI
     - cpanm Path::Class
     - cpanm Test::Lib
+    - cpanm rlib
 
   script:
     - prove -l

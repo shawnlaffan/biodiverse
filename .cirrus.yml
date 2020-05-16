@@ -1,0 +1,18 @@
+freebsd_instance:
+  image: freebsd-12-1-release-amd64
+
+task:
+  install_script:
+    - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
+    - sudo pkg install -y p5-App-cpanminus
+    - sudo cpanm --installdeps --notest Alien::proj
+    - sudo cpanm -v Alien::proj
+    - sudo cpanm -v Alien::libtiff
+    - sudo cpanm -v Alien::geos::af
+    - sudo cpanm --installdeps --notest Alien::gdal
+    - sudo cpanm --notest Alien::gdal
+    - sudo cpanm --installdeps --notest Geo::GDAL::FFI
+    - sudo cpanm Geo::GDAL::FFI
+
+  script:
+    - prove -l

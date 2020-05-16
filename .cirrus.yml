@@ -18,8 +18,8 @@ task:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
     - sudo pkg install -y p5-App-cpanminus
     - cpanm --local-lib=~/perl_modules local::lib && eval $(perl -I ~/perl_modules/lib/perl5/ -Mlocal::lib)
-    - cpanm --notest --installdeps PDL
-    - cpanm --notest -v PDL
+    - cpanm --notest --installdeps --no-man-pages PDL
+    - cpanm --notest --no-man-pages PDL
     - cpanm --installdeps --notest Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
     - cpanm --installdeps --notest Alien::proj

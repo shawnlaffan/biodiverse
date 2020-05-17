@@ -20,6 +20,12 @@ use Time::HiRes qw /time/;
 use Sort::Key::Natural qw /natsort/;
 
 use Geo::GDAL::FFI;
+#  silence some used-once warnings - very clunky
+{
+    my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+    my $xx_frob_temp_zert = $FFI::Platypus::keep;
+}
+
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;

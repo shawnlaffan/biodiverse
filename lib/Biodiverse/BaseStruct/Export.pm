@@ -21,6 +21,7 @@ use Geo::GDAL::FFI 0.06 qw /GetDriver/;
 #  silence a used-once warning - clunky
 {
     my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+    my $xx_frob_temp_zert = $FFI::Platypus::keep;
 }
 
 my $EMPTY_STRING = q{};

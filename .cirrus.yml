@@ -1,0 +1,46 @@
+freebsd_instance:
+  image: freebsd-12-1-release-amd64
+
+task:
+  env:
+    AUTOMATED_TESTING: 1
+    PERL_MOD_DIR: /perl5
+    #MAKEFLAGS: -j4
+
+  cpan_cache:
+    folder: /perl5
+    reupload_on_changes: false # set to false if there is a fingerprint script
+    fingerprint_script:
+      - echo $CIRRUS_OS 2020056f
+
+  install_script:
+    - echo tickle the cache
+    - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
+    - sudo pkg install -y p5-App-cpanminus
+    - sudo cpanm local::lib
+    #- cpanm --local-lib=$PERL_MOD_DIR local::lib && eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    - echo probe local::lib
+    - perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib
+    - echo Run it anyway...
+    - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    #- cpanm local::lib
+    - cpanm --notest --installdeps --no-man-pages PDL
+    - cpanm --notest --no-man-pages PDL
+    - cpanm --installdeps --notest -v Alien::proj
+    - cpanm -v Alien::proj
+    - cpanm --installdeps --notest Alien::libtiff
+    - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
+    - MAKEFLAGS=-j4 cpanm -v Alien::geos::af
+    - cpanm --installdeps --notest Alien::gdal
+    - MAKEFLAGS=-j4 cpanm -v Alien::gdal
+    - cpanm --installdeps --notest Geo::GDAL::FFI
+    - cpanm Geo::GDAL::FFI
+    - cpanm --notest Task::Biodiverse::NoGUI
+    - cpanm Path::Class
+    - cpanm Test::Lib
+    - cpanm rlib
+    - prove -l t/00-load.t  # probe
+
+  script:
+    - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    - prove -l -j 4

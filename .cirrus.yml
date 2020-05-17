@@ -4,7 +4,7 @@ freebsd_instance:
 task:
   env:
     AUTOMATED_TESTING: 1
-    PERL_MOD_DIR: ~/perl_modules
+    PERL_MOD_DIR: /perl5
     #MAKEFLAGS: -j4
 
   cpan_cache:
@@ -14,6 +14,7 @@ task:
       - echo $CIRRUS_OS 2020056f
 
   install_script:
+    - echo tickle the cache
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
     - sudo pkg install -y p5-App-cpanminus
     - sudo cpanm local::lib

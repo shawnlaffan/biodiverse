@@ -8,10 +8,10 @@ task:
     #MAKEFLAGS: -j4
 
   cpan_cache:
-    folder: $PERL_MOD_DIR
+    folder: /perl5
     reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
-      - echo $CIRRUS_OS 2020056e
+      - echo $CIRRUS_OS 2020056f
 
   install_script:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake

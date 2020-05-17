@@ -4,10 +4,6 @@
 ![macos](https://github.com/shawnlaffan/biodiverse/workflows/macos/badge.svg)
 [![Build Status](https://api.cirrus-ci.com/github/shawnlaffan/biodiverse.svg)](https://cirrus-ci.com/github/shawnlaffan/biodiverse)
 
-CCTray XML
-
-Cirrus CI supports exporting information about the latest repository builds via the CCTray XML format. Use the following URL format
-[![DOI](https://zenodo.org/badge/33012718.svg)](https://zenodo.org/badge/latestdoi/33012718)
 
 # Biodiverse
 

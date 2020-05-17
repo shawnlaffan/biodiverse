@@ -12,7 +12,7 @@ task:
     fingerprint_script:
       - echo $CIRRUS_OS
     #  #- perl -v
-      - echo 2020056b
+      - echo 2020056c
 
   install_script:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake

@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/shawnlaffan/biodiverse.svg?branch=master)](https://travis-ci.org/shawnlaffan/biodiverse)
 [![Build status](https://ci.appveyor.com/api/projects/status/9dnh2co30sfbl3i2/branch/master?svg=true)](https://ci.appveyor.com/project/shawnlaffan/biodiverse/branch/master)
+![Windows](https://github.com/shawnlaffan/biodiverse/workflows/Windows/badge.svg)
 ![macos](https://github.com/shawnlaffan/biodiverse/workflows/macos/badge.svg)
 [![Build Status](https://api.cirrus-ci.com/github/shawnlaffan/biodiverse.svg)](https://cirrus-ci.com/github/shawnlaffan/biodiverse)
 

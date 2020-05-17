@@ -16,7 +16,10 @@ task:
   install_script:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
     - sudo pkg install -y p5-App-cpanminus
-    - cpanm --local-lib=$PERL_MOD_DIR local::lib && eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    - sudo cpanm local::lib
+    #- cpanm --local-lib=$PERL_MOD_DIR local::lib && eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    #- cpanm local::lib
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
     - cpanm --installdeps --notest -v Alien::proj

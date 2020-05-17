@@ -18,6 +18,9 @@ task:
     - sudo pkg install -y p5-App-cpanminus
     - sudo cpanm local::lib
     #- cpanm --local-lib=$PERL_MOD_DIR local::lib && eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+    - echo probe local::lib
+    - perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib
+    - echo Run it anyway...
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
     #- cpanm local::lib
     - cpanm --notest --installdeps --no-man-pages PDL

@@ -410,8 +410,10 @@ sub test_checkpoint_cwd_check {
         );
     };
     
-    if (!$ENV{CIRRUS_CI}) {
-        #  should be a todo on Cirrus
+    {
+        local $TODO = 'needs work on BSD, perhaps only under Cirrus'
+          if $^O =~ /bsd/i;
+
         $rand = $bd->add_randomisation_output (name => $rand_name . '2');
         chmod 0444, '.';
         

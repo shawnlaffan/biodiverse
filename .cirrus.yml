@@ -7,7 +7,7 @@ task:
     #MAKEFLAGS: -j4
 
   cpan_cache:
-    folder: ~/perl_modules
+    folder: $HOME/perl_modules
     reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
       - echo $CIRRUS_OS

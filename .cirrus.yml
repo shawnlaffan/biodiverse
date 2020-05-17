@@ -4,20 +4,21 @@ freebsd_instance:
 task:
   env:
     AUTOMATED_TESTING: 1
+    PERL_MOD_DIR: ~/perl_modules
     #MAKEFLAGS: -j4
 
   cpan_cache:
-    folder: $HOME/perl_modules
+    folder: $PERL_MOD_DIR
     reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
       - echo $CIRRUS_OS
     #  #- perl -v
-      - echo 2020056c
+      - echo 2020056d
 
   install_script:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
     - sudo pkg install -y p5-App-cpanminus
-    - cpanm --local-lib=$HOME/perl_modules local::lib && eval $(perl -I $HOME/perl_modules/lib/perl5/ -Mlocal::lib)
+    - cpanm --local-lib=$PERL_MOD_DIR local::lib && eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
     - cpanm --installdeps --notest -v Alien::proj
@@ -36,5 +37,5 @@ task:
     - prove -l t/00-load.t  # probe
 
   script:
-    - eval $(perl -I $HOME/perl_modules/lib/perl5/ -Mlocal::lib)
+    - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
     - prove -l -j 4

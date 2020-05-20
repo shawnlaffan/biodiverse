@@ -643,6 +643,10 @@ sub get_indices_object_for_matrix_and_clustering {
 
     my $index_params = $indices_object->get_args (sub => $index_function);
     my $index_order  = $index_params->{indices}{$index}{cluster} // q{};
+    my $index_bounds = $index_params->{indices}{$index}{bounds} // [];
+    if (defined $index_bounds->[0]) {
+        $self->set_param(MIN_POSS_INDEX_VALUE => 0);
+    }
     # cache unless told otherwise
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
@@ -1508,6 +1512,19 @@ sub get_most_similar_pair {
     my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
     my ($node1, $node2);
 
+    #  save some processing with groups of zeroes
+    #  (could also lump them before we call this sub)
+    my $min_poss_value = $self->get_param ('MIN_POSS_INDEX_VALUE') // 10**10;
+    if ($min_value == 0 && $min_poss_value == 0) {
+        #  sort so results are deterministic across runs
+        my @keys1 = sort keys %{$keys_ref};
+        $node1    = $keys1[0];  # grab the first key
+        my @keys2 = sort keys %{$keys_ref->{$node1}};
+        $node2    = $keys2[0];  # grab the first sub key
+
+        return wantarray ? ($node1, $node2) : [$node1, $node2];
+    }
+    
     if (!$tie_breaker)  {  #  the old way
         my $count1  = scalar keys %$keys_ref;
         my $keys1   = $rand->shuffle ([sort keys %{$keys_ref}]);

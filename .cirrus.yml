@@ -26,7 +26,7 @@ task:
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
     - cpanm --installdeps --notest -v Alien::proj
-    - cpanm -v Alien::proj
+    - MAKEFLAGS=-j4 cpanm -v Alien::proj
     - cpanm --installdeps --notest Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::geos::af

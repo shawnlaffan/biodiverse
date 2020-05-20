@@ -1387,8 +1387,6 @@ sub cluster_matrix_elements {
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
-        $join_number ++;
-
         #  get the most similar two candidates
         $most_similar_val = $self->get_most_similar_matrix_value (
             matrix => $sim_matrix,
@@ -1419,9 +1417,10 @@ sub cluster_matrix_elements {
         #  - this is where the name for $el1 comes from (a historical leftover)
         my $length_below = 0;
         my $node_names = $self->get_node_hash;
-        my $el1 = defined $node_names->{$node1} ? $node_names->{$node1} : $node1;
-        my $el2 = defined $node_names->{$node2} ? $node_names->{$node2} : $node2;
+        my $el1 = $node_names->{$node1} // $node1;
+        my $el2 = $node_names->{$node2} // $node2;
 
+        $join_number ++;
         my $new_node_name = $join_number . '___';
 
         #  create a new node using the elements - creates children as TreeNodes if needed

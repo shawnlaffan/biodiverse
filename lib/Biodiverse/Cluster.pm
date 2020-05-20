@@ -2284,9 +2284,7 @@ sub link_average_unweighted {
 
     my ($tmp1, $tmp2) = $self->get_values_for_linkage(@_);
 
-    my $value = ($tmp1 + $tmp2) / 2;
-
-    return wantarray ? (value => $value) : {value => $value};
+    return ($tmp1 + $tmp2) / 2;
 }
 
 #  calculate the average of the previous similarities,
@@ -2306,26 +2304,20 @@ sub link_average {
 
     my ($tmp1, $tmp2) = $self->get_values_for_linkage (%args);
 
-    my $value  =  ($el1_count * $tmp1 + $el2_count * $tmp2)
-                / ($el1_count + $el2_count);
-
-    return wantarray ? (value => $value) : {value => $value};
+    return ($el1_count * $tmp1 + $el2_count * $tmp2)
+         / ($el1_count + $el2_count);
 }
 
 sub link_minimum {
     my $self = shift;
 
-    my $value = min ($self->get_values_for_linkage (@_));
-
-    return wantarray ? (value => $value) : {value => $value};
+    return min ($self->get_values_for_linkage (@_));
 }
 
 sub link_maximum {
     my $self = shift;
 
-    my $value = max ($self->get_values_for_linkage (@_));
-
-    return wantarray ? (value => $value) : {value => $value};
+    return max ($self->get_values_for_linkage (@_));
 }
 
 sub _link_centroid {
@@ -2480,12 +2472,11 @@ sub link_recalculate {
         }
     }
 
-    my %r = (value => $results->{$index});
-
-    return wantarray ? %r : \%r;
+    return $results->{$index};
 }
 
-sub run_linkage {  #  rebuild the similarity matrices using the linkage function
+#  rebuild the similarity matrices using the linkage function
+sub run_linkage {
     my $self = shift;
     my %args = @_;
 
@@ -2546,7 +2537,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             );
         }
 
-        my %values = $self->$linkage_function (
+        my $value = $self->$linkage_function (
             node1        => $node1,
             node2        => $node2,
             compare_node => $check_node,
@@ -2557,7 +2548,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             $shadow_matrix->add_element  (
                 element1 => $new_node,
                 element2 => $check_node,
-                value    => $values{value},
+                value    => $value,
             );
         }
 
@@ -2582,7 +2573,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             $mx->add_element (
                 element1 => $new_node,
                 element2 => $check_node,
-                value    => $values{value},
+                value    => $value,
             );
             last MX_ITER;
         }

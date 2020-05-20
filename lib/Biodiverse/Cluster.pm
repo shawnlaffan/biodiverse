@@ -1417,7 +1417,7 @@ sub cluster_matrix_elements {
                 $remaining - $extras_count - 1,
                 $most_similar_val;
     
-            $progress_bar->update ($text, 1 - ($remaining + $extras_count) / $total);
+            $progress_bar->update ($text, 1 - ($remaining - $extras_count - 1) / $total);
 
             #  use node refs for children that are nodes
             #  use original name if not a node

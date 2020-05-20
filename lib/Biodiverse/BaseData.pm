@@ -152,8 +152,12 @@ sub new {
         NAME         => $name . "_GROUPS",
         BASEDATA_REF => $self,
     );
+    #  Ideally we would not copy the basedata cell info,
+    #  but for now we ensure it is not the same reference.
     $self->{LABELS} = Biodiverse::BaseStruct->new(
         %params_hash,
+        CELL_SIZES   => [@$cell_sizes],
+        CELL_ORIGINS => [@$cell_origins],
         TYPE         => 'LABELS',
         NAME         => $name . "_LABELS",
         BASEDATA_REF => $self,
@@ -239,19 +243,22 @@ sub clone {
         local $self->{CLUSTER_OUTPUTS}       = {};
         local $self->{RANDOMISATION_OUTPUTS} = {};
         local $self->{MATRIX_OUTPUTS}        = {};
+        local $self->{_cache}                = undef;
         $cloneref = $self->SUPER::clone();
 
     }
     elsif ( $args{no_elements} ) {
 
         #  temporarily override the groups and labels so they aren't cloned
-        local $self->{GROUPS}{ELEMENTS} =
-          {}; # very dirty - basedata should not know about basestruct internals
+        # element deletion is very dirty
+        # - basedata should not know about basestruct internals
+        local $self->{GROUPS}{ELEMENTS}      = {};
         local $self->{LABELS}{ELEMENTS}      = {};
         local $self->{SPATIAL_OUTPUTS}       = {};
         local $self->{CLUSTER_OUTPUTS}       = {};
         local $self->{RANDOMISATION_OUTPUTS} = {};
         local $self->{MATRIX_OUTPUTS}        = {};
+        local $self->{_cache}                = undef;
         $cloneref = $self->SUPER::clone();
 
     }
@@ -908,10 +915,26 @@ sub drop_element_axis {
     if ($axis < 0) {
         $axis += @$axis;
     }
-    my $cell_sizes = $target->get_param('CELL_SIZES');
+    my $bd_cell_sizes   = $self->get_param('CELL_SIZES');
+    my $bd_cell_origins = $self->get_param('CELL_ORIGINS');
+
+    my $cell_sizes   = $target->get_param('CELL_SIZES');
+    my $cell_origins = $target->get_param('CELL_ORIGINS');
+    
+    #  disconnect some shared arrays
+    #  that ideally would not exist
+    if ($type eq 'label') {
+        if ($cell_sizes eq $bd_cell_sizes) {
+            $cell_sizes = [@$cell_sizes];
+            $target->set_param(CELL_SIZES => $cell_sizes);
+        }
+        if ($cell_origins eq $bd_cell_origins) {
+            $cell_origins = [@$cell_origins];
+            $target->set_param(CELL_ORIGINS => $cell_origins);
+        }
+    }
     #say "Splicing item $axis from sizes (" . (join ' ', @$cell_sizes) . ')';
     splice @$cell_sizes, $axis, 1;
-    my $cell_origins = $target->get_param('CELL_ORIGINS');
     #  looks like we can get mismatches in cell size and origin array lengths
     if ($axis < @$cell_origins) {
         #say "Splicing item $axis from origins (" . (join ' ', @$cell_origins) . ')';
@@ -919,11 +942,9 @@ sub drop_element_axis {
     }
     
     if ($type eq 'group') {
-        my $bd_cell_sizes = $self->get_param('CELL_SIZES');
         if ($bd_cell_sizes ne $cell_sizes) {  #  check if same ref 
             splice @$bd_cell_sizes, $axis, 1;
         }
-        my $bd_cell_origins = $self->get_param('CELL_ORIGINS');
         if ($bd_cell_origins ne $cell_origins and $axis < @$bd_cell_origins) {  #  check if same ref 
             splice @$bd_cell_origins, $axis, 1;
         }

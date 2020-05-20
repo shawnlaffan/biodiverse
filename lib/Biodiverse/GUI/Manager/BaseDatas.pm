@@ -306,9 +306,9 @@ sub do_basedata_attach_properties {
         type              => $type,
     );
 
-    if ($count) {
+    #if ($count) {
         $self->set_dirty();
-    }
+    #}
 
     my $summary_text = "Assigned properties to $count ${type}";
     my $summary_dlg  = Gtk2::MessageDialog->new(

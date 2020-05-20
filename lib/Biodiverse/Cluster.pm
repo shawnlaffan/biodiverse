@@ -1406,72 +1406,92 @@ sub cluster_matrix_elements {
             $self->clear_tie_breaker_caches;
         }
 
-        my ($node1, $node2) = $self->get_most_similar_pair (
+        #  extras is not a good name, but is for when
+        #  we have multiple pairs with a zero value
+        #  and zero is the min possible value
+        my ($node1, $node2, $extras) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
             min_value   => $most_similar_val,
             rand_object => $rand,
         );
-
-        #  use node refs for children that are nodes
-        #  use original name if not a node
-        #  - this is where the name for $el1 comes from (a historical leftover)
-        my $length_below = 0;
-        my $node_names = $self->get_node_hash;
-        my $el1 = $node_names->{$node1} // $node1;
-        my $el2 = $node_names->{$node2} // $node2;
-
-        $join_number ++;
-        my $new_node_name = $join_number . '___';
-
-        #  create a new node using the elements - creates children as TreeNodes if needed
-        $new_node = $self->add_node (
-            name => $new_node_name,
-            children => [$el1, $el2],
-        );
-
-        $new_node->set_value (
-            MATRIX_ITER_USED => $mx_iter,
-            JOIN_NUMBER      => $join_number,
-        );
-        $new_node->set_child_lengths (total_length => $most_similar_val);
-
-        #  add children to the node hash if they are terminals
-        foreach my $child ($new_node->get_children) {
-            if ($child->is_terminal_node) {
-                if (not $self->exists_node (node_ref => $child)) {
-                    $self->add_to_node_hash (node_ref => $child);
+        my %done_extras;
+        
+        while (defined $node1) {
+            #  use node refs for children that are nodes
+            #  use original name if not a node
+            #  - this is where the name for $el1 comes from (a historical leftover)
+            my $length_below = 0;
+            my $node_names = $self->get_node_hash;
+            my $el1 = $node_names->{$node1} // $node1;
+            my $el2 = $node_names->{$node2} // $node2;
+    
+            $join_number ++;
+            my $new_node_name = $join_number . '___';
+    
+            #  create a new node using the elements - creates children as TreeNodes if needed
+            $new_node = $self->add_node (
+                name => $new_node_name,
+                children => [$el1, $el2],
+            );
+    
+            $new_node->set_value (
+                MATRIX_ITER_USED => $mx_iter,
+                JOIN_NUMBER      => $join_number,
+            );
+            $new_node->set_child_lengths (total_length => $most_similar_val);
+    
+            #  add children to the node hash if they are terminals
+            foreach my $child ($new_node->get_children) {
+                if ($child->is_terminal_node) {
+                    if (not $self->exists_node (node_ref => $child)) {
+                        $self->add_to_node_hash (node_ref => $child);
+                    }
+    
+                    $child->set_value (
+                        MATRIX_ITER_USED => $mx_iter,
+                        JOIN_NUMBER      => $join_number,
+                    );
                 }
-
-                $child->set_value (
-                    MATRIX_ITER_USED => $mx_iter,
-                    JOIN_NUMBER      => $join_number,
-                );
+            }
+    
+            #if ($new_node->get_length < 0) {
+            #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
+            #}
+            #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
+    
+            ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
+            #  possibly we should return a list of other matrix elements where the length
+            #  difference is 0 and which therefore could be merged now rather than next iteration
+            #  but that is not guaranteed to work for all combinations of index and linkage
+            my $start_time = time();
+            $self->run_linkage (
+                node1             => $node1,
+                node2             => $node2,
+                new_node_name     => $new_node_name,
+                linkage_function  => $linkage_function,
+                show_gui_progress => $show_gui_progress,
+                #merge_track_matrix => $merged_mx,
+            );
+            if ($show_gui_progress and (time() - $start_time) < 1) {
+                #  no need to show the progress bar if it is deleted before any updates
+                $show_gui_progress = undef;
+            }
+            
+            $done_extras{$node1}++;
+            $done_extras{$node2}++;
+            ($node1, $node2) = (undef, undef);
+            if (is_arrayref ($extras)) {
+              PAIR:
+                while (@$extras) {
+                    my $pair = shift @$extras;
+                    next if $done_extras{$pair->[0]}
+                         || $done_extras{$pair->[1]};
+                   ($node1, $node2) = @$pair;
+                   last PAIR;
+                }
             }
         }
-
-        #if ($new_node->get_length < 0) {
-        #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
-        #}
-        #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
-
-        ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
-        #  possibly we should return a list of other matrix elements where the length
-        #  difference is 0 and which therefore could be merged now rather than next iteration
-        #  but that is not guaranteed to work for all combinations of index and linkage
-        my $start_time = time();
-        $self->run_linkage (
-            node1             => $node1,
-            node2             => $node2,
-            new_node_name     => $new_node_name,
-            linkage_function  => $linkage_function,
-            show_gui_progress => $show_gui_progress,
-            #merge_track_matrix => $merged_mx,
-        );
-        if ($show_gui_progress and (time() - $start_time) < 1) {
-            #  no need to show the progress bar if it is deleted before any updates
-            $show_gui_progress = undef;
-        }
-
+        
         $prev_min_value = $most_similar_val;
 
         #  Need to run some cleanup of the matrices here?
@@ -1520,8 +1540,18 @@ sub get_most_similar_pair {
         $node1    = $keys1[0];  # grab the first key
         my @keys2 = sort keys %{$keys_ref->{$node1}};
         $node2    = $keys2[0];  # grab the first sub key
+        my @rest_of_pairs;
+        if (@keys1 > 1 || @keys2 > 1) {
+            foreach my $key1 (@keys1) {
+                foreach my $key2 (sort keys %{$keys_ref->{$key1}}) {
+                    push @rest_of_pairs, [$key1, $key2];
+                }
+            }
+        }
 
-        return wantarray ? ($node1, $node2) : [$node1, $node2];
+        return wantarray
+          ? ($node1, $node2, \@rest_of_pairs)
+          : [$node1, $node2, \@rest_of_pairs];
     }
     
     if (!$tie_breaker)  {  #  the old way

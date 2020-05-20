@@ -1382,6 +1382,7 @@ sub cluster_matrix_elements {
     print "[CLUSTER] Progress (% of $total elements):     ";
     
     my $show_gui_progress = 1;
+    my $link_count = 0;
 
   PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
@@ -1411,13 +1412,15 @@ sub cluster_matrix_elements {
 
         my $extras_count = 0;        
         while (defined $node1) {
+
             my $text = sprintf
                 "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
                 $progress_text,
                 $remaining - $extras_count - 1,
                 $most_similar_val;
-    
-            $progress_bar->update ($text, 1 - ($remaining - $extras_count - 1) / $total);
+
+            $link_count++;
+            $progress_bar->update ($text, $link_count / $total);
 
             #  use node refs for children that are nodes
             #  use original name if not a node
@@ -1483,14 +1486,14 @@ sub cluster_matrix_elements {
             $done_extras{$node2}++;
             ($node1, $node2) = (undef, undef);
             if (is_arrayref ($extras)) {
-              PAIR:
+              EXTRA_PAIR:
                 while (@$extras) {
                     my $pair = shift @$extras;
                     next if $done_extras{$pair->[0]}
                          || $done_extras{$pair->[1]};
                    ($node1, $node2) = @$pair;
                    $extras_count++;
-                   last PAIR;
+                   last EXTRA_PAIR;
                 }
             }
         }

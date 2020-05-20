@@ -599,8 +599,9 @@ sub get_element_pairs_with_value {
         foreach my $el2 ( keys %$hash_ref ) {
             my $value = $self->get_defined_value_aa($el1, $el2);
             #  stringification implicitly uses %.15f precision
-            next if $val ne $value;    
-            $results{$el1}{$el2}++;
+            if ($val eq $value) {
+                $results{$el1}{$el2}++;
+            }
         }
     }
 

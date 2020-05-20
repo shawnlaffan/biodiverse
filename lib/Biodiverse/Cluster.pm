@@ -1393,13 +1393,6 @@ sub cluster_matrix_elements {
             objective_function => $objective_function,
         );
 
-        my $text = sprintf
-            "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
-            $progress_text,
-            $remaining - 1,
-            $most_similar_val;
-
-        $progress_bar->update ($text, 1 - $remaining / $total);
 
         #  clean up tie breakers if the min value has changed
         if (defined $prev_min_value && $most_similar_val != $prev_min_value) {
@@ -1415,8 +1408,17 @@ sub cluster_matrix_elements {
             rand_object => $rand,
         );
         my %done_extras;
-        
+
+        my $extras_count = 0;        
         while (defined $node1) {
+            my $text = sprintf
+                "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
+                $progress_text,
+                $remaining - $extras_count - 1,
+                $most_similar_val;
+    
+            $progress_bar->update ($text, 1 - ($remaining + $extras_count) / $total);
+
             #  use node refs for children that are nodes
             #  use original name if not a node
             #  - this is where the name for $el1 comes from (a historical leftover)
@@ -1487,6 +1489,7 @@ sub cluster_matrix_elements {
                     next if $done_extras{$pair->[0]}
                          || $done_extras{$pair->[1]};
                    ($node1, $node2) = @$pair;
+                   $extras_count++;
                    last PAIR;
                 }
             }

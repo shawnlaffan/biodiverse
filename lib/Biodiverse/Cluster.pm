@@ -1400,23 +1400,23 @@ sub cluster_matrix_elements {
             $self->clear_tie_breaker_caches;
         }
 
-        #  extras is not a good name, but is for when
+        #  extra_zeroes is for when
         #  we have multiple pairs with a zero value
         #  and zero is the min possible value
-        my ($node1, $node2, $extras) = $self->get_most_similar_pair (
+        my ($node1, $node2, $extra_zeroes) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
             min_value   => $most_similar_val,
             rand_object => $rand,
         );
-        my %done_extras;
+        my %done_extra_zeroes;
 
-        my $extras_count = 0;        
+        my $extra_zeroes_count = 0;
         while (defined $node1) {
 
             my $text = sprintf
                 "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
                 $progress_text,
-                $remaining - $extras_count - 1,
+                $remaining - $extra_zeroes_count - 1,
                 $most_similar_val;
 
             $link_count++;
@@ -1482,17 +1482,17 @@ sub cluster_matrix_elements {
                 $show_gui_progress = undef;
             }
             
-            $done_extras{$node1}++;
-            $done_extras{$node2}++;
+            $done_extra_zeroes{$node1}++;
+            $done_extra_zeroes{$node2}++;
             ($node1, $node2) = (undef, undef);
-            if (is_arrayref ($extras)) {
+            if (is_arrayref ($extra_zeroes)) {
               EXTRA_PAIR:
-                while (@$extras) {
-                    my $pair = shift @$extras;
-                    next if $done_extras{$pair->[0]}
-                         || $done_extras{$pair->[1]};
+                while (@$extra_zeroes) {
+                    my $pair = shift @$extra_zeroes;
+                    next if $done_extra_zeroes{$pair->[0]}
+                         || $done_extra_zeroes{$pair->[1]};
                    ($node1, $node2) = @$pair;
-                   $extras_count++;
+                   $extra_zeroes_count++;
                    last EXTRA_PAIR;
                 }
             }

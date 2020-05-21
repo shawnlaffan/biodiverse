@@ -2424,7 +2424,7 @@ sub test_locale_numeric {
     return 1;
 }
 
-use constant LOCALE_USES_COMMA_RADIX => (sprintf ('%.6f', 0.5) =~ /,/);
+use constant LOCALE_USES_COMMA_RADIX => !!(sprintf ('%.6f', 0.5) =~ /,/);
 
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {

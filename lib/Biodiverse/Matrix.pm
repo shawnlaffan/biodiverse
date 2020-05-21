@@ -229,7 +229,7 @@ sub rebuild_value_index {
     return $self;
 }
 
-use constant LOCALE_USES_COMMA_RADIX => (sprintf ('%.6f', 0.5) =~ /,/);
+use constant LOCALE_USES_COMMA_RADIX => scalar (sprintf ('%.6f', 0.5) =~ /,/);
 
 sub get_value_index_key {
     my $self = shift;

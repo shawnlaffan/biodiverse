@@ -1465,9 +1465,6 @@ sub cluster_matrix_elements {
             #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
     
             ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
-            #  possibly we should return a list of other matrix elements where the length
-            #  difference is 0 and which therefore could be merged now rather than next iteration
-            #  but that is not guaranteed to work for all combinations of index and linkage
             my $start_time = time();
             $self->run_linkage (
                 node1             => $node1,

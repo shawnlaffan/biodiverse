@@ -103,8 +103,7 @@ sub get_defined_value_aa {
 #  2 if yes but in different order,
 #  undef otherwise
 sub element_pair_exists {  
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
 
     my ($element1, $element2) = @args{'element1', 'element2'};
 
@@ -116,10 +115,9 @@ sub element_pair_exists {
 
     #  need to stop autovivification of element1 or 2
     no autovivification;
-    return 1 if exists $hash_ref->{$element1}{$element2};
-    return 2 if exists $hash_ref->{$element2}{$element1};
-
-    return 0;
+    return exists $hash_ref->{$element1}{$element2} ? 1
+         : exists $hash_ref->{$element2}{$element1} ? 2
+         : 0;
 }
 
 sub get_element_pair_count {

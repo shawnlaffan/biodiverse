@@ -600,10 +600,11 @@ sub get_element_pairs_with_value {
 
     while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
         foreach my $el2 ( keys %$hash_ref ) {
-            my $value = $self->get_defined_value_aa($el1, $el2);
-            #  stringification implicitly uses %.15f precision
-            #  postfix-if to avoid scope overheads
-            $results{$el1}{$el2}++ if $val eq $value;  
+            #  Deliberately micro-optimised code
+            #  to reduce book-keeping overheads.
+            #  Note that stringification implicitly uses %.15f precision
+            $results{$el1}{$el2}++
+              if $val eq $self->get_defined_value_aa($el1, $el2);  
         }
     }
 

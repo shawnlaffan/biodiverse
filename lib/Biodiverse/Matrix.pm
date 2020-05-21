@@ -594,6 +594,9 @@ sub get_element_pairs_with_value {
 
     my $val_hash     = $self->{BYVALUE};
     my $element_hash = $val_hash->{$val_key};
+    
+    #  could special case $val_key == 0 when index precision is %.2g
+    #  and we know we only have defined values
 
     while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
         foreach my $el2 ( keys %$hash_ref ) {

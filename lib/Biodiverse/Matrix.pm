@@ -466,8 +466,8 @@ sub add_element {
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
-    $self->{ELEMENTS}{$element1}++
-      ; #  cache the component elements to save searching through the other lists later
+    #  cache the component elements to save searching through the other lists later
+    $self->{ELEMENTS}{$element1}++; 
     $self->{ELEMENTS}{$element2}++;    #  also keeps a count of the elements
 
     return;
@@ -505,21 +505,21 @@ sub delete_element {
 #  the hash ref must be empty (undef) or it won't be deleted
 #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
     delete $by_el_index->{$element1}{$element2};
-    if ( scalar keys %{ $by_el_index->{$element1} } == 0 ) {
+    if ( !keys %{ $by_el_index->{$element1} } ) {
         delete $by_el_index->{$element1}
           // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
     my $index_val = $self->get_value_index_key( value => $value );
     if ( !$val_index->{$index_val} ) {
-        $self->rebuild_value_index
-          ;    #  a bit underhanded, but this ensures we upgrade old matrices
+        #  a bit underhanded, but this ensures we upgrade old matrices
+        $self->rebuild_value_index;
     }
 
     delete $val_index->{$index_val}{$element1}{$element2};
-    if ( !scalar keys %{ $val_index->{$index_val}{$element1} } ) {
+    if ( !keys %{ $val_index->{$index_val}{$element1} } ) {
         delete $val_index->{$index_val}{$element1};
-        if ( !scalar keys %{ $val_index->{$index_val} } ) {
+        if ( !keys %{ $val_index->{$index_val} } ) {
             delete $val_index->{$index_val}
               // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }

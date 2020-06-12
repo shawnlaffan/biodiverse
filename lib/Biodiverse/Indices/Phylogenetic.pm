@@ -2274,10 +2274,16 @@ sub get_metadata_calc_phylo_s2 {
                 cluster     =>  'NO_CACHE_ABC',
                 formula     =>  [
                     '= 1 - (A / (A + min (B, C)))',
-                    ' where A is the length of shared branches, '
-                    . 'and B and C are the length of branches found only in neighbour sets 1 and 2',
+                    ' where A is the sum of shared branch lengths, '
+                    . 'and B and C are the sum of branch lengths found'
+                    . 'only in neighbour sets 1 and 2',
                 ],
                 description => 'Phylo S2 score',
+                bounds      => [0, 1],
+                #  min (B,C) in denominator means cluster order
+                #  influences tie breaker results as different
+                #  assemblages are merged
+                cluster_can_lump_zeroes => 0,
             }
         },
         required_args => {'tree_ref' => 1}

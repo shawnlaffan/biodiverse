@@ -742,6 +742,11 @@ sub get_metadata_calc_s2 {
             S2 => {
                 cluster     => 1,
                 description => 'S2 dissimilarity index',
+                bounds      => [0, 1],
+                #  min (B,C) in denominator means cluster order
+                #  influences tie breaker results as different
+                #  assemblages are merged
+                cluster_can_lump_zeroes => 0,
             }
         },
     );

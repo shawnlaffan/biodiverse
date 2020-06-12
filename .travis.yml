@@ -24,14 +24,15 @@ before_install:
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
   
-  #  there are proj issues with cpan Alien::gdal and proj >=7 and gdal>3
-  - cpanm --installdeps --notest Alien::proj@1.05
-  - cpanm -v --notest Alien::proj@1.05
+  - cpanm --installdeps --notest Alien::proj
+  - cpanm -v --notest Alien::proj
   #- cpanm --notest Alien::curl 
   #- export ALIEN_PROJ_CONFIG_ARGS='--without-curl --without-libtiff'
   #- perl -e 'eval {require Alien::proj; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-proj.git
+
   - cpanm --notest -v --installdeps Alien::gdal
-  - perl -e 'eval {require Alien::gdal; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git
+  - cpanm --notest -v Alien::gdal
+  #- perl -e 'eval {require Alien::gdal; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git
   
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt

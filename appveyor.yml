@@ -15,19 +15,19 @@ install:
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile
-  
-  #  need a more recent version for Alien::gdal
-  
+    
   - cpanm --quiet --notest Alien::Build
-  ##  make sure something goes to screen for aliens to avoid timeouts
-  #- cpanm -v --reinstall Alien::geos::af
-  - cpanm -v --notest Alien::geos::af Alien::proj 
+  
   - cpanm -v --notest Alien::sqlite
+  - cpanm -v --notest Alien::geos::af Alien::proj 
+  
   #- cpanm -v --notest Alien::freexl
   #- cpanm -v --notest Alien::spatialite
   - cpanm -v Alien::gdal
+  
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   - ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
+  
   - cpanm --notest Geo::GDAL::FFI
   - cpanm --notest Sereal
   - cpanm --notest Task::Biodiverse::NoGUI
@@ -37,8 +37,7 @@ install:
   - cpanm --notest Win32::LongPath
   - cpanm --notest Geo::ShapeFile@3.00
   - cpanm --notest Browser::Start
-  #- cpanm --verbose Data::Recursive
-  ##- cpanm --installdeps --notest --with-all-features .
+  
 
 
 build_script:

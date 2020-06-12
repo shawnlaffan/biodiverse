@@ -2182,6 +2182,7 @@ sub get_metadata_calc_phylo_sorenson {
         indices        => {
             PHYLO_SORENSON => {
                 cluster     =>  'NO_CACHE_ABC',
+                bounds      =>  [0, 1],
                 formula     =>  [
                     '1 - (2A / (2A + B + C))',
                     ' where A is the length of shared branches, '
@@ -2226,6 +2227,7 @@ sub get_metadata_calc_phylo_jaccard {
         indices        => {
             PHYLO_JACCARD => {
                 cluster     =>  'NO_CACHE_ABC',
+                bounds      => [0, 1],
                 formula     =>  [
                     '= 1 - (A / (A + B + C))',
                     ' where A is the length of shared branches, '

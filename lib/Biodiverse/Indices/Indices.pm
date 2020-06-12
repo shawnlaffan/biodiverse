@@ -322,6 +322,7 @@ sub get_metadata_calc_sorenson {
                 cluster     => 1,
                 description => 'Sorenson index',
                 bounds      => [0, 1],
+                cluster_can_lump_zeroes => 1,
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -366,6 +367,7 @@ sub get_metadata_calc_jaccard {
                 cluster     => 1,
                 description => 'Jaccard value, 0 is identical, 1 is completely dissimilar',
                 bounds      => [0, 1],
+                cluster_can_lump_zeroes => 1,
             }
         },
     );

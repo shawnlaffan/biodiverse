@@ -645,8 +645,12 @@ sub get_indices_object_for_matrix_and_clustering {
     my $index_order  = $index_params->{indices}{$index}{cluster} // q{};
     my $index_bounds = $index_params->{indices}{$index}{bounds} // [];
     if (defined $index_bounds->[0]) {
-        $self->set_param(MIN_POSS_INDEX_VALUE => 0);
+        $self->set_param(MIN_POSS_INDEX_VALUE => $index_bounds->[0]);
     }
+    $self->set_param (
+      CLUSTER_CAN_LUMP_ZEROES
+        => $index_params->{indices}{$index}{cluster_can_lump_zeroes}
+    );
     # cache unless told otherwise
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
@@ -1403,7 +1407,8 @@ sub cluster_matrix_elements {
         #  extra_zeroes is for when
         #  we have multiple pairs with a zero value
         #  and zero is the min possible value
-        my ($node1, $node2, $extra_zeroes) = $self->get_most_similar_pair (
+        my ($node1, $node2, $extra_zeroes)
+          = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
             min_value   => $most_similar_val,
             rand_object => $rand,
@@ -1536,8 +1541,9 @@ sub get_most_similar_pair {
 
     #  save some processing with groups of zeroes
     #  (could also lump them before we call this sub)
-    my $min_poss_value = $self->get_param ('MIN_POSS_INDEX_VALUE') // 10**10;
-    if ($min_value == 0 && $min_poss_value == 0) {
+    my $min_poss_value  = $self->get_param ('MIN_POSS_INDEX_VALUE') // 10**10;
+    my $can_lump_zeroes = $self->get_param ('CLUSTER_CAN_LUMP_ZEROES');
+    if ($min_value == 0 && $min_poss_value == 0 && $can_lump_zeroes) {
         #  sort so results are deterministic across runs
         my @keys1 = sort keys %{$keys_ref};
         $node1    = $keys1[0];  # grab the first key

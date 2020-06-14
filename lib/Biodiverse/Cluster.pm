@@ -1352,18 +1352,16 @@ sub cluster_matrix_elements {
         my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
         my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
         my $index          = $self->get_param ('CLUSTER_INDEX');
-        my $index_params = $indices_object->get_args (sub => $index_function);
-        $self->set_param (
-          CLUSTER_CAN_LUMP_ZEROES
-            => $index_params->{indices}{$index}{cluster_can_lump_zeroes}
-        );
+        my $index_params   = $indices_object->get_args (sub => $index_function);
+        my $can_lump_zeroes
+          = $index_params->{indices}{$index}{cluster_can_lump_zeroes} // '';
         #  disable lumping of zeroes if needed (not currently used, and also fragile)
-        my $can_lump_zeroes = $self->get_param ('CLUSTER_CAN_LUMP_ZEROES') // '';
         if (   $can_lump_zeroes  eq 'no-recalculate'
             && $linkage_function eq 'link_recalculate') {
             #warn 'disabling lumpage of zeroes';
-            $self->set_param (CLUSTER_CAN_LUMP_ZEROES => 0);
+            $can_lump_zeroes = 0;
         }
+        $self->set_param (CLUSTER_CAN_LUMP_ZEROES => $can_lump_zeroes);
     }
 
     my $rand = $self->initialise_rand (

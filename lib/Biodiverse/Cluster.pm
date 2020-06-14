@@ -1357,14 +1357,13 @@ sub cluster_matrix_elements {
           = $indices_object->get_args (sub => $index_function);
         my $can_lump_zeroes
           = $index_params->{indices}{$index}{cluster_can_lump_zeroes} // '';
-        #  disable lumping of zeroes if needed
-        #  (not currently used, and also fragile)
-        if (   $can_lump_zeroes  eq 'no-recalculate'
-            && $linkage_function eq 'link_recalculate') {
-            #warn 'disabling lumpage of zeroes';
-            $can_lump_zeroes = 0;
-        }
         $self->set_param (CLUSTER_CAN_LUMP_ZEROES => $can_lump_zeroes);
+        #  In cases like S2, we could scan the set of pairs
+        #  to see if they are all terminals and all have pair-wise
+        #  Jaccard scores of 0 (same assemblages).  However, that's
+        #  unlikely to work with tie breakers that depend on additive
+        #  indices like richness, WE, PD etc. as it could affect
+        #  the order of higher linkages.
     }
 
     my $rand = $self->initialise_rand (

@@ -632,8 +632,9 @@ sub get_indices_object_for_matrix_and_clustering {
     my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
     $self->set_param (CLUSTER_INDEX => $index);
     delete $args{index};  # saves passing it on in the index function args
-    croak "[CLUSTER] $index not a valid clustering similarity index\n"
-        if ! exists ${$self->get_valid_indices}{$index};
+    my $valid_indices = $self->get_valid_indices;
+    croak "[CLUSTER] $index is not a valid clustering similarity index\n"
+        if !exists $valid_indices->{$index};
 
     my $index_function = $indices_object->get_index_source (index => $index);
     croak "[CLUSTER] INDEX function not valid\n"
@@ -647,10 +648,6 @@ sub get_indices_object_for_matrix_and_clustering {
     if (defined $index_bounds->[0]) {
         $self->set_param(MIN_POSS_INDEX_VALUE => $index_bounds->[0]);
     }
-    $self->set_param (
-      CLUSTER_CAN_LUMP_ZEROES
-        => $index_params->{indices}{$index}{cluster_can_lump_zeroes}
-    );
     # cache unless told otherwise
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
@@ -1351,6 +1348,24 @@ sub cluster_matrix_elements {
     my $objective_function = $self->get_objective_function(%args);
     my $linkage_function   = $self->get_param ('LINKAGE_FUNCTION');
 
+    if (!$self->get_param('NO_CLUSTER_CAN_LUMP_ZEROES')) {
+        my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
+        my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
+        my $index          = $self->get_param ('CLUSTER_INDEX');
+        my $index_params = $indices_object->get_args (sub => $index_function);
+        $self->set_param (
+          CLUSTER_CAN_LUMP_ZEROES
+            => $index_params->{indices}{$index}{cluster_can_lump_zeroes}
+        );
+        #  disable lumping of zeroes if needed (not currently used, and also fragile)
+        my $can_lump_zeroes = $self->get_param ('CLUSTER_CAN_LUMP_ZEROES') // '';
+        if (   $can_lump_zeroes  eq 'no-recalculate'
+            && $linkage_function eq 'link_recalculate') {
+            #warn 'disabling lumpage of zeroes';
+            $self->set_param (CLUSTER_CAN_LUMP_ZEROES => 0);
+        }
+    }
+
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
@@ -1542,7 +1557,7 @@ sub get_most_similar_pair {
     #  save some processing with groups of zeroes
     #  (could also lump them before we call this sub)
     my $min_poss_value  = $self->get_param ('MIN_POSS_INDEX_VALUE') // 10**10;
-    my $can_lump_zeroes = $self->get_param ('CLUSTER_CAN_LUMP_ZEROES');
+    my $can_lump_zeroes = $self->get_param ('CLUSTER_CAN_LUMP_ZEROES') // '';
     if ($min_value == 0 && $min_poss_value == 0 && $can_lump_zeroes) {
         #  sort so results are deterministic across runs
         my @keys1 = sort keys %{$keys_ref};
@@ -1994,8 +2009,12 @@ sub cluster {
     else {
         #  try to build the matrices.
         my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
-        croak "[CLUSTER] $index not a valid clustering similarity index\n"
-            if ! exists ${$self->get_valid_indices}{$index};
+        my $valid_indices = $self->get_valid_indices;
+        croak "[CLUSTER] $index is not a valid clustering similarity "
+            . "index for object type "
+            . blessed ($self)
+            . "\n"
+            if !exists $valid_indices->{$index};
         $self->set_param (CLUSTER_INDEX => $index);
 
         $self->process_spatial_conditions_and_def_query (%args);

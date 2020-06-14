@@ -1656,17 +1656,23 @@ sub cluster_test_linkages_and_check_replication {
     my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
     my $bd2 = $bd1->clone;
 
+    my $index = $args{index} || ($type =~ 'Cluster' ? 'S2' : undef);
+
     foreach my $linkage (@$linkage_funcs) {
+        #warn "Testing with $linkage";
         my $cl1 = $bd1->add_output (name => $linkage, type => $type);
         $cl1->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
+            index            => $index,
             cluster_tie_breaker => [@tie_breaker],
         );
         my $cl2 = $bd2->add_output (name => $linkage, type => $type);
+        $cl2->set_param (NO_CLUSTER_CAN_LUMP_ZEROES => 1);
         $cl2->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
+            index            => $index,
             cluster_tie_breaker => [@tie_breaker],
         );
 

@@ -1349,13 +1349,16 @@ sub cluster_matrix_elements {
     my $linkage_function   = $self->get_param ('LINKAGE_FUNCTION');
 
     if (!$self->get_param('NO_CLUSTER_CAN_LUMP_ZEROES')) {
-        my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
+        my $indices_object
+          = $self->get_indices_object_for_matrix_and_clustering;
         my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
         my $index          = $self->get_param ('CLUSTER_INDEX');
-        my $index_params   = $indices_object->get_args (sub => $index_function);
+        my $index_params
+          = $indices_object->get_args (sub => $index_function);
         my $can_lump_zeroes
           = $index_params->{indices}{$index}{cluster_can_lump_zeroes} // '';
-        #  disable lumping of zeroes if needed (not currently used, and also fragile)
+        #  disable lumping of zeroes if needed
+        #  (not currently used, and also fragile)
         if (   $can_lump_zeroes  eq 'no-recalculate'
             && $linkage_function eq 'link_recalculate') {
             #warn 'disabling lumpage of zeroes';

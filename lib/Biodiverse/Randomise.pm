@@ -413,7 +413,7 @@ sub run_randomisation {
     my $max_iters  = delete $args{max_iters};
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
-    my $generate_tree_analyses = !!$args{BUILD_RANDOMISED_TREES};
+    my $generate_tree_analyses = !!$args{build_randomised_trees};
 
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
@@ -1014,6 +1014,17 @@ sub get_common_rand_metadata {
             type       => 'text',
             default    => '',
             tooltip    => 'List of labels to not randomise, one per line',
+        }, $parameter_metadata_class),
+        bless ({
+            name       => 'build_randomised_trees',
+            label_text => 'Build randomised tree outputs',
+            type       => 'boolean',
+            default    => 0,
+            box_group  => 'Miscellaneous',
+            tooltip
+              => 'Rebuild any tree structures such as '
+               . 'cluster and region grower analyses. '
+               . 'These can be slow, so this is off by default.',
         }, $parameter_metadata_class),
     );
 

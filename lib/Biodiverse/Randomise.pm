@@ -413,6 +413,7 @@ sub run_randomisation {
     my $max_iters  = delete $args{max_iters};
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
+    my $generate_tree_analyses = !!$args{BUILD_RANDOMISED_TREES};
 
     #  load any predefined args, overriding user specified ones
     #  unless they are flagged as mutable.
@@ -583,39 +584,43 @@ sub run_randomisation {
             #  HACK...
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
+            my $generate_rand_analysis = 1;
             my $is_tree_object = eval {$rand_analysis->is_tree_object};
             if ($is_tree_object) {
                 $rand_analysis->delete_params (qw/ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
+                $generate_rand_analysis = !!($generate_tree_analyses // 0);
             }
 
-            eval {
-                $self->override_object_analysis_args (
-                    %args,
-                    randomised_arg_object_cache => \%randomised_arg_object_cache,
-                    object      => $rand_analysis,
-                    rand_object => $rand_object,
-                    iteration   => $$total_iterations,
-                );
-            };
-            croak $EVAL_ERROR if $EVAL_ERROR;
+            if ($generate_rand_analysis) {
+                eval {
+                    $self->override_object_analysis_args (
+                        %args,
+                        randomised_arg_object_cache => \%randomised_arg_object_cache,
+                        object      => $rand_analysis,
+                        rand_object => $rand_object,
+                        iteration   => $$total_iterations,
+                    );
+                };
+                croak $EVAL_ERROR if $EVAL_ERROR;
 
-            eval {
-                $rand_analysis->run_analysis (
-                    progress_text   => $progress_text,
-                    use_nbrs_from   => $target,
-                );
-            };
-            croak $EVAL_ERROR if $EVAL_ERROR;
+                eval {
+                    $rand_analysis->run_analysis (
+                        progress_text   => $progress_text,
+                        use_nbrs_from   => $target,
+                    );
+                };
+                croak $EVAL_ERROR if $EVAL_ERROR;
 
-            eval {
-                $target->compare (
-                    comparison       => $rand_analysis,
-                    result_list_name => $results_list_name,
-                )
-            };
-            croak $EVAL_ERROR if $EVAL_ERROR;
+                eval {
+                    $target->compare (
+                        comparison       => $rand_analysis,
+                        result_list_name => $results_list_name,
+                    )
+                };
+                croak $EVAL_ERROR if $EVAL_ERROR;
+            }
 
             #  Does nothing if not a cluster type analysis
             eval {

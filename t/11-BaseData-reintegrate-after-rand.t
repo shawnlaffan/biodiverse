@@ -126,16 +126,19 @@ sub test_reintegrate_after_separate_randomisations {
         my $rand1 = $bd->add_randomisation_output (name => 'random1');
         my $rand2 = $bd->add_randomisation_output (name => 'random2');
         $prng_seed++;
-        $rand1->run_analysis (
+        my %run_args = (
             function   => 'rand_csr_by_group',
-            iterations => $i,
             seed       => $prng_seed,
+            build_randomised_trees => 1,
+        );
+        $rand1->run_analysis (
+            %run_args,
+            iterations => $i,
         );
         $prng_seed++;
         $rand2->run_analysis (
-            function   => 'rand_csr_by_group',
+            %run_args,
             iterations => $i,
-            seed       => $prng_seed,
         );
     }
 

@@ -32,6 +32,7 @@ my @calcs = qw/
     calc_pd_clade_loss
     calc_pd_clade_loss_ancestral
     calc_pd_endemism
+    calc_pd_local
     calc_pd_node_list
     calc_pd_terminal_node_count
     calc_pd_terminal_node_list
@@ -862,6 +863,8 @@ __DATA__
         'Genus:sp30' => '0.434782608695652',
         'Genus:sp5'  => '0.6'
     },
+    PD_LOCAL            => '9.54381191505546',
+    PD_LOCAL_P          => '0.450557212765022',
     PD_P                => '0.451163454880594',
     PD_P_per_taxon      => '0.0322259610628996',
     PD_per_taxon        => '0.682618105875523',
@@ -1586,6 +1589,8 @@ __DATA__
         'Genus:sp20' => '0.5',
         'Genus:sp26' => '0.5'
     },
+    PD_LOCAL            => '1',
+    PD_LOCAL_P          => '0.0472093558397',
     PD_P                => '0.0704726738019399',
     PD_P_per_taxon      => '0.0352363369009699',
     PD_per_taxon        => '0.746384615384615',

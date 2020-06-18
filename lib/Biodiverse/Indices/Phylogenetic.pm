@@ -119,6 +119,84 @@ sub calc_pd {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_local {
+
+    my %metadata = (
+        description     => 'Phylogenetic diversity (PD) based on branch '
+                           . "lengths back to the last shared ancestor.\n"
+                           . 'Uses labels in both neighbourhoods.',
+        name            => 'Phylogenetic Diversity (local)',
+        type            => 'Phylogenetic Indices',
+        required_args   => ['tree_ref'],
+        pre_calc        => ['calc_pd', 'get_last_shared_ancestor_from_subtree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PD_LOCAL  => {
+                description   => 'Phylogenetic diversity calculated to last shared ancestor',
+                formula       => [
+                    '= \sum_{c \in C} L_c',
+                    ' where ',
+                    'C',
+                    'is the set of branches in the minimum spanning path '
+                     . 'joining the labels in both neighbour sets to the last shared ancestor,',
+                     'c',
+                    ' is a branch (a single segment between two nodes) in the '
+                    . 'spanning path ',
+                    'C',
+                    ', and ',
+                    'L_c',
+                    ' is the length of branch ',
+                    'c',
+                    '.',
+                ],
+            },
+            PD_LOCAL_P => {
+                description   => 'Phylogenetic diversity as a proportion of total tree length',
+                formula       => [
+                    '= \frac { PD }{ \sum_{c \in C} L_c }',
+                    ' where terms are the same as for PD, but ',
+                    'c',
+                    ', ',
+                    'C',
+                    ' and ',
+                    'L_c',
+                    ' are calculated for all nodes in the tree.',
+                ],
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pd_local {
+    my ($self, %args) = @_;
+
+    my $PD   = $args{PD};
+    my $PD_P = $args{PD_P};
+    my $ancestor = $args{LAST_SHARED_ANCESTOR_SUBTREE};
+
+    #  single-terminal lineages go to the root
+    #  so are just "normal" PD and PD_P
+    if ($PD && !$ancestor->is_terminal_node) {
+        my $tree_ref = $args{tree_ref};
+        my $sum      = 0;
+        while ($ancestor) {
+            $sum     += $ancestor->get_length;
+            $ancestor = $ancestor->get_parent;
+        }
+        $PD   = $PD - $sum;  # this way we avoid low-bit rounding errors
+        $PD_P = $PD ? ($PD / $tree_ref->get_total_tree_length) : 0;
+    }
+
+    my $results = {
+        PD_LOCAL   => $PD,
+        PD_LOCAL_P => $PD_P,
+    };
+
+    return wantarray ? %$results : $results;
+}
+
 sub get_metadata_calc_pd_node_list {
 
     my %metadata = (
@@ -1834,6 +1912,38 @@ sub get_trimmed_tree {
     my %results = (trimmed_tree => $trimmed_tree);
 
     return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_last_shared_ancestor_from_subtree {
+    my $self = shift;
+
+    my %metadata = (
+        name          => 'get_last_shared_ancestor_from_subtree',
+        description   => 'get the last shared ancestor for a subtree',
+        pre_calc      => ['get_sub_tree'],
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_last_shared_ancestor_from_subtree {
+    my ($self, %args) = @_;
+    
+    my $subtree = $args{SUBTREE};
+    my $current = $subtree->get_root_node;
+    
+    #  the subtree has only labels from the current set,
+    #  so we only need to find the last branch with one child 
+    while ($current->get_child_count == 1) {
+        $current = @{$current->get_children}[0];
+    }
+    #if ($current->is_terminal_node) {
+    #    #does it matter?
+    #}
+
+    my $results = {LAST_SHARED_ANCESTOR_SUBTREE => $current};
+  
+    return wantarray ? %$results : $results;
 }
 
 

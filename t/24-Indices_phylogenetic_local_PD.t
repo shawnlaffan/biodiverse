@@ -129,3 +129,46 @@ sub test_pd_local {
     is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
 }
 
+sub test_calc_last_shared_ancestor {
+    
+    my @calcs = qw/
+        calc_last_shared_ancestor
+    /;
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    $bd->binarise_sample_counts;
+    
+    my $tree = get_tree_object_from_sample_data();
+    #  set lengths to 1 to simplify tests
+    $tree->delete_cached_values;
+    foreach my $node ($tree->get_node_refs) {  
+        $node->set_length (length => 1);
+        $node->delete_cached_values;
+    }
+    #  reset all the total length values
+    $tree->reset_total_length;
+    $tree->reset_total_length_below;
+
+    my $sp = $bd->add_spatial_output (name => 'local PD');
+    $sp->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+
+    #  now check one cell
+    my $target_elt = '2100000:1300000';
+    my %expected = (
+        LAST_SHARED_ANCESTOR_DEPTH	      => 3,
+        LAST_SHARED_ANCESTOR_DIST_TO_ROOT => 4,
+        LAST_SHARED_ANCESTOR_DIST_TO_TIP  => 6,
+        LAST_SHARED_ANCESTOR_LENGTH       => 1,
+        LAST_SHARED_ANCESTOR_POS_REL      => 0.4,
+    );
+    my $results_list = $sp->get_list_ref (
+        list    => 'SPATIAL_RESULTS',
+        element => $target_elt,
+    );
+    is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+}

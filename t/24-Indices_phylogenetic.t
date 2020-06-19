@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 0;
+my $generate_result_sets = 1;
 
 use Test::Lib;
 use rlib;
@@ -27,6 +27,7 @@ my @calcs = qw/
     calc_count_labels_on_tree
     calc_labels_not_on_tree
     calc_labels_on_tree
+    calc_last_shared_ancestor
     calc_pd
     calc_pd_clade_contributions
     calc_pd_clade_loss
@@ -518,7 +519,12 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{   PD             => '9.55665348225732',
+{   LAST_SHARED_ANCESTOR_DEPTH        => 2,
+    LAST_SHARED_ANCESTOR_DIST_TO_ROOT => '0.0128415672018619',
+    LAST_SHARED_ANCESTOR_DIST_TO_TIP  => '0.979927663567369',
+    LAST_SHARED_ANCESTOR_LENGTH       => '0.00291112550535999',
+    LAST_SHARED_ANCESTOR_POS_REL      => '0.0129350979098253',
+    PD             => '9.55665348225732',
     PD_CLADE_CONTR => {
         '30___'      => '0.07091000411',
         '31___'      => '0.13149055874',
@@ -1463,7 +1469,12 @@ __DATA__
 
 
 @@ RESULTS_1_NBR_LISTS
-{   PD             => '1.49276923076923',
+{   LAST_SHARED_ANCESTOR_DEPTH        => 8,
+    LAST_SHARED_ANCESTOR_DIST_TO_ROOT => '0.492769230769231',
+    LAST_SHARED_ANCESTOR_DIST_TO_TIP  => '0.5',
+    LAST_SHARED_ANCESTOR_LENGTH       => '0.341398923434153',
+    LAST_SHARED_ANCESTOR_POS_REL      => '0.496358282969162',
+    PD             => '1.49276923076923',
     PD_CLADE_CONTR => {
         '34___'      => '0.89859765045',
         '35___'      => '0.92070044365',

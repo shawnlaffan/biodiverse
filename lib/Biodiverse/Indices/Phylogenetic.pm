@@ -197,6 +197,91 @@ sub calc_pd_local {
     return wantarray ? %$results : $results;
 }
 
+sub get_metadata_calc_last_shared_ancestor {
+
+    my %metadata = (
+        description     => "Properties of the last shared ancestor of an assemblage.\n"
+                         . "Uses labels in both neighbourhoods.",
+        name            => 'Last shared ancestor properties',
+        type            => 'Phylogenetic Indices',
+        required_args   => ['tree_ref'],
+        pre_calc        => ['get_last_shared_ancestor_from_subtree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            LAST_SHARED_ANCESTOR_DEPTH  => {
+                description => "Depth of last shared ancestor from the root.\n"
+                             . "The root has a depth of zero.",
+            },
+            LAST_SHARED_ANCESTOR_LENGTH  => {
+                description => 'Branch length of last shared ancestor',
+            },
+            LAST_SHARED_ANCESTOR_DIST_TO_ROOT  => {
+                description => 'Distance along the tree from the last '
+                             . "shared ancestor to the root.  \n"
+                             . "Includes the shared ancestor's length.",
+            },
+            LAST_SHARED_ANCESTOR_DIST_TO_TIP  => {
+                description => 'Distance along the tree from the last '
+                             . "shared ancestor to the furthest tip in the sample.\n"
+                             . "This is calculated from the point at which the "
+                             . "lineages merge, which is the "
+                             . "branch end further from the root",
+            },
+            LAST_SHARED_ANCESTOR_POS_REL  => {
+                description => "Relative position of the last shared ancestor.\n"
+                             . "Value is the fraction of the distance from the root to the furthest terminal."
+                             . "This uses the point at which the lineages merge, and is the "
+                             . "branch end further from the root",
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_last_shared_ancestor {
+    my ($self, %args) = @_;
+
+    my $ancestor = $args{LAST_SHARED_ANCESTOR_SUBTREE};
+
+    if (!$ancestor) {
+        my $results = {
+            LAST_SHARED_ANCESTOR_POS_REL      => undef,
+            LAST_SHARED_ANCESTOR_LENGTH       => undef,
+            LAST_SHARED_ANCESTOR_DEPTH        => undef,
+            LAST_SHARED_ANCESTOR_DIST_TO_TIP  => undef,
+            LAST_SHARED_ANCESTOR_DIST_TO_ROOT => undef,
+        };
+        return wantarray ? %$results : $results;
+    }
+
+    my $depth  = $ancestor->get_depth;
+    my $length = $ancestor->get_length;
+    my $dist_to_tips
+      = $ancestor->get_longest_path_length_to_terminals
+      - $ancestor->get_length;
+
+    my $dist_to_root = 0;
+    if (!$ancestor->is_root_node) {
+        while ($ancestor) {
+            $dist_to_root += $ancestor->get_length;
+            $ancestor = $ancestor->get_parent;
+        }
+    }
+    my $rel_pos = $dist_to_root / ($dist_to_root + $dist_to_tips);
+
+    my $results = {
+        LAST_SHARED_ANCESTOR_POS_REL      => $rel_pos,
+        LAST_SHARED_ANCESTOR_LENGTH       => $length,
+        LAST_SHARED_ANCESTOR_DEPTH        => $depth,
+        LAST_SHARED_ANCESTOR_DIST_TO_TIP  => $dist_to_tips,
+        LAST_SHARED_ANCESTOR_DIST_TO_ROOT => $dist_to_root,
+    };
+
+    return wantarray ? %$results : $results;
+}
+
+
 sub get_metadata_calc_pd_node_list {
 
     my %metadata = (

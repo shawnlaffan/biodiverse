@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 1;
+my $generate_result_sets = 0;
 
 use Test::Lib;
 use rlib;
@@ -50,8 +50,6 @@ my @calcs = qw/
     calc_phylo_aed_t_wtlists
     calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
-    calc_taxonomic_distinctness
-    calc_taxonomic_distinctness_binary
     calc_phylo_abundance
 /;
 
@@ -1457,14 +1455,6 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 14,
     PHYLO_RARITY_CWR           => '0.144409172195734',
-    TDB_DENOMINATOR            => 182,
-    TDB_DISTINCTNESS           => '0.385156952955119',
-    TDB_NUMERATOR              => '70.0985654378316',
-    TDB_VARIATION              => '0.0344846899770178',
-    TD_DENOMINATOR             => 6086,
-    TD_DISTINCTNESS            => '0.312902618192633',
-    TD_NUMERATOR               => '1904.32533432037',
-    TD_VARIATION               => '8.14607553623072'
 }
 
 
@@ -1840,14 +1830,6 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 2,
     PHYLO_RARITY_CWR           => '0.175683424689984',
-    TDB_DENOMINATOR            => 2,
-    TDB_DISTINCTNESS           => '0.341398923434153',
-    TDB_NUMERATOR              => '0.682797846868306',
-    TDB_VARIATION              => '0',
-    TD_DENOMINATOR             => 16,
-    TD_DISTINCTNESS            => '0.341398923434153',
-    TD_NUMERATOR               => '5.46238277494645',
-    TD_VARIATION               => '0.815872574453991'
 }
 
 

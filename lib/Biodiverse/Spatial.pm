@@ -54,11 +54,10 @@ sub compare {
         if ! defined $result_list_pfx;
 
     my $progress = Biodiverse::Progress->new();
-    my $progress_text = 'Comparing '
-                        . $self->get_param ('NAME')
-                        . ' with '
-                        . $comparison->get_param ('NAME')
-                        . "\n";
+    my $progress_text
+      = sprintf "Comparing %s with %s\n",
+        $self->get_param ('NAME'),
+        $comparison->get_param ('NAME');
     $progress->update ($progress_text, 0);
 
     my $bd = $self->get_param ('BASEDATA_REF');

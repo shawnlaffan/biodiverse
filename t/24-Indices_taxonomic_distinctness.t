@@ -22,11 +22,10 @@ use Biodiverse::TestHelpers qw{
     :utils
 };
 
-
 ### dirty cheat
 {
     package Biodiverse::Indices;
-    use parent 'BiodiverseX::Indices::IEI';
+    use parent 'BiodiverseX::Indices::Phylogenetic';
 }
 
 

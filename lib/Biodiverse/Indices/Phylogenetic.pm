@@ -8,8 +8,6 @@ use warnings;
 use English qw /-no_match_vars/;
 use Carp;
 
-use parent 'BiodiverseX::Indices::Phylogenetic';
-
 use Biodiverse::Progress;
 
 use List::Util 1.33 qw /any sum min max/;

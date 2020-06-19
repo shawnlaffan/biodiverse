@@ -48,7 +48,7 @@ sub get_metadata_calc_taxonomic_distinctness {
         description     => 'Taxonomic/phylogenetic distinctness and variation. '
                          . 'THIS IS A BETA LEVEL IMPLEMENTATION.',
         name            => 'Taxonomic/phylogenetic distinctness',
-        type            => 'Phylogenetic Indices',
+        type            => 'Taxonomic Distinctness Indices',
         reference       => $ref,
         pre_calc        => ['calc_abc3'],
         pre_calc_global => ['get_trimmed_tree'],
@@ -109,7 +109,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
                          . 'using presence/absence weights.  '
                          . 'THIS IS A BETA LEVEL IMPLEMENTATION.',
         name            => 'Taxonomic/phylogenetic distinctness, binary weighted',
-        type            => 'Phylogenetic Indices',
+        type            => 'Taxonomic Distinctness Indices',
         reference       => $ref,
         pre_calc        => ['calc_abc'],
         pre_calc_global => ['get_trimmed_tree'],

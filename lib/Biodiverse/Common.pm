@@ -2475,9 +2475,7 @@ sub compare_lists_by_item {
     foreach my $index (keys %$base_ref) {
 
         next COMP_BY_ITEM
-            if    not defined $base_ref->{$index}
-               or not exists  $comp_ref->{$index}
-               or not defined $comp_ref->{$index};
+          if !(defined $base_ref->{$index} && defined $comp_ref->{$index});
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which

@@ -405,7 +405,7 @@ sub check_randomisation_lists_incremented_correctly_spatial {
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
         my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
         my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
-        my @z_lists    = grep {$_ =~ />>z_score>>/} @$list_names;
+        my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
 
         foreach my $group (@$gp_list) {
             foreach my $list_name (@rand_lists) {
@@ -474,8 +474,10 @@ sub check_randomisation_lists_incremented_correctly_cluster {
     subtest "randomisation cluster lists incremented correctly, $object_name" => sub {
         my $to_nodes   = $cl_integr->get_node_refs;
         my $list_names = $cl_integr->get_hash_list_names_across_nodes;
-        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>p_rank>>/} @$list_names;
+        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
         my @sig_lists  = grep {$_ =~ />>p_rank>>/} @$list_names;
+        my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
+        
         my @rand_names = uniq (map {my $xx = $_; $xx =~ s/>>.+$//; $xx} @sig_lists);
         foreach my $to_node (sort {$a->get_name cmp $b->get_name} @$to_nodes) {
             my $node_name = $to_node->get_name;
@@ -492,12 +494,11 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 #  should refactor this - it duplicates the spatial variant
               BY_KEY:
                 foreach my $key (sort keys %$lr_integr) {
-                    no autovivification;
+                    #no autovivification;
                     my $exp;
                     if ($key =~ /^P_/) {
-                        my $index = $key;
-                        $index =~ s/^P_//;
-                        $exp = $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"};
+                        my $index = substr $key, 1;
+                        $exp = $lr_integr->{"C$index"} / $lr_integr->{"Q$index"};
                     }
                     else {
                         $exp = ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0);
@@ -524,6 +525,21 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                     }
                 }
             }
+            foreach my $z_list_name (@sig_lists) {
+                #  we only care if they are in the valid set
+                #my %l_args = (list => $sig_list_name);
+                #my $lr_integr = $to_node->get_list_ref (%l_args);
+                #foreach my $key (sort keys %$lr_integr) {
+                #    my $value = $lr_integr->{$key};
+                #    if (defined $value) {
+                #        ok ($value < 0.05 || $value > 0.95,
+                #            "p-rank $value in valid interval ($key), $node_name",
+                #        );
+                #    }
+                #}
+            }
+
+
             #  now the data and stats
             foreach my $rand_name (@rand_names) {
                 foreach my $suffix (qw/_DATA _ID_LDIFFS/) {

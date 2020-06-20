@@ -407,15 +407,15 @@ sub check_randomisation_lists_incremented_correctly_spatial {
         my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
         my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
 
-        foreach my $group (@$gp_list) {
-            foreach my $list_name (@rand_lists) {
+        foreach my $group (sort @$gp_list) {
+            foreach my $list_name (sort @rand_lists) {
                 my %l_args = (element => $group, list => $list_name);
                 my $lr_orig   = $sp_orig->get_list_ref (%l_args);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
                 my $lr_from   = $sp_from->get_list_ref (%l_args);
 
                 foreach my $key (sort keys %$lr_integr) {
-                    no autovivification;
+                    #no autovivification;
                     if ($key =~ /^P_/) {
                         my $index = substr $key, 1;
                         is ($lr_integr->{$key},
@@ -432,7 +432,7 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 }
             }
 
-            foreach my $sig_list_name (@sig_lists) {
+            foreach my $sig_list_name (sort @sig_lists) {
                 #  we only care if they are in the valid set
                 my %l_args = (element => $group, list => $sig_list_name);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
@@ -446,7 +446,7 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 }
             }
 
-            foreach my $z_list_name (@z_lists) {
+            foreach my $z_list_name (sort @z_lists) {
                 #  we only care if they are in the valid set
                 my %l_args = (element => $group, list => $z_list_name);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
@@ -479,7 +479,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
             my $node_name = $to_node->get_name;
             my $from_node = $cl_from->get_node_ref (node => $node_name);
             my $orig_node = $cl_orig->get_node_ref (node => $node_name);
-            foreach my $list_name (@rand_lists) {
+            foreach my $list_name (sort @rand_lists) {
                 my %l_args = (list => $list_name);
                 my $lr_orig   = $orig_node->get_list_ref (%l_args);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
@@ -508,7 +508,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 ok (!$fail_msg, "reintegrated $list_name for $node_name");
             }
 
-            foreach my $sig_list_name (@sig_lists) {
+            foreach my $sig_list_name (sort @sig_lists) {
                 #  we only care if they are in the valid set
                 my %l_args = (list => $sig_list_name);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
@@ -521,7 +521,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                     }
                 }
             }
-            foreach my $z_list_name (@z_lists) {
+            foreach my $z_list_name (sort @z_lists) {
                 #  we only care if they are in the valid set
                 my $lr_integr = $to_node->get_list_ref_aa ($z_list_name);
                 my $lr_orig   = $from_node->get_list_ref_aa ($z_list_name);
@@ -534,7 +534,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
 
 
             #  now the data and stats
-            foreach my $rand_name (@rand_names) {
+            foreach my $rand_name (sort @rand_names) {
                 foreach my $suffix (qw/_DATA _ID_LDIFFS/) {
                     my $data_list_name = $rand_name . $suffix;
                     my $to_data_list   = $to_node->get_list_ref (list => $data_list_name);

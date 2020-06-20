@@ -362,11 +362,10 @@ sub test_reintegration_updates_p_indices {
             my $lr_integr = $sp_integr->get_list_ref (%l_args);
             
             foreach my $key (sort grep {$_ =~ /P_/} keys %$lr_integr) {
-                no autovivification;
-                my $index = $key;
-                $index =~ s/^P_//;
+                #no autovivification;
+                my $index = substr $key, 1;
                 is ($lr_integr->{$key},
-                    $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
+                    $lr_integr->{"C$index"} / $lr_integr->{"Q$index"},
                     "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
                 );
             }
@@ -404,8 +403,10 @@ sub check_randomisation_lists_incremented_correctly_spatial {
     subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
         my $gp_list = $sp_integr->get_element_list;
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
-        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>p_rank>>/} @$list_names;
-        my @sig_lists  = grep {$_ =~ />>p_rank>>/} @$list_names;
+        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
+        my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
+        my @z_lists    = grep {$_ =~ />>z_score>>/} @$list_names;
+
         foreach my $group (@$gp_list) {
             foreach my $list_name (@rand_lists) {
                 my %l_args = (element => $group, list => $list_name);
@@ -416,10 +417,9 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 foreach my $key (sort keys %$lr_integr) {
                     no autovivification;
                     if ($key =~ /^P_/) {
-                        my $index = $key;
-                        $index =~ s/^P_//;
+                        my $index = substr $key, 1;
                         is ($lr_integr->{$key},
-                            $lr_integr->{"C_$index"} / $lr_integr->{"Q_$index"},
+                            $lr_integr->{"C$index"} / $lr_integr->{"Q$index"},
                             "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
                         );
                     }
@@ -443,6 +443,21 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                             "p-rank $value in valid interval ($key), $group",
                         );
                     }
+                }
+            }
+
+            foreach my $z_list_name (@z_lists) {
+                #  we only care if they are in the valid set
+                my %l_args = (element => $group, list => $z_list_name);
+                my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                foreach my $key (sort keys %$lr_integr) {
+                    #my $value = $lr_integr->{$key};
+                    #if (defined $value) {
+                    #    ok ($value < 0.05 || $value > 0.95,
+                    #        "z-score OK ($key), $group",
+                    #    );
+                    #}
+                    ###  TO DO
                 }
             }
         }

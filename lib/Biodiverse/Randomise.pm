@@ -688,10 +688,16 @@ sub run_randomisation {
     
     #  now update the sig thresholds
     foreach my $target (@targets) {
-        next if !$target->can('convert_comparisons_to_significances');
-        $target->convert_comparisons_to_significances (
-            result_list_name => $results_list_name,
-        );
+        if ($target->can('convert_comparisons_to_significances')) {
+            $target->convert_comparisons_to_significances (
+                result_list_name => $results_list_name,
+            );
+        }
+        if ($target->can('convert_comparisons_to_zscores')) {
+            $target->convert_comparisons_to_zscores (
+                result_list_name => $results_list_name,
+            );
+        }
     }
 
     #  and keep a track of the randomisation state,

@@ -179,6 +179,132 @@ sub compare {
     return 1;
 }
 
+
+sub convert_comparisons_to_zscores {
+    my $self = shift;
+    my %args = @_;
+
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update ($progress_text, 0);
+
+    # find all the relevant lists for this target name
+    #my %base_list_indices = $self->find_list_indices_across_elements;
+    my @target_list_names
+      = uniq
+        grep {$_ =~ /^$result_list_pfx(?!>>\w+>>)/}
+        $self->get_hash_list_names_across_elements;
+
+    #  some more debugging
+    say "Prefix is $result_list_pfx";
+    say "Target list names are: "
+      . join ' ', @target_list_names;
+
+    my $to_do = $self->get_element_count;
+    my $i = 0;
+    
+    #  maybe should make this an argument - recycle_if_possible -
+    #  and let the caller do the checks, as we don't have $comparison in here
+    my $recycled_results
+      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+
+    my %done_base;
+    if ($recycled_results) {  #  set up some lists
+        foreach my $list_name (@target_list_names) {
+            $done_base{$list_name} = {};
+        }
+    }
+
+    COMP_BY_ELEMENT:
+    foreach my $element ($self->get_element_list) {
+        $i++;
+
+        $progress->update (
+            $progress_text . "(element $i / $to_do)",
+            $i / $to_do,
+        );
+
+        #  now loop over the list indices
+      BY_LIST:
+        foreach my $list_name (@target_list_names) {
+
+            next BY_LIST
+                if    $recycled_results
+                   && $done_base{$list_name}{$element};
+
+            my $comp_ref = $self->get_list_ref (
+                element     => $element,
+                list        => $list_name,
+                autovivify  => 0,
+            );
+
+            next BY_LIST if !$comp_ref; #  nothing to compare with...
+            next BY_LIST if is_arrayref($comp_ref);  #  skip arrays
+
+            my $base_list_name = $list_name =~ s/^$result_list_pfx>>//r;
+            my $base_ref = $self->get_list_ref (
+                element     => $element,
+                list        => $base_list_name,
+                autovivify  => 0,
+            );
+
+            my $result_list_name = $list_name =~ s/>>/>>z_scores>>/r;
+
+            my $result_list_ref = $self->get_list_ref (
+                element => $element,
+                list    => $result_list_name,
+            );
+
+            $self->get_zscore_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                base_list_ref    => $base_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+
+            #  if results from both base and comp
+            #  are recycled then we can recycle the comparisons
+            if ($recycled_results) {
+                my $nbrs = $self->get_list_ref (
+                    element => $element,
+                    list    => 'RESULTS_SAME_AS',
+                );
+
+                my $results_ref = $self->get_list_ref (
+                    element => $element,
+                    list    => $result_list_name,
+                );
+
+                BY_RECYCLED_NBR:
+                foreach my $nbr (keys %$nbrs) {
+                    $self->add_to_lists (
+                        element           => $nbr,
+                        $result_list_name => $results_ref,
+                        use_ref           => 1,
+                    );
+                }
+                my $done_base_hash = $done_base{$list_name};
+                @{$done_base_hash}{keys %$nbrs}
+                    = values %$nbrs;
+            }
+        }
+
+    }
+
+    $self->set_last_update_time;
+
+    return 1;
+}
+
+
+
 #  convert the results of a compare run to significance thresholds
 #  need a better sub name
 sub convert_comparisons_to_significances {
@@ -200,12 +326,14 @@ sub convert_comparisons_to_significances {
     # find all the relevant lists for this target name
     #my %base_list_indices = $self->find_list_indices_across_elements;
     my @target_list_names
-      = grep {$_ =~ /^$result_list_pfx>>(?!p_rank>>)/}
+      = uniq
+        grep {$_ =~ /^$result_list_pfx>>(?!\w+>>)/}
         $self->get_hash_list_names_across_elements;
 
-#  some more debugging
-say "Prefix is $result_list_pfx";
-say "Target list names are: " . join ' ', @target_list_names;
+    #  some more debugging
+    say "Prefix is $result_list_pfx";
+    say "Target list names are: "
+      . join ' ', @target_list_names;
 
     my $to_do = $self->get_element_count;
     my $i = 0;

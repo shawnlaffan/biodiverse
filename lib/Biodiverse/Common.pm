@@ -2494,10 +2494,16 @@ sub compare_lists_by_item {
         #   Q is quantum, or number of comparisons
         #   P is the percentile rank amongst the valid comparisons,
         #      and has a range of [0,1]
+        #   SUMX  is the sum of compared values
+        #   SUMXX is the sum of squared compared values
+        #   The latter two are used in z-score calcs
         $results->{"C_$index"} += $increment;    
         $results->{"Q_$index"} ++;
         $results->{"P_$index"} =   $results->{"C_$index"}
                                  / $results->{"Q_$index"};
+        # use original vals for sums
+        $results->{"SUMX_$index"}  +=  $comp_ref->{$index};  
+        $results->{"SUMXX_$index"} += ($comp_ref->{$index}**2);  
 
         #  track the number of ties
         if ($base == $comp) {
@@ -2508,6 +2514,45 @@ sub compare_lists_by_item {
     return $results;
 }
 
+
+sub get_zscore_from_comp_results {
+    my $self = shift;
+    my %args = @_;
+
+    #  could alias this
+    my $comp_list_ref = $args{comp_list_ref}
+      // croak "comp_list_ref argument not specified\n";
+    #  need the observed values
+    my $base_list_ref = $args{base_list_ref}
+      // croak "base_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+  KEY:
+    foreach my $q_key (grep {$_ =~ /^Q_/} keys %$comp_list_ref) {
+        my $index_name = $q_key =~ s/^Q_//r;
+
+        my $n = $comp_list_ref->{$q_key};
+        next KEY if !$n;
+
+        my $x_key  = 'SUMX_'  . $index_name;
+        my $xx_key = 'SUMXX_' . $index_name;
+
+        #  sum of x vals and x vals squared 
+        my $sumx  = $comp_list_ref->{$x_key};
+        my $sumxx = $comp_list_ref->{$xx_key};
+
+        my $z_key = 'Z_' . $index_name;
+        my $variance = max (0, ($sumxx - ($sumx**2) / $n) / $n);
+        my $obs = $base_list_ref->{$index_name};
+        $results_list_ref->{$z_key}
+          = $variance
+          ? ($obs - ($sumx / $n)) / sqrt ($variance)
+          : 0;
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
 
 sub get_significance_from_comp_results {
     my $self = shift;

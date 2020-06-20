@@ -2011,7 +2011,7 @@ sub convert_comparisons_to_significances {
     $progress->update( $progress_text, 0 );
 
     # find all the relevant lists for this target name
-    my @target_list_names = grep { $_ =~ /^$result_list_pfx>>(?!p_rank>>)/ }
+    my @target_list_names = grep { $_ =~ /^$result_list_pfx>>(?!\w+>>)/ }
       $self->get_hash_list_names_across_nodes;
 
     my $i = 0;
@@ -2049,6 +2049,64 @@ sub convert_comparisons_to_significances {
     }
 }
 
+sub convert_comparisons_to_zscores {
+    my $self = shift;
+    my %args = @_;
+
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+      if !defined $result_list_pfx;
+
+    my $progress      = Biodiverse::Progress->new();
+    my $progress_text = "Calculating significances";
+    $progress->update( $progress_text, 0 );
+
+    # find all the relevant lists for this target name
+    my @target_list_names = grep { $_ =~ /^$result_list_pfx>>(?!\w+>>)/ }
+      $self->get_hash_list_names_across_nodes;
+
+    my $i = 0;
+  BASE_NODE:
+    foreach my $base_node ( $self->get_node_refs ) {
+
+        $i++;
+
+        #$progress->update ($progress_text . "(node $i / $to_do)", $i / $to_do);
+
+      BY_INDEX_LIST:
+        foreach my $list_name (@target_list_names) {
+            my $base_list_name = $list_name =~ s/^$result_list_pfx>>//r;
+            my $base_ref = $base_node->get_list_ref (
+                list        => $base_list_name,
+                autovivify  => 0,
+            );
+
+            my $result_list_name = $list_name;
+            $result_list_name =~ s/>>/>>z_scores>>/;
+
+            my $comp_ref = $base_node->get_list_ref( list => $list_name, );
+            next BY_INDEX_LIST if !defined $comp_ref;
+
+            #  this will autovivify it
+            my $result_list_ref =
+              $base_node->get_list_ref( list => $result_list_name );
+            if ( !$result_list_ref ) {
+                $result_list_ref = {};
+                $base_node->add_to_lists(
+                    $result_list_name => $result_list_ref,
+                    use_ref           => 1,
+                );
+            }
+
+            $self->get_zscore_from_comp_results (
+                comp_list_ref    => $comp_ref,
+                base_list_ref    => $base_ref,
+                results_list_ref => $result_list_ref,  #  do it in-place
+            );
+        }
+    }
+}
+
 sub reintegrate_after_parallel_randomisations {
     my $self = shift;
     my %args = @_;
@@ -2069,7 +2127,7 @@ sub reintegrate_after_parallel_randomisations {
     my $rand_list_re_text
       = '^(?:'
       . join ('|', @randomisations_to_reintegrate)
-      . ')>>(?!p_rank>>)';
+      . ')>>(?!\w+>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     my $node_list = $to->get_node_refs;
@@ -2091,19 +2149,28 @@ sub reintegrate_after_parallel_randomisations {
             @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
 
             #  we need to update the C_ and Q_ keys first,
-            #  then recalculate the P_ keys
+            #  then recalculate the P_ keys.
+            #  Get SUMX and SUMXX as well. 
             foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
-                no autovivification;  #  don't pollute the from data set
-                $lr_to->{$key} += ($lr_from->{$key} // 0),
+                #no autovivification;  #  don't pollute the from data set
+                if ($key =~ /^SUMXX/) {
+                    $lr_to->{$key} += ($lr_from->{$key} // 0)**2;
+                }
+                else {
+                    $lr_to->{$key} += ($lr_from->{$key} // 0);
+                }
             }
             foreach my $key (keys %p_keys) {
-                no autovivification;  #  don't pollute the from data set
+                #no autovivification;  #  don't pollute the from data set
                 my $index = $key;
                 $index =~ s/^P_//;
                 $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
             }            
         }
         $to->convert_comparisons_to_significances (
+            result_list_name => $list_name,
+        );
+        $to->convert_comparisons_to_zscores (
             result_list_name => $list_name,
         );
     }

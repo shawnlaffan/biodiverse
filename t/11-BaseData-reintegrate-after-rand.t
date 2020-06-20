@@ -450,15 +450,11 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 #  we only care if they are in the valid set
                 my %l_args = (element => $group, list => $z_list_name);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                foreach my $key (sort keys %$lr_integr) {
-                    #my $value = $lr_integr->{$key};
-                    #if (defined $value) {
-                    #    ok ($value < 0.05 || $value > 0.95,
-                    #        "z-score OK ($key), $group",
-                    #    );
-                    #}
-                    ###  TO DO
-                }
+                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
+                is_deeply (
+                    $lr_integr, $lr_orig,
+                    "integrated node z-score list matches expected, $z_list_name, $group",
+                );
             }
         }
     };
@@ -525,18 +521,15 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                     }
                 }
             }
-            foreach my $z_list_name (@sig_lists) {
+            foreach my $z_list_name (@z_lists) {
                 #  we only care if they are in the valid set
-                #my %l_args = (list => $sig_list_name);
-                #my $lr_integr = $to_node->get_list_ref (%l_args);
-                #foreach my $key (sort keys %$lr_integr) {
-                #    my $value = $lr_integr->{$key};
-                #    if (defined $value) {
-                #        ok ($value < 0.05 || $value > 0.95,
-                #            "p-rank $value in valid interval ($key), $node_name",
-                #        );
-                #    }
-                #}
+                my $lr_integr = $to_node->get_list_ref_aa ($z_list_name);
+                my $lr_orig   = $from_node->get_list_ref_aa ($z_list_name);
+                #local $TODO = 'still working on this';
+                is_deeply (
+                    $lr_integr, $lr_orig,
+                    "integrated node z-score list matches expected, $z_list_name, $node_name",
+                );
             }
 
 

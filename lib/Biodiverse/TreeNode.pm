@@ -2196,8 +2196,10 @@ sub add_to_lists {
     my $self = shift;
     my %args = @_;
     
-    my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
-    delete $args{use_ref};  #  should it be in its own sub?
+    #  set a direct ref?
+    #  currently overrides any previous values so take care
+    #  should it be in its own sub?
+    my $use_ref = delete $args{use_ref};
     
     #  create the list if not already there and then add to it
     while (my ($list, $values) = each %args) {
@@ -2351,13 +2353,11 @@ sub get_list_ref {
     my $self = shift;
     my %args = @_;
     my $list = $args{list};
-    no autovivification;
     defined $list ? $self->{$list} : undef;
 }
 
 sub get_list_ref_aa {
     my ($self, $list) = @_;
-    no autovivification;
     defined $list ? $self->{$list} : undef;
 }
 

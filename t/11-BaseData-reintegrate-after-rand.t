@@ -571,7 +571,7 @@ sub check_integrated_matches_single_run_cluster {
                 compare_hash_vals (
                     hash_got => $lr_integr,
                     hash_exp => $lr_orig,
-                    tolerance => 1e-14,
+                    tolerance => 1e-10,
                     descr_suffix
                       => "integrated matches single run, "
                        . "$object_name, $node_name, $list_name"

@@ -2024,8 +2024,7 @@ sub convert_comparisons_to_significances {
 
       BY_INDEX_LIST:
         foreach my $list_name (@target_list_names) {
-            my $result_list_name = $list_name;
-            $result_list_name =~ s/>>/>>p_rank>>/;
+            my $result_list_name = $list_name =~ s/>>/>>p_rank>>/r;
 
             my $comp_ref = $base_node->get_list_ref( list => $list_name, );
             next BY_INDEX_LIST if !defined $comp_ref;
@@ -2111,7 +2110,6 @@ sub reintegrate_after_parallel_randomisations {
     my $self = shift;
     my %args = @_;
 
-    my $to = $self;  #  save some editing below, as this used to be in BaseData.pm
     my $from = $args{from}
       // croak "'from' argument not defined";
 
@@ -2130,20 +2128,23 @@ sub reintegrate_after_parallel_randomisations {
       . ')>>(?!\w+>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
-    my $node_list = $to->get_node_refs;
+    my $node_list = $self->get_node_refs;
     my @rand_lists =
+        uniq
         grep {$_ =~ $re_rand_list_names}
-        $to->get_hash_list_names_across_nodes;
+        ($self->get_hash_list_names_across_nodes,
+         $from->get_hash_list_names_across_nodes
+         );
 
     foreach my $list_name (@rand_lists) {
         foreach my $to_node (@$node_list) {
             my $node_name = $to_node->get_name;
             my $from_node = $from->get_node_ref_aa ($node_name);
-            my %l_args = (list => $list_name);
-            my $lr_to   = $to_node->get_list_ref (%l_args);
-            my $lr_from = $from_node->get_list_ref (%l_args);
-            my %all_keys;
+            my $lr_to     = $to_node->get_list_ref_aa ($list_name);
+            my $lr_from   = $from_node->get_list_ref_aa ($list_name);
+
             #  get all the keys due to ties not being tracked in all cases
+            my %all_keys;
             @all_keys{keys %$lr_from, keys %$lr_to} = undef;
             my %p_keys;
             @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
@@ -2152,25 +2153,19 @@ sub reintegrate_after_parallel_randomisations {
             #  then recalculate the P_ keys.
             #  Get SUMX and SUMXX as well. 
             foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
-                #no autovivification;  #  don't pollute the from data set
-                if ($key =~ /^SUMXX/) {
-                    $lr_to->{$key} += ($lr_from->{$key} // 0)**2;
-                }
-                else {
-                    $lr_to->{$key} += ($lr_from->{$key} // 0);
-                }
+                $lr_to->{$key} += ($lr_from->{$key} // 0);
             }
             foreach my $key (keys %p_keys) {
-                #no autovivification;  #  don't pollute the from data set
-                my $index = $key;
-                $index =~ s/^P_//;
-                $lr_to->{$key} = $lr_to->{"C_$index"} / $lr_to->{"Q_$index"};
-            }            
+                my $index = substr $key, 1; # faster than s///;
+                $lr_to->{$key} = $lr_to->{"C$index"} / $lr_to->{"Q$index"};
+            }
         }
-        $to->convert_comparisons_to_significances (
+    }
+    foreach my $list_name (@randomisations_to_reintegrate) {
+        $self->convert_comparisons_to_significances (
             result_list_name => $list_name,
         );
-        $to->convert_comparisons_to_zscores (
+        $self->convert_comparisons_to_zscores (
             result_list_name => $list_name,
         );
     }
@@ -2178,19 +2173,27 @@ sub reintegrate_after_parallel_randomisations {
     foreach my $to_node (@$node_list) {
         my $from_node = $from->get_node_ref_aa ($to_node->get_name);
 
+      RAND_NAME:
         foreach my $rand_name (@randomisations_to_reintegrate) {
             #  need to handle the data lists
             my $data_list_name = $rand_name . '_DATA';
-            my $data = $from_node->get_list_ref (list => $data_list_name, autovivify => 0);
+            my $data = $from_node->get_list_ref (
+                list => $data_list_name,
+                autovivify => 0,
+            );
+
+            #  we don't generate these by default now
+            next RAND_NAME if !$data;
+
             $to_node->add_to_lists ($data_list_name => $data);
 
             my $stats = $stats_class->new;
 
             my $stats_list_name = $rand_name;
-            my $to_stats_prev   = $to_node->get_list_ref (list => $stats_list_name);
-            my $from_stats_prev = $from_node->get_list_ref (list => $stats_list_name);
+            my $to_stats_prev   = $to_node->get_list_ref_aa ($stats_list_name);
+            my $from_stats_prev = $from_node->get_list_ref_aa ($stats_list_name);
 
-            $stats->add_data ($to_node->get_list_ref (list => $data_list_name));
+            $stats->add_data ($to_node->get_list_ref_aa ($data_list_name));
             my %stats_hash = (
                 MEAN   => $stats->mean,
                 SD     => $stats->standard_deviation,

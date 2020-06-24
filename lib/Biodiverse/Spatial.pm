@@ -469,12 +469,16 @@ sub reintegrate_after_parallel_randomisations {
             my %all_keys;
             @all_keys{keys %$lr_from, keys %$lr_to} = undef;
             my %p_keys;
-            @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
 
             #  we need to update the C_ and Q_ keys first,
             #  then recalculate the P_ keys
-            foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
-                $lr_to->{$key} += ($lr_from->{$key} // 0);
+            foreach my $key (keys %all_keys) {
+                if ($key =~ /^P_/) {
+                    $p_keys{$key}++
+                }
+                else {
+                    $lr_to->{$key} += ($lr_from->{$key} // 0);
+                }
             }
             foreach my $key (keys %p_keys) {
                 my $index = substr $key, 1; # faster than s///;

@@ -700,17 +700,6 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                     }
                 }
             }
-            foreach my $z_list_name (sort @z_lists) {
-                #  we only care if they are in the valid set
-                my $lr_integr = $to_node->get_list_ref_aa ($z_list_name);
-                my $lr_orig   = $from_node->get_list_ref_aa ($z_list_name);
-                #local $TODO = 'still working on this';
-                is_deeply (
-                    $lr_integr, $lr_orig,
-                      "integrated node z-score list $z_list_name "
-                    . "for cluster node $node_name",
-                );
-            }
 
 
             #  now the data and stats

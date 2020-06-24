@@ -193,7 +193,7 @@ sub convert_comparisons_to_zscores {
     return 1 if not scalar @$e_list;
 
     my $progress = Biodiverse::Progress->new();
-    my $progress_text = "Calculating significances";
+    my $progress_text = "Calculating z-scores";
     $progress->update ($progress_text, 0);
 
     # find all the relevant lists for this target name
@@ -447,7 +447,7 @@ sub reintegrate_after_parallel_randomisations {
     my $rand_list_re_text
       = '^(?:'
       . join ('|', @randomisations_to_reintegrate)
-      . ')>>(?!p_rank>>)';
+      . ')>>(?!\w+>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     my $gp_list = $to->get_element_list;
@@ -465,8 +465,8 @@ sub reintegrate_after_parallel_randomisations {
                 element => $group,
                 list => $list_name,
             );
-            my %all_keys;
             #  get all the keys due to ties not being tracked in all cases
+            my %all_keys;
             @all_keys{keys %$lr_from, keys %$lr_to} = undef;
             my %p_keys;
             @p_keys{grep {$_ =~ /^P_/} keys %all_keys} = undef;
@@ -474,11 +474,9 @@ sub reintegrate_after_parallel_randomisations {
             #  we need to update the C_ and Q_ keys first,
             #  then recalculate the P_ keys
             foreach my $key (grep {not exists $p_keys{$_}} keys %all_keys) {
-                no autovivification;  #  don't pollute the from data set
-                $lr_to->{$key} += ($lr_from->{$key} // 0),
+                $lr_to->{$key} += ($lr_from->{$key} // 0);
             }
             foreach my $key (keys %p_keys) {
-                no autovivification;  #  don't pollute the from data set
                 my $index = substr $key, 1; # faster than s///;
                 $lr_to->{$key} = $lr_to->{"C$index"} / $lr_to->{"Q$index"};
             }
@@ -487,6 +485,9 @@ sub reintegrate_after_parallel_randomisations {
     #  could do directly, but convert_comparisons_to_significances handles recycling 
     foreach my $rand_name (@randomisations_to_reintegrate) {
         $to->convert_comparisons_to_significances (
+            result_list_name => $rand_name,
+        );
+        $to->convert_comparisons_to_zscores (
             result_list_name => $rand_name,
         );
     }

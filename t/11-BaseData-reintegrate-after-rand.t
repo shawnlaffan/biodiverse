@@ -688,7 +688,8 @@ sub check_randomisation_lists_incremented_correctly_cluster {
             }
 
             foreach my $sig_list_name (sort @sig_lists) {
-                #  we only care if they are in the valid set
+                #  We only care if they are in the valid set.
+                #  Replication is handled under test_reintegrate.
                 my %l_args = (list => $sig_list_name);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
                 foreach my $key (sort keys %$lr_integr) {

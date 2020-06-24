@@ -254,6 +254,109 @@ sub test_reintegrate_after_separate_randomisations {
     return;
 }
 
+
+sub test_reintegrate {
+    #  use a small basedata for test speed purposes
+    #  cargo culted setup code - should be abstracted
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 5,
+        y_max       => 5,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd1 = get_basedata_object (%args);
+    
+    #  need some extra labels so the randomisations have something to do
+    $bd1->add_element (group => '0.5:0.5', label => 'extra1');
+    $bd1->add_element (group => '1.5:0.5', label => 'extra1');
+
+    my $sp = $bd1->add_spatial_output (name => 'sp1');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 1)'],
+        calculations => [
+          qw /
+            calc_endemism_central
+            calc_endemism_central_lists
+            calc_element_lists_used
+          /
+        ],
+    );
+    my $cl = $bd1->add_cluster_output (name => 'cl1');
+    $cl->run_analysis (
+        spatial_calculations => [
+          qw /
+            calc_endemism_central
+            calc_endemism_central_lists
+            calc_element_lists_used
+          /
+        ],
+    );
+    my $rg = $bd1->add_cluster_output (name => 'rg1', type => 'Biodiverse::RegionGrower');
+    $rg->run_analysis (
+        spatial_calculations => [
+          qw /
+            calc_endemism_central
+            calc_endemism_central_lists
+            calc_element_lists_used
+          /
+        ],
+    );
+
+    my $bd2 = $bd1->clone;
+    my $bd3 = $bd1->clone;
+    
+    my $prng_seed = 2345;
+    my $rand1 = $bd1->add_randomisation_output (name => 'random1');
+    my %run_args = (
+        function   => 'rand_structured',
+        seed       => $prng_seed,
+    );
+    $rand1->run_analysis (
+        %run_args,
+        iterations => 2,
+    );
+    my $partial_state = $rand1->get_prng_end_states_array;
+    my $prng_state_after_2iters = $partial_state->[0];
+    $rand1->run_analysis (
+        %run_args,
+        iterations => 2,
+    );
+    
+    my $rand2 = $bd2->add_randomisation_output (name => 'random1');
+    $rand2->run_analysis (
+        %run_args,
+        iterations => 2,
+    );
+    my $rand3 = $bd3->add_randomisation_output (name => 'random1');
+    $rand3->run_analysis (
+        %run_args,
+        state => $prng_state_after_2iters,
+        iterations => 2,
+    );
+    
+    $bd2->reintegrate_after_parallel_randomisations (
+        from => $bd3,
+    );
+    
+    check_integrated_matches_single_run_spatial (
+        orig   => $bd1->get_spatial_output_ref (name => 'sp1'),
+        integr => $bd2->get_spatial_output_ref (name => 'sp1'),
+    );
+    check_integrated_matches_single_run_cluster (
+        orig   => $bd1->get_cluster_output_ref (name => 'cl1'),
+        integr => $bd2->get_cluster_output_ref (name => 'cl1'),
+    );
+    check_integrated_matches_single_run_cluster (
+        orig   => $bd1->get_cluster_output_ref (name => 'rg1'),
+        integr => $bd2->get_cluster_output_ref (name => 'rg1'),
+    );
+
+}
+
 sub _test_reintegrated_basedata_unchanged {
     my ($bd1, $sub_name) = @_;
 
@@ -394,6 +497,61 @@ sub check_randomisation_integration_skipped {
     };
 }
 
+sub check_integrated_matches_single_run_spatial {
+    my %args = @_;
+    my ($sp_orig, $sp_integr) = @args{qw /orig integr/};
+
+    my $object_name = $sp_integr->get_name;
+
+    subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
+        my $gp_list = $sp_integr->get_element_list;
+        my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
+        my @lists = sort grep {$_ =~ />>/} @$list_names;
+        
+        foreach my $group (sort @$gp_list) {
+            foreach my $list_name (@lists) {
+                my %l_args = (element => $group, list => $list_name);
+                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
+                my $lr_integr = $sp_integr->get_list_ref (%l_args);
+                is_deeply (
+                    $lr_integr,
+                    $lr_orig,
+                    "integrated matches single run, $group, $list_name"
+                );
+            }
+        }
+    };
+}
+
+sub check_integrated_matches_single_run_cluster {
+    my %args = @_;
+    my ($cl_orig, $cl_integr) = @args{qw /orig integr/};
+
+    my $object_name = $cl_integr->get_name;
+
+    subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
+        my $to_nodes   = $cl_integr->get_node_refs;
+        my $list_names = $cl_integr->get_hash_list_names_across_nodes;
+        my @lists = sort grep {$_ =~ />>/} @$list_names;
+        
+        foreach my $to_node (sort {$a->get_name cmp $b->get_name} @$to_nodes) {
+            my $node_name = $to_node->get_name;
+            my $orig_node = $cl_orig->get_node_ref (node => $node_name);
+            foreach my $list_name (@lists) {
+                my %l_args = (list => $list_name);
+                my $lr_orig   = $orig_node->get_list_ref (%l_args);
+                my $lr_integr = $to_node->get_list_ref (%l_args);
+                is_deeply (
+                    $lr_integr,
+                    $lr_orig,
+                      "integrated matches single run, "
+                    . "$object_name, $node_name, $list_name"
+                );
+            }
+        }
+    };
+}
+
 sub check_randomisation_lists_incremented_correctly_spatial {
     my %args = @_;
     my ($sp_orig, $sp_from, $sp_integr) = @args{qw /orig from integr/};
@@ -405,7 +563,8 @@ sub check_randomisation_lists_incremented_correctly_spatial {
         my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
         my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
         my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
-        my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
+        #  we will check the z lists elsewhere
+        #my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
 
         foreach my $group (sort @$gp_list) {
             foreach my $list_name (sort @rand_lists) {
@@ -415,6 +574,7 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 my $lr_from   = $sp_from->get_list_ref (%l_args);
 
                 foreach my $key (sort keys %$lr_integr) {
+                    #diag $key if $key =~ /SUMX/;
                     #no autovivification;
                     if ($key =~ /^P_/) {
                         my $index = substr $key, 1;
@@ -446,16 +606,6 @@ sub check_randomisation_lists_incremented_correctly_spatial {
                 }
             }
 
-            foreach my $z_list_name (sort @z_lists) {
-                #  we only care if they are in the valid set
-                my %l_args = (element => $group, list => $z_list_name);
-                my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
-                is_deeply (
-                    $lr_integr, $lr_orig,
-                    "integrated node z-score list matches expected, $z_list_name, $group",
-                );
-            }
         }
     };
 }
@@ -528,7 +678,8 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 #local $TODO = 'still working on this';
                 is_deeply (
                     $lr_integr, $lr_orig,
-                    "integrated node z-score list matches expected, $z_list_name, $node_name",
+                      "integrated node z-score list $z_list_name "
+                    . "for cluster node $node_name",
                 );
             }
 

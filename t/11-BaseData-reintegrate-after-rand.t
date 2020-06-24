@@ -568,11 +568,13 @@ sub check_integrated_matches_single_run_cluster {
                     join (' ', sort keys %$lr_orig),
                     "keys match for $list_name, node $node_name",
                 );
-                is_deeply (
-                    $lr_integr,
-                    $lr_orig,
-                      "integrated matches single run, "
-                    . "$object_name, $node_name, $list_name"
+                compare_hash_vals (
+                    hash_got => $lr_integr,
+                    hash_exp => $lr_orig,
+                    tolerance => 1e-14,
+                    descr_suffix
+                      => "integrated matches single run, "
+                       . "$object_name, $node_name, $list_name"
                 );
             }
         }

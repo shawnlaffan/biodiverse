@@ -2540,6 +2540,7 @@ sub get_zscore_from_comp_results {
         my $sumxx = $comp_list_ref->{$xx_key};
 
         my $z_key = $index_name;
+        #  n better be large, as we do not use n-1
         my $variance = max (0, ($sumxx - ($sumx**2) / $n) / $n);
         my $obs = $base_list_ref->{$index_name};
         $results_list_ref->{$z_key}

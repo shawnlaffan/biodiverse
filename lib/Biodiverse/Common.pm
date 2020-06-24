@@ -2484,6 +2484,8 @@ sub compare_lists_by_item {
         my $base = $self->round_to_precision_aa ($base_ref->{$index});
         my $comp = $self->round_to_precision_aa ($comp_ref->{$index});
 
+        # convert to use (base - comp) > precision, as this will avoid
+        #  round_to_precision_aa calls
         #  make sure it gets a value of 0 if false
         my $increment = $base > $comp ? 1 : 0;
 
@@ -2530,7 +2532,7 @@ sub get_zscore_from_comp_results {
 
   KEY:
     foreach my $q_key (grep {$_ =~ /^Q_/} keys %$comp_list_ref) {
-        my $index_name = $q_key =~ s/^Q_//r;
+        my $index_name = substr $q_key, 2;
 
         my $n = $comp_list_ref->{$q_key};
         next KEY if !$n;
@@ -2542,7 +2544,7 @@ sub get_zscore_from_comp_results {
         my $sumx  = $comp_list_ref->{$x_key};
         my $sumxx = $comp_list_ref->{$xx_key};
 
-        my $z_key = 'Z_' . $index_name;
+        my $z_key = $index_name;
         my $variance = max (0, ($sumxx - ($sumx**2) / $n) / $n);
         my $obs = $base_list_ref->{$index_name};
         $results_list_ref->{$z_key}
@@ -2690,7 +2692,6 @@ sub get_sig_rank_from_comp_results {
     }
 
     foreach my $c_key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
-        no autovivification;
         
         my $index_name = substr $c_key, 2;
 

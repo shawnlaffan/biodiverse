@@ -321,6 +321,8 @@ sub test_reintegrate {
     );
     my $partial_state = $rand1->get_prng_end_states_array;
     my $prng_state_after_2iters = $partial_state->[0];
+    my $bd1_iters2 = $bd1->clone;
+    #  another 2 iters
     $rand1->run_analysis (
         %run_args,
         iterations => 2,
@@ -331,17 +333,37 @@ sub test_reintegrate {
         %run_args,
         iterations => 2,
     );
+    
+    #say STDERR "Checking match at 2 iters";
+    check_integrated_matches_single_run_spatial (
+        orig   => $bd1_iters2->get_spatial_output_ref (name => 'sp1'),
+        integr => $bd2->get_spatial_output_ref (name => 'sp1'),
+    );
+    check_integrated_matches_single_run_cluster (
+        orig   => $bd1_iters2->get_cluster_output_ref (name => 'cl1'),
+        integr => $bd2->get_cluster_output_ref (name => 'cl1'),
+    );
+    check_integrated_matches_single_run_cluster (
+        orig   => $bd1_iters2->get_cluster_output_ref (name => 'rg1'),
+        integr => $bd2->get_cluster_output_ref (name => 'rg1'),
+    );
+    
     my $rand3 = $bd3->add_randomisation_output (name => 'random1');
     $rand3->run_analysis (
         %run_args,
         state => $prng_state_after_2iters,
         iterations => 2,
     );
-    
+
+    # say STDERR 'reintegrating';    
     $bd2->reintegrate_after_parallel_randomisations (
         from => $bd3,
     );
     
+    #$bd1->save_to (filename => 'bd1.bds');
+    #$bd2->save_to (filename => 'bd2.bds');
+    
+    # say STDERR "Checking match at 4 iters";
     check_integrated_matches_single_run_spatial (
         orig   => $bd1->get_spatial_output_ref (name => 'sp1'),
         integr => $bd2->get_spatial_output_ref (name => 'sp1'),
@@ -529,11 +551,11 @@ sub check_integrated_matches_single_run_cluster {
 
     my $object_name = $cl_integr->get_name;
 
-    subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
+    subtest "randomisation cluster lists incremented correctly, $object_name" => sub {
         my $to_nodes   = $cl_integr->get_node_refs;
         my $list_names = $cl_integr->get_hash_list_names_across_nodes;
         my @lists = sort grep {$_ =~ />>/} @$list_names;
-        
+
         foreach my $to_node (sort {$a->get_name cmp $b->get_name} @$to_nodes) {
             my $node_name = $to_node->get_name;
             my $orig_node = $cl_orig->get_node_ref (node => $node_name);
@@ -541,6 +563,11 @@ sub check_integrated_matches_single_run_cluster {
                 my %l_args = (list => $list_name);
                 my $lr_orig   = $orig_node->get_list_ref (%l_args);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
+                is (  #  needed for debug, disable once completed
+                    join (' ', sort keys %$lr_integr),
+                    join (' ', sort keys %$lr_orig),
+                    "keys match for $list_name, node $node_name",
+                );
                 is_deeply (
                     $lr_integr,
                     $lr_orig,

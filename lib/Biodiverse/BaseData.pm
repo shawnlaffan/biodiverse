@@ -2637,7 +2637,7 @@ sub reintegrate_after_parallel_randomisations {
     my $rand_list_re_text
       = '^(?:'
       . join ('|', uniq @randomisations_to_reintegrate)
-      . ')>>(?!p_rank>>)';
+      . ')>>(?!\w+>>)';
     my $re_rand_list_names = qr /$rand_list_re_text/;
 
     #  now we can finally get some work done

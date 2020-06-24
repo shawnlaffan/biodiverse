@@ -2455,12 +2455,13 @@ sub set_precision_aa {
 }
 
 
-use constant DEFAULT_PRECISION => 10 ** 10;
+use constant DEFAULT_PRECISION => 1e10;
 sub round_to_precision_aa {
     $_[2]
       ? POSIX::round ($_[1] * $_[2]) / $_[2]
       : POSIX::round ($_[1] * DEFAULT_PRECISION) / DEFAULT_PRECISION;
 }
+use constant DEFAULT_PRECISION_SMALL => 1e-10;
 
 
 sub compare_lists_by_item {
@@ -2480,14 +2481,8 @@ sub compare_lists_by_item {
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
-        #  should really make the precision an option in the metadata
-        my $base = $self->round_to_precision_aa ($base_ref->{$index});
-        my $comp = $self->round_to_precision_aa ($comp_ref->{$index});
-
-        # convert to use (base - comp) > precision, as this will avoid
-        #  round_to_precision_aa calls
-        #  make sure it gets a value of 0 if false
-        my $increment = $base > $comp ? 1 : 0;
+        my $diff = $base_ref->{$index} - $comp_ref->{$index};
+        my $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  
@@ -2499,7 +2494,7 @@ sub compare_lists_by_item {
         #   SUMX  is the sum of compared values
         #   SUMXX is the sum of squared compared values
         #   The latter two are used in z-score calcs
-        $results->{"C_$index"} += $increment;    
+        $results->{"C_$index"} += $increment;
         $results->{"Q_$index"} ++;
         $results->{"P_$index"} =   $results->{"C_$index"}
                                  / $results->{"Q_$index"};
@@ -2508,7 +2503,7 @@ sub compare_lists_by_item {
         $results->{"SUMXX_$index"} += ($comp_ref->{$index}**2);  
 
         #  track the number of ties
-        if ($base == $comp) {
+        if (abs($diff) <= DEFAULT_PRECISION_SMALL) {
             $results->{"T_$index"} ++;
         }
     }

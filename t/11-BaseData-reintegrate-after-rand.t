@@ -563,11 +563,11 @@ sub check_integrated_matches_single_run_cluster {
                 my %l_args = (list => $list_name);
                 my $lr_orig   = $orig_node->get_list_ref (%l_args);
                 my $lr_integr = $to_node->get_list_ref (%l_args);
-                is (  #  needed for debug, disable once completed
-                    join (' ', sort keys %$lr_integr),
-                    join (' ', sort keys %$lr_orig),
-                    "keys match for $list_name, node $node_name",
-                );
+                #is (  #  needed for debug, disable once completed
+                #    join (' ', sort keys %$lr_integr),
+                #    join (' ', sort keys %$lr_orig),
+                #    "keys match for $list_name, node $node_name",
+                #);
                 compare_hash_vals (
                     hash_got => $lr_integr,
                     hash_exp => $lr_orig,

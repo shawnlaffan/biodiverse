@@ -1623,8 +1623,8 @@ sub test_p_ranks  {
                 autovivify => 0,
             );
             my %expected_keys;
-            foreach my $key (keys %$rand_listref) {
-                $key =~ s/^\w_//;
+            foreach my $key (grep {/^Q_/} keys %$rand_listref) {
+                $key =~ s/^Q_//;
                 $expected_keys{$key}++;
             }
             is_deeply (
@@ -1657,8 +1657,9 @@ sub test_p_ranks  {
                 autovivify => 0,
             );
             my %expected_keys;
-            foreach my $key (keys %$rand_listref) {
-                $key =~ s/^\w_//;
+            foreach my $key (grep {/^Q_/} keys %$rand_listref) {
+                #  all indices should have a corresponding Q_ key
+                $key =~ s/^Q_//;
                 $expected_keys{$key}++;
             }
             is_deeply (

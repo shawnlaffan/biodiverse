@@ -258,8 +258,10 @@ sub calc_last_shared_ancestor {
     my $depth  = $ancestor->get_depth;
     my $length = $ancestor->get_length;
     my $dist_to_tips
-      = $ancestor->get_longest_path_length_to_terminals
-      - $ancestor->get_length;
+      = $ancestor->is_terminal_node
+      ? 0
+      : $ancestor->get_longest_path_length_to_terminals
+        - $ancestor->get_length;
 
     my $dist_to_root = 0;
     if (!$ancestor->is_root_node) {
@@ -268,7 +270,10 @@ sub calc_last_shared_ancestor {
             $ancestor = $ancestor->get_parent;
         }
     }
-    my $rel_pos = $dist_to_root / ($dist_to_root + $dist_to_tips);
+    my $rel_pos
+      = $dist_to_root || $dist_to_tips
+      ? $dist_to_root / ($dist_to_root + $dist_to_tips)
+      : 0;
 
     my $results = {
         LAST_SHARED_ANCESTOR_POS_REL      => $rel_pos,

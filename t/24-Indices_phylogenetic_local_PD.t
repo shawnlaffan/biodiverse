@@ -171,4 +171,20 @@ sub test_calc_last_shared_ancestor {
         element => $target_elt,
     );
     is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+
+    #  now check one cell with a single lineage
+    $target_elt = '3300000:3100000';
+    %expected = (
+        LAST_SHARED_ANCESTOR_DEPTH	      => 11,
+        LAST_SHARED_ANCESTOR_DIST_TO_ROOT => 12,
+        LAST_SHARED_ANCESTOR_DIST_TO_TIP  => 0,
+        LAST_SHARED_ANCESTOR_LENGTH       => 1,
+        LAST_SHARED_ANCESTOR_POS_REL      => 1,
+    );
+    $results_list = $sp->get_list_ref (
+        list    => 'SPATIAL_RESULTS',
+        element => $target_elt,
+    );
+    is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+
 }

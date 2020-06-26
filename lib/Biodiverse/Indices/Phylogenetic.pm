@@ -2067,7 +2067,7 @@ sub get_sub_tree {
 
   LABEL:
     foreach my $label (keys %$label_list) {
-        my $node_ref = eval {$tree->get_node_ref (node => $label)};
+        my $node_ref = eval {$tree->get_node_ref_aa ($label)};
         next LABEL if !defined $node_ref;  # not a tree node name
 
         my $st_node_ref = $subtree->add_node (

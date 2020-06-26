@@ -1509,11 +1509,7 @@ sub set_parent_aa {
 
     return if $self->{_PARENT} && $parent eq $self->{_PARENT};
 
-    #croak 'parent Reference not same type as child (' . blessed ($self) . ")\n"
-    #    if blessed($parent) ne blessed($self);
-
-    $self->{_PARENT} = $parent;
-    weaken ($self->{_PARENT});
+    weaken ($self->{_PARENT} = $parent);
 
     return;
 }

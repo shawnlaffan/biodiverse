@@ -334,9 +334,15 @@ sub get_longest_path_length_to_terminals {
 
     my $terminal_node_hash = $self->get_terminal_node_refs;
     my $max_length = 0;
+    my %cached_lens;
     foreach my $child (values %$terminal_node_hash) {
-        my $path = $child->get_path_lengths_to_ancestral_node (ancestral_node => $self);
-        my $path_length = sum (0, values %$path);
+        my $path_length = $child->get_length;
+        $cached_lens{$child} += $path_length;
+        my $node = $child;
+        while ($node = $node->get_parent) {
+            $path_length += $cached_lens{$node} // $node->get_length;
+            last if $node eq $self;
+        }
 
         $max_length = max ($path_length, $max_length);
     }

@@ -2071,8 +2071,7 @@ sub get_sub_tree {
         next LABEL if !defined $node_ref;  # not a tree node name
 
         my $st_node_ref = $subtree->add_node (
-            name   => $label,
-            length => $node_ref->get_length,
+            node_ref => $node_ref->duplicate_minimal(),
         );
 
       NODE_IN_PATH:
@@ -2089,8 +2088,7 @@ sub get_sub_tree {
 
             if (!$last) {
                 $st_parent = $subtree->add_node (
-                    name   => $parent_name,
-                    length => $parent->get_length,
+                    node_ref => $parent->duplicate_minimal(),
                 );
             }
             $st_parent->add_children (

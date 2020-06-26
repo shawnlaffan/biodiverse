@@ -441,8 +441,6 @@ sub get_node_ref_aa {
     croak "node not specified in call to get_node_ref\n"
       if !defined $node;
 
-    no autovivification;
-
     return $self->{TREE_BY_NAME}{$node}
       // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist, cannot get ref (aa)");
 }

@@ -69,16 +69,16 @@ sub new {
 
 #  get a duplicate with just the name and length
 sub duplicate_minimal {
-    my ($self) = @_;
+    #my ($self) = @_;
     my $dup = {
         NODE_VALUES => {
-            LENGTH => $self->{NODE_VALUES}{LENGTH},
-            NAME   => $self->{NODE_VALUES}{NAME},
+            LENGTH => $_[0]->{NODE_VALUES}{LENGTH},
+            NAME   => $_[0]->{NODE_VALUES}{NAME},
         },
         #NODE_VALUES => {%{$self->{NODE_VALUES}}},
         _CHILDREN => [],
     };
-    return bless $dup, blessed $self;
+    return bless $dup, blessed $_[0];
 }
 
 #  set any value - allows user specified additions to the core stuff

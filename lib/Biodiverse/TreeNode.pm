@@ -1518,12 +1518,13 @@ sub set_parent {
     return;
 }
 
+#  bare metal for speed
 sub set_parent_aa {
-    my ($self, $parent) = @_;
+    #my ($self, $parent) = @_;
 
-    return if $self->{_PARENT} && $parent eq $self->{_PARENT};
+    return if $_[0]->{_PARENT} && $_[1] eq $_[0]->{_PARENT};
 
-    weaken ($self->{_PARENT} = $parent);
+    weaken ($_[0]->{_PARENT} = $_[1]);
 
     return;
 }

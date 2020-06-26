@@ -2070,7 +2070,6 @@ sub get_sub_tree {
         my $node_ref = eval {$tree->get_node_ref (node => $label)};
         next LABEL if !defined $node_ref;  # not a tree node name
 
-        my $child_name = $label;
         my $st_node_ref = $subtree->add_node (
             name   => $label,
             length => $node_ref->get_length,

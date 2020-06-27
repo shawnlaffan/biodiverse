@@ -1,8 +1,11 @@
 package Biodiverse::TreeNode;
-use 5.020;
+use 5.022;
 use strict;
 use warnings;
 no warnings 'recursion';
+
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
 
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
@@ -486,18 +489,18 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
 sub add_children {
     my $self = shift;
     my %args = @_;
-    my $children = $args{children}
+    \my @children = $args{children}
       // return;  #  should croak
     #  save some checking below (based on a promise)
     my $children_are_treenodes = $args{is_treenodes};
 
-    croak "TreeNode WARNING: children argument not an array ref\n"
-      if !is_arrayref($children);
+    #croak "TreeNode WARNING: children argument not an array ref\n"
+    #  if !is_arrayref($children);
     
     #  Remove any duplicates.
     #  Could use a hash but we need to retain the insertion order
-    if (@$children > 1) {
-        $children = [uniq @$children];
+    if (@children > 1) {
+        @children = uniq @children;
     }
 
     # need to skip any that already exist
@@ -510,7 +513,7 @@ sub add_children {
 
 
   CHILD:  #  use an array to retain the order in which they were passed
-    foreach my $child (@$children) {
+    foreach my $child (@children) {
         #  don't re-add our own child
         next CHILD if $use_skip && $skip{$child};
 

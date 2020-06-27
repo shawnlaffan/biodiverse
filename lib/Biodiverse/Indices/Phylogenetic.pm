@@ -954,7 +954,7 @@ sub get_metadata_calc_pd_clade_contributions {
         name            => 'PD clade contributions',
         reference       => '',
         type            => 'Phylogenetic Indices', 
-        pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree/],
+        pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree_as_hash/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -994,7 +994,6 @@ sub _calc_pd_pe_clade_contributions {
     my %args = @_;
 
     my $main_tree = $args{tree_ref};
-    my $sub_tree  = $args{SUBTREE};
     my $wt_list   = $args{node_list};
     my $p_score   = $args{p_score};
     my $res_pfx   = $args{res_pfx};
@@ -1006,18 +1005,18 @@ sub _calc_pd_pe_clade_contributions {
 
     #  depths are (should be) the same across main and sub trees
     my $depth_hash = $main_tree->get_node_name_depth_hash;
-    my $node_hash  = $sub_tree->get_node_hash;
+    \my %node_hash  = $args{SUBTREE_AS_HASH};
 
     my @names_by_depth
       = sort {$depth_hash->{$b} <=> $depth_hash->{$a}}
-        keys %$node_hash;
+        keys %node_hash;
 
   NODE_REF:
     foreach my $node_name (@names_by_depth) {
 
         my $wt_sum = $wt_list->{$node_name};
-        foreach my $child_ref ($node_hash->{$node_name}->get_children) {
-            $wt_sum += $clade_score->{$child_ref->get_name};
+        foreach my $child_name (@{$node_hash{$node_name}}) {
+            $wt_sum += $clade_score->{$child_name};
         }
 
         #  round off to avoid spurious spatial variation.
@@ -1048,7 +1047,7 @@ sub get_metadata_calc_pe_clade_contributions {
         name            => 'PE clade contributions',
         reference       => '',
         type            => 'Phylogenetic Endemism Indices', 
-        pre_calc        => ['_calc_pe', 'get_sub_tree'],
+        pre_calc        => ['_calc_pe', 'get_sub_tree_as_hash'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -1093,7 +1092,7 @@ sub get_metadata_calc_pd_clade_loss {
         name            => 'PD clade loss',
         reference       => '',
         type            => 'Phylogenetic Indices', 
-        pre_calc        => [qw /calc_pd_clade_contributions get_sub_tree/],
+        pre_calc        => [qw /calc_pd_clade_contributions get_sub_tree_as_hash/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -1135,7 +1134,7 @@ sub get_metadata_calc_pe_clade_loss {
         name            => 'PE clade loss',
         reference       => '',
         type            => 'Phylogenetic Endemism Indices', 
-        pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree/],
+        pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree_as_hash/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -1173,22 +1172,21 @@ sub _calc_pd_pe_clade_loss {
     my $self = shift;
     my %args = @_;
 
-    my $main_tree = $args{trimmed_tree};
-    my $sub_tree  = $args{SUBTREE};
+    my $tree_ref = $args{trimmed_tree} // $args{tree_ref};
+    \my %sub_tree_hash = $args{SUBTREE_AS_HASH};
 
     my $pfx = $args{res_pfx};
     my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_CONTR CLADE_CONTR_P/;
 
-    my ($p_clade_score, $p_clade_contr, $p_clade_contr_p) =
-      @args{@score_names};
+    my ($p_clade_score, $p_clade_contr, $p_clade_contr_p)
+      = @args{@score_names};
 
     my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
     my $node_name;  #  reuse to avoid repeated SV destruction
     my (%child_counts, %node_names);  #  avoid some method calls
 
   NODE:
-    foreach my $node_ref ($sub_tree->get_node_refs) {
-        $node_name = ($node_names{$node_ref} //= $node_ref->get_name);
+    foreach my $node_name (keys %sub_tree_hash) {
 
         #  skip if we have already done this one
         next NODE if defined $loss_score{$node_name};
@@ -1197,12 +1195,15 @@ sub _calc_pd_pe_clade_loss {
 
         #  Find the ancestors with no children outside this clade
         #  We are using a subtree, so the node only needs one sibling
+        my $node_ref = $tree_ref->get_node_ref_aa($node_name);
       PARENT:
         while (my $parent = $node_ref->get_parent) {
+            my $parent_name
+              = $node_names{$parent} //= $parent->get_name;
             last PARENT
-              if ($child_counts{$parent} //= $parent->get_child_count) > 1;
+              if @{$sub_tree_hash{$parent_name}} > 1;
 
-            push @ancestors, ($node_names{$parent} //= $parent->get_name);
+            push @ancestors, $parent_name;
             $node_ref = $parent;
         }
 

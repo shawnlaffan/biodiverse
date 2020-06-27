@@ -129,10 +129,10 @@ sub test_pd_local {
     is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
 }
 
-sub test_calc_last_shared_ancestor {
+sub test_calc_last_shared_ancestor_props {
     
     my @calcs = qw/
-        calc_last_shared_ancestor
+        calc_last_shared_ancestor_props
     /;
 
     my $cell_sizes = [200000, 200000];

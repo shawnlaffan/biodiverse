@@ -197,7 +197,7 @@ sub calc_pd_local {
     return wantarray ? %$results : $results;
 }
 
-sub get_metadata_calc_last_shared_ancestor {
+sub get_metadata_calc_last_shared_ancestor_props {
 
     my %metadata = (
         description     => "Properties of the last shared ancestor of an assemblage.\n"
@@ -242,7 +242,7 @@ sub get_metadata_calc_last_shared_ancestor {
     return $metadata_class->new(\%metadata);
 }
 
-sub calc_last_shared_ancestor {
+sub calc_last_shared_ancestor_props {
     my ($self, %args) = @_;
 
     my $ancestor = $args{LAST_SHARED_ANCESTOR_SUBTREE};
@@ -2090,6 +2090,8 @@ sub get_sub_tree {
     #  but element lists can be too long to be workable
     #  and abbreviations will be ambiguous in many cases
     my $subtree = blessed ($tree)->new (NAME => 'subtree');
+
+    my $root_name;
 
   LABEL:
     foreach my $label (keys %$label_list) {

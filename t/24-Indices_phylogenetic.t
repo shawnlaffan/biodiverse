@@ -27,7 +27,7 @@ my @calcs = qw/
     calc_count_labels_on_tree
     calc_labels_not_on_tree
     calc_labels_on_tree
-    calc_last_shared_ancestor
+    calc_last_shared_ancestor_props
     calc_pd
     calc_pd_clade_contributions
     calc_pd_clade_loss

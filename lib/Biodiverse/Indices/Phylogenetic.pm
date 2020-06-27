@@ -2120,8 +2120,10 @@ sub get_sub_tree {
                 );
             }
             $st_parent->add_children (
-                children     => [$st_node_ref],
+                #  checking for existing parents takes time
+                are_orphans  => 1,  
                 is_treenodes => 1,
+                children     => [$st_node_ref],
             );
 
             last NODE_IN_PATH if $last;

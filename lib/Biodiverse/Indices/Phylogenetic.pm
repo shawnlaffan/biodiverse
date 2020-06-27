@@ -2136,9 +2136,6 @@ sub get_sub_tree {
         }
     }
 
-    #  make sure the topology is correct - needed?
-    #$subtree->set_parents_below;
-
     my %results = (SUBTREE => $subtree);
 
     return wantarray ? %results : \%results;

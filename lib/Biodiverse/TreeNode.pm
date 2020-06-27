@@ -141,10 +141,11 @@ sub get_cached_value_keys {
 #  argument keys is an array ref of keys to delete
 sub delete_cached_values {
     my $self = shift;
-    my %args = @_;
-    
     return if ! exists $self->{_cache};
-    
+
+    #  unpack out of order, as we often return early
+    my %args = @_ ? @_ : ();
+
     if ($args{keys}) {
         my $keys = $args{keys};
         return if not defined $keys or not scalar @$keys;

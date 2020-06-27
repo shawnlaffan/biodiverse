@@ -2104,6 +2104,7 @@ sub get_sub_tree {
             name     => $label,
         );
         $added_nodes{$label} = $st_node_ref;
+        my $last;
 
       NODE_IN_PATH:
         while (my $parent = $node_ref->get_parent()) {
@@ -2112,7 +2113,7 @@ sub get_sub_tree {
             my $st_parent = $added_nodes{$parent_name};
 
             #  we have the rest of the path in this case
-            my $last = defined $st_parent;
+            $last = defined $st_parent;
 
             if (!$last) {
                 $st_parent = $subtree->add_node (

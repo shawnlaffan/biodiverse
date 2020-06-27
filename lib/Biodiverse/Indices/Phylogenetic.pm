@@ -8,6 +8,9 @@ use warnings;
 use English qw /-no_match_vars/;
 use Carp;
 
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 use Biodiverse::Progress;
 
 use List::Util 1.33 qw /any sum min max/;
@@ -174,19 +177,23 @@ sub calc_pd_local {
 
     my $PD   = $args{PD};
     my $PD_P = $args{PD_P};
-    my $ancestor = $args{LAST_SHARED_ANCESTOR_SUBTREE};
+    my $ancestor_name = $args{LAST_SHARED_ANCESTOR_SUBTREE};
 
     #  single-terminal lineages go to the root
     #  so are just "normal" PD and PD_P
-    if ($PD && !$ancestor->is_terminal_node) {
+    if ($PD) {
         my $tree_ref = $args{tree_ref};
-        my $sum      = 0;
-        while ($ancestor) {
-            $sum     += $ancestor->get_length;
-            $ancestor = $ancestor->get_parent;
+        my $ancestor = $tree_ref->get_node_ref_aa($ancestor_name);
+        if (!$ancestor->is_terminal_node) {
+            my $tree_ref = $args{tree_ref};
+            my $sum      = 0;
+            while ($ancestor) {
+                $sum     += $ancestor->get_length;
+                $ancestor = $ancestor->get_parent;
+            }
+            $PD   = $PD - $sum;  # this way we avoid low-bit rounding errors
+            $PD_P = $PD ? ($PD / $tree_ref->get_total_tree_length) : 0;
         }
-        $PD   = $PD - $sum;  # this way we avoid low-bit rounding errors
-        $PD_P = $PD ? ($PD / $tree_ref->get_total_tree_length) : 0;
     }
 
     my $results = {
@@ -207,6 +214,7 @@ sub get_metadata_calc_last_shared_ancestor_props {
         required_args   => ['tree_ref'],
         pre_calc        => [
             'calc_abc', 'get_sub_tree',
+            'get_sub_tree_as_hash',
             'get_last_shared_ancestor_from_subtree',
         ],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -245,9 +253,10 @@ sub get_metadata_calc_last_shared_ancestor_props {
 sub calc_last_shared_ancestor_props {
     my ($self, %args) = @_;
 
-    my $ancestor = $args{LAST_SHARED_ANCESTOR_SUBTREE};
-    my $subtree  = $args{SUBTREE};
-    my $tree     = $args{tree_ref};
+    my $tree_ref = $args{tree_ref};
+    my $shared_ancestor_name
+      = $args{LAST_SHARED_ANCESTOR_SUBTREE};
+    my $ancestor = $tree_ref->get_node_ref_aa($shared_ancestor_name);
 
     if (!$ancestor) {
         my $results = {
@@ -260,6 +269,8 @@ sub calc_last_shared_ancestor_props {
         return wantarray ? %$results : $results;
     }
 
+    my $node_hash = $args{SUBTREE_AS_HASH};
+    
     my $depth  = $ancestor->get_depth;
     my $length = $ancestor->get_length;
     my $dist_to_tips = 0;
@@ -268,9 +279,7 @@ sub calc_last_shared_ancestor_props {
         #  Faster than getting the terminals,
         #  unless there are many labels not on the tree
         my $terminals = $args{label_hash_all};
-        my $node_hash = $subtree->get_node_hash; 
 
-        my $shared_ancestor_name = $ancestor->get_name;
         my $path_to_root_node
           = $ancestor->is_root_node
           ? {}
@@ -282,7 +291,7 @@ sub calc_last_shared_ancestor_props {
             #  Use the main tree as its cache applies across runs.
             #  The subtree is transient to the current calculation set.
             my $path
-              = $tree->get_node_ref_aa($terminal_name)
+              = $tree_ref->get_node_ref_aa($terminal_name)
                      ->get_path_lengths_to_root_node_aa;
             $dist_to_tips = max ($dist_to_tips, sum (0, values %$path));
         }
@@ -2036,7 +2045,7 @@ sub get_metadata_get_last_shared_ancestor_from_subtree {
     my %metadata = (
         name          => 'get_last_shared_ancestor_from_subtree',
         description   => 'get the last shared ancestor for a subtree',
-        pre_calc      => ['get_sub_tree'],
+        pre_calc      => ['get_sub_tree', 'get_sub_tree_as_hash'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -2045,17 +2054,17 @@ sub get_metadata_get_last_shared_ancestor_from_subtree {
 sub get_last_shared_ancestor_from_subtree {
     my ($self, %args) = @_;
     
-    my $subtree = $args{SUBTREE};
-    my $current = $subtree->get_root_node(tree_has_one_root_node => 1);
-    
+    my $tree_ref = $args{tree_ref};
+    \my %sub_tree = $args{SUBTREE_AS_HASH};
+    my $current
+      = $tree_ref->get_root_node(tree_has_one_root_node => 1)
+                 ->get_name;
+
     #  the subtree has only labels from the current set,
     #  so we only need to find the last branch with one child 
-    while ($current->get_child_count == 1) {
-        $current = @{$current->get_children}[0];
+    while (@{$sub_tree{$current}} == 1) {
+        $current = @{$sub_tree{$current}}[0];
     }
-    #if ($current->is_terminal_node) {
-    #    #does it matter?
-    #}
 
     my $results = {LAST_SHARED_ANCESTOR_SUBTREE => $current};
   
@@ -2146,6 +2155,83 @@ sub get_sub_tree {
 
 
     my %results = (SUBTREE => $subtree);
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_sub_tree_as_hash {
+    my $self = shift;
+
+    my %metadata = (
+        name          => 'get_sub_tree_as_hash',
+        description
+          => 'get a hash represention of a tree that is '
+           . 'a subset of the main tree, e.g. for the set '
+           . 'of nodes in a neighbour set',
+        required_args => 'tree_ref',
+        pre_calc      => ['calc_labels_on_tree'],
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+#  get a tree that is a subset of the main tree,
+#  e.g. for the set of nodes in a neighbour set
+sub get_sub_tree_as_hash {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree       = $args{tree_ref};
+    my $label_list = $args{labels} // $args{PHYLO_LABELS_ON_TREE};
+
+    my %subtree;
+    my $root_name;
+
+  LABEL:
+    foreach my $label (keys %$label_list) {
+        my $node_ref = eval {$tree->get_node_ref_aa ($label)};
+        next LABEL if !defined $node_ref;  # not a tree node name
+
+        $subtree{$label} = [];
+        my $node_name = $label;
+        my $last;
+
+      NODE_IN_PATH:
+        while (my $parent = $node_ref->get_parent()) {
+
+            my $parent_name = $parent->get_name;
+            my $st_parent = $subtree{$parent_name};
+
+            #  we have the rest of the path in this case
+            $last = defined $st_parent;
+
+            #if (!$last) {
+            #    $subtree{$parent_name} = [];
+            #}
+            my $child_array = $subtree{$parent_name} //= [];
+            push @$child_array, $node_name;
+
+            last NODE_IN_PATH if $last;
+
+            $node_ref  = $parent;
+            $node_name = $parent_name;
+        }
+    }
+
+    ##  do them as a batch to avoid single child calls
+    #foreach my $parent_name (keys %children_to_add) {
+    #    my $st_parent = $added_nodes{$parent_name};
+    #    $st_parent->add_children (
+    #        #  checking for existing parents takes time
+    #        are_orphans  => 1,  
+    #        is_treenodes => 1,
+    #        children     => $children_to_add{$parent_name},
+    #    );
+    #}
+
+
+    my %results = (SUBTREE_AS_HASH => \%subtree);
 
     return wantarray ? %results : \%results;
 }

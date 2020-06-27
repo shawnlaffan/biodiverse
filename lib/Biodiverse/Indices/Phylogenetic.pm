@@ -205,7 +205,10 @@ sub get_metadata_calc_last_shared_ancestor {
         name            => 'Last shared ancestor properties',
         type            => 'Phylogenetic Indices',
         required_args   => ['tree_ref'],
-        pre_calc        => ['get_last_shared_ancestor_from_subtree', 'get_sub_tree'],
+        pre_calc        => [
+            'calc_abc', 'get_sub_tree',
+            'get_last_shared_ancestor_from_subtree',
+        ],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             LAST_SHARED_ANCESTOR_DEPTH  => {
@@ -262,14 +265,20 @@ sub calc_last_shared_ancestor {
     my $dist_to_tips = 0;
     
     if (!$ancestor->is_terminal_node) {
+        #  Faster than getting the terminals,
+        #  unless there are many labels not on the tree
+        my $terminals = $args{label_hash_all};
+        my $node_hash = $subtree->get_node_hash; 
+
         my $shared_ancestor_name = $ancestor->get_name;
         my $path_to_root_node
           = $ancestor->is_root_node
           ? {}
           : $ancestor->get_path_lengths_to_root_node_aa;
         my $path_len_to_root = sum (0, values %$path_to_root_node);
-        my $terminals = $subtree->get_terminal_nodes;
+
         foreach my $terminal_name (keys %$terminals) {
+            next if !exists $node_hash->{$terminal_name};
             #  Use the main tree as its cache applies across runs.
             #  The subtree is transient to the current calculation set.
             my $path
@@ -288,7 +297,7 @@ sub calc_last_shared_ancestor {
         }
     }
     my $rel_pos
-      = $dist_to_root || $dist_to_tips
+      = ($dist_to_root || $dist_to_tips)
       ? $dist_to_root / ($dist_to_root + $dist_to_tips)
       : 0;
 

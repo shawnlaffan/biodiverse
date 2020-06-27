@@ -2093,6 +2093,7 @@ sub get_sub_tree {
 
     my $root_name;
     my %added_nodes;
+    my %children_to_add;
 
   LABEL:
     foreach my $label (keys %$label_list) {
@@ -2122,12 +2123,8 @@ sub get_sub_tree {
                 );
                 $added_nodes{$parent_name} = $st_parent;
             }
-            $st_parent->add_children (
-                #  checking for existing parents takes time
-                are_orphans  => 1,  
-                is_treenodes => 1,
-                children     => [$st_node_ref],
-            );
+            my $child_array = $children_to_add{$parent_name} //= [];
+            push @$child_array, $st_node_ref;
 
             last NODE_IN_PATH if $last;
 
@@ -2135,6 +2132,18 @@ sub get_sub_tree {
             $st_node_ref = $st_parent;
         }
     }
+
+    #  do them as a batch to avoid single child calls
+    foreach my $parent_name (keys %children_to_add) {
+        my $st_parent = $added_nodes{$parent_name};
+        $st_parent->add_children (
+            #  checking for existing parents takes time
+            are_orphans  => 1,  
+            is_treenodes => 1,
+            children     => $children_to_add{$parent_name},
+        );
+    }
+
 
     my %results = (SUBTREE => $subtree);
 

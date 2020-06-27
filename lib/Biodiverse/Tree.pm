@@ -220,7 +220,7 @@ sub add_node {
     my $self = shift;
     my %args = @_;
     my $node = $args{node_ref} || Biodiverse::TreeNode->new(@_);
-    $self->add_to_node_hash_aa ( $node );
+    $self->add_to_node_hash_aa ( $node, $args{name} );
 
     return $node;
 }
@@ -271,9 +271,9 @@ sub add_to_node_hash {
 }
 
 sub add_to_node_hash_aa {
-    my ($self, $node_ref) = @_;
+    my ($self, $node_ref, $name) = @_;
 
-    my $name = $node_ref->get_name;
+    $name //= $node_ref->get_name;
 
     if ( $self->exists_node_name_aa( $name ) ) {
         Biodiverse::Tree::NodeAlreadyExists->throw(

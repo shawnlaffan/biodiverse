@@ -2100,6 +2100,7 @@ sub get_sub_tree {
 
         my $st_node_ref = $subtree->add_node (
             node_ref => $node_ref->duplicate_minimal(),
+            name     => $label,
         );
 
       NODE_IN_PATH:
@@ -2117,6 +2118,7 @@ sub get_sub_tree {
             if (!$last) {
                 $st_parent = $subtree->add_node (
                     node_ref => $parent->duplicate_minimal(),
+                    name     => $parent_name,
                 );
             }
             $st_parent->add_children (

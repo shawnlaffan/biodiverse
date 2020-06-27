@@ -2046,7 +2046,7 @@ sub get_last_shared_ancestor_from_subtree {
     my ($self, %args) = @_;
     
     my $subtree = $args{SUBTREE};
-    my $current = $subtree->get_root_node;
+    my $current = $subtree->get_root_node(tree_has_one_root_node => 1);
     
     #  the subtree has only labels from the current set,
     #  so we only need to find the last branch with one child 
@@ -2092,6 +2092,7 @@ sub get_sub_tree {
     my $subtree = blessed ($tree)->new (NAME => 'subtree');
 
     my $root_name;
+    my %added_nodes;
 
   LABEL:
     foreach my $label (keys %$label_list) {
@@ -2102,24 +2103,23 @@ sub get_sub_tree {
             node_ref => $node_ref->duplicate_minimal(),
             name     => $label,
         );
+        $added_nodes{$label} = $st_node_ref;
 
       NODE_IN_PATH:
         while (my $parent = $node_ref->get_parent()) {
 
             my $parent_name = $parent->get_name;
-            my $st_parent;
-            if ($subtree->exists_node_name_aa ($parent_name)) {
-                $st_parent = eval {
-                    $subtree->get_node_ref_aa ($parent_name);
-                };
-            }
-            my $last = defined $st_parent;  #  we have the rest of the path in this case
+            my $st_parent = $added_nodes{$parent_name};
+
+            #  we have the rest of the path in this case
+            my $last = defined $st_parent;
 
             if (!$last) {
                 $st_parent = $subtree->add_node (
                     node_ref => $parent->duplicate_minimal(),
                     name     => $parent_name,
                 );
+                $added_nodes{$parent_name} = $st_parent;
             }
             $st_parent->add_children (
                 #  checking for existing parents takes time

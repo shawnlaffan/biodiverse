@@ -260,7 +260,7 @@ sub calc_last_shared_ancestor {
     my $dist_to_tips
       = $ancestor->is_terminal_node
       ? 0
-      : $ancestor->get_longest_path_length_to_terminals
+      : $ancestor->get_length_below
         - $ancestor->get_length;
 
     my $dist_to_root = 0;

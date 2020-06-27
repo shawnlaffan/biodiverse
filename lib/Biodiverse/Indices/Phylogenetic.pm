@@ -213,8 +213,7 @@ sub get_metadata_calc_last_shared_ancestor_props {
         type            => 'Phylogenetic Indices',
         required_args   => ['tree_ref'],
         pre_calc        => [
-            'calc_abc', 'get_sub_tree',
-            'get_sub_tree_as_hash',
+            'calc_abc', 'get_sub_tree_as_hash',
             'get_last_shared_ancestor_from_subtree',
         ],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -2045,7 +2044,7 @@ sub get_metadata_get_last_shared_ancestor_from_subtree {
     my %metadata = (
         name          => 'get_last_shared_ancestor_from_subtree',
         description   => 'get the last shared ancestor for a subtree',
-        pre_calc      => ['get_sub_tree', 'get_sub_tree_as_hash'],
+        pre_calc      => ['get_sub_tree_as_hash'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -2218,18 +2217,6 @@ sub get_sub_tree_as_hash {
             $node_name = $parent_name;
         }
     }
-
-    ##  do them as a batch to avoid single child calls
-    #foreach my $parent_name (keys %children_to_add) {
-    #    my $st_parent = $added_nodes{$parent_name};
-    #    $st_parent->add_children (
-    #        #  checking for existing parents takes time
-    #        are_orphans  => 1,  
-    #        is_treenodes => 1,
-    #        children     => $children_to_add{$parent_name},
-    #    );
-    #}
-
 
     my %results = (SUBTREE_AS_HASH => \%subtree);
 

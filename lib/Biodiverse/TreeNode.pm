@@ -535,7 +535,7 @@ sub add_children {
 
             $child = Biodiverse::TreeNode->new(name => $child);
         }
-        push @{$self->{_CHILDREN}}, $child;
+        push @$existing_children, $child;
         $child->set_parent_aa($self);
     }
 

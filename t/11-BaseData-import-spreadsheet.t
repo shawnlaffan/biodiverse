@@ -11,7 +11,8 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
 
-use Test::Lib;
+use Test2::V0;
+
 use rlib;
 
 use Data::Section::Simple qw(
@@ -20,8 +21,6 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::Most;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -128,7 +127,7 @@ sub test_import_spreadsheet_dms_coords {
     ok (!$e, 'import spreadsheet with DMS coords produced no error');
 
     my @gp_names = $bd1->get_groups;
-    is_deeply (\@gp_names,
+    is (\@gp_names,
                ['134.506111111111:-23.5436111111111'],
                'got correct group names',
     );
@@ -220,9 +219,15 @@ sub _test_import_spreadsheet {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "no errors for import spreadsheet with sheet id specified, $feedback");
-    
-    is_deeply ($bd2, $bd1, "same contents when sheet_id specified as default, $feedback");
-    
+
+    is ([sort $bd2->get_groups],
+        [sort $bd1->get_groups],
+        "same groups when sheet_id specified as default, $feedback",
+    );
+    is ([sort $bd2->get_labels],
+        [sort $bd1->get_labels],
+        "same labels when sheet_id specified as default, $feedback",
+    );
     is ($bd1->get_group_count, 19, "Group count is correct, $feedback");
 
     eval {
@@ -270,7 +275,15 @@ sub _test_import_spreadsheet {
     note $e if $e;
     ok (!$e, "no errors for import spreadsheet with sheet id specified as name, $feedback");
     
-    is_deeply ($bd3, $bd1, "data matches for sheet id as name and number, $feedback");
+    #is ($bd3, $bd1, "data matches for sheet id as name and number, $feedback");
+    is ([sort $bd3->get_groups],
+        [sort $bd1->get_groups],
+        "groups match for sheet id as name and number, $feedback",
+    );
+    is ([sort $bd3->get_labels],
+        [sort $bd1->get_labels],
+        "labels match for sheet id as name and number, $feedback",
+    );
 
     my $bd_text = Biodiverse::BaseData->new (%bd_args, CELL_SIZES => [100000, 100000, -1]);
     eval {
@@ -398,7 +411,16 @@ sub _test_import_spreadsheet_matrix_form {
     is ($bd1->get_group_count, $bd2->get_group_count, 'group counts match');
     is ($bd1->get_label_count, $bd2->get_label_count, 'label counts match');
 
-    is_deeply ($bd1, $bd2, "same contents matrix form and non-matrix form, $feedback");
+    #is ($bd1, $bd2, "same contents matrix form and non-matrix form, $feedback");
+    is ([sort $bd2->get_groups],
+        [sort $bd1->get_groups],
+        "same groups matrix form and non-matrix form, $feedback",
+    );
+    is ([sort $bd2->get_labels],
+        [sort $bd1->get_labels],
+        "same labels matrix form and non-matrix form, $feedback",
+    );
+    
 }
 
 1;

@@ -22,7 +22,7 @@ use Data::Section::Simple qw(
 local $| = 1;
 
 #use Test::More tests => 5;
-use Test::Most;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -68,7 +68,7 @@ sub test_import_unicode_name_bd {
         CELL_SIZES => [100000, 100000],
     );
     
-    lives_ok (sub {
+    ok (lives {
         $bd->import_data (
                 input_files   => ["$dir/años.txt"],
                 group_columns => [3,4],
@@ -76,7 +76,7 @@ sub test_import_unicode_name_bd {
             )
         },
         'imported csv data in file with unicode name without an exception'
-    );
+    ) or note $@;
 
 }
 
@@ -90,8 +90,8 @@ sub test_import_unicode_name_mx {
     my $fname = "$dir/años_mx_sparse.txt";
     my $mx = Biodiverse::Matrix->new (name => $fname);
 
-    lives_ok (
-        sub {
+    ok (
+        lives {
             $mx->import_data_sparse (
                 file => $fname,
                 label_row_columns => [0],
@@ -100,13 +100,12 @@ sub test_import_unicode_name_mx {
             );
         },
         'imported sparse matrix csv data in file with unicode name without an exception'
-    );
+    ) or note $@;
     
     $fname = "$dir/años_mx.txt";
     $mx = Biodiverse::Matrix->new (name => $fname);
 
-    lives_ok (
-        sub {
+    ok (lives {
             $mx->import_data (
                 file => $fname,
             );

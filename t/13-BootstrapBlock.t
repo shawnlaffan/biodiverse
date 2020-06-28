@@ -5,9 +5,7 @@ use warnings;
 
 local $| = 1;
 
-use Test::Lib;
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 
 use rlib;
 
@@ -249,8 +247,9 @@ sub test_roundtrip {
     TODO: {
         my $booter2 = Biodiverse::TreeNode::BootstrapBlock->new;
         $booter2->decode(raw_bootstrap => $encoded);
-        local $TODO = 'importation not yet implemented';  #  and might never be supported
-        is_deeply ($booter2, $booter, 'encode-decode roundtrip passed')
+        #  and might never be supported
+        my $todo = todo 'importation not yet implemented';
+        is ($booter2, $booter, 'encode-decode roundtrip passed')
     }
 }
 

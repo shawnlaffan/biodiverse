@@ -14,7 +14,6 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
 use List::Util 1.45 qw /uniq/;
-use Test::Lib;
 use POSIX qw /floor/;
 use rlib;
 
@@ -24,8 +23,7 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::Most;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -112,7 +110,7 @@ sub test_import_unicode_name {
         CELL_SIZES => [100000, 100000],
     );
     
-    lives_ok (sub {
+    ok (lives {
         $bd->import_data (
                 input_files   => ["$dir/años.txt"],
                 group_columns => [3,4],
@@ -120,15 +118,15 @@ sub test_import_unicode_name {
             )
         },
         'imported csv data in file with unicode name without an exception'
-    );
+    ) or note $@;
 
     #  and a matrix
     use Biodiverse::Matrix;
     $fname = "$dir/años_mx_sparse.txt";
     my $mx = Biodiverse::Matrix->new (name => $fname);
 
-    lives_ok (
-        sub {
+    ok (lives
+        {
             $mx->import_data_sparse (
                 file => $fname,
                 label_row_columns => [0],
@@ -137,19 +135,19 @@ sub test_import_unicode_name {
             );
         },
         'imported sparse matrix csv data in file with unicode name without an exception'
-    );
+    ) or note $@;
     
     $fname = "$dir/años_mx.txt";
     $mx = Biodiverse::Matrix->new (name => $fname);
 
-    lives_ok (
-        sub {
+    ok (lives
+        {
             $mx->import_data (
                 file => $fname,
             );
         },
         'imported matrix csv data in file with unicode name without an exception'
-    );
+    ) or note $@;
 
 }
 
@@ -179,7 +177,7 @@ sub test_rename_outputs {
     is $spx->get_name, 'sp_n1x', 'did not rename other spatial output';
 
     my @sp_names = $bd->get_spatial_output_names;
-    is_deeply [sort @sp_names], [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
+    is [sort @sp_names], [qw 'sp_n1x sp_n2'], 'basedata spatial names match';    
 
     #  cluster
     my $cl = $bd->add_cluster_output (name => 'cl_n1');
@@ -195,14 +193,14 @@ sub test_rename_outputs {
     is $clx->get_name, 'cl_n1x', 'did not rename other cluster output';
 
     my @cl_names = $bd->get_cluster_output_names;
-    is_deeply [sort @cl_names], [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
+    is [sort @cl_names], [qw 'cl_n1x cl_n2'], 'basedata cluster names match';
 
     my $mx = $cl->get_matrix_ref;
     $bd->rename_output (new_name => 'mx_n2', output => $mx);
     is $mx->get_name, 'mx_n2', 'renamed matrix output';
 
     my @mx_names = $bd->get_matrix_output_names;
-    is_deeply [sort @mx_names], [qw 'mx_n2'], 'basedata matrix names match';
+    is [sort @mx_names], [qw 'mx_n2'], 'basedata matrix names match';
 
     my $rand = $bd->add_randomisation_output (name => 'rd_n1');
     eval {
@@ -243,7 +241,7 @@ sub test_rename_outputs {
     is $cl_named_lists_orig, 0, 'no lists found with old name, cl';
 
     my @rand_names = $bd->get_randomisation_output_names;
-    is_deeply [sort @rand_names], [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
+    is [sort @rand_names], [qw 'rd_n1x rd_n2'], 'basedata randomisation names match';
 
     return;
 }
@@ -316,33 +314,33 @@ sub test_spatial_index_build_exceptions {
     $bd->add_element (label => $label_name, group => '5:150');
     $bd->add_element (label => $label_name, group => '55:1150');
     
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [10, 100])},
+    ok (lives
+        {$bd->build_spatial_index (resolutions => [10, 100])},
         'build index with resolution same as bd',
-    );
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [20, 400])},
+    ) or note $@;
+    ok (lives
+        {$bd->build_spatial_index (resolutions => [20, 400])},
         'build index with resolution double bd',
-    );
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [20, 100])},
+    ) or note $@;
+    ok (lives 
+        {$bd->build_spatial_index (resolutions => [20, 100])},
         'build index with resolution double/same as bd',
-    );
+    ) or note $@;
     
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+    ok (dies 
+        {$bd->build_spatial_index (resolutions => [2, 10])},
         "won't build index with resolution smaller than bd",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [2, 0])},
+    ok (dies
+        {$bd->build_spatial_index (resolutions => [2, 0])},
         "won't build index with resolution smaller than bd, one zero",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [0, 100])},
+    ok (dies 
+        {$bd->build_spatial_index (resolutions => [0, 100])},
         "won't build index with resolution smaller than bd, one zero",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [20, 10])},
+    ok (dies 
+        {$bd->build_spatial_index (resolutions => [20, 10])},
         "won't build index with one axis resolution smaller than bd",
     );
 
@@ -351,33 +349,33 @@ sub test_spatial_index_build_exceptions {
     $bd->add_element (label => $label_name, group => 'x:5:151');
     $bd->add_element (label => $label_name, group => 'y:55:1151');
     
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [-1, 2, 2])},
+    ok (lives
+        {$bd->build_spatial_index (resolutions => [-1, 2, 2])},
         'build index with resolution same as bd (text axis)',
     );
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [-1, 4, 4])},
+    ok (lives 
+        {$bd->build_spatial_index (resolutions => [-1, 4, 4])},
         'build index with resolution double bd (text axis)',
     );
-    lives_ok (
-        sub {$bd->build_spatial_index (resolutions => [-1, 4, 2])},
+    ok (lives
+        {$bd->build_spatial_index (resolutions => [-1, 4, 2])},
         'build index with resolution double/same as bd (text axis)',
     );
     
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [2, 10])},
+    ok (dies
+        {$bd->build_spatial_index (resolutions => [2, 10])},
         "won't build index with fewer axes than basedata (text axis)",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [-1, 2, 0])},
+    ok (dies
+        {$bd->build_spatial_index (resolutions => [-1, 2, 0])},
         "won't build index with resolution smaller than bd, one zero (text axis)",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [0, 0, 100])},
+    ok (dies
+        {$bd->build_spatial_index (resolutions => [0, 0, 100])},
         "won't build index with resolution smaller than bd, one zero (text axis)",
     );
-    dies_ok (
-        sub {$bd->build_spatial_index (resolutions => [-1, 1, 10])},
+    ok (dies
+        {$bd->build_spatial_index (resolutions => [-1, 1, 10])},
         "won't build index with text axis resolution smaller than bd",
     );    
 }
@@ -497,15 +495,15 @@ sub test_reduce_resolution {
             cell_origins => $origins,
         );
     
-        is_deeply ([$bd2->get_cell_sizes], $sizes, "got expected cell sizes $size_key");
+        is ([$bd2->get_cell_sizes], $sizes, "got expected cell sizes $size_key");
         is ($bd2->get_label_count, $bd1->get_label_count, "same number of labels $size_key");
         is ($bd2->get_group_count, $bd_c->get_group_count, "correct number of groups $size_key");
-        is_deeply ([sort $bd2->get_groups], [sort $bd_c->get_groups], "got expected groups $size_key");
-        is_deeply ([sort $bd2->get_labels], [sort $bd_c->get_labels], "got expected labels $size_key");
+        is ([sort $bd2->get_groups], [sort $bd_c->get_groups], "got expected groups $size_key");
+        is ([sort $bd2->get_labels], [sort $bd_c->get_labels], "got expected labels $size_key");
         
         my @expected_sample_counts = map {$bd1->get_label_sample_count (label => $_)} sort $bd1->get_labels;
         my @sample_counts          = map {$bd2->get_label_sample_count (label => $_)} sort $bd2->get_labels;
-        is_deeply (
+        is (
             \@sample_counts,
             \@expected_sample_counts,
             'Got expected sample counts',
@@ -513,7 +511,6 @@ sub test_reduce_resolution {
     }
     
     
-    #  need some dies_ok calls here
     my %die_calls = (
         'zero axis'         => [[0,1]],
         'smaller axes'      => [[0.5,0.5]],
@@ -527,8 +524,8 @@ sub test_reduce_resolution {
         my $cell_sizes   = $die_calls{$text}[0];
         my $cell_origins = $die_calls{$text}[1];
 
-        dies_ok (
-            sub {$bd1->clone_with_coarser_cell_sizes (
+        ok (dies 
+            {$bd1->clone_with_coarser_cell_sizes (
                 cell_sizes   => $cell_sizes,
                 cell_origins => $cell_origins,
             )},
@@ -551,9 +548,10 @@ sub test_remap_labels_from_hash {
     $bd->remap_labels_from_hash(remap => \%remap);
        
     my @actual_new_labels = sort $bd->get_labels();
-    is_deeply( \@actual_new_labels,
-               \@expected_new_labels,
-               "Got expected labels" )
+    is (\@actual_new_labels,
+        \@expected_new_labels,
+        "Got expected labels"
+    );
 }
 
 sub test_remap_mismatched_labels {
@@ -579,9 +577,10 @@ sub test_remap_mismatched_labels {
     
     my @actual_new_labels = sort $bd->get_labels();
 
-    is_deeply( \@actual_new_labels,
-               \@expected_new_labels,
-               "Got expected labels" )
+    is ( \@actual_new_labels,
+         \@expected_new_labels,
+          "Got expected labels"
+    );
 }
 
 
@@ -1038,14 +1037,14 @@ sub test_roundtrip_delimited_text {
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        is (\@new_labels, \@orig_labels, "label lists match for $fname");
         
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $fname" => sub {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
             }
         };
 
@@ -1219,7 +1218,7 @@ sub test_roundtrip_raster {
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match");
+        is (\@new_labels, \@orig_labels, "label lists match");
 
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $format" => sub {
@@ -1227,7 +1226,7 @@ sub test_roundtrip_raster {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
 
-                is_deeply (
+                is (
                     $new_list,
                     $orig_list,
                     "SUBELEMENTS match for $label, $format"
@@ -1235,7 +1234,7 @@ sub test_roundtrip_raster {
             }
         };
         
-        is_deeply (
+        is (
           scalar $bd->get_coord_bounds,
           scalar $new_bd->get_coord_bounds,
           "coord bounds match for $format"
@@ -1351,9 +1350,9 @@ sub test_raster_zero_cellsize {
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match");
+        is (\@new_labels, \@orig_labels, "label lists match");
         
-        is_deeply (
+        is (
             $new_bd->get_group_count,
             $bd->get_group_count,
             'got expected group count',
@@ -1394,7 +1393,7 @@ sub test_import_shapefile_dms_coords {
     ok (!$e, 'import spreadsheet with DMS coords produced no error');
 
     my @gp_names = $bd1->get_groups;
-    is_deeply (\@gp_names,
+    is (\@gp_names,
                ['134.506111111111:-23.5436111111111'],
                'got correct group names',
     );
@@ -1506,7 +1505,7 @@ sub test_roundtrip_shapefile {
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        is (\@new_labels, \@orig_labels, "label lists match for $fname");
 
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $fname" => sub {
@@ -1516,7 +1515,7 @@ sub test_roundtrip_shapefile {
                 
                 #say "new list: " . join(',', keys %$new_list) . join(',', values %$new_list) if ($new_list);
                 #say "orig list: " . join(',', keys %$orig_list) . join(',', values %$orig_list)if ($orig_list);
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
             }
         };
 
@@ -1709,7 +1708,7 @@ sub test_coords_near_zero {
 
 #  need to test multidimensional data import, including text axes
 sub test_multidimensional_import {
-    local $TODO = 'need to test multidimensional data import, including text axes';
+    my $todo = todo 'need to test multidimensional data import, including text axes';
 
     is (0, 1, 'need to test multidimensional data import, including text axes');
 }
@@ -1814,7 +1813,7 @@ sub _test_rename_labels_or_groups {
     subtest 'Renamed labels are in expected groups' => sub {
         while (my ($label, $hash) = each %expected_groups_with_labels) {
             my %observed_hash = $bd->$hash_method($el_type => $label);
-            is_deeply ($hash, \%observed_hash, $label);
+            is ($hash, \%observed_hash, $label);
         }
     };
     

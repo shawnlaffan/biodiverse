@@ -6,12 +6,8 @@ use warnings;
 use Carp;
 
 
-use Test::Lib;
-use Test::More;
+use Test2::V0;
 use rlib;
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::Remap;
 
@@ -64,9 +60,10 @@ sub test_to_and_from_hash {
 
     my $output_hash = $remap->to_hash();
 
-    is_deeply($output_hash,
-              \%remap_hash,
-              "Got out the same hash we put in");
+    is ($output_hash,
+        \%remap_hash,
+        "Got out the same hash we put in"
+    );
     
 }
 
@@ -90,3 +87,5 @@ sub test_remapped_element_names {
         is ($remapped, $expected, $msg);
     }
 }
+
+done_testing();

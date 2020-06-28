@@ -1519,8 +1519,8 @@ sub cluster_test_matrix_recycling {
     my $mx_ref2 = $cl2->get_orig_matrices;
     my $mx_ref3 = $cl3->get_orig_matrices;
 
-    is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
-    is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
+    ref_is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
+    ref_is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
 
     #  now check what happens when we destroy the matrix in the clustering
     $bd->delete_all_outputs;
@@ -1538,9 +1538,9 @@ sub cluster_test_matrix_recycling {
 
     my $mx_ref4 = $cl4->get_orig_matrices;
     my $mx_ref5 = $cl5->get_orig_matrices;
-    isnt ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
-    isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
-    isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
+    ref_is_not ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
+    ref_is_not ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
+    ref_is_not ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
     
     #  now we try with a combination of spatial condition and def query
     $bd->delete_all_outputs;
@@ -1553,17 +1553,17 @@ sub cluster_test_matrix_recycling {
 
     my $mx_ref6 = $cl6->get_orig_matrices;
     my $mx_ref7 = $cl7->get_orig_matrices;
-    isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
+    ref_is_not ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
     
     my $cl8 = $bd->add_output (name => 'cl8 mx recyc', type => $type);
     $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
     my $mx_ref8 = $cl8->get_orig_matrices;
-    is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
+    ref_is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
 
     my $cl9 = $bd->add_output (name => 'cl9 mx recyc', type => $type);
     $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
     my $mx_ref9 = $cl9->get_orig_matrices;
-    is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');
+    ref_is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');
 
 }
 

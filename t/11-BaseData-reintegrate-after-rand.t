@@ -11,7 +11,6 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Path::Class;
 use List::Util 1.45 qw /uniq/;
-use Test::Lib;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -20,8 +19,7 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::Most;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -404,7 +402,7 @@ sub _test_reintegrated_basedata_unchanged {
                 "Got 3 end states when reintegrations ignored, $name",
             );
             my $a_ref = $rand_ref->get_prng_total_counts_array;
-            is_deeply (
+            is (
                 $a_ref,
                 [1, 2, 3],
                 "got expected total iteration counts array when reintegrations ignored, $name",
@@ -513,7 +511,7 @@ sub check_randomisation_integration_skipped {
                 my %l_args = (element => $group, list => $list_name);
                 my $lr_orig   = $sp_orig->get_list_ref (%l_args);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                is_deeply ($lr_integr, $lr_orig, "$group, $list_name");
+                is ($lr_integr, $lr_orig, "$group, $list_name");
             }
         }
     };
@@ -535,7 +533,7 @@ sub check_integrated_matches_single_run_spatial {
                 my %l_args = (element => $group, list => $list_name);
                 my $lr_orig   = $sp_orig->get_list_ref (%l_args);
                 my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                is_deeply (
+                is (
                     $lr_integr,
                     $lr_orig,
                     "integrated matches single run, $group, $list_name"
@@ -710,7 +708,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                     my $to_data_list   = $to_node->get_list_ref (list => $data_list_name);
                     my $from_data_list = $from_node->get_list_ref (list => $data_list_name);
                     my $orig_data_list = $orig_node->get_list_ref (list => $data_list_name);
-                    is_deeply (
+                    is (
                         $to_data_list,
                         [@$orig_data_list, @$from_data_list],
                         "expected data list for $node_name, $data_list_name",

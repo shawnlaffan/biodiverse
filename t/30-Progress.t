@@ -4,7 +4,6 @@ use warnings;
 use English qw / -no_match_vars /;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 
 #  don't test plugins
@@ -12,8 +11,7 @@ BEGIN {
     $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 }
 
-use Test::More tests => 2;
-use Test::NoWarnings;
+use Test2::V0;
 
 local $| = 1;
 
@@ -31,3 +29,4 @@ use Biodiverse::Progress;
     $progress->close_off;
 }
 
+done_testing();

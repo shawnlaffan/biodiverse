@@ -7,7 +7,7 @@ use FindBin qw/$Bin/;
 
 use rlib;
 
-use Test::More;
+use Test2::V0;
 
 local $| = 1;
 

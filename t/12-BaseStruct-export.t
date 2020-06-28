@@ -9,7 +9,7 @@ use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util qw /blessed/;
 
-use Test::Lib;
+use Test2::V0;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -17,9 +17,6 @@ use Data::Section::Simple qw(
 );
 
 local $| = 1;
-
-#use Test::More tests => 5;
-use Test::More;
 
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;

@@ -6,8 +6,9 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test2::V0;
 use rlib;
+
 use Biodiverse::RemapGuesser;
 
 use List::Util qw(shuffle);
@@ -458,10 +459,11 @@ sub test_max_distance_ambiguous {
     }
     
             
-    is_deeply (
+    is (
         \%actual,
         $expected_ambiguous,
         'got expected ambiguous matches for min distance 2'
     );
 }
 
+done_testing();

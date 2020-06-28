@@ -39,4 +39,7 @@ WriteMakefile(
         "Gtk2" => "0",
         "Pango" => "0",
     },
+    TEST_REQUIRES => {
+        "Test2::V0" => 0,
+    },
 );

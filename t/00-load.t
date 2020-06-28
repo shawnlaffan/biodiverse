@@ -1,6 +1,4 @@
-#!perl
-
-use Test::More;
+use Test2::V0;
 
 #my @files;
 use FindBin qw { $Bin };
@@ -50,25 +48,27 @@ use Biodiverse::Config;
 note ( "Testing Biodiverse $Biodiverse::Config::VERSION, Perl $], $^X" );
 
 foreach my $file (@files) {
-    use_ok ( $file );
+    my $loaded = eval "require $file";
+    ok $loaded, "Can load $file";
 }
 
 diag '';
 diag 'Aliens:';
 my %alien_versions;
 foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
-    eval 'require $alien';
+    eval "require $alien; 1";
+    next if $@;
     diag sprintf "%s: version: %s, install type: %s", $alien, $alien->version, $alien->install_type;
     $alien_versions{$alien} = $alien->version;
 }
 
-if ($alien_versions{Alien::gdal} ge 3) {
-    if ($alien_versions{Alien::proj} lt 7) {
+if ($alien_versions{'Alien::gdal'} ge 3) {
+    if ($alien_versions{'Alien::proj'} lt 7) {
         diag 'Alien proj is <7 when gdal >=3';
     }
 }
 else {
-    if ($alien_versions{Alien::proj} ge 7) {
+    if ($alien_versions{'Alien::proj'} ge 7) {
         diag 'Alien proj is >=7 when gdal <3';
     }
 }

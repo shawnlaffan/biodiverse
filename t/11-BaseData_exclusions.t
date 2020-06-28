@@ -8,7 +8,6 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use Test::Lib;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -17,8 +16,7 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::More;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;

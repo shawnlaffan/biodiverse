@@ -10,7 +10,7 @@ use 5.010;
 
 use English qw { -no_match_vars };
 
-use Test::Lib;
+use Test2::V0;
 use rlib;
 
 use Data::Section::Simple qw(
@@ -18,8 +18,6 @@ use Data::Section::Simple qw(
 );
 
 local $| = 1;
-
-use Test::Most;
 
 use Scalar::Util qw /looks_like_number/;
 

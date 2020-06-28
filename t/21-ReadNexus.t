@@ -5,11 +5,9 @@ use English qw { -no_match_vars };
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 
-#use Test::More tests => 35;
-use Test::More;
+use Test2::V0;
 
 use Data::Section::Simple qw(get_data_section);
 
@@ -314,7 +312,7 @@ sub test_nexus_with_no_newlines  {
         #print $data;
       TODO:
         {
-            local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
+            my $todo = todo 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
     
             my $trees = Biodiverse::ReadNexus->new;
             my $result = eval {

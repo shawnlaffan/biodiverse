@@ -5,20 +5,15 @@ use Carp;
 use utf8;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first sum all/;
 
-use Test::More;
-use Test::Exception;
+use Test2::V0;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
 use Biodiverse::Cluster;
@@ -299,7 +294,7 @@ sub test_insert_into_lineage {
     $lineage = $target1->get_path_to_root_node;
     my @got_names = map {$_->get_name} @$lineage;
     
-    is_deeply
+    is
       \@got_names,
       \@expected_names,
       'got expected names in lineage after first splice';
@@ -307,7 +302,7 @@ sub test_insert_into_lineage {
     $lineage = $new1->get_path_to_root_node;
     @got_names = map {$_->get_name} @$lineage;
     #diag join ' : ', @got_names;
-    is_deeply
+    is
       \@got_names,
       ['insert1', '3 ancestral split', '1'],
       'got expected lineage names for newly inserted node';
@@ -329,7 +324,7 @@ sub test_insert_into_lineage {
     $lineage = $target2->get_path_to_root_node;
     @got_names = map {$_->get_name} @$lineage;
     
-    is_deeply
+    is
       \@got_names,
       \@expected_names,
       'got expected names in lineage after splice of long branch';
@@ -604,7 +599,7 @@ sub test_to_table_group_nodes {
     
     #  now do stuff with table
     my $header = $table->[0];
-    is_deeply (
+    is (
         [@{$header}[-3,-2,-1]],
         [qw /a1 a2 a11/],
         'last three header cols are from extra list',
@@ -612,7 +607,7 @@ sub test_to_table_group_nodes {
 
     for my $i (1..3) {
         my $row = $table->[$i]; 
-        is_deeply (
+        is (
             [@{$row}[-3,-2,-1]],
             [qw /1 2 3/],
             "last three cols of row $i are as expected",
@@ -620,7 +615,7 @@ sub test_to_table_group_nodes {
     }
     #  check one of the internals
     my $internal_row = $table->[1];
-    is_deeply (
+    is (
         [@{$internal_row}[0,1,2]],
         ['100___', '100___', ''],
         'got blank second element col for internal node'
@@ -698,7 +693,7 @@ sub test_export_tabular_tree {
             foreach my $child ($node_i->get_children) {
                 push @child_names_i, $child->get_name;
             }
-            is_deeply (
+            is (
                 [sort @child_names_i],
                 [sort @child_names],
                 'child names are the same for node ' . $node->get_name,
@@ -851,7 +846,7 @@ sub _test_export_nexus {
             foreach my $child ($node_i->get_children) {
                 push @child_names_i, $child->get_name;
             }
-            is_deeply (
+            is (
                 [sort @child_names_i],
                 [sort @child_names],
                 'child names are the same for node ' . $node->get_name,
@@ -1025,7 +1020,7 @@ sub test_remap_labels_from_hash {
        
     my @actual_new_labels = sort $tree1->get_labels();
 
-    is_deeply( \@actual_new_labels,
+    is( \@actual_new_labels,
                \@expected_new_labels,
                "Got expected labels" );
 }
@@ -1052,7 +1047,7 @@ sub test_remap_mismatched_labels {
 
     my @actual_new_labels = sort $tree1->get_labels();
 
-    is_deeply( \@actual_new_labels,
+    is( \@actual_new_labels,
                \@expected_new_labels,
                "Got expected labels" );
 }
@@ -1088,9 +1083,11 @@ sub test_newick_with_trailing_comment {
     $nwk .= '[trailing comment]';
     
     my $read_nex = Biodiverse::ReadNexus->new();
-    lives_ok  {
-        $read_nex->import_newick (data => $nwk)
-    }, 'can read newick with trailing comment';
+    ok (lives  {
+            $read_nex->import_newick (data => $nwk)
+        },
+        'can read newick with trailing comment'
+    );
     
 }
 

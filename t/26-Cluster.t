@@ -8,19 +8,15 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first/;
 
-use Test::More;
+use Test2::V0;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
@@ -94,7 +90,8 @@ sub _test_linkages {
     use Config;
     my $bits = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
 
-    local $TODO = 'These tests only pass on 64 bit architectures' if $bits != 64;
+    my $todo = todo 'These tests only pass on 64 bit architectures'
+      if $bits != 64;
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
 

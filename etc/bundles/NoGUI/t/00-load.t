@@ -1,9 +1,12 @@
 #!perl
 
-use Test::More tests => 1;
+use Test2::V0;
 
-BEGIN {
-    use_ok( 'Task::Biodiverse::NoGUI' ) || print "Bail out!\n";
-}
+use Task::Biodiverse::NoGUI;
+
 
 diag( "Testing Task::Biodiverse::NoGUI $Task::Biodiverse::NoGUI::VERSION, Perl $], $^X" );
+
+ok (1);
+
+done_testing();

@@ -6,20 +6,16 @@ use utf8;
 
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use Scalar::Util qw /blessed/;
 use File::Compare;
 
-use Test::More;
+use Test2::V0;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:matrix :basedata/;
 
@@ -152,7 +148,7 @@ sub test_remap_labels_from_hash {
         my @actual_new_labels = $mx->get_labels;
 
         # make sure everything we expect is there
-        is_deeply
+        is
           [sort @actual_new_labels],
           [sort @expected_new_labels],
           "Got expected labels for $label matrix using hash remap";
@@ -435,7 +431,7 @@ sub run_main_tests {
 
     foreach my $method (qw /get_element_pairs_with_value get_elements_with_value/) {
         my %pairs = $mx->get_element_pairs_with_value (value => $check_val);
-        is_deeply (
+        is (
             \%pairs,
             \%expected_pairs,
             "Got expected element pairs with value $check_val, $class"
@@ -444,7 +440,7 @@ sub run_main_tests {
 
     my @expected_element_array = qw /a b c d e f/;
     my @array = sort @{$mx->get_elements_as_array};
-    is_deeply (\@array, \@expected_element_array, 'Got correct element array');
+    is (\@array, \@expected_element_array, 'Got correct element array');
     
     $mx = $class->new (name => 'check get_defined_value');
     
@@ -517,7 +513,7 @@ sub run_with_site_data {
 
     foreach my $method (qw /get_element_pairs_with_value get_elements_with_value/) {
         my %pairs = $mx->$method (value => $expected_min);
-        is_deeply (
+        is (
             \%pairs,
             \%expected_pairs,
             "$method returned expected element pairs with value $expected_min, $class"
@@ -576,7 +572,7 @@ sub _test_to_table {
         my $table = $mx->to_table (type => $type);
         $tables{$type} = $table;
         
-        is_deeply ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
+        is ($table, $expected->{$type}, "export to $type is as expected for " . blessed ($mx));
     }
     
     #  now check the exports are the same with and without file handles

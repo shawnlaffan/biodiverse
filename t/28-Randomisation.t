@@ -1178,12 +1178,20 @@ sub test_randomise_tree_ref_args {
                 my $tree_ref_to_compare = $sp_pfx eq 'tree2' ? $tree2 : $tree;
                 my $orig_tree_name = $tree_ref_to_compare->get_param ('NAME');
 
-                is_or_isnt (
-                    $tree_ref_to_compare,
-                    $rand_tree_ref,
-                    "$shuffle_method: Tree refs $not_text same, orig & " . $ref->get_param ('NAME'),
-                    $use_is_or_isnt,
-                );
+                if (($use_is_or_isnt // 'is') eq 'is') {
+                    ref_is (
+                        $tree_ref_to_compare,
+                        $rand_tree_ref,
+                        "$shuffle_method: Tree refs $not_text same, orig & " . $ref->get_param ('NAME'),
+                    );
+                }
+                else {
+                    ref_is_not (
+                        $tree_ref_to_compare,
+                        $rand_tree_ref,
+                        "$shuffle_method: Tree refs $not_text same, orig & " . $ref->get_param ('NAME'),
+                    );
+                }
             }
         }
         #diag $tree . ' ' . $tree->get_param ('NAME');
@@ -1200,12 +1208,20 @@ sub test_randomise_tree_ref_args {
             "$shuffle_method: Shuffled tree refs $notnot_text same across randomisation iter 2",
         );
 
-        is_or_isnt (
-            $analysis_args_array[0]->{self_only}->{tree_ref},
-            $analysis_args_array[1]->{self_only}->{tree_ref},
-            "$shuffle_method: Shuffled tree refs $not_text same for different randomisation iter",
-            $use_is_or_isnt,
-        );
+        if (($use_is_or_isnt // 'is') eq 'is') {
+            ref_is (
+                $analysis_args_array[0]->{self_only}->{tree_ref},
+                $analysis_args_array[1]->{self_only}->{tree_ref},
+                "$shuffle_method: Shuffled tree refs $not_text same for different randomisation iter",
+            );
+        }
+        else {
+            ref_is_not (
+                $analysis_args_array[0]->{self_only}->{tree_ref},
+                $analysis_args_array[1]->{self_only}->{tree_ref},
+                "$shuffle_method: Shuffled tree refs $not_text same for different randomisation iter",
+            );
+        }
     }
 
     return;

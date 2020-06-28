@@ -9,9 +9,11 @@ use Carp;
 use Scalar::Util::Numeric qw/isfloat/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
 
-$| = 1;
+use Test2::V0;
 
-our $VERSION = '2.99_001';
+local $| = 1;
+
+our $VERSION = '3.99_001';
 
 
 use Data::Section::Simple qw(get_data_section);
@@ -29,7 +31,6 @@ use Biodiverse::ReadNexus;
 use Biodiverse::ElementProperties;
 
 use Scalar::Util qw /looks_like_number reftype/;
-use Test::More;
 use Test::TempDir::Tiny;
 use File::Spec::Functions 'catfile';
 
@@ -45,7 +46,6 @@ use Exporter::Easy (
                 get_temp_dir
                 get_temp_file_path
                 is_or_isnt
-                isnt_deeply
                 snap_to_precision
                 transform_element
                 verify_set_contents
@@ -128,47 +128,47 @@ use Exporter::Easy (
     ],
 );
 
-=item isnt_deeply
-
-Same as is_deeply except it returns false if the two structurees are the same. 
-
-Stolen from https://github.com/coryb/perl-test-trivial/blob/master/lib/Test/Trivial.pm
-
-=cut
+#=item isnt_deeply
+#
+#Same as is_deeply except it returns false if the two structurees are the same. 
+#
+#Stolen from https://github.com/coryb/perl-test-trivial/blob/master/lib/Test/Trivial.pm
+#
+#=cut
 
 # Test::More does not have an isnt_deeply
 # so hacking one in here.
-sub isnt_deeply {
-    my ($got, $expected, $name) = @_;
-    my $tb = Test::More->builder;
-
-    $tb->_unoverload_str(\$expected, \$got);
-
-    my $ok;
-    if ( !ref $got and !ref $expected ) {
-        # no references, simple comparison
-        $ok = $tb->isnt_eq($got, $expected, $name);
-    }
-    elsif ( !ref $got xor !ref $expected ) {
-        # not same type, so they are definitely different
-        $ok = $tb->ok(1, $name);
-    }
-    else { # both references
-        local @Test::More::Data_Stack = ();
-        if ( Test::More::_deep_check($got, $expected) ) {
-            # deep check passed, so they are the same
-            $ok = $tb->ok(0, $name);
-        }
-        else {
-            $ok = $tb->ok(1, $name);
-        }
-    }
-
-    return $ok;
-}
+#sub isnt_deeply {
+#    my ($got, $expected, $name) = @_;
+#    my $tb = Test::More->builder;
+#
+#    $tb->_unoverload_str(\$expected, \$got);
+#
+#    my $ok;
+#    if ( !ref $got and !ref $expected ) {
+#        # no references, simple comparison
+#        $ok = $tb->isnt_eq($got, $expected, $name);
+#    }
+#    elsif ( !ref $got xor !ref $expected ) {
+#        # not same type, so they are definitely different
+#        $ok = $tb->ok(1, $name);
+#    }
+#    else { # both references
+#        local @Test::More::Data_Stack = ();
+#        if ( Test::More::_deep_check($got, $expected) ) {
+#            # deep check passed, so they are the same
+#            $ok = $tb->ok(0, $name);
+#        }
+#        else {
+#            $ok = $tb->ok(1, $name);
+#        }
+#    }
+#
+#    return $ok;
+#}
 
 sub is_numeric_within_tolerance_or_exact_text {
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
+    #local $Test::Builder::Level = $Test::Builder::Level + 1;
 
     my %args = @_;
     my ($got, $expected) = @args{qw /got expected/};
@@ -1139,7 +1139,7 @@ sub run_indices_test1_inner {
         #  skip if nbrs == 1 as otherwise we throw errors when calcs have been validly removed
         #  due to insufficient nbrs
         my $valid_calc_list = $indices->get_valid_calculations_to_run;
-        is_deeply (
+        is (
             [sort @$calcs_to_test],
             [sort keys %$valid_calc_list],
             "Requested calculations are all valid, nbr list count = $nbr_list_count",
@@ -1178,7 +1178,7 @@ sub run_indices_test1_inner {
     ok (!$e, "Ran global postcalcs without eval error, $nbr_list_count nbrs");
 
 
-    my $pass = is_deeply (
+    my $pass = is (
         [sort keys %results],
         [sort keys %$expected_indices],
         "Obtained indices as per metadata, nbr list count = $nbr_list_count",

@@ -140,32 +140,32 @@ sub test_reintegrate_after_separate_randomisations {
         );
     }
 
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_spatial_output_ref (name => 'sp1'),
         $bd2->get_spatial_output_ref (name => 'sp1'),
         'spatial results differ after randomisation, bd1 & bd2',
     );
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_spatial_output_ref (name => 'sp1'),
         $bd3->get_spatial_output_ref (name => 'sp1'),
         'spatial results differ after randomisation, bd1 & bd3',
     );
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_cluster_output_ref (name => 'cl1'),
         $bd2->get_cluster_output_ref (name => 'cl1'),
         'cluster results differ after randomisation, bd1 & bd2',
     );
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_cluster_output_ref (name => 'cl1'),
         $bd3->get_cluster_output_ref (name => 'cl1'),
         'cluster results differ after randomisation, bd1 & bd3',
     );
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_cluster_output_ref (name => 'rg1'),
         $bd2->get_cluster_output_ref (name => 'rg1'),
         'region grower differ after randomisation, bd1 & bd2',
     );
-    isnt_deeply (
+    ref_is_not (
         $bd1->get_cluster_output_ref (name => 'rg1'),
         $bd3->get_cluster_output_ref (name => 'rg1'),
         'region grower results differ after randomisation, bd1 & bd3',

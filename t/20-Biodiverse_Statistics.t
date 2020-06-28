@@ -5,14 +5,11 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use Test::Lib;
 use rlib;
 
 use Test::More;
 
 local $| = 1;
-
-BEGIN { use_ok('Biodiverse::Statistics') };
 
 use Biodiverse::Statistics;
 

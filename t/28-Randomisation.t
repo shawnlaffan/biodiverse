@@ -7,21 +7,17 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first sum0/;
 use List::MoreUtils qw /any_u/;
 
-use Test::More;
-use Test::Deep;
+use Test2::V0;
+use Test::Deep::NoTest qw/eq_deeply/;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
 use Biodiverse::Cluster;
@@ -522,7 +518,7 @@ sub test_rand_structured_subset_richness_same_with_defq {
             foreach my $gp (sort keys %$failed_defq) {
                 my $expected = $bd->get_labels_in_group_as_hash(group => $gp);
                 my $observed = $rand_bd->get_labels_in_group_as_hash(group => $gp);
-                is_deeply (
+                is (
                     $observed,
                     $expected,
                     "defq check: $gp labels are same for rand_bd $i",
@@ -596,8 +592,8 @@ sub test_rand_structured_subset_richness_same {
             $i++;
             my @rand_gps = sort $rand_bd->get_groups;
             my @rand_lbs = sort $rand_bd->get_labels;
-            is_deeply (\@rand_gps, \@obs_gps, "group sets match for iteration $i");
-            is_deeply (\@rand_lbs, \@obs_lbs, "label sets match for iteration $i");
+            is (\@rand_gps, \@obs_gps, "group sets match for iteration $i");
+            is (\@rand_lbs, \@obs_lbs, "label sets match for iteration $i");
         }
     };
 
@@ -652,7 +648,7 @@ sub test_rand_labels_all_constant {
                 no autovivification;
                 my $old_range = $bd->get_groups_with_label_as_hash (label => $label);
                 my $new_range = $rand_bd->get_groups_with_label_as_hash (label => $label);
-                is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
+                is ($new_range, $old_range, "Range matches for $label, randomisation $i");
             }
         }
     };
@@ -706,7 +702,7 @@ sub test_rand_labels_constant {
                 no autovivification;
                 my $old_range = $bd->get_groups_with_label_as_hash (label => $label);
                 my $new_range = $rand_bd->get_groups_with_label_as_hash (label => $label);
-                is_deeply ($new_range, $old_range, "Range matches for $label, randomisation $i");
+                is ($new_range, $old_range, "Range matches for $label, randomisation $i");
             }
         }
     };
@@ -785,12 +781,12 @@ sub test_rand_constant_labels_differing_input_methods {
 
         for my $gp ($bd->get_groups) {
             my $expected = scalar $bd_a->get_labels_in_group_as_hash (group => $gp);
-            is_deeply (
+            is (
                 scalar $bd_t->get_labels_in_group_as_hash (group => $gp),
                 $expected,
                 $gp,
             );
-            is_deeply (
+            is (
                 scalar $bd_th->get_labels_in_group_as_hash (group => $gp),
                 $expected,
                 $gp,
@@ -883,7 +879,7 @@ sub test_default_args_assigned {
                 my $p_name = $p->get_name;
                 ok exists $args_hash->{$p_name}, "$p_name exists";
                 my $default = $p->get_default_param_value;
-                is_deeply $args_hash->{$p_name}, $default, "$p_name was set to default value";
+                is $args_hash->{$p_name}, $default, "$p_name was set to default value";
             }
         }
     }
@@ -1051,7 +1047,7 @@ sub test_label_properties_reassigned {
         my $rand_bd = $rand_bd_array->[0];
 
         my $prop_keys_rand = $rand_bd->get_labels_ref->get_element_property_keys;
-        is_deeply ($prop_keys_rand, $prop_keys, "Property keys match");
+        is ($prop_keys_rand, $prop_keys, "Property keys match");
         
         my @refs = $rand_bd->get_spatial_output_refs;
         my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
@@ -1193,12 +1189,12 @@ sub test_randomise_tree_ref_args {
         #diag $tree . ' ' . $tree->get_param ('NAME');
         #diag $tree2 . ' ' . $tree2->get_param ('NAME');
 
-        is (
+        ref_is (
             $analysis_args_array[0]->{self_only}->{tree_ref},
             $analysis_args_array[0]->{select_all}->{tree_ref},
             "$shuffle_method: Shuffled tree refs $notnot_text same across randomisation iter 1",
         );
-        is (
+        ref_is (
             $analysis_args_array[1]->{self_only}->{tree_ref},
             $analysis_args_array[1]->{select_all}->{tree_ref},
             "$shuffle_method: Shuffled tree refs $notnot_text same across randomisation iter 2",
@@ -1463,7 +1459,7 @@ sub test_function_stability {
             $expected = eval $exp_data;
         }
 
-        is_deeply (\%got, $expected, "Stability check: Expected results for $function");
+        is (\%got, $expected, "Stability check: Expected results for $function");
     }
 
     return;
@@ -1529,7 +1525,7 @@ sub test_spatial_allocation_order_fails {
     my $has_label_alloc_sp = grep {$_ eq 'sp_to_track_allocations'} @$spatial_outputs;
 
     {
-        local $TODO = 'Issue #588';
+        my $todo = todo 'Issue #588';
         ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation involves mergers');
     }
     
@@ -1627,7 +1623,7 @@ sub test_p_ranks  {
                 $key =~ s/^Q_//;
                 $expected_keys{$key}++;
             }
-            is_deeply (
+            is (
                 [sort keys %$sig_listref],
                 [sort keys %expected_keys],
                 "got expected keys for $gp",
@@ -1662,7 +1658,7 @@ sub test_p_ranks  {
                 $key =~ s/^Q_//;
                 $expected_keys{$key}++;
             }
-            is_deeply (
+            is (
                 [sort keys %$sig_listref],
                 [sort keys %expected_keys],
                 "got expected keys for $node_name",
@@ -1738,7 +1734,7 @@ sub test_p_rank_thresh_calcs {
         comp_list_ref => \%check_hash,
     );
     
-    is_deeply ($p_rank, \%expected, 'got expected p-rank thresholds');
+    is ($p_rank, \%expected, 'got expected p-rank thresholds');
     
     #use Data::Dumper qw/Dumper/;
     #local $Data::Dumper::Sortkeys = 1;
@@ -1801,7 +1797,7 @@ sub test_p_rank_calcs {
         comp_list_ref => \%check_hash,
     );
     
-    is_deeply ($p_rank, \%expected, 'got expected p-ranks');
+    is ($p_rank, \%expected, 'got expected p-ranks');
     
     #use Data::Dumper qw/Dumper/;
     #local $Data::Dumper::Sortkeys = 1;

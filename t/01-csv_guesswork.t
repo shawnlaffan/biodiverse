@@ -5,11 +5,8 @@ use warnings;
 
 local $| = 1;
 
-use Test::Lib;
+use Test2::V0;
 use rlib;
-
-use Test::More;
-use Test::Exception;
 
 use English qw/-no_match_vars/;
 
@@ -41,7 +38,7 @@ sub test_unicode_filename {
     my $csv = eval {
         $obj->get_csv_object_using_guesswork (fname => $fname);
     };
-    is ($@, '', 'no excpetion when using unicode file name');
+    is ($@, '', 'no exception when using unicode file name');
     is ($csv->sep_char, ',', 'got expected char');
 }
 
@@ -84,7 +81,7 @@ sub test_escape_char {
     
     $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","""col2"""\n};
     $sep_char = $obj->guess_field_separator(string => $string);
-    is ($sep_char, $sep, qq{field separator is , when escape char is double quote char});
+    is ($sep_char, $sep, qq{field separator is ',' when escape char is double quote char});
     $escape_char = $obj->guess_escape_char (string => $string);
     
     my $csv = Text::CSV_XS->new ({
@@ -98,7 +95,7 @@ sub test_escape_char {
         my @flds = $csv->fields;
         push @fld_counts, scalar @flds;
     }
-    is_deeply ([2,2,2], \@fld_counts, 'got expected field counts');
+    is ([2,2,2], \@fld_counts, 'got expected field counts');
     
     #  now with \ as escape char
     $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","[\\"col2\\"]"\n};
@@ -117,7 +114,7 @@ sub test_escape_char {
         my @flds  = $csv->fields;
         push @fld_counts, scalar @flds;
     }
-    is_deeply ([2,2,2], \@fld_counts, 'got expected field counts');
+    is ([2,2,2], \@fld_counts, 'got expected field counts');
     
     $string = qq{"h1","h2"\nr1c1,r1c2\n"col1","col2\\\\"""\n};
     #$sep_char = $obj->guess_field_separator(string => $string);
@@ -156,7 +153,7 @@ sub test_guesswork {
     my $string = qq{a b,n m,k l\n"a b","n m","k l"};
 
     $csv_got = $obj->get_csv_object_using_guesswork(string => $string);
-    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string');
+    is ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string');
 
     my $filename = get_temp_file_path('biodiverseXXXX');
     open(my $fh, '>', $filename) or die "test_guesswork: Cannot open $filename\n";
@@ -167,7 +164,7 @@ sub test_guesswork {
     $fh->close;
 
     $csv_got = $obj->get_csv_object_using_guesswork(fname => $filename);
-    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using file');
+    is ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using file');
 
     $csv_exp = $obj->get_csv_object_using_guesswork(
         sep_char   => 'guess',
@@ -175,7 +172,7 @@ sub test_guesswork {
         eol        => 'guess',
         string     => $string,
     );
-    is_deeply ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string and explicit guess args');
+    is ($csv_got, $csv_exp, 'get_csv_object_using_guesswork using string and explicit guess args');
 
 }
 
@@ -191,5 +188,5 @@ sub test_r_data_frame {
 
     $csv_got = $obj->get_csv_object_using_guesswork (string => $string);
 
-    is_deeply ($csv_got, $csv_exp, 'guesswork with r data frame style file');
+    is ($csv_got, $csv_exp, 'guesswork with r data frame style file');
 }

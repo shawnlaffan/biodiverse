@@ -7,14 +7,11 @@ use 5.010;
 use English qw { -no_match_vars };
 use Carp;
 
-use Test::Lib;
-use Test::Most;
 use rlib;
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::More;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
@@ -68,18 +65,18 @@ sub test_drop_axis {
     is ($gp->get_axis_count, 3, 'got expected group axis count');
 
     #  some fails
-    dies_ok (
-        sub {$bd->drop_element_axis (axis => 20, type => 'label')},
+    ok (dies 
+        {$bd->drop_element_axis (axis => 20, type => 'label')},
         'axis too large',
-    );
-    dies_ok (
-        sub {$bd->drop_element_axis (axis => -20, type => 'label')},
+    ) or note $@;
+    ok (dies 
+        {$bd->drop_element_axis (axis => -20, type => 'label')},
         'neg axis too large',
-    );
-    dies_ok (
-        sub {$bd->drop_element_axis (axis => 'glert', type => 'label')},
+    ) or note $@;
+    ok (dies
+        {$bd->drop_element_axis (axis => 'glert', type => 'label')},
         'non-numeric axis',
-    );
+    ) or note $@;
     
     $bd->drop_element_axis (axis => 2, type => 'label');
     is ($lb->get_axis_count, 2, 'label axis count reduced');
@@ -114,10 +111,10 @@ sub test_drop_axis {
     my $new_samp_count  = $bd->get_label_sample_count (element => '0.5_:5_');
     is ($new_samp_count, $orig_samp_count, "Label sample counts match after dropped axis");
 
-    dies_ok (
-        sub {$bd->drop_element_axis (axis => 0, type => 'group')},
+    ok (dies
+        {$bd->drop_element_axis (axis => 0, type => 'group')},
         'dies if no axes will be left',
-    );
+    ) or note $@;
 
     my $bd_with_outputs = $bd_base->clone;
     my $sp = $bd_with_outputs->add_spatial_output (name => 'spatialisationater');
@@ -125,10 +122,10 @@ sub test_drop_axis {
         spatial_conditions => ['sp_self_only()'],
         calculations       => ['calc_richness'],
     );
-    dies_ok (
-        sub {$bd_with_outputs->drop_element_axis (axis => 1, type => 'label')},
+    ok ( dies
+        {$bd_with_outputs->drop_element_axis (axis => 1, type => 'label')},
         'dies with existing outputs',
-    );
+    ) or note $@;
 }
 
 

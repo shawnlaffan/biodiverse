@@ -66,7 +66,7 @@ sub _calc_pe {
             #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
 
-            #  Data::Alias avoids hash deref overheads below
+            #  refaliasing avoids hash deref overheads below
             \my %node_lengths = $nodes_in_path;
 
             #  loop over the nodes and run the calcs

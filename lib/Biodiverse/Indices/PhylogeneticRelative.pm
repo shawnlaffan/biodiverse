@@ -1,5 +1,5 @@
 package Biodiverse::Indices::PhylogeneticRelative;
-use 5.016;
+use 5.022;
 use strict;
 use warnings;
 
@@ -9,14 +9,7 @@ use List::Util qw /sum/;
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
-BEGIN {
-    if ($PERL_VERSION lt 'v5.22.0') {
-        eval 'use parent qw /Biodiverse::Indices::PhylogeneticRelative::DataAlias/';
-    }
-    else {
-        eval 'use parent qw /Biodiverse::Indices::PhylogeneticRelative::RefAlias/';
-    }
-}
+use parent qw /Biodiverse::Indices::PhylogeneticRelative::RefAlias/;
 
 use Carp;
 

@@ -1,7 +1,7 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
 package Biodiverse::Indices::Phylogenetic;
-use 5.020;
+use 5.022;
 use strict;
 use warnings;
 
@@ -28,15 +28,8 @@ use constant HAVE_DATA_RECURSIVE
 
   
 #warn "Using Data::Recursive\n" if HAVE_DATA_RECURSIVE;
-  
-BEGIN {
-    if ($PERL_VERSION lt 'v5.22.0') {
-        eval 'use parent qw /Biodiverse::Indices::Phylogenetic::DataAlias/';
-    }
-    else {
-        eval 'use parent qw /Biodiverse::Indices::Phylogenetic::RefAlias/';
-    }
-}
+
+use parent qw /Biodiverse::Indices::Phylogenetic::RefAlias/;
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

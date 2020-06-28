@@ -21,21 +21,6 @@ local $| = 1;
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;
 
-#  from Statistics::Descriptive
-sub is_between
-{
-    local $Test::Builder::Level = $Test::Builder::Level + 1;
-    
-    my ($have, $want_bottom, $want_top, $blurb) = @_;
-
-    ok (
-        (($have >= $want_bottom) &&
-        ($want_top >= $have)),
-        $blurb
-    );
-}
-
-
 our $tol = 1E-13;
 
 
@@ -366,14 +351,13 @@ sub run_tests {
 
     foreach my $test (@tests) {
         my $sub   = $test->{sub};
-        my $upper = $test->{ex} + $tol;
-        my $lower = $test->{ex} - $tol;
         my $msg = "$sub expected $test->{ex} +/- $tol";
 
         my $val = $tree->$sub;
+        my $expected = $test->{ex};
         #diag "$msg, $val\n";
 
-        is_between (eval {$tree->$sub}, $lower, $upper, $msg);
+        ok (abs ($val - $expected) <= $tol, $msg);
     }
 
     return;    

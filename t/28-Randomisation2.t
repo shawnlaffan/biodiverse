@@ -398,13 +398,15 @@ sub test_checkpoint_cwd_check {
 
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     
-    lives_ok {
+    ok (lives {
         $rand->run_analysis (
             function   => 'rand_csr_by_group',
             iterations => 9,
             save_checkpoint => 1,
-        );
-    };
+        )},
+        'analysis ran'
+    ) or note $@;
+    
     
     {
         my $toto = todo 'needs work on BSD, perhaps only under Cirrus'

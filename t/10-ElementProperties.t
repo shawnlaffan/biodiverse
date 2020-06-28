@@ -5,11 +5,9 @@ use warnings;
 
 local $| = 1;
 
-use Test::Lib;
-use rlib;
+use Test2::V0;
 
-use Test::More;
-use Test::Exception;
+use rlib;
 
 use English qw(
     -no_match_vars
@@ -79,7 +77,7 @@ use Biodiverse::ElementProperties;
     my $success = eval { $lb_props->import_data(%lbprops_args, file => $fname) };    
     diag $EVAL_ERROR if $EVAL_ERROR;
     
-    ok ($success == 1, 'import label properties without error');
+    is ($success, 1, 'import label properties without error');
     
     eval {
         $bd->assign_element_properties (
@@ -113,7 +111,7 @@ use Biodiverse::ElementProperties;
             list    => 'PROPERTIES',
         );
         if ($empty{$label}) {
-            ok (scalar keys %$list == 0, "$label list is empty");
+            is (scalar keys %$list, 0, "$label list is empty");
         }
         else {
             ok (scalar keys %$list > 0, "$label list has values");
@@ -144,7 +142,7 @@ use Biodiverse::ElementProperties;
             element => $label,
             list    => 'PROPERTIES',
             );
-        ok (scalar keys %$list == 0, "$label list is empty");
+        is (scalar keys %$list, 0, "$label list is empty");
     }
 
     my $gp = $bd->get_groups_ref;
@@ -153,7 +151,7 @@ use Biodiverse::ElementProperties;
             element => $group,
             list    => 'PROPERTIES',
             );
-        ok (scalar keys %$list == 0, "$group list is empty");
+        is (scalar keys %$list, 0, "$group list is empty");
     }
 
     

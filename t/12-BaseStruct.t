@@ -63,7 +63,7 @@ sub test_get_elements_that_pass_def_query {
 
     my @expected = ('1950000:1350000', '1950000:1450000');
     
-    is_deeply (
+    is (
         \@passed,
         \@expected,
         "Simple def query produced the correct elements"
@@ -166,7 +166,7 @@ sub subtest_for_polygon_shapefile_export {
         my $centroid = $shape->area_centroid;
         my @el_coord_array = $basestruct->get_element_name_coord (element => $element_name);
         my @centroid_coords = @$centroid{qw /X Y/};
-        is_deeply (\@centroid_coords, [@el_coord_array[0,1]], "Centroid matches for $element_name");
+        is (\@centroid_coords, [@el_coord_array[0,1]], "Centroid matches for $element_name");
     }
 
     return;

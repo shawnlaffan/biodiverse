@@ -1349,7 +1349,7 @@ sub run_sp_cond_tests {
 
             is (keys %$nbrs, $expected, "Nbr count: $cond$index_text");
             if ($nbrs_from_no_index->{$condition}) {
-                is_deeply ($nbrs, $nbrs_from_no_index->{$condition}, "Nbr hash: $cond$index_text")
+                is ($nbrs, $nbrs_from_no_index->{$condition}, "Nbr hash: $cond$index_text")
             }
             else {
                 $nbrs_from_no_index->{$condition} = $nbrs;

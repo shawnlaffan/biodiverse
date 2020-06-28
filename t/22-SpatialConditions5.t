@@ -8,9 +8,8 @@ use English qw{
     -no_match_vars
 };
 
-use Test::Lib;
 use rlib;
-use Test::More;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;

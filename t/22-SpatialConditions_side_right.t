@@ -6,12 +6,12 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use Test::Lib;
 use rlib;
+use Test2::V0;
+
 use Scalar::Util qw /looks_like_number/;
 use Data::Dumper qw /Dumper/;
-#use Test::More tests => 255;
-use Test::More;
+
 
 local $| = 1;
 

@@ -6,12 +6,12 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use Test::Lib;
 use rlib;
+use Test2::V0;
+
 use Scalar::Util qw /looks_like_number/;
 use Data::Dumper qw /Dumper/;
-#use Test::More tests => 255;
-use Test::More;
+
 
 local $| = 1;
 
@@ -103,7 +103,7 @@ sub test_ellipse_angles_match {
         my $sub_hash = $ellipse_results->{$res_combo};
         my @targets = grep {/flag$/} sort keys %$sub_hash;
 
-        is_deeply (
+        is (
             $sub_hash->{$targets[0]},
             $sub_hash->{$targets[1]},
             "ellipse nbr set matches for rotate_angle_deg and rotate_angle, $res_combo",

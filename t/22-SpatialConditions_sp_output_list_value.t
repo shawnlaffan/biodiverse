@@ -6,10 +6,8 @@ use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 
-use Test::Lib;
 use rlib;
-
-use Test::Most;
+use Test2::V0;
 
 local $| = 1;
 
@@ -62,7 +60,7 @@ sub test_sp_get_spatial_output_list_value {
     );
 
     my $list_ref = $sp_to_test1->get_list_ref (element => '1:1', list => 'SPATIAL_RESULTS');
-    is_deeply ($list_ref, $expected, 'got expected SPATIAL_RESULTS list');
+    is ($list_ref, $expected, 'got expected SPATIAL_RESULTS list');
 
     my $sp_to_test1a = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value1a');
     $sp_to_test1a->run_analysis (
@@ -71,10 +69,10 @@ sub test_sp_get_spatial_output_list_value {
     );
 
     $list_ref = $sp_to_test1a->get_list_ref (element => '1:1', list => 'SPATIAL_RESULTS');
-    is_deeply ($list_ref, $expected, 'defaulted to SPATIAL_RESULTS list');
+    is ($list_ref, $expected, 'defaulted to SPATIAL_RESULTS list');
     
     $list_ref = $sp_to_test1a->get_list_ref (element => '1:1', list => 'EL_LIST_SET1');
-    is_deeply ($list_ref, \%all_gps, 'got expected element list');
+    is ($list_ref, \%all_gps, 'got expected element list');
     
     
     #  should work but have empty results    
@@ -88,23 +86,25 @@ sub test_sp_get_spatial_output_list_value {
         ENDW_SINGLE => undef, ENDW_WE => undef,
     };
     $list_ref = $sp_to_test2->get_list_ref (element => '1:1', list => 'SPATIAL_RESULTS');
-    is_deeply ($list_ref, $expected, 'got expected SPATIAL_RESULTS list when no_error_if_no_index is true');
+    is ($list_ref, $expected, 'got expected SPATIAL_RESULTS list when no_error_if_no_index is true');
 
     my $sp_to_test3 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value3');
-    dies_ok {
+    ok (dies {
         $sp_to_test3->run_analysis (
             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
             spatial_conditions => ['sp_get_spatial_output_list_value (output => "get_vals_from", list => "SPATIAL_RESULTS", index => "NONEXISTENT")'],
-        )
-    } 'error thrown when non-existent index accessed';
+        )},
+        'error thrown when non-existent index accessed'
+    ) or note $@;
     
     my $sp_to_test4 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value4');
-    dies_ok {
+    ok (dies {
         $sp_to_test4->run_analysis (
             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
             spatial_conditions => ['sp_get_spatial_output_list_value (output => "snerble", list => "SPATIAL_RESULTS", index => "ENDW_WE")'],
-        )
-    } 'error thrown when non-existent output accessed';
+        )},
+        'error thrown when non-existent output accessed'
+    );
 
     $sp1->add_to_hash_list (
         element => '5:5',
@@ -112,10 +112,11 @@ sub test_sp_get_spatial_output_list_value {
         key1    => 1,
     );
     my $sp_to_test5 = $bd->add_spatial_output (name => 'test_sp_get_spatial_output_list_value5');
-    lives_ok {
+    ok (lives {
         $sp_to_test5->run_analysis (
             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
             spatial_conditions => ['sp_get_spatial_output_list_value (output => "get_vals_from", list => "extra_list", index => "key1")'],
-        )
-    } 'no error thrown when index in subset of elements';
+        )},
+        'no error thrown when index in subset of elements'
+    );
 }

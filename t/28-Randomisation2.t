@@ -8,21 +8,17 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first sum0/;
 use List::MoreUtils qw /any_u/;
 
-use Test::More;
-use Test::Deep;
+use Test2::V0;
+use Test::Deep::NoTest qw/eq_deeply/;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :element_properties :tree :utils/;
 use Biodiverse::Cluster;
@@ -221,7 +217,7 @@ sub check_same_results_given_same_prng_seed {
     my $table_2in1 = $sp->to_table (list => $rand_name_2in1 . '>>SPATIAL_RESULTS');
     my $table_1x1  = $sp->to_table (list => $rand_name_1x1  . '>>SPATIAL_RESULTS');
 
-    is_deeply (
+    is (
         $table_2in1,
         $table_1x1,
         "$prefix: Results same when init PRNG seed same and iteration counts same"
@@ -251,7 +247,7 @@ sub check_same_results_given_same_prng_seed {
     );
     $table_2in1 = $sp->to_table (list => $rand_name_2in1 . '>>SPATIAL_RESULTS');
 
-    is_deeply (
+    is (
         $table_2in1,
         $table_1x1,
         "$prefix: Changed function arg ignored in analysis with an iter completed"
@@ -325,7 +321,7 @@ sub node_calcs_used_same_element_sets {
 
         my $o_element_list = $o_node_ref->get_list_ref (list => 'EL_LIST_SET1');
         my $r_element_list = $r_node_ref->get_list_ref (list => 'EL_LIST_SET1');
-        is_deeply ($o_element_list, $r_element_list, "$name used same element lists");
+        is ($o_element_list, $r_element_list, "$name used same element lists");
         
         my $o_sp_res = $o_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
         my $r_sp_res = $r_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
@@ -411,20 +407,22 @@ sub test_checkpoint_cwd_check {
     };
     
     {
-        local $TODO = 'needs work on BSD, perhaps only under Cirrus'
+        my $toto = todo 'needs work on BSD, perhaps only under Cirrus'
           if $^O =~ /bsd/i;
 
         $rand = $bd->add_randomisation_output (name => $rand_name . '2');
         chmod 0444, '.';
         
-        throws_ok {
-            $rand->run_analysis (
-                function   => 'rand_csr_by_group',
-                iterations => 9,
-                save_checkpoint => 1,
-            );
-        } qr /Unable to save checkpoint files to current working directory/,
-        'should be unable to write checkpoints';
+        like (dies {
+                $rand->run_analysis (
+                    function   => 'rand_csr_by_group',
+                    iterations => 9,
+                    save_checkpoint => 1,
+                )
+            },
+            qr /Unable to save checkpoint files to current working directory/,
+            'should be unable to write checkpoints'
+        );
         
         #chmod 0777, '.';
         chdir $old_wd;

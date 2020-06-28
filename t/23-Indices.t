@@ -5,11 +5,8 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use Test::Lib;
+use Test2::V0;
 use rlib;
-
-use Test::More;
-use Test::Exception;
 
 local $| = 1;
 
@@ -235,7 +232,7 @@ sub test_metadata {
 
     TODO:
     {
-        local $TODO = 'Need to first sort out indices which are simply swiped '
+        my $todo = todo 'Need to first sort out indices which are simply swiped '
         . 'from an inner sub, which vary depending on inputs, '
         . 'and which ones are post_calcs and post_calc_globals';
         #  group and label prop data and hashes depend on inputs => no props = no indices

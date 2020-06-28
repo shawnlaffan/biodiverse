@@ -6,7 +6,6 @@ use Data::Dumper;
 use Path::Class;
 use Path::Tiny qw /path/;
 
-use Test::Lib;
 use rlib;
 
 use Utils qw /is_between/;
@@ -17,8 +16,7 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
-use Test::Most;
+use Test2::V0;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -70,15 +68,14 @@ sub test_import_roundtrip_shapefile {
 
     #  get the original - should add some labels with special characters
     my $bd = Biodiverse::BaseData->new (%bd_args);
-    eval {
+    ok (lives {
         $bd->import_data(
             input_files   => [$fname],
             group_columns => [3, 4],
             label_columns => [1, 2],
-        );
-    };
-    $e = $EVAL_ERROR;
-    ok (!$e, 'import vanilla with no exceptions raised');
+        )},
+        'import vanilla with no exceptions raised'
+    ) or note $@;
     
     # add some labels so we have multiple entries in some cells 
     # with different labels
@@ -167,11 +164,11 @@ sub test_import_roundtrip_shapefile {
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
-        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        is (\@new_labels, \@orig_labels, "label lists match for $fname");
         
         my @new_groups  = sort $new_bd->get_groups;
         my @orig_groups = sort $bd->get_groups;
-        is_deeply (\@new_groups, \@orig_groups, "group lists match for $fname");
+        is (\@new_groups, \@orig_groups, "group lists match for $fname");
         
 
         my $new_lb = $new_bd->get_labels_ref;
@@ -182,7 +179,7 @@ sub test_import_roundtrip_shapefile {
                 
                 #say "new list: " . join(',', keys %$new_list) . join(',', values %$new_list) if ($new_list);
                 #say "orig list: " . join(',', keys %$orig_list) . join(',', values %$orig_list)if ($orig_list);
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
             }
         };
 
@@ -234,7 +231,7 @@ sub _test_import_shapefile_polygon {
 
     my @new_labels  = sort $new_bd->get_labels;
     my @orig_labels = ('Dromornis_planei');
-    is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+    is (\@new_labels, \@orig_labels, "label lists match for $fname");
 
     my @new_groups  = sort $new_bd->get_groups;
     my $exp_gp = $args{expected_gp_count} // ($is_line ? 140 : 240);
@@ -256,10 +253,8 @@ sub _test_import_shapefile_polygon {
             ? 15338541  
             : 1794988604045;  #  prob too precise
     
-        is_between (
-            int $got,
-            $exp - 1,
-            $exp + 1,
+        ok (
+            ($got - $exp) <= 1,
             "total sample counts $got within tolerance from $exp for $orig_labels[0] in $fname, $info",
         );
     }    

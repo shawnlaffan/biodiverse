@@ -3,19 +3,16 @@
 use strict;
 use warnings;
 
-use Test::More tests => 55;
-
-use lib 't/lib';
-use Test::Lib;
+use Test2::V0;
 use rlib;
-use Utils qw/is_between compare_hash_by_ranges/;
+use Utils qw/compare_hash_by_ranges/;
 
 use Benchmark;
 use Biodiverse::Statistics;
 
 my $stats_class = 'Biodiverse::Statistics';
 
-$| = 1;
+local $| = 1;
 
 {
     # test #1
@@ -30,7 +27,7 @@ $| = 1;
     $stat->add_data( 1, 3, 5, 7 );
     @results = $stat->least_squares_fit();
     # TEST
-    is_deeply (
+    is (
         [@results[0..1]],
         [-1, 2],
         "least_squares_fit returns the correct result."
@@ -107,7 +104,7 @@ $| = 1;
     ##Test memorization of last frequency distribution
     my %g = $stat->frequency_distribution();
     # TEST
-    is_deeply(
+    is (
         \%f,
         \%g,
         "memorization of last frequency distribution"
@@ -132,7 +129,7 @@ $| = 1;
     my %f = $stat->frequency_distribution(\@freq_bins);
 
     # TEST
-    is_deeply(
+    is (
         \%f,
         {
             20 => 3,
@@ -170,7 +167,7 @@ SKIP: {
     my $stat = $stats_class->new();
     $stat->add_data(1,2,3,4,5,6,7,8,9,10);
     # TEST
-    is(
+    is (
         $stat->trimmed_mean(0.1,0.1),
         $stat->trimmed_mean(0.1),
         "correct parsing of method parameters",
@@ -189,16 +186,12 @@ SKIP: {
     $stat->add_data((0.001) x 6);
 
     # TEST
-    is_between ($stat->variance(),
-        0,
-        0.00001,
+    ok (abs ($stat->variance()) <= 0.00001,
         "Workaround to avoid rounding errors that yield negative variance."
     );
 
     # TEST
-    is_between ($stat->standard_deviation(),
-        0,
-        0.00001,
+    ok ($stat->standard_deviation() <= 0.00001,
         "Workaround to avoid rounding errors that yield negative std-dev."
     );
 }
@@ -260,7 +253,7 @@ SKIP: {
     my $f_d = $stat->frequency_distribution_ref(\@freq_bins);
 
     # TEST
-    is_deeply(
+    is (
         $f_d,
         {
             20 => 3,
@@ -281,10 +274,7 @@ SKIP: {
     $stat->add_data(2, 4, 8);
 
     # TEST
-    is_between(
-        $stat->geometric_mean(),
-        (4-1e-4),
-        (4+1e-4),
+    ok (abs ($stat->geometric_mean() - 4) <= 1e-4,
         "Geometric Mean Test #1",
     )
 }
@@ -297,17 +287,13 @@ SKIP: {
 
     # TEST
     $expected = 3.11889574523909;
-    is_between ($stat->skewness(),
-        $expected - 1E-13,
-        $expected + 1E-13,
+    ok (abs ($stat->skewness() - $expected) <= 1E-13,
         "Skewness of $expected +/- 1E-13"
     );
 
     # TEST
     $expected = 9.79924471616366;
-    is_between ($stat->kurtosis(),
-        $expected - 1E-13,
-        $expected + 1E-13,
+    ok (abs ($stat->kurtosis() - $expected) <= 1E-13,
         "Kurtosis of $expected +/- 1E-13"
     );
     
@@ -318,17 +304,13 @@ SKIP: {
     
     # TEST
     $expected = -0.306705104889384;
-    is_between ($stat->skewness(),
-        $expected - 1E-13,
-        $expected + 1E-13,
+    ok (abs ($stat->skewness() - $expected) <= 1E-13,
         "Skewness of $expected +/- 1E-13"
     );
 
     # TEST
     $expected = -2.09839497356215;
-    is_between ($stat->kurtosis(),
-        $expected - 1E-13,
-        $expected + 1E-13,
+    ok (abs ($stat->kurtosis() - $expected) <= 1E-13,
         "Kurtosis of $expected +/- 1E-13"
     );
 }
@@ -426,14 +408,14 @@ SKIP: {
     my $stat = $stats_class->new();
 
     # TEST
-    is_deeply(
+    is (
         [ $stat->median(), ],
         [ undef() ],
         "->median() Returns undef in list-context.",
     );
 
     # TEST
-    is_deeply(
+    is (
         [ $stat->standard_deviation(), ],
         [ undef() ],
         "->standard_deviation() Returns undef in list-context.",
@@ -446,14 +428,14 @@ SKIP: {
     $stats->add_data_with_samples([{1 => 10}, {2 => 20}, {3 => 30}, {4 => 40}, {5 => 50}]);
 
     # TEST
-    is_deeply(
+    is (
         $stats->_data(),
         [ 1, 2, 3, 4, 5 ],
         'add_data_with_samples: data set is correct',
     );
 
     # TEST
-    is_deeply(
+    is (
         $stats->_samples(),
         [ 10, 20, 30, 40, 50 ],
         'add_data_with_samples: samples are correct',
@@ -488,10 +470,12 @@ SKIP: {
     }
 
     #TEST
-    is_deeply (
+    is (
         $stat1,
         $stat2,
         'stats objects consistent after adding new data',
     );
     
 }
+
+done_testing();

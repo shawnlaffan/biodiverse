@@ -5,9 +5,8 @@ use warnings;
 
 local $| = 1;
 
-use Test::Lib;
 use rlib;
-use Test::Most;
+use Test2::V0;
 
 use Biodiverse::TestHelpers qw{
     :runners
@@ -60,7 +59,7 @@ sub test_no_recycling {
                 element => $gp,
                 list    => 'LABEL_COUNT_RANK_PCT',
             );
-            isnt_deeply ($sp_results, $sp_results1, "lists not the same $gp");
+            isnt ($sp_results, $sp_results1, "lists not the same $gp");
         }
     }
 }

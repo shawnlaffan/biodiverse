@@ -10,9 +10,9 @@ local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $generate_result_sets = 0;
 
-use Test::Lib;
 use rlib;
-use Test::Most;
+use Test2::V0;
+
 use List::Util qw /sum/;
 
 use Biodiverse::TestHelpers qw{

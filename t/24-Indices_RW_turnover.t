@@ -8,9 +8,9 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-use Test::Lib;
 use rlib;
-use Test::More;
+use Test2::V0;
+
 use Biodiverse::Config;
 
 use Biodiverse::TestHelpers qw{

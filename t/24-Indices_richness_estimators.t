@@ -5,7 +5,7 @@ use 5.016;
 local $| = 1;
 
 use rlib;
-use Test::Most;
+use Test2::V0;
 
 use Readonly;
 

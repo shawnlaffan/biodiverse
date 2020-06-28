@@ -10,9 +10,9 @@ local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $generate_result_sets = 0;
 
-use Test::Lib;
 use rlib;
-use Test::Most;
+use Test2::V0;
+
 use List::Util qw /sum/;
 
 use Biodiverse::TestHelpers qw{
@@ -126,7 +126,7 @@ sub test_pd_local {
         list    => 'SPATIAL_RESULTS',
         element => $target_elt,
     );
-    is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+    is ($results_list, \%expected, "Got expected results for $target_elt");
 }
 
 sub test_calc_last_shared_ancestor_props {
@@ -170,7 +170,7 @@ sub test_calc_last_shared_ancestor_props {
         list    => 'SPATIAL_RESULTS',
         element => $target_elt,
     );
-    is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+    is ($results_list, \%expected, "Got expected results for $target_elt");
 
     #  now check one cell with a single lineage
     $target_elt = '3300000:3100000';
@@ -185,6 +185,6 @@ sub test_calc_last_shared_ancestor_props {
         list    => 'SPATIAL_RESULTS',
         element => $target_elt,
     );
-    is_deeply ($results_list, \%expected, "Got expected results for $target_elt");
+    is ($results_list, \%expected, "Got expected results for $target_elt");
 
 }

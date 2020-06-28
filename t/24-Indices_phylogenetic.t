@@ -10,9 +10,9 @@ local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $generate_result_sets = 0;
 
-use Test::Lib;
 use rlib;
-use Test::Most;
+use Test2::V0;
+
 use List::Util qw /sum/;
 
 use Biodiverse::TestHelpers qw{
@@ -196,7 +196,7 @@ sub test_pe_central_and_whole {
         \%list_indices_to_check,
     );
 
-    is_deeply (
+    is (
         $sp1_res_w,
         $sp1_res_c,
         'PE whole and central indices the same for one neighour set',
@@ -218,7 +218,7 @@ sub test_pe_central_and_whole {
         \%list_indices_to_check,
     );
 
-    isnt_deeply (
+    isnt (
         $sp2_res_w,
         $sp2_res_c,
         'PE whole and central indices are not the same for two neighour sets',

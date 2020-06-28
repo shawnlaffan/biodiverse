@@ -12,9 +12,9 @@ BEGIN {
     #$ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 0;
 }
 
-use Test::Lib;
 use rlib;
-use Test::More;
+use Test2::V0;
+
 use Biodiverse::Config;
 use List::Util qw /sum/;
 
@@ -318,7 +318,7 @@ sub test_rpe_central {
             my @arr_exp = map {sprintf '%.12f', $_}  @$rpe2{keys %list_indices_to_check};
             my @arr_obs = map {sprintf '%.12f', $_}  @$rpec{values %list_indices_to_check};
 
-            is_deeply (
+            is (
                 \@arr_obs,
                 \@arr_exp,
                 "RPE2 and RPEC same for $elt",
@@ -357,7 +357,7 @@ sub test_rpe_central {
                     && $key_count == scalar grep {exists $labels_all->{$_}} keys %$labels_set1;
 
             if ($no_new_labels) {
-                is_deeply (
+                is (
                     \@exp,
                     \@obs,
                     "RPE2 and RPEC when nbr set 2 has no additional labels, $elt",

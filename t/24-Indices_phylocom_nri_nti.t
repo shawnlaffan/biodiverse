@@ -5,9 +5,9 @@ use warnings;
 
 local $| = 1;
 
-use Test::Lib;
 use rlib;
-use Test::More;
+use Test2::V0;
+
 use Biodiverse::Config;
 
 use Biodiverse::TestHelpers qw{

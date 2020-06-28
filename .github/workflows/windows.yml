@@ -34,7 +34,7 @@ jobs:
       - name: Prepare for CPAN cache
         run: |
           perl -V > perlversion.txt
-          echo "20200612" >> perlversion.txt
+          echo "20200628" >> perlversion.txt
           dir perlversion.txt
 
       - name: Cache CPAN modules
@@ -74,6 +74,7 @@ jobs:
           cpanm --quiet --notest File::Find::Rule
           cpanm --quiet --notest Alien::Build::Plugin::Fetch::Cache
           cpanm --quiet --notest Env::ShellWords
+          cpanm --quiet --notest Test2::Suite
 
       - name: Install dependencies Alien::MSYS
         run: |

@@ -364,7 +364,7 @@ sub test_rpe_central {
                 );
             }
             else {
-                isnt_deeply (
+                isnt (
                     \@exp,
                     \@obs,
                     "RPE2 and RPEC not same when additional labels in nbr set 2, $elt",

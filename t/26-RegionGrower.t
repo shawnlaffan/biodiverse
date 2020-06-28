@@ -7,7 +7,6 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first/;
 
@@ -16,10 +15,7 @@ local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Test::Most; # tests => 2;
-use Test::Exception;
-
-#die_on_fail();
+use Test2::V0;
 
 use Biodiverse::Config;
 use Biodiverse::TestHelpers qw /:cluster :tree/;

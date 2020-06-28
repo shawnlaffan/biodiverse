@@ -9,10 +9,9 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 
-use Test::More;
+use Test2::V0;
 
 use Scalar::Util qw /refaddr/;
 
@@ -20,9 +19,6 @@ use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More;
-#use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::Spatial;
@@ -106,7 +102,7 @@ sub test_def_queries {
         
         my @got_element_list = sort keys %$passed_defq;
         
-        is_deeply (
+        is (
             \@expected_element_list,
             \@got_element_list,
             "Got the same elements for $def_query_text",
@@ -205,7 +201,7 @@ sub test_sp_passed_defq_different_sp {
     # those that passed the previous query.
     my @got_element_list = sort $sp2->get_groups_that_pass_def_query;
     
-    is_deeply (
+    is (
         \@expected_element_list,
         \@got_element_list,
         "Correct elements passed the def query when it references another def query",
@@ -379,7 +375,7 @@ sub test_empty_groups {
         RICHNESS_ALL  => 0,
         RICHNESS_SET1 => 0,
     };
-    is_deeply ($result_list, $expected, 'empty group has expected results');
+    is ($result_list, $expected, 'empty group has expected results');
 }
 
 
@@ -407,7 +403,7 @@ sub test_pass_blessed_conditions {
     my $t1 = $sp1->to_table (%tbl_args);
     my $t2 = $sp2->to_table (%tbl_args);
     
-    is_deeply ($t2, $t1, 'results match when a blessed spatial condition is passed');
+    is ($t2, $t1, 'results match when a blessed spatial condition is passed');
 }
 
 
@@ -463,9 +459,9 @@ sub test_recycling {
     my $t3 = $sp3->to_table (%tbl_args);
     my $t4 = $sp4->to_table (%tbl_args);
     
-    is_deeply ($t2, $t1, 'nbr set 1 match for recycling on and off');
-    is_deeply ($t3, $t1, 'nbr set 1 match for recycling on and off (indices object control)');
-    is_deeply ($t4, $t1, 'nbr set 1 match for recycling on and off (two nbr sets)');
+    is ($t2, $t1, 'nbr set 1 match for recycling on and off');
+    is ($t3, $t1, 'nbr set 1 match for recycling on and off (indices object control)');
+    is ($t4, $t1, 'nbr set 1 match for recycling on and off (two nbr sets)');
 
     #  now check they were not recycled
     subtest 'results recycling per element' => sub {
@@ -550,7 +546,7 @@ sub test_get_calculated_nbr_lists_for_element {
     );
     
     foreach my $i (0 .. $#$lists_sorted) {
-        is_deeply (
+        is (
             [sort @{$lists_unsorted->[$i]}],
             $lists_sorted->[$i],
             "sorted and unsorted lists have same elements, nbr list $i",
@@ -568,19 +564,19 @@ sub test_get_calculated_nbr_lists_for_element {
     }
 
     foreach my $i (0 .. $#$lists_sorted) {
-        is_deeply (
+        is (
             [sort @{$lists_sorted->[$i]}],
             [sort @{$lists_sorted_proximity->[$i]}],
             "text and proximity sorted lists have same elements, nbr list $i",
         );
-        isnt_deeply (
+        isnt (
             $lists_sorted->[$i],
             $lists_sorted_proximity->[$i],
             "text and proximity sorted lists have different orders, nbr list $i",
         );
     }
     
-    is_deeply (
+    is (
         get_expected_proximity_sorted_nbr_lists(),
         $lists_sorted_proximity,
         'Got expected proximity sorted nbr lists',
@@ -598,12 +594,12 @@ sub test_get_calculated_nbr_lists_for_element {
     }
 
     foreach my $i (0 .. $#$lists_sorted) {
-        is_deeply (
+        is (
             [sort @{$lists_sorted_proximity->[$i]}],
             [sort @{$lists_sorted_proximity_rand->[$i]}],
             "proximity and proximity/rand sorted lists have same elements, nbr list $i",
         );
-        isnt_deeply (
+        isnt (
             $lists_sorted_proximity->[$i],
             $lists_sorted_proximity_rand->[$i],
             "proximity and proximity/rand sorted lists have different orders, nbr list $i",

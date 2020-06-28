@@ -21,7 +21,6 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
 use Test2::V0;
 
 use Biodiverse::BaseData;

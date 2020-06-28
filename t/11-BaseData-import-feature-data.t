@@ -8,8 +8,6 @@ use Path::Tiny qw /path/;
 
 use rlib;
 
-use Utils qw /is_between/;
-
 use Data::Section::Simple qw(
     get_data_section
 );

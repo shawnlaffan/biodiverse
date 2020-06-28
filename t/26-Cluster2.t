@@ -9,19 +9,15 @@ use warnings;
 use Carp;
 
 use FindBin qw/$Bin/;
-use Test::Lib;
 use rlib;
 use List::Util qw /first/;
 
-use Test::More;
+use Test2::V0;
 
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
 
 use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
@@ -141,9 +137,10 @@ sub test_phylo_rw_turnover_mx {
     );
 
     my $stats = $mx->get_summary_stats;
-    is_deeply ($stats, \%expected, 'got expected stats for phylo_rw_turnover mx');
+    is ($stats, \%expected, 'got expected stats for phylo_rw_turnover mx');
 }
 
+1;
 
 __DATA__
 

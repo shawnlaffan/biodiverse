@@ -55,7 +55,8 @@ before_install:
   - if [ $BD_TEST_GUI ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
 
-script: prove -l -j4
+script: yath -PGeo::GDAL::FFI
+
 # blocklist
 branches:
   except:

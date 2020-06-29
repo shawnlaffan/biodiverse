@@ -24,6 +24,7 @@ before_install:
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
   - cpanm --quiet Test2::Suite
+  - cpanm --quiet Test2::Harness
   
   - cpanm --installdeps --notest Alien::proj
   - cpanm -v --notest Alien::proj

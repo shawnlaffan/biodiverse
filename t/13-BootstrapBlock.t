@@ -244,12 +244,10 @@ sub test_roundtrip {
       . 'href__a=1,href__b=2,other=blort,other2=blert15]';
     is ($encoded, $expected, 'encoded expected string');
     
-    TODO: {
-        my $booter2 = Biodiverse::TreeNode::BootstrapBlock->new;
-        $booter2->decode(raw_bootstrap => $encoded);
-        #  and might never be supported
-        my $todo = todo 'importation not yet implemented';
-        is ($booter2, $booter, 'encode-decode roundtrip passed')
-    }
+    #todo 'importation not yet implemented, and might never be' => sub {
+    #    my $booter2 = Biodiverse::TreeNode::BootstrapBlock->new;
+    #    $booter2->decode(raw_bootstrap => $encoded);
+    #    is ($booter2, $booter, 'encode-decode roundtrip passed')
+    #}
 }
 

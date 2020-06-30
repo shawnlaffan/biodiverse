@@ -1,10 +1,14 @@
 #  These are randomisation tests that take longer,
 #  so have been shifted into a separate test file 
 
-local $| = 1;
 use 5.010;
 use strict;
 use warnings;
+
+# HARNESS-DURATION-LONG
+
+local $| = 1;
+
 use Carp;
 
 use FindBin qw/$Bin/;

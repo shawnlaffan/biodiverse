@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+
+# HARNESS-DURATION-LONG
+
 use Carp;
 use English qw { -no_match_vars };
 

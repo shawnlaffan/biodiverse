@@ -1,9 +1,11 @@
-#!/usr/bin/perl -w
-#
-local $| = 1;
 use 5.010;
 use strict;
 use warnings;
+
+# HARNESS-DURATION-LONG
+
+local $| = 1;
+
 use Carp;
 
 use FindBin qw/$Bin/;

@@ -1274,7 +1274,16 @@ sub get_group_element_as_array {
     croak "element not specified\n"
       if !defined $element;
 
-    return $self->{GROUPS}->get_element_name_as_array( element => $element );
+    return $self->{GROUPS}->get_element_name_as_array_aa ($element);
+}
+
+sub get_group_element_as_array_aa {
+    my ($self, $element) = @_;
+
+    croak "element not specified\n"
+      if !defined $element;
+
+    return $self->{GROUPS}->get_element_name_as_array_aa ($element);
 }
 
 sub get_label_element_as_array {
@@ -1285,8 +1294,7 @@ sub get_label_element_as_array {
     croak "element not specified\n"
       if !defined $element;
 
-    return $self->get_labels_ref->get_element_name_as_array(
-        element => $element );
+    return $self->get_labels_ref->get_element_name_as_array_aa ($element);
 }
 
 #  reorder group and/or label axes
@@ -2330,7 +2338,7 @@ sub get_neighbours {
         }
 
         #  make the neighbour coord available to the spatial_conditions
-        my @coord = $self->get_group_element_as_array( element => $element2 );
+        my @coord = $self->get_group_element_as_array_aa ($element2 );
 
         my %eval_args;
 

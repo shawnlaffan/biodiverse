@@ -373,10 +373,7 @@ sub get_element_name_as_array {
     my $element = $args{element} //
       croak "element not specified\n";
 
-    return $self->get_array_list_values (
-        element => $element,
-        list    => '_ELEMENT_ARRAY',
-    );
+    return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
 }
 
 #  get a list of the unique values for one axis

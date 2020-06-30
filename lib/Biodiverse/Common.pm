@@ -376,7 +376,9 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
 
 #  extremely hot path, so needs to be lean and mean, even if less readable
 sub get_param {
-    no autovivification;
+    #  It's OK to have PARAMS hash entry,
+    #  and newer perls have faster hash accesses
+    #no autovivification;  
     $_[0]->{PARAMS}{$_[1]};
 }
 

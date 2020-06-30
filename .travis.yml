@@ -24,6 +24,7 @@ before_install:
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Geo::ShapeFile@3.00
   - cpanm --quiet Test2::Suite
+  - cpanm --quiet Test2::Harness
   
   - cpanm --installdeps --notest Alien::proj
   - cpanm -v --notest Alien::proj
@@ -55,7 +56,8 @@ before_install:
   - if [ $BD_TEST_GUI ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
 
-script: prove -l -j4
+script: yath -PGeo::GDAL::FFI -PPDL -D test -j 4
+
 # blocklist
 branches:
   except:

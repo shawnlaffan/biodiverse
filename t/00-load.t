@@ -1,5 +1,9 @@
 use Test2::V0;
 
+#  run first/early
+# HARNESS-CATEGORY-IMMISCIBLE
+
+
 #my @files;
 use FindBin qw { $Bin };
 use File::Spec;

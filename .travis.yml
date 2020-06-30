@@ -56,7 +56,7 @@ before_install:
   - if [ $BD_TEST_GUI ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 
 
-script: yath -I t/lib -PBiodiverse::TestHelpers -PBiiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
+script: yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
 
 # blocklist
 branches:

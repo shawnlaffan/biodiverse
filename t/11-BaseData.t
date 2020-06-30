@@ -1708,9 +1708,11 @@ sub test_coords_near_zero {
 
 #  need to test multidimensional data import, including text axes
 sub test_multidimensional_import {
-    my $todo = todo 'need to test multidimensional data import, including text axes';
-
-    is (0, 1, 'need to test multidimensional data import, including text axes');
+    todo
+      'need to test multidimensional data import, including text axes'
+      => sub {
+       is (0, 1, 'need to test multidimensional data import, including text axes')
+      };
 }
 
 sub test_rename_groups {

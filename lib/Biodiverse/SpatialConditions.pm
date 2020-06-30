@@ -665,18 +665,16 @@ sub get_distances {
         #use warnings FATAL => qw { numeric };
 
         my $coord1 = $element1[$i];
-        croak
-            'coord1 value is not numeric: '
-            . ( $coord1 // 'undef' )
-            . "\n$locale_warning"
-            if !looks_like_number($coord1);
+        croak sprintf ("coord1 value is not numeric: %s\n%s",
+            ( $coord1 // 'undef' ),
+            $locale_warning)
+          if !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
-        croak
-            'coord2 value is not numeric: '
-            . ( $coord2 // 'undef' )
-            . "\n$locale_warning"
-            if !looks_like_number($coord2);
+        croak sprintf ("coord2 value is not numeric: %s\n%s",
+            ( $coord2 // 'undef' ),
+            $locale_warning)
+          if !looks_like_number($coord2);
 
         #  trap errors from non-numeric coords
         my $d_val   = eval { $coord2 - $coord1 }; 

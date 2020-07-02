@@ -230,8 +230,9 @@ sub set_keyboard_handler {
         $snooper_id = undef;
     }
 
-
-    $snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
+## FIXME FIXME
+#  see https://mail.gnome.org/archives/gtk-perl-list/2015-March/msg00001.html
+    #$snooper_id = Gtk3->key_snooper_install(\&hotkey_handler, $self);
     ##print "[Tab] Installed keyboard snooper $snooper_id\n";
 }
 

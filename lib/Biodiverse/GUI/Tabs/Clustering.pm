@@ -6,7 +6,7 @@ use 5.010;
 use English qw( -no_match_vars );
 use Time::HiRes qw /time/;
 
-use Gtk2;
+use Gtk3;
 use Carp;
 use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
@@ -55,9 +55,9 @@ sub new {
 
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
-    my $xml_page = Gtk2::Builder->new();
+    my $xml_page = Gtk3::Builder->new();
     $xml_page->add_from_file($gui->get_gtk_ui_file('hboxClusteringPage.ui'));
-    my $xml_label = Gtk2::Builder->new();
+    my $xml_label = Gtk3::Builder->new();
     $xml_label->add_from_file($gui->get_gtk_ui_file('hboxClusteringLabel.ui'));
 
     $self->{xmlPage}  = $xml_page;
@@ -67,7 +67,7 @@ sub new {
     my $label = $xml_label->get_object('hboxClusteringLabel');
 
     my $label_text = $self->{xmlLabel}->get_object('lblClusteringName')->get_text;
-    my $label_widget = Gtk2::Label->new ($label_text);
+    my $label_widget = Gtk3::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
@@ -238,7 +238,7 @@ sub new {
     $self->init_map_list_combo();
 
     $self->{colour_mode} = 'Hue';
-    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
+    $self->{hue} = Gtk3::Gdk::Color->new(65535, 0, 0); # For Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model(
@@ -387,7 +387,7 @@ sub setup_tie_breaker_widgets {
       = 'Turn the tie breakers off if you want the old clustering system.  '
       . 'It will return different results for different analyses, '
       . 'but is faster and uses less memory.';
-    my $checkbox = Gtk2::CheckButton->new_with_label("Use tie\nbreakers");
+    my $checkbox = Gtk3::CheckButton->new_with_label("Use tie\nbreakers");
     $checkbox->set_active(1);
     $checkbox->set_tooltip_text($cb_tooltip_text);
     $breaker_hbox->pack_start ($checkbox, 0, 0, 0);
@@ -398,8 +398,8 @@ sub setup_tie_breaker_widgets {
         my $id = $i + 1;
         my $j = 2 * $i;
         my $k = $j + 1;
-        my $label = Gtk2::Label->new("  $id: ");
-        my $index_combo = Gtk2::ComboBox->new_text;
+        my $label = Gtk3::Label->new("  $id: ");
+        my $index_combo = Gtk3::ComboBox->new_text;
         my $l = 0;
         my $use_iter;
         foreach my $index (qw /none random/, natsort keys %valid_indices) {
@@ -412,7 +412,7 @@ sub setup_tie_breaker_widgets {
 
         $index_combo->set_active($use_iter // 1);  #  random by default
 
-        my $combo_minmax = Gtk2::ComboBox->new_text;
+        my $combo_minmax = Gtk3::ComboBox->new_text;
         $combo_minmax->append_text ('maximise');
         $combo_minmax->append_text ('minimise');
         $combo_minmax->set_active (0);
@@ -423,7 +423,7 @@ sub setup_tie_breaker_widgets {
         }
         $combo_minmax->set_active ($use_iter_minmax || 0);
 
-        my $hbox = Gtk2::HBox->new;
+        my $hbox = Gtk3::HBox->new;
         $hbox->pack_start ($label, 0, 0, 0);
         $hbox->pack_start ($index_combo, 0, 0, 0);
         $hbox->pack_start ($combo_minmax, 0, 0, 0);
@@ -666,7 +666,7 @@ sub init_map_show_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_object('comboMapShow');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, markup => 0);
 
@@ -682,7 +682,7 @@ sub init_map_list_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_object('comboMapList');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, markup => 0);
 
@@ -774,7 +774,7 @@ sub make_indices_model {
     }
 
     $self->{indices_model}
-        = Gtk2::ListStore->new(
+        = Gtk3::ListStore->new(
             'Glib::String',        # Name
             'Glib::String',        # Function - FIXME delete
         );
@@ -825,7 +825,7 @@ sub make_linkage_model {
         $linkage_used = $cluster_ref->get_param('CLUSTER_LINKAGE');
     }
 
-    $self->{linkage_model} = Gtk2::ListStore->new(
+    $self->{linkage_model} = Gtk3::ListStore->new(
         'Glib::String',        # Name
         'Glib::String',        # Function - FIXME delete
     );
@@ -859,7 +859,7 @@ sub init_indices_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_object('comboMetric');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => MODEL_NAME);
 
@@ -877,7 +877,7 @@ sub init_linkage_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_object('comboLinkage');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => MODEL_NAME);
 
@@ -1036,7 +1036,7 @@ sub get_output_file_handles {
     #  as there are matrices to be created
     my @handles;
 
-    my $file_chooser = Gtk2::FileChooserDialog->new (
+    my $file_chooser = Gtk3::FileChooserDialog->new (
         'Choose file prefix',
         undef,
         'save',
@@ -1113,7 +1113,7 @@ sub get_overwrite_response {
 
     my $rerun_spatial_value = -20;
 
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         $title,
         $self->{gui}->get_object('wndMain'),
         'modal',
@@ -1121,7 +1121,7 @@ sub get_overwrite_response {
         'gtk-no'  => 'no',
         "run/rerun\ncalculations\nper node" => $rerun_spatial_value,
     );
-    my $label = Gtk2::Label->new($text);
+    my $label = Gtk3::Label->new($text);
     #$label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
     $dlg->show_all();
@@ -1541,7 +1541,7 @@ sub show_list {
     #my $ref = $node_ref->get_value($name);
     my $ref = $node_ref->get_list_ref (list => $name);
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
     if (is_hashref($ref)) {
@@ -1587,7 +1587,7 @@ sub show_cluster_labelsABC2 {
     my $total_labels = $ABC{label_hash_all};
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
     foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, $total_labels->{$label});
@@ -1616,7 +1616,7 @@ sub show_cluster_labelsABC3 {
     my $total_labels = $ABC{label_hash_all};
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
     foreach my $label (natsort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter,    0,$label ,  1,$total_labels->{$label});
@@ -1646,7 +1646,7 @@ sub show_cluster_labels {
     }
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     foreach my $label (natsort keys %total_labels) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
@@ -1664,7 +1664,7 @@ sub show_cluster_elements {
 
     print "[Clustering tab] Making cluster elements model\n";
     my $elements = $node_ref->get_terminal_elements;
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
@@ -1684,7 +1684,7 @@ sub show_cluster_descendents {
     my $popup    = shift;
     my $node_ref = shift;
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 

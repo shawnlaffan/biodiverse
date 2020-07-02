@@ -17,7 +17,7 @@ use List::Util qw /min max/;
 
 our $VERSION = '3.1';
 
-use Gtk2;
+use Gtk3;
 use Gnome2::Canvas;
 
 use Biodiverse::GUI::GUIManager;
@@ -43,12 +43,12 @@ use constant INDEX_MINUS   => 5;
 
 use constant HOVER_CURSOR  => 'hand2';
 
-use constant HIGHLIGHT_COLOUR => Gtk2::Gdk::Color->new(255*257, 0, 0); # red
-use constant CELL_BLACK       => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant CELL_WHITE       => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-#use constant CELL_COLOUR      => Gtk2::Gdk::Color->parse('#B3FFFF');
-use constant CELL_COLOUR      => Gtk2::Gdk::Color->parse('#FFFFFF');
-use constant OVERLAY_COLOUR   => Gtk2::Gdk::Color->parse('#001169');
+use constant HIGHLIGHT_COLOUR => Gtk3::Gdk::Color->new(255*257, 0, 0); # red
+use constant CELL_BLACK       => Gtk3::Gdk::Color->new(0, 0, 0);
+use constant CELL_WHITE       => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+#use constant CELL_COLOUR      => Gtk3::Gdk::Color->parse('#B3FFFF');
+use constant CELL_COLOUR      => Gtk3::Gdk::Color->parse('#FFFFFF');
+use constant OVERLAY_COLOUR   => Gtk3::Gdk::Color->parse('#001169');
 
 # Stiple for the selection-masking shape
 my $gray50_width  = 2;
@@ -88,8 +88,8 @@ sub new {
     );
 
     # Set up custom scrollbars due to flicker problems whilst panning..
-    $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
-    $self->{vadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
 
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
@@ -446,7 +446,7 @@ sub highlight {
     #  mask and stipple need to use Cairo
     #  - see issue 480 https://github.com/shawnlaffan/biodiverse/issues/480
     my $mask_path    = Gnome2::Canvas::PathDef->concat(@paths);
-    my $mask_stipple = Gtk2::Gdk::Bitmap->create_from_data(
+    my $mask_stipple = Gtk3::Gdk::Bitmap->create_from_data(
         undef,
         $gray50_bits,
         $gray50_width,
@@ -477,19 +477,19 @@ sub get_mask_rects {
 
     my $total_lines = $self->{total_x} || 0;
     my $side_length = $total_lines * CELL_SIZE + CELL_SIZE;
-    my $whole_matrix = Gtk2::Gdk::Rectangle->new(0, 0, $side_length, $side_length);
+    my $whole_matrix = Gtk3::Gdk::Rectangle->new(0, 0, $side_length, $side_length);
 
     # Create regions for all selected rows and columns
-    my $row_reg = Gtk2::Gdk::Region->new;
-    my $col_reg = Gtk2::Gdk::Region->new;
+    my $row_reg = Gtk3::Gdk::Region->new;
+    my $col_reg = Gtk3::Gdk::Region->new;
     my $rect;
 
     foreach my $sel (@$sel_rows) {
-        $rect = Gtk2::Gdk::Rectangle->new(0, $sel * CELL_SIZE, $side_length, CELL_SIZE);
+        $rect = Gtk3::Gdk::Rectangle->new(0, $sel * CELL_SIZE, $side_length, CELL_SIZE);
         $row_reg->union_with_rect($rect);
     }
     foreach my $sel (@$sel_cols) {
-        $rect = Gtk2::Gdk::Rectangle->new($sel * CELL_SIZE, 0, CELL_SIZE, $side_length);
+        $rect = Gtk3::Gdk::Rectangle->new($sel * CELL_SIZE, 0, CELL_SIZE, $side_length);
         $col_reg->union_with_rect($rect);
     }
 
@@ -506,7 +506,7 @@ sub get_mask_rects {
     $intersect_reg->intersect($row_reg);
 
     # Subtract highlighted area from the whole area - giving us the mask region
-    my $mask_reg = Gtk2::Gdk::Region->rectangle($whole_matrix);
+    my $mask_reg = Gtk3::Gdk::Region->rectangle($whole_matrix);
     $mask_reg->subtract($intersect_reg);
 
     return $mask_reg->get_rectangles();
@@ -570,7 +570,7 @@ sub get_colour_hue {
     #
     my $hue;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
     }
     elsif ($max != $min) {
         $hue = ($val - $min) / ($max - $min) * 180;
@@ -583,7 +583,7 @@ sub get_colour_hue {
     
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
     
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 sub get_colour_saturation {
@@ -593,7 +593,7 @@ sub get_colour_saturation {
     #   Hue is variable, Brightness 1
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
     }
     elsif ($max != $min) {
         $sat = ($val - $min) / ($max - $min);
@@ -604,7 +604,7 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
     
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 # FROM http://blog.webkist.com/archives/000052.html
@@ -712,7 +712,7 @@ sub on_event {
 
         # Change the cursor if we are in select mode
         if (!$self->{cursor}) {
-            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            my $cursor = Gtk3::Gdk::Cursor->new(HOVER_CURSOR);
             $self->{canvas}->window->set_cursor($cursor);
         }
     }
@@ -732,7 +732,7 @@ sub on_event {
             # Grab mouse
             $cell->grab (
                 [qw/pointer-motion-mask button-release-mask/],
-                Gtk2::Gdk::Cursor->new ('fleur'),
+                Gtk3::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
             $self->{selecting} = 1;
@@ -843,7 +843,7 @@ sub on_background_event {
 
             # Grab mouse
             $item->grab ([qw/pointer-motion-mask button-release-mask/],
-                         Gtk2::Gdk::Cursor->new ('fleur'),
+                         Gtk3::Gdk::Cursor->new ('fleur'),
                         $event->time);
             $self->{dragging} = 1;
         }

@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 our $VERSION = '3.1';
 
-use Gtk2;
+use Gtk3;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use Time::HiRes;
@@ -35,12 +35,12 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
-use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
-use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
-#use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
-use constant COLOUR_FAILED_DEF_QUERY => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
+use constant COLOUR_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => Gtk3::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk3::Gdk::Color->new(255*257,0,0);
+#use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
+use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
 
 
 
@@ -57,15 +57,15 @@ sub new {
     bless $self, $class;
 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialPage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
     my $page  = $self->{xmlPage}->get_object('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
     my $label_text = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
-    my $label_widget = Gtk2::Label->new ($label_text);
+    my $label_widget = Gtk3::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
@@ -223,7 +223,7 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
-    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
+    $self->{hue} = Gtk3::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
@@ -353,7 +353,7 @@ sub screenshot {
     my ($width, $height) = $mywidget->window->get_size;
 
     # create blank pixbuf to hold the image
-    my $gdkpixbuf = Gtk2::Gdk::Pixbuf->new (
+    my $gdkpixbuf = Gtk3::Gdk::Pixbuf->new (
         'rgb',
         0,
         8,
@@ -420,7 +420,7 @@ sub update_dendrogram_combo {
     #  Clear the curent entries.
     #  We need to load a new ListStore to avoid crashes due
     #  to them being destroyed somewhere in the refresh process
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     $combobox->set_model ($model);
 
     my $combo_items = 0;
@@ -523,13 +523,13 @@ sub init_branch_colouring_combo {
                 $widget->destroy;
             }
         }
-        my $model = Gtk2::ListStore->new('Glib::String');
-        $combo = Gtk2::ComboBox->new_with_model ($model);
+        my $model = Gtk3::ListStore->new('Glib::String');
+        $combo = Gtk3::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
 
-        my $label = Gtk2::Label->new('Branch colouring: ');
+        my $label = Gtk3::Label->new('Branch colouring: ');
 
-        my $renderer = Gtk2::CellRendererText->new();
+        my $renderer = Gtk3::CellRendererText->new();
         $combo->pack_start($renderer, 1);
         $combo->add_attribute($renderer, markup => 0);
 
@@ -547,7 +547,7 @@ sub init_branch_colouring_combo {
             $model->set ( $iter, 0, $list_name );
         }
         
-        my $separator = Gtk2::SeparatorToolItem->new;
+        my $separator = Gtk3::SeparatorToolItem->new;
         $bottom_hbox->pack_start ($separator, 0, 0, 0);
         $bottom_hbox->pack_start ($label, 0, 0, 0);
         $bottom_hbox->pack_start ($combo, 0, 0, 0);
@@ -670,7 +670,7 @@ sub init_lists_combo {
 
 
     my $combo = $self->{xmlPage}->get_object('comboLists');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 
@@ -778,7 +778,7 @@ sub make_output_indices_model {
       = sort_list_with_tree_names_aa ([keys %analyses_tmp]);
 
     # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     foreach my $x (@analyses) {
         my $iter = $model->append;
         #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
@@ -804,7 +804,7 @@ sub make_lists_model {
     #print join (" ", @lists) . "\n";
 
     # Make model for combobox
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String');
     foreach my $x (sort @$lists) {
         my $iter = $model->append;
         $model->set($iter, 0, $x);
@@ -1057,7 +1057,7 @@ sub show_list {
     #my $ref = $node_ref->get_value($name);
     my $ref = $node_ref->get_list_ref (list => $name);
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
     if (is_hashref($ref)) {
@@ -1107,7 +1107,7 @@ sub show_phylogeny_groups {
     }
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
     foreach my $label (sort keys %total_groups) {
         my $iter = $model->append;
         $model->set($iter, 0, $label, 1, q{});
@@ -1126,7 +1126,7 @@ sub show_phylogeny_labels {
     my $node_ref = shift;
 
     my $elements = $node_ref->get_terminal_elements;
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     foreach my $element (natsort keys %{$elements}) {
         my $count = $elements->{$element};
@@ -1146,7 +1146,7 @@ sub show_phylogeny_descendents {
     my $popup    = shift;
     my $node_ref = shift;
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::Int');
 
     my $node_hash = $node_ref->get_names_of_all_descendants_and_self;
 
@@ -1201,7 +1201,7 @@ sub on_run {
         = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run( $self->{calculations_model} );
 
     if (scalar @to_run == 0) {
-        my $dlg = Gtk2::MessageDialog->new(
+        my $dlg = Gtk3::MessageDialog->new(
             undef,
             'modal',
             'error',
@@ -1469,7 +1469,7 @@ sub on_grid_hover {
 #  #000000 = black
 #  #00FFFC = cyan(ish)
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
+  = map {Gtk3::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;
@@ -1806,7 +1806,7 @@ sub init_output_indices_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_object('comboIndices');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 
@@ -2105,8 +2105,8 @@ sub on_add_param {
     $table->attach($button, 0, 1, $rows, $rows + 1, [], [], 0, 0);
 
     # Make a combobox and a label to set the parameter
-    my $combo = Gtk2::ComboBox->new_text;
-    my $entry = Gtk2::Entry->new;
+    my $combo = Gtk3::ComboBox->new_text;
+    my $entry = Gtk3::Entry->new;
 
     $table->attach($combo, 0, 1, $rows - 1, $rows, 'fill', [], 0, 0);
     $table->attach($entry, 1, 2, $rows - 1, $rows, 'fill', [], 0, 0);
@@ -2124,11 +2124,11 @@ sub on_add_param {
 sub get_options_menu {
     my $self = shift;
 
-    my $menu = Gtk2::Menu->new();
+    my $menu = Gtk3::Menu->new();
 
-    $menu->append(Gtk2::MenuItem->new('_Cut'));
-    $menu->append(Gtk2::MenuItem->new('C_opy'));
-    $menu->append(Gtk2::MenuItem->new('_Paste'));
+    $menu->append(Gtk3::MenuItem->new('_Cut'));
+    $menu->append(Gtk3::MenuItem->new('C_opy'));
+    $menu->append(Gtk3::MenuItem->new('_Paste'));
 
     $menu->show_all();
 
@@ -2167,7 +2167,7 @@ sub choose_tool {
 sub run_options_dialogue {
     my $self = shift;
 
-    my $dlg = Gtk2::Dialog->new (
+    my $dlg = Gtk3::Dialog->new (
         'Spatial conditions options',
         undef,
         'modal',
@@ -2194,7 +2194,7 @@ sub run_options_dialogue {
     }
 
 
-    my $table = Gtk2::Table->new(2, 2);
+    my $table = Gtk3::Table->new(2, 2);
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
@@ -2202,8 +2202,8 @@ sub run_options_dialogue {
     my $tip_text;
 
     my $row = 0;
-    my $sp_index_label    = Gtk2::Label->new ('Ignore spatial index?');
-    my $sp_index_checkbox = Gtk2::CheckButton->new;
+    my $sp_index_label    = Gtk3::Label->new ('Ignore spatial index?');
+    my $sp_index_checkbox = Gtk3::CheckButton->new;
     $sp_index_checkbox->set_active ($options->{ignore_spatial_index});
     $table->attach($sp_index_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($sp_index_checkbox, 1, 2, $row, $row+1, @tb_props);
@@ -2216,8 +2216,8 @@ sub run_options_dialogue {
     }
 
     $row++;
-    my $recyc_label = Gtk2::Label->new ('Turn off recycling?');
-    my $recyc_checkbox = Gtk2::CheckButton->new;
+    my $recyc_label = Gtk3::Label->new ('Turn off recycling?');
+    my $recyc_checkbox = Gtk3::CheckButton->new;
     $recyc_checkbox->set_active ($options->{no_recycling});
     $table->attach($recyc_label,    0, 1, $row, $row+1, @tb_props);
     $table->attach($recyc_checkbox, 1, 2, $row, $row+1, @tb_props);
@@ -2295,7 +2295,7 @@ sub on_tree_colour_mode_changed {
             $mode = 'Sat';
 
             # Pop up dialog for choosing the hue to use in saturation mode
-            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_dialog = Gtk3::ColorSelectionDialog->new('Pick Hue');
             my $colour_select = $colour_dialog->get_color_selection();
             $colour_dialog->show_all();
             my $response = $colour_dialog->run;

@@ -6,7 +6,7 @@ use warnings;
 
 our $VERSION = '3.1';
 
-use Gtk2;
+use Gtk3;
 use Biodiverse::RemapGuesser qw/guess_remap/;
 use English( -no_match_vars );
 
@@ -95,15 +95,15 @@ sub pre_remap_dlg {
       // $remapee_sources[0];
     
     # table to align the controls
-    my $table = Gtk2::Table->new( 5, 2, 1 );
+    my $table = Gtk3::Table->new( 5, 2, 1 );
     $table->set_homogeneous(0);
     $table->set_col_spacings(10);
     
     ####
     # The remapee data source selection combo box and its label, as
     # well as the controller combo box and its label.
-    my $remapee_combo = Gtk2::ComboBox->new_text;
-    my $controller_combo = Gtk2::ComboBox->new_text;
+    my $remapee_combo = Gtk3::ComboBox->new_text;
+    my $controller_combo = Gtk3::ComboBox->new_text;
 
     foreach my $option (@remapee_sources) {
         $remapee_combo->append_text(
@@ -133,8 +133,8 @@ sub pre_remap_dlg {
         . "target names to be specified in the selected file.  \n"
         . "The auto from file option requires only a list of target element names."
     );
-    my $remapee_label = Gtk2::Label->new('Data source that will be remapped:');
-    my $controller_label = Gtk2::Label->new('Label source:');
+    my $remapee_label = Gtk3::Label->new('Data source that will be remapped:');
+    my $controller_label = Gtk3::Label->new('Label source:');
     
     $table->attach_defaults( $remapee_label, 0, 1, 0, 1 );
     $table->attach_defaults( $remapee_combo, 1, 2, 0, 1 );
@@ -143,19 +143,19 @@ sub pre_remap_dlg {
     
     ####
     # The max_distance spinbutton and its label
-    my $adjustment = Gtk2::Adjustment->new( 0,           0, 20, 1, 10, 0 );
-    my $spinner    = Gtk2::SpinButton->new( $adjustment, 1, 0 );
-    my $max_distance_label = Gtk2::Label->new('Maximum acceptable distance:');
+    my $adjustment = Gtk3::Adjustment->new( 0,           0, 20, 1, 10, 0 );
+    my $spinner    = Gtk3::SpinButton->new( $adjustment, 1, 0 );
+    my $max_distance_label = Gtk3::Label->new('Maximum acceptable distance:');
     $spinner->set_tooltip_text(EDIT_DISTANCE_TOOLTIP);
     
     ####
     # The case sensitivity checkbutton
-    my $case_label = Gtk2::Label->new('Match case insensitively?');
-    my $case_checkbutton = Gtk2::CheckButton->new();
+    my $case_label = Gtk3::Label->new('Match case insensitively?');
+    my $case_checkbutton = Gtk3::CheckButton->new();
     $case_checkbutton->set_active(0);
     $case_checkbutton->set_tooltip_text(IGNORE_CASE_TOOLTIP);
 
-    my $warning_label = Gtk2::Label->new('');
+    my $warning_label = Gtk3::Label->new('');
     my $span_leader   = '<span foreground="red">';
     my $span_ender    = '</span>';
     my $warning_text  =  $span_leader . $span_ender;
@@ -230,7 +230,7 @@ sub pre_remap_dlg {
     
     ####
     # The dialog itself
-    my $dlg = Gtk2::Dialog->new_with_buttons(
+    my $dlg = Gtk3::Dialog->new_with_buttons(
         'Remap options',
         undef, 'modal',
         'gtk-cancel' => 'cancel',
@@ -240,7 +240,7 @@ sub pre_remap_dlg {
     ####
     # Pack everything in
     my $vbox = $dlg->get_content_area;
-    my $hbox = Gtk2::HBox->new();
+    my $hbox = Gtk3::HBox->new();
     $vbox->pack_start( $hbox,  0, 0, 0 );
     $vbox->pack_start( $table, 0, 0, 0 );
     $dlg->show_all;
@@ -349,7 +349,7 @@ sub remap_results_dialog {
     my @exact_matches = @{ $args{exact_matches} };
     my $exact_match_tree = $self->build_bland_tree( labels => \@exact_matches );
     my $exact_match_count = @exact_matches;
-    my $exact_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $exact_match_scroll = Gtk3::ScrolledWindow->new( undef, undef );
     $exact_match_scroll->add($exact_match_tree);
 
     ###
@@ -364,11 +364,11 @@ sub remap_results_dialog {
 
     my $punct_match_count = @punct_matches;
 
-    my $punct_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $punct_match_scroll = Gtk3::ScrolledWindow->new( undef, undef );
     $punct_match_scroll->add($punct_tree);
 
     # 'use this category' checkbutton
-    my $punct_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
+    my $punct_match_checkbutton = Gtk3::CheckButton->new("Use this category?");
     $punct_match_checkbutton->set_active(1);
     $punct_match_checkbutton->signal_connect(
         toggled => sub {
@@ -392,10 +392,10 @@ sub remap_results_dialog {
 
     my $typo_match_count = @typo_matches;
 
-    my $typo_match_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $typo_match_scroll = Gtk3::ScrolledWindow->new( undef, undef );
     $typo_match_scroll->add($typo_tree);
 
-    my $typo_match_checkbutton = Gtk2::CheckButton->new("Use this category?");
+    my $typo_match_checkbutton = Gtk3::CheckButton->new("Use this category?");
     $typo_match_checkbutton->set_active(1);
     $typo_match_checkbutton->signal_connect(
         toggled => sub {
@@ -413,17 +413,17 @@ sub remap_results_dialog {
     my @not_matched        = @{ $args{not_matched} };
     my $not_matched_tree   = $self->build_bland_tree ( labels => \@not_matched );
     my $not_matched_count  = @not_matched;
-    my $not_matched_label  = Gtk2::Label->new("$not_matched_count Not Matched:");
-    my $not_matched_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $not_matched_label  = Gtk3::Label->new("$not_matched_count Not Matched:");
+    my $not_matched_scroll = Gtk3::ScrolledWindow->new( undef, undef );
     $not_matched_scroll->add($not_matched_tree);
 
     ###
     # Accept label
-    #my $accept_remap_label = Gtk2::Label->new("Apply this remapping?");
+    #my $accept_remap_label = Gtk3::Label->new("Apply this remapping?");
 
     # 'copy selection to clipboard' button
     my $copy_button 
-        = Gtk2::Button->new_with_label("Copy selected rows to clipboard");
+        = Gtk3::Button->new_with_label("Copy selected rows to clipboard");
     $copy_button->set_tooltip_text(COPY_BUTTON_TOOLTIP);
     
     $copy_button->signal_connect('clicked' => sub {
@@ -437,7 +437,7 @@ sub remap_results_dialog {
 
     # export remap to file button
     my $export_button 
-        = Gtk2::Button->new_with_label("Export remap to file");
+        = Gtk3::Button->new_with_label("Export remap to file");
     $export_button->set_tooltip_text(EXPORT_BUTTON_TOOLTIP);
     
     $export_button->signal_connect('clicked' => sub {
@@ -457,7 +457,7 @@ sub remap_results_dialog {
 
     ####
     # The dialog itself
-    my $dlg = Gtk2::Dialog->new_with_buttons(
+    my $dlg = Gtk3::Dialog->new_with_buttons(
         'Remap results',
         undef, 'modal',
         'gtk-apply'  => 'yes',
@@ -511,9 +511,9 @@ sub remap_results_dialog {
     );
 
     # put these vboxes in vpanes so we can resize
-    my $vpaned1 = Gtk2::VPaned->new();
-    my $vpaned2 = Gtk2::VPaned->new();
-    my $vpaned3 = Gtk2::VPaned->new();
+    my $vpaned1 = Gtk3::VPaned->new();
+    my $vpaned2 = Gtk3::VPaned->new();
+    my $vpaned3 = Gtk3::VPaned->new();
 
     $vpaned3->pack1($punct_frame, 1, 1);
     $vpaned3->pack2($typo_frame, 1, 1);
@@ -523,10 +523,10 @@ sub remap_results_dialog {
     $vpaned1->pack2($vpaned2, 1, 1);
 
     # now put all of these into a scrolled window
-    my $outer_scroll = Gtk2::ScrolledWindow->new( undef, undef );
+    my $outer_scroll = Gtk3::ScrolledWindow->new( undef, undef );
     $outer_scroll->add_with_viewport( $vpaned1 );
     
-    my $hbox = Gtk2::HBox->new;
+    my $hbox = Gtk3::HBox->new;
     $hbox->pack_start( $copy_button,   0, 0, 0 );
     $hbox->pack_start( $export_button, 0, 0, 0 );
 
@@ -572,7 +572,7 @@ sub remap_results_dialog {
 sub build_vertical_frame {
     my ($self, %args) = @_;
 
-    my $vbox = Gtk2::VBox->new();
+    my $vbox = Gtk3::VBox->new();
     my $components = $args{components};
     my $fill = $args{fill};
     my $padding = $args{padding};
@@ -581,7 +581,7 @@ sub build_vertical_frame {
         $vbox->pack_start( $components->[$i], $fill->[$i], 1, $padding );
     }
 
-    my $frame = Gtk2::Frame->new( $args{label} );
+    my $frame = Gtk3::Frame->new( $args{label} );
     $frame->set_shadow_type('in');
     $frame->add($vbox);
     $frame->set_tooltip_text( $args{"tooltip"} );
@@ -600,20 +600,20 @@ sub build_bland_tree {
         'Glib::String',    # Original value
     );
 
-    my $model = Gtk2::TreeStore->new(@treestore_args);
+    my $model = Gtk3::TreeStore->new(@treestore_args);
 
     foreach my $label (@labels) {
         my $iter = $model->append(undef);
         $model->set( $iter, ORIGINAL_LABEL_COL, $label, );
     }
 
-    my $tree = Gtk2::TreeView->new($model);
+    my $tree = Gtk3::TreeView->new($model);
     my $sel = $tree->get_selection();
     $sel->set_mode('multiple');
     
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
-    my $column = Gtk2::TreeViewColumn->new();
+    my $column = Gtk3::TreeViewColumn->new();
 
 
     $self->add_header_and_tooltip_to_treeview_column (
@@ -622,7 +622,7 @@ sub build_bland_tree {
         tooltip_text => LABEL_COLUMN_TOOLTIP,
         );
         
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     
     $column->pack_start( $renderer, 0 );
 
@@ -698,7 +698,7 @@ sub build_typo_tree {
         'Glib::String',     # Edit distance
     );
 
-    my $typo_model = Gtk2::TreeStore->new(@treestore_args);
+    my $typo_model = Gtk3::TreeStore->new(@treestore_args);
 
     # propagate model with content
     foreach my $match (@typo_matches) {
@@ -719,16 +719,16 @@ sub build_typo_tree {
     }
 
     # allow multi selections
-    my $typo_tree = Gtk2::TreeView->new($typo_model);
+    my $typo_tree = Gtk3::TreeView->new($typo_model);
     my $sel = $typo_tree->get_selection();
     $sel->set_mode('multiple');
     
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
-    my $original_column = Gtk2::TreeViewColumn->new();
-    my $remapped_column = Gtk2::TreeViewColumn->new();
-    my $distance_column = Gtk2::TreeViewColumn->new();
-    my $checkbox_column = Gtk2::TreeViewColumn->new();
+    my $original_column = Gtk3::TreeViewColumn->new();
+    my $remapped_column = Gtk3::TreeViewColumn->new();
+    my $distance_column = Gtk3::TreeViewColumn->new();
+    my $checkbox_column = Gtk3::TreeViewColumn->new();
 
     # headers and tooltips
     $self->add_header_and_tooltip_to_treeview_column (
@@ -756,10 +756,10 @@ sub build_typo_tree {
         );
 
     # create and pack cell renderers
-    my $original_renderer = Gtk2::CellRendererText->new();
-    my $remapped_renderer = Gtk2::CellRendererText->new();
-    my $distance_renderer = Gtk2::CellRendererText->new();
-    my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+    my $original_renderer = Gtk3::CellRendererText->new();
+    my $remapped_renderer = Gtk3::CellRendererText->new();
+    my $distance_renderer = Gtk3::CellRendererText->new();
+    my $checkbox_renderer = Gtk3::CellRendererToggle->new();
 
     my %data = (
         model => $typo_model,
@@ -811,7 +811,7 @@ sub build_punct_tree {
         'Glib::Boolean',    # Checked?
     );
 
-    my $punct_model = Gtk2::TreeStore->new(@treestore_args);
+    my $punct_model = Gtk3::TreeStore->new(@treestore_args);
 
     foreach my $match (@punct_matches) {
         my $iter = $punct_model->append(undef);
@@ -823,16 +823,16 @@ sub build_punct_tree {
         );
     }
 
-    my $punct_tree = Gtk2::TreeView->new($punct_model);
+    my $punct_tree = Gtk3::TreeView->new($punct_model);
     my $sel = $punct_tree->get_selection();
     $sel->set_mode('multiple');
 
     
     # make the columns for the tree and renderers to match up the
     # columns to the model data.
-    my $original_column = Gtk2::TreeViewColumn->new();
-    my $remapped_column = Gtk2::TreeViewColumn->new();
-    my $checkbox_column = Gtk2::TreeViewColumn->new();
+    my $original_column = Gtk3::TreeViewColumn->new();
+    my $remapped_column = Gtk3::TreeViewColumn->new();
+    my $checkbox_column = Gtk3::TreeViewColumn->new();
 
     $self->add_header_and_tooltip_to_treeview_column (
         column       => $original_column,
@@ -852,9 +852,9 @@ sub build_punct_tree {
         tooltip_text => USE_COLUMN_TOOLTIP,
         );
 
-    my $original_renderer = Gtk2::CellRendererText->new();
-    my $remapped_renderer = Gtk2::CellRendererText->new();
-    my $checkbox_renderer = Gtk2::CellRendererToggle->new();
+    my $original_renderer = Gtk3::CellRendererText->new();
+    my $remapped_renderer = Gtk3::CellRendererText->new();
+    my $checkbox_renderer = Gtk3::CellRendererToggle->new();
 
     my %data = (
         model => $punct_model,
@@ -1022,7 +1022,7 @@ sub copy_selected_tree_data_to_clipboard {
 
     my $copy_string = join("\n", @copy_strings);
 
-    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
     $clipboard->set_text($copy_string);
     say "Copied following data to clipboard:\n$copy_string";
 }
@@ -1109,12 +1109,12 @@ sub add_header_and_tooltip_to_treeview_column {
     my ($self, %args) = @_;
     my $column = $args{column};
 
-    my $header = Gtk2::Label->new( $args{title_text} );
+    my $header = Gtk3::Label->new( $args{title_text} );
     $header->show();
 
     $column->set_widget($header);
 
-    my $tooltip = Gtk2::Tooltips->new();
+    my $tooltip = Gtk3::Tooltips->new();
     $tooltip->set_tip( $header, $args{tooltip_text} );
 }
 

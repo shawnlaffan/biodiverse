@@ -7,7 +7,7 @@ package Biodiverse::GUI::OpenDialog;
 use strict;
 use warnings;
 use File::Basename;
-use Gtk2;
+use Gtk3;
 
 use Cwd;
 
@@ -29,7 +29,7 @@ sub Run {
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $builder = Gtk2::Builder->new();
+    my $builder = Gtk3::Builder->new();
     $builder->add_from_file($gui->get_gtk_ui_file('OpenWithName.ui'));
     my $dlg = $builder->get_object('dlgOpenWithName');
 
@@ -45,7 +45,7 @@ sub Run {
     # Add filters
     foreach my $suffix (@suffixes) {
 
-        my $filter = Gtk2::FileFilter->new();
+        my $filter = Gtk3::FileFilter->new();
         if (is_arrayref($suffix)) {
             foreach my $suff (@$suffix) {
                 $filter->add_pattern("*.$suff");

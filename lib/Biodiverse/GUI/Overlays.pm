@@ -2,7 +2,7 @@ package Biodiverse::GUI::Overlays;
 
 use strict;
 use warnings;
-use Gtk2;
+use Gtk3;
 use Data::Dumper;
 use Geo::ShapeFile;
 
@@ -11,7 +11,7 @@ our $VERSION = '3.1';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 
-my $default_colour       = Gtk2::Gdk::Color->parse('#001169');
+my $default_colour       = Gtk3::Gdk::Color->parse('#001169');
 my $last_selected_colour = $default_colour;
 
 sub show_dialog {
@@ -19,7 +19,7 @@ sub show_dialog {
 
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndOverlays.ui'));
     my $dlg = $dlgxml->get_object('wndOverlays');
     my $colour_button = $dlgxml->get_object('colorbutton_overlays');
@@ -69,16 +69,16 @@ sub init_overlay_list {
     my $model = shift;
     my $tree = $dlgxml->get_object('treeOverlays');
 
-    my $col_name = Gtk2::TreeViewColumn->new();
-    my $name_renderer = Gtk2::CellRendererText->new();
+    my $col_name = Gtk3::TreeViewColumn->new();
+    my $name_renderer = Gtk3::CellRendererText->new();
     $col_name->set_title('Filename');
     $col_name->pack_start($name_renderer, 1);
     $col_name->add_attribute($name_renderer,  text => 0);
     $tree->insert_column($col_name, -1);
 
     #  fiddling around with colour selection
-    #my $colColour = Gtk2::TreeViewColumn->new();
-    #my $colour_button = Gtk2::CellRendererPixbuf->new();
+    #my $colColour = Gtk3::TreeViewColumn->new();
+    #my $colour_button = Gtk3::CellRendererPixbuf->new();
     #$colColour->set_title('Colour');
     #$colColour->pack_start($colour_button, 1);
     #$colColour->add_attribute($colour_button, text => 0);
@@ -92,7 +92,7 @@ sub init_overlay_list {
 
 # Make the object tree that appears on the left
 sub make_overlay_model {
-    my $model = Gtk2::ListStore->new(
+    my $model = Gtk3::ListStore->new(
         'Glib::String',
         #'Glib::Boolean',  #  fiddling around with colour selection
     );
@@ -140,7 +140,7 @@ sub on_add {
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my $open = Gtk2::FileChooserDialog->new(
+    my $open = Gtk3::FileChooserDialog->new(
         'Add shapefile',
         undef,
         'open',
@@ -149,7 +149,7 @@ sub on_add {
         'gtk-ok',
         'ok'
     );
-    my $filter = Gtk2::FileFilter->new();
+    my $filter = Gtk3::FileFilter->new();
 
     $filter->add_pattern('*.shp');
     $filter->set_name('.shp files');

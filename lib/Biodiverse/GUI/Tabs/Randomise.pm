@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 use English ( -no_match_vars );
 
-use Gtk2;
+use Gtk3;
 use Biodiverse::Randomise;
 
 our $VERSION = '3.1';
@@ -50,9 +50,9 @@ sub new {
 
     # (we can have many Analysis tabs open, for example.
     # These have a different object/widgets)
-    $self->{xmlPage} = Gtk2::Builder->new();
+    $self->{xmlPage} = Gtk3::Builder->new();
     $self->{xmlPage}->add_from_file($self->{gui}->get_gtk_ui_file('vboxRandomisePage.ui'));
-    $self->{xmlLabel} = Gtk2::Builder->new();
+    $self->{xmlLabel} = Gtk3::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxRandomiseLabel.ui'));
 
     my $xml_page  = $self->{xmlPage};
@@ -61,7 +61,7 @@ sub new {
     my $page  = $xml_page ->get_object('vboxRandomisePage');
     my $label = $xml_label->get_object('hboxRandomiseLabel');
     my $label_text = $xml_label->get_object('lblRandomiseName')->get_text;
-    my $label_widget = Gtk2::Label->new ($label_text);
+    my $label_widget = Gtk3::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     $self->{label_widget} = $xml_label->get_object('lblRandomiseName');
@@ -88,7 +88,7 @@ sub new {
     $self->init_function_combo;
     
     # Make model for the outputs tree
-    my $model = Gtk2::TreeStore->new(
+    my $model = Gtk3::TreeStore->new(
         'Glib::Boolean',       # Checked?
         'Glib::String',        # Name
         'Glib::Scalar',        # Output ref
@@ -174,9 +174,9 @@ sub add_iteration_count_to_table {
     my $count = defined $output_ref
                 ? $output_ref->get_param ('TOTAL_ITERATIONS')
                 : 'nil';
-    #my $label1 = Gtk2::Label->new ();
+    #my $label1 = Gtk3::Label->new ();
     #$label1->set_text ('Iterations so far: ');
-    my $label2 = Gtk2::Label->new ();
+    my $label2 = Gtk3::Label->new ();
     #$label2->set_justify('GTK_JUSTIFY_LEFT');
     $label2->set_alignment(0, 0.5);
 
@@ -233,7 +233,7 @@ sub init_basedata_combo {
     my %args = @_;
 
     my $combo = $self->{xmlPage}->get_object('comboRandomiseBasedata');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
 
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -267,7 +267,7 @@ sub make_function_model {
     my $self = shift;
     my %args = @_;
 
-    $self->{function_model} = Gtk2::ListStore->new( 'Glib::String' ); # NAME
+    $self->{function_model} = Gtk3::ListStore->new( 'Glib::String' ); # NAME
     my $model = $self->{function_model};
 
     # Add each randomisation function
@@ -307,7 +307,7 @@ sub init_function_combo {
     my %args = @_;
 
     my $combo = $self->{xmlPage}->get_object('comboFunction');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 

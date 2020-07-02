@@ -7,7 +7,7 @@ use Data::Dumper;
 use Carp;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-use Gtk2;
+use Gtk3;
 
 our $VERSION = '3.1';
 
@@ -113,28 +113,28 @@ sub show_popup {
 sub make_dialog {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('wndCellPopup.ui'));
 
     # Put it on top of main window
     $dlgxml->get_object(DLG_NAME)->set_transient_for($gui->get_object('wndMain'));
 
     # Set height to be 1/3 of screen
-    #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);
+    #$dlgxml->get_object(DLG_NAME)->resize(1, Gtk3::Gdk->screen_height() / 3);
 
     # Set up the combobox
     my $combo = $dlgxml->get_object('comboSources');
-    my $renderer = Gtk2::CellRendererText->new();
+    my $renderer = Gtk3::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => SOURCES_MODEL_NAME);
 
     # Set up the list
     my $list = $dlgxml->get_object('lstData');
 
-    my $name_renderer = Gtk2::CellRendererText->new();
-    my $value_renderer = Gtk2::CellRendererText->new();
-    my $col_name = Gtk2::TreeViewColumn->new();
-    my $col_value = Gtk2::TreeViewColumn->new();
+    my $name_renderer = Gtk3::CellRendererText->new();
+    my $value_renderer = Gtk3::CellRendererText->new();
+    my $col_name = Gtk3::TreeViewColumn->new();
+    my $col_value = Gtk3::TreeViewColumn->new();
 
     $col_name->pack_start($name_renderer, 1);
     $col_value->pack_start($value_renderer, 1);
@@ -219,7 +219,7 @@ sub load_dialog {
 sub make_sources_model {
     my $sources_ref = shift;
 
-    my $sources_model = Gtk2::ListStore->new(
+    my $sources_model = Gtk3::ListStore->new(
         'Glib::String',
         'Glib::Scalar',
         'Glib::Scalar',
@@ -350,7 +350,7 @@ sub on_reuse_toggled {
 sub on_copy {
     my $popup = shift;
 
-    my $clipboard = Gtk2::Clipboard->get(Gtk2::Gdk->SELECTION_CLIPBOARD);
+    my $clipboard = Gtk3::Clipboard->get(Gtk3::Gdk->SELECTION_CLIPBOARD);
 
     # Add text and HTML (spreadsheet programs can read it) data to clipboard
     # We'll be called back when someone pastes
@@ -451,7 +451,7 @@ END_HTML_HEADER
     print "[Popup] Sending data for $element to clipboard\n";
 
     if ($datatype == TYPE_HTML) {
-        my $atom = Gtk2::Gdk::Atom->intern('text/html');
+        my $atom = Gtk3::Gdk::Atom->intern('text/html');
         $selection->set($atom, 8, $text);
     }
     elsif ($datatype == TYPE_TEXT) {

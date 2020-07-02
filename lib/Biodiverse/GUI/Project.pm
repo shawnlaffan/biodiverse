@@ -183,14 +183,14 @@ sub init_models {
 
     # Basedata model for combobox (based on above)
     $self->{models}{basedata_model} =
-      Gtk2::TreeModelFilter->new( $self->{models}{basedata_output_model} );
+      Gtk3::TreeModelFilter->new( $self->{models}{basedata_output_model} );
     $self->{models}{basedata_model}->set_visible_column(MODEL_BASEDATA_ROW);
 
     # Matrix/Phylogeny models for comboboxen
     $self->{models}{matrix_model} =
-      Gtk2::ListStore->new( 'Glib::String', 'Glib::Scalar' );
+      Gtk3::ListStore->new( 'Glib::String', 'Glib::Scalar' );
     $self->{models}{phylogeny_model} =
-      Gtk2::ListStore->new( 'Glib::String', 'Glib::Scalar' );
+      Gtk3::ListStore->new( 'Glib::String', 'Glib::Scalar' );
 
 # We put all the iterator hashes separately because they must not be written out to XML
 # (they contain pointers to real memory)
@@ -1227,7 +1227,7 @@ sub manage_empty_model {
         # Make a dummy model with "(none)"
         say "[Project] $type Model empty";
 
-        $model = Gtk2::ListStore->new('Glib::String');
+        $model = Gtk3::ListStore->new('Glib::String');
         $iter  = $model->append;
         $model->set( $iter, 0, '(none)' );
 
@@ -1552,7 +1552,7 @@ sub init_overlay_hash {
         }
 
         my $dialog =
-          Gtk2::MessageDialog->new( undef, 'destroy-with-parent', 'warning',
+          Gtk3::MessageDialog->new( undef, 'destroy-with-parent', 'warning',
             'ok', $text, );
         my $response = $dialog->run;
         $dialog->destroy;

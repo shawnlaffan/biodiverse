@@ -14,7 +14,7 @@ use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
 
-use Gtk2;
+use Gtk3;
 use Gnome2::Canvas;
 use Tree::R;
 
@@ -45,7 +45,7 @@ use constant BORDER_SIZE        => 20;
 use constant LEGEND_WIDTH       => 20;
 
 # Lists for each cell container
-use constant INDEX_COLOUR       => 0;  # current Gtk2::Gdk::Color
+use constant INDEX_COLOUR       => 0;  # current Gtk3::Gdk::Color
 use constant INDEX_ELEMENT      => 1;  # BaseStruct element for this cell
 use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
 use constant INDEX_CROSS        => 3;
@@ -56,11 +56,11 @@ use constant INDEX_MINUS        => 5;
 
 use constant HOVER_CURSOR       => 'hand2';
 
-use constant HIGHLIGHT_COLOUR    => Gtk2::Gdk::Color->new(255*257,0,0); # red
-use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant CELL_OUTLINE_COLOUR => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR      => Gtk2::Gdk::Color->parse('#001169');
+use constant HIGHLIGHT_COLOUR    => Gtk3::Gdk::Color->new(255*257,0,0); # red
+use constant COLOUR_BLACK        => Gtk3::Gdk::Color->new(0, 0, 0);
+use constant COLOUR_WHITE        => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::Color->new(0, 0, 0);
+use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color->parse('#001169');
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -143,8 +143,8 @@ sub new {
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
     # Set up custom scrollbars due to flicker problems whilst panning..
-    $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
-    $self->{vadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{hadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
+    $self->{vadjust} = Gtk3::Adjustment->new(0, 0, 1, 1, 1, 1);
 
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
@@ -764,7 +764,7 @@ END_OF_ERROR
 }
 
 # Colours elements using a callback function
-# The callback should return a Gtk2::Gdk::Color object,
+# The callback should return a Gtk3::Gdk::Color object,
 # or undef to set the colour to a default colour
 sub colour {
     my $self     = shift;
@@ -872,7 +872,7 @@ sub set_cell_show_outline {
 sub get_colour_from_chooser {
     my ($self, $colour) = @_;
 
-    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a colour');
+    my $dialog = Gtk3::ColorSelectionDialog->new ('Select a colour');
     my $selector = $dialog->colorsel;  #  get_color_selection?
 
     if ($colour) {
@@ -950,7 +950,7 @@ sub grayout_elements {
     #my $gray50_width = 4;
     #my $gray50_height = 4;
     #my $gray50_bits = pack "CC", 0x80, 0x01, 0x80, 0x01;
-    #my $stipple = Gtk2::Gdk::Bitmap->create_from_data (undef, $gray50_bits, $gray50_width, $gray50_height);
+    #my $stipple = Gtk3::Gdk::Bitmap->create_from_data (undef, $gray50_bits, $gray50_width, $gray50_height);
 
     foreach my $cell (values %{$self->{cells}}) {
         my $rect = $cell->[INDEX_RECT];
@@ -1119,8 +1119,8 @@ sub set_colour_for_undef {
     
     $colour //= COLOUR_WHITE;
 
-    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk3::Gdk::Color';
 
     $self->{colour_none} = $colour;
 }
@@ -1165,11 +1165,11 @@ sub get_colour_hue {
     #
     my $hue;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
         $hue = ($val - $min) / ($max - $min) * 180;
     }
     else {
@@ -1180,7 +1180,7 @@ sub get_colour_hue {
     
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
     
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 sub get_colour_saturation {
@@ -1190,11 +1190,11 @@ sub get_colour_saturation {
     #   Hue is variable, Brightness 1
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
@@ -1204,7 +1204,7 @@ sub get_colour_saturation {
     my $hue = $self->get_legend->get_hue // 0;
     my ($r, $g, $b) = hsv_to_rgb($hue, $sat, 1);
     
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 sub get_colour_grey {
@@ -1212,11 +1212,11 @@ sub get_colour_grey {
     
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0)
+        return Gtk3::Gdk::Color->new(0, 0, 0)
           if ! defined $val;
         
         $sat = ($val - $min) / ($max - $min);
@@ -1228,7 +1228,7 @@ sub get_colour_grey {
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
     $sat *= 257;
     
-    return Gtk2::Gdk::Color->new($sat, $sat, $sat);
+    return Gtk3::Gdk::Color->new($sat, $sat, $sat);
 }
 
 # FROM http://blog.webkist.com/archives/000052.html
@@ -1407,7 +1407,7 @@ sub on_event {
 
         # Change the cursor if we are in select mode
         if (!$self->{cursor}) {
-            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            my $cursor = Gtk3::Gdk::Cursor->new(HOVER_CURSOR);
             $self->{canvas}->window->set_cursor($cursor);
         }
     }
@@ -1459,7 +1459,7 @@ sub on_event {
                 # Grab mouse
                 $cell->grab (
                     [qw/pointer-motion-mask button-release-mask/],
-                    Gtk2::Gdk::Cursor->new ('fleur'),
+                    Gtk3::Gdk::Cursor->new ('fleur'),
                     $event->time,
                 );
                 $self->{selecting} = 1;
@@ -1571,7 +1571,7 @@ sub on_background_event {
             # Grab mouse
             $cell->grab (
                 [qw/pointer-motion-mask button-release-mask/],
-                Gtk2::Gdk::Cursor->new ('fleur'),
+                Gtk3::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
             $self->{selecting} = 1;
@@ -1595,7 +1595,7 @@ sub on_background_event {
             # Grab mouse
             $cell->grab (
                 [qw/pointer-motion-mask button-release-mask/],
-                Gtk2::Gdk::Cursor->new ('fleur'),
+                Gtk3::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
             $self->{dragging} = 1;

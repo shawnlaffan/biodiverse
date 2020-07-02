@@ -13,7 +13,7 @@ use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
 our $VERSION = '3.1';
 
-use Gtk2;
+use Gtk3;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Popup;
@@ -116,14 +116,14 @@ sub show_neighbour_elements {
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 1)\n";
-        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model = Gtk3::TreeModelFilter->new($model);
         $new_model->set_visible_column(ELEMENTS_MODEL_INNER);
         $popup->set_list_model($new_model);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 2)\n";
-        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model = Gtk3::TreeModelFilter->new($model);
         $new_model->set_visible_column(ELEMENTS_MODEL_OUTER);
         $popup->set_list_model($new_model);
     }
@@ -153,7 +153,7 @@ sub show_neighbour_labels {
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting labels model to filtered (inner)\n";
-        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model = Gtk3::TreeModelFilter->new($model);
         $new_model->set_visible_column(LABELS_MODEL_SET1);
         $popup->set_list_model($new_model);
 
@@ -162,7 +162,7 @@ sub show_neighbour_labels {
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting labels model to filtered (outer)\n";
-        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model = Gtk3::TreeModelFilter->new($model);
         $new_model->set_visible_column(LABELS_MODEL_SET2);
         $popup->set_list_model($new_model);
 
@@ -182,7 +182,7 @@ sub show_neighbour_labels {
 sub make_neighbours_model {
     my $element = shift;
     my $data = shift;
-    my $labels_model = Gtk2::ListStore->new(
+    my $labels_model = Gtk3::ListStore->new(
         'Glib::String',
         'Glib::Int',
         'Glib::Int',
@@ -190,7 +190,7 @@ sub make_neighbours_model {
         'Glib::Boolean',
         'Glib::Boolean',
     );
-    my $elements_model = Gtk2::ListStore->new(
+    my $elements_model = Gtk3::ListStore->new(
         'Glib::String',
         'Glib::Boolean',
         'Glib::Boolean',
@@ -265,7 +265,7 @@ sub show_all_labels {
             ? 'Glib::Double'
             : 'Glib::Int';
 
-        my $model = Gtk2::ListStore->new(
+        my $model = Gtk3::ListStore->new(
             'Glib::String',
             $num_type,
         );
@@ -313,7 +313,7 @@ sub show_properties {
 
         #return if ! scalar keys %properties;  #  no properties to display
 
-        my $model = Gtk2::ListStore->new(
+        my $model = Gtk3::ListStore->new(
             'Glib::String',
             'Glib::String',
         );
@@ -350,7 +350,7 @@ sub show_output_list {
     my $elts = $data->get_element_hash();
     my $list_ref = $elts->{$element}{$name};
 
-    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $model = Gtk3::ListStore->new('Glib::String', 'Glib::String');
 
     if (is_hashref($list_ref)) {
         #  sort differently if list elements are numbers or text

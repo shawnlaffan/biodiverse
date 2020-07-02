@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 
-use Gtk2;
+use Gtk3;
 
 use Data::Dumper;
 use Browser::Start qw( open_url );
@@ -94,13 +94,13 @@ END_LINK_TEXT
 ;
 
     
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         'Help link',
         $gui->get_object('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );
-    my $text_widget = Gtk2::Label ->new();
+    my $text_widget = Gtk3::Label ->new();
     $text_widget->set_use_markup(1);
     $text_widget->set_alignment (0, 1);
     $text_widget->set_markup ($text);
@@ -143,13 +143,13 @@ sub help_show_check_for_updates {
     my $VERSION_numeric = $VERSION;
     $VERSION_numeric =~ s/_//g;
 
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         'Check for updates',
         $gui->get_object('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );
-    my $text_widget = Gtk2::Label->new();
+    my $text_widget = Gtk3::Label->new();
     $text_widget->set_use_markup(1);
     $text_widget->set_alignment (0, 1);
     $dlg->vbox->pack_start ($text_widget, 0, 0, 0);

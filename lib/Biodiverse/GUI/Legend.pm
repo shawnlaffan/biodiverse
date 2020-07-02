@@ -14,7 +14,7 @@ use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
 
-use Gtk2;
+use Gtk3;
 use Gnome2::Canvas;
 use Tree::R;
 
@@ -40,8 +40,8 @@ use constant MARK_Y_LEGEND_OFFSET  => 8;
 use constant LEGEND_HEIGHT  => 380;
 use constant INDEX_RECT         => 2;  # Canvas (square) rectangle for the cell
 
-use constant COLOUR_BLACK        => Gtk2::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK        => Gtk3::Gdk::Color->new(0, 0, 0);
+use constant COLOUR_WHITE        => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -215,7 +215,7 @@ sub add_row {
         x2 => $width,
         y1 => $row,
         y2 => $row+1,
-        fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+        fill_color_gdk => Gtk3::Gdk::Color->new($r,$g,$b),
     );
 }
 
@@ -426,8 +426,8 @@ sub set_colour_for_undef {
 
     $colour //= COLOUR_WHITE;
 
-    croak "Colour argument must be a Gtk2::Gdk::Color object\n"
-      if not blessed ($colour) eq 'Gtk2::Gdk::Color';
+    croak "Colour argument must be a Gtk3::Gdk::Color object\n"
+      if not blessed ($colour) eq 'Gtk3::Gdk::Color';
 
     $self->{colour_none} = $colour;
 }
@@ -476,11 +476,11 @@ sub get_colour_hue {
     #
     my $hue;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
         $hue = ($val - $min) / ($max - $min) * 180;
     }
     else {
@@ -491,7 +491,7 @@ sub get_colour_hue {
 
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
 
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 sub get_colour_saturation {
@@ -501,11 +501,11 @@ sub get_colour_saturation {
     #   Hue is variable, Brightness 1
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
@@ -514,7 +514,7 @@ sub get_colour_saturation {
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
 
-    return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
+    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
 sub get_colour_grey {
@@ -522,11 +522,11 @@ sub get_colour_grey {
 
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
+        return Gtk3::Gdk::Color->new(0, 0, 0);
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0)
+        return Gtk3::Gdk::Color->new(0, 0, 0)
           if ! defined $val;
 
         $sat = ($val - $min) / ($max - $min);
@@ -538,7 +538,7 @@ sub get_colour_grey {
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
     $sat *= 257;
 
-    return Gtk2::Gdk::Color->new($sat, $sat, $sat);
+    return Gtk3::Gdk::Color->new($sat, $sat, $sat);
 }
 
 

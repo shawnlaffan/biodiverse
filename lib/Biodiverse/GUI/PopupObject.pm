@@ -5,7 +5,7 @@ use warnings;
 
 our $VERSION = '3.1';
 
-use Gtk2;
+use Gtk3;
 
 ##########################################################
 # Small object for the popup dialog. Passed to sources for

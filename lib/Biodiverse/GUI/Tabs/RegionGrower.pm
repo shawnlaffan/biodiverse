@@ -23,8 +23,8 @@ sub new {
     my $xml_page = $self->{xmlPage};
     my $hbox = $xml_page->get_object('hbox_cluster_metric');
     
-    my $label_widget = Gtk2::Label->new('Objective function: ');
-    my $combo_minmax = Gtk2::ComboBox->new_text();
+    my $label_widget = Gtk3::Label->new('Objective function: ');
+    my $combo_minmax = Gtk3::ComboBox->new_text();
     $combo_minmax->append_text('maximise');
     $combo_minmax->append_text('minimise');
     $combo_minmax->set_active(0);

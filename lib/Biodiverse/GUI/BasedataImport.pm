@@ -10,7 +10,7 @@ use Carp;
 our $VERSION = '3.1';
 
 use File::Basename;
-use Gtk2;
+use Gtk3;
 use Glib;
 use Text::Wrapper;
 use Scalar::Util qw /looks_like_number blessed/;
@@ -193,18 +193,18 @@ sub run {
     #########
     # 1a. Get parameters to use
     #########
-    $dlgxml = Gtk2::Builder->new();
+    $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
     $dlg = $dlgxml->get_object('dlgImportParameters');
 
     #  add file name labels to display
-    my $vbox = Gtk2::VBox->new( 0, 0 );
-    my $file_title = Gtk2::Label->new('<b>Files:</b>');
+    my $vbox = Gtk3::VBox->new( 0, 0 );
+    my $file_title = Gtk3::Label->new('<b>Files:</b>');
     $file_title->set_use_markup(1);
     $file_title->set_alignment( 0, 1 );
     $vbox->pack_start( $file_title, 0, 0, 0 );
 
-    my $file_list_label = Gtk2::Label->new( $file_list_as_text . "\n\n" );
+    my $file_list_label = Gtk3::Label->new( $file_list_as_text . "\n\n" );
     $file_list_label->set_alignment( 0, 1 );
     $vbox->pack_start( $file_list_label, 0, 0, 0 );
     my $import_vbox = $dlgxml->get_object('import_parameters_vbox');
@@ -451,7 +451,7 @@ sub run {
             }, $parameter_metadata_class;
 
             #  get the sheet ID - need to refactor this code
-            my $s_dlgxml = Gtk2::Builder->new();
+            my $s_dlgxml = Gtk3::Builder->new();
             $s_dlgxml->add_from_file(
                 $gui->get_gtk_ui_file('dlgImportParameters.ui') );
             $dlg = $s_dlgxml->get_object('dlgImportParameters');
@@ -569,7 +569,7 @@ sub run {
                   : 'Please select at least one label and one group column';
 
                 my $msg =
-                  Gtk2::MessageDialog->new( undef, 'modal', 'error', 'ok',
+                  Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok',
                     $text );
 
                 $msg->run();
@@ -1142,17 +1142,17 @@ sub show_expl_dialog {
     my $expl_hash = shift;
     my $parent    = shift;
 
-    my $dlg = Gtk2::Dialog->new( 'Column options',
+    my $dlg = Gtk3::Dialog->new( 'Column options',
         $parent, 'destroy-with-parent', 'gtk-ok' => 'ok', );
 
     my $text_wrapper = Text::Wrapper->new( columns => 90 );
 
-    my $table = Gtk2::Table->new( 1 + scalar keys %$expl_hash, 2 );
+    my $table = Gtk3::Table->new( 1 + scalar keys %$expl_hash, 2 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(5);
 
     # Make scroll window for table
-    #my $scroll = Gtk2::ScrolledWindow->new;
+    #my $scroll = Gtk3::ScrolledWindow->new;
     #$scroll->add_with_viewport($table);
     #$scroll->set_policy('never', 'automatic');
     #$dlg->vbox->pack_start($scroll, 1, 1, 5);
@@ -1162,12 +1162,12 @@ sub show_expl_dialog {
     my $col = 0;
 
     # Make header column
-    my $label1 = Gtk2::Label->new('<b>Column option</b>');
+    my $label1 = Gtk3::Label->new('<b>Column option</b>');
     $label1->set_alignment( 0, 1 );
     $label1->set_use_markup(1);
     $table->attach( $label1, 0, 1, $col, $col + 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
-    my $label2 = Gtk2::Label->new('<b>Explanation</b>');
+    my $label2 = Gtk3::Label->new('<b>Explanation</b>');
     $label2->set_alignment( 0, 1 );
     $label2->set_use_markup(1);
     $table->attach( $label2, 1, 2, $col, $col + 1, [ 'expand', 'fill' ],
@@ -1178,7 +1178,7 @@ sub show_expl_dialog {
     #while (my ($label, $expl) = each %explain) {
     foreach my $label ( sort keys %$expl_hash ) {
         $col++;
-        my $label_widget = Gtk2::Label->new("<b>$label</b>");
+        my $label_widget = Gtk3::Label->new("<b>$label</b>");
         $table->attach( $label_widget, 0, 1, $col, $col + 1,
             [ 'expand', 'fill' ],
             'shrink', 0, 0 );
@@ -1186,7 +1186,7 @@ sub show_expl_dialog {
         my $expl = $expl_hash->{$label};
 
         #$expl = $text_wrapper->wrap($expl);
-        my $expl_widget = Gtk2::Label->new($expl);
+        my $expl_widget = Gtk3::Label->new($expl);
         $table->attach( $expl_widget, 1, 2, $col, $col + 1,
             [ 'expand', 'fill' ],
             'shrink', 0, 0 );
@@ -1217,7 +1217,7 @@ sub make_reorder_dialog {
     my $gui     = shift;
     my $columns = shift;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgReorderColumns.ui') );
     my $dlg = $dlgxml->get_object('dlgReorderColumns');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
@@ -1256,7 +1256,7 @@ sub setup_reorder_list {
     my $columns = shift;
 
     # Create the model
-    my $model = Gtk2::ListStore->new( 'Glib::String', 'Glib::Scalar' );
+    my $model = Gtk3::ListStore->new( 'Glib::String', 'Glib::Scalar' );
 
     foreach my $column ( @{$columns} ) {
         my $iter = $model->append();
@@ -1267,8 +1267,8 @@ sub setup_reorder_list {
     # Initialise the list
     my $list = $dlgxml->get_object($type);
 
-    my $col_name      = Gtk2::TreeViewColumn->new();
-    my $name_renderer = Gtk2::CellRendererText->new();
+    my $col_name      = Gtk3::TreeViewColumn->new();
+    my $name_renderer = Gtk3::CellRendererText->new();
     $col_name->set_sizing('fixed');
     $col_name->pack_start( $name_renderer, 1 );
     $col_name->add_attribute( $name_renderer, text => 0 );
@@ -1338,7 +1338,7 @@ sub on_up_down {
 sub make_filename_dialog {
     my $gui = shift;
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImport1.ui') );
     my $dlg = $dlgxml->get_object($import_dlg_name);
     my $x   = $gui->get_object('wndMain');
@@ -1370,27 +1370,27 @@ sub make_filename_dialog {
     $filechooser->set_current_folder_uri( getcwd() );
 
     # define file selection filters (stored in txtcsv_filter etc)
-    $txtcsv_filter = Gtk2::FileFilter->new();
+    $txtcsv_filter = Gtk3::FileFilter->new();
     $txtcsv_filter->add_pattern('*.csv');
     $txtcsv_filter->add_pattern('*.txt');
     $txtcsv_filter->set_name('txt and csv files');
 
-    $allfiles_filter = Gtk2::FileFilter->new();
+    $allfiles_filter = Gtk3::FileFilter->new();
     $allfiles_filter->add_pattern('*');
     $allfiles_filter->set_name('all files');
 
-    $shapefiles_filter = Gtk2::FileFilter->new();
+    $shapefiles_filter = Gtk3::FileFilter->new();
     $shapefiles_filter->add_pattern('*.shp');
     $shapefiles_filter->set_name('shapefiles');
 
-    $spreadsheets_filter = Gtk2::FileFilter->new();
+    $spreadsheets_filter = Gtk3::FileFilter->new();
     $spreadsheets_filter->add_pattern('*.xlsx');
     $spreadsheets_filter->add_pattern('*.xls');
     $spreadsheets_filter->add_pattern('*.ods');
     $spreadsheets_filter->set_name('spreadsheets');
 
     #  could use a custom filter to detect more formats
-    $rasters_filter = Gtk2::FileFilter->new();
+    $rasters_filter = Gtk3::FileFilter->new();
     $rasters_filter->add_pattern('*.tif');
     $rasters_filter->add_pattern('*.tiff');
     $rasters_filter->add_pattern('*.img');
@@ -1563,7 +1563,7 @@ sub make_columns_dialog {
     say "[GUI] Generating make columns dialog for $quant $num_columns columns";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         'Choose columns',
         $wnd_main,
         'modal',
@@ -1573,27 +1573,27 @@ sub make_columns_dialog {
     );
 
     if ( defined $file_list ) {
-        my $file_title = Gtk2::Label->new('<b>Files:</b>');
+        my $file_title = Gtk3::Label->new('<b>Files:</b>');
         $file_title->set_use_markup(1);
         $file_title->set_alignment( 0, 1 );
         $dlg->vbox->pack_start( $file_title, 0, 0, 0 );
 
-        my $file_list_label = Gtk2::Label->new( $file_list . "\n\n" );
+        my $file_list_label = Gtk3::Label->new( $file_list . "\n\n" );
         $file_list_label->set_alignment( 0, 1 );
         $dlg->vbox->pack_start( $file_list_label, 0, 0, 0 );
     }
 
-    my $label = Gtk2::Label->new('<b>Set column options</b>');
+    my $label = Gtk3::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # Make table
-    my $table = Gtk2::Table->new( $num_columns + 1, 8 );
+    my $table = Gtk3::Table->new( $num_columns + 1, 8 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
     # Make scroll window for table
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'never', 'automatic' );
     $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
@@ -1601,21 +1601,21 @@ sub make_columns_dialog {
     my $col = 0;
 
     # Make header column
-    $label = Gtk2::Label->new('<b>#</b>');
+    $label = Gtk3::Label->new('<b>#</b>');
     $label->set_alignment( 0.5, 1 );
     $label->set_use_markup(1);
     $table->attach( $label, $col, $col + 1, 0, 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
 
     $col++;
-    $label = Gtk2::Label->new('<b>Column</b>');
+    $label = Gtk3::Label->new('<b>Column</b>');
     $label->set_alignment( 0, 1 );
     $label->set_use_markup(1);
     $table->attach( $label, $col, $col + 1, 0, 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
 
     $col++;
-    $label = Gtk2::Label->new('Type');
+    $label = Gtk3::Label->new('Type');
     $label->set_alignment( 0.5, 1 );
     $label->set_has_tooltip(1);
     $label->set_tooltip_text('Click on the help to see the column meanings');
@@ -1623,7 +1623,7 @@ sub make_columns_dialog {
         'shrink', 0, 0 );
 
     $col++;
-    $label = Gtk2::Label->new('Cell size');
+    $label = Gtk3::Label->new('Cell size');
     $label->set_alignment( 0.5, 1 );
     $label->set_has_tooltip(1);
     $label->set_tooltip_text('Width of the group along this axis');
@@ -1631,7 +1631,7 @@ sub make_columns_dialog {
         'shrink', 50, 0 );
 
     $col++;
-    $label = Gtk2::Label->new('Cell origin');
+    $label = Gtk3::Label->new('Cell origin');
     $label->set_alignment( 0.5, 1 );
     $label->set_has_tooltip(1);
     $label->set_tooltip_text(
@@ -1640,7 +1640,7 @@ sub make_columns_dialog {
         'shrink', 50, 0 );
 
     $col++;
-    $label = Gtk2::Label->new("Data in\ndegrees?");
+    $label = Gtk3::Label->new("Data in\ndegrees?");
     $label->set_alignment( 0.5, 1 );
     $label->set_has_tooltip(1);
     $label->set_tooltip_text(
@@ -1692,19 +1692,19 @@ sub add_row {
     }
 
     #  column number
-    my $i_label = Gtk2::Label->new($col_id);
+    my $i_label = Gtk3::Label->new($col_id);
     $i_label->set_alignment( 0.5, 1 );
     $i_label->set_use_markup(1);
 
     $header = Glib::Markup::escape_text($header);
 
     # Column header
-    my $label = Gtk2::Label->new("<tt>$header</tt>");
+    my $label = Gtk3::Label->new("<tt>$header</tt>");
     $label->set_alignment( 0.5, 1 );
     $label->set_use_markup(1);
 
     # Type combo box
-    my $combo = Gtk2::ComboBox->new_text;
+    my $combo = Gtk3::ComboBox->new_text;
     foreach (@$row_options) {
         $combo->append_text($_);
     }
@@ -1716,11 +1716,11 @@ sub add_row {
     }
 
     # Cell sizes/snaps
-    my $adj1 = Gtk2::Adjustment->new( 100000, 0, 100000000, 100, 10000, 0 );
-    my $spin1 = Gtk2::SpinButton->new( $adj1, 100, $dp );
+    my $adj1 = Gtk3::Adjustment->new( 100000, 0, 100000000, 100, 10000, 0 );
+    my $spin1 = Gtk3::SpinButton->new( $adj1, 100, $dp );
 
-    my $adj2 = Gtk2::Adjustment->new( 0, -100000000, 100000000, 100, 10000, 0 );
-    my $spin2 = Gtk2::SpinButton->new( $adj2, 100, $dp );
+    my $adj2 = Gtk3::Adjustment->new( 0, -100000000, 100000000, 100, 10000, 0 );
+    my $spin2 = Gtk3::SpinButton->new( $adj2, 100, $dp );
 
     foreach my $spin ( $spin1, $spin2 ) {
         $spin->hide()
@@ -1729,7 +1729,7 @@ sub add_row {
     }
 
     #  degrees minutes seconds
-    my $combo_dms = Gtk2::ComboBox->new_text;
+    my $combo_dms = Gtk3::ComboBox->new_text;
     $combo_dms->set_has_tooltip(1);
     $combo_dms->set_tooltip_text($lat_lon_widget_tooltip_text);
     foreach my $choice ( '', 'is_lat', 'is_lon' ) {
@@ -1809,7 +1809,7 @@ sub get_remap_info {
     my $params     = $remap_args->{parameters};
 
 #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
     my $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_title( ucfirst "$type property file options" );
@@ -1896,7 +1896,7 @@ sub get_remap_info {
           'Insufficient columns chosen of types.  Must have at least one of: '
           . join ' ', @$required_cols;
         my $msg =
-          Gtk2::MessageDialog->new( undef, 'modal', 'error', 'ok', $text );
+          Gtk3::MessageDialog->new( undef, 'modal', 'error', 'ok', $text );
 
         $msg->run();
         $msg->destroy();
@@ -1969,7 +1969,7 @@ sub make_remap_columns_dialog {
     say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         'Choose columns',
         $wnd_main,
         'modal',
@@ -1977,17 +1977,17 @@ sub make_remap_columns_dialog {
         'gtk-ok'     => 'ok',
         'gtk-help'   => 'help',
     );
-    my $label = Gtk2::Label->new("<b>Select column types</b>");
+    my $label = Gtk3::Label->new("<b>Select column types</b>");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # Make table
-    my $table = Gtk2::Table->new( $num_columns + 1, 8 );
+    my $table = Gtk3::Table->new( $num_columns + 1, 8 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
     # Make scroll window for table
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'never', 'automatic' );
     $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
@@ -1995,7 +1995,7 @@ sub make_remap_columns_dialog {
     my $col = 0;
 
     # Make ID column
-    $label = Gtk2::Label->new('<b>#</b>');
+    $label = Gtk3::Label->new('<b>#</b>');
     $label->set_alignment( 0.5, 1 );
     $label->set_use_markup(1);
     $table->attach( $label, $col, $col + 1, 0, 1, [ 'expand', 'fill' ],
@@ -2003,14 +2003,14 @@ sub make_remap_columns_dialog {
 
     # Make header column
     $col++;
-    $label = Gtk2::Label->new('<b>Column</b>');
+    $label = Gtk3::Label->new('<b>Column</b>');
     $label->set_alignment( 0.5, 1 );
     $label->set_use_markup(1);
     $table->attach( $label, $col, $col + 1, 0, 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
 
     $col++;
-    $label = Gtk2::Label->new('Type');
+    $label = Gtk3::Label->new('Type');
     $label->set_alignment( 0.5, 1 );
     $table->attach( $label, $col, $col + 1, 0, 1, [ 'expand', 'fill' ],
         'shrink', 0, 0 );
@@ -2061,16 +2061,16 @@ sub add_remap_row {
       = @_;
 
     #  column number
-    my $i_label = Gtk2::Label->new($col_id);
+    my $i_label = Gtk3::Label->new($col_id);
     $i_label->set_alignment( 0.5, 1 );
     $i_label->set_use_markup(1);
 
     # Column header
-    my $label = Gtk2::Label->new("<tt>$header</tt>");
+    my $label = Gtk3::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
 
     # Type combo box
-    my $combo = Gtk2::ComboBox->new_text;
+    my $combo = Gtk3::ComboBox->new_text;
     my @options =
         $column_overrides
       ? @$column_overrides

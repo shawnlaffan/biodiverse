@@ -6,7 +6,7 @@ use 5.010;
 use English qw /-no_match_vars/;
 use Carp;
 
-use Gtk2;
+use Gtk3;
 
 our $VERSION = '3.1';
 
@@ -48,7 +48,7 @@ sub show_dialog {
     my $exclusions_hash = shift;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file($gui->get_gtk_ui_file('dlgRunExclusions.ui'));
     my $dlg = $dlgxml->get_object(DLG_NAME);
 

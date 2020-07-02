@@ -6,7 +6,7 @@ use File::Basename;
 use Carp;
 use Ref::Util qw { :all };
 
-use Gtk2;
+use Gtk3;
 
 our $VERSION = '3.1';
 
@@ -142,7 +142,7 @@ sub run {
         last GET_RESPONSE if $num_start == 1 && $num_labels > 0;
 
         #  try again if we get to here
-        my $msg = Gtk2::MessageDialog->new(
+        my $msg = Gtk3::MessageDialog->new(
             undef,
             'modal',
             'error',
@@ -246,32 +246,32 @@ sub make_columns_dialog_normal {
     say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new(
+    my $dlg = Gtk3::Dialog->new(
         'Choose columns',
         $wnd_main, 'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
     );
 
-    my $label = Gtk2::Label->new(
+    my $label = Gtk3::Label->new(
         "<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # Make table
-    my $table = Gtk2::Table->new( 4, $num_columns + 1 );
+    my $table = Gtk3::Table->new( 4, $num_columns + 1 );
     $table->set_row_spacings(5);
 
     #$table->set_col_spacings(20);
 
     # Make scroll window for table
-    my $scroll = Gtk2::ScrolledWindow->new;
+    my $scroll = Gtk3::ScrolledWindow->new;
     $scroll->add_with_viewport($table);
     $scroll->set_policy( 'automatic', 'never' );
     $dlg->vbox->pack_start( $scroll, 1, 1, 5 );
 
     # Make header column
-    $label = Gtk2::Label->new("<b>Column</b>");
+    $label = Gtk3::Label->new("<b>Column</b>");
     $label->set_use_markup(1);
     $label->set_alignment( 1, 0.5 );
     $table->attach_defaults( $label, 0, 1, 0, 1 );
@@ -279,7 +279,7 @@ sub make_columns_dialog_normal {
     my $iter = 0;
     foreach my $type (@$type_options) {
         $iter++;
-        $label = Gtk2::Label->new($type);
+        $label = Gtk3::Label->new($type);
         $label->set_alignment( 1, 0.5 );
         $table->attach_defaults( $label, 0, 1, $iter, $iter + 1 );
     }
@@ -304,14 +304,14 @@ sub add_column {
 
     # Column header
     #say "setting header '$header'";
-    my $label = Gtk2::Label->new("<tt>$header</tt>");
+    my $label = Gtk3::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
     $label->set_padding( 2, 0 );
 
     # Type radio button
-    my $radio1 = Gtk2::RadioButton->new( undef,   '' );    # Ignore
-    my $radio2 = Gtk2::RadioButton->new( $radio1, '' );    # Label
-    my $radio3 = Gtk2::RadioButton->new( $radio2, '' );    # Matrix start
+    my $radio1 = Gtk3::RadioButton->new( undef,   '' );    # Ignore
+    my $radio2 = Gtk3::RadioButton->new( $radio1, '' );    # Label
+    my $radio3 = Gtk3::RadioButton->new( $radio2, '' );    # Matrix start
     $radio1->set( 'can-focus', 0 );
     $radio2->set( 'can-focus', 0 );
     $radio3->set( 'can-focus', 0 );
@@ -428,7 +428,7 @@ sub import_sparse_format {
 
 sub run_combo_sparse_normal {
 
-    my $combo = Gtk2::ComboBox->new_text;
+    my $combo = Gtk3::ComboBox->new_text;
     $combo->append_text('normal');
     $combo->append_text('sparse');
     $combo->set_active(0);
@@ -437,9 +437,9 @@ sub run_combo_sparse_normal {
 'Normal is an n by n symmetric matric while sparse is one row/column pair per line'
     );
 
-    my $label = Gtk2::Label->new('Input file format');
+    my $label = Gtk3::Label->new('Input file format');
 
-    my $dlg = Gtk2::Dialog->new_with_buttons(
+    my $dlg = Gtk3::Dialog->new_with_buttons(
         'Input file format',
         undef,
         'modal',

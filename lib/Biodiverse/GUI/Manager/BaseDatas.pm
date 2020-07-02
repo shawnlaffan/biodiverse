@@ -166,7 +166,7 @@ sub run_axis_selector_dialog {
 
     # are we attaching groups or labels?
     my $gui    = $self;                  #  copied code from elsewhere
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgGroupsLabels.ui') );
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
@@ -200,7 +200,7 @@ sub run_axis_selector_dialog {
         bless $_, $parameter_metadata_class;
     }
 
-    $dlgxml = Gtk2::Builder->new();
+    $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $gui->get_gtk_ui_file('dlgImportParameters.ui') );
     $dlg = $dlgxml->get_object('dlgImportParameters');
     $dlg->set_title( 'Axes to drop' );
@@ -274,7 +274,7 @@ sub do_basedata_attach_properties {
 
     # are we attaching groups or labels?
     my $gui    = $self;                  #  copied code from elsewhere
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgGroupsLabels.ui') );
     my $dlg = $dlgxml->get_object('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_object('wndMain') );
@@ -311,7 +311,7 @@ sub do_basedata_attach_properties {
     #}
 
     my $summary_text = "Assigned properties to $count ${type}";
-    my $summary_dlg  = Gtk2::MessageDialog->new(
+    my $summary_dlg  = Gtk3::MessageDialog->new(
         $self->{gui},
         'destroy-with-parent',
         'info',    # message type
@@ -431,15 +431,15 @@ sub do_basedata_reduce_axis_resolutions {
     ###  the name field,
     ###  a table for the resolutions, and
     ###  a table for the origins.
-    my $name_entry = Gtk2::Entry->new ();
+    my $name_entry = Gtk3::Entry->new ();
     $name_entry->set_text ($name);
-    my $name_label = Gtk2::Label->new ();
+    my $name_label = Gtk3::Label->new ();
     $name_label->set_markup('<b>New name:</b> ');
-    my $name_dlg = Gtk2::HBox->new;
+    my $name_dlg = Gtk3::HBox->new;
     $name_dlg->pack_start ($name_label, 1, 1, 0);
     $name_dlg->pack_start ($name_entry, 1, 1, 0);
 
-    my $resolution_label = Gtk2::Label->new;
+    my $resolution_label = Gtk3::Label->new;
     $resolution_label->set_markup (
         "\n<b>New resolutions</b>\n <i>Must be incremented by current axis sizes.</i>\n"
     );
@@ -447,7 +447,7 @@ sub do_basedata_reduce_axis_resolutions {
       = $self->get_resolution_table_widget (
         basedata => $bd,
     );
-    my $origin_label = Gtk2::Label->new;
+    my $origin_label = Gtk3::Label->new;
     $origin_label->set_markup (
           "\n<b>New origins</b>\n"
         . "<i>Must be incremented by current axis sizes.\n"
@@ -460,7 +460,7 @@ sub do_basedata_reduce_axis_resolutions {
         basedata => $bd,
     );
 
-    my $dlg = Gtk2::Dialog->new (
+    my $dlg = Gtk3::Dialog->new (
         'Reduce basedata resolution',
         $self->get_object('wndMain'),
         'modal',
@@ -469,12 +469,12 @@ sub do_basedata_reduce_axis_resolutions {
     );
     my $vbox = $dlg->get_content_area;
     $vbox->pack_start ($name_dlg, 1, 1, 0);
-    #$vbox->pack_start (Gtk2::HSeparator->new, 1, 1, 0);
-    my $align1 = Gtk2::Alignment->new(0, 0.5, 0, 0.25);
+    #$vbox->pack_start (Gtk3::HSeparator->new, 1, 1, 0);
+    my $align1 = Gtk3::Alignment->new(0, 0.5, 0, 0.25);
     $align1->add($resolution_label);
     $vbox->pack_start ($align1, 0, 0, 0);
     $vbox->pack_start ($resolution_table, 1, 1, 0);
-    my $align2 = Gtk2::Alignment->new(0, 0.5, 0, 0.25);
+    my $align2 = Gtk3::Alignment->new(0, 0.5, 0, 0.25);
     $align2->add($origin_label);
     $vbox->pack_start ($align2, 0, 0, 0);
     $vbox->pack_start ($origin_table, 1, 1, 0);
@@ -515,18 +515,18 @@ sub get_resolution_table_widget {
         
     my %coord_bounds   = $bd->get_coord_bounds;
 
-    my $table = Gtk2::Table->new (0, 0, 0);
+    my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk2::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltips->new;
 
     my $rows = $table->get('n-rows');
     $rows++;
 
-    my $incr_button = Gtk2::Button->new_with_label('Increment all');
+    my $incr_button = Gtk3::Button->new_with_label('Increment all');
     $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
     $tooltip_group->set_tip( $incr_button,
         'Increase all the axes by their default increments', undef, );
-    my $decr_button = Gtk2::Button->new_with_label('Decrement all');
+    my $decr_button = Gtk3::Button->new_with_label('Decrement all');
     $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
     $tooltip_group->set_tip( $decr_button,
         'Decrease all the axes by their default increments', undef, );
@@ -570,15 +570,15 @@ sub get_resolution_table_widget {
         $table->set( 'n-rows' => $rows );
 
         # Make the label
-        my $label = Gtk2::Label->new;
+        my $label = Gtk3::Label->new;
         $label->set_text($label_text);
 
         #  make the widget
-        my $adj = Gtk2::Adjustment->new(
+        my $adj = Gtk3::Adjustment->new(
             $init_value, $min_val,   $max_val,
             $step_incr,  $page_incr, 0,
         );
-        my $widget = Gtk2::SpinButton->new( $adj, $init_value, 10, );
+        my $widget = Gtk3::SpinButton->new( $adj, $init_value, 10, );
 
         $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
         $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
@@ -671,18 +671,18 @@ sub get_origin_table_widget {
         
     my %coord_bounds   = $bd->get_coord_bounds;
 
-    my $table = Gtk2::Table->new (0, 0, 0);
+    my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk2::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltips->new;
 
     my $rows = $table->get('n-rows');
     $rows++;
 
-    my $incr_button = Gtk2::Button->new_with_label('Increment all');
+    my $incr_button = Gtk3::Button->new_with_label('Increment all');
     $table->attach( $incr_button, 0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
     $tooltip_group->set_tip( $incr_button,
         'Increase all the axes by their default increments', undef, );
-    my $decr_button = Gtk2::Button->new_with_label('Decrement all');
+    my $decr_button = Gtk3::Button->new_with_label('Decrement all');
     $table->attach( $decr_button, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
     $tooltip_group->set_tip( $decr_button,
         'Decrease all the axes by their default increments', undef, );
@@ -725,15 +725,15 @@ sub get_origin_table_widget {
         $table->set( 'n-rows' => $rows );
 
         # Make the label
-        my $label = Gtk2::Label->new;
+        my $label = Gtk3::Label->new;
         $label->set_text($label_text);
 
         #  make the widget
-        my $adj = Gtk2::Adjustment->new(
+        my $adj = Gtk3::Adjustment->new(
             $init_value, $min_val,   $max_val,
             $step_incr,  $page_incr, 0,
         );
-        my $widget = Gtk2::SpinButton->new( $adj, $init_value, 10, );
+        my $widget = Gtk3::SpinButton->new( $adj, $init_value, 10, );
 
         $table->attach( $label,  0, 1, $rows, $rows + 1, 'shrink', [], 0, 0 );
         $table->attach( $widget, 1, 2, $rows, $rows + 1, 'shrink', [], 0, 0 );
@@ -868,7 +868,7 @@ sub do_merge_basedatas {
     };
     bless $param, 'Biodiverse::Metadata::Parameter';
 
-    my $dlgxml = Gtk2::Builder->new();
+    my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
     my $param_dlg = $dlgxml->get_object('dlgImportParameters');
 

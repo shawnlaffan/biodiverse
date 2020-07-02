@@ -9,7 +9,7 @@ use warnings;
 use 5.010;
 
 use Glib qw (TRUE FALSE);
-use Gtk2;
+use Gtk3;
 use Carp;
 use Time::HiRes qw/time/;
 use Data::Dumper;
@@ -144,7 +144,7 @@ sub update {
 
     $bar->set_fraction($progress);
 
-    Gtk2->main_iteration while Gtk2->events_pending;
+    Gtk3->main_iteration while Gtk3->events_pending;
 
     Biodiverse::GUI::GUIManager->instance->show_progress;
 
@@ -195,10 +195,10 @@ sub pulsate {
     }
 
     # process Gtk events - does this do the right thing?
-    while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+    while (Gtk3->events_pending) { Gtk3->main_iteration(); }
 
     #  bad idea this one.  It pulses without end.
-    #Gtk2->main;
+    #Gtk3->main;
 
     return;
 }
@@ -222,7 +222,7 @@ sub pulse_progress_bar {
         #$p_bar->set_pulse_step (0.1);
         $p_bar->pulse;
         
-        #while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+        #while (Gtk3->events_pending) { Gtk3->main_iteration(); }
         
         return 1;  #  keep going
     }

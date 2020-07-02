@@ -34,10 +34,10 @@ use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to f
 use constant HIGHLIGHT_WIDTH => 2; # width of highlighted horizontal lines (pixels)
 use constant NORMAL_WIDTH    => 1;       # width of normal lines (pixels)
 
-use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
-use constant COLOUR_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk3::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk3::Gdk::Color->new(255*257,0,0);
+use constant COLOUR_BLACK => [Gtk3::Gdk::Color::parse ('#000000000000')]->[1];  #->new(0,0,0);
+use constant COLOUR_WHITE => [Gtk3::Gdk::Color::parse ('#FFFFFFFFFFFF')]->[1];  #  ->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => [Gtk3::Gdk::Color::parse ('#D2D2D2D2D2D2')]->[1];  #->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => [Gtk3::Gdk::Color::parse ('#FFFF00000000')]->[1];  #255*257,0,0);
 
 use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
@@ -46,7 +46,7 @@ use constant COLOUR_LIST_UNDEF        => COLOUR_WHITE;
 
 use constant DEFAULT_LINE_COLOUR      => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB  => "#000000";
-use constant DEFAULT_LINE_COLOUR_VERT => Gtk3::Gdk::Color::parse('#7F7F7F');  #  '#4D4D4D'
+use constant DEFAULT_LINE_COLOUR_VERT => [Gtk3::Gdk::Color::parse('#7F7F7F')]->[1];  #  '#4D4D4D'
 
 use constant HOVER_CURSOR => 'hand2';
 
@@ -68,7 +68,8 @@ sub new {
     my $use_slider_to_select_nodes = !$args{no_use_slider_to_select_nodes};
     my $want_legend = $args{want_legend};
 
-    my $grey = 0.9 * 255 * 257;
+    #my $grey = 0.9 * 255 * 257;
+    my $grey = '#E665E665E665';
 
     my $self = {
         map                 => $map,
@@ -86,7 +87,7 @@ sub new {
         render_height       => 0,
         graph_height_px     => 0,
         use_slider_to_select_nodes => $use_slider_to_select_nodes,
-        colour_not_in_tree  => Gtk3::Gdk::Color->new($grey, $grey, $grey),
+        colour_not_in_tree  => [Gtk3::Gdk::Color::parse ($grey)]->[1], #->new($grey, $grey, $grey),
         use_highlight_func  => 1, #  should we highlight?
     };
 
@@ -135,8 +136,8 @@ sub new {
     }
 
     # Make and hook up the canvases
-    $self->{canvas} = Gnome2::Canvas->new();
-    $self->{graph}  = Gnome2::Canvas->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
+    $self->{graph}  = GooCanvas2::Canvas->new();
     $main_frame->add( $self->{canvas} );
     $graph_frame->add( $self->{graph} );
     $self->{canvas}->signal_connect_swapped (
@@ -2277,7 +2278,7 @@ sub render_tree {
     my $root_circ_diameter = 0.5 * $self->{border_len} * $self->{length_scale};
     $self->{root_circle} = GooCanvas2::CanvasItem->new (
         $self->{lines_group},
-        'Gnome2::Canvas::Ellipse',
+        'GooCanvas2::CanvasEllipse',
         x1 => $root_offset,
         y1 => $root_y + $root_circ_diameter / 2,
         x2 => $root_offset + $root_circ_diameter,
@@ -2404,7 +2405,7 @@ sub render_graph {
 
         my $hline =  GooCanvas2::CanvasItem->new (
             $graph_group,
-            'Gnome2::Canvas::Line',
+            'GooCanvas2::CanvasPolyline',
             points          => [$current_x - $segment_length, $segment_y, $current_x, $segment_y],
             fill_color_gdk  => COLOUR_BLACK,
             width_pixels    => NORMAL_WIDTH
@@ -2414,7 +2415,7 @@ sub render_graph {
         if ($previous_y) {
             my $vline = GooCanvas2::CanvasItem->new (
                 $graph_group,
-                'Gnome2::Canvas::Line',
+                'GooCanvas2::CanvasPolyline',
                 points          => [$current_x, $previous_y, $current_x, $segment_y],
                 fill_color_gdk  => COLOUR_BLACK,
                 width_pixels    => NORMAL_WIDTH
@@ -2534,7 +2535,7 @@ sub draw_line {
 
     return GooCanvas2::CanvasItem->new (
         $self->{lines_group},
-        'Gnome2::Canvas::Line',
+        'GooCanvas2::CanvasPolyline',
         points => $vertices,
         fill_color_gdk => $colour_ref,
         line_style     => $line_style,

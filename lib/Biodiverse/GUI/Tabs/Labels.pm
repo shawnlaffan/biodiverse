@@ -43,9 +43,10 @@ use constant LABELS_MODEL_REDUNDANCY    => 3;
 my $labels_model_list1_sel_col;  # these are set in sub make_labels_model
 my $labels_model_list2_sel_col;
 
-use constant CELL_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
-use constant COLOUR_GREY => Gtk3::Gdk::Color->new(255*257*2/3, 255*257*2/3, 255*257*2/3);
+use constant CELL_WHITE => [Gtk3::Gdk::Color::parse ('white')]->[1];
+use constant COLOUR_BLACK => [Gtk3::Gdk::Color::parse ('black')]->[1];
+use constant COLOUR_GREY
+  => [Gtk3::Gdk::Color::parse (sprintf '#%x%x%x', 255*257*2/3, 255*257*2/3, 255*257*2/3)]->[1];
 
 my $selected_list1_name = 'Selected';
 my $selected_list2_name = 'Col selected';

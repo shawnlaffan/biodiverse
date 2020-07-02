@@ -35,12 +35,11 @@ use parent qw {
 
 our $NULL_STRING = q{};
 
-use constant COLOUR_BLACK => Gtk3::Gdk::Color->new(0,0,0);
-use constant COLOUR_WHITE => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY  => Gtk3::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED   => Gtk3::Gdk::Color->new(255*257,0,0);
-#use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::Color->new((0.9 * 255 * 257) x 3); # same as cluster grids
-use constant COLOUR_FAILED_DEF_QUERY => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
+use constant COLOUR_BLACK => [Gtk3::Gdk::Color::parse ('#000000000000')]->[1];  #->new(0,0,0);
+use constant COLOUR_WHITE => [Gtk3::Gdk::Color::parse ('#FFFFFFFFFFFF')]->[1];  #->new(255*257, 255*257, 255*257);
+use constant COLOUR_GRAY  => [Gtk3::Gdk::Color::parse ('#D2D2D2D2D2D2')]->[1];  #->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => [Gtk3::Gdk::Color::parse ('#FFFF00000000')]->[1];  #->new(255*257,0,0);
+use constant COLOUR_FAILED_DEF_QUERY => [Gtk3::Gdk::Color::parse ('#FFFFFFFFFFFF')]->[1]; #->new(255*257, 255*257, 255*257);
 
 
 
@@ -223,7 +222,7 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
-    $self->{hue} = Gtk3::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
+    $self->{hue} = [Gtk3::Gdk::Color->new('red')]->[1]; # red, for Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (

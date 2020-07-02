@@ -575,7 +575,7 @@ sub set_index_cell_colour {
     my ($self, $colour) = @_;
 
     my $default = 150 * 257;
-    $colour //= Gtk3::Gdk::Color->new($default, $default, $default);
+    $colour //= [Gtk3::Gdk::Color::parse(sprintf '#%x%x%x', $default, $default, $default)]->[1];
     $self->{index_cell_colour} = $colour;
 
     return $colour;

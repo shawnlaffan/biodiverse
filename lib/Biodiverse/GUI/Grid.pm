@@ -56,11 +56,11 @@ use constant INDEX_MINUS        => 5;
 
 use constant HOVER_CURSOR       => 'hand2';
 
-use constant HIGHLIGHT_COLOUR    => Gtk3::Gdk::Color->new(255*257,0,0); # red
-use constant COLOUR_BLACK        => Gtk3::Gdk::Color->new(0, 0, 0);
-use constant COLOUR_WHITE        => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color::parse('#001169');
+use constant HIGHLIGHT_COLOUR    => [Gtk3::Gdk::Color::parse('red')]->[1]; #->new(255*257,0,0); # red
+use constant COLOUR_BLACK        => [Gtk3::Gdk::Color::parse('black')]->[1];  #->new(0, 0, 0);
+use constant COLOUR_WHITE        => [Gtk3::Gdk::Color::parse('white')]->[1];  # ->new(255*257, 255*257, 255*257);
+use constant CELL_OUTLINE_COLOUR => [Gtk3::Gdk::Color::parse('black')]->[1];  #->new(0, 0, 0);
+use constant OVERLAY_COLOUR      => [Gtk3::Gdk::Color::parse('#001169')]->[1];
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -138,7 +138,7 @@ sub new {
     $self->set_colour_for_undef;
 
     # Make the canvas and hook it up
-    $self->{canvas} = Gnome2::Canvas->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
     $frame->add($self->{canvas});
     $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
@@ -720,7 +720,7 @@ sub load_shapefile {
             if (@plot_points > 2) { # must have more than one point (two coords)
                 my $poly = GooCanvas2::CanvasItem->new (
                     $shapefile_group,
-                    'Gnome2::Canvas::Line',
+                    'GooCanvas2::CanvasPolyline',
                     points          => \@plot_points,
                     fill_color_gdk  => $colour,
                 );
@@ -1020,7 +1020,7 @@ sub draw_circle {
 
     my $item = GooCanvas2::CanvasItem->new (
         $group,
-        'Gnome2::Canvas::Ellipse',
+        'GooCanvas2::CanvasEllipse',
         x1                => $offset_x,
         y1                => $offset_y,
         x2                => $offset_x + CIRCLE_DIAMETER,
@@ -1051,14 +1051,14 @@ sub on_marker_event {
 #
 #    GooCanvas2::CanvasItem->new (
 #        $cross_group,
-#        "Gnome2::Canvas::Line",
+#        "GooCanvas2::CanvasPolyline",
 #        points => [MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X, MARK_END_OFFSET_X],
 #        fill_color_gdk => COLOUR_BLACK,
 #        width_units => 1,
 #    );
 #    GooCanvas2::CanvasItem->new (
 #        $cross_group,
-#        "Gnome2::Canvas::Line",
+#        "GooCanvas2::CanvasPolyline",
 #        points => [MARK_END_OFFSET_X, MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X],
 #        fill_color_gdk => COLOUR_BLACK,
 #        width_units => 1,
@@ -1073,7 +1073,7 @@ sub draw_minus {
 
     return GooCanvas2::CanvasItem->new (
         $group,
-        'Gnome2::Canvas::Line',
+        'GooCanvas2::CanvasPolyline',
         points => [
             MARK_X_OFFSET,
             $offset_y,
@@ -1165,11 +1165,11 @@ sub get_colour_hue {
     #
     my $hue;
     if (! defined $max || ! defined $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0);
+        return [Gtk3::Gdk::Color::parse('black')]->[1];
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return [Gtk3::Gdk::Color::parse('black')]->[1] if ! defined $val;
         $hue = ($val - $min) / ($max - $min) * 180;
     }
     else {
@@ -1180,7 +1180,7 @@ sub get_colour_hue {
     
     my ($r, $g, $b) = hsv_to_rgb($hue, 1, 1);
     
-    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
+    return [Gtk3::Gdk::Color::parse(sprintf '#%x%x%x', $r*257, $g*257, $b*257)]->[1];
 }
 
 sub get_colour_saturation {
@@ -1190,11 +1190,11 @@ sub get_colour_saturation {
     #   Hue is variable, Brightness 1
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0);
+        return [Gtk3::Gdk::Color::parse('black')]->[1];
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0) if ! defined $val;
+        return [Gtk3::Gdk::Color::parse('black')]->[1] if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
@@ -1204,7 +1204,7 @@ sub get_colour_saturation {
     my $hue = $self->get_legend->get_hue // 0;
     my ($r, $g, $b) = hsv_to_rgb($hue, $sat, 1);
     
-    return Gtk3::Gdk::Color->new($r*257, $g*257, $b*257);
+    return [Gtk3::Gdk::Color::parse (sprintf '#%x%x%x', $r*257, $g*257, $b*257)]->[1];
 }
 
 sub get_colour_grey {
@@ -1212,11 +1212,11 @@ sub get_colour_grey {
     
     my $sat;
     if (! defined $max || ! defined $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0);
+        return [Gtk3::Gdk::Color::parse ('black')]->[1];
         #return COLOUR_BLACK;
     }
     elsif ($max != $min) {
-        return Gtk3::Gdk::Color->new(0, 0, 0)
+        return [Gtk3::Gdk::Color::parse ('black')]->[1]
           if ! defined $val;
         
         $sat = ($val - $min) / ($max - $min);
@@ -1228,7 +1228,7 @@ sub get_colour_grey {
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
     $sat *= 257;
     
-    return Gtk3::Gdk::Color->new($sat, $sat, $sat);
+    return [Gtk3::Gdk::Color::parse (sprintf '#%x%x%x', $sat, $sat, $sat)]->[1];
 }
 
 # FROM http://blog.webkist.com/archives/000052.html

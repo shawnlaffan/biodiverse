@@ -11,7 +11,7 @@ our $VERSION = '3.1';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 
-my $default_colour       = Gtk3::Gdk::Color->parse('#001169');
+my $default_colour       = Gtk3::Gdk::Color::parse('#001169');
 my $last_selected_colour = $default_colour;
 
 sub show_dialog {

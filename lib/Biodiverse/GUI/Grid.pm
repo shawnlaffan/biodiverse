@@ -15,7 +15,7 @@ use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
 
 use Gtk3;
-use Gnome2::Canvas;
+use GooCanvas2;
 use Tree::R;
 
 use Geo::ShapeFile;
@@ -60,7 +60,7 @@ use constant HIGHLIGHT_COLOUR    => Gtk3::Gdk::Color->new(255*257,0,0); # red
 use constant COLOUR_BLACK        => Gtk3::Gdk::Color->new(0, 0, 0);
 use constant COLOUR_WHITE        => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
 use constant CELL_OUTLINE_COLOUR => Gtk3::Gdk::Color->new(0, 0, 0);
-use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color->parse('#001169');
+use constant OVERLAY_COLOUR      => Gtk3::Gdk::Color::parse('#001169');
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
@@ -166,9 +166,9 @@ sub new {
     }
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = Gnome2::Canvas::Item->new (
+    my $rect = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => CELL_SIZE_X,
@@ -307,16 +307,16 @@ sub setup_value_label {
     my $self = shift;
     my $group = shift;
 
-    my $value_group = Gnome2::Canvas::Item->new (
+    my $value_group = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 100,
     );
 
-    my $text = Gnome2::Canvas::Item->new (
+    my $text = GooCanvas2::CanvasItem->new (
         $value_group,
-        'Gnome2::Canvas::Text',
+        'GooCanvas2::CanvasText',
         x => 0, y => 0,
         markup => "<b>Value: </b>",
         anchor => 'nw',
@@ -326,9 +326,9 @@ sub setup_value_label {
     my ($text_width, $text_height)
         = $text->get('text-width', 'text-height');
 
-    my $rect = Gnome2::Canvas::Item->new (
+    my $rect = GooCanvas2::CanvasItem->new (
         $value_group,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1 => 0,
         y1 => 0,
         x2 => $text_width,
@@ -466,9 +466,9 @@ sub set_base_struct {
     }
 
     # Make group so we can transform everything together
-    my $cells_group = Gnome2::Canvas::Item->new (
+    my $cells_group = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0,
     );
@@ -477,15 +477,15 @@ sub set_base_struct {
 ## Make container group ("cell") for the rectangle and any marks
 #my $xx = eval {($max_x - $min_x) / $cell_x};
 #my $yy = eval {($max_y - $min_y) / $cell_y};
-#my $container_xx = Gnome2::Canvas::Item->new (
+#my $container_xx = GooCanvas2::CanvasItem->new (
 #    $cells_group,
-#    'Gnome2::Canvas::Group',
+#    'GooCanvas2::CanvasGroup',
 #    x => 0,
 #    y => 0,
 #);
-#my $rect = Gnome2::Canvas::Item->new (
+#my $rect = GooCanvas2::CanvasItem->new (
 #    $container_xx,
-#    'Gnome2::Canvas::Rect',
+#    'GooCanvas2::CanvasRect',
 #    x1                  => 0,
 #    y1                  => 0,
 #    x2                  => $xx * CELL_SIZE_X,
@@ -521,17 +521,17 @@ sub set_base_struct {
         my $ycoord = $y * $cell_size_y - $cell_size_y / 2;
 
         # Make container group ("cell") for the rectangle and any marks
-        my $container = Gnome2::Canvas::Item->new (
+        my $container = GooCanvas2::CanvasItem->new (
             $cells_group,
-            'Gnome2::Canvas::Group',
+            'GooCanvas2::CanvasGroup',
             x => $xcoord,
             y => $ycoord
         );
 
         # (all coords now relative to the group)
-        my $rect = Gnome2::Canvas::Item->new (
+        my $rect = GooCanvas2::CanvasItem->new (
             $container,
-            'Gnome2::Canvas::Rect',
+            'GooCanvas2::CanvasRect',
             x1                  => 0,
             y1                  => 0,
             x2                  => CELL_SIZE_X,
@@ -669,9 +669,9 @@ sub load_shapefile {
     my @bnd_extrema = (1e20, 1e20, -1e20, -1e20);
 
     # Put it into a group so that it can be deleted more easily
-    my $shapefile_group = Gnome2::Canvas::Item->new (
+    my $shapefile_group = GooCanvas2::CanvasItem->new (
         $self->{cells_group},
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0,
     );
@@ -718,7 +718,7 @@ sub load_shapefile {
 
             #print "@plot_points\n";
             if (@plot_points > 2) { # must have more than one point (two coords)
-                my $poly = Gnome2::Canvas::Item->new (
+                my $poly = GooCanvas2::CanvasItem->new (
                     $shapefile_group,
                     'Gnome2::Canvas::Line',
                     points          => \@plot_points,
@@ -1018,7 +1018,7 @@ sub draw_circle {
     my $offset_x = (CELL_SIZE_X - CIRCLE_DIAMETER) / 2;
     my $offset_y = ($self->{cell_size_y} - CIRCLE_DIAMETER) / 2;
 
-    my $item = Gnome2::Canvas::Item->new (
+    my $item = GooCanvas2::CanvasItem->new (
         $group,
         'Gnome2::Canvas::Ellipse',
         x1                => $offset_x,
@@ -1043,20 +1043,20 @@ sub on_marker_event {
 #sub draw_cross {
 #    my ($self, $group) = @_;
 #    # Use a group to hold the two lines
-#    my $cross_group = Gnome2::Canvas::Item->new (
+#    my $cross_group = GooCanvas2::CanvasItem->new (
 #        $group,
-#        "Gnome2::Canvas::Group",
+#        "GooCanvas2::CanvasGroup",
 #        x => 0, y => 0,
 #    );
 #
-#    Gnome2::Canvas::Item->new (
+#    GooCanvas2::CanvasItem->new (
 #        $cross_group,
 #        "Gnome2::Canvas::Line",
 #        points => [MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X, MARK_END_OFFSET_X],
 #        fill_color_gdk => COLOUR_BLACK,
 #        width_units => 1,
 #    );
-#    Gnome2::Canvas::Item->new (
+#    GooCanvas2::CanvasItem->new (
 #        $cross_group,
 #        "Gnome2::Canvas::Line",
 #        points => [MARK_END_OFFSET_X, MARK_OFFSET_X, MARK_OFFSET_X, MARK_END_OFFSET_X],
@@ -1071,7 +1071,7 @@ sub draw_minus {
     my ($self, $group) = @_;
     my $offset_y = ($self->{cell_size_y} - 1) / 2;
 
-    return Gnome2::Canvas::Item->new (
+    return GooCanvas2::CanvasItem->new (
         $group,
         'Gnome2::Canvas::Line',
         points => [
@@ -1465,9 +1465,9 @@ sub on_event {
                 $self->{selecting} = 1;
                 $self->{grabbed_cell} = $cell;
                 
-                $self->{sel_rect} = Gnome2::Canvas::Item->new (
+                $self->{sel_rect} = GooCanvas2::CanvasItem->new (
                     $self->{canvas}->root,
-                    'Gnome2::Canvas::Rect',
+                    'GooCanvas2::CanvasRect',
                     x1 => $event->x,
                     y1 => $event->y,
                     x2 => $event->x,
@@ -1577,9 +1577,9 @@ sub on_background_event {
             $self->{selecting} = 1;
             $self->{grabbed_cell} = $cell;
 
-            $self->{sel_rect} = Gnome2::Canvas::Item->new (
+            $self->{sel_rect} = GooCanvas2::CanvasItem->new (
                 $self->{canvas}->root,
-                'Gnome2::Canvas::Rect',
+                'GooCanvas2::CanvasRect',
                 x1 => $event->x,
                 y1 => $event->y,
                 x2 => $event->x + 1,

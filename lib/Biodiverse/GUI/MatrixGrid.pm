@@ -18,7 +18,7 @@ use List::Util qw /min max/;
 our $VERSION = '3.1';
 
 use Gtk3;
-use Gnome2::Canvas;
+use GooCanvas2;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -46,9 +46,9 @@ use constant HOVER_CURSOR  => 'hand2';
 use constant HIGHLIGHT_COLOUR => Gtk3::Gdk::Color->new(255*257, 0, 0); # red
 use constant CELL_BLACK       => Gtk3::Gdk::Color->new(0, 0, 0);
 use constant CELL_WHITE       => Gtk3::Gdk::Color->new(255*257, 255*257, 255*257);
-#use constant CELL_COLOUR      => Gtk3::Gdk::Color->parse('#B3FFFF');
-use constant CELL_COLOUR      => Gtk3::Gdk::Color->parse('#FFFFFF');
-use constant OVERLAY_COLOUR   => Gtk3::Gdk::Color->parse('#001169');
+#use constant CELL_COLOUR      => Gtk3::Gdk::Color::parse('#B3FFFF');
+use constant CELL_COLOUR      => Gtk3::Gdk::Color::parse('#FFFFFF');
+use constant OVERLAY_COLOUR   => Gtk3::Gdk::Color::parse('#001169');
 
 # Stiple for the selection-masking shape
 my $gray50_width  = 2;
@@ -79,7 +79,7 @@ sub new {
     $self->{grid_click_func} = $args{grid_click_func}; # click on a cell
 
     # Make the canvas and hook it up
-    $self->{canvas} = Gnome2::Canvas->new();
+    $self->{canvas} = GooCanvas2::Canvas->new();
     $frame->add($self->{canvas});
 
     $self->{canvas}->signal_connect_swapped (
@@ -125,9 +125,9 @@ sub new {
     $self->{selecting} = 0;
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = Gnome2::Canvas::Item->new (
+    my $rect = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Rect',
+        'GooCanvas2::CanvasRect',
         x1              => 0,
         y1              => 0,
         x2              => CELL_SIZE,
@@ -233,9 +233,9 @@ sub destroy {
 sub make_mark {
     my $self = shift;
     my $anchor = shift;
-    my $mark = Gnome2::Canvas::Item->new (
+    my $mark = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Text',
+        'GooCanvas2::CanvasText',
         text           => q{},
         anchor         => $anchor,
         fill_color_gdk => CELL_BLACK,
@@ -264,9 +264,9 @@ sub draw_matrix {
     }
 
     # Make group so we can transform everything together
-    my $cells_group = Gnome2::Canvas::Item->new (
+    my $cells_group = GooCanvas2::CanvasItem->new (
         $self->{canvas}->root,
-        'Gnome2::Canvas::Group',
+        'GooCanvas2::CanvasGroup',
         x => 0,
         y => 0,
     );
@@ -289,9 +289,9 @@ sub draw_matrix {
 
             $progress_bar->update ($progress_text, $progress);
  
-            my $rect = Gnome2::Canvas::Item->new (
+            my $rect = GooCanvas2::CanvasItem->new (
                 $cells_group,
-                'Gnome2::Canvas::Rect',
+                'GooCanvas2::CanvasRect',
                 x1 =>  $x      * CELL_SIZE,
                 y1 =>  $y      * CELL_SIZE,
                 x2 => ($x + 1) * CELL_SIZE,
@@ -429,7 +429,8 @@ sub highlight {
     my ($x, $y, $w, $h);
 
     foreach my $rect (@mask_rects) {
-        my $pathdef = Gnome2::Canvas::PathDef->new;
+        #  should be rectangles?  
+        my $pathdef = GooCanvas2::CanvasPathModel->new;  #  was PathDef under Gnome2
         ($x, $y, $w, $h) = ($rect->x, $rect->y, $rect->width, $rect->height);
         #print "MASK RECT: ($x, $y) w=$w h=$h\n";
 
@@ -445,7 +446,7 @@ sub highlight {
     # concatenate each region
     #  mask and stipple need to use Cairo
     #  - see issue 480 https://github.com/shawnlaffan/biodiverse/issues/480
-    my $mask_path    = Gnome2::Canvas::PathDef->concat(@paths);
+    my $mask_path    = GooCanvas2::CanvasPathModel->concat(@paths);
     my $mask_stipple = Gtk3::Gdk::Bitmap->create_from_data(
         undef,
         $gray50_bits,
@@ -453,9 +454,9 @@ sub highlight {
         $gray50_height,
     );
 
-    $self->{mask} = Gnome2::Canvas::Item->new (
+    $self->{mask} = GooCanvas2::CanvasItem->new (
         $self->{cells_group},
-        'Gnome2::Canvas::Shape',
+        'GooCanvas2::CanvasPolyline',  #  maybe not a polyline? was shape
         #fill_color    => 'white',
         #fill_stipple  => $mask_stipple,  #  off for now - issue 480
         #fill_color_rgba => 0xFFFFFFFF,
@@ -736,9 +737,9 @@ sub on_event {
                 $event->time,
             );
             $self->{selecting} = 1;
-            $self->{sel_rect} = Gnome2::Canvas::Item->new (
+            $self->{sel_rect} = GooCanvas2::CanvasItem->new (
                 $self->{canvas}->root,
-                'Gnome2::Canvas::Rect',
+                'GooCanvas2::CanvasRect',
                 x1 => $x,
                 y1 => $y,
                 x2 => $x,

@@ -1469,7 +1469,7 @@ sub on_grid_hover {
 #  #000000 = black
 #  #00FFFC = cyan(ish)
 my @dendro_highlight_branch_colours
-  = map {Gtk3::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
+  = map {Gtk3::Gdk::Color::parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;

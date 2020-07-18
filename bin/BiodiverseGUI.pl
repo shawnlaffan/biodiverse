@@ -12,7 +12,9 @@ use Path::Class ();
 BEGIN {
     #  make sure menubars are visible when running under Ubuntu Unity
     $ENV{UBUNTU_MENUPROXY} = undef;
-
+#$ENV{GTK_DEBUG} = 'interactive';
+#$ENV{GTK_PATH} = 'C:\berrybrew\5.28.0_64_PDL\perl\site\share';
+#$ENV{GTK_THEME} = 'Emacs';
     #  if running under PAR on a mac
     if ($^O eq 'darwin' && $ENV{PAR_0}) {
         say '++++';

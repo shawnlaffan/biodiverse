@@ -1,0 +1,57 @@
+name: macos
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+env:
+  PERL5LIB: /Users/runner/perl5/lib/perl5
+  PERL_LOCAL_LIB_ROOT: /Users/runner/perl5
+  PERL_MB_OPT: --install_base /Users/runner/perl5
+  PERL_MM_OPT: INSTALL_BASE=/Users/runner/perl5
+  LC_NUMERIC=de_DE.iso88591
+  LC_CTYPE=de_DE.iso88591
+
+jobs:
+  perl:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.32'
+
+      - name: perl -V
+        run: perl -V
+
+      - name: Prepare for cache
+        run: |
+          perl -V > perlversion.txt
+          echo '20200628' >> perlversion.txt
+          ls -l perlversion.txt
+
+      - name: Cache CPAN modules
+        uses: actions/cache@v1
+        with:
+          path: ~/perl5
+          key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
+
+      - name: Install Dynamic Dependencies
+        run: |
+          # cpanm --notest IO::Socket::SSL
+          cpanm --notest Task::Biodiverse::NoGUI
+          cpanm Test2::Suite
+      
+      - name: Run Tests
+        run: |
+          prove -l -j4
+          # yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
+        

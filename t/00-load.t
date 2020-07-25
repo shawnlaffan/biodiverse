@@ -77,6 +77,7 @@ else {
     }
 }
 
+use POSIX ();
 use constant RADIX_CHAR_IS_COMMA => scalar (POSIX::strtod '3.14') == 3; 
 diag "Radix char is "
    . (RADIX_CHAR_IS_COMMA ? '' : 'not ')

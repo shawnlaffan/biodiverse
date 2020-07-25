@@ -1,4 +1,4 @@
-name: macos
+name: linux_de_locale
 
 on:
   push:

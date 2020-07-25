@@ -13,8 +13,8 @@ env:
   PERL_LOCAL_LIB_ROOT: /Users/runner/perl5
   PERL_MB_OPT: --install_base /Users/runner/perl5
   PERL_MM_OPT: INSTALL_BASE=/Users/runner/perl5
-  LC_NUMERIC=de_DE.iso88591
-  LC_CTYPE=de_DE.iso88591
+  LC_NUMERIC: de_DE.iso88591
+  LC_CTYPE: de_DE.iso88591
 
 jobs:
   perl:

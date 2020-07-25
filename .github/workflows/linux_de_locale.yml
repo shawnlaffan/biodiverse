@@ -38,6 +38,8 @@ jobs:
       - name: Locale check 2
         run: |
           locale -a
+          echo Current locale:
+          locale
 
       - name: perl -V
         run: perl -V

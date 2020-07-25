@@ -61,11 +61,14 @@ jobs:
       - name: Install Dynamic Dependencies
         run: |
           # cpanm --notest IO::Socket::SSL
+          which -a cpanm
+          which -a perl
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
       
       - name: Run Tests
         run: |
+          sudo update-locale de_DE
           prove -l -j4
           # yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
         

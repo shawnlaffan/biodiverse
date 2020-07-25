@@ -27,6 +27,14 @@ jobs:
         with:
           perl-version: '5.32'
 
+      - name: Locale check
+        run: |
+          locale -a
+          sudo locale-gen de_DE.iso88591
+          sudo update-locale de_DE.iso88591
+          locale -a
+          #sudo apt-get install language-pack-de_DE
+
       - name: perl -V
         run: perl -V
 

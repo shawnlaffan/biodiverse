@@ -229,7 +229,8 @@ sub rebuild_value_index {
     return $self;
 }
 
-use constant LOCALE_USES_COMMA_RADIX => scalar (sprintf ('%.6f', 0.5) =~ /,/);
+use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
+say "[MATRICES] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 
 sub get_value_index_key {
     my $self = shift;
@@ -243,7 +244,7 @@ sub get_value_index_key {
         $val = sprintf $prec, $val;
         #  this is compiled away if false
         if (LOCALE_USES_COMMA_RADIX) {
-            $val =~ s{,}{\.};  #  replace any comma with a decimal
+            $val =~ s{,}{.};  #  replace any comma with a dot
         }
     }
 

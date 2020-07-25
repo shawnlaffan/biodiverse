@@ -2426,7 +2426,8 @@ sub test_locale_numeric {
     return 1;
 }
 
-use constant LOCALE_USES_COMMA_RADIX => !!(sprintf ('%.6f', 0.5) =~ /,/);
+use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
+say "[COMMON] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {

@@ -622,12 +622,18 @@ sub get_resolution_table_widget {
         $widget->signal_connect (
             'value-changed' => sub {
                 my $val = $widget->get_value;
-                my $fmod = fmod (
-                  ($val - $origins_array[$j]),
-                  $cellsize_array[$j],
-                );
-                if ($fmod) {
-                    $val -= $fmod;
+                #  Avoid fmod - it causes grief with 0.2 cell sizes
+                #  prob due to floating point issues.
+                #  Precision should be configurable...
+                my $offset = ($val - $origins_array[$j])
+                            / $cellsize_array[$j];
+                if ($cellsize_array[$j] < 1) {
+                    $offset = ($offset * 10e10 + 0.5) / 10e10;
+                }
+                $offset -= int $offset;
+                #  effectively zero given cell size constraints
+                if ($offset > 10e-10) {
+                    $val -= $offset;
                     $widget->set_value ($val);
                 }
                 return;

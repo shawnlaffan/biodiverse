@@ -75,6 +75,7 @@ jobs:
           cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
+          cpanm App::yath
       
       - name: Run Tests
         run: |

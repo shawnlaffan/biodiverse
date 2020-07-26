@@ -23,9 +23,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: shogo82148/actions-setup-perl@v1
-        with:
-          perl-version: '5.32'
+      
+      #- uses: shogo82148/actions-setup-perl@v1
+      #  with:
+      #    perl-version: '5.32'
 
       - name: Locale check
         run: |
@@ -63,6 +64,7 @@ jobs:
           # cpanm --notest IO::Socket::SSL
           which -a cpanm
           which -a perl
+          cpanm -v List::MoreUtils
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
       

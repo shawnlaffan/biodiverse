@@ -83,6 +83,6 @@ jobs:
           locale
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591
-          perl -E'printf "%.2g\n", 3.14'
+          perl -MPOSIX -E'say join " ", POSIX::strtod 3.14'
           prove -l -j4
           #yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4

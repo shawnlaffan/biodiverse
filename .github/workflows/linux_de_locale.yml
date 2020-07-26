@@ -59,23 +59,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
 
-      - name: More probing
-        run: echo $HOME
-
       - name: Install Dynamic Dependencies
         run: |
           which -a cpanm
           which -a perl
           cpanm --installdeps --notest Alien::sqlite
-          MAKEFLAGS=-j4 cpanm -v Alien::sqlite
+          cpanm -v Alien::sqlite
           cpanm --installdeps --notest Alien::libtiff
-          MAKEFLAGS=-j4 cpanm -v Alien::libtiff
+          cpanm -v Alien::libtiff
           cpanm --installdeps --notest Alien::geos::af
-          MAKEFLAGS=-j4 cpanm -v Alien::geos::af
+          cpanm -v Alien::geos::af
           cpanm --installdeps --notest Alien::proj
-          MAKEFLAGS=-j4 cpanm -v Alien::proj
+          cpanm -v Alien::proj
           cpanm --installdeps --notest Alien::gdal
-          MAKEFLAGS=-j4 cpanm -v Alien::gdal
+          cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
       

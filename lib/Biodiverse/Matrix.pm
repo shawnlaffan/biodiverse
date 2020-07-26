@@ -230,13 +230,18 @@ sub rebuild_value_index {
 }
 
 #  FOR DEBUG
-use locale;
-use POSIX qw /locale_h/;
-
-use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
+#use locale;
+my $locale_comma;
+BEGIN {
+  use POSIX qw /locale_h/;
+  my $locale_values = localeconv();
+  $locale_comma = $locale_values->{decimal_point} eq ','; 
+}
+#use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
+use constant LOCALE_USES_COMMA_RADIX => $locale_comma;
 say "[MATRICES] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 say "[MATRICES] RADIX CHAR IS NOT A COMMA" if !LOCALE_USES_COMMA_RADIX;
-say join ' ', locale();
+#say join ' ', setlocale();
 
 sub get_value_index_key {
     my $self = shift;

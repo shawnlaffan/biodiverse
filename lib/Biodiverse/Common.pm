@@ -2426,7 +2426,13 @@ sub test_locale_numeric {
     return 1;
 }
 
-use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
+my $locale_is_comma;
+BEGIN {
+    use POSIX qw /locale_h/;
+    my $locale_values = localeconv();
+    $locale_is_comma = $locale_values->{decimal_point} eq ','; 
+}
+use constant LOCALE_USES_COMMA_RADIX => $locale_is_comma;
 say "[COMMON] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 
 #  need to handle locale issues in string conversions using sprintf

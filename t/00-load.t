@@ -77,10 +77,15 @@ else {
     }
 }
 
-use POSIX ();
-use constant RADIX_CHAR_IS_COMMA => scalar (POSIX::strtod '3.14') == 3; 
+my $locale_is_comma;
+BEGIN {
+    use POSIX qw /locale_h/;
+    my $locale_values = localeconv();
+    $locale_is_comma = $locale_values->{decimal_point} eq ','; 
+}
+use constant LOCALE_USES_COMMA_RADIX => $locale_is_comma;
 diag "Radix char is "
-   . (RADIX_CHAR_IS_COMMA ? '' : 'not ')
+   . (LOCALE_USES_COMMA_RADIX ? '' : 'not ')
    . 'a comma.';
 
 done_testing();

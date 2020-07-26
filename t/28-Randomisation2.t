@@ -413,8 +413,10 @@ sub test_checkpoint_cwd_check {
     
     
     {
-        my $toto = todo 'needs work on BSD, perhaps only under Cirrus'
-          if $^O =~ /bsd/i;
+        use Config;
+        my $toto = todo 'needs work on BSD, perhaps only under Cirrus, and also WSL'
+          if $^O =~ /bsd/i
+          or ($^O =~ /linux/i and $Config{osvers} =~ /microsoft/i);
 
         $rand = $bd->add_randomisation_output (name => $rand_name . '2');
         chmod 0444, '.';

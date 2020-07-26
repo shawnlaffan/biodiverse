@@ -59,6 +59,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
 
+      - name: More probing
+        run: echo $HOME
+
       - name: Install Dynamic Dependencies
         run: |
           which -a cpanm

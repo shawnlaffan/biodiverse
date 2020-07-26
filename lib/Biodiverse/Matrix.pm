@@ -235,6 +235,7 @@ use POSIX qw /locale_h/;
 
 use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
 say "[MATRICES] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
+say "[MATRICES] RADIX CHAR IS NOT A COMMA" if !LOCALE_USES_COMMA_RADIX;
 
 sub get_value_index_key {
     my $self = shift;

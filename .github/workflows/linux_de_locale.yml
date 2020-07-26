@@ -24,9 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      #- uses: shogo82148/actions-setup-perl@v1
-      #  with:
-      #    perl-version: '5.32'
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: '5.32'
 
       - name: Locale check
         run: |
@@ -61,7 +61,6 @@ jobs:
 
       - name: Install Dynamic Dependencies
         run: |
-          # cpanm --notest IO::Socket::SSL
           which -a cpanm
           which -a perl
           cpanm -v List::MoreUtils

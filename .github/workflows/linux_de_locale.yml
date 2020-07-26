@@ -75,7 +75,7 @@ jobs:
           cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
-          cpanm Test2::Harness
+          #cpanm Test2::Harness
       
       - name: Run Tests
         run: |
@@ -83,6 +83,6 @@ jobs:
           locale
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591
-          #prove -l -j4
           perl -E'printf "%.2g\n", 3.14'
-          yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
+          prove -l -j4
+          #yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4

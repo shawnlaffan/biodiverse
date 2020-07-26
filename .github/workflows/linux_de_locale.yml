@@ -66,10 +66,14 @@ jobs:
         run: |
           which -a cpanm
           which -a perl
-          MAKEFLAGS=-j4 cpanm -v Alien::libtiff
-          MAKEFLAGS=-j4 cpanm -v Alien::geos::af
-          MAKEFLAGS=-j4 cpanm -v Alien::proj
+          cpanm --installdeps --notest Alien::sqlite
           MAKEFLAGS=-j4 cpanm -v Alien::sqlite
+          cpanm --installdeps --notest Alien::libtiff
+          MAKEFLAGS=-j4 cpanm -v Alien::libtiff
+          cpanm --installdeps --notest Alien::geos::af
+          MAKEFLAGS=-j4 cpanm -v Alien::geos::af
+          cpanm --installdeps --notest Alien::proj
+          MAKEFLAGS=-j4 cpanm -v Alien::proj
           cpanm --installdeps --notest Alien::gdal
           MAKEFLAGS=-j4 cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI

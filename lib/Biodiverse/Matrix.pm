@@ -231,6 +231,8 @@ sub rebuild_value_index {
 
 #use constant LOCALE_USES_COMMA_RADIX => scalar (POSIX::strtod (3.14)) == 3;
 #  DEBUG
+use locale;
+use POSIX qw /locale_h/;
 use constant LOCALE_USES_COMMA_RADIX => 0;
 say "[MATRICES] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 

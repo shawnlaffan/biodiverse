@@ -2169,6 +2169,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     }
 
     my $length = $self->get_length;
+    $length =~ s/,/./;  #  hack for issue #775 (another comma radix char)
     if (! $self->is_terminal_node) {   #  not a terminal node
         $string .= "(";
         foreach my $child ($self->get_children) { # internal nodes

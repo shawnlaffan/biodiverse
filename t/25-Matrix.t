@@ -7,7 +7,7 @@ use utf8;
 if ($ENV{BD_TEST_GUI}) {
     if (eval 'require Gtk2') {
         #Gtk2->disable_setlocale; # leave LC_NUMERIC alone for version nums
-        eval 'Gtk2->init';
+        eval 'Gtk2->init' if Gtk2->init_check;
     }
 }
 

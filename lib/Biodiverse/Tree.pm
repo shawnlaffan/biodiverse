@@ -1798,7 +1798,7 @@ sub compare {
     my $track_matches    = !$args{no_track_matches};
     my $track_node_stats = !$args{no_track_node_stats};
     my $terminals_only   = $args{terminals_only};
-    my $comp_precision   = $args{comp_precision} // '%.10f';
+    my $comp_precision   = $args{comp_precision} // 1e-10;
 
     my $result_list_pfx = $args{result_list_name};
     if ( !$track_matches ) {    #  avoid some warnings lower down
@@ -1900,17 +1900,14 @@ sub compare {
                         $found_perfect_match{$compare_node_name} = 1;
                     }
                     else {
+                        my $len_base = $base_node->get_length;
                         #  If its length is same then we have perfect match
-                        my $len_comp =
-                          $self->set_precision_aa(
-                            $compare_nodes{$compare_node_name}->get_length,
-                            $comp_precision, );
-                        my $len_base =
-                          $self->set_precision_aa( $base_node->get_length,
-                            $comp_precision, );
-                        if ( $len_comp eq $len_base ) {
-                            $found_perfect_match{$compare_node_name} =
-                              $len_base;
+                        my $diff
+                          = $compare_nodes{$compare_node_name}->get_length
+                            - $len_base;
+                        if ( abs ($diff) < $comp_precision ) {
+                            $found_perfect_match{$compare_node_name}
+                              = $len_base;
                         }
 
                         #else {say "$compare_node_name, $len_comp, $len_base"}

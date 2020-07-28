@@ -743,7 +743,7 @@ sub group_nodes_below {
                     else {
                         $upper_bound = $child->get_cached_value ('UPPER_BOUND_LENGTH');
                         if (defined $upper_bound) {
-                            $lower_bound = $child->get_cached_value ('LOWER_BOUND_LENGTH');
+                            $lower_bound = 0 + $child->get_cached_value ('LOWER_BOUND_LENGTH');
                         }
                         else {
                             my $length       = $child->get_length;

@@ -76,6 +76,10 @@ jobs:
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           #cpanm Test2::Harness
+          
+      - name: Gtk stuff
+        run: |
+          sudo apt-get install libpango1.0-dev libgtk2.0-dev
           cpanm -v --notest Pango
           cpanm --notest Gtk2
       

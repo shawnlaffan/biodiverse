@@ -76,6 +76,7 @@ jobs:
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           #cpanm Test2::Harness
+          cpanm Gtk2
       
       - name: Run matrix tests
         run: |
@@ -84,6 +85,7 @@ jobs:
           export LC_CTYPE=de_DE.iso88591
           locale
           perl -MPOSIX -E'say join " ", POSIX::strtod 3.14'
+          export BD_TEST_GUI=1
           prove -v t/25-Matrix.t
 
 

@@ -76,7 +76,8 @@ jobs:
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           #cpanm Test2::Harness
-          cpanm Gtk2
+          cpanm -v --notest Pango
+          cpanm --notest Gtk2
       
       - name: Run matrix tests
         run: |

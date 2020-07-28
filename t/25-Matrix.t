@@ -4,6 +4,12 @@ use strict;
 use warnings;
 use utf8;
 
+if ($ENV{BD_TEST_GUI}) {
+    if (eval 'require Gtk2') {
+        #Gtk2->disable_setlocale; # leave LC_NUMERIC alone for version nums
+        Gtk2->init;
+    }
+}
 
 use FindBin qw/$Bin/;
 use rlib;

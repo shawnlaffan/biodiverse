@@ -229,16 +229,6 @@ sub rebuild_value_index {
     return $self;
 }
 
-my $locale_is_comma;
-BEGIN {
-    use POSIX qw /locale_h/;
-    my $locale_values = localeconv();
-    $locale_is_comma = $locale_values->{decimal_point} eq ','; 
-}
-use constant LOCALE_USES_COMMA_RADIX => $locale_is_comma;
-say "[MATRICES] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
-say "[MATRICES] RADIX CHAR IS NOT A COMMA" if !LOCALE_USES_COMMA_RADIX;
-
 
 sub get_value_index_key {
     my $self = shift;
@@ -250,10 +240,7 @@ sub get_value_index_key {
 
     if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
         $val = sprintf $prec, $val;
-        #  this is compiled away if false
-        if (LOCALE_USES_COMMA_RADIX) {
-            $val =~ s{,}{.};  #  replace any comma with a dot
-        }
+        #$val =~ s{,}{.};  #  replace any comma with a dot due to locale woes - #GH774
     }
 
     return $val;

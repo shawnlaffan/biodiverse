@@ -2404,36 +2404,28 @@ sub find_circular_refs {
 
 #  locales with commas as the radix char can cause grief
 #  and silently at that
-sub test_locale_numeric {
-    my $self = shift;
-    
-    use warnings FATAL => qw ( numeric );
-    
-    my $x = 10.5;
-    my $y = 10.1;
-    my $x1 = sprintf ('%.10f', $x);
-    my $y1 = sprintf ('%.10f', $y);
-    $y1 = '10,1';
-    my $correct_result = $x + $y;
-    my $result = $x1 + $y1;
-    
-    use POSIX qw /locale_h/;
-    my $locale = setlocale ('LC_NUMERIC');
-    croak "$result != $correct_result, this could be a locale issue. "
-            . "Current locale is $locale.\n"
-        if $result != $correct_result;
-    
-    return 1;
-}
+#sub test_locale_numeric {
+#    my $self = shift;
+#    
+#    use warnings FATAL => qw ( numeric );
+#    
+#    my $x = 10.5;
+#    my $y = 10.1;
+#    my $x1 = sprintf ('%.10f', $x);
+#    my $y1 = sprintf ('%.10f', $y);
+#    $y1 = '10,1';
+#    my $correct_result = $x + $y;
+#    my $result = $x1 + $y1;
+#    
+#    use POSIX qw /locale_h/;
+#    my $locale = setlocale ('LC_NUMERIC');
+#    croak "$result != $correct_result, this could be a locale issue. "
+#            . "Current locale is $locale.\n"
+#        if $result != $correct_result;
+#    
+#    return 1;
+#}
 
-my $locale_is_comma;
-BEGIN {
-    use POSIX qw /locale_h/;
-    my $locale_values = localeconv();
-    $locale_is_comma = $locale_values->{decimal_point} eq ','; 
-}
-use constant LOCALE_USES_COMMA_RADIX => $locale_is_comma;
-say "[COMMON] RADIX CHAR IS COMMA" if LOCALE_USES_COMMA_RADIX;
 
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {
@@ -2441,11 +2433,7 @@ sub set_precision {
     my %args = @_;
     
     my $num = sprintf (($args{precision} // '%.10f'), $args{value});
-
-    #  this is compiled away if false
-    if (LOCALE_USES_COMMA_RADIX) {
-        $num =~ s{,}{\.};  #  replace any comma with a decimal
-    }
+    #$num =~ s{,}{.};  #  replace any comma with a decimal due to locale woes - #GH774
 
     return $num;
 }
@@ -2454,10 +2442,7 @@ sub set_precision {
 #  $_[0] is $self, and not used here
 sub set_precision_aa {
     my $num = sprintf (($_[2] // '%.10f'), $_[1]);
-
-    if (LOCALE_USES_COMMA_RADIX) {
-        $num =~ s{,}{\.};  #  replace any comma with a decimal
-    }
+    #$num =~ s{,}{\.};  #  replace any comma with a dot due to locale woes - #GH774
 
     #  explicit return takes time, and this is a heavy usage sub
     $num;

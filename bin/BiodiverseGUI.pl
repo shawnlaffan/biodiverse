@@ -62,6 +62,7 @@ say "\n\nUsing Biodiverse engine version $Biodiverse::Config::VERSION";
 
 #  load Gtk
 use Gtk2;
+Gtk2->disable_setlocale; # leave LC_NUMERIC alone
 
 # my $icontheme = Gtk2::IconTheme->new;
 # use List::Util qw /uniq/;
@@ -92,10 +93,21 @@ elsif ( $numargs > 1 ) {
     usage();
 }
 
-use POSIX qw(locale_h);
-# query the locale
-my $locale = setlocale(LC_ALL);
-print "\nCurrent perl numeric locale is: " . $locale . "\n\n";
+## query the locale
+#BEGIN {
+    #use POSIX qw /locale_h/;
+    #my $locale = setlocale(LC_ALL);
+    #say "\nCurrent perl numeric locale is: $locale";
+    #my $locale_values = localeconv();
+    #if ($locale_values->{decimal_point} eq ',') {
+    #    say 'Locale uses a comma as the decimal separator';
+    #}
+    my $num = sprintf "%.3f", 3.14;
+    if ($num =~ /,/) {
+        say 'Locale uses a comma as the decimal separator';
+    }
+#}
+
 
 #my $eval_result;
 

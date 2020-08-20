@@ -119,6 +119,7 @@ my @aliens = qw /
     Alien::gdal       Alien::geos::af
     Alien::proj       Alien::sqlite
     Alien::spatialite Alien::freexl
+    Alien::libtiff    Alien::curl
 /;
 push @rest_of_pp_args, map {; '-M' => $_} @aliens;
 

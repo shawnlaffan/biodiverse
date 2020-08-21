@@ -13,6 +13,8 @@ BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }
 
+use App::PP::Autolink 2.04;
+
 use Config;
 use File::Copy;
 use Path::Class;
@@ -129,8 +131,9 @@ $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my @cmd = (
-    $^X,
-    "$Bin/pp_autolink.pl",
+    #$^X,
+    #"$Bin/pp_autolink.pl",
+    'pp_autolink',
     ($verbose ? '-v' : ()),
     '-u',
     '-B',

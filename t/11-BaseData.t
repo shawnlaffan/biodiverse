@@ -478,6 +478,24 @@ sub test_reduce_resolution {
         }
     }
     
+    #  add some label props
+    my $lb_props = Biodiverse::ElementProperties->new();
+    my %lb_prop_hash;
+    my $i = -1;
+    foreach my $label (@labels) {
+        $i++;
+        $lb_prop_hash{$label} = {PROP1 => $i, PROP2 => $i+1};
+        $lb_props->add_element(element => $label);
+        $lb_props->add_to_lists (
+            element    => $label,
+            PROPERTIES => $lb_prop_hash{$label},
+        );
+    }
+    $bd1->assign_element_properties (
+        type              => 'labels',
+        properties_object => $lb_props,
+    );
+
     #  simple cases
     my %sizes = (
         22 => [$bdc_22, [2,2]],
@@ -508,6 +526,25 @@ sub test_reduce_resolution {
             \@expected_sample_counts,
             'Got expected sample counts',
         );
+        
+        #  check the label props
+        my $lb1 = $bd1->get_labels_ref;
+        my $lb2 = $bd2->get_labels_ref;
+        foreach my $label (sort $bd1->get_labels) {
+            my $list_exp = $lb1->get_list_ref (
+                element => $label,
+                list    => 'PROPERTIES',
+            );
+            my $list_got = $lb2->get_list_ref (
+                element => $label,
+                list    => 'PROPERTIES',
+            );
+            is (
+                $list_got,
+                $list_exp,
+                'Got matching label props after resolution change',
+            );
+        }
     }
     
     

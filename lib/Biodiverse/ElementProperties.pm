@@ -465,7 +465,26 @@ sub get_element_property {
     return $props->{$property};
 }
 
+sub set_element_properties {
+    my ($self, %args) = @_;
+    
+    my $element    = $args{element};
+    my $properties = $args{properties};
+    croak "argument 'properties' not a hash ref\n"
+      if !is_hashref $properties;
 
+    if (!$self->exists_element_aa ($element)) {
+        $self->add_element (element => $element);
+    }
+
+    my $props = $self->get_list_ref (
+        element => $element,
+        list    => 'PROPERTIES',
+    );
+    @{$props}{keys %$properties} = values %$properties;
+    
+    return;
+}
 
 
 sub to_table {

@@ -369,10 +369,9 @@ sub clone_with_reduced_resolution {
                 autovivify => 0,
             );
             if ($props) {
-                $lb_props->add_element(element => $label);
-                $lb_props->add_to_lists (
+                $lb_props->set_element_properties (
                     element    => $label,
-                    PROPERTIES => {%$props},  #  shallow copy
+                    properties => {%$props},  #  shallow copy
                 );
                 $label_props_count++;
             }

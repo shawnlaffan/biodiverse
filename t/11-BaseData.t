@@ -485,10 +485,9 @@ sub test_reduce_resolution {
     foreach my $label (@labels[0..10]) {
         $i++;
         $lb_prop_hash{$label} = {PROP1 => $i, PROP2 => $i+1};
-        $lb_props->add_element(element => $label);
-        $lb_props->add_to_lists (
+        $lb_props->set_element_properties (
             element    => $label,
-            PROPERTIES => $lb_prop_hash{$label},
+            properties => $lb_prop_hash{$label},
         );
     }
     $bd1->assign_element_properties (

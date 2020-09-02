@@ -478,11 +478,11 @@ sub test_reduce_resolution {
         }
     }
     
-    #  add some label props
+    #  add some label props to the first ten or so
     my $lb_props = Biodiverse::ElementProperties->new();
     my %lb_prop_hash;
     my $i = -1;
-    foreach my $label (@labels) {
+    foreach my $label (@labels[0..10]) {
         $i++;
         $lb_prop_hash{$label} = {PROP1 => $i, PROP2 => $i+1};
         $lb_props->add_element(element => $label);

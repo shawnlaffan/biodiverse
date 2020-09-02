@@ -326,7 +326,12 @@ sub clone_with_reduced_resolution {
         sep_char   => $self->get_param('JOIN_CHAR'),
         quote_char => $self->get_param('QUOTES'),
     );
+    
+    my $lb_props = Biodiverse::ElementProperties->new;
+    my %label_props_checked;
+    my $label_props_count;
 
+    my $lb  = $self->get_labels_ref;
     my $gps = $self->get_groups;
     foreach my $group (@$gps) {
         my @gp_fields;
@@ -348,14 +353,36 @@ sub clone_with_reduced_resolution {
             list       => \@gp_fields,
             csv_object => $out_csv,
         );
-        my $labels = $self->get_labels_in_group_as_hash (group => $group);
-        foreach my $label (keys %$labels) {
+        my $labels = $self->get_labels_in_group_as_hash_aa ($group);
+        LABEL:
+          foreach my $label (keys %$labels) {
             $new_bd->add_element (
                 group => $grpstring,
                 label => $label,
                 count => $labels->{$label},
             );
+            next LABEL if $label_props_checked{$label};
+            $label_props_checked{$label}++;
+            my $props = $lb->get_list_ref (
+                element    => $label,
+                list       => 'PROPERTIES',
+                autovivify => 0,
+            );
+            if ($props) {
+                $lb_props->add_element(element => $label);
+                $lb_props->add_to_lists (
+                    element    => $label,
+                    PROPERTIES => {%$props},  #  shallow copy
+                );
+                $label_props_count++;
+            }
         }
+    }
+    if ($label_props_count) {
+        $new_bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $lb_props,
+        );
     }
     
     return $new_bd;

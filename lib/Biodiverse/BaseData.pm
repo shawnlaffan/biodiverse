@@ -2055,11 +2055,21 @@ sub get_groups_without_label_as_hash {
 
 sub get_empty_groups {
     my $self = shift;
-    my %args = @_;
+    #my %args = @_;
 
-    my @gps = grep { !$self->get_richness( element => $_ ) } $self->get_groups;
+    my @gps = grep { !$self->get_richness_aa( $_ ) } $self->get_groups;
 
     return wantarray ? @gps : \@gps;
+}
+
+sub get_rangeless_labels {
+    my $self = shift;
+    #my %args = @_;
+
+    my $lb = $self->get_labels_ref;
+    my @elements = grep { !$lb->get_variety_aa( $_ ) } $self->get_labels;
+
+    return wantarray ? @elements : \@elements;
 }
 
 sub get_labels_in_group {    #  get a list of the labels that occur in $group

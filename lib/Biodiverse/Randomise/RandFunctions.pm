@@ -45,8 +45,13 @@ Independent swaps randomisation
 END_PROGRESS_TEXT
 ;
 
-    my @sorted_groups = sort $bd->get_groups;
-    my @sorted_labels = sort $bd->get_labels;
+    my %empty_groups;
+    @empty_groups{$bd->get_empty_groups} = undef;
+    my %empty_labels;
+    @empty_labels{$bd->get_rangeless_labels} = undef;
+    
+    my @sorted_groups = sort grep {!exists $empty_groups{$_}} $bd->get_groups;
+    my @sorted_labels = sort grep {!exists $empty_labels{$_}} $bd->get_labels;
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
@@ -59,7 +64,7 @@ END_PROGRESS_TEXT
         );
         my $shadow_hash = $bd->get_groups_without_label_as_hash(label => $label);
         $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
-            data => [sort keys %$shadow_hash],
+            data => [sort grep {!exists $empty_groups{$_}} keys %$shadow_hash],
         );
         warn "We have group balance problems for $label"
           if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
@@ -71,7 +76,7 @@ END_PROGRESS_TEXT
         );
         my $shadow_list = $bd->get_labels_not_in_group(group => $group);
         $lb_shadow_list{$group} = List::Unique::DeterministicOrder->new (
-            data => [sort @$shadow_list],
+            data => [sort grep {!exists $empty_labels{$_}} @$shadow_list],
         );
         warn "We have label balance problems for $group"
           if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
@@ -97,7 +102,7 @@ END_PROGRESS_TEXT
 #warn "Swap count is $swap_count";
   MAIN_ITER:
     for my $iter (1..$swap_count) {
-        say "Running independent swap iteration $iter";
+        say "Running independent swap iteration $iter of $swap_count";
         my $label1 = $sorted_labels[int $rand->rand($n_labels)];
         my $group1 = $gp_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_list{$label1}->keys)
@@ -106,9 +111,14 @@ END_PROGRESS_TEXT
             int $rand->rand (scalar $gp_shadow_list{$label1}->keys)
         );
         my $key_count = $lb_list{$group2}->keys;
+        my $index = int $rand->rand ($key_count);
         my $label2 = $lb_list{$group2}->get_key_at_pos(
-            int $rand->rand ($key_count)
+            $index
         );
+        if (!defined $label2) {
+            warn 'Gah 1!';
+            warn "$index, $key_count, " . $lb_list{$group2}->keys;
+        }
         my (%checked);
         while ($lb_list{$group1}->exists ($label2)) {
             $checked{$label2}++;
@@ -116,6 +126,9 @@ END_PROGRESS_TEXT
             $label2 = $lb_list{$group2}->get_key_at_pos(
                 int $rand->rand ($key_count)
             );
+        }
+        if (!defined $label2) {
+            warn 'Gah!';
         }
         #  swap them and update the tracker lists
         #  group2 moves to label1, group1 moves to label2
@@ -164,6 +177,7 @@ END_PROGRESS_TEXT
     $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
+    #  need the csv object
     foreach my $label (keys %gp_hash) {
         my $this_g_hash = $gp_hash{$label};
         foreach my $group (keys %$this_g_hash) {
@@ -174,6 +188,19 @@ END_PROGRESS_TEXT
             );
         }
     }
+    foreach my $label (keys %empty_labels) {
+        $new_bd->add_element (
+            label => $label,
+            sample_count => 0,
+        );
+    }
+    foreach my $group (keys %empty_groups) {
+        $new_bd->add_element (
+            group => $group,
+            sample_count => 0,
+        );
+    }
+    
     
     return $new_bd;
 }

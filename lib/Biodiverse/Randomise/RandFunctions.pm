@@ -112,13 +112,14 @@ END_PROGRESS_TEXT
         my (%checked);
         while ($lb_list{$group1}->exists ($label2)) {
             $checked{$label2}++;
-            next MAIN_ITER if keys %checked > $key_count;  #  no possible swap
+            next MAIN_ITER if keys %checked >= $key_count;  #  no possible swap
             $label2 = $lb_list{$group2}->get_key_at_pos(
                 int $rand->rand ($key_count)
             );
         }
         #  swap them and update the tracker lists
         #  group2 moves to label1, group1 moves to label2
+        warn "Updating the mains\n";
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
         $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
         $gp_list{$label1}->push ($gp_list{$label2}->delete($group2));
@@ -131,7 +132,7 @@ END_PROGRESS_TEXT
         if (scalar $gp_list{$label2}->keys != keys %{$gp_hash{$label2}}) {
             warn "group probs with label2 $label2"; 
         }
-        
+        warn "Updating the shadows\n";
         #  the shadows index the opposites
         $gp_shadow_list{$label1}->push ($gp_shadow_list{$label2}->delete($group1));
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));

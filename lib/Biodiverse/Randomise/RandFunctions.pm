@@ -118,8 +118,9 @@ END_PROGRESS_TEXT
             );
         }
         #  swap them and update the tracker lists
-        $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group1};
-        $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group2};
+        #  group2 moves to label1, group1 moves to label2
+        $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
+        $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
         $gp_list{$label1}->push ($gp_list{$label2}->delete($group2));
         $gp_list{$label2}->push ($gp_list{$label1}->delete($group1));
         $lb_list{$group1}->push ($lb_list{$group2}->delete($label2));

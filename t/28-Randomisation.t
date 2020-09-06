@@ -111,7 +111,17 @@ sub test_mutable_parameters {
     };
 }
 
+sub test_rand_independent_swaps {
+    test_rand_structured_richness_same (
+        'rand_independent_swaps', swap_count => 100,
+    );
+}
+
+
 sub test_rand_structured_richness_same {
+    my ($rand_function, %args) = @_;
+    $rand_function //= 'rand_structured';
+    
     my $c = 100000;
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
 
@@ -133,14 +143,15 @@ sub test_rand_structured_richness_same {
 
     my $prng_seed = 2345;
 
-    my $rand_name = 'rand_structured';
+    my $rand_name = $rand_function;
 
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
-        function   => 'rand_structured',
+        function   => $rand_function,
         iterations => 3,
         seed       => $prng_seed,
         return_rand_bd_array => 1,
+        %args,
     );
 
     subtest 'richness scores match' => sub {

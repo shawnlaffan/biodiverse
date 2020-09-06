@@ -51,7 +51,7 @@ my $EMPTY_STRING = q{};
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-use parent qw {Biodiverse::Common};
+use parent qw {Biodiverse::Randomise::RandFunctions Biodiverse::Common};
 
 sub new {
     my $class = shift;

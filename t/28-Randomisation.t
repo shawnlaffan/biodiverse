@@ -1465,14 +1465,21 @@ sub test_function_stability {
     my @functions = Biodiverse::Randomise->get_randomisation_functions_as_array;
     @functions = sort @functions;
     
+    my %extra_args_per_func = (
+        rand_independent_swaps => {swap_count => 1000},
+    );
+    
     foreach my $function (@functions) {
         my $rand = $bd->add_randomisation_output (name => $function);
+        my $extra_args = $extra_args_per_func{$function};
+        $extra_args //= {};
         
         my %rand_func_args = (
             function   => $function,
             iterations => 1,
             seed       => $prng_seed,
             return_rand_bd_array => 1,
+            %$extra_args,
         );
 
         my $metadata = $rand->get_metadata (sub => $function);
@@ -2673,6 +2680,78 @@ __DATA__
     '4.5:2.5' => { d => 3 },
     '4.5:3.5' => { d => 2 },
     '4.5:4.5' => { d => 12 }
+}
+
+
+@@ RAND_RESULTS_rand_independent_swaps
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 1,
+        b => 1,
+        c => 1,
+        d => 1
+    },
+    '1.5:2.5' => {
+        a => 2,
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '1.5:3.5' => {
+        a => 3,
+        b => 3,
+        c => 3,
+        d => 3
+    },
+    '1.5:4.5' => {
+        a => 4,
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '2.5:2.5' => {
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 6,
+        c => 6,
+        d => 6
+    },
+    '2.5:4.5' => {
+        b => 8,
+        c => 8,
+        d => 8
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 3,
+        d => 3
+    },
+    '3.5:2.5' => {
+        c => 6,
+        d => 6
+    },
+    '3.5:3.5' => {
+        c => 9,
+        d => 9
+    },
+    '3.5:4.5' => {
+        c => 12,
+        d => 12
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 4 },
+    '4.5:2.5' => { d => 8 },
+    '4.5:3.5' => { d => 12 },
+    '4.5:4.5' => { d => 16 }
 }
 
 

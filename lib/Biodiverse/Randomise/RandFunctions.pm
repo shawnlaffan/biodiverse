@@ -8,7 +8,7 @@ use 5.022;
 use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed/;
-
+use List::MoreUtils qw /bsearchidx/;
 sub get_metadata_rand_independent_swaps {
     my $self = shift;
 
@@ -72,6 +72,9 @@ END_PROGRESS_TEXT
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
             $has_max_range{$label}++;
+            #my $idx = bsearchidx {$_ cmp $label} @sorted_labels;
+            #splice @sorted_labels, $idx, 1;
+            #  if we do this then we also need to filter from other lists
         }
         warn "We have group balance problems for $label"
           if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
@@ -147,31 +150,13 @@ END_PROGRESS_TEXT
         $gp_list{$label2}->push ($gp_list{$label1}->delete($group1));
         $lb_list{$group1}->push ($lb_list{$group2}->delete($label2));
         $lb_list{$group2}->push ($lb_list{$group1}->delete($label1));
-        if (scalar $gp_list{$label1}->keys != keys %{$gp_hash{$label1}}) {
-            warn "group probs with label1 $label1";
-        }
-        if (scalar $gp_list{$label2}->keys != keys %{$gp_hash{$label2}}) {
-            warn "group probs with label2 $label2"; 
-        }
-        #warn "Updating the shadows\n";
-        #  the shadows index the opposites
+        
+        #  the shadows index the list-set complements
         $gp_shadow_list{$label1}->push ($gp_shadow_list{$label2}->delete($group1));
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
         $lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
         $lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
 
-        my $i;
-        foreach my $group ($group1, $group2) {
-            $i++;
-            warn "We have label balance problems for $group $i"
-              if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
-        }
-        $i = 0;
-        foreach my $label ($label1, $label2) {
-            $i++;
-            warn "We have group balance problems for $label $i"
-              if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
-        }
     }
 
     #  now we populate a new basedata
@@ -186,6 +171,11 @@ END_PROGRESS_TEXT
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
     #  need the csv object
+    my $csv = $bd->get_csv_object(
+        sep_char   => $bd->get_param('JOIN_CHAR'),
+        quote_char => $bd->get_param('QUOTES'),
+    );
+
     foreach my $label (keys %gp_hash) {
         my $this_g_hash = $gp_hash{$label};
         foreach my $group (keys %$this_g_hash) {
@@ -193,6 +183,7 @@ END_PROGRESS_TEXT
                 group => $group,
                 label => $label,
                 sample_count => $this_g_hash->{$group},
+                csv_object   => $csv,
             );
         }
     }
@@ -200,12 +191,14 @@ END_PROGRESS_TEXT
         $new_bd->add_element (
             label => $label,
             allow_empty_labels => 1,
+            csv_object   => $csv,
         );
     }
     foreach my $group (keys %empty_groups) {
         $new_bd->add_element (
             group => $group,
             allow_empty_groups => 1,
+            csv_object   => $csv,
         );
     }
     

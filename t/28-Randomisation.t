@@ -113,7 +113,7 @@ sub test_mutable_parameters {
 
 sub test_rand_independent_swaps {
     test_rand_structured_richness_same (
-        'rand_independent_swaps', swap_count => 100,
+        'rand_independent_swaps', swap_count => 2,
     );
 }
 
@@ -153,12 +153,23 @@ sub test_rand_structured_richness_same {
         return_rand_bd_array => 1,
         %args,
     );
+    
+    foreach my $rand_bd (@$rand_bd_array) {
+        is ([sort $rand_bd->get_labels],
+            [sort $bd->get_labels],
+            'randomised basedata all the labels',
+        );
+        is ([sort $rand_bd->get_groups],
+            [sort $bd->get_groups],
+            'randomised basedata all the groups',
+        );
+    }
 
     subtest 'richness scores match' => sub {
         foreach my $rand_bd (@$rand_bd_array) {
             foreach my $group (sort $rand_bd->get_groups) {
-                my $bd_richness = $bd->get_richness(element => $group) // 0;
-                is ($rand_bd->get_richness (element => $group) // 0,
+                my $bd_richness = $bd->get_richness_aa ($group) // 0;
+                is ($rand_bd->get_richness_aa ($group) // 0,
                     $bd_richness,
                     "richness for $group matches ($bd_richness)",
                 );

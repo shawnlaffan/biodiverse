@@ -98,8 +98,8 @@ END_PROGRESS_TEXT
     $progress_bar->reset;
 
     #  Basic algorithm:
-    #  pick two groups at random
-    #  pick two labels at random
+    #  pick two different groups at random
+    #  pick two different labels at random
     #  if label1 is already in group2, or label2 in group1, then try again
     #  else swap the labels between groups
     #  
@@ -112,38 +112,39 @@ END_PROGRESS_TEXT
 
   MAIN_ITER:
     for my $iter (1..$swap_count) {
-        #say "Running independent swap iteration $iter of $swap_count";
         my $label1 = $sorted_labels[int $rand->rand($n_labels)];
+        
+        #  is this label swappable?
         next MAIN_ITER if $has_max_range{$label1};
+
         my $group1 = $gp_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
+        #  select from groups not containing this label
         my $group2 = $gp_shadow_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_shadow_list{$label1}->keys)
         );
+
         my $key_count = $lb_list{$group2}->keys;
-        my $index = int $rand->rand ($key_count);
         my $label2 = $lb_list{$group2}->get_key_at_pos(
-            $index
+            int $rand->rand ($key_count)
         );
-        if (!defined $label2) {
-            warn 'Gah 1!';
-            warn "$index, $key_count, " . $lb_list{$group2}->keys;
-        }
+        
         my (%checked);
         while ($lb_list{$group1}->exists ($label2) || $has_max_range{$label2}) {
             $checked{$label2}++;
-            next MAIN_ITER if keys %checked >= $key_count;  #  no possible swap
+            #  no possible swap if we have tried all of them
+            next MAIN_ITER if keys %checked >= $key_count;  
+            #  Try another one at random.
+            #  Approach is inefficient when the ratio of
+            #  swappable to non-swappable is low.
             $label2 = $lb_list{$group2}->get_key_at_pos(
                 int $rand->rand ($key_count)
             );
         }
-        if (!defined $label2) {
-            warn 'Gah!';
-        }
-        #  swap them and update the tracker lists
+
+        #  swap the labels between groups and update the tracker lists
         #  group2 moves to label1, group1 moves to label2
-        #warn "Updating the mains\n";
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
         $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
         $gp_list{$label1}->push ($gp_list{$label2}->delete($group2));
@@ -156,7 +157,6 @@ END_PROGRESS_TEXT
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
         $lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
         $lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
-
     }
 
     #  now we populate a new basedata
@@ -170,7 +170,7 @@ END_PROGRESS_TEXT
     $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
-    #  need the csv object
+    #  re-use a csv object
     my $csv = $bd->get_csv_object(
         sep_char   => $bd->get_param('JOIN_CHAR'),
         quote_char => $bd->get_param('QUOTES'),

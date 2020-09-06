@@ -113,7 +113,7 @@ sub test_mutable_parameters {
 
 sub test_rand_independent_swaps {
     test_rand_structured_richness_same (
-        'rand_independent_swaps', swap_count => 2,
+        'rand_independent_swaps', swap_count => 1000,
     );
 }
 
@@ -1418,18 +1418,25 @@ sub check_duplicates {
 sub test_function_stability {
     my $c  = 1;
     my $c2 = $c / 2;
-    my $bd = Biodiverse::BaseData->new(CELL_SIZES => [$c, $c], NAME => 'test_replicates');
+    my $bd = Biodiverse::BaseData->new(
+        CELL_SIZES => [$c, $c],
+        NAME       => 'test_replicates',
+    );
 
     #  we just need some groups and labels
     my %labels = (1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd');
     foreach my $x (1 .. 4) {
         foreach my $y (1 .. 4) {
           LABEL_ID:
-            foreach my $label_id (keys %labels) {
+            foreach my $label_id (sort keys %labels) {
                 next LABEL_ID if $label_id < $x;
                 my $label = $labels{$label_id};
                 my $gp = ($x + $c2 . ':' . ($y + $c2));
-                $bd->add_element (label => $label, group => $gp, count => $x * $y);
+                $bd->add_element (
+                    label => $label,
+                    group => $gp,
+                    count => $x * $y,
+                );
             }
         }
     }

@@ -55,7 +55,10 @@ END_PROGRESS_TEXT
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
-    my (%gp_hash, %gp_list, %lb_list, %gp_shadow_list, %lb_shadow_list);
+    my (%gp_hash, %gp_list, %lb_list,
+        %gp_shadow_list, %lb_shadow_list,
+        %has_max_range,  #  should filter these
+    );
     foreach my $label (@sorted_labels) {
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
         $gp_hash{$label} = {%$group_hash};
@@ -66,6 +69,10 @@ END_PROGRESS_TEXT
         $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort grep {!exists $empty_groups{$_}} keys %$shadow_hash],
         );
+        if ($bd->get_range (element => $label) == @sorted_groups) {
+            #  cannot be swapped around
+            $has_max_range{$label}++;
+        }
         warn "We have group balance problems for $label"
           if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
     }
@@ -99,11 +106,12 @@ END_PROGRESS_TEXT
     #  pick group2 from the set of groups that do not contain label1
     #  pick label2 from group2, where label2 cannot occur in group1
     #
-#warn "Swap count is $swap_count";
+
   MAIN_ITER:
     for my $iter (1..$swap_count) {
-        say "Running independent swap iteration $iter of $swap_count";
+        #say "Running independent swap iteration $iter of $swap_count";
         my $label1 = $sorted_labels[int $rand->rand($n_labels)];
+        next MAIN_ITER if $has_max_range{$label1};
         my $group1 = $gp_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
@@ -120,7 +128,7 @@ END_PROGRESS_TEXT
             warn "$index, $key_count, " . $lb_list{$group2}->keys;
         }
         my (%checked);
-        while ($lb_list{$group1}->exists ($label2)) {
+        while ($lb_list{$group1}->exists ($label2) || $has_max_range{$label2}) {
             $checked{$label2}++;
             next MAIN_ITER if keys %checked >= $key_count;  #  no possible swap
             $label2 = $lb_list{$group2}->get_key_at_pos(
@@ -132,7 +140,7 @@ END_PROGRESS_TEXT
         }
         #  swap them and update the tracker lists
         #  group2 moves to label1, group1 moves to label2
-        warn "Updating the mains\n";
+        #warn "Updating the mains\n";
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
         $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
         $gp_list{$label1}->push ($gp_list{$label2}->delete($group2));
@@ -145,7 +153,7 @@ END_PROGRESS_TEXT
         if (scalar $gp_list{$label2}->keys != keys %{$gp_hash{$label2}}) {
             warn "group probs with label2 $label2"; 
         }
-        warn "Updating the shadows\n";
+        #warn "Updating the shadows\n";
         #  the shadows index the opposites
         $gp_shadow_list{$label1}->push ($gp_shadow_list{$label2}->delete($group1));
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
@@ -191,13 +199,13 @@ END_PROGRESS_TEXT
     foreach my $label (keys %empty_labels) {
         $new_bd->add_element (
             label => $label,
-            sample_count => 0,
+            allow_empty_labels => 1,
         );
     }
     foreach my $group (keys %empty_groups) {
         $new_bd->add_element (
             group => $group,
-            sample_count => 0,
+            allow_empty_groups => 1,
         );
     }
     

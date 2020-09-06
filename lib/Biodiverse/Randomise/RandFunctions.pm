@@ -76,20 +76,21 @@ END_PROGRESS_TEXT
             #splice @sorted_labels, $idx, 1;
             #  if we do this then we also need to filter from other lists
         }
-        warn "We have group balance problems for $label"
-          if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
+        #warn "We have group balance problems for $label"
+        #  if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
     }
     foreach my $group (@sorted_groups) {
         my $label_hash = $bd->get_labels_in_group_as_hash_aa($group);
         $lb_list{$group} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$label_hash],
         );
-        my $shadow_list = $bd->get_labels_not_in_group(group => $group);
-        $lb_shadow_list{$group} = List::Unique::DeterministicOrder->new (
-            data => [sort grep {!exists $empty_labels{$_}} @$shadow_list],
-        );
-        warn "We have label balance problems for $group"
-          if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
+        #  lb_shadow_lists are not used
+        #my $shadow_list = $bd->get_labels_not_in_group(group => $group);
+        #$lb_shadow_list{$group} = List::Unique::DeterministicOrder->new (
+        #    data => [sort grep {!exists $empty_labels{$_}} @$shadow_list],
+        #);
+        #warn "We have label balance problems for $group"
+        #  if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
     }
 
     printf "[RANDOMISE] Randomise using independent swaps for %s labels from %s groups\n",
@@ -120,11 +121,12 @@ END_PROGRESS_TEXT
         my $group1 = $gp_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
-        #  select from groups not containing this label
+        #  select from groups not containing $label1
         my $group2 = $gp_shadow_list{$label1}->get_key_at_pos(
             int $rand->rand (scalar $gp_shadow_list{$label1}->keys)
         );
 
+        #  select a random label from group2
         my $key_count = $lb_list{$group2}->keys;
         my $label2 = $lb_list{$group2}->get_key_at_pos(
             int $rand->rand ($key_count)
@@ -155,8 +157,8 @@ END_PROGRESS_TEXT
         #  the shadows index the list-set complements
         $gp_shadow_list{$label1}->push ($gp_shadow_list{$label2}->delete($group1));
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
-        $lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
-        $lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
+        #$lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
+        #$lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
     }
 
     #  now we populate a new basedata

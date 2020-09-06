@@ -179,11 +179,8 @@ END_PROGRESS_TEXT
     foreach my $label (keys %gp_hash) {
         my $this_g_hash = $gp_hash{$label};
         foreach my $group (keys %$this_g_hash) {
-            $new_bd->add_element (
-                group => $group,
-                label => $label,
-                sample_count => $this_g_hash->{$group},
-                csv_object   => $csv,
+            $new_bd->add_element_simple_aa (
+                $label, $group, $this_g_hash->{$group}, $csv,
             );
         }
     }

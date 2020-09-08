@@ -8,17 +8,57 @@ use 5.022;
 use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
-use List::MoreUtils qw /bsearchidx/;
+#use List::MoreUtils qw /bsearchidx/;
+
+use Biodiverse::Metadata::Parameter;
+my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
+
+
+    my $tooltip_swap_count = <<'TOOLTIP_SWAP_COUNT'
+Target number of swaps to attempt.
+Default is twice the number of
+non-zero matrix (basedata) entries.
+TOOLTIP_SWAP_COUNT
+  ;
+  
+    my $tooltip_map_swap_attempts = <<'TOOLTIP_SWAP_ATTEMPTS'
+Maximum number of swaps to attempt.
+Default is twice the number of
+non-zero matrix (basedata) entries.
+TOOLTIP_SWAP_ATTEMPTS
+  ;
 
 sub get_metadata_rand_independent_swaps {
     my $self = shift;
 
-    my @parameters;
+
+    my @parameters = (
+        {name       => 'swap_count',
+         type       => 'integer',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_swap_count,
+         box_group  => 'Independent swaps',
+        },
+        {name       => 'max_swap_attempts',
+         type       => 'integer',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_map_swap_attempts,
+         box_group  => 'Independent swaps',
+         },
+    );
+    for (@parameters) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
+
 
     my %metadata = (
         parameters  => \@parameters,
         description => "Randomly swap labels across groups using an "
-                     . "implementation of the independent swaps algorithm (REF)\n",
+                     . "implementation of the independent swaps algorithm "
+                     . "(Gotelli 2000; Miklos & Podani, 2004)\n",
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -38,15 +78,16 @@ sub rand_independent_swaps {
     my $rand = delete $args{rand_object};
     
     my $target_swap_count = $args{swap_count};
-    #  Default is set below following
+    my $max_swap_attempts = $args{max_swap_attempts};
+    #  Defaults are set below following
     #  Miklos & Podani (2004) Ecology, 85(1) 86–92:
-    #  Therefore, we suggest that the number of trials
+    #  "Therefore, we suggest that the number of trials
     #  should be set such that the expected number of swaps
     #  equals twice the number of 1’s in the matrix. Given an
     #  initial matrix, both the number of checkerboard units
     #  and the number of possible 2 x 2 submatrices can be
     #  calculated, and their ratio can be used as estimation for
-    #  the proportion of the successful trials
+    #  the proportion of the successful trials."
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -127,12 +168,14 @@ END_PROGRESS_TEXT
     if (!looks_like_number $target_swap_count || $target_swap_count <= 0) {
         $target_swap_count = 2 * $non_zero_mx_cells;
     }
+    if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
+        $max_swap_attempts = 2 * $non_zero_mx_cells;
+    }
     my $swap_count = 0;
     my $attempts   = 0;
-    my $max_attempts = 2 * $non_zero_mx_cells;
-    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_attempts";
+    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
   MAIN_ITER:
-    while ($swap_count < $target_swap_count && $attempts < $max_attempts) {
+    while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
         $attempts++;
         my $label1 = $sorted_labels[int $rand->rand($n_labels)];
         
@@ -184,11 +227,11 @@ END_PROGRESS_TEXT
         $swap_count++;
     }
 
-    if ($attempts == $max_attempts) {
+    if ($attempts == $max_swap_attempts) {
         my $nlabels = scalar @sorted_labels;
         my $ngroups = scalar @sorted_groups;
         say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
-          . "$max_attempts reached after $swap_count swaps, for "
+          . "$max_swap_attempts reached after $swap_count swaps, for "
           . "basedata $name with $nlabels labels and $ngroups groups\n";
     }
     

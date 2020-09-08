@@ -7,8 +7,9 @@ use warnings;
 use 5.022;
 use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
-use Scalar::Util qw /blessed/;
+use Scalar::Util qw /blessed looks_like_number/;
 use List::MoreUtils qw /bsearchidx/;
+
 sub get_metadata_rand_independent_swaps {
     my $self = shift;
 
@@ -35,7 +36,17 @@ sub rand_independent_swaps {
 
     #  can't store MRMA objects to all output formats and then recreate
     my $rand = delete $args{rand_object};
-    my $swap_count = $args{swap_count} // 10;  # FIXME - set a sensible default
+    
+    my $target_swap_count = $args{swap_count};
+    #  Default is set below following
+    #  Miklos & Podani (2004) Ecology, 85(1) 86–92:
+    #  Therefore, we suggest that the number of trials
+    #  should be set such that the expected number of swaps
+    #  equals twice the number of 1’s in the matrix. Given an
+    #  initial matrix, both the number of checkerboard units
+    #  and the number of possible 2 x 2 submatrices can be
+    #  calculated, and their ratio can be used as estimation for
+    #  the proportion of the successful trials
 
     my $progress_bar = Biodiverse::Progress->new();
 
@@ -59,8 +70,10 @@ END_PROGRESS_TEXT
         %gp_shadow_list, %lb_shadow_list,
         %has_max_range,  #  should filter these
     );
+    my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
+        $non_zero_mx_cells += scalar keys %$group_hash;
         $gp_hash{$label} = {%$group_hash};
         $gp_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$group_hash],
@@ -104,15 +117,23 @@ END_PROGRESS_TEXT
     #  if label1 is already in group2, or label2 in group1, then try again
     #  else swap the labels between groups
     #  
-    #  Nuanced algorithm:
+    #  Nuanced algorithm to avoid excess searching:
     #  pick group1
     #  pick label1 from that group
     #  pick group2 from the set of groups that do not contain label1
     #  pick label2 from group2, where label2 cannot occur in group1
     #
-
+    
+    if (!looks_like_number $target_swap_count || $target_swap_count <= 0) {
+        $target_swap_count = 2 * $non_zero_mx_cells;
+    }
+    my $swap_count = 0;
+    my $attempts   = 0;
+    my $max_attempts = 2 * $non_zero_mx_cells;
+    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_attempts";
   MAIN_ITER:
-    for my $iter (1..$swap_count) {
+    while ($swap_count < $target_swap_count && $attempts < $max_attempts) {
+        $attempts++;
         my $label1 = $sorted_labels[int $rand->rand($n_labels)];
         
         #  is this label swappable?
@@ -159,8 +180,18 @@ END_PROGRESS_TEXT
         $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
         #$lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
         #$lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
+        
+        $swap_count++;
     }
 
+    if ($attempts == $max_attempts) {
+        my $nlabels = scalar @sorted_labels;
+        my $ngroups = scalar @sorted_groups;
+        say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
+          . "$max_attempts reached after $swap_count swaps, for "
+          . "basedata $name with $nlabels labels and $ngroups groups\n";
+    }
+    
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);

@@ -20,7 +20,9 @@ install:
   - cpanm --quiet --notest Alien::Build
   
   - cpanm -v --notest Alien::sqlite
-  - cpanm -v --notest Alien::geos::af Alien::proj 
+  - cpanm -v --notest Alien::geos::af
+  - cpanm -v Alien::libtiff
+  - cpanm -v Alien::proj
   
   #- cpanm -v --notest Alien::freexl
   #- cpanm -v --notest Alien::spatialite

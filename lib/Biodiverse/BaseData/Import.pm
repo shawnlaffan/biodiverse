@@ -24,16 +24,16 @@ use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
-use Spreadsheet::Read 0.60;
+use Spreadsheet::Read 0.82;
 
 use Geo::GDAL::FFI 0.07;
 
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)
-require Spreadsheet::ReadSXC;
-require Spreadsheet::ParseExcel;
-require Spreadsheet::ParseXLSX;
+use Spreadsheet::ReadSXC 0.25 ();
+use Spreadsheet::ParseExcel ();
+use Spreadsheet::ParseXLSX ();
 
 
 #  how much input file to read in one go

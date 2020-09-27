@@ -35,6 +35,7 @@ task:
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm Geo::GDAL::FFI
     - cpanm --notest Task::Biodiverse::NoGUI
+    - cpanm --installdeps .
     - cpanm Path::Class
     - cpanm Test::Lib
     - cpanm rlib

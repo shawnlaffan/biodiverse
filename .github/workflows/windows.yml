@@ -101,6 +101,7 @@ jobs:
       - name: Install task deps
         run: |
           cpanm --notest Task::Biodiverse::NoGUI
+          cpanm --installdeps .
   
       # Runs a set of commands using the runners shell
       - name: Run tests

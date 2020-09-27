@@ -76,6 +76,7 @@ jobs:
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           #cpanm Test2::Harness
+          cpanm --installdeps .
           
       - name: Gtk stuff
         run: |

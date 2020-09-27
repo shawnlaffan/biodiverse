@@ -31,7 +31,7 @@ use Geo::GDAL::FFI 0.07;
 #  these are here for PAR purposes to ensure they get packed
 #  Spreadsheet::Read calls them as needed
 #  (not sure we need all of them, though)
-use Spreadsheet::ReadSXC 0.25 ();
+use Spreadsheet::ReadSXC 0.26 ();
 use Spreadsheet::ParseExcel ();
 use Spreadsheet::ParseXLSX ();
 

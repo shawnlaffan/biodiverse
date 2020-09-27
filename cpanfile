@@ -39,7 +39,7 @@ requires "autovivification", "0.16";
 requires "List::BinarySearch", "0.25";
 requires "List::BinarySearch::XS", "0.09";
 requires "Spreadsheet::Read", "0.82";
-requires "Spreadsheet::ReadSXC", "0.25";
+requires "Spreadsheet::ReadSXC", "0.26";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
 requires "Getopt::Long::Descriptive";

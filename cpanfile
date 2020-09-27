@@ -38,8 +38,8 @@ requires "Class::Inspector";
 requires "autovivification", "0.16";
 requires "List::BinarySearch", "0.25";
 requires "List::BinarySearch::XS", "0.09";
-requires "Spreadsheet::Read", "0.60";
-requires "Spreadsheet::ReadSXC";
+requires "Spreadsheet::Read", "0.82";
+requires "Spreadsheet::ReadSXC", "0.25";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
 requires "Getopt::Long::Descriptive";
@@ -58,11 +58,9 @@ requires "List::Unique::DeterministicOrder";
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going
 #($] lt '5.024' ? ("Data::Alias", "0") : ()),
-suggests "Data::Alias", "0";
+#suggests "Data::Alias", "0";
 suggests "Panda::Lib";
 
-#  remove this once the to do list under issue #581 is completed
-#requires 'Browser::Open';
 
 test_requires => sub {
     requires "Data::Section::Simple";

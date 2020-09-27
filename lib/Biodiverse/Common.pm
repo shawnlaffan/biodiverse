@@ -1851,8 +1851,8 @@ sub get_book_struct_from_spreadsheet_file {
     #  stringify any Path::Class etc objects
     $file = "$file";
 
-    if ($file =~ /\.(xls(x?))$/) {
-        #  we can use file handles for excel
+    if ($file =~ /\.(xlsx?|ods)$/) {
+        #  we can use file handles for excel and ods
         my $extension = $1;
         my $fh = $self->get_file_handle (
             file_name => $file,
@@ -1860,7 +1860,7 @@ sub get_book_struct_from_spreadsheet_file {
         $book = ReadData($fh, parser => $extension);
     }
     else {
-        #  ods reader does not support file handles
+        #  ods reader does not support file handles before v0.25
         #  so we might hit the unicode bug
         #  (could potentially read the whole file and pass it on?)
         $book = ReadData($file);

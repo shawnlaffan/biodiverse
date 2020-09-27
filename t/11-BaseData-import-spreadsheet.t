@@ -184,6 +184,8 @@ sub test_import_spreadsheet {
 sub _test_import_spreadsheet {
     my ($fname, $feedback) = @_;
 
+    my $todo = todo 'ParseODS does not handle test files'
+      if $fname =~ /ods$/ && $Spreadsheet::ParseODS::VERSION <= 0.25;
 
     my %bd_args = (
         NAME => 'test import spreadsheet' . $fname,

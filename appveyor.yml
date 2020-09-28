@@ -26,6 +26,7 @@ install:
   
   #- cpanm -v --notest Alien::freexl
   #- cpanm -v --notest Alien::spatialite
+  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite
   - cpanm -v Alien::gdal
   
   - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm

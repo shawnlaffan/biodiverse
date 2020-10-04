@@ -9,6 +9,7 @@ use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
 #use List::MoreUtils qw /bsearchidx/;
+use Statistics::Sampler::Multinomial 0.84;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -107,6 +108,13 @@ END_PROGRESS_TEXT
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
+    my $lb = $bd->get_labels_ref;
+    my @sorted_label_ranges = map {$lb->get_variety_aa($_)} @sorted_labels;
+    my $label_sampler = Statistics::Sampler::Multinomial->new(
+        data => \@sorted_label_ranges,
+        prng => $rand,
+    );
+    
     my (%gp_hash, %gp_list, %lb_list,
         %gp_shadow_list, %lb_shadow_list,
         %has_max_range,  #  should filter these
@@ -177,8 +185,10 @@ END_PROGRESS_TEXT
   MAIN_ITER:
     while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
         $attempts++;
-        my $label1 = $sorted_labels[int $rand->rand($n_labels)];
-        
+
+        #  allow for ranges
+        my $label1 = $sorted_labels[$label_sampler->draw];
+
         #  is this label swappable?
         next MAIN_ITER if $has_max_range{$label1};
 

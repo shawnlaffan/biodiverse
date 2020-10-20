@@ -9,7 +9,7 @@ use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
 #use List::MoreUtils qw /bsearchidx/;
-use Statistics::Sampler::Multinomial 0.84;
+use Statistics::Sampler::Multinomial 0.85;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -109,14 +109,20 @@ END_PROGRESS_TEXT
     my $n_labels = scalar @sorted_labels;
     
     my $lb = $bd->get_labels_ref;
-    my @sorted_label_ranges = map {$lb->get_variety_aa($_)} @sorted_labels;
+    my @sorted_label_ranges 
+      = map {$lb->get_variety_aa($_)} 
+        @sorted_labels;
     my $label_sampler = Statistics::Sampler::Multinomial->new(
         data => \@sorted_label_ranges,
         prng => $rand,
     );
-    
+    my %richness_hash 
+      = map {$_ => $bd->get_richness_aa ($_)} 
+        @sorted_groups;
+
     my (%gp_hash, %gp_list, %lb_list,
         %gp_shadow_list, %lb_shadow_list,
+        %gp_shadow_sampler,
         %has_max_range,  #  should filter these
     );
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
@@ -131,6 +137,12 @@ END_PROGRESS_TEXT
         $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort grep {!exists $empty_groups{$_}} keys %$shadow_hash],
         );
+        if ($gp_shadow_list{$label}->keys) {
+            $gp_shadow_sampler{$label} = Statistics::Sampler::Multinomial->new (
+                prng => $rand,
+                data => [@richness_hash{$gp_shadow_list{$label}->keys}],
+            );
+        }
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
             $has_max_range{$label}++;
@@ -166,7 +178,7 @@ END_PROGRESS_TEXT
     #  if label1 is already in group2, or label2 in group1, then try again
     #  else swap the labels between groups
     #  
-    #  Nuanced algorithm to avoid excess searching:
+    #  Nuanced algorithm to avoid excess searching across sparsely populated data:
     #  pick group1
     #  pick label1 from that group
     #  pick group2 from the set of groups that do not contain label1
@@ -186,7 +198,7 @@ END_PROGRESS_TEXT
     while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
         $attempts++;
 
-        #  allow for ranges
+        #  weight by ranges
         my $label1 = $sorted_labels[$label_sampler->draw];
 
         #  is this label swappable?
@@ -196,9 +208,8 @@ END_PROGRESS_TEXT
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
         #  select from groups not containing $label1
-        my $group2 = $gp_shadow_list{$label1}->get_key_at_pos(
-            int $rand->rand (scalar $gp_shadow_list{$label1}->keys)
-        );
+        my $iter   = $gp_shadow_sampler{$label1}->draw;
+        my $group2 = $gp_shadow_list{$label1}->get_key_at_pos($iter);
 
         #  select a random label from group2
         my $key_count = $lb_list{$group2}->keys;
@@ -227,13 +238,24 @@ END_PROGRESS_TEXT
         $gp_list{$label2}->push ($gp_list{$label1}->delete($group1));
         $lb_list{$group1}->push ($lb_list{$group2}->delete($label2));
         $lb_list{$group2}->push ($lb_list{$group1}->delete($label1));
-        
-        #  the shadows index the list-set complements
-        $gp_shadow_list{$label1}->push ($gp_shadow_list{$label2}->delete($group1));
-        $gp_shadow_list{$label2}->push ($gp_shadow_list{$label1}->delete($group2));
-        #$lb_shadow_list{$group1}->push ($lb_shadow_list{$group2}->delete($label1));
-        #$lb_shadow_list{$group2}->push ($lb_shadow_list{$group1}->delete($label2));
-        
+
+        #  The shadows index the list-set complements
+        #  so the samplers need to be kept in synch.
+        #  Group1 is now in the label1 shadow list,
+        #    as it is no longer with label1.
+        #  Ditto for group2 and label2.
+        #  Sequence depends on push/delete implementation
+        #    which will cause problems if that changes. 
+        $gp_shadow_list{$label1}->push ($group1);
+        $gp_shadow_list{$label2}->push ($group2);
+        $gp_shadow_list{$label1}->delete($group2);  #  $group1 will move from end to where $group2 was
+        $gp_shadow_list{$label2}->delete($group1);  #  $group2 will move from end to where $group1 was
+
+        my $l1g1_iter = $gp_shadow_list{$label1}->get_key_pos($group1); #  should be where group2 was
+        my $l2g2_iter = $gp_shadow_list{$label2}->get_key_pos($group2); #  should be where group1 was
+        $gp_shadow_sampler{$label1}->update_values ($l1g1_iter => $richness_hash{$group1});
+        $gp_shadow_sampler{$label2}->update_values ($l2g2_iter => $richness_hash{$group2});
+
         $swap_count++;
     }
 

@@ -29,7 +29,7 @@ non-zero matrix (basedata) entries.
 TOOLTIP_SWAP_ATTEMPTS
   ;
 
-sub get_metadata_rand_independent_swaps {
+sub get_metadata_rand_independent_swaps_modified {
     my $self = shift;
 
 
@@ -57,16 +57,16 @@ sub get_metadata_rand_independent_swaps {
 
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly swap labels across groups using an "
+        description => "Randomly swap labels across groups using a modified "
                      . "implementation of the independent swaps algorithm "
-                     . "(Gotelli 2000; Miklos & Podani, 2004)\n",
+                     . "(Gotelli 2000; Miklos & Podani, 2004) to reduce mis-hits\n",
     );
 
     return $self->metadata_class->new(\%metadata);
 }
 
 
-sub rand_independent_swaps {
+sub rand_independent_swaps_modified {
     my ($self, %args) = @_;
     
     my $start_time = [gettimeofday];
@@ -167,7 +167,7 @@ END_PROGRESS_TEXT
         #  if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
     }
 
-    printf "[RANDOMISE] Randomise using independent swaps for %s labels from %s groups\n",
+    printf "[RANDOMISE] Randomise using modified independent swaps for %s labels from %s groups\n",
        scalar @sorted_labels, scalar @sorted_groups;
 
     $progress_bar->reset;
@@ -194,6 +194,7 @@ END_PROGRESS_TEXT
     my $swap_count = 0;
     my $attempts   = 0;
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
+
   MAIN_ITER:
     while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
         $attempts++;
@@ -255,6 +256,222 @@ END_PROGRESS_TEXT
         my $l2g2_iter = $gp_shadow_list{$label2}->get_key_pos($group2); #  should be where group1 was
         $gp_shadow_sampler{$label1}->update_values ($l1g1_iter => $richness_hash{$group1});
         $gp_shadow_sampler{$label2}->update_values ($l2g2_iter => $richness_hash{$group2});
+
+        $swap_count++;
+    }
+
+    if ($attempts == $max_swap_attempts) {
+        my $nlabels = scalar @sorted_labels;
+        my $ngroups = scalar @sorted_groups;
+        say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
+          . "$max_swap_attempts reached after $swap_count swaps, for "
+          . "basedata $name with $nlabels labels and $ngroups groups\n";
+    }
+    
+    #  now we populate a new basedata
+    my $new_bd = blessed($bd)->new ($bd->get_params_hash);
+    $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
+    $new_bd->get_labels_ref->set_params ($bd->get_labels_ref->get_params_hash);
+    my $new_bd_name = $new_bd->get_param ('NAME');
+    $new_bd->rename (name => $new_bd_name . "_" . $name);
+
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
+    #  re-use a csv object
+    my $csv = $bd->get_csv_object(
+        sep_char   => $bd->get_param('JOIN_CHAR'),
+        quote_char => $bd->get_param('QUOTES'),
+    );
+
+    foreach my $label (keys %gp_hash) {
+        my $this_g_hash = $gp_hash{$label};
+        foreach my $group (keys %$this_g_hash) {
+            $new_bd->add_element_simple_aa (
+                $label, $group, $this_g_hash->{$group}, $csv,
+            );
+        }
+    }
+    foreach my $label (keys %empty_labels) {
+        $new_bd->add_element (
+            label => $label,
+            allow_empty_labels => 1,
+            csv_object   => $csv,
+        );
+    }
+    foreach my $group (keys %empty_groups) {
+        $new_bd->add_element (
+            group => $group,
+            allow_empty_groups => 1,
+            csv_object   => $csv,
+        );
+    }
+    
+    
+    return $new_bd;
+}
+
+sub get_metadata_rand_independent_swaps {
+    my $self = shift;
+
+
+    my @parameters = (
+        {name       => 'swap_count',
+         type       => 'integer',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_swap_count,
+         box_group  => 'Independent swaps',
+        },
+        {name       => 'max_swap_attempts',
+         type       => 'integer',
+         default    => 0,
+         increment  => 1,
+         tooltip    => $tooltip_map_swap_attempts,
+         box_group  => 'Independent swaps',
+         },
+    );
+    for (@parameters) {
+        next if blessed $_;
+        bless $_, $parameter_rand_metadata_class;
+    }
+
+
+    my %metadata = (
+        parameters  => \@parameters,
+        description => "Randomly swap labels across groups using an "
+                     . "implementation of the independent swaps algorithm "
+                     . "(Gotelli 2000; Miklos & Podani, 2004)\n",
+    );
+
+    return $self->metadata_class->new(\%metadata);
+}
+
+
+sub rand_independent_swaps {
+    my ($self, %args) = @_;
+    
+    my $start_time = [gettimeofday];
+
+    my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+
+    my $name = $self->get_param ('NAME');
+
+    #  can't store MRMA objects to all output formats and then recreate
+    my $rand = delete $args{rand_object};
+    
+    my $target_swap_count = $args{swap_count};
+    my $max_swap_attempts = $args{max_swap_attempts};
+    #  Defaults are set below following
+    #  Miklos & Podani (2004) Ecology, 85(1) 86–92:
+    #  "Therefore, we suggest that the number of trials
+    #  should be set such that the expected number of swaps
+    #  equals twice the number of 1’s in the matrix. Given an
+    #  initial matrix, both the number of checkerboard units
+    #  and the number of possible 2 x 2 submatrices can be
+    #  calculated, and their ratio can be used as estimation for
+    #  the proportion of the successful trials."
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $progress_text =<<"END_PROGRESS_TEXT"
+$name
+Independent swaps randomisation
+END_PROGRESS_TEXT
+;
+
+    my %empty_groups;
+    @empty_groups{$bd->get_empty_groups} = undef;
+    my %empty_labels;
+    @empty_labels{$bd->get_rangeless_labels} = undef;
+    
+    my @sorted_groups = sort grep {!exists $empty_groups{$_}} $bd->get_groups;
+    my @sorted_labels = sort grep {!exists $empty_labels{$_}} $bd->get_labels;
+    my $n_groups = scalar @sorted_groups;
+    my $n_labels = scalar @sorted_labels;
+    
+    my $lb = $bd->get_labels_ref;
+    my @sorted_label_ranges 
+      = map {$lb->get_variety_aa($_)} 
+        @sorted_labels;
+
+    my %richness_hash 
+      = map {$_ => $bd->get_richness_aa ($_)} 
+        @sorted_groups;
+
+    my (%gp_hash, %has_max_range);
+    my $non_zero_mx_cells = 0;  #  sum of richness and range scores
+    foreach my $label (@sorted_labels) {
+        my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
+        $non_zero_mx_cells += scalar keys %$group_hash;
+        $gp_hash{$label} = {%$group_hash};
+        if ($bd->get_range (element => $label) == @sorted_groups) {
+            #  cannot be swapped around
+            $has_max_range{$label}++;
+        }
+    }
+
+    printf "[RANDOMISE] Randomise using independent swaps for %s labels from %s groups\n",
+       scalar @sorted_labels, scalar @sorted_groups;
+
+    $progress_bar->reset;
+
+    #  Basic algorithm:
+    #  pick two different groups at random
+    #  pick two different labels at random
+    #  if label1 is already in group2, or label2 in group1, then try again
+    #  else swap the labels between groups
+    
+    if (!looks_like_number $target_swap_count || $target_swap_count <= 0) {
+        $target_swap_count = 2 * $non_zero_mx_cells;
+    }
+    if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
+        $max_swap_attempts = 2 * $non_zero_mx_cells;
+    }
+    my $swap_count = 0;
+    my $attempts   = 0;
+    say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
+
+  MAIN_ITER:
+    while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
+        $attempts++;
+
+        my $label1 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
+        next MAIN_ITER if $has_max_range{$label1};
+
+        my $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
+        while ($label1 eq $label2) {
+            $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
+            #  need an escape here, or revert to brute force search
+        }
+        next MAIN_ITER if $has_max_range{$label2};
+
+        my $group1 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
+        my $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
+        while ($group1 eq $group2) {
+            $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
+            #  need an escape here, or revert to brute force search
+        }
+
+        # swap labels if one of the group/label pairs is empty
+        # as they cannot be swapped into or from
+        # (i.e. try the mirror sample on the matrix)
+        if (! ($gp_hash{$label1}->{$group1} && $gp_hash{$label2}->{$group2})) {
+            ($label1, $label2) = ($label2, $label1);
+            #  and restart the loop if one of the new pairs is also empty
+            next MAIN_ITER
+              if (! ($gp_hash{$label1}->{$group1} && $gp_hash{$label2}->{$group2}));
+        }
+        
+        #  must swap to empty slots
+        next MAIN_ITER
+          if $gp_hash{$label1}->{$group2} || $gp_hash{$label2}->{$group1};
+
+        #  swap the labels between groups and update the tracker lists
+        #  group2 moves to label1, group1 moves to label2
+        $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
+        $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
 
         $swap_count++;
     }

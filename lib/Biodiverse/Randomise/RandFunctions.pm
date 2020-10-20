@@ -47,7 +47,8 @@ sub get_metadata_rand_independent_swaps_modified {
          increment  => 1,
          tooltip    => $tooltip_map_swap_attempts,
          box_group  => 'Independent swaps',
-         },
+        },
+        $self->get_common_rand_metadata,
     );
     for (@parameters) {
         next if blessed $_;
@@ -331,7 +332,9 @@ sub get_metadata_rand_independent_swaps {
          tooltip    => $tooltip_map_swap_attempts,
          box_group  => 'Independent swaps',
          },
+         $self->get_common_rand_metadata,
     );
+    
     for (@parameters) {
         next if blessed $_;
         bless $_, $parameter_rand_metadata_class;

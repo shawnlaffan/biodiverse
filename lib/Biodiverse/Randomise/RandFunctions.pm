@@ -8,8 +8,10 @@ use 5.022;
 use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
+use List::Util qw /max/;
 #use List::MoreUtils qw /bsearchidx/;
 use Statistics::Sampler::Multinomial 0.85;
+use Sort::Key::Natural qw /natsort/;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -190,7 +192,7 @@ END_PROGRESS_TEXT
         $target_swap_count = 2 * $non_zero_mx_cells;
     }
     if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
-        $max_swap_attempts = 2 * $non_zero_mx_cells;
+        $max_swap_attempts = max ($target_swap_count, 2 * $non_zero_mx_cells);
     }
     my $swap_count = 0;
     my $attempts   = 0;
@@ -261,13 +263,15 @@ END_PROGRESS_TEXT
         $swap_count++;
     }
 
+    my $nlabels = scalar @sorted_labels;
+    my $ngroups = scalar @sorted_groups;
     if ($attempts == $max_swap_attempts) {
-        my $nlabels = scalar @sorted_labels;
-        my $ngroups = scalar @sorted_groups;
-        say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
-          . "$max_swap_attempts reached after $swap_count swaps, for "
-          . "basedata $name with $nlabels labels and $ngroups groups\n";
+        say "[RANDOMISE] rand_independent_swaps_modified: max attempts theshold "
+          . "$max_swap_attempts reached.";
     }
+    say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
+      . "$attempts attempts for basedata $name with $nlabels labels and "
+      . "$ngroups groups\n";
     
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
@@ -430,7 +434,7 @@ END_PROGRESS_TEXT
         $target_swap_count = 2 * $non_zero_mx_cells;
     }
     if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
-        $max_swap_attempts = 2 * $non_zero_mx_cells;
+        $max_swap_attempts = max ($target_swap_count, 2 * $non_zero_mx_cells);
     }
     my $swap_count = 0;
     my $attempts   = 0;
@@ -475,17 +479,20 @@ END_PROGRESS_TEXT
         #  group2 moves to label1, group1 moves to label2
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
         $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
-
+        
         $swap_count++;
     }
 
+    
+    my $nlabels = scalar @sorted_labels;
+    my $ngroups = scalar @sorted_groups;
     if ($attempts == $max_swap_attempts) {
-        my $nlabels = scalar @sorted_labels;
-        my $ngroups = scalar @sorted_groups;
         say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
-          . "$max_swap_attempts reached after $swap_count swaps, for "
-          . "basedata $name with $nlabels labels and $ngroups groups\n";
+          . "$max_swap_attempts reached.";
     }
+    say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
+      . "$attempts attempts for basedata $name with $nlabels labels and "
+      . "$ngroups groups\n";
     
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);

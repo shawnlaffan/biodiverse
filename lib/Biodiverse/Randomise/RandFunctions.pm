@@ -5,6 +5,10 @@ package Biodiverse::Randomise::RandFunctions;
 use strict;
 use warnings;
 use 5.022;
+
+use experimental 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 use Time::HiRes qw { time gettimeofday tv_interval };
 use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
@@ -270,45 +274,13 @@ END_PROGRESS_TEXT
       . "$n_groups groups\n";
     
     #  now we populate a new basedata
-    my $new_bd = blessed($bd)->new ($bd->get_params_hash);
-    $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
-    $new_bd->get_labels_ref->set_params ($bd->get_labels_ref->get_params_hash);
-    my $new_bd_name = $new_bd->get_param ('NAME');
-    $new_bd->rename (name => $new_bd_name . "_" . $name);
-
-    #  pre-assign the hash buckets to avoid rehashing larger structures
-    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
-    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
-
-    #  re-use a csv object
-    my $csv = $bd->get_csv_object(
-        sep_char   => $bd->get_param('JOIN_CHAR'),
-        quote_char => $bd->get_param('QUOTES'),
+    my $new_bd = $self->get_new_bd_from_gp_lb_hash (
+        name => $name,
+        source_basedata  => $bd,
+        gp_hash          => \%gp_hash,
+        empty_label_hash => \%empty_labels,
+        empty_group_hash => \%empty_groups,
     );
-
-    foreach my $label (keys %gp_hash) {
-        my $this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %$this_g_hash) {
-            $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash->{$group}, $csv,
-            );
-        }
-    }
-    foreach my $label (keys %empty_labels) {
-        $new_bd->add_element (
-            label => $label,
-            allow_empty_labels => 1,
-            csv_object   => $csv,
-        );
-    }
-    foreach my $group (keys %empty_groups) {
-        $new_bd->add_element (
-            group => $group,
-            allow_empty_groups => 1,
-            csv_object   => $csv,
-        );
-    }
-    
     
     return $new_bd;
 }
@@ -475,6 +447,28 @@ END_PROGRESS_TEXT
       . "$n_groups groups\n";
     
     #  now we populate a new basedata
+    my $new_bd = $self->get_new_bd_from_gp_lb_hash (
+        name => $name,
+        source_basedata  => $bd,
+        gp_hash          => \%gp_hash,
+        empty_label_hash => \%empty_labels,
+        empty_group_hash => \%empty_groups,
+    );
+    
+    return $new_bd;
+}
+
+
+sub get_new_bd_from_gp_lb_hash {
+    my ($self, %args) = @_;
+    
+    my $bd   = $args{source_basedata};
+    my $name = $args{name};
+    \my %gp_hash = $args{gp_hash};
+    \my %empty_groups = $args{empty_group_hash};
+    \my %empty_labels = $args{empty_label_hash};
+
+    #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
     $new_bd->get_labels_ref->set_params ($bd->get_labels_ref->get_params_hash);
@@ -513,11 +507,9 @@ END_PROGRESS_TEXT
             csv_object   => $csv,
         );
     }
-    
-    
+
     return $new_bd;
 }
-
 
 1;
 

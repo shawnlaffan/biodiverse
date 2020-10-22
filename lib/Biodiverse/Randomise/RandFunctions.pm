@@ -31,10 +31,7 @@ non-zero matrix (basedata) entries.
 TOOLTIP_SWAP_ATTEMPTS
   ;
 
-sub get_metadata_rand_independent_swaps_modified {
-    my $self = shift;
-
-
+sub get_common_independent_swaps_metadata {
     my @parameters = (
         {name       => 'swap_count',
          type       => 'integer',
@@ -50,6 +47,16 @@ sub get_metadata_rand_independent_swaps_modified {
          tooltip    => $tooltip_map_swap_attempts,
          box_group  => 'Independent swaps',
         },
+    );
+    return wantarray ? @parameters : \@parameters;
+}
+  
+sub get_metadata_rand_independent_swaps_modified {
+    my $self = shift;
+
+
+    my @parameters = (
+        $self->get_common_independent_swaps_metadata,
         $self->get_common_rand_metadata,
     );
     for (@parameters) {
@@ -60,9 +67,10 @@ sub get_metadata_rand_independent_swaps_modified {
 
     my %metadata = (
         parameters  => \@parameters,
-        description => "Randomly swap labels across groups using a modified "
-                     . "implementation of the independent swaps algorithm "
-                     . "(Gotelli 2000; Miklos & Podani, 2004) to reduce mis-hits\n",
+        description => "Randomly swap labels across groups using an implementation "
+                     . "of the independent swaps algorithm "
+                     . "(Gotelli 2000; Miklos & Podani, 2004) "
+                     . "modified to reduce mis-hits\n",
     );
 
     return $self->metadata_class->new(\%metadata);
@@ -308,22 +316,8 @@ END_PROGRESS_TEXT
 sub get_metadata_rand_independent_swaps {
     my $self = shift;
 
-
     my @parameters = (
-        {name       => 'swap_count',
-         type       => 'integer',
-         default    => 0,
-         increment  => 1,
-         tooltip    => $tooltip_swap_count,
-         box_group  => 'Independent swaps',
-        },
-        {name       => 'max_swap_attempts',
-         type       => 'integer',
-         default    => 0,
-         increment  => 1,
-         tooltip    => $tooltip_map_swap_attempts,
-         box_group  => 'Independent swaps',
-         },
+         $self->get_common_independent_swaps_metadata,
          $self->get_common_rand_metadata,
     );
     

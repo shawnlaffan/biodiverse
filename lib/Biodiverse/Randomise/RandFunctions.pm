@@ -192,8 +192,9 @@ END_PROGRESS_TEXT
         $target_swap_count = 2 * $non_zero_mx_cells;
     }
     if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
-        $max_swap_attempts = max ($target_swap_count, 2 * $non_zero_mx_cells);
+        $max_swap_attempts = 100 * $target_swap_count;
     }
+
     my $swap_count = 0;
     my $attempts   = 0;
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
@@ -263,15 +264,14 @@ END_PROGRESS_TEXT
         $swap_count++;
     }
 
-    my $nlabels = scalar @sorted_labels;
-    my $ngroups = scalar @sorted_groups;
+
     if ($attempts == $max_swap_attempts) {
         say "[RANDOMISE] rand_independent_swaps_modified: max attempts theshold "
           . "$max_swap_attempts reached.";
     }
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
-      . "$attempts attempts for basedata $name with $nlabels labels and "
-      . "$ngroups groups\n";
+      . "$attempts attempts for basedata $name with $n_labels labels and "
+      . "$n_groups groups\n";
     
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
@@ -434,7 +434,7 @@ END_PROGRESS_TEXT
         $target_swap_count = 2 * $non_zero_mx_cells;
     }
     if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
-        $max_swap_attempts = max ($target_swap_count, 2 * $non_zero_mx_cells);
+        $max_swap_attempts = 100 * $target_swap_count;
     }
     my $swap_count = 0;
     my $attempts   = 0;
@@ -484,15 +484,13 @@ END_PROGRESS_TEXT
     }
 
     
-    my $nlabels = scalar @sorted_labels;
-    my $ngroups = scalar @sorted_groups;
     if ($attempts == $max_swap_attempts) {
         say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
           . "$max_swap_attempts reached.";
     }
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
-      . "$attempts attempts for basedata $name with $nlabels labels and "
-      . "$ngroups groups\n";
+      . "$attempts attempts for basedata $name with $n_labels labels and "
+      . "$n_groups groups\n";
     
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);

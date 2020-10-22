@@ -149,25 +149,13 @@ END_PROGRESS_TEXT
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
             $has_max_range{$label}++;
-            #my $idx = bsearchidx {$_ cmp $label} @sorted_labels;
-            #splice @sorted_labels, $idx, 1;
-            #  if we do this then we also need to filter from other lists
         }
-        #warn "We have group balance problems for $label"
-        #  if (scalar $gp_list{$label}->keys + $gp_shadow_list{$label}->keys != scalar @sorted_groups);
     }
     foreach my $group (@sorted_groups) {
         my $label_hash = $bd->get_labels_in_group_as_hash_aa($group);
         $lb_list{$group} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$label_hash],
         );
-        #  lb_shadow_lists are not used
-        #my $shadow_list = $bd->get_labels_not_in_group(group => $group);
-        #$lb_shadow_list{$group} = List::Unique::DeterministicOrder->new (
-        #    data => [sort grep {!exists $empty_labels{$_}} @$shadow_list],
-        #);
-        #warn "We have label balance problems for $group"
-        #  if (scalar $lb_list{$group}->keys + $lb_shadow_list{$group}->keys != scalar @sorted_labels);
     }
 
     printf "[RANDOMISE] Randomise using modified independent swaps for %s labels from %s groups\n",

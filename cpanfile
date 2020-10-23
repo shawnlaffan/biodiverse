@@ -57,7 +57,7 @@ requires "Statistics::Sampler::Multinomial", 0.85;
 requires "List::Unique::DeterministicOrder";
 
 requires "Test2::Suite";
-requires "Test2::Harness";
+$^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
 requires "FFI::Platypus::Declare";
 
 #  Data::Alias does not install post 5.22

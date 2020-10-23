@@ -4,7 +4,7 @@ branches:
 skip_tags: true
 
 cache:
-  #- C:\Strawberry
+  - C:\Strawberry
 
 install:
   - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.30.2.1
@@ -13,6 +13,12 @@ install:
   - set PATH=%ST%\perl\bin;%ST%\perl\site\bin;%ST%\c\bin;%PATH%
   - path
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
+  
+  #- cpanm --installdeps --notest PDL
+  #- ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
+  #- ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
+  #- perl -MPDL -E"say 1"  #  check installation
+  - cpanm --notest PDL
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile
@@ -26,11 +32,8 @@ install:
   
   #- cpanm -v --notest Alien::freexl
   #- cpanm -v --notest Alien::spatialite
-  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite
+  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm
   - cpanm -v Alien::gdal
-  
-  - ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
-  - ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
   
   - cpanm FFI::Platypus::Declare
   - cpanm --notest Geo::GDAL::FFI

@@ -8,11 +8,11 @@ on:
       - '*'
   pull_request:
 
-env:
-  PERL5LIB: /home/runner/perl5/lib/perl5
-  PERL_LOCAL_LIB_ROOT: /home/runner/perl5
-  PERL_MB_OPT: --install_base /home/runner/perl5
-  PERL_MM_OPT: INSTALL_BASE=/home/runner/perl5
+#env:
+  #PERL5LIB: /home/runner/perl5/lib/perl5
+  #PERL_LOCAL_LIB_ROOT: /home/runner/perl5
+  #PERL_MB_OPT: --install_base /home/runner/perl5
+  #PERL_MM_OPT: INSTALL_BASE=/home/runner/perl5
   #LC_NUMERIC: de_DE.iso88591
   #LC_CTYPE: de_DE.iso88591
 
@@ -63,9 +63,11 @@ jobs:
         run: |
           which -a cpanm
           which -a perl
-          cpanm File::Which
+          #cpanm -v File::Which
           cpanm --installdeps FFI::Platypus
+          echo "Installing FFI::Platypus"
           cpanm -v FFI::Platypus
+          echo "Installing FFI::Platypus::Declare"
           cpanm FFI::Platypus::Declare
           cpanm --notest Alien::Build  
           cpanm --installdeps --notest Alien::sqlite

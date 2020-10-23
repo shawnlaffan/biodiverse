@@ -48,7 +48,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20200727' >> perlversion.txt
+          echo '20201026' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules
@@ -63,6 +63,11 @@ jobs:
         run: |
           which -a cpanm
           which -a perl
+          cpanm File::Which
+          cpanm --installdeps FFI::Platypus
+          cpanm -v FFI::Platypus
+          cpanm FFI::Platypus::Declare
+          cpanm --notest Alien::Build  
           cpanm --installdeps --notest Alien::sqlite
           cpanm -v Alien::sqlite
           cpanm --installdeps --notest Alien::libtiff
@@ -75,7 +80,7 @@ jobs:
           cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
-          #cpanm Test2::Harness
+          cpanm -v Test2::Harness
           cpanm --installdeps .
           
       - name: Gtk stuff

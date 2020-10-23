@@ -1,4 +1,5 @@
-
+requires "Alien::Build";
+requires 'Path::Class';
 requires 'Sort::Key::Natural';
 requires 'List::Unique::DeterministicOrder';
 requires 'Ref::Util';
@@ -39,7 +40,7 @@ requires "autovivification", "0.16";
 requires "List::BinarySearch", "0.25";
 requires "List::BinarySearch::XS", "0.09";
 requires "Spreadsheet::Read", "0.82";
-requires "Spreadsheet::ReadSXC", "0.27";
+requires "Spreadsheet::ReadSXC", "0.28";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
 requires "Getopt::Long::Descriptive";
@@ -52,8 +53,12 @@ requires "Ref::Util", "0.101";
 requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
-requires "Statistics::Sampler::Multinomial";
+requires "Statistics::Sampler::Multinomial", 0.85;
 requires "List::Unique::DeterministicOrder";
+
+requires "Test2::Suite";
+requires "Test2::Harness";
+requires "FFI::Platypus::Declare";
 
 #  Data::Alias does not install post 5.22
 #  but cpanfile will (hopefully) just complain and keep going

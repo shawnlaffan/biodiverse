@@ -140,30 +140,31 @@ sub test_save_and_reload {
 
     my $new_object;
     my %load_args = $suffix =~ /b[dtm]y/ ? (loadblessed => 1) : ();
-    ok (
-        lives {
-            $new_object = eval {$class->new (file => $fname, %load_args)}
-        },
-        "Opened without exception thrown, suffix is $suffix_feedback"
-    ) or note ($@);
+    if ($suffix =~ /s$/) {
+        ok (
+            lives {
+                $new_object = $class->new (file => $fname, %load_args)
+            },
+            "Opened without exception thrown, suffix is $suffix_feedback"
+        ) or note ($@);
 
-    #  if we are using storable then check it is set as the last serialisation format
-    if (($args{method} // '') =~ /storable/) {
-        is ($new_object->get_last_file_serialisation_format,
-            'storable',
-            'set last serialisation format parameter correctly'
-        );
+        #  if we are using storable then check it is set as the last serialisation format
+        if (($args{method} // '') =~ /storable/) {
+            is ($new_object->get_last_file_serialisation_format,
+                'storable',
+                'set last serialisation format parameter correctly'
+            );
+        }
+    }
+    elsif ($suffix =~ /s$/) {
+        ok (
+            dies {
+                $new_object = $class->new (file => $fname, %load_args)
+            },
+            "File with YAML suffix throws exception"
+        ) or note ($@);
     }
 
-    #  override a parameter that is set on file load
-    $object->set_last_file_serialisation_format;
-    $new_object->set_last_file_serialisation_format;    
-
-    #  we get cyclic crashes under Test2 for tree and basedata objects
-    #if (not $suffix =~ 'b[dt][sy]') {
-    #    diag "testing $suffix";
-    #    is ($new_object, $object, "structures are the same for suffix $suffix");
-    #}
 }
 
 sub test_clone {

@@ -129,13 +129,13 @@ sub load_file {
     my @importer_funcs
       = $suffix =~ /s$/ ? qw /load_sereal_file load_storable_file/
       : $suffix =~ /y$/ ? qw /load_yaml_file/
-      : qw /load_sereal_file load_storable_file load_yaml_file/;
+      : qw /load_sereal_file load_storable_file/;
 
     my $object;
     my @errs;
     foreach my $func (@importer_funcs) {
-        $object = eval {$self->$func (%args)};
-        if ($EVAL_ERROR) {
+        eval {$object = $self->$func (%args)};
+        if ($@) {
             push @errs, "Trying $func:";
             push @errs, $EVAL_ERROR;
         }
@@ -259,35 +259,7 @@ sub load_storable_file {
 
 
 sub load_yaml_file {
-    my $self = shift;  #  gets overwritten if the file passes the tests
-    my %args = @_;
-
-    return if ! defined ($args{file});
-    my $suffix = $args{suffix}
-              || $self->get_param('OUTSUFFIX_YAML')
-              || $EMPTY_STRING;
-
-    return if ! $self->file_exists_aa ($args{file});
-    return if ! ($args{file} =~ /$suffix$/);
-    
-    local $YAML::Syck::LoadBlessed = 1 if $args{loadblessed};
-    
-    my $loaded = YAML::Syck::LoadFile ($args{file});
-
-    #  yaml does not handle weak refs, so we need to put them back in
-    foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        if ($loaded->can($fn)) {
-            say $fn;
-            eval {
-                $loaded->$fn;
-                1;
-            };
-            warn $EVAL_ERROR if $EVAL_ERROR;
-        }
-        #$self->$fn if $self->can($fn);
-    }
-
-    return $loaded;
+    croak 'Loading from a YAML file is no longer supported';
 }
 
 sub set_basedata_ref {

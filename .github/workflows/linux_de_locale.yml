@@ -99,6 +99,8 @@ jobs:
       
       - name: Run matrix tests
         run: |
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           sudo update-locale de_DE
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591

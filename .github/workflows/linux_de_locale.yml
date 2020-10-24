@@ -68,7 +68,6 @@ jobs:
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-
           #cpanm -v File::Which
           cpanm --installdeps FFI::Platypus
           echo "Installing FFI::Platypus"
@@ -110,6 +109,8 @@ jobs:
 
       - name: Run Tests
         run: |
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           sudo update-locale de_DE
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591

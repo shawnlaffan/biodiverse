@@ -8,11 +8,11 @@ on:
       - '*'
   pull_request:
 
-#env:
-  #PERL5LIB: /home/runner/perl5/lib/perl5
-  #PERL_LOCAL_LIB_ROOT: /home/runner/perl5
-  #PERL_MB_OPT: --install_base /home/runner/perl5
-  #PERL_MM_OPT: INSTALL_BASE=/home/runner/perl5
+env:
+  PERL5LIB: /home/runner/perl5/lib/perl5
+  PERL_LOCAL_LIB_ROOT: /home/runner/perl5
+  PERL_MB_OPT: --install_base /home/runner/perl5
+  PERL_MM_OPT: INSTALL_BASE=/home/runner/perl5
   #LC_NUMERIC: de_DE.iso88591
   #LC_CTYPE: de_DE.iso88591
 
@@ -63,6 +63,11 @@ jobs:
         run: |
           which -a cpanm
           which -a perl
+          cpanm --notest local::lib
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
+          #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+
           #cpanm -v File::Which
           cpanm --installdeps FFI::Platypus
           echo "Installing FFI::Platypus"

@@ -86,8 +86,8 @@ jobs:
           cpanm --installdeps --notest Alien::gdal
           cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
-          cpanm Test2::Suite
-          cpanm -v Test2::Harness
+          cpanm --notest Test2::Suite
+          cpanm --notest Test2::Harness
           cpanm --installdeps .
           
       - name: Gtk stuff

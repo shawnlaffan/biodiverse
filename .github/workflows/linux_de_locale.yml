@@ -68,7 +68,6 @@ jobs:
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-          #cpanm -v File::Which
           cpanm --installdeps FFI::Platypus
           echo "Installing FFI::Platypus"
           cpanm -v FFI::Platypus
@@ -93,6 +92,8 @@ jobs:
       - name: Gtk stuff
         run: |
           sudo apt-get install libpango1.0-dev libgtk2.0-dev
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango
           cpanm --notest Gtk2
       

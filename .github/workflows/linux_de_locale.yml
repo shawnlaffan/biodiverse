@@ -8,7 +8,8 @@ on:
       - '*'
   pull_request:
 
-#env:
+env:
+  PERL_MOD_DIR: /home/runner/perl5/lib/perl5
   #PERL5LIB: /home/runner/perl5/lib/perl5
   #PERL_LOCAL_LIB_ROOT: /home/runner/perl5
   #PERL_MB_OPT: --install_base /home/runner/perl5
@@ -63,7 +64,10 @@ jobs:
         run: |
           which -a cpanm
           which -a perl
-          #cpanm -v File::Which
+          cpanm --notest local::lib
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
+          #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
           cpanm --installdeps FFI::Platypus
           echo "Installing FFI::Platypus"
           cpanm -v FFI::Platypus
@@ -81,18 +85,22 @@ jobs:
           cpanm --installdeps --notest Alien::gdal
           cpanm -v Alien::gdal
           cpanm --notest Task::Biodiverse::NoGUI
-          cpanm Test2::Suite
-          cpanm -v Test2::Harness
+          cpanm --notest Test2::Suite
+          cpanm --notest Test2::Harness
           cpanm --installdeps .
           
       - name: Gtk stuff
         run: |
           sudo apt-get install libpango1.0-dev libgtk2.0-dev
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           cpanm --notest Pango
           cpanm --notest Gtk2
       
       - name: Run matrix tests
         run: |
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           sudo update-locale de_DE
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591
@@ -104,6 +112,8 @@ jobs:
 
       - name: Run Tests
         run: |
+          echo $(perl -Mlocal::lib=${HOME}/perl5)
+          eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           sudo update-locale de_DE
           export LC_NUMERIC=de_DE.iso88591
           export LC_CTYPE=de_DE.iso88591

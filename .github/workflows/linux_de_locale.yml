@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  PERL_MOD_DIR=/home/runner/perl5/lib/perl5
+  PERL_MOD_DIR: /home/runner/perl5/lib/perl5
   #PERL5LIB: /home/runner/perl5/lib/perl5
   #PERL_LOCAL_LIB_ROOT: /home/runner/perl5
   #PERL_MB_OPT: --install_base /home/runner/perl5

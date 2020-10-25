@@ -172,7 +172,7 @@ sub test_clone {
 
     my $new_object;
     ok (
-        lives { $new_object = eval {$object->clone} },
+        lives { $new_object = $object->clone },
         'Cloned without exception thrown'
     ) or note ($@);
     #  cyclic ref issues with Test2

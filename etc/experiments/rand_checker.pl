@@ -48,7 +48,7 @@ $sp->run_analysis (
 my $rand = $bd->add_randomisation_output (name => 'rando');
 my $prng_seed  = 2345;
 my $rand_iters = 100;
-my $rand_function   = 'rand_independent_swaps_modified';
+my $rand_function   = 'rand_independent_swaps';
 
 my $start_time = [gettimeofday];
 my $rand_bd_array = $rand->run_analysis (
@@ -57,8 +57,9 @@ my $rand_bd_array = $rand->run_analysis (
     seed       => $prng_seed,
     return_rand_bd_array => 1,
     retain_outputs       => 1,
-    swap_count        =>   1300,
-    max_swap_attempts => 100000,
+    stop_on_all_swapped  => 1,
+    swap_count           =>   1300,
+    max_swap_attempts    => 100000,
 );
 my $time_taken = sprintf "%.3f", tv_interval ($start_time);
 say "Total time taken to randomise: $time_taken";

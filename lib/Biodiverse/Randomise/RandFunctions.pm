@@ -51,6 +51,13 @@ sub get_common_independent_swaps_metadata {
          tooltip    => $tooltip_map_swap_attempts,
          box_group  => 'Independent swaps',
         },
+        {name       => 'stop_on_all_swapped',
+         type       => 'boolean',
+         default    => 0,
+         tooltip    => 'Stop swapping when all label/group pairs '
+                     . 'have been swapped at least once',
+         box_group  => 'Independent swaps',
+        },
     );
     return wantarray ? @parameters : \@parameters;
 }
@@ -95,6 +102,7 @@ sub rand_independent_swaps_modified {
     
     my $target_swap_count = $args{swap_count};
     my $max_swap_attempts = $args{max_swap_attempts};
+    my $stop_on_all_swapped = $args{stop_on_all_swapped};
     #  Defaults are set below following
     #  Miklos & Podani (2004) Ecology, 85(1) 86–92:
     #  "Therefore, we suggest that the number of trials
@@ -139,6 +147,7 @@ END_PROGRESS_TEXT
         %gp_shadow_list, %lb_shadow_list,
         %gp_shadow_sampler,
         %has_max_range,  #  should filter these
+        %lb_gp_moved,
     );
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {
@@ -148,6 +157,7 @@ END_PROGRESS_TEXT
         $gp_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$group_hash],
         );
+        #@{$lb_gp_moved{$label}}{keys %$group_hash} = undef; 
         my $shadow_hash = $bd->get_groups_without_label_as_hash(label => $label);
         $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort grep {!exists $empty_groups{$_}} keys %$shadow_hash],
@@ -195,12 +205,16 @@ END_PROGRESS_TEXT
         $max_swap_attempts = 100 * $target_swap_count;
     }
 
-    my $swap_count = 0;
-    my $attempts   = 0;
+    my $swap_count  = 0;
+    my $attempts    = 0;
+    my $moved_pairs = 0;
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
 
   MAIN_ITER:
-    while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
+    while (   $swap_count  < $target_swap_count
+           && $attempts    < $max_swap_attempts
+           && $moved_pairs < $non_zero_mx_cells
+           ) {
         $attempts++;
 
         #  weight by ranges
@@ -233,6 +247,17 @@ END_PROGRESS_TEXT
             $label2 = $lb_list{$group2}->get_key_at_pos(
                 int $rand->rand ($key_count)
             );
+        }
+
+        #  track before moving
+        if ($stop_on_all_swapped) {
+            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
+                my ($lb, $gp) = @$pair;
+                if ($gp_hash{$lb}{$gp} && !$lb_gp_moved{$lb}{$gp}) {
+                    $moved_pairs++;
+                    $lb_gp_moved{$lb}{$gp} = 1;
+                }
+            }
         }
 
         #  swap the labels between groups and update the tracker lists
@@ -269,10 +294,16 @@ END_PROGRESS_TEXT
         say "[RANDOMISE] rand_independent_swaps_modified: max attempts theshold "
           . "$max_swap_attempts reached.";
     }
+    elsif ($moved_pairs >= $non_zero_mx_cells) {
+        say "[RANDOMISE] rand_independent_swaps_modified: All "
+          . "group/label elements swapped at least once";
+    }
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
-      . "$n_groups groups\n";
-    
+      . "$n_groups groups.\n"
+      . "[RANDOMISE] Swapped $moved_pairs the $non_zero_mx_cells group/label "
+      . "elements at least once.\n";
+
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (
         name => $name,
@@ -324,6 +355,7 @@ sub rand_independent_swaps {
     
     my $target_swap_count = $args{swap_count};
     my $max_swap_attempts = $args{max_swap_attempts};
+    my $stop_on_all_swapped = $args{stop_on_all_swapped};
     #  Defaults are set below following
     #  Miklos & Podani (2004) Ecology, 85(1) 86–92:
     #  "Therefore, we suggest that the number of trials
@@ -361,7 +393,7 @@ END_PROGRESS_TEXT
       = map {$_ => $bd->get_richness_aa ($_)} 
         @sorted_groups;
 
-    my (%gp_hash, %has_max_range);
+    my (%gp_hash, %has_max_range, %lb_gp_moved);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $label (@sorted_labels) {
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
@@ -390,12 +422,18 @@ END_PROGRESS_TEXT
     if (!looks_like_number $max_swap_attempts || $max_swap_attempts <= 0) {
         $max_swap_attempts = 100 * $target_swap_count;
     }
-    my $swap_count = 0;
-    my $attempts   = 0;
+    
+    my $swap_count  = 0;
+    my $attempts    = 0;
+    my $moved_pairs = 0;
+
     say "[RANDOMISE] Target swap count is $target_swap_count, max attempts is $max_swap_attempts";
 
   MAIN_ITER:
-    while ($swap_count < $target_swap_count && $attempts < $max_swap_attempts) {
+    while (   $swap_count  < $target_swap_count
+           && $attempts    < $max_swap_attempts
+           && $moved_pairs < $non_zero_mx_cells
+           ) {
         $attempts++;
 
         my $label1 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
@@ -429,6 +467,17 @@ END_PROGRESS_TEXT
         next MAIN_ITER
           if $gp_hash{$label1}->{$group2} || $gp_hash{$label2}->{$group1};
 
+        #  track before moving
+        if ($stop_on_all_swapped) {
+            foreach my $pair ([$label1, $group1], [$label2, $group2]) {
+                my ($lb, $gp) = @$pair;
+                if ($gp_hash{$lb}{$gp} && !$lb_gp_moved{$lb}{$gp}) {
+                    $moved_pairs++;
+                    $lb_gp_moved{$lb}{$gp} = 1;
+                }
+            }
+        }
+
         #  swap the labels between groups and update the tracker lists
         #  group2 moves to label1, group1 moves to label2
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
@@ -442,9 +491,15 @@ END_PROGRESS_TEXT
         say "[RANDOMISE] rand_independent_swaps: max attempts theshold "
           . "$max_swap_attempts reached.";
     }
+    elsif ($moved_pairs >= $non_zero_mx_cells) {
+        say "[RANDOMISE] rand_independent_swaps_modified: All "
+          . "group/label elements swapped at least once";
+    }
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
-      . "$n_groups groups\n";
+      . "$n_groups groups.\n"
+      . "[RANDOMISE]  Swapped $moved_pairs the $non_zero_mx_cells group/label "
+      . "elements at least once.\n";
     
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (

@@ -1,6 +1,6 @@
 #  package to abstract some of the functions out
 #  of the main Biodiverse::Randomise package
-package Biodiverse::Randomise::RandFunctions;
+package Biodiverse::Randomise::IndependentSwaps;
 
 use strict;
 use warnings;

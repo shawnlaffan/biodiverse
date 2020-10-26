@@ -30,8 +30,8 @@ TOOLTIP_SWAP_COUNT
   
     my $tooltip_map_swap_attempts = <<'TOOLTIP_SWAP_ATTEMPTS'
 Maximum number of swaps to attempt.
-Default is twice the number of
-non-zero matrix (basedata) entries.
+Default is 100 times the target
+number of swaps.
 TOOLTIP_SWAP_ATTEMPTS
   ;
 
@@ -54,8 +54,8 @@ sub get_common_independent_swaps_metadata {
         {name       => 'stop_on_all_swapped',
          type       => 'boolean',
          default    => 0,
-         tooltip    => 'Stop swapping when all label/group pairs '
-                     . 'have been swapped at least once',
+         tooltip    => 'Stop swapping when each label/group pair '
+                     . 'has been swapped at least once',
          box_group  => 'Independent swaps',
         },
     );

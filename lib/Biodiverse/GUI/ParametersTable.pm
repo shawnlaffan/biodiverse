@@ -163,7 +163,7 @@ sub fill {
         # Add a tooltip
         my $tip_text = $param->get_tooltip;
         if ($tip_text) {
-            $tooltip_group->set_tip($widget, $tip_text, undef);
+            $tooltip_group->set_text($widget, $tip_text, undef);
         }
 
         # widgets are sensitive unless explicitly told otherwise

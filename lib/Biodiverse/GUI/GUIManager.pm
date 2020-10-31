@@ -2797,8 +2797,8 @@ sub report_error {
     #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start( $extra_text_widget, 0, 0, 0 );
 
-    $dlg->vbox->pack_start( $text_widget, 0, 0, 0 );
-    $dlg->vbox->pack_start( $details_box, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $text_widget, 0, 0, 0 );
+    $dlg->get_content_area->pack_start( $details_box, 0, 0, 0 );
 
     $dlg->show_all;
     my $details_visible = 0;

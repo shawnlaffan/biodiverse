@@ -517,7 +517,7 @@ sub get_resolution_table_widget {
 
     my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
 
     my $rows = $table->get('n-rows');
     $rows++;
@@ -673,7 +673,7 @@ sub get_origin_table_widget {
 
     my $table = Gtk3::Table->new (0, 0, 0);
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
 
     my $rows = $table->get('n-rows');
     $rows++;

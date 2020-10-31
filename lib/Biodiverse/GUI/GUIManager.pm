@@ -2296,7 +2296,7 @@ sub show_index_dialog {
     my $dlgxml = Gtk3::Builder->new();
     $dlgxml->add_from_file( $self->get_gtk_ui_file('dlgImportParameters.ui') );
 
-    my $tooltip_group = Gtk3::Tooltips->new;
+    my $tooltip_group = Gtk3::Tooltip->new;
     my $table         = $dlgxml->get_object('tableImportParameters');
 
     my $dlg = $dlgxml->get_object('dlgImportParameters');

@@ -49,7 +49,7 @@ sub new {
     my $text_view_no_scroll = Gtk3::TextView->new_with_buffer($text_buffer);
 
     #  an expander has less visual impact than the previous approach
-    my $expander = Gtk3::Expander->new();
+    my $expander = Gtk3::Expander->new('');
 
     my $self = {
         buffer       => $text_buffer,

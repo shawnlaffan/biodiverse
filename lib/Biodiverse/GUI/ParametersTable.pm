@@ -208,7 +208,14 @@ sub fill {
         }
     }
 
-    $tooltip_group->enable();
+    #  tooltip group not working yet under Gtk3 - flag to fix later
+    eval {
+        $tooltip_group->enable();
+    };
+    if ($@) {
+        warn $@;
+        warn "Moving on\n";
+    }
 
     $self->{extractors} = \@extract_closures;
     $self->{widgets}    = \@widgets;

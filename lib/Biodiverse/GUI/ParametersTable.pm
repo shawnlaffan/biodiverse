@@ -80,7 +80,7 @@ sub fill {
     # Ask object for parameters metadata
     my (@extract_closures, @widgets, %label_widget_pairs, $debug_hbox);
 
-    my $tooltip_group = Gtk3::Tooltip->new;
+    #my $tooltip_group = Gtk3::Tooltip->new;
 
     my $row = 0;
 
@@ -165,7 +165,8 @@ sub fill {
         if ($tip_text) {
             #$tooltip_group->set_text($widget, $tip_text, undef);
             #  Gtk3 shift: this is probably broken?
-            $tooltip_group->set_text($tip_text);
+            #$tooltip_group->set_text($tip_text);
+            $label->set_tooltip_text ($tip_text);
         }
 
         # widgets are sensitive unless explicitly told otherwise
@@ -208,14 +209,14 @@ sub fill {
         }
     }
 
-    #  tooltip group not working yet under Gtk3 - flag to fix later
-    eval {
-        $tooltip_group->enable();
-    };
-    if ($@) {
-        warn $@;
-        warn "Moving on\n";
-    }
+    ##  tooltip group not working yet under Gtk3 - flag to fix later
+    #eval {
+    #    $tooltip_group->enable();
+    #};
+    #if ($@) {
+    #    warn $@;
+    #    warn "Moving on\n";
+    #}
 
     $self->{extractors} = \@extract_closures;
     $self->{widgets}    = \@widgets;

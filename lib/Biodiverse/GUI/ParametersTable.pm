@@ -163,7 +163,9 @@ sub fill {
         # Add a tooltip
         my $tip_text = $param->get_tooltip;
         if ($tip_text) {
-            $tooltip_group->set_text($widget, $tip_text, undef);
+            #$tooltip_group->set_text($widget, $tip_text, undef);
+            #  Gtk3 shift: this is probably broken?
+            $tooltip_group->set_text($tip_text);
         }
 
         # widgets are sensitive unless explicitly told otherwise
@@ -272,7 +274,7 @@ sub generate_widget {
 sub generate_choice {
     my ($self, $param) = @_;
 
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {
@@ -300,7 +302,7 @@ sub generate_choice {
 sub generate_choice_index {
     my ($self, $param) = @_;
 
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
 
     # Fill the combo
     foreach my $choice (@{$param->{choices}}) {

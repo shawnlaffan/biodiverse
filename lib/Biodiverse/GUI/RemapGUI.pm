@@ -102,8 +102,8 @@ sub pre_remap_dlg {
     ####
     # The remapee data source selection combo box and its label, as
     # well as the controller combo box and its label.
-    my $remapee_combo = Gtk3::ComboBox->new_text;
-    my $controller_combo = Gtk3::ComboBox->new_text;
+    my $remapee_combo = Gtk3::ComboBoxText->new;
+    my $controller_combo = Gtk3::ComboBoxText->new;
 
     foreach my $option (@remapee_sources) {
         $remapee_combo->append_text(

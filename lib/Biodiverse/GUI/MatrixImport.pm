@@ -428,7 +428,7 @@ sub import_sparse_format {
 
 sub run_combo_sparse_normal {
 
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
     $combo->append_text('normal');
     $combo->append_text('sparse');
     $combo->set_active(0);

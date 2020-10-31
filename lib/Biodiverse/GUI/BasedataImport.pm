@@ -1704,7 +1704,7 @@ sub add_row {
     $label->set_use_markup(1);
 
     # Type combo box
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
     foreach (@$row_options) {
         $combo->append_text($_);
     }
@@ -1729,7 +1729,7 @@ sub add_row {
     }
 
     #  degrees minutes seconds
-    my $combo_dms = Gtk3::ComboBox->new_text;
+    my $combo_dms = Gtk3::ComboBoxText->new;
     $combo_dms->set_has_tooltip(1);
     $combo_dms->set_tooltip_text($lat_lon_widget_tooltip_text);
     foreach my $choice ( '', 'is_lat', 'is_lon' ) {
@@ -2070,7 +2070,7 @@ sub add_remap_row {
     $label->set_use_markup(1);
 
     # Type combo box
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
     my @options =
         $column_overrides
       ? @$column_overrides

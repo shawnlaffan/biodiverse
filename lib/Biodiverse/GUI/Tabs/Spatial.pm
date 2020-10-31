@@ -2104,7 +2104,7 @@ sub on_add_param {
     $table->attach($button, 0, 1, $rows, $rows + 1, [], [], 0, 0);
 
     # Make a combobox and a label to set the parameter
-    my $combo = Gtk3::ComboBox->new_text;
+    my $combo = Gtk3::ComboBoxText->new;
     my $entry = Gtk3::Entry->new;
 
     $table->attach($combo, 0, 1, $rows - 1, $rows, 'fill', [], 0, 0);

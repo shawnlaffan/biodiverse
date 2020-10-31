@@ -399,7 +399,7 @@ sub setup_tie_breaker_widgets {
         my $j = 2 * $i;
         my $k = $j + 1;
         my $label = Gtk3::Label->new("  $id: ");
-        my $index_combo = Gtk3::ComboBox->new_text;
+        my $index_combo = Gtk3::ComboBoxText->new;
         my $l = 0;
         my $use_iter;
         foreach my $index (qw /none random/, natsort keys %valid_indices) {
@@ -412,7 +412,7 @@ sub setup_tie_breaker_widgets {
 
         $index_combo->set_active($use_iter // 1);  #  random by default
 
-        my $combo_minmax = Gtk3::ComboBox->new_text;
+        my $combo_minmax = Gtk3::ComboBoxText->new;
         $combo_minmax->append_text ('maximise');
         $combo_minmax->append_text ('minimise');
         $combo_minmax->set_active (0);

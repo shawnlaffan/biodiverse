@@ -1309,27 +1309,18 @@ sub on_up_down {
         return if not $iter;
     }
 
+    my $path = $model->get_path($iter);
+
     if ( $btn eq 'up' ) {
-        my $path = $model->get_path($iter);
-        if ( $path->prev() ) {
-
-            my $iter_prev = $model->get_iter($path);
-            $model->move_before( $iter, $iter_prev );
-
-        }
-
-        else {
-            # If at the top already, move to bottom
-            $model->move_before( $iter, undef );
-
-        }
+        # If at the top already, will move to bottom        
+        my $iter_prev = $path->prev() ? $model->get_iter($path) : undef;
+        $model->move_before( $iter, $iter_prev );
     }
     elsif ( $btn eq 'down' ) {
-        #  need copy as iter_next updates $iter under Gtk3
-        my $iter_from = $model->iter_copy($iter);
-        if ($model->iter_next ($iter)) { 
-            $model->move_after( $iter_from, $iter );
-        }
+        # If at the bottom already, move to top
+        $path->next();
+        my $iter_next = $model->get_iter($path);
+        $model->move_after( $iter, $iter_next );
     }
 
     return;

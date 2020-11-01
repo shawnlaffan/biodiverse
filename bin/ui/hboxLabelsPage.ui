@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.18"/>
-  <!-- interface-naming-policy toplevel-contextual -->
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAdjustment" id="adjustment1"/>
   <object class="GtkAdjustment" id="adjustment2"/>
   <object class="GtkAdjustment" id="adjustment3"/>
@@ -17,7 +16,6 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="toolbar_style">icons</property>
-        <property name="tooltips">False</property>
         <child>
           <object class="GtkToolItem" id="toolitemLabelsSelect">
             <property name="visible">True</property>
@@ -355,6 +353,9 @@ Does not affect the vertical connectors.</property>
                         <property name="can_focus">True</property>
                         <property name="search_column">0</property>
                         <property name="show_expanders">False</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="treeview-selection1"/>
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -373,6 +374,9 @@ Does not affect the vertical connectors.</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="tooltip_text" translatable="yes">Sorting this list also sorts the columns of the matrix.</property>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="treeview-selection2"/>
+                        </child>
                       </object>
                     </child>
                   </object>

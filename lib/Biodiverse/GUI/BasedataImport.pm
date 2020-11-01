@@ -97,12 +97,12 @@ sub run {
     my @format_uses_columns = qw /shapefile text spreadsheet/;
 
     # Get selected filenames
-    my @filenames = $dlgxml->get_object($filechooser_input)->get_filenames();
-    my @file_names_tmp = @filenames;
-    if ( scalar @filenames > 5 ) {
-        @file_names_tmp = @filenames[ 0 .. 5 ];
+    my $filenames = $dlgxml->get_object($filechooser_input)->get_filenames() || [];
+    my @file_names_tmp = @$filenames;
+    if ( scalar @$filenames > 5 ) {
+        @file_names_tmp = @$filenames[ 0 .. 5 ];
         push @file_names_tmp,
-          '... plus ' . ( scalar @filenames - 5 ) . ' others';
+          '... plus ' . ( scalar @$filenames - 5 ) . ' others';
     }
     my $file_list_as_text = join( "\n", @file_names_tmp );
     my @def_cellsizes = ( 100000, 100000 );
@@ -112,12 +112,12 @@ sub run {
     #  do we want to import each file into its own basedata?
     my $w = $dlgxml->get_object($chk_import_one_bd_per_file);
     my $one_basedata_per_file = $w->get_active();
-    my %multiple_brefs
-      ;    # mapping from basedata name (eg from shortened file) to basedata ref
-    my %multiple_file_lists
-      ;    # mapping from basedata name to array (ref) of files
-    my %multiple_is_new
-      ; # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    # mapping from basedata name (eg from shortened file) to basedata ref
+    my %multiple_brefs;
+    # mapping from basedata name to array (ref) of files
+    my %multiple_file_lists;
+    # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    my %multiple_is_new;
 
     if ($one_basedata_per_file) {
 
@@ -126,7 +126,7 @@ sub run {
         my $basedata_list = $gui->get_project->get_base_data_list();
 
         my $count = 0;
-        foreach my $file (@filenames) {
+        foreach my $file (@$filenames) {
 
          # use basedata_ref locally, and then maintain a ref to the last created
          # basedata for some of the subsequent 'get' calls
@@ -171,7 +171,7 @@ sub run {
             CELL_SIZES => \@def_cellsizes    #  default, gets overridden later
         );
         $multiple_brefs{$basedata_name}      = $basedata_ref;
-        $multiple_file_lists{$basedata_name} = \@filenames;
+        $multiple_file_lists{$basedata_name} = $filenames;
         $multiple_is_new{$basedata_name}     = 1;
     }
     else {
@@ -182,7 +182,7 @@ sub run {
           $gui->get_project->get_basedata_model->get( $selected, MODEL_OBJECT );
         my $basedata_name = $basedata_ref->get_param('NAME');
         $multiple_brefs{$basedata_name}      = $basedata_ref;
-        $multiple_file_lists{$basedata_name} = \@filenames;
+        $multiple_file_lists{$basedata_name} = $filenames;
     }
 
     # interpret if raster, text etc depending on format box
@@ -337,9 +337,9 @@ sub run {
     elsif ( $read_format eq 'shapefile' ) {
         
         # find available columns from first file, assume all the same
-        croak 'no files given' if !scalar @filenames;
+        croak 'no files given' if !scalar @$filenames;
 
-        my $fnamebase = $filenames[0];
+        my $fnamebase = $filenames->[0];
         my $shapefile  = eval {
             Geo::GDAL::FFI::Open($fnamebase);
         };
@@ -377,8 +377,8 @@ sub run {
         # process as tabular input, get columns from file
 
         # Get header columns
-        say "[GUI] Discovering columns from $filenames[0]";
-        my $filename_utf8 = Glib::filename_display_name $filenames[0];
+        say "[GUI] Discovering columns from $filenames->[0]";
+        my $filename_utf8 = Glib::filename_display_name $filenames->[0];
         my ( @line2_cols, @header );
 
         if ( $read_format eq 'text' ) {
@@ -406,7 +406,7 @@ sub run {
 
             #  R data frames are saved missing the first field in the header
             my $is_r_data_frame = check_if_r_data_frame(
-                file       => $filenames[0],
+                file       => $filenames->[0],
                 csv_object => $csv_obj,
             );
 
@@ -479,7 +479,7 @@ sub run {
 
             #  avoid the need to re-read the file,
             #  as import_data_spreadsheet can handle books as file args
-            $filenames[0] = $book;
+            $filenames->[0] = $book;
         }
 
         # Check for empty fields in header.
@@ -1461,11 +1461,11 @@ sub on_file_changed {
     my $dlgxml  = shift;
 
     my $text      = $dlgxml->get_object("txtImportNew$import_n");
-    my @filenames = $chooser->get_filenames();
+    my $filenames = $chooser->get_filenames() || [];
 
     # Default name to selected filename
-    if ( scalar @filenames > 0 ) {
-        my $filename = $filenames[0];
+    if ( scalar @$filenames > 0 ) {
+        my $filename = $filenames->[0];
 
         #print $filename . "\n";
         #my $filename_in_local_encoding = Glib::filename_from_unicode $filename;

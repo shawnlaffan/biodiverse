@@ -111,7 +111,7 @@ sub fill {
         $label->set_alignment(0, 0.5);
         #$label->set_text( $label_text );
 
-        my $fill_flags = 'fill';
+        #my $fill_flags = 'fill';
         my $fill_flags = [qw/expand fill/];
         if ($param->{type} =~ 'text') {
             $fill_flags = ['expand', 'fill']

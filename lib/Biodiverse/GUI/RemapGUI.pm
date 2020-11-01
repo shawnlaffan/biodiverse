@@ -246,9 +246,6 @@ sub pre_remap_dlg {
     $dlg->show_all;
     my $response = $dlg->run();
 
-    $dlg->destroy();
-
-
     # The dialog has now finished, process the response and figure out
     # what to return.
     my %results;
@@ -276,6 +273,8 @@ sub pre_remap_dlg {
     else {
         %results = (remap_type => "none");
     }
+
+    $dlg->destroy();
 
     return wantarray ? %results : \%results;
 }

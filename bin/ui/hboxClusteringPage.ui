@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
-  <object class="GtkIconFactory" id="iconfactory1"/>
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">10000000000</property>
     <property name="step_increment">1</property>
@@ -18,6 +16,7 @@
     <property name="step_increment">1</property>
     <property name="page_increment">1</property>
   </object>
+  <object class="GtkIconFactory" id="iconfactory1"/>
   <object class="GtkHBox" id="hboxClusteringPage">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -27,7 +26,6 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="toolbar_style">icons</property>
-        <property name="tooltips">False</property>
         <child>
           <object class="GtkToolItem" id="toolitemClusteringSelect">
             <property name="visible">True</property>
@@ -553,7 +551,6 @@ Does not affect the vertical connectors.
                   <object class="GtkScrolledWindow" id="scrolledwindow20">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
                     <child>
                       <object class="GtkViewport" id="viewport4">
                         <property name="visible">True</property>
@@ -579,11 +576,13 @@ Does not affect the vertical connectors.
                                         <property name="can_focus">True</property>
                                         <property name="border_width">5</property>
                                         <property name="hscrollbar_policy">never</property>
-                                        <property name="vscrollbar_policy">automatic</property>
                                         <child>
                                           <object class="GtkTreeView" id="treeSpatialCalculations">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
+                                            <child internal-child="selection">
+                                              <object class="GtkTreeSelection" id="treeview-selection1"/>
+                                            </child>
                                           </object>
                                         </child>
                                       </object>
@@ -755,8 +754,6 @@ set 1</property>
                                                 <property name="text" translatable="yes">Spatial1</property>
                                                 <property name="primary_icon_activatable">False</property>
                                                 <property name="secondary_icon_activatable">False</property>
-                                                <property name="primary_icon_sensitive">True</property>
-                                                <property name="secondary_icon_sensitive">True</property>
                                               </object>
                                               <packing>
                                                 <property name="left_attach">2</property>
@@ -895,8 +892,6 @@ than one pair of elements can be merged.   </property>
                                                     <property name="width_chars">15</property>
                                                     <property name="primary_icon_activatable">False</property>
                                                     <property name="secondary_icon_activatable">False</property>
-                                                    <property name="primary_icon_sensitive">True</property>
-                                                    <property name="secondary_icon_sensitive">True</property>
                                                     <property name="adjustment">adjustment1</property>
                                                     <property name="climb_rate">1</property>
                                                     <property name="numeric">True</property>
@@ -965,6 +960,7 @@ use caching </property>
                                                         <property name="tooltip_text" translatable="yes">Don't use caching when building the matrix.
 This reduces memory requirements
 but can slow down processing.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -983,6 +979,7 @@ and then stop</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip_text" translatable="yes">Just build the matrices
 and don't actually cluster.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1001,6 +998,7 @@ direct to text files</property>
                                                         <property name="has_tooltip">True</property>
                                                         <property name="tooltip_text" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
 Will not cluster if set and matrices will not be displayable via the project.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1021,6 +1019,7 @@ compatible format</property>
                                                         <property name="tooltip_text" translatable="yes">Only if the "Output
 matrices to text files"
 option is checked.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1041,6 +1040,7 @@ neighbours output</property>
 neighbouring groups used for matrix building.
 Use this if you want to better understand how
 your results were generated.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1062,6 +1062,7 @@ view the matrix as it is destroyed as part
 of clustering.  It will not be added to the BaseData object.
 Matrix exporting is also slowed, as the
 system must rebuild the matrices each time you export.</property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1082,6 +1083,7 @@ nodes from tree</property>
 connected directly to the root.
 Clearing them is useful
 for RegionGrower analyses.  </property>
+                                                        <property name="xalign">0.5</property>
                                                         <property name="draw_indicator">True</property>
                                                       </object>
                                                       <packing>
@@ -1138,7 +1140,6 @@ for RegionGrower analyses.  </property>
                               <object class="GtkHButtonBox" id="hbuttonbox6">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="layout_style">edge</property>
                                 <child>
                                   <object class="GtkButton" id="btnCluster">
                                     <property name="label" translatable="yes">Go!</property>
@@ -1490,8 +1491,6 @@ This setting has no effect on the slider bar.</property>
                     <property name="invisible_char_set">True</property>
                     <property name="primary_icon_activatable">False</property>
                     <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
                     <property name="adjustment">adjustment6</property>
                     <property name="climb_rate">1</property>
                     <property name="numeric">True</property>

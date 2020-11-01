@@ -411,7 +411,7 @@ sub make_columns_dialog {
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # make table
-    my $table = Gtk3::Table->new( 4, $num_columns + 1 );
+    my $table = Gtk3::Table->new( 4, $num_columns + 1, 0 );
     $table->set_row_spacings(5);
 
     #$table->set_col_spacings(20);

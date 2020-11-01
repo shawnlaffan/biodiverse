@@ -1147,7 +1147,7 @@ sub show_expl_dialog {
 
     my $text_wrapper = Text::Wrapper->new( columns => 90 );
 
-    my $table = Gtk3::Table->new( 1 + scalar keys %$expl_hash, 2 );
+    my $table = Gtk3::Table->new( 1 + scalar keys %$expl_hash, 2, 0 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(5);
 
@@ -1588,7 +1588,7 @@ sub make_columns_dialog {
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # Make table
-    my $table = Gtk3::Table->new( $num_columns + 1, 8 );
+    my $table = Gtk3::Table->new( $num_columns + 1, 8, 0 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 
@@ -1982,7 +1982,7 @@ sub make_remap_columns_dialog {
     $dlg->vbox->pack_start( $label, 0, 0, 0 );
 
     # Make table
-    my $table = Gtk3::Table->new( $num_columns + 1, 8 );
+    my $table = Gtk3::Table->new( $num_columns + 1, 8, 0 );
     $table->set_row_spacings(5);
     $table->set_col_spacings(20);
 

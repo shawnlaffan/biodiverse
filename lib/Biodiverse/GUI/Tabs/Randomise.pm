@@ -543,10 +543,9 @@ sub update_randomise_button {
     my $project = $self->{gui}->get_project;
     return if not $project;
 
-    my $outputs_list = $project->get_basedata_outputs($self->{selected_basedata_ref});
-    my $selected     = $outputs_list;
+    my $outputs_list = $project->get_basedata_outputs($self->{selected_basedata_ref}) // [];
 
-    if ($selected && @{$selected}) {
+    if (@$outputs_list) {
         $self->{xmlPage}->get_object('btnRandomise')->set_sensitive(1);
     }
     else {

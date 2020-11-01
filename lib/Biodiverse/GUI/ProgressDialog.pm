@@ -144,7 +144,7 @@ sub update {
 
     $bar->set_fraction($progress);
 
-    Gtk3->main_iteration while Gtk3->events_pending;
+    Gtk3::main_iteration while Gtk3::events_pending;
 
     Biodiverse::GUI::GUIManager->instance->show_progress;
 

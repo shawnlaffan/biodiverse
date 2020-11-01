@@ -389,7 +389,7 @@ sub init_list {
     push @column_names, ('Selected', 'Selected_Col');
 
     # Set model to a wrapper that lets this list have independent sorting
-    my $wrapper_model = Gtk3::TreeModelSort->new( $self->{labels_model});
+    my $wrapper_model = Gtk3::TreeModelSort->new_with_model( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
     my $sort_func = \&sort_by_column;

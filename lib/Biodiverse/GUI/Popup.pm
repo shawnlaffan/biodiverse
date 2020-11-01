@@ -248,7 +248,7 @@ sub find_selected_source {
         my $name = $sources_model->get($iter, SOURCES_MODEL_NAME);
         last if ($name eq $search_name);
 
-        $iter = $sources_model->iter_next($iter);
+        last if !$sources_model->iter_next($iter);
     }
 
     return $iter;
@@ -440,7 +440,7 @@ END_HTML_HEADER
         elsif ($datatype == TYPE_HTML) {
             $text .= "<tr><td>$name</td><td>$value</td></tr>\n";
         }
-        $iter = $model->iter_next($iter);
+        last if !$model->iter_next($iter);
     }
 
     if ($datatype == TYPE_HTML) {

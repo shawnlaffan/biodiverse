@@ -427,7 +427,7 @@ sub on_cell_selected {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_indices_model}->iter_next($iter);
+        last if !$self->{output_indices_model}->iter_next($iter);
     }
 
     if ($selected) {

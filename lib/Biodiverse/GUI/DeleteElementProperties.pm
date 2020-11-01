@@ -340,7 +340,7 @@ sub on_clicked_apply {
                     my ($text) = $model->get($iter, MODEL_TEXT_COL);
                     push (@targets, $text);
                 }
-                $iter = $model->iter_next($iter);
+                last if !$model->iter_next($iter);
             }
             my $sub_delete_count;
             foreach my $target (@targets) {

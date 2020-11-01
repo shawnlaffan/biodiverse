@@ -1411,11 +1411,14 @@ sub do_basedata_changed {
     my $combo = $self->get_object('comboBasedata');
     my $iter  = $combo->get_active_iter();
 
-    return
-      if !
-      defined $iter;  #  sometimes $iter is not defined when this sub is called.
+    #  sometimes $iter is not defined when this sub is called.
+    return if !defined $iter;
 
-    my $text = $combo->get_model->get( $iter, 0 );
+    my $model = $combo->get_model;
+    return if !$model;
+
+    my $text = eval {$model->get( $iter, 0 )};
+    $text //= '(none)';
 
   # FIXME: not sure how $self->{project} can be undefined - but it appears to be
     if (    defined $self->{project}

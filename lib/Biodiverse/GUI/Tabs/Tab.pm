@@ -157,11 +157,11 @@ sub register_in_outputs_model {
                 last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
             }
             
-            $iter_output = $model->iter_next($iter_output);
+            last if !$model->iter_next($iter_output);
         }
         
         last if $iter; # break if found it
-        $iter_base = $model->iter_next($iter_base);
+        last if !$model->iter_next($iter_base);
     }
 
     if ($iter) {

@@ -1114,8 +1114,10 @@ sub add_header_and_tooltip_to_treeview_column {
 
     $column->set_widget($header);
 
-    my $tooltip = Gtk3::Tooltip->new();
-    $tooltip->set_text( $header, $args{tooltip_text} );
+    if ($args{tooltip_text}) {
+        $header->set_tooltip_text ($args{tooltip_text});
+    }
+    
 }
 
 

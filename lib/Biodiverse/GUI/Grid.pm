@@ -156,7 +156,7 @@ sub new {
     $self->{canvas}->get_hadjustment->signal_connect_swapped('value-changed', \&on_scroll, $self);
 
     # Set up canvas
-    $self->{canvas}->set_center_scroll_region(0);
+    #$self->{canvas}->set_center_scroll_region(0);
     $self->{canvas}->show;
     $self->set_zoom_fit_flag(1);
     $self->{dragging} = 0;
@@ -166,20 +166,18 @@ sub new {
     }
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->root,
-        'GooCanvas2::CanvasRect',
-        x1 => 0,
-        y1 => 0,
-        x2 => CELL_SIZE_X,
-        fill_color_gdk => COLOUR_WHITE,
-        #outline_color => "black",
-        #width_pixels => 2,
-        y2 => CELL_SIZE_X,
+    #  Might need to make a group here and add this to it
+    my $rect = GooCanvas2::CanvasRect->new (
+        parent => $self->{canvas}->get_root_item,
+        x => 0,
+        y => 0,
+        width  => CELL_SIZE_X,
+        height => CELL_SIZE_X,
+        'fill-color' => 'white',
     );
-    $rect->lower_to_bottom();
-
-    $self->{canvas}->root->signal_connect_swapped (
+    #$rect->lower_to_bottom();
+##FIXME
+    $self->{canvas}->get_root_item->signal_connect_swapped (
         event => \&on_background_event,
         $self,
     );

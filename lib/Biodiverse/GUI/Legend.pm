@@ -78,13 +78,18 @@ sub new {
     bless $self, $class;
     # Get the width and height of the canvas.
     #my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
-    my ($width, $height) = $self->{canvas}->c2w($self->{width_px} || 0, $self->{height_px} || 0);
+    my ($width, $height)
+      = $self->{canvas}->convert_from_item_space(
+            $self->{canvas}->get_root_item,
+            $self->{width_px} || 0,
+            $self->{height_px} || 0,
+    );
+say "xxxxx $width, $height";
 
     # Make group so we can pack the coloured
     # rectangles into it.
     $self->{legend_group} = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->get_root_item,  #  root?
-        'GooCanvas2::CanvasGroup',
+        parent => $self->{canvas}->get_root_item,
         x => $width - $self->get_width,
         y => 0,
     );

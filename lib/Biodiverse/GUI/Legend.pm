@@ -140,7 +140,9 @@ sub make_rect {
     # We do this because we are about to create it again
     # with a different colour scheme as defined by legend_mode.
     if ($self->{legend_colours_group}) {
-        $self->{legend_colours_group}->destroy(); 
+## CHECK CHECK
+        #$self->{legend_colours_group}->destroy();
+        $self->{legend_colours_group} = undef;
     }
 
     # Make a group so we can pack the coloured
@@ -275,16 +277,29 @@ sub reposition {
 
     # Convert coordinates into world units
     # (this has been tricky to get working right...)
-    my ($width, $height) = $self->{canvas}->c2w($width_px || 0, $height_px || 0);
+    # CHECK CHECK - goo canvas changes
+    #  was c2w
+    my ($width, $height) = $self->{canvas}->convert_to_pixels(
+        $width_px || 0,
+        $height_px || 0,
+    );
 
-    my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
-       ($scroll_x, $scroll_y) = $self->{canvas}->c2w($scroll_x, $scroll_y);
+#  CHECK CHECK - what is get_scroll_offsets in GooCanvas2?
+    #my ($scroll_x, $scroll_y) = $self->{canvas}->get_scroll_offsets();
+    #   ($scroll_x, $scroll_y) = $self->{canvas}->convert_to_pixels($scroll_x, $scroll_y);
+my ($scroll_x, $scroll_y) = (0,0);  #  maybe get bounds?
 
-    my ($border_width, $legend_width) = $self->{canvas}->c2w(BORDER_SIZE, $self->get_width);
+    my ($border_width, $legend_width) = $self->{canvas}->convert_to_pixels(
+        BORDER_SIZE,
+        $self->get_width,
+    );
 
+#  CHECK CHECK
     # Get the pixels per unit value from the canvas
     # to scale the legend with.
-    my $ppu = $self->{canvas}->get_pixels_per_unit();
+    # was get_pixels_per_unit under gnome2 canvas
+    #my $ppu = $self->{canvas}->scale;
+    my $ppu = 1;
 
     # Reposition the legend group box
     $self->{legend_group}->set(
@@ -293,15 +308,16 @@ sub reposition {
     );
 
     # Scale the legend's height and width to match the current size of the canvas. 
-    my $matrix = [
+    my $matrix = Cairo::Matrix->init (
         $legend_width * $ppu, # scale x
         0,
         0,
         $height / $self->{legend_height}, # scale y
         0,
         0
-    ];
-    $self->{legend_colours_group}->affine_absolute($matrix);
+    );
+#  CHECK CHECK
+    #$self->{legend_colours_group}->transform($matrix);
 
     # Reposition the "mark" textboxes
     foreach my $i (0..3) {

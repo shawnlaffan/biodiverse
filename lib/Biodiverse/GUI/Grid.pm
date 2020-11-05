@@ -601,7 +601,9 @@ sub set_base_struct {
     #$self->update_legend();
 
     # show legend by default - gets hidden by caller if needed
-    $self->get_legend->show;
+##  CHECK CHECK
+##  Can't locate object method "show" via package "GooCanvas2::CanvasGroup"
+    #$self->get_legend->show;
     # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
@@ -1719,17 +1721,23 @@ sub end_selection {
 
 sub setup_scrollbars {
     my $self = shift;
-    my ($total_width, $total_height) = $self->{canvas}->w2c($self->{width_units}, $self->{height_units});
+    
+    #  not sure this is the right method to use here
+    #  was w2c under Gnome2::Canvas
+    my ($total_width, $total_height) = $self->{canvas}->convert_from_pixels(
+        $self->{width_units},
+        $self->{height_units},
+    );
 
-    $self->{hadjust}->upper( $total_width );
-    $self->{vadjust}->upper( $total_height );
+    $self->{hadjust}->set_upper( $total_width );
+    $self->{vadjust}->set_upper( $total_height );
 
     if ($self->{width_px}) {
-        $self->{hadjust}->page_size( $self->{width_px} );
-        $self->{vadjust}->page_size( $self->{height_px} );
+        $self->{hadjust}->set_page_size( $self->{width_px} );
+        $self->{vadjust}->set_page_size( $self->{height_px} );
 
-        $self->{hadjust}->page_increment( $self->{width_px} / 2 );
-        $self->{vadjust}->page_increment( $self->{height_px} / 2 );
+        $self->{hadjust}->set_page_increment( $self->{width_px} / 2 );
+        $self->{vadjust}->set_page_increment( $self->{height_px} / 2 );
     }
 
     $self->{hadjust}->changed;
@@ -1784,13 +1792,17 @@ sub resize_background_rect {
 
     if ($self->{width_px}) {
         # Make it the full visible area
-        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        # was c2w under Gnome2::Canvas
+        my ($width, $height) = $self->{canvas}->convert_to_pixels(
+            $self->{width_px},
+            $self->{height_px},
+        );
         if (not $self->{dragging}) {
             $self->{back_rect}->set(
-                x2 => max($width,  $self->{width_units}),
-                y2 => max($height, $self->{height_units}),
+                width  => max($width,  $self->{width_units}),
+                height => max($height, $self->{height_units}),
             );
-            $self->{back_rect}->lower_to_bottom();
+            $self->{back_rect}->lower();
         }
     }
     return;

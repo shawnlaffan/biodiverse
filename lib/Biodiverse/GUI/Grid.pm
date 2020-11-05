@@ -176,11 +176,11 @@ sub new {
         'fill-color' => 'white',
     );
     #$rect->lower_to_bottom();
-##FIXME
-    $self->{canvas}->get_root_item->signal_connect_swapped (
-        event => \&on_background_event,
-        $self,
-    );
+##FIXME  CHECK CHECK
+    #$self->{canvas}->get_root_item->signal_connect_swapped (
+    #    event => \&on_background_event,
+    #    $self,
+    #);
 
     $self->{back_rect} = $rect;
     # Create the Label legend
@@ -262,7 +262,8 @@ sub destroy {
         $self->{shapefile_group}->destroy();
     }
     if ($self->{cells_group}) {
-        $self->{cells_group}->destroy();
+        delete $self->{cells_group};  #  mem leak?  GooCanvas2 has no destroy method, but perhaps it GCs itself
+        #$self->{cells_group}->destroy();
     }
 
     # Destroy the legend group.
@@ -464,9 +465,8 @@ sub set_base_struct {
     }
 
     # Make group so we can transform everything together
-    my $cells_group = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->root,
-        'GooCanvas2::CanvasGroup',
+    my $cells_group = GooCanvas2::CanvasGroup->new (
+        parent => $self->{canvas}->get_root_item,
         x => 0,
         y => 0,
     );
@@ -494,7 +494,7 @@ sub set_base_struct {
 #);
 
     $self->{cells_group} = $cells_group;
-    $cells_group->lower_to_bottom();
+    #$cells_group->lower();  ##  CHECK CHECK
 
     my $i = 0;
     foreach my $element (keys %$elts) {
@@ -519,27 +519,26 @@ sub set_base_struct {
         my $ycoord = $y * $cell_size_y - $cell_size_y / 2;
 
         # Make container group ("cell") for the rectangle and any marks
-        my $container = GooCanvas2::CanvasItem->new (
-            $cells_group,
-            'GooCanvas2::CanvasGroup',
+        my $container = GooCanvas2::CanvasGroup->new (
+            parent => $cells_group,
             x => $xcoord,
             y => $ycoord
         );
 
         # (all coords now relative to the group)
-        my $rect = GooCanvas2::CanvasItem->new (
-            $container,
-            'GooCanvas2::CanvasRect',
-            x1                  => 0,
-            y1                  => 0,
-            x2                  => CELL_SIZE_X,
-            y2                  => $cell_size_y,
-            fill_color_gdk      => COLOUR_WHITE,
-            outline_color_gdk   => COLOUR_BLACK,
-            width_pixels        => $width_pixels
+        my $rect = GooCanvas2::CanvasRect->new (
+            parent => $container,
+            x                  => 0,
+            y                  => 0,
+            width              => CELL_SIZE_X,
+            height             => $cell_size_y,
+            'fill-color'       => 'white',
+            'stroke-color'     => 'black',
+            'line-width'       => $width_pixels
         );
 
-        $container->signal_connect_swapped (event => \&on_event, $self);
+        ## CHECK CHECK
+        #$container->signal_connect_swapped (event => \&on_event, $self);
 
         $self->{cells}{$container}[INDEX_COLOUR]  = COLOUR_WHITE;
         $self->{cells}{$container}[INDEX_ELEMENT] = $element;
@@ -576,22 +575,25 @@ sub set_base_struct {
     $self->{width_units}  = $width  + 2*BORDER_SIZE;
     $self->{height_units} = $height + 4*BORDER_SIZE;
 
-    $cells_group->affine_absolute([
-        1,
-        0,
-        0,
-        -1,
+    #my $tfm = $cells_group->set_transform;
+    
+    my $cairo_mx = Cairo::Matrix->init (
+        1,  0,
+        0, -1,
         BORDER_SIZE,
         $height + 2*BORDER_SIZE,
-    ]);
-    
-    # Set visible region
-    $self->{canvas}->set_scroll_region(
-        0,
-        0,
-        $self->{width_units},
-        $self->{height_units},
     );
+    #   this seg faults
+    #$cells_group->set_transform($cairo_mx);
+
+    # Set visible region
+    # Needed for GooCanvas?
+    #$self->{canvas}->set_scroll_region(
+    #    0,
+    #    0,
+    #    $self->{width_units},
+    #    $self->{height_units},
+    #);
 
     # Update
     $self->setup_scrollbars();
@@ -1527,8 +1529,8 @@ sub on_event {
 # Implements resizing
 sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
-    $self->{width_px}  = $size->width;
-    $self->{height_px} = $size->height;
+    $self->{width_px}  = $size->{width};
+    $self->{height_px} = $size->{height};
 
     if (exists $self->{width_units}) {
         if ($self->get_zoom_fit_flag) {

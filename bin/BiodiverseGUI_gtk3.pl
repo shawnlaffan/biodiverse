@@ -2,6 +2,12 @@ use strict;
 use warnings;
 use Carp;
 
+BEGIN {
+    use Path::Tiny qw /path/;
+    use Env qw /@PATH/;
+    push @PATH, path($^X)->parent->parent->parent->child ('c/bin')->stringify;
+}
+
 use 5.022;
 
 #use File::Basename;

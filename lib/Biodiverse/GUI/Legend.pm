@@ -84,16 +84,15 @@ sub new {
             $self->{width_px} || 0,
             $self->{height_px} || 0,
     );
-say "xxxxx $width, $height";
 
     # Make group so we can pack the coloured
     # rectangles into it.
-    $self->{legend_group} = GooCanvas2::CanvasItem->new (
+    $self->{legend_group} = GooCanvas2::CanvasGroup->new (
         parent => $self->{canvas}->get_root_item,
         x => $width - $self->get_width,
         y => 0,
     );
-    $self->{legend_group}->raise_to_top();
+    #$self->{legend_group}->raise();  #  might yet need this
 
     # Create the legend rectangle.
     $self->{legend} = $self->make_rect();
@@ -146,9 +145,8 @@ sub make_rect {
 
     # Make a group so we can pack the coloured
     # rectangles into it to create the legend.
-    $self->{legend_colours_group} = GooCanvas2::CanvasItem->new (
-        $self->{legend_group},
-        'GooCanvas2::CanvasGroup',
+    $self->{legend_colours_group} = GooCanvas2::CanvasGroup->new (
+        parent => $self->{legend_group},
         x => 0, 
         y => 0, 
     );   
@@ -213,14 +211,13 @@ sub add_row {
 
     my $width = $self->get_width;
 
-    my $legend_colour_row = GooCanvas2::CanvasItem->new (
-        $group,
-        'GooCanvas2::CanvasRect',
-        x1 => 0,
-        x2 => $width,
-        y1 => $row,
-        y2 => $row+1,
-        fill_color_gdk => [Gtk3::Gdk::Color::parse (sprintf '#%x%x%x', $r,$g,$b)]->[1],
+    my $legend_colour_row = GooCanvas2::CanvasRect->new (
+        parent => $group,
+        x => 0,
+        y => $row,
+        width  => $width,
+        height => $row+1,
+        'fill-color' => [Gtk3::Gdk::Color::parse (sprintf '#%x%x%x', $r,$g,$b)]->[1],
     );
 }
 
@@ -231,15 +228,14 @@ sub add_row {
 sub make_mark {
     my $self   = shift;
     my $anchor = shift;
-    my $mark = GooCanvas2::CanvasItem->new (
-        $self->{legend_group}, 
-        'GooCanvas2::CanvasText',
+    my $mark = GooCanvas2::CanvasText->new (
+        parent          => $self->{legend_group}, 
         text            => q{0},
         anchor          => $anchor,
-        fill_color_gdk  => COLOUR_BLACK,
+        'fill-color'    => 'black',
     );
 
-    $mark->raise_to_top();
+    #$mark->raise();  ##  CHECK CHECK
 
     return $mark;
 }

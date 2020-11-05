@@ -323,10 +323,11 @@ my ($scroll_x, $scroll_y) = (0,0);  #  maybe get bounds?
     foreach my $i (0..3) {
         my $mark = $self->{marks}[3 - $i];
         #  move the mark to right align with the legend
-        my @bounds  = $mark->get_bounds;
-        my @lbounds = $self->{legend}->get_bounds;
-        my $offset  = $lbounds[0] - $bounds[2];
-        $mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
+        my $bounds  = $mark->get_bounds;
+        my $lbounds = $self->{legend}->get_bounds;
+        my $offset  = $lbounds->x1 - $bounds->x2;
+        #$mark->move ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
+        $mark->translate ($offset - ($width * MARK_X_LEGEND_OFFSET ), 0);
 
         # Set the location of the y of the marks
         # Has a vertical offset for the first and
@@ -342,13 +343,14 @@ my ($scroll_x, $scroll_y) = (0,0);  #  maybe get bounds?
             y => $i * $height / 3 + $y_offset / $ppu,
         );
 
-        $mark->raise_to_top;
+        #$mark->raise_to_top;
+        $mark->raise;
     }
 
     # Reposition value box
     if ($self->{value_group}) {
         my ($value_x, $value_y) = $self->{value_group}->get('x', 'y');
-        $self->{value_group}->move(
+        $self->{value_group}->translate(  #  was move
             $scroll_x - $value_x,
             $scroll_y - $value_y,
         );

@@ -1103,7 +1103,7 @@ sub colour_cells {
 
     foreach my $cell (values %{$self->{cells}}) {
         my $rect = $cell->[INDEX_RECT];
-        $rect->set('fill-color-gdk' => $colour_none);
+        $rect->set('fill-color' => $colour_none);
     }
 
     return;

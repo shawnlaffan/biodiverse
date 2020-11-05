@@ -49,6 +49,10 @@ use constant CELL_WHITE       => [Gtk3::Gdk::Color::parse ('white')]->[1];
 use constant CELL_COLOUR      => [Gtk3::Gdk::Color::parse('white')]->[1];
 use constant OVERLAY_COLOUR   => [Gtk3::Gdk::Color::parse('#001169')]->[1];
 
+sub get_cell_colour {
+    [Gtk3::Gdk::Color::parse('white')]->[1];
+}
+
 # Stiple for the selection-masking shape
 my $gray50_width  = 2;
 my $gray50_height = 2;
@@ -116,7 +120,8 @@ sub new {
     );
 
     # Set up canvas
-    $self->{canvas}->set_center_scroll_region(0);
+#  CHECK CHECK - disabled next line
+    #$self->{canvas}->set_center_scroll_region(0);
     $self->{canvas}->show;
     #$self->{zoom_fit}  = 1;
     $self->set_zoom_fit_flag(1);
@@ -124,21 +129,21 @@ sub new {
     $self->{selecting} = 0;
 
     # Create background rectangle to receive mouse events for panning
-    my $rect = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->root,
-        'GooCanvas2::CanvasRect',
-        x1              => 0,
-        y1              => 0,
-        x2              => CELL_SIZE,
-        fill_color_gdk  => CELL_WHITE,
-        y2              => CELL_SIZE,
+    my $rect = GooCanvas2::CanvasRect->new (
+        parent => $self->{canvas}->get_root_item,
+        x              => 0,
+        y              => 0,
+        width          => CELL_SIZE,
+        fill_color     => 'white',
+        height         => CELL_SIZE,
     );
 
-    $rect->lower_to_bottom();
-    $self->{canvas}->root->signal_connect_swapped (
-        event => \&on_background_event,
-        $self,
-    );
+    $rect->lower();
+    #  CHECK CHECK
+    #$self->{canvas}->get_root_item->signal_connect_swapped (
+    #    event => \&on_background_event,
+    #    $self,
+    #);
     $self->{back_rect} = $rect;
 
     # Create the Matrix legend
@@ -232,12 +237,11 @@ sub destroy {
 sub make_mark {
     my $self = shift;
     my $anchor = shift;
-    my $mark = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->root,
-        'GooCanvas2::CanvasText',
+    my $mark = GooCanvas2::CanvasText->new (
+        parent => $self->{canvas}->get_root_item,
         text           => q{},
         anchor         => $anchor,
-        fill_color_gdk => CELL_BLACK,
+        fill_color => CELL_BLACK,
     );
     $mark->raise_to_top();
     return $mark;
@@ -259,19 +263,20 @@ sub draw_matrix {
 
     # Delete any old cells
     if ($self->{cells_group}) {
-        $self->{cells_group}->destroy();
+        #  CHECK CHECK
+        #$self->{cells_group}->destroy();
+        $self->{cells_group} = undef;
     }
 
     # Make group so we can transform everything together
-    my $cells_group = GooCanvas2::CanvasItem->new (
-        $self->{canvas}->root,
-        'GooCanvas2::CanvasGroup',
+    my $cells_group = GooCanvas2::CanvasGroup->new (
+        parent => $self->{canvas}->get_root_item,
         x => 0,
         y => 0,
     );
     
     $self->{cells_group} = $cells_group;
-    $cells_group->lower_to_bottom();
+    $cells_group->lower();
 
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
     my $progress = 0;
@@ -284,24 +289,25 @@ sub draw_matrix {
         $progress_count ++;
         my $progress_text = "Drawing matrix, $progress_count rows";
 
+        my $cell_colour = $self->get_cell_colour;
+        
         for (my $x = 0; $x < $side_length; $x++) {
 
             $progress_bar->update ($progress_text, $progress);
  
-            my $rect = GooCanvas2::CanvasItem->new (
-                $cells_group,
-                'GooCanvas2::CanvasRect',
-                x1 =>  $x      * CELL_SIZE,
-                y1 =>  $y      * CELL_SIZE,
-                x2 => ($x + 1) * CELL_SIZE,
-                y2 => ($y + 1) * CELL_SIZE,
-
-                fill_color_gdk    => CELL_COLOUR,
-                outline_color_gdk => CELL_BLACK,
-                width_pixels      => $width_pixels,
+            my $rect = GooCanvas2::CanvasRect->new (
+                parent => $cells_group,
+                x      =>  $x      * CELL_SIZE,
+                y      =>  $y      * CELL_SIZE,
+                width  => ($x + 1) * CELL_SIZE,
+                height => ($y + 1) * CELL_SIZE,
+                fill_color    => $cell_colour,
+                stroke_color  => 'black',
+                #width_pixels  => $width_pixels,  #  CHECK CHECK
             );
 
-            $rect->signal_connect_swapped (event => \&on_event, $self);
+            #  CHECK CHECK
+            #$rect->signal_connect_swapped (event => \&on_event, $self);
 
             $self->{cells}{$rect}[INDEX_ELEMENT] = [$x, $y];
             $self->{cells}{$rect}[INDEX_RECT]    = $rect;
@@ -322,12 +328,13 @@ sub draw_matrix {
     # $cells_group->affine_absolute( [1, 0, 0, -1, BORDER_SIZE, $height + 2*BORDER_SIZE] );
     
     # Set visible region
-    $self->{canvas}->set_scroll_region(
-        0,
-        0,
-        $self->{width_units},
-        $self->{height_units},
-    );
+    #  CHECK CHECK
+    #$self->{canvas}->set_scroll_region(
+    #    0,
+    #    0,
+    #    $self->{width_units},
+    #    $self->{height_units},
+    #);
 
     # Update
     $self->setup_scrollbars();
@@ -539,7 +546,7 @@ sub colour_cells {
         my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
         my $fill_colour = defined $val ? $colour : CELL_BLACK;
 
-        $rect->set('fill-color-gdk' => $colour, 'outline-color-gdk' => $fill_colour);
+        $rect->set('fill-color' => $colour, 'stroke-color' => $fill_colour);
     }
 
     return;
@@ -736,16 +743,15 @@ sub on_event {
                 $event->time,
             );
             $self->{selecting} = 1;
-            $self->{sel_rect} = GooCanvas2::CanvasItem->new (
-                $self->{canvas}->root,
-                'GooCanvas2::CanvasRect',
-                x1 => $x,
-                y1 => $y,
-                x2 => $x,
-                y2 => $y,
-                fill_color_gdk    => undef,
-                outline_color_gdk => CELL_BLACK,
-                width_pixels      => 0,
+            $self->{sel_rect} = GooCanvas2::CanvasRect->new (
+                parent => $self->{canvas}->get_root_item,
+                x => $x,
+                y => $y,
+                width => $x,
+                height => $y,
+                fill_color    => undef,
+                outline_color => 'black',
+                width_pixels  => 0,
             );
 
             return 0;
@@ -803,8 +809,8 @@ sub on_event {
 # Implements resizing
 sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
-    $self->{width_px}  = $size->width;
-    $self->{height_px} = $size->height;
+    $self->{width_px}  = $size->{width};
+    $self->{height_px} = $size->{height};
 
     if (exists $self->{width_units}) {
         if ($self->get_zoom_fit_flag) {
@@ -886,17 +892,21 @@ sub setup_scrollbars {
     my $self = shift;
     return if !defined $self->{width_units} || !defined $self->{height_units};
 
-    my ($total_width, $total_height) = $self->{canvas}->w2c($self->{width_units}, $self->{height_units});
+    #  was w2c
+    my ($total_width, $total_height) = $self->{canvas}->convert_from_pixels(
+        $self->{width_units},
+        $self->{height_units},
+    );
 
-    $self->{hadjust}->upper( $total_width );
-    $self->{vadjust}->upper( $total_height );
+    $self->{hadjust}->set_upper( $total_width );
+    $self->{vadjust}->set_upper( $total_height );
 
     if ($self->{width_px}) {
-        $self->{hadjust}->page_size( $self->{width_px} );
-        $self->{vadjust}->page_size( $self->{height_px} );
+        $self->{hadjust}->set_page_size( $self->{width_px} );
+        $self->{vadjust}->set_page_size( $self->{height_px} );
 
-        $self->{hadjust}->page_increment( $self->{width_px} / 2 );
-        $self->{vadjust}->page_increment( $self->{height_px} / 2 );
+        $self->{hadjust}->set_page_increment( $self->{width_px} / 2 );
+        $self->{vadjust}->set_page_increment( $self->{height_px} / 2 );
     }
 
     $self->{hadjust}->changed;
@@ -959,13 +969,16 @@ sub resize_background_rect {
     if ($self->{width_px}) {
 
         # Make it the full visible area
-        my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
+        my ($width, $height) = $self->{canvas}->convert_from_pixels(
+            $self->{width_px},
+            $self->{height_px},
+        );
         if (not $self->{dragging}) {
             $self->{back_rect}->set(
-                x2 => max($width,  $self->{width_units} // 1),
-                y2 => max($height, $self->{height_units} // 1),
+                width  => max($width,  $self->{width_units} // 1),
+                height => max($height, $self->{height_units} // 1),
             );
-            $self->{back_rect}->lower_to_bottom();
+            $self->{back_rect}->lower();
         }
     }
     

@@ -124,7 +124,8 @@ sub show {
     return if !$self->{legend_group};
 
     # Show the legend group.
-    $self->{legend_group}->show;
+#  CHECK CHECK
+    #$self->{legend_group}->show;
 
     return;
 }
@@ -658,16 +659,16 @@ sub set_min_max {
         my $mark = $self->{marks}[3 - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
-        my @bounds = $mark->get_bounds;
-        my @lbounds = $self->{legend}->get_bounds;
-        my $offset = $lbounds[0] - $bounds[2];
+        my $bounds = $mark->get_bounds;
+        my $lbounds = $self->{legend}->get_bounds;
+        my $offset = $lbounds->x1 - $bounds->x2;
         if (($text_num + 0) != 0) {
-            $mark->move ($offset - length ($text), 0);
+            $mark->translate ($offset - length ($text), 0);
         }
         else {
-            $mark->move ($offset - length ($text) - 0.5, 0);
+            $mark->translate ($offset - length ($text) - 0.5, 0);
         }
-        $mark->raise_to_top;
+        $mark->raise;
     }
 
     return;

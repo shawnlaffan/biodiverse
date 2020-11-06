@@ -49,10 +49,10 @@ before_install:
   
   #  Disable Gtk stuff for speed reasons
   #  Reinstate when we add the GUI variant
-  - if [ $BD_TEST_GUI ]; then sudo apt-get install libgnomecanvas2-dev; fi;
+  - if [ $BD_TEST_GUI ]; then sudo apt-get install libgoocanvas-2.0-dev; fi;
 
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  - if [ $BD_TEST_GUI ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk2; fi;
+  - if [ $BD_TEST_GUI ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk3 GooCanvas2; fi;
 
   - if [ $BD_TEST_GUI ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 

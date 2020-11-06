@@ -52,7 +52,10 @@ before_install:
   - if [ $BD_TEST_GUI ]; then sudo apt-get install libgoocanvas-2.0-dev; fi;
 
   # Here as well as cpanfile because of dependency problems if not installed before Gnome2::Canvas
-  - if [ $BD_TEST_GUI ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig Glib Gtk3 GooCanvas2; fi;
+  - if [ $BD_TEST_GUI ]; then cpanm --notest ExtUtils::Depends ExtUtils::PkgConfig; fi;
+  #  install failures for 0.049
+  - if [ $BD_TEST_GUI ]; then cpanm --notest Glib::Object::Introspection@0.048; fi;
+  - if [ $BD_TEST_GUI ]; then cpanm --notest Glib Gtk3 GooCanvas2; fi;
 
   - if [ $BD_TEST_GUI ]; then cpanm --quiet --installdeps --notest --with-all-features .; fi;
 

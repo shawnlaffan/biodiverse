@@ -293,6 +293,111 @@ sub test_rand_spatially_structured {
     return;
 }
 
+
+#  When the spatial constraint does
+#  not span the whole basedata then
+#  we need to handle the leftovers
+sub test_rand_spatial_constraint_leftovers {
+    my $c  = 1;
+    my $c3 = $c * 1;
+    my $c6 = $c * 2;
+    my $c9 = $c * 3;
+    my $bd_size = 21;
+
+    my $prng_seed = 2345;
+    
+    #my $prng = Math::Random::MT::Auto->new;
+    
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'test_rand_spatially_structured',
+        CELL_SIZES => [$c, $c],
+        CELL_ORIGINS => [$c/2, $c/2],
+    );
+    
+    my @labels = qw /a b c/;
+    my $k = 0;
+    foreach my $i (0 .. $bd_size) {
+        foreach my $j (0 .. $bd_size) {
+            my $group = "$i:$j";
+            $bd->add_element (group => $group);
+            my $label = $labels[$i % 3];
+            $bd->add_element (group => $group, label => $label, count => $k);
+            $k++;
+        }
+    }
+    
+    $bd->build_spatial_index(resolutions => [$c, $c]);
+
+    my $sp = $bd->add_spatial_output (name => 'sp');
+
+    $sp->run_analysis (
+        spatial_conditions => ['sp_square (size => 3)'],
+        calculations => [qw /calc_local_range_lists/],
+    );
+
+    my $rand_name = 'rand_spatially_structured_but_incomplete';
+
+    my $sp_cond_for_subset = <<"EOSC"
+sp_point_in_poly (
+    polygon => [[10,10],[20,10],[20,5],[10,5],[10,10]],
+)
+EOSC
+;
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function   => 'rand_spatially_structured',
+        spatial_allocation_order => 'random',
+        iterations => 1,  #  reset to 3 later
+        seed       => $prng_seed,
+        spatial_conditions_for_subset => [$sp_cond_for_subset],
+        richness_multiplier => 1,
+        return_rand_bd_array => 1,
+        retain_outputs => 1,
+    );
+
+    is ($rand->get_param('SWAP_OUT_COUNT'), 0,
+        'Did not swap out in spatially structured rand',
+    );
+    is ($rand->get_param('SWAP_INSERT_COUNT'), 0,
+        'Did not swap insert in spatially structured rand',
+    );
+
+    subtest 'range scores match' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            foreach my $label (sort $rand_bd->get_labels) {
+                is ($rand_bd->get_range (element => $label),
+                    $bd->get_range (element => $label),
+                    "range for $label matches",
+                );
+            }
+        }
+    };
+
+    #  check the local ranges
+    subtest 'no isolated cases' => sub {
+        foreach my $rand_bd (@$rand_bd_array) {
+            my $outputs = $rand_bd->get_output_refs;
+            my $output  = $outputs->[0];  #  only one output
+            foreach my $group (sort $output->get_element_list) {
+                next if !$rand_bd->get_richness(element => $group);
+                my $labels = $rand_bd->get_labels_in_group (group => $group);
+                my $list = $output->get_list_ref (
+                    element => $group,
+                    list => 'ABC2_LABELS_SET1',
+                );
+                foreach my $label (sort @$labels) {
+                    cmp_ok ($list->{$label}, '>', 1,
+                        "local range for $label is > 1, group $group",
+                    );
+                }
+            }
+        }
+    };
+
+    return;
+}
+
+
 sub test_random_propagation {
     my $c  = 1;
     my $c3 = $c * 1;

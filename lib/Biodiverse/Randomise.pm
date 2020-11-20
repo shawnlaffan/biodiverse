@@ -2292,6 +2292,53 @@ sub get_rand_structured_subset {
         #  keep the cached version clean of outputs
         $subset_bd->delete_all_outputs;
     }
+    #  any left overs, i.e. where the spatial condition
+    #  and def queires did not get all groups
+    if ($to_do != scalar keys %done) {
+        my $group = '__leftovers__';
+        while ($bd->exists_group_aa($group)) {
+            #  do not clash with existing group name
+            $group .= '!';
+        }
+        my $subset_bd = $cached_subset_basedatas->{$group};
+
+        if (!$subset_bd) {
+            my @nbrs_to_check = grep {!exists $done{$_}} $bd->get_groups;
+            $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
+            $subset_bd->rename (new_name => "subset $group");
+
+            for my $nbr_group (@nbrs_to_check) {
+                my $tmp = $bd->get_labels_in_group_as_hash_aa ($nbr_group);
+                $subset_bd->add_elements_collated (
+                    data => {$nbr_group => $tmp},
+                    csv_object => $csv_object,
+                    allow_empty_groups => 1,
+                );
+            }
+            #  tests don't trigger index-related errors,
+            #  but we need to play safe nonetheless
+            $subset_bd->rebuild_spatial_index;
+            $cached_subset_basedatas->{$group} = $subset_bd;
+        }
+        
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $subset_bd,
+            function => $args{randomise_group_props_by},
+            rand_object => $rand_object,
+        );
+        my $subset_rand = $subset_bd->add_randomisation_output (name => $self->get_name);
+        my $subset_rand_bd = $subset_rand->$rand_function (
+            %args,
+            rand_object  => $rand_object,
+            basedata_ref => $subset_bd,
+        );
+        say 'Merging basedata ' . $subset_rand_bd->get_name . ' into ' . $new_bd->get_name;
+        $new_bd->merge (from => $subset_rand_bd);
+
+        #  keep the cached version clean of outputs
+        $subset_bd->delete_all_outputs;
+    }
 
     return $new_bd;
 }

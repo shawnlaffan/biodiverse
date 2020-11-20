@@ -22,22 +22,28 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install GDAL and its deps
-        run: brew install gdal
-        
       - name: Set up Perl
         run: |
           brew install perl
-          curl https://cpanmin.us | perl - App::cpanminus -n
           echo "{/Users/runner/perl5/bin}" >> $GITHUB_PATH
+          mkdir -p ~/bin
+          cd ~/bin
+          curl -L https://cpanmin.us/ -o cpanm
+          chmod +x cpanm
+          echo "{~/bin}" >> $GITHUB_PATH
+          which perl
+          which cpanm
 
+      - name: Install GDAL and its deps
+        run: brew install gdal
+        
       - name: perl -V
         run: perl -V
 
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20201023' >> perlversion.txt
+          echo '20201120' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules
@@ -51,6 +57,7 @@ jobs:
       - name: Install Dynamic Dependencies
         run: |
           # cpanm --notest IO::Socket::SSL
+          cpanm --notest FFI::Platypus::Declare
           cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           cpanm --installdeps .

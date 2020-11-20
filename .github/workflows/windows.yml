@@ -26,15 +26,28 @@ jobs:
       - name: Set up Perl
         run: |
           choco install strawberryperl
-          echo "{C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin}" >> $GITHUB_PATH
-  
+          echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          ##echo $env:PATH
+
+      #- name: Check path
+      #  run: |
+      #    echo $env:PATH
+      #    echo "glargglarg"
+      #    echo $GITHUB_PATH
+      #    echo "zogzogzog"
+      #    $env:PATH = "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH"
+      #    echo $env:PATH
+      #    echo "zigzig"
+      #    echo "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH" > $GITHUB_PATH
+      #    echo $GITHUB_PATH
+    
       - name: perl -V
         run: perl -V
         
       - name: Prepare for CPAN cache
         run: |
           perl -V > perlversion.txt
-          echo "20201023" >> perlversion.txt
+          echo "20201120" >> perlversion.txt
           dir perlversion.txt
 
       - name: Cache CPAN modules
@@ -61,6 +74,7 @@ jobs:
 
       #- name: Install Dependencies
       #  run: curl -sL https://git.io/cpm | perl - install -g --show-build-log-on-failure
+
   
       - name: Install dependencies 1
         run: |
@@ -82,6 +96,7 @@ jobs:
 
       - name: Install dependencies Alien::sqlite
         run: |
+          echo $env:PATH
           cpanm -v Alien::sqlite~1.05
 
       - name: Install dependencies Alien::proj
@@ -96,7 +111,13 @@ jobs:
       - name: Install dependencies Alien::gdal
         run: |
           cpanm --notest --installdeps Alien::gdal
+          echo "ALIEN_GDAL_CONFIG_ARGS=--with-hide_internal_symbols" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $env:ALIEN_GDAL_CONFIG_ARGS = "--with-hide-internal-symbols=yes --without-gnm"
+          Get-PSDrive C | Select-Object Used,Free
+          #  clunky path override
+          #  $env:PATH = "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH"
           cpanm -v Alien::gdal
+          Get-PSDrive C | Select-Object Used,Free
           
       - name: Install task deps
         run: |

@@ -523,6 +523,8 @@ sub run_randomisation {
             "Randomisation iteration $i of $iterations this run",
             ($i / $iterations),
         );
+        
+        my $start_time_get_rand_bd = [gettimeofday];
 
         my $rand_bd = eval {
             $self->get_randomised_basedata (
@@ -533,6 +535,9 @@ sub run_randomisation {
             );
         };
         croak $EVAL_ERROR if $EVAL_ERROR || ! defined $rand_bd;
+        
+        my $time_taken = sprintf "%.3f", tv_interval ($start_time_get_rand_bd);
+        say "[RANDOMISE] Time taken to randomise basedata: $time_taken seconds";
 
         $rand_bd->rename (
             name => join ('_', $bd->get_param ('NAME'), $function, $$total_iterations),

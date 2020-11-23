@@ -41,6 +41,7 @@ sub get_common_independent_swaps_metadata {
          type       => 'integer',
          default    => 0,
          increment  => 1,
+         max        => 2**31-1,
          tooltip    => $tooltip_swap_count,
          box_group  => 'Independent swaps',
         },
@@ -48,6 +49,7 @@ sub get_common_independent_swaps_metadata {
          type       => 'integer',
          default    => 0,
          increment  => 1,
+         max        => 2**31-1,
          tooltip    => $tooltip_map_swap_attempts,
          box_group  => 'Independent swaps',
         },
@@ -216,6 +218,13 @@ END_PROGRESS_TEXT
            && $moved_pairs < $non_zero_mx_cells
            ) {
         $attempts++;
+        
+        $progress_bar->update (
+              "Swap count: $swap_count\n(target: $target_swap_count)\n"
+            . "Swap attempts: $attempts\n(max: $max_swap_attempts)\n"
+            . ($moved_pairs ? "Pairs moved: $moved_pairs\n(target: $non_zero_mx_cells)" : ''),
+            $swap_count / $target_swap_count,
+        );
 
         #  weight by ranges
         my $label1 = $sorted_labels[$label_sampler->draw];
@@ -435,6 +444,13 @@ END_PROGRESS_TEXT
            && $moved_pairs < $non_zero_mx_cells
            ) {
         $attempts++;
+        
+        $progress_bar->update (
+              "Swap count: $swap_count\n(target: $target_swap_count)\n"
+            . "Swap attempts: $attempts\n(max: $max_swap_attempts)\n"
+            . ($moved_pairs ? "Pairs moved: $moved_pairs\n(target: $non_zero_mx_cells)" : ''),
+            $swap_count / $target_swap_count,
+        );
 
         my $label1 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
         next MAIN_ITER if $has_max_range{$label1};

@@ -444,13 +444,6 @@ END_PROGRESS_TEXT
            && $moved_pairs < $non_zero_mx_cells
            ) {
         $attempts++;
-        
-        $progress_bar->update (
-              "Swap count: $swap_count\n(target: $target_swap_count)\n"
-            . "Swap attempts: $attempts\n(max: $max_swap_attempts)\n"
-            . ($moved_pairs ? "Pairs moved: $moved_pairs\n(target: $non_zero_mx_cells)" : ''),
-            $swap_count / $target_swap_count,
-        );
 
         my $label1 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
         next MAIN_ITER if $has_max_range{$label1};
@@ -498,8 +491,17 @@ END_PROGRESS_TEXT
         #  group2 moves to label1, group1 moves to label2
         $gp_hash{$label1}->{$group2} = delete $gp_hash{$label2}->{$group2};
         $gp_hash{$label2}->{$group1} = delete $gp_hash{$label1}->{$group1};
-        
+
         $swap_count++;
+
+        #  update here as otherwise we spend a huge amount
+        #  of time running the progress bar
+        $progress_bar->update (
+              "Swap count: $swap_count\n(target: $target_swap_count)\n"
+            . "Swap attempts: $attempts\n(max: $max_swap_attempts)\n"
+            . ($moved_pairs ? "Pairs moved: $moved_pairs\n(target: $non_zero_mx_cells)" : ''),
+            $swap_count / $target_swap_count,
+        );
     }
 
     

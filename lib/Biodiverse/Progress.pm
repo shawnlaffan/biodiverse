@@ -78,15 +78,18 @@ sub update {
     return if $self->{gui_only} && !$self->{gui_progress};
 
     #  make it tolerant
-    $progress = max (0, min (1, $progress));
+    #$progress = max (0, min (1, $progress));
+    $progress = $progress < 0 ? 0 : $progress > 1 ? 1 : $progress;
 
     if ($self->{gui_progress}) {
         eval {$self->{gui_progress}->update ($text, $progress)};
-        if ( Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
-            $EVAL_ERROR->rethrow;
-        }
-        elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
-            $EVAL_ERROR->rethrow;
+        if ( $EVAL_ERROR ) {
+            if (Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
+                $EVAL_ERROR->rethrow;
+            }
+            elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
+                $EVAL_ERROR->rethrow;
+            }
         }
     }
 

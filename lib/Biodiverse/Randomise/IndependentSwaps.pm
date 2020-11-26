@@ -14,8 +14,7 @@ use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
 use List::Util qw /max/;
 #use List::MoreUtils qw /bsearchidx/;
-use Statistics::Sampler::Multinomial 0.85;
-use Sort::Key::Natural qw /natsort/;
+use Statistics::Sampler::Multinomial 0.87;
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -96,6 +95,7 @@ sub rand_independent_swaps_modified {
     my $start_time = [gettimeofday];
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
+    my $lb = $bd->get_labels_ref;
 
     my $name = $self->get_param ('NAME');
 
@@ -133,7 +133,6 @@ END_PROGRESS_TEXT
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
     
-    my $lb = $bd->get_labels_ref;
     my @sorted_label_ranges 
       = map {$lb->get_variety_aa($_)} 
         @sorted_labels;
@@ -159,10 +158,20 @@ END_PROGRESS_TEXT
         $gp_list{$label} = List::Unique::DeterministicOrder->new (
             data => [sort keys %$group_hash],
         );
-        #@{$lb_gp_moved{$label}}{keys %$group_hash} = undef; 
-        my $shadow_hash = $bd->get_groups_without_label_as_hash(label => $label);
+        my $gp_shadow_data
+          = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_DATA => {});
+        $gp_shadow_data->{$label}
+          //= do {
+            my $shadow_hash
+              = $bd->get_groups_without_label_as_hash(label => $label);
+              [ #  disable range sort - it biases S::M::S::draw1 
+                sort # {$richness_hash{$b} <=> $richness_hash{$a}}
+                grep {!exists $empty_groups{$_}}
+                keys %$shadow_hash
+              ];
+          };
         $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
-            data => [sort grep {!exists $empty_groups{$_}} keys %$shadow_hash],
+            data => [@{$gp_shadow_data->{$label}}],
         );
         if ($gp_shadow_list{$label}->keys) {
             $gp_shadow_sampler{$label} = Statistics::Sampler::Multinomial->new (
@@ -227,7 +236,7 @@ END_PROGRESS_TEXT
         );
 
         #  weight by ranges
-        my $label1 = $sorted_labels[$label_sampler->draw];
+        my $label1 = $sorted_labels[$label_sampler->draw1];
 
         #  is this label swappable?
         next MAIN_ITER if $has_max_range{$label1};
@@ -236,7 +245,7 @@ END_PROGRESS_TEXT
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
         #  select from groups not containing $label1
-        my $iter   = $gp_shadow_sampler{$label1}->draw;
+        my $iter   = $gp_shadow_sampler{$label1}->draw1;
         my $group2 = $gp_shadow_list{$label1}->get_key_at_pos($iter);
 
         #  select a random label from group2

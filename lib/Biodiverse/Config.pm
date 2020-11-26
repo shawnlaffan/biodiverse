@@ -71,7 +71,6 @@ BEGIN {
         Text::Fuzzy
         Data::Structure::Util
         Data::Compare
-        Text::Levenshtein
         List::Unique::DeterministicOrder
         Sort::Key::Natural
     /;

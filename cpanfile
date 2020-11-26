@@ -1,12 +1,11 @@
 requires "Alien::Build";
 requires 'Path::Class';
 requires 'Sort::Key::Natural';
-requires 'List::Unique::DeterministicOrder';
 requires 'Ref::Util';
-requires 'Scalar::Util::Numeric';
-requires 'Task::Biodiverse::NoGUI', '1.0001';
+#requires 'Scalar::Util::Numeric';
+#requires 'Task::Biodiverse::NoGUI', '1.0001';
 requires 'Text::Fuzzy';
-requires 'Text::Levenshtein';  #  should replace by Text::Fuzzy
+#requires 'Text::Levenshtein';  #  should replace by Text::Fuzzy
 
 requires "Data::DumpXML";
 requires "Math::Random::MT::Auto", "6.21";
@@ -26,19 +25,18 @@ requires "Geo::Converter::dms2dd", "0.05";
 requires "Text::Wrapper";
 requires "Exporter::Easy";
 requires "Exception::Class";
-requires "Math::Polygon";
 requires "File::BOM";
 requires "Math::Polygon";
 requires "Path::Class";
 requires "Tree::R";
 requires "Geo::ShapeFile", "2.60",
-requires "Geo::Shapefile::Writer";
+#requires "Geo::Shapefile::Writer";
 requires "List::MoreUtils", "0.425",
 requires "List::Util", "1.45";
 requires "Class::Inspector";
 requires "autovivification", "0.16";
-requires "List::BinarySearch", "0.25";
-requires "List::BinarySearch::XS", "0.09";
+#requires "List::BinarySearch", "0.25";
+#requires "List::BinarySearch::XS", "0.09";
 requires "Spreadsheet::Read", "0.82";
 requires "Spreadsheet::ReadSXC", "0.28";
 requires "Spreadsheet::ParseExcel";
@@ -50,10 +48,10 @@ requires "JSON::MaybeXS", "1.003";
 requires "Sort::Key::Natural";
 requires "Text::Fuzzy";
 requires "Ref::Util", "0.101";
-requires "Data::Structure::Util";
+#requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
-requires "Statistics::Sampler::Multinomial", 0.85;
+requires "Statistics::Sampler::Multinomial", 0.87;
 requires "List::Unique::DeterministicOrder";
 
 requires "Test2::Suite";
@@ -70,7 +68,7 @@ suggests "Panda::Lib";
 test_requires => sub {
     requires "Data::Section::Simple";
     requires "Test::Deep";
-    requires "Test::NoWarnings";
+    #requires "Test::NoWarnings";
     requires "Perl::Tidy";
     requires "Test::Most";
     requires "Devel::Symdump";

@@ -156,7 +156,13 @@ END_PROGRESS_TEXT
         %lb_gp_moved,
     );
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
+    my $done_count = 0;
     foreach my $label (@sorted_labels) {
+        $done_count++;
+        $progress_bar->update (
+            "Running rand_independent_swaps_modified setup",
+            $done_count / @sorted_labels,
+        );
         my $group_hash = $bd->get_groups_with_label_as_hash_aa($label);
         $non_zero_mx_cells += scalar keys %$group_hash;
         $gp_hash{$label} = {%$group_hash};

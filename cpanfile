@@ -51,7 +51,7 @@ requires "Ref::Util", "0.101";
 #requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
-requires "Statistics::Sampler::Multinomial", 0.87;
+requires "Statistics::Sampler::Multinomial", '1.00';
 requires "List::Unique::DeterministicOrder";
 
 requires "Test2::Suite";

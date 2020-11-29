@@ -14,7 +14,10 @@ use List::Unique::DeterministicOrder;
 use Scalar::Util qw /blessed looks_like_number/;
 use List::Util qw /max/;
 #use List::MoreUtils qw /bsearchidx/;
-use Statistics::Sampler::Multinomial 0.87;
+use Statistics::Sampler::Multinomial 1.00;
+use Statistics::Sampler::Multinomial::Indexed 1.00;
+
+my $multinomial_class = 'Statistics::Sampler::Multinomial::Indexed';
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
@@ -136,10 +139,12 @@ END_PROGRESS_TEXT
     my @sorted_label_ranges 
       = map {$lb->get_variety_aa($_)} 
         @sorted_labels;
-    my $label_sampler = Statistics::Sampler::Multinomial->new(
+    #  cloning is slower than direct generation
+    my $label_sampler = $multinomial_class->new(
         data => \@sorted_label_ranges,
         prng => $rand,
     );
+    
     my %richness_hash 
       = map {$_ => $bd->get_richness_aa ($_)} 
         @sorted_groups;
@@ -174,10 +179,10 @@ END_PROGRESS_TEXT
             data => [@{$gp_shadow_data->{$label}}],
         );
         if ($gp_shadow_list{$label}->keys) {
-            $gp_shadow_sampler{$label} = Statistics::Sampler::Multinomial->new (
-                prng => $rand,
-                data => [@richness_hash{$gp_shadow_list{$label}->keys}],
-            );
+          $gp_shadow_sampler{$label} = $multinomial_class->new (
+              prng => $rand,
+              data => [@richness_hash{$gp_shadow_list{$label}->keys}],
+          );
         }
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
@@ -236,7 +241,7 @@ END_PROGRESS_TEXT
         );
 
         #  weight by ranges
-        my $label1 = $sorted_labels[$label_sampler->draw1];
+        my $label1 = $sorted_labels[$label_sampler->draw];
 
         #  is this label swappable?
         next MAIN_ITER if $has_max_range{$label1};
@@ -245,7 +250,7 @@ END_PROGRESS_TEXT
             int $rand->rand (scalar $gp_list{$label1}->keys)
         );
         #  select from groups not containing $label1
-        my $iter   = $gp_shadow_sampler{$label1}->draw1;
+        my $iter   = $gp_shadow_sampler{$label1}->draw;
         my $group2 = $gp_shadow_list{$label1}->get_key_at_pos($iter);
 
         #  select a random label from group2

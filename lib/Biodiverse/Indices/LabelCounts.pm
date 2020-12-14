@@ -46,6 +46,9 @@ sub get_metadata_calc_local_sample_count_quantiles {
     return $metadata_class->new(\%metadata);
 }
 
+#  make this a state var when 5.28 is the min
+my @quantiles = (grep {!($_ % 5)} (0..100));
+
 sub calc_local_sample_count_quantiles {
     my $self = shift;
     my %args = @_;  #  rest of args into a hash
@@ -63,8 +66,6 @@ sub calc_local_sample_count_quantiles {
     if (scalar keys %$label_hash2) {
         @type_hash{qw /SET1 SET2/} = ($label_hash1, $label_hash2);
     }
-    
-    state @quantiles = (grep {!($_ % 5)} (0..100));
 
   SUFFIX:
     foreach my $type (sort keys %type_hash) {

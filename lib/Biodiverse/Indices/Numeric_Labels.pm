@@ -223,6 +223,10 @@ sub get_metadata_calc_numeric_label_quantiles {
     return $metadata_class->new(\%metadata);
 }
 
+#  make these state vars when 5.28 is the min
+my @quantiles = grep {!($_ % 5)} (1..95);
+my @qlabels   = map {sprintf "NUM_Q%03u", $_} @quantiles;
+
 sub calc_numeric_label_quantiles {
     my $self = shift;
     my %args = @_;
@@ -236,10 +240,7 @@ sub calc_numeric_label_quantiles {
     }
 
     #  get the quantiles
-    state @quantiles = grep {!($_ % 5)} (1..95);
-    state @labels    = map {sprintf "NUM_Q%03u", $_} @quantiles;
-
-    @results{@labels} = $stats->percentiles(@quantiles);
+    @results{@qlabels} = $stats->percentiles(@quantiles);
 
     return wantarray ? %results : \%results;
 }

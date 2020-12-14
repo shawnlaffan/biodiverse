@@ -660,11 +660,14 @@ sub _get_ace_variance {
 
     #  precalculate the differentials and covariances
     my (%diff, %cov);
-    foreach my $i (sort {$a <=> $b} keys %$freq_counts) {
+    my @sorted = sort {$a <=> $b} keys %$freq_counts;
+    foreach my $i (@sorted) {
         $diff{$i} = $self->_get_ace_differential (%args, f => $i);
-        foreach my $j (sort {$a <=> $b} keys %$freq_counts) {
-            $cov{$i}{$j} = $cov{$j}{$i}
-              // $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+        foreach my $j (@sorted) {
+            $cov{$i}{$j}
+              //= $cov{$j}{$i}
+              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+            last if $i == $j;
         }
     }
 
@@ -690,11 +693,14 @@ sub _get_ice_variance {
 
     #  precalculate the differentials and covariances
     my (%diff, %cov);
-    foreach my $i (sort {$a <=> $b} keys %$freq_counts) {
+    my @sorted = sort {$a <=> $b} keys %$freq_counts;
+    foreach my $i (@sorted) {
         $diff{$i} = $self->_get_ice_differential (%args, f => $i);
-        foreach my $j (sort {$a <=> $b} keys %$freq_counts) {
-            $cov{$i}{$j} = $cov{$j}{$i}
-              // $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+        foreach my $j (@sorted) {
+            $cov{$i}{$j}
+              //= $cov{$j}{$i}
+              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+            last if $i == $j;
         }
     }
 
@@ -714,20 +720,13 @@ sub _get_ice_variance {
 
 #  common to ACE and ICE
 sub _get_ace_ice_cov {
-    my $self = shift;
-    my %args = @_;
+    my ($self, %args) = @_;
     my ($i, $j, $s_ice) = @args{qw/i j s_estimate/};
     my $Q = $args{freq_counts};
 
-    my $covf;
-    if ($i == $j) {
-        $covf = $Q->{$i} * (1 - $Q->{$i} / $s_ice);
-    }
-    else {
-        $covf = -1 * $Q->{$i} * $Q->{$j} / $s_ice;
-    }     
-
-    return $covf;
+    return $i == $j
+      ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
+      : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
 }
 
 

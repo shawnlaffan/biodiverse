@@ -1384,7 +1384,7 @@ sub calc_pe_single {
 
     foreach my $node_name (keys %$node_ranges) {
         my $range    = $node_ranges->{$node_name};
-        my $node_ref = $tree->get_node_ref (node => $node_name);
+        my $node_ref = $tree->get_node_ref_aa ($node_name);
         #$wts{$node_name} = $node_ref->get_length;
         $pe_single += $node_ref->get_length / $range;
     }

@@ -273,6 +273,31 @@ sub percentile {
       : $val;
 }
 
+sub percentiles {
+    my ($self, @percentiles) = @_;
+
+    my $count = $self->count;
+    return if ! $count; #  no records, return undef
+  
+    $self->sort_data() if ! $self->presorted;
+
+    my @vals;
+    #  does not check for non-numeric, so don't pass them...
+    foreach my $percentile (@percentiles) {
+        $percentile
+          = $percentile > 100 ? 100
+          : $percentile < 0   ? 0
+          : $percentile;
+
+        my $index = int (0.5 + ($count - 1) * $percentile / 100);
+    
+        #  a bit risky - depends on Statistics::Descriptive internals
+        push @vals, $self->_data->[$index];
+    }
+
+    return wantarray ? @vals : \@vals;
+}
+
 sub percentile_RFC2330 {
     my $self = shift;
     return $self->SUPER::percentile (@_);

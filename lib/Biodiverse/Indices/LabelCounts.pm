@@ -2,6 +2,8 @@ package Biodiverse::Indices::LabelCounts;
 
 use strict;
 use warnings;
+use 5.022;
+
 
 our $VERSION = '3.1';
 
@@ -9,14 +11,6 @@ use Biodiverse::Statistics;
 
 my $stats_class    = 'Biodiverse::Statistics';
 my $metadata_class = 'Biodiverse::Metadata::Indices';
-
-
-# should be a state var inside the sub?
-my @QUANTILES;
-for my $i (0 .. 100) {
-    next if $i % 5;
-    push @QUANTILES, $i;
-}
 
 
 sub get_metadata_calc_local_sample_count_quantiles {
@@ -69,6 +63,8 @@ sub calc_local_sample_count_quantiles {
     if (scalar keys %$label_hash2) {
         @type_hash{qw /SET1 SET2/} = ($label_hash1, $label_hash2);
     }
+    
+    state @quantiles = (grep {!($_ % 5)} (0..100));
 
   SUFFIX:
     foreach my $type (sort keys %type_hash) {
@@ -77,7 +73,7 @@ sub calc_local_sample_count_quantiles {
         my $type_key = 'ABC3_QUANTILES_' . $type;
         my $stats = $stats_class->new;
         $stats->add_data ([values %$hash]);
-        foreach my $q (@QUANTILES) {
+        foreach my $q (@quantiles) {
             my $hash_key = sprintf 'Q%03i', $q;
             $results{$type_key}{$hash_key} = scalar $stats->percentile($q)
         }

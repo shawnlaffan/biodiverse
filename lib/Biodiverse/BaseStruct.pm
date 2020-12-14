@@ -24,6 +24,9 @@ use Time::localtime;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 
+use constant HAVE_DATA_RECURSIVE
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
+
 our $VERSION = '3.1';
 
 my $EMPTY_STRING = q{};
@@ -1078,8 +1081,8 @@ sub add_to_lists {  #  add to a list, create if not already there.
     croak "Cannot add list to non-existent element $element"
       if !exists $self->{ELEMENTS}{$element};
 
-    my $use_ref = $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
-    delete $args{use_ref};  #  should it be in its own sub?
+    my $use_ref = delete $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
+    #delete $args{use_ref};  #  should it be in its own sub?
 
     foreach my $list_name (keys %args) {
         my $list_values = $args{$list_name};
@@ -1088,7 +1091,12 @@ sub add_to_lists {  #  add to a list, create if not already there.
         }
         elsif (is_hashref($list_values)) {  #  slice assign
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= {});
-            @$listref{keys %$list_values} = values %$list_values;
+            if (HAVE_DATA_RECURSIVE) {
+                Data::Recursive::hash_merge ($listref, $list_values);
+            }
+            else {
+                @$listref{keys %$list_values} = values %$list_values;
+            }
         }
         elsif (is_arrayref($list_values)) {
             my $listref = ($self->{ELEMENTS}{$element}{$list_name} //= []);

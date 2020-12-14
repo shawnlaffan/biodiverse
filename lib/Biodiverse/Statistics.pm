@@ -309,8 +309,8 @@ sub iqr {
 
     return undef if !$self->count;
 
-    my $q25 = $self->percentile(25);
-    my $q75 = $self->percentile(75);
+    my ($q25, $q75) = $self->percentiles(25, 75);
+    #my $q75 = $self->percentile(75);
     
     return $q75 - $q25;
 }

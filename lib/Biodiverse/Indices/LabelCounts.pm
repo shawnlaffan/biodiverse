@@ -133,10 +133,10 @@ sub calc_label_count_quantile_position {
         my $label_hash = $bd->get_labels_in_group_as_hash_aa ($el);
 
         foreach my $label (keys %label_count_arrays) {
-            no autovivification;
-            my $count = $label_hash->{$label} // 0;  # absence means zero
-            my $array = $label_count_arrays{$label};
-            push @$array, $count;
+            # absence means zero
+            push
+              @{$label_count_arrays{$label}},
+              $label_hash->{$label} // 0;
         }
     }
 
@@ -144,7 +144,6 @@ sub calc_label_count_quantile_position {
 
   LABEL:
     foreach my $label (keys %label_count_arrays) {
-        no autovivification;
 
         my $val_array = $label_count_arrays{$label};
         my $quant_pos;

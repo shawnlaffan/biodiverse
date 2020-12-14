@@ -3,7 +3,7 @@ package Biodiverse::GUI::Popup;
 use strict;
 use warnings;
 
-use Data::Dumper;
+#use Data::Dumper;
 use Carp;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 

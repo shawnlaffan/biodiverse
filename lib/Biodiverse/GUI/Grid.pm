@@ -9,7 +9,7 @@ package Biodiverse::GUI::Grid;
 use 5.010;
 use strict;
 use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;

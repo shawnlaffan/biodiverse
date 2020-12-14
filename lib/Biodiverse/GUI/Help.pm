@@ -6,7 +6,7 @@ use Carp;
 
 use Gtk2;
 
-use Data::Dumper;
+#use Data::Dumper;
 use Browser::Start qw( open_url );
 
 use English qw { -no_match_vars };

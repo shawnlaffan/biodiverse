@@ -12,7 +12,7 @@ use Glib qw (TRUE FALSE);
 use Gtk2;
 use Carp;
 use Time::HiRes qw/time/;
-use Data::Dumper;
+#use Data::Dumper;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;

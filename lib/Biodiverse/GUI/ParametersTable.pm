@@ -64,7 +64,7 @@ our $VERSION = '3.1';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
-use Data::Dumper;
+#use Data::Dumper;
 
 
 sub new {

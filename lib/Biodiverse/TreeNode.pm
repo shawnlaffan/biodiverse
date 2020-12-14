@@ -13,7 +13,7 @@ use Ref::Util qw { :all };
 
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
-use Data::Dumper qw/Dumper/;
+#use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
 use Readonly;

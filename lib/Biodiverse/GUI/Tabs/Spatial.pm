@@ -25,7 +25,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 use Biodiverse::Spatial;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 
-use Data::Dumper;
+#use Data::Dumper;
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab

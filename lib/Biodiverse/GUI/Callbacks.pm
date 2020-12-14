@@ -13,7 +13,7 @@ use constant FALSE => 0;
 use constant TRUE  => 1;
 
 use Gtk2;
-use Data::Dumper;
+#use Data::Dumper;
 require Biodiverse::GUI::GUIManager;
 require Biodiverse::GUI::Help;
 

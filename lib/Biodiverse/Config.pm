@@ -26,7 +26,7 @@ our @EXPORT = qw /use_base add_lib_paths/;
 #our %base_packages;
 
 use Carp;
-use Data::Dumper qw /Dumper/;
+#use Data::Dumper qw /Dumper/;
 use FindBin qw ( $Bin );
 use Path::Class;
 

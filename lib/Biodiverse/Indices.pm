@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 #use Devel::Symdump;
-use Data::Dumper;
+#use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
 use List::Util qw /sum/;

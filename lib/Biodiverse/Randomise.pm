@@ -13,7 +13,7 @@ use List::Unique::DeterministicOrder;
 
 
 #use Devel::Symdump;
-use Data::Dumper qw { Dumper };
+#use Data::Dumper qw { Dumper };
 use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
@@ -264,6 +264,8 @@ sub export_prng_init_state {
 
     my $filename = $args{file};
 
+    use Data::Dumper ();
+    
     my $fh = $self->get_file_handle (file_name => $filename, mode => '>');
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;
@@ -296,6 +298,7 @@ sub export_prng_current_state {
 
     my $filename = $args{file};
 
+    use Data::Dumper ();
     my $fh = $self->get_file_handle (file_name => $filename, mode => '>');
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh->close;

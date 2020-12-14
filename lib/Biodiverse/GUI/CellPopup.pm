@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Data::Dumper;
+#use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 use Sort::Key::Natural qw /natsort/;

@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use English ( -no_match_vars );
 
-use Data::Dumper;
+#use Data::Dumper;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce min max/;

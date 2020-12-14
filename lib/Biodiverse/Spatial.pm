@@ -7,7 +7,7 @@ use warnings;
 use Carp;
 use English qw { -no_match_vars };
 
-use Data::Dumper;
+#use Data::Dumper;
 use Scalar::Util qw /weaken blessed/;
 use List::MoreUtils qw /firstidx lastidx/;
 use List::Util 1.45 qw /first uniq/;

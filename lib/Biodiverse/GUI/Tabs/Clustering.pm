@@ -30,7 +30,7 @@ our $VERSION = '3.1';
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
 
-use Data::Dumper;
+#use Data::Dumper;  
 
 use parent qw {Biodiverse::GUI::Tabs::Tab};
 

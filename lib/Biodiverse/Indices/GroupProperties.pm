@@ -201,8 +201,6 @@ sub get_metadata_calc_gpprop_hashes {
         uses_nbr_lists  => 1,
         indices         => \%indices,
     );
-    
-    #print Data::Dumper::Dump \%arguments;
 
     return $metadata_class->new(\%metadata);
 }

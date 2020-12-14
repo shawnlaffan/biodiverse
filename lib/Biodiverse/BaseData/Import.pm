@@ -10,7 +10,7 @@ use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;
 use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;

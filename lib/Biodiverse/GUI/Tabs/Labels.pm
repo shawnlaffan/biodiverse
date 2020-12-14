@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-use Data::Dumper;
+#use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
 use List::MoreUtils qw /firstidx any/;

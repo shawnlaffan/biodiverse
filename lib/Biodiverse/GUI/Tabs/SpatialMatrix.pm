@@ -17,7 +17,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 
 use Biodiverse::Matrix;  #  needed?
-use Data::Dumper;
+#use Data::Dumper;
 
 use parent qw {
     Biodiverse::GUI::Tabs::Spatial

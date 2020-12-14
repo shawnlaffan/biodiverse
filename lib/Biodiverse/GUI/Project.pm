@@ -29,8 +29,7 @@ our @EXPORT = qw(
   MODEL_OUTPUT_TYPE
 );
 
-use Data::DumpXML::Parser;
-use Storable;
+#use Storable ();
 
 #use Geo::Shapelib;
 use Geo::ShapeFile;

@@ -12,7 +12,7 @@ use English ( -no_match_vars );
 use constant ON_WINDOWS => ($OSNAME eq 'MSWin32'); 
 use if ON_WINDOWS, 'Win32::LongPath';
 
-use Data::Dumper  qw /Dumper/;
+#use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 #use YAML::XS;
 use Text::CSV_XS;
@@ -468,6 +468,7 @@ sub _delete_params_all {
 
 sub print_params {
     my $self = shift;
+    use Data::Dumper ();
     print Data::Dumper::Dumper ($self->{PARAMS});
 
     return;
@@ -478,41 +479,46 @@ sub increment_param {
     $self->{PARAMS}{$param} += $value;
 }
 
+
+###  Disable this - user defined params have not been needed for a long time
+###  In the original spec we could allow overrides for sep chars and the like
+###  but that way leads to madness.  
 #  Load a hash of any user defined default params
 our %user_defined_params;
-BEGIN {
+#BEGIN {
 
     #  load user defined indices, but only if the ignore flag is not set
-    if (     exists $ENV{BIODIVERSE_DEFAULT_PARAMS}
-        && ! $ENV{BIODIVERSE_DEFAULT_PARAMS_IGNORE}) {
-        print "[COMMON] Checking and loading user defined globals";
-        my $x;
-        if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
-            print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
-            local $/ = undef;
-            open (my $fh, '<', $ENV{BIODIVERSE_DEFAULT_PARAMS});
-            $x = eval (<$fh>);
-            close ($fh);
-        }
-        else {
-            print " directly from environment variable\n";
-            $x = eval "$ENV{BIODIVERSE_DEFAULT_PARAMS}";
-        }
-        if ($@) {
-            my $msg = "[COMMON] Problems with environment variable "
-                    . "BIODIVERSE_DEFAULT_PARAMS "
-                    . " - check the filename or syntax\n"
-                    . $@
-                    . "\n$ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
-            croak $msg;
-        }
-        print "Default parameters are:\n", Data::Dumper::Dumper ($x);
-
-        if (is_hashref($x)) {
-            @user_defined_params{keys %$x} = values %$x;
-        }
-    }
-}
+    #if (     exists $ENV{BIODIVERSE_DEFAULT_PARAMS}
+    #    && ! $ENV{BIODIVERSE_DEFAULT_PARAMS_IGNORE}) {
+    #    print "[COMMON] Checking and loading user defined globals";
+    #    my $x;
+    #    if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
+    #        print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
+    #        local $/ = undef;
+    #        open (my $fh, '<', $ENV{BIODIVERSE_DEFAULT_PARAMS});
+    #        $x = eval (<$fh>);
+    #        close ($fh);
+    #    }
+        #else {
+        #    print " directly from environment variable\n";
+        #    $x = eval "$ENV{BIODIVERSE_DEFAULT_PARAMS}";
+        #}
+    #    if ($@) {
+    #        my $msg = "[COMMON] Problems with environment variable "
+    #                . "BIODIVERSE_DEFAULT_PARAMS "
+    #                . " - check the filename or syntax\n"
+    #                . $@
+    #                . "\n$ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
+    #        croak $msg;
+    #    }
+    #    use Data::Dumper ();
+    #    print "Default parameters are:\n", Data::Dumper::Dumper ($x);
+    #
+    #    if (is_hashref($x)) {
+    #        @user_defined_params{keys %$x} = values %$x;
+    #    }
+    #}
+#}
 
 #  assign any user defined default params
 #  a bit risky as it allows anything to be overridden

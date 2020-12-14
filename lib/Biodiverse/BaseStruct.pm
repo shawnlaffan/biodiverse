@@ -13,7 +13,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-use Data::Dumper;
+#use Data::Dumper ();
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum any/;
 use List::MoreUtils qw /first_index/;
@@ -435,9 +435,11 @@ sub generate_element_coords {
         my $cell_sizes = $self->get_cell_sizes;
         #my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
         my $element_array = eval {$self->get_element_name_as_array (element => $element)};
-        if ($EVAL_ERROR) {
+        if (my $e = $EVAL_ERROR) {
+            use Data::Dumper ();
             print "PRIBBLEMMS";
             say Data::Dumper::Dump $self->{ELEMENTS}{$element};
+            say $e;
         }
         
 

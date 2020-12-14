@@ -3,7 +3,7 @@ package Biodiverse::GUI::Overlays;
 use strict;
 use warnings;
 use Gtk2;
-use Data::Dumper;
+#use Data::Dumper;
 use Geo::ShapeFile;
 
 our $VERSION = '3.1';

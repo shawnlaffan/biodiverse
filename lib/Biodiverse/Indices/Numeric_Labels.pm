@@ -1,7 +1,7 @@
 package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
-use 5.010;
+use 5.022;
 
 use List::Util qw /sum min max/;
 #use List::MoreUtils qw /apply pairwise/;
@@ -236,15 +236,12 @@ sub calc_numeric_label_quantiles {
     }
 
     #  get the quantiles
-    #my $null;
-    for (my $quantile = 5; $quantile <= 95; $quantile += 5) {
-        my $label = sprintf "NUM_Q%03u", $quantile;
-        $results{$label} = $stats->percentile($quantile);
-    }
+    state @quantiles = grep {!($_ % 5)} (1..95);
+    state @labels    = map {sprintf "NUM_Q%03u", $_} @quantiles;
 
-    return wantarray
-            ? %results
-            : \%results;
+    @results{@labels} = $stats->percentiles(@quantiles);
+
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_numeric_label_data {

@@ -185,16 +185,15 @@ sub calc_lbprop_quantiles_abc2 {
     my %args = @_;
 
     #  just grab the hash from the precalc results
-    my %objects = %{$args{LBPROP_STATS_OBJECTS_ABC2}};
+    my $objects = $args{LBPROP_STATS_OBJECTS_ABC2};
     my %res;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %$objects) {
         my $pfx = $prop;
         $pfx =~ s/DATA$/Q/;
         $pfx =~ s/^LBPROP_STATS_//;
-        foreach my $stat (@quantiles) {
-            $res{$pfx . $stat} = eval {$stats_object->percentile($stat)};
-        }
+        my @keys    = map {$pfx . $_} @quantiles;
+        @res{@keys} = $objects->{$prop}->percentiles(@quantiles);
     }
 
     my %results = (LBPROP_QUANTILES_ABC2 => \%res);

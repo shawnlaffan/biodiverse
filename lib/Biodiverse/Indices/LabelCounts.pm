@@ -11,10 +11,11 @@ my $stats_class    = 'Biodiverse::Statistics';
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 
-my @quantiles;
+# should be a state var inside the sub?
+my @QUANTILES;
 for my $i (0 .. 100) {
     next if $i % 5;
-    push @quantiles, $i;
+    push @QUANTILES, $i;
 }
 
 
@@ -62,21 +63,28 @@ sub calc_local_sample_count_quantiles {
 
     my %type_hash = (
         ALL  => $label_hash_all,
-        SET1 => $label_hash1,
-        SET2 => $label_hash2,
     );
+    #  avoid loops below
+    #  SET1 as is the same as ALL when there is no SET2
+    if (scalar keys %$label_hash2) {
+        @type_hash{qw /SET1 SET2/} = ($label_hash1, $label_hash2);
+    }
 
   SUFFIX:
-    foreach my $type (keys %type_hash) {
+    foreach my $type (sort keys %type_hash) {
         my $hash = $type_hash{$type};
-        next SUFFIX if ! scalar keys %$hash;
+        next SUFFIX if !scalar keys %$hash;
         my $type_key = 'ABC3_QUANTILES_' . $type;
         my $stats = $stats_class->new;
         $stats->add_data ([values %$hash]);
-        foreach my $q (@quantiles) {
+        foreach my $q (@QUANTILES) {
             my $hash_key = sprintf 'Q%03i', $q;
             $results{$type_key}{$hash_key} = scalar $stats->percentile($q)
         }
+    }
+    #  insert SET1 if it was not calculated
+    if (!$type_hash{SET2}) {
+        $results{ABC3_QUANTILES_SET1} = $results{ABC3_QUANTILES_ALL};
     }
 
     return wantarray ? %results : \%results;

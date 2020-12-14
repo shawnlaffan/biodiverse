@@ -76,10 +76,6 @@ sub calc_local_sample_count_quantiles {
         my $percentiles = $stats->percentiles(@quantiles);
         my @keys = map {sprintf 'Q%03i', $_} @quantiles;
         @{$results{$type_key}}{@keys} = @$percentiles;
-        #foreach my $q (@quantiles) {
-        #    my $hash_key = sprintf 'Q%03i', $q;
-        #    $results{$type_key}{$hash_key} = scalar $stats->percentile($q)
-        #}
     }
     #  insert SET1 if it was not calculated
     if (!$type_hash{SET2}) {

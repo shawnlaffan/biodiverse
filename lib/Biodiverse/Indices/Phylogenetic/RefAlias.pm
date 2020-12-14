@@ -6,6 +6,8 @@ our $VERSION = '3.1';
 
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
+use constant HAVE_DATA_RECURSIVE
+  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
 
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
@@ -107,7 +109,10 @@ sub _calc_pe {
         else {
             # ranges are invariant, so can be crashed together
             my $hash_ref = $results_this_gp->{PE_RANGELIST};
-            if (HAVE_PANDA_LIB) {
+            if (HAVE_DATA_RECURSIVE) {
+                Data::Recursive::hash_merge (\%ranges, $hash_ref, Data::Recursive::LAZY());
+            }
+            elsif (HAVE_PANDA_LIB) {
                 Panda::Lib::hash_merge (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
             }
             else {

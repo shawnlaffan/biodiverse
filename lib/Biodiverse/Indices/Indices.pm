@@ -1005,21 +1005,20 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         #$full_label_list = \%tmp2;
     }
 
-    my $n = 0;
-    foreach my $value (values %$full_label_list) {
-        $n += $value;
-    }
+    my $n = sum values %$full_label_list;
+    #0;
+    #foreach my $value (values %$full_label_list) {
+    #    $n += $value;
+    #}
 
-    my ($total_count, $qe) = (undef, undef);
+    my ($total_count, $qe);
     my (%done, %p_values);
 
     BY_LABEL1:
     foreach my $label1 (keys %{$full_label_list}) {
 
         #  save a few double calcs
-        if (! defined $p_values{$label1}) {
-            $p_values{$label1} = $full_label_list->{$label1} / $n;
-        }
+        $p_values{$label1} //= $full_label_list->{$label1} / $n;
 
         BY_LABEL2:
         foreach my $label2 (keys %{$full_label_list}) {
@@ -1033,15 +1032,11 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
             my $value = 1;
 
             if (defined $matrix) {
-                $value = $matrix->get_defined_value (
-                    element1 => $label1,
-                    element2 => $label2
-                );
-
-                #  trap self-self values not in matrix but don't override ones that are
-                if (! defined $value) {
-                    $value = $self_similarity;
-                }
+                $value
+                  = $matrix->get_defined_value_aa (
+                      $label1, $label2
+                    )
+                // $self_similarity;
             }
             elsif ($label1 eq $label2) {
                 $value = $self_similarity;
@@ -1054,15 +1049,13 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $done{$label1}++;
     }
 
-    my %results;
+    my %results = (
+        RAO_TLABELS => \%p_values,
+        RAO_TN      => (scalar keys %p_values) ** 2,
+        RAO_QE      => $qe,
+    );
 
-    $results{RAO_TLABELS}   = \%p_values;
-    $results{RAO_TN}        = (scalar keys %p_values) ** 2;
-    $results{RAO_QE}        = $qe;
-
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 ######################################################

@@ -12,6 +12,7 @@ use warnings;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use List::MoreUtils qw /uniq/;
+use List::Util qw /sum/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
 

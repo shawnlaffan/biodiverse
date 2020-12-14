@@ -72,7 +72,7 @@ sub calc_local_sample_count_quantiles {
         next SUFFIX if ! scalar keys %$hash;
         my $type_key = 'ABC3_QUANTILES_' . $type;
         my $stats = $stats_class->new;
-        $stats->add_data (values %$hash);
+        $stats->add_data ([values %$hash]);
         foreach my $q (@quantiles) {
             my $hash_key = sprintf 'Q%03i', $q;
             $results{$type_key}{$hash_key} = scalar $stats->percentile($q)

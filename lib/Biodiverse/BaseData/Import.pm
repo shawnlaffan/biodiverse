@@ -20,7 +20,7 @@ use Path::Class;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
-use Geo::ShapeFile;
+#use Geo::ShapeFile;
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;

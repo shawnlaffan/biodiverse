@@ -40,8 +40,8 @@ task:
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm FFI::Platypus::Declare
     - cpanm -v Geo::GDAL::FFI
-    - cpanm --notest Task::Biodiverse::NoGUI
-    - cpanm --installdeps .
+    #- cpanm --notest Task::Biodiverse::NoGUI
+    - cpanm --notest --installdeps .
     #- cpanm Path::Class
     #- cpanm Test::Lib
     #- cpanm rlib

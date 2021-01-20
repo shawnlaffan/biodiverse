@@ -31,7 +31,7 @@ before_install:
   #- cpanm --notest Alien::curl 
   #- export ALIEN_PROJ_CONFIG_ARGS='--without-curl --without-libtiff'
   #- perl -e 'eval {require Alien::proj; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-proj.git
-
+  - set ALIEN_GDAL_CONFIG_ARGS='--with-curl=no'
   - cpanm --notest -v --installdeps Alien::gdal
   - cpanm --notest -v Alien::gdal
   #- perl -e 'eval {require Alien::gdal; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git

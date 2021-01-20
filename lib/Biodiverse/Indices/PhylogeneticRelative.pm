@@ -20,12 +20,13 @@ my $metadata_class = 'Biodiverse::Metadata::Indices';
 sub get_metadata_calc_phylo_rpd1 {
 
     my %metadata = (
-        description     => 'Relative Phylogenetic Diversity (RPD).  '
-                         . 'The ratio of the tree\'s PD to a null model of '
+        description     => 'Relative Phylogenetic Diversity type 1 (RPD1).  '
+                         . "The ratio of the tree's PD to a null model of "
                          . 'PD evenly distributed across terminals and where '
-                         . 'ancestral nodes are collapsed to zero length.',
+                         . 'ancestral nodes are collapsed to zero length.'
+                         . 'You probably want to use RPD2 instead as it uses '
+                         . "the tree's topology.",
         name            => 'Relative Phylogenetic Diversity, type 1',
-        reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_labels_on_tree/],
         required_args   => ['tree_ref'],
@@ -83,13 +84,14 @@ sub calc_phylo_rpd1 {
 sub get_metadata_calc_phylo_rpe1 {
 
     my %metadata = (
-        description     => 'Relative Phylogenetic Endemism (RPE).  '
-                         . 'The ratio of the tree\'s PE to a null model of '
+        description     => 'Relative Phylogenetic Endemism, type 1 (RPE1).  '
+                         . "The ratio of the tree's PE to a null model of "
                          . 'PD evenly distributed across terminals, '
                          . 'but with the same range per terminal and where '
-                         . 'ancestral nodes are of zero length (as per RPD1).',
+                         . 'ancestral nodes are of zero length (as per RPD1).'
+                         . 'You probably want to use RPE2 instead as it uses '
+                         . "the tree's topology.",
         name            => 'Relative Phylogenetic Endemism, type 1',
-        reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pe calc_endemism_whole_lists calc_labels_on_trimmed_tree/],
         pre_calc_global => ['get_trimmed_tree'],

@@ -45,6 +45,7 @@ requires "Statistics::Sampler::Multinomial", '1.00';
 requires "List::Unique::DeterministicOrder";
 
 requires "FFI::Platypus::Declare";
+requires "Geo::GDAL::FFI", 0.07;
 
 suggests "Panda::Lib";
 suggests "Data::Recursive";

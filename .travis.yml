@@ -40,7 +40,7 @@ before_install:
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal
   - cpanm -v --notest Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
-  #- cpanm --notest Task::Biodiverse::NoGUI
+  - cpanm --notest Task::Biodiverse::NoGUI
   #  run twice as a catch-all
   - cpanm --notest --installdeps .
   - cpanm --installdeps .

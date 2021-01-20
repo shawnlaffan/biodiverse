@@ -47,6 +47,7 @@ install:
   - cpanm --notest Browser::Start
   - cpanm --quiet Test2::Suite
   - cpanm --notest --installdeps .
+  - cpanm --installdeps .
 
 
 build_script:

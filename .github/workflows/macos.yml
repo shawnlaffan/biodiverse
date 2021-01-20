@@ -61,6 +61,7 @@ jobs:
           #cpanm --notest Task::Biodiverse::NoGUI
           cpanm Test2::Suite
           cpanm --notest --installdeps .
+          cpanm --installdeps .
       
       - name: Run Tests
         run: prove -l -j4

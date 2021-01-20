@@ -2,10 +2,7 @@ requires "Alien::Build";
 requires 'Path::Class';
 requires 'Sort::Key::Natural';
 requires 'Ref::Util';
-#requires 'Scalar::Util::Numeric';
-#requires 'Task::Biodiverse::NoGUI', '1.0001';
 requires 'Text::Fuzzy';
-#requires 'Text::Levenshtein';  #  should replace by Text::Fuzzy
 
 requires "Data::DumpXML";
 requires "Math::Random::MT::Auto", "6.21";
@@ -30,13 +27,10 @@ requires "Math::Polygon";
 requires "Path::Class";
 requires "Tree::R";
 requires "Geo::ShapeFile", "3.00",
-#requires "Geo::Shapefile::Writer";
 requires "List::MoreUtils", "0.425",
 requires "List::Util", "1.45";
 requires "Class::Inspector";
 requires "autovivification", "0.16";
-#requires "List::BinarySearch", "0.25";
-#requires "List::BinarySearch::XS", "0.09";
 requires "Spreadsheet::Read", "0.82";
 requires "Spreadsheet::ReadSXC", "0.28";
 requires "Spreadsheet::ParseExcel";
@@ -45,37 +39,28 @@ requires "Getopt::Long::Descriptive";
 requires "Sereal", "3";
 requires "Cpanel::JSON::XS", "3";
 requires "JSON::MaybeXS", "1.003";
-requires "Sort::Key::Natural";
-requires "Text::Fuzzy";
-requires "Ref::Util", "0.101";
-#requires "Data::Structure::Util";
 requires "Data::Compare";
 requires "Test::TempDir::Tiny";
 requires "Statistics::Sampler::Multinomial", '1.00';
 requires "List::Unique::DeterministicOrder";
 
-requires "Test2::Suite";
-$^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
 requires "FFI::Platypus::Declare";
 
-#  Data::Alias does not install post 5.22
-#  but cpanfile will (hopefully) just complain and keep going
-#($] lt '5.024' ? ("Data::Alias", "0") : ()),
-#suggests "Data::Alias", "0";
 suggests "Panda::Lib";
-
+suggests "Data::Recursive";
 
 test_requires => sub {
+    requires "Test2::Suite";
+    $^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
     requires "Data::Section::Simple";
-    requires "Test::Deep";
-    #requires "Test::NoWarnings";
+    #requires "Test::Deep";
     requires "Perl::Tidy";
-    requires "Test::Most";
+    #requires "Test::Most";
     requires "Devel::Symdump";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
     requires "Test::TempDir::Tiny";
-    requires "Test::Exception";
+    #requires "Test::Exception";
 };
 
 feature 'GUI', 'GUI packages' => sub {
@@ -84,7 +69,6 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'Glib';
     requires 'Gtk2';
     requires "Pango";
-    #requires 'Gtk2::GladeXML';   
     requires 'Browser::Start';
     requires 'Gnome2::Canvas';
     requires 'ExtUtils::Depends';

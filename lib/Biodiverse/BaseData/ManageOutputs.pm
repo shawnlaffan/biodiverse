@@ -314,15 +314,19 @@ sub add_cluster_output {
     croak "[BASEDATA] argument 'name' not specified\n"
       if !defined $name;
 
-    croak
-"[BASEDATA] Cannot replace existing cluster object $name. Use a different name.\n"
+    croak "Cannot run a cluster type analysis with only a single group\n"
+      if $self->get_group_count == 1;
+
+    croak "[BASEDATA] Cannot replace existing cluster "
+        . "object $name. Use a different name.\n"
       if exists $self->{CLUSTER_OUTPUTS}{$name};
 
+    #  Check if it is the correct type, warn if not
+    #  - caveat emptor if wrong type
+    #  The check is a bit underhanded, as it does
+    #  not allow abstraction - something to clean up later
+    #  if needed
     if ($object) {
-
-#  check if it is the correct type, warn if not - caveat emptor if wrong type
-#  check is a bit underhanded, as it does not allow abstraction - clean up later if needed
-
         my $obj_class = blessed($object);
         carp "[BASEDATA] Object is not of valid type ($class)"
           if not $class =~ /cluster|regiongrower/i;

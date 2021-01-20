@@ -64,6 +64,26 @@ sub main {
     return 0;
 }
 
+
+sub test_cluster_single_cell {
+    my $bd = Biodiverse::BaseData->new (
+        NAME       => 'single cell',
+        CELL_SIZES => [1],
+    );
+    $bd->add_element (
+        group => '1.5',
+        label => 'some_label',
+    );
+    like (
+        dies {
+            $bd->add_cluster_output (name => 'single cell cluster attempt')
+        },
+        qr/Cannot run a cluster type analysis with only a single group/,
+        'Cluster dies when only single group',
+    );
+}
+
+
 sub test_linkages_and_check_replication {
     cluster_test_linkages_and_check_replication (
         type          => 'Biodiverse::Cluster',

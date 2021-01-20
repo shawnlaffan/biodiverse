@@ -49,19 +49,19 @@ requires "FFI::Platypus::Declare";
 suggests "Panda::Lib";
 suggests "Data::Recursive";
 
-test_requires => sub {
-    requires "Test2::Suite";
-    $^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
-    requires "Data::Section::Simple";
-    #requires "Test::Deep";
-    requires "Perl::Tidy";
-    #requires "Test::Most";
-    requires "Devel::Symdump";
-    requires "File::Compare";
-    requires "Scalar::Util::Numeric";
-    requires "Test::TempDir::Tiny";
-    #requires "Test::Exception";
-};
+#test_requires => sub {
+requires "Test2::Suite";
+$^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
+requires "Data::Section::Simple";
+#requires "Test::Deep";
+requires "Perl::Tidy";
+#requires "Test::Most";
+requires "Devel::Symdump";
+requires "File::Compare";
+requires "Scalar::Util::Numeric";
+requires "Test::TempDir::Tiny";
+#requires "Test::Exception";
+#};
 
 feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends'; 

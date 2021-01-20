@@ -112,6 +112,13 @@ sub new {
             $self->{basedata_ref},
             $self->get_type,
         );
+        if ($bd->get_group_count == 1) {
+            $self->{output_name}
+              .= ' =+=+='
+               . ' Warning: single cell basedata -'
+               . ' this analysis will not work'
+               . ' =+=+=';
+        }
         say "[Clustering tab] New cluster output " . $self->{output_name};
 
         if (!$bd->has_empty_groups) {

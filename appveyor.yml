@@ -43,10 +43,10 @@ install:
   - cpanm --notest List::Unique::DeterministicOrder
   - cpanm --notest Sort::Key::Natural
   - cpanm --notest Win32::LongPath
-  - cpanm --notest Geo::ShapeFile@3.00
+  - cpanm --notest Geo::ShapeFile
   - cpanm --notest Browser::Start
   - cpanm --quiet Test2::Suite
-  - cpanm --installdeps .
+  - cpanm --notest --installdeps .
 
 
 build_script:

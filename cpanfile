@@ -1,68 +1,64 @@
-requires "Alien::Build";
-requires 'Path::Class';
-requires 'Sort::Key::Natural';
-requires 'Ref::Util';
-requires 'Text::Fuzzy';
-
-requires "Data::DumpXML";
-requires "Math::Random::MT::Auto", "6.21";
-requires "Text::CSV_XS", "1.04";
-requires "DBD::XBase";
-requires "HTML::QuickTable";
-requires "YAML::Syck", "1.29";
 requires "Clone", "0.35";
-requires "Regexp::Common";
-requires "rlib";
-requires "Test::Lib";
-requires "parent";
-requires "Readonly";
-requires "URI::Escape::XS";
-requires "Statistics::Descriptive", "3.0608";
-requires "Geo::Converter::dms2dd", "0.05";
-requires "Text::Wrapper";
-requires "Exporter::Easy";
+requires "Cpanel::JSON::XS", "3";
+requires "DBD::XBase";
+requires "Data::Compare";
+requires "Data::DumpXML";
 requires "Exception::Class";
+requires "Exporter::Easy";
+requires "FFI::Platypus::Declare";
 requires "File::BOM";
-requires "Math::Polygon";
-requires "Path::Class";
-requires "Tree::R";
+requires "Geo::Converter::dms2dd", "0.05";
+requires "Geo::GDAL::FFI", 0.07;  #  this will pick up the aliens
 requires "Geo::ShapeFile", "3.00",
+requires "Getopt::Long::Descriptive";
+requires "HTML::QuickTable";
+requires "JSON::MaybeXS", "1.003";
 requires "List::MoreUtils", "0.425",
+requires "List::Unique::DeterministicOrder";
 requires "List::Util", "1.45";
-requires "Class::Inspector";
-requires "autovivification", "0.16";
-requires "Spreadsheet::Read", "0.82";
-requires "Spreadsheet::ReadSXC", "0.28";
+requires "Math::Polygon";
+requires "Math::Random::MT::Auto", "6.21";
+requires "Path::Class";
+requires "Path::Class";
+requires "Readonly";
+requires "Ref::Util";
+requires "Regexp::Common";
+requires "Sereal", "3";
+requires "Sort::Key::Natural";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
-requires "Getopt::Long::Descriptive";
-requires "Sereal", "3";
-requires "Cpanel::JSON::XS", "3";
-requires "JSON::MaybeXS", "1.003";
-requires "Data::Compare";
-requires "Test::TempDir::Tiny";
+requires "Spreadsheet::Read", "0.82";
+requires "Spreadsheet::ReadSXC", "0.28";
+requires "Statistics::Descriptive", "3.0608";
 requires "Statistics::Sampler::Multinomial", '1.00';
-requires "List::Unique::DeterministicOrder";
-
-requires "FFI::Platypus::Declare";
-requires "Geo::GDAL::FFI", 0.07;
+requires "Test::Lib";
+requires "Test::TempDir::Tiny";
+requires "Text::CSV_XS", "1.04";
+requires "Text::Fuzzy";
+requires "Text::Wrapper";
+requires "Tree::R";
+requires "URI::Escape::XS";
+requires "YAML::Syck", "1.29";
+requires "autovivification", "0.16";
+requires "parent";
+requires "rlib";
 
 suggests "Panda::Lib";
 suggests "Data::Recursive";
 
-#test_requires => sub {
-requires "Test2::Suite";
-$^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
-requires "Data::Section::Simple";
-#requires "Test::Deep";
-requires "Perl::Tidy";
-#requires "Test::Most";
-requires "Devel::Symdump";
-requires "File::Compare";
-requires "Scalar::Util::Numeric";
-requires "Test::TempDir::Tiny";
-#requires "Test::Exception";
-#};
+test_requires => sub {
+    requires "Test2::Suite";
+    $^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
+    requires "Data::Section::Simple";
+    #requires "Test::Deep";
+    requires "Perl::Tidy";
+    #requires "Test::Most";
+    requires "Devel::Symdump";
+    requires "File::Compare";
+    requires "Scalar::Util::Numeric";
+    requires "Test::TempDir::Tiny";
+    #requires "Test::Exception";
+};
 
 feature 'GUI', 'GUI packages' => sub {
     requires 'ExtUtils::Depends'; 

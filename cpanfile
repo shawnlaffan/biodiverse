@@ -50,7 +50,7 @@ requires "rlib";
 suggests "Panda::Lib";
 suggests "Data::Recursive";
 
-test_requires => sub {
+#test_requires => sub {
     requires "Test::Lib";
     requires "Test::TempDir::Tiny";
     requires "Test2::Suite";
@@ -64,7 +64,7 @@ test_requires => sub {
     requires "Scalar::Util::Numeric";
     requires "Test::TempDir::Tiny";
     #requires "Test::Exception";
-};
+#};
 
 feature 'GUI', 'GUI packages' => sub {
     requires 'Browser::Start';

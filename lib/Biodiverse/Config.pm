@@ -69,7 +69,6 @@ BEGIN {
     #  more general solution for anything new
     my @reqd = qw /
         Text::Fuzzy
-        Data::Structure::Util
         Data::Compare
         List::Unique::DeterministicOrder
         Sort::Key::Natural

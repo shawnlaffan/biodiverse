@@ -41,7 +41,7 @@ requires "Text::Wrapper";
 requires "Tree::R";
 requires "URI::Escape";
 requires "URI::Escape::XS";
-$^O ne 'MSWin32' ? (requires "Win32::LongPath") : ();
+$^O eq 'MSWin32' ? (requires "Win32::LongPath") : ();
 requires "YAML::Syck", "1.29";
 requires "autovivification", "0.18";
 requires "parent";

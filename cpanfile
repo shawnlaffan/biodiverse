@@ -72,4 +72,5 @@ feature 'GUI', 'GUI packages' => sub {
     requires 'HTTP::Tiny';
     requires 'LWP::Simple';
     requires 'IO::Socket::SSL';
+    requires 'Browser::STart';
 };

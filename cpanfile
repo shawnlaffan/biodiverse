@@ -1,4 +1,4 @@
-require "Class::Inspector";
+requires "Class::Inspector";
 requires "Clone", "0.35";
 requires "Cpanel::JSON::XS", "3";
 requires "DBD::XBase";

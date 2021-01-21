@@ -22,11 +22,6 @@ task:
     - perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib
     - echo Run it anyway...
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-    #- cpanm local::lib
-    
-    #  debug
-    #- cpanm XML::Parser::Expat
-    #- cpanm -v Spreadsheet::ReadSXC
     
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL

@@ -1,45 +1,49 @@
+require "Class::Inspector";
 requires "Clone", "0.35";
 requires "Cpanel::JSON::XS", "3";
 requires "DBD::XBase";
 requires "Data::Compare";
-requires "Data::DumpXML";
+#requires "Data::DumpXML";
 requires "Exception::Class";
 requires "Exporter::Easy";
 requires "FFI::Platypus::Declare";
 requires "File::BOM";
+requires "File::Find::Rule";
 requires "Geo::Converter::dms2dd", "0.05";
-requires "Geo::GDAL::FFI", 0.07;  #  this will pick up the aliens
+requires "Geo::GDAL::FFI", 0.08;  #  this will pick up the aliens
 requires "Geo::ShapeFile", "3.00",
 requires "Getopt::Long::Descriptive";
 requires "HTML::QuickTable";
 requires "JSON::MaybeXS", "1.003";
+requires "JSON::PP";
 requires "List::MoreUtils", "0.425",
 requires "List::Unique::DeterministicOrder";
 requires "List::Util", "1.45";
 requires "Math::Polygon";
 requires "Math::Random::MT::Auto", "6.21";
 requires "Path::Class";
-requires "Path::Class";
 requires "Readonly";
 requires "Ref::Util";
+requires "Ref::Util::XS";
 requires "Regexp::Common";
 requires "Sereal", "3";
-requires "Sort::Key::Natural";
+requires "Sort::Key";
 requires "Spreadsheet::ParseExcel";
 requires "Spreadsheet::ParseXLSX";
+requires "Spreadsheet::ParseODS";
 requires "Spreadsheet::Read", "0.82";
 requires "Spreadsheet::ReadSXC", "0.28";
 requires "Statistics::Descriptive", "3.0608";
 requires "Statistics::Sampler::Multinomial", '1.00';
-requires "Test::Lib";
-requires "Test::TempDir::Tiny";
 requires "Text::CSV_XS", "1.04";
 requires "Text::Fuzzy";
 requires "Text::Wrapper";
 requires "Tree::R";
+requires "URI::Escape";
 requires "URI::Escape::XS";
+$^O ne 'MSWin32' ? (requires "Win32::LongPath") : ();
 requires "YAML::Syck", "1.29";
-requires "autovivification", "0.16";
+requires "autovivification", "0.18";
 requires "parent";
 requires "rlib";
 
@@ -47,6 +51,8 @@ suggests "Panda::Lib";
 suggests "Data::Recursive";
 
 test_requires => sub {
+    requires "Test::Lib";
+    requires "Test::TempDir::Tiny";
     requires "Test2::Suite";
     $^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
     requires "Data::Section::Simple";

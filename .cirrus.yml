@@ -22,11 +22,6 @@ task:
     - perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib
     - echo Run it anyway...
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-    #- cpanm local::lib
-    
-    #  debug
-    #- cpanm XML::Parser::Expat
-    #- cpanm -v Spreadsheet::ReadSXC
     
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
@@ -40,14 +35,9 @@ task:
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm FFI::Platypus::Declare
     - cpanm -v Geo::GDAL::FFI
-    - cpanm --notest Task::Biodiverse::NoGUI
+    #- cpanm --notest Task::Biodiverse::NoGUI
     - cpanm --notest --installdeps .
     - cpanm --installdeps .
-    #- cpanm Path::Class
-    #- cpanm Test::Lib
-    #- cpanm rlib
-    #- cpanm Test2::Suite
-    #- cpanm Test2::Harness
     - prove -l t/00-load.t  # probe
 
   script:

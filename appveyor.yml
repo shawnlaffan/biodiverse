@@ -18,7 +18,7 @@ install:
   #- ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   #- ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
   #- perl -MPDL -E"say 1"  #  check installation
-  - cpanm --notest PDL
+  - cpanm --notest --no-man-pages PDL
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile
@@ -30,22 +30,9 @@ install:
   - cpanm -v Alien::libtiff
   - cpanm -v Alien::proj
   
-  #- cpanm -v --notest Alien::freexl
-  #- cpanm -v --notest Alien::spatialite
   - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm
   - cpanm -v Alien::gdal
   
-  - cpanm FFI::Platypus::Declare
-  - cpanm --notest Geo::GDAL::FFI
-  - cpanm --notest Sereal
-  - cpanm --notest Task::Biodiverse::NoGUI
-  - cpanm --notest List::MoreUtils~0.425
-  - cpanm --notest List::Unique::DeterministicOrder
-  - cpanm --notest Sort::Key::Natural
-  - cpanm --notest Win32::LongPath
-  - cpanm --notest Geo::ShapeFile
-  - cpanm --notest Browser::Start
-  - cpanm --quiet Test2::Suite
   - cpanm --notest --installdeps .
   - cpanm --installdeps .
 

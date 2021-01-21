@@ -20,11 +20,6 @@ before_install:
   #  local::lib target is cached
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
-  - cpanm --notest List::MoreUtils~0.425
-  - cpanm --notest Sort::Key::Natural
-  - cpanm --notest Geo::ShapeFile@3.00
-  - cpanm --quiet Test2::Suite
-  - cpanm --quiet Test2::Harness
   
   - cpanm --installdeps --notest Alien::proj
   - cpanm -v --notest Alien::proj
@@ -35,14 +30,15 @@ before_install:
   - cpanm --notest -v --installdeps Alien::gdal
   - cpanm --notest -v Alien::gdal
   #- perl -e 'eval {require Alien::gdal; 1} || exit 1' || cpanm --notest -v https://github.com/shawnlaffan/perl-alien-gdal.git
-  
+  - cpanm --notest --installdeps --no-man-pages PDL
+  - cpanm --notest --no-man-pages PDL
   #  get the latest Geo::GDAL::FFI,
   #  and make sure something happens at the command prompt
   #  so we avoid timeouts when building Alien::gdal
   - cpanm -v --notest Geo::GDAL::FFI | perl -ne 'BEGIN {$|=1; open our $log, ">", "build.log"}; print "\n" if 0 == ($. % 90); print "."; print {$log} $_;' || cat build.log
-  - cpanm --notest Task::Biodiverse::NoGUI
+  #- cpanm --notest Task::Biodiverse::NoGUI
   #  run twice as a catch-all
-  - cpanm --notest --installdeps .
+  #- cpanm --notest --installdeps .
   - cpanm --installdeps .
 
   #  test this on a subset, for which the GUI stuff will work well enough

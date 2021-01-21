@@ -17,7 +17,7 @@ requires "Getopt::Long::Descriptive";
 requires "HTML::QuickTable";
 requires "JSON::MaybeXS", "1.003";
 requires "JSON::PP";
-requires "List::MoreUtils", "0.425",
+requires "List::MoreUtils", ">= 0.425",
 requires "List::Unique::DeterministicOrder";
 requires "List::Util", "1.45";
 requires "Math::Polygon";

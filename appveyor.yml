@@ -38,7 +38,7 @@ install:
   - cpanm FFI::Platypus::Declare
   - cpanm --notest Geo::GDAL::FFI
   - cpanm --notest Sereal
-  - cpanm --notest Task::Biodiverse::NoGUI
+  #- cpanm --notest Task::Biodiverse::NoGUI
   - cpanm --notest List::MoreUtils~0.425
   - cpanm --notest List::Unique::DeterministicOrder
   - cpanm --notest Sort::Key::Natural

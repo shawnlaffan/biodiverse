@@ -59,6 +59,8 @@ my $shapefiles_filter;
 my $spreadsheets_filter;
 my $rasters_filter;
 
+my $default_cell_size = 100000;
+
 my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
 Set to 'is_lat' if column contains latitude values,
 is_lon' if longitude values. Leave as blank if neither.
@@ -105,7 +107,7 @@ sub run {
           '... plus ' . ( scalar @filenames - 5 ) . ' others';
     }
     my $file_list_as_text = join( "\n", @file_names_tmp );
-    my @def_cellsizes = ( 100000, 100000 );
+    my @def_cellsizes = ( $default_cell_size, $default_cell_size );
 
     $use_new = $dlgxml->get_object($chk_new)->get_active();
 
@@ -811,16 +813,39 @@ sub run {
     }
 
     if ($success) {
+        #  warn about empty basedata
         if (   $use_new
             && !$one_basedata_per_file
             && !$basedata_ref->get_label_count
             && !$basedata_ref->get_group_count )
         {
             #  we are empty!
-            my $message = "No valid records were imported into this basedata.\n"
+            my $message
+              = "No valid records were imported into this basedata.\n"
               . 'do you want to add it to the project anyway?';
             my $response =
               Biodiverse::GUI::YesNoCancel->run( { header => $message } );
+            return if $response ne 'yes';
+        }
+
+        #  warn about single group basedata
+        if (   $use_new
+            && !$one_basedata_per_file
+            && $basedata_ref->get_group_count == 1 )
+        {
+            my $header
+              = "Basedata has only one group.  Is your cellsize correct?\n";
+            my $message
+              = "If you have geographic coordinates (latitudes and longitudes) "
+              . "then the default cellsize of $default_cell_size will be far too large.\n"
+              . qq{See https://github.com/shawnlaffan/biodiverse/wiki/FAQ#i-imported-my-data-and-it-only-has-one-cell\n}
+              . "Do you want to add it to the project anyway?";
+            my $response =
+              Biodiverse::GUI::YesNoCancel->run( {
+                header => $header,
+                text   => $message,
+                hide_cancel => 1,
+            } );
             return if $response ne 'yes';
         }
 
@@ -1716,10 +1741,16 @@ sub add_row {
     }
 
     # Cell sizes/snaps
-    my $adj1 = Gtk2::Adjustment->new( 100000, 0, 100000000, 100, 10000, 0 );
+    my $adj1 = Gtk2::Adjustment->new(
+          $default_cell_size,        0,
+          $default_cell_size * 1000, 100,
+          10000, 0 );
     my $spin1 = Gtk2::SpinButton->new( $adj1, 100, $dp );
 
-    my $adj2 = Gtk2::Adjustment->new( 0, -100000000, 100000000, 100, 10000, 0 );
+    my $adj2 = Gtk2::Adjustment->new(
+          0,         -100000000,
+          100000000,  100,
+          10000, 0 );
     my $spin2 = Gtk2::SpinButton->new( $adj2, 100, $dp );
 
     foreach my $spin ( $spin1, $spin2 ) {

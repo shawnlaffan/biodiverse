@@ -38,11 +38,6 @@ task:
     #- cpanm --notest Task::Biodiverse::NoGUI
     - cpanm --notest --installdeps .
     - cpanm --installdeps .
-    #- cpanm Path::Class
-    #- cpanm Test::Lib
-    #- cpanm rlib
-    #- cpanm Test2::Suite
-    #- cpanm Test2::Harness
     - prove -l t/00-load.t  # probe
 
   script:

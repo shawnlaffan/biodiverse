@@ -67,16 +67,15 @@ test_requires => sub {
 };
 
 feature 'GUI', 'GUI packages' => sub {
+    requires 'Browser::Start';
+    requires 'ExtUtils::Depends';
     requires 'ExtUtils::Depends'; 
     requires 'ExtUtils::PkgConfig';
     requires 'Glib';
-    requires 'Gtk2';
-    requires "Pango";
-    requires 'Browser::Start';
     requires 'Gnome2::Canvas';
-    requires 'ExtUtils::Depends';
+    requires 'Gtk2';
     requires 'HTTP::Tiny';
-    requires 'LWP::Simple';
     requires 'IO::Socket::SSL';
-    requires 'Browser::STart';
+    requires 'LWP::Simple';
+    requires 'Pango';
 };

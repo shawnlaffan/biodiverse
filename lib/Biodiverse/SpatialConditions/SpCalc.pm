@@ -1878,7 +1878,7 @@ sub sp_in_label_range {
 sub get_example_sp_get_spatial_output_list_value {
 
     my $ex = <<"END_EXAMPLE_GSOLV"
-#  get the spatial results value for the current neighbour group
+#  Get the spatial results value for the current neighbour group
 # (or processing group if used as a def query)
 sp_get_spatial_output_list_value (
     output  => 'sp1',              #  using spatial output called sp1
@@ -1886,11 +1886,12 @@ sp_get_spatial_output_list_value (
     index   => 'PE_WE_P',          #  get index value for PE_WE_P
 )
 
-#  get the spatial results value for group 128:254
+#  Get the spatial results value for group 128:254
+#  Note that the SPATIAL_OUTPUTS list is assumed if
+#  no 'list' arg is passed. 
 sp_get_spatial_output_list_value (
     output  => 'sp1',
     element => '128:254',
-    list    => 'SPATIAL_RESULTS',
     index   => 'PE_WE_P',
 )
 END_EXAMPLE_GSOLV
@@ -1986,7 +1987,7 @@ sub sp_get_spatial_output_list_value {
         $idx_ex_cache_name => 1,
     );
     
-    no autovivification;
+    #no autovivification;
 
     return $list->{$index};
 }

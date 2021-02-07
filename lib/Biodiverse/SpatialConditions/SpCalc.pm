@@ -1992,6 +1992,75 @@ sub sp_get_spatial_output_list_value {
     return $list->{$index};
 }
 
+sub get_example_sp_richness_greater_than {
+
+    my $ex = <<"END_EXAMPLE_RGT"
+#  Uses the processing group for definition queries,
+#  and the neigbour group for spatial conditions. 
+sp_richness_greater_than (
+    threshold => 3, # any group with 3 or fewer labels will return false
+)
+
+sp_richness_greater_than (
+    element   => '128:254',  #  an arbitrary element
+    threshold => 4,          #  with a threshold of 4
+)
+END_EXAMPLE_RGT
+  ;
+
+    return $ex;
+}
+
+sub get_metadata_sp_richness_greater_than {
+    my $self = shift;
+    my %args = @_;
+
+    my $description =
+        q{Return true if the richness for an element is greater than the threshold.};
+
+    my $example = $self->get_example_sp_richness_greater_than;
+
+    my %metadata = (
+        description    => $description,
+        index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
+        required_args  => [qw /threshold/],
+        optional_args  => [qw /element/],
+        result_type    => 'always_same',
+        example        => $example,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+#  get the value from another spatial output
+sub sp_richness_greater_than {
+    my $self = shift;
+    my %args = @_;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $default_element
+      = eval {$self->is_def_query}
+        ? $h->{coord_id1}
+        : $h->{coord_id2};  #?
+
+    my $element = $args{element} // $default_element;
+    my $threshold = $args{threshold}
+      // croak 'sp_richness_greater_than: threshold arg must be passed';
+
+    my $bd
+      =  eval {$self->get_basedata_ref}
+      || $h->{basedata}
+      || $h->{caller_object};
+
+    #  needed if element arg not passed?
+    croak "element $element is not in basedata\n"
+      if not $bd->exists_group_aa ($element);
+    
+    return $bd->get_richness_aa($element) > $threshold;
+}
+
+
 sub get_metadata_sp_spatial_output_passed_defq {
     my $self = shift;
     my %args = @_;

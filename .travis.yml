@@ -21,6 +21,8 @@ before_install:
   - cpanm --notest local::lib
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   
+  - cpanm --installdeps --notest Alien::sqlite
+  - cpanm --verbose --notest Alien::sqlite
   - cpanm --installdeps --notest Alien::proj
   - cpanm -v --notest Alien::proj
   #- cpanm --notest Alien::curl 

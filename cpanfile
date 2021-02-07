@@ -64,6 +64,7 @@ suggests "Data::Recursive";
     requires "File::Compare";
     requires "Scalar::Util::Numeric";
     requires "Test::TempDir::Tiny";
+    requires 'Test::Deep::NoTest';
     #requires "Test::Exception";
 #};
 

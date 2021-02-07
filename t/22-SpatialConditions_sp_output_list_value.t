@@ -22,6 +22,7 @@ sub main {
     my @args  = @_;
 
     test_sp_get_spatial_output_list_value();
+    test_sp_richness_greater_than();
     
     done_testing();
     return 0;
@@ -120,3 +121,63 @@ sub test_sp_get_spatial_output_list_value {
         'no error thrown when index in subset of elements'
     );
 }
+
+
+sub test_sp_richness_greater_than {
+    my $bd = Biodiverse::BaseData->new (
+        NAME       => 'test_sp_richness_greater_than',
+        CELL_SIZES => [1,1],
+    );
+    my %all_gps;
+    my @labels = 'a' .. 'f';
+    #  richness decreases to the right
+    foreach my $i (1..5) {
+        foreach my $j (1..2) {
+            my $gp = "$i:$j";
+            foreach my $label (@labels[0..$i]) {
+                $bd->add_element (label => $label, group => $gp);
+                $all_gps{$gp}++;
+            }
+        }
+    }
+
+    my $sp_to_test1 = $bd->add_spatial_output (name => 'defq');
+    $sp_to_test1->run_analysis (
+        calculations       => ['calc_element_lists_used'],
+        spatial_conditions => ['sp_self_only()'],
+        definition_query   => 'sp_richness_greater_than (threshold => 3)',
+    );
+    my $sp_to_test2 = $bd->add_spatial_output (name => 'sp_cond');
+    $sp_to_test2->run_analysis (
+        calculations       => ['calc_element_lists_used'],
+        spatial_conditions => ['sp_richness_greater_than (threshold => 3)'],
+    );
+
+    #  now the tests
+    my @expected;
+    my $failed_defq = $sp_to_test1->get_groups_that_failed_def_query;
+    @expected = qw /1:1 1:2 2:1 2:2/;
+    is ([sort keys %$failed_defq], \@expected, 'got expected defq fails');
+
+    my $passed_defq = $sp_to_test1->get_groups_that_pass_def_query;
+    @expected = qw /3:1 3:2 4:1 4:2 5:1 5:2/;
+    is ([sort keys %$passed_defq], \@expected, 'got expected defq passes');
+    
+
+    #  all neighbour sets should be the same    
+    my $list_ref = $sp_to_test2->get_list_ref (
+        element => '5:1',
+        list    => 'EL_LIST_SET1',
+    );
+    is ([sort keys %$list_ref], \@expected, 'got expected EL_LIST_SET1 list');
+
+    my $sp_to_test3 = $bd->add_spatial_output (name => 'sp_cond_to_fail_no_threshold');
+    ok (dies {
+        $sp_to_test3->run_analysis (
+            calculations       => ['calc_element_lists_used'],
+            spatial_conditions => ['sp_richness_greater_than ()'],
+        )},
+        'error thrown when no threshold arg passed'
+    );
+}
+

@@ -93,7 +93,7 @@ jobs:
       - name: Install dependencies Alien::MSYS
         run: |
           cpanm Alien::Build::Plugin::Fetch::Cache
-          cpanm --notest --verbose Alien::MSYS
+          cpanm --notest Alien::MSYS
 
       - name: Install dependencies Alien::sqlite
         run: |

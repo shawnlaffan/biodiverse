@@ -66,6 +66,7 @@ suggests "Data::Recursive";
     requires "Test::TempDir::Tiny";
     requires 'Test::Deep::NoTest';
     #requires "Test::Exception";
+    requires 'Alien::Build::Plugin::Fetch::Cache';
 #};
 
 feature 'GUI', 'GUI packages' => sub {

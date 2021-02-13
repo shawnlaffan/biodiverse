@@ -1800,12 +1800,16 @@ sub delete_sub_elements_collated_by_group {
     1;
 }
 
-sub get_redundancy
-{    #  A cheat method, assumes we want group redundancy by default,
-        # drops the call down to the GROUPS object
+#  A cheat method, assumes we want group redundancy by default,
+# drops the call down to the GROUPS object
+sub get_redundancy {
     my $self = shift;
 
     return $self->get_groups_ref->get_redundancy(@_);
+}
+
+sub get_redundancy_aa {
+    $_[0]->get_groups_ref->get_redundancy_aa($_[1]);
 }
 
 sub get_diversity {    #  more cheat methods

@@ -1548,6 +1548,20 @@ sub get_sample_count {
     return $count;
 }
 
+sub get_sample_count_aa {
+    my ($self, $element) = @_;
+
+    croak "element not specified"
+      if !defined $element;
+
+    no autovivification;
+
+    my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;  #  should croak? 
+
+    return sum (0, values %$href);
+}
+
 sub get_variety {
     my ($self, %args) = @_;
 
@@ -1587,6 +1601,19 @@ sub get_redundancy {
     };
 
     return $redundancy;
+}
+
+sub get_redundancy_aa {
+    my ($self, $element) = @_;
+    croak "element not specified\n"
+      if not defined $element;
+
+    return if ! $self->exists_element_aa ($element);
+
+    return eval {
+        1 - $self->get_variety_aa ($element)
+          / $self->get_sample_count_aa ($element)
+    };
 }
 
 #  calculate basestats for all elements - poss redundant now there are indices that do this

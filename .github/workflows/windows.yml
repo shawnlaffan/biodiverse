@@ -98,18 +98,18 @@ jobs:
       - name: Install dependencies Alien::sqlite
         run: |
           echo $env:PATH
-          cpanm --no-test --installdeps Alien::sqlite
+          cpanm --notest --installdeps Alien::sqlite
           cpanm -v Alien::sqlite~1.05
 
       - name: Install dependencies Alien::proj
         run: |
           #cpanm -v --notest https://github.com/shawnlaffan/perl-alien-proj.git
-          cpanm --no-test --installdeps Alien::proj
+          cpanm --notest --installdeps Alien::proj
           cpanm -v --notest Alien::proj
 
       - name: Install dependencies Alien::geos::af
         run: |
-          cpanm --no-test --installdeps Alien::geos::af
+          cpanm --notest --installdeps Alien::geos::af
           cpanm -v Alien::geos::af
 
       - name: Install dependencies Alien::gdal

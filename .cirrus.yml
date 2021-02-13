@@ -11,7 +11,7 @@ task:
     folder: /perl5
     reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
-      - echo $CIRRUS_OS 20201120
+      - echo $CIRRUS_OS 20210214
 
   install_script:
     - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake
@@ -31,10 +31,13 @@ task:
     - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::geos::af
     - cpanm --installdeps --notest Alien::gdal
+    #  speed up compilation by skipping curl based drivers
+    - export ALIEN_GDAL_CONFIG_ARGS=--with-curl=no
     - MAKEFLAGS=-j4 cpanm -v Alien::gdal
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm FFI::Platypus::Declare
     - cpanm -v Geo::GDAL::FFI
+    #- cpanm Test2::Harness
     #- cpanm --notest Task::Biodiverse::NoGUI
     - cpanm --notest --installdeps .
     - cpanm --installdeps .
@@ -42,5 +45,6 @@ task:
 
   script:
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-    #- prove -l -j 4
-    - yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
+    - prove -l -j 4
+    #  disable for now due to elf error
+    #- yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4

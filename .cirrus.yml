@@ -42,5 +42,6 @@ task:
 
   script:
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-    #- prove -l -j 4
-    - yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4
+    - prove -l -j 4
+    #  disable for now due to elf error
+    #- yath -I t/lib -PBiodiverse::TestHelpers -PBiodiverse::BaseData -PGeo::GDAL::FFI -PPDL -D test -j 4

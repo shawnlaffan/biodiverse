@@ -7,11 +7,11 @@ requires "Data::Compare";
 #requires "Data::DumpXML";
 requires "Exception::Class";
 requires "Exporter::Easy";
-requires "FFI::Platypus::Declare";
+#requires "FFI::Platypus::Declare";
 requires "File::BOM";
 requires "File::Find::Rule";
 requires "Geo::Converter::dms2dd", "0.05";
-requires "Geo::GDAL::FFI", 0.08;  #  this will pick up the aliens
+requires "Geo::GDAL::FFI", 0.09;  #  this will pick up the aliens
 requires "Geo::ShapeFile", "3.00",
 requires "Getopt::Long::Descriptive";
 requires "HTML::QuickTable";

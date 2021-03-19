@@ -322,18 +322,11 @@ sub _calc_phylo_mpd_mntd {
                         ancestral_node => $last_ancestor,
                         %args,
                     );
-                    if (HAVE_DATA_RECURSIVE) {
-                        Data::Recursive::hash_merge (\%path, $sub_path, Data::Recursive::LAZY());
-                    }
-                    elsif (HAVE_PANDA_LIB) {
-                        Panda::Lib::hash_merge (\%path, $sub_path, Panda::Lib::MERGE_LAZY());
-                    }
-                    else {
-                        @path{keys %$sub_path} = values %$sub_path;
-                    }
+                    $path_length += sum values %$sub_path;
                 }
-                delete $path{$last_ancestor->get_name()};
-                $path_length = sum values %path;
+                #  correct for last ancestor in both sets
+                $path_length -= 2 * $last_ancestor->get_length();
+                    
                 $mx->set_value(
                     element1 => $label1,
                     element2 => $label2,

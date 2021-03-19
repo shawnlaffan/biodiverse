@@ -317,17 +317,12 @@ sub _calc_phylo_mpd_mntd {
 
                 my %path;
                 foreach my $node_name ($label1, $label2) {
-                    my $node_ref = $tree_ref->get_node_ref_aa ($node_name);
-                    my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
-                        ancestral_node => $last_ancestor,
-                        cache          => (exists $args{cache} ? $args{cache} : 1),
-                        is_terminal_node => 1,
-                    );
-                    $path_length += sum values %$sub_path;
+                    my $node_ref  = $tree_ref->get_node_ref_aa ($node_name);
+                    my $path_lens = $node_ref->get_path_length_array_to_root_node_aa;
+                    my $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
+                    $path_length += sum @$path_lens[0..$ancestor_pos];
                 }
-                #  correct for last ancestor in both sets
-                $path_length -= 2 * $last_ancestor->get_length();
-                    
+
                 $mx->set_value(
                     element1 => $label1,
                     element2 => $label2,

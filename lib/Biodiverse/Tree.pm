@@ -1717,9 +1717,10 @@ sub get_last_shared_ancestor_for_nodes {
 
     return $first_node if !scalar @node_names;
 
-    my @reference_path = $first_node->get_path_to_root_node;
+    my $reference_path = $first_node->get_path_to_root_node;
+    my $ref_path_len   = $#$reference_path;
     my %ref_path_hash;
-    @ref_path_hash{@reference_path} = ( 0 .. $#reference_path );
+    @ref_path_hash{@$reference_path} = ( 0 .. $ref_path_len );
 
     my $common_anc_idx = 0;
 
@@ -1729,7 +1730,7 @@ sub get_last_shared_ancestor_for_nodes {
         #  Must be just the root node left, so drop out.
         #  One day we will need to check for existence across all paths,
         #  as undefined ancestors can occur if we have multiple root nodes.
-        last PATH if $common_anc_idx == $#reference_path;
+        last PATH if $common_anc_idx == $ref_path_len;
 
         my $node_ref = $self->get_node_ref_aa ( $node_name );
         my @path = $node_ref->get_path_to_root_node;
@@ -1739,7 +1740,7 @@ sub get_last_shared_ancestor_for_nodes {
         #  i.e. if the current common ancestor is at depth 3
         #  then anything deeper cannot be an ancestor.
         #  The pay-off is for larger trees.
-        my $min = max( 0, $#path - $#reference_path + $common_anc_idx );
+        my $min = max( 0, $#path - $ref_path_len + $common_anc_idx );
         my $max = $#path;
         my $found_idx;
 
@@ -1770,7 +1771,7 @@ sub get_last_shared_ancestor_for_nodes {
         }
     }
 
-    my $node = $reference_path[$common_anc_idx];
+    my $node = $reference_path->[$common_anc_idx];
 
     return $node;
 }

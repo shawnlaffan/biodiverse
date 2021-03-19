@@ -317,7 +317,7 @@ sub _calc_phylo_mpd_mntd {
 
                 my %path;
                 foreach my $node_name ($label1, $label2) {
-                    my $node_ref = $tree_ref->get_node_ref (node => $node_name);
+                    my $node_ref = $tree_ref->get_node_ref_aa ($node_name);
                     my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
                         ancestral_node => $last_ancestor,
                         %args,

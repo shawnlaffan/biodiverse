@@ -320,7 +320,8 @@ sub _calc_phylo_mpd_mntd {
                     my $node_ref = $tree_ref->get_node_ref_aa ($node_name);
                     my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
                         ancestral_node => $last_ancestor,
-                        %args,
+                        cache          => (exists $args{cache} ? $args{cache} : 1),
+                        is_terminal_node => 1,
                     );
                     $path_length += sum values %$sub_path;
                 }

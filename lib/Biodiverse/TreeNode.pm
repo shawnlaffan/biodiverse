@@ -1367,13 +1367,15 @@ sub get_path_lengths_to_ancestral_node {
 
     my $ancestor = $args{ancestral_node} // croak "ancestral_node not defined\n";
     
-    if ($self->is_root_node) {
+    if (!$args{is_terminal_node} && $self->is_root_node) {
         my %result = ($self->get_name, $self->get_length);
         return wantarray ? %result : \%result;
     }
 
     #  don't cache internals
-    my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+    my $use_cache
+      = !$args{is_terminal_node} && $self->is_internal_node ? 0
+      : $args{cache};
 
     my $cache_name;
 

@@ -1705,7 +1705,7 @@ sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
 
-    no autovivification;
+    #no autovivification;
 
     my @node_names = keys %{ $args{node_names} };
 
@@ -1751,12 +1751,13 @@ sub get_last_shared_ancestor_for_nodes {
 
             my $idx = $ref_path_hash{ $path->[$mid] };
 
-            if ( defined $idx )
-            {    #  we are in the path, try a node nearer the tips
+            if ( defined $idx ) {
+                #  we are in the path, try a node nearer the tips
                 $max       = $mid;
                 $found_idx = $idx;    #  track the index
             }
-            else {    #  we are not in the path, try a node nearer the root
+            else {
+                #  we are not in the path, try a node nearer the root
                 $min = $mid + 1;
             }
         }

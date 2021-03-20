@@ -315,7 +315,6 @@ sub _calc_phylo_mpd_mntd {
                     node_names => {$label1 => 1, $label2 => 1},
                 );
 
-                my %path;
                 foreach my $node_name ($label1, $label2) {
                     my $node_ref  = $tree_ref->get_node_ref_aa ($node_name);
                     my $path_lens = $node_ref->get_path_length_array_to_root_node_aa;

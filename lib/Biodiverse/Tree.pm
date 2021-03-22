@@ -1738,33 +1738,33 @@ sub get_last_shared_ancestor_for_nodes {
         #  Start from an equivalent relative depth to avoid needless
         #  comparisons near terminals which cannot be ancestral.
         #  i.e. if the current common ancestor is at depth 3
-        #  then anything deeper cannot be an ancestor.
+        #  then anything tipwards cannot be an ancestor.
         #  The pay-off is for larger trees.
-        my $max = $#$path;
-        my $min = max( 0, $max - $ref_path_len + $common_anc_idx );
+        my $right = $#$path;
+        my $left = max( 0, $right - $ref_path_len + $common_anc_idx );
         my $found_idx;
 
         # run a binary search to find the lowest shared node
       PATH_NODE_REF_BISECT:
-        while ( $max > $min ) {
-            my $mid = int( ( $min + $max ) / 2 );
-
+        while ( $right > $left ) {
+            my $mid = int( ( $left + $right ) / 2 );
+            
             my $idx = $ref_path_hash{ $path->[$mid] };
 
             if ( defined $idx ) {
                 #  we are in the path, try a node nearer the tips
-                $max       = $mid;
+                $right     = $mid;
                 $found_idx = $idx;    #  track the index
             }
             else {
                 #  we are not in the path, try a node nearer the root
-                $min = $mid + 1;
+                $left = $mid + 1;
             }
         }
 
-        #  Sometimes $max == $min and that's the one we want to use
-        if ( $max == $min && !defined $found_idx ) {
-            $found_idx = $ref_path_hash{ $path->[$min] };
+        #  Sometimes $right == $left and that's the one we want to use
+        if ( $right == $left && !defined $found_idx ) {
+            $found_idx = $ref_path_hash{ $path->[$left] };
         }
 
         if ( defined $found_idx ) {

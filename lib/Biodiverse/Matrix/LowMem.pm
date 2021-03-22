@@ -87,7 +87,25 @@ sub add_element {  #  add an element pair to the object
         return;
     }
 
-    $self->{BYELEMENT}{$element1}{$element2} = $args{value};
+    $self->{BYELEMENT}{$element1}{$element2} = $val;
+    
+    return;
+}
+
+sub add_element_aa {  #  add an element pair to the object
+    my ($self, $el1, $el2, $val) = @_;
+
+    croak "Element1 not specified in call to add_element\n"
+        if ! defined $el1;
+    croak "Element2 not specified in call to add_element\n"
+        if ! defined $el2;
+
+    if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
+        warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, not adding row $el1 col $el2.\n";
+        return;
+    }
+
+    $self->{BYELEMENT}{$el1}{$el2} = $val;
     
     return;
 }

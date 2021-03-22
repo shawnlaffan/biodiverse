@@ -322,11 +322,8 @@ sub _calc_phylo_mpd_mntd {
                     $path_length += sum @$path_lens[0..$ancestor_pos];
                 }
 
-                $mx->set_value(
-                    element1 => $label1,
-                    element2 => $label2,
-                    value    => $path_length,
-                );
+                #  avoid set_value method wrapper for speed
+                $mx->add_element_aa($label1, $label2, $path_length);
             }
 
             push @mpd_path_lengths_this_node, $path_length;

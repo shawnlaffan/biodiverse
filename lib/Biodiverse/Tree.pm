@@ -14,6 +14,10 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
+
 use English qw ( -no_match_vars );
 
 our $VERSION = '3.1';
@@ -1716,10 +1720,10 @@ sub get_last_shared_ancestor_for_nodes {
 
     return $first_node if !scalar @node_names;
 
-    my $reference_path = $first_node->get_path_to_root_node;
+    \my @ref_path = $first_node->get_path_to_root_node;
     #  working from the ends of the arrays,
     #  so use negative indices
-    my $common_anc_idx = -@$reference_path;
+    my $common_anc_idx = -@ref_path;
 
   PATH:
     foreach my $node_name ( @node_names ) {
@@ -1730,10 +1734,10 @@ sub get_last_shared_ancestor_for_nodes {
         last PATH if $common_anc_idx == -1;
 
         my $node_ref = $self->get_node_ref_aa ( $node_name );
-        my $path = $node_ref->get_path_to_root_node;
+        \my @cmp_path = $node_ref->get_path_to_root_node;
 
         #  $node_ref is the root node
-        if (@$path == 1) {
+        if (@cmp_path == 1) {
             $common_anc_idx = -1;
             last PATH;
         }
@@ -1746,7 +1750,7 @@ sub get_last_shared_ancestor_for_nodes {
         #  Actually, we will never hit the end of either array
         #  but the useful side effect is to detect LCA already at the root. 
         #  Tip-most entry in $path cannot be shared ancestor 
-        my $bottom = max( $common_anc_idx, -(@$path-1) );
+        my $bottom = max( $common_anc_idx, -(@cmp_path-1) );
         my $top    = -1;
 
         #  Climb down using a brute force loop assuming LCA
@@ -1755,7 +1759,7 @@ sub get_last_shared_ancestor_for_nodes {
         if ($bottom > -20) {
             while ($top > $bottom) {
                 last
-                  if $reference_path->[$top-1] ne $path->[$top-1];
+                  if $ref_path[$top-1] ne $cmp_path[$top-1];
                 $top--;
             }
 
@@ -1769,7 +1773,7 @@ sub get_last_shared_ancestor_for_nodes {
                 #  workaround for not getting the binary search quite right
                 if (($top - $bottom) < 5) {
                     while ($top >= $bottom) {                        
-                        if ($reference_path->[$top-1] ne $path->[$top-1]) {
+                        if ($ref_path[$top-1] ne $cmp_path[$top-1]) {
                             $mid = $top;
                             last BINSEARCH;
                         }
@@ -1782,8 +1786,8 @@ sub get_last_shared_ancestor_for_nodes {
                 
                 $mid = ceil (($top + $bottom) / 2);
                 #  init bottom can be an LCA since we skip lowest array elements
-                if ($reference_path->[$mid-1] ne $path->[$mid-1]) {
-                    last if $reference_path->[$mid] eq $path->[$mid];
+                if ($ref_path[$mid-1] ne $cmp_path[$mid-1]) {
+                    last if $ref_path[$mid] eq $cmp_path[$mid];
                     $bottom = $mid;
                 }
                 else {
@@ -1794,7 +1798,7 @@ sub get_last_shared_ancestor_for_nodes {
         }
     }
 
-    my $node = $reference_path->[$common_anc_idx];
+    my $node = $ref_path[$common_anc_idx];
 
     return $node;
 }

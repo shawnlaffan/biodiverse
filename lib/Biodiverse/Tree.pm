@@ -1705,8 +1705,6 @@ sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
 
-    #no autovivification;
-
     my @node_names = keys %{ $args{node_names} };
 
     return if !scalar @node_names;
@@ -1718,58 +1716,48 @@ sub get_last_shared_ancestor_for_nodes {
     return $first_node if !scalar @node_names;
 
     my $reference_path = $first_node->get_path_to_root_node;
-    my $ref_path_len   = $#$reference_path;
-    my %ref_path_hash;
-    @ref_path_hash{@$reference_path} = ( 0 .. $ref_path_len );
-
-    my $common_anc_idx = 0;
+    #  working from the ends of the arrays,
+    #  so use negative indices
+    my $common_anc_idx = -@$reference_path;
 
   PATH:
-    while ( my $node_name = shift @node_names ) {
+    foreach my $node_name ( @node_names ) {
 
         #  Must be just the root node left, so drop out.
         #  One day we will need to check for existence across all paths,
         #  as undefined ancestors can occur if we have multiple root nodes.
-        last PATH if $common_anc_idx == $ref_path_len;
+        last PATH if $common_anc_idx == -1;
 
         my $node_ref = $self->get_node_ref_aa ( $node_name );
         my $path = $node_ref->get_path_to_root_node;
 
+        #  $node_ref is the root node
+        if (@$path == 1) {
+            $common_anc_idx = -1;
+            last PATH;
+        }
+
         #  Start from an equivalent relative depth to avoid needless
         #  comparisons near terminals which cannot be ancestral.
         #  i.e. if the current common ancestor is at depth 3
-        #  then anything tipwards cannot be an ancestor.
+        #  then anything deeper cannot be an ancestor.
         #  The pay-off is for larger trees.
-        my $right = $#$path;
-        my $left = max( 0, $right - $ref_path_len + $common_anc_idx );
-        my $found_idx;
+        #  Actually, we will never hit the end of either array
+        #  but the useful side effect is to detect LCA already at the root. 
+        #  Tip-most entry in $path cannot be shared ancestor 
+        my $bottom = max( $common_anc_idx, -(@$path-1) );
+        my $top    = -1;
 
-        # run a binary search to find the lowest shared node
-      PATH_NODE_REF_BISECT:
-        while ( $right > $left ) {
-            my $mid = int( ( $left + $right ) / 2 );
-            
-            my $idx = $ref_path_hash{ $path->[$mid] };
-
-            if ( defined $idx ) {
-                #  we are in the path, try a node nearer the tips
-                $right     = $mid;
-                $found_idx = $idx;    #  track the index
-            }
-            else {
-                #  we are not in the path, try a node nearer the root
-                $left = $mid + 1;
-            }
+        #  Climb down using a brute force loop assuming LCA
+        #  is normally near the root, which it is for random
+        #  assemblages used in NRI/NTI calcs.
+        while ($top > $bottom) {
+            last
+              if $reference_path->[$top-1] ne $path->[$top-1];
+            $top--;
         }
 
-        #  Sometimes $right == $left and that's the one we want to use
-        if ( $right == $left && !defined $found_idx ) {
-            $found_idx = $ref_path_hash{ $path->[$left] };
-        }
-
-        if ( defined $found_idx ) {
-            $common_anc_idx = $found_idx;
-        }
+        $common_anc_idx = $top;
     }
 
     my $node = $reference_path->[$common_anc_idx];

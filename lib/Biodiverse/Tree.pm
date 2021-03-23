@@ -1705,20 +1705,6 @@ sub find_list_indices_across_nodes {
     return wantarray ? %index_hash : \%index_hash;
 }
 
-#state $sum_depth;
-#state $sum_depthsqr;
-#state $n_depth;
-#END {
-#    my $mean_depth = $sum_depth / $n_depth;
-#    say "AVERAGE DEPTH: " . $mean_depth;
-#    say "SD of DEPTH:" . sqrt (($sum_depthsqr - $n_depth * $mean_depth**2) / $n_depth);
-#}
-#my %depth_tracker;
-#END {
-#    foreach my $depth (sort {$a <=> $b} keys %depth_tracker) {
-#        say "DD $depth $depth_tracker{$depth}";
-#    }
-#}
 
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
@@ -1814,11 +1800,6 @@ sub get_last_shared_ancestor_for_nodes {
             $common_anc_idx = $mid;
         }
     }
-
-    #$sum_depth += abs $common_anc_idx;
-    #$sum_depthsqr += $common_anc_idx**2;
-    #$n_depth   ++;
-    #$depth_tracker{abs $common_anc_idx} ++;
     
     my $node = $ref_path[$common_anc_idx];
 

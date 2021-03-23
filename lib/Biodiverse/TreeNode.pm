@@ -1235,7 +1235,7 @@ sub get_path_length_array_to_root_node_aa {
 
     if (!$no_cache) {
         my $path = $self->get_cached_value('PATH_LENGTH_ARRAY_TO_ROOT_NODE');
-        return (wantarray ? %$path : $path) if $path;
+        return (wantarray ? @$path : $path) if $path;
     }
 
     my @path_lengths;

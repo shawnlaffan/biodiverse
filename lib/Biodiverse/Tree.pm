@@ -1705,6 +1705,21 @@ sub find_list_indices_across_nodes {
     return wantarray ? %index_hash : \%index_hash;
 }
 
+#state $sum_depth;
+#state $sum_depthsqr;
+#state $n_depth;
+#END {
+#    my $mean_depth = $sum_depth / $n_depth;
+#    say "AVERAGE DEPTH: " . $mean_depth;
+#    say "SD of DEPTH:" . sqrt (($sum_depthsqr - $n_depth * $mean_depth**2) / $n_depth);
+#}
+#my %depth_tracker;
+#END {
+#    foreach my $depth (sort {$a <=> $b} keys %depth_tracker) {
+#        say "DD $depth $depth_tracker{$depth}";
+#    }
+#}
+
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
@@ -1742,7 +1757,7 @@ sub get_last_shared_ancestor_for_nodes {
             last PATH;
         }
 
-        #  Start from an equivalent relative depth to avoid needless
+        #  Compare to an equivalent relative depth to avoid needless
         #  comparisons near terminals which cannot be ancestral.
         #  i.e. if the current common ancestor is at depth 3
         #  then anything deeper cannot be an ancestor.
@@ -1756,15 +1771,20 @@ sub get_last_shared_ancestor_for_nodes {
         #  Climb down using a brute force loop assuming LCA
         #  is normally near the root, which it is for random
         #  pairwise assemblages used in NRI/NTI calcs.
-        if ($bottom > -20) {
-            while ($top > $bottom) {
-                last
-                  if $ref_path[$top-1] ne $cmp_path[$top-1];
-                $top--;
+        if (1 || $bottom > -20) {
+            #  looks a bit obfuscated, but perl optimises reverse-range loop constructs
+            #  and this avoids a variable increment per loop
+            foreach my $iter (reverse ($bottom .. $top)) {
+                if ($ref_path[$iter-1] ne $cmp_path[$iter-1]) {
+                    $top = $iter;
+                    last;
+                }
             }
 
             $common_anc_idx = $top;
         }
+        #  binary search, disabled for now as profiling
+        #  shows it is not usefully faster under NRI/NTI
         else {
             my $mid = $bottom;
           BINSEARCH:
@@ -1779,12 +1799,9 @@ sub get_last_shared_ancestor_for_nodes {
                         }
                         $top--;
                     }
-                    #say STDERR 'zong';
-                    #$mid = $top;
-                    #last BINSEARCH;
                 }
                 
-                $mid = ceil (($top + $bottom) / 2);
+                $mid = int (($top + $bottom) / 2);
                 #  init bottom can be an LCA since we skip lowest array elements
                 if ($ref_path[$mid-1] ne $cmp_path[$mid-1]) {
                     last if $ref_path[$mid] eq $cmp_path[$mid];
@@ -1798,6 +1815,11 @@ sub get_last_shared_ancestor_for_nodes {
         }
     }
 
+    #$sum_depth += abs $common_anc_idx;
+    #$sum_depthsqr += $common_anc_idx**2;
+    #$n_depth   ++;
+    #$depth_tracker{abs $common_anc_idx} ++;
+    
     my $node = $ref_path[$common_anc_idx];
 
     return $node;

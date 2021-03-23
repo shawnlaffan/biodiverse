@@ -12,6 +12,7 @@ use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
+use POSIX qw /floor ceil/;
 
 use English qw ( -no_match_vars );
 
@@ -1750,14 +1751,47 @@ sub get_last_shared_ancestor_for_nodes {
 
         #  Climb down using a brute force loop assuming LCA
         #  is normally near the root, which it is for random
-        #  assemblages used in NRI/NTI calcs.
-        while ($top > $bottom) {
-            last
-              if $reference_path->[$top-1] ne $path->[$top-1];
-            $top--;
-        }
+        #  pairwise assemblages used in NRI/NTI calcs.
+        if ($bottom > -20) {
+            while ($top > $bottom) {
+                last
+                  if $reference_path->[$top-1] ne $path->[$top-1];
+                $top--;
+            }
 
-        $common_anc_idx = $top;
+            $common_anc_idx = $top;
+        }
+        else {
+            my $mid = $bottom;
+          BINSEARCH:
+            while ($top > $bottom) {
+                #  linear search when close
+                #  workaround for not getting the binary search quite right
+                if (($top - $bottom) < 5) {
+                    while ($top >= $bottom) {                        
+                        if ($reference_path->[$top-1] ne $path->[$top-1]) {
+                            $mid = $top;
+                            last BINSEARCH;
+                        }
+                        $top--;
+                    }
+                    #say STDERR 'zong';
+                    #$mid = $top;
+                    #last BINSEARCH;
+                }
+                
+                $mid = ceil (($top + $bottom) / 2);
+                #  init bottom can be an LCA since we skip lowest array elements
+                if ($reference_path->[$mid-1] ne $path->[$mid-1]) {
+                    last if $reference_path->[$mid] eq $path->[$mid];
+                    $bottom = $mid;
+                }
+                else {
+                    $top = $mid;
+                }
+            }
+            $common_anc_idx = $mid;
+        }
     }
 
     my $node = $reference_path->[$common_anc_idx];

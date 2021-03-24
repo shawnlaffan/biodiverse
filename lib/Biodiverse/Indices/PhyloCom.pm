@@ -310,7 +310,8 @@ sub _calc_phylo_mpd_mntd {
             #  skip same labels (FIXME: but not if used as dissim measure)
             next BY_LABEL2 if $label1 eq $label2;
 
-            my $path_length = $mx->get_defined_value_aa ($label1, $label2);
+            #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
+            my $path_length = $mx->{$label1}{$label2} // $mx->{$label2}{$label1};
 
             if (!defined $path_length) {  #  need to calculate it
                 my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
@@ -326,11 +327,13 @@ sub _calc_phylo_mpd_mntd {
                     $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
                     $path_length += sum @$path_lens[0..$ancestor_pos];
                     # for-sum needs benchmarking, and prob refaliasing
+                    #  it is not faster under profiling
                     #$path_length += $path_lens->[$_] for (0..$ancestor_pos);  
                 }
 
                 #  avoid set_value method wrapper for speed
-                $mx->add_element_aa($label1, $label2, $path_length);
+                #$mx->add_element_aa($label1, $label2, $path_length);
+                $mx->{$label1}{$label2} = $path_length;
             }
 
             push @mpd_path_lengths_this_node, $path_length;
@@ -417,7 +420,8 @@ sub get_metadata_get_phylo_mpd_mntd_matrix {
 sub get_phylo_mpd_mntd_matrix {
     my $self = shift;
 
-    my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
+    #my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
+    my $mx = {};
     
     my %results = (PHYLO_MPD_MNTD_MATRIX => $mx);
     

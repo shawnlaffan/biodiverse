@@ -317,13 +317,16 @@ sub _calc_phylo_mpd_mntd {
                     node_names => {$label1 => 1, $label2 => 1},
                 );
 
+                my $ancestor_pos;  #  declare outside loops
                 foreach my $node_name ($label1, $label2) {
                     my $path_lens = $path_cache{$node_name}
                       //= $tree_ref
                             ->get_node_ref_aa ($node_name)
                             ->get_path_length_array_to_root_node_aa;
-                    my $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
+                    $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
                     $path_length += sum @$path_lens[0..$ancestor_pos];
+                    # for-sum needs benchmarking, and prob refaliasing
+                    #$path_length += $path_lens->[$_] for (0..$ancestor_pos);  
                 }
 
                 #  avoid set_value method wrapper for speed

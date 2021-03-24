@@ -439,15 +439,14 @@ sub get_node_ref {
     return $self->{TREE_BY_NAME}{$node};
 }
 
-#  array args version of get_node_ref
+#  array args version of get_node_ref.
+#  Hot path so use @_ directly to avoid bookkeeping overheads
 sub get_node_ref_aa {
-    my ( $self, $node ) = @_;
+    croak "node not specified in call to get_node_ref_aa\n"
+      if !defined $_[1];
 
-    croak "node not specified in call to get_node_ref\n"
-      if !defined $node;
-
-    return $self->{TREE_BY_NAME}{$node}
-      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $node does not exist, cannot get ref (aa)");
+    return $_[0]->{TREE_BY_NAME}{$_[1]}
+      // Biodiverse::Tree::NotExistsNode->throw("[Tree] $_[1] does not exist, cannot get ref (aa)");
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.

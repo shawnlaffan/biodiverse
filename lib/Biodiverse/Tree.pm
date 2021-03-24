@@ -1720,7 +1720,10 @@ sub get_last_shared_ancestor_for_nodes {
 
     return $first_node if !scalar @node_names;
 
-    \my @ref_path = $first_node->get_path_to_root_node;
+    my $path_cache = $self->get_cached_value_dor_set_default_aa (PATH_NAME_ARRAYS => {});
+
+    \my @ref_path = $path_cache->{$first_name} //= $first_node->get_path_to_root_node;
+
     #  working from the ends of the arrays,
     #  so use negative indices
     my $common_anc_idx = -@ref_path;
@@ -1733,8 +1736,9 @@ sub get_last_shared_ancestor_for_nodes {
         #  as undefined ancestors can occur if we have multiple root nodes.
         last PATH if $common_anc_idx == -1;
 
-        my $node_ref = $self->get_node_ref_aa ( $node_name );
-        \my @cmp_path = $node_ref->get_path_to_root_node;
+        \my @cmp_path
+          =   $path_cache->{$node_name}
+          //= $self->get_node_ref_aa ($node_name)->get_path_to_root_node;
 
         #  $node_ref is the root node
         if (@cmp_path == 1) {

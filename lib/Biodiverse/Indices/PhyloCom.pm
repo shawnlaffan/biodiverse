@@ -289,6 +289,8 @@ sub _calc_phylo_mpd_mntd {
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
+    my %path_cache;
+
     #  Loop over all possible pairs
     my $i = 0;
     BY_LABEL:
@@ -316,8 +318,10 @@ sub _calc_phylo_mpd_mntd {
                 );
 
                 foreach my $node_name ($label1, $label2) {
-                    my $node_ref  = $tree_ref->get_node_ref_aa ($node_name);
-                    my $path_lens = $node_ref->get_path_length_array_to_root_node_aa;
+                    my $path_lens = $path_cache{$node_name}
+                      //= $tree_ref
+                            ->get_node_ref_aa ($node_name)
+                            ->get_path_length_array_to_root_node_aa;
                     my $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
                     $path_length += sum @$path_lens[0..$ancestor_pos];
                 }

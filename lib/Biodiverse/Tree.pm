@@ -1704,6 +1704,28 @@ sub find_list_indices_across_nodes {
     return wantarray ? %index_hash : \%index_hash;
 }
 
+#  terminals have no descendents,
+#  which unfortunately is inconsistent with how
+#  get_terminal_elements works, but it is too
+#  late to change now
+sub get_terminal_counts_by_depth {
+    my $self = shift;
+    
+    my $counts = $self->get_cached_value_dor_set_default_aa (
+        TERMINAL_COUNTS_BY_DEPTH => {},
+    );
+
+    foreach my $node ($self->get_node_refs) {
+        if ($node->is_terminal_node) {
+            $counts->{$node->get_depth} //= 0;
+        }
+        else {
+            $counts->{$node->get_depth} += $node->get_terminal_element_count;
+        }
+    }
+
+    return wantarray ? %$counts : $counts;
+}
 
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
@@ -1746,6 +1768,13 @@ sub get_last_shared_ancestor_for_nodes {
             last PATH;
         }
 
+    #if (defined $args{start_depth}) {
+    #    my $iter = -$start_depth;
+    #    if ($ref_path[$args{start_depth}] ne $cmp_path[$args{start_depth}]) {
+    #    
+    #}
+    #
+    
         #  Compare to an equivalent relative depth to avoid needless
         #  comparisons near terminals which cannot be ancestral.
         #  i.e. if the current common ancestor is at depth 3

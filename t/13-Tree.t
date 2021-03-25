@@ -1052,6 +1052,41 @@ sub test_remap_mismatched_labels {
                "Got expected labels" );
 }
 
+sub test_get_terminal_counts_by_depth {
+    my $tree = Biodiverse::Tree->new (NAME => 'test depth stats');
+    
+    #  bifurcating number scheme
+    my @nums = qw /1 2 3 4 5 6 7 14 15/;
+    my %nodes;
+    for my $num (@nums) {
+        my $node = $tree->add_node(name => $num);
+        $nodes{$num} = $node;
+    }
+    $nodes{1}->add_children(children => [$nodes{2}, $nodes{3}]);
+    $nodes{2}->add_children(children => [$nodes{4}, $nodes{5}]);
+    $nodes{3}->add_children(children => [$nodes{6}, $nodes{7}]);
+    $nodes{7}->add_children(children => [$nodes{14}, $nodes{15}]);
+#diag $tree->to_newick;
+    my $hash = $tree->get_terminal_counts_by_depth;
+
+    # depth
+    # 0 1 2  3
+    # nodes
+    # 1 2 4
+    #     5
+    #   3 6 
+    #     7 14
+    #     7 15
+
+    my $expected = {
+        0 => 5,
+        1 => 5,
+        2 => 2,
+        3 => 0,
+    };
+
+    is $hash, $expected, 'got expected depth distribution';
+}
 
 sub test_depth {
     my $tree = Biodiverse::Tree->new (NAME => 'test depth');

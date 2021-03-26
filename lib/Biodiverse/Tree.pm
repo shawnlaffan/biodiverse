@@ -1842,22 +1842,15 @@ sub get_last_shared_ancestor_for_nodes {
         }
 
         if (@$most_probable_lca_depths) {
-            state $check_pd;
             foreach my $depth (@$most_probable_lca_depths) {
-                #if (!$check_pd) {
-                #    warn "checking depth $depth";
-                #}
-                
                 next if $depth > $#ref_path || $depth > $#cmp_path;
                 my $iter = -($depth+1);
                 if (   $ref_path[$iter]   eq $cmp_path[$iter]
                     && $ref_path[$iter-1] ne $cmp_path[$iter-1]) {
                     $common_anc_idx = $iter;
-                    #warn "got matching depth at iter $iter";
                     last PATH;
                 }
             }
-            #$check_pd++;
         }
     
         #  Compare to an equivalent relative depth to avoid needless

@@ -14,13 +14,6 @@ use Math::BigInt ();
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
-use constant HAVE_PANDA_LIB
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
-
-use constant HAVE_DATA_RECURSIVE
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
-
-
 our $VERSION = '3.1';
 
 use Biodiverse::Statistics;

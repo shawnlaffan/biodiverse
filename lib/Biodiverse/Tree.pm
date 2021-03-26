@@ -1715,6 +1715,9 @@ sub get_terminal_counts_by_depth {
         TERMINAL_COUNTS_BY_DEPTH => {},
     );
 
+    return wantarray ? %$counts : $counts
+      if keys %$counts;   
+
     foreach my $node ($self->get_node_refs) {
         if ($node->is_terminal_node) {
             $counts->{$node->get_depth} //= 0;
@@ -1726,6 +1729,71 @@ sub get_terminal_counts_by_depth {
 
     return wantarray ? %$counts : $counts;
 }
+
+#  get depths where one of the nodes has most
+#  of the tree under it, and where two of its children
+#  has about 50%.  Will help with targeting LCA searches
+#  Sub name needs work...
+sub get_most_probable_lcas {
+    my $self = shift;
+
+    my $chunky_nodes = $self->get_cached_value_dor_set_default_aa (
+        MOST_PROBABLE_LCA_HASH => {},
+    );
+    return wantarray ? %$chunky_nodes : $chunky_nodes
+      if %$chunky_nodes;
+
+    my $n_terminals = $self->get_terminal_element_count;
+
+    my %chunky_nodes;
+    foreach my $node ($self->get_node_refs) {
+        next if $node->is_terminal_node;
+        my $n_terms_this_node = $node->get_terminal_element_count;
+        #  does the node have a large frqction of the terminals under it?
+        my $fraction_of_all_nodes = $n_terms_this_node / $n_terminals;  
+        next if $fraction_of_all_nodes < 0.66;  #  hard coded...
+        #  Do two of its children have large fractions?
+        my $triggered
+          = grep {$_->get_terminal_element_count / $n_terms_this_node > 0.25}
+            $node->get_children;
+        next if $triggered < 2;
+        $chunky_nodes->{$node->get_name} = {
+            node_ref => $node,
+            fraction => $fraction_of_all_nodes,
+            depth    => $node->get_depth,
+        };
+    }
+    
+    return wantarray ? %$chunky_nodes : $chunky_nodes;
+}
+
+sub get_most_probable_lca_depths {
+    my $self = shift;
+    
+    my $depths = $self->get_cached_value_dor_set_default_aa (
+        MOST_PROBABLE_LCA_DEPTHS => [],
+    );
+    return wantarray ? @$depths : $depths
+      if @$depths;
+
+    my $probable_nodes = $self->get_most_probable_lcas;
+    my %done;
+
+    my @order
+      = reverse
+        sort {$probable_nodes->{$a}{fraction} <=> $probable_nodes->{$b}{fraction}}
+        keys %$probable_nodes;
+
+    foreach my $name (@order) {
+        my $depth = $probable_nodes->{$name}{depth};
+        next if $done{$depth};
+        push @$depths, $depth;
+        $done{$depth}++;
+    }
+
+    return wantarray ? @$depths : $depths;
+}
+
 
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
@@ -1745,6 +1813,9 @@ sub get_last_shared_ancestor_for_nodes {
     my $path_cache = $self->get_cached_value_dor_set_default_aa (PATH_NAME_ARRAYS => {});
 
     \my @ref_path = $path_cache->{$first_name} //= $first_node->get_path_to_root_node;
+
+    #  are there some probable depths based on an analysis of the tree?
+    my $most_probable_lca_depths = $self->get_most_probable_lca_depths;
 
     #  working from the ends of the arrays,
     #  so use negative indices
@@ -1768,12 +1839,24 @@ sub get_last_shared_ancestor_for_nodes {
             last PATH;
         }
 
-    #if (defined $args{start_depth}) {
-    #    my $iter = -$start_depth;
-    #    if ($ref_path[$args{start_depth}] ne $cmp_path[$args{start_depth}]) {
-    #    
-    #}
-    #
+        if (@$most_probable_lca_depths) {
+            state $check_pd;
+            foreach my $depth (@$most_probable_lca_depths) {
+                #if (!$check_pd) {
+                #    warn "checking depth $depth";
+                #}
+                
+                next if $depth > $#ref_path || $depth > $#cmp_path;
+                my $iter = -($depth+1);
+                if (   $ref_path[$iter]   eq $cmp_path[$iter]
+                    && $ref_path[$iter-1] ne $cmp_path[$iter-1]) {
+                    $common_anc_idx = $iter;
+                    #warn "got matching depth at iter $iter";
+                    last PATH;
+                }
+            }
+            #$check_pd++;
+        }
     
         #  Compare to an equivalent relative depth to avoid needless
         #  comparisons near terminals which cannot be ancestral.

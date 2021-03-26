@@ -282,10 +282,15 @@ sub _calc_phylo_mpd_mntd {
 
     #  Are we on the tree and have a non-zero count?
     #  Could be a needless slowdown under permutations using only labels on the tree.
-    my @labels1 = sort grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}} keys %$label_hash1;
+    my @labels1
+      = sort
+        grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}}
+        keys %$label_hash1;
     my @labels2 = $label_hashrefs_are_same
         ? @labels1
-        : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
+        : sort
+          grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} }
+          keys %$label_hash2;
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 

@@ -123,7 +123,11 @@ sub get_mpd_mntd_metadata {
         type            => 'PhyloCom Indices',
         reference       => $webb_et_al_ref,
         pre_calc        => $pre_calc,
-        pre_calc_global => [qw /get_phylo_mpd_mntd_matrix/],
+        pre_calc_global =>
+          [qw /
+              get_phylo_mpd_mntd_matrix
+              get_phylo_mpd_mntd_cum_path_length_cache
+            /],
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
         indices         => $indices_filtered,
@@ -290,9 +294,10 @@ sub _calc_phylo_mpd_mntd {
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
-    \my %path_cache = $self->get_cached_value_dor_set_default_aa(
-        MPD_MNTD_PATH_LENGTH_TO_ROOT_CACHE => {},
-    );
+    \my %path_cache = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE};
+    #$self->get_cached_value_dor_set_default_aa(
+    #    MPD_MNTD_PATH_LENGTH_TO_ROOT_CACHE => {},
+    #);
     
     my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
 
@@ -409,6 +414,33 @@ sub _calc_phylo_mpd_mntd {
 
     return wantarray ? %results : \%results;
 }
+
+sub get_metadata_get_phylo_mpd_mntd_cum_path_length_cache {
+    my $self = shift;
+
+    my %metadata = (
+        name        => 'get_phylo_mpd_mntd_cum_path_length_cache',
+        description => 'Cumulative path length cache for MPD and MNTD calculations',
+        indices     => {
+            MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE => {
+                description => 'MPD/MNTD cumulative path length cache',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub get_phylo_mpd_mntd_cum_path_length_cache {
+    my $self = shift;
+    
+    my %results = (MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE => {});
+    
+    return wantarray ? %results : \%results;
+}
+
+
 
 sub get_metadata_get_phylo_mpd_mntd_matrix {
     my $self = shift;
@@ -654,6 +686,7 @@ sub get_metadata_calc_nri_nti_expected_values {
     };
 
     my $pre_calc_global = [qw /
+        get_phylo_mpd_mntd_cum_path_length_cache
         get_phylo_mpd_mntd_matrix
         get_prng_object
         get_phylo_nri_nti_cache

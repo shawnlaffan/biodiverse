@@ -1918,9 +1918,7 @@ sub get_last_shared_ancestor_for_nodes {
         }
     }
     
-    my $node = $ref_path[$common_anc_idx];
-
-    return $node;
+    return $ref_path[$common_anc_idx];
 }
 
 ########################################################

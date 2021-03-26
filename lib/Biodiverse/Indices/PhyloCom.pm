@@ -11,6 +11,9 @@ use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
 
@@ -294,7 +297,9 @@ sub _calc_phylo_mpd_mntd {
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
-    my %path_cache;
+    \my %path_cache = $self->get_cached_value_dor_set_default_aa(
+        MPD_MNTD_PATH_LENGTH_TO_ROOT_CACHE => {},
+    );
     
     my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
 

@@ -290,6 +290,8 @@ sub _calc_phylo_mpd_mntd {
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
     my %path_cache;
+    
+    my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
 
     #  Loop over all possible pairs
     my $i = 0;
@@ -316,6 +318,7 @@ sub _calc_phylo_mpd_mntd {
             if (!defined $path_length) {  #  need to calculate it
                 my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
                     node_names => {$label1 => 1, $label2 => 1},
+                    most_probable_lca_depths => $most_probable_lca_depths,
                 );
 
                 my $ancestor_pos;  #  declare outside loops

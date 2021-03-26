@@ -1815,7 +1815,9 @@ sub get_last_shared_ancestor_for_nodes {
     \my @ref_path = $path_cache->{$first_name} //= $first_node->get_path_to_root_node;
 
     #  are there some probable depths based on an analysis of the tree?
-    my $most_probable_lca_depths = $self->get_most_probable_lca_depths;
+    my $most_probable_lca_depths
+      =  $args{most_probable_lca_depths}
+      // $self->get_most_probable_lca_depths;
 
     #  working from the ends of the arrays,
     #  so use negative indices

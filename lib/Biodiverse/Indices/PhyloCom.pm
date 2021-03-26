@@ -295,9 +295,6 @@ sub _calc_phylo_mpd_mntd {
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
     \my %path_cache = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE};
-    #$self->get_cached_value_dor_set_default_aa(
-    #    MPD_MNTD_PATH_LENGTH_TO_ROOT_CACHE => {},
-    #);
     
     my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
 
@@ -340,10 +337,6 @@ sub _calc_phylo_mpd_mntd {
                           };
                     $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
                     $path_length += $path_lens->[$ancestor_pos];
-                    #$path_length += sum @$path_lens[0..$ancestor_pos];
-                    # for-sum needs benchmarking, and prob refaliasing
-                    #  it is not faster under profiling
-                    #$path_length += $path_lens->[$_] for (0..$ancestor_pos);  
                 }
 
                 #  avoid set_value method wrapper for speed

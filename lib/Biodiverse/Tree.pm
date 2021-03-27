@@ -1841,14 +1841,22 @@ sub get_last_shared_ancestor_for_nodes {
             last PATH;
         }
 
+        my $top    = -1;
+
         if (@$most_probable_lca_depths) {
             foreach my $depth (@$most_probable_lca_depths) {
                 next if $depth > $#ref_path || $depth > $#cmp_path;
                 my $iter = -($depth+1);
-                if (   $ref_path[$iter]   eq $cmp_path[$iter]
-                    && $ref_path[$iter-1] ne $cmp_path[$iter-1]) {
-                    $common_anc_idx = $iter;
-                    last PATH;
+                if ($ref_path[$iter] eq $cmp_path[$iter]) {
+                    if ($ref_path[$iter-1] ne $cmp_path[$iter-1]) {
+                        $common_anc_idx = $iter;
+                        last PATH;
+                    }
+                    else {
+                        #  save some iters if we need
+                        #  to use a brute-force search
+                        if ($top > $iter) {$top = $iter};
+                    }
                 }
             }
         }
@@ -1862,7 +1870,6 @@ sub get_last_shared_ancestor_for_nodes {
         #  but the useful side effect is to detect LCA already at the root. 
         #  Tip-most entry in $path cannot be shared ancestor 
         my $bottom = max( $common_anc_idx, -(@cmp_path-1) );
-        my $top    = -1;
 
         #  Climb down using a brute force loop assuming LCA
         #  is normally near the root, which it is for random

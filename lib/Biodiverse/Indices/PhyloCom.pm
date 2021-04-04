@@ -477,7 +477,7 @@ sub get_metadata_get_phylo_nri_nti_cache {
         required_args   => 'tree_ref',
         indices         => {
             PHYLO_NRI_NTI_SAMPLE_CACHE => {
-                description => 'Sample cache for the NRI/NTI calcs, ordered by label counts',
+                description => 'Sample cache for the NRI/NTI calcs, indexed by label counts',
             },
         },
     );
@@ -487,8 +487,17 @@ sub get_metadata_get_phylo_nri_nti_cache {
 
 sub get_phylo_nri_nti_cache {
     my $self = shift;
+    my %args = @_;
 
-    my %results = (PHYLO_NRI_NTI_SAMPLE_CACHE => {});
+    #  Caching it on the tree means we benefit from
+    #  prior calculations if they used the same tree.
+    #  Very helpful for randomisations.
+    my $tree_ref = $args{tree_ref};
+    my $cache    = $tree_ref->get_cached_value_dor_set_default_aa (
+      PHYLO_NRI_NTI_SAMPLE_CACHE => {},
+    );
+
+    my %results = (PHYLO_NRI_NTI_SAMPLE_CACHE => $cache);
 
     return wantarray ? %results : \%results;
 }

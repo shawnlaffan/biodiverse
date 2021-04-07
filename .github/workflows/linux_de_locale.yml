@@ -70,7 +70,7 @@ jobs:
           #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
           cpanm --installdeps FFI::Platypus
           cpanm --notest FFI::Platypus
-          cpanm --notest FFI::Platypus::Declare
+          #cpanm --notest FFI::Platypus::Declare
           cpanm --notest Alien::Build  
           cpanm --installdeps --notest Alien::sqlite
           cpanm -v Alien::sqlite

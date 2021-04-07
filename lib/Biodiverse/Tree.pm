@@ -1812,7 +1812,7 @@ sub get_last_shared_ancestor_for_nodes {
 
     my $path_cache
       = $self->get_cached_value ('PATH_NAME_ARRAYS')
-        // do {
+        // do {  #  only generate default val when needed (so no dor_set_default here)
             $self->set_cached_value (PATH_NAME_ARRAYS => {});
             $self->get_cached_value ('PATH_NAME_ARRAYS')
         };
@@ -1882,9 +1882,9 @@ sub get_last_shared_ancestor_for_nodes {
         if (1 || $bottom > -20) {
             #  looks a bit obfuscated, but perl optimises reverse-range loop constructs
             #  and this avoids a variable increment per loop
-            foreach my $iter (reverse ($bottom .. $top)) {
-                if ($ref_path[$iter-1] ne $cmp_path[$iter-1]) {
-                    $top = $iter;
+            foreach my $iter (reverse (($bottom - 1) .. ($top - 1))) {
+                if ($ref_path[$iter] ne $cmp_path[$iter]) {
+                    $top = $iter + 1;
                     last;
                 }
             }

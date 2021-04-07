@@ -326,7 +326,11 @@ sub _calc_phylo_mpd_mntd {
                     most_probable_lca_depths => $most_probable_lca_depths,
                 );
 
-                my $ancestor_pos;  #  declare outside loops
+                #  target index is one below the last common ancestor
+                #  last ancestor is one more than its depth from the end,
+                #  so we subtract 2
+                my $ancestor_idx = -$last_ancestor->get_depth - 2;
+                
                 foreach my $node_name ($label1, $label2) {
                     my $path_lens = $path_cache{$node_name}
                       //= do {my $sum = 0;  #  get a cum sum
@@ -335,8 +339,7 @@ sub _calc_phylo_mpd_mntd {
                                 ->get_path_length_array_to_root_node_aa;
                               [map {$sum += $_} @$lens];
                           };
-                    $ancestor_pos = $#$path_lens - $last_ancestor->get_depth - 1;
-                    $path_length += $path_lens->[$ancestor_pos];
+                    $path_length += $path_lens->[$ancestor_idx];
                 }
 
                 #  avoid set_value method wrapper for speed

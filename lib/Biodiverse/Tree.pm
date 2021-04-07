@@ -1790,7 +1790,7 @@ sub get_most_probable_lca_depths {
         push @$depths, $depth;
         $done{$depth}++;
     }
-
+#warn "LCA depths: " . join ' ', @$depths;
     return wantarray ? @$depths : $depths;
 }
 
@@ -1810,7 +1810,12 @@ sub get_last_shared_ancestor_for_nodes {
 
     return $first_node if !scalar @node_names;
 
-    my $path_cache = $self->get_cached_value_dor_set_default_aa (PATH_NAME_ARRAYS => {});
+    my $path_cache
+      = $self->get_cached_value ('PATH_NAME_ARRAYS')
+        // do {
+            $self->set_cached_value (PATH_NAME_ARRAYS => {});
+            $self->get_cached_value ('PATH_NAME_ARRAYS')
+        };
 
     \my @ref_path = $path_cache->{$first_name} //= $first_node->get_path_to_root_node;
 

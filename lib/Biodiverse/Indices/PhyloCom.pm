@@ -267,7 +267,7 @@ sub _calc_phylo_mpd_mntd {
 
     my $label_hash1 = $args{label_hash1};
     my $label_hash2 = $args{label_hash2};
-    my $mx          = $args{PHYLO_MPD_MNTD_MATRIX}
+    \my %mx         = $args{PHYLO_MPD_MNTD_MATRIX}
       || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref       = $args{tree_ref};
@@ -318,7 +318,7 @@ sub _calc_phylo_mpd_mntd {
             next BY_LABEL2 if $label1 eq $label2;
 
             #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
-            my $path_length = $mx->{$label1}{$label2} // $mx->{$label2}{$label1};
+            my $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
 
             if (!defined $path_length) {  #  need to calculate it
                 my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
@@ -331,6 +331,9 @@ sub _calc_phylo_mpd_mntd {
                 #  so we subtract 2
                 my $ancestor_idx = -$last_ancestor->get_depth - 2;
                 
+                #  FIXME: ultrametric trees can use twice the
+                #  distance to the root,  which will save a
+                #  bit of looping
                 foreach my $node_name ($label1, $label2) {
                     my $path_lens = $path_cache{$node_name}
                       //= do {my $sum = 0;  #  get a cum sum
@@ -344,7 +347,7 @@ sub _calc_phylo_mpd_mntd {
 
                 #  avoid set_value method wrapper for speed
                 #$mx->add_element_aa($label1, $label2, $path_length);
-                $mx->{$label1}{$label2} = $path_length;
+                $mx{$label1}{$label2} = $path_length;
             }
 
             push @mpd_path_lengths_this_node, $path_length;

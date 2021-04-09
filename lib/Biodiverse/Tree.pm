@@ -188,6 +188,7 @@ sub delete_node {
             $n_ref->delete_cached_values;
         }
         $self->delete_cached_values_below;
+        $self->delete_cached_values;  #  our own cache
     }
 
     #  return a list of the names of those deleted nodes
@@ -2635,6 +2636,28 @@ sub trim_to_last_common_ancestor {
 
 
     return;
+}
+
+sub is_ultrametric {
+    my $self = shift;
+    
+    my $is_ultrametric = $self->get_cached_value ('TREE_IS_ULTRAMETRIC');
+    return $is_ultrametric if defined $is_ultrametric;
+    
+    my $node_refs = $self->get_terminal_node_refs;
+    my $path1 = $node_refs->[0]->get_path_length_array_to_root_node_aa;
+    my $len1 = sum @$path1;
+    foreach my $terminal (@$node_refs) {
+        my $path_to_root = $terminal->get_path_length_array_to_root_node_aa;
+        my $len = sum @$path_to_root;
+        if ($len != $len1) {
+            $self->set_cached_value (TREE_IS_ULTRAMETRIC => 0);
+            return 0;
+        }
+    }
+    
+    $self->set_cached_value (TREE_IS_ULTRAMETRIC => 1);
+    return 1;    
 }
 
 #  wrapper method so we can have a different name

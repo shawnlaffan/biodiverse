@@ -82,6 +82,30 @@ sub _chklk {
 
 }
 
+
+sub test_is_ultrametric {
+    my $tree = Biodiverse::Tree->new (NAME => 'ultron');
+    #  bifurcating number scheme
+    my @nums = qw /1 2 3 4 5 6 7 14 15/;
+    my %nodes;
+    for my $num (@nums) {
+        my $node = $tree->add_node(name => $num, length => 1);
+        $nodes{$num} = $node;
+    }
+    $nodes{1}->add_children(children => [$nodes{2}, $nodes{3}]);
+    $nodes{2}->add_children(children => [$nodes{4}, $nodes{5}]);
+    $nodes{3}->add_children(children => [$nodes{6}, $nodes{7}]);
+    $nodes{7}->add_children(children => [$nodes{14}, $nodes{15}]);
+
+    is ($tree->is_ultrametric, 0, 'tree is not ultrametric');
+    
+    $tree->delete_node (node => 14);
+    $tree->delete_node (node => 15);
+    is ($tree->is_ultrametric, 1, 'tree is ultrametric');
+    
+}
+
+
 #  should all be equal for 
 sub test_max_path_length {
     my $tree1 = shift || get_site_data_as_tree();

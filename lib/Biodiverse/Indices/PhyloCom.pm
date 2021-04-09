@@ -292,6 +292,8 @@ sub _calc_phylo_mpd_mntd {
           grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} }
           keys %$label_hash2;
 
+    my $tree_is_ultrametric = $tree_ref->is_ultrametric;
+  
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
     \my %path_cache = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE};
@@ -331,18 +333,28 @@ sub _calc_phylo_mpd_mntd {
                 #  so we subtract 2
                 my $ancestor_idx = -$last_ancestor->get_depth - 2;
                 
-                #  FIXME: ultrametric trees can use twice the
-                #  distance to the root,  which will save a
-                #  bit of looping
-                foreach my $node_name ($label1, $label2) {
-                    my $path_lens = $path_cache{$node_name}
+                #  some duplication here, but it unrolls a loop
+                #  that is only needed for non-ultrametric trees
+                my $path_lens1 = $path_cache{$label1}
+                  //= do {my $sum = 0;  #  get a cum sum
+                          my $lens = $tree_ref
+                            ->get_node_ref_aa ($label1)
+                            ->get_path_length_array_to_root_node_aa;
+                          [map {$sum += $_} @$lens];
+                      };
+                $path_length += $path_lens1->[$ancestor_idx];
+                if ($tree_is_ultrametric) {
+                    $path_length *= 2
+                }
+                else {
+                    my $path_lens2 = $path_cache{$label2}
                       //= do {my $sum = 0;  #  get a cum sum
                               my $lens = $tree_ref
-                                ->get_node_ref_aa ($node_name)
+                                ->get_node_ref_aa ($label2)
                                 ->get_path_length_array_to_root_node_aa;
                               [map {$sum += $_} @$lens];
                           };
-                    $path_length += $path_lens->[$ancestor_idx];
+                    $path_length += $path_lens2->[$ancestor_idx];
                 }
 
                 #  avoid set_value method wrapper for speed

@@ -105,6 +105,31 @@ sub test_is_ultrametric {
     
 }
 
+sub test_get_siblings {
+    my $tree = Biodiverse::Tree->new (NAME => 'siblonian');
+    #  bifurcating number scheme
+    my @nums = qw /1 2 3 4 5 6 7 14 15 16/;
+    my %nodes;
+    for my $num (@nums) {
+        my $node = $tree->add_node(name => $num, length => 1);
+        $nodes{$num} = $node;
+    }
+    $nodes{1}->add_children(children => [$nodes{2}, $nodes{3}]);
+    $nodes{2}->add_children(children => [$nodes{4}, $nodes{5}]);
+    $nodes{3}->add_children(children => [$nodes{6}, $nodes{7}]);
+    $nodes{7}->add_children(children => [@nodes{14, 15, 16}]);
+
+    is (scalar $nodes{1}->get_siblings, [], 'root has no sibs');
+    is ([map {$_->get_name} $nodes{2}->get_siblings],
+        [$nodes{3}->get_name],
+        'node 2 has one sib',
+    );
+    is ([map {$_->get_name} $nodes{14}->get_siblings],
+        [$nodes{15}->get_name, $nodes{16}->get_name],
+        'node 14 has two sibs',
+    );
+    
+}
 
 #  should all be equal for 
 sub test_max_path_length {

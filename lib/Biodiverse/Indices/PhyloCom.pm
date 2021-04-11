@@ -368,22 +368,52 @@ sub _calc_phylo_mpd_mntd {
                     }
                 }
                 else {
-                    #  should populate the matrix here as well,
-                    #  but perhaps only if running under NRI/NTI
-                    #  to avoid probably redundant looping.
-                    my $path_lens2 = $path_cache{$label2}
-                      //= do {my $sum = 0;  #  get a cum sum
-                              my $lens = $tree_ref
-                                ->get_node_ref_aa ($label2)
-                                ->get_path_length_array_to_root_node_aa;
-                              [map {$sum += $_} @$lens];
-                          };
-                    $path_length += $path_lens2->[$ancestor_idx];
+                    #  fill the matrix with this LCA's paths
+                    #  (maybe should only do for NRI/NTI case?)
+                    my @sibs = $last_ancestor->get_children;  #  use a copy
+                    my $node = shift @sibs;
+                    my $terminals = $node->get_terminal_elements;
+                    while (my $sib = shift @sibs) { #  handle multifurcation
+                        my $sib_terminals = $sib->get_terminal_elements;
+                        foreach my $lb1 (keys %$terminals) {
+                            $path_lens1 = $path_cache{$lb1}
+                              //= do {my $sum = 0;  #  get a cum sum
+                                  my $lens = $tree_ref
+                                    ->get_node_ref_aa ($lb1)
+                                    ->get_path_length_array_to_root_node_aa;
+                                  [map {$sum += $_} @$lens];
+                              };
+                            foreach my $lb2 (keys %$sib_terminals) {
+                                my $path_lens2 = $path_cache{$lb2}
+                                  //= do {my $sum = 0;  #  get a cum sum
+                                      my $lens = $tree_ref
+                                        ->get_node_ref_aa ($lb2)
+                                        ->get_path_length_array_to_root_node_aa;
+                                      [map {$sum += $_} @$lens];
+                                  };
+                                $mx{$lb1}{$lb2}
+                                  = $path_lens1->[$ancestor_idx]
+                                  + $path_lens2->[$ancestor_idx];
+                            }
+                        }
+                        $terminals = $sib_terminals;
+                    }
+                    #  now grab it
+                    $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
+                    
+                    #my $path_lens2 = $path_cache{$label2}
+                    #  //= do {my $sum = 0;  #  get a cum sum
+                    #          my $lens = $tree_ref
+                    #            ->get_node_ref_aa ($label2)
+                    #            ->get_path_length_array_to_root_node_aa;
+                    #          [map {$sum += $_} @$lens];
+                    #      };
+                    #$path_length += $path_lens2->[$ancestor_idx];
                 }
 
                 #  avoid set_value method wrapper for speed
                 #$mx->add_element_aa($label1, $label2, $path_length);
-                $mx{$label1}{$label2} = $path_length;
+                #$mx{$label1}{$label2} = $path_length;
             }
 
             push @mpd_path_lengths_this_node, $path_length;

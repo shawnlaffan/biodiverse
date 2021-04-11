@@ -9,6 +9,7 @@ use Biodiverse::Progress;
 use List::Util qw /sum min max/;
 use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
+use Sort::Key qw /nkeysort/;
 use Math::BigInt ();
 
 use feature 'refaliasing';
@@ -343,10 +344,33 @@ sub _calc_phylo_mpd_mntd {
                           [map {$sum += $_} @$lens];
                       };
                 $path_length += $path_lens1->[$ancestor_idx];
+
                 if ($tree_is_ultrametric) {
-                    $path_length *= 2
+                    $path_length *= 2;
+                    
+                    #  Now populate the matrix for all pairs
+                    #  that share this common ancestor,
+                    #  thus obviating any need to find it again.
+                    #  Sort by terminal count to minimise for-looping
+                    #  around slice assigns below.
+                    my @sibs
+                      = nkeysort {$_->get_terminal_element_count}
+                        $last_ancestor->get_children;  #  use a copy
+                    my $node = shift @sibs;
+                    my $terminals = $node->get_terminal_elements;
+                    while (my $sib = shift @sibs) { #  handle multifurcation 
+                        my $sib_terminals = $sib->get_terminal_elements;
+                        foreach my $lb1 (keys %$terminals) {
+                            @{$mx{$lb1}}{keys %$sib_terminals}
+                              = ($path_length) x keys %$sib_terminals;
+                        }
+                        $terminals = $sib_terminals;
+                    }
                 }
                 else {
+                    #  should populate the matrix here as well,
+                    #  but perhaps only if running under NRI/NTI
+                    #  to avoid probably redundant looping.
                     my $path_lens2 = $path_cache{$label2}
                       //= do {my $sum = 0;  #  get a cum sum
                               my $lens = $tree_ref

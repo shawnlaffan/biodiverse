@@ -2650,7 +2650,7 @@ sub is_ultrametric {
     foreach my $terminal (@$node_refs) {
         my $path_to_root = $terminal->get_path_length_array_to_root_node_aa;
         my $len = sum @$path_to_root;
-        if ($len != $len1) {
+        if (abs ($len - $len1) > 1e-15) {  #  floating point tolerance
             $self->set_cached_value (TREE_IS_ULTRAMETRIC => 0);
             return 0;
         }

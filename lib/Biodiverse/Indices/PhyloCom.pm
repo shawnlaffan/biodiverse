@@ -421,11 +421,11 @@ sub _calc_phylo_mpd_mntd {
                 push @mpd_wts_this_node, $label_hash2->{$label2};
             }
 
-            $j ||= 1;  # not sure we really need this variable
+            #$j ||= 1;  # not sure we really need this variable
         }
 
         #  next steps only if we added something
-        next BY_LABEL if !$j;
+        next BY_LABEL if !@path_lengths_this_node;
 
         #  weighting scheme won't work with non-integer wts - need to use weighted stats
         push @mpd_path_lengths, @path_lengths_this_node;

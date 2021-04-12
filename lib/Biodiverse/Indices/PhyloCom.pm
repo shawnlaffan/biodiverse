@@ -308,8 +308,7 @@ sub _calc_phylo_mpd_mntd {
         my $label_count1 = $label_hash1->{$label1};
 
         my (
-            @mpd_path_lengths_this_node,
-            @mntd_path_lengths_this_node,
+            @path_lengths_this_node,
             @mpd_wts_this_node,
         );
         my $j = 0;
@@ -417,8 +416,7 @@ sub _calc_phylo_mpd_mntd {
                 #$mx{$label1}{$label2} = $path_length;
             }
 
-            push @mpd_path_lengths_this_node, $path_length;
-            push @mntd_path_lengths_this_node, $path_length;
+            push @path_lengths_this_node, $path_length;
             if ($use_wts) {
                 push @mpd_wts_this_node, $label_hash2->{$label2};
             }
@@ -430,9 +428,8 @@ sub _calc_phylo_mpd_mntd {
         next BY_LABEL if !$j;
 
         #  weighting scheme won't work with non-integer wts - need to use weighted stats
-        push @mpd_path_lengths, @mpd_path_lengths_this_node;
-        my $min = min (@mntd_path_lengths_this_node);
-        push @mntd_path_lengths, $min;
+        push @mpd_path_lengths, @path_lengths_this_node;
+        push @mntd_path_lengths, min (@path_lengths_this_node);
         if ($use_wts) {
             push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
             push @mntd_wts, $label_count1;

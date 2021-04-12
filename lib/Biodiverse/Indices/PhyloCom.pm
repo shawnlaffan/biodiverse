@@ -423,7 +423,7 @@ sub _calc_phylo_mpd_mntd {
                 push @mpd_wts_this_node, $label_hash2->{$label2};
             }
 
-            $j ++;
+            $j ||= 1;  # now sue we really need this variable
         }
 
         #  next steps only if we added something

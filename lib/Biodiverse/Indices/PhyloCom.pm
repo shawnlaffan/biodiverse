@@ -333,15 +333,11 @@ sub _calc_phylo_mpd_mntd {
                 #  so we subtract 2
                 my $ancestor_idx = -$last_ancestor->get_depth - 2;
                 
-                #  some duplication here, but it unrolls a loop
-                #  that is only needed for non-ultrametric trees
                 my $path_lens1 = $path_cache{$label1}
-                  //= do {my $sum = 0;  #  get a cum sum
-                          my $lens = $tree_ref
-                            ->get_node_ref_aa ($label1)
-                            ->get_path_length_array_to_root_node_aa;
-                          [map {$sum += $_} @$lens];
-                      };
+                  //= $self->_get_node_cum_path_sum_to_root(
+                    tree_ref => $tree_ref,
+                    label    => $label1,
+                  );
                 $path_length += $path_lens1->[$ancestor_idx];
 
                 if ($tree_is_ultrametric) {
@@ -377,21 +373,17 @@ sub _calc_phylo_mpd_mntd {
                             my $sib_terminals = $sib->get_terminal_elements;
                             foreach my $lb1 (keys %$terminals) {
                                 $path_lens1 = $path_cache{$lb1}
-                                  //= do {my $sum = 0;  #  get a cum sum
-                                      my $lens = $tree_ref
-                                        ->get_node_ref_aa ($lb1)
-                                        ->get_path_length_array_to_root_node_aa;
-                                      [map {$sum += $_} @$lens];
-                                  };
+                                  //= $self->_get_node_cum_path_sum_to_root(
+                                      tree_ref => $tree_ref,
+                                      label    => $lb1,
+                                  );
                                 my $len1 = $path_lens1->[$ancestor_idx];
                                 foreach my $lb2 (keys %$sib_terminals) {
                                     my $path_lens2 = $path_cache{$lb2}
-                                      //= do {my $sum = 0;  #  get a cum sum
-                                          my $lens = $tree_ref
-                                            ->get_node_ref_aa ($lb2)
-                                            ->get_path_length_array_to_root_node_aa;
-                                          [map {$sum += $_} @$lens];
-                                      };
+                                      //= $self->_get_node_cum_path_sum_to_root(
+                                          tree_ref => $tree_ref,
+                                          label    => $lb2,
+                                      );
                                     $mx{$lb1}{$lb2}
                                       = $len1 + $path_lens2->[$ancestor_idx];
                                 }
@@ -401,14 +393,6 @@ sub _calc_phylo_mpd_mntd {
                     #  now grab it
                     $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
 
-                    #my $path_lens2 = $path_cache{$label2}
-                    #  //= do {my $sum = 0;  #  get a cum sum
-                    #          my $lens = $tree_ref
-                    #            ->get_node_ref_aa ($label2)
-                    #            ->get_path_length_array_to_root_node_aa;
-                    #          [map {$sum += $_} @$lens];
-                    #      };
-                    #$path_length += $path_lens2->[$ancestor_idx];
                 }
 
                 #  avoid set_value method wrapper for speed
@@ -476,6 +460,15 @@ sub _calc_phylo_mpd_mntd {
     }
 
     return wantarray ? %results : \%results;
+}
+
+sub _get_node_cum_path_sum_to_root {
+    my ($self, %args) = @_;
+    my $sum = 0;  #  get a cum sum
+    my $lens = $args{tree_ref}
+      ->get_node_ref_aa ($args{label})
+      ->get_path_length_array_to_root_node_aa;
+    return [map {$sum += $_} @$lens];
 }
 
 sub get_metadata_get_phylo_mpd_mntd_cum_path_length_cache {

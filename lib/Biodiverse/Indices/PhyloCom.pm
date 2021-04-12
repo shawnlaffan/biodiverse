@@ -384,6 +384,7 @@ sub _calc_phylo_mpd_mntd {
                                         ->get_path_length_array_to_root_node_aa;
                                       [map {$sum += $_} @$lens];
                                   };
+                                my $len1 = $path_lens1->[$ancestor_idx];
                                 foreach my $lb2 (keys %$sib_terminals) {
                                     my $path_lens2 = $path_cache{$lb2}
                                       //= do {my $sum = 0;  #  get a cum sum
@@ -393,8 +394,7 @@ sub _calc_phylo_mpd_mntd {
                                           [map {$sum += $_} @$lens];
                                       };
                                     $mx{$lb1}{$lb2}
-                                      = $path_lens1->[$ancestor_idx]
-                                      + $path_lens2->[$ancestor_idx];
+                                      = $len1 + $path_lens2->[$ancestor_idx];
                                 }
                             }
                         }

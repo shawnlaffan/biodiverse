@@ -425,9 +425,24 @@ sub _calc_phylo_mpd_mntd {
                         my @sibs
                           = nkeysort {$_->get_terminal_element_count}
                             $last_ancestor->get_children;  #  use a copy
+                        my $progress
+                          = $last_ancestor->get_terminal_element_count > 300
+                          ? Biodiverse::Progress->new (gui_only => 1)
+                          : undef;
+                        my $lca_name = $last_ancestor->get_name;
+                        my $i = 0;
+                        my $n_sibs = @sibs;
                         while (my $node = shift @sibs) { #  handle multifurcation
+                            $i++;
                             my $terminals = $node->get_terminal_elements;
+                            
                             foreach my $sib (@sibs) {
+                                if ($progress) {
+                                    $progress->update (
+                                        "Caching last common ancestors for $lca_name",
+                                        $i / $n_sibs,
+                                    );
+                                }
                                 my $sib_terminals = $sib->get_terminal_elements;
                                 foreach my $lb1 (keys %$terminals) {
                                     @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}

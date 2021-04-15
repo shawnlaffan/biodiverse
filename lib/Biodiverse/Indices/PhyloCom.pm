@@ -333,7 +333,8 @@ sub _calc_phylo_mpd_mntd {
                 #  ancestor mx only really needed for non-ultrametric, non-NRI
                 #  and is populated below
                 my $last_ancestor
-                  = $last_shared_ancestor_mx{$label1}{$label2};
+                  =    $last_shared_ancestor_mx{$label1}{$label2}
+                    // $last_shared_ancestor_mx{$label2}{$label1};
                 
                 my $fill_last_ancestor_cache = !$last_ancestor;
 
@@ -424,15 +425,15 @@ sub _calc_phylo_mpd_mntd {
                         my @sibs
                           = nkeysort {$_->get_terminal_element_count}
                             $last_ancestor->get_children;  #  use a copy
-                        my $node = shift @sibs;
-                        my $terminals = $node->get_terminal_elements;
-                        while (my $sib = shift @sibs) { #  handle multifurcation 
-                            my $sib_terminals = $sib->get_terminal_elements;
-                            foreach my $lb1 (keys %$terminals) {
-                                @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}
-                                  = ($last_ancestor) x keys %$sib_terminals;
+                        while (my $node = shift @sibs) { #  handle multifurcation
+                            my $terminals = $node->get_terminal_elements;
+                            foreach my $sib (@sibs) {
+                                my $sib_terminals = $sib->get_terminal_elements;
+                                foreach my $lb1 (keys %$terminals) {
+                                    @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}
+                                      = ($last_ancestor) x keys %$sib_terminals;
+                                }
                             }
-                            $terminals = $sib_terminals;
                         }
                     }
                 }

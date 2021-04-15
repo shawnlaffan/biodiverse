@@ -128,6 +128,7 @@ sub get_mpd_mntd_metadata {
           [qw /
               get_phylo_mpd_mntd_matrix
               get_phylo_mpd_mntd_cum_path_length_cache
+              get_phylo_LCA_matrix
             /],
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
@@ -298,6 +299,10 @@ sub _calc_phylo_mpd_mntd {
   
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
+
+    \my %last_shared_ancestor_mx = $args{PHYLO_LCA_MX}
+      || croak "Argument PHYLO_LCA_MX not defined";
+
     \my %path_cache = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE};
     
     my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
@@ -324,16 +329,24 @@ sub _calc_phylo_mpd_mntd {
             my $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
 
             if (!defined $path_length) {  #  need to calculate it
-                my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
+
+                #  ancestor mx only really needed for non-ultrametric, non-NRI
+                #  and is populated below
+                my $last_ancestor
+                  = $last_shared_ancestor_mx{$label1}{$label2};
+                
+                my $fill_last_ancestor_cache = !$last_ancestor;
+
+                $last_ancestor //= $tree_ref->get_last_shared_ancestor_for_nodes (
                     node_names => {$label1 => 1, $label2 => 1},
                     most_probable_lca_depths => $most_probable_lca_depths,
-                );
+                  );
 
                 #  target index is one below the last common ancestor
                 #  last ancestor is one more than its depth from the end,
                 #  so we subtract 2
                 my $ancestor_idx = -$last_ancestor->get_depth - 2;
-                
+
                 my $path_lens1 = $path_cache{$label1}
                   //= $self->_get_node_cum_path_sum_to_root(
                     tree_ref => $tree_ref,
@@ -396,6 +409,7 @@ sub _calc_phylo_mpd_mntd {
                     $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
                 }
                 else {
+                    #  non-ultramtric MPD/MNTD, calc on-demand
                     my $path_lens2 = $path_cache{$label2}
                         //= $self->_get_node_cum_path_sum_to_root(
                             tree_ref => $tree_ref,
@@ -403,6 +417,24 @@ sub _calc_phylo_mpd_mntd {
                         );
                     $path_length += $path_lens2->[$ancestor_idx];
                     $mx{$label1}{$label2} = $path_length;
+
+                    if ($fill_last_ancestor_cache) {
+                        #  cache the common ancestor for the terminals of the sibling nodes
+                        #  slice assign is faster than the nested for-loops
+                        my @sibs
+                          = nkeysort {$_->get_terminal_element_count}
+                            $last_ancestor->get_children;  #  use a copy
+                        my $node = shift @sibs;
+                        my $terminals = $node->get_terminal_elements;
+                        while (my $sib = shift @sibs) { #  handle multifurcation 
+                            my $sib_terminals = $sib->get_terminal_elements;
+                            foreach my $lb1 (keys %$terminals) {
+                                @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}
+                                  = ($last_ancestor) x keys %$sib_terminals;
+                            }
+                            $terminals = $sib_terminals;
+                        }
+                    }
                 }
             }
 
@@ -498,6 +530,31 @@ sub get_phylo_mpd_mntd_cum_path_length_cache {
     my $self = shift;
     
     my %results = (MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE => {});
+    
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_phylo_LCA_matrix {
+    my $self = shift;
+
+    my %metadata = (
+        name        => 'get_phylo_mpd_mntd_matrix',
+        description => 'LCA matrix used for caching in MPD and MNTD calculations',
+        indices     => {
+            PHYLO_LCA_MX => {
+                description => 'Last common ancestor matrix',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub get_phylo_LCA_matrix {
+    my $self = shift;
+
+    my %results = (PHYLO_LCA_MX => {});
     
     return wantarray ? %results : \%results;
 }
@@ -759,6 +816,7 @@ sub get_metadata_calc_nri_nti_expected_values {
     my $pre_calc_global = [qw /
         get_phylo_mpd_mntd_cum_path_length_cache
         get_phylo_mpd_mntd_matrix
+        get_phylo_LCA_matrix
         get_prng_object
         get_phylo_nri_nti_cache
     /];

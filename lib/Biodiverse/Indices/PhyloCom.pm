@@ -386,6 +386,8 @@ sub _calc_phylo_mpd_mntd {
                       ? Biodiverse::Progress->new (gui_only => 1)
                       : undef;
                     my $lca_name = $last_ancestor->get_name;
+                    my $progress_text
+                      = "Precalculating path lengths for terminals of $lca_name";
 
                     my @sibs = $last_ancestor->get_children;  #  use a copy
                     my $s = 0;
@@ -397,7 +399,7 @@ sub _calc_phylo_mpd_mntd {
                         foreach my $sib (@sibs) {
                             if ($progress) {
                                 $progress->update (
-                                    "Precalculating path lengths for terminals of $lca_name",
+                                    $progress_text,
                                     $s / $n_sibs,
                                 );
                             }
@@ -426,7 +428,7 @@ sub _calc_phylo_mpd_mntd {
                     $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
                 }
                 else {
-                    #  non-ultramtric MPD/MNTD, calc on-demand
+                    #  non-ultrametric MPD/MNTD, calc on-demand
                     my $path_lens2 = $path_cache{$label2}
                         //= $self->_get_node_cum_path_sum_to_root(
                             tree_ref => $tree_ref,
@@ -436,8 +438,9 @@ sub _calc_phylo_mpd_mntd {
                     $mx{$label1}{$label2} = $path_length;
 
                     if ($fill_last_ancestor_cache) {
-                        #  cache the common ancestor for the terminals of the sibling nodes
-                        #  slice assign is faster than the nested for-loops
+                        #  Cache the common ancestor for the terminals
+                        #  of the sibling nodes
+                        #  Slice assign is faster than nested for-loops
                         my @sibs
                           = nkeysort {$_->get_terminal_element_count}
                             $last_ancestor->get_children;  #  use a copy
@@ -445,18 +448,20 @@ sub _calc_phylo_mpd_mntd {
                           = $last_ancestor->get_terminal_element_count > 300
                           ? Biodiverse::Progress->new (gui_only => 1)
                           : undef;
-                        my $lca_name = $last_ancestor->get_name;
-                        my $i = 0;
+                        my $progress_text
+                          = "Caching last common ancestors for "
+                          . $last_ancestor->get_name,
+                        my $s = 0;
                         my $n_sibs = @sibs;
                         while (my $node = shift @sibs) { #  handle multifurcation
-                            $i++;
+                            $s++;
                             my $terminals = $node->get_terminal_elements;
                             
                             foreach my $sib (@sibs) {
                                 if ($progress) {
                                     $progress->update (
-                                        "Caching last common ancestors for $lca_name",
-                                        $i / $n_sibs,
+                                        $progress_text,
+                                        $s / $n_sibs,
                                     );
                                 }
                                 my $sib_terminals = $sib->get_terminal_elements;

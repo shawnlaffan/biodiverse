@@ -275,6 +275,7 @@ sub _calc_phylo_mpd_mntd {
     my $abc_num        = $args{abc_num} || 1;
     my $use_wts        = $abc_num == 1 ? $args{mpd_mntd_use_wts} : 1;
     my $return_means_only       = $args{mpd_mntd_means_only};
+    my $nri_nti_generation      = $args{nri_nti_generation};  #  changes some behaviour below
     my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
     
     return $self->default_mpd_mntd_results (@_)
@@ -362,9 +363,10 @@ sub _calc_phylo_mpd_mntd {
                         $terminals = $sib_terminals;
                     }
                 }
-                else {
+                elsif ($nri_nti_generation) {
                     #  fill the matrix with this LCA's paths
-                    #  (maybe should only do for NRI/NTI case?)
+                    #  if we are running NRI/NTI.
+                    #  Speed penalty is prob too great otherwise.
                     my @sibs = $last_ancestor->get_children;  #  use a copy
                     #  Deeply nested loops...
                     while (my $node = shift @sibs) { #  handle multifurcation
@@ -392,12 +394,16 @@ sub _calc_phylo_mpd_mntd {
                     }
                     #  now grab it
                     $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
-
                 }
-
-                #  avoid set_value method wrapper for speed
-                #$mx->add_element_aa($label1, $label2, $path_length);
-                #$mx{$label1}{$label2} = $path_length;
+                else {
+                    my $path_lens2 = $path_cache{$label2}
+                        //= $self->_get_node_cum_path_sum_to_root(
+                            tree_ref => $tree_ref,
+                            label    => $label2,
+                        );
+                    $path_length += $path_lens2->[$ancestor_idx];
+                    $mx{$label1}{$label2} = $path_length;
+                }
             }
 
             push @path_lengths_this_node, $path_length;
@@ -894,6 +900,7 @@ sub get_nri_nti_expected_values {
             label_hash2 => \%target_label_hash,
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
             mpd_mntd_means_only  => 1,
+            nri_nti_generation   => 1,
         );
 
         my $val = $results_this_iter{$mpd_index_name};

@@ -539,7 +539,7 @@ sub get_metadata_get_phylo_LCA_matrix {
     my $self = shift;
 
     my %metadata = (
-        name        => 'get_phylo_mpd_mntd_matrix',
+        name        => 'get_phylo_LCA_matrix',
         description => 'LCA matrix used for caching in MPD and MNTD calculations',
         indices     => {
             PHYLO_LCA_MX => {

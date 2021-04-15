@@ -381,11 +381,27 @@ sub _calc_phylo_mpd_mntd {
                     #  fill the matrix with this LCA's paths
                     #  if we are running NRI/NTI.
                     #  Speed penalty is prob too great otherwise.
+                    my $progress
+                      = $last_ancestor->get_terminal_element_count > 100
+                      ? Biodiverse::Progress->new (gui_only => 1)
+                      : undef;
+                    my $lca_name = $last_ancestor->get_name;
+
                     my @sibs = $last_ancestor->get_children;  #  use a copy
+                    my $s = 0;
+                    my $n_sibs = @sibs;
                     #  Deeply nested loops...
                     while (my $node = shift @sibs) { #  handle multifurcation
+                        $s++;
                         my $terminals = $node->get_terminal_elements;
                         foreach my $sib (@sibs) {
+                            if ($progress) {
+                                $progress->update (
+                                    "Precalculating path lengths for terminals of $lca_name",
+                                    $s / $n_sibs,
+                                );
+                            }
+                            
                             my $sib_terminals = $sib->get_terminal_elements;
                             foreach my $lb1 (keys %$terminals) {
                                 $path_lens1 = $path_cache{$lb1}

@@ -366,9 +366,26 @@ sub _calc_phylo_mpd_mntd {
                     my @sibs
                       = nkeysort {$_->get_terminal_element_count}
                         $last_ancestor->get_children;  #  use a copy
+                    my $progress
+                      = $last_ancestor->get_terminal_element_count > 100
+                      ? Biodiverse::Progress->new (gui_only => 1)
+                      : undef;
+                    my $progress_text
+                      = 'Precaching ultrametric paths for '
+                      . $last_ancestor->get_name;
                     my $node = shift @sibs;
                     my $terminals = $node->get_terminal_elements;
-                    while (my $sib = shift @sibs) { #  handle multifurcation 
+                    my $s = 0;
+                    my $n_sibs = @sibs;
+                    while (my $sib = shift @sibs) { #  handle multifurcation
+                        if ($progress) {
+                            $s++;
+                            $progress->update (
+                                $progress_text,
+                                $s / $n_sibs,
+                            );
+                        }
+                        
                         my $sib_terminals = $sib->get_terminal_elements;
                         foreach my $lb1 (keys %$terminals) {
                             @{$mx{$lb1}}{keys %$sib_terminals}

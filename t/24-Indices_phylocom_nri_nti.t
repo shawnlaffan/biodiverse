@@ -47,7 +47,7 @@ run_indices_test1 (
     /],
     tree_ref             => $tree_ref,
     prng_seed            => 123456,
-    generate_result_sets => 1,
+    generate_result_sets => 0,
     nri_nti_iterations   => 4999,
     #mpd_mntd_use_wts => 1,
 );

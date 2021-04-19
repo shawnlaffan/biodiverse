@@ -47,8 +47,8 @@ sub rename_output {
     # only if it exists in this basedata
     if ( exists $hash_ref->{$name} ) {
 
-        croak
-"Cannot rename $type output $name to $new_name.  Name is already in use\n"
+        croak "Cannot rename $type output $name to $new_name.  "
+            . "Name is already in use\n"
           if exists $hash_ref->{$new_name};
 
         $hash_ref->{$new_name} = $object;
@@ -304,8 +304,7 @@ sub add_cluster_output {
     my $self = shift;
     my %args = @_;
 
-    my $object = $args{object};
-    delete $args{object};    #  add an existing output
+    my $object = delete $args{object};    
 
     my $class = $args{type} || 'Biodiverse::Cluster';
     my $name = $object ? $object->get_param('NAME') : $args{name};
@@ -321,6 +320,7 @@ sub add_cluster_output {
         . "object $name. Use a different name.\n"
       if exists $self->{CLUSTER_OUTPUTS}{$name};
 
+    #  add an existing output
     #  Check if it is the correct type, warn if not
     #  - caveat emptor if wrong type
     #  The check is a bit underhanded, as it does
@@ -339,9 +339,8 @@ sub add_cluster_output {
             QUOTES    => $self->get_param('QUOTES'),
             JOIN_CHAR => $self->get_param('JOIN_CHAR'),
             %args,
-            NAME => $name
-            ,    #  these two always over-ride user args (NAME can be an arg)
-            BASEDATA_REF => $self,
+            NAME => $name,         #  these two always override 
+            BASEDATA_REF => $self, #  user args (NAME can be an arg)
         );
     }
 
@@ -356,13 +355,15 @@ sub delete_cluster_output {
     croak "parameter 'name' not specified\n"
       if !defined $args{name};
 
-    #delete $self->{CLUSTER_OUTPUTS}{$args{name}};
-    $self->delete_output( output => $self->{CLUSTER_OUTPUTS}{ $args{name} }, );
+    $self->delete_output(
+        output => $self->{CLUSTER_OUTPUTS}{ $args{name} },
+    );
 
     return;
 }
 
-sub get_cluster_output_ref {    #  return the reference for a specified output
+#  return the reference for a specified output
+sub get_cluster_output_ref {
     my $self = shift;
     my %args = @_;
 
@@ -476,8 +477,9 @@ sub delete_spatial_output {
 
     croak "parameter name not specified\n" if !defined $args{name};
 
-    #delete $self->{SPATIAL_OUTPUTS}{$args{name}};
-    $self->delete_output( output => $self->{SPATIAL_OUTPUTS}{ $args{name} } );
+    $self->delete_output(
+        output => $self->{SPATIAL_OUTPUTS}{ $args{name} }
+    );
 
     return;
 }
@@ -512,23 +514,25 @@ sub add_matrix_output {
 
     my $class = 'Biodiverse::Matrix';
 
-    my $object = $args{object};
-    delete $args{object};    #  add an existing output
-
+    my $object = delete $args{object};
+    
     my $name;
 
-    if ($object) {
 
-#  check if it is the correct type, warn if not - caveat emptor if wrong type
-#  check is a bit underhanded, as it does not allow abstraction - clean up later if needed
+    if ($object) {
+        #  Add an existing output, but check if
+        #  it is the correct type, warn if not
+        #  - caveat emptor if wrong type
+        #  Check is a bit underhanded, as it does not
+        #  allow abstraction - clean up later if needed
         my $obj_class = blessed($object);
         carp "[BASEDATA] Object is not of type $class"
           if not $class =~ /^$class/;
 
         $name = $object->get_param('NAME');
 
-        croak
-"[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
+        croak "[BASEDATA] Cannot replace existing matrix "
+            . "object $name.  Use a different name.\n"
           if defined $self->{MATRIX_OUTPUTS}{$name};
 
         $object->set_param( BASEDATA_REF => $self );
@@ -539,13 +543,14 @@ sub add_matrix_output {
           . "they are added by the clustering system\n";
     }
 
-    $self->{MATRIX_OUTPUTS}{$name} =
-      $object;    #  add or replace (take care with the replace)
+    #  add or replace (take care with the replace)
+    $self->{MATRIX_OUTPUTS}{$name} = $object;
 
     return $object;
 }
 
-sub get_matrix_output_ref {    #  return the reference for a specified output
+#  return the reference for a specified output
+sub get_matrix_output_ref {
     my $self = shift;
     my %args = @_;
 
@@ -566,7 +571,6 @@ sub delete_matrix_output {
 
     croak "parameter name not specified\n" if !defined $args{name};
 
-    #delete $self->{MATRIX_OUTPUTS}{$args{name}};
     $self->delete_output( output => $self->{MATRIX_OUTPUTS}{ $args{name} } );
 
     return;
@@ -616,20 +620,21 @@ sub add_randomisation_output {
     }
     my $class = 'Biodiverse::Randomise';
 
-    my $name = $args{name};
-    delete $args{name};
+    my $name = delete $args{name};
 
-    croak
-"[BASEDATA] Cannot replace existing randomisation object $name.  Use a different name.\n"
+    croak "[BASEDATA] Cannot replace existing randomisation"
+        . "object $name.  Use a different name.\n"
       if exists $self->{RANDOMISATION_OUTPUTS}{$name};
 
-    my $object = $args{object};
-    delete $args{object};    #  add an existing output
+    my $object = delete $args{object};
 
     if ($object) {
-
-#  check if it is the correct type, warn if not - caveat emptor if wrong type
-#  check is a bit underhanded, as it does not allow abstraction - clean up later if needed
+        #  add an existing output
+        #  check if it is the correct type, warn
+        #  if not - caveat emptor if wrong type
+        #  check is a bit underhanded, as it
+        #  does not allow abstraction - clean
+        #  up later if needed
         my $obj_class = blessed($object);
 
         carp "[BASEDATA] Object is not of type $class"
@@ -642,9 +647,8 @@ sub add_randomisation_output {
         $object = eval {
             $class->new(
                 %args,
-                NAME => $name
-                ,   #  these two always over-ride user args (NAME can be an arg)
-                BASEDATA_REF => $self,
+                NAME => $name,         #  these two always override user
+                BASEDATA_REF => $self, #  args (NAME can be an arg)
             );
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
@@ -664,7 +668,6 @@ sub get_randomisation_output_ref
 {    #  return the reference for a specified output
     my $self = shift;
     my %args = @_;
-    return undef if !exists $self->{RANDOMISATION_OUTPUTS}{ $args{name} };
     return $self->{RANDOMISATION_OUTPUTS}{ $args{name} };
 }
 
@@ -679,9 +682,9 @@ sub delete_randomisation_output {
     my %args = @_;
     croak "parameter name not specified\n" if !defined $args{name};
 
-    #delete $self->{SPATIAL_OUTPUTS}{$args{name}};
     $self->delete_output(
-        output => $self->{RANDOMISATION_OUTPUTS}{ $args{name} } );
+        output => $self->{RANDOMISATION_OUTPUTS}{ $args{name} }
+    );
 
     return;
 }

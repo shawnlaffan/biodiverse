@@ -54,6 +54,40 @@ sub main {
 }
 
 
+sub test_comment_only_condition_is_trimmed {
+    my $bd = Biodiverse::BaseData->new(
+        NAME => 'trim comments',
+        CELL_SIZES => [1],
+    );
+    
+    foreach my $x (1..10) {
+        $bd->add_element (group => $x+0.5, label => 'a');
+    }
+    
+    my $comment_condition = <<'EOCOND'
+    #  this condition
+    #  consists only
+    #  of comments
+EOCOND
+  ;
+    
+    #  knock out any trailing newlines so we match the GUI
+    $comment_condition =~ s/[\r\n]*$//;
+
+    my $sp = $bd->add_spatial_output (name => 'wokmaster maroubra');
+    $sp->run_analysis (
+        spatial_conditions => [
+            'sp_select_all()',
+            $comment_condition,
+        ],
+        calculations => 'calc_richness',
+    );
+    
+    my $conditions = $sp->get_spatial_conditions;
+    is @$conditions, 1,
+      'pure-comment spatial condition is removed from end of conditions array';
+}
+
 #  check the def queries
 sub test_def_queries {
     my $cell_sizes   = [100000, 100000];

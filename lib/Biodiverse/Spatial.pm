@@ -27,7 +27,8 @@ use parent qw /Biodiverse::BaseStruct/;
 
 my $EMPTY_STRING = q{};
 
-
+use Regexp::Common qw /comment/;
+my $RE_COMMENT = $RE{comment}{Perl};
 
 ########################################################
 #  Compare one spatial output object against another
@@ -1381,9 +1382,14 @@ sub get_spatial_conditions_arr {
         if (blessed $param) {
             $param = $param->get_conditions_unparsed;
         }
+        #  $RE_COMMENT needs trailing newlines
+        if (not $param =~ /\n$/) {
+            $param .= "\n";
+        }
 
-        $param =~ s/^\s*//;  #  strip leading and trailing whitespace
-        $param =~ s/\s*$//;
+        $param =~ s/$RE_COMMENT//gm;  #  strip comments
+        $param =~ s/\A\s*//s;  #  strip leading and trailing whitespace
+        $param =~ s/\s*\z//s;  #  including newlines
 
         last CHECK if length $param;
 

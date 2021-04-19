@@ -688,7 +688,7 @@ sub rename_element {
     
     my $did_something;
     #  increment the subelements
-    if ($self->exists_element (element => $new_name)) {
+    if ($self->exists_element_aa ($new_name)) {
         no autovivification;
         my $sub_el_hash_target = $el_hash->{$new_name}{SUBELEMENTS} // {};
         my $sub_el_hash_source = $el_hash->{$element}{SUBELEMENTS}  // {};
@@ -872,9 +872,8 @@ sub add_values {  #  add a set of values and their keys to a list in $element
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element}
+    my $element = delete $args{element}
       // croak "element not specified\n";
-    delete $args{element};
 
     my $el_ref = $self->{ELEMENTS}{$element};
     #  we could assign it directly, but this ensures everything is uppercase
@@ -891,9 +890,8 @@ sub increment_values {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element}
+    my $element = delete $args{element}
       // croak "element not specified";
-    delete $args{element};
 
     #  we could assign it directly, but this ensures everything is uppercase
     foreach my $key (keys %args) {  
@@ -1027,9 +1025,8 @@ sub add_lists {
 
     croak "element not specified\n" if not defined $args{element};
 
-    my $element = $args{element};
+    my $element = delete $args{element};
 
-    delete $args{element};
     @{$self->{ELEMENTS}{$element}}{keys %args} = values %args;
 
     return;
@@ -1038,11 +1035,10 @@ sub add_lists {
 sub add_to_array_lists {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
 
-    my $element = $args{element};
+    my $element = delete $args{element}
+      // croak "element not specified\n";
 
-    delete $args{element};
     foreach my $key (keys %args) {
         push @{$self->{ELEMENTS}{$element}{$key}}, @{$args{$key}};
     }
@@ -1054,13 +1050,12 @@ sub add_to_hash_list {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n" if not defined $args{element};
-    my $element = $args{element};
+    my $element = delete $args{element}
+      // croak "element not specified\n";
 
-    defined $args{list} || croak "List not specified\n"; 
-    my $list = $args{list};
+    my $list = delete $args{list}
+      // croak "List not specified\n";
 
-    delete @args{qw /list element/};
     #  create it if not already there
     my $listref = $self->{ELEMENTS}{$element}{$list} //= {};
 
@@ -1083,8 +1078,10 @@ sub add_to_lists {  #  add to a list, create if not already there.
     croak "Cannot add list to non-existent element $element"
       if !exists $self->{ELEMENTS}{$element};
 
-    my $use_ref = delete $args{use_ref};  #  set a direct ref?  currently overrides any previous values so take care
-    #delete $args{use_ref};  #  should it be in its own sub?
+    #  set a direct ref?  currently overrides
+    #  any previous values so take care
+    my $use_ref = delete $args{use_ref};  
+    #  should it be in its own sub?
 
     foreach my $list_name (keys %args) {
         my $list_values = $args{$list_name};
@@ -1315,12 +1312,11 @@ sub get_lists_across_elements {
         last SEARCH_FOR_LISTS if $count > $max_search;
     }
 
-    #  remove private lists if needed - should just use a grep
+    #  remove private lists if needed
     if ($no_private) {
-        foreach my $key (keys %tmp_hash) {
-            if ($key =~ /^_/) {  #  not those starting with an underscore
-                delete $tmp_hash{$key};
-            }
+        #  delete not those starting with an underscore
+        foreach my $key (grep {/^_/} keys %tmp_hash) {
+            delete $tmp_hash{$key};
         }
     }
     my @lists = keys %tmp_hash;
@@ -1525,8 +1521,7 @@ sub rename_list {
     #croak "element $element does not contain a list called $list"
     return if !exists $el->{$list};
 
-    $el->{$new_name} = $el->{$list};
-    delete $el->{$list};
+    $el->{$new_name} = delete $el->{$list};
 
     return;
 }

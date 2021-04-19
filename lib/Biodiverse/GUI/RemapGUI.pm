@@ -674,7 +674,7 @@ sub build_remap_hash_from_exclusions {
     # remove exact matches and not matches here as well
     my @keys = keys %{$remap};
     foreach my $key (@keys) {
-        no autovivification;
+        #no autovivification;
         next if !defined $remap->{$key};
         if ($key eq $remap->{$key}) {
             delete $remap->{$key};

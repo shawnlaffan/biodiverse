@@ -695,8 +695,7 @@ sub build_matrices {
     my %args = @_;
 
     #  any file handles to output
-    my $file_handles = $args{file_handles} // [];
-    delete $args{file_handles};
+    my $file_handles = delete $args{file_handles} // [];
 
     #  override any args if we are a re-run
     if (defined $self->get_param('ANALYSIS_ARGS')) {  
@@ -707,7 +706,8 @@ sub build_matrices {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
     
-    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
+    #  need to make all the file stuff a hashref
+    my $output_gdm_format = $args{output_gdm_format};
 
     my $start_time = time;
 
@@ -970,8 +970,7 @@ sub build_matrix_elements {
 
     my $processed_elements = $args{processed_elements};
 
-    my $ofh = $args{file_handle};
-    delete $args{file_handle};
+    my $ofh = delete $args{file_handle};
     my $output_gdm_format = $args{output_gdm_format};
 
     my $bd = $self->get_param ('BASEDATA_REF');

@@ -1307,7 +1307,10 @@ sub on_run {
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
         #  rename the temp file in the basedata
-        $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
+        $self->{basedata_ref}->rename_output (
+            output   => $output_ref,
+            new_name => $self->{output_name},
+        );
         delete $self->{stats};
     }
 

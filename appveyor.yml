@@ -18,7 +18,7 @@ install:
   #- ppm set repository BDV_PPM http://biodiverse.unsw.edu.au/downloads/ppm
   #- ppm install --location http://biodiverse.unsw.edu.au/downloads/ppm PDL
   #- perl -MPDL -E"say 1"  #  check installation
-  - cpanm --notest --no-man-pages PDL
+  #- cpanm --notest --no-man-pages PDL
   
   #  aliens should be cached now
   - cpanm --quiet --notest Module::Compile

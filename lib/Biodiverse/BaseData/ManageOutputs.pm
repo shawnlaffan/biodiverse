@@ -408,24 +408,25 @@ sub add_spatial_output {
     my $self = shift;
     my %args = @_;
 
-    croak "[BASEDATA] argument name not specified\n"
-      if ( !defined $args{name} );
+    croak "[BASEDATA] argument 'name' not specified\n"
+      if !defined $args{name};
 
     my $class = 'Biodiverse::Spatial';
-    my $name  = $args{name};
-    delete $args{name};
+    my $name  = delete $args{name};
 
-    croak
-"[BASEDATA] Cannot replace existing spatial object $name.  Use a different name.\n"
+    croak  "[BASEDATA] Cannot replace existing spatial"
+         . " object $name.  Use a different name.\n"
       if defined $self->{SPATIAL_OUTPUTS}{$name};
 
-    my $object = $args{object};
-    delete $args{object};    #  add an existing output
+    my $object = delete $args{object};
 
+    #  we add an existing output if one is passed
     if ($object) {
 
-#  check if it is the correct type, warn if not - caveat emptor if wrong type
-#  check is a bit underhanded, as it does not allow abstraction - clean up later if needed
+        #  check if it is the correct type, warn if not
+        #  - caveat emptor if wrong type
+        #  check is a bit underhanded, as it does not
+        #  allow abstraction - clean up later if needed
         my $obj_class = blessed($object);
         carp "[BASEDATA] Object is not of type $class"
           if $class ne $obj_class;
@@ -437,20 +438,20 @@ sub add_spatial_output {
             QUOTES    => $self->get_param('QUOTES'),
             JOIN_CHAR => $self->get_param('JOIN_CHAR'),
             %args,
-            NAME => $name
-            ,    #  these two always over-ride user args (NAME can be an arg)
-            BASEDATA_REF => $self,
+            NAME => $name,         #  these two always override 
+            BASEDATA_REF => $self, #  user args (NAME can be an arg)
         );
     }
     $object->weaken_basedata_ref;
 
-    $self->{SPATIAL_OUTPUTS}{$name} =
-      $object;    #  add or replace (take care with the replace)
+    #  add or replace (take care with the replace)
+    $self->{SPATIAL_OUTPUTS}{$name} =  $object; 
 
     return $object;
 }
 
-sub get_spatial_output_ref {    #  return the reference for a specified output
+#  return the reference for a specified output
+sub get_spatial_output_ref {
     my $self = shift;
     my %args = @_;
 

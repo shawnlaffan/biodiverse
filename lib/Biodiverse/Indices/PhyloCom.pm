@@ -395,52 +395,13 @@ sub _calc_phylo_mpd_mntd {
                     }
                 }
                 elsif ($nri_nti_generation) {
-                    #  fill the matrix with this LCA's paths
-                    #  if we are running NRI/NTI.
-                    #  Speed penalty is prob too great otherwise.
-                    my $progress
-                      = $last_ancestor->get_terminal_element_count > 100
-                      ? Biodiverse::Progress->new (gui_only => 1)
-                      : undef;
-                    my $lca_name = $last_ancestor->get_name;
-                    my $progress_text
-                      = "Precalculating path lengths for terminals of $lca_name";
-
-                    my @sibs = $last_ancestor->get_children;  #  use a copy
-                    my $s = 0;
-                    my $n_sibs = @sibs;
-                    #  Deeply nested loops...
-                    while (my $node = shift @sibs) { #  handle multifurcation
-                        $s++;
-                        my $terminals = $node->get_terminal_elements;
-                        foreach my $sib (@sibs) {
-                            if ($progress) {
-                                $progress->update (
-                                    $progress_text,
-                                    $s / $n_sibs,
-                                );
-                            }
-                            
-                            my $sib_terminals = $sib->get_terminal_elements;
-                            foreach my $lb1 (keys %$terminals) {
-                                $path_lens1 = $path_cache{$lb1}
-                                  //= $self->_get_node_cum_path_sum_to_root(
-                                      tree_ref => $tree_ref,
-                                      label    => $lb1,
-                                  );
-                                my $len1 = $path_lens1->[$ancestor_idx];
-                                foreach my $lb2 (keys %$sib_terminals) {
-                                    my $path_lens2 = $path_cache{$lb2}
-                                      //= $self->_get_node_cum_path_sum_to_root(
-                                          tree_ref => $tree_ref,
-                                          label    => $lb2,
-                                      );
-                                    $mx{$lb1}{$lb2}
-                                      = $len1 + $path_lens2->[$ancestor_idx];
-                                }
-                            }
-                        }
-                    }
+                    $self->_add_last_ancestor_path_lens_to_matrix (
+                        matrix        => \%mx,
+                        path_cache    => \%path_cache,
+                        last_ancestor => $last_ancestor,
+                        tree_ref      => $tree_ref,
+                        ancestor_idx  => $ancestor_idx,
+                    );
                     #  now grab it
                     $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
                 }
@@ -523,6 +484,66 @@ sub _calc_phylo_mpd_mntd {
 
     return wantarray ? %results : \%results;
 }
+
+
+#  fill the path matrix with this LCA's paths
+#  if we are running NRI/NTI.
+#  Speed penalty is prob too great otherwise.
+sub _add_last_ancestor_path_lens_to_matrix {
+    my ($self, %args) = @_;
+    my $last_ancestor = $args{last_ancestor};
+    my $tree_ref      = $args{tree_ref};
+    my $ancestor_idx  = $args{ancestor_idx};
+    \my %mx           = $args{matrix};
+    \my %path_cache   = $args{path_cache};
+    
+    my $progress
+      = $last_ancestor->get_terminal_element_count > 100
+      ? Biodiverse::Progress->new (gui_only => 1)
+      : undef;
+    my $lca_name = $last_ancestor->get_name;
+    my $progress_text
+      = "Precalculating path lengths for terminals of $lca_name";
+
+    my @sibs = $last_ancestor->get_children;  #  use a copy
+    my $s = 0;
+    my $n_sibs = @sibs;
+    #  Deeply nested loops...
+    while (my $node = shift @sibs) { #  handle multifurcation
+        $s++;
+        my $terminals = $node->get_terminal_elements;
+        foreach my $sib (@sibs) {
+            if ($progress) {
+                $progress->update (
+                    $progress_text,
+                    $s / $n_sibs,
+                );
+            }
+            
+            my $sib_terminals = $sib->get_terminal_elements;
+            foreach my $lb1 (keys %$terminals) {
+                my $path_lens1 = $path_cache{$lb1}
+                  //= $self->_get_node_cum_path_sum_to_root(
+                      tree_ref => $tree_ref,
+                      label    => $lb1,
+                  );
+                my $len1 = $path_lens1->[$ancestor_idx];
+                foreach my $lb2 (keys %$sib_terminals) {
+                    my $path_lens2 = $path_cache{$lb2}
+                      //= $self->_get_node_cum_path_sum_to_root(
+                          tree_ref => $tree_ref,
+                          label    => $lb2,
+                      );
+                    $mx{$lb1}{$lb2}
+                      = $len1 + $path_lens2->[$ancestor_idx];
+                }
+            }
+        }
+    }
+
+    return;
+}
+
 
 #  Cache the common ancestor for the terminals
 #  of the sibling nodes

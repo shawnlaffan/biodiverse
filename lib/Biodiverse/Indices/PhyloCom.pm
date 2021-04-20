@@ -360,7 +360,6 @@ sub _calc_phylo_mpd_mntd {
                     #  prepopulate the matrix for the LCA
                     $self->_add_last_ancestor_um_path_lens_to_matrix (
                         matrix        => \%mx,
-                        path_cache    => \%path_cache,
                         last_ancestor => $last_ancestor,
                         path_length   => $path_length,
                     );
@@ -456,8 +455,8 @@ sub _calc_phylo_mpd_mntd {
     return wantarray ? %results : \%results;
 }
 
-
-#  Populate the matrix for all pairs
+#  For an ultrametric tree, 
+#  populate the matrix for all pairs
 #  that share this common ancestor,
 #  thus obviating any need to find it again.
 #  Sort by terminal count to minimise for-looping
@@ -467,7 +466,6 @@ sub _add_last_ancestor_um_path_lens_to_matrix {
     my $last_ancestor = $args{last_ancestor};
     my $path_length   = $args{path_length};
     \my %mx           = $args{matrix};
-    \my %path_cache   = $args{path_cache};
     
     my @sibs
       = nkeysort {$_->get_terminal_element_count}
@@ -498,7 +496,9 @@ sub _add_last_ancestor_um_path_lens_to_matrix {
               = ($path_length) x keys %$sib_terminals;
         }
         $terminals = $sib_terminals;
-    }    
+    }
+
+    return;
 }
 
 

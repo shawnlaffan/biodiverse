@@ -455,39 +455,10 @@ sub _calc_phylo_mpd_mntd {
                     $mx{$label1}{$label2} = $path_length;
 
                     if ($fill_last_ancestor_cache) {
-                        #  Cache the common ancestor for the terminals
-                        #  of the sibling nodes
-                        #  Slice assign is faster than nested for-loops
-                        my @sibs
-                          = nkeysort {$_->get_terminal_element_count}
-                            $last_ancestor->get_children;  #  use a copy
-                        my $progress
-                          = $last_ancestor->get_terminal_element_count > 300
-                          ? Biodiverse::Progress->new (gui_only => 1)
-                          : undef;
-                        my $progress_text
-                          = "Caching last common ancestors for "
-                          . $last_ancestor->get_name,
-                        my $s = 0;
-                        my $n_sibs = @sibs;
-                        while (my $node = shift @sibs) { #  handle multifurcation
-                            $s++;
-                            my $terminals = $node->get_terminal_elements;
-                            
-                            foreach my $sib (@sibs) {
-                                if ($progress) {
-                                    $progress->update (
-                                        $progress_text,
-                                        $s / $n_sibs,
-                                    );
-                                }
-                                my $sib_terminals = $sib->get_terminal_elements;
-                                foreach my $lb1 (keys %$terminals) {
-                                    @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}
-                                      = ($last_ancestor) x keys %$sib_terminals;
-                                }
-                            }
-                        }
+                        $self->_add_to_last_ancestor_cache(
+                            last_ancestor => $last_ancestor,
+                            last_ancestor_mx => \%last_shared_ancestor_mx,
+                        );
                     }
                 }
             }
@@ -497,7 +468,6 @@ sub _calc_phylo_mpd_mntd {
                 push @mpd_wts_this_node, $label_hash2->{$label2};
             }
 
-            #$j ||= 1;  # not sure we really need this variable
         }
 
         #  next steps only if we added something
@@ -552,6 +522,48 @@ sub _calc_phylo_mpd_mntd {
     }
 
     return wantarray ? %results : \%results;
+}
+
+#  Cache the common ancestor for the terminals
+#  of the sibling nodes
+#  Slice assign is faster than nested for-loops
+sub _add_to_last_ancestor_cache {
+    my ($self, %args) = @_;
+    my $last_ancestor = $args{last_ancestor};
+    \my %last_shared_ancestor_mx = $args{last_ancestor_mx};
+
+    my @sibs
+      = nkeysort {$_->get_terminal_element_count}
+        $last_ancestor->get_children;  #  use a copy
+    my $progress
+      = $last_ancestor->get_terminal_element_count > 300
+      ? Biodiverse::Progress->new (gui_only => 1)
+      : undef;
+    my $progress_text
+      = "Caching last common ancestors for "
+      . $last_ancestor->get_name,
+    my $s = 0;
+    my $n_sibs = @sibs;
+    while (my $node = shift @sibs) { #  handle multifurcation
+        $s++;
+        my $terminals = $node->get_terminal_elements;
+        
+        foreach my $sib (@sibs) {
+            if ($progress) {
+                $progress->update (
+                    $progress_text,
+                    $s / $n_sibs,
+                );
+            }
+            my $sib_terminals = $sib->get_terminal_elements;
+            foreach my $lb1 (keys %$terminals) {
+                @{$last_shared_ancestor_mx{$lb1}}{keys %$sib_terminals}
+                  = ($last_ancestor) x keys %$sib_terminals;
+            }
+        }
+    }
+
+    return;
 }
 
 sub _get_node_cum_path_sum_to_root {

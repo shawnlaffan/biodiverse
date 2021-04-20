@@ -357,42 +357,13 @@ sub _calc_phylo_mpd_mntd {
 
                 if ($tree_is_ultrametric) {
                     $path_length *= 2;
-                    
-                    #  Now populate the matrix for all pairs
-                    #  that share this common ancestor,
-                    #  thus obviating any need to find it again.
-                    #  Sort by terminal count to minimise for-looping
-                    #  around slice assigns below.
-                    my @sibs
-                      = nkeysort {$_->get_terminal_element_count}
-                        $last_ancestor->get_children;  #  use a copy
-                    my $progress
-                      = $last_ancestor->get_terminal_element_count > 100
-                      ? Biodiverse::Progress->new (gui_only => 1)
-                      : undef;
-                    my $progress_text
-                      = 'Precaching ultrametric paths for '
-                      . $last_ancestor->get_name;
-                    my $node = shift @sibs;
-                    my $terminals = $node->get_terminal_elements;
-                    my $s = 0;
-                    my $n_sibs = @sibs;
-                    while (my $sib = shift @sibs) { #  handle multifurcation
-                        if ($progress) {
-                            $s++;
-                            $progress->update (
-                                $progress_text,
-                                $s / $n_sibs,
-                            );
-                        }
-                        
-                        my $sib_terminals = $sib->get_terminal_elements;
-                        foreach my $lb1 (keys %$terminals) {
-                            @{$mx{$lb1}}{keys %$sib_terminals}
-                              = ($path_length) x keys %$sib_terminals;
-                        }
-                        $terminals = $sib_terminals;
-                    }
+                    #  prepopulate the matrix for the LCA
+                    $self->_add_last_ancestor_um_path_lens_to_matrix (
+                        matrix        => \%mx,
+                        path_cache    => \%path_cache,
+                        last_ancestor => $last_ancestor,
+                        path_length   => $path_length,
+                    );
                 }
                 elsif ($nri_nti_generation) {
                     $self->_add_last_ancestor_path_lens_to_matrix (
@@ -483,6 +454,51 @@ sub _calc_phylo_mpd_mntd {
     }
 
     return wantarray ? %results : \%results;
+}
+
+
+#  Populate the matrix for all pairs
+#  that share this common ancestor,
+#  thus obviating any need to find it again.
+#  Sort by terminal count to minimise for-looping
+#  around slice assigns below.
+sub _add_last_ancestor_um_path_lens_to_matrix {
+    my ($self, %args) = @_;
+    my $last_ancestor = $args{last_ancestor};
+    my $path_length   = $args{path_length};
+    \my %mx           = $args{matrix};
+    \my %path_cache   = $args{path_cache};
+    
+    my @sibs
+      = nkeysort {$_->get_terminal_element_count}
+        $last_ancestor->get_children;  #  use a copy
+    my $progress
+      = $last_ancestor->get_terminal_element_count > 100
+      ? Biodiverse::Progress->new (gui_only => 1)
+      : undef;
+    my $progress_text
+      = 'Precaching ultrametric paths for '
+      . $last_ancestor->get_name;
+    my $node = shift @sibs;
+    my $terminals = $node->get_terminal_elements;
+    my $s = 0;
+    my $n_sibs = @sibs;
+    while (my $sib = shift @sibs) { #  handle multifurcation
+        if ($progress) {
+            $s++;
+            $progress->update (
+                $progress_text,
+                $s / $n_sibs,
+            );
+        }
+        
+        my $sib_terminals = $sib->get_terminal_elements;
+        foreach my $lb1 (keys %$terminals) {
+            @{$mx{$lb1}}{keys %$sib_terminals}
+              = ($path_length) x keys %$sib_terminals;
+        }
+        $terminals = $sib_terminals;
+    }    
 }
 
 

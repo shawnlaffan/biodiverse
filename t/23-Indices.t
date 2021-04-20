@@ -303,3 +303,88 @@ sub test_non_numeric_returns_no_results {
     ok ($e =~ 'No valid analyses, dropping out', 'Analysis threw no valid calculations error');
 }
 
+#  ensure we can run indices with label_lists
+#  and label_hashes instead of element_lists
+sub test_calc_abc_with_label_lists {
+    my @labels = ('a'..'d');
+    my %label_hash;
+    @label_hash{@labels} = (1) x @labels;
+    my $target_richness = @labels;
+
+    my $bd   = Biodiverse::BaseData->new (
+        NAME       => 'indices using label lsts',
+        CELL_SIZES => [1],
+    );
+    
+    foreach my $gp (1..3) {
+        foreach my $lb (@labels) {
+            $bd->add_element (group => $gp, label => $lb);
+        }
+    }
+    
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF => $bd,
+        NAME         => 'Indices for calc_abc with label lists check',
+    );
+    
+    my %args = (
+        calculations   => ['calc_richness'],
+    );
+    $indices_object->get_valid_calculations (
+        %args,
+        nbr_list_count => 1,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => undef,
+        processing_element => 'x',
+    );
+    my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
+    my $indices_reqd_args = $indices_object->get_required_args_as_flat_array(calculations => $valid_calcs);
+    
+    my %res;
+    ok(
+       lives {
+            %res = $indices_object->run_calculations(
+                label_list1 => [@labels],
+                processing_element => $labels[0],
+            )
+       },
+       "did not die"
+    ) or note($@);
+    
+    is ($res{RICHNESS_ALL},
+        $target_richness,
+        'got correct richness score using label_list1',
+    );
+
+    undef %res;
+    ok(
+       lives {
+            %res = $indices_object->run_calculations(
+                label_hash1 => \%label_hash,
+                processing_element => $labels[0],
+            )
+       },
+       "did not die"
+    ) or note($@);
+    is ($res{RICHNESS_ALL},
+        $target_richness,
+        'got correct richness score using label_hash1',
+    );
+    
+    undef %res;
+    ok(
+       dies {
+            %res = $indices_object->run_calculations(
+                label_list1 => \%label_hash,
+                processing_element => $labels[0],
+            )
+       },
+       "died on incorrect ref type for label_list1 argument"
+    ) or note($@);
+    
+    ok (!exists $res{RICHNESS_ALL},
+        'no richness score when using incorrect ref type',
+    );
+    diag %res;
+
+}

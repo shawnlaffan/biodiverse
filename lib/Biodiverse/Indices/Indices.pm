@@ -1750,10 +1750,9 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         next if !defined $args{$listname};
 
         my $label_listref = $args{$listname};
-        if (is_arrayref($label_listref)) {
-            carp "[INDICES] $label_listref is not an array ref\n";
-            next;
-        }
+        croak "[INDICES] $label_listref is not an array ref\n"
+          if !is_arrayref($label_listref);
+        
 
         if ($count_labels || $count_samples) {
             foreach my $lbl (@$label_listref) {
@@ -1774,7 +1773,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         my $label_hashref = $args{$listname};
 
         croak "[INDICES] $label_hashref is not a hash ref\n"
-          if (is_hashref($label_hashref));
+          if !is_hashref($label_hashref);
 
         if ($count_labels || $count_samples) {
             while (($label, $value) = each %$label_hashref) {

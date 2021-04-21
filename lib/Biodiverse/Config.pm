@@ -231,8 +231,17 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Alien::geos::af ();
     use Alien::proj ();
     use Alien::sqlite ();
-    eval 'use Alien::spatialite';  #  might not have this one
-    eval 'use Alien::freexl';      #  might not have this one
+    #eval 'use Alien::spatialite';  #  might not have this one
+    #eval 'use Alien::freexl';      #  might not have this one
+
+    #  these are here for PAR purposes to ensure they get packed
+    #  Spreadsheet::Read calls them as needed
+    #  (not sure we need all of them, though)
+    use Spreadsheet::ParseODS 0.27;
+    use Spreadsheet::ReadSXC;
+    use Spreadsheet::ParseExcel;
+    use Spreadsheet::ParseXLSX;
+    use PerlIO::gzip;  #  used by ParseODS
 
     #  GUI needs this for help,
     #  so don't trigger for engine-only

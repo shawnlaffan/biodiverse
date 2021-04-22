@@ -294,6 +294,9 @@ sub _calc_phylo_mpd_mntd {
         : sort
           grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} }
           keys %$label_hash2;
+    #  allows slicing inside the loop
+    my %lb2_indices;
+    @lb2_indices{@labels2} = (0..$#labels2);
 
     my $tree_is_ultrametric = $tree_ref->is_ultrametric;
   
@@ -320,11 +323,14 @@ sub _calc_phylo_mpd_mntd {
         #  avoid some nested lookups below
         \my %mx_label1 = $mx{$label1} //= {};
 
-      BY_LABEL2:
-        foreach my $label2 (@labels2) {  #  could work on i..n instead of 1..n, but mntd needs minima
+        #  Skip self-self, but need to conditionally.
+        #  Avoids a next-if condition inside the loop.
+        #  Conditionally disable for dissim measure
+        #  if implemented.
+        delete local $lb2_indices{$label1};
 
-            #  skip same labels (FIXME: but not if used as dissim measure)
-            next BY_LABEL2 if $label1 eq $label2;
+      BY_LABEL2:
+        foreach my $label2 (@labels2[values %lb2_indices]) {
 
             #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
             my $path_length = $mx_label1{$label2} // $mx{$label2}{$label1};

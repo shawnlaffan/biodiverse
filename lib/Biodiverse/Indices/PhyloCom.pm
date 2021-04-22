@@ -308,7 +308,6 @@ sub _calc_phylo_mpd_mntd {
     my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
 
     #  Loop over all possible pairs
-    my $i = 0;
     BY_LABEL:
     foreach my $label1 (@labels1) {
         my $label_count1 = $label_hash1->{$label1};
@@ -317,7 +316,6 @@ sub _calc_phylo_mpd_mntd {
             @path_lengths_this_node,
             @mpd_wts_this_node,
         );
-        my $j = 0;
 
       BY_LABEL2:
         foreach my $label2 (@labels2) {  #  could work on i..n instead of 1..n, but mntd needs minima
@@ -417,7 +415,7 @@ sub _calc_phylo_mpd_mntd {
 
     my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
     my @pfxs  = qw /PNTD PMPD/;
-    $i = -1;
+    my $i = -1;
     foreach my $path (@paths) {
         $i++;
 

@@ -339,7 +339,8 @@ sub _calc_phylo_mpd_mntd {
                 
                 my $fill_last_ancestor_cache = !$last_ancestor;
 
-                $last_ancestor //= $tree_ref->get_last_shared_ancestor_for_nodes (
+                $last_ancestor
+                  //= $tree_ref->get_last_shared_ancestor_for_nodes (
                     node_names => {$label1 => 1, $label2 => 1},
                     most_probable_lca_depths => $most_probable_lca_depths,
                   );
@@ -384,7 +385,14 @@ sub _calc_phylo_mpd_mntd {
                             label    => $label2,
                         );
                     $path_length += $path_lens2->[$ancestor_idx];
-                    $mx{$label1}{$label2} = $path_length;
+                    #  try to keep the matrix triangular
+                    #  and thus speed up accesses above
+                    if ($label1 le $label2) {
+                        $mx{$label1}{$label2} = $path_length;
+                    }
+                    else {
+                        $mx{$label2}{$label1} = $path_length;
+                    }
 
                     if ($fill_last_ancestor_cache) {
                         $self->_add_to_last_ancestor_cache(
@@ -551,8 +559,14 @@ sub _add_last_ancestor_path_lens_to_matrix {
                           tree_ref => $tree_ref,
                           label    => $lb2,
                       );
-                    $mx{$lb1}{$lb2}
-                      = $len1 + $path_lens2->[$ancestor_idx];
+                    if ($lb1 le $lb2) {
+                        $mx{$lb1}{$lb2}
+                          = $len1 + $path_lens2->[$ancestor_idx];
+                    }
+                    else {
+                        $mx{$lb2}{$lb1}
+                          = $len1 + $path_lens2->[$ancestor_idx];
+                    }
                 }
             }
         }

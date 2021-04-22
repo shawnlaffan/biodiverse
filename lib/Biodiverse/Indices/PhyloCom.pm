@@ -323,14 +323,15 @@ sub _calc_phylo_mpd_mntd {
         #  avoid some nested lookups below
         \my %mx_label1 = $mx{$label1} //= {};
 
-        #  Skip self-self, but need to conditionally.
+        #  Skip self-self comparisons.
         #  Avoids a next-if condition inside the loop.
-        #  Conditionally disable for dissim measure
-        #  if implemented.
-        delete local $lb2_indices{$label1};
+        #  Need to conditionally disable for
+        #  dissim measure if implemented.
+        #  $label1 is reinstated at end of loop.
+        splice @labels2, $lb2_indices{$label1}, 1;
 
       BY_LABEL2:
-        foreach my $label2 (@labels2[values %lb2_indices]) {
+        foreach my $label2 (@labels2) {
 
             #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
             my $path_length = $mx_label1{$label2} // $mx{$label2}{$label1};
@@ -415,6 +416,9 @@ sub _calc_phylo_mpd_mntd {
             }
 
         }
+
+        #  conditional if dissim measure
+        splice @labels2, $lb2_indices{$label1}, 0, $label1;
 
         #  next steps only if we added something
         next BY_LABEL if !@path_lengths_this_node;

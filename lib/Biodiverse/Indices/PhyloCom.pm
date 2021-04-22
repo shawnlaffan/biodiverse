@@ -316,6 +316,9 @@ sub _calc_phylo_mpd_mntd {
             @path_lengths_this_node,
             @mpd_wts_this_node,
         );
+        
+        #  avoid some nested lookups below
+        \my %mx_label1 = $mx{$label1} //= {};
 
       BY_LABEL2:
         foreach my $label2 (@labels2) {  #  could work on i..n instead of 1..n, but mntd needs minima
@@ -324,7 +327,7 @@ sub _calc_phylo_mpd_mntd {
             next BY_LABEL2 if $label1 eq $label2;
 
             #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
-            my $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
+            my $path_length = $mx_label1{$label2} // $mx{$label2}{$label1};
 
             if (!defined $path_length) {  #  need to calculate it
 

@@ -385,6 +385,5 @@ sub test_calc_abc_with_label_lists {
     ok (!exists $res{RICHNESS_ALL},
         'no richness score when using incorrect ref type',
     );
-    diag %res;
 
 }

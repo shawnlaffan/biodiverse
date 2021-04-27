@@ -742,7 +742,7 @@ sub get_conditions_code_ref {
 
     #  need to check for valid code?
     return $code_ref
-      if defined $code_ref && is_coderef ($code_ref);  
+      if is_coderef ($code_ref);  
 
     my $conditions_code = <<'END_OF_CONDITIONS_CODE'
 sub {

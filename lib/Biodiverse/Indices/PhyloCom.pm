@@ -347,17 +347,14 @@ sub _calc_phylo_mpd_mntd {
       BY_LABEL2:
         foreach my $label2 (@labels2) {
 
-            my $path_length
-              =  $mx_label1{$label2}
+            push @path_lengths_this_node,
+                 $mx_label1{$label2}
               // $mx{$label2}{$label1}
               // $self->get_phylo_path_length_between_labels (
                     label1 => $label1,
                     label2 => $label2,
                     %common_args_for_path_call,
                 );
-
-            push @path_lengths_this_node, $path_length;
-
         }
 
         #  conditional if dissim measure

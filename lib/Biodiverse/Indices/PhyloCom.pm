@@ -323,39 +323,34 @@ sub _calc_phylo_mpd_mntd {
     #  Loop over all possible pairs
     BY_LABEL:
     foreach my $label1 (@labels1) {
-        my $label_count1 = $label_hash1->{$label1};
-
-        my (
-            #@path_lengths_this_node,
-            @mpd_wts_this_node,
-        );
-        
-        #  avoid some nested lookups below
-        \my %mx_label1 = $mx{$label1} //= {};
-
         #  Skip self-self comparisons.
         #  Avoids a skip condition inside the map.
         #  Need to conditionally disable for
         #  dissim measure if implemented.
-        #  $label1 is reinstated at end of loop.
+        #  $label1 is reinstated below.
         splice @labels2, $lb2_indices{$label1}, 1;
 
+        #  avoid some nested lookups in the map
+        \my %mx_label1 = $mx{$label1} //= {};
+
         my @path_lengths_this_node
-         = map {  #  $_ is $label2
+         = map {                   #  $_ is $label2
                 $mx_label1{$_}
              // $mx{$_}{$label1}
-             // $self->get_phylo_path_length_between_labels (
+             // $self->get_phylo_path_length_between_label_pair (
                    label1 => $label1,
                    label2 => $_,
                    %common_args_for_path_call,
                )
            } @labels2;
 
+        my @mpd_wts_this_node;
         if ($use_wts) {
             push @mpd_wts_this_node, @$label_hash2{@labels2};
         }
 
-        #  conditional if dissim measure
+        #  reinstate $label1 into @labels2
+        #  make this conditional if dissim measure implemented
         splice @labels2, $lb2_indices{$label1}, 0, $label1;
 
         #  next steps only if we added something
@@ -365,6 +360,7 @@ sub _calc_phylo_mpd_mntd {
         push @mpd_path_lengths, @path_lengths_this_node;
         push @mntd_path_lengths, min (@path_lengths_this_node);
         if ($use_wts) {
+            my $label_count1 = $label_hash1->{$label1};
             push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
             push @mntd_wts, $label_count1;
         }
@@ -413,7 +409,7 @@ sub _calc_phylo_mpd_mntd {
 }
 
 
-sub get_phylo_path_length_between_labels {
+sub get_phylo_path_length_between_label_pair {
     my ($self, %args) = @_;
 
     my $label1   = $args{label1};

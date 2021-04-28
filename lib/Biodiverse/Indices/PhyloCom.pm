@@ -329,6 +329,10 @@ sub _calc_phylo_mpd_mntd {
         #  dissim measure if implemented.
         #  $label1 is reinstated at end of loop.
         splice @labels2, $lb2_indices{$label1}, 1;
+        
+        if ($use_wts) {
+            push @mpd_wts_this_node, @$label_hash2{@labels2};
+        }
 
       BY_LABEL2:
         foreach my $label2 (@labels2) {
@@ -411,9 +415,6 @@ sub _calc_phylo_mpd_mntd {
             }
 
             push @path_lengths_this_node, $path_length;
-            if ($use_wts) {
-                push @mpd_wts_this_node, $label_hash2->{$label2};
-            }
 
         }
 

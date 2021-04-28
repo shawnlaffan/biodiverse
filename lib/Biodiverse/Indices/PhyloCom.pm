@@ -303,12 +303,22 @@ sub _calc_phylo_mpd_mntd {
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
 
 
-    \my %last_shared_ancestor_mx = $args{PHYLO_LCA_MX}
+    my $last_shared_ancestor_mx = $args{PHYLO_LCA_MX}
       || croak "Argument PHYLO_LCA_MX not defined";
-
-    \my %path_cache = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE};
-    
-    my $most_probable_lca_depths = $tree_ref->get_most_probable_lca_depths;
+        
+    #  make the code cleaner below
+    my %common_args_for_path_call = (
+        tree_ref    => $tree_ref,
+        path_matrix => \%mx,
+        path_cache
+          => $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE},
+        last_shared_ancestor_mx
+          => $last_shared_ancestor_mx,
+        most_probable_lca_depths
+          => scalar $tree_ref->get_most_probable_lca_depths,
+        nri_nti_generation  => $nri_nti_generation,
+        tree_is_ultrametric => $tree_is_ultrametric,
+    );
 
     #  Loop over all possible pairs
     BY_LABEL:
@@ -337,82 +347,14 @@ sub _calc_phylo_mpd_mntd {
       BY_LABEL2:
         foreach my $label2 (@labels2) {
 
-            #my $path_length = $mx->get_defined_value_aa ($label1, $label2);
-            my $path_length = $mx_label1{$label2} // $mx{$label2}{$label1};
-
-            if (!defined $path_length) {  #  need to calculate it
-
-                #  ancestor mx only really needed for non-ultrametric, non-NRI
-                #  and is populated below
-                my $last_ancestor
-                  =    $last_shared_ancestor_mx{$label1}{$label2}
-                    // $last_shared_ancestor_mx{$label2}{$label1};
-                
-                my $fill_last_ancestor_cache = !$last_ancestor;
-
-                $last_ancestor
-                  //= $tree_ref->get_last_shared_ancestor_for_nodes (
-                    node_names => {$label1 => 1, $label2 => 1},
-                    most_probable_lca_depths => $most_probable_lca_depths,
-                  );
-
-                #  target index is one below the last common ancestor
-                #  last ancestor is one more than its depth from the end,
-                #  so we subtract 2
-                my $ancestor_idx = -$last_ancestor->get_depth - 2;
-
-                my $path_lens1 = $path_cache{$label1}
-                  //= $self->_get_node_cum_path_sum_to_root(
-                    tree_ref => $tree_ref,
-                    label    => $label1,
-                  );
-                $path_length += $path_lens1->[$ancestor_idx];
-
-                if ($tree_is_ultrametric) {
-                    $path_length *= 2;
-                    #  prepopulate the matrix for the LCA
-                    $self->_add_last_ancestor_um_path_lens_to_matrix (
-                        matrix        => \%mx,
-                        last_ancestor => $last_ancestor,
-                        path_length   => $path_length,
-                    );
-                }
-                elsif ($nri_nti_generation) {
-                    $self->_add_last_ancestor_path_lens_to_matrix (
-                        matrix        => \%mx,
-                        path_cache    => \%path_cache,
-                        last_ancestor => $last_ancestor,
-                        tree_ref      => $tree_ref,
-                        ancestor_idx  => $ancestor_idx,
-                    );
-                    #  now grab it
-                    $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
-                }
-                else {
-                    #  non-ultrametric MPD/MNTD, calc on-demand
-                    my $path_lens2 = $path_cache{$label2}
-                        //= $self->_get_node_cum_path_sum_to_root(
-                            tree_ref => $tree_ref,
-                            label    => $label2,
-                        );
-                    $path_length += $path_lens2->[$ancestor_idx];
-                    #  try to keep the matrix triangular
-                    #  and thus speed up accesses above
-                    if ($label1 le $label2) {
-                        $mx{$label1}{$label2} = $path_length;
-                    }
-                    else {
-                        $mx{$label2}{$label1} = $path_length;
-                    }
-
-                    if ($fill_last_ancestor_cache) {
-                        $self->_add_to_last_ancestor_cache(
-                            last_ancestor => $last_ancestor,
-                            last_ancestor_mx => \%last_shared_ancestor_mx,
-                        );
-                    }
-                }
-            }
+            my $path_length
+              =  $mx_label1{$label2}
+              // $mx{$label2}{$label1}
+              // $self->get_phylo_path_length_between_labels (
+                    label1 => $label1,
+                    label2 => $label2,
+                    %common_args_for_path_call,
+                );
 
             push @path_lengths_this_node, $path_length;
 
@@ -473,6 +415,100 @@ sub _calc_phylo_mpd_mntd {
     }
 
     return wantarray ? %results : \%results;
+}
+
+
+sub get_phylo_path_length_between_labels {
+    my ($self, %args) = @_;
+
+    my $label1   = $args{label1};
+    my $label2   = $args{label2};
+    my $tree_ref = $args{tree_ref};
+    my $tree_is_ultrametric
+      = exists $args{tree_is_ultrametric}
+      ? $args{tree_is_ultrametric}
+      : $tree_ref->is_ultrametric;
+
+    my $nri_nti_generation = $args{nri_nti_generation};
+
+    \my %mx         = $args{path_matrix};
+    \my %path_cache = $args{path_cache};
+    \my %last_shared_ancestor_mx
+      = $args{last_shared_ancestor_mx};
+
+    #  ancestor mx only really needed for non-ultrametric, non-NRI
+    #  and is populated below
+    my $last_ancestor
+      =    $last_shared_ancestor_mx{$label1}{$label2}
+        // $last_shared_ancestor_mx{$label2}{$label1};
+    
+    my $fill_last_ancestor_cache = !$last_ancestor;
+
+    $last_ancestor
+      //= $tree_ref->get_last_shared_ancestor_for_nodes (
+        node_names => {$label1 => 1, $label2 => 1},
+        most_probable_lca_depths => $args{most_probable_lca_depths},
+      );
+
+    #  target index is one below the last common ancestor
+    #  last ancestor is one more than its depth from the end,
+    #  so we subtract 2
+    my $ancestor_idx = -$last_ancestor->get_depth - 2;
+
+    my $path_lens1 = $path_cache{$label1}
+      //= $self->_get_node_cum_path_sum_to_root(
+        tree_ref => $tree_ref,
+        label    => $label1,
+      );
+
+    my $path_length = $path_lens1->[$ancestor_idx];
+
+    if ($tree_is_ultrametric) {
+        $path_length *= 2;
+        #  prepopulate the matrix for the LCA
+        $self->_add_last_ancestor_um_path_lens_to_matrix (
+            matrix        => \%mx,
+            last_ancestor => $last_ancestor,
+            path_length   => $path_length,
+        );
+    }
+    elsif ($nri_nti_generation) {
+        $self->_add_last_ancestor_path_lens_to_matrix (
+            matrix        => \%mx,
+            path_cache    => \%path_cache,
+            last_ancestor => $last_ancestor,
+            tree_ref      => $tree_ref,
+            ancestor_idx  => $ancestor_idx,
+        );
+        #  now grab it
+        $path_length = $mx{$label1}{$label2} // $mx{$label2}{$label1};
+    }
+    else {
+        #  non-ultrametric MPD/MNTD, calc on-demand
+        my $path_lens2 = $path_cache{$label2}
+            //= $self->_get_node_cum_path_sum_to_root(
+                tree_ref => $tree_ref,
+                label    => $label2,
+            );
+        $path_length += $path_lens2->[$ancestor_idx];
+        #  try to keep the matrix triangular
+        #  and thus speed up accesses above
+        if ($label1 le $label2) {
+            $mx{$label1}{$label2} = $path_length;
+        }
+        else {
+            $mx{$label2}{$label1} = $path_length;
+        }
+
+        if ($fill_last_ancestor_cache) {
+            $self->_add_to_last_ancestor_cache(
+                last_ancestor => $last_ancestor,
+                last_ancestor_mx => \%last_shared_ancestor_mx,
+            );
+        }
+    }
+
+    return $path_length;
 }
 
 #  For an ultrametric tree, 

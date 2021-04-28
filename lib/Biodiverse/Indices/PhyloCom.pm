@@ -326,7 +326,7 @@ sub _calc_phylo_mpd_mntd {
         my $label_count1 = $label_hash1->{$label1};
 
         my (
-            @path_lengths_this_node,
+            #@path_lengths_this_node,
             @mpd_wts_this_node,
         );
         
@@ -344,18 +344,16 @@ sub _calc_phylo_mpd_mntd {
             push @mpd_wts_this_node, @$label_hash2{@labels2};
         }
 
-      BY_LABEL2:
-        foreach my $label2 (@labels2) {
-
-            push @path_lengths_this_node,
-                 $mx_label1{$label2}
-              // $mx{$label2}{$label1}
-              // $self->get_phylo_path_length_between_labels (
-                    label1 => $label1,
-                    label2 => $label2,
-                    %common_args_for_path_call,
-                );
-        }
+        my @path_lengths_this_node
+         = map {  #  $_ is $label2
+                $mx_label1{$_}
+             // $mx{$_}{$label1}
+             // $self->get_phylo_path_length_between_labels (
+                   label1 => $label1,
+                   label2 => $_,
+                   %common_args_for_path_call,
+               )
+           } @labels2;
 
         #  conditional if dissim measure
         splice @labels2, $lb2_indices{$label1}, 0, $label1;

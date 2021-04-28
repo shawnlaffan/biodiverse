@@ -334,15 +334,11 @@ sub _calc_phylo_mpd_mntd {
         \my %mx_label1 = $mx{$label1} //= {};
 
         #  Skip self-self comparisons.
-        #  Avoids a next-if condition inside the loop.
+        #  Avoids a skip condition inside the map.
         #  Need to conditionally disable for
         #  dissim measure if implemented.
         #  $label1 is reinstated at end of loop.
         splice @labels2, $lb2_indices{$label1}, 1;
-        
-        if ($use_wts) {
-            push @mpd_wts_this_node, @$label_hash2{@labels2};
-        }
 
         my @path_lengths_this_node
          = map {  #  $_ is $label2
@@ -354,6 +350,10 @@ sub _calc_phylo_mpd_mntd {
                    %common_args_for_path_call,
                )
            } @labels2;
+
+        if ($use_wts) {
+            push @mpd_wts_this_node, @$label_hash2{@labels2};
+        }
 
         #  conditional if dissim measure
         splice @labels2, $lb2_indices{$label1}, 0, $label1;

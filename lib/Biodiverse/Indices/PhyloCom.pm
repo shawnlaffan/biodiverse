@@ -305,6 +305,8 @@ sub _calc_phylo_mpd_mntd {
 
     my $last_shared_ancestor_mx = $args{PHYLO_LCA_MX}
       || croak "Argument PHYLO_LCA_MX not defined";
+    my $most_probable_lca_depths
+      = $tree_ref->get_most_probable_lca_depths;
         
     #  make the code cleaner below
     my %common_args_for_path_call = (
@@ -315,7 +317,7 @@ sub _calc_phylo_mpd_mntd {
         last_shared_ancestor_mx
           => $last_shared_ancestor_mx,
         most_probable_lca_depths
-          => scalar $tree_ref->get_most_probable_lca_depths,
+          => $most_probable_lca_depths,
         nri_nti_generation  => $nri_nti_generation,
         tree_is_ultrametric => $tree_is_ultrametric,
     );

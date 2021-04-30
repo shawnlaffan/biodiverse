@@ -1035,6 +1035,9 @@ sub get_nri_nti_expected_values {
 
     return if ! $label_count;
     
+    #  disable when we have the exact expectations implemented
+    my $do_mpd = 1;
+
     my $prng = $args{PRNG_OBJECT};
     
     my $mpd_mntd_method = $args{mpd_mntd_method} || '_calc_phylo_mpd_mntd';
@@ -1073,8 +1076,12 @@ sub get_nri_nti_expected_values {
     }
 
     my %convergence = (
-        mpd_mean  => [],
-        mpd_sd    => [],
+        $do_mpd
+          ? (
+            mpd_mean  => [],
+            mpd_sd    => [],
+          )
+          : (),
         mntd_mean => [],
         mntd_sd   => [],
     );
@@ -1115,29 +1122,39 @@ sub get_nri_nti_expected_values {
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
             mpd_mntd_means_only  => 1,
             nri_nti_generation   => 1,
+            no_mpd               => !$do_mpd,
         );
 
-        my $val = $results_this_iter{$mpd_index_name};
-        $mpd_sum_x += $val;
-        $mpd_sum_x_sqr += $val ** 2;
+        my $val;
+        
+        if ($do_mpd) {
+            $val = $results_this_iter{$mpd_index_name};
+            $mpd_sum_x += $val;
+            $mpd_sum_x_sqr += $val ** 2;
+            $mpd_mean  = $mpd_sum_x / $n;
+        }
+        
         $val = $results_this_iter{$mntd_index_name};
         $mntd_sum_x += $val;
         $mntd_sum_x_sqr += $val ** 2;
-
-        $mpd_mean  = $mpd_sum_x / $n;
         $mntd_mean = $mntd_sum_x / $n;
+
         {
             #  handle negatives which can occur occasionally
             no warnings qw /numeric/;
-            $mpd_sd    = eval {sqrt (($mpd_sum_x_sqr / $n) - ($mpd_mean ** 2))} // 0;
+            if ($do_mpd) {
+                $mpd_sd    = eval {sqrt (($mpd_sum_x_sqr / $n) - ($mpd_mean ** 2))} // 0;
+            }
             $mntd_sd   = eval {sqrt (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2))} // 0;
         }
 
         #say "\nfnarb,$label_count,$n,$mpd_mean,$mpd_sd,$mntd_mean,$mntd_sd"
         #  if $ENV{BD_NRI_NTI_CUM_STATS};
 
-        push @{$convergence{mpd_mean}},  $mpd_mean;
-        push @{$convergence{mpd_sd}},    $mpd_sd;
+        if ($do_mpd) {
+            push @{$convergence{mpd_mean}},  $mpd_mean;
+            push @{$convergence{mpd_sd}},    $mpd_sd;
+        }
         push @{$convergence{mntd_mean}}, $mntd_mean;
         push @{$convergence{mntd_sd}},   $mntd_sd;
         if ($n > 100) {  #  just work with the last so many

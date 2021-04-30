@@ -9,11 +9,27 @@ use rlib;
 use Test2::V0;
 
 use Biodiverse::TestHelpers qw{
-    :runners
+    :runners :basedata
 };
 
 #  need to add a skip for this
 note 'THE NRI/NTI RESULTS ARE FOR A 64 BIT PRNG - they will differ for a 32 bit PRNG';
+
+my $element_list1 = ['3350000:850000'];
+my $element_list2
+    = [qw/
+        3250000:850000
+        3350000:750000
+        3350000:950000
+        3450000:850000
+    /];
+
+my $bd = get_basedata_object_from_site_data (CELL_SIZES => [100000,100000]);
+$bd->add_element (
+    group => $element_list1->[0],
+    label => 'some random label not on the tree',
+);
+
 
 run_indices_test1 (
     calcs_to_test  => [qw/
@@ -25,8 +41,11 @@ run_indices_test1 (
         calc_nri_nti2
         calc_nri_nti3
     /],
-    prng_seed            => 123456,
-    nri_nti_iterations   => 4999,
+    basedata_ref       => $bd,
+    element_list1      => $element_list1,
+    element_list2      => $element_list2,
+    prng_seed          => 123456,
+    nri_nti_iterations => 4999,
     calc_topic_to_test => 'PhyloCom Indices',
     #generate_result_sets => 1,
 );

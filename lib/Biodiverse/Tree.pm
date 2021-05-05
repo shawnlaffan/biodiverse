@@ -3019,42 +3019,52 @@ sub get_nri_expected_sd {
 
     my $cache_name = 'NRI_EXPECTED_SD_HASH';
 
-    my $expected = $self->get_cached_value ($cache_name);
+    my $cached_data = $self->get_cached_value ($cache_name);
     
-    return $expected->{$sample_count}
-      if $expected && defined $expected->{$sample_count};
-
-    if (!$expected) {
-        $expected = {};
-        $self->set_cached_value ($cache_name => $expected);
+    if (!$cached_data) {
+        $cached_data = {};
+        $self->set_cached_value ($cache_name => $cached_data);
     }
+
+    my $expected = $cached_data->{expected} //= {};
+
+    return $expected->{$sample_count}
+      if defined $expected->{$sample_count};
 
     return $expected->{$sample_count} = undef
       if $sample_count == 1;
 
-    my $tce_cache_name = 'NRI_TCE_HASH';
-    my $TCE = $self->get_cached_value ($tce_cache_name);
-    if (!$TCE) {
+    my $sum_tcuu = $cached_data->{sum_tcuu};
+    my $sum_tce  = $cached_data->{sum_tce};
+    my $TCE      = $cached_data->{TCE_HASH} //= {};
+
+    if (!keys %$TCE) {
+        #  need to account for top node below root node
+        #  i.e. where root node has single children
+        my %skippers;
+        my $root = $self->get_root_node;
+        while ($root->get_child_count == 1) {
+            $skippers{$root->get_name}++;
+            my $children = $root->get_children;
+            $root = $children->[0];
+        }
+
         foreach my $node ($self->get_node_refs) {
             my $name = $node->get_name;
+            next if $skippers{$name};
             $TCE->{$name} = $node->get_nri_tce_score;
+            $sum_tce += $TCE->{$name} * $node->get_length;
+            if ($node->is_terminal_node) {
+                $sum_tcuu += $TCE->{$name} ** 2;
+            }
         }
-        $self->set_cached_value ($tce_cache_name => $TCE);
+        $cached_data->{sum_tcuu} = $sum_tcuu;
+        $cached_data->{sum_tce}  = $sum_tce;
     }
 
-    #  need to account for top node below root node
-    #  i.e. where root node has single children
-    my ($sum_tce, $sum_tcuu);
-    foreach my $node ($self->get_node_refs) {
-        my $name = $node->get_name;
-        $sum_tce += $TCE->{$name} * $node->get_length;
-        if ($node->is_terminal_node) {
-            $sum_tcuu += $TCE->{$name} ** 2;
-        }
-    }
 
     my $s  = $self->get_terminal_element_count;
-    my $r  = $sample_count;
+    my $r  = $sample_count;  #  for brevity
 
     my $c1
       = 4 * ($r - 2) * ($r - 3)
@@ -3071,7 +3081,8 @@ sub get_nri_expected_sd {
 
     my $expected_mean = $self->get_nri_expected_mean;
     my $TC = $expected_mean * ($s * ($s - 1)) / 2;
-    
+
+#  from PhyloMeasures code:    
 #  L489-492 of Mean_pairwise_distance_impl.h
 #  term 1 is square of total path costs
 #  term 2 is sum of all leaf costs,

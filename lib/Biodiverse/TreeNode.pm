@@ -2496,6 +2496,8 @@ sub get_nri_tce_score {
     return $value;
 }
 
+#  Algorithm from Tsirogiannis et al. (2012).
+#  https://doi.org/10.1007/978-3-642-33122-0_3
 #  Be sure to call from last common ancestor of all tips.
 #  Normally this is the root, but sometimes there are
 #  "spare" single-child nodes immediately below the root.

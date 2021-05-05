@@ -29,7 +29,7 @@ my $prng_class = 'Math::Random::MT::Auto';
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 my $webb_et_al_ref = 'Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358';
-
+my $tsir_et_al_ref = 'Tsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3';
 
 my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
 NRI and NTI for the set of labels
@@ -979,12 +979,13 @@ sub get_metadata_calc_nri_nti_expected_values {
     /];
     
     my $description = $self->get_description_calc_nri_nti_expected_values;
+    my $reference = "$webb_et_al_ref, $tsir_et_al_ref";
 
     my %metadata = (
         type            => 'PhyloCom Indices',
         name            => 'NRI and NTI expected values',
         description     => $description,
-        reference       => $webb_et_al_ref,
+        reference       => $reference,
         #pre_calc        => [qw /calc_labels_on_tree calc_abc/],
         pre_calc        => [qw /calc_labels_on_tree/],
         pre_calc_global => $pre_calc_global,  

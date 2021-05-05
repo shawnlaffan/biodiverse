@@ -2987,6 +2987,8 @@ sub clone_tree_with_rescaled_branch_lengths {
     return $new_tree;
 }
 
+#  Algorithm from Tsirogiannis et al. (2012).
+#  https://doi.org/10.1007/978-3-642-33122-0_3
 sub get_nri_expected_mean {
     my ($self, %args) = @_;
 
@@ -3012,6 +3014,8 @@ sub get_nri_expected_mean {
 }
 
 
+#  Algorithm from Tsirogiannis et al. (2012).
+#  https://doi.org/10.1007/978-3-642-33122-0_3
 sub get_nri_expected_sd {
     my $self = shift;
     my %args = @_;

@@ -2987,6 +2987,139 @@ sub clone_tree_with_rescaled_branch_lengths {
     return $new_tree;
 }
 
+sub get_nri_expected_mean {
+    my ($self, %args) = @_;
+
+    my $cache_key = 'EXACT_MPD_EXACT_EXPECTED_MEAN';
+
+    my $expected = $self->get_cached_value ($cache_key);
+    
+    return $expected if $expected;
+    
+    my @nodes = $self->get_node_refs;
+    my $s = $self->get_terminal_element_count;
+    
+    my $sum = 0;
+    foreach my $node (@nodes) {
+        my $tip_count = $node->get_terminal_element_count;
+        $sum += $node->get_length * $tip_count * ($s - $tip_count);
+    }
+    $expected = $sum * 2 / ($s * ($s - 1));
+    
+    $self->set_cached_value ($cache_key => $expected);
+    
+    return $expected;
+}
+
+
+sub get_nri_expected_sd {
+    my $self = shift;
+    my %args = @_;
+    my $sample_count = $args{sample_count};
+
+    my $cache_name = 'NRI_EXPECTED_SD_HASH';
+
+    my $expected = $self->get_cached_value ($cache_name);
+    
+    return $expected->{$sample_count}
+      if $expected && defined $expected->{$sample_count};
+
+    if (!$expected) {
+        $expected = {};
+        $self->set_cached_value ($cache_name => $expected);
+    }
+
+    my $tce_cache_name = 'NRI_TCE_HASH';
+    my $TCE = $self->get_cached_value ($tce_cache_name);
+    if (!$TCE) {
+        foreach my $node ($self->get_node_refs) {
+            my $name = $node->get_name;
+            $TCE->{$name} = $node->get_nri_tce_score;
+        }
+        $self->set_cached_value ($tce_cache_name => $TCE);
+    }
+
+    #  need to account for top node below root node
+    #  i.e. where root node has single children
+    my ($sum_tce, $sum_tcuu, $sum_tc_sqr);
+    my $sum_tcu;
+    my $sum_tc;
+    foreach my $node ($self->get_node_refs) {
+        my $name = $node->get_name;
+        $sum_tc_sqr += $TCE->{$name} ** 2;
+        $sum_tc  += $TCE->{$name};
+        $sum_tce += $TCE->{$name} * $node->get_length;
+        if ($node->is_terminal_node) {
+            $sum_tcuu += $TCE->{$name} ** 2;
+            $sum_tcu += $TCE->{$name};
+        }
+    }
+#say STDERR "SUM TERMINALS $sum_tcu";
+#say STDERR "SUM TCE       $sum_tce";
+
+    my $s  = $self->get_terminal_element_count;
+    my $r  = $sample_count;
+
+    my $c1
+      = 4 * ($r - 2) * ($r - 3)
+      / ($r * ($r - 1) * $s * ($s - 1) * ($s - 2) * ($s - 3));
+    my $c2
+      = 4 * ($r - 2)
+      / ($r * ($r - 1) * $s * ($s - 1) * ($s - 2));
+    my $c3
+      = 4
+      / ($r * ($r - 1) * $s * ($s - 1));
+
+    my $c21  = $c2 - $c1;
+    my $c123 = $c1 - 2 * $c2 + $c3;
+
+    my $expected_mean = $self->get_nri_expected_mean;
+    my $TC = $expected_mean * ($s * ($s - 1)) / 2;
+#say STDERR "TCU, TC: $sum_tcu, $TC";
+#  L489-492 of Mean_pairwise_distance_impl.h
+#  term 1 is square of total path costs
+#  term 2 is sum of all leaf costs,
+#     which is sum of squared leaf edge path costs
+#     (L97 of Mean_pairwise_distance_base_impl.h)
+#  term 3 is sum_all_edges_costs
+#     see L25 of Mean_pairwise_distance_impl.h
+#  term 4 is square of expected value
+#$sum_tc_sqr = ($TC * 2) ** 2;
+#$sum_tc_sqr = $sum_tcu ** 2;
+$sum_tc_sqr = $TC ** 2;
+    my $variance
+      = $c1   * $sum_tc_sqr
+      + $c21  * $sum_tcuu
+      + $c123 * $sum_tce
+      - $expected_mean ** 2;
+
+#say STDERR join "\n",
+#"=+=+ esses", "s1 $c1", "s2 $c2", "s3 $c3";
+#
+#say STDERR <<"EOS"
+#   $sample_count
+#    $c1 * $sum_tc_sqr
+#+  $c21 * ($sum_tcuu)
+#+ $c123 * $sum_tce
+#- $expected_mean ** 2
+#EOS
+#  ;
+#
+#say STDERR join ' ',
+#'==',
+#$c1 * $sum_tc_sqr,
+#$c21 * $sum_tcuu,
+#$c123 * $sum_tce,
+#$expected_mean ** 2,
+#'';
+#say STDERR "VARIANCE: $r $variance";
+#say STDERR '++++++';
+    $expected->{$sample_count} = eval {sqrt $variance} // -1;
+
+    return $expected->{$sample_count};    
+}
+
+
 #  Let the system take care of most of the memory stuff.
 sub DESTROY {
     my $self = shift;

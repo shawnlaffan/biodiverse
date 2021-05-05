@@ -1070,19 +1070,13 @@ sub get_all_descendants {
         }
     }
 
-    my @a_list;
-    push @a_list, $self->get_children;
-    foreach my $child (@a_list) {
-        push @a_list, $child->get_children;
-    }
-    #  the values are really a hash, and need to be coerced into one when used
-    #  hashes save memory when using globally repeated keys and are more flexible
-    #my @hash_list;
     my %list;
-    foreach my $node (@a_list) {
+    my @ch_list = $self->get_children;
+    while (my $node = shift @ch_list) {
         my $name = $node->get_name;
         $list{$name} = $node;
         weaken $list{$name} if !isweak $list{$name};
+        push @ch_list, $node->get_children;
     }
 
     if ($args{cache}) {
@@ -2484,6 +2478,93 @@ sub shuffle_terminal_names {
     return wantarray ? %reordered : \%reordered;
 }
 
+sub get_nri_tce_score {
+    my ($self, %args) = @_;
+    my $cache_name = 'NRI_TCE_SCORE';
+    my $value = $self->get_cached_value ($cache_name);
+    if (!defined $value) {
+        #  we need to do the whole tree
+        my $root = $self->get_root_node;
+        while ($root->get_child_count == 1) {
+            my $child_arr = $root->get_children;
+            $root = $child_arr->[0];
+        }
+        $root->_calc_nri_tce_score;
+        #  now it will be cached
+        $value = $self->get_cached_value ($cache_name);
+    }
+    return $value;
+}
+
+sub _calc_nri_tce_score {
+    my ($self, %args) = @_;
+    #  need to modify this for when root has single child
+    #  although ultimately this method need not be here
+    croak 'arguments must be passed unless called for the root node'
+      if !keys %args && !$self->is_root_node;
+
+    my $all_weights = $args{all_weights} // $self->get_nri_all_weights;
+
+    my $sum_anc1 = $args{sum_anc1} // 0;
+    my $sum_anc2 = $args{sum_anc2} // 0;
+    my $length   = $self->get_length;
+    my $se       = $self->get_terminal_element_count;
+    my $s        = $self->get_root_node->get_terminal_element_count;
+    my $sum_off  = 0;
+
+    foreach my $child ($self->get_children) {
+        my $ch_len = $child->get_length;
+        my $sl     = $child->get_terminal_element_count;
+        $sum_off += $child->_calc_nri_tce_score (
+            sum_anc1    => $sum_anc1 + $ch_len * ($s - $sl),
+            sum_anc2    => $sum_anc2 + $ch_len * $sl,
+            all_weights => $all_weights,
+        );
+    }
+    my $SO = ($s - $se) * $sum_off;
+    my $SA = $se * $sum_anc1;
+    my $SI = $se * ($all_weights - $sum_anc2 - $sum_off);
+#say STDERR join ' ', $self->get_name, $SO, $SA, $SI;
+    $self->set_cached_value (NRI_TCE_COMPONENTS => [$SA, $SO, $SI]);
+    
+    my $value = $SO + $SA + $SI;
+    
+    
+    my $cache_name = 'NRI_TCE_SCORE';
+    $self->set_cached_value ($cache_name => $value);
+    
+    return $sum_off + $length * $se;
+}
+
+
+sub get_nri_all_weights {
+    my ($self, %args) = @_;
+
+    my $cache_name = 'NRI_ALL_WEIGHTS';
+
+    my $root = $self->get_root_node;
+    my $value = $root->get_cached_value ($cache_name);
+
+    return $value if $value;
+
+    #  handle single child roots, e.g. where a major clade was excised
+    #  so the last shared ancestor for all terminals is not the root
+    my $lca_node = $root;
+    while ($lca_node->get_child_count == 1) {
+        my $children = $lca_node->get_children;
+        $lca_node = $children->[0];
+    }
+
+    my $nodes = $lca_node->get_all_descendants;
+    $value
+      = sum
+        map {$_->get_length * $_->get_terminal_element_count}
+        values %$nodes;
+
+    $root->set_cached_value ($cache_name => $value);
+
+    return $value;
+}
 
 sub numerically {$a <=> $b}
 
@@ -2498,7 +2579,7 @@ Biodiverse::????
 =head1 SYNOPSIS
 
   use Biodiverse::????;
-  $object = Biodiverse::Statistics->new();
+  $object = Biodiverse::TreeNode->new();
 
 =head1 DESCRIPTION
 

@@ -261,33 +261,6 @@ sub default_mpd_mntd_results {
     return wantarray ? %results : \%results;
 }
 
-sub get_exact_mpd_expectation {
-    my ($self, %args) = @_;
-    
-    my $tree_ref = $args{tree_ref} // croak "GAH!";
-
-    my $cache_key = 'EXACT_MPD_EXPECTATION';
-
-    my $expected = $tree_ref->get_cached_value ($cache_key);
-    
-    return $expected if $expected;
-    
-    my @nodes = $tree_ref->get_node_refs;
-    my $s = $tree_ref->get_terminal_element_count;
-    
-    my $sum = 0;
-    foreach my $node (@nodes) {
-        my $tip_count = $node->get_terminal_element_count;
-        $sum += $node->get_length * $tip_count * ($s - $tip_count);
-    }
-    $expected = $sum * 2 / ($s * ($s - 1));
-    
-    $tree_ref->set_cached_value ($cache_key => $expected);
-    
-    return $expected;
-}
-
-
 #  mean nearest taxon distance and mean phylogenetic distance
 sub _calc_phylo_mpd_mntd {
     my $self = shift;
@@ -1050,7 +1023,24 @@ sub calc_nri_nti_expected_values {
         @results{keys %$cached_scores} = values %$cached_scores;
     }
 
-   
+#my %aa = (sample_count => $label_count);
+#my $tree_ref = $args{tree_ref};
+#say STDERR join ' ',
+#             $results{PHYLO_NRI_SAMPLE_MEAN},
+#             $tree_ref->get_nri_expected_mean (%aa);
+#say STDERR join ' ',
+#             $results{PHYLO_NRI_SAMPLE_SD},
+#             $tree_ref->get_nri_expected_sd (%aa);
+
+
+#foreach my $r (2, 5, 10, 14) {
+#  my $scores = $self->get_nri_nti_expected_values (
+#      %args,
+#      label_count => $r,
+#  );
+#  say STDERR join ' ', "R=$r, " . $scores->{PHYLO_NRI_SAMPLE_SD} ** 2;
+#}
+
     return wantarray ? %results : \%results;
 }
 

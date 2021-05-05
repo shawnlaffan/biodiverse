@@ -3038,6 +3038,11 @@ sub get_nri_expected_sd {
     return $expected->{$sample_count} = undef
       if $sample_count == 1;
 
+    my $s  = $self->get_terminal_element_count;
+    croak "Cannot estimate MPD SD for $sample_count labels - "
+        . "tree has only $s terminals"
+      if $sample_count > $s;
+
     my $sum_tcuu = $cached_data->{sum_tcuu};
     my $sum_tce  = $cached_data->{sum_tce};
     my $TCE      = $cached_data->{TCE_HASH} //= {};
@@ -3066,8 +3071,6 @@ sub get_nri_expected_sd {
         $cached_data->{sum_tce}  = $sum_tce;
     }
 
-
-    my $s  = $self->get_terminal_element_count;
     my $r  = $sample_count;  #  for brevity
 
     my $c1

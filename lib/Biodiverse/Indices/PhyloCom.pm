@@ -1071,7 +1071,9 @@ sub get_nri_nti_expected_values {
 
     my ($progress, $progress_pfx);
     if (scalar keys %$named_nodes > 25) {
-        $progress_pfx = "\nGetting $results_pfx NRI and NTI expected values\n"
+        $progress_pfx = "\nGetting $results_pfx "
+                      . ($do_mpd ? 'NRI and ' : '')
+                      . "NTI expected values\n"
                       . "for $label_count labels.\n";   
         $progress = Biodiverse::Progress->new(
             #gui_only => 1,

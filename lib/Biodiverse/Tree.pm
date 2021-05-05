@@ -3109,6 +3109,69 @@ sub get_nri_expected_sd {
     return $expected->{$sample_count};    
 }
 
+sub get_nti_expected_mean {
+    my $self = shift;
+    my %args = @_;
+    
+    croak "Cannot calculate exact expected mean for non-ultrametric tree"
+      if !$self->is_ultrametric;
+
+    my $r = $args{sample_count} // croak "Argument sample_count not defined";
+    
+    my $cache
+      = $self->get_cached_value_dor_set_default_aa (
+        NTI_EXPECTED_MEAN => {}
+    );
+
+    return $cache->{$r}
+      if defined $cache->{$r};
+
+    my $s = $self->get_terminal_element_count;
+    \my @ln_fac_arr = $self->_get_ln_fac_arr (
+        max_n => $s,
+    );
+
+    #  use logs to avoid expensive binomial ratio calcs
+    my $bnok_sr =    $ln_fac_arr[$s]
+                - (  $ln_fac_arr[$r]
+                   + $ln_fac_arr[$s - $r]
+                );
+    my $sum;
+    foreach my $node ($self->get_node_refs) {
+        my $se = $node->get_terminal_element_count;
+        my $bnok_numerator
+          =    $ln_fac_arr[$s - $se]
+          - (  $ln_fac_arr[$r - 1]
+             + $ln_fac_arr[$s - $se - $r + 1]
+            );
+
+        $sum += $node->get_length
+              * $se
+              * exp ($bnok_numerator - $bnok_sr);
+    }
+    
+    my $expected = (2 / $r) * $sum;
+    
+    $cache->{$r} = $expected;
+
+    return $expected;
+}
+
+sub _get_ln_fac_arr {
+    my ($self, %args) = @_;
+    my $n = $args{max_n};
+
+    state @ln_fac_arr = (0, 0);
+    if (@ln_fac_arr < $n) {
+        foreach my $i (@ln_fac_arr .. $n) {
+            $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;
+        }
+    }
+
+    return wantarray ? @ln_fac_arr : \@ln_fac_arr;
+}
+
+
 
 #  Let the system take care of most of the memory stuff.
 sub DESTROY {

@@ -1035,9 +1035,6 @@ sub get_nri_nti_expected_values {
     my $iterations = $args{nri_nti_iterations} ||  4999;
 
     return if ! $label_count;
-    
-    #  disable when we have the exact expectations implemented
-    my $do_mpd = 1;
 
     my $prng = $args{PRNG_OBJECT};
     
@@ -1052,6 +1049,11 @@ sub get_nri_nti_expected_values {
     my $named_nodes         = $args{labels_to_select_from} || $tree->$get_name_meth;
     my @named_node_array    = sort keys %$named_nodes;
     my $label_count_max_idx = $label_count - 1;
+
+    my ($mpd_mean, $mpd_sd, $mntd_mean, $mntd_sd);
+    $mpd_mean  = $tree->get_nri_expected_mean;
+    $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
+    my $do_mpd = 0;
 
     my ($mpd_sum_x, $mpd_sum_x_sqr, $mntd_sum_x, $mntd_sum_x_sqr);
     my $n       = 0;
@@ -1086,8 +1088,6 @@ sub get_nri_nti_expected_values {
         mntd_mean => [],
         mntd_sd   => [],
     );
-    my ($mpd_mean, $mpd_sd, $mntd_mean, $mntd_sd);
-    
     
   ITER:
     while ($n < $iterations) {  

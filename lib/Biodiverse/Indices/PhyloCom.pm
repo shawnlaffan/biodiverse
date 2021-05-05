@@ -1023,24 +1023,6 @@ sub calc_nri_nti_expected_values {
         @results{keys %$cached_scores} = values %$cached_scores;
     }
 
-#my %aa = (sample_count => $label_count);
-#my $tree_ref = $args{tree_ref};
-#say STDERR join ' ',
-#             $results{PHYLO_NRI_SAMPLE_MEAN},
-#             $tree_ref->get_nri_expected_mean (%aa);
-#say STDERR join ' ',
-#             $results{PHYLO_NRI_SAMPLE_SD},
-#             $tree_ref->get_nri_expected_sd (%aa);
-
-
-#foreach my $r (2, 5, 10, 14) {
-#  my $scores = $self->get_nri_nti_expected_values (
-#      %args,
-#      label_count => $r,
-#  );
-#  say STDERR join ' ', "R=$r, " . $scores->{PHYLO_NRI_SAMPLE_SD} ** 2;
-#}
-
     return wantarray ? %results : \%results;
 }
 

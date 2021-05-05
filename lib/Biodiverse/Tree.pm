@@ -3029,6 +3029,9 @@ sub get_nri_expected_sd {
         $self->set_cached_value ($cache_name => $expected);
     }
 
+    return $expected->{$sample_count} = undef
+      if $sample_count == 1;
+
     my $tce_cache_name = 'NRI_TCE_HASH';
     my $TCE = $self->get_cached_value ($tce_cache_name);
     if (!$TCE) {
@@ -3041,21 +3044,14 @@ sub get_nri_expected_sd {
 
     #  need to account for top node below root node
     #  i.e. where root node has single children
-    my ($sum_tce, $sum_tcuu, $sum_tc_sqr);
-    my $sum_tcu;
-    my $sum_tc;
+    my ($sum_tce, $sum_tcuu);
     foreach my $node ($self->get_node_refs) {
         my $name = $node->get_name;
-        $sum_tc_sqr += $TCE->{$name} ** 2;
-        $sum_tc  += $TCE->{$name};
         $sum_tce += $TCE->{$name} * $node->get_length;
         if ($node->is_terminal_node) {
             $sum_tcuu += $TCE->{$name} ** 2;
-            $sum_tcu += $TCE->{$name};
         }
     }
-#say STDERR "SUM TERMINALS $sum_tcu";
-#say STDERR "SUM TCE       $sum_tce";
 
     my $s  = $self->get_terminal_element_count;
     my $r  = $sample_count;
@@ -3075,7 +3071,7 @@ sub get_nri_expected_sd {
 
     my $expected_mean = $self->get_nri_expected_mean;
     my $TC = $expected_mean * ($s * ($s - 1)) / 2;
-#say STDERR "TCU, TC: $sum_tcu, $TC";
+    
 #  L489-492 of Mean_pairwise_distance_impl.h
 #  term 1 is square of total path costs
 #  term 2 is sum of all leaf costs,
@@ -3084,37 +3080,13 @@ sub get_nri_expected_sd {
 #  term 3 is sum_all_edges_costs
 #     see L25 of Mean_pairwise_distance_impl.h
 #  term 4 is square of expected value
-#$sum_tc_sqr = ($TC * 2) ** 2;
-#$sum_tc_sqr = $sum_tcu ** 2;
-$sum_tc_sqr = $TC ** 2;
     my $variance
-      = $c1   * $sum_tc_sqr
+      = $c1   * $TC ** 2
       + $c21  * $sum_tcuu
       + $c123 * $sum_tce
       - $expected_mean ** 2;
 
-#say STDERR join "\n",
-#"=+=+ esses", "s1 $c1", "s2 $c2", "s3 $c3";
-#
-#say STDERR <<"EOS"
-#   $sample_count
-#    $c1 * $sum_tc_sqr
-#+  $c21 * ($sum_tcuu)
-#+ $c123 * $sum_tce
-#- $expected_mean ** 2
-#EOS
-#  ;
-#
-#say STDERR join ' ',
-#'==',
-#$c1 * $sum_tc_sqr,
-#$c21 * $sum_tcuu,
-#$c123 * $sum_tce,
-#$expected_mean ** 2,
-#'';
-#say STDERR "VARIANCE: $r $variance";
-#say STDERR '++++++';
-    $expected->{$sample_count} = eval {sqrt $variance} // -1;
+    $expected->{$sample_count} = eval {sqrt $variance};
 
     return $expected->{$sample_count};    
 }

@@ -33,10 +33,19 @@ for my $i (1..5) {
     push @extras, $node;
 }
 $root->add_children (children => \@extras);
+#  now add a redundant parent to root
+my $redundant_parent = Biodiverse::TreeNode->new(
+    name   => "redundant",
+    length => 0.1,
+);
+$tree_ref->add_to_node_hash (node_ref => $redundant_parent);
+$redundant_parent->add_children (children => [$root]);
 $tree_ref->delete_cached_values;
 $tree_ref->delete_cached_values_below;
 $root->delete_cached_values;
 $root->delete_cached_values_below;
+$redundant_parent->delete_cached_values;
+$redundant_parent->delete_cached_values_below;
 
 run_indices_test1 (
     calcs_to_test  => [qw/

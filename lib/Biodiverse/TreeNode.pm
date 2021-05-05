@@ -2496,12 +2496,11 @@ sub get_nri_tce_score {
     return $value;
 }
 
+#  Be sure to call from last common ancestor of all tips.
+#  Normally this is the root, but sometimes there are
+#  "spare" single-child nodes immediately below the root.
 sub _calc_nri_tce_score {
     my ($self, %args) = @_;
-    #  need to modify this for when root has single child
-    #  although ultimately this method need not be here
-    croak 'arguments must be passed unless called for the root node'
-      if !keys %args && !$self->is_root_node;
 
     my $all_weights = $args{all_weights} // $self->get_nri_all_weights;
 

@@ -22,7 +22,7 @@ before_install:
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   
   #  for Math::AnyNum
-  - sudo apt-get install libmpfr-dev mpc-dev
+  - sudo apt-get install libmpfr-dev mpc libmpc-dev
   - cpanm -v Math::MPFR
   - cpanm -v Math::MPC
   

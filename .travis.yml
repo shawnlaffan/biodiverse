@@ -22,7 +22,7 @@ before_install:
   - eval "$(perl -Mlocal::lib=${PWD}/perl_modules)"
   
   #  for Math::AnyNum
-  - sudo apt-get install libmpfr-dev libmpfr6
+  - sudo apt-get install libmpfr-dev
   
   - cpanm --installdeps --notest Alien::sqlite
   - cpanm --verbose --notest Alien::sqlite

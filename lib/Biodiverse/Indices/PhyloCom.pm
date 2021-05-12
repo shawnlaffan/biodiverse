@@ -1023,19 +1023,6 @@ sub calc_nri_nti_expected_values {
         
         @results{keys %$cached_scores} = values %$cached_scores;
     }
-
-    if ($args{tree_ref}->is_ultrametric) {
-      foreach my $r (2, 3) { #5, 10, 15, 20, 25, 30, 31) { #..31) {
-        my $exact = $args{tree_ref}->get_nti_expected_sd(
-            sample_count => $r,
-        );
-        my $perm = $self->get_nri_nti_expected_values (
-            %args,
-            label_count => $r,
-        );
-        say STDERR "$r, $exact, $perm->{PHYLO_NTI_SAMPLE_SD}";
-      }
-    }
     
     return wantarray ? %results : \%results;
 }
@@ -1068,6 +1055,22 @@ sub get_nri_nti_expected_values {
     $mpd_mean  = $tree->get_nri_expected_mean;
     $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
     my $do_mpd = 0;
+    
+    if ($tree->is_ultrametric) {
+        #  we can use the exact forms for mntd as well
+        $mntd_mean = $tree->get_nti_expected_mean (sample_count => $label_count);
+        $mntd_sd   = $tree->get_nti_expected_sd (sample_count => $label_count);
+        
+        my %res = (
+            $results_pfx . 'NRI_SAMPLE_MEAN'  => $mpd_mean,
+            $results_pfx . 'NRI_SAMPLE_SD'    => $mpd_sd,
+            $results_pfx . 'NTI_SAMPLE_MEAN'  => $mntd_mean,
+            $results_pfx . 'NTI_SAMPLE_SD'    => $mntd_sd,
+            $results_pfx . 'NRI_NTI_SAMPLE_N' => 0,
+        );
+
+        return wantarray ? %res : \%res;
+    }
 
     my ($mpd_sum_x, $mpd_sum_x_sqr, $mntd_sum_x, $mntd_sum_x_sqr);
     my $n       = 0;

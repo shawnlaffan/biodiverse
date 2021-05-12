@@ -1177,7 +1177,7 @@ sub test_newick_with_trailing_comment {
 
 sub test_nti_expected_values {
     my $tree = get_tree_object_from_sample_data();
-    my $fmt = "%d, %.10f, %.10f";
+    my $fmt = "%d, %.10f, %.5f";  #  5dp for sd is when n is large
     my @got;
     foreach my $i (2, 5, 10, 15, 25, 31) {
         my $exp_mean = $tree->get_nti_expected_mean(sample_count => $i);
@@ -1185,6 +1185,8 @@ sub test_nti_expected_values {
         push @got, sprintf $fmt, $i, $exp_mean, $exp_sd;
     }
 
+    #  expectations are generaated using Math::AnyNum,
+    #  which has very high precision
     my @expected = map {sprintf $fmt, @$_}
     (
         [2,  1.84720584828667, 0.2353571207],

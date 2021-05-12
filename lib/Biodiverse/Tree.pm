@@ -3187,13 +3187,13 @@ sub get_nti_expected_sd {
     );
 
     #  use logs to avoid expensive binomial ratio calcs
-    #my $bnok_sr =    $ln_fac_arr[$s]
-    #            - (  $ln_fac_arr[$r]
-    #               + $ln_fac_arr[$s - $r]
-    #            );
-    use Scalar::Util qw /blessed/;
-    use Math::AnyNum qw//;
-    my $bnok_sr_bb = Math::AnyNum->new($s)->binomial($r);
+    #  results are the same to about 7dp.
+    my $bnok_sr =    $ln_fac_arr[$s]
+                - (  $ln_fac_arr[$r]
+                   + $ln_fac_arr[$s - $r]
+                );
+    #use Math::AnyNum qw//;
+    #my $bnok_sr_bb = Math::AnyNum->new($s)->binomial($r);
     my %bnok_hash;
 
     my $sum;
@@ -3214,33 +3214,57 @@ sub get_nti_expected_sd {
 
             my $wt = 0;
             if (exists $desc1->{$name2}) {
-                #  node2 is a descendant of node1
-                my $bnok_ratio = $bnok_hash{$s-$se}
-                  //= Math::AnyNum->new($s - $se)
-                      ->binomial($r-1)
-                      ->div($bnok_sr_bb)
-                      ->numify;
-                $wt = $sl * $bnok_ratio;
+                #  node2 is a descendent of node1
+                #my $bnok_ratio = $bnok_hash{$s-$se}
+                #  //= Math::AnyNum->new($s - $se)
+                #      ->binomial($r-1)
+                #      ->div($bnok_sr_bb)
+                #      ->numify;
+                my $bnok_ratio
+                 = $s - $se - $r + 1 > 0
+                   ? $ln_fac_arr[$s-$se]
+                      - (  $ln_fac_arr[$r-1]
+                         + $ln_fac_arr[$s - $se - $r + 1]
+                        )
+                      - $bnok_sr
+                  : -$bnok_sr;
+                $wt = $sl * exp $bnok_ratio;
             }
             elsif (exists $desc2->{$name1} || $name1 eq $name2) {
                 #  node2 is an ancestor of node1
                 #  (and a node's ancestors include itself)
                 #  paper is not clear about this...
-                my $bnok_ratio = $bnok_hash{$s-$sl}
-                  //= Math::AnyNum->new($s - $sl)
-                      ->binomial($r-1)
-                      ->div($bnok_sr_bb)
-                      ->numify;
-                $wt = $se * $bnok_ratio;
+                #my $bnok_ratio = $bnok_hash{$s-$sl}
+                #  //= Math::AnyNum->new($s - $sl)
+                #      ->binomial($r-1)
+                #      ->div($bnok_sr_bb)
+                #      ->numify;
+                my $bnok_ratio
+                 = $s - $sl - $r + 1 > 0
+                   ? $ln_fac_arr[$s-$sl]
+                      - (  $ln_fac_arr[$r-1]
+                         + $ln_fac_arr[$s - $sl - $r + 1]
+                        )
+                      - $bnok_sr
+                  : -$bnok_sr;
+                $wt = $se * exp $bnok_ratio;
             }
             else {
                 #  independent nodes from different clades
-                my $bnok_ratio = Math::AnyNum
-                      ->new(max(0, $s - $se - $sl))
-                      ->binomial($r-2)
-                      ->div($bnok_sr_bb)
-                      ->numify;
-                $wt = $se * $sl * $bnok_ratio;
+                #my $bnok_ratio = Math::AnyNum
+                #      ->new(max(0, $s - $se - $sl))
+                #      ->binomial($r-2)
+                #      ->div($bnok_sr_bb)
+                #      ->numify;
+                my $bnok_ratio
+                 = $s - $sl - $se - $r + 2 > 0
+                   ? $ln_fac_arr[$s-$sl-$se]
+                      - (  $ln_fac_arr[$r-2]
+                         + $ln_fac_arr[$s - $se - $sl - $r + 2]
+                        )
+                      - $bnok_sr
+                  : -$bnok_sr;
+                $wt = $se * $sl * exp $bnok_ratio;
             }
             
             $sum += $wt * $len1 * $len2;

@@ -1024,6 +1024,19 @@ sub calc_nri_nti_expected_values {
         @results{keys %$cached_scores} = values %$cached_scores;
     }
 
+    if ($args{tree_ref}->is_ultrametric) {
+      foreach my $r (2, 3) { #5, 10, 15, 20, 25, 30, 31) { #..31) {
+        my $exact = $args{tree_ref}->get_nti_expected_sd(
+            sample_count => $r,
+        );
+        my $perm = $self->get_nri_nti_expected_values (
+            %args,
+            label_count => $r,
+        );
+        say STDERR "$r, $exact, $perm->{PHYLO_NTI_SAMPLE_SD}";
+      }
+    }
+    
     return wantarray ? %results : \%results;
 }
 

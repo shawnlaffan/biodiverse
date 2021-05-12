@@ -3286,11 +3286,11 @@ sub get_nti_expected_sd {
     return $expected;
 }
 
+my @ln_fac_arr = (0,0);
 sub _get_ln_fac_arr {
     my ($self, %args) = @_;
     my $n = $args{max_n};
 
-    state @ln_fac_arr = (0, 0);
     if (@ln_fac_arr < $n) {
         foreach my $i (@ln_fac_arr .. $n) {
             $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;

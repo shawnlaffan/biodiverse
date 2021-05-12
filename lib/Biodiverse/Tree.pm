@@ -3039,6 +3039,10 @@ sub get_nri_expected_sd {
       if $sample_count == 1;
 
     my $s  = $self->get_terminal_element_count;
+
+    return $expected->{$sample_count} = 0
+      if $sample_count == $s;
+
     croak "Cannot estimate MPD SD for $sample_count labels - "
         . "tree has only $s terminals"
       if $sample_count > $s;
@@ -3175,6 +3179,9 @@ sub get_nti_expected_sd {
       if defined $cache->{$r};
       
     my $s = $self->get_terminal_element_count;
+    return $cache->{$s} = 0
+      if $r == $s;
+    
     \my @ln_fac_arr = $self->_get_ln_fac_arr (
         max_n => $s,
     );
@@ -3186,14 +3193,10 @@ sub get_nti_expected_sd {
     #            );
     use Scalar::Util qw /blessed/;
     use Math::AnyNum qw//;
-    my $bnok_sr_bb = Math::AnyNum->new($s)->binomial($r);#->numify;
+    my $bnok_sr_bb = Math::AnyNum->new($s)->binomial($r);
     my %bnok_hash;
-my (%_zero_wts, %_nonzero_wts);
-my $gone_neg = 0;
 
     my $sum;
-    my ($sumo, $suma, $sumi);
-    my $_sum_wts;  #  for debug
     foreach my $node1 ($self->get_node_refs) {
         next if $node1->is_root_node;
         my $name1 = $node1->get_name;
@@ -3203,110 +3206,51 @@ my $gone_neg = 0;
 
         foreach my $node2 ($self->get_node_refs) {
             next if $node2->is_root_node;
-            #next if $node1 == $node2;
 
             my $name2 = $node2->get_name;
             my $len2  = $node2->get_length;
             my $sl    = $node2->get_terminal_element_count;
             my $desc2 = $node2->get_all_descendants;
-my $branch = 0;
+
             my $wt = 0;
             if (exists $desc1->{$name2}) {
                 #  node2 is a descendant of node1
-                $branch = 1;
                 my $bnok_ratio = $bnok_hash{$s-$se}
                   //= Math::AnyNum->new($s - $se)
                       ->binomial($r-1)
-                      ->div($bnok_sr_bb);
-                      #->numify;
+                      ->div($bnok_sr_bb)
+                      ->numify;
                 $wt = $sl * $bnok_ratio;
-                #say STDERR "BORK! $se $sl" if $sl > $se;
-                $_zero_wts{a} ++ if $wt == 0;
-                $_nonzero_wts{a} ++ if $wt != 0;
-                $sumo += $wt * $len1 * $len2;
             }
             elsif (exists $desc2->{$name1} || $name1 eq $name2) {
                 #  node2 is an ancestor of node1
                 #  (and a node's ancestors include itself)
                 #  paper is not clear about this...
-                $branch = 2;
                 my $bnok_ratio = $bnok_hash{$s-$sl}
                   //= Math::AnyNum->new($s - $sl)
                       ->binomial($r-1)
-                      ->div($bnok_sr_bb);
-                      #->numify;
+                      ->div($bnok_sr_bb)
+                      ->numify;
                 $wt = $se * $bnok_ratio;
-                #say STDERR "BARK! $se $sl" if $sl < $se;
-                #say STDERR "BARK! $s - $sl, $r - 1, $bnok_ratio"
-                #  if $s-$sl < $r-1;
-                $_zero_wts{b} ++ if $wt == 0;
-                $_nonzero_wts{b} ++ if $wt != 0;
-                $suma += $wt * $len1 * $len2;
-                #if ($r == 2 && $se == 14) {
-                #    say STDERR sprintf "ANC MODEL: %d, %d, %.6f", $sl, $se, $wt;
-                #}
             }
-            #elsif ($node1 ne $node2) {
             else {
-                $branch = 3;
+                #  independent nodes from different clades
                 my $bnok_ratio = Math::AnyNum
                       ->new(max(0, $s - $se - $sl))
                       ->binomial($r-2)
-                      ->div($bnok_sr_bb);
+                      ->div($bnok_sr_bb)
+                      ->numify;
                 $wt = $se * $sl * $bnok_ratio;
-                $_zero_wts{c} ++ if $wt == 0;
-                $_nonzero_wts{c} ++ if $wt != 0;
-
-                $gone_neg++ if $s - $se - $sl < ($r - 2);
-                #if ($s - $se - $sl < ($r - 2)) {
-                    #say STDERR "$name1 $name2 $s - $se - $sl < ($r - 2), ", $s - $se - $sl, " " . ($r - 2);
-                #}
-                #if ($node1->is_terminal_node && $node2->is_terminal_node) {
-                #    #$wt = 1;
-                #    my $ss = $s - $se - $sl;
-                #    say "]]] $r $ss $name1 $name2 "
-                #      . (blessed ($bnok_ratio) ? $bnok_ratio->numify : $bnok_ratio)
-                #      . ' ' 
-                #      . (blessed ($bnok_sr_bb) ? $bnok_sr_bb->numify : $bnok_sr_bb);
-                #}
-                #if ($wt >= 1) {
-                #    say STDERR "::: $bnok_ratio, $wt, $name1, $name2, $s - $se - $sl < ($r - 2)";
-                #}
-                #if ($wt < 0) {
-                #    say STDERR "''' $bnok_ratio, $wt, $name1, $name2, $s - $se - $sl < ($r - 2)";
-                #}
-                $sumi += $wt * $len1 * $len2;
-                if ($r == 2 && $se == 14) {
-                    say STDERR sprintf "IND MODEL: %d, %d, %.6f", $se, $sl, $bnok_ratio;
-                }
-            }
-            #else {
-            #    $_zero_wts{d} ++ if $wt == 0;
-            #}
-            if ($wt < 0) {
-                say "$name1, $name2 gone neg";
             }
             
-if (blessed $wt) {$wt = $wt->numify};
-#say STDERR sprintf "%s, %s, %s, %.6f", $name1, $name2, $branch, $wt
-  #if $wt > 1;
-#$_sum_wts += $wt;
             $sum += $wt * $len1 * $len2;
         }
     }
 
-    $sum = sprintf "%.6f", $sum;
     my $exp_mean = $self->get_nti_expected_mean (sample_count => $r);
-    my $rsqr = $r * ($r);
-    my $expected = (4 / $rsqr) * $sum - $exp_mean**2;
-#say STDERR "(4 / $rsqr) * $sum - $exp_mean**2 = $expected";
-#say STDERR "$sum ". $exp_mean**2;
-#say STDERR "SUM_WTS: $_sum_wts";
-#say STDERR join ' ', map {$_ // 0} @_zero_wts{qw /a b c d/};
-#say STDERR join ' ', map {$_ // 0} @_nonzero_wts{qw /a b c d/};
-#say STDERR "GONE NEG: $gone_neg";
-#say STDERR join ' ', $r, (4 / $rsqr), $exp_mean, $exp_mean**2, $expected;
-say STDERR sprintf "OAI: %i, %.6f, %.6f, %.6f", $r, $sumo, $suma, $sumi;
+    my $expected = (4 / ($r * $r)) * $sum - $exp_mean**2;
+
+    if ($expected < 0) {$expected = 0};
 
     $cache->{$r} = $expected;
 

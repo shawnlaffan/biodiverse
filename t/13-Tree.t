@@ -1175,6 +1175,54 @@ sub test_newick_with_trailing_comment {
     
 }
 
+sub test_nti_expected_values {
+    my $tree = get_tree_object_from_sample_data();
+    my $fmt = "%d, %.10f, %.10f";
+    my @got;
+    foreach my $i (2, 5, 10, 15, 25, 31) {
+        my $exp_mean = $tree->get_nti_expected_mean(sample_count => $i);
+        my $exp_sd   = $tree->get_nti_expected_sd(sample_count => $i);
+        push @got, sprintf $fmt, $i, $exp_mean, $exp_sd;
+    }
+
+    my @expected = map {sprintf $fmt, @$_}
+    (
+        [2,  1.84720584828667, 0.0553929742693073],
+        [5,  1.64932662894919, 0.0448751152045639],
+        [10, 1.46155545940559, 0.0270617336923284],
+        [15, 1.33256848608891, 0.0173018883853335],
+        [25, 1.15086784106492, 0.00573126088264009],
+        [31, 1.06179770753568, 0],
+    );
+
+    is (\@got, \@expected, 'Got expected NTI mean and sd');
+
+}
+
+sub test_nri_expected_values {
+    my $tree = get_tree_object_from_sample_data();
+    my $fmt = "%d, %.10f, %.10f";
+    my @got;
+    foreach my $i (2, 5, 10, 15, 25, 31) {
+        my $exp_mean = $tree->get_nri_expected_mean(sample_count => $i);
+        my $exp_sd   = $tree->get_nri_expected_sd(sample_count => $i);
+        push @got, sprintf $fmt, $i, $exp_mean, $exp_sd;
+    }
+
+    my @expected = map {sprintf $fmt, @$_}
+    (
+        [2,  1.8472058483, 0.2353571207],
+        [5,  1.8472058483, 0.0818464281],
+        [10, 1.8472058483, 0.0414806703],
+        [15, 1.8472058483, 0.0270385153],
+        [25, 1.8472058483, 0.0118481780],
+        [31, 1.8472058483, 0],
+    );
+
+    is (\@got, \@expected, 'Got expected NRI mean and sd');
+
+}
+
 ######################################
 
 

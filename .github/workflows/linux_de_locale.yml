@@ -68,6 +68,10 @@ jobs:
           echo $(perl -Mlocal::lib=${HOME}/perl5)
           eval "$(perl -Mlocal::lib=${HOME}/perl5)"
           #eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
+          
+          sudo apt-get install libmpfr-dev libmpfr6
+          cpanm -v Math::MPFR
+          
           cpanm --installdeps FFI::Platypus
           cpanm --notest FFI::Platypus
           #cpanm --notest FFI::Platypus::Declare

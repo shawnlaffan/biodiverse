@@ -3250,7 +3250,12 @@ sub get_nti_expected_sd {
     my $exp_mean = $self->get_nti_expected_mean (sample_count => $r);
     my $expected = (4 / ($r * $r)) * $sum - $exp_mean**2;
 
-    if ($expected < 0) {$expected = 0};
+    if ($expected < 0) {
+        $expected = 0
+    }
+    else {
+        $expected = sqrt $expected;
+    };
 
     $cache->{$r} = $expected;
 

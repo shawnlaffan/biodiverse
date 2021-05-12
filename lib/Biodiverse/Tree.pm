@@ -3192,8 +3192,6 @@ sub get_nti_expected_sd {
                 - (  $ln_fac_arr[$r]
                    + $ln_fac_arr[$s - $r]
                 );
-    #use Math::AnyNum qw//;
-    #my $bnok_sr_bb = Math::AnyNum->new($s)->binomial($r);
     my %bnok_hash;
 
     my $sum;
@@ -3215,11 +3213,6 @@ sub get_nti_expected_sd {
             my $wt = 0;
             if (exists $desc1->{$name2}) {
                 #  node2 is a descendent of node1
-                #my $bnok_ratio = $bnok_hash{$s-$se}
-                #  //= Math::AnyNum->new($s - $se)
-                #      ->binomial($r-1)
-                #      ->div($bnok_sr_bb)
-                #      ->numify;
                 my $bnok_ratio
                  = $s - $se - $r + 1 > 0
                    ? $ln_fac_arr[$s-$se]
@@ -3234,11 +3227,6 @@ sub get_nti_expected_sd {
                 #  node2 is an ancestor of node1
                 #  (and a node's ancestors include itself)
                 #  paper is not clear about this...
-                #my $bnok_ratio = $bnok_hash{$s-$sl}
-                #  //= Math::AnyNum->new($s - $sl)
-                #      ->binomial($r-1)
-                #      ->div($bnok_sr_bb)
-                #      ->numify;
                 my $bnok_ratio
                  = $s - $sl - $r + 1 > 0
                    ? $ln_fac_arr[$s-$sl]
@@ -3251,11 +3239,6 @@ sub get_nti_expected_sd {
             }
             else {
                 #  independent nodes from different clades
-                #my $bnok_ratio = Math::AnyNum
-                #      ->new(max(0, $s - $se - $sl))
-                #      ->binomial($r-2)
-                #      ->div($bnok_sr_bb)
-                #      ->numify;
                 my $bnok_ratio
                  = $s - $sl - $se - $r + 2 > 0
                    ? $ln_fac_arr[$s-$sl-$se]
@@ -3286,6 +3269,8 @@ sub get_nti_expected_sd {
     return $expected;
 }
 
+#  make this a state var internal to the sub
+#  when perl 5.28 is our min version
 my @ln_fac_arr = (0,0);
 sub _get_ln_fac_arr {
     my ($self, %args) = @_;

@@ -47,6 +47,7 @@ requires "YAML::Syck", "1.29";
 requires "autovivification", "0.18";
 requires "parent";
 requires "rlib";
+requires "Math::AnyNum";  #  until we don't
 
 suggests "Panda::Lib";
 suggests "Data::Recursive";

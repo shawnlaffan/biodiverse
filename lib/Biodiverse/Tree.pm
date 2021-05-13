@@ -3193,7 +3193,10 @@ sub get_nti_expected_sd {
                 - (  $ln_fac_arr[$r]
                    + $ln_fac_arr[$s - $r]
                 );
-    my %ancestor_cache;
+    #my (%ancestor_cache, %len_cache, %tip_count_cache);
+    \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
+    \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
+    \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
     
     my @node_refs
       = keysort {$_->get_name}
@@ -3203,9 +3206,9 @@ sub get_nti_expected_sd {
     my $sum;
     foreach my $node1 (@node_refs) {
         my $name1 = $node1->get_name;
-        my $len1  = $node1->get_length;
-        my $se    = $node1->get_terminal_element_count;
-        my $anc1  = $ancestor_cache{$name1} //= $node1->get_path_lengths_to_root_node_aa;
+        my $len1  = $len_cache{$name1} //= $node1->get_length;
+        my $se    = $tip_count_cache{$name1} //= $node1->get_terminal_element_count;
+        my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
 
         #  self-self
         my $bnok_ratio
@@ -3225,15 +3228,15 @@ sub get_nti_expected_sd {
             
             last if $name1 eq $name2;
 
-            my $len2  = $node2->get_length;
-            my $sl    = $node2->get_terminal_element_count;
-            my $anc2  = $ancestor_cache{$name2} //= $node2->get_path_lengths_to_root_node_aa;
+            my $len2  = $len_cache{$name2} //= $node2->get_length;
+            my $sl    = $tip_count_cache{$name2} //= $node2->get_terminal_element_count;
+            my $anc2  = $ancestor_cache{$name2}  //= $node2->get_path_lengths_to_root_node_aa;
 
             my $wt = 0;
             if (exists $anc2->{$name1} || exists $anc1->{$name2}) {
                 #  node2 is a descendent of node1, or vice-versa
                 #  set up the binomials using larger of $se and $sl
-                #  this is then mulitplied by the smaller of the two
+                #  this is then multiplied by the smaller of the two
                 my ($s1, $s2) = $se < $sl ? ($se, $sl) : ($sl, $se);
                 my $bnok_ratio
                  = $s - $s2 - $r + 1 > 0

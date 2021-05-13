@@ -3197,6 +3197,7 @@ sub get_nti_expected_sd {
     \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
     \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
     \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
+    my %name_cache;  #  indexed by node ref, so cannot be stored on the tree
     
     my @node_refs
       = keysort {$_->get_name}
@@ -3214,7 +3215,7 @@ sub get_nti_expected_sd {
     my $i;
     foreach my $node1 (@node_refs) {
         $i++;
-        my $name1 = $node1->get_name;
+        my $name1 = $name_cache{$node1} //= $node1->get_name;
         my $len1  = $len_cache{$name1} //= $node1->get_length;
         my $se    = $tip_count_cache{$name1} //= $node1->get_terminal_element_count;
         my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
@@ -3237,10 +3238,9 @@ sub get_nti_expected_sd {
         #  now the pairs
       INNER:
         foreach my $node2 (@node_refs) {
-            my $name2 = $node2->get_name;
+            last if $node1 eq $node2;
             
-            last if $name1 eq $name2;
-
+            my $name2 = $name_cache{$node2} //= $node2->get_name;
             my $len2  = $len_cache{$name2} //= $node2->get_length;
             my $sl    = $tip_count_cache{$name2} //= $node2->get_terminal_element_count;
             my $anc2  = $ancestor_cache{$name2}  //= $node2->get_path_lengths_to_root_node_aa;

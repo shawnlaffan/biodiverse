@@ -3220,7 +3220,7 @@ sub get_nti_expected_sd {
         my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
 
         if ($progress) {
-            $progress->update ("Node $i", $i / $n_nodes);
+            $progress->update ("Processing node $i of $n_nodes nodes for NTI SD", $i / $n_nodes);
         }
 
         #  self-self

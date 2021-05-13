@@ -3212,7 +3212,7 @@ sub get_nti_expected_sd {
     my $progress_text = "Processing $n_nodes nodes for NTI SD, r=$r";
 
     my $sum;
-    my $i;
+    my $i = -1;
     foreach my $node1 (@node_refs) {
         $i++;
         my $name1 = $name_cache{$node1} //= $node1->get_name;
@@ -3221,7 +3221,7 @@ sub get_nti_expected_sd {
         my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
 
         if ($progress) {
-            $progress->update ($progress_text, $i / $n_nodes);
+            $progress->update ($progress_text, ($i+1) / $n_nodes);
         }
 
         #  self-self
@@ -3235,17 +3235,21 @@ sub get_nti_expected_sd {
           : -$bnok_sr;
         $sum += $len1 ** 2 * $se * exp $bnok_ratio;
 
+        next if $i == 0;
+        
         #  now the pairs
+        my $j = 0;
+        my ($node2, $wt);
       INNER:
-        foreach my $node2 (@node_refs) {
-            last if $node1 eq $node2;
+        foreach my $j (0..$i-1) {
+            $node2 = $node_refs[$j];
             
             my $name2 = $name_cache{$node2} //= $node2->get_name;
             my $len2  = $len_cache{$name2} //= $node2->get_length;
             my $sl    = $tip_count_cache{$name2} //= $node2->get_terminal_element_count;
             my $anc2  = $ancestor_cache{$name2}  //= $node2->get_path_lengths_to_root_node_aa;
 
-            my $wt = 0;
+            $wt = 0;
             if (exists $anc2->{$name1} || exists $anc1->{$name2}) {
                 #  node2 is a descendent of node1, or vice-versa
                 #  set up the binomials using larger of $se and $sl

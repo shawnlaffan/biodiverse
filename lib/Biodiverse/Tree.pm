@@ -3202,13 +3202,26 @@ sub get_nti_expected_sd {
       = keysort {$_->get_name}
         grep {!$_->is_root_node}
         $self->get_node_refs;
+    
+    my $n_nodes = @node_refs;
+    my $progress
+      = $n_nodes > 1000
+      ? Biodiverse::Progress->new (gui_only => 1)
+      : undef;
+    my $progress_text = "Processing $n_nodes nodes for NTI SD";
 
     my $sum;
+    my $i;
     foreach my $node1 (@node_refs) {
+        $i++;
         my $name1 = $node1->get_name;
         my $len1  = $len_cache{$name1} //= $node1->get_length;
         my $se    = $tip_count_cache{$name1} //= $node1->get_terminal_element_count;
         my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
+
+        if ($progress) {
+            $progress->update ("Node $i", $i / $n_nodes);
+        }
 
         #  self-self
         my $bnok_ratio
@@ -3221,7 +3234,7 @@ sub get_nti_expected_sd {
           : -$bnok_sr;
         $sum += $len1 ** 2 * $se * exp $bnok_ratio;
 
-                
+        #  now the pairs
       INNER:
         foreach my $node2 (@node_refs) {
             my $name2 = $node2->get_name;

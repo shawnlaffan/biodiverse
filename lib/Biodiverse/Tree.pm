@@ -3209,7 +3209,7 @@ sub get_nti_expected_sd {
       = $n_nodes > 1000
       ? Biodiverse::Progress->new (gui_only => 1)
       : undef;
-    my $progress_text = "Processing $n_nodes nodes for NTI SD";
+    my $progress_text = "Processing $n_nodes nodes for NTI SD, r=$r";
 
     my $sum;
     my $i;
@@ -3221,7 +3221,7 @@ sub get_nti_expected_sd {
         my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
 
         if ($progress) {
-            $progress->update ("Processing node $i of $n_nodes nodes for NTI SD", $i / $n_nodes);
+            $progress->update ($progress_text, $i / $n_nodes);
         }
 
         #  self-self

@@ -3207,39 +3207,43 @@ sub get_nti_expected_sd {
         my $se    = $node1->get_terminal_element_count;
         my $anc1  = $ancestor_cache{$name1} //= $node1->get_path_lengths_to_root_node_aa;
 
+        #  self-self
+        my $bnok_ratio
+         = $s - $se - $r + 1 > 0
+           ? $ln_fac_arr[$s-$se]
+              - (  $ln_fac_arr[$r-1]
+                 + $ln_fac_arr[$s - $se - $r + 1]
+                )
+              - $bnok_sr
+          : -$bnok_sr;
+        $sum += $len1 ** 2 * $se * exp $bnok_ratio;
+
+                
       INNER:
         foreach my $node2 (@node_refs) {
             my $name2 = $node2->get_name;
+            
+            last if $name1 eq $name2;
+
             my $len2  = $node2->get_length;
             my $sl    = $node2->get_terminal_element_count;
             my $anc2  = $ancestor_cache{$name2} //= $node2->get_path_lengths_to_root_node_aa;
 
             my $wt = 0;
-            if (exists $anc2->{$name1}) {
-                #  node2 is a descendent of node1
+            if (exists $anc2->{$name1} || exists $anc1->{$name2}) {
+                #  node2 is a descendent of node1, or vice-versa
+                #  set up the binomials using larger of $se and $sl
+                #  this is then mulitplied by the smaller of the two
+                my ($s1, $s2) = $se < $sl ? ($se, $sl) : ($sl, $se);
                 my $bnok_ratio
-                 = $s - $se - $r + 1 > 0
-                   ? $ln_fac_arr[$s-$se]
+                 = $s - $s2 - $r + 1 > 0
+                   ? $ln_fac_arr[$s-$s2]
                       - (  $ln_fac_arr[$r-1]
-                         + $ln_fac_arr[$s - $se - $r + 1]
+                         + $ln_fac_arr[$s - $s2 - $r + 1]
                         )
                       - $bnok_sr
                   : -$bnok_sr;
-                $wt = $sl * exp $bnok_ratio;
-            }
-            elsif (exists $anc1->{$name2} || $name1 eq $name2) {
-                #  node2 is an ancestor of node1
-                #  (and a node's ancestors include itself)
-                #  paper is not clear about this...
-                my $bnok_ratio
-                 = $s - $sl - $r + 1 > 0
-                   ? $ln_fac_arr[$s-$sl]
-                      - (  $ln_fac_arr[$r-1]
-                         + $ln_fac_arr[$s - $sl - $r + 1]
-                        )
-                      - $bnok_sr
-                  : -$bnok_sr;
-                $wt = $se * exp $bnok_ratio;
+                $wt = $s1 * exp $bnok_ratio;
             }
             else {
                 #  independent nodes from different clades
@@ -3254,7 +3258,7 @@ sub get_nti_expected_sd {
                 $wt = $se * $sl * exp $bnok_ratio;
             }
             
-            $sum += $wt * $len1 * $len2;
+            $sum += 2 * $wt * $len1 * $len2;
         }
     }
 

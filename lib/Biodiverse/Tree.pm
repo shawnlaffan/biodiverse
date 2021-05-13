@@ -11,6 +11,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
+use Sort::Key qw /keysort/;
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
@@ -3192,26 +3193,29 @@ sub get_nti_expected_sd {
                 - (  $ln_fac_arr[$r]
                    + $ln_fac_arr[$s - $r]
                 );
-    my %bnok_hash;
+    my %ancestor_cache;
+    
+    my @node_refs
+      = keysort {$_->get_name}
+        grep {!$_->is_root_node}
+        $self->get_node_refs;
 
     my $sum;
-    foreach my $node1 ($self->get_node_refs) {
-        next if $node1->is_root_node;
+    foreach my $node1 (@node_refs) {
         my $name1 = $node1->get_name;
         my $len1  = $node1->get_length;
         my $se    = $node1->get_terminal_element_count;
-        my $desc1 = $node1->get_all_descendants;
+        my $anc1  = $ancestor_cache{$name1} //= $node1->get_path_lengths_to_root_node_aa;
 
-        foreach my $node2 ($self->get_node_refs) {
-            next if $node2->is_root_node;
-
+      INNER:
+        foreach my $node2 (@node_refs) {
             my $name2 = $node2->get_name;
             my $len2  = $node2->get_length;
             my $sl    = $node2->get_terminal_element_count;
-            my $desc2 = $node2->get_all_descendants;
+            my $anc2  = $ancestor_cache{$name2} //= $node2->get_path_lengths_to_root_node_aa;
 
             my $wt = 0;
-            if (exists $desc1->{$name2}) {
+            if (exists $anc2->{$name1}) {
                 #  node2 is a descendent of node1
                 my $bnok_ratio
                  = $s - $se - $r + 1 > 0
@@ -3223,7 +3227,7 @@ sub get_nti_expected_sd {
                   : -$bnok_sr;
                 $wt = $sl * exp $bnok_ratio;
             }
-            elsif (exists $desc2->{$name1} || $name1 eq $name2) {
+            elsif (exists $anc1->{$name2} || $name1 eq $name2) {
                 #  node2 is an ancestor of node1
                 #  (and a node's ancestors include itself)
                 #  paper is not clear about this...

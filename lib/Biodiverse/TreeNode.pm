@@ -2567,6 +2567,194 @@ sub get_nri_all_weights {
     return $value;
 }
 
+#  eventually the NTI sd calcs can be moved back into Bd::Tree,
+#  but for now we need a recursive approach
+my $nti_sum_of_products_cache_name = 'NTI_SUM_OF_PRODUCTS_BELOW';
+
+sub get_nti_sum_of_products_below {
+    my ($self) = @_;
+
+    my $value
+      = $self->get_cached_value ($nti_sum_of_products_cache_name);
+
+    return $value if defined $value;
+
+    #  run through the tree, calculating the sums
+    #  no need to worry about LCA in this case
+    $self->get_root_node->_calc_nti_sum_of_products_below;
+
+    return $self->get_cached_value ($nti_sum_of_products_cache_name);
+}
+
+#  a bit messy - could do externally adding to parents
+#  includees self now, need to change name
+sub _calc_nti_sum_of_products_below {
+    my ($self) = @_;
+
+    my $sum = 0;
+    foreach my $child ($self->get_children) {
+        $sum += $child->_calc_nti_sum_of_products_below;
+    }
+
+    $sum += $self->get_length * $self->get_terminal_element_count;
+
+    #  cache the values below
+    $self->set_cached_value ($nti_sum_of_products_cache_name => $sum);
+
+    #  and return ourselves plus the sum from below
+    return $sum;
+}
+
+
+sub get_nti_sd_subtree_bits {
+    my ($self, %args) = @_;
+    my $r = $args{sample_count} // croak "need sample_counts argument";
+    my $cache_name = 'NTI_SUBTREE_BITS';
+    my $hash = $self->get_cached_value_dor_set_default_aa ($cache_name => {});
+    my $vals = $hash->{$r};
+
+    if (!defined $vals) {
+        #  we need to do the whole tree
+        my $root = $self->get_root_node;
+        
+        # ensure we have the sum of products ready for us
+        $root->get_nti_sum_of_products_below;
+        
+        #  work from the LCA if it is not the root
+        while ($root->get_child_count == 1) {
+            my $child_arr = $root->get_children;
+            $root = $child_arr->[0];
+        }
+        #  don't calc  the root
+        my ($sum_subtree, $sum_subtract);
+        foreach my $child ($root->get_children) {
+            my ($s1, $s2) = $child->_calc_nti_sd_subtree_bits (%args);
+            $sum_subtree  += $s1;
+            $sum_subtract += $s2;
+        }
+        $hash->{$r} = $vals = [$sum_subtree, $sum_subtract];
+    }
+
+    return wantarray ? @$vals : $vals;
+}
+
+sub _calc_nti_sd_subtree_bits {
+    my ($self, %args) = @_;
+
+    #  requiring this to be passed is dirty and underhanded
+    #  it should be in Bd::Common
+    \my @ln_fac_arr = $args{ln_fac_array} // croak 'need the ln_fac_array';
+    my $r           = $args{r} // $args{sample_count};
+
+    #  horrible that we pass these through - could just use a map in Bd::Tree
+    my $sum_subtree  = $args{sum_subtree};
+    my $sum_subtract = $args{sum_subtract};
+    
+
+    my $length   = $self->get_length;
+    my $se       = $self->get_terminal_element_count;
+    my $s        = $self->get_root_node->get_terminal_element_count;
+    my $bnok_sr
+      =     $ln_fac_arr[$s]
+       - (  $ln_fac_arr[$r]
+          + $ln_fac_arr[$s - $r]
+         );
+    
+    #  many var names from PhyloMeasures
+    my $bnok_ratio = $s - $se - $r + 1 > 0
+            ? $ln_fac_arr[$s-$se]
+               - (  $ln_fac_arr[$r-1]
+                  + $ln_fac_arr[$s - $se - $r + 1]
+                 )
+               - $bnok_sr
+           : -$bnok_sr;
+    my $mhyperg = exp $bnok_ratio;
+
+    #my ($sum_subtree, $sum_subtract);
+    #my $_sum_prod;  #  for debug
+    
+    foreach my $child ($self->get_children) {
+        ($sum_subtree, $sum_subtract)
+          = $child->_calc_nti_sd_subtree_bits(
+                %args,
+                sum_subtree  => $sum_subtree,
+                sum_subtract => $sum_subtract,
+            );
+        
+        my $sum_pr = $child->get_nti_sum_of_products_below;
+        $sum_subtree += $length * $sum_pr * $mhyperg;
+            
+        #$_sum_prod += $sum_pr;
+
+        #  slow - need to cache
+        my $descendants = $child->get_all_descendants;
+        foreach my $desc ($child, values %$descendants) {
+            my $d_len = $desc->get_length;
+            my $sl    = $desc->get_terminal_element_count;
+            
+            my $bnok_ratio
+              = $s - $sl - $se - $r + 2 > 0
+                ? $ln_fac_arr[$s-$sl-$se]
+                   - (  $ln_fac_arr[$r-2]
+                      + $ln_fac_arr[$s - $se - $sl - $r + 2]
+                      )
+                   - $bnok_sr
+                : $s - $sl - $se > 0
+                  ? -$bnok_sr
+                  : -Inf;
+            $sum_subtract
+              += $length * $sl
+               * $se     * $d_len
+               * exp $bnok_ratio;
+               
+               if (0 && $r == 2) {
+        say STDERR sprintf "SUBTRACT: len=%.6f, se=%d, chlen=%f, sl=%d, hypergeom=%.6f, sum_subtract=%.6f", 
+                     $length, 
+                     $se,
+                     $d_len,
+                     $sl,
+                     exp ($bnok_ratio),
+                     $sum_subtract;
+               }
+        }
+    }
+    
+    $sum_subtree += ($length ** 2) * $se * $mhyperg;
+
+    $bnok_ratio
+      = $s - $se - $se - $r + 2 > 0
+        ? $ln_fac_arr[$s-$se-$se]
+           - (  $ln_fac_arr[$r-2]
+              + $ln_fac_arr[$s - $se - $se - $r + 2]
+              )
+           - $bnok_sr
+        : -Inf;
+
+    $sum_subtract += exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
+
+               if ($r == 2) {
+        say STDERR sprintf "SNUBTRACT: len=%.6f, se=%d, two_edge_pr=%.6f, sum_subtract=%.6f", 
+                     $length, 
+                     $se,
+                     exp ($bnok_ratio),
+                     $sum_subtract;
+               }
+
+    my @components = ($sum_subtree, $sum_subtract);
+
+    #if ($r == 2) {
+    #    $_sum_prod += $length * $se;
+    #    say STDERR sprintf "XX: %d, len=%.6f, se=%d, sum_subtree=%.6f, sum_subtract=%.6f, sum_prod=%.6f, mhyperg=%.6f",
+    #        $r, $length, $se, $sum_subtree, $sum_subtract, $_sum_prod, $mhyperg;
+    #}
+
+    my $cache_name = 'NTI_SUBTREE_BITS_HASH';
+    $self->set_cached_value ($cache_name => \@components);
+
+    return wantarray ? @components : \@components;
+}
+
+
 sub numerically {$a <=> $b}
 
 1;

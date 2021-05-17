@@ -11,7 +11,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max uniq any/;
 use Ref::Util qw { :all };
-use Sort::Key qw /keysort/;
+use Sort::Key qw /keysort rnkeysort/;
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
@@ -2690,7 +2690,9 @@ sub AUTOLOAD {
     if ( defined $root_node and $root_node->can($method) ) {
 
         #print "[TREE] Using AUTOLOADER method $method\n";
-        return $root_node->$method(@_);
+        my $retval = eval {$root_node->$method(@_)};
+        croak "$EVAL_ERROR in method $method" if $EVAL_ERROR;
+        return $retval;
     }
     else {
         Biodiverse::NoMethod->throw(
@@ -3203,7 +3205,128 @@ sub get_nti_expected_sd {
       = keysort {$_->get_name}
         grep {!$_->is_root_node}
         $self->get_node_refs;
+
+    \my %by_se = $self->get_cached_value_dor_set_default_aa (NODE_NTI_LEN_CACHE => {});
+    if (!keys %by_se) {
+        foreach my $node (@node_refs) {
+            my $te = $node->get_terminal_element_count;
+            $by_se{$te} += $node->get_length * $te;
+        }
+    }    
+ 
+    #  names from PhyloMeasures
+    #_compute_subtree_sums(sum_subtree, sum_subtract);
+    my $sum_subtree  = $self->get_cached_value ("NTI_SUM_SUBTREE");
+    my $sum_subtract = $self->get_cached_value ("NTI_SUM_SUBTRACT");
+
+    if (!defined $sum_subtree) {
+        ($sum_subtree, $sum_subtract) = $self->get_nti_sd_subtree_bits(
+            ln_fac_array => \@ln_fac_arr,  #  underhanded
+            sample_count => $r,
+        );
+        ##  two-pass approach for now
+        #my @nodes_by_depth = rnkeysort {$_->get_depth} @node_refs;
+        #my %tip_pr_vals;
+        #foreach my $node (@nodes_by_depth) {
+        #    my $name   = $node->get_name;
+        #    my $length = $len_cache{$name} //= $node->get_length;
+        #    my $tip_count = $tip_count_cache{$name} //= $node->get_terminal_element_count;
+        #    #  sum of probs is the sum of the child probs
+        #    $tip_pr_vals{$name} = 0;
+        #    #$tip_pr_vals{$name} = $length * $tip_count;
+        #    foreach my $child ($node->get_children) {
+        #        my $ch_name = $child->get_name;
+        #        $tip_pr_vals{$name} += $tip_pr_vals{$ch_name};
+        #    }
+        #}
+        #my %sum_of_products;
+        #foreach my $node (@nodes_by_depth) {
+        #    my $sum_of_pr
+        #      =  $sum_of_products{$node->get_parent->get_name}
+        #      // 0;
+        #    my $se
+        #        = $tip_count_cache{$name1}
+        #      //= $node->get_terminal_element_count;
+        #    my $bnok_ratio = $s - $se - $r + 1 > 0
+        #        ? $ln_fac_arr[$s-$se]
+        #           - (  $ln_fac_arr[$r-1]
+        #              + $ln_fac_arr[$s - $se - $r + 1]
+        #             )
+        #           - $bnok_sr
+        #       : -$bnok_sr;
+        #    foreach my $child ($node->get_children) {
+        #        $sum_of_products{$node->get_name} += $sum_of_pr;
+        #    }
+        #}
+    }    
     
+    #  names from PhyloMeasures
+    my ($sum_self,                  $sum_self_third_case,
+        $sum_same_class_third_case, $sum_third_case);
+
+    foreach my $node (@node_refs) {
+        my $name = $node->get_name;
+        my $len = $len_cache{$name} //= $node->get_length;
+        my $se    = $tip_count_cache{$name} //= $node->get_terminal_element_count;
+        #my $anc1  = $ancestor_cache{$name}  //= $node->get_path_lengths_to_root_node_aa;
+        my $bnok_ratio
+         = $s - $se - $r + 1 > 0
+           ? $ln_fac_arr[$s-$se]
+              - (  $ln_fac_arr[$r-1]
+                 + $ln_fac_arr[$s - $se - $r + 1]
+                )
+              - $bnok_sr
+          : -$bnok_sr;
+
+        $sum_self += $se * exp ($bnok_ratio) * $len ** 2;
+        
+        $sum_self_third_case = $len ** 2 * $se ** 2 * exp ($bnok_ratio);
+        #  need to check two_edge_pr ind and anc with same input
+        #  - should be the same result
+    }
+    
+    ##my @lens = sort {$a <=> $b} keys %by_length;
+    #foreach my $se (sort {$a <=> $b} keys %by_se) {
+    #    my $val = $by_length{$len1};
+    #    
+    #    my $bnok_ratio
+    #     = $s - $se - $r + 1 > 0
+    #       ? $ln_fac_arr[$s-$se]
+    #          - (  $ln_fac_arr[$r-1]
+    #             + $ln_fac_arr[$s - $se - $r + 1]
+    #            )
+    #          - $bnok_sr
+    #      : -$bnok_sr;
+    #
+    #    $sum_same_class_third_case += ($val**2) * exp ($bnok_ratio);
+    #
+    #    foreach my $sl (keys %by_length) {
+    #        my $bnok_ratio
+    #            = $s - $sl - $se - $r + 2 > 0
+    #              ? $ln_fac_arr[$s-$sl-$se]
+    #                 - (  $ln_fac_arr[$r-2]
+    #                    + $ln_fac_arr[$s - $se - $sl - $r + 2]
+    #                   )
+    #                 - $bnok_sr
+    #             : -$bnok_sr;
+    #        $sum_third_case += ($val**2) * exp ($bnok_ratio);
+    #    }
+    #}
+    #
+    #$sum_same_class_third_case
+    #  = (($sum_same_class_third_case - $sum_self_third_case) / 2
+    #    + $sum_self_third_case;
+    ##sum_same_class_third_case = ((sum_same_class_third_case - sum_self_third_case)/Number_type(2.0))
+    ##                              + sum_self_third_case;
+    #
+    #
+    #$sum_third_case += $sum_same_class_third_case;
+    ##sum_third_case += sum_same_class_third_case;
+    #my $total_sum = 2 * ($sum_third_case - $sum_subtract + $sum_subtree)) - $sum_self;
+    #$total_sum = 4 * $total_sum / ($s ** 2);
+    #
+
+
     my $n_nodes = @node_refs;
     my $progress
       = $n_nodes > 1000

@@ -2686,13 +2686,9 @@ sub _calc_nti_sd_subtree_bits {
         my $sum_pr = $child->get_nti_sum_of_products_below;
         $sum_subtree += $length * $sum_pr * $mhyperg;
             
-        #$_sum_prod += $sum_pr;
-
-        #  slow - need to cache
-        my $descendants = $child->get_all_descendants;
-        foreach my $desc ($child, values %$descendants) {
-            my $d_len = $desc->get_length;
-            my $sl    = $desc->get_terminal_element_count;
+        my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
+        foreach my $sl (keys %$sl_len_hash) {
+            my $d_len = $sl_len_hash->{$sl};
             
             #  does not properly account for $s - $se - $sl < 0
             #  e.g., 31, 21, 14, r=2
@@ -2734,6 +2730,27 @@ sub _calc_nti_sd_subtree_bits {
     $self->set_cached_value ($cache_name => \@components);
 
     return wantarray ? @components : \@components;
+}
+
+sub _get_len_sum_by_tip_count_hash {
+    my $self = shift;
+
+    my $cache_key = 'LEN_SUM_BY_TIP_COUNT_HASH';
+    my $hash = $self->get_cached_value ($cache_key);
+    if ($hash) {
+        return wantarray ? %$hash : $hash; 
+    }
+
+    $hash->{$self->get_terminal_element_count} += $self->get_length;
+    foreach my $child ($self->get_children) {
+        my $ch_hash = $child->_get_len_sum_by_tip_count_hash;
+        foreach my $tc (keys %$ch_hash) {
+            $hash->{$tc} += $ch_hash->{$tc};
+        }
+    }
+    $self->set_cached_value($cache_key => $hash);
+
+    return wantarray ? %$hash : $hash;
 }
 
 

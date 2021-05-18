@@ -2690,9 +2690,6 @@ sub _calc_nti_sd_subtree_bits {
         foreach my $sl (keys %$sl_len_hash) {
             my $d_len = $sl_len_hash->{$sl};
             
-            #  does not properly account for $s - $se - $sl < 0
-            #  e.g., 31, 21, 14, r=2
-            #  still?
             my $x = $s - $sl - $se;
             my $bnok_ratio
               = $x <  $r - 2   ? -Inf

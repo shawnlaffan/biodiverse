@@ -3315,89 +3315,89 @@ sub get_nti_expected_sd {
 
     my $total_sum = 2 * ($sum_third_case - $sum_subtract + $sum_subtree) - $sum_self;
 
-    my $expected_alt = 4 * $total_sum / ($r**2)  - ($exp_mean ** 2);
+    my $expected = 4 * $total_sum / ($r**2)  - ($exp_mean ** 2);
 
-    my $n_nodes = @node_refs;
-    my $progress
-      = $n_nodes > 1000
-      ? Biodiverse::Progress->new (gui_only => 1)
-      : undef;
-    my $progress_text = "Processing $n_nodes nodes for NTI SD, r=$r";
+    #my $n_nodes = @node_refs;
+    #my $progress
+    #  = $n_nodes > 1000
+    #  ? Biodiverse::Progress->new (gui_only => 1)
+    #  : undef;
+    #my $progress_text = "Processing $n_nodes nodes for NTI SD, r=$r";
+    #
+    #my $sum;
+    #my $i = -1;
+    #foreach my $node1 (@node_refs) {
+    #    $i++;
+    #    my $name1 = $name_cache{$node1} //= $node1->get_name;
+    #    my $len1  = $len_cache{$name1} //= $node1->get_length;
+    #    my $se    = $tip_count_cache{$name1} //= $node1->get_terminal_element_count;
+    #    my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
+    #
+    #    if ($progress) {
+    #        $progress->update ($progress_text, ($i+1) / $n_nodes);
+    #    }
+    #
+    #    #  self-self
+    #    my $bnok_ratio
+    #     = $s - $se - $r + 1 > 0
+    #       ? $ln_fac_arr[$s-$se]
+    #          - (  $ln_fac_arr[$r-1]
+    #             + $ln_fac_arr[$s - $se - $r + 1]
+    #            )
+    #          - $bnok_sr
+    #      : -$bnok_sr;
+    #    $sum += $len1 ** 2 * $se * exp $bnok_ratio;
+    #
+    #    next if $i == 0;
+    #    
+    #    #  now the pairs
+    #    my $j = 0;
+    #    my ($node2, $wt);
+    #  INNER:
+    #    foreach my $j (0..$i-1) {
+    #        $node2 = $node_refs[$j];
+    #        
+    #        my $name2 = $name_cache{$node2} //= $node2->get_name;
+    #        my $len2  = $len_cache{$name2} //= $node2->get_length;
+    #        my $sl    = $tip_count_cache{$name2} //= $node2->get_terminal_element_count;
+    #        my $anc2  = $ancestor_cache{$name2}  //= $node2->get_path_lengths_to_root_node_aa;
+    #
+    #        $wt = 0;
+    #        if (exists $anc2->{$name1} || exists $anc1->{$name2}) {
+    #            #  node2 is a descendent of node1, or vice-versa
+    #            #  set up the binomials using larger of $se and $sl
+    #            #  this is then multiplied by the smaller of the two
+    #            my ($s1, $s2) = $se < $sl ? ($se, $sl) : ($sl, $se);
+    #            my $bnok_ratio
+    #             = $s - $s2 - $r + 1 > 0
+    #               ? $ln_fac_arr[$s-$s2]
+    #                  - (  $ln_fac_arr[$r-1]
+    #                     + $ln_fac_arr[$s - $s2 - $r + 1]
+    #                    )
+    #                  - $bnok_sr
+    #              : -$bnok_sr;
+    #            $wt = $s1 * exp $bnok_ratio;
+    #        }
+    #        else {
+    #            #  independent nodes from different clades
+    #            my $bnok_ratio
+    #             = $s - $sl - $se - $r + 2 > 0
+    #               ? $ln_fac_arr[$s-$sl-$se]
+    #                  - (  $ln_fac_arr[$r-2]
+    #                     + $ln_fac_arr[$s - $se - $sl - $r + 2]
+    #                    )
+    #                  - $bnok_sr
+    #              : -$bnok_sr;
+    #            $wt = $se * $sl * exp $bnok_ratio;
+    #        }
+    #        
+    #        $sum += 2 * $wt * $len1 * $len2;
+    #    }
+    #}
 
-    my $sum;
-    my $i = -1;
-    foreach my $node1 (@node_refs) {
-        $i++;
-        my $name1 = $name_cache{$node1} //= $node1->get_name;
-        my $len1  = $len_cache{$name1} //= $node1->get_length;
-        my $se    = $tip_count_cache{$name1} //= $node1->get_terminal_element_count;
-        my $anc1  = $ancestor_cache{$name1}  //= $node1->get_path_lengths_to_root_node_aa;
+    #my $expected = (4 / ($r * $r)) * $sum - $exp_mean**2;
 
-        if ($progress) {
-            $progress->update ($progress_text, ($i+1) / $n_nodes);
-        }
-
-        #  self-self
-        my $bnok_ratio
-         = $s - $se - $r + 1 > 0
-           ? $ln_fac_arr[$s-$se]
-              - (  $ln_fac_arr[$r-1]
-                 + $ln_fac_arr[$s - $se - $r + 1]
-                )
-              - $bnok_sr
-          : -$bnok_sr;
-        $sum += $len1 ** 2 * $se * exp $bnok_ratio;
-
-        next if $i == 0;
-        
-        #  now the pairs
-        my $j = 0;
-        my ($node2, $wt);
-      INNER:
-        foreach my $j (0..$i-1) {
-            $node2 = $node_refs[$j];
-            
-            my $name2 = $name_cache{$node2} //= $node2->get_name;
-            my $len2  = $len_cache{$name2} //= $node2->get_length;
-            my $sl    = $tip_count_cache{$name2} //= $node2->get_terminal_element_count;
-            my $anc2  = $ancestor_cache{$name2}  //= $node2->get_path_lengths_to_root_node_aa;
-
-            $wt = 0;
-            if (exists $anc2->{$name1} || exists $anc1->{$name2}) {
-                #  node2 is a descendent of node1, or vice-versa
-                #  set up the binomials using larger of $se and $sl
-                #  this is then multiplied by the smaller of the two
-                my ($s1, $s2) = $se < $sl ? ($se, $sl) : ($sl, $se);
-                my $bnok_ratio
-                 = $s - $s2 - $r + 1 > 0
-                   ? $ln_fac_arr[$s-$s2]
-                      - (  $ln_fac_arr[$r-1]
-                         + $ln_fac_arr[$s - $s2 - $r + 1]
-                        )
-                      - $bnok_sr
-                  : -$bnok_sr;
-                $wt = $s1 * exp $bnok_ratio;
-            }
-            else {
-                #  independent nodes from different clades
-                my $bnok_ratio
-                 = $s - $sl - $se - $r + 2 > 0
-                   ? $ln_fac_arr[$s-$sl-$se]
-                      - (  $ln_fac_arr[$r-2]
-                         + $ln_fac_arr[$s - $se - $sl - $r + 2]
-                        )
-                      - $bnok_sr
-                  : -$bnok_sr;
-                $wt = $se * $sl * exp $bnok_ratio;
-            }
-            
-            $sum += 2 * $wt * $len1 * $len2;
-        }
-    }
-
-    my $expected = (4 / ($r * $r)) * $sum - $exp_mean**2;
-
-    say STDERR "EA slow: $expected fast: $expected_alt";
+    #say STDERR "EA slow: $expected fast: $expected_alt";
     
     if ($expected < 0) {
         $expected = 0

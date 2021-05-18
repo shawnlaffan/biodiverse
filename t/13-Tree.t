@@ -469,11 +469,11 @@ sub test_ladderise {
     #  check node order is different and follows expected,
     #  as we might change the default sort one day and then we'd have "issues"
     my %nodes = $tree1->get_all_descendants_and_self;
-    subtest "Node orders as expected" => sub {
+    subtest "Ladderised node orders as expected" => sub {
       NODE_NAME:
         foreach my $node_name (keys %nodes) {
-            my $node1 = $tree1->get_node_ref (node => $node_name);
-            my $node2 = $tree2->get_node_ref (node => $node_name);
+            my $node1 = $tree1->get_node_ref_aa ($node_name);
+            my $node2 = $tree2->get_node_ref_aa ($node_name);
 
             my @children1 = $node1->get_children;
             my @children2 = $node2->get_children;

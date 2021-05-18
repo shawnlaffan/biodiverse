@@ -2740,7 +2740,7 @@ sub _calc_nti_sd_subtree_bits {
            - $bnok_sr;
     $sum_subtract += exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
 
-               if ($r == 5) {
+               if (0 && $r == 5) {
                 my $diff = exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
         say STDERR sprintf "SNUBTRACT: len=%.6f, se=%d, two_edge_pr=%.6f, sum_subtract=%.6f, diff=%.6f", 
                      $length, 

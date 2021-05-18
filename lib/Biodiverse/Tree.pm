@@ -3262,25 +3262,9 @@ sub get_nti_expected_sd {
                     )
                   - $bnok_sr
               : -$bnok_sr;
-              if (0 && $r == 2) {
-                my $sel = $s - $se - $se;
-                my $r2 = $r-2;
-                my $selr2 = $sel - $r + 2;
-                say STDERR "KJKJKJK $sel, $r2, $selr2";
-                say STDERR "HJJIHUJ " .
-                "exp ($ln_fac_arr[$sel]
-                  - (  $ln_fac_arr[$r2]
-                     + $ln_fac_arr[$selr2]
-                    )
-                  - $bnok_sr)";
-              }
         }
         
         $sum_self_third_case += $len ** 2 * $se ** 2 * exp ($bnok_ratio);
-        if (0 && $r == 2) {
-            say STDERR sprintf "SS3C: %.6f, %d, %.6f, %.6f",
-              $len, $se, exp $bnok_ratio, $len ** 2 * $se ** 2 * exp ($bnok_ratio);
-        }
     }
     
     my @by_se_keys = sort {$a <=> $b} keys %by_se;
@@ -3297,23 +3281,7 @@ sub get_nti_expected_sd {
                   - $bnok_sr
               : -$bnok_sr;
         
-            #say STDERR "SSCTC BNOK $se " . exp $bnok_ratio;
             $sum_same_class_third_case += $by_se{$se} ** 2 * exp $bnok_ratio;
-            if (0 && $r==2) {
-                say STDERR sprintf "ST3CASE %d, %.6f, %.6f, %.6f",
-                    $se, $by_se{$se}, exp $bnok_ratio,
-                    $by_se{$se} * $by_se{$se} * exp $bnok_ratio
-                    ;
-                #my $sel = $s - $se - $sl;
-                #my $r2 = $r-2;
-                #my $selr2 = $sel - $r + 2;
-                #say STDERR "HJJIHUJ " .
-                #"exp ($ln_fac_arr[$sel]
-                #  - (  $ln_fac_arr[$r2]
-                #     + $ln_fac_arr[$selr2]
-                #    )
-                #  - $bnok_sr)";
-            }
         }
 
         my $jji = 0;
@@ -3332,29 +3300,7 @@ sub get_nti_expected_sd {
                   : -$bnok_sr;
             }
             $sum_third_case += $by_se{$se} * $by_se{$sl} * exp $bnok_ratio;
-            if (0 && $r==2) {
-                say STDERR sprintf "STCASE %d, %d, %.6f, %.6f, %.6f, %.6f",
-                    $se, $sl, $by_se{$se}, $by_se{$sl}, exp $bnok_ratio,
-                    $by_se{$se} * $by_se{$sl} * exp $bnok_ratio
-                    ;
-                #my $sel = $s - $se - $sl;
-                #my $r2 = $r-2;
-                #my $selr2 = $sel - $r + 2;
-                #say STDERR "HJJIHUJ " .
-                #"exp ($ln_fac_arr[$sel]
-                #  - (  $ln_fac_arr[$r2]
-                #     + $ln_fac_arr[$selr2]
-                #    )
-                #  - $bnok_sr)";
-            }
         }
-    }
-
-    if (0 && $r ==2 ) {
-say STDERR sprintf "TT2: s3c=%.6g, ss3c=%.6f, ssc3c=%.6f",
-                    $sum_third_case,
-                     $sum_self_third_case,
-                     $sum_same_class_third_case;
     }
 
     $sum_same_class_third_case
@@ -3366,9 +3312,6 @@ say STDERR sprintf "TT2: s3c=%.6g, ss3c=%.6f, ssc3c=%.6f",
     my $total_sum = 2 * ($sum_third_case - $sum_subtract + $sum_subtree) - $sum_self;
 
     my $expected_alt = 4 * $total_sum / ($r**2)  - ($exp_mean ** 2);
-
-say STDERR sprintf "TT: totsum=%.6f, s3c=%.6g, ssc3c=%.6f, sum_subtract=%.6f, sum_subtree=%.6f, sum_self=%.6f",
-    $total_sum, $sum_third_case, $sum_same_class_third_case, $sum_subtract, $sum_subtree, $sum_self;
 
     my $n_nodes = @node_refs;
     my $progress

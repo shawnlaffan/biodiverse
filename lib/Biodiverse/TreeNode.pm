@@ -2633,6 +2633,7 @@ sub get_nti_sd_subtree_bits {
             $sum_subtract += $s2;
         }
         $hash->{$r} = $vals = [$sum_subtree, $sum_subtract];
+        #say STDERR "$r $sum_subtree, $sum_subtract";
     }
 
     return wantarray ? @$vals : $vals;
@@ -2692,52 +2693,61 @@ sub _calc_nti_sd_subtree_bits {
             my $d_len = $desc->get_length;
             my $sl    = $desc->get_terminal_element_count;
             
+            #  does not properly account for $s - $se - $sl < 0
+            #  e.g., 31, 21, 14, r=2
+            my $x = $s - $sl - $se;
             my $bnok_ratio
-              = $s - $sl - $se - $r + 2 > 0
-                ? $ln_fac_arr[$s-$sl-$se]
-                   - (  $ln_fac_arr[$r-2]
-                      + $ln_fac_arr[$s - $se - $sl - $r + 2]
+              = $x <  $r - 2   ? -Inf
+              : $x == $r - 2   ? -$bnok_sr
+              #: $x == $r - 1   ? (log ($r-1) + $bnok_sr)
+              : $ln_fac_arr[$x]
+                   - (  $ln_fac_arr[$r - 2]
+                      + $ln_fac_arr[$x - $r + 2]
                       )
-                   - $bnok_sr
-                : $s - $sl - $se > 0
-                  ? -$bnok_sr
-                  : -Inf;
+                   - $bnok_sr;
             $sum_subtract
               += $length * $sl
                * $se     * $d_len
                * exp $bnok_ratio;
                
-               if (0 && $r == 2) {
-        say STDERR sprintf "SUBTRACT: len=%.6f, se=%d, chlen=%f, sl=%d, hypergeom=%.6f, sum_subtract=%.6f", 
+               if (0 && $r == 5) {
+                my $diff = $length * $sl
+               * $se     * $d_len
+               * exp $bnok_ratio;
+        say STDERR sprintf "SUBTRACT: len=%.6f, se=%d, chlen=%f, sl=%d, hypergeom=%.6f, sum_subtract=%.6f, diff=%.6f", 
                      $length, 
                      $se,
                      $d_len,
                      $sl,
                      exp ($bnok_ratio),
-                     $sum_subtract;
+                     $sum_subtract,
+                     $diff;
                }
         }
     }
     
     $sum_subtree += ($length ** 2) * $se * $mhyperg;
 
+    my $x = $s - $se - $se;
     $bnok_ratio
-      = $s - $se - $se - $r + 2 > 0
-        ? $ln_fac_arr[$s-$se-$se]
-           - (  $ln_fac_arr[$r-2]
-              + $ln_fac_arr[$s - $se - $se - $r + 2]
+      = $x <  $r - 2   ? -Inf
+      : $x == $r - 2   ? -$bnok_sr
+      #: $x == $r - 1   ? (log ($r-1) + $bnok_sr)
+      : $ln_fac_arr[$x]
+           - (  $ln_fac_arr[$r - 2]
+              + $ln_fac_arr[$x - $r + 2]
               )
-           - $bnok_sr
-        : -Inf;
-
+           - $bnok_sr;
     $sum_subtract += exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
 
-               if ($r == 2) {
-        say STDERR sprintf "SNUBTRACT: len=%.6f, se=%d, two_edge_pr=%.6f, sum_subtract=%.6f", 
+               if ($r == 5) {
+                my $diff = exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
+        say STDERR sprintf "SNUBTRACT: len=%.6f, se=%d, two_edge_pr=%.6f, sum_subtract=%.6f, diff=%.6f", 
                      $length, 
                      $se,
                      exp ($bnok_ratio),
-                     $sum_subtract;
+                     $sum_subtract,
+                     $diff;
                }
 
     my @components = ($sum_subtree, $sum_subtract);

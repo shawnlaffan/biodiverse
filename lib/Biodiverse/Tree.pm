@@ -3209,12 +3209,17 @@ sub get_nti_expected_sd {
         $self->get_node_refs;
 
     \my %by_se = $self->get_cached_value_dor_set_default_aa (NODE_NTI_LEN_CACHE => {});
+    my @by_se_keys;
     if (!keys %by_se) {
         foreach my $node (@node_refs) {
             my $te = $node->get_terminal_element_count;
             $by_se{$te} += $node->get_length * $te;
         }
+        @by_se_keys = sort {$a <=> $b} keys %by_se;
+        $self->set_cached_value (NODE_NTI_LEN_CACHE_KEYS_SORTED => \@by_se_keys);
     }
+    \@by_se_keys = $self->get_cached_value ('NODE_NTI_LEN_CACHE_KEYS_SORTED');
+
  
     #  names from PhyloMeasures
     #_compute_subtree_sums(sum_subtree, sum_subtract);
@@ -3267,7 +3272,6 @@ sub get_nti_expected_sd {
         $sum_self_third_case += $len ** 2 * $se ** 2 * exp ($bnok_ratio);
     }
     
-    my @by_se_keys = sort {$a <=> $b} keys %by_se;
     my $jj = -1;
     for my $se (@by_se_keys) {
         $jj++;

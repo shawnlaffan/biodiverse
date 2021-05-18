@@ -2652,10 +2652,10 @@ sub _calc_nti_sd_subtree_bits {
     my $sum_subtree  = $args{sum_subtree};
     my $sum_subtract = $args{sum_subtract};
     
+    my $s        = $args{s} //= $self->get_root_node->get_terminal_element_count;
 
     my $length   = $self->get_length;
     my $se       = $self->get_terminal_element_count;
-    my $s        = $self->get_root_node->get_terminal_element_count;
     my $bnok_sr
       =     $ln_fac_arr[$s]
        - (  $ln_fac_arr[$r]

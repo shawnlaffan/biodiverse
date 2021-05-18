@@ -2690,9 +2690,9 @@ sub AUTOLOAD {
     if ( defined $root_node and $root_node->can($method) ) {
 
         #print "[TREE] Using AUTOLOADER method $method\n";
-        my $retval = eval {$root_node->$method(@_)};
-        croak "$EVAL_ERROR in method $method" if $EVAL_ERROR;
-        return $retval;
+        #  could check eval errors, but would need to
+        #  handle list context in the caller
+        return $root_node->$method(@_);
     }
     else {
         Biodiverse::NoMethod->throw(

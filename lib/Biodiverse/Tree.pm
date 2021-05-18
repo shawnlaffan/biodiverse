@@ -3150,14 +3150,21 @@ sub get_nti_expected_mean {
         max_n => $s,
     );
 
+    \my %tip_count_cache
+      = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
+
     #  use logs to avoid expensive binomial ratio calcs
     my $bnok_sr =    $ln_fac_arr[$s]
                 - (  $ln_fac_arr[$r]
                    + $ln_fac_arr[$s - $r]
                 );
     my $sum;
-    foreach my $node ($self->get_node_refs) {
-        my $se = $node->get_terminal_element_count;
+    my $node_hash = $self->get_node_hash;
+    foreach my $name (keys %$node_hash) {
+        my $node = $node_hash->{$name};
+        my $se
+          = $tip_count_cache{$name}
+            //= $node->get_terminal_element_count;
         my $bnok_numerator
           =    $ln_fac_arr[$s - $se]
           - (  $ln_fac_arr[$r - 1]

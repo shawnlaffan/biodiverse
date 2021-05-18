@@ -232,6 +232,18 @@ sub add_node {
     return $node;
 }
 
+sub delete_all_cached_values {
+    my $self = shift;
+
+    #  clear each node's cache
+    foreach my $n_ref ( $self->get_node_refs ) {
+        $n_ref->delete_cached_values;
+    }
+    #  now clear our own
+    $self->delete_cached_values;
+    return;
+}
+
 sub splice_into_lineage {
     my ($self, %args) = @_;
     my $target   = $args{target_node};

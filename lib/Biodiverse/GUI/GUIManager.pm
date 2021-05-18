@@ -1017,7 +1017,7 @@ sub do_phylogeny_delete_cached_values {
     my $self = shift;
 
     my $object = $self->{project}->get_selected_phylogeny || return;
-    $object->get_root_node->delete_cached_values;
+    $object->delete_all_cached_values;
 
     $self->set_dirty;
 

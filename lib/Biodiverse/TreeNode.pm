@@ -2525,7 +2525,7 @@ sub _calc_nri_tce_score {
     my $SO = ($s - $se) * $sum_off;
     my $SA = $se * $sum_anc1;
     my $SI = $se * ($all_weights - $sum_anc2 - $sum_off);
-#say STDERR join ' ', $self->get_name, $SO, $SA, $SI;
+
     $self->set_cached_value (NRI_TCE_COMPONENTS => [$SA, $SO, $SI]);
     
     my $value = $SO + $SA + $SI;
@@ -2605,7 +2605,9 @@ sub _calc_nti_sum_of_products_below {
     return $sum;
 }
 
-
+#  Terrible name, but should not really be here.
+#  Will be removed if we ever linearise the NTI SD calcs
+#  in Tree.pm.
 sub get_nti_sd_subtree_bits {
     my ($self, %args) = @_;
     my $r = $args{sample_count} // croak "need sample_counts argument";
@@ -2633,7 +2635,6 @@ sub get_nti_sd_subtree_bits {
             $sum_subtract += $s2;
         }
         $hash->{$r} = $vals = [$sum_subtree, $sum_subtract];
-        #say STDERR "$r $sum_subtree, $sum_subtract";
     }
 
     return wantarray ? @$vals : $vals;
@@ -2695,6 +2696,7 @@ sub _calc_nti_sd_subtree_bits {
             
             #  does not properly account for $s - $se - $sl < 0
             #  e.g., 31, 21, 14, r=2
+            #  still?
             my $x = $s - $sl - $se;
             my $bnok_ratio
               = $x <  $r - 2   ? -Inf
@@ -2709,20 +2711,6 @@ sub _calc_nti_sd_subtree_bits {
               += $length * $sl
                * $se     * $d_len
                * exp $bnok_ratio;
-               
-               if (0 && $r == 5) {
-                my $diff = $length * $sl
-               * $se     * $d_len
-               * exp $bnok_ratio;
-        say STDERR sprintf "SUBTRACT: len=%.6f, se=%d, chlen=%f, sl=%d, hypergeom=%.6f, sum_subtract=%.6f, diff=%.6f", 
-                     $length, 
-                     $se,
-                     $d_len,
-                     $sl,
-                     exp ($bnok_ratio),
-                     $sum_subtract,
-                     $diff;
-               }
         }
     }
     
@@ -2740,23 +2728,7 @@ sub _calc_nti_sd_subtree_bits {
            - $bnok_sr;
     $sum_subtract += exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
 
-               if (0 && $r == 5) {
-                my $diff = exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
-        say STDERR sprintf "SNUBTRACT: len=%.6f, se=%d, two_edge_pr=%.6f, sum_subtract=%.6f, diff=%.6f", 
-                     $length, 
-                     $se,
-                     exp ($bnok_ratio),
-                     $sum_subtract,
-                     $diff;
-               }
-
     my @components = ($sum_subtree, $sum_subtract);
-
-    #if ($r == 2) {
-    #    $_sum_prod += $length * $se;
-    #    say STDERR sprintf "XX: %d, len=%.6f, se=%d, sum_subtree=%.6f, sum_subtract=%.6f, sum_prod=%.6f, mhyperg=%.6f",
-    #        $r, $length, $se, $sum_subtree, $sum_subtract, $_sum_prod, $mhyperg;
-    #}
 
     my $cache_name = 'NTI_SUBTREE_BITS_HASH';
     $self->set_cached_value ($cache_name => \@components);

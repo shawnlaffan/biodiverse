@@ -3237,8 +3237,22 @@ sub get_nti_expected_sd {
         my $name = $node->get_name;
         my $len  = $len_cache{$name} //= $node->get_length;
         my $se   = $tip_count_cache{$name} //= $node->get_terminal_element_count;
-        
+
         my $bnok_ratio = -Inf;
+        if ($s - $se >= 0) {
+           $bnok_ratio
+             = $s - $se - $r + 1 > 0
+               ? $ln_fac_arr[$s-$se]
+                  - (  $ln_fac_arr[$r-1]
+                     + $ln_fac_arr[$s - $se - $r + 1]
+                    )
+                  - $bnok_sr
+              : -$bnok_sr;
+        }
+        
+        $sum_self += $se * ($len ** 2) * exp ($bnok_ratio);
+        
+        $bnok_ratio = -Inf;
         if ($s - $se - $se >= 0) {
            $bnok_ratio
              = $s - $se - $se - $r + 2 > 0
@@ -3261,8 +3275,6 @@ sub get_nti_expected_sd {
                   - $bnok_sr)";
               }
         }
-
-        $sum_self += $se * exp ($bnok_ratio) * ($len ** 2);
         
         $sum_self_third_case += $len ** 2 * $se ** 2 * exp ($bnok_ratio);
         if (0 && $r == 2) {

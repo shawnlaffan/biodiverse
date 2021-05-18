@@ -3123,9 +3123,9 @@ sub get_nri_expected_sd {
       + $c123 * $sum_tce
       - $expected_mean ** 2;
 
-    $expected->{$sample_count} = eval {sqrt $variance};
+    $expected->{$sample_count} = eval {sqrt $variance} // 0;
 
-    return $expected->{$sample_count};    
+    return $expected->{$sample_count};
 }
 
 sub get_nti_expected_mean {
@@ -3221,11 +3221,15 @@ sub get_nti_expected_sd {
     \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
     \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
     my %name_cache;  #  indexed by node ref, so cannot be stored on the tree
-    
-    my @node_refs
-      = keysort {$_->get_name}
-        grep {!$_->is_root_node}
-        $self->get_node_refs;
+
+    my @node_refs;
+    do {
+        my $node_hash = $self->get_node_hash;
+        delete local $node_hash->{$self->get_root_node->get_name};
+        @node_refs
+          = keysort {$_->get_name}
+            values %$node_hash;
+    };
 
     \my %by_se = $self->get_cached_value_dor_set_default_aa (NODE_NTI_LEN_CACHE => {});
     my @by_se_keys;

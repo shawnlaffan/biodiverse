@@ -2723,9 +2723,6 @@ sub _calc_nti_sd_subtree_bits {
 
     my @components = ($sum_subtree, $sum_subtract);
 
-    my $cache_name = 'NTI_SUBTREE_BITS_HASH';
-    $self->set_cached_value ($cache_name => \@components);
-
     return wantarray ? @components : \@components;
 }
 

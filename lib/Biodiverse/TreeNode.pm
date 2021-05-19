@@ -2643,38 +2643,23 @@ sub get_nti_sd_subtree_bits {
 sub _calc_nti_sd_subtree_bits {
     my ($self, %args) = @_;
 
-    #  requiring this to be passed is dirty and underhanded
-    #  it should be in Bd::Common
-    \my @ln_fac_arr = $args{ln_fac_array} // croak 'need the ln_fac_array';
     my $r           = $args{r} // $args{sample_count};
+    my $cb_bnok_one_arg = $args{cb_bnok_one_arg};
+    my $cb_bnok_two_arg = $args{cb_bnok_two_arg};
 
     #  horrible that we pass these through - could just use a map in Bd::Tree
     my $sum_subtree  = $args{sum_subtree};
     my $sum_subtract = $args{sum_subtract};
     
-    my $s        = $args{s} //= $self->get_root_node->get_terminal_element_count;
+    my $s   = $args{s}
+          //= $self->get_root_node->get_terminal_element_count;
 
     my $length   = $self->get_length;
     my $se       = $self->get_terminal_element_count;
-    my $bnok_sr
-      =     $ln_fac_arr[$s]
-       - (  $ln_fac_arr[$r]
-          + $ln_fac_arr[$s - $r]
-         );
-    
-    #  many var names from PhyloMeasures
-    my $bnok_ratio = $s - $se - $r + 1 > 0
-            ? $ln_fac_arr[$s-$se]
-               - (  $ln_fac_arr[$r-1]
-                  + $ln_fac_arr[$s - $se - $r + 1]
-                 )
-               - $bnok_sr
-           : -$bnok_sr;
-    my $mhyperg = exp $bnok_ratio;
 
-    #my ($sum_subtree, $sum_subtract);
-    #my $_sum_prod;  #  for debug
-    
+    #  many var names from PhyloMeasures
+    my $mhyperg = $cb_bnok_one_arg->($se);
+
     foreach my $child ($self->get_children) {
         ($sum_subtree, $sum_subtract)
           = $child->_calc_nti_sd_subtree_bits(
@@ -2688,38 +2673,19 @@ sub _calc_nti_sd_subtree_bits {
             
         my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
         foreach my $sl (keys %$sl_len_hash) {
-            my $d_len = $sl_len_hash->{$sl};
-            
-            my $x = $s - $sl - $se;
-            my $bnok_ratio
-              = $x <  $r - 2   ? -Inf
-              : $x == $r - 2   ? -$bnok_sr
-              #: $x == $r - 1   ? (log ($r-1) + $bnok_sr)
-              : $ln_fac_arr[$x]
-                   - (  $ln_fac_arr[$r - 2]
-                      + $ln_fac_arr[$x - $r + 2]
-                      )
-                   - $bnok_sr;
             $sum_subtract
-              += $length * $sl
-               * $se     * $d_len
-               * exp $bnok_ratio;
+              += $se * $length
+               * $sl * $sl_len_hash->{$sl}
+               * $cb_bnok_two_arg->($se, $sl);
         }
     }
     
     $sum_subtree += ($length ** 2) * $se * $mhyperg;
 
-    my $x = $s - $se - $se;
-    $bnok_ratio
-      = $x <  $r - 2   ? -Inf
-      : $x == $r - 2   ? -$bnok_sr
-      #: $x == $r - 1   ? (log ($r-1) + $bnok_sr)
-      : $ln_fac_arr[$x]
-           - (  $ln_fac_arr[$r - 2]
-              + $ln_fac_arr[$x - $r + 2]
-              )
-           - $bnok_sr;
-    $sum_subtract += exp ($bnok_ratio) * ($length ** 2) * ($se ** 2);
+    $sum_subtract
+      += $cb_bnok_two_arg->($se, $se)
+       * ($length ** 2)
+       * ($se ** 2);
 
     my @components = ($sum_subtree, $sum_subtract);
 

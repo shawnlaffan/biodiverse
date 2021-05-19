@@ -3250,6 +3250,8 @@ sub get_nti_expected_sd {
         my $res = $self->get_nti_sd_subtree_bits(
             ln_fac_array => \@ln_fac_arr,  #  underhanded
             sample_count => $r,
+            cb_bnok_two_arg => $bnok_sub_two_arg,
+            cb_bnok_one_arg => $bnok_sub_one_arg,
         );
         ($sum_subtree, $sum_subtract) = @$res;
     }

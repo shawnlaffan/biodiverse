@@ -3206,17 +3206,15 @@ sub get_nti_expected_sd {
     
     my $exp_mean = $self->get_nti_expected_mean (sample_count => $r);
 
+    my $bnok_sub_one_arg
+      = $self->get_bnok_ratio_callback_one_val (s => $s, r => $r);
+    my $bnok_sub_two_arg
+      = $self->get_bnok_ratio_callback_two_val (s => $s, r => $r);
+
     \my @ln_fac_arr = $self->_get_ln_fac_arr (
         max_n => $s,
     );
 
-    #  use logs to avoid expensive binomial ratio calcs
-    #  results are the same to about 7dp.
-    my $bnok_sr =    $ln_fac_arr[$s]
-                - (  $ln_fac_arr[$r]
-                   + $ln_fac_arr[$s - $r]
-                );
-    #my (%ancestor_cache, %len_cache, %tip_count_cache);
     \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
     \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
     \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
@@ -3245,7 +3243,6 @@ sub get_nti_expected_sd {
 
  
     #  names from PhyloMeasures
-    #_compute_subtree_sums(sum_subtree, sum_subtract);
     my $sum_subtree  = $self->get_cached_value ("NTI_SUM_SUBTREE");
     my $sum_subtract = $self->get_cached_value ("NTI_SUM_SUBTRACT");
 
@@ -3266,67 +3263,32 @@ sub get_nti_expected_sd {
         my $len  = $len_cache{$name} //= $node->get_length;
         my $se   = $tip_count_cache{$name} //= $node->get_terminal_element_count;
 
-        my $bnok_ratio = -Inf;
-        if ($s - $se >= 0) {
-           $bnok_ratio
-             = $s - $se - $r + 1 > 0
-               ? $ln_fac_arr[$s-$se]
-                  - (  $ln_fac_arr[$r-1]
-                     + $ln_fac_arr[$s - $se - $r + 1]
-                    )
-                  - $bnok_sr
-              : -$bnok_sr;
-        }
-        
-        $sum_self += $se * ($len ** 2) * exp ($bnok_ratio);
-        
-        $bnok_ratio = -Inf;
-        if ($s - $se - $se >= 0) {
-           $bnok_ratio
-             = $s - $se - $se - $r + 2 > 0
-               ? $ln_fac_arr[$s-$se-$se]
-                  - (  $ln_fac_arr[$r-2]
-                     + $ln_fac_arr[$s - $se - $se - $r + 2]
-                    )
-                  - $bnok_sr
-              : -$bnok_sr;
-        }
-        
-        $sum_self_third_case += $len ** 2 * $se ** 2 * exp ($bnok_ratio);
+        $sum_self += $se * ($len ** 2) * $bnok_sub_one_arg->($se);
+        $sum_self_third_case
+          += $len ** 2
+           * $se  ** 2
+           * $bnok_sub_two_arg->($se, $se);
     }
     
     my $jj = -1;
     for my $se (@by_se_keys) {
         $jj++;
+        #  bnok_sub_two_arg checks for this condition,
+        #  but this way we avoid a sub call
+        #  (which maybe matters?)
         if ($s - $se - $se >= 0) {
-            my $bnok_ratio
-             = $s - $se - $se - $r + 2 > 0
-               ? $ln_fac_arr[$s-$se-$se]
-                  - (  $ln_fac_arr[$r-2]
-                     + $ln_fac_arr[$s - $se - $se - $r + 2]
-                    )
-                  - $bnok_sr
-              : -$bnok_sr;
-        
-            $sum_same_class_third_case += $by_se{$se} ** 2 * exp $bnok_ratio;
+            $sum_same_class_third_case
+              += $by_se{$se} ** 2
+               * $bnok_sub_two_arg->($se, $se);
         }
 
-        my $jji = 0;
-        while ($jji < $jj) {
+        next if !$jj;
+        foreach my $jji (0..$jj-1) {
             my $sl = $by_se_keys[$jji];
-            $jji++;
-            my $bnok_ratio = -Inf;
-            if ($s - $se - $sl >= 0) {
-                $bnok_ratio
-                 = $s - $se - $sl - $r + 2 > 0
-                   ? $ln_fac_arr[$s-$se-$sl]
-                      - (  $ln_fac_arr[$r-2]
-                         + $ln_fac_arr[$s - $se - $sl - $r + 2]
-                        )
-                      - $bnok_sr
-                  : -$bnok_sr;
-            }
-            $sum_third_case += $by_se{$se} * $by_se{$sl} * exp $bnok_ratio;
+            $sum_third_case
+              += $by_se{$se}
+               * $by_se{$sl}
+               * $bnok_sub_two_arg->($se, $sl);
         }
     }
 
@@ -3350,6 +3312,84 @@ sub get_nti_expected_sd {
     $cache->{$r} = $expected;
 
     return $expected;
+}
+
+sub get_bnok_ratio_callback_one_val {
+    my ($self, %args) = @_;
+
+    my $s = $args{s} // $self->get_terminal_element_count;
+    my $r = $args{r} // $args{sample_count};
+    \my @ln_fac_arr = $self->_get_ln_fac_arr(max_n => $s);
+
+    #  use logs to avoid expensive binomial ratio calcs
+    #  results are the same to about 7dp.
+    my $bnok_sr
+      =      $ln_fac_arr[$s]
+        - (  $ln_fac_arr[$r]
+           + $ln_fac_arr[$s - $r]
+        );
+    #  some precalcs
+    my $exp_bnok_sr = exp -$bnok_sr;
+    my $sr1 = $s - $r + 1;
+
+    #  close over a few vars
+    my $sub = sub {
+        my ($se) = @_;
+        
+        return 0
+          if $s - $se < 0;
+        return $exp_bnok_sr
+          if $sr1 - $se <= 0;
+
+        my $bnok_ratio
+          =      $ln_fac_arr[$s-$se]
+            - (  $ln_fac_arr[$r-1]
+               + $ln_fac_arr[$sr1 - $se]
+              )
+            - $bnok_sr;
+        return exp $bnok_ratio;
+    };
+
+    return $sub;
+}
+
+sub get_bnok_ratio_callback_two_val {
+    my ($self, %args) = @_;
+
+    my $s = $args{s} // $self->get_terminal_element_count;
+    my $r = $args{r} // $args{sample_count};
+    \my @ln_fac_arr = $self->_get_ln_fac_arr(max_n => $s);
+
+    #  use logs to avoid expensive binomial ratio calcs
+    #  results are the same to about 7dp.
+    my $bnok_sr
+      =      $ln_fac_arr[$s]
+        - (  $ln_fac_arr[$r]
+           + $ln_fac_arr[$s - $r]
+        );
+    #  some precalcs
+    my $exp_bnok_sr = exp -$bnok_sr;
+    my $sr2 = $s - $r + 2;
+
+    #  close over a few vars
+    my $sub = sub {
+        my ($se, $sl) = @_;
+        
+        return 0
+          if $s - $se - $sl < 0;
+        return $exp_bnok_sr
+          if $sr2 - $se - $sl <= 0;
+
+        my $bnok_ratio
+          =      $ln_fac_arr[$s - $se - $sl]
+            - (  $ln_fac_arr[$r-2]
+               + $ln_fac_arr[$sr2 - $se - $sl]
+              )
+            - $bnok_sr;
+        return exp $bnok_ratio;
+    };
+
+    return $sub;
 }
 
 #  make this a state var internal to the sub

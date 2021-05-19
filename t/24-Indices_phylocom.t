@@ -47,7 +47,7 @@ run_indices_test1 (
     prng_seed          => 123456,
     nri_nti_iterations => 4999,
     calc_topic_to_test => 'PhyloCom Indices',
-    #generate_result_sets => 1,
+    generate_result_sets => 1,
 );
 
 done_testing;
@@ -57,17 +57,17 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{   PHYLO_NRI1             => '-4.94066383117739',
-    PHYLO_NRI2             => '-5.69651257849796',
-    PHYLO_NRI3             => '-6.51303106777884',
+{   PHYLO_NRI1             => '-4.94066383117864',
+    PHYLO_NRI2             => '-5.69651257849941',
+    PHYLO_NRI3             => '-6.5130310677805',
     PHYLO_NRI_NTI_SAMPLE_N => 0,
     PHYLO_NRI_SAMPLE_MEAN  => '1.84720584828667',
-    PHYLO_NRI_SAMPLE_SD    => '0.029236651367865',
-    PHYLO_NTI1             => '-1.92972978733373',
-    PHYLO_NTI2             => '-1.99012199280683',
-    PHYLO_NTI3             => '-1.34351531791998',
+    PHYLO_NRI_SAMPLE_SD    => '0.0292366513678574',
+    PHYLO_NTI1             => '-1.92972984287517',
+    PHYLO_NTI2             => '-1.99012205008647',
+    PHYLO_NTI3             => '-1.343515356589',
     PHYLO_NTI_SAMPLE_MEAN  => '1.35536101312117',
-    PHYLO_NTI_SAMPLE_SD    => '0.137371767610721',
+    PHYLO_NTI_SAMPLE_SD    => '0.13737176365689',
     PMPD1_MAX              => '1.95985532713474',
     PMPD1_MEAN             => '1.70275738232872',
     PMPD1_MIN              => '0.5',
@@ -102,17 +102,17 @@ __DATA__
 
 
 @@ RESULTS_1_NBR_LISTS
-{   PHYLO_NRI1             => '-3.59966099911468',
-    PHYLO_NRI2             => '-3.59966099911468',
-    PHYLO_NRI3             => '-3.59966099911468',
+{   PHYLO_NRI1             => '-3.59966099911456',
+    PHYLO_NRI2             => '-3.59966099911456',
+    PHYLO_NRI3             => '-3.59966099911456',
     PHYLO_NRI_NTI_SAMPLE_N => 0,
     PHYLO_NRI_SAMPLE_MEAN  => '1.84720584828667',
-    PHYLO_NRI_SAMPLE_SD    => '0.235357120710823',
-    PHYLO_NTI1             => '-3.59966099911462',
-    PHYLO_NTI2             => '-3.59966099911462',
-    PHYLO_NTI3             => '-3.59966099911462',
+    PHYLO_NRI_SAMPLE_SD    => '0.23535712071083',
+    PHYLO_NTI1             => '-3.59966099911459',
+    PHYLO_NTI2             => '-3.59966099911459',
+    PHYLO_NTI3             => '-3.59966099911459',
     PHYLO_NTI_SAMPLE_MEAN  => '1.84720584828667',
-    PHYLO_NTI_SAMPLE_SD    => '0.235357120710825',
+    PHYLO_NTI_SAMPLE_SD    => '0.235357120710827',
     PMPD1_MAX              => '1',
     PMPD1_MEAN             => '1',
     PMPD1_MIN              => '1',

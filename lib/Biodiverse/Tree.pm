@@ -3146,18 +3146,12 @@ sub get_nti_expected_mean {
       if defined $cache->{$r};
 
     my $s = $self->get_terminal_element_count;
-    \my @ln_fac_arr = $self->_get_ln_fac_arr (
-        max_n => $s,
-    );
+    my $cb_bnok_one_arg = $self->get_bnok_ratio_callback_one_val(r => $r, s => $s);
+    my $cb_bnok_two_arg = $self->get_bnok_ratio_callback_two_val(r => $r, s => $s);
 
     \my %tip_count_cache
       = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
 
-    #  use logs to avoid expensive binomial ratio calcs
-    my $bnok_sr =    $ln_fac_arr[$s]
-                - (  $ln_fac_arr[$r]
-                   + $ln_fac_arr[$s - $r]
-                );
     my $sum;
     my $node_hash = $self->get_node_hash;
     foreach my $name (keys %$node_hash) {
@@ -3165,15 +3159,9 @@ sub get_nti_expected_mean {
         my $se
           = $tip_count_cache{$name}
             //= $node->get_terminal_element_count;
-        my $bnok_numerator
-          =    $ln_fac_arr[$s - $se]
-          - (  $ln_fac_arr[$r - 1]
-             + $ln_fac_arr[$s - $se - $r + 1]
-            );
-
         $sum += $node->get_length
               * $se
-              * exp ($bnok_numerator - $bnok_sr);
+              * $cb_bnok_one_arg->($se);
     }
     
     my $expected = (2 / $r) * $sum;
@@ -3336,19 +3324,20 @@ sub get_bnok_ratio_callback_one_val {
     #  close over a few vars
     my $sub = sub {
         my ($se) = @_;
-        
-        return 0
-          if $s - $se < 0;
-        return $exp_bnok_sr
-          if $sr1 - $se <= 0;
 
-        my $bnok_ratio
-          =      $ln_fac_arr[$s-$se]
-            - (  $ln_fac_arr[$r-1]
-               + $ln_fac_arr[$sr1 - $se]
-              )
-            - $bnok_sr;
-        return exp $bnok_ratio;
+        if ($se < $sr1) {
+            my $bnok_ratio
+              =      $ln_fac_arr[$s-$se]
+                - (  $ln_fac_arr[$r-1]
+                   + $ln_fac_arr[$sr1 - $se]
+                  )
+                - $bnok_sr;
+            return exp $bnok_ratio;            
+        }
+        elsif ($se == $sr1) {
+            return $exp_bnok_sr;
+        }
+        return 0;
     };
 
     return $sub;
@@ -3375,12 +3364,13 @@ sub get_bnok_ratio_callback_two_val {
     #  close over a few vars
     my $sub = sub {
         my ($se, $sl) = @_;
-        
-        return 0
-          if $s - $se - $sl < 0;
-        return $exp_bnok_sr
-          if $sr2 - $se - $sl <= 0;
 
+        return 0
+          if $sr2 < $se + $sl;
+        return $exp_bnok_sr
+          if $sr2 == $se + $sl;
+        #return ($r-1) / $exp_bnok_sr
+        #  if $s - $se - $sl == $r-1;
         my $bnok_ratio
           =      $ln_fac_arr[$s - $se - $sl]
             - (  $ln_fac_arr[$r-2]

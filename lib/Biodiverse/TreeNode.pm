@@ -2643,7 +2643,10 @@ sub get_nti_sd_subtree_bits {
 sub _calc_nti_sd_subtree_bits {
     my ($self, %args) = @_;
 
-    my $r           = $args{r} // $args{sample_count};
+    my $r = $args{r} // $args{sample_count};
+    my $s = $args{s}
+          //= $self->get_root_node->get_terminal_element_count;
+
     my $cb_bnok_one_arg = $args{cb_bnok_one_arg};
     my $cb_bnok_two_arg = $args{cb_bnok_two_arg};
 
@@ -2651,9 +2654,7 @@ sub _calc_nti_sd_subtree_bits {
     my $sum_subtree  = $args{sum_subtree};
     my $sum_subtract = $args{sum_subtract};
     
-    my $s   = $args{s}
-          //= $self->get_root_node->get_terminal_element_count;
-
+    
     my $length   = $self->get_length;
     my $se       = $self->get_terminal_element_count;
 

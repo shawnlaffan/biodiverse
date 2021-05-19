@@ -3199,10 +3199,6 @@ sub get_nti_expected_sd {
     my $bnok_sub_two_arg
       = $self->get_bnok_ratio_callback_two_val (s => $s, r => $r);
 
-    \my @ln_fac_arr = $self->_get_ln_fac_arr (
-        max_n => $s,
-    );
-
     \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
     \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
     \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
@@ -3210,6 +3206,8 @@ sub get_nti_expected_sd {
 
     my @node_refs;
     do {
+        #  remove root from the array
+        #  faster than a grep
         my $node_hash = $self->get_node_hash;
         delete local $node_hash->{$self->get_root_node->get_name};
         @node_refs

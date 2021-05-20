@@ -3341,6 +3341,7 @@ sub get_bnok_ratio_callback_one_val {
     return $sub;
 }
 
+
 sub get_bnok_ratio_callback_two_val {
     my ($self, %args) = @_;
 
@@ -3361,18 +3362,19 @@ sub get_bnok_ratio_callback_two_val {
 
     #  close over a few vars
     my $sub = sub {
-        my ($se, $sl) = @_;
+        #my ($se, $sl) = @_;
+        my $sesl = $_[0] + $_[1];
 
         return 0
-          if $sr2 < $se + $sl;
+          if $sr2 < $sesl;
         return $exp_bnok_sr
-          if $sr2 == $se + $sl;
+          if $sr2 == $sesl;
         #return ($r-1) / $exp_bnok_sr
         #  if $s - $se - $sl == $r-1;
         my $bnok_ratio
-          =      $ln_fac_arr[$s - $se - $sl]
+          =      $ln_fac_arr[$s   - $sesl]
             - (  $ln_fac_arr[$r-2]
-               + $ln_fac_arr[$sr2 - $se - $sl]
+               + $ln_fac_arr[$sr2 - $sesl]
               )
             - $bnok_sr;
         return exp $bnok_ratio;

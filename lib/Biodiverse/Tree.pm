@@ -3229,62 +3229,53 @@ sub get_nti_expected_sd {
 
  
     #  names from PhyloMeasures
-    my $sum_subtree  = $self->get_cached_value ("NTI_SUM_SUBTREE");
-    my $sum_subtract = $self->get_cached_value ("NTI_SUM_SUBTRACT");
+    my ($sum_subtree,    $sum_subtract,
+        $sum_self,       $sum_self_third_case,
+        $sum_third_case,
+        $sum_same_class_third_case);
 
-    if (!defined $sum_subtree) {
-        my @nodes_by_depth
-          = rnkeysort {$_->get_depth}
-            @node_refs;
+    my @nodes_by_depth
+      = rnkeysort {$_->get_depth}
+        @node_refs;
 
-        foreach my $node (@nodes_by_depth) {
-            my $name = $node->get_name;
-            my $length
-              = $len_cache{$name}
-                //= $node->get_length;
-            my $se
-              = $tip_count_cache{$name}
-                //= $node->get_terminal_element_count;
-
-            #  many var names from PhyloMeasures
-            my $mhyperg = $cb_bnok_one_arg->($se);
-        
-            foreach my $child ($node->get_children) {
-                my $sum_pr = $child->get_nti_sum_of_products_below;
-                $sum_subtree += $length * $sum_pr * $mhyperg;
-
-                my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
-                foreach my $sl (keys %$sl_len_hash) {
-                    $sum_subtract
-                      += $se * $length
-                       * $sl * $sl_len_hash->{$sl}
-                       * $cb_bnok_two_arg->($se, $sl);
-                }
-            }
-            
-            $sum_subtree += ($length ** 2) * $se * $mhyperg;
-        
-            $sum_subtract
-              += $cb_bnok_two_arg->($se, $se)
-               * ($length ** 2)
-               * ($se ** 2);
-        }
-    }
-
-    #  names from PhyloMeasures
-    my ($sum_self,                  $sum_self_third_case,
-        $sum_same_class_third_case, $sum_third_case);
-
-    foreach my $node (@node_refs) {
+    foreach my $node (@nodes_by_depth) {
         my $name = $node->get_name;
-        my $len  = $len_cache{$name} //= $node->get_length;
-        my $se   = $tip_count_cache{$name} //= $node->get_terminal_element_count;
+        my $length
+          = $len_cache{$name}
+            //= $node->get_length;
+        my $se
+          = $tip_count_cache{$name}
+            //= $node->get_terminal_element_count;
 
-        $sum_self += $se * ($len ** 2) * $cb_bnok_one_arg->($se);
+        #  many var names from PhyloMeasures
+        my $mhyperg  = $cb_bnok_one_arg->($se);
+        my $mhyperg2 = $cb_bnok_two_arg->($se, $se);
+
+        foreach my $child ($node->get_children) {
+            my $sum_pr = $child->get_nti_sum_of_products_below;
+            $sum_subtree += $length * $sum_pr * $mhyperg;
+
+            my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
+            foreach my $sl (keys %$sl_len_hash) {
+                $sum_subtract
+                  += $se * $length
+                   * $sl * $sl_len_hash->{$sl}
+                   * $cb_bnok_two_arg->($se, $sl);
+            }
+        }
+        
+        $sum_subtree += ($length ** 2) * $se * $mhyperg;
+
+        $sum_subtract
+          += $mhyperg2
+           * ($length ** 2)
+           * ($se ** 2);
+
+        $sum_self += $se * ($length ** 2) * $mhyperg;
         $sum_self_third_case
-          += $len ** 2
+          += $length ** 2
            * $se  ** 2
-           * $cb_bnok_two_arg->($se, $se);
+           * $mhyperg2;
     }
     
     my $jj = -1;

@@ -3194,9 +3194,9 @@ sub get_nti_expected_sd {
     
     my $exp_mean = $self->get_nti_expected_mean (sample_count => $r);
 
-    my $bnok_sub_one_arg
+    my $cb_bnok_one_arg
       = $self->get_bnok_ratio_callback_one_val (s => $s, r => $r);
-    my $bnok_sub_two_arg
+    my $cb_bnok_two_arg
       = $self->get_bnok_ratio_callback_two_val (s => $s, r => $r);
 
     \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
@@ -3233,14 +3233,44 @@ sub get_nti_expected_sd {
     my $sum_subtract = $self->get_cached_value ("NTI_SUM_SUBTRACT");
 
     if (!defined $sum_subtree) {
-        my $res = $self->get_nti_sd_subtree_bits(
-            sample_count    => $r,
-            cb_bnok_two_arg => $bnok_sub_two_arg,
-            cb_bnok_one_arg => $bnok_sub_one_arg,
-        );
-        ($sum_subtree, $sum_subtract) = @$res;
+        my @nodes_by_depth
+          = rnkeysort {$_->get_depth}
+            @node_refs;
+
+        foreach my $node (@nodes_by_depth) {
+            my $name = $node->get_name;
+            my $length
+              = $len_cache{$name}
+                //= $node->get_length;
+            my $se
+              = $tip_count_cache{$name}
+                //= $node->get_terminal_element_count;
+
+            #  many var names from PhyloMeasures
+            my $mhyperg = $cb_bnok_one_arg->($se);
+        
+            foreach my $child ($node->get_children) {
+                my $sum_pr = $child->get_nti_sum_of_products_below;
+                $sum_subtree += $length * $sum_pr * $mhyperg;
+
+                my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
+                foreach my $sl (keys %$sl_len_hash) {
+                    $sum_subtract
+                      += $se * $length
+                       * $sl * $sl_len_hash->{$sl}
+                       * $cb_bnok_two_arg->($se, $sl);
+                }
+            }
+            
+            $sum_subtree += ($length ** 2) * $se * $mhyperg;
+        
+            $sum_subtract
+              += $cb_bnok_two_arg->($se, $se)
+               * ($length ** 2)
+               * ($se ** 2);
+        }
     }
-    
+
     #  names from PhyloMeasures
     my ($sum_self,                  $sum_self_third_case,
         $sum_same_class_third_case, $sum_third_case);
@@ -3250,23 +3280,23 @@ sub get_nti_expected_sd {
         my $len  = $len_cache{$name} //= $node->get_length;
         my $se   = $tip_count_cache{$name} //= $node->get_terminal_element_count;
 
-        $sum_self += $se * ($len ** 2) * $bnok_sub_one_arg->($se);
+        $sum_self += $se * ($len ** 2) * $cb_bnok_one_arg->($se);
         $sum_self_third_case
           += $len ** 2
            * $se  ** 2
-           * $bnok_sub_two_arg->($se, $se);
+           * $cb_bnok_two_arg->($se, $se);
     }
     
     my $jj = -1;
     for my $se (@by_se_keys) {
         $jj++;
-        #  bnok_sub_two_arg checks for this condition,
+        #  cb_bnok_two_arg checks for this condition,
         #  but this way we avoid a sub call
         #  (which maybe matters?)
         if ($s - $se - $se >= 0) {
             $sum_same_class_third_case
               += $by_se{$se} ** 2
-               * $bnok_sub_two_arg->($se, $se);
+               * $cb_bnok_two_arg->($se, $se);
         }
 
         next if !$jj;
@@ -3275,7 +3305,7 @@ sub get_nti_expected_sd {
             $sum_third_case
               += $by_se{$se}
                * $by_se{$sl}
-               * $bnok_sub_two_arg->($se, $sl);
+               * $cb_bnok_two_arg->($se, $sl);
         }
     }
 

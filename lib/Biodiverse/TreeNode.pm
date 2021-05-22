@@ -2510,13 +2510,14 @@ sub _calc_nri_tce_score {
     my $sum_anc2 = $args{sum_anc2} // 0;
     my $length   = $self->get_length;
     my $se       = $self->get_terminal_element_count;
-    my $s        = $self->get_root_node->get_terminal_element_count;
+    my $s        = $args{s} // $self->get_root_node->get_terminal_element_count;
     my $sum_off  = 0;
 
     foreach my $child ($self->get_children) {
         my $ch_len = $child->get_length;
         my $sl     = $child->get_terminal_element_count;
         $sum_off += $child->_calc_nri_tce_score (
+            s           => $s,
             sum_anc1    => $sum_anc1 + $ch_len * ($s - $sl),
             sum_anc2    => $sum_anc2 + $ch_len * $sl,
             all_weights => $all_weights,

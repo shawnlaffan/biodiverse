@@ -3202,6 +3202,7 @@ sub get_nti_expected_sd {
     \my %ancestor_cache  = $self->get_cached_value_dor_set_default_aa (NODE_ANCESTOR_LENGTH_CACHE => {});
     \my %len_cache       = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
     \my %tip_count_cache = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
+    \my %sum_pr_cache    = $self->get_cached_value_dor_set_default_aa (NODE_SUM_OF_PRODUCTS => {});
     my %name_cache;  #  indexed by node ref, so cannot be stored on the tree
 
     my @node_refs;
@@ -3226,7 +3227,6 @@ sub get_nti_expected_sd {
         $self->set_cached_value (NODE_NTI_LEN_CACHE_KEYS_SORTED => \@by_se_keys);
     }
     \@by_se_keys = $self->get_cached_value ('NODE_NTI_LEN_CACHE_KEYS_SORTED');
-
  
     #  names from PhyloMeasures
     my ($sum_subtree,    $sum_subtract,
@@ -3251,9 +3251,13 @@ sub get_nti_expected_sd {
         my $mhyperg  = $cb_bnok_one_arg->($se);
         my $mhyperg2 = $cb_bnok_two_arg->($se, $se);
 
+        $sum_pr_cache{$name} = $length * $se;
         foreach my $child ($node->get_children) {
-            my $sum_pr = $child->get_nti_sum_of_products_below;
+            #  could linearise sum_pr calculation
+            #  or just cache to avoid method calls
+            my $sum_pr = $sum_pr_cache{$child->get_name};
             $sum_subtree += $length * $sum_pr * $mhyperg;
+            $sum_pr_cache{$name} += $sum_pr;
 
             my $sl_len_hash = $child->_get_len_sum_by_tip_count_hash;
             foreach my $sl (keys %$sl_len_hash) {

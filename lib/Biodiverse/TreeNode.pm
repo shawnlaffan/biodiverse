@@ -2567,45 +2567,6 @@ sub get_nri_all_weights {
     return $value;
 }
 
-#  eventually the NTI sd calcs can be moved back into Bd::Tree,
-#  but for now we need a recursive approach
-my $nti_sum_of_products_cache_name = 'NTI_SUM_OF_PRODUCTS_BELOW';
-
-sub get_nti_sum_of_products_below {
-    my ($self) = @_;
-
-    my $value
-      = $self->get_cached_value ($nti_sum_of_products_cache_name);
-
-    return $value if defined $value;
-
-    #  run through the tree, calculating the sums
-    #  no need to worry about LCA in this case
-    $self->get_root_node->_calc_nti_sum_of_products_below;
-
-    return $self->get_cached_value ($nti_sum_of_products_cache_name);
-}
-
-#  a bit messy - could do externally adding to parents
-#  includees self now, need to change name
-sub _calc_nti_sum_of_products_below {
-    my ($self) = @_;
-
-    my $sum = 0;
-    foreach my $child ($self->get_children) {
-        $sum += $child->_calc_nti_sum_of_products_below;
-    }
-
-    $sum += $self->get_length * $self->get_terminal_element_count;
-
-    #  cache the values below
-    $self->set_cached_value ($nti_sum_of_products_cache_name => $sum);
-
-    #  and return ourselves plus the sum from below
-    return $sum;
-}
-
-
 sub _get_len_sum_by_tip_count_hash {
     my $self = shift;
 

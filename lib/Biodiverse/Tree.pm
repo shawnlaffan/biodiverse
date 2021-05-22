@@ -671,12 +671,17 @@ sub node_is_in_tree {
 
 sub get_terminal_nodes {
     my $self = shift;
-    my %node_list;
+    
+    my $cache = $self->get_cached_value ('TERMINAL_NODE_HASH');
+    return wantarray ? %$cache : $cache
+      if $cache;
 
+    my %node_list;
     foreach my $node_ref ( values %{ $self->get_node_hash } ) {
         next if !$node_ref->is_terminal_node;
         $node_list{ $node_ref->get_name } = $node_ref;
     }
+    $self->set_cached_value (TERMINAL_NODE_HASH => \%node_list);
 
     return wantarray ? %node_list : \%node_list;
 }

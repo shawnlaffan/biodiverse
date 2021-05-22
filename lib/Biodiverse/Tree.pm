@@ -3205,8 +3205,8 @@ sub get_nti_expected_sd {
     \my %sum_pr_cache    = $self->get_cached_value_dor_set_default_aa (NODE_SUM_OF_PRODUCTS => {});
     my %name_cache;  #  indexed by node ref, so cannot be stored on the tree
 
-    my @node_refs;
-    do {
+    \my @node_refs = $self->get_cached_value_dor_set_default_aa ('NTI_NODE_REFS' => []);
+    if (!@node_refs) {
         #  remove root from the array
         #  faster than a grep
         my $node_hash = $self->get_node_hash;
@@ -3214,6 +3214,7 @@ sub get_nti_expected_sd {
         @node_refs
           = keysort {$_->get_name}
             values %$node_hash;
+        $self->set_cached_value(NTI_NODE_REF_ARRAY => \@node_refs);
     };
 
     \my %by_se = $self->get_cached_value_dor_set_default_aa (NODE_NTI_LEN_CACHE => {});
@@ -3234,9 +3235,14 @@ sub get_nti_expected_sd {
         $sum_third_case,
         $sum_same_class_third_case);
 
-    my @nodes_by_depth
-      = rnkeysort {$_->get_depth}
-        @node_refs;
+    \my @nodes_by_depth
+      = $self->get_cached_value_dor_set_default_aa (
+            NTI_NODES_SORTED_BY_DEPTH => []
+        );
+    if (!@nodes_by_depth) {
+      @nodes_by_depth = rnkeysort {$_->get_depth} @node_refs;
+      $self->set_cached_value (NTI_NODES_SORTED_BY_DEPTH => \@nodes_by_depth);
+    }
 
     foreach my $node (@nodes_by_depth) {
         my $name = $node->get_name;
@@ -3349,13 +3355,14 @@ sub get_bnok_ratio_callback_one_val {
         my ($se) = @_;
 
         if ($se < $sr1) {
-            my $bnok_ratio
-              =      $ln_fac_arr[$s-$se]
+            return
+              exp (
+                     $ln_fac_arr[$s-$se]
                 - (  $ln_fac_arr[$r-1]
                    + $ln_fac_arr[$sr1 - $se]
                   )
-                - $bnok_sr;
-            return exp $bnok_ratio;            
+                - $bnok_sr
+              );            
         }
         elsif ($se == $sr1) {
             return $exp_bnok_sr;

@@ -3157,6 +3157,9 @@ sub get_nti_expected_mean {
     \my %tip_count_cache
       = $self->get_cached_value_dor_set_default_aa (NODE_TIP_COUNT_CACHE => {});
 
+    \my %len_cache
+      = $self->get_cached_value_dor_set_default_aa (NODE_LENGTH_CACHE => {});
+
     my $sum;
     my $node_hash = $self->get_node_hash;
     foreach my $name (keys %$node_hash) {
@@ -3164,7 +3167,7 @@ sub get_nti_expected_mean {
         my $se
           = $tip_count_cache{$name}
             //= $node->get_terminal_element_count;
-        $sum += $node->get_length
+        $sum += $len_cache{$name} //= $node->get_length
               * $se
               * $cb_bnok_one_arg->($se);
     }

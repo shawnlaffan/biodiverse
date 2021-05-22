@@ -3167,7 +3167,7 @@ sub get_nti_expected_mean {
         my $se
           = $tip_count_cache{$name}
             //= $node->get_terminal_element_count;
-        $sum += $len_cache{$name} //= $node->get_length
+        $sum += ($len_cache{$name} //= $node->get_length)
               * $se
               * $cb_bnok_one_arg->($se);
     }

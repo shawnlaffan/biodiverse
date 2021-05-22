@@ -3384,25 +3384,29 @@ sub get_bnok_ratio_callback_two_val {
     #  some precalcs
     my $exp_bnok_sr = exp -$bnok_sr;
     my $sr2 = $s - $r + 2;
+    my $rminus2 = $r - 2;
+    my %cache;
 
     #  close over a few vars
     my $sub = sub {
         #my ($se, $sl) = @_;
         my $sesl = $_[0] + $_[1];
 
-        return 0
+        return $cache{$sesl} if $cache{$sesl};
+        return $cache{$sesl} = 0
           if $sr2 < $sesl;
-        return $exp_bnok_sr
+        return $cache{$sesl} = $exp_bnok_sr
           if $sr2 == $sesl;
         #return ($r-1) / $exp_bnok_sr
         #  if $s - $se - $sl == $r-1;
-        my $bnok_ratio
-          =      $ln_fac_arr[$s   - $sesl]
-            - (  $ln_fac_arr[$r-2]
-               + $ln_fac_arr[$sr2 - $sesl]
-              )
-            - $bnok_sr;
-        return exp $bnok_ratio;
+        return
+          $cache{$sesl} =
+            exp (  $ln_fac_arr[$s   - $sesl]
+              - (  $ln_fac_arr[$rminus2]
+                 + $ln_fac_arr[$sr2 - $sesl]
+                )
+              - $bnok_sr
+            );
     };
 
     return $sub;

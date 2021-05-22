@@ -3253,7 +3253,7 @@ sub get_nti_expected_sd {
     }
 
     foreach my $node (@nodes_by_depth) {
-        my $name = $node->get_name;
+        my $name = $name_cache{$node} //= $node->get_name;
         my $length
           = $len_cache{$name}
             //= $node->get_length;
@@ -3267,9 +3267,8 @@ sub get_nti_expected_sd {
 
         $sum_pr_cache{$name} = $length * $se;
         foreach my $child ($node->get_children) {
-            #  could linearise sum_pr calculation
-            #  or just cache to avoid method calls
-            my $sum_pr = $sum_pr_cache{$child->get_name};
+            my $sum_pr
+              = $sum_pr_cache{$name_cache{$child} //= $child->get_name};
             $sum_subtree += $length * $sum_pr * $mhyperg;
             $sum_pr_cache{$name} += $sum_pr;
 

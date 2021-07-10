@@ -714,7 +714,10 @@ sub parse_newick {
             push @nodes_added, $node;
             #  add any relevant children
             if (scalar @$children_of_current_node) {
-                $node->add_children (children => $children_of_current_node);
+                $node->add_children (
+                    children => $children_of_current_node,
+                    is_treenodes => 1,  #  a silly argument name
+                );
             }
             #  reset name, length and children
             $$node_count ++;

@@ -232,11 +232,15 @@ sub set_length {
     return;
 }
 
+#sub set_length_aa {
+#    my ($self, $length) = @_;
+#    $self->{NODE_VALUES}{LENGTH} = 0 + ($length // $default_length);
+#    return;
+#}
 sub set_length_aa {
-    my ($self, $length) = @_;
-    $self->{NODE_VALUES}{LENGTH} = 0 + ($length // $default_length);
-    return;
+    $_[0]->{NODE_VALUES}{LENGTH} = 0 + ($_[1] // $default_length);
 }
+
 
 sub get_length {
     return $_[0]->{NODE_VALUES}{LENGTH} // $default_length;

@@ -1013,7 +1013,7 @@ sub calc_nri_nti_expected_values {
         my $cache      = $args{$cache_name};
         my $cached_scores = $cache->{$label_count};
 
-        if (!$cached_scores) {  #  need to calculate the scores
+        if ($ENV{BD_IGNORE_NTI_CACHE} || !$cached_scores) {  #  need to calculate the scores
             $cached_scores = $self->get_nri_nti_expected_values (
                 %args,
                 label_count => $label_count,

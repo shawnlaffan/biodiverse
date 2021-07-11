@@ -9,7 +9,8 @@ use strict;
 use warnings;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::MoreUtils qw /first_index/;
-use List::Util qw /sum min max uniq any/;
+use List::Util 1.54 qw /reductions sum min max uniq any/;
+
 use Ref::Util qw { :all };
 use Sort::Key qw /keysort rnkeysort/;
 use Sort::Key::Natural qw /natkeysort/;
@@ -3514,6 +3515,98 @@ sub get_labels {
     my $named_nodes = $self->get_named_nodes;
     return wantarray ? keys %$named_nodes : [keys %$named_nodes];
 }
+
+#  mean across the whole tree
+sub get_mean_nearest_neighbour_distance {
+    my $self = shift;
+
+    my $cache_key = 'MEAN_NEAREST_NBR_DIST';
+    my $mean_dist = $self->get_cached_value ('$cache_key');
+    return $mean_dist if defined $mean_dist;
+
+    #  keep the components on the tree
+    my $dist_cache_key = 'NEAREST_NBR_DISTANCE_CACHE';
+    my $dist_cache = $self->get_cached_value_dor_set_default_aa ($dist_cache_key => {});
+
+    my $terminals = $self->get_terminal_nodes;
+    
+    my $cum_path_cache = {};
+
+my $sum_sibs_searched = 0;
+my $terminals_searched = 0;
+my %terms_searched_hash;
+my $sibs_searched = 0;
+my %sib_dist_cache;
+my $cache_hit = 0;
+
+  TERMINAL:
+    foreach my $name (keys %$terminals) {
+        my $distance = $dist_cache->{$name};
+
+        next TERMINAL if defined $distance;
+
+        my $node = $terminals->{$name};
+
+        my $cum_path
+          = $cum_path_cache->{$name}
+            //= [reductions {$a+$b} $node->get_path_length_array_to_root_node_aa];
+
+        #  start one below as we increment at the start of the loop
+        my $target_idx = -@$cum_path - 1;
+        my ($min_dist, $orig_min_dist);
+
+      SIB_SEARCH:
+        while (!$node->is_root_node) {
+            $target_idx++;
+#say STDERR "XXXX $node";
+$sibs_searched++;
+            my $min_sib_dist = $sib_dist_cache{$node};
+            
+            if (defined $min_sib_dist) {
+                $cache_hit++;
+            }
+            if (!defined $min_sib_dist) {
+                my %sib_terminals
+                  = map {$_->get_terminal_elements}
+                    $node->get_siblings;
+
+                my @sib_dists;
+                foreach my $sib_name (keys %sib_terminals) {
+$terminals_searched++;
+$terms_searched_hash{$sib_name}++;
+                    my $sib_cum_path
+                      = $cum_path_cache->{$sib_name}
+                        //= [reductions {$a+$b} $self->get_node_ref_aa($sib_name)->get_path_length_array_to_root_node_aa];
+                    push @sib_dists, $sib_cum_path->[$target_idx];
+                }
+                $min_sib_dist = min (@sib_dists);
+say STDERR "min sib dist $min_sib_dist";
+                $sib_dist_cache{$node} = $min_sib_dist;
+            }
+            $min_dist //= $min_sib_dist + $cum_path->[$target_idx];
+            $min_dist = min ($min_dist, $min_sib_dist + $cum_path->[$target_idx]);
+            $orig_min_dist //= $min_dist;
+            #  end if the the parent's sibs cannot contain a shorter path 
+            last SIB_SEARCH
+              if 2 * $orig_min_dist < $cum_path->[1+$target_idx];
+            $node = $node->get_parent; 
+        }
+say STDERR "Sibs searched for $name: $sibs_searched";
+$sum_sibs_searched += $sibs_searched;
+        $dist_cache->{$name} = $min_dist;
+    }
+say STDERR "Total sibs searched:  $sum_sibs_searched";
+say STDERR "Total terms searched: $terminals_searched " . scalar keys %terms_searched_hash;
+say STDERR "Total nodes:  " . $self->get_node_count;
+say STDERR "Cache hit:  $cache_hit";
+say STDERR "=====";
+    my $mean = (sum values %$dist_cache) / scalar keys %$dist_cache;
+
+    $self->set_cached_value ($cache_key => $mean);
+
+    return $mean;
+}
+
 
 1;
 

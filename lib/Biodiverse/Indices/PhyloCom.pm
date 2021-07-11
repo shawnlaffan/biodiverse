@@ -746,98 +746,6 @@ sub get_phylo_mpd_mntd_matrix {
     return wantarray ? %results : \%results;
 }
 
-#
-#sub get_metadata_get_phylo_mean_nearest_neighbour_distances {
-#    my $self = shift;
-#
-#    my %metadata = (
-#        name        => 'get_phylo_mean_nearest_neighbour_distances',
-#        description => 'Calculate the mean shortest path to any other terminal, across all terminals',
-#        indices     => {
-#            MNTD_NEAREST_NEIGHBOURS => {
-#                description => 'MNTD nearest neighbours between terminals',
-#            },
-#        },
-#        required_args => ['tree_ref'],
-#        pre_calc_global => ['get_phylo_mpd_mntd_cum_path_length_cache',],
-#    );
-#
-#    return $metadata_class->new(\%metadata);
-#}
-
-sub get_phylo_mean_nearest_neighbour_distances {
-    my $self = shift;
-    my %args = @_;
-    
-    my $tree_ref = $args{tree_ref} // croak 'no tree_ref arg';
-
-    #  keep it on the tree
-    my $cache_key = 'NEAREST_NBR_DISTANCE_CACHE';
-    my $dist_cache = $tree_ref->get_cached_value_dor_set_default_aa ($cache_key => {});
-
-    my $cum_path_cache
-       = $args{MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE}
-      // croak 'Need MPD_MNTD_CUM_PATH_LENGTH_TO_ROOT_CACHE arg';
-
-    my $terminals = $tree_ref->get_terminal_nodes;
-
-my $sum_sibs_searched = 0;
-
-  TERMINAL:
-    foreach my $name (keys %$terminals) {
-        my $distance = $dist_cache->{$name};
-
-        next TERMINAL if defined $distance;
-
-        my $node = $terminals->{$name};
-
-        my $cum_path = $cum_path_cache->{$name}
-                    //= $self->_get_node_cum_path_sum_to_root(
-                      tree_ref => $tree_ref,
-                      label    => $name,
-                    );
-        #  start one below as we increment at the start of the loop
-        my $target_idx = -@$cum_path - 1;
-        my ($min_dist, $orig_min_dist);
-my $sibs_searched = 0;
-      SIB_SEARCH:
-        while (!$node->is_root_node) {
-            $target_idx++;
-            my %sib_terminals
-              = map {$_->get_terminal_elements}
-                $node->get_siblings;
-
-            foreach my $sib_name (keys %sib_terminals) {
-$sibs_searched++;
-                my $sibling = $sib_terminals{$sib_name};
-                my $sib_cum_path = $cum_path_cache->{$sib_name}
-                        //= $self->_get_node_cum_path_sum_to_root(
-                          tree_ref => $tree_ref,
-                          label    => $sib_name,
-                        );
-                my $dist = $cum_path->[$target_idx]
-                         + $sib_cum_path->[$target_idx];
-                $min_dist //= $dist;
-                $min_dist = min ($min_dist, $dist);
-            }
-            $orig_min_dist //= $min_dist;
-            #  end if the the parent's sibs cannot contain a shorter path 
-            last SIB_SEARCH
-              if 2 * $orig_min_dist < $cum_path->[1+$target_idx];
-            $node = $node->get_parent; 
-        }
-say STDERR "Sibs searched for $name: $sibs_searched";
-$sum_sibs_searched += $sibs_searched;
-        $dist_cache->{$name} = $min_dist;
-    }
-say STDERR "Total sibs searched: $sum_sibs_searched";
-say STDERR "=====";
-    my $mean = (sum values %$dist_cache) / scalar keys %$dist_cache;
-
-    return $mean;
-}
-
-
 #  currently only one cache across all NRI/NTI methods (respectively)
 #  Need to determine if one per method is needed (e.g. type 1, 2 & 3
 #  for the different weighting schemes).
@@ -1164,7 +1072,7 @@ sub get_nri_nti_expected_values {
     }
 
     if ($label_count == $tree->get_terminal_element_count && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}) {
-        $mntd_mean = $self->get_phylo_mean_nearest_neighbour_distances (%args);
+        $mntd_mean = $tree->get_mean_nearest_neighbour_distance;
         $mntd_sd   = 0;
 
         $results{$results_pfx . 'NTI_SAMPLE_MEAN'}  = $mntd_mean;

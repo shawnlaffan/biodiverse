@@ -11,7 +11,7 @@ use Test2::V0;
 use Biodiverse::Config;
 
 use Biodiverse::TestHelpers qw{
-    :runners :tree
+    :runners :tree :basedata
 };
 
 #  used to be a subset of the other phylocom test,
@@ -22,6 +22,7 @@ my $tree_ref = get_tree_object_from_sample_data();
 my $node = $tree_ref->get_node_ref_aa('Genus:sp19');
 $node->set_length_aa (0.2);
 my $root = $tree_ref->get_root_node;
+my $tree_ref_ultrametric1 = $tree_ref->clone;  #  need this later
 #  and add a multifurcating terminal
 my @extras;
 for my $i (1..5) {
@@ -60,6 +61,75 @@ run_indices_test1 (
     nri_nti_iterations   => 4999,
     #mpd_mntd_use_wts => 1,
 );
+
+my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000,200000]);
+my $overlay1 = {
+    PHYLO_NTI_SAMPLE_SD    => 0,
+    PHYLO_NTI_SAMPLE_MEAN  => 0.969045196864471,
+    PHYLO_NRI_NTI_SAMPLE_N => 0,
+    PHYLO_NRI_SAMPLE_MEAN  => 1.82139939667377,
+    PHYLO_NRI_SAMPLE_SD    => 0,
+};
+
+my %expected_results = (
+    1 => $overlay1,
+    2 => $overlay1,
+);
+
+run_indices_test1 (
+    calcs_to_test  => [qw/
+        calc_nri_nti_expected_values
+    /],
+    basedata_ref         => $bd,
+    tree_ref             => $tree_ref_ultrametric1,
+    prng_seed            => 123456,
+    #generate_result_sets => 1,
+    nri_nti_iterations   => 4999,
+    element_list1        => [$bd->get_groups],
+    expected_results     => \%expected_results,
+    #mpd_mntd_use_wts => 1,
+);
+
+
+do {
+    my $sp1 = $bd->add_spatial_output (name => 'NTI_max_N1');
+    my $sp2 = $bd->add_spatial_output (name => 'NTI_max_N2');
+    my $tree2 = $tree_ref_ultrametric1->clone;
+    $tree2->delete_cached_values;
+    $tree2->delete_cached_values_below;
+    srand 1234;
+    #  modify the tree
+    foreach my $node (sort {$a->get_name cmp $b->get_name} $tree2->get_node_refs) {
+        my $len = $node->get_length;
+        $node->set_length_aa (rand() * 10);
+        $node->set_length_aa (1);
+        
+        diag $node->get_name . " $len " . $node->get_length;
+    }
+    $sp1->run_analysis (
+        spatial_conditions => ['sp_select_all()'],
+        calculations       => ['calc_nri_nti1'],
+        tree_ref           => $tree2,
+    );
+    local $ENV{BD_NO_NTI_MAX_N_SHORTCUT} = 1;
+    $sp2->run_analysis (
+        spatial_conditions => ['sp_select_all()'],
+        calculations       => ['calc_nri_nti1'],
+        tree_ref           => $tree2,
+    );
+    my @groups = sort $bd->get_groups;
+    my $tgt_gp = $groups[0];
+    my $set1 = $sp1->get_list_ref (
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+    my $set2 = $sp2->get_list_ref (
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+    is $set1, $set2, 'get same NTI expectation with and without shortcut';
+};
+
 
 done_testing;
 

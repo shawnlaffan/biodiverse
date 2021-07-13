@@ -12,7 +12,7 @@ use List::MoreUtils qw /first_index/;
 use List::Util 1.54 qw /reductions sum min max uniq any/;
 
 use Ref::Util qw { :all };
-use Sort::Key qw /keysort rnkeysort/;
+use Sort::Key qw /keysort rnkeysort rikeysort/;
 use Sort::Key::Natural qw /natkeysort/;
 use POSIX qw /floor ceil/;
 
@@ -3539,6 +3539,11 @@ sub get_mean_nearest_neighbour_distance {
     while ($root->get_child_count == 1) {
         my $child_arr = $root->get_children;
         $root = $child_arr->[0];
+    }
+    
+    #  warm up the caches to avoid recursion (should be conditional?)
+    foreach my $node (rikeysort {$_->get_depth} $self->get_node_refs) {
+        my $xx = $node->get_shortest_path_length_to_terminals_aa;
     }
 
   TERMINAL:

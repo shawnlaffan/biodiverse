@@ -3525,12 +3525,13 @@ sub get_mean_nearest_neighbour_distance {
     return $mean_dist if defined $mean_dist;
 
     #  keep the components on the tree
-    my $dist_cache_key = 'NEAREST_NBR_DISTANCE_CACHE';
-    my $dist_cache = $self->get_cached_value_dor_set_default_aa ($dist_cache_key => {});
+    my $dist_cache = $self->get_cached_value_dor_set_default_aa (
+        NEAREST_NBR_DISTANCE_CACHE => {},
+    );
 
     my $terminals = $self->get_terminal_nodes;
     
-    my $cum_path_cache = {};
+    my %cum_path_cache;
 
     my %sib_dist_cache;
 
@@ -3555,12 +3556,12 @@ sub get_mean_nearest_neighbour_distance {
         my $node = $terminals->{$name};
 
         my $cum_path
-          = $cum_path_cache->{$name}
+          = $cum_path_cache{$name}
             //= [reductions {$a+$b} $node->get_path_length_array_to_root_node_aa];
 
         #  start one below as we increment at the start of the loop
         my $target_idx = -@$cum_path - 1;
-        my ($min_dist, $orig_min_dist);
+        my $min_dist;
 
 
       SIB_SEARCH:
@@ -3582,25 +3583,12 @@ sub get_mean_nearest_neighbour_distance {
                 $sib_dist_cache{$node} = $min_sib_dist;
             }
             
-            #if (!defined $min_sib_dist) {
-            #    my %sib_terminals
-            #      = map {$_->get_terminal_elements}
-            #        $node->get_siblings;
-            #
-            #    my @sib_dists;
-            #    foreach my $sib_name (keys %sib_terminals) {
-            #        my $sib_cum_path
-            #          = $cum_path_cache->{$sib_name}
-            #            //= [reductions {$a+$b} $self->get_node_ref_aa($sib_name)->get_path_length_array_to_root_node_aa];
-            #        push @sib_dists, $sib_cum_path->[$target_idx];
-            #    }
-            #    $min_sib_dist = min (@sib_dists);
-            #    $sib_dist_cache{$node} = $min_sib_dist;
-            #}
             $min_dist //= $min_sib_dist + $cum_path->[$target_idx];
             $min_dist = min ($min_dist, $min_sib_dist + $cum_path->[$target_idx]);
-            $orig_min_dist //= $min_dist;
-            #  end if the the parent's sibs cannot contain a shorter path 
+
+            #  end if the the parent's sibs cannot contain a shorter path
+            #  i.e., even if the parent has zero-length sibs,
+            #  its own length is too great
             last SIB_SEARCH
               if $min_dist < $cum_path->[1+$target_idx];
             $node = $node->get_parent; 

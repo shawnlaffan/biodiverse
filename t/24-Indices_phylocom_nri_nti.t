@@ -97,15 +97,24 @@ do {
     my $tree2 = $tree_ref_ultrametric1->clone;
     $tree2->delete_cached_values;
     $tree2->delete_cached_values_below;
-    srand 1234;
+    #srand 1234;
     #  modify the tree
     foreach my $node (sort {$a->get_name cmp $b->get_name} $tree2->get_node_refs) {
         my $len = $node->get_length;
-        $node->set_length_aa (rand() * 10);
+        #$node->set_length_aa (rand() * 10);
         $node->set_length_aa (1);
         
-        diag $node->get_name . " $len " . $node->get_length;
+        #diag $node->get_name . " $len " . $node->get_length;
     }
+    #  add some single child parents to the root so we test such danglers
+    my $root1 = $tree2->get_root_node;
+    my $dangler1 = $tree2->add_node (name => 'dangletop1', length => 1);
+    my $dangler2 = $tree2->add_node (name => 'dangletop2', length => 1);
+    $dangler2->add_children(children => [$dangler1]);
+    $dangler1->add_children(children => [$root1]);
+
+    my $rooter = $tree2->get_root_node->get_name;
+
     $sp1->run_analysis (
         spatial_conditions => ['sp_select_all()'],
         calculations       => ['calc_nri_nti1'],

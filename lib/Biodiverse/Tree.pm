@@ -3539,6 +3539,15 @@ my $sibs_searched = 0;
 my %sib_dist_cache;
 my $cache_hit = 0;
 
+    #  work with highest node with >1 children        
+    my $root = $self->get_root_node;
+    while ($root->get_child_count == 1) {
+        my $child_arr = $root->get_children;
+        $root = $child_arr->[0];
+    }
+
+#say STDERR "========\nROOT IS ". $root->get_name . "\n======\n";
+
   TERMINAL:
     foreach my $name (keys %$terminals) {
         my $distance = $dist_cache->{$name};
@@ -3555,32 +3564,53 @@ my $cache_hit = 0;
         my $target_idx = -@$cum_path - 1;
         my ($min_dist, $orig_min_dist);
 
+#$sibs_searched = 0;
+
       SIB_SEARCH:
-        while (!$node->is_root_node) {
+        while ($node ne $root) {
             $target_idx++;
 #say STDERR "XXXX $node";
-$sibs_searched++;
+#$sibs_searched++;
             my $min_sib_dist = $sib_dist_cache{$node};
-            
-            if (defined $min_sib_dist) {
-                $cache_hit++;
+
+            if (!defined $min_sib_dist) {
+                my @sibs = $node->get_siblings;
+                if (!@sibs) {
+                    $node = $node->get_parent;
+                    next SIB_SEARCH;
+                }
+                $min_sib_dist
+                  = min
+                    map {$_->get_shortest_path_length_to_terminals_aa}
+                    @sibs;
+#say STDERR "mindist $min_sib_dist " . $node->get_name;
             }
             if (!defined $min_sib_dist) {
+                my @sibs = $node->get_siblings;
+say STDERR "mindist NOT DEFINED YET " . $node->get_name;
+say STDERR "SIBS ARE " . join ' ', @sibs;
+            }
+            
+            if (!defined $min_sib_dist) {
+say STDERR "MIN DIST NOT DEFINED YET $name " . $node->get_name;
                 my %sib_terminals
                   = map {$_->get_terminal_elements}
                     $node->get_siblings;
 
                 my @sib_dists;
                 foreach my $sib_name (keys %sib_terminals) {
-$terminals_searched++;
-$terms_searched_hash{$sib_name}++;
+#$terminals_searched++;
+#$terms_searched_hash{$sib_name}++;
                     my $sib_cum_path
                       = $cum_path_cache->{$sib_name}
                         //= [reductions {$a+$b} $self->get_node_ref_aa($sib_name)->get_path_length_array_to_root_node_aa];
                     push @sib_dists, $sib_cum_path->[$target_idx];
                 }
                 $min_sib_dist = min (@sib_dists);
-say STDERR "min sib dist $min_sib_dist";
+#say STDERR "min sib dist $min_sib_dist";
+#if (!defined $min_sib_dist) {
+#    say STDERR "Issues with $name";
+#}
                 $sib_dist_cache{$node} = $min_sib_dist;
             }
             $min_dist //= $min_sib_dist + $cum_path->[$target_idx];
@@ -3588,18 +3618,18 @@ say STDERR "min sib dist $min_sib_dist";
             $orig_min_dist //= $min_dist;
             #  end if the the parent's sibs cannot contain a shorter path 
             last SIB_SEARCH
-              if 2 * $orig_min_dist < $cum_path->[1+$target_idx];
+              if $min_dist < $cum_path->[1+$target_idx];
             $node = $node->get_parent; 
         }
-say STDERR "Sibs searched for $name: $sibs_searched";
-$sum_sibs_searched += $sibs_searched;
+#say STDERR "Sibs searched for $name: $sibs_searched";
+#$sum_sibs_searched += $sibs_searched;
         $dist_cache->{$name} = $min_dist;
     }
-say STDERR "Total sibs searched:  $sum_sibs_searched";
-say STDERR "Total terms searched: $terminals_searched " . scalar keys %terms_searched_hash;
-say STDERR "Total nodes:  " . $self->get_node_count;
-say STDERR "Cache hit:  $cache_hit";
-say STDERR "=====";
+#say STDERR "Total sibs searched:  $sum_sibs_searched";
+#say STDERR "Total terms searched: $terminals_searched " . scalar keys %terms_searched_hash;
+#say STDERR "Total nodes:  " . $self->get_node_count;
+#say STDERR "Cache hit:  $cache_hit";
+#say STDERR "=====";
     my $mean = (sum values %$dist_cache) / scalar keys %$dist_cache;
 
     $self->set_cached_value ($cache_key => $mean);

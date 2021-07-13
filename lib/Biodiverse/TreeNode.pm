@@ -362,6 +362,35 @@ sub get_longest_path_length_to_terminals {
     return $max_length;    
 }
 
+sub get_shortest_path_length_to_terminals {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+    return $self->get_shortest_path_length_to_terminals_aa (!$args{cache});
+}
+
+#  array args variant, uses no_cache to simplify cache flag logic
+sub get_shortest_path_length_to_terminals_aa {
+    my ($self, $no_cache) = @_;
+
+    if (!$no_cache) {
+        my $cached_length = $self->get_cached_value ('SHORTEST_PATH_LENGTH_TO_TERMINALS');
+        return $cached_length if defined $cached_length;
+    }
+
+    my $min_length = $self->get_length;
+    if (!$self->is_terminal_node) {
+        $min_length += min
+          map {$_->get_shortest_path_length_to_terminals}
+          $self->get_children;
+    }
+
+    if (!$no_cache) {
+        $self->set_cached_value (SHORTEST_PATH_LENGTH_TO_TERMINALS => $min_length);
+    }
+
+    return $min_length;    
+}
+
 #  get the maximum tree node position from zero
 sub get_max_total_length {
     my $self = shift;

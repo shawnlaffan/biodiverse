@@ -3520,8 +3520,8 @@ sub get_labels {
 sub get_mean_nearest_neighbour_distance {
     my $self = shift;
 
-    my $cache_key = 'MEAN_NEAREST_NBR_DIST';
-    my $mean_dist = $self->get_cached_value ('$cache_key');
+    state $cache_key = 'MEAN_NEAREST_NBR_DIST';
+    my $mean_dist = $self->get_cached_value ($cache_key);
     return $mean_dist if defined $mean_dist;
 
     #  keep the components on the tree

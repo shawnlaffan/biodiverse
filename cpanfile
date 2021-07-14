@@ -19,7 +19,7 @@ requires "JSON::MaybeXS", "1.003";
 requires "JSON::PP";
 requires "List::MoreUtils", "0.425";
 requires "List::Unique::DeterministicOrder";
-requires "List::Util", "1.45";
+requires "List::Util", "1.54";
 requires "Math::Polygon";
 requires "Math::Random::MT::Auto", "6.21";
 requires "Path::Class";

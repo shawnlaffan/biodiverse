@@ -353,13 +353,11 @@ sub do_basedata_attach_group_properties_from_rasters {
     $dlg->set_modal(1);
     
     my $response = $dlg->run;
-
-    return if !$response eq 'ok';
-    
     my @raster_list = $dlg->get_filenames();
-
     $dlg->destroy();
 
+    return if $response ne 'ok';
+    
     my $basedatas = $bd->assign_group_properties_from_rasters(
         rasters          => \@raster_list,
         #return_basedatas => $return_basedatas,
@@ -372,7 +370,7 @@ sub do_basedata_attach_group_properties_from_rasters {
       = "Assigned properties using $count rasters.\n"
       . "If not all are assigned then check the respective "
       . "extents and coordinate systems.";
-    my $summary_dlg  = Gtk2::MessageDialog->new(
+    my $summary_dlg = Gtk2::MessageDialog->new(
         $self->{gui},
         'destroy-with-parent',
         'info',    # message type

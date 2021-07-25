@@ -250,6 +250,17 @@ If that is the case then randomisations would be invalidated for those analyses.
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_attach_basedata_group_properties_from_rasters">
+            <property name="name">menu_attach_basedata_group_properties_from_rasters</property>
+            <property name="tooltip" translatable="yes">Attach properties (e.g. environmental conditions) to the groups.
+It will only work if your basedata has no analysis outputs,
+as these might have used existing properties.
+If that is the case then randomisations would be invalidated for those analyses.  </property>
+            <property name="label" translatable="yes">Attach group properties from a set of rasters</property>
+            <signal handler="on_basedata_attach_group_properties_from_rasters" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_attach_ranges_as_properties">
             <property name="name">menu_attach_ranges_as_properties</property>
             <property name="tooltip" translatable="yes">Attach the current label ranges as properties for each label.
@@ -751,6 +762,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_rename_basedata_groups"/>
           <menuitem action="menu_binarise_basedata_elements"/>
           <menuitem action="menu_attach_basedata_properties"/>
+          <menuitem action="menu_attach_basedata_group_properties_from_rasters"/>
           <menuitem action="menu_attach_ranges_as_properties"/>
           <menuitem action="menu_attach_abundances_as_properties"/>
           <menuitem action="menu_delete_element_properties"/>

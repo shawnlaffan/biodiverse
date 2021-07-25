@@ -286,6 +286,9 @@ my %data_funcs = (
     on_basedata_attach_properties => {
         METHOD => 'do_basedata_attach_properties',
     },
+    on_basedata_attach_group_properties_from_rasters => {
+        METHOD => 'do_basedata_attach_group_properties_from_rasters',
+    },
     on_basedata_attach_label_abundances_as_properties => {
         METHOD => 'do_basedata_attach_label_abundances_as_properties',
     },

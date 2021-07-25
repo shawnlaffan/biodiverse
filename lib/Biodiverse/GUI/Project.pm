@@ -1294,6 +1294,7 @@ sub manage_empty_basedatas {
           menu_rename_basedata_labels
           menu_rename_basedata_groups
           menu_attach_basedata_properties
+          menu_attach_basedata_group_properties_from_rasters
           menu_delete_element_properties
           menu_basedata_reorder_axes
           menu_basedata_drop_axes

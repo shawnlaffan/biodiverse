@@ -326,6 +326,68 @@ sub do_basedata_attach_properties {
     return;
 }
 
+sub do_basedata_attach_group_properties_from_rasters {
+    my $self = shift;
+
+    my $bd = $self->{project}->get_selected_base_data();
+    croak "Cannot add properties to Basedata with existing outputs\n"
+      . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
+      if $bd->get_output_ref_count;
+
+    
+    my $dlg = Gtk2::FileChooserDialog->new(
+        'Select one or more rasters',
+        undef,
+        'open',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+    $dlg->set_select_multiple(1);
+
+    my $filter = Gtk2::FileFilter->new();
+    $filter->set_name("raster files");
+    foreach my $extension (qw /tif tiff img asc flt/) {
+        $filter->add_pattern("*.$extension");
+    }
+    $dlg->add_filter($filter);
+    $dlg->set_modal(1);
+    
+    my $response = $dlg->run;
+
+    return if !$response eq 'ok';
+    
+    my @raster_list = $dlg->get_filenames();
+
+    $dlg->destroy();
+
+    my $basedatas = $bd->assign_group_properties_from_rasters(
+        rasters          => \@raster_list,
+        #return_basedatas => $return_basedatas,
+    );
+
+    $self->set_dirty();
+
+    my $count = @raster_list;
+    my $summary_text
+      = "Assigned properties using $count rasters.\n"
+      . "If not all are assigned then check the respective "
+      . "extents and coordinate systems.";
+    my $summary_dlg  = Gtk2::MessageDialog->new(
+        $self->{gui},
+        'destroy-with-parent',
+        'info',    # message type
+        'ok',      # which set of buttons?
+        $summary_text,
+    );
+    $summary_dlg->set_title('Assigned properties');
+
+    $summary_dlg->run;
+    $summary_dlg->destroy;
+
+    return;
+}
+
+
 sub do_delete_element_properties {
     my $self = shift;
     my $bd   = $self->{project}->get_selected_base_data;

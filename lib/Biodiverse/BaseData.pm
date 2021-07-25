@@ -17,6 +17,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util 1.45 qw /max min sum pairs uniq/;
 use List::MoreUtils qw /first_index/;
 use Path::Class;
+use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
@@ -704,6 +705,98 @@ sub _attach_label_ranges_or_counts_as_properties {
 
     return;
 }
+
+#  issue 761 - make this easier
+sub assign_group_properties_from_rasters {
+    my $self = shift;
+    my %args = @_;
+
+    #  Clean up in case we add different ones.
+    #  We cannot get the list here as we might
+    #  only be adding a subset of elements
+    my $gp_ref = $self->get_groups_ref;
+    $gp_ref->delete_cached_values;
+
+    my @cell_sizes   = $self->get_cell_sizes;
+    my @cell_origins = $self->get_cell_origins;
+    
+    croak 'Too many group axes.  Cannot attach group properties from raster'
+      if @cell_sizes > 2;
+    croak 'Insufficient group axes.  Cannot attach group properties from raster'
+      if @cell_sizes < 2;
+
+    my $return_basedatas = $args{return_basedatas};
+    my @raster_basedatas;
+    my @rasters = @{$args{rasters}};
+
+    my %common_args = (
+        labels_as_bands   => 0,
+        raster_origin_e   => $cell_origins[0],
+        raster_origin_n   => $cell_origins[1],
+        raster_cellsize_e => $cell_sizes[0],
+        raster_cellsize_n => $cell_sizes[1],
+    );
+    my %gp_prop_list_ref_cache; 
+    my $class = blessed $self;
+
+    foreach my $raster (@rasters) {
+        my $path = path ($raster);
+        my $raster_name = $path->basename;
+        $raster_name =~ s/\..+$//;
+
+        my $new_bd = $class->new(
+            NAME         => 'raster_props_from_' . $raster_name,
+            CELL_SIZES   => [@cell_sizes],
+            CELL_ORIGINS => [@cell_origins],
+        );
+        $new_bd->import_data_raster (
+            %common_args,
+            input_files => [$raster],
+        );
+        #  calculate the stats per cell
+        my $sp = $new_bd->add_spatial_output (
+            name => 'numeric_labels',
+        );
+        $sp->run_analysis (
+            spatial_conditions => ['sp_self_only()'],
+            calculations       => ['calc_numeric_label_stats'],
+        );
+
+        #  now extract the relevant stats
+        #  (just mean for now)
+      GROUP:
+        foreach my $gp ($self->get_groups) {
+            next GROUP if !$sp->exists_element_aa($gp);
+
+            my $sp_list = $sp->get_list_ref (
+                element    => $gp,
+                autovivify => 0,
+                list       => 'SPATIAL_RESULTS',
+            );
+            next GROUP if !$sp_list;
+
+            my $el_props = $gp_prop_list_ref_cache{$gp}
+              //= $gp_ref->get_list_ref (
+                element => $gp,
+                list    => 'PROPERTIES',
+            );
+
+            #  need to handle more than the mean
+            my $stat    = 'mean';
+            my $new_key = "${raster_name}_${stat}";
+            my $old_key = 'NUM_MEAN';
+            $el_props->{$new_key} = $sp_list->{$old_key};
+        }
+        if ($return_basedatas) {
+            push @raster_basedatas, $new_bd;
+        }
+    }
+
+    return wantarray ? @raster_basedatas : \@raster_basedatas
+      if $return_basedatas;
+    return;
+}
+
 
 sub assign_element_properties {
     my $self = shift;

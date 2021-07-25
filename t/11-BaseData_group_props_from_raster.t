@@ -103,17 +103,32 @@ sub test_group_props_from_rasters {
       'labels are numeric for second property raster';
 
     my $gp_ref = $bd->get_groups_ref;
-    foreach my $gp (sort $bd->get_groups) {
+    my %samplers = (
+        '45:15' => {
+            propdata000_mean => 43.5,
+        },
+        '35:5' => {
+            propdata000_mean => 33.5,
+            propdata001_mean => 29,
+        },
+        '15:25' => {
+            propdata000_mean => 13.5,
+            propdata001_mean => 13.5,
+        },
+    );
+    foreach my $gp (sort keys %samplers) {
         my $props_list = $gp_ref->get_list_ref (
             list       => 'PROPERTIES',
             element    => $gp,
             autovivify => 0,
         );
-        #diag $gp;
-        diag "$gp: " . join ' ', (%{$props_list || {}});
+        is $props_list,
+           $samplers{$gp},
+           "got expected group properties for $gp";
+        #diag "$gp: " . join ' ', (%{$props_list || {}});
     }
     
-    say @prop_bds;
+    #say @prop_bds;
     
 }
 

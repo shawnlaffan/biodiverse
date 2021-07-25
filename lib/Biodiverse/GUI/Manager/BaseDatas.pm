@@ -353,9 +353,13 @@ sub do_basedata_attach_group_properties_from_rasters {
     $dlg->set_modal(1);
     
     my $vbox = $dlg->get_content_area;
+
     my $checkbox  = Gtk2::CheckButton->new;
-    my $chk_label = Gtk2::Label->new ('Add property rasters to project?');
+    my $chk_label = Gtk2::Label->new (
+        'Add intermediate property basedatas to project?'
+    );
     $chk_label->set_alignment(1, 0.5);
+    
     my $hbox = Gtk2::HBox->new;
     $hbox->set_homogeneous (0);
     $hbox->pack_start ($chk_label, 1, 1, 0);
@@ -385,9 +389,11 @@ sub do_basedata_attach_group_properties_from_rasters {
 
     my $count = @raster_list;
     my $summary_text
-      = "Assigned properties using $count rasters.\n"
-      . "If not all are assigned then check the respective "
-      . "extents and coordinate systems.";
+      = "Assigned properties using $count rasters.\n\n"
+      . "If not all properties are assigned then check "
+      . "the respective extents and coordinate systems. "
+      . "Adding the intermediate property basedatas to "
+      . "the project can be an effective means of doing this.";
     my $summary_dlg = Gtk2::MessageDialog->new(
         $self->{gui},
         'destroy-with-parent',

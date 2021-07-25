@@ -352,16 +352,34 @@ sub do_basedata_attach_group_properties_from_rasters {
     $dlg->add_filter($filter);
     $dlg->set_modal(1);
     
+    my $vbox = $dlg->get_content_area;
+    my $checkbox  = Gtk2::CheckButton->new;
+    my $chk_label = Gtk2::Label->new ('Add property rasters to project?');
+    $chk_label->set_alignment(1, 0.5);
+    my $hbox = Gtk2::HBox->new;
+    $hbox->set_homogeneous (0);
+    $hbox->pack_start ($chk_label, 1, 1, 0);
+    $hbox->pack_start ($checkbox, 1, 1, 0);
+    $vbox->pack_start ($hbox, 0, 1, 0);
+    $hbox->show_all;
+
     my $response = $dlg->run;
     my @raster_list = $dlg->get_filenames();
+    my $return_basedatas = $checkbox->get_active;
     $dlg->destroy();
 
     return if $response ne 'ok';
     
     my $basedatas = $bd->assign_group_properties_from_rasters(
         rasters          => \@raster_list,
-        #return_basedatas => $return_basedatas,
+        return_basedatas => $return_basedatas,
     );
+
+    if ($return_basedatas) {
+        foreach my $bd (@$basedatas) {
+            $self->get_project->add_base_data($bd);
+        }
+    }
 
     $self->set_dirty();
 

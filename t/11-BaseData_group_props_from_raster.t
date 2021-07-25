@@ -64,18 +64,28 @@ sub test_group_props_from_rasters {
     }
 
     #  need to generate some raster data
+    my @raster_params = (
+        {
+            ncols => 50,
+            nrows => 50,
+        },
+        {
+            ncols => 30,
+            nrows => 30,
+        },
+    );
     my @rasters;
     my $dir = tempdir('gp_property_rasters');
-    foreach my $n (1..2) {
+    foreach my $n (0..1) {
         my $tiff_name = sprintf "propdata%03i.tif", $n;
+        my $local_params = $raster_params[$n];
         my $tiff = get_raster(
             name    => "$dir/$tiff_name",
-            ncols   => 50,
-            nrows   => 50,
             xorigin => 0,
             yorigin => 0,
             xres    => 1,
             yres    => 1,
+            %$local_params,
         );
         push @rasters, $tiff;
     }
@@ -85,7 +95,13 @@ sub test_group_props_from_rasters {
         rasters => \@rasters,
         return_basedatas => 1,
     );
-      
+
+    is scalar @prop_bds, 2, 'Got expected number of property basedatas';
+    ok $prop_bds[0]->labels_are_numeric,
+      'labels are numeric for first property raster';
+    ok $prop_bds[1]->labels_are_numeric,
+      'labels are numeric for second property raster';
+
     my $gp_ref = $bd->get_groups_ref;
     foreach my $gp (sort $bd->get_groups) {
         my $props_list = $gp_ref->get_list_ref (

@@ -63,7 +63,8 @@ END_OF_DESC
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
+    foreach my $prop (keys %prop_hash_names) {
+        my $list_name = $prop_hash_names{$prop};
         $list_name =~ s/DATA$/HASH2/;
         $indices{$list_name} = {
             description => 'Hash of values for property ' . $prop,
@@ -93,7 +94,8 @@ sub calc_lbprop_hashes_abc2 {
     my %objects = %{$args{LBPROP_STATS_OBJECTS_ABC2}};
     my %results;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my @data = $stats_object->get_data();
         my $key = $prop;
         $key =~ s/DATA$/HASH2/;
@@ -140,7 +142,8 @@ sub calc_lbprop_stats_abc2 {
     my %objects = %{$args{LBPROP_STATS_OBJECTS_ABC2}};
     my %res;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my $pfx = $prop;
         $pfx =~ s/DATA$//;
         $pfx =~ s/^LBPROP_STATS_//;
@@ -235,7 +238,8 @@ sub calc_lbprop_gistar_abc2 {
     my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED};
     my %local_objects = %{$args{LBPROP_STATS_OBJECTS_ABC2}};
 
-    while (my ($prop, $global_data) = each %$global_hash) {
+    foreach my $prop (keys %$global_hash) {
+        my $global_data = $global_hash->{$prop};
         #  bodgy - need generic method
         my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
 

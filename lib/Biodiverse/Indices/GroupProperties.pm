@@ -67,7 +67,8 @@ sub get_gpp_stats_objects {
         next GROUP if ! defined $properties;
 
         PROPERTY:
-        while (my ($prop, $value) = each %$properties) {
+        foreach my $prop (keys %$properties) {
+            my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
             my $data_ref = $data{$prop};
@@ -140,8 +141,8 @@ sub get_metadata_calc_gpprop_lists {
 
     my %indices;
     my %prop_hash_names = $self->_get_gpprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
-        $indices{$list_name} = {
+    foreach my $prop (keys %prop_hash_names) {
+        $indices{$prop_hash_names{$prop}} = {
             description => 'List of values for property ' . $prop,
             type        => 'list',
         };
@@ -165,11 +166,7 @@ sub calc_gpprop_lists {
 
     #  just grab the hash from the precalc results
     my %objects = %{$args{GPPROP_STATS_OBJECTS}};
-    my %results;
-
-    while (my ($prop, $stats_object) = each %objects) {
-        $results{$prop} = [ $stats_object->get_data() ];
-    }
+    my %results = map {$_ => [$objects{$_}->get_data]} keys %objects;
 
     return wantarray ? %results : \%results;
 }
@@ -185,7 +182,8 @@ sub get_metadata_calc_gpprop_hashes {
 
     my %indices;
     my %prop_hash_names = $self->_get_gpprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
+    foreach my $prop (keys %prop_hash_names) {
+        my $list_name = $prop_hash_names{$prop};
         $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
             description => 'Hash of values for property ' . $prop,
@@ -215,7 +213,8 @@ sub calc_gpprop_hashes {
     my %objects = %{$args{GPPROP_STATS_OBJECTS}};
     my %results;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my @data = $stats_object->get_data();
         my $key = $prop;
         $key =~ s/DATA$/HASH/;
@@ -265,14 +264,12 @@ sub calc_gpprop_stats {
     my %objects = %{$args{GPPROP_STATS_OBJECTS}};
     my %res;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my $pfx = $prop;
         $pfx =~ s/DATA$//;
         $pfx =~ s/^GPPROP_STATS_//;
         foreach my $stat (@stats) {
-            #my $stat_name = exists $stat_name_short{$stat}
-            #            ? $stat_name_short{$stat}
-            #            : $stat;
             my $stat_name = $stat;
 
             $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
@@ -363,7 +360,8 @@ sub calc_gpprop_gistar {
     my $global_hash   = $args{GPPROP_GLOBAL_SUMMARY_STATS};
     my %local_objects = %{$args{GPPROP_STATS_OBJECTS}};
 
-    while (my ($prop, $global_data) = each %$global_hash) {
+    foreach my $prop (keys %$global_hash) {
+        my $global_data = $global_hash->{$prop};
         #  bodgy - need generic method
         my $local_data = $local_objects{'GPPROP_STATS_' . $prop . '_DATA'};
 

@@ -1784,14 +1784,16 @@ sub get_element_properties_summary_stats {
 
     foreach my $element ($self->get_element_list) {    
         my %p = $self->get_element_properties(element => $element);
-        while (my ($prop, $data) = each %stats_data) {
-            next if ! defined $p{$prop};
+        foreach my $prop (grep {defined $p{$_}} keys %stats_data) {
+            #next if ! defined $p{$prop};
+            my $data = $stats_data{$prop};
             my $weight = $range_weighted ? $bd->get_range (element => $element) : 1;
             push @$data, ($p{$prop}) x $weight;
         }
     }
 
-    while (my ($prop, $data) = each %stats_data) {
+    foreach my $prop (keys %stats_data) {
+        my $data = $stats_data{$prop};
         next if not scalar @$data;
 
         my $stats_object = $stats_class->new;

@@ -10,8 +10,8 @@ use Ref::Util qw { :all };
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
-
-#use Data::Dumper;
+#use Statistics::Descriptive::PDL;
+#my $stats_class = 'Statistics::Descriptive::PDL';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -66,7 +66,8 @@ sub get_lbp_stats_objects {
         my $count = $label_hash_all->{$label};
 
         PROPERTY:
-        while (my ($prop, $value) = each %$properties) {
+        foreach my $prop (keys %$properties) {
+            my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
             my $data_ref = $data{$prop};
@@ -120,8 +121,8 @@ sub get_metadata_calc_lbprop_lists {
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
-        my $l = $list_name;
+    foreach my $prop (keys %prop_hash_names) {
+        my $l = $prop_hash_names{$prop};
         $l =~ s/STATS/LIST/;
         $l =~ s/_DATA$//;
         $indices{$l} = {
@@ -176,7 +177,8 @@ sub get_metadata_calc_lbprop_data {
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
+    foreach my $prop (keys %prop_hash_names) {
+        my $list_name = $prop_hash_names{$prop};
         $indices{$list_name} = {
             description => 'List of data for property ' . $prop,
             type        => 'list',
@@ -203,7 +205,8 @@ sub calc_lbprop_data {
     my %objects = %{$args{LBPROP_STATS_OBJECTS}};
     my %results;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         $results{$prop} = [ $stats_object->get_data() ];
     }
 
@@ -221,7 +224,8 @@ sub get_metadata_calc_lbprop_hashes {
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $list_name) = each %prop_hash_names) {
+    foreach my $prop (keys %prop_hash_names) {
+        my $list_name = $prop_hash_names{$prop};
         $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
             description => 'Hash of values for property ' . $prop,
@@ -253,7 +257,8 @@ sub calc_lbprop_hashes {
     my %objects = %{$args{LBPROP_STATS_OBJECTS}};
     my %results;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my @data = $stats_object->get_data();
         my $key = $prop;
         $key =~ s/DATA$/HASH/;
@@ -303,14 +308,12 @@ sub calc_lbprop_stats {
     my %objects = %{$args{LBPROP_STATS_OBJECTS}};
     my %res;
 
-    while (my ($prop, $stats_object) = each %objects) {
+    foreach my $prop (keys %objects) {
+        my $stats_object = $objects{$prop};
         my $pfx = $prop;
         $pfx =~ s/DATA$//;
         $pfx =~ s/^LBPROP_STATS_//;
         foreach my $stat (@stats) {
-            #my $stat_name = exists $stat_name_short{$stat}
-            #            ? $stat_name_short{$stat}
-            #            : $stat;
             my $stat_name = $stat;
 
             $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
@@ -401,7 +404,8 @@ sub calc_lbprop_gistar {
     my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS};
     my %local_objects = %{$args{LBPROP_STATS_OBJECTS}};
 
-    while (my ($prop, $global_data) = each %$global_hash) {
+    foreach my $prop (keys %$global_hash) {
+        my $global_data = $global_hash->{$prop};
         #  bodgy - need generic method
         my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
 

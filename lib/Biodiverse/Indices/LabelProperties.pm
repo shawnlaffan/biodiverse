@@ -8,10 +8,9 @@ our $VERSION = '3.1';
 
 use Ref::Util qw { :all };
 
-use Statistics::Descriptive::PDL;
-use Statistics::Descriptive::PDL::Weighted '0.11';
+use Statistics::Descriptive::PDL '0.12';
 my $stats_class = 'Statistics::Descriptive::PDL';
-#$stats_class = 'Statistics::Descriptive::PDL::Weighted';
+$stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
 #  could be a method from the stats class
 my $use_weighted_stats = $stats_class =~ /Weighted$/;
 
@@ -67,6 +66,7 @@ sub get_lbp_stats_objects {
         next LABEL if !defined $properties;
 
         my $count = $label_hash_all->{$label};
+
         PROPERTY:
         foreach my $prop (keys %$properties) {
             my $value = $properties->{$prop};
@@ -78,17 +78,16 @@ sub get_lbp_stats_objects {
             }
             else {
                 my $data_ref = $data{$prop} //= [];
-                push @$data_ref, ($value) x $count;  #  allow for possible calc_abc3 dependency
+                #  allow for possible calc_abc3 dependency
+                push @$data_ref, ($value) x $count;
             }
         }
     }
-    
+
     ADD_DATA_TO_STATS_OBJECTS:
-    foreach my $prop (keys %data) {
+    foreach my $prop (sort keys %data) {
         my $stats_key = $self->_get_lbprop_stats_hash_key(property => $prop);
-        my $stats = $stats_objects{$stats_key};
-        my $data_ref = $data{$prop};
-        $stats->add_data($data_ref);
+        $stats_objects{$stats_key}->add_data($data{$prop});
     }
 
     my %results = (

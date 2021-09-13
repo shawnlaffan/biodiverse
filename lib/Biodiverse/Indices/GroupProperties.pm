@@ -384,13 +384,13 @@ sub _get_gistar_score {
     my $global_data = $args{global_data};
     my $local_data  = $args{local_data};
 
+    my $sum = $local_data->sum;
+    return if !defined $sum;
+
     my $n  = $global_data->{count};  #  these are hash values
     my $W  = $local_data->count;     #  these are objects
     my $S1 = $W;  #  binary weights here
-    my $sum = $local_data->sum;
     my $expected = $W * $global_data->{mean};
-
-    return if !defined $sum;
 
     my $numerator = $sum - $expected;
 

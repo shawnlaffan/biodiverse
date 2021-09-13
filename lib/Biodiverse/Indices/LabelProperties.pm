@@ -12,6 +12,9 @@ use Statistics::Descriptive::PDL;
 use Statistics::Descriptive::PDL::Weighted '0.11';
 my $stats_class = 'Statistics::Descriptive::PDL';
 #$stats_class = 'Statistics::Descriptive::PDL::Weighted';
+#  could be a method from the stats class
+my $use_weighted_stats = $stats_class =~ /Weighted$/;
+
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -69,7 +72,7 @@ sub get_lbp_stats_objects {
             my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
-            if ($stats_class =~ /Weighted$/) {
+            if ($use_weighted_stats) {
                 my $data_ref = $data{$prop} //= {};
                 $data_ref->{$value} += $count;
             }
@@ -211,7 +214,7 @@ sub calc_lbprop_data {
     my %results;
 
     foreach my $prop (keys %objects) {
-        if ($stats_class =~ /Weighted$/) {
+        if ($use_weighted_stats) {
             my ($values, $wts) = $objects{$prop}->get_data;
             $results{$prop} = [ map {($values->[$_]) x $wts->[$_]} (0..$#$values) ];
         }

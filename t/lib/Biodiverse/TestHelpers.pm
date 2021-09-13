@@ -1170,7 +1170,7 @@ sub run_indices_test1_inner {
         $indices->run_calculations(%$calc_args, %elements);
     };
     $e = $EVAL_ERROR;
-    note $e if $e;
+    diag $e if $e;
     ok (!$e, "Ran calculations without eval error, $nbr_list_count nbrs");
 
     eval {

@@ -1093,7 +1093,7 @@ sub print_indices_result_set_to_fh {
     );
 
     say   {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
-    say   {$fh} $dest_string;
+    say   {$fh} $dest_string // '';
     print {$fh} "\n";
     #say '#' x 20;
 

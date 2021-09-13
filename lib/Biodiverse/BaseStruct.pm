@@ -38,6 +38,7 @@ use parent qw /
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
+use Statistics::Descriptive::PDL::SampleWeighted;
 
 my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
 use Biodiverse::Metadata::BaseStruct;
@@ -1779,22 +1780,23 @@ sub get_element_properties_summary_stats {
 
     my %stats_data;
     foreach my $prop_name ($self->get_element_property_keys) {
-        $stats_data{$prop_name} = [];
+        $stats_data{$prop_name} = {};
     }
 
-    foreach my $element ($self->get_element_list) {    
+    foreach my $element ($self->get_element_list) {
         my %p = $self->get_element_properties(element => $element);
+        my $weight = $range_weighted ? $bd->get_range (element => $element) : 1;
         foreach my $prop (grep {defined $p{$_}} keys %stats_data) {
-            #next if ! defined $p{$prop};
-            my $data = $stats_data{$prop};
-            my $weight = $range_weighted ? $bd->get_range (element => $element) : 1;
-            push @$data, ($p{$prop}) x $weight;
+            next if !defined $p{$prop};
+            $stats_data{$prop}->{$p{$prop}} += $weight;
         }
     }
 
+    #  temp override
+    my $stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
     foreach my $prop (keys %stats_data) {
         my $data = $stats_data{$prop};
-        next if not scalar @$data;
+        next if not keys %$data;
 
         my $stats_object = $stats_class->new;
         $stats_object->add_data($data);

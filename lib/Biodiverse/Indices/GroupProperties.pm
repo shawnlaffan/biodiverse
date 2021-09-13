@@ -12,6 +12,7 @@ our $VERSION = '3.1';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
+use Statistics::Descriptive::PDL::SampleWeighted;
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

@@ -6,11 +6,6 @@ use Carp;
 
 our $VERSION = '3.1';
 
-use Biodiverse::Statistics;
-my $stats_class = 'Biodiverse::Statistics';
-
-#use Data::Dumper;
-
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_get_lbp_stats_objects_abc2 {
@@ -95,13 +90,8 @@ sub calc_lbprop_hashes_abc2 {
     my %results;
 
     foreach my $prop (keys %objects) {
-        my $stats_object = $objects{$prop};
-        my @data = $stats_object->get_data();
-        my $key = $prop;
-        $key =~ s/DATA$/HASH2/;
-        foreach my $value (@data) {
-            $results{$key}{$value} ++;
-        }
+        my $key = ($prop =~ s/DATA$/HASH2/r);
+        $results{$key} = $objects{$prop}->get_data_as_hash();
     }
 
     return wantarray ? %results : \%results;
@@ -148,9 +138,7 @@ sub calc_lbprop_stats_abc2 {
         $pfx =~ s/DATA$//;
         $pfx =~ s/^LBPROP_STATS_//;
         foreach my $stat (@stats) {
-            my $stat_name = $stat;
-
-            $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
+            $res{$pfx . uc $stat} = eval {$stats_object->$stat};
         }
     }
 

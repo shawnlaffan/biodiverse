@@ -10,10 +10,7 @@ use Carp;
 
 our $VERSION = '3.1';
 
-use Biodiverse::Statistics;
-use Statistics::Descriptive::PDL;
-use Statistics::Descriptive::PDL::SampleWeighted;
-my $stats_class = 'Statistics::Descriptive::PDL';
+use Statistics::Descriptive::PDL::SampleWeighted '0.11';
 my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
@@ -317,8 +314,7 @@ sub calc_gpprop_quantiles {
     my %res;
 
     foreach my $prop (keys %$objects) {
-        my $pfx = $prop;
-        $pfx =~ s/DATA$/Q/;
+        my $pfx = ($prop =~ s/DATA$/Q/r);
         my @keys = map {$pfx . $_} @quantiles;
         @res{@keys} = $objects->{$prop}->percentiles(@quantiles);
     }

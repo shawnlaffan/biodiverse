@@ -48,7 +48,7 @@ requires "autovivification", "0.18";
 requires "parent";
 requires "rlib";
 #requires "Math::AnyNum";  #  until we don't
-requires "Statistics::Descriptive::PDL", "0.10";
+requires "Statistics::Descriptive::PDL", "0.11";
 
 suggests "Panda::Lib";
 suggests "Data::Recursive";

@@ -8,10 +8,10 @@ our $VERSION = '3.1';
 
 use Ref::Util qw { :all };
 
-use Biodiverse::Statistics;
-my $stats_class = 'Biodiverse::Statistics';
-#use Statistics::Descriptive::PDL;
-#my $stats_class = 'Statistics::Descriptive::PDL';
+use Statistics::Descriptive::PDL;
+use Statistics::Descriptive::PDL::Weighted '0.11';
+my $stats_class = 'Statistics::Descriptive::PDL';
+#$stats_class = 'Statistics::Descriptive::PDL::Weighted';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -51,7 +51,7 @@ sub get_lbp_stats_objects {
     foreach my $prop ($lb->get_element_property_keys) {
         my $key = $self->_get_lbprop_stats_hash_key(property => $prop);
         $stats_objects{$key} = $stats_class->new();
-        $data{$prop} = [];
+        $data{$prop} = undef;
     }
 
     #  loop over the labels and collect arrays of their elements.
@@ -64,14 +64,19 @@ sub get_lbp_stats_objects {
         next LABEL if !defined $properties;
 
         my $count = $label_hash_all->{$label};
-
         PROPERTY:
         foreach my $prop (keys %$properties) {
             my $value = $properties->{$prop};
             next PROPERTY if ! defined $value;
 
-            my $data_ref = $data{$prop};
-            push @$data_ref, ($value) x $count;  #  allow for possible calc_abc3 dependency
+            if ($stats_class =~ /Weighted$/) {
+                my $data_ref = $data{$prop} //= {};
+                $data_ref->{$value} += $count;
+            }
+            else {
+                my $data_ref = $data{$prop} //= [];
+                push @$data_ref, ($value) x $count;  #  allow for possible calc_abc3 dependency
+            }
         }
     }
     
@@ -206,8 +211,13 @@ sub calc_lbprop_data {
     my %results;
 
     foreach my $prop (keys %objects) {
-        my $stats_object = $objects{$prop};
-        $results{$prop} = [ $stats_object->get_data() ];
+        if ($stats_class =~ /Weighted$/) {
+            my ($values, $wts) = $objects{$prop}->get_data;
+            $results{$prop} = [ map {($values->[$_]) x $wts->[$_]} (0..$#$values) ];
+        }
+        else {
+            $results{$prop} = [ $objects{$prop}->get_data ];
+        }
     }
 
     return wantarray ? %results : \%results;
@@ -258,13 +268,8 @@ sub calc_lbprop_hashes {
     my %results;
 
     foreach my $prop (keys %objects) {
-        my $stats_object = $objects{$prop};
-        my @data = $stats_object->get_data();
-        my $key = $prop;
-        $key =~ s/DATA$/HASH/;
-        foreach my $value (@data) {
-            $results{$key}{$value} ++;
-        }
+        my $key = ($prop =~ s/DATA$/HASH/r);
+        $results{$key} = $objects{$prop}->get_data_as_hash;
     }
 
     return wantarray ? %results : \%results;

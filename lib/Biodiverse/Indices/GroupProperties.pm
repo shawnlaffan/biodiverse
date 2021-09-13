@@ -54,8 +54,8 @@ sub get_gpp_stats_objects {
     #  process the properties and generate the stats objects
     foreach my $prop ($gp->get_element_property_keys) {
         my $key = $self->_get_gpprop_stats_hash_key(property => $prop);
-        $stats_objects{$key} = $stats_class->new();
-        $data{$prop} = [];
+        $stats_objects{$key} = $stats_class_weighted->new();
+        $data{$prop} = {};
     }
 
     #  loop over the labels and collect arrays of their elements.
@@ -74,7 +74,7 @@ sub get_gpp_stats_objects {
             next PROPERTY if ! defined $value;
 
             my $data_ref = $data{$prop};
-            push @$data_ref, ($value) x $count;
+            $data_ref->{$value} += $count;
         }
     }
     
@@ -168,7 +168,13 @@ sub calc_gpprop_lists {
 
     #  just grab the hash from the precalc results
     my %objects = %{$args{GPPROP_STATS_OBJECTS}};
-    my %results = map {$_ => [$objects{$_}->get_data]} keys %objects;
+    #my %results = map {$_ => [$objects{$_}->get_data]} keys %objects;
+    my %results;
+    for my $prop (keys %objects) {
+        my ($values, $wts) = $objects{$prop}->get_data;
+        my @arr = map {($values->[$_]) x $wts->[$_]} (0..$#$values);
+        $results{$prop} = \@arr;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -216,13 +222,8 @@ sub calc_gpprop_hashes {
     my %results;
 
     foreach my $prop (keys %objects) {
-        my $stats_object = $objects{$prop};
-        my @data = $stats_object->get_data();
-        my $key = $prop;
-        $key =~ s/DATA$/HASH/;
-        foreach my $value (@data) {
-            $results{$key}{$value} ++;
-        }
+        my $key = ($prop =~ s/DATA$/HASH/r);
+        $results{$key} = $objects{$prop}->get_data_as_hash;
     }
 
     return wantarray ? %results : \%results;

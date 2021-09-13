@@ -151,7 +151,7 @@ sub calc_lbprop_lists {
 
     my $label_hash = $args{label_hash_all};
 
-    my $props = {};
+    my %results;
 
     foreach my $label (keys %$label_hash) {
         my $properties = $lb->get_element_properties (element => $label);
@@ -161,11 +161,9 @@ sub calc_lbprop_lists {
         foreach my $prop (keys %$properties) {
             my $key = 'LBPROP_LIST_' . $prop;
             
-            $props->{$key}{$label} = $properties->{$prop};
+            $results{$key}{$label} = $properties->{$prop};
         }
     }
-
-    my %results = %$props;
 
     return wantarray ? %results : \%results;
 }

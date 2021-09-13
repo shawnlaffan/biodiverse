@@ -11,12 +11,13 @@ use Carp;
 our $VERSION = '3.1';
 
 use Biodiverse::Statistics;
-my $stats_class = 'Biodiverse::Statistics';
+use Statistics::Descriptive::PDL;
 use Statistics::Descriptive::PDL::SampleWeighted;
+my $stats_class = 'Statistics::Descriptive::PDL';
+my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
-#use Data::Dumper;
 
 sub get_metadata_get_gpp_stats_objects {
     my $self = shift;

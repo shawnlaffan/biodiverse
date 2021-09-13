@@ -36,9 +36,11 @@ use parent qw /
     Biodiverse::BaseStruct::Export
 /;
 
-use Biodiverse::Statistics;
-my $stats_class = 'Biodiverse::Statistics';
+#use Biodiverse::Statistics;
+use Statistics::Descriptive::PDL;
 use Statistics::Descriptive::PDL::SampleWeighted;
+my $stats_class_weighted   = 'Statistics::Descriptive::PDL::SampleWeighted';
+my $stats_class_unweighted = 'Statistics::Descriptive::PDL';
 
 my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
 use Biodiverse::Metadata::BaseStruct;
@@ -1206,7 +1208,7 @@ sub get_list_value_stats {
     );
 
     if (scalar @data) {  #  don't bother if they are all undef
-        my $stats = $stats_class->new;
+        my $stats = $stats_class_unweighted->new;
         $stats->add_data (\@data);
 
         %stats_hash = (
@@ -1793,12 +1795,11 @@ sub get_element_properties_summary_stats {
     }
 
     #  temp override
-    my $stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
     foreach my $prop (keys %stats_data) {
         my $data = $stats_data{$prop};
         next if not keys %$data;
 
-        my $stats_object = $stats_class->new;
+        my $stats_object = $stats_class_weighted->new;
         $stats_object->add_data($data);
         foreach my $stat (qw /mean sum standard_deviation count/) { 
             $results{$prop}{$stat} = $stats_object->$stat;

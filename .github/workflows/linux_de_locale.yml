@@ -29,6 +29,18 @@ jobs:
         with:
           perl-version: '5.32'
 
+      - name: update apt get
+        run: |
+          sudo apt-get update
+
+      - name: gdal stack
+        run: |
+          sudo apt-get --yes install libgdal-dev
+
+      - name: cmake for geos
+        run: |
+          sudo apt-get --yes install cmake
+
       - name: Locale check
         run: |
           locale -a
@@ -49,7 +61,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20201024' >> perlversion.txt
+          echo '20210914' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

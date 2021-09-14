@@ -17,9 +17,6 @@ no warnings 'experimental::refaliasing';
 
 our $VERSION = '3.1';
 
-use Biodiverse::Statistics;
-my $stats_package = 'Biodiverse::Statistics';
-
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 

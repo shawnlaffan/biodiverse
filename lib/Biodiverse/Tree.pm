@@ -26,7 +26,7 @@ our $VERSION = '3.1';
 
 our $AUTOLOAD;
 
-use Statistics::Descriptive;
+use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
 use Biodiverse::Metadata::Export;
@@ -3615,7 +3615,7 @@ Biodiverse::????
 =head1 SYNOPSIS
 
   use Biodiverse::????;
-  $object = Biodiverse::Statistics->new();
+  $object = Biodiverse::Tree->new();
 
 =head1 DESCRIPTION
 

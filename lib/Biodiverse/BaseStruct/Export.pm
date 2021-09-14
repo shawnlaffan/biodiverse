@@ -28,9 +28,6 @@ my $EMPTY_STRING = q{};
 
 use parent qw /Biodiverse::Common/; #  access the common functions as methods
 
-use Biodiverse::Statistics;
-my $stats_class = 'Biodiverse::Statistics';
-
 my $metadata_class = 'Biodiverse::Metadata::BaseStruct';
 use Biodiverse::Metadata::BaseStruct;
 

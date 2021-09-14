@@ -31,9 +31,6 @@ use constant HAVE_DATA_RECURSIVE
 
 use parent qw /Biodiverse::Indices::Phylogenetic::RefAlias/;
 
-use Biodiverse::Statistics;
-my $stats_package = 'Biodiverse::Statistics';
-
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 

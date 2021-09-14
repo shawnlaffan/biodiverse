@@ -36,7 +36,7 @@ use parent qw /
     Biodiverse::BaseStruct::Export
 /;
 
-#use Biodiverse::Statistics;
+
 use Statistics::Descriptive::PDL;
 use Statistics::Descriptive::PDL::SampleWeighted;
 my $stats_class_weighted   = 'Statistics::Descriptive::PDL::SampleWeighted';

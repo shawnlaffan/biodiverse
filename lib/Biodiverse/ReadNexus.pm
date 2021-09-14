@@ -934,7 +934,7 @@ Biodiverse::????
 =head1 SYNOPSIS
 
   use Biodiverse::????;
-  $object = Biodiverse::Statistics->new();
+  $object = Biodiverse::ReadNexus->new();
 
 =head1 DESCRIPTION
 

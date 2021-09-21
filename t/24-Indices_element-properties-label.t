@@ -23,7 +23,7 @@ run_indices_test1 (
     /],
     use_element_properties => 'label',
     sort_array_lists       => 1,
-    generate_result_sets   => 1,
+    #generate_result_sets   => 1,
 );
 
 done_testing;

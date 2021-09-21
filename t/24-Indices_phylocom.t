@@ -47,7 +47,7 @@ run_indices_test1 (
     prng_seed          => 123456,
     nri_nti_iterations => 4999,
     calc_topic_to_test => 'PhyloCom Indices',
-    generate_result_sets => 1,
+    #generate_result_sets => 1,
 );
 
 done_testing;

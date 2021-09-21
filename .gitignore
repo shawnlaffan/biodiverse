@@ -6,3 +6,4 @@ nytprof.out
 /z_test_shapefiles
 /etc/experiments/polyintersect
 /tmp
+t/*.results

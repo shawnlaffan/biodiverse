@@ -228,16 +228,13 @@ sub calc_gpprop_hashes {
 
 
 my @stats     = qw /count mean min max median sum sd iqr/;
-my %stat_name_short = (
-    #standard_deviation => 'SD',
-);
 my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 
 sub get_metadata_calc_gpprop_stats {
     my $self = shift;
 
     my $desc = 'List of summary statistics for each group property across both neighbour sets';
-    my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
+    my $stats_list_text = '(' . join (q{ }, @stats) . ')';
 
     my %metadata = (
         description     => $desc,
@@ -286,7 +283,7 @@ sub get_metadata_calc_gpprop_quantiles {
     my $self = shift;
 
     my $desc = 'Quantiles for each group property across both neighbour sets';
-    my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
+    my $quantile_list_text = '(' . join (q{ }, @quantiles) . ')';
 
     my %metadata = (
         description     => $desc,

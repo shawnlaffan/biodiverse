@@ -279,16 +279,13 @@ sub calc_lbprop_hashes {
 
 
 my @stats     = qw /count mean min max median sum skewness kurtosis sd iqr/;
-#my %stat_name_short = (
-#    standard_deviation => 'SD',
-#);
 my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 
 sub get_metadata_calc_lbprop_stats {
     my $self = shift;
 
     my $desc = "List of summary statistics for each label property across both neighbour sets\n";
-    my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
+    my $stats_list_text = '(' . join (q{ }, @stats) . ')';
 
     my %metadata = (
         description     => $desc,
@@ -337,7 +334,7 @@ sub get_metadata_calc_lbprop_quantiles {
     my $self = shift;
 
     my $desc = "List of quantiles for each label property across both neighbour sets\n";
-    my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
+    my $quantile_list_text = '(' . join (q{ }, @quantiles) . ')';
 
     my %metadata = (
         description     => $desc,

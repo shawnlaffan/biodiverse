@@ -105,7 +105,7 @@ sub get_metadata_calc_lbprop_stats_abc2 {
     my $self = shift;
 
     my $desc = "List of summary statistics for each label property across both neighbour sets, weighted by local ranges\n";
-    my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
+    my $stats_list_text = '(' . join (q{ }, @stats) . ')';
 
     my %metadata = (
         description     => $desc,
@@ -152,7 +152,7 @@ sub get_metadata_calc_lbprop_quantiles_abc2 {
     my $self = shift;
 
     my $desc = "List of quantiles for each label property across both neighbour sets (local range weighted)\n";
-    my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
+    my $quantile_list_text = '(' . join (q{ }, @quantiles) . ')';
 
     my %metadata = (
         description     => $desc,

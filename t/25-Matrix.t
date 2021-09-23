@@ -278,7 +278,8 @@ sub test_import_sparse_format {
         run_main_tests ($class, $mx_from_sp);
     }
     
-    unlink $fname;
+    $mx->unlink_file (file_name => $fname)
+      or warn "Unable to unlink $fname";
 }
 
 sub run_deletions {

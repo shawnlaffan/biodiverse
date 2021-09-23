@@ -246,7 +246,7 @@ sub _test_import_shapefile_polygon {
     if (defined $exp) {
         is (int $got, int $exp, "total sample counts match for $orig_labels[0] in $fname, $info");
         #if ($got ne $exp) {
-            $new_bd->save_to (filename => './failure2.bds');
+            #$new_bd->save_to (filename => './failure2.bds');
         #}
         
     }

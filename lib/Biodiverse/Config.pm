@@ -72,6 +72,7 @@ BEGIN {
         Data::Compare
         List::Unique::DeterministicOrder
         Sort::Key::Natural
+        Statistics::Descriptive::PDL
     /;
     foreach my $module (@reqd) {
         if (not eval "require $module") {

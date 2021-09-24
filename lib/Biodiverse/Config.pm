@@ -5,6 +5,8 @@ use 5.010;
 use strict;
 use warnings;
 
+use Env qw /@PATH/;
+
 binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
@@ -56,10 +58,31 @@ END_OF_LICENSE
 BEGIN {
     if ($ENV{PAR_0}) {
         use Config;
-        $ENV{PATH} .= "$Config{path_sep}$ENV{PAR_TEMP}";
+        push @PATH, $ENV{PAR_TEMP};
     }
     #print $ENV{PATH};
 };
+
+#  Ensure the bin dirs for the aliens are at the front
+#  Crude, but we need to ensure we use the packaged aliens
+#  See GH issue #795 - https://github.com/shawnlaffan/biodiverse/issues/795
+#  An alternative approach is to elide the competing paths
+#  but that could lead to other issues
+BEGIN {
+    #  we don't really need all of them, but...
+    my @aliens = qw /
+        Alien::gdal   Alien::geos::af  Alien::sqlite
+        Alien::proj   Alien::libtiff   Alien::spatialite
+        Alien::freexl
+    /;
+    foreach my $alien_lib (@aliens) {
+        my $have_lib = eval "require $alien_lib";
+        if ($have_lib && $alien_lib->install_type eq 'share') {
+            unshift @PATH, $alien_lib->bin_dir;
+        }
+    }
+    #say STDERR join ' ', @PATH;
+}
 
 #  Check for installed dependencies and warn if not present.
 #  Useful when users are running off the source code install

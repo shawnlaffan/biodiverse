@@ -203,6 +203,7 @@ sub test_save_and_reload {
         "Data structures match for Storable freeze/thaw, $context_text",
     );
 
+    unlink $fname or warn "Unable to unlink $fname";
 }
 
 

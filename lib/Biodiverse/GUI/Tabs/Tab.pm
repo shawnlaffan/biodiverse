@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '3.1';
+our $VERSION = '3.99_001';
 
 use List::Util qw/min max/;
 use Scalar::Util qw /blessed/;

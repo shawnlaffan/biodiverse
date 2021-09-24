@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '3.1';
+our $VERSION = '3.99_001';
 
 use Gtk2;
 #use Biodiverse::RemapGuesser qw/guess_remap/;

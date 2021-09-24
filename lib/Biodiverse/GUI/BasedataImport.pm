@@ -7,7 +7,7 @@ use English ( -no_match_vars );
 
 use Carp;
 
-our $VERSION = '3.1';
+our $VERSION = '3.99_001';
 
 use File::Basename;
 use Gtk2;

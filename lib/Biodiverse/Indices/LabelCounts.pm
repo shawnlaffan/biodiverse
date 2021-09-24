@@ -5,7 +5,7 @@ use warnings;
 use 5.022;
 
 
-our $VERSION = '3.1';
+our $VERSION = '3.99_001';
 
 use Biodiverse::Statistics;
 

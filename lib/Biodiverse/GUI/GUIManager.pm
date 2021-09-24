@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '3.1';
+our $VERSION = '3.99_001';
 
 #use Data::Dumper;
 use Carp;

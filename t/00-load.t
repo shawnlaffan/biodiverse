@@ -59,9 +59,17 @@ foreach my $file (@files) {
 diag '';
 diag 'Aliens:';
 my %alien_versions;
-foreach my $alien (qw /Alien::gdal Alien::proj Alien::sqlite Alien::geos::af/) {
+my @aliens = qw /
+      Alien::gdal   Alien::geos::af  Alien::sqlite
+      Alien::proj   Alien::libtiff   Alien::spatialite
+      Alien::freexl
+/;
+foreach my $alien (@aliens) {
     eval "require $alien; 1";
-    next if $@;
+    if ($@) {
+         diag "$alien not installed";
+         next;
+    }
     diag sprintf "%s: version: %s, install type: %s", $alien, $alien->version, $alien->install_type;
     $alien_versions{$alien} = $alien->version;
 }

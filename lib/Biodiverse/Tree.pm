@@ -1136,7 +1136,7 @@ sub export_newick {
         mode      => '>',
     );
 
-    print {$fh} $self->to_newick(%args);
+    print {$fh} $self->to_newick(%args) . ';';
     $fh->close;
 
     return 1;

@@ -1178,6 +1178,7 @@ sub remove {
 
     eval {$self->{grid}->destroy()};
     $self->{grid} = undef;  #  convoluted, but we're getting reference cycles
+    $self->{project}->delete_selection_callback('phylogeny', $self->{phylogeny_callback});
 
     $self->SUPER::remove;
 

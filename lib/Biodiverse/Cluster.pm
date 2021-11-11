@@ -541,6 +541,40 @@ sub export_shapefile {
     return;
 }
 
+sub get_metadata_export_shapefile_grouped {
+    my $self = shift;
+
+    my $metadata = $self->get_metadata_export_shapefile;
+    $metadata->{format} = 'Shapefile grouped';
+    push @{$metadata->{parameters}},
+      $self->get_grouped_export_metadata;
+    splice @{$metadata->{parameters}}, 1, 1;  #  dirty hack
+
+    for (@{$metadata->{parameters}}) {
+        bless $_, $parameter_metadata_class;
+    }
+
+    return wantarray ? %$metadata : $metadata;    
+}
+
+sub export_shapefile_grouped {
+    my ($self, %args) = @_;
+
+    my $bs = $self->to_basestruct_group_nodes(
+        %args,
+        terminals_only    => 1,
+        #sub_list          => $args{list},
+    );
+    $bs->set_param(CELL_SIZES => scalar $self->get_basedata_ref->get_cell_sizes);
+
+    $bs->export_shapefile (
+        %args,
+        list          => 'node_data',
+        list_val_type => 'String',  # hacky that we need to set this
+    );
+
+    return;
+}
 
 #  some of this can be refactored wth Spatial::get_spatial_conditions_ref
 sub process_spatial_conditions_and_def_query {

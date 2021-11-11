@@ -740,7 +740,7 @@ sub export_shapefile {
     if (defined $list_name) {  # repeated polys per list item
         push @list_col_specs_gdal,
           {Name => 'KEY',   Type => 'String'},
-          {Name => 'VALUE', Type => 'Real'},
+          {Name => 'VALUE', Type => $args{list_val_type} // 'Real'},
     }
 
     my $layer = GetDriver('ESRI Shapefile')

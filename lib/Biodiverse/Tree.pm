@@ -1221,11 +1221,8 @@ sub export_tabular_tree {
     return 1;
 }
 
-sub get_metadata_export_table_grouped {
-    my ($self, %args) = @_;
-
-    my @parameters = (
-        $args{sub_list_meta} || $self->get_lists_export_metadata(),
+sub get_grouped_export_metadata {
+    my @params = (
         {
             name       => 'num_clusters',
             label_text => 'Number of groups',
@@ -1257,6 +1254,16 @@ sub get_metadata_export_table_grouped {
             type       => 'boolean',
             default    => 0,
         },
+    );
+
+    return wantarray ? @params : \@params;
+}
+
+sub get_metadata_export_table_grouped {
+    my ($self, %args) = @_;
+
+    my @parameters = (
+        $args{sub_list_meta} || $self->get_lists_export_metadata,
         {
             name       => 'symmetric',
             label_text => 'Force output table to be symmetric',
@@ -1290,7 +1297,8 @@ sub get_metadata_export_table_grouped {
             type       => 'boolean',
             default    => 1,
         },
-        $self->get_table_export_metadata(),
+        $self->get_grouped_export_metadata,
+        $self->get_table_export_metadata,
     );
 
     for (@parameters) {

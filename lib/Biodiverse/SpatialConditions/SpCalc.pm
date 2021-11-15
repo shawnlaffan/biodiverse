@@ -1508,7 +1508,32 @@ sub get_metadata_sp_points_in_same_poly_shape {
     my $self = shift;
     my %args = @_;
 
-    my $examples = 'NEED SOME EXAMPLES';
+    my $examples = <<'END_EXAMPLES';
+
+#  define neighbour sets using a shapefile
+sp_points_in_same_poly_shape (file => 'path/to/a/shapefile')
+
+#  return true when the neighbour coord is in the same
+#  polygon as an arbitrary point
+sp_points_in_same_poly_shape (
+    file   => 'path/to/a/shapefile',
+    point1 => [10,20],  
+)
+
+#  reverse the axes
+sp_points_in_same_poly_shape (
+    file => 'path/to/a/shapefile',
+    axes => [1,0], 
+)
+
+#  compare against the second and third axes of your data
+#  e.g. maybe you have time as the first basedata axis
+sp_points_in_same_poly_shape (
+    file => 'path/to/a/shapefile',
+    axes => [1,2], 
+)
+    
+END_EXAMPLES
 
     my %metadata = (
         description =>

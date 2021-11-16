@@ -760,18 +760,14 @@ sub group_nodes_below {
     while (scalar keys %final_hash < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
         foreach my $current_node (@current_nodes) {
-            my @children = $current_node->get_children;
-
           CNODE:
-            foreach my $child (@children) {
-                my $include_in_search = 1;  #  flag to include this child in further searching
+            foreach my $child ($current_node->get_children) {
                 my ($upper_bound, $lower_bound);
+                my $child_name = $child->get_name;
                 
-                if ($child->is_terminal_node) {
-                    $include_in_search = 0;
-                }
-                else {  #  only consider length if it has children
-                        #  and that length is from its children
+                if (!$child->is_terminal_node) {
+                    #  only consider length if it has children
+                    #  and that length is from its children
                     if ($use_depth) {
                         $upper_bound = $child->get_depth;
                         $lower_bound = $upper_bound + 1;
@@ -805,6 +801,7 @@ sub group_nodes_below {
                         }
                     }
 
+                    my $include_in_search = 1;  #  flag to include this child in further searching
                     #  don't add to search hash if we're happy with this one
                     if (defined $target_value) {
                         if ($use_depth && $target_value <= $lower_bound && $target_value >= $upper_bound) {
@@ -814,23 +811,23 @@ sub group_nodes_below {
                             $include_in_search = 0;
                         }
                     }
+                    if ($include_in_search) {
+                        #  add to the values hash if it bounds the target value or it is not specified
+                        $search_hash{$lower_bound}{$upper_bound}{$child_name} = $child;
+                    }
                 }
-
-                my $child_name = $child->get_name;
-                if ($include_in_search) {
-                    #  add to the values hash if it bounds the target value or it is not specified
-                    $search_hash{$lower_bound}{$upper_bound}{$child_name} = $child;
-                }    
 
                 $final_hash{$child_name} = $child;  #  add this child node to the tracking hashes        
                 delete $final_hash{$child->get_parent->get_name};
                 #  clear parent from length consideration
                 delete $search_hash{$lower_value}{$upper_value}{$current_node->get_name};
             }
-            delete $search_hash{$lower_value}{$upper_value} if ! scalar keys %{$search_hash{$lower_value}{$upper_value}};
-            delete $search_hash{$lower_value} if ! scalar keys %{$search_hash{$lower_value}};
+            delete $search_hash{$lower_value}{$upper_value}
+              if not scalar keys %{$search_hash{$lower_value}{$upper_value}};
+            delete $search_hash{$lower_value}
+              if not scalar keys %{$search_hash{$lower_value}};
         }
-        last if ! scalar keys %search_hash;  #  drop out - they must all be terminal nodes
+        last if not scalar keys %search_hash;  #  drop out - they must all be terminal nodes
 
         $lower_value = max (keys %search_hash);
         $upper_value = max (keys %{$search_hash{$lower_value}});

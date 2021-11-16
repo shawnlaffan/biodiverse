@@ -702,7 +702,7 @@ sub splice_into_lineage {
 
 
 #  Get a hash of the nodes below this one based on length.
-#  Accounts for reversals in the tree.
+#  Algorithm is messy but accounts for reversals in the tree.
 sub group_nodes_below {
     my $self = shift;
     my %args = @_;
@@ -711,13 +711,14 @@ sub group_nodes_below {
     my %final_hash;
 
     my $use_depth = $args{group_by_depth};  #  alternative is by length
-    #  a second method by which it may be passed
-    $use_depth = 1 if defined $args{type} && $args{type} eq 'depth';
-    #print "[TREENODE] Grouping by ", $use_depth ? "depth" : "length", "\n";
+    #  a second method by which it may be passed - usually from the GUI
+    $use_depth ||= ($args{type} // '') eq 'depth';
 
-    my $target_value = $args{target_value} // $args{target_distance};
-    #$target_value = 1 if defined $target_value;  #  for debugging
-    #print "[TREENODE] Target is $target_value\n" if defined $target_value;
+    #  override target value if $args{num_clusters} passed
+    my $target_value
+      = defined $args{num_clusters}
+      ? undef
+      : ($args{target_value} // $args{target_distance});
 
     my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
     my $cache_hash = $self->get_cached_value_dor_set_default_aa ($cache_key, {});
@@ -801,8 +802,9 @@ sub group_nodes_below {
                         }
                     }
 
+                    #  surely this can be simplified?
                     my $include_in_search = 1;  #  flag to include this child in further searching
-                    #  don't add to search hash if we're happy with this one
+                    #  don't add to search hash unless we need to keep looking
                     if (defined $target_value) {
                         if ($use_depth && $target_value <= $lower_bound && $target_value >= $upper_bound) {
                             $include_in_search = 0;

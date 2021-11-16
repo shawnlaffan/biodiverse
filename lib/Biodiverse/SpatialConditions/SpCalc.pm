@@ -2294,6 +2294,13 @@ sp_points_in_same_cluster_group (
   group_by_depth  => 1,
 )
 
+#  target_distance is ignored if num_clusters is set 
+sp_points_in_same_cluster_group (
+  output          => "some_cluster_output",
+  num_clusters    => 4,
+  target_distance => 0.25,
+)
+
 END_EXAMPLES
 
     my %metadata = (

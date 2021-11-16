@@ -716,7 +716,7 @@ sub group_nodes_below {
 
     #  override target value if $args{num_clusters} passed
     my $target_value
-      = defined $args{num_clusters}
+      = $args{num_clusters}
       ? undef
       : ($args{target_value} // $args{target_distance});
 

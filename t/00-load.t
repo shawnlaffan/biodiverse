@@ -70,7 +70,10 @@ foreach my $alien (@aliens) {
          diag "$alien not installed";
          next;
     }
-    diag sprintf "%s: version: %s, install type: %s", $alien, $alien->version, $alien->install_type;
+    diag sprintf "%s: version: %s, install type: %s",
+         $alien,
+         $alien->version // 'unknown',
+         $alien->install_type;
     $alien_versions{$alien} = $alien->version;
 }
 

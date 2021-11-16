@@ -2265,6 +2265,94 @@ sub get_caller_spatial_output_ref {
     return $self->get_param ('SPATIAL_OUTPUT_CALLER_REF');
 }
 
+sub get_metadata_sp_points_in_same_cluster_group {
+    my $self = shift;
+    my %args = @_;
+
+    my $examples = <<'END_EXAMPLES';
+    
+END_EXAMPLES
+
+    my %metadata = (
+        description =>
+              'Returns true when two points are within the same '
+            . ' cluster or region grower output group.',
+        required_args => [
+            qw /output/,
+        ],
+        optional_args => [
+            qw /num_clusters group_by_depth target_distance/
+        ],
+        index_no_use => 1,
+        result_type  => 'non_overlapping',
+        example => $examples,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+
+sub sp_points_in_same_cluster_group {
+    my $self = shift;
+    my %args = @_;
+    
+    croak 'One of "num_clusters" or "target_distance" arguments must be defined'
+      if !defined ($args{num_clusters} // $args{target_distance});
+
+    my $cl_name = $args{output}
+      // croak "Cluster output name not defined\n";
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+    
+    my $element1 = $args{element1};
+    my $element2 = $args{element2};
+    if (not (defined $element1 and defined $element2)) {
+        my @default_elements = @$h{qw /coord_id1 coord_id2/};
+        #  is this needed?  prob yes if user passes coords
+        if (not eval {$self->is_def_query}) {
+            @default_elements = reverse @default_elements;
+        }
+        #  only need to check existence if user passed the element names
+        if (!defined $element1) {
+            $element1 = $default_elements[0];
+        }
+        else {
+            croak "element $element1 is not in basedata\n"
+              if not $bd->exists_group_aa ($element1);
+        }
+        if (!defined $element2) {
+            $element2 = $default_elements[1];
+        }
+        else {
+            croak "element $element2 is not in basedata\n"
+              if not $bd->exists_group_aa ($element2);
+        }
+    }
+
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+      or croak "Spatial output $cl_name does not exist in basedata "
+                . $bd->get_name
+                . "\n";
+
+    my $cache_name = 'sp_points_in_same_cluster_output_group ';
+    $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
+    my $by_element = $self->get_cached_value ($cache_name);
+    if (!$by_element) {
+        #  tree object also caches
+        my $target_nodes
+          = $cl->group_nodes_below (%args);
+        foreach my $node_name (keys %$target_nodes) {
+            my $node      = $target_nodes->{$node_name};
+            my $terminals = $node->get_terminal_elements;
+            @$by_element{keys %$terminals} = ($node_name) x keys %$terminals;
+        }
+        $self->set_cached_value($cache_name => $by_element);
+    }
+
+    return ($by_element->{$element1} // $SUBSEP) eq ($by_element->{$element2} // $SUBSEP);
+}
 
 1;
 

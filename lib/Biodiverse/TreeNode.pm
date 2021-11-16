@@ -715,7 +715,7 @@ sub group_nodes_below {
     $use_depth = 1 if defined $args{type} && $args{type} eq 'depth';
     #print "[TREENODE] Grouping by ", $use_depth ? "depth" : "length", "\n";
 
-    my $target_value = $args{target_value};
+    my $target_value = $args{target_value} // $args{target_distance};
     #$target_value = 1 if defined $target_value;  #  for debugging
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 

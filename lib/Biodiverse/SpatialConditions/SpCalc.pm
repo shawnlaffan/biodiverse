@@ -2294,6 +2294,13 @@ sp_points_in_same_cluster_group (
   group_by_depth  => 1,
 )
 
+#  work from an arbitrary node 
+sp_points_in_same_cluster_group (
+  output       => "some_cluster_output",
+  num_clusters => 4,
+  from_node    => '118___',  #  use the node's name
+)
+
 #  target_distance is ignored if num_clusters is set 
 sp_points_in_same_cluster_group (
   output          => "some_cluster_output",
@@ -2311,7 +2318,12 @@ END_EXAMPLES
             qw /output/,
         ],
         optional_args => [
-            qw /num_clusters group_by_depth target_distance/
+            qw /
+              num_clusters
+              group_by_depth
+              target_distance
+              from_node
+            /
         ],
         index_no_use => 1,
         result_type  => 'non_overlapping',
@@ -2370,9 +2382,12 @@ sub sp_points_in_same_cluster_group {
     $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
     my $by_element = $self->get_cached_value ($cache_name);
     if (!$by_element) {
+        my $root = defined $args{from_node}
+          ? $cl->get_node_ref_aa($args{from_node})
+          : $cl;
         #  tree object also caches
         my $target_nodes
-          = $cl->group_nodes_below (%args);
+          = $root->group_nodes_below (%args);
         foreach my $node_name (keys %$target_nodes) {
             my $node      = $target_nodes->{$node_name};
             my $terminals = $node->get_terminal_elements;

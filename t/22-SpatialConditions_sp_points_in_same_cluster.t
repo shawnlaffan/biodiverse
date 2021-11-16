@@ -141,4 +141,47 @@ sub test_points_in_same_cluster {
        },
         'dies when output is undef',
     );
+
+
+    %expected_nbrs = (
+        #"1:1" => [qw /1:1 1:2 1:3 1:4 1:5/],
+        "2:1" => [qw /2:1 2:2 2:3 2:4 2:5/],
+        "3:1" => [qw /3:1 3:2 3:3 3:4 3:5/],
+        "4:1" => [qw /4:1 4:2 4:3 4:4 4:5
+                      5:1 5:2 5:3 5:4 5:5
+                     /
+                 ],
+    );
+
+    my $sp_to_test_from_node = $bd->add_spatial_output (name => 'test_from_node');
+    $sp_to_test_from_node->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [
+            'sp_points_in_same_cluster_group (
+              output          => "checker",
+              num_clusters    => 3,
+              from_node       => "22___",
+            )'],
+    );
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test_from_node->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected_nbrs{$el}, "num_clusters overrides target_distance (gp $el)");
+    }
+
+    
+    my $sp_to_test_from_node_dies = $bd->add_spatial_output (name => 'test_from_node_should_die');
+    ok (dies {
+        $sp_to_test_from_node_dies->run_analysis (
+            calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+            spatial_conditions => [
+                'sp_points_in_same_cluster_group (
+                  output          => "checker",
+                  num_clusters    => 3,
+                  from_node       => "not in tree",
+                )'],
+            );
+        },
+        'dies when from_node is not in tree',
+    );
+
 }

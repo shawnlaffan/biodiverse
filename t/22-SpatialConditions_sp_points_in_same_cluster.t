@@ -45,15 +45,6 @@ sub test_points_in_same_cluster {
         }
     }
 
-    my $cl1 = $bd->add_cluster_output (name => 'checker');
-    $cl1->run_analysis ();
-
-    my $sp_to_test1 = $bd->add_spatial_output (name => 'test_1');
-    $sp_to_test1->run_analysis (
-        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ['sp_points_in_same_cluster_group (output => "checker", num_clusters => 3)'],
-    );
-
     my %expected_nbrs = (
         "1:1" => [qw /1:1 1:2 1:3 1:4 1:5/],
         "2:1" => [qw /2:1 2:2 2:3 2:4 2:5/],
@@ -63,7 +54,15 @@ sub test_points_in_same_cluster {
                      /
                  ],
     );
-    
+
+    my $cl1 = $bd->add_cluster_output (name => 'checker');
+    $cl1->run_analysis ();
+
+    my $sp_to_test1 = $bd->add_spatial_output (name => 'test_1');
+    $sp_to_test1->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => ['sp_points_in_same_cluster_group (output => "checker", num_clusters => 3)'],
+    );    
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test1->get_list_ref (element => $el, list => '_NBR_SET1');
         is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
@@ -79,6 +78,21 @@ sub test_points_in_same_cluster {
         is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
     }
     
+    my $sp_to_test12 = $bd->add_spatial_output (name => 'test_12');
+    $sp_to_test12->run_analysis (
+        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
+        spatial_conditions => [
+            'sp_points_in_same_cluster_group (
+              output          => "checker",
+              target_distance => 0.025,     # should be overridden
+              num_clusters    => 3,
+            )'],
+    );
+    foreach my $el (keys %expected_nbrs) {
+        my $list_ref = $sp_to_test12->get_list_ref (element => $el, list => '_NBR_SET1');
+        is ([sort @$list_ref], $expected_nbrs{$el}, "num_clusters overrides target_distance (gp $el)");
+    }
+
     my %expected_nbrs_for_depth;
     $expected_nbrs_for_depth{"1:1"} = $expected_nbrs{"1:1"};
     $expected_nbrs_for_depth{"2:1"} = [@{$expected_nbrs{"2:1"}}, @{$expected_nbrs{"3:1"}}];

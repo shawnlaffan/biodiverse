@@ -2270,7 +2270,30 @@ sub get_metadata_sp_points_in_same_cluster_group {
     my %args = @_;
 
     my $examples = <<'END_EXAMPLES';
-    
+#  Try to use the highest four clusters from the root.
+#  Note that the next highest number will be used
+#  if four is not possible, e.g. there are five
+#  siblings below the root.  Fewer will be returned
+#  if the tree has insufficient tips.
+sp_points_in_same_cluster_group (
+  output       => "some_cluster_output",
+  num_clusters => 4,
+)
+
+#  Cut the tree at a distance of 0.25 from the tips
+sp_points_in_same_cluster_group (
+  output          => "some_cluster_output",
+  target_distance => 0.25,
+)
+
+#  Cut the tree at a depth of 3.
+#  The root is depth 1.
+sp_points_in_same_cluster_group (
+  output          => "some_cluster_output",
+  target_distance => 3,
+  group_by_depth  => 1,
+)
+
 END_EXAMPLES
 
     my %metadata = (

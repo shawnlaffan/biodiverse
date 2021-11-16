@@ -701,8 +701,8 @@ sub splice_into_lineage {
 }
 
 
-#  get a hash of the nodes below this one based on length
-#  accounts for recursion in the tree
+#  Get a hash of the nodes below this one based on length.
+#  Accounts for reversals in the tree.
 sub group_nodes_below {
     my $self = shift;
     my %args = @_;
@@ -729,33 +729,36 @@ sub group_nodes_below {
     $final_hash{$self->get_name} = $self;
 
     if ($self->is_terminal_node) {
+        weaken $final_hash{$self->get_name};
         return wantarray ? %final_hash : \%final_hash;
     }
-
-    #my @current_nodes = ($self);
+    
     my @current_nodes;
 
-    my $upper_value = $use_depth ? $self->get_depth : $self->get_length_below;
-    my $lower_value = $use_depth ? $self->get_depth + 1 : $self->get_length_below - $self->get_length;
-    ($lower_value, $upper_value) = sort numerically ($lower_value, $upper_value) if ! $use_depth; 
-    $search_hash{$lower_value}{$upper_value}{$self->get_name} = $self;
-
-    if (defined $target_value) {  #  check if we have all we need
-        if ($use_depth && $target_value <= $lower_value && $target_value >= $upper_value) {
-            return wantarray ? %final_hash : \%final_hash;
-        }
-        elsif ($target_value > $lower_value && $target_value <= $upper_value) {
-            return wantarray ? %final_hash : \%final_hash;
+    my ($upper_value, $lower_value);
+    if ($use_depth) {
+        $upper_value = $self->get_depth;
+        $lower_value = $self->get_depth + 1;
+    }
+    else {
+        $upper_value = $self->get_length_below;
+        $lower_value = $self->get_length_below - $self->get_length;
+        if ($upper_value < $lower_value) {
+            ($lower_value, $upper_value) = ($upper_value, $lower_value);
         }
     }
 
+    #  check if we have all we need
+    return wantarray ? %final_hash : \%final_hash
+      if     defined $target_value
+          && $target_value > $lower_value
+          && $target_value <= $upper_value;
 
-    my $group_count = 1;
+    $search_hash{$lower_value}{$upper_value}{$self->get_name} = $self;
+
   NODE_SEARCH:
-    while ($group_count < $groups_needed) {
+    while (scalar keys %final_hash < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
-        #print "check $i $upper_value\n"; 
-        my $current_node_string = join ($EMPTY_STRING, sort @current_nodes);
         foreach my $current_node (@current_nodes) {
             my @children = $current_node->get_children;
 
@@ -795,8 +798,10 @@ sub group_nodes_below {
                             $child->set_cached_value (UPPER_BOUND_LENGTH => $upper_bound);
                             $child->set_cached_value (LOWER_BOUND_LENGTH => $lower_bound);
 
-                            #  swap them if they are inverted (eg for depth) (use List::MoreUtils::minmax?)
-                            ($lower_bound, $upper_bound) = sort numerically ($lower_bound, $upper_bound);
+                            #  swap them if they are inverted (eg for depth)
+                            if ($upper_bound < $lower_bound) {
+                                ($lower_bound, $upper_bound) = ($upper_bound, $lower_bound);
+                            }
                         }
                     }
 
@@ -827,18 +832,14 @@ sub group_nodes_below {
         }
         last if ! scalar keys %search_hash;  #  drop out - they must all be terminal nodes
 
-        #$lower_value = (reverse sort numerically keys %search_hash)[0];
-        #$upper_value = (reverse sort numerically keys %{$search_hash{$lower_value}})[0];
         $lower_value = max (keys %search_hash);
         $upper_value = max (keys %{$search_hash{$lower_value}});
 
-        #print scalar keys %final_hash, "\n";
-
-        $group_count = scalar keys %final_hash;
     }
 
-    #print scalar keys %final_hash, "\n";
-    
+    #  avoid some potential mem leaks when we cache these
+    weaken $_ for values %final_hash;
+
     $cache_hash->{$cache_val} = \%final_hash;
 
     return wantarray ? %final_hash : \%final_hash;

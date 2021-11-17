@@ -15,7 +15,7 @@ use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
-our $VERSION = '3.99_001';
+our $VERSION = '3.99_002';
 
 require Exporter;
 use parent qw/Exporter Biodiverse::Common/;

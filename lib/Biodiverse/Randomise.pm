@@ -44,7 +44,7 @@ my $parameter_rand_metadata_class = 'Biodiverse::Metadata::Parameter';
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '3.99_001';
+our $VERSION = '3.99_002';
 
 my $EMPTY_STRING = q{};
 

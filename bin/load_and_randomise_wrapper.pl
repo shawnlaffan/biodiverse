@@ -15,7 +15,7 @@ use Path::Class;
 #use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 use rlib;
 
-our $VERSION = '3.99_001';
+our $VERSION = '3.99_002';
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;

@@ -2351,20 +2351,12 @@ sub sp_points_in_same_cluster {
     my $element1 = $args{element1};
     my $element2 = $args{element2};
     #  only need to check existence if user passed the element names
-    if (!defined $element1) {
-        $element1 = $h->{coord_id1};
-    }
-    else {
-        croak "element $element1 is not in basedata\n"
-          if not $bd->exists_group_aa ($element1);
-    }
-    if (!defined $element2) {
-        $element2 = $h->{coord_id2};
-    }
-    else {
-        croak "element $element2 is not in basedata\n"
-          if not $bd->exists_group_aa ($element2);
-    }
+    croak "element $element1 is not in basedata\n"
+      if defined $element1 and not $bd->exists_group_aa ($element1);
+    croak "element $element2 is not in basedata\n"
+      if defined $element2 and not $bd->exists_group_aa ($element2);
+    $element1 //= $h->{coord_id1};
+    $element2 //= $h->{coord_id2};
 
     my $cl = $bd->get_cluster_output_ref (name => $cl_name)
       or croak "Spatial output $cl_name does not exist in basedata "

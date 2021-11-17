@@ -544,15 +544,33 @@ sub export_shapefile {
 sub get_metadata_export_shapefile_grouped {
     my $self = shift;
 
+    my $comment_text = <<'END_COMMENT_TEXT'
+Note that list values can be attached to the shapefile 
+in a GIS, spreadsheet or data analysis system using 
+a database join after also exporting grouped 
+values to text ("Table grouped" option).
+END_COMMENT_TEXT
+  ;
+
     my $metadata = $self->get_metadata_export_shapefile;
     $metadata->{format} = 'Shapefile grouped';
     push @{$metadata->{parameters}},
-      $self->get_grouped_export_metadata;
-    splice @{$metadata->{parameters}}, 1, 1;  #  dirty hack
+      $self->get_grouped_export_metadata,
+      {
+          name        => 'shape_grouped_export_comment',
+          type        => 'comment',
+          label_text  => $comment_text,
+      }; 
 
     for (@{$metadata->{parameters}}) {
         bless $_, $parameter_metadata_class;
     }
+
+    #  hack - remove some we don't want
+    my @arr = grep {$_->get_name ne "shape_export_comment"}
+          grep {$_->get_name ne 'list'}
+          @{$metadata->{parameters}};
+    $metadata->{parameters} = \@arr;
 
     return wantarray ? %$metadata : $metadata;    
 }

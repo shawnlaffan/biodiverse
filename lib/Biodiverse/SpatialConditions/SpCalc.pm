@@ -2313,7 +2313,8 @@ END_EXAMPLES
     my %metadata = (
         description =>
               'Returns true when two points are within the same '
-            . ' cluster or region grower output group.',
+            . ' cluster or region grower group, or if '
+            . ' neither point is in the selected clusters/groups.',
         required_args => [
             qw /output/,
         ],

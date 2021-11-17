@@ -2265,7 +2265,7 @@ sub get_caller_spatial_output_ref {
     return $self->get_param ('SPATIAL_OUTPUT_CALLER_REF');
 }
 
-sub get_metadata_sp_points_in_same_cluster_group {
+sub get_metadata_sp_points_in_same_cluster {
     my $self = shift;
     my %args = @_;
 
@@ -2275,34 +2275,34 @@ sub get_metadata_sp_points_in_same_cluster_group {
 #  if four is not possible, e.g. there are five
 #  siblings below the root.  Fewer will be returned
 #  if the tree has insufficient tips.
-sp_points_in_same_cluster_group (
+sp_points_in_same_cluster (
   output       => "some_cluster_output",
   num_clusters => 4,
 )
 
 #  Cut the tree at a distance of 0.25 from the tips
-sp_points_in_same_cluster_group (
+sp_points_in_same_cluster (
   output          => "some_cluster_output",
   target_distance => 0.25,
 )
 
 #  Cut the tree at a depth of 3.
 #  The root is depth 1.
-sp_points_in_same_cluster_group (
+sp_points_in_same_cluster (
   output          => "some_cluster_output",
   target_distance => 3,
   group_by_depth  => 1,
 )
 
 #  work from an arbitrary node 
-sp_points_in_same_cluster_group (
+sp_points_in_same_cluster (
   output       => "some_cluster_output",
   num_clusters => 4,
   from_node    => '118___',  #  use the node's name
 )
 
 #  target_distance is ignored if num_clusters is set 
-sp_points_in_same_cluster_group (
+sp_points_in_same_cluster (
   output          => "some_cluster_output",
   num_clusters    => 4,
   target_distance => 0.25,
@@ -2334,7 +2334,7 @@ END_EXAMPLES
 }
 
 
-sub sp_points_in_same_cluster_group {
+sub sp_points_in_same_cluster {
     my $self = shift;
     my %args = @_;
     

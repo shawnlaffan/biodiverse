@@ -62,28 +62,28 @@ sub test_points_in_same_cluster {
     my $sp_to_test1 = $bd->add_spatial_output (name => 'test_1');
     $sp_to_test1->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ['sp_points_in_same_cluster_group (output => "checker", num_clusters => 3)'],
+        spatial_conditions => ['sp_points_in_same_cluster (output => "checker", num_clusters => 3)'],
     );    
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test1->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
+        is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster correct nbrs for $el");
     }
 
     my $sp_to_test2 = $bd->add_spatial_output (name => 'test_2');
     $sp_to_test2->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-        spatial_conditions => ['sp_points_in_same_cluster_group (output => "checker", target_distance => 0.25)'],
+        spatial_conditions => ['sp_points_in_same_cluster (output => "checker", target_distance => 0.25)'],
     );
     foreach my $el (keys %expected_nbrs) {
         my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
+        is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster correct nbrs for $el");
     }
     
     my $sp_to_test12 = $bd->add_spatial_output (name => 'test_12');
     $sp_to_test12->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
         spatial_conditions => [
-            'sp_points_in_same_cluster_group (
+            'sp_points_in_same_cluster (
               output          => "checker",
               target_distance => 0.025,     # should be overridden
               num_clusters    => 3,
@@ -102,7 +102,7 @@ sub test_points_in_same_cluster {
     $sp_to_test3->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
         spatial_conditions => [
-            'sp_points_in_same_cluster_group (
+            'sp_points_in_same_cluster (
                 output => "checker",
                 target_distance => 2,
                 group_by_depth  => 1,
@@ -111,7 +111,7 @@ sub test_points_in_same_cluster {
     );
     foreach my $el (keys %expected_nbrs_for_depth) {
         my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected_nbrs_for_depth{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
+        is ([sort @$list_ref], $expected_nbrs_for_depth{$el}, "sp_points_in_same_cluster correct nbrs for $el");
     }
 
     my $sp_to_test_croaker= $bd->add_spatial_output (name => 'test_croaker');
@@ -119,7 +119,7 @@ sub test_points_in_same_cluster {
         $sp_to_test_croaker->run_analysis (
           calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
           spatial_conditions => [
-              'sp_points_in_same_cluster_group (
+              'sp_points_in_same_cluster (
                   output => "checker",
                   target_distance => undef,
                   group_by_depth  => 1,
@@ -133,7 +133,7 @@ sub test_points_in_same_cluster {
         $sp_to_test_croaker->run_analysis (
           calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
           spatial_conditions => [
-              'sp_points_in_same_cluster_group (
+              'sp_points_in_same_cluster (
                   output => undef,
                   num_clusters => 3,
                )'
@@ -158,7 +158,7 @@ sub test_points_in_same_cluster {
     $sp_to_test_from_node->run_analysis (
         calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
         spatial_conditions => [
-            'sp_points_in_same_cluster_group (
+            'sp_points_in_same_cluster (
               output          => "checker",
               num_clusters    => 3,
               from_node       => "22___",
@@ -175,7 +175,7 @@ sub test_points_in_same_cluster {
         $sp_to_test_from_node_dies->run_analysis (
             calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
             spatial_conditions => [
-                'sp_points_in_same_cluster_group (
+                'sp_points_in_same_cluster (
                   output          => "checker",
                   num_clusters    => 3,
                   from_node       => "not in tree",
@@ -216,7 +216,7 @@ sub test_point_in_cluster {
     my $expected = [sort $bd->get_groups];
     foreach my $el (qw/1:1/) {
         my $list_ref = $sp_to_test1->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_points_in_same_cluster_group correct nbrs for $el");
+        is ([sort @$list_ref], $expected, "sp_points_in_same_cluster correct nbrs for $el");
     }
 
     my $sp_to_test2 = $bd->add_spatial_output (name => 'test_2');
@@ -226,7 +226,7 @@ sub test_point_in_cluster {
     );
     foreach my $el (qw/1:1/) {
         my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
-        is ([sort @$list_ref], $expected, "sp_points_in_same_cluster_group correct nbrs for $el");
+        is ([sort @$list_ref], $expected, "sp_points_in_same_cluster correct nbrs for $el");
     }
 
     my $expected_nbrs = 
@@ -277,18 +277,18 @@ sub test_point_in_cluster {
     #my $sp_to_test2 = $bd->add_spatial_output (name => 'test_2');
     #$sp_to_test2->run_analysis (
     #    calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
-    #    spatial_conditions => ['sp_points_in_same_cluster_group (output => "checker", target_distance => 0.25)'],
+    #    spatial_conditions => ['sp_points_in_same_cluster (output => "checker", target_distance => 0.25)'],
     #);
     #foreach my $el (keys %expected_nbrs) {
     #    my $list_ref = $sp_to_test2->get_list_ref (element => $el, list => '_NBR_SET1');
-    #    is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
+    #    is ([sort @$list_ref], $expected_nbrs{$el}, "sp_points_in_same_cluster correct nbrs for $el");
     #}
     #
     #my $sp_to_test12 = $bd->add_spatial_output (name => 'test_12');
     #$sp_to_test12->run_analysis (
     #    calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #    spatial_conditions => [
-    #        'sp_points_in_same_cluster_group (
+    #        'sp_points_in_same_cluster (
     #          output          => "checker",
     #          target_distance => 0.025,     # should be overridden
     #          num_clusters    => 3,
@@ -307,7 +307,7 @@ sub test_point_in_cluster {
     #$sp_to_test3->run_analysis (
     #    calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #    spatial_conditions => [
-    #        'sp_points_in_same_cluster_group (
+    #        'sp_points_in_same_cluster (
     #            output => "checker",
     #            target_distance => 2,
     #            group_by_depth  => 1,
@@ -316,7 +316,7 @@ sub test_point_in_cluster {
     #);
     #foreach my $el (keys %expected_nbrs_for_depth) {
     #    my $list_ref = $sp_to_test3->get_list_ref (element => $el, list => '_NBR_SET1');
-    #    is ([sort @$list_ref], $expected_nbrs_for_depth{$el}, "sp_points_in_same_cluster_group correct nbrs for $el");
+    #    is ([sort @$list_ref], $expected_nbrs_for_depth{$el}, "sp_points_in_same_cluster correct nbrs for $el");
     #}
     #
     #my $sp_to_test_croaker= $bd->add_spatial_output (name => 'test_croaker');
@@ -324,7 +324,7 @@ sub test_point_in_cluster {
     #    $sp_to_test_croaker->run_analysis (
     #      calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #      spatial_conditions => [
-    #          'sp_points_in_same_cluster_group (
+    #          'sp_points_in_same_cluster (
     #              output => "checker",
     #              target_distance => undef,
     #              group_by_depth  => 1,
@@ -338,7 +338,7 @@ sub test_point_in_cluster {
     #    $sp_to_test_croaker->run_analysis (
     #      calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #      spatial_conditions => [
-    #          'sp_points_in_same_cluster_group (
+    #          'sp_points_in_same_cluster (
     #              output => undef,
     #              num_clusters => 3,
     #           )'
@@ -363,7 +363,7 @@ sub test_point_in_cluster {
     #$sp_to_test_from_node->run_analysis (
     #    calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #    spatial_conditions => [
-    #        'sp_points_in_same_cluster_group (
+    #        'sp_points_in_same_cluster (
     #          output          => "checker",
     #          num_clusters    => 3,
     #          from_node       => "22___",
@@ -380,7 +380,7 @@ sub test_point_in_cluster {
     #    $sp_to_test_from_node_dies->run_analysis (
     #        calculations       => ['calc_endemism_whole', 'calc_element_lists_used'],
     #        spatial_conditions => [
-    #            'sp_points_in_same_cluster_group (
+    #            'sp_points_in_same_cluster (
     #              output          => "checker",
     #              num_clusters    => 3,
     #              from_node       => "not in tree",

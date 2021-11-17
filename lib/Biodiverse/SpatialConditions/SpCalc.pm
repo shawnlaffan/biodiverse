@@ -1352,7 +1352,7 @@ END_SP_PINPOLY
     my %metadata = (
         description =>
             "Select groups that occur within a user-defined polygon \n"
-            . '(see sp_point_in_poly_shape for an altrnative)',
+            . '(see sp_point_in_poly_shape for an alternative)',
         required_args      => [
             'polygon',           #  array of vertices, or a Math::Polygon object
         ],
@@ -2398,6 +2398,93 @@ sub sp_points_in_same_cluster_group {
 
     return ($by_element->{$element1} // $SUBSEP) eq ($by_element->{$element2} // $SUBSEP);
 }
+
+
+sub get_metadata_sp_point_in_cluster {
+    my $self = shift;
+    my %args = @_;
+
+    my $examples = <<'END_EXAMPLES';
+
+#  Any element that is a terminal in the cluster output
+#  This is useful if the cluster analysis was run under
+#  a definition query.
+sp_point_in_cluster (
+  output       => "some_cluster_output",
+)
+
+#  Now specify a cluster within the output
+sp_point_in_cluster (
+  output       => "some_cluster_output",
+  from_node    => '118___',  #  use the node's name
+)
+
+#  Specify an element to check instead of the current
+#  processing element.
+sp_point_in_cluster (
+  output       => "some_cluster_output",
+  from_node    => '118___',  #  use the node's name
+  element      => '123:456', #  specify an element to check
+)
+
+END_EXAMPLES
+
+    my %metadata = (
+        description =>
+              'Returns true when the group is in a '
+            . ' cluster or region grower output cluster.',
+        required_args => [
+            qw /output/,
+        ],
+        optional_args => [qw /element from_node/],
+        index_no_use => 1,
+        result_type  => 'always_same',
+        example => $examples,
+    );
+
+    return $self->metadata_class->new (\%metadata);
+}
+
+
+sub sp_point_in_cluster {
+    my $self = shift;
+    my %args = @_;
+
+    my $cl_name = $args{output}
+      // croak "Cluster output name not defined\n";
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $bd = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
+
+    croak "element $args{element} is not in basedata\n"
+      if defined $args{element} and not $bd->exists_group_aa ($args{element});
+
+    my $element = $args{element}
+      // eval {$self->is_def_query}
+        ? $h->{coord_id1}
+        : $h->{coord_id2};
+
+    my $cl = $bd->get_cluster_output_ref (name => $cl_name)
+      or croak "Spatial output $cl_name does not exist in basedata "
+                . $bd->get_name
+                . "\n";
+
+    my $cache_name = 'sp_points_in_cluster_output_group ';
+    $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
+    my $terminal_elements = $self->get_cached_value ($cache_name);
+    if (!$terminal_elements) {
+        my $root = $args{from_node}
+          ? $cl->get_node_ref_aa($args{from_node})
+          : $cl->get_root_node;
+        #  tree object also caches
+        $terminal_elements = $root->get_terminal_elements;
+        $self->set_cached_value($cache_name => $terminal_elements);
+    }
+
+    return !!$terminal_elements->{$element};
+}
+
 
 1;
 

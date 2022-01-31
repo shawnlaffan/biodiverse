@@ -26,11 +26,12 @@ task:
     
     - cpanm --notest --installdeps --no-man-pages PDL
     - cpanm --notest --no-man-pages PDL
+    - cpanm Statistics::Descriptive::PDL@0.13
     - cpanm --installdeps --notest -v Alien::proj
-    - MAKEFLAGS=-j4 cpanm -v Alien::proj
     - cpanm --installdeps --notest Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::geos::af
+    - MAKEFLAGS=-j4 cpanm -v Alien::proj
     - cpanm --installdeps --notest Alien::gdal
     #  speed up compilation by skipping curl based drivers
     - export ALIEN_GDAL_CONFIG_ARGS=--with-curl=no

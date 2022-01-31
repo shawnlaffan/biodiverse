@@ -57,7 +57,7 @@ suggests "Data::Recursive";
     requires "Test::Lib";
     requires "Test::TempDir::Tiny";
     requires "Test2::Suite";
-    $^O ne 'MSWin32' ? (requires "Test2::Harness") : ();
+    $^O ne 'MSWin32' ? (suggests "Test2::Harness") : ();
     requires "Data::Section::Simple";
     #requires "Test::Deep";
     requires "Perl::Tidy";

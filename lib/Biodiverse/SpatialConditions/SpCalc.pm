@@ -2392,9 +2392,9 @@ sub get_metadata_sp_point_in_cluster {
 
     my $examples = <<'END_EXAMPLES';
 
-#  Any element that is a terminal in the cluster output
+#  Use any element that is a terminal in the cluster output.
 #  This is useful if the cluster analysis was run under
-#  a definition query.
+#  a definition query and you want the same set of groups.
 sp_point_in_cluster (
   output       => "some_cluster_output",
 )

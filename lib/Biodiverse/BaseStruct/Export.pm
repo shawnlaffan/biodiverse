@@ -2063,12 +2063,10 @@ sub write_table_ers {
         }
     }
 
-    if (! close $ofh) {
-        croak "Unable to write to $data_file\n";
-    }
-    else {
-        print "[BASESTRUCT] Write to file $data_file successful\n";
-    }
+    croak "Unable to write to $data_file\n"
+      if !$ofh->close;
+
+    print "[BASESTRUCT] Write to file $data_file successful\n";
 
     #  are we LSB or MSB?
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );

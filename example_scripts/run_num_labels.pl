@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 #  example script for reading in a set of trees fromn a nexus file and then
 #  linking them to an existing basedata object
 

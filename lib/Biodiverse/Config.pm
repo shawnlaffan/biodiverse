@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 package Biodiverse::Config;
 use 5.010;
 use strict;

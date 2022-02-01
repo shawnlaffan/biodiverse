@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 #  This script runs the phylo_sorenson index to comapre pairs of groups
 #  The results are returned as a .csv file with 5 columns to define the two grid squares and
 #  the phylo_sorenson distance between them.

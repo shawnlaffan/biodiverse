@@ -1,3 +1,6 @@
+use strict;
+use warnings;
+
 use Test2::V0;
 
 #  run first/early

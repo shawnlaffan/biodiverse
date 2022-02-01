@@ -158,7 +158,7 @@ sub test_calc_last_shared_ancestor_props {
     #  now check one cell
     my $target_elt = '2100000:1300000';
     my %expected = (
-        LAST_SHARED_ANCESTOR_DEPTH	      => 3,
+        LAST_SHARED_ANCESTOR_DEPTH        => 3,
         LAST_SHARED_ANCESTOR_DIST_TO_ROOT => 4,
         LAST_SHARED_ANCESTOR_DIST_TO_TIP  => 6,
         LAST_SHARED_ANCESTOR_LENGTH       => 1,
@@ -173,7 +173,7 @@ sub test_calc_last_shared_ancestor_props {
     #  now check one cell with a single lineage
     $target_elt = '3300000:3100000';
     %expected = (
-        LAST_SHARED_ANCESTOR_DEPTH	      => 11,
+        LAST_SHARED_ANCESTOR_DEPTH        => 11,
         LAST_SHARED_ANCESTOR_DIST_TO_ROOT => 12,
         LAST_SHARED_ANCESTOR_DIST_TO_TIP  => 0,
         LAST_SHARED_ANCESTOR_LENGTH       => 1,

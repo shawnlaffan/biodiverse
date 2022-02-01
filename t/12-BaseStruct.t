@@ -1,5 +1,3 @@
-#!/usr/bin/perl -w
-
 #  Tests for basedata import
 #  Need to add tests for the number of elements returned,
 #  amongst the myriad of other things that a basedata object does.

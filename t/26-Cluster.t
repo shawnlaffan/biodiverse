@@ -1,4 +1,3 @@
-#!/usr/bin/perl -w
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
 

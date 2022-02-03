@@ -36,6 +36,10 @@ my $RE_TEXT_IN_QUOTES
         \z
     }xmso;
 
+#  precompiled \G is faster 
+my $RE_NUM_GCAPTURE    = qr /\G($RE_NUMBER)/xs;
+my $RE_QUOTED_GCAPTURE = qr /\G($RE_QUOTED)/xs;
+
 my $EMPTY_STRING = q{};
 
 #$text_in_brackets = qr / ( [^()] )* /x; #  from page 328, but doesn't work here
@@ -44,9 +48,12 @@ $re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* 
 #  poss alternative for perl 5.10 and later:  qr /(\\((?:[^()]++|(?-1))*+\\))/xo
 #  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
 #$re_text_in_brackets = qr / ( \( (?: [^()]++ | (?-1) ) \) )* /xo;
+my $re_text_in_brackets_gcapture = qr/ \G \( ( $re_text_in_brackets) \) /xso;
 
-my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
-$re_text_in_square_brackets = qr / (?> [^\[\]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
+
+#my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
+#$re_text_in_square_brackets = qr / (?> [^\[\]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
+#my $re_text_in_square_brackets_gcapture = qr/ \G \( ( $re_text_in_square_brackets) \) /xso;
 
 
 sub new {
@@ -292,7 +299,7 @@ sub import_nexus {
                                     (\S+)    #  typically a number
                                      \s+     #  one or more whitespace chars
                                     ($RE_QUOTED | \S+)    #  the label
-                                  }x;
+                                  }xo;
                 if (defined $trans_code) {
                     #  delete trailing comma or semicolon
                     $trans_name =~ s{ [,;]
@@ -728,11 +735,12 @@ sub parse_newick {
         }
 
         #  use positive look-ahead to find if we start with an opening bracket
-        elsif ($string =~ m/ \G (?= \( ) /xgcs) {  
+        elsif ($string =~ m/ \G (?= \( ) /xgcso) {
             #print "found an open bracket\n";
             #print "Position is " . (pos $string) . " of $str_len\n";
             
-            if ($string =~ m/\G \( ( $re_text_in_brackets) \) /xgcs) {
+            #if ($string =~ m/\G \( ( $re_text_in_brackets) \) /xgcso) {
+            if ($string =~ m/$re_text_in_brackets_gcapture/xgcso) {
                 my $sub_newick = $1;
                 #print "Eating to closing bracket\n";
                 #print "Position is " . (pos $string) . " of $str_len\n";
@@ -776,7 +784,7 @@ sub parse_newick {
             #print "found a quote char\n";
             #print "Position is " . (pos $string) . " of $str_len\n";
 
-            $string =~ m/\G ($RE_QUOTED) /xgcs;  #  eat up to the next non-escaped quote
+            $string =~ m/$RE_QUOTED_GCAPTURE/gcso;  #  eat up to the next non-escaped quote
             $name = $1;
         }
 
@@ -786,7 +794,7 @@ sub parse_newick {
             #print "Position is " . (pos $string) . " of $str_len\n";
 
             #  get the number
-            $string =~ m/\G ( $RE_NUMBER ) /xgcs;
+            $string =~ m/ $RE_NUM_GCAPTURE /xgcso;
             #print "length value is $1\n";
             $length = $1;
             if (! looks_like_number $length) {

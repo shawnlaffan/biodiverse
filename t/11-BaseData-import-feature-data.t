@@ -159,10 +159,9 @@ sub test_import_roundtrip_shapefile {
         if ($e) {
             diag "$fname:";
             foreach my $ext (qw /shp dbf shx/) {
-                diag 'size: ' . Biodiverse::Common->get_file_size_aa ($fname . $ext);
+                diag 'size: ' . Biodiverse::Common->get_file_size_aa ("${fname}.${ext}");
             }
         }
-        
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;

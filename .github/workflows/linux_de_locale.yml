@@ -61,7 +61,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20210914' >> perlversion.txt
+          echo '20220209' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

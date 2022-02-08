@@ -396,7 +396,7 @@ sub test_checkpoint_cwd_check {
     my $old_wd = getcwd();
     my $new_wd = get_temp_dir();
     chdir $new_wd;
-    note getcwd();
+    note "Working directory is now " . getcwd();
     
     my $rand_name = 'test_checkpoint_cwd_check';
 
@@ -413,13 +413,18 @@ sub test_checkpoint_cwd_check {
     
     
     {
+        note "changing permissions for $new_wd";
         use Config;
-        my $toto = todo 'needs work on BSD, perhaps only under Cirrus, and also WSL'
+        my $todo;
+        $todo = todo 'needs work on BSD, perhaps only under Cirrus, and also WSL'
           if $^O =~ /bsd/i
           or ($^O =~ /linux/i and $Config{osvers} =~ /microsoft/i);
 
+        note "Test is running under todo" if $todo; 
         $rand = $bd->add_randomisation_output (name => $rand_name . '2');
-        chmod 0444, '.';
+        my $orig_perms = (stat ($new_wd))[2];
+        note "Orig perms $orig_perms";
+        chmod 0555, $new_wd;
         
         like (dies {
                 $rand->run_analysis (
@@ -433,8 +438,10 @@ sub test_checkpoint_cwd_check {
         );
         
         #chmod 0777, '.';
+        note "Reverting permissions change to $new_wd";
         chdir $old_wd;
-        note getcwd();
+        chmod $orig_perms, $new_wd;
+        note "Current wd is now " . getcwd();
     }
 }
 

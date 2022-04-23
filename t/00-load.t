@@ -11,6 +11,7 @@ use Test2::V0;
 use FindBin qw { $Bin };
 use File::Spec;
 use File::Find;
+use List::Util qw /max/;
 
 use Test::Lib;
 use rlib;
@@ -67,13 +68,14 @@ my @aliens = qw /
       Alien::proj   Alien::libtiff   Alien::spatialite
       Alien::freexl
 /;
+my $longest_name = max map {length} @aliens;
 foreach my $alien (@aliens) {
     eval "require $alien; 1";
     if ($@) {
          diag "$alien not installed";
          next;
     }
-    diag sprintf "%s: version: %s, install type: %s",
+    diag sprintf "%-${longest_name}s: version:%7s, install type: %s",
          $alien,
          $alien->version // 'unknown',
          $alien->install_type;

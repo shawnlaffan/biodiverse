@@ -63,6 +63,7 @@ sub test_group_props_from_rasters {
         }
     }
     my $bd2 = $bd->clone;
+    my $bd3 = $bd->clone;
 
     #  need to generate some raster data
     my @raster_params = (
@@ -216,9 +217,26 @@ sub test_group_props_from_rasters {
       qr/Target basedata must have 2 axes/,
       "Dies when basedata has other than two axes"
     );
-    
+
+    my $fname = "$dir/some_csv_file.zog";
+    open my $fh, '>', $fname or die $!;
+    print {$fh} "not a raster file at all";
+    $fh->close;
+    like(
+      dies {
+        my @prop_bd3
+            = $bd3->assign_group_properties_from_rasters (
+              rasters => [$fname, @rasters],
+              return_basedatas => 1,
+              die_if_no_overlap => 0,
+        );
+      },
+      qr/Open failed/,
+      "Dies when non-raster data are passed"
+    );
     
 }
+
 
 sub get_raster {
     my %args = @_;

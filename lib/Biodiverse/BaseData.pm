@@ -719,13 +719,17 @@ sub assign_group_properties_from_rasters {
 
     my @cell_sizes   = $self->get_cell_sizes;
     my @cell_origins = $self->get_cell_origins;
-    
-    croak 'Too many group axes.  Cannot attach group properties from raster'
-      if @cell_sizes > 2;
-    croak 'Insufficient group axes.  Cannot attach group properties from raster'
-      if @cell_sizes < 2;
 
-    my $return_basedatas = $args{return_basedatas};
+    my $axis_count = scalar @cell_sizes;    
+    croak "Too many group axes ($axis_count).  Cannot attach group properties from raster"
+      if @cell_sizes > 2;
+    croak "Insufficient group axes ($axis_count).  Cannot attach group properties from raster"
+      if @cell_sizes < 2;
+    croak "rasters argument must be an array ref"
+      if not is_arrayref($args{rasters});
+
+    my $die_if_no_overlap = $args{die_if_no_overlap};
+    my $return_basedatas  = $args{return_basedatas};
     my @raster_basedatas;
     my @rasters = @{$args{rasters}};
 

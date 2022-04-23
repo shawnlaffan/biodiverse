@@ -138,18 +138,18 @@ diag "nrasters: " . scalar @rasters;
         #diag "$gp: " . join ' ', (%{$props_list || {}});
     }
 
-    #like (
-    #  dies {
-    #    @prop_bds
-    #        = $bd2->assign_group_properties_from_rasters (
-    #          rasters => 'some_scalar',
-    #          return_basedatas => 1,
-    #          die_if_no_overlap => 0,
-    #    );
-    #  },
-    #  qr//,
-    #  "Dies when rasters arg is not an array ref"
-    #);
+    like (
+      dies {
+        @prop_bds
+            = $bd2->assign_group_properties_from_rasters (
+              rasters => 'some_scalar',
+              return_basedatas => 1,
+              die_if_no_overlap => 0,
+        );
+      },
+      qr//,
+      "Dies when rasters arg is not an array ref"
+    );
 
     
     #say @prop_bds;

@@ -363,17 +363,42 @@ sub do_basedata_attach_group_properties_from_rasters {
         'Add intermediate property basedatas to project?'
     );
     $chk_label->set_alignment(1, 0.5);
-    
-    my $hbox = Gtk2::HBox->new;
-    $hbox->set_homogeneous (0);
-    $hbox->pack_start ($chk_label, 1, 1, 0);
-    $hbox->pack_start ($checkbox, 1, 1, 0);
-    $vbox->pack_start ($hbox, 0, 1, 0);
-    $hbox->show_all;
 
+    my $checkbox_overlap  = Gtk2::CheckButton->new;
+    my $chk_label_overlap = Gtk2::Label->new (
+        'Fail when raster does not overlap with basedata?'
+    );
+    $chk_label_overlap->set_alignment(1, 0.5);
+
+    my $tooltip_group = Gtk2::Tooltips->new;
+    $tooltip_group->set_tip(
+        $chk_label,
+          'This can be useful to check the imported values, but also because you '
+        . 'might want to run further analyses on these data.',
+        undef,
+    );
+    $tooltip_group->set_tip(
+        $chk_label_overlap,
+          'Non-overlaps can occur if your data are in a different coordinate system '
+        . 'from the property rasters.  Note that data from any rasters prior to the '
+        . 'one that fails will be added.  If this is not set then extent mismatches '
+        . 'are silently ignored.  ',
+        undef,
+    );
+    
+    foreach my $chk ([$chk_label, $checkbox], [$chk_label_overlap, $checkbox_overlap]) {
+        my $hbox = Gtk2::HBox->new;
+        $hbox->set_homogeneous (0);
+        $hbox->pack_start ($chk->[0], 1, 1, 0);
+        $hbox->pack_start ($chk->[1], 1, 1, 0);
+        $vbox->pack_start ($hbox, 0, 1, 0);
+        $hbox->show_all;    
+    }
+    
     my $response = $dlg->run;
     my @raster_list = $dlg->get_filenames();
-    my $return_basedatas = $checkbox->get_active;
+    my $return_basedatas  = $checkbox->get_active;
+    my $die_if_no_overlap = $checkbox_overlap->get_active;
     $dlg->destroy();
 
     return if $response ne 'ok';
@@ -381,6 +406,7 @@ sub do_basedata_attach_group_properties_from_rasters {
     my $basedatas = $bd->assign_group_properties_from_rasters(
         rasters          => \@raster_list,
         return_basedatas => $return_basedatas,
+        die_if_no_overlap => $die_if_no_overlap,
     );
 
     if ($return_basedatas) {

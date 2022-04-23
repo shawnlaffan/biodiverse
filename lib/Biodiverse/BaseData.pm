@@ -721,10 +721,8 @@ sub assign_group_properties_from_rasters {
     my @cell_origins = $self->get_cell_origins;
 
     my $axis_count = scalar @cell_sizes;    
-    croak "Too many group axes ($axis_count).  Cannot attach group properties from raster"
-      if @cell_sizes > 2;
-    croak "Insufficient group axes ($axis_count).  Cannot attach group properties from raster"
-      if @cell_sizes < 2;
+    croak "Target basedata must have 2 axes to attach group properties from raster.  You have $axis_count."
+      if $axis_count != 2;
     croak "rasters argument must be an array ref"
       if not is_arrayref($args{rasters});
 

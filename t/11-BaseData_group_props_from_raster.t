@@ -164,6 +164,58 @@ sub test_group_props_from_rasters {
       qr/Raster .+ does not overlap/,
       "Dies when no overlap and die_if_no_overlap set"
     );
+
+
+    my $bd_3axis = Biodiverse::BaseData->new (
+        NAME => 'blognorg',
+        CELL_SIZES => [10,10,1],
+        CELL_ORIGINS => [0,0,0],
+    );
+    foreach my $x (0 .. 5) {
+        foreach my $y (0 .. 5) {
+            my $gp
+              = join ':',
+                ($cellx * $x + $halfx,
+                 $celly * $y + $halfy,
+                 1);
+            $bd_3axis->add_element_simple_aa('a', $gp, 1);
+        }
+    }
+    like(
+      dies {
+        my @prop_bds3axis
+            = $bd_3axis->assign_group_properties_from_rasters (
+              rasters => \@rasters,
+              return_basedatas => 1,
+              die_if_no_overlap => 0,
+        );
+      },
+      qr/Target basedata must have 2 axes/,
+      "Dies when basedata has other than two axes"
+    );
+    
+    my $bd_1axis = Biodiverse::BaseData->new (
+        NAME => 'blognorg',
+        CELL_SIZES => [10],
+        CELL_ORIGINS => [0],
+    );
+    foreach my $x (0 .. 5) {
+        my $gp
+          = $cellx * $x + $halfx;
+        $bd_1axis->add_element_simple_aa('a', $gp, 1);
+    }
+    like(
+      dies {
+        my @prop_bds1axis
+            = $bd_1axis->assign_group_properties_from_rasters (
+              rasters => \@rasters,
+              return_basedatas => 1,
+              die_if_no_overlap => 0,
+        );
+      },
+      qr/Target basedata must have 2 axes/,
+      "Dies when basedata has other than two axes"
+    );
     
     
 }

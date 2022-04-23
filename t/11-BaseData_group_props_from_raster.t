@@ -62,6 +62,7 @@ sub test_group_props_from_rasters {
             $bd->add_element_simple_aa('a', $gp, 1);
         }
     }
+    my $bd2 = $bd->clone;
 
     #  need to generate some raster data
     my @raster_params = (
@@ -73,10 +74,16 @@ sub test_group_props_from_rasters {
             ncols => 30,
             nrows => 30,
         },
+        {
+            ncols => 3,
+            nrows => 3,
+            xorigin => 100,
+            yorigin => 100,
+        },
     );
     my @rasters;
     my $dir = tempdir('gp_property_rasters');
-    foreach my $n (0..1) {
+    foreach my $n (0..$#raster_params) {
         my $tiff_name = sprintf "propdata%03i.tif", $n;
         my $local_params = $raster_params[$n];
         my $tiff = get_raster(
@@ -89,18 +96,21 @@ sub test_group_props_from_rasters {
         );
         push @rasters, $tiff;
     }
-
+diag "nrasters: " . scalar @rasters;
     my @prop_bds
       = $bd->assign_group_properties_from_rasters (
         rasters => \@rasters,
         return_basedatas => 1,
+        die_if_no_overlap => 0,
     );
 
-    is scalar @prop_bds, 2, 'Got expected number of property basedatas';
+    is scalar @prop_bds, scalar @rasters, 'Got expected number of property basedatas';
     ok $prop_bds[0]->labels_are_numeric,
       'labels are numeric for first property raster';
     ok $prop_bds[1]->labels_are_numeric,
       'labels are numeric for second property raster';
+    ok $prop_bds[2]->labels_are_numeric,
+      'labels are numeric for third property raster';
 
     my $gp_ref = $bd->get_groups_ref;
     my %samplers = (
@@ -127,8 +137,35 @@ sub test_group_props_from_rasters {
            "got expected group properties for $gp";
         #diag "$gp: " . join ' ', (%{$props_list || {}});
     }
+
+    #like (
+    #  dies {
+    #    @prop_bds
+    #        = $bd2->assign_group_properties_from_rasters (
+    #          rasters => 'some_scalar',
+    #          return_basedatas => 1,
+    #          die_if_no_overlap => 0,
+    #    );
+    #  },
+    #  qr//,
+    #  "Dies when rasters arg is not an array ref"
+    #);
+
     
     #say @prop_bds;
+    #like(
+    #  dies {
+    #    my @prop_bds2
+    #        = $bd2->assign_group_properties_from_rasters (
+    #          rasters => \@rasters,
+    #          return_basedatas => 1,
+    #          die_if_no_overlap => 1,
+    #    );
+    #  },
+    #  qr//,
+    #  "Dies when no overlap and die_if_no_overlap set"
+    #);
+    
     
 }
 

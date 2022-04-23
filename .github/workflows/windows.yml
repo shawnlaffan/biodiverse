@@ -13,7 +13,7 @@ env:
   PERL_LOCAL_LIB_ROOT: c:/cx
   PERL_MB_OPT: --install_base C:/cx
   PERL_MM_OPT: INSTALL_BASE=C:/cx
-  ALIEN_BUILD_PRELOAD: Fetch::Cache
+  #ALIEN_BUILD_PRELOAD: Fetch::Cache
   AUTOMATED_TESTING: 1
 
 jobs:

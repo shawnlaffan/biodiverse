@@ -333,6 +333,10 @@ sub do_basedata_attach_group_properties_from_rasters {
     croak "Cannot add properties to Basedata with existing outputs\n"
       . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
       if $bd->get_output_ref_count;
+    my @axes = $bd->get_cell_sizes;
+    my $axis_count = @axes;
+    croak "Can only add properties from rasters to a Basedata with an axis count of 2, you have $axis_count axes\n"
+      if $axis_count != 2;
 
     
     my $dlg = Gtk2::FileChooserDialog->new(

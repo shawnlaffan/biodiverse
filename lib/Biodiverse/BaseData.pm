@@ -743,6 +743,10 @@ sub assign_group_properties_from_rasters {
     my %gp_prop_list_ref_cache; 
     my $class = blessed $self;
 
+    my $bounds  = $self->get_coord_bounds;
+    my $bnd_max = $bounds->{MAX};
+    my $bnd_min = $bounds->{MIN};
+
     foreach my $raster (@rasters) {
         my $path = path ($raster);
         my $raster_name = $path->basename;
@@ -757,6 +761,19 @@ sub assign_group_properties_from_rasters {
             %common_args,
             input_files => [$raster],
         );
+
+        if ($die_if_no_overlap) {
+            #  ideally we would check this before importing
+            my $bounds_new_bd  = $new_bd->get_coord_bounds;
+            my $new_bnd_max = $bounds_new_bd->{MAX};
+            my $new_bnd_min = $bounds_new_bd->{MIN};
+            die "Raster $raster_name does not overlap with the target basedata"
+              if   $new_bnd_min->[0] > $bnd_max->[0]
+                or $new_bnd_min->[1] > $bnd_max->[1]
+                or $new_bnd_max->[0] < $bnd_min->[0]
+                or $new_bnd_max->[1] < $bnd_min->[1];
+        }
+        
         #  calculate the stats per cell
         my $sp = $new_bd->add_spatial_output (
             name => 'numeric_labels',

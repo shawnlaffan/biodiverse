@@ -96,7 +96,7 @@ sub test_group_props_from_rasters {
         );
         push @rasters, $tiff;
     }
-diag "nrasters: " . scalar @rasters;
+
     my @prop_bds
       = $bd->assign_group_properties_from_rasters (
         rasters => \@rasters,
@@ -152,19 +152,18 @@ diag "nrasters: " . scalar @rasters;
     );
 
     
-    #say @prop_bds;
-    #like(
-    #  dies {
-    #    my @prop_bds2
-    #        = $bd2->assign_group_properties_from_rasters (
-    #          rasters => \@rasters,
-    #          return_basedatas => 1,
-    #          die_if_no_overlap => 1,
-    #    );
-    #  },
-    #  qr//,
-    #  "Dies when no overlap and die_if_no_overlap set"
-    #);
+    like(
+      dies {
+        my @prop_bds2
+            = $bd2->assign_group_properties_from_rasters (
+              rasters => \@rasters,
+              return_basedatas => 1,
+              die_if_no_overlap => 1,
+        );
+      },
+      qr/Raster .+ does not overlap/,
+      "Dies when no overlap and die_if_no_overlap set"
+    );
     
     
 }

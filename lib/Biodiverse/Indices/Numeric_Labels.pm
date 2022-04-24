@@ -477,28 +477,13 @@ sub _get_num_label_global_summary_stats {
 
     my $bd = $self->get_basedata_ref;
 
-    if (! $self->get_basedata_ref->labels_are_numeric) {
+    if (! $bd->labels_are_numeric) {
         my %results = (NUM_LABELS_GLOBAL_SUMMARY_STATS => undef);
         return wantarray ? %results : \%results;
     }
 
     my $lb = $bd->get_labels_ref;
-
     my $labels = $bd->get_labels;
-
-    my @data;
-    foreach my $label (@$labels) {
-        my $count = $lb->get_sample_count (element => $label);
-        push @data, ($label) x $count;  # add as many as there are samples
-    }
-
-    #my $stats_object = $stats_package->new;
-    #$stats_object->add_data (\@data);
-    #
-    #my %stats_hash;
-    #foreach my $stat (qw /mean sum standard_deviation count/) { 
-    #    $stats_hash{$stat} = $stats_object->$stat;
-    #}
 
     my ($sumx, $sumxx, $n, $mean, $sd, $variance);
     foreach my $label (@$labels) {

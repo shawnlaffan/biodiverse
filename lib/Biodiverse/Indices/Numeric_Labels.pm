@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use 5.022;
 
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 use List::Util qw /sum min max/;
 #use List::MoreUtils qw /apply pairwise/;
 
@@ -10,9 +13,8 @@ use Carp;
 
 our $VERSION = '3.99_002';
 
-use Biodiverse::Statistics;
-
-my $stats_package = 'Biodiverse::Statistics';
+use Statistics::Descriptive::PDL::SampleWeighted '0.15';
+my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
@@ -58,15 +60,8 @@ sub get_numeric_label_stats_object {
         return wantarray ? %results : \%results;
     }
 
-    my @data;
-    while (my ($key, $count) = each %{$args{label_hash_all}}) {
-        push @data, ($key) x $count;  # add as many as there are samples
-    }
-
-    my $stats = $stats_package->new;
-    $stats->add_data (\@data);
-
-    $stats->sort_data;
+    my $stats = $stats_class_weighted->new;
+    $stats->add_data ($args{label_hash_all});
 
     my %results = (numeric_label_stats_object => $stats);
 
@@ -274,9 +269,12 @@ sub calc_numeric_label_data {
 
     my $stats = $args{numeric_label_stats_object};
 
-    my $data = defined $stats
-             ? [ $stats->get_data ]
-             : [ ];
+    my $data = [];
+    if (defined $stats) {
+        my $m = $stats->median;  #  make sure the data are sorted
+        (\my @vals, \my @wts) = $stats->get_data;;
+        $data = [map {($vals[$_]) x $wts[$_]} (0..$#vals)];
+    }
 
     my %results = (
         NUM_DATA_ARRAY => $data,

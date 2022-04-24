@@ -726,10 +726,26 @@ sub assign_group_properties_from_rasters {
     croak "rasters argument must be an array ref"
       if not is_arrayref($args{rasters});
 
+    my $stats = $args{stats} // ['mean'];
+    $stats = [map {lc} @$stats];
+    croak "stats argument must be an array ref"
+      if not is_arrayref($stats);
+
     my $die_if_no_overlap = $args{die_if_no_overlap};
     my $return_basedatas  = $args{return_basedatas};
     my @raster_basedatas;
     my @rasters = @{$args{rasters}};
+
+    #  this should be in its own sub and be generated from the indices metadata
+    my %valid_prop_stats
+      = reverse map {$_ => lc $_ =~ s/^NUM_//r}
+        (qw /NUM_CV NUM_KURT NUM_MAX NUM_MEAN NUM_MIN NUM_N NUM_RANGE NUM_SD NUM_SKEW/);
+    my %target_props;
+    @target_props{@$stats} = @valid_prop_stats{@$stats};
+    croak "invalid stats argument passed, must be one or more of "
+         . (join ' ', sort keys %valid_prop_stats)
+      if grep {!defined} values %target_props;
+
 
     my %common_args = (
         labels_as_bands   => 0,
@@ -782,7 +798,6 @@ sub assign_group_properties_from_rasters {
         );
 
         #  now extract the relevant stats
-        #  (just mean for now)
       GROUP:
         foreach my $gp ($self->get_groups) {
             next GROUP if !$sp->exists_element_aa($gp);
@@ -801,10 +816,11 @@ sub assign_group_properties_from_rasters {
             );
 
             #  need to handle more than the mean
-            my $stat    = 'mean';
-            my $new_key = "${raster_name}_${stat}";
-            my $old_key = 'NUM_MEAN';
-            $el_props->{$new_key} = $sp_list->{$old_key};
+            foreach my $stat (keys %target_props) {
+                my $old_key = $target_props{$stat};
+                my $new_key = "${raster_name}_${stat}";
+                $el_props->{$new_key} = $sp_list->{$old_key};
+            }
         }
         if ($return_basedatas) {
             push @raster_basedatas, $new_bd;

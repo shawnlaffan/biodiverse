@@ -706,6 +706,14 @@ sub _attach_label_ranges_or_counts_as_properties {
     return;
 }
 
+#  what a name!  
+sub get_stats_for_assign_group_properties_from_rasters {
+    my %stats
+      = reverse map {$_ => lc $_ =~ s/^NUM_//r}
+        (qw /NUM_CV NUM_KURT NUM_MAX NUM_MEAN NUM_MIN NUM_N NUM_RANGE NUM_SD NUM_SKEW/);
+    return wantarray ? %stats : \%stats;
+}
+
 #  issue 761 - make this easier
 sub assign_group_properties_from_rasters {
     my $self = shift;
@@ -738,8 +746,7 @@ sub assign_group_properties_from_rasters {
 
     #  this should be in its own sub and be generated from the indices metadata
     my %valid_prop_stats
-      = reverse map {$_ => lc $_ =~ s/^NUM_//r}
-        (qw /NUM_CV NUM_KURT NUM_MAX NUM_MEAN NUM_MIN NUM_N NUM_RANGE NUM_SD NUM_SKEW/);
+      = $self->get_stats_for_assign_group_properties_from_rasters;
     my %target_props;
     @target_props{@$stats} = @valid_prop_stats{@$stats};
     croak "invalid stats argument passed, must be one or more of "

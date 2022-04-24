@@ -16,7 +16,7 @@ use FindBin qw ( $Bin );
 use Path::Class ();
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
-use POSIX qw/fmod/;
+use POSIX qw/fmod ceil/;
 
 
 sub get_new_basedata_name {
@@ -395,19 +395,20 @@ sub do_basedata_attach_group_properties_from_rasters {
         $hbox->show_all;    
     }
 
-    #  hard coded list - need a basedata method
-    my @stats = sort map {lc $_ =~ s/^NUM_//r}
-        (qw /NUM_CV NUM_KURT NUM_MAX NUM_MEAN NUM_MIN NUM_N NUM_RANGE NUM_SD NUM_SKEW/);
-
     my $stat_label = Gtk2::Label->new ('Summary stats');
     $vbox->pack_start ($stat_label, 0, 1, 0);
     $stat_label->show;
     
-    my $stat_table = Gtk2::Table->new(3,3,1);
+    my @stats
+      = sort
+        keys %{$bd->get_stats_for_assign_group_properties_from_rasters};
+    my $target_cols = 3;
+    my $target_rows = ceil scalar @stats / $target_cols;
+    my $stat_table = Gtk2::Table->new($target_cols, $target_rows, 1);
     my %stat_checkboxes;
     my $col = -2;
     my $row = -1;
-    my $cols_per_row = 6;
+    my $cols_per_row = $target_cols * 2;  #  label and checkbox
     foreach my $stat (@stats) {
         $col+=2;
         $col %= $cols_per_row;

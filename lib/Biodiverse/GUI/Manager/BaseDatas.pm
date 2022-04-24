@@ -416,14 +416,12 @@ sub do_basedata_attach_group_properties_from_rasters {
         }
         my $checkbox  = Gtk2::CheckButton->new;
         my $chk_label = Gtk2::Label->new ($stat);
-        $stat_checkboxes{$stat} = $checkbox;
         $chk_label->set_alignment(1, 0.5);
         $stat_table->attach($chk_label, $col,   $col+1, $row, $row+1, [ 'shrink', 'fill' ], 'shrink', 0, 0 );
         $stat_table->attach($checkbox,  $col+1, $col+2, $row, $row+1, [ 'shrink', 'fill' ], 'shrink', 0, 0 );
-        if ($stat eq 'mean') {
-            $checkbox->set_active(1);
-        }
+        $stat_checkboxes{$stat} = $checkbox;
     }
+    $stat_checkboxes{mean}->set_active(1);  #  default
     $stat_table->show_all;
     #  Trick the system into displaying the table centred like the others.
     #  There has to be a better way.

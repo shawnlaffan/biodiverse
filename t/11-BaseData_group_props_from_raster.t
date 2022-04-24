@@ -64,6 +64,7 @@ sub test_group_props_from_rasters {
     }
     my $bd2 = $bd->clone;
     my $bd3 = $bd->clone;
+    my $bd_multi_stat = $bd->clone;
 
     #  need to generate some raster data
     my @raster_params = (
@@ -139,6 +140,33 @@ sub test_group_props_from_rasters {
         #diag "$gp: " . join ' ', (%{$props_list || {}});
     }
 
+    #  add some more expected values
+    $samplers{'45:15'}{propdata000_min} = 39;
+    $samplers{'35:5'}{propdata000_min}  = 29;
+    $samplers{'35:5'}{propdata001_min}  = 29;
+    $samplers{'15:25'}{propdata000_min} =  9;
+    $samplers{'15:25'}{propdata001_min} =  9;
+
+    $bd_multi_stat->assign_group_properties_from_rasters (
+        rasters => \@rasters,
+        stats   => [qw /mean min/],
+        return_basedatas => 0,
+        die_if_no_overlap => 0,
+    );
+    my $gp_ref_multi_stat = $bd_multi_stat->get_groups_ref;
+    foreach my $gp (sort keys %samplers) {
+        my $props_list = $gp_ref_multi_stat->get_list_ref (
+            list       => 'PROPERTIES',
+            element    => $gp,
+            autovivify => 0,
+        );
+        is $props_list,
+           $samplers{$gp},
+           "got expected multistat group properties for $gp";
+        #diag "$gp: " . join ' ', (%{$props_list || {}});
+    }
+
+    
     like (
       dies {
         @prop_bds

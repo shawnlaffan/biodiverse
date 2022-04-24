@@ -394,6 +394,46 @@ sub do_basedata_attach_group_properties_from_rasters {
         $vbox->pack_start ($hbox, 0, 1, 0);
         $hbox->show_all;    
     }
+
+    #  hard coded list - need a basedata method
+    my @stats = sort map {lc $_ =~ s/^NUM_//r}
+        (qw /NUM_CV NUM_KURT NUM_MAX NUM_MEAN NUM_MIN NUM_N NUM_RANGE NUM_SD NUM_SKEW/);
+
+    my $stat_label = Gtk2::Label->new ('Summary stats');
+    $vbox->pack_start ($stat_label, 0, 1, 0);
+    $stat_label->show;
+    
+    my $stat_table = Gtk2::Table->new(3,3,1);
+    my %stat_checkboxes;
+    my $col = -2;
+    my $row = -1;
+    my $cols_per_row = 6;
+    foreach my $stat (@stats) {
+        $col+=2;
+        $col %= $cols_per_row;
+        if ($col == 0) {
+            $row++;
+        }
+        my $checkbox  = Gtk2::CheckButton->new;
+        my $chk_label = Gtk2::Label->new ($stat);
+        $stat_checkboxes{$stat} = $checkbox;
+        $chk_label->set_alignment(1, 0.5);
+        $stat_table->attach($chk_label, $col,   $col+1, $row, $row+1, [ 'shrink', 'fill' ], 'shrink', 0, 0 );
+        $stat_table->attach($checkbox,  $col+1, $col+2, $row, $row+1, [ 'shrink', 'fill' ], 'shrink', 0, 0 );
+        if ($stat eq 'mean') {
+            $checkbox->set_active(1);
+        }
+    }
+    $stat_table->show_all;
+    #  Trick the system into displaying the table centred like the others.
+    #  There has to be a better way.
+    my $hbox_t = Gtk2::HBox->new;
+    $hbox_t->set_homogeneous (0);
+    $hbox_t->pack_start (Gtk2::Label->new(' '), 1, 1, 0);
+    $hbox_t->pack_start ($stat_table, 1, 1, 0);
+
+    $vbox->pack_start ($hbox_t, 0, 1, 0);
+    $vbox->show_all;
     
     my $response = $dlg->run;
     my @raster_list = $dlg->get_filenames();
@@ -407,6 +447,7 @@ sub do_basedata_attach_group_properties_from_rasters {
         rasters          => \@raster_list,
         return_basedatas => $return_basedatas,
         die_if_no_overlap => $die_if_no_overlap,
+        stats => [grep {$stat_checkboxes{$_}->get_active} keys %stat_checkboxes],
     );
 
     if ($return_basedatas) {

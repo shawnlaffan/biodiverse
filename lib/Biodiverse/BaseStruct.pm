@@ -1143,10 +1143,12 @@ sub delete_properties_for_given_element {
 # delete an element property for all elements
 sub delete_element_property {
     my ($self, %args) = @_;
-    my $prop = $args{ prop };
+    my $prop = $args{ prop } // croak 'prop arg not defined';
 
+    #  inefficient with all this copying
     foreach my $el ($self->get_element_list) {
-        my %props = %{$self->{ELEMENTS}{$el}{PROPERTIES}};
+        my $href = $self->{ELEMENTS}{$el}{PROPERTIES} // {};
+        my %props = %{$href};
         delete $props{ $prop };
         $self->{ELEMENTS}{$el}{PROPERTIES} = \%props;
     }

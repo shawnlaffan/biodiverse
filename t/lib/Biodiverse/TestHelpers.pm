@@ -187,6 +187,32 @@ sub is_numeric_within_tolerance_or_exact_text {
     }
 }
 
+sub value_is_numeric_within_tolerance_or_exact_text {
+
+    my %args = @_;
+    my ($got, $expected) = @args{qw /got expected/};
+
+    #  if both are numeric then check if within tolerance
+    #  sometimes we get diffs outside the tolerance due to floating point issues
+    #  so fall back to an eq test
+    my $result;
+    if (looks_like_number ($expected) && looks_like_number ($got)) {
+        $result = (($args{tolerance} // 1e-10) > abs ($expected - $got))
+                  || ($expected eq $got);
+    }
+    elsif (!defined $got && !defined $expected) {
+        $result = 1;
+    }
+    elsif (   ( defined $expected && !defined $got)
+           || (!defined $expected &&  defined $got)) {
+        $result = 0;
+    }
+    else {
+        $result = $got eq $expected;
+    }
+    return $result;
+}
+
 
 
 =item transform_element

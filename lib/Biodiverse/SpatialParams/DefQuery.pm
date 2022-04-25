@@ -4,7 +4,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '3.99_002';
+our $VERSION = '3.99_003';
 
 #  This is a stub for backwards compatibility.
 #  All the content is now in Biodiverse::SpatialConditions

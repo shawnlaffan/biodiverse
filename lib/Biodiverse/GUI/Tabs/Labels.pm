@@ -27,7 +27,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '3.99_002';
+our $VERSION = '3.99_003';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab

@@ -15,7 +15,7 @@ use Math::BigInt ();
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
-our $VERSION = '3.99_002';
+our $VERSION = '3.99_003';
 
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';

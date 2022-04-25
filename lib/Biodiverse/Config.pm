@@ -16,7 +16,7 @@ use Ref::Util qw { :all };
 
 use English ( -no_match_vars );
 
-our $VERSION = '3.99_002';
+our $VERSION = '3.99_003';
 
 #use Exporter;
 #use Devel::Symdump;

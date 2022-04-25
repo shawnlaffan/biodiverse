@@ -771,7 +771,8 @@ sub assign_group_properties_from_rasters {
     foreach my $raster (@rasters) {
         my $path = path ($raster);
         my $raster_name = $path->basename;
-        $raster_name =~ s/\..+$//;
+        #  will go wrong if file has dot but no extension like .tif
+        $raster_name =~ s/\.\w+?$//;
 
         my $new_bd = $class->new(
             NAME         => 'raster_props_from_' . $raster_name,

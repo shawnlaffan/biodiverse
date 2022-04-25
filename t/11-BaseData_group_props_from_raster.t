@@ -86,7 +86,7 @@ sub test_group_props_from_rasters {
     my @rasters;
     my $dir = tempdir('gp_property_rasters');
     foreach my $n (0..$#raster_params) {
-        my $tiff_name = sprintf "propdata%03i.tif", $n;
+        my $tiff_name = sprintf "propdata.%03i.tif", $n;
         my $local_params = $raster_params[$n];
         my $tiff = get_raster(
             name    => "$dir/$tiff_name",
@@ -117,15 +117,15 @@ sub test_group_props_from_rasters {
     my $gp_ref = $bd->get_groups_ref;
     my %samplers = (
         '45:15' => {
-            propdata000_mean => 43.5,
+            'propdata.000_mean' => 43.5,
         },
         '35:5' => {
-            propdata000_mean => 33.5,
-            propdata001_mean => 29,
+            'propdata.000_mean' => 33.5,
+            'propdata.001_mean' => 29,
         },
         '15:25' => {
-            propdata000_mean => 13.5,
-            propdata001_mean => 13.5,
+            'propdata.000_mean' => 13.5,
+            'propdata.001_mean' => 13.5,
         },
     );
     foreach my $gp (sort keys %samplers) {
@@ -141,11 +141,11 @@ sub test_group_props_from_rasters {
     }
 
     #  add some more expected values
-    $samplers{'45:15'}{propdata000_min} = 39;
-    $samplers{'35:5'}{propdata000_min}  = 29;
-    $samplers{'35:5'}{propdata001_min}  = 29;
-    $samplers{'15:25'}{propdata000_min} =  9;
-    $samplers{'15:25'}{propdata001_min} =  9;
+    $samplers{'45:15'}{'propdata.000_min'} = 39;
+    $samplers{'35:5'}{'propdata.000_min'}  = 29;
+    $samplers{'35:5'}{'propdata.001_min'}  = 29;
+    $samplers{'15:25'}{'propdata.000_min'} =  9;
+    $samplers{'15:25'}{'propdata.001_min'} =  9;
 
     $bd_multi_stat->assign_group_properties_from_rasters (
         rasters => \@rasters,

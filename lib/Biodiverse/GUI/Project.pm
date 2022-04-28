@@ -1253,8 +1253,10 @@ sub manage_empty_model {
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (@$button_IDs) {
-        warn "$_\n" if !defined $instance->get_object($_);
-        $instance->get_object($_)->set_sensitive($sensitive);
+        my $widget = $instance->get_object($_);
+        warn "Widget $_ not found\n" if !defined $widget;
+        next if !defined $widget;
+        $widget->set_sensitive($sensitive);
     }
 }
 

@@ -61,8 +61,19 @@ use constant TYPE_HTML => 2; # some programs want HTML tables
 sub new {
     my $class = shift;
 
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    if (not $gui->get_project->get_selected_base_data()) {
+        my $response = Biodiverse::GUI::YesNoCancel->run({
+            header      => "There is no basedata to show",
+            yes_is_ok   => 1,
+            hide_cancel => 1,
+            hide_no     => 1,
+        });
+        return;
+    }
+    
     my $self = {
-        gui           => Biodiverse::GUI::GUIManager->instance(),
+        gui           => $gui,
         selected_rows => [],
         selected_cols => [],
     };

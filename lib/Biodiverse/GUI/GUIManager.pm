@@ -1028,6 +1028,8 @@ sub do_describe_basedata {
     my $self = shift;
 
     my $bd = $self->{project}->get_selected_base_data;
+    
+    return if !$bd;
 
     my $description = $bd->describe;
 

@@ -34,6 +34,7 @@ sub main {
 
     test_reorder_axes();
     test_drop_axis();
+    test_reorder_axes_non_symmetric_gp_axes();
 
     done_testing;
     return 0;
@@ -233,5 +234,87 @@ sub test_reorder_axes {
     
 }
 
+#  reordering of axes
+sub test_reorder_axes_non_symmetric_gp_axes {
+    my $bd = Biodiverse::BaseData->new (
+        CELL_SIZES   => [1,2],
+        CELL_ORIGINS => [1,2],
+        NAME => 'test_reorder_axes_non_symmetric_gp_axes',
+    );
+    my $smp_count = 0;
+    foreach my $row (0..10) {
+        foreach my $col (0..10) {
+            $smp_count++;
+            my $gp_id = join ':', $row + 0.5, 2 * POSIX::floor ($col / 2) + 1;
+            my $lb_id = join ':', $row, $col;
+            #diag "$gp_id, $row, $col";
+            $bd->add_element (
+                group => $gp_id,
+                label => $lb_id,
+                sample_count => $smp_count,
+            );
+        }        
+    }
+
+    my $test_label = '0:0';
+    my $lb_props = {blah => 25, blahblah => 10};
+    my $lb = $bd->get_labels_ref;
+    $lb->add_to_lists (
+        element    => $test_label,
+        PROPERTIES => $lb_props,
+    );
+    my $test_group_orig = '0.5:1';
+    my $test_group_new  = '1:0.5';
+    my $gp_props = {blah => 25, blahblah => 10};
+    my $gp = $bd->get_groups_ref;
+    $gp->add_to_lists (
+        element    => $test_group_orig,
+        PROPERTIES => $gp_props,
+    );
+
+    my $new_bd = eval {
+        $bd->new_with_reordered_element_axes (
+            GROUP_COLUMNS => [1,0],
+            LABEL_COLUMNS => [0,1],
+        );
+    };
+    my $error = $EVAL_ERROR;
+    warn $error if $error;
+
+    ok (defined $new_bd, 'Reordered axes');
+    
+    my $new_cell_sizes  = $new_bd->get_cell_sizes;
+    is ($new_cell_sizes, [2,1], 'cell sizes updated');
+    my $new_cell_origins  = $new_bd->get_cell_origins;
+    is ($new_cell_origins, [2,1], 'cell origins updated');
+
+    my (@got_groups, @orig_groups, @got_labels, @orig_labels);
+    eval {
+        @got_groups  = $new_bd->get_groups;
+        @orig_groups = $bd->get_groups;
+        @got_labels  = $new_bd->get_labels;
+        @orig_labels = $bd->get_labels;
+    };
+    diag $@ if $@;
+
+    is (scalar @got_groups, scalar @orig_groups, 'same group count');
+    is (scalar @got_labels, scalar @orig_labels, 'same label count');
+
+    my ($orig, $new);
+    
+    my $type = 'sample counts';
+    $orig = $bd->get_group_sample_count (element => '0.5:1');
+    eval {
+        $new  = $new_bd->get_group_sample_count (element => '1:0.5');
+    };
+    diag $@ if $@;
+
+    is ($new, $orig, "Group $type match");
+    
+    $orig = $bd->get_label_sample_count (element => $test_label);
+    $new  = $new_bd->get_label_sample_count (element => $test_label);
+    is ($new, $orig, "Label $type match");
+
+}
 
 done_testing();

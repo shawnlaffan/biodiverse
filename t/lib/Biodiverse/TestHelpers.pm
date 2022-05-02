@@ -562,8 +562,9 @@ sub get_basedata_object {
     print "Temp file is $bd_f\n";
 
     my $bd = Biodiverse::BaseData->new(
-        CELL_SIZES => $args{CELL_SIZES},
-        NAME       => 'Test basedata',
+        CELL_SIZES   => $args{CELL_SIZES},
+        CELL_ORIGINS => $args{CELL_ORIGINS},
+        NAME         => 'Test basedata',
     );
     $bd->import_data(
         input_files   => [$bd_f],

@@ -127,6 +127,24 @@ sub test_drop_axis {
         {$bd_with_outputs->drop_element_axis (axis => 1, type => 'label')},
         'dies with existing outputs',
     ) or note $@;
+    
+
+    $bd = $bd_base->clone;
+    $lb = $bd->get_labels_ref;
+    $gp = $bd->get_groups_ref;
+    
+    $bd->drop_group_axis (axis => 1);
+    is ($gp->get_axis_count, 2, 'group axis count reduced');
+    @res = $gp->get_cell_sizes;
+    is ($#res, 1, 'group cell size array');
+    @origin = $gp->get_cell_origins;
+    is ($#origin, 1, 'group cell origins');
+    is ($gp->get_axis_count, 2, 'got expected group axis count after deletion');
+    my $bd_cell_sizes = $bd->get_cell_sizes;
+    my $gp_cell_sizes = $gp->get_cell_sizes;
+    is $bd_cell_sizes, $gp_cell_sizes, 'basedata matches group cell sizes';
+    diag join ' ', @$bd_cell_sizes;
+    diag join ' ', @$gp_cell_sizes;
 }
 
 

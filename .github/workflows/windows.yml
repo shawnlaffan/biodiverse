@@ -116,7 +116,8 @@ jobs:
         run: |
           cpanm --notest --installdeps Alien::gdal
           echo "ALIEN_GDAL_CONFIG_ARGS=--with-hide_internal_symbols" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          $env:ALIEN_GDAL_CONFIG_ARGS = "--with-hide-internal-symbols=yes --without-gnm"
+          #  qhull issues on gdal 3.5, maybe fixed in 3.6
+          $env:ALIEN_GDAL_CONFIG_ARGS = "--with-hide-internal-symbols=yes --without-gnm --without-qhull"
           Get-PSDrive C | Select-Object Used,Free
           #  clunky path override
           #  $env:PATH = "C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin;$env:PATH"

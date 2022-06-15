@@ -143,8 +143,6 @@ sub test_drop_axis {
     my $bd_cell_sizes = $bd->get_cell_sizes;
     my $gp_cell_sizes = $gp->get_cell_sizes;
     is $bd_cell_sizes, $gp_cell_sizes, 'basedata matches group cell sizes';
-    diag join ' ', @$bd_cell_sizes;
-    diag join ' ', @$gp_cell_sizes;
 }
 
 

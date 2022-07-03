@@ -12,6 +12,7 @@ use Data::Section::Simple qw(get_data_section);
 
 use Biodiverse::TestHelpers qw /:tree/;
 
+use List::Util qw /sum/;
 
 local $| = 1;
 
@@ -372,13 +373,16 @@ sub test_read_R_phylo_json_data {
         #no_track_node_stats => 1,
     );
 
-    #foreach my $node ($tree->get_terminal_node_refs) {
-    #    my $name = $node->get_name;
-    #    my $comp_node = $comp_tree->get_node_ref_aa($name);
-    #    my $path  = $node->get_path_length_array_to_root_node_aa;
-    #    my $cpath = $comp_node->get_path_length_array_to_root_node_aa;
-    #    is $path, $cpath, "paths match for $name";
-    #}    
+    foreach my $node ($tree->get_terminal_node_refs) {
+        my $name  = $node->get_name;
+        my $comp_node = $comp_tree->get_node_ref_aa($name);
+        my $path  = $node->get_path_length_array_to_root_node_aa;
+        my $cpath = $comp_node->get_path_length_array_to_root_node_aa;
+        #is $path, $cpath, "paths match for $name";
+        my $sum  = sum @$path;
+        my $csum = sum @$cpath;
+        ok abs ($sum - $csum) <= $tol, "path sum within tolerance, $sum, $csum, $name";
+    }
     
     run_tests ($tree);
 }

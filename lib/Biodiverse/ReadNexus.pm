@@ -594,40 +594,42 @@ sub import_R_phylo_json {
     my @tip_labels
       = map {$self->dequote_element (element => $_, quote_char => $quote_char)}
         @{$struct->{"tip.label"} // []};  #  defaults?  should populate internals
-    #  Insert root length as zero at position n+1
-    #splice  @lengths, scalar @tip_labels, 0, ($struct->{"root.edge"} // 0);
+    
+    #  root is at position n+1, where n is the number of tips
     my $root_idx = @tip_labels+1;
     #  Arrays index on base 1 so shift everything across by 1 - saves index contortions below
     unshift @tip_labels, '';
-    unshift @lengths, 0;
-say join '', map {sprintf " %2i", $_} @parent_arr;
-say join '', map {sprintf " %2i", $_} @node_arr;
-say join '', map {sprintf "%6.3f", $_} @lengths;
-    my @node_refs;  #  allows us to update parents in same order
+
+    #  lengths are in same order as edges
+    my %length_hash;
+    @length_hash{@node_arr} = @lengths;
+    $length_hash{$root_idx} = $struct->{"root.edge"} // 0;
+
+    my %node_refs;
+    #  add the root node
+    $node_refs{$root_idx} //= $tree->add_node (
+        name   => $tree->get_free_internal_name,
+        length => $length_hash{$root_idx},
+    );
     foreach my $idx (@node_arr) {
         my $name = $tip_labels[$idx] // $tree->get_free_internal_name;
-        $node_refs[$idx] = $tree->add_node (
+        $node_refs{$idx} = $tree->add_node (
             name   => $name,
-            length => $lengths[$idx] // 1,
+            length => $length_hash{$idx} // 1,
         );
-        say "Created node ", $idx, " ", $node_refs[$idx]->get_name, " length is ", $lengths[$idx]//"UNDEFINED";
+        say "Created node ", $idx, " ", $node_refs{$idx}->get_name, " length is ", $length_hash{$idx} // "UNDEFINED";
     }
-    #  add a root node - it has index tip.labels+1 in the tree
-    $node_refs[$root_idx] //= $tree->add_node (
-        name   => $tree->get_free_internal_name,
-        length => ($struct->{"root.edge"} // 0),
-    );
-    say "Created node ", scalar @tip_labels, " ", $node_refs[scalar @tip_labels]->get_name;
-    say 'blarg';
+
+    #  set the parents - can this be done better?
     foreach my $idx (0..$#parent_arr) {
         my $parent_idx = $parent_arr[$idx];
         my $child_idx  = $node_arr[$idx];
-        my $child_ref  = $node_refs[$child_idx];
-        say "$parent_idx, $child_idx, ",
-          $node_refs[$parent_idx]->get_name, " ",
-          $child_ref->get_name;
-        warn 'issues' if !defined $child_ref;
-        $node_refs[$parent_idx]->add_children (
+        my $child_ref  = $node_refs{$child_idx};
+        #say "$parent_idx, $child_idx, ",
+        #  $node_refs{$parent_idx}->get_name, " ",
+        #  $child_ref->get_name;
+        #warn 'issues' if !defined $child_ref;
+        $node_refs{$parent_idx}->add_children (
             children => [$child_ref],
             is_treenodes => 1,
         );

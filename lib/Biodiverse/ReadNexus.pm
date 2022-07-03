@@ -586,7 +586,7 @@ sub import_R_phylo_json {
     my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
 
     my $node_count = $struct->{Nnode};
-    my $root_id    = $struct->{"root.edge"};
+    my $root_len   = $struct->{"root.edge"};
     my $edge_mx    = $struct->{edge};  #  should be two columns but rjson flattens it
     my @parent_arr = @{$struct->{edge}}[0..($#$edge_mx/2)];
     my @node_arr   = @{$struct->{edge}}[($#$edge_mx/2+1)..$#$edge_mx];
@@ -594,21 +594,29 @@ sub import_R_phylo_json {
     my @tip_labels
       = map {$self->dequote_element (element => $_, quote_char => $quote_char)}
         @{$struct->{"tip.label"} // []};  #  defaults?  should populate internals
-    
+    my @internal_labels
+      = map {$self->dequote_element (element => $_, quote_char => $quote_char)}
+        @{$struct->{"node.label"} // []};
+
     #  root is at position n+1, where n is the number of tips
-    my $root_idx = @tip_labels+1;
+    my $root_idx = @tip_labels + 1;
+    #  add a spacer for the root if needed
+    if (@internal_labels && (@tip_labels + @internal_labels == @parent_arr)) {
+        push @tip_labels, undef;
+    }
+    push @tip_labels, @internal_labels;
     #  Arrays index on base 1 so shift everything across by 1 - saves index contortions below
     unshift @tip_labels, '';
 
     #  lengths are in same order as edges
     my %length_hash;
     @length_hash{@node_arr} = @lengths;
-    $length_hash{$root_idx} = $struct->{"root.edge"} // 0;
+    $length_hash{$root_idx} = $root_len // 0;
 
     my %node_refs;
     #  add the root node
-    $node_refs{$root_idx} //= $tree->add_node (
-        name   => $tree->get_free_internal_name,
+    $node_refs{$root_idx} = $tree->add_node (
+        name   => $tip_labels[$root_idx] // $tree->get_free_internal_name,
         length => $length_hash{$root_idx},
     );
     foreach my $idx (@node_arr) {

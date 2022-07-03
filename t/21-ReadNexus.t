@@ -334,57 +334,75 @@ sub test_nexus_with_no_newlines  {
 
 
 sub test_read_R_phylo_json_data {
-    my $data = get_R_phylo_json_tree_data();
+    my $data_no_internals   = get_R_phylo_json_tree_data();
+    my $data_with_internals = get_R_phylo_json_tree_data_internal_labels();
 
-    my $trees = Biodiverse::ReadNexus->new;
-    my $result = eval {
-        $trees->import_data (data => $data);
-    };
-
-    is ($result, 1, 'import R phylo data from JSON');
-
-    my @trees = $trees->get_tree_array;
-
-    is (scalar @trees, 1, 'one tree extracted');
+    my %json_tree_hash = (
+        with_internal_labels => $data_with_internals,
+        no_internal_labels   => $data_no_internals,
+    );
 
     #  compare with nexus import - other tests will fail if it has issues
-    $data = get_nexus_tree_data();
+    my $nexus_data = get_nexus_tree_data();
     my $comp_trees = Biodiverse::ReadNexus->new;
-    $result = eval {
-        $comp_trees->import_data (data => $data);
+    my $result = eval {
+        $comp_trees->import_data (data => $nexus_data);
     };
     croak $@ if $@;
-    
-    my $tree = $trees[0];
-    
-    #  compare trees
     my @comp_trees = $comp_trees->get_tree_array;
     my $comp_tree  = $comp_trees[0];
-    my $comparison = $comp_tree->compare (
-        comparison => $tree,
-        result_list_name => '_comp',
-        #no_track_node_stats => 1,
-    );
-    
-    #  cross-check
-    my $comparison2 = $comp_tree->compare (
-        comparison => $comp_tree,
-        result_list_name => '_xcomp',
-        #no_track_node_stats => 1,
-    );
 
-    foreach my $node ($tree->get_terminal_node_refs) {
-        my $name  = $node->get_name;
-        my $comp_node = $comp_tree->get_node_ref_aa($name);
-        my $path  = $node->get_path_length_array_to_root_node_aa;
-        my $cpath = $comp_node->get_path_length_array_to_root_node_aa;
-        #is $path, $cpath, "paths match for $name";
-        my $sum  = sum @$path;
-        my $csum = sum @$cpath;
-        ok abs ($sum - $csum) <= $tol, "path sum within tolerance, $sum, $csum, $name";
+    foreach my $tree_type (sort keys %json_tree_hash) {
+        my $data = $json_tree_hash{$tree_type};
+        my $trees = Biodiverse::ReadNexus->new;
+        my $result = eval {
+            $trees->import_data (data => $data);
+        };
+
+        is ($result, 1, "import R phylo data from JSON, $tree_type");
+
+        my @trees = $trees->get_tree_array;
+
+        is (scalar @trees, 1, "one tree extracted, $tree_type");
+
+        my $tree = $trees[0];
+
+        #  compare trees
+        my $comparison = $tree->compare (
+            comparison => $comp_tree,
+            result_list_name => '_comp',
+        );
+        #diag "GOT $comparison EXACT MATCHES";
+        is $comparison, 61, 'got expected number of matching nodes';
+
+        #  needed in the event the previous test fails
+        foreach my $node ($tree->get_terminal_node_refs) {
+            my $name  = $node->get_name;
+            my $comp_node = $comp_tree->get_node_ref_aa($name);
+            my $path  = $node->get_path_length_array_to_root_node_aa;
+            my $cpath = $comp_node->get_path_length_array_to_root_node_aa;
+            my $sum  = sum @$path;
+            my $csum = sum @$cpath;
+            ok abs ($sum - $csum) <= $tol, "path sum within tolerance, $sum, $csum, $name";
+        }
+
+        if ($tree_type eq 'with_internal_labels') {
+            my %nodes      = $tree->get_node_hash;
+            my %comp_nodes = $comp_tree->get_node_hash;
+            is [sort keys %nodes],
+               [sort keys %comp_nodes],
+               'tree with internal labels has correct node names';
+        }
+        else {
+            my %terminals      = $tree->get_terminal_nodes;
+            my %comp_terminals = $comp_tree->get_terminal_nodes;
+            is [sort keys %terminals],
+               [sort keys %comp_terminals],
+               'tree with no internal labels has correct tip names';
+        }
+        
+        run_tests ($tree);
     }
-    
-    run_tests ($tree);
 }
 
 #done_testing();

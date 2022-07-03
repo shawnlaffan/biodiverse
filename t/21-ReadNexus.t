@@ -18,7 +18,7 @@ local $| = 1;
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;
 
-our $tol = 1E-13;
+my $tol = 1E-10;
 
 
 
@@ -331,6 +331,58 @@ sub test_nexus_with_no_newlines  {
     }
 }
 
+
+sub test_read_R_phylo_json_data {
+    my $data = get_R_phylo_json_tree_data();
+
+    my $trees = Biodiverse::ReadNexus->new;
+    my $result = eval {
+        $trees->import_data (data => $data);
+    };
+
+    is ($result, 1, 'import R phylo data from JSON');
+
+    my @trees = $trees->get_tree_array;
+
+    is (scalar @trees, 1, 'one tree extracted');
+
+    #  compare with nexus import - other tests will fail if it has issues
+    $data = get_nexus_tree_data();
+    my $comp_trees = Biodiverse::ReadNexus->new;
+    $result = eval {
+        $comp_trees->import_data (data => $data);
+    };
+    croak $@ if $@;
+    
+    my $tree = $trees[0];
+    
+    #  compare trees
+    my @comp_trees = $comp_trees->get_tree_array;
+    my $comp_tree  = $comp_trees[0];
+    my $comparison = $comp_tree->compare (
+        comparison => $tree,
+        result_list_name => '_comp',
+        #no_track_node_stats => 1,
+    );
+    
+    #  cross-check
+    my $comparison2 = $comp_tree->compare (
+        comparison => $comp_tree,
+        result_list_name => '_xcomp',
+        #no_track_node_stats => 1,
+    );
+
+    #foreach my $node ($tree->get_terminal_node_refs) {
+    #    my $name = $node->get_name;
+    #    my $comp_node = $comp_tree->get_node_ref_aa($name);
+    #    my $path  = $node->get_path_length_array_to_root_node_aa;
+    #    my $cpath = $comp_node->get_path_length_array_to_root_node_aa;
+    #    is $path, $cpath, "paths match for $name";
+    #}    
+    
+    run_tests ($tree);
+}
+
 #done_testing();
 
 
@@ -348,10 +400,10 @@ sub run_tests {
 
     foreach my $test (@tests) {
         my $sub   = $test->{sub};
-        my $msg = "$sub expected $test->{ex} +/- $tol";
-
         my $val = $tree->$sub;
         my $expected = $test->{ex};
+        my $msg = "$sub, got $val, expected $expected +/- $tol";
+
         #diag "$msg, $val\n";
 
         ok (abs ($val - $expected) <= $tol, $msg);

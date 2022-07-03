@@ -100,7 +100,7 @@ sub import_data {
     $self->set_param (ELEMENT_PROPERTIES => $element_properties);
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
     
-    my @import_methods = qw /import_nexus import_phylip import_tabular_tree/;
+    my @import_methods = qw /import_nexus import_phylip import_R_phylo_json import_tabular_tree/;
     if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
         @import_methods = ('import_tabular_tree');
     }
@@ -559,6 +559,87 @@ sub get_csv_object_for_tabular_tree_import {
     return $csv_in;
 }
 
+
+sub import_R_phylo_json {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Neither file nor data arg specified\n"
+        if not defined ($args{data} // $args{file});
+
+    my $data
+      = $args{data}
+        // $self->read_whole_file (file => $args{file});
+
+    my $tree = Biodiverse::Tree->new (
+        NAME => $args{NAME}
+            // 'anonymous from R phylo JSON data'
+        );
+
+    my $start_time = time();
+
+    use JSON::MaybeXS;
+    my $struct = eval {JSON::MaybeXS::decode_json ($data)};
+    croak $@ if $@;
+    
+    my $quote_char = $self->get_param ('QUOTES') || q{'};
+    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
+
+    my $node_count = $struct->{Nnode};
+    my $root_id    = $struct->{"root.edge"};
+    my $edge_mx    = $struct->{edge};  #  should be two columns but rjson flattens it
+    my @parent_arr = @{$struct->{edge}}[0..($#$edge_mx/2)];
+    my @node_arr   = @{$struct->{edge}}[($#$edge_mx/2+1)..$#$edge_mx];
+    my @lengths    = @{$struct->{"edge.length"} // []}; 
+    my @tip_labels
+      = map {$self->dequote_element (element => $_, quote_char => $quote_char)}
+        @{$struct->{"tip.label"} // []};  #  defaults?  should populate internals
+    #  Insert root length as zero at position n+1
+    #splice  @lengths, scalar @tip_labels, 0, ($struct->{"root.edge"} // 0);
+    my $root_idx = @tip_labels+1;
+    #  Arrays index on base 1 so shift everything across by 1 - saves index contortions below
+    unshift @tip_labels, '';
+    unshift @lengths, 0;
+say join '', map {sprintf " %2i", $_} @parent_arr;
+say join '', map {sprintf " %2i", $_} @node_arr;
+say join '', map {sprintf "%6.3f", $_} @lengths;
+    my @node_refs;  #  allows us to update parents in same order
+    foreach my $idx (@node_arr) {
+        my $name = $tip_labels[$idx] // $tree->get_free_internal_name;
+        $node_refs[$idx] = $tree->add_node (
+            name   => $name,
+            length => $lengths[$idx] // 1,
+        );
+        say "Created node ", $idx, " ", $node_refs[$idx]->get_name, " length is ", $lengths[$idx]//"UNDEFINED";
+    }
+    #  add a root node - it has index tip.labels+1 in the tree
+    $node_refs[$root_idx] //= $tree->add_node (
+        name   => $tree->get_free_internal_name,
+        length => ($struct->{"root.edge"} // 0),
+    );
+    say "Created node ", scalar @tip_labels, " ", $node_refs[scalar @tip_labels]->get_name;
+    say 'blarg';
+    foreach my $idx (0..$#parent_arr) {
+        my $parent_idx = $parent_arr[$idx];
+        my $child_idx  = $node_arr[$idx];
+        my $child_ref  = $node_refs[$child_idx];
+        say "$parent_idx, $child_idx, ",
+          $node_refs[$parent_idx]->get_name, " ",
+          $child_ref->get_name;
+        warn 'issues' if !defined $child_ref;
+        $node_refs[$parent_idx]->add_children (
+            children => [$child_ref],
+            is_treenodes => 1,
+        );
+    }
+
+    my $elapsed_time = time() - $start_time;
+    say "Elapsed time:  $elapsed_time";
+    
+    $self->add_tree (tree => $tree);
+
+    return 1;
+}
 
 sub process_unrooted_trees {
     my $self = shift;

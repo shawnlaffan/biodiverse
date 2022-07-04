@@ -412,6 +412,26 @@ sub test_read_R_phylo_json_data {
         
         run_tests ($tree);
     }
+    
+    #  these should all throw exceptions as they are missing keys, except the commented one which is the base variant
+    #  tree struct from R phylo example
+    my @bung_data = (
+        #'{"edge":[4,5,5,4,5,1,2,3],"edge.length":[2,5,5,7],"Nnode":2,"tip.label":["Pan","Homo","Gorilla"]}',
+        '{"edge.length":[2,5,5,7],"Nnode":2,"tip.label":["Pan","Homo","Gorilla"]}',
+        '{"edge":[4,5,5,4,5,1,2,3],"edge.length":[2,5,5,7],"tip.label":["Pan","Homo","Gorilla"]}',
+        '{"edge":[4,5,5,4,5,1,2,3],"edge.length":[2,5,5,7],"Nnode":2}',
+        '{"edge":[4,5,5,4,5,1,2,3],"Nnode":2}',
+    );
+    foreach my $baddata (@bung_data) {
+        my $readnex = Biodiverse::ReadNexus->new;
+        #diag $baddata;
+        $result = eval {
+            $readnex->import_R_phylo_json (data => $baddata);
+        };
+        is $@,
+          'JSON data is not an R phylo structure',
+          'got exception for incorrect JSON data';
+    }    
 }
 
 #done_testing();

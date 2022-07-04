@@ -11,6 +11,7 @@ use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
 use List::Util qw /max/;
+use Ref::Util qw /is_arrayref/;
 use Time::HiRes qw /time/;
 
 use Biodiverse::Tree;
@@ -590,7 +591,18 @@ sub import_R_phylo_json {
     elsif ($e) {
       croak $e;
     }
-    
+
+    my $valid
+      = $struct->{Nnode}
+      && is_arrayref ($struct->{"tip.label"})
+      && is_arrayref ($struct->{edge});
+    if (!$valid) {
+      Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'JSON data is not an R phylo structure',
+            type    => 'rJSON',
+        );
+    }
+
     my $quote_char = $self->get_param ('QUOTES') || q{'};
     my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
 

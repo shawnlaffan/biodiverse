@@ -389,6 +389,15 @@ sub test_read_R_phylo_json_data {
         if ($tree_type eq 'with_internal_labels') {
             my %nodes      = $tree->get_node_hash;
             my %comp_nodes = $comp_tree->get_node_hash;
+            #  clean up non-named internals, first is the root
+            my @deleted = delete @comp_nodes{qw /59___ 30___/};
+            foreach my $del (@deleted) {
+                #  find the equivalent parent in the json-sourced tree
+                my @children = $del->get_children;
+                my $node_ref = $tree->get_node_ref_aa($children[0]->get_name);
+                my $anon_internal_name = $node_ref->get_parent->get_name;
+                delete $nodes{$anon_internal_name};
+            }
             is [sort keys %nodes],
                [sort keys %comp_nodes],
                'tree with internal labels has correct node names';

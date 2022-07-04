@@ -580,7 +580,16 @@ sub import_R_phylo_json {
 
     use JSON::MaybeXS;
     my $struct = eval {JSON::MaybeXS::decode_json ($data)};
-    croak $@ if $@;
+    my $e = $@;
+    if ($e =~ /malformed JSON string/) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'Data has no trees in it, or is not JSON format',
+            type    => 'rJSON',
+        );
+    }
+    elsif ($e) {
+      croak $e;
+    }
     
     my $quote_char = $self->get_param ('QUOTES') || q{'};
     my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');

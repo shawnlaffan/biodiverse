@@ -11,7 +11,7 @@ use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
 use List::Util qw /max/;
-use Ref::Util qw /is_arrayref/;
+use Ref::Util qw /is_ref is_arrayref/;
 use Time::HiRes qw /time/;
 
 use Biodiverse::Tree;
@@ -105,6 +105,9 @@ sub import_data {
     if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
         @import_methods = ('import_tabular_tree');
     }
+    if (is_ref ($args{data})) {  #  also a dirty hack
+        @import_methods = ('import_R_phylo_json');
+    }
     my $success;
     
   IMPORT_METHOD:
@@ -147,12 +150,17 @@ sub import_newick {
 
     my $newick = $args{data};
 
+    if (is_ref $newick) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'newick import does not work on refs',
+            type    => 'newick',
+        );
+    }
+
     croak "Neither file nor data arg specified\n"
         if not defined $newick and not defined $args{file};
 
-    if (! defined $newick) {
-        $newick = $self->read_whole_file (file => $args{file});
-    }
+    $newick //= $self->read_whole_file (file => $args{file});
 
     my $tree = Biodiverse::Tree->new (
         NAME => $args{NAME}
@@ -188,12 +196,17 @@ sub import_phylip {
 
     my $data = $args{data};
 
+    if (is_ref $data) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'phylip import does not work on refs',
+            type    => 'phylip',
+        );
+    }
+
     croak "Neither file nor data arg specified\n"
       if not defined $data and not defined $args{file};
 
-    if (! defined $data) {
-        $data = $self->read_whole_file (file => $args{file});
-    }
+    $data //= $self->read_whole_file (file => $args{file});
 
     #  lazy split - does not allow for quoted semicolons
     my @newicks
@@ -247,13 +260,18 @@ sub import_nexus {
     my %args = @_;
 
     my $nexus = $args{data};
+    
+    if (is_ref $nexus) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'nexus import does not work on refs',
+            type    => 'nexus',
+        );
+    }
 
     croak "Neither file nor data arg specified\n"
       if not defined $nexus and not defined $args{file};
 
-    if (! defined $nexus) {
-        $nexus = $self->read_whole_file (file => $args{file});
-    }
+    $nexus //= $self->read_whole_file (file => $args{file});
 
     my @nexus = split (/[\r\n]+/, $nexus);
     my %translate;
@@ -417,6 +435,13 @@ sub import_tabular_tree {
     $args{data} //= $self->read_whole_file (file => $args{file});
     my $data = $args{data};
     
+    if (is_ref $data) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'tabular tree import does not work on refs',
+            type    => 'tabular tree',
+        );
+    }
+
     croak "No data provided or read from a file"
       if !length ($data);
 
@@ -579,17 +604,23 @@ sub import_R_phylo_json {
 
     my $start_time = time();
 
-    use JSON::MaybeXS;
-    my $struct = eval {JSON::MaybeXS::decode_json ($data)};
-    my $e = $@;
-    if ($e =~ /malformed JSON string/) {
-        Biodiverse::ReadNexus::IncorrectFormat->throw (
-            message => 'Data has no trees in it, or is not JSON format',
-            type    => 'rJSON',
-        );
+    my $struct;
+    if (!is_ref($data)) {
+        use JSON::MaybeXS;
+        $struct = eval {JSON::MaybeXS::decode_json ($data)};
+        my $e = $@;
+        if ($e =~ /malformed JSON string/) {
+            Biodiverse::ReadNexus::IncorrectFormat->throw (
+                message => 'Data has no trees in it, or is not JSON format',
+                type    => 'rJSON',
+            );
+        }
+        elsif ($e) {
+          croak $e;
+        }
     }
-    elsif ($e) {
-      croak $e;
+    else {
+        $struct = $data;
     }
 
     my $valid
@@ -611,7 +642,9 @@ sub import_R_phylo_json {
     my $edge_mx    = $struct->{edge};  #  should be two columns but rjson flattens it
     my @parent_arr = @{$struct->{edge}}[0..($#$edge_mx/2)];
     my @node_arr   = @{$struct->{edge}}[($#$edge_mx/2+1)..$#$edge_mx];
-    my @lengths    = @{$struct->{"edge.length"} // []}; 
+    my @lengths
+      = map {$_ eq "NaN" ? 0 : $_}
+        @{$struct->{"edge.length"} // []}; 
     my @tip_labels
       = map {$self->dequote_element (element => $_, quote_char => $quote_char)}
         @{$struct->{"tip.label"} // []};  #  defaults?  should populate internals
@@ -647,7 +680,7 @@ sub import_R_phylo_json {
             name   => $name,
             length => $length_hash{$idx} // 1,
         );
-        say "Created node ", $idx, " ", $node_refs{$idx}->get_name, " length is ", $length_hash{$idx} // "UNDEFINED";
+        #say "Created node ", $idx, " ", $node_refs{$idx}->get_name, " length is ", $length_hash{$idx} // "UNDEFINED";
     }
 
     #  set the parents - can this be done better?

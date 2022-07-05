@@ -334,12 +334,15 @@ sub test_nexus_with_no_newlines  {
 
 
 sub test_read_R_phylo_json_data {
+    use JSON::MaybeXS qw //;
     my $data_no_internals   = get_R_phylo_json_tree_data();
     my $data_with_internals = get_R_phylo_json_tree_data_internal_labels();
+    my $data_parsed_to_hash = JSON::MaybeXS::decode_json ($data_no_internals);
 
     my %json_tree_hash = (
         with_internal_labels => $data_with_internals,
         no_internal_labels   => $data_no_internals,
+        as_hash_struct       => $data_parsed_to_hash,
     );
 
     #  compare with nexus import - other tests will fail if it has issues

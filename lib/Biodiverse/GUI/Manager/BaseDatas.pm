@@ -453,6 +453,9 @@ sub do_basedata_attach_group_properties_from_rasters {
         foreach my $bd (@$basedatas) {
             $self->get_project->add_base_data($bd);
         }
+        #  reassert selection of $bd as current basedata
+        #  otherwise things get out of synch
+        $self->get_project->select_base_data ($bd);
     }
 
     $self->set_dirty();

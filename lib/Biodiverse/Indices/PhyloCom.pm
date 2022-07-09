@@ -1160,11 +1160,12 @@ sub get_nri_nti_expected_values {
 
         my %target_label_hash;
         @target_label_hash{@target_labels} = (1) x scalar @target_labels;
+        my $lb_hash_ref = \%target_label_hash;
 
         my %results_this_iter = $self->$mpd_mntd_method (
             %args,
-            label_hash1 => \%target_label_hash,
-            label_hash2 => \%target_label_hash,
+            label_hash1 => $lb_hash_ref,
+            label_hash2 => $lb_hash_ref,
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
             mpd_mntd_means_only  => 1,
             nri_nti_generation   => 1,

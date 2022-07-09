@@ -26,6 +26,7 @@ my $prng_class = 'Math::Random::MT::Auto';
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 my $webb_et_al_ref = 'Webb et al. (2008) https://doi.org/10.1093/bioinformatics/btn358';
+my $mpd_variance_ref = 'Warwick & Clarke (2001) https://dx.doi.org/10.3354/meps216265';
 my $tsir_et_al_ref = 'Tsirogiannis et al. (2012) https://doi.org/10.1007/978-3-642-33122-0_3';
 
 my $nri_nti_expl_text = <<'END_NRI_NTI_EXPL_TEXT'
@@ -75,6 +76,9 @@ sub get_mpd_mntd_metadata {
         PNTD_MEAN => {
             description    => 'Mean of nearest taxon distances',
         },
+        PNTD_VARIANCE => {
+            description    => 'Variance of nearest taxon distances',
+        },
         PNTD_MAX => {
             description    => 'Maximum of nearest taxon distances',
         },
@@ -90,6 +94,11 @@ sub get_mpd_mntd_metadata {
         PMPD_MEAN => {
             description    => 'Mean of pairwise phylogenetic distances',
             formula        => $mpd_formula,
+        },
+        PMPD_VARIANCE => {
+            description    => "Variance of pairwise phylogenetic distances,\n"
+                . "similar to Clarke and Warwick (2001) http://dx.doi.org/10.3354/meps216265",
+            #formula        => $mpd_variance_formula,
         },
         PMPD_MAX => {
             description    => 'Maximum of pairwise phylogenetic distances',
@@ -119,7 +128,7 @@ sub get_mpd_mntd_metadata {
 
     my %metadata = (
         type            => 'PhyloCom Indices',
-        reference       => $webb_et_al_ref,
+        reference       => "$webb_et_al_ref\n$mpd_variance_ref",
         pre_calc        => $pre_calc,
         pre_calc_global =>
           [qw /
@@ -394,13 +403,17 @@ sub _calc_phylo_mpd_mntd {
         $results{$pfx . '_MAX'} = max @$path;
 
         my $rmsd;
+        my $variance;
         if ($n) {
             my $sumsq = $use_wts
                 ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
                 : sum (map {$_ ** 2} @$path);
             $rmsd = sqrt ($sumsq / $n);
+            #  possible neg values close to 0
+            $variance = max ($sumsq / $n - $mean ** 2, 0);
         }
         $results{$pfx . '_RMSD'} = $rmsd;
+        $results{$pfx . '_VARIANCE'}  = $variance;
     }
 
     return wantarray ? %results : \%results;

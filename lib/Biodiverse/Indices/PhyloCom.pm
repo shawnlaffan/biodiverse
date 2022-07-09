@@ -280,8 +280,12 @@ sub _calc_phylo_mpd_mntd {
     my $tree_ref       = $args{tree_ref};
     my $abc_num        = $args{abc_num} || 1;
     my $use_wts        = $abc_num == 1 ? $args{mpd_mntd_use_wts} : 1;
-    my $return_means_only       = $args{mpd_mntd_means_only};
-    my $nri_nti_generation      = $args{nri_nti_generation};  #  changes some behaviour below
+    
+    my $return_mean_and_variance_only
+      = $args{mpd_mntd_mean_variance_only};
+    my $return_means_only  = $args{mpd_mntd_means_only};
+    my $nri_nti_generation = $args{nri_nti_generation};  #  changes some behaviour below
+
     my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
     
     return $self->default_mpd_mntd_results (@_)
@@ -396,11 +400,7 @@ sub _calc_phylo_mpd_mntd {
 
         $results{$pfx . '_MEAN'} = $mean;
 
-        next if $return_means_only;
-
-        $results{$pfx . '_N'}   = $n;
-        $results{$pfx . '_MIN'} = min @$path;
-        $results{$pfx . '_MAX'} = max @$path;
+        next if $return_means_only && !$return_mean_and_variance_only;
 
         my $rmsd;
         my $variance;
@@ -412,8 +412,14 @@ sub _calc_phylo_mpd_mntd {
             #  possible neg values close to 0
             $variance = max ($sumsq / $n - $mean ** 2, 0);
         }
-        $results{$pfx . '_RMSD'} = $rmsd;
         $results{$pfx . '_VARIANCE'}  = $variance;
+
+        next if $return_mean_and_variance_only;
+
+        $results{$pfx . '_RMSD'} = $rmsd;
+        $results{$pfx . '_N'}   = $n;
+        $results{$pfx . '_MIN'} = min @$path;
+        $results{$pfx . '_MAX'} = max @$path;
     }
 
     return wantarray ? %results : \%results;

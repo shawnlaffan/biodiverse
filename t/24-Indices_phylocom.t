@@ -38,6 +38,8 @@ run_indices_test1 (
         calc_nri_nti1
         calc_nri_nti2
         calc_nri_nti3
+        calc_net_vpd
+        calc_vpd_expected_values
     /],
     basedata_ref       => $bd,
     element_list1      => $element_list1,
@@ -45,7 +47,7 @@ run_indices_test1 (
     prng_seed          => 123456,
     nri_nti_iterations => 4999,
     calc_topic_to_test => 'PhyloCom Indices',
-    #generate_result_sets => 1,
+    generate_result_sets => 1,
 );
 
 done_testing;
@@ -66,6 +68,10 @@ __DATA__
     PHYLO_NTI3             => '-1.34351535658904',
     PHYLO_NTI_SAMPLE_MEAN  => '1.35536101312117',
     PHYLO_NTI_SAMPLE_SD    => '0.137371763656886',
+    PHYLO_NET_VPD          => '1.54473475565074',
+    PHYLO_NET_VPD_SAMPLE_MEAN  => '0.0541986061454265',
+    PHYLO_NET_VPD_SAMPLE_N     => 1557,
+    PHYLO_NET_VPD_SAMPLE_SD    => '0.0204975161307071',
     PMPD1_MAX              => '1.95985532713474',
     PMPD1_MEAN             => '1.70275738232872',
     PMPD1_MIN              => '0.5',
@@ -117,7 +123,11 @@ __DATA__
     PHYLO_NTI3             => '-3.59966099911459',
     PHYLO_NTI_SAMPLE_MEAN  => '1.84720584828667',
     PHYLO_NTI_SAMPLE_SD    => '0.235357120710827',
-    PMPD1_MAX              => '1',
+    PHYLO_NET_VPD_SAMPLE_MEAN  => 0,
+    PHYLO_NET_VPD_SAMPLE_N     => 101,
+    PHYLO_NET_VPD_SAMPLE_SD    => 0,
+    PHYLO_NET_VPD          => undef,
+    PMPD1_MAX              => 1,
     PMPD1_MEAN             => '1',
     PMPD1_MIN              => '1',
     PMPD1_N                => 2,

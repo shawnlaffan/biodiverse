@@ -52,6 +52,8 @@ run_indices_test1 (
         calc_nri_nti1
         calc_nri_nti2
         calc_nri_nti3
+        calc_net_vpd
+        calc_vpd_expected_values
     /],
     tree_ref             => $tree_ref,
     prng_seed            => 123456,
@@ -159,6 +161,10 @@ __DATA__
     PHYLO_NTI3             => '1.78080973607196',
     PHYLO_NTI_SAMPLE_MEAN  => '0.916410198794455',
     PHYLO_NTI_SAMPLE_SD    => '0.142850600566172'
+    PHYLO_NET_VPD_SAMPLE_MEAN  => '0.172035887951395',
+    PHYLO_NET_VPD_SAMPLE_N     => 2016,
+    PHYLO_NET_VPD_SAMPLE_SD    => '0.0539733870966747',
+    PHYLO_NET_VPD              => '-1.59660271237015'
 }
 
 
@@ -173,7 +179,11 @@ __DATA__
     PHYLO_NTI2             => '-1.42680727216652',
     PHYLO_NTI3             => '-1.42680727216652',
     PHYLO_NTI_SAMPLE_MEAN  => '1.61322214321038',
-    PHYLO_NTI_SAMPLE_SD    => '0.429786247359979'
+    PHYLO_NTI_SAMPLE_SD    => '0.429786247359979',
+    PHYLO_NET_VPD_SAMPLE_MEAN  => 0,
+    PHYLO_NET_VPD_SAMPLE_N     => 630,
+    PHYLO_NET_VPD_SAMPLE_SD    => '0',
+    PHYLO_NET_VPD              => undef
 }
 
 

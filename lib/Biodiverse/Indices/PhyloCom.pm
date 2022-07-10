@@ -984,13 +984,13 @@ sub get_metadata_calc_nri_nti_expected_values {
         },
     };
 
-    my $pre_calc_global = [qw /
-        get_phylo_mpd_mntd_cum_path_length_cache
-        get_phylo_mpd_mntd_matrix
-        get_phylo_LCA_matrix
-        get_prng_object
-        get_phylo_nri_nti_cache
-    /];
+    #my $pre_calc_global = [qw /
+    #    get_phylo_mpd_mntd_cum_path_length_cache
+    #    get_phylo_mpd_mntd_matrix
+    #    get_phylo_LCA_matrix
+    #    get_prng_object
+    #    get_phylo_nri_nti_cache
+    #/];
     
     my $description = $self->get_description_calc_nri_nti_expected_values;
     my $reference = "$webb_et_al_ref, $tsir_et_al_ref";
@@ -1001,8 +1001,8 @@ sub get_metadata_calc_nri_nti_expected_values {
         description     => $description,
         reference       => $reference,
         #pre_calc        => [qw /calc_labels_on_tree calc_abc/],
-        pre_calc        => [qw /calc_labels_on_tree/],
-        pre_calc_global => $pre_calc_global,  
+        pre_calc        => [qw /_calc_nri_nti_expected_values/],
+        #pre_calc_global => $pre_calc_global,  
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
         indices         => $indices,
@@ -1013,6 +1013,44 @@ sub get_metadata_calc_nri_nti_expected_values {
 
 
 sub calc_nri_nti_expected_values {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = %args{
+        qw /PHYLO_NRI_SAMPLE_MEAN PHYLO_NRI_SAMPLE_SD
+            PHYLO_NTI_SAMPLE_MEAN PHYLO_NTI_SAMPLE_SD 
+            PHYLO_NRI_NTI_SAMPLE_N
+        /};
+    
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata__calc_nri_nti_expected_values {
+    my $self = shift;
+    
+    my $pre_calc_global = [qw /
+        get_phylo_mpd_mntd_cum_path_length_cache
+        get_phylo_mpd_mntd_matrix
+        get_phylo_LCA_matrix
+        get_prng_object
+        get_phylo_nri_nti_cache
+    /];
+
+    my %metadata = (
+        type            => 'PhyloCom Indices',
+        name            => 'NRI and NTI expected values, inner sub',
+        description     => 'NRI and NTI expected values, inner sub',
+        pre_calc        => [qw /calc_labels_on_tree/],
+        pre_calc_global => $pre_calc_global,  
+        required_args   => 'tree_ref',
+        uses_nbr_lists  => 1,
+    );
+    
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub _calc_nri_nti_expected_values {
     my $self = shift;
     my %args = @_;
 
@@ -1056,6 +1094,7 @@ sub get_nri_nti_expected_values {
     my $mpd_mntd_method = $args{mpd_mntd_method} || '_calc_phylo_mpd_mntd';
     my $mpd_index_name  = $args{mpd_index_name}  || 'PMPD1_MEAN';
     my $mntd_index_name = $args{mntd_index_name} || 'PNTD1_MEAN';
+    my $vpd_index_name  = $args{vpd_index_name}  || 'PMPD1_VARIANCE';
     my $results_pfx     = $args{results_pfx} || 'PHYLO_';
 
     #  we used to get all named nodes from a tree,
@@ -1065,12 +1104,12 @@ sub get_nri_nti_expected_values {
     my @named_node_array    = sort keys %$named_nodes;
     my $label_count_max_idx = $label_count - 1;
 
-    my ($mpd_mean, $mpd_sd, $mntd_mean, $mntd_sd);
+    my ($mpd_mean, $mpd_sd, $mntd_mean, $mntd_sd, $vpd_mean, $vpd_sd);
     $mpd_mean  = $tree->get_nri_expected_mean;
     $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
     my $do_sample_mpd  = 0;
     my $do_sample_mntd = 1;
-    my $do_sample_var  = $self->get_param('CALCULATE_MPD_MNTD_SAMPLE_VARIANCE');
+    my $do_sample_vpd  = $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
 
     my %results = (
         $results_pfx . 'NRI_SAMPLE_MEAN'  => $mpd_mean,
@@ -1087,12 +1126,11 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
         return wantarray ? %results : \%results
-          if !$do_sample_var;
+          if !$do_sample_vpd;
 
         $do_sample_mntd = 0;
     }
-
-    if ($label_count == $tree->get_terminal_element_count && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}) {
+    if ($do_sample_mntd && $label_count == $tree->get_terminal_element_count && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}) {
         $mntd_mean = $tree->get_mean_nearest_neighbour_distance;
         $mntd_sd   = 0;
 
@@ -1101,12 +1139,13 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
         return wantarray ? %results : \%results
-          if !$do_sample_var;
+          if !$do_sample_vpd;
 
         $do_sample_mntd = 0;
     }
 
-    my ($mpd_sum_x, $mpd_sum_x_sqr, $mntd_sum_x, $mntd_sum_x_sqr);
+    my ($mpd_sum_x, $mpd_sum_x_sqr, $mntd_sum_x, $mntd_sum_x_sqr,
+        $vpd_sum_x, $vpd_sum_x_sqr);
     my $n       = 0;
     my $skipped = 0;
     my $bigint  = Math::BigInt->new(scalar keys %$named_nodes);
@@ -1135,6 +1174,7 @@ sub get_nri_nti_expected_values {
     my %convergence = (
         $do_sample_mpd  ? (mpd_mean  => [], mpd_sd  => []) : (),
         $do_sample_mntd ? (mntd_mean => [], mntd_sd => []) : (),
+        $do_sample_vpd  ? (vpd_mean  => [], vpd_sd  => []) : (),
     );
     
   ITER:
@@ -1171,9 +1211,9 @@ sub get_nri_nti_expected_values {
             label_hash2 => $lb_hash_ref,
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
             mpd_mntd_means_only  => 1,  #  overridden if variance is needed
-            mpd_mntd_mean_variance_only => $do_sample_var,
+            mpd_mntd_mean_variance_only => $do_sample_vpd,
             nri_nti_generation   => 1,
-            no_mpd               => !($do_sample_mpd || $do_sample_var),
+            no_mpd               => !($do_sample_mpd || $do_sample_vpd),
         );
 
         my $val;
@@ -1200,6 +1240,17 @@ sub get_nri_nti_expected_values {
             push @{$convergence{mntd_mean}}, $mntd_mean;
             push @{$convergence{mntd_sd}},   $mntd_sd;
         }
+        if ($do_sample_vpd) {
+            $val = $results_this_iter{$vpd_index_name};
+            $vpd_sum_x += $val;
+            $vpd_sum_x_sqr += $val ** 2;
+            $vpd_mean = $vpd_sum_x / $n;
+            #  avoid sqrt of negs due to precision
+            $vpd_sd   = sqrt max (($vpd_sum_x_sqr / $n) - ($vpd_mean ** 2), 0);
+
+            push @{$convergence{vpd_mean}}, $vpd_mean;
+            push @{$convergence{vpd_sd}},   $vpd_sd;
+        }
 
         #say "\nfnarb,$label_count,$n,$mpd_mean,$mpd_sd,$mntd_mean,$mntd_sd"
         #  if $ENV{BD_NRI_NTI_CUM_STATS};
@@ -1221,6 +1272,11 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NTI_SAMPLE_SD'}    = $mntd_sd;
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = $n;
     }
+    if ($do_sample_vpd) {
+        $results{$results_pfx . 'NET_VPD_SAMPLE_MEAN'} = $vpd_mean;
+        $results{$results_pfx . 'NET_VPD_SAMPLE_SD'}   = $vpd_sd;
+        $results{$results_pfx . 'NET_VPD_SAMPLE_N'}    = $n;  
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -1235,7 +1291,8 @@ sub get_convergence_nri_nti_expected_values {
 
     foreach my $array (values %$scores) {
         my ($min, $max) = minmax (@$array);
-        my $ratio = 1 - $min / $max;
+        #  handle $max == 0
+        my $ratio = $max ? (1 - $min / $max) : 0;
         return 0 if $ratio > 0.005;
     }
 
@@ -1295,6 +1352,117 @@ sub reinitialise_prng_object {
 
     return;
 }
+
+sub get_metadata_calc_net_vpd {
+    my $self = shift;
+
+    my %metadata = (
+        type        => 'PhyloCom Indices',
+        name        => 'Net variance of pair-wise phylogenetic distances, unweighted',
+        description => 'Z-score of VPD calculated using NRI/NTI resampling'
+                     . ' Not weighted by sample counts, '
+                     . 'so each label counts once only.',
+        pre_calc    => [qw /calc_vpd_expected_values calc_phylo_mpd_mntd1/],
+        pre_calc_global => ['set_mpd_mntd_sample_variance_flag'],
+        indices     => {
+            PHYLO_NET_VPD => {
+                description    => 'Net variance of pair-wise phylogenetic distances, unweighted',
+                #formula        => $nri_formula,
+            },
+        },
+        uses_nbr_lists => 1,
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_net_vpd {
+    my $self = shift;
+    my %args = @_;
+
+    no warnings 'uninitialized';
+    my $z_score = eval {
+        ( $args{PMPD1_VARIANCE} - $args{PHYLO_NET_VPD_SAMPLE_MEAN} )
+        / $args{PHYLO_NET_VPD_SAMPLE_SD};
+    };
+ 
+    my %results = (
+        PHYLO_NET_VPD => $z_score,
+    );
+
+    return wantarray ? %results :\%results;
+}
+
+sub get_metadata_set_mpd_mntd_sample_variance_flag {
+    my %metadata = (
+        type            => 'PhyloCom Indices',
+        name            => 'flag to also calculate MPD variance when running NRI/NTI',
+        description     => 'flag to also calculate MPD variance when running NRI/NTI',
+        required_args   => 'tree_ref',
+        uses_nbr_lists  => 1,
+        indices         => undef,
+    );
+
+    return $metadata_class->new(\%metadata);    
+}
+
+sub set_mpd_mntd_sample_variance_flag {
+    my $self = shift;
+    $self->set_param(CALCULATE_NRI_VARIANCE_SAMPLE => 1);
+    #  precalcs need to return hash or hashref
+    return wantarray ? () : {};
+}
+
+sub get_metadata_calc_vpd_expected_values {
+    my $self = shift;
+    
+    my $indices = {
+        PHYLO_NET_VPD_SAMPLE_MEAN => {
+            description    => 'Expected mean of pair-wise variance',
+            formula        => [],
+        },
+        PHYLO_NET_VPD_SAMPLE_SD => {
+            description    => 'Expected standard deviation of pair-wise variance',
+            formula        => [],
+        },
+        PHYLO_NET_VPD_SAMPLE_N => {
+            description    => 'Number of random resamples used to calculate '
+                            . 'expected pair-wise variance scores'
+                            . '(will equal PHYLO_NRI_NTI_SAMPLE_N for non-ultrametric trees)',
+            formula        => [],
+        },
+    };
+    
+    my $description = 'Expected values for VPD, analogous to the NRI/NTI results';
+    my $reference   = $mpd_variance_ref;
+
+    my %metadata = (
+        type            => 'PhyloCom Indices',
+        name            => 'Net VPD expected values',
+        description     => $description,
+        reference       => $reference,
+        pre_calc        => [qw /_calc_nri_nti_expected_values/],
+        pre_calc_global => [qw /set_mpd_mntd_sample_variance_flag/],  
+        required_args   => 'tree_ref',
+        uses_nbr_lists  => 1,
+        indices         => $indices,
+    );
+    
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub calc_vpd_expected_values {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = %args{
+      qw /PHYLO_NET_VPD_SAMPLE_MEAN PHYLO_NET_VPD_SAMPLE_SD PHYLO_NET_VPD_SAMPLE_N/
+    };
+
+    return wantarray ? %results : \%results;
+}
+
 
 1;
 

@@ -1068,7 +1068,8 @@ sub get_nri_nti_expected_values {
     my ($mpd_mean, $mpd_sd, $mntd_mean, $mntd_sd);
     $mpd_mean  = $tree->get_nri_expected_mean;
     $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
-    my $do_mpd = 0;
+    my $do_sample_mpd  = 0;
+    my $do_sample_mntd = 1;
 
     my %results = (
         $results_pfx . 'NRI_SAMPLE_MEAN'  => $mpd_mean,
@@ -1085,6 +1086,8 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
         return wantarray ? %results : \%results;
+
+        $do_sample_mntd = 0;
     }
 
     if ($label_count == $tree->get_terminal_element_count && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}) {
@@ -1096,6 +1099,8 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
         return wantarray ? %results : \%results;
+
+        $do_sample_mntd = 0;
     }
 
     my ($mpd_sum_x, $mpd_sum_x_sqr, $mntd_sum_x, $mntd_sum_x_sqr);
@@ -1114,8 +1119,9 @@ sub get_nri_nti_expected_values {
     my ($progress, $progress_pfx);
     if (scalar keys %$named_nodes > 25) {
         $progress_pfx = "\nGetting $results_pfx "
-                      . ($do_mpd ? 'NRI and ' : '')
-                      . "NTI expected values\n"
+                      . ($do_sample_mpd  ? 'NRI and ' : '')
+                      . ($do_sample_mntd ? "NTI " : '')
+                      . "expected values\n"
                       . "for $label_count labels.\n";   
         $progress = Biodiverse::Progress->new(
             #gui_only => 1,
@@ -1124,14 +1130,8 @@ sub get_nri_nti_expected_values {
     }
 
     my %convergence = (
-        $do_mpd
-          ? (
-            mpd_mean  => [],
-            mpd_sd    => [],
-          )
-          : (),
-        mntd_mean => [],
-        mntd_sd   => [],
+        $do_sample_mpd  ? (mpd_mean  => [], mpd_sd  => []) : (),
+        $do_sample_mntd ? (mntd_mean => [], mntd_sd => []) : (),
     );
     
   ITER:
@@ -1169,41 +1169,46 @@ sub get_nri_nti_expected_values {
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
             mpd_mntd_means_only  => 1,
             nri_nti_generation   => 1,
-            no_mpd               => !$do_mpd,
+            no_mpd               => !$do_sample_mpd,
         );
 
         my $val;
         
-        if ($do_mpd) {
+        if ($do_sample_mpd) {
             $val = $results_this_iter{$mpd_index_name};
             $mpd_sum_x += $val;
             $mpd_sum_x_sqr += $val ** 2;
             $mpd_mean  = $mpd_sum_x / $n;
         }
-        
-        $val = $results_this_iter{$mntd_index_name};
-        $mntd_sum_x += $val;
-        $mntd_sum_x_sqr += $val ** 2;
-        $mntd_mean = $mntd_sum_x / $n;
+        if ($do_sample_mntd) {
+            $val = $results_this_iter{$mntd_index_name};
+            $mntd_sum_x += $val;
+            $mntd_sum_x_sqr += $val ** 2;
+            $mntd_mean = $mntd_sum_x / $n;
+        }
 
         {
             #  handle negatives which can occur occasionally
             no warnings qw /numeric/;
-            if ($do_mpd) {
+            if ($do_sample_mpd) {
                 $mpd_sd    = eval {sqrt (($mpd_sum_x_sqr / $n) - ($mpd_mean ** 2))} // 0;
             }
-            $mntd_sd   = eval {sqrt (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2))} // 0;
+            if ($do_sample_mntd) {
+                $mntd_sd   = eval {sqrt (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2))} // 0;
+            }
         }
 
         #say "\nfnarb,$label_count,$n,$mpd_mean,$mpd_sd,$mntd_mean,$mntd_sd"
         #  if $ENV{BD_NRI_NTI_CUM_STATS};
 
-        if ($do_mpd) {
+        if ($do_sample_mpd) {
             push @{$convergence{mpd_mean}},  $mpd_mean;
             push @{$convergence{mpd_sd}},    $mpd_sd;
         }
-        push @{$convergence{mntd_mean}}, $mntd_mean;
-        push @{$convergence{mntd_sd}},   $mntd_sd;
+        if ($do_sample_mntd) {
+            push @{$convergence{mntd_mean}}, $mntd_mean;
+            push @{$convergence{mntd_sd}},   $mntd_sd;
+        }
         if ($n > 100) {  #  just work with the last so many
             foreach my $array (values %convergence) {
                 shift @$array;
@@ -1216,9 +1221,11 @@ sub get_nri_nti_expected_values {
         }
     }
 
-    $results{$results_pfx . 'NTI_SAMPLE_MEAN'}  = $mntd_mean;
-    $results{$results_pfx . 'NTI_SAMPLE_SD'}    = $mntd_sd;
-    $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = $n;
+    if ($do_sample_mntd) {
+        $results{$results_pfx . 'NTI_SAMPLE_MEAN'}  = $mntd_mean;
+        $results{$results_pfx . 'NTI_SAMPLE_SD'}    = $mntd_sd;
+        $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = $n;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -1230,11 +1237,13 @@ sub get_convergence_nri_nti_expected_values {
 
     my $scores = $args{scores};
 
+
     foreach my $array (values %$scores) {
         my ($min, $max) = minmax (@$array);
         my $ratio = 1 - $min / $max;
         return 0 if $ratio > 0.005;
     }
+
 
     #  if we get this far then we have converged
     return 1;
@@ -1250,6 +1259,7 @@ sub get_metadata_get_prng_object {
         description => 'Get a PRNG object for the indices object to use',
         indices => {
             PRNG_OBJECT => {
+
                 description => 'The PRNG object',
             },
         },
@@ -1259,6 +1269,7 @@ sub get_metadata_get_prng_object {
 }
 
 sub get_prng_object {
+
     my $self = shift;
     my %args = @_;
 

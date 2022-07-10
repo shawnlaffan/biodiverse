@@ -299,11 +299,11 @@ sub _calc_phylo_mpd_mntd {
         grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}}
         keys %$label_hash1;
     my @labels2 = $label_hashrefs_are_same
-        ? @labels1
+        ? @labels1  #  needs to be a copy as we splice it below
         : sort
           grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} }
           keys %$label_hash2;
-    #  allows slicing inside the loop
+    #  allows splicing inside the loop
     my %lb2_indices;
     @lb2_indices{@labels2} = (0..$#labels2);
 
@@ -1070,6 +1070,7 @@ sub get_nri_nti_expected_values {
     $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
     my $do_sample_mpd  = 0;
     my $do_sample_mntd = 1;
+    my $do_sample_var  = $self->get_param('CALCULATE_MPD_MNTD_SAMPLE_VARIANCE');
 
     my %results = (
         $results_pfx . 'NRI_SAMPLE_MEAN'  => $mpd_mean,
@@ -1085,7 +1086,8 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NTI_SAMPLE_SD'}    = $mntd_sd;
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
-        return wantarray ? %results : \%results;
+        return wantarray ? %results : \%results
+          if !$do_sample_var;
 
         $do_sample_mntd = 0;
     }
@@ -1098,7 +1100,8 @@ sub get_nri_nti_expected_values {
         $results{$results_pfx . 'NTI_SAMPLE_SD'}    = $mntd_sd;
         $results{$results_pfx . 'NRI_NTI_SAMPLE_N'} = 0;
 
-        return wantarray ? %results : \%results;
+        return wantarray ? %results : \%results
+          if !$do_sample_var;
 
         $do_sample_mntd = 0;
     }
@@ -1167,9 +1170,10 @@ sub get_nri_nti_expected_values {
             label_hash1 => $lb_hash_ref,
             label_hash2 => $lb_hash_ref,
             PHYLO_LABELS_ON_TREE => $named_nodes,  #  override
-            mpd_mntd_means_only  => 1,
+            mpd_mntd_means_only  => 1,  #  overridden if variance is needed
+            mpd_mntd_mean_variance_only => $do_sample_var,
             nri_nti_generation   => 1,
-            no_mpd               => !$do_sample_mpd,
+            no_mpd               => !($do_sample_mpd || $do_sample_var),
         );
 
         my $val;

@@ -8,3 +8,7 @@ nytprof.out
 /tmp
 t/*.results
 *.komodoproject
+
+/blib
+/Makefile
+/Makefile.old

@@ -47,7 +47,7 @@ run_indices_test1 (
     prng_seed          => 123456,
     nri_nti_iterations => 4999,
     calc_topic_to_test => 'PhyloCom Indices',
-    generate_result_sets => 1,
+    #generate_result_sets => 1,
 );
 
 done_testing;
@@ -123,9 +123,9 @@ __DATA__
     PHYLO_NTI3             => '-3.59966099911459',
     PHYLO_NTI_SAMPLE_MEAN  => '1.84720584828667',
     PHYLO_NTI_SAMPLE_SD    => '0.235357120710827',
-    PHYLO_NET_VPD_SAMPLE_MEAN  => 0,
-    PHYLO_NET_VPD_SAMPLE_N     => 101,
-    PHYLO_NET_VPD_SAMPLE_SD    => 0,
+    PHYLO_NET_VPD_SAMPLE_MEAN  => undef,
+    PHYLO_NET_VPD_SAMPLE_N     => 0,
+    PHYLO_NET_VPD_SAMPLE_SD    => undef,
     PHYLO_NET_VPD          => undef,
     PMPD1_MAX              => 1,
     PMPD1_MEAN             => '1',

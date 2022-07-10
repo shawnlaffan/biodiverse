@@ -1109,7 +1109,9 @@ sub get_nri_nti_expected_values {
     $mpd_sd    = $tree->get_nri_expected_sd (sample_count => $label_count);
     my $do_sample_mpd  = 0;
     my $do_sample_mntd = 1;
-    my $do_sample_vpd  = $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
+    my $do_sample_vpd
+      = $label_count > 2
+        && $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
 
     my %results = (
         $results_pfx . 'NRI_SAMPLE_MEAN'  => $mpd_mean,
@@ -1459,6 +1461,7 @@ sub calc_vpd_expected_values {
     my %results = %args{
       qw /PHYLO_NET_VPD_SAMPLE_MEAN PHYLO_NET_VPD_SAMPLE_SD PHYLO_NET_VPD_SAMPLE_N/
     };
+    $results{PHYLO_NET_VPD_SAMPLE_N} //= 0;
 
     return wantarray ? %results : \%results;
 }

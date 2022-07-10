@@ -97,7 +97,8 @@ sub get_mpd_mntd_metadata {
         },
         PMPD_VARIANCE => {
             description    => "Variance of pairwise phylogenetic distances,\n"
-                . "similar to Clarke and Warwick (2001) http://dx.doi.org/10.3354/meps216265",
+                . "similar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265)"
+                . " but uses tip-to-tip distances instead of tip to most recent common ancestor.",
             #formula        => $mpd_variance_formula,
         },
         PMPD_MAX => {
@@ -1420,11 +1421,11 @@ sub get_metadata_calc_vpd_expected_values {
     
     my $indices = {
         PHYLO_NET_VPD_SAMPLE_MEAN => {
-            description    => 'Expected mean of pair-wise variance',
+            description    => 'Expected mean of pair-wise variance (VPD)',
             formula        => [],
         },
         PHYLO_NET_VPD_SAMPLE_SD => {
-            description    => 'Expected standard deviation of pair-wise variance',
+            description    => 'Expected standard deviation of pair-wise variance (VPD)',
             formula        => [],
         },
         PHYLO_NET_VPD_SAMPLE_N => {

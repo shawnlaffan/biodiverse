@@ -1179,36 +1179,27 @@ sub get_nri_nti_expected_values {
             $mpd_sum_x += $val;
             $mpd_sum_x_sqr += $val ** 2;
             $mpd_mean  = $mpd_sum_x / $n;
+            #  avoid sqrt of negs due to precision
+            $mpd_sd    = sqrt max(($mpd_sum_x_sqr / $n) - ($mpd_mean ** 2), 0);
+
+            push @{$convergence{mpd_mean}},  $mpd_mean;
+            push @{$convergence{mpd_sd}},    $mpd_sd;
         }
         if ($do_sample_mntd) {
             $val = $results_this_iter{$mntd_index_name};
             $mntd_sum_x += $val;
             $mntd_sum_x_sqr += $val ** 2;
             $mntd_mean = $mntd_sum_x / $n;
-        }
+            #  avoid sqrt of negs due to precision
+            $mntd_sd   = sqrt max (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2), 0);
 
-        {
-            #  handle negatives which can occur occasionally
-            no warnings qw /numeric/;
-            if ($do_sample_mpd) {
-                $mpd_sd    = eval {sqrt (($mpd_sum_x_sqr / $n) - ($mpd_mean ** 2))} // 0;
-            }
-            if ($do_sample_mntd) {
-                $mntd_sd   = eval {sqrt (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2))} // 0;
-            }
+            push @{$convergence{mntd_mean}}, $mntd_mean;
+            push @{$convergence{mntd_sd}},   $mntd_sd;
         }
 
         #say "\nfnarb,$label_count,$n,$mpd_mean,$mpd_sd,$mntd_mean,$mntd_sd"
         #  if $ENV{BD_NRI_NTI_CUM_STATS};
 
-        if ($do_sample_mpd) {
-            push @{$convergence{mpd_mean}},  $mpd_mean;
-            push @{$convergence{mpd_sd}},    $mpd_sd;
-        }
-        if ($do_sample_mntd) {
-            push @{$convergence{mntd_mean}}, $mntd_mean;
-            push @{$convergence{mntd_sd}},   $mntd_sd;
-        }
         if ($n > 100) {  #  just work with the last so many
             foreach my $array (values %convergence) {
                 shift @$array;

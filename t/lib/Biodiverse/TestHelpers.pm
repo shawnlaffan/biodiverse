@@ -1041,6 +1041,7 @@ sub run_indices_test1 {
             elements       => \%elements,
             nbr_list_count => $nbr_list_count,
             basedata_ref   => $bd,
+            %args{qw /valid_calculations expected_indices skip_valid_calc_check/},
         );
 
         my %results;
@@ -1170,15 +1171,19 @@ sub run_indices_test1_inner {
 
     my %tmp_hash;
     @tmp_hash{@$calcs_to_test} = 1 x @$calcs_to_test;
-    my $expected_indices = $indices->get_indices (
+    my $expected_indices
+      = $args{expected_indices}
+      // $indices->get_indices (
         calculations   => \%tmp_hash,
         uses_nbr_lists => $nbr_list_count,
     );
 
-    if ($nbr_list_count != 1) {
+    if ($nbr_list_count != 1 && !$args{skip_valid_calc_check}) {
         #  skip if nbrs == 1 as otherwise we throw errors when calcs have been validly removed
         #  due to insufficient nbrs
-        my $valid_calc_list = $indices->get_valid_calculations_to_run;
+        my $valid_calc_list
+          = $args{valid_calculations}
+          // $indices->get_valid_calculations_to_run;
         is (
             [sort @$calcs_to_test],
             [sort keys %$valid_calc_list],
@@ -1216,8 +1221,9 @@ sub run_indices_test1_inner {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "Ran global postcalcs without eval error, $nbr_list_count nbrs");
-
-
+    
+    #my $invalid_calcs = $indices->get_invalid_calculations;
+    #delete @$expected_indices{@$invalid_calcs};
     my $pass = is (
         [sort keys %results],
         [sort keys %$expected_indices],
@@ -1236,8 +1242,8 @@ sub run_indices_test1_inner {
     }
     
 
-    
-    if ($nbr_list_count != 1) {  #  only need to check when we have >1 nbr set
+    #  only need to check when we have >1 nbr set
+    if ($nbr_list_count != 1 && !$args{skip_valid_calc_check}) {  
         #  does the metadata flag list indices correctly?
         subtest "List indices correctly marked in metadata" => sub {
             my $list_indices = $indices->get_list_indices (calculations => scalar $indices->get_valid_calculations_to_run);

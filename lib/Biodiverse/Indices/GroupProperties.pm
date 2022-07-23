@@ -27,6 +27,7 @@ sub get_metadata_get_gpp_stats_objects {
         type            => 'Element Properties',
         pre_calc        => ['calc_element_lists_used'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        pre_conditions => ['basedata_has_group_properties'],
         indices => {
             GPPROP_STATS_OBJECTS => {
                 description => 'Hash of stats objects for the property values',
@@ -101,7 +102,7 @@ sub _get_gpprop_names {
     my $self = shift;
 
     #  use a cache to save time on repeated lookups
-    my $names = $self->get_param('GPPROP_NAMES');
+    my $names = $self->get_cached_value('GPPROP_NAMES');
 
     if (! $names) {
         my $bd = $self->get_basedata_ref;
@@ -109,7 +110,7 @@ sub _get_gpprop_names {
 
         $names = $gp->get_element_property_keys;
 
-        $self->set_param (GPPROP_NAMES => $names);
+        $self->set_cached_value (GPPROP_NAMES => $names);
     }    
 
     return wantarray ? @$names : $names;
@@ -241,6 +242,7 @@ sub get_metadata_calc_gpprop_stats {
         name            => 'Group property summary stats',
         type            => 'Element Properties',
         pre_calc        => ['get_gpp_stats_objects'],
+        pre_conditions  => ['basedata_has_group_properties'],
         uses_nbr_lists  => 1,
         indices         =>  {
             GPPROP_STATS_LIST => {
@@ -290,6 +292,7 @@ sub get_metadata_calc_gpprop_quantiles {
         name            => 'Group property quantiles',
         type            => 'Element Properties',
         pre_calc        => ['get_gpp_stats_objects'],
+        pre_conditions  => ['basedata_has_group_properties'],
         uses_nbr_lists  => 1,
         indices         =>  {
             GPPROP_QUANTILE_LIST => {
@@ -334,6 +337,7 @@ sub get_metadata_calc_gpprop_gistar {
         type            => 'Element Properties',
         pre_calc        => ['get_gpp_stats_objects'],
         pre_calc_global => [qw /_get_gpprop_global_summary_stats/],
+        pre_conditions  => ['basedata_has_group_properties'],
         uses_nbr_lists  => 1,
         reference       => $ref,
         indices         => {
@@ -439,6 +443,11 @@ sub _get_gpprop_global_summary_stats {
     return wantarray ? %results : \%results;
 }
 
+sub basedata_has_group_properties {
+    my $self = shift;
+    my @names = $self->_get_gpprop_names;
+    return !!scalar @names;
+}
 
 1;
 

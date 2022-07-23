@@ -23,6 +23,24 @@ run_indices_test1 (
     sort_array_lists   => 1,
 );
 
+run_indices_test1 (
+    calcs_to_test  => [qw/
+        calc_gpprop_gistar
+        calc_gpprop_lists
+        calc_gpprop_hashes
+        calc_gpprop_quantiles
+        calc_gpprop_stats
+    /],
+    sort_array_lists   => 1,
+    expected_results   => {
+        1 => {},
+        2 => {},
+    },
+    valid_calculations => {},
+    expected_indices   => {},
+    skip_valid_calc_check => 1,
+);
+
 done_testing;
 
 1;

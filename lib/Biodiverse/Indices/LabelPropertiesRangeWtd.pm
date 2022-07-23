@@ -18,6 +18,7 @@ sub get_metadata_get_lbp_stats_objects_abc2 {
         name            => 'Label property stats objects, local range weighted',
         type            => 'Element Properties',
         pre_calc        => ['calc_abc2'],
+        pre_conditions  => ['basedata_has_label_properties'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             LBPROP_STATS_OBJECTS_ABC2 => {
@@ -112,6 +113,7 @@ sub get_metadata_calc_lbprop_stats_abc2 {
         name            => 'Label property summary stats (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
+        pre_conditions  => ['basedata_has_label_properties'],
         uses_nbr_lists  => 1,
         indices         => {
             LBPROP_STATS_ABC2 => {
@@ -159,6 +161,7 @@ sub get_metadata_calc_lbprop_quantiles_abc2 {
         name            => 'Label property quantiles (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
+        pre_conditions  => ['basedata_has_label_properties'],
         uses_nbr_lists  => 1,
         indices         => {
             LBPROP_QUANTILES_ABC2 => {
@@ -204,6 +207,7 @@ sub get_metadata_calc_lbprop_gistar_abc2 {
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         pre_calc_global => [qw /_get_lbprop_global_summary_stats_range_weighted/],
+        pre_conditions  => ['basedata_has_label_properties'],
         uses_nbr_lists  => 1,
         reference       => $ref,
         indices         => {

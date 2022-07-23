@@ -22,6 +22,26 @@ run_indices_test1 (
     #generate_result_sets => 1,
 );
 
+
+#  and now without label props
+run_indices_test1 (
+    calcs_to_test  => [qw/
+        calc_lbprop_gistar_abc2
+        calc_lbprop_hashes_abc2
+        calc_lbprop_quantiles_abc2
+        calc_lbprop_stats_abc2
+    /],
+    sort_array_lists       => 1,
+    expected_results   => {
+        1 => {},
+        2 => {},
+    },
+    valid_calculations => {},
+    expected_indices   => {},
+    skip_valid_calc_check => 1,
+);
+
+
 done_testing;
 
 1;

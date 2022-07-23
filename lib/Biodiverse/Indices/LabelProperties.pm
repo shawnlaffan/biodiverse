@@ -27,6 +27,7 @@ sub get_metadata_get_lbp_stats_objects {
         name            => 'Label property stats objects',
         type            => 'Element Properties',
         pre_calc        => ['calc_abc'],
+        pre_conditions  => ['basedata_has_label_properties'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             LBPROP_STATS_OBJECTS => {
@@ -458,6 +459,21 @@ sub _get_lbprop_global_summary_stats {
     return wantarray ? %results : \%results;
 }
 
+sub basedata_has_label_properties {
+    my $self = shift;
+
+    my $has_label_props = $self->get_cached_value ('BD_HAS_LABEL_PROPS');
+    
+    if (!defined $has_label_props) {
+        my $bd = $self->get_basedata_ref;
+        my $lb = $bd->get_labels_ref;
+        my @keys = $lb->get_element_property_keys;
+        $has_label_props = !!@keys;
+        $self->set_cached_value (BD_HAS_LABEL_PROPS => $has_label_props);
+     };
+
+    return $has_label_props;
+}
 
 1;
 

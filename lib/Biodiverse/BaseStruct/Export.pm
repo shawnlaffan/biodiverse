@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use 5.022;
 
-our $VERSION = '3.99_003';
+our $VERSION = '3.99_004';
 
 use Carp;
 use English ( -no_match_vars );
@@ -1764,7 +1764,7 @@ DIVA_HDR
     return;
 }
 
-#  write a table out as a series of ESRI floatgrid files,
+#  write a table out as a series of geotiff files,
 #  one per field based on row 0.
 #  Skip any fields that contain non-numeric values
 sub write_table_geotiff {

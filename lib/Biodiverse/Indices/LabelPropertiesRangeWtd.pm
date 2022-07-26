@@ -4,7 +4,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '3.99_003';
+our $VERSION = '3.99_004';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

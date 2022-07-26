@@ -4,7 +4,7 @@ use warnings;
 use 5.022;
 use English qw { -no_match_vars };
 
-our $VERSION = '3.99_003';
+our $VERSION = '3.99_004';
 
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';

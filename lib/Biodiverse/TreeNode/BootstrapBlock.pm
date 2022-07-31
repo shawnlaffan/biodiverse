@@ -262,7 +262,7 @@ sub has_exclusion {
     my $exclusions = $self->{exclusions};
     return if !$exclusions;
 
-    return grep {$_ eq $key} @$exclusions;
+    return grep $_ eq $key, @$exclusions;
 }
 
 1;

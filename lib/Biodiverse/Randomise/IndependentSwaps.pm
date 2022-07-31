@@ -179,7 +179,7 @@ END_PROGRESS_TEXT
               = $bd->get_groups_without_label_as_hash(label => $label);
               [ #  disable range sort - it biases S::M::S::draw1 
                 sort # {$richness_hash{$b} <=> $richness_hash{$a}}
-                grep {!exists $empty_groups{$_}}
+                grep !exists $empty_groups{$_},
                 keys %$shadow_hash
               ];
           };

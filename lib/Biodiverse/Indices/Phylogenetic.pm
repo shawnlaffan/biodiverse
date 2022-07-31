@@ -609,7 +609,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my $path_hash = {};
-    foreach my $label (grep {exists $all_nodes->{$_}} keys %$label_list) {
+    foreach my $label (grep exists $all_nodes->{$_}, keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
         my $current_node = $all_nodes->{$label};
@@ -2240,7 +2240,7 @@ sub get_labels_not_on_tree {
     
     my $labels = $bd->get_labels;
     
-    my @not_in_tree = grep { !$tree->exists_node (name => $_) } @$labels;
+    my @not_in_tree = grep { !$tree->exists_node_name_aa ($_) } @$labels;
 
     my %hash;
     @hash{@not_in_tree} = (1) x scalar @not_in_tree;

@@ -1320,9 +1320,10 @@ sub get_lists_across_elements {
     #  remove private lists if needed
     if ($no_private) {
         #  delete not those starting with an underscore
-        foreach my $key (grep {/^_/} keys %tmp_hash) {
-            delete $tmp_hash{$key};
-        }
+        #foreach my $key (grep {/^_/} keys %tmp_hash) {
+        #    delete $tmp_hash{$key};
+        #}
+        delete @tmp_hash{grep /^_/, keys %tmp_hash};
     }
     my @lists = keys %tmp_hash;
 

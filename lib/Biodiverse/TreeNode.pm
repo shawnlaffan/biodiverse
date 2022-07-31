@@ -1647,7 +1647,7 @@ sub get_root_node {
 sub get_siblings {
     my $self = shift;
     return wantarray ? () : [] if $self->is_root_node;
-    my @sibs = grep {$_ != $self} $self->get_parent->get_children;
+    my @sibs = grep $_ != $self, $self->get_parent->get_children;
     return wantarray ? @sibs : \@sibs;
 }
 

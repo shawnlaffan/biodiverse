@@ -198,7 +198,7 @@ sub calc_phylo_rpd2 {
     #  %$included_nodes is for the original tree
     my $pd_score_eq_branch_lengths;
     if ($args{TREE_ZERO_LENGTH_BRANCH_COUNT}) {
-        $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
+        $pd_score_eq_branch_lengths = grep $_, values %$included_nodes;
     }
     else {
         $pd_score_eq_branch_lengths = scalar keys %$included_nodes;
@@ -483,7 +483,7 @@ sub get_labels_not_on_trimmed_tree {
     
     my $labels = $bd->get_labels;
     
-    my @not_in_tree = grep { !$tree->exists_node (name => $_) } @$labels;
+    my @not_in_tree = grep { !$tree->exists_node_name_aa ($_) } @$labels;
 
     my %hash;
     @hash{@not_in_tree} = (1) x scalar @not_in_tree;
@@ -516,7 +516,7 @@ sub get_tree_zero_length_branch_count {
     
     my $tree = $args{tree_ref};
     
-    my $count = grep {!$_->get_length} $tree->get_node_refs;
+    my $count = grep !$_->get_length, $tree->get_node_refs;
     
     my %results = (TREE_ZERO_LENGTH_BRANCH_COUNT => $count);
     

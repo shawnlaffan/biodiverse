@@ -1809,7 +1809,7 @@ END_PROGRESS_TEXT
 
                         if ($spatial_allocation_order eq 'diffusion') {
                             #  need uniques only for uniform random selection
-                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                            @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
 
                         next NBR_LIST_REF if !scalar @sublist;
@@ -1924,7 +1924,7 @@ END_PROGRESS_TEXT
                         if ($spatial_allocation_order eq 'diffusion') {
                             #  need to ensure one entry for each group
                             #  for uniform random selection
-                            @sublist = grep {!exists $to_groups_hash{$_}} @sublist;
+                            @sublist = grep !exists $to_groups_hash{$_}, @sublist;
                         }
 
                         next NBR_LIST_REF if !scalar @sublist;
@@ -2248,7 +2248,7 @@ sub get_rand_structured_subset {
                 autovivify => 0,
             ) // [];
 
-            my @nbrs_to_check = grep {!$done{$_}} @$nbrs;
+            my @nbrs_to_check = grep !$done{$_}, @$nbrs;
 
             next SUBSET_BD if !scalar @nbrs_to_check;
 
@@ -2311,7 +2311,7 @@ sub get_rand_structured_subset {
         my $subset_bd = $cached_subset_basedatas->{$group};
 
         if (!$subset_bd) {
-            my @nbrs_to_check = grep {!exists $done{$_}} $bd->get_groups;
+            my @nbrs_to_check = grep !exists $done{$_}, $bd->get_groups;
             $subset_bd = Biodiverse::BaseData->new ($bd->get_params_hash);
             $subset_bd->rename (new_name => "subset $group");
 
@@ -2540,7 +2540,7 @@ sub swap_to_reach_richness_targets {
             #  only use non-empty groups ($filled_groups{$_} != 0)
             my $tmp;
             if ($target_has_empty_gps) {
-                $tmp = [sort grep {$filled_groups{$_}} keys %$target_groups_tmp];
+                $tmp = [sort grep $filled_groups{$_}, keys %$target_groups_tmp];
             }
             else {
                 $tmp = [sort keys %$target_groups_tmp];
@@ -2578,7 +2578,7 @@ sub swap_to_reach_richness_targets {
 
             #  get those labels not in the unfilled groups
             my @loser_labels_filtered
-              = sort grep {!exists $labels_in_unfilled_gps{$_}}
+              = sort grep !exists $labels_in_unfilled_gps{$_},
                 @$loser_labels_arr;
 
             #  but select from all labels if all are in the unfilled groups

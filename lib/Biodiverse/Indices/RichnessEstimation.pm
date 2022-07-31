@@ -752,8 +752,8 @@ sub _get_ice_differential {
 
     $n_infreq //=
         sum
-        map  {$_ * $freq_counts->{$_}}
-        grep {$_ < $k}
+        map  $_ * $freq_counts->{$_},
+        grep $_ < $k,
         keys %$freq_counts;
 
     my $si = sum map (($_ * ($_-1) * ($Q->{$_} // 0)), @u);
@@ -872,8 +872,8 @@ sub _get_ace_differential {
 
     $n_rare //=
         sum
-        map  {$_ * $F->{$_}}
-        grep {$_ <= $k}
+        map  $_ * $F->{$_},
+        grep $_ <= $k,
         keys %$F;
 
     my $si = sum map (($_ * ($_-1) * ($F->{$_} // 0)), @u);

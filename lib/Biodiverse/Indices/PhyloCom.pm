@@ -373,7 +373,7 @@ sub _calc_phylo_mpd_mntd {
         push @mntd_path_lengths, min (@path_lengths_this_node);
         if ($use_wts) {
             my $label_count1 = $label_hash1->{$label1};
-            push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
+            push @mpd_wts, map $_ * $label_count1, @mpd_wts_this_node;
             push @mntd_wts, $label_count1;
         }
     }
@@ -408,7 +408,7 @@ sub _calc_phylo_mpd_mntd {
         if ($n) {
             my $sumsq = $use_wts
                 ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
-                : sum (map {$_ ** 2} @$path);
+                : sum (map $_ ** 2, @$path);
             $rmsd = sqrt ($sumsq / $n);
             #  possible neg values close to 0
             $variance = max ($sumsq / $n - $mean ** 2, 0);
@@ -680,7 +680,7 @@ sub _get_node_cum_path_sum_to_root {
     my $lens = $args{tree_ref}
       ->get_node_ref_aa ($args{label})
       ->get_path_length_array_to_root_node_aa;
-    return [map {$sum += $_} @$lens];
+    return [map $sum += $_, @$lens];
 }
 
 sub get_metadata_get_phylo_mpd_mntd_cum_path_length_cache {

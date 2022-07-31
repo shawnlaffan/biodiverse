@@ -617,7 +617,7 @@ sub get_path_lengths_to_root_node {
 
         if (!$sub_path) {
             $sub_path = $current_node->get_path_to_root_node (cache => $cache);
-            my @p = map {$_->get_name} @$sub_path;
+            my @p = map (($_->get_name), @$sub_path);
             $sub_path = \@p;
             if ($cache) {
                 $path_cache->{$current_node} = $sub_path;

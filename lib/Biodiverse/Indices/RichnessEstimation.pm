@@ -756,7 +756,7 @@ sub _get_ice_differential {
         grep {$_ < $k}
         keys %$freq_counts;
 
-    my $si = sum map {$_ * ($_-1) * ($Q->{$_} // 0)} @u;
+    my $si = sum map (($_ * ($_-1) * ($Q->{$_} // 0)), @u);
 
     my ($Q1, $Q2) = @$Q{1,2};
     $Q1 //= 0;
@@ -876,7 +876,7 @@ sub _get_ace_differential {
         grep {$_ <= $k}
         keys %$F;
 
-    my $si = sum map {$_ * ($_-1) * ($F->{$_} // 0)} @u;
+    my $si = sum map (($_ * ($_-1) * ($F->{$_} // 0)), @u);
 
     my $f1 = $F->{1};
     my $d;

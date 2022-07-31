@@ -77,7 +77,7 @@ sub add_data {
 
     #  need to allow for already having data
     $sum    += List::Util::sum (@$aref);
-    $sumsq  += List::Util::sum (map {$_ ** 2} @$aref);
+    $sumsq  += List::Util::sum (map $_ ** 2, @$aref);
     $max    =  List::Util::max ($max, @$aref);
     $min    =  List::Util::min ($min, @$aref);
     $count  +=  scalar @$aref;

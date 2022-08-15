@@ -1392,7 +1392,8 @@ sub set_pairwise_mode {
 }
 
 sub get_pairwise_mode {
-    $_->{pairwise_mode};
+    my $self = shift;
+    $self->{pairwise_mode};
 }
 
 1;

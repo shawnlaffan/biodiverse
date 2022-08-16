@@ -1391,9 +1391,9 @@ sub set_pairwise_mode {
     return $mode;
 }
 
+#  potential hot path so optimise to avoid arg handling
 sub get_pairwise_mode {
-    my $self = shift;
-    $self->{pairwise_mode};
+    $_[0]->{pairwise_mode};
 }
 
 1;

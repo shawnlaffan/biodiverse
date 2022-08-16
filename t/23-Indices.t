@@ -59,7 +59,6 @@ sub main {
 }
 
 
-
 sub test_general {
     #  some helper vars
     my ($is_error, $e);
@@ -386,3 +385,16 @@ sub test_calc_abc_with_label_lists {
     );
 
 }
+
+#  exercise #816
+sub test_pairwise_mode_call {
+    my $indices_obj = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    
+    ok lives {
+        local $_ = 'this is text, not an object';
+        $indices_obj->get_pairwise_mode;
+    },
+    'get_pairwise_mode is unaffected by $_';
+}
+
+1;

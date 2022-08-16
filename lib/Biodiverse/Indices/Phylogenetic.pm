@@ -2513,12 +2513,14 @@ sub _calc_phylo_abc_lists {
         el_list  => [keys %{$args{element_list1}}],
     );
 
-    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
-        %args,
-        labels   => $label_hash2,
-        tree_ref => $tree,
-        el_list  => [keys %{$args{element_list2}}],
-    );
+    my $nodes_in_path2 = scalar %{$args{element_list2}}
+        ? $self->get_path_lengths_to_root_node (
+            %args,
+            labels   => $label_hash2,
+            tree_ref => $tree,
+            el_list  => [keys %{$args{element_list2}}],
+        )
+        : {};
 
     my %results;
     #  one day we can clean this all up

@@ -61,6 +61,25 @@ BEGIN {
     #print $ENV{PATH};
 };
 
+#  update paths on Strawberry perls if needed
+BEGIN {
+    use Config;
+    if (($Config{myuname} // '') =~ /strawberry/i) {
+        use Env qw /@PATH/;
+        my $sbase = Path::Class::file($^X)->parent->parent->parent;
+        my %pexists;
+        @pexists{@PATH} = @PATH;
+        my @paths =
+            grep {-e $_ && !exists $pexists{$_}}
+                map {Path::Class::dir($sbase, $_)}
+                    ("/c/bin", "/perl/bin", "/perl/site/bin", "/perl/vendor/bin");
+        if (@paths) {
+            say "Strawberry perl detected, prepending its bin dirs to path";
+            unshift @PATH, @paths;
+        }
+    }
+}
+
 #  Ensure the bin dirs for the aliens are at the front
 #  Crude, but we need to ensure we use the packaged aliens
 #  See GH issue #795 - https://github.com/shawnlaffan/biodiverse/issues/795

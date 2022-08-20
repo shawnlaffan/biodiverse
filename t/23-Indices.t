@@ -9,9 +9,9 @@ use rlib;
 
 local $| = 1;
 
+use Biodiverse::TestHelpers qw {:basedata :tree};
 use Biodiverse::BaseData;
 use Biodiverse::Indices;
-use Biodiverse::TestHelpers qw {:basedata :tree};
 
 use Scalar::Util qw /blessed/;
 

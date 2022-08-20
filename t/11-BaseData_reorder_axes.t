@@ -13,8 +13,8 @@ local $| = 1;
 
 use Test2::V0;
 
-use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::BaseData;
 
 exit main( @ARGV );
 

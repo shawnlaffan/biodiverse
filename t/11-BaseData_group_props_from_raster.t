@@ -6,17 +6,17 @@ use 5.010;
 
 use English qw { -no_match_vars };
 use Carp;
+use rlib;
+use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::BaseData;
 use Geo::GDAL::FFI qw/GetDriver/;
 use Test::TempDir::Tiny;
 
-use rlib;
 
 local $| = 1;
 
 use Test2::V0;
 
-use Biodiverse::BaseData;
-use Biodiverse::TestHelpers qw /:basedata/;
 
 exit main( @ARGV );
 

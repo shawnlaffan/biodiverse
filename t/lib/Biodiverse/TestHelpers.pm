@@ -8,6 +8,7 @@ use English qw { -no_match_vars };
 use Carp;
 use Scalar::Util::Numeric qw/isfloat/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
+use Biodiverse::Config;
 
 use Test2::V0;
 

@@ -9,10 +9,12 @@ use rlib;
 use English qw/-no_match_vars/;
 
 use Text::CSV_XS;
+use Biodiverse::Config;
 use Biodiverse::TestHelpers qw /:utils/;
 
 #  just need something that inherits the csv handlers
 use Biodiverse::BaseStruct;
+
 
 test_r_data_frame();
 test_eol();

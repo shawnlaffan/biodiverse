@@ -13,9 +13,9 @@ use Data::Dumper qw /Dumper/;
 
 local $| = 1;
 
+use Biodiverse::TestHelpers qw {:spatial_conditions};
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
-use Biodiverse::TestHelpers qw {:spatial_conditions};
 
 #  need to build these from tables
 #  need to add more

@@ -9,6 +9,7 @@ use warnings;
 use Test2::V0;
 use rlib;
 
+use Biodiverse::TestHelpers qw //;
 use Biodiverse::RemapGuesser;
 
 use List::Util qw(shuffle);

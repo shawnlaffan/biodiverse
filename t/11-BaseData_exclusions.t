@@ -16,9 +16,9 @@ local $| = 1;
 
 use Test2::V0;
 
+use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
 
 my $bd = eval {
     get_basedata_object (

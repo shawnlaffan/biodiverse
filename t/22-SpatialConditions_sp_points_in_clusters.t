@@ -10,9 +10,9 @@ use Test2::V0;
 
 local $| = 1;
 
+use Biodiverse::TestHelpers qw {:spatial_conditions};
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
-use Biodiverse::TestHelpers qw {:spatial_conditions};
 
 
 exit main( @ARGV );

@@ -11,6 +11,7 @@ use Test2::V0;
 
 local $| = 1;
 
+use Biodiverse::TestHelpers qw //;
 use Biodiverse::Statistics;
 
 

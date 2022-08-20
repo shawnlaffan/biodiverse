@@ -19,9 +19,9 @@ local $| = 1;
 
 use Scalar::Util qw /looks_like_number/;
 
+use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
 
 exit main( @ARGV );
 

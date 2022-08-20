@@ -17,8 +17,8 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::BaseData;
 
 use Devel::Symdump;
 my $obj = Devel::Symdump->rnew(__PACKAGE__); 

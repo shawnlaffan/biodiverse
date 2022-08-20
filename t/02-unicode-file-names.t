@@ -16,6 +16,7 @@ use rlib;
 use Data::Section::Simple qw(
     get_data_section
 );
+use Biodiverse::Config;
 
 local $| = 1;
 

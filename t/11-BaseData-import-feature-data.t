@@ -20,9 +20,9 @@ local $| = 1;
 
 use Test2::V0;
 
+use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
 
 use Devel::Symdump;
 my $obj = Devel::Symdump->rnew(__PACKAGE__); 

@@ -16,6 +16,7 @@ use Path::Class;
 use List::Util 1.45 qw /uniq/;
 use POSIX qw /floor/;
 use rlib;
+use Biodiverse::Config;
 
 use Data::Section::Simple qw(
     get_data_section

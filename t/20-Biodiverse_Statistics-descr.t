@@ -8,6 +8,8 @@ use rlib;
 use Utils qw/compare_hash_by_ranges/;
 
 use Benchmark;
+
+use Biodiverse::TestHelpers qw //;
 use Biodiverse::Statistics;
 
 my $stats_class = 'Biodiverse::Statistics';

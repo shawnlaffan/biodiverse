@@ -9,12 +9,12 @@ use English qw{
 use rlib;
 use Test2::V0;
 
-use Biodiverse::BaseData;
-use Biodiverse::SpatialConditions;
 use Biodiverse::TestHelpers qw{
     :basedata
     compare_arr_vals
 };
+use Biodiverse::BaseData;
+use Biodiverse::SpatialConditions;
 
 
 

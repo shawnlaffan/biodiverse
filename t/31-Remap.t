@@ -7,6 +7,7 @@ use Carp;
 use Test2::V0;
 use rlib;
 
+use Biodiverse::TestHelpers qw //;
 use Biodiverse::Remap;
 
 

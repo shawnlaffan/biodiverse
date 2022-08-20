@@ -20,9 +20,9 @@ use Data::Section::Simple qw(
 local $| = 1;
 
 
+use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
-use Biodiverse::TestHelpers qw /:basedata/;
 
 #  this needs work to loop around more of the expected variations
 my @setup = (

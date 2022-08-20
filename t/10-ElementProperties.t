@@ -18,6 +18,7 @@ use Data::Dumper;
 
 use Biodiverse::TestHelpers qw /:element_properties/;
 use Biodiverse::ElementProperties;
+use Biodiverse::Config;
 
 
 {

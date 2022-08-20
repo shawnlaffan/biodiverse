@@ -15,6 +15,7 @@ use List::Util qw /max/;
 
 use Test::Lib;
 use rlib;
+use Biodiverse::Config;
 
 #  need to move GUI modules into their own test file
 BEGIN {

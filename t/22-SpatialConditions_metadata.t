@@ -10,6 +10,7 @@ use Scalar::Util qw /reftype/;
 use rlib;
 use Test2::V0;
 
+use Biodiverse::TestHelpers qw//;
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;
 

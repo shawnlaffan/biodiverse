@@ -11,6 +11,7 @@ use Scalar::Util qw /blessed/;
 
 #use Test::Lib;
 use rlib;
+use Biodiverse::Config;
 
 local $| = 1;
 

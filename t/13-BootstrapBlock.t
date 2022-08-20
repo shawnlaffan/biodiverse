@@ -7,6 +7,7 @@ use Test2::V0;
 
 use rlib;
 
+use Biodiverse::TestHelpers qw //;
 use Biodiverse::TreeNode::BootstrapBlock;
 
 use Devel::Symdump;

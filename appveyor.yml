@@ -30,7 +30,7 @@ install:
   - cpanm -v Alien::libtiff
   - cpanm -v Alien::proj
   
-  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm
+  - set ALIEN_GDAL_CONFIG_ARGS=--without-spatialite --without-gnm --without-qhull
   - cpanm -v Alien::gdal
   
   - cpanm --notest --installdeps .

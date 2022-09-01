@@ -1497,19 +1497,18 @@ sub highlight_paths_on_dendrogram {
     # Last colour is when branch is in both groups.
     #my (%coloured_branch, %done);
     my %done;
-    my @hashrefs   = @$hashrefs;
     my $dendrogram = $self->{dendrogram};
 
     foreach my $idx (0, 1) {
         my $alt_idx = $idx ? 0 : 1;
-        my $href    = $hashrefs[$idx];
+        my $href    = $hashrefs->[$idx];
         my $colour  = $dendro_highlight_branch_colours[$idx];
         my $node_ref;
       LABEL:
         foreach my $label (keys %$href) {
             # Might not match some or all nodes
             my $success = eval {
-                $node_ref = $tree->get_node_ref (node => $label);
+                $node_ref = $tree->get_node_ref_aa ($label);
             };
             next LABEL if !$success;
             # set path to highlighted colour

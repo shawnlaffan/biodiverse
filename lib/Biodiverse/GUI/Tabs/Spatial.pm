@@ -1427,9 +1427,9 @@ sub on_grid_hover {
             @nbrs_hash_outer{ @$nbrs_outer } = undef;
             $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
         }
-        if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree
-            $nbrs_hash_inner{$element} = 1;
-        }
+        #if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree
+        #    $nbrs_hash_inner{$element} = 1;
+        #}
 
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
@@ -1442,11 +1442,11 @@ sub on_grid_hover {
         my $bd = $bd_ref;
         my (%labels1, %labels2);
 
-        foreach my $nbr_grp (keys %nbrs_hash_inner) {
+        foreach my $nbr_grp (@$nbrs_inner) {
             my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
             @labels1{keys %$this_labels} = values %$this_labels;
         }
-        foreach my $nbr_grp (keys %nbrs_hash_outer) {
+        foreach my $nbr_grp (@$nbrs_outer) {
             my $this_labels = $bd->get_labels_in_group_as_hash_aa ($nbr_grp);
             @labels2{keys %$this_labels} = values %$this_labels;
         }

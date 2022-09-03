@@ -860,8 +860,8 @@ sub recolour_cluster_elements {
     my $map = $self->{map};
     return if not defined $map;
 
-    my $list_name         = $self->{analysis_list_name};
-    my $list_index        = $self->{analysis_list_index};
+    my $list_name         = $self->{analysis_list_name}  // '';
+    my $list_index        = $self->{analysis_list_index} // '';
     my $analysis_min      = $self->{analysis_min};
     my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
@@ -871,6 +871,8 @@ sub recolour_cluster_elements {
 
     my $cluster_colour_mode = $self->get_cluster_colour_mode();
     my $colour_callback;
+    
+    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -913,7 +915,6 @@ sub recolour_cluster_elements {
     elsif ($cluster_colour_mode eq 'list-values') {
         # sets colours according to (usually spatial)
         # list value for the element's cluster
-        my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
         $colour_callback = sub {
             my $elt = shift;
 
@@ -947,6 +948,9 @@ sub recolour_cluster_elements {
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
+    }
+    elsif ($is_canape) {
+        $map->hide_legend;
     }
 
     return;
@@ -1217,11 +1221,13 @@ sub recolour_cluster_lines {
     my %coloured_nodes;
 
     my $map = $self->{map};
-    my $list_name    = $self->{analysis_list_name};
-    my $list_index   = $self->{analysis_list_index};
+    my $list_name    = $self->{analysis_list_name}  // '';
+    my $list_index   = $self->{analysis_list_index} // '';
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
+    
+    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/; 
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1245,7 +1251,7 @@ sub recolour_cluster_lines {
               : undef;  #  allows for missing lists
 
             $colour_ref = defined $val
-              ? $map->get_colour ($val, $analysis_min, $analysis_max)
+              ? ($is_canape ? $map->get_colour_canape($val) : $map->get_colour ($val, $analysis_min, $analysis_max))
               : undef;
         }
         else {

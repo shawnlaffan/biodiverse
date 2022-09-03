@@ -180,6 +180,150 @@ sub compare {
     return 1;
 }
 
+sub calculate_canape {
+    my $self = shift;
+    my %args = @_;
+
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+        if !defined $result_list_pfx;
+
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
+    #  check if we have the relevant calcs here
+    
+    my $progress = Biodiverse::Progress->new();
+    my $progress_text = "Calculating Canape";
+    $progress->update ($progress_text, 0);
+
+    # find all the relevant lists for this target name
+    #my %base_list_indices = $self->find_list_indices_across_elements;
+    my @target_list_names
+      = uniq
+        grep {$_ =~ /^$result_list_pfx(?!>>\w+>>)/}
+        $self->get_hash_list_names_across_elements;
+
+    #  some more debugging
+    say "Prefix is $result_list_pfx";
+    say "Target list names are: "
+      . join ' ', @target_list_names;
+
+    my $to_do = $self->get_element_count;
+    my $i = 0;
+    
+    #  maybe should make this an argument - recycle_if_possible -
+    #  and let the caller do the checks, as we don't have $comparison in here
+    my $recycled_results
+      = $self->get_param ('RESULTS_ARE_RECYCLABLE');
+
+    my %done_base;
+    if ($recycled_results) {  #  set up some lists
+        foreach my $list_name (@target_list_names) {
+            $done_base{$list_name} = {};
+        }
+    }
+
+    COMP_BY_ELEMENT:
+    foreach my $element ($self->get_element_list) {
+        $i++;
+
+        $progress->update (
+            $progress_text . "(element $i / $to_do)",
+            $i / $to_do,
+        );
+
+        my $list_name = 'SPATIAL_RESULTS';
+
+        next COMP_BY_ELEMENT
+            if    $recycled_results
+               && $done_base{$list_name}{$element};
+
+        my $base_ref = $self->get_list_ref (
+            element     => $element,
+            list        => $list_name,
+            autovivify  => 0,
+        );
+
+        next COMP_BY_ELEMENT if !$base_ref; #  nothing to compare with...
+        next COMP_BY_ELEMENT if is_arrayref($base_ref);  #  skip arrays - should never be the case for this list
+        next COMP_BY_ELEMENT         #  should check earlier that we have run the relevant calcs
+          if not List::Util::all
+            {exists $base_ref->{$_}}
+            (qw/PE_WE_P PHYLO_RPE_NULL2 PHYLO_RPE2/);
+
+        my $p_rank_ref = $self->get_list_ref (
+            element     => $element,
+            list        => $result_list_pfx . '>>p_rank>>' . $list_name,
+            autovivify  => 0,
+        );
+
+        my $result_list_name = $result_list_pfx . '>>CANAPE';
+
+        my $result_list_ref = $self->get_list_ref (
+            element => $element,
+            list    => $result_list_name,
+        );
+
+        #$self->assign_canape_code_from_prank_results (
+        #    p_rank_list_ref  => $comp_ref,
+        #    base_list_ref    => $base_ref,
+        #    results_list_ref => $result_list_ref,  #  do it in-place
+        #);
+        my $canape_code;
+        if (defined $base_ref->{PE_WE_P}) {
+            my $PE_sig_obs = $p_rank_ref->{PE_WE_P} // 0.5;
+            my $PE_sig_alt = $p_rank_ref->{PHYLO_RPE_NULL2} // 0.5;
+            my $RPE_sig    = $p_rank_ref->{PHYLO_RPE2} // 0.5;
+            
+            $canape_code
+                = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig
+                : $RPE_sig < 0.025 ? 1                            #  neo
+                : $RPE_sig > 0.975 ? 2                            #  palaeo
+                : 3;                                              #  mixed
+            #say '';
+        }
+        $result_list_ref->{CANAPE_CODE} = $canape_code;
+        if (defined $canape_code) {
+            $result_list_ref->{NEO}    = 0 + ($canape_code == 1);
+            $result_list_ref->{PALAEO} = 0 + ($canape_code == 2);
+            $result_list_ref->{MIXED}  = 0 + ($canape_code == 3);
+        }
+
+        #  if results from both base and comp
+        #  are recycled then we can recycle the comparisons
+        if ($recycled_results) {
+            my $nbrs = $self->get_list_ref (
+                element => $element,
+                list    => 'RESULTS_SAME_AS',
+            );
+
+            my $results_ref = $self->get_list_ref (
+                element => $element,
+                list    => $result_list_name,
+            );
+
+            BY_RECYCLED_NBR:
+            foreach my $nbr (keys %$nbrs) {
+                $self->add_to_lists (
+                    element           => $nbr,
+                    $result_list_name => $results_ref,
+                    use_ref           => 1,
+                );
+            }
+            my $done_base_hash = $done_base{$list_name};
+            @{$done_base_hash}{keys %$nbrs}
+                = values %$nbrs;
+        }
+    }
+
+
+    $self->set_last_update_time;
+
+    return 1;
+}
+
 
 sub convert_comparisons_to_zscores {
     my $self = shift;

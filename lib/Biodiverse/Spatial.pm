@@ -193,7 +193,8 @@ sub calculate_canape {
     return 1 if not scalar @$e_list;
 
     #  check if we have the relevant calcs here
-    
+    return if !$self->check_canape_protocol_is_valid;
+
     my $progress = Biodiverse::Progress->new();
     my $progress_text = "Calculating Canape";
     $progress->update ($progress_text, 0);
@@ -225,7 +226,9 @@ sub calculate_canape {
         }
     }
 
-    my $list_name = 'SPATIAL_RESULTS';
+    my $list_name        = 'SPATIAL_RESULTS';
+    my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
+    my $result_list_name = $result_list_pfx . '>>CANAPE>>';
 
     COMP_BY_ELEMENT:
     foreach my $element ($self->get_element_list) {
@@ -255,11 +258,9 @@ sub calculate_canape {
 
         my $p_rank_list_ref = $self->get_list_ref (
             element     => $element,
-            list        => $result_list_pfx . '>>p_rank>>' . $list_name,
+            list        => $p_rank_list_name,
             autovivify  => 0,
         );
-
-        my $result_list_name = $result_list_pfx . '>>CANAPE';
 
         my $result_list_ref = $self->get_list_ref (
             element => $element,

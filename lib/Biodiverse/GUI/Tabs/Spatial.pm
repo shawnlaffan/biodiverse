@@ -1961,6 +1961,8 @@ sub recolour {
     #say 'WARNING - CLEARING CACHE FOR DEBUG';
     #delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
+    
+    my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -1973,8 +1975,9 @@ sub recolour {
             no autovivification;
             #  should use a method here
             my $val = $elements_hash->{$elt}{$list}{$index};
-            $colour = defined $val
-              ? $grid->get_colour($val, $min, $max)
+            $colour
+              = defined $val ?
+              ($is_canape ? $grid->get_colour_canape($val) : $grid->get_colour($val, $min, $max))
               : $colour_none;
         }
         

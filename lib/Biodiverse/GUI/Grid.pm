@@ -1156,6 +1156,18 @@ sub get_colour {
     #return $self->$method(@args);
 }
 
+my %canape_colour_hash = (
+    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
+    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
+);
+
+sub get_colour_canape {
+    return if !defined $_[1];
+    return $canape_colour_hash{$_[1]};
+}
+
 sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:

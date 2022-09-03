@@ -913,6 +913,7 @@ sub recolour_cluster_elements {
     elsif ($cluster_colour_mode eq 'list-values') {
         # sets colours according to (usually spatial)
         # list value for the element's cluster
+        my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
         $colour_callback = sub {
             my $elt = shift;
 
@@ -926,8 +927,8 @@ sub recolour_cluster_elements {
 
                 my $val = $list_ref->{$list_index}
                   // return $colour_for_undef;
-
-                return $map->get_colour ($val, $analysis_min, $analysis_max);
+                
+                return ($is_canape ? $map->get_colour_canape($val) : $map->get_colour($val, $analysis_min, $analysis_max))
             }
             else {
                 return exists $terminal_elements->{$elt}

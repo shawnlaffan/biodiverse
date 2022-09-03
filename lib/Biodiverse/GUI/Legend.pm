@@ -98,6 +98,16 @@ sub new {
     $self->{marks}[2] = $self->make_mark( $self->{legend_marks}[2] );
     $self->{marks}[3] = $self->make_mark( $self->{legend_marks}[3] );
 
+    #  debug stuff
+    #my $sub = sub {
+    #    my $i = 0;
+    #    print STDERR "Stack Trace:\n";
+    #    while ( (my @call_details = (caller($i++))) ){
+    #        print STDERR $call_details[1].":".$call_details[2]." in function ".$call_details[3]."\n";
+    #    }
+    #};
+    #$self->{legend_group}->signal_connect_swapped('hide', $sub, $self);
+
     return $self;
 };
 

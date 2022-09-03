@@ -2280,6 +2280,55 @@ sub convert_comparisons_to_zscores {
     }
 }
 
+sub calculate_canape {
+    my $self = shift;
+    my %args = @_;
+
+    my $result_list_pfx = $args{result_list_name};
+    croak qq{Argument 'result_list_name' not specified\n}
+      if !defined $result_list_pfx;
+
+    #  check if we have the relevant calcs here
+    return if !$self->check_canape_protocol_is_valid;
+
+    my $progress      = Biodiverse::Progress->new();
+    my $progress_text = "Calculating CANAPE codes";
+    $progress->update( $progress_text, 0 );
+
+    # find all the relevant lists for this target name
+    my $list_name        = 'SPATIAL_RESULTS';
+    my $p_rank_list_name = $result_list_pfx . '>>p_rank>>' . $list_name;
+    my $result_list_name = $result_list_pfx . '>>CANAPE>>';
+
+  NODE:
+    foreach my $node ( $self->get_node_refs ) {
+
+        my $p_rank_list_ref
+          = $node->get_list_ref_aa ($p_rank_list_name);
+
+        next NODE if !$p_rank_list_ref;
+
+        my $base_list_ref = $node->get_list_ref_aa ($list_name);
+
+        # this will vivify it
+        my $result_list_ref =
+          $node->get_list_ref_aa( $result_list_name );
+        if ( !$result_list_ref ) {
+            $result_list_ref = {};
+            $node->add_to_lists(
+                $result_list_name => $result_list_ref,
+                use_ref           => 1,
+            );
+        }
+
+        $self->assign_canape_codes_from_p_rank_results (
+            p_rank_list_ref  => $p_rank_list_ref,
+            base_list_ref    => $base_list_ref,
+            results_list_ref => $result_list_ref,  #  do it in-place
+        );
+    }
+}
+
 sub reintegrate_after_parallel_randomisations {
     my $self = shift;
     my %args = @_;

@@ -2491,7 +2491,8 @@ sub check_canape_protocol_is_valid {
     my $valid_calcs   = $analysis_args->{calculations} // $analysis_args->{spatial_calculations} // [];
     my %vk;
     @vk{@$valid_calcs} = (1) x @$valid_calcs;
-    return $vk{calc_phylo_rpe2} && $vk{calc_pe};
+    return ($vk{calc_phylo_rpe2} && $vk{calc_pe});
+    # || ($vk{calc_phylo_rpe_central} && $vk{calc_pe_central}) ;  #  central later
 }
 
 sub assign_canape_codes_from_p_rank_results {

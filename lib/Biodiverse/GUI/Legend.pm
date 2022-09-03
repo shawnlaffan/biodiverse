@@ -195,6 +195,19 @@ sub make_rect {
             $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
     }
+    elsif ($self->{legend_mode} eq 'Canape') {  #  incomplete, currently hidden when set
+
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+
+        #foreach my $row (0..($height - 1)) {
+        #    my $intensity = $self->rescale_grey(255 - $row);
+        #    my @rgb = ($intensity * 257 ) x 3;
+        #    my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
+        #    $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
+        #}
+        #$self->hide;
+    }
     else {
         croak "Legend: Invalid colour system\n";
     }
@@ -357,7 +370,7 @@ sub set_mode {
     $mode = ucfirst lc $mode;
 
     croak "Invalid display mode '$mode'\n"
-        if not $mode =~ /^Hue|Sat|Grey$/;
+        if not $mode =~ /^Hue|Sat|Grey|Canape$/;
 
     $self->{legend_mode} = $mode;
 
@@ -436,6 +449,7 @@ my %colour_methods = (
     Hue  => 'get_colour_hue',
     Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
+    Canape => 'get_colour_canape',
 );
 
 sub get_colour {
@@ -465,6 +479,19 @@ sub get_colour {
       if !$method;
 
     return $self->$method(@args);
+}
+
+
+my %canape_colour_hash = (
+    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
+    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
+);
+
+sub get_colour_canape {
+    my ($self, $val) = @_;
+    return $canape_colour_hash{$val} || COLOUR_WHITE;
 }
 
 sub get_colour_hue {

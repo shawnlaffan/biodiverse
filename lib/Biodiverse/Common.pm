@@ -2509,8 +2509,8 @@ sub assign_canape_codes_from_p_rank_results {
     my $results_list_ref = $args{results_list_ref} // {};
 
     my $canape_code;
-    if (defined $base_list_ref->{PE_WE_P}) {
-        my $PE_sig_obs = $p_rank_list_ref->{PE_WE_P} // 0.5;
+    if (defined $base_list_ref->{PE_WE}) {
+        my $PE_sig_obs = $p_rank_list_ref->{PE_WE} // 0.5;
         my $PE_sig_alt = $p_rank_list_ref->{PHYLO_RPE_NULL2} // 0.5;
         my $RPE_sig    = $p_rank_list_ref->{PHYLO_RPE2} // 0.5;
         

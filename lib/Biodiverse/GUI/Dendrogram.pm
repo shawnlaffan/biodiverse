@@ -944,6 +944,12 @@ sub recolour_cluster_elements {
     die "Invalid cluster colour mode $cluster_colour_mode\n"
       if !defined $colour_callback;
 
+    if ($is_canape) {
+        #$self->get_parent_tab->set_colour_mode('Canape');
+        $map->set_legend_mode('canape');
+        $map->get_legend->hide;
+    }
+
     $map->colour ($colour_callback);
 
     if ($cluster_colour_mode eq 'list-values') {

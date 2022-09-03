@@ -2484,6 +2484,42 @@ sub compare_lists_by_item {
 }
 
 
+sub assign_canape_codes_from_p_rank_results {
+    my $self = shift;
+    my %args = @_;
+
+    #  could alias this
+    my $p_rank_list_ref = $args{p_rank_list_ref}
+      // croak "p_rank_list_ref argument not specified\n";
+    #  need the observed values
+    my $base_list_ref = $args{base_list_ref}
+      // croak "base_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my $canape_code;
+    if (defined $base_list_ref->{PE_WE_P}) {
+        my $PE_sig_obs = $p_rank_list_ref->{PE_WE_P} // 0.5;
+        my $PE_sig_alt = $p_rank_list_ref->{PHYLO_RPE_NULL2} // 0.5;
+        my $RPE_sig    = $p_rank_list_ref->{PHYLO_RPE2} // 0.5;
+        
+        $canape_code
+            = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig
+            : $RPE_sig < 0.025 ? 1                            #  neo
+            : $RPE_sig > 0.975 ? 2                            #  palaeo
+            : 3;                                              #  mixed
+        #say '';
+    }
+    $results_list_ref->{CANAPE_CODE} = $canape_code;
+    if (defined $canape_code) {
+        $results_list_ref->{NEO}    = 0 + ($canape_code == 1);
+        $results_list_ref->{PALAEO} = 0 + ($canape_code == 2);
+        $results_list_ref->{MIXED}  = 0 + ($canape_code == 3);
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
+
 sub get_zscore_from_comp_results {
     my $self = shift;
     my %args = @_;

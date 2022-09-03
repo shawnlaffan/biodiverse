@@ -2483,6 +2483,16 @@ sub compare_lists_by_item {
     return $results;
 }
 
+sub check_canape_protocol_is_valid {
+    my $self = shift;
+
+    #  argh the hard coding of index names...
+    my $analysis_args = $self->get_param('SP_CALC_ARGS') || $self->get_param('ANALYSIS_ARGS');
+    my $valid_calcs   = $analysis_args->{calculations} // $analysis_args->{spatial_calculations} // [];
+    my %vk;
+    @vk{@$valid_calcs} = (1) x @$valid_calcs;
+    return $vk{calc_phylo_rpe2} && $vk{calc_pe};
+}
 
 sub assign_canape_codes_from_p_rank_results {
     my $self = shift;

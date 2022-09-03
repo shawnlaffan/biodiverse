@@ -1990,12 +1990,28 @@ sub recolour {
     #    my $elt = shift // return;
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
+    if ($is_canape) {
+        $self->hide_legend;
+    }
+    else {
+        $self->show_legend;
+    }
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);
     $grid->set_legend_min_max($min, $max);
 
     return;
+}
+
+sub hide_legend {
+    my $self = shift;
+    $self->{grid}->hide_legend;
+}
+
+sub show_legend {
+    my $self = shift;
+    $self->{grid}->show_legend;
 }
 
 sub on_colours_changed {

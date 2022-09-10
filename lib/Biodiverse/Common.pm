@@ -2522,10 +2522,13 @@ sub assign_canape_codes_from_p_rank_results {
         #say '';
     }
     $results_list_ref->{CANAPE_CODE} = $canape_code;
-    if (defined $canape_code) {
+    if (defined $canape_code) {  #  numify booleans
         $results_list_ref->{NEO}    = 0 + ($canape_code == 1);
         $results_list_ref->{PALAEO} = 0 + ($canape_code == 2);
         $results_list_ref->{MIXED}  = 0 + ($canape_code == 3);
+    }
+    else {  #  clear any pre-existing values
+        @$results_list_ref{qw /NEO PALAEO MIXED/} = (undef) x 3;
     }
 
     return wantarray ? %$results_list_ref : $results_list_ref;

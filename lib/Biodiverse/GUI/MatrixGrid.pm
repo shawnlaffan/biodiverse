@@ -14,6 +14,7 @@ use warnings;
 use Carp;
 use POSIX qw /floor/;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
 
 our $VERSION = '3.99_004';
 
@@ -636,7 +637,7 @@ sub rgb_to_hsv {
   my $var_r = $_[0] / 255;
   my $var_g = $_[1] / 255;
   my $var_b = $_[2] / 255;
-  my($var_max, $var_min) = maxmin($var_r, $var_g, $var_b);
+  my($var_min, $var_max) = minmax($var_r, $var_g, $var_b);
   my $del_max = $var_max - $var_min;
 
   if($del_max) {
@@ -659,14 +660,6 @@ sub rgb_to_hsv {
   }
 }
 
-sub maxmin {
-  my($min, $max) = @_;
-  for(my $i=0; $i<@_; $i++) {
-    $max = $_[$i] if($max < $_[$i]);
-    $min = $_[$i] if($min > $_[$i]);
-  }
-  return($max,$min);
-}
 
 ##########################################################
 # Event handling

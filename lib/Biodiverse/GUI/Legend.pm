@@ -166,7 +166,18 @@ sub make_rect {
     # of the canvas in reposition and according to each
     # mode's scaling factor held in $self->{legend_scaling_factor}.
 
-    if ($self->{legend_mode} eq 'Hue') {
+    if ($self->get_canape_mode) {
+
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+
+        foreach my $row (0..($height - 1)) {
+            my $class = int (0.5 + 3 * $row / ($height - 1));
+            my $colour = $self->get_colour_canape ($class);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
+    elsif ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
@@ -206,21 +217,8 @@ sub make_rect {
             $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
         }
     }
-    elsif ($self->{legend_mode} eq 'Canape') {  #  incomplete, currently hidden when set
-
-        ($width, $height) = ($self->get_width, 255);
-        $self->{legend_height} = $height;
-
-        #foreach my $row (0..($height - 1)) {
-        #    my $intensity = $self->rescale_grey(255 - $row);
-        #    my @rgb = ($intensity * 257 ) x 3;
-        #    my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-        #    $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
-        #}
-        #$self->hide;
-    }
     else {
-        croak "Legend: Invalid colour system\n";
+        croak "Legend: Invalid colour system $self->{legend_mode}\n";
     }
 
     return $self->{legend_colours_group};
@@ -231,6 +229,10 @@ sub add_row {
     my ($self, $group, $row, $r, $g, $b) = @_;
 
     my $width = $self->get_width;
+    
+    my $colour = blessed ($r) && $r->isa('Gtk2::Gdk::Color')
+      ? $r
+      : Gtk2::Gdk::Color->new($r,$g,$b);
 
     my $legend_colour_row = Gnome2::Canvas::Item->new (
         $group,
@@ -239,7 +241,7 @@ sub add_row {
         x2 => $width,
         y1 => $row,
         y2 => $row+1,
-        fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+        fill_color_gdk => $colour,
     );
 }
 
@@ -381,7 +383,7 @@ sub set_mode {
     $mode = ucfirst lc $mode;
 
     croak "Invalid display mode '$mode'\n"
-        if not $mode =~ /^Hue|Sat|Grey|Canape$/;
+        if not $mode =~ /^Hue|Sat|Grey$/;
 
     $self->{legend_mode} = $mode;
 
@@ -398,7 +400,7 @@ sub set_mode {
 
 sub get_mode {
     my $self = shift;
-    return $self->{legend_mode};
+    return $self->{legend_mode} //= 'Hue';
 }
 
 
@@ -460,11 +462,14 @@ my %colour_methods = (
     Hue  => 'get_colour_hue',
     Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
-    Canape => 'get_colour_canape',
+    #Canape => 'get_colour_canape',
 );
 
 sub get_colour {
     my ($self, $val, $min, $max) = @_;
+
+    return $self->get_colour_canape ($val)
+      if $self->get_canape_mode;
 
     if (defined $min and $val < $min) {
         $val = $min;
@@ -502,6 +507,7 @@ my %canape_colour_hash = (
 
 sub get_colour_canape {
     my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
     return $canape_colour_hash{$val} || COLOUR_WHITE;
 }
 
@@ -638,6 +644,9 @@ sub rgb_to_hsv {
 # Sets the values of the textboxes next to the legend */
 sub set_min_max {
     my ($self, $min, $max) = @_;
+    
+    return $self->set_text_marks_canape
+      if $self->get_canape_mode;
 
     $min //= $self->{last_min};
     $max //= $self->{last_max};
@@ -692,6 +701,24 @@ sub set_min_max {
     return;
 }
 
+sub set_text_marks_canape {
+    my $self = shift;
+
+    return if !$self->{marks};
+
+    my @strings = qw /mixed palaeo neo non-sig/;
+
+    # Set legend textbox markers
+    foreach my $i (0..3) {
+        my $mark = $self->{marks}[3 - $i];
+        $mark->set( text => $strings[$i] );
+        $mark->raise_to_top;
+    }
+
+    return;
+}
+
+
 sub set_log_mode_on {
     my ($self) = @_;
     return $self->{log_mode} = 1;
@@ -704,6 +731,32 @@ sub set_log_mode_off {
 
 sub get_log_mode {
     $_[0]->{log_mode};
+}
+
+sub set_canape_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{canape_mode};
+    $self->{canape_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_canape_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{canape_mode};
+    $self->{canape_mode} = 0;
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_canape_mode {
+    $_[0]->{canape_mode};
 }
 
 #  dup from Tab.pm - need to inherit from single source

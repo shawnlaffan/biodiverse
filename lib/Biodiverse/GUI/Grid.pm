@@ -237,6 +237,12 @@ sub set_legend_mode {
     return;
 }
 
+sub get_legend_mode {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    return $legend->get_mode;
+}
+
 sub set_legend_gt_flag {
     my $self = shift;
     my $flag = shift;

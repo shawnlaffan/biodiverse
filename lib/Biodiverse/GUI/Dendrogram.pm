@@ -944,20 +944,24 @@ sub recolour_cluster_elements {
     die "Invalid cluster colour mode $cluster_colour_mode\n"
       if !defined $colour_callback;
 
-    if ($is_canape) {
+    #if ($is_canape) {
         #$self->get_parent_tab->set_colour_mode('Canape');
-        $map->set_legend_mode('canape');
-        $map->get_legend->hide;
-    }
+        #$map->set_legend_mode('canape');
+        #$map->get_legend->hide;
+    #}
 
     $map->colour ($colour_callback);
 
-    if ($cluster_colour_mode eq 'list-values') {
+    if ($is_canape) {
+        #$map->hide_legend;
+        $map->get_legend->set_canape_mode_on;
         $map->set_legend_min_max($analysis_min, $analysis_max);
     }
-    elsif ($is_canape) {
-        $map->hide_legend;
+    elsif ($cluster_colour_mode eq 'list-values') {
+        $map->get_legend->set_canape_mode_off;
+        $map->set_legend_min_max($analysis_min, $analysis_max);
     }
+    $map->update_legend;
 
     return;
 }

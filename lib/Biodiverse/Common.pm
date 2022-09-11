@@ -2483,6 +2483,56 @@ sub compare_lists_by_item {
     return $results;
 }
 
+sub check_canape_protocol_is_valid {
+    my $self = shift;
+
+    #  argh the hard coding of index names...
+    my $analysis_args = $self->get_param('SP_CALC_ARGS') || $self->get_param('ANALYSIS_ARGS');
+    my $valid_calcs   = $analysis_args->{calculations} // $analysis_args->{spatial_calculations} // [];
+    my %vk;
+    @vk{@$valid_calcs} = (1) x @$valid_calcs;
+    return ($vk{calc_phylo_rpe2} && $vk{calc_pe});
+    # || ($vk{calc_phylo_rpe_central} && $vk{calc_pe_central}) ;  #  central later
+}
+
+sub assign_canape_codes_from_p_rank_results {
+    my $self = shift;
+    my %args = @_;
+
+    #  could alias this
+    my $p_rank_list_ref = $args{p_rank_list_ref}
+      // croak "p_rank_list_ref argument not specified\n";
+    #  need the observed values
+    my $base_list_ref = $args{base_list_ref}
+      // croak "base_list_ref argument not specified\n";
+
+    my $results_list_ref = $args{results_list_ref} // {};
+
+    my $canape_code;
+    if (defined $base_list_ref->{PE_WE}) {
+        my $PE_sig_obs = $p_rank_list_ref->{PE_WE} // 0.5;
+        my $PE_sig_alt = $p_rank_list_ref->{PHYLO_RPE_NULL2} // 0.5;
+        my $RPE_sig    = $p_rank_list_ref->{PHYLO_RPE2} // 0.5;
+        
+        $canape_code
+            = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig
+            : $RPE_sig < 0.025 ? 1                            #  neo
+            : $RPE_sig > 0.975 ? 2                            #  palaeo
+            : 3;                                              #  mixed
+        #say '';
+    }
+    $results_list_ref->{CANAPE_CODE} = $canape_code;
+    if (defined $canape_code) {  #  numify booleans
+        $results_list_ref->{NEO}    = 0 + ($canape_code == 1);
+        $results_list_ref->{PALAEO} = 0 + ($canape_code == 2);
+        $results_list_ref->{MIXED}  = 0 + ($canape_code == 3);
+    }
+    else {  #  clear any pre-existing values
+        @$results_list_ref{qw /NEO PALAEO MIXED/} = (undef) x 3;
+    }
+
+    return wantarray ? %$results_list_ref : $results_list_ref;
+}
 
 sub get_zscore_from_comp_results {
     my $self = shift;

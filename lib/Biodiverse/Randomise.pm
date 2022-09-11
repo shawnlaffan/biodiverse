@@ -706,6 +706,11 @@ sub run_randomisation {
                 result_list_name => $results_list_name,
             );
         }
+        if ($target->can('calculate_canape')) {
+            $target->calculate_canape (
+                result_list_name => $results_list_name,
+            );
+        }
     }
 
     #  and keep a track of the randomisation state,

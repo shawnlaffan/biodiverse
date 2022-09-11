@@ -506,16 +506,27 @@ sub on_colour_mode_changed {
             $colour_dialog->destroy();
         }
 
-        $self->{colour_mode} = $mode;
+        $self->set_colour_mode($mode);
     }
 
-    $self->{grid}->set_legend_mode($self->{colour_mode});
+    $self->{grid}->set_legend_mode($self->get_colour_mode);
     $self->recolour(all_elements => 1);
     $self->{grid}->update_legend;
 
     return;
 }
 
+sub set_colour_mode {
+    my ($self, $mode) = @_;
+    croak "Invalid colour mode"
+      if not $mode =~ /^Hue|Sat|Grey|Canape/i; 
+    $self->{colour_mode} = $mode;
+}
+
+sub get_colour_mode {
+    my $self = shift;
+    return $self->{colour_mode};
+}
 
 sub set_active_pane {
     my ($self, $active_pane) = @_;

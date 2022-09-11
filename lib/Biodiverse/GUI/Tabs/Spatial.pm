@@ -1961,6 +1961,8 @@ sub recolour {
     #say 'WARNING - CLEARING CACHE FOR DEBUG';
     #delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
+    
+    my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -1973,8 +1975,9 @@ sub recolour {
             no autovivification;
             #  should use a method here
             my $val = $elements_hash->{$elt}{$list}{$index};
-            $colour = defined $val
-              ? $grid->get_colour($val, $min, $max)
+            $colour
+              = defined $val ?
+              ($is_canape ? $grid->get_colour_canape($val) : $grid->get_colour($val, $min, $max))
               : $colour_none;
         }
         
@@ -1988,11 +1991,26 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
+    $self->{grid}->get_legend->set_canape_mode($is_canape);
+    $self->show_legend;
+
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);
     $grid->set_legend_min_max($min, $max);
 
+    $self->{grid}->update_legend;
+    
     return;
+}
+
+sub hide_legend {
+    my $self = shift;
+    $self->{grid}->hide_legend;
+}
+
+sub show_legend {
+    my $self = shift;
+    $self->{grid}->show_legend;
 }
 
 sub on_colours_changed {

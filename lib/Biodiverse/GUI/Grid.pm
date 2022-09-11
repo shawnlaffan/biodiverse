@@ -13,6 +13,7 @@ use warnings;
 use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -234,6 +235,12 @@ sub set_legend_mode {
     $self->colour_cells();
     
     return;
+}
+
+sub get_legend_mode {
+    my $self = shift;
+    my $legend = $self->get_legend;
+    return $legend->get_mode;
 }
 
 sub set_legend_gt_flag {
@@ -1136,24 +1143,18 @@ sub get_colour {
     my $self = shift;
 
     return $self->get_legend->get_colour (@_);
-    
-    #if (defined $min and $val < $min) {
-    #    $val = $min;
-    #}
-    #if (defined $max and $val > $max) {
-    #    $val = $max;
-    #}
-    #
-    #my @args = ($val, $min, $max);
-    #
-    #my $mode = $self->get_legend->get_mode;
-    #my $method = $colour_methods{$mode};
-    #
-    #croak "Unknown colour system: $mode\n"
-    #  if !$method;
-    #
-    #return $self->get_legend->$method(@args);
-    #return $self->$method(@args);
+}
+
+my %canape_colour_hash = (
+    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
+    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
+);
+
+sub get_colour_canape {
+    return if !defined $_[1];
+    return $canape_colour_hash{$_[1]};
 }
 
 sub get_colour_hue {
@@ -1260,7 +1261,7 @@ sub rgb_to_hsv {
     my $var_r = $_[0] / 255;
     my $var_g = $_[1] / 255;
     my $var_b = $_[2] / 255;
-    my($var_max, $var_min) = maxmin($var_r, $var_g, $var_b);
+    my($var_min, $var_max) = minmax($var_r, $var_g, $var_b);
     my $del_max = $var_max - $var_min;
 
     if($del_max) {
@@ -1298,16 +1299,6 @@ sub rescale_grey {
     return $value;
 }
 
-sub maxmin {
-    my($min, $max) = @_;
-    
-    for(my $i=0; $i<@_; $i++) {
-        $max = $_[$i] if($max < $_[$i]);
-        $min = $_[$i] if($min > $_[$i]);
-    }
-    
-    return($max,$min);
-}
 
 ##########################################################
 # Data extraction utilities

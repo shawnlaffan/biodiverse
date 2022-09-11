@@ -13,6 +13,7 @@ use warnings;
 use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
+use List::MoreUtils qw /minmax/;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -98,6 +99,16 @@ sub new {
     $self->{marks}[2] = $self->make_mark( $self->{legend_marks}[2] );
     $self->{marks}[3] = $self->make_mark( $self->{legend_marks}[3] );
 
+    #  debug stuff
+    #my $sub = sub {
+    #    my $i = 0;
+    #    print STDERR "Stack Trace:\n";
+    #    while ( (my @call_details = (caller($i++))) ){
+    #        print STDERR $call_details[1].":".$call_details[2]." in function ".$call_details[3]."\n";
+    #    }
+    #};
+    #$self->{legend_group}->signal_connect_swapped('hide', $sub, $self);
+
     return $self;
 };
 
@@ -155,7 +166,18 @@ sub make_rect {
     # of the canvas in reposition and according to each
     # mode's scaling factor held in $self->{legend_scaling_factor}.
 
-    if ($self->{legend_mode} eq 'Hue') {
+    if ($self->get_canape_mode) {
+
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+
+        foreach my $row (0..($height - 1)) {
+            my $class = int (0.5 + 3 * $row / ($height - 1));
+            my $colour = $self->get_colour_canape ($class);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
+    elsif ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
@@ -196,7 +218,7 @@ sub make_rect {
         }
     }
     else {
-        croak "Legend: Invalid colour system\n";
+        croak "Legend: Invalid colour system $self->{legend_mode}\n";
     }
 
     return $self->{legend_colours_group};
@@ -207,6 +229,10 @@ sub add_row {
     my ($self, $group, $row, $r, $g, $b) = @_;
 
     my $width = $self->get_width;
+    
+    my $colour = blessed ($r) && $r->isa('Gtk2::Gdk::Color')
+      ? $r
+      : Gtk2::Gdk::Color->new($r,$g,$b);
 
     my $legend_colour_row = Gnome2::Canvas::Item->new (
         $group,
@@ -215,7 +241,7 @@ sub add_row {
         x2 => $width,
         y1 => $row,
         y2 => $row+1,
-        fill_color_gdk => Gtk2::Gdk::Color->new($r,$g,$b),
+        fill_color_gdk => $colour,
     );
 }
 
@@ -374,7 +400,7 @@ sub set_mode {
 
 sub get_mode {
     my $self = shift;
-    return $self->{legend_mode};
+    return $self->{legend_mode} //= 'Hue';
 }
 
 
@@ -436,10 +462,14 @@ my %colour_methods = (
     Hue  => 'get_colour_hue',
     Sat  => 'get_colour_saturation',
     Grey => 'get_colour_grey',
+    #Canape => 'get_colour_canape',
 );
 
 sub get_colour {
     my ($self, $val, $min, $max) = @_;
+
+    return $self->get_colour_canape ($val)
+      if $self->get_canape_mode;
 
     if (defined $min and $val < $min) {
         $val = $min;
@@ -465,6 +495,20 @@ sub get_colour {
       if !$method;
 
     return $self->$method(@args);
+}
+
+
+my %canape_colour_hash = (
+    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
+    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
+);
+
+sub get_colour_canape {
+    my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
+    return $canape_colour_hash{$val} || COLOUR_WHITE;
 }
 
 sub get_colour_hue {
@@ -574,7 +618,7 @@ sub rgb_to_hsv {
     my $var_r = $_[0] / 255;
     my $var_g = $_[1] / 255;
     my $var_b = $_[2] / 255;
-    my($var_max, $var_min) = maxmin($var_r, $var_g, $var_b);
+    my($var_min, $var_max) = minmax($var_r, $var_g, $var_b);
     my $del_max = $var_max - $var_min;
 
     if($del_max) {
@@ -600,6 +644,9 @@ sub rgb_to_hsv {
 # Sets the values of the textboxes next to the legend */
 sub set_min_max {
     my ($self, $min, $max) = @_;
+    
+    return $self->set_text_marks_canape
+      if $self->get_canape_mode;
 
     $min //= $self->{last_min};
     $max //= $self->{last_max};
@@ -654,6 +701,24 @@ sub set_min_max {
     return;
 }
 
+sub set_text_marks_canape {
+    my $self = shift;
+
+    return if !$self->{marks};
+
+    my @strings = qw /mixed palaeo neo non-sig/;
+
+    # Set legend textbox markers
+    foreach my $i (0..3) {
+        my $mark = $self->{marks}[3 - $i];
+        $mark->set( text => $strings[$i] );
+        $mark->raise_to_top;
+    }
+
+    return;
+}
+
+
 sub set_log_mode_on {
     my ($self) = @_;
     return $self->{log_mode} = 1;
@@ -667,6 +732,45 @@ sub set_log_mode_off {
 sub get_log_mode {
     $_[0]->{log_mode};
 }
+
+sub set_canape_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{canape_mode};
+    $self->{canape_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_canape_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{canape_mode};
+    $self->{canape_mode} = 0;
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_canape_mode {
+    $_[0]->{canape_mode};
+}
+
+sub set_canape_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_canape_mode_on;
+    }
+    else {
+        $self->set_canape_mode_off;
+    }
+    return $self->{canape_mode};
+}
+
+
 
 #  dup from Tab.pm - need to inherit from single source
 sub format_number_for_display {
@@ -699,16 +803,5 @@ sub rescale_grey {
     return $value;
 }
 
-#  should replace with List::MoreUtils::minmax
-sub maxmin {
-    my($min, $max) = @_;
-    
-    for(my $i=0; $i<@_; $i++) {
-        $max = $_[$i] if($max < $_[$i]);
-        $min = $_[$i] if($min > $_[$i]);
-    }
-    
-    return($max,$min);
-}
 
 1;

@@ -12,3 +12,8 @@ t/*.results
 /blib
 /Makefile
 /Makefile.old
+
+/.idea
+biodiverse.iml
+
+/xx.bps

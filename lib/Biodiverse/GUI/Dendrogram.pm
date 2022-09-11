@@ -952,13 +952,9 @@ sub recolour_cluster_elements {
 
     $map->colour ($colour_callback);
 
-    if ($is_canape) {
-        #$map->hide_legend;
-        $map->get_legend->set_canape_mode_on;
-        $map->set_legend_min_max($analysis_min, $analysis_max);
-    }
-    elsif ($cluster_colour_mode eq 'list-values') {
-        $map->get_legend->set_canape_mode_off;
+    $map->get_legend->set_canape_mode($is_canape);
+
+    if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
     }
     $map->update_legend;

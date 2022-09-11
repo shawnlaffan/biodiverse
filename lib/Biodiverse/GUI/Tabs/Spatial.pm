@@ -1991,13 +1991,7 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
-    #  a bit messy
-    if ($is_canape) {
-        $self->{grid}->get_legend->set_canape_mode_on;
-    }
-    else {
-        $self->{grid}->get_legend->set_canape_mode_off;
-    }
+    $self->{grid}->get_legend->set_canape_mode($is_canape);
     $self->show_legend;
 
     $grid->colour($colour_func);

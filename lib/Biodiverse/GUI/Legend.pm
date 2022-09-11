@@ -759,6 +759,19 @@ sub get_canape_mode {
     $_[0]->{canape_mode};
 }
 
+sub set_canape_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_canape_mode_on;
+    }
+    else {
+        $self->set_canape_mode_off;
+    }
+    return $self->{canape_mode};
+}
+
+
+
 #  dup from Tab.pm - need to inherit from single source
 sub format_number_for_display {
     my $self = shift;

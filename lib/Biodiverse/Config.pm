@@ -65,10 +65,11 @@ BEGIN {
 BEGIN {
     use Config;
     if (($Config{myuname} // '') =~ /strawberry/i) {
-        use Env qw /@PATH/;
+        #use Env qw /@PATH/;
         my $sbase = Path::Class::file($^X)->parent->parent->parent;
+        my @non_null_paths = grep {defined} @PATH;  #  avoid undef path entries
         my %pexists;
-        @pexists{@PATH} = @PATH;
+        @pexists{@non_null_paths} = @non_null_paths;
         my @paths =
             grep {-e $_ && !exists $pexists{$_}}
                 map {Path::Class::dir($sbase, $_)}

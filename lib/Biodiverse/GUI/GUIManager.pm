@@ -1487,6 +1487,24 @@ sub do_convert_labels_to_phylogeny {
     return;
 }
 
+
+sub dlg_no_selected_object {
+    my $self = shift;
+    my $object_type = shift // 'tree';
+    
+    Biodiverse::GUI::YesNoCancel->run(
+        {
+            header      => "no $object_type selected",
+            hide_yes    => 1,
+            hide_no     => 1,
+            hide_cancel => 1,
+        }
+    );
+
+    return 0;
+}
+
+
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.
 sub do_trim_matrix_to_basedata {
@@ -1496,19 +1514,9 @@ sub do_trim_matrix_to_basedata {
     my $mx = $self->{project}->get_selected_matrix;
     my $bd = $self->{project}->get_selected_base_data || return 0;
 
-    if ( !defined $mx ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no matrix currently selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
-
+    return $self->dlg_no_selected_object ('matrix')
+      if !defined $mx;
+      
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
     $dlg->set_transient_for( $self->get_object('wndMain') );
@@ -1564,17 +1572,8 @@ sub do_convert_matrix_to_phylogeny {
 
     my $matrix_ref = $self->{project}->get_selected_matrix;
 
-    if ( !defined $matrix_ref ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no matrix selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1
-            }
-        );
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('matrix')
+      if !defined $matrix_ref;
 
     my $phylogeny = $matrix_ref->get_param('AS_TREE');
 
@@ -1658,17 +1657,8 @@ sub do_convert_phylogeny_to_matrix {
     my $self      = shift;
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no phylogeny selected',
-                hide_no     => 1,
-                hide_yes    => 1,
-                hide_cancel => 1,
-            }
-        );
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     my $matrix_ref = $phylogeny->get_param('AS_MX');
     my $response   = 'no';
@@ -1759,18 +1749,8 @@ sub do_trim_tree_to_basedata {
     my $phylogeny = $self->{project}->get_selected_phylogeny;
     my $bd = $self->{project}->get_selected_base_data || return 0;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
@@ -1882,18 +1862,8 @@ sub do_trim_tree_to_lca {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
@@ -1951,18 +1921,8 @@ sub do_tree_merge_knuckle_nodes {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
@@ -2019,18 +1979,8 @@ sub do_tree_equalise_branch_lengths {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
@@ -2083,18 +2033,8 @@ sub do_tree_rescale_branch_lengths {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     # Show the Get Name dialog
     my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
@@ -2193,18 +2133,8 @@ sub do_tree_ladderise {
 
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    if ( !defined $phylogeny ) {
-        Biodiverse::GUI::YesNoCancel->run(
-            {
-                header      => 'no tree selected',
-                hide_yes    => 1,
-                hide_no     => 1,
-                hide_cancel => 1,
-            }
-        );
-
-        return 0;
-    }
+    return $self->dlg_no_selected_object ('tree')
+      if !defined $phylogeny;
 
     $phylogeny->ladderise;
 

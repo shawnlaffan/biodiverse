@@ -2714,6 +2714,46 @@ sub trim_to_last_common_ancestor {
     return;
 }
 
+
+sub merge_knuckle_nodes {
+    my $self = shift;
+
+    #  merge any single-child nodes with their children
+    my @node_refs = reverse sort {$a->get_depth <=> $b->get_depth} $self->get_node_refs;
+    my %deleted;
+    foreach my $node_ref (grep {$_->get_child_count == 1} @node_refs) {
+        my $node_name = $node_ref->get_name;
+        next if $deleted{$node_name};  #  skip ones we already deleted
+        my $children = $node_ref->get_children;
+        next if @$children != 1;  # check again as we might have added a child to this node in a previous iteration
+        my $child = $children->[0];
+
+        #say "Merging parent $node_name with child " . $child->get_name;
+        #  we retain tip node, otherwise named node nearer the tip, otherwise the parent
+        if ($child->is_terminal_node || !$child->is_internal_node) {
+            $child->set_length_aa ($node_ref->get_length + $child->get_length);
+            $node_ref->delete_child (child => $child);
+            my $grandparent = $node_ref->get_parent;
+            $grandparent->delete_child (child => $node_ref);
+            $grandparent->add_children (children => [$child], is_treenodes => 1);
+            $child->set_parent_aa ($grandparent);
+            $self->delete_from_node_hash (node => $node_name);
+            $deleted{$node_name}++;
+        }
+        else {
+            $node_ref->set_length_aa ($node_ref->get_length + $child->get_length);
+            $node_ref->delete_child (child => $child);
+            $node_ref->add_children (children => [$child->get_children], is_treenodes => 1);
+            $self->delete_from_node_hash (node => $child->get_name);
+            $deleted{$child->get_name}++;
+        }
+
+    }
+    $self->delete_cached_values_below;
+
+    return scalar keys %deleted;
+}
+
 sub is_ultrametric {
     my $self = shift;
     

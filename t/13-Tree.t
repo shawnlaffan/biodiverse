@@ -1316,7 +1316,26 @@ sub get_site_data_newick_tree {
 }
 
 
-
+sub test_knuckle_nodes {
+    my $nwk_with_knuckles = '(((t3:0.129,(t6:0.948,t2:0.866):0.673):0.671,t1:0.598):0.049,(t4:0.604,t5:0.857):0.202);';
+    my $nwk_no_knuckles   = '((t3:0.129,t6:1.621):0.720,(t4:0.604,t5:0.857):0.202);';
+    
+    my $parser = Biodiverse::ReadNexus->new;
+    ok $parser->import_data (data => "$nwk_with_knuckles\n$nwk_no_knuckles"), "Imported knuckle trees";
+    my @trees = $parser->get_tree_array;
+    is scalar @trees, 2, 'Imported two knuckle trees';
+    my $tree_with_knuckles = shift @trees;
+    my $tree_no_knuckles = shift @trees;
+    
+    $tree_with_knuckles->delete_node(node => 't1');
+    $tree_with_knuckles->delete_node(node => 't2');
+    
+    my $delete_count = $tree_with_knuckles->merge_knuckle_nodes;
+    is $delete_count, 2, 'deleted expected number of nodes';
+    
+    my $comp = $tree_with_knuckles->trees_are_same(comparison => $tree_no_knuckles);
+    ok $comp, 'got expected tree topology after clearing knuckles';
+}
 
 
 1;

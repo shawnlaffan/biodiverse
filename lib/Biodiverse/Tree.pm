@@ -2715,13 +2715,19 @@ sub trim_to_last_common_ancestor {
 }
 
 
+#  merge any single-child nodes with their children
 sub merge_knuckle_nodes {
     my $self = shift;
 
-    #  merge any single-child nodes with their children
-    my @node_refs = reverse sort {$a->get_depth <=> $b->get_depth} $self->get_node_refs;
+    #  we start from the deepest nodes and work up
+    my %depth_cache;
+    my @node_refs
+      = sort {($depth_cache{$b} //= $b->get_depth) <=> ($depth_cache{$a} //= $a->get_depth)}
+        grep {$_->get_child_count == 1}
+        $self->get_node_refs;
+
     my %deleted;
-    foreach my $node_ref (grep {$_->get_child_count == 1} @node_refs) {
+    foreach my $node_ref (@node_refs) {
         my $node_name = $node_ref->get_name;
         next if $deleted{$node_name};  #  skip ones we already deleted
         my $children = $node_ref->get_children;

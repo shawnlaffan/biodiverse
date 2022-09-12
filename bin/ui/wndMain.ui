@@ -543,6 +543,14 @@ Assumes a dissimilarity matrix, so take care.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_merge_tree_knuckle_nodes">
+            <property name="name">menu_merge_tree_knuckle_nodes</property>
+            <property name="tooltip" translatable="yes">Merge single-child (knuckle) nodes with their children</property>
+            <property name="label" translatable="yes">Merge knuckle nodes</property>
+            <signal handler="on_tree_merge_knuckle_nodes" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_range_weight_tree_branches">
             <property name="name">menu_range_weight_tree_branches</property>
             <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
@@ -808,6 +816,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_convert_phylogeny_to_matrix"/>
           <menuitem action="menu_trim_tree_to_basedata"/>
           <menuitem action="menu_trim_tree_to_lca"/>
+          <menuitem action="menu_merge_tree_knuckle_nodes"/>
           <menuitem action="menu_range_weight_tree_branches"/>
           <menuitem action="menu_equalise_tree_branches"/>
           <menuitem action="menu_rescale_tree_branches2"/>

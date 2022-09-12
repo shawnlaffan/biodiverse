@@ -349,6 +349,9 @@ my %data_funcs = (
     on_trim_tree_to_lca => {
         METHOD => 'do_trim_tree_to_lca',
     },
+    on_tree_merge_knuckle_nodes => {
+        METHOD => 'do_tree_merge_knuckle_nodes',
+    },
     on_trim_matrix_to_basedata => {
         METHOD => 'do_trim_matrix_to_basedata',
     },

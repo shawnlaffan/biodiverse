@@ -2475,8 +2475,7 @@ sub swap_to_reach_richness_targets {
                 . "Filled groups:\t\t$p\n"
                 . "Labels to assign:\t\t$p\n"
                 . "Old gps to empty:\t$p\n"
-                . "Swap count:\t\t\t$p\n"
-                . "Last group filled: %s\n";
+                . "Swap count:\t\t\t$p\n";
         my $check_text
             = sprintf $fmt,
                 $total_to_do,
@@ -2484,8 +2483,7 @@ sub swap_to_reach_richness_targets {
                 (scalar keys %filled_groups),
                 $target_label_count,
                 $target_group_count,
-                $swap_out_count,
-                $last_filled;
+                $swap_out_count;
 
         my $progress_i = scalar keys %filled_groups;
         my $progress = $progress_i / $total_to_do;

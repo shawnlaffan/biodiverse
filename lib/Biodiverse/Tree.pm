@@ -2738,18 +2738,20 @@ sub merge_knuckle_nodes {
         #  we retain tip node, otherwise named node nearer the tip, otherwise the parent
         if ($child->is_terminal_node || !$child->is_internal_node) {
             $child->set_length_aa ($node_ref->get_length + $child->get_length);
-            $node_ref->delete_child (child => $child);
+            $node_ref->delete_child (child => $child, no_delete_cache => 1);  # we clear cache later to avoid quadratic behaviour
+            $child->delete_parent;  #  avoid some cache clearing when reparented
             my $grandparent = $node_ref->get_parent;
-            $grandparent->delete_child (child => $node_ref);
-            $grandparent->add_children (children => [$child], is_treenodes => 1);
+            $grandparent->delete_child (child => $node_ref, no_delete_cache => 1);
+            $grandparent->add_children (children => [$child], is_treenodes => 1, are_orphans => 1);
             $child->set_parent_aa ($grandparent);
             $self->delete_from_node_hash (node => $node_name);
             $deleted{$node_name}++;
         }
         else {
             $node_ref->set_length_aa ($node_ref->get_length + $child->get_length);
-            $node_ref->delete_child (child => $child);
-            $node_ref->add_children (children => [$child->get_children], is_treenodes => 1);
+            $node_ref->delete_child (child => $child, no_delete_cache => 1);
+            $child->delete_parent;  #  avoid some cache clearing when reparented
+            $node_ref->add_children (children => [$child->get_children], is_treenodes => 1, are_orphans => 1);
             $self->delete_from_node_hash (node => $child->get_name);
             $deleted{$child->get_name}++;
         }

@@ -1784,6 +1784,14 @@ sub do_trim_tree_to_basedata {
     $hbox->pack_start ($checkbox, 1, 1, 0);
     $vbox->pack_start ($hbox, 1, 1, 0);
     $hbox->show_all;
+    
+    my $knuckle_checkbox  = Gtk2::CheckButton->new;
+    my $knuckle_label = Gtk2::Label->new ('Merge single child nodes');
+    my $khbox = Gtk2::HBox->new;
+    $khbox->pack_start ($knuckle_label, 1, 1, 0);
+    $khbox->pack_start ($knuckle_checkbox, 1, 1, 0);
+    $vbox->pack_start ($khbox, 1, 1, 0);
+    $khbox->show_all;
 
     my $txt_name = $dlgxml->get_object('txtName');
     my $name     = $phylogeny->get_param('NAME');
@@ -1812,6 +1820,7 @@ sub do_trim_tree_to_basedata {
     $new_tree->reset_total_length_below;
     
     my $trim_to_lca = $checkbox->get_active;
+    my $merge_knuckle_nodes = $knuckle_checkbox->get_active;
 
     if ( !$args{no_trim} ) {
         $new_tree->trim (
@@ -1834,6 +1843,18 @@ sub do_trim_tree_to_basedata {
             $node->delete_cached_values;
         }
         $new_tree->delete_cached_values;
+    }
+
+    if ($merge_knuckle_nodes) {
+        say "Merging knuckle nodes";
+        my $merge_count = $new_tree->merge_knuckle_nodes;
+        if ($merge_count) {
+            say "Merged $merge_count knuckle nodes";
+        }
+        else {
+            say "No knuckles found";
+        }
+        
     }
 
     $new_tree->set_param( NAME => $chosen_name );

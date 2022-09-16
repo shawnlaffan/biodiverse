@@ -2395,6 +2395,9 @@ sub reintegrate_after_parallel_randomisations {
         $self->convert_comparisons_to_zscores (
             result_list_name => $list_name,
         );
+        $self->calculate_canape (
+            result_list_name => $list_name,
+        );
     }
 
     foreach my $to_node (@$node_list) {

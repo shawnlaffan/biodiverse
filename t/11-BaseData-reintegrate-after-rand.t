@@ -72,8 +72,17 @@ sub test_reintegrate_after_separate_randomisations {
     my $bd1 = get_basedata_object (%args);
     
     #  need some extra labels so the randomisations have something to do
-    $bd1->add_element (group => '0.5:0.5', label => 'extra1');
-    $bd1->add_element (group => '1.5:0.5', label => 'extra1');
+    $bd1->add_element (group => '0.5:0.5', label => 'somelevel::extra1');
+    $bd1->add_element (group => '1.5:0.5', label => 'somelevel::extra1');
+    
+    foreach my $label ($bd1->get_labels) {
+        my $new_name = $label =~ s/_/::/r;
+        $bd1->rename_label (
+            label    => $label,
+            new_name => $new_name,
+        );
+    }
+    my $tree = $bd1->to_tree;
 
     my $sp = $bd1->add_spatial_output (name => 'sp1');
     $sp->run_analysis (
@@ -83,8 +92,11 @@ sub test_reintegrate_after_separate_randomisations {
             calc_endemism_central
             calc_endemism_central_lists
             calc_element_lists_used
+            calc_pe
+            calc_phylo_rpe2
           /
         ],
+        tree_ref => $tree,
     );
     my $cl = $bd1->add_cluster_output (name => 'cl1');
     $cl->run_analysis (
@@ -93,6 +105,8 @@ sub test_reintegrate_after_separate_randomisations {
             calc_endemism_central
             calc_endemism_central_lists
             calc_element_lists_used
+            calc_pe
+            calc_phylo_rpe2
           /
         ],
     );
@@ -174,13 +188,57 @@ sub test_reintegrate_after_separate_randomisations {
     
 
     my $bd_orig;
+    my $RE_canape_or_zscore = qr />>(?:canape|z_scores)>>/i;
 
     for my $bd_from ($bd2, $bd3) {
         #  we need the pre-integration values for checking
         $bd_orig = $bd1->clone;
+        
+        #  clean up the canape and z_score lists
+        my $sp = $bd1->get_spatial_output_ref (name => 'sp1');
+        my @canape_and_z_list_names
+          = sort grep {/$RE_canape_or_zscore/}
+            $sp->get_hash_list_names_across_elements;
+        foreach my $el ($sp->get_element_list) {
+            $sp->delete_lists (element => $el, lists => \@canape_and_z_list_names);
+        }
+        my @canape_and_z_list_names_post_deletion
+          = sort grep {/$RE_canape_or_zscore/}
+            $sp->get_hash_list_names_across_elements;
+        is \@canape_and_z_list_names_post_deletion,
+           [],
+           'canape and z lists removed from spatial output';
+        
+        my $cl = $bd1->get_cluster_output_ref (name => 'cl1');
+        my @cl_canape_and_z_list_names
+          = sort grep {/$RE_canape_or_zscore/}
+            $cl->get_hash_list_names_across_nodes;
+        $cl->delete_lists_below (lists => \@cl_canape_and_z_list_names);  #  should be the same lists?
+        my @cl_canape_and_z_list_names_post_deletion
+          = sort grep {/$RE_canape_or_zscore/}
+            $cl->get_hash_list_names_across_nodes;
+        is \@cl_canape_and_z_list_names_post_deletion,
+           [],
+           'canape and z lists removed from cluster output';
+        
+        
         $bd1->reintegrate_after_parallel_randomisations (
             from => $bd_from,
         );
+        
+        my @canape_and_z_list_names_post_integr
+          = sort grep {/$RE_canape_or_zscore/}
+            $sp->get_hash_list_names_across_elements;
+        is \@canape_and_z_list_names_post_integr,
+           \@canape_and_z_list_names,
+           'canape and z lists reinstated to spatial output after reintegration';
+        my @cl_canape_and_z_list_names_post_reintegr
+          = sort grep {/$RE_canape_or_zscore/}
+            $cl->get_hash_list_names_across_nodes;
+        is \@cl_canape_and_z_list_names_post_reintegr,
+           \@cl_canape_and_z_list_names,
+           'canape and z lists reinstated to cluster output after reintegration';
+
         check_randomisation_lists_incremented_correctly_spatial (
             orig   => $bd_orig->get_spatial_output_ref (name => 'sp1'),
             integr => $bd1->get_spatial_output_ref     (name => 'sp1'),
@@ -651,7 +709,7 @@ sub check_randomisation_lists_incremented_correctly_cluster {
         my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
         my @sig_lists  = grep {$_ =~ />>p_rank>>/} @$list_names;
         my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
-        
+
         my @rand_names = uniq (map {my $xx = $_; $xx =~ s/>>.+$//; $xx} @sig_lists);
         foreach my $to_node (sort {$a->get_name cmp $b->get_name} @$to_nodes) {
             my $node_name = $to_node->get_name;

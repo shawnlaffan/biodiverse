@@ -12,6 +12,9 @@ use Biodiverse::ElementProperties;  #  for remaps
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;
 
+use Parallel::ForkManager;
+my $MAX_PROCESSES = 5;
+my $pm = Parallel::ForkManager->new($MAX_PROCESSES);
 
 #############################################
 ######       SET PARAMETERS HERE       ######
@@ -130,6 +133,7 @@ if ($do_spatial) {
     #  and thus save search times
     
     foreach my $tree_ref (@trees) {
+        my $pid = $pm->start and next;
         my $name = $spatial_output_prefix . $tree_ref->get_param ('NAME');
         my $output = $bd->add_spatial_output (name => $name);
         my $success = eval {
@@ -152,7 +156,9 @@ if ($do_spatial) {
         if (not $retain_outputs) {
             $bd->delete_output (output => $output);
         }
+        $pm->finish;
     }
+    $pm->wait_all_children;
 };
 
 ###### MATRIX AND CLUSTER ANALYSES
@@ -161,6 +167,7 @@ if ($do_spatial) {
 if ($do_matrix_cluster) {
 
     foreach my $tree_ref (@trees) {
+        my $pid = $pm->start and next;
         my $name_clust = $matrix_cluster_output_prexif . $tree_ref->get_param ('NAME');
         my $output = $bd->add_cluster_output (name => $name_clust);
         my $success = eval {
@@ -188,7 +195,9 @@ if ($do_matrix_cluster) {
         if (not $retain_outputs) {
             $bd->delete_output (output => $output);
         }
+        $pm->finish;
     }
+    $pm->wait_all_children;
 };
 
 if ($save_basedata) {

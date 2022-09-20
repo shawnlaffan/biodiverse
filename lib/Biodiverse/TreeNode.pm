@@ -1658,6 +1658,8 @@ sub assign_plot_coords {
     my $self = shift;
     my %args = @_;
     
+    say '[TreeNode] Assigning plot coords.  This will take a while for large trees.';
+
     $self->get_root_node->number_terminal_nodes;
 
     my $y_len = $self->get_terminal_element_count;
@@ -1674,11 +1676,13 @@ sub assign_plot_coords {
     }
 
     my $max_y = $self->get_value('TERMINAL_NODE_LAST');
+    my $max_total_length = $self->get_root_node->get_max_total_length;
 
     $self->assign_plot_coords_inner (
         scale_factor => $scale_factor,
         max_y        => $max_y,
         plot_coords_left_to_right => $args{plot_coords_left_to_right},
+        max_total_length => $max_total_length,
     );
 
     return;
@@ -1691,6 +1695,9 @@ sub assign_plot_coords_inner {
     my $scale_factor  = $args{scale_factor} || 1;
     my $max_y         = $args{max_y} || 0;
     my $left_to_right = $args{plot_coords_left_to_right};
+    my $max_total_length
+      =   $args{max_total_length}
+      //= $self->get_root_node->get_max_total_length;
 
     my ($y1, $y2, $y_pos);
 
@@ -1705,7 +1712,7 @@ sub assign_plot_coords_inner {
         my @ch_y_pos;
         foreach my $child ($self->get_children) {
             $child->assign_plot_coords_inner (%args);
-            my $coords = $child->get_list_ref (list => 'PLOT_COORDS');
+            my $coords = $child->get_list_ref_aa ('PLOT_COORDS');
             push @ch_y_pos, $coords->{plot_y1};
         }
 
@@ -1716,7 +1723,7 @@ sub assign_plot_coords_inner {
 
     #  all dists relative to max length of the tree
     #  have to compensate for get_length_above including this node
-    my $end_x   = $self->get_root_node->get_max_total_length - $self->get_length_above + $self->get_length;
+    my $end_x   = $max_total_length - $self->get_length_above + $self->get_length;
     my $start_x = $end_x - $self->get_length;
 
     #my $vx = $start_x < $end_x  #  need this before the correction, but looks overcomplicated to be honest
@@ -1925,8 +1932,11 @@ sub to_table {
                             : undef;
 
 
-    my %children = $self->get_all_descendants;  #   all descendents below this node
-    foreach my $node ($self, values %children) {  # maybe sort by child depth?
+    my @nodes = ($self);
+
+    while (my $node = shift @nodes) {  #  while loop is repeatable
+        push @nodes, $node->get_children;
+
         $parent_num = $node->is_root_node
                         ? 0
                         : $node->get_parent->get_value ('NODE_NUMBER');

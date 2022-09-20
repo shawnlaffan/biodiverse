@@ -284,7 +284,7 @@ sub get_metadata_calc_phylo_rpe2 {
     my %metadata = (
         description     => 'Relative Phylogenetic Endemism (RPE).  '
                          . 'The ratio of the tree\'s PE to a null model where '
-                         . 'PE is calculated using a tree where all branches '
+                         . 'PE is calculated using a tree where all non-zero branches '
                          . 'are of equal length.',
         name            => 'Relative Phylogenetic Endemism, type 2',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
@@ -326,39 +326,56 @@ sub calc_phylo_rpe2 {
     my $pe_p_score = $args{PE_WE_P};
     my $pe_score   = $args{PE_WE};
 
+    #  no point calculating anything if PE is undef
+    if (!defined $pe_score) {
+        my %results = (
+            PHYLO_RPE2      => undef,
+            PHYLO_RPE_NULL2 => undef,
+            PHYLO_RPE_DIFF2 => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
+
     my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
     my $node_ranges_global = $args{PE_RANGELIST};
     my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
     
     #  Get the PE score assuming equal branch lengths
-    my $pe_null;
+    my ($pe_null, $null, $phylo_rpe2, $diff);
 
-    my %results;
-    {
-        if (HAVE_BD_UTILS) {
-            $pe_null = Biodiverse::Utils::get_rpe_null (
-                $null_node_len_hash,
-                $node_ranges_local,
-                $node_ranges_global,
-            );
-        }
-        else {
-            foreach my $null_node (keys %$node_ranges_global) {
-                $pe_null += $null_node_len_hash->{$null_node}
-                          * $node_ranges_local->{$null_node}
-                          / $node_ranges_global->{$null_node};
-            }
-        }
 
-        no warnings qw /numeric uninitialized/;
-
-        my $null       = eval {$pe_null / $null_total_tree_length};  #  equiv to PE_WE_P for the equalised tree
-        my $phylo_rpe2 = eval {$pe_p_score / $null};
-
-        $results{PHYLO_RPE2}      = $phylo_rpe2;
-        $results{PHYLO_RPE_NULL2} = $null;
-        $results{PHYLO_RPE_DIFF2} = eval {$orig_total_tree_length * ($pe_p_score - $null)};
+    #  this step can be optimised for the common case where all local ranges are 1
+    #  and there are no zero length branches
+    #  as we can then sum the inverse range vals and multiply by the equalised length
+    #  and the inverse range vals can be a global precalc
+    #  this would also need a precalc dep on the element counts calc
+    if (HAVE_BD_UTILS) {
+        $pe_null = Biodiverse::Utils::get_rpe_null (
+            $null_node_len_hash,
+            $node_ranges_local,
+            $node_ranges_global,
+        );
     }
+    else {
+        foreach my $null_node (keys %$node_ranges_global) {
+            $pe_null += $null_node_len_hash->{$null_node}
+                      * $node_ranges_local->{$null_node}
+                      / $node_ranges_global->{$null_node};
+        }
+    }
+
+    {
+        no warnings qw /numeric uninitialized/;
+        $null       = eval {$pe_null / $null_total_tree_length};  #  equiv to PE_WE_P for the equalised tree
+        $phylo_rpe2 = eval {$pe_p_score / $null};
+        $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
+    }
+
+    my %results = (
+        PHYLO_RPE2      => $phylo_rpe2,
+        PHYLO_RPE_NULL2 => $null,
+        PHYLO_RPE_DIFF2 => $diff,
+    );
 
     return wantarray ? %results : \%results;
 }

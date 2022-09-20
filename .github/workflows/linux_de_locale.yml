@@ -37,7 +37,7 @@ jobs:
         run: |
           sudo apt-get --yes install libgdal-dev
 
-      - name: cmake for geos
+      - name: cmake
         run: |
           sudo apt-get --yes install cmake
 
@@ -61,7 +61,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20220209' >> perlversion.txt
+          echo '20220920' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

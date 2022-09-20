@@ -1155,7 +1155,7 @@ sub get_metadata_export_tabular_tree {
             tooltip =>
 'Allows the subsequent creation of, for example, shapefile versions of the dendrogram',
             type    => 'boolean',
-            default => 1,
+            default => 0,
         },
         {
             name       => 'plot_coords_scale_factor',
@@ -1199,10 +1199,7 @@ sub export_tabular_tree {
     my $self = shift;
     my %args = @_;
 
-    my $name = $args{name};
-    if ( !defined $name ) {
-        $name = $self->get_param('NAME');
-    }
+    my $name = $args{name} // $self->get_param('NAME');
 
     #  we need this to be set for the round trip
     $args{use_internal_names} //= 1;
@@ -2393,6 +2390,9 @@ sub reintegrate_after_parallel_randomisations {
             result_list_name => $list_name,
         );
         $self->convert_comparisons_to_zscores (
+            result_list_name => $list_name,
+        );
+        $self->calculate_canape (
             result_list_name => $list_name,
         );
     }

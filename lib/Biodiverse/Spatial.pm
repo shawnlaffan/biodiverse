@@ -621,6 +621,9 @@ sub reintegrate_after_parallel_randomisations {
         $to->convert_comparisons_to_zscores (
             result_list_name => $rand_name,
         );
+        $to->calculate_canape (
+            result_list_name => $rand_name,
+        );
     }
     return;
 }

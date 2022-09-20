@@ -5,6 +5,7 @@ skip_tags: true
 
 cache:
   - C:\Strawberry
+  #- C:\Strawberry -> appveyor.yml
 
 install:
   - if not exist "C:\strawberry" appveyor-retry choco install strawberryperl --version 5.30.2.1

@@ -25,12 +25,12 @@ jobs:
       - name: Set up Perl
         run: |
           brew install perl
-          echo "{/Users/runner/perl5/bin}" >> $GITHUB_PATH
+          echo "/Users/runner/perl5/bin" >> $GITHUB_PATH
           mkdir -p ~/bin
           cd ~/bin
           curl -L https://cpanmin.us/ -o cpanm
           chmod +x cpanm
-          echo "{~/bin}" >> $GITHUB_PATH
+          echo "~/bin" >> $GITHUB_PATH
           which perl
           which cpanm
 
@@ -43,7 +43,7 @@ jobs:
       - name: Prepare for cache
         run: |
           perl -V > perlversion.txt
-          echo '20210209' >> perlversion.txt
+          echo '20220920' >> perlversion.txt
           ls -l perlversion.txt
 
       - name: Cache CPAN modules

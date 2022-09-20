@@ -5,7 +5,7 @@ use warnings;
 
 use English qw /-no_match_vars/;
 
-use List::Util qw /sum/;
+use List::Util qw /sum first/;
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 
@@ -231,7 +231,7 @@ sub get_metadata_calc_phylo_rpe_central {
         name            => 'Relative Phylogenetic Endemism, central',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe_central calc_pe_central_lists/],
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_elements_used/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
@@ -289,7 +289,7 @@ sub get_metadata_calc_phylo_rpe2 {
         name            => 'Relative Phylogenetic Endemism, type 2',
         reference       => 'Mishler et al. (2014) https://doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
-        pre_calc        => [qw /calc_pe calc_pe_lists/],
+        pre_calc        => [qw /calc_pe calc_pe_lists calc_elements_used/],
         pre_calc_global => [qw /
             get_trimmed_tree
             get_trimmed_tree_with_equalised_branch_lengths
@@ -343,13 +343,22 @@ sub calc_phylo_rpe2 {
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
-
     #  this step can be optimised for the common case where all local ranges are 1
     #  and there are no zero length branches
     #  as we can then sum the inverse range vals and multiply by the equalised length
     #  and the inverse range vals can be a global precalc
     #  this would also need a precalc dep on the element counts calc
-    if (HAVE_BD_UTILS) {
+    my $zero_len_branch_names = $null_tree_ref->get_zero_node_length_hash;
+    if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1
+        && scalar keys %$zero_len_branch_names < 5  #  arbitrary number
+        ) {
+        my $len = first {$_ > 0} values %$null_node_len_hash;
+        delete local @$node_ranges_global{keys %$zero_len_branch_names};
+        $pe_null += (1 / $_) foreach values %$node_ranges_global;
+        $pe_null *= $len;
+        #say STDERR 'jjjj';
+    }
+    elsif (HAVE_BD_UTILS) {
         $pe_null = Biodiverse::Utils::get_rpe_null (
             $null_node_len_hash,
             $node_ranges_local,
@@ -370,7 +379,9 @@ sub calc_phylo_rpe2 {
         $phylo_rpe2 = eval {$pe_p_score / $null};
         $diff       = eval {$orig_total_tree_length * ($pe_p_score - $null)};
     }
-
+#if (defined $pe_nullx) {
+#say STDERR "$pe_null $pe_nullx";
+#}
     my %results = (
         PHYLO_RPE2      => $phylo_rpe2,
         PHYLO_RPE_NULL2 => $null,

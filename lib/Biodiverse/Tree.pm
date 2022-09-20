@@ -538,6 +538,26 @@ sub get_node_length_hash {
     return wantarray ? %len_hash : \%len_hash;
 }
 
+sub get_zero_node_length_hash {
+    my $self = shift;
+    my %args = ( cache => 1, @_ );
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value('ZERO_NODE_LENGTH_HASH');
+        return ( wantarray ? %$cached_hash : $cached_hash ) if $cached_hash;
+    }
+
+    my $node_hash = $self->get_node_length_hash;
+    my %zero_len_hash = %$node_hash{grep {!$node_hash->{$_}} keys %$node_hash};
+
+    if ($use_cache) {
+        $self->set_cached_value( ZERO_NODE_LENGTH_HASH => \%zero_len_hash );
+    }
+
+    return wantarray ? %zero_len_hash : \%zero_len_hash;
+}
+
 #  get a hash of node refs indexed by their total length
 sub get_node_hash_by_total_length {
     my $self = shift;

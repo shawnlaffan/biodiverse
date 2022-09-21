@@ -63,13 +63,15 @@ sub _calc_pe {
                 el_list => [$group],
             );
 
-            my ($gp_score, %gp_wts, %gp_ranges);
-
-            #  slice assignment wasn't faster according to nytprof and benchmarking
-            #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
+            my ($gp_score, %gp_wts);
 
             #  refaliasing avoids hash deref overheads below
             \my %node_lengths = $nodes_in_path;
+
+            #  slice assignment wasn't faster according to nytprof and benchmarking
+            #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
+            # but hash slice might be
+            my %gp_ranges = %node_ranges{keys %node_lengths};
 
             #  loop over the nodes and run the calcs
           NODE:
@@ -77,11 +79,11 @@ sub _calc_pe {
                 # Not sure we even need to test for zero ranges.
                 # We should never suffer this given the pre_calcs.
                 my $range = $node_ranges{$node_name}
-                  || next NODE;
+                  or next NODE;
                 my $wt     = $node_lengths{$node_name} / $range;
                 $gp_score += $wt;
                 $gp_wts{$node_name}    = $wt;
-                $gp_ranges{$node_name} = $range;
+                #$gp_ranges{$node_name} = $range;
             }
 
             $results_this_gp = {

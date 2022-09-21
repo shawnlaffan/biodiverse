@@ -104,9 +104,9 @@ sub _calc_pe {
             @results{keys %$results_this_gp} = values %$results_this_gp;
             #  but we do need to add to the local range hash
             my $hashref = $results_this_gp->{PE_WTLIST};
-            #@local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
+            @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
             #  maybe faster than the slice as it does not generate the list of ones
-            ($local_ranges{$_} = 1) for keys %$hashref;
+            #($local_ranges{$_} = 1) for keys %$hashref;
         }
         else {
             # ranges are invariant, so can be crashed together

@@ -58,22 +58,38 @@ sub _calc_pe {
         #  else build them and cache them
         else {
             my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
-            my $nodes_in_path = $self->get_path_lengths_to_root_node (
-                @_,
-                labels  => $labels,
-                el_list => [$group],
-            );
-
-            #my ($gp_score, %gp_wts);
+            #my $nodes_in_path = $self->get_path_lengths_to_root_node (
+            #    @_,
+            #    labels  => $labels,
+            #    el_list => [$group],
+            #);
+            
+            \my %parent_hash = $tree_ref->get_node_name_parent_hash;
+            my %nodes;
+            foreach my $label (keys %$labels) {
+                next if !exists $parent_hash{$label}; 
+                $nodes{$label}++;
+                my $parent = $parent_hash{$label};
+                while (defined $parent && !$nodes{$parent}) {
+                    $nodes{$parent}++;
+                    $parent = $parent_hash{$parent};
+                }
+            }
 
             #  refaliasing avoids hash deref overheads below
-            \my %node_lengths = $nodes_in_path;
+            #\my %nodes = $nodes_in_path;
+
+#if (keys %nodes != keys %node_lengths) {
+#say STDERR 'bork! ' . (scalar keys %nodes) . ' != ' . (scalar keys %node_lengths);
+#say STDERR join ' ', sort keys %nodes;
+#say STDERR join ' ', sort keys %node_lengths;
+#}
 
             #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
             # but hash slice might be
-            my %gp_ranges = %node_ranges{keys %node_lengths};
-            my %gp_wts = %rw_node_lengths{keys %node_lengths};
+            my %gp_ranges = %node_ranges{keys %nodes};
+            my %gp_wts = %rw_node_lengths{keys %nodes};
             my $gp_score;
             $gp_score += $_ for values %gp_wts;
 

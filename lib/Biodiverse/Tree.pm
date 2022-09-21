@@ -624,6 +624,29 @@ sub get_node_name_depth_hash {
     return wantarray ? %names_and_depths : \%names_and_depths;
 }
 
+#  get a hash of the nodes keyed by name where values are the parent names
+sub get_node_name_parent_hash {
+    my $self = shift;
+    
+    state $cache_name = 'NODE_NAME_PARENT_HASH';
+    if (my $cached = $self->get_cached_value ($cache_name)) {
+        return wantarray ? %$cached : $cached;
+    }
+    
+    my %parent_hash;
+    
+    foreach my $node_ref ($self->get_node_refs) {
+        my $parent = $node_ref->get_parent;
+        next if !defined $parent;
+        $parent_hash{$node_ref->get_name} = $parent->get_name;
+    }
+    
+    $self->set_cached_value ($cache_name => \%parent_hash);
+    
+    return wantarray ? %parent_hash : \%parent_hash;
+}
+
+
 #  get a set of stats for one of the hash lists in the tree.
 #  Should be called get_list_value_stats
 #  should just return the stats object

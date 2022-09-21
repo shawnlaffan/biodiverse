@@ -1476,6 +1476,7 @@ sub get_metadata__calc_pe {
             get_pe_element_cache
             get_path_length_cache
             set_path_length_cache_by_group_flag
+            get_inverse_range_weighted_path_lengths
         /],
         pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1663,6 +1664,44 @@ sub get_node_range_hash_as_lists {
 
     return wantarray ? %results : \%results;
 }
+
+sub get_metadata_get_inverse_range_weighted_path_lengths {
+    my %metadata = (
+        name  => 'get_metadata_get_node_range_hash',
+        description
+            => "Get a hash of the node lengths divided by their ranges\n"
+             . "Forms the basis of the PE calcs for equal area cells",
+        required_args => ['tree_ref'],
+        pre_calc_global => ['get_node_range_hash'],
+        indices => {
+            inverse_range_weighted_node_lengths => {
+                description => 'Hash of node lengths divided by their ranges',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_inverse_range_weighted_path_lengths {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{tree_ref};
+    my $node_ranges = $args{node_range};
+    
+    my %range_weighted;
+    
+    foreach my $node ($tree->get_node_refs) {
+        my $name = $node->get_name;
+        next if !$node_ranges->{$name};
+        $range_weighted{$name} = $node->get_length / $node_ranges->{$name};
+    }
+    
+    my %results = (inverse_range_weighted_node_lengths => \%range_weighted);
+    
+    return wantarray ? %results : \%results;
+}
+
 
 sub get_metadata_get_node_range_hash {
     my %metadata = (

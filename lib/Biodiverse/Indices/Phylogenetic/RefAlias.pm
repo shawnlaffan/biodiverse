@@ -20,7 +20,8 @@ sub _calc_pe {
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     my $element_list_all = $args{element_list_all};
-    \my %node_ranges = $args{node_range};
+    \my %node_ranges     = $args{node_range};
+    \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
@@ -63,7 +64,7 @@ sub _calc_pe {
                 el_list => [$group],
             );
 
-            my ($gp_score, %gp_wts);
+            #my ($gp_score, %gp_wts);
 
             #  refaliasing avoids hash deref overheads below
             \my %node_lengths = $nodes_in_path;
@@ -72,19 +73,24 @@ sub _calc_pe {
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
             # but hash slice might be
             my %gp_ranges = %node_ranges{keys %node_lengths};
+            my %gp_wts = %rw_node_lengths{keys %node_lengths};
+            my $gp_score;
+            $gp_score += $_ for values %gp_wts;
 
-            #  loop over the nodes and run the calcs
-          NODE:
-            foreach my $node_name (keys %node_lengths) {
-                # Not sure we even need to test for zero ranges.
-                # We should never suffer this given the pre_calcs.
-                my $range = $node_ranges{$node_name}
-                  or next NODE;
-                my $wt     = $node_lengths{$node_name} / $range;
-                $gp_score += $wt;
-                $gp_wts{$node_name}    = $wt;
-                #$gp_ranges{$node_name} = $range;
-            }
+          #  #  loop over the nodes and run the calcs
+          #NODE:
+          #  foreach my $node_name (keys %node_lengths) {
+          #      # Not sure we even need to test for zero ranges.
+          #      # We should never suffer this given the pre_calcs.
+          #      #my $range = $node_ranges{$node_name}
+          #      #  or next NODE;
+          #      #my $wt     = $node_lengths{$node_name} / $range;
+          #      my $wt = $rw_node_lengths{$node_name};
+          #      #say STDERR (sprintf ('%s %f %f', $node_name, $wt, $wt2));
+          #      $gp_score += $wt;
+          #      #$gp_wts{$node_name}    = $wt;
+          #      #$gp_ranges{$node_name} = $range;
+          #  }
 
             $results_this_gp = {
                 PE_WE           => $gp_score,

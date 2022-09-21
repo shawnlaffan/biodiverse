@@ -58,32 +58,17 @@ sub _calc_pe {
         #  else build them and cache them
         else {
             my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
-            #my $nodes_in_path = $self->get_path_lengths_to_root_node (
-            #    @_,
-            #    labels  => $labels,
-            #    el_list => [$group],
-            #);
             
-            \my %parent_hash = $tree_ref->get_node_name_parent_hash;
-            my %nodes;
-            foreach my $label (keys %$labels) {
-                next if !exists $parent_hash{$label}; 
-                $nodes{$label}++;
-                my $parent = $parent_hash{$label};
-                while (defined $parent && !$nodes{$parent}) {
-                    $nodes{$parent}++;
-                    $parent = $parent_hash{$parent};
-                }
-            }
+            #  This is a slow point for many calcs but the innards are cached
+            #  and the cost is amortised when PD is also calculated
+            my $nodes_in_path = $self->get_path_lengths_to_root_node (
+                @_,
+                labels  => $labels,
+                el_list => [$group],
+            );
 
             #  refaliasing avoids hash deref overheads below
-            #\my %nodes = $nodes_in_path;
-
-#if (keys %nodes != keys %node_lengths) {
-#say STDERR 'bork! ' . (scalar keys %nodes) . ' != ' . (scalar keys %node_lengths);
-#say STDERR join ' ', sort keys %nodes;
-#say STDERR join ' ', sort keys %node_lengths;
-#}
+            \my %nodes = $nodes_in_path;
 
             #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
@@ -93,6 +78,8 @@ sub _calc_pe {
             my $gp_score;
             $gp_score += $_ for values %gp_wts;
 
+          #  old approach - left here as notes for the
+          #  non-equal area case in the future
           #  #  loop over the nodes and run the calcs
           #NODE:
           #  foreach my $node_name (keys %node_lengths) {

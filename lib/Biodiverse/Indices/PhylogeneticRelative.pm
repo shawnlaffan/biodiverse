@@ -339,23 +339,19 @@ sub calc_phylo_rpe2 {
     my $node_ranges_local  = $args{PE_LOCAL_RANGELIST};
     my $node_ranges_global = $args{PE_RANGELIST};
     my $null_node_len_hash = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH};
+    my $default_eq_len     = $args{TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH};
     
     #  Get the PE score assuming equal branch lengths
     my ($pe_null, $null, $phylo_rpe2, $diff);
 
-    #  this step can be optimised for the common case where all local ranges are 1
-    #  and there are no zero length branches
-    #  as we can then sum the inverse range vals and multiply by the equalised length
-    #  and the inverse range vals can be a global precalc
-    #  this would also need a precalc dep on the element counts calc
+    #  First condition optimises for the common case where all local ranges are 1
     my $zero_len_branch_names = $null_tree_ref->get_zero_node_length_hash;
     if (($args{EL_COUNT_ALL} // $args{EL_COUNT_SET1} // 0) == 1
-        && scalar keys %$zero_len_branch_names < 5  #  arbitrary number
+        && scalar keys %$zero_len_branch_names < 10  #  arbitrary number
         ) {
-        my $len = first {$_ > 0} values %$null_node_len_hash;
         delete local @$node_ranges_global{keys %$zero_len_branch_names};
         $pe_null += (1 / $_) foreach values %$node_ranges_global;
-        $pe_null *= $len;
+        $pe_null *= $default_eq_len;
         #say STDERR 'jjjj';
     }
     elsif (HAVE_BD_UTILS) {
@@ -627,6 +623,9 @@ sub get_metadata_get_trimmed_tree_eq_branch_lengths_node_length_hash {
                 description => 'Hash of node lengths for the equalised branch length tree, indexed by node name',
                 type        => 'list',
             },
+            TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH => {
+                description => 'Default non-zero node length for the equalised branch length tree',
+            },
         },
     );
 
@@ -642,15 +641,17 @@ sub get_trimmed_tree_eq_branch_lengths_node_length_hash {
       // croak 'Missing TREE_REF_EQUALISED_BRANCHES_TRIMMED arg';
     my $node_hash = $tree_ref->get_node_hash;
     
-    my %len_hash;
+    my (%len_hash, $nonzero_length);
     foreach my $node_name (keys %$node_hash) {
         my $node_ref = $node_hash->{$node_name};
         my $length   = $node_ref->get_length;
         $len_hash{$node_name} = $length;
+        $nonzero_length ||= $length;
     }
     
     my %results = (
         TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH_HASH => \%len_hash,
+        TREE_REF_EQUALISED_BRANCHES_TRIMMED_NODE_LENGTH      => $nonzero_length,
     );
 
     return wantarray ? %results : \%results;

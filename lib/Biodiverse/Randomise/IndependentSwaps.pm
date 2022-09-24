@@ -12,7 +12,7 @@ use experimental 'refaliasing';
 no warnings 'experimental::refaliasing';
 
 use Time::HiRes qw { time gettimeofday tv_interval };
-use List::Unique::DeterministicOrder;
+use List::Unique::DeterministicOrder 0.003;
 use Scalar::Util qw /blessed looks_like_number/;
 use List::Util qw /max/;
 #use List::MoreUtils qw /bsearchidx/;
@@ -157,6 +157,10 @@ END_PROGRESS_TEXT
         %has_max_range,  #  should filter these
         %lb_gp_moved,
     );
+    my $gp_shadow_list_cache
+      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_LIST_CACHE => {});
+    my $gp_shadow_sampler_cache
+      = $self->get_cached_value_dor_set_default_aa (GP_SHADOW_SAMPLER_CACHE => {});
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     my $done_count = 0;
     foreach my $label (@sorted_labels) {
@@ -183,14 +187,21 @@ END_PROGRESS_TEXT
                 keys %$shadow_hash
               ];
           };
-        $gp_shadow_list{$label} = List::Unique::DeterministicOrder->new (
-            data => [@{$gp_shadow_data->{$label}}],
-        );
-        if ($gp_shadow_list{$label}->keys) {
-          $gp_shadow_sampler{$label} = $multinomial_class->new (
-              prng => $rand,
-              data => [@richness_hash{$gp_shadow_list{$label}->keys}],
-          );
+        my $cached_list = $gp_shadow_list_cache->{$label}
+          //= List::Unique::DeterministicOrder->new (
+                data => [@{$gp_shadow_data->{$label}}],
+              );
+        $gp_shadow_list{$label} = $cached_list->clone;
+        if (@{$gp_shadow_data->{$label}}) {
+            my $cached_object = $gp_shadow_sampler_cache->{$label}
+              //= $multinomial_class->new (
+                  prng => $rand,
+                  data => [@richness_hash{$gp_shadow_list{$label}->keys}],
+                );
+            my $cloned = $cached_object->clone;
+            #  update the prng otherwise we get a stale cached version
+            $cloned->set_prng ($rand);  
+            $gp_shadow_sampler{$label} = $cloned;
         }
         if ($bd->get_range (element => $label) == @sorted_groups) {
             #  cannot be swapped around
@@ -332,8 +343,11 @@ END_PROGRESS_TEXT
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
       . "$n_groups groups.\n"
-      . "[RANDOMISE] Swapped $moved_pairs the $non_zero_mx_cells group/label "
-      . "elements at least once.\n";
+      . $stop_on_all_swapped
+        ?
+          ("[RANDOMISE] Swapped $moved_pairs of the $non_zero_mx_cells group/label "
+          . "elements at least once.\n")
+        : q{};
 
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (

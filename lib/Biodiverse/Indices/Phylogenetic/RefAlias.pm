@@ -4,11 +4,6 @@ use warnings;
 
 our $VERSION = '3.99_004';
 
-use constant HAVE_PANDA_LIB
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
-use constant HAVE_DATA_RECURSIVE
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
-
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
@@ -68,20 +63,15 @@ sub _calc_pe {
                 el_list => [$group],
             );
 
-            #  refaliasing avoids hash deref overheads below in the loop
-            #  albeit the loop is not used any more...
-            \my %nodes = $nodes_in_path;
-
-            #  slice assignment wasn't faster according to nytprof and benchmarking
-            #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
-            # but hash slice might be
-            my %gp_ranges = %node_ranges{keys %nodes};
-            my %gp_wts    = %rw_node_lengths{keys %nodes};
+            my %gp_wts    = %rw_node_lengths{keys %$nodes_in_path};
             my $gp_score  = sum values %gp_wts;
 
           #  old approach - left here as notes for the
           #  non-equal area case in the future
           #  #  loop over the nodes and run the calcs
+          #  refaliasing avoids hash deref overheads below in the loop
+          #  albeit the loop is not used any more...
+          #  \my %nodes = $nodes_in_path;
           #NODE:
           #  foreach my $node_name (keys %node_lengths) {
           #      # Not sure we even need to test for zero ranges.
@@ -99,7 +89,6 @@ sub _calc_pe {
             $results_this_gp = {
                 PE_WE           => $gp_score,
                 PE_WTLIST       => \%gp_wts,
-                PE_RANGELIST    => \%gp_ranges,
             };
 
             $results_cache->{$group} = $results_this_gp;
@@ -117,22 +106,8 @@ sub _calc_pe {
             #  but we do need to add to the local range hash
             my $hashref = $results_this_gp->{PE_WTLIST};
             @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
-            #  maybe faster than the slice as it does not generate the list of ones
-            #($local_ranges{$_} = 1) for keys %$hashref;
         }
         else {
-            # ranges are invariant, so can be crashed together
-            my $hash_ref = $results_this_gp->{PE_RANGELIST};
-            if (HAVE_DATA_RECURSIVE) {
-                Data::Recursive::hash_merge (\%ranges, $hash_ref, Data::Recursive::LAZY());
-            }
-            elsif (HAVE_PANDA_LIB) {
-                Panda::Lib::hash_merge (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
-            }
-            else {
-                @ranges{keys %$hash_ref} = values %$hash_ref;
-            }
-
             # refalias might be a nano-optimisation here...
             \my %wt_hash = $results_this_gp->{PE_WTLIST};
 
@@ -159,11 +134,16 @@ sub _calc_pe {
         $PE_WE_P = eval {$PE_WE / $total_tree_length};
     }
 
-    #  need the collated versions
+    #  need the collated versions for multiple elements
     if (scalar @$element_list_all > 1) {
         $results{PE_WE}     = $PE_WE;
         $results{PE_WTLIST} = \%wts;
-        $results{PE_RANGELIST} = \%ranges;
+        my %nranges = %node_ranges{keys %wts};
+        $results{PE_RANGELIST} = \%nranges;
+    }
+    else {
+        my %nranges = %node_ranges{keys %{$results{PE_WTLIST}}};
+        $results{PE_RANGELIST} = \%nranges;
     }
 
     #  need to set these

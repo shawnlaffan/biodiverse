@@ -12,6 +12,7 @@ use constant HAVE_DATA_RECURSIVE
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
+use List::Util qw /sum/;
 
 sub _calc_pe {
     my $self = shift;
@@ -67,16 +68,16 @@ sub _calc_pe {
                 el_list => [$group],
             );
 
-            #  refaliasing avoids hash deref overheads below
+            #  refaliasing avoids hash deref overheads below in the loop
+            #  albeit the loop is not used any more...
             \my %nodes = $nodes_in_path;
 
             #  slice assignment wasn't faster according to nytprof and benchmarking
             #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
             # but hash slice might be
             my %gp_ranges = %node_ranges{keys %nodes};
-            my %gp_wts = %rw_node_lengths{keys %nodes};
-            my $gp_score;
-            $gp_score += $_ for values %gp_wts;
+            my %gp_wts    = %rw_node_lengths{keys %nodes};
+            my $gp_score  = sum values %gp_wts;
 
           #  old approach - left here as notes for the
           #  non-equal area case in the future

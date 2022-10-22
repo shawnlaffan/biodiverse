@@ -1795,9 +1795,8 @@ sub do_trim_tree_to_basedata {
     return if $response ne 'ok';    #  they chickened out
 
     my $new_tree = $phylogeny->clone;
-    $new_tree->delete_cached_values;
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    #$new_tree->delete_cached_values;  #  we use the caches so clear up at the end
+    $new_tree->reset_total_length;  #  also handles each node
     
     my $trim_to_lca = $checkbox->get_active;
     my $merge_knuckle_nodes = $knuckle_checkbox->get_active;
@@ -1817,12 +1816,6 @@ sub do_trim_tree_to_basedata {
         if ($trim_to_lca) {
             $new_tree->trim_to_last_common_ancestor;
         }
-        #  clear the caches --after-- all the above method calls
-        #  that use them internally
-        foreach my $node ( $new_tree->get_node_refs ) {
-            $node->delete_cached_values;
-        }
-        $new_tree->delete_cached_values;
     }
 
     if ($merge_knuckle_nodes) {
@@ -1836,6 +1829,10 @@ sub do_trim_tree_to_basedata {
         }
         
     }
+
+    #  clear the caches --after-- all the above method calls
+    #  that use them internally
+    $new_tree->delete_all_cached_values;
 
     $new_tree->set_param( NAME => $chosen_name );
 

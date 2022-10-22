@@ -3100,15 +3100,11 @@ sub clone_tree_with_equalised_branch_lengths {
           $self->get_total_tree_length / ( $non_zero_node_count || 1 );
     }
 
-    my $new_tree = $self->clone;
-    $new_tree->delete_all_cached_values;
+    my $new_tree = $self->clone_without_caches;
 
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-
-    #$new_tree->reset_total_length_below;
 
     foreach my $node ( $new_tree->get_node_refs ) {
+        #say STDERR "OOOO NOOOOO" if $node->{_cache};
         $node->set_length_aa ( $node->get_length ? $non_zero_len : 0 );
         my $sub_list_ref = $node->get_list_ref_aa ( 'NODE_VALUES' );
         delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
@@ -3119,6 +3115,37 @@ sub clone_tree_with_equalised_branch_lengths {
 
     return $new_tree;
 }
+
+sub clone_without_caches {
+    my $self = shift;
+    
+    #  maybe should generate a new version but blessing and parenting might take longer
+    my %saved_node_caches;
+    my $new_tree = do {
+        #  we have to delete the new tree's caches so avoid cloning them in the first place
+        delete local $self->{_cache};
+        #  seem not to be able to use delete local on compound structure
+        #  or maybe it is the foreach loop even though postfix
+        $saved_node_caches{$_} = delete $self->{TREE_BY_NAME}{$_}{_cache}
+          foreach keys %{$self->{TREE_BY_NAME}};
+        $self->clone;
+    };
+    #  reinstate the caches
+    $self->{TREE_BY_NAME}{$_}{_cache} = $saved_node_caches{$_}
+      foreach keys %{$self->{TREE_BY_NAME}};
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+
+    foreach my $node ( $new_tree->get_node_refs ) {
+        my $sub_list_ref = $node->get_list_ref_aa ( 'NODE_VALUES' );
+        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+    }
+      
+    return $new_tree;
+}
+
 
 sub clone_tree_with_rescaled_branch_lengths {
     my $self = shift;

@@ -3109,10 +3109,8 @@ sub clone_tree_with_equalised_branch_lengths {
     #$new_tree->reset_total_length_below;
 
     foreach my $node ( $new_tree->get_node_refs ) {
-        my $len = $node->get_length ? $non_zero_len : 0;
-        $node->set_length( length => $len );
-        #$node->delete_cached_values;
-        my $sub_list_ref = $node->get_list_ref( list => 'NODE_VALUES' );
+        $node->set_length_aa ( $node->get_length ? $non_zero_len : 0 );
+        my $sub_list_ref = $node->get_list_ref_aa ( 'NODE_VALUES' );
         delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
         delete $sub_list_ref->{total_length_gui};
         my $null;

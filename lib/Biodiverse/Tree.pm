@@ -3102,14 +3102,8 @@ sub clone_tree_with_equalised_branch_lengths {
 
     my $new_tree = $self->clone_without_caches;
 
-
     foreach my $node ( $new_tree->get_node_refs ) {
-        #say STDERR "OOOO NOOOOO" if $node->{_cache};
         $node->set_length_aa ( $node->get_length ? $non_zero_len : 0 );
-        my $sub_list_ref = $node->get_list_ref_aa ( 'NODE_VALUES' );
-        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
-        delete $sub_list_ref->{total_length_gui};
-        my $null;
     }
     $new_tree->rename( new_name => $name );
 
@@ -3155,26 +3149,14 @@ sub clone_tree_with_rescaled_branch_lengths {
 
     my $new_length = $args{new_length} || 1;
 
-    my $scale_factor = $args{scale_factor};
-    $scale_factor //=
-      $new_length / ( $self->get_longest_path_length_to_terminals || 1 );
+    my $scale_factor
+      = $args{scale_factor}
+      // $new_length / ( $self->get_longest_path_length_to_terminals || 1 );
 
-    my $new_tree = $self->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    my $new_tree = $self->clone_without_caches;
 
     foreach my $node ( $new_tree->get_node_refs ) {
-        my $len = $node->get_length * $scale_factor;
-        $node->set_length( length => $len );
-        $node->delete_cached_values;
-        my $sub_list_ref = $node->get_list_ref( list => 'NODE_VALUES' );
-        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
-        delete $sub_list_ref->{total_length_gui};
-
-        #my $null;
+        $node->set_length_aa ( $node->get_length * $scale_factor );
     }
     $new_tree->rename( new_name => $name );
 

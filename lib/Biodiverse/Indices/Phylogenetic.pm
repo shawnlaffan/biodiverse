@@ -1786,12 +1786,15 @@ sub get_node_range_hash {
             }
         }
         $count ++;
-        $progress      = $count / $to_do;
-        $progress_text = int (100 * $progress);
-        $progress_bar->update(
-            "Calculating node ranges\n($progress_text)",
-            $progress,
-        );
+        #  fewer progress calls as we get heaps with large data sets
+        if (not $count % 20) {  
+            $progress      = $count / $to_do;
+            $progress_text = int (100 * $progress);
+            $progress_bar->update(
+                "Calculating node ranges\n($count of $to_do)",
+                $progress,
+            );
+        }
     }
 
     my %results = (node_range => \%node_range);

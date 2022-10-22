@@ -19,6 +19,7 @@ use Scalar::Util qw /blessed/;
 our $VERSION = '3.99_004';
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+use constant HAVE_BD_UTILS_108 => HAVE_BD_UTILS && eval '$Biodiverse::Utils::VERSION >= 1.08';
 
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
@@ -609,6 +610,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my $path_hash = {};
+    my @collected_paths;  #  used if we have B::Utils 1.07 or greater
     foreach my $label (grep exists $all_nodes->{$_}, keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
@@ -626,7 +628,11 @@ sub get_path_lengths_to_root_node {
 
         #  This is a bottleneck for large data sets,
         #  so use an XSUB if possible.
-        if (HAVE_BD_UTILS) {
+        if (HAVE_BD_UTILS_108) {
+            #  collect them all and process in an xsub
+            push @collected_paths, $sub_path;
+        }
+        elsif (HAVE_BD_UTILS) {
             Biodiverse::Utils::add_hash_keys_until_exists (
                 $path_hash,
                 $sub_path,
@@ -649,8 +655,15 @@ sub get_path_lengths_to_root_node {
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
+    #  but first option is faster still
     my $len_hash = $tree_ref->get_node_length_hash;
-    if (HAVE_BD_UTILS) {
+    if (HAVE_BD_UTILS_108) {
+        #  get keys and vals in one call
+        Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA (
+            $path_hash, \@collected_paths, $len_hash,
+        );
+    }
+    elsif (HAVE_BD_UTILS) {
         Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
     }
     else {

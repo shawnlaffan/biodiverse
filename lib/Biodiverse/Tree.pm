@@ -186,11 +186,12 @@ sub delete_node {
     #  Now we clear the caches from those deleted nodes and those remaining
     #  This circumvents circular refs from the caches.
     if ( !$args{no_delete_cache} ) {
+        #  deleted nodes
         foreach my $n_ref ( values %node_hash ) {
             $n_ref->delete_cached_values;
         }
-        $self->delete_cached_values_below;
-        $self->delete_cached_values;  #  our own cache
+        #  remaining nodes
+        $self->delete_all_cached_values;
     }
 
     #  return a list of the names of those deleted nodes
@@ -216,7 +217,7 @@ sub delete_from_node_hash {
         @list = @{$args{nodes}};
     }
     else {
-        @list = $args{nodes};
+        @list = ($args{nodes});
     }
     delete @{ $self->{TREE_BY_NAME} }{@list};
 
@@ -2711,14 +2712,13 @@ sub trim {
     if ( $deleted_internal_count || $deleted_count ) {
         #  need to clear this up in old trees
         $self->delete_param('TOTAL_LENGTH');
-        $self->delete_cached_values;
 
         #  This avoids circular refs in the ones that were deleted
         foreach my $node ( values %tree_node_hash ) {
             $node->delete_cached_values;
         }
-        #  and clear the remaining node caches
-        $self->delete_cached_values_below;
+        #  and clear the remaining node caches and ourself
+        $self->delete_all_cached_values;
     }
     $keep = undef;    #  was leaking - not sure it matters, though
 
@@ -2749,7 +2749,7 @@ sub trim_to_last_common_ancestor {
     
     #  reset the tree node 
     $self->{TREE} = $root;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
     
     my $check = $self->get_root_node;
 
@@ -2800,7 +2800,7 @@ sub merge_knuckle_nodes {
         }
 
     }
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     return scalar keys %deleted;
 }
@@ -2964,8 +2964,7 @@ sub collapse_tree {
         }
     }
 
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     #  reset all the total length values
     $self->reset_total_length;
@@ -2982,8 +2981,7 @@ sub collapse_tree {
     $self->delete_from_node_hash( nodes => \@now_empty ) if scalar @now_empty;
 
     #  rerun the resets - prob overkill
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
     $self->reset_total_length;
     $self->get_total_tree_length;
 
@@ -3079,8 +3077,7 @@ sub shuffle_terminal_names {
     #  and now we override the old with the new
     @{$node_hash}{ keys %tmp } = values %tmp;
 
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
@@ -3629,10 +3626,9 @@ sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
     my $remap_hash = $args{remap};
-    no autovivification;
 
     foreach my $r ( keys %$remap_hash ) {
-        next if !$self->exists_node (name => $r);
+        next if !$self->exists_node_name_aa ($r);
 
         my $new_name = $remap_hash->{$r};
         next if !defined $new_name || $new_name eq $r;
@@ -3641,26 +3637,12 @@ sub remap_labels_from_hash {
             old_name => $r,
             new_name => $new_name,
         );
-
-        #my $this_node = $self->{TREE_BY_NAME}{$r};
-        ##  we might have already remapped it or it does not exist
-        ##  (can happen for multiple tree imports)
-        #next if !$this_node;
-        #
-        #$this_node->set_name( name => $new_name );
-        #
-        #if ( !$self->exists_node( name => $new_name ) ) {
-        #    $self->add_to_node_hash( node_ref => $this_node );
-        #}
     }
 
-    # clear all cached values
-    foreach my $node ( $self->get_node_refs ) {
-        $node->delete_cached_values;
-    }
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    # clear all cached values across self and nodes
+    $self->delete_all_cached_values;
 
+    return $self;
 }
 
 # wrapper around get_named_nodes for the purpose of polymorphism in

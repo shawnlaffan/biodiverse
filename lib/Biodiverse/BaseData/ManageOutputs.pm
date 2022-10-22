@@ -141,7 +141,7 @@ sub delete_output {
         delete $self->{SPATIAL_OUTPUTS}{$name};
     }
     elsif ( $type =~ /Cluster|Tree|RegionGrower/ ) {
-        my $x = eval { $object->delete_cached_values_below };
+        my $x = eval { $object->delete_all_cached_values };
         $self->{CLUSTER_OUTPUTS}{$name} = undef;
         delete $self->{CLUSTER_OUTPUTS}{$name};
     }
@@ -396,7 +396,7 @@ sub delete_cluster_output_cached_values {
     my $self = shift;
     print "[BASEDATA] Deleting cached values in cluster trees\n";
     foreach my $cluster ( $self->get_cluster_output_refs ) {
-        $cluster->delete_cached_values_below(@_);
+        $cluster->delete_all_cached_values(@_);
     }
 
     return;

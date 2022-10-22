@@ -2245,7 +2245,7 @@ sub cluster {
     $root_node->ladderise;
 
     if ($args{clear_cached_values}) {
-        $root_node->delete_cached_values_below;
+        $self->delete_all_cached_values;
     }
     $root_node->number_terminal_nodes;
 

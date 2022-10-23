@@ -1498,16 +1498,12 @@ sub get_max_total_length {
 sub get_total_tree_length { #  calculate the total length of the tree
     my $self = shift;
 
-    my $length;
-    my $node_length;
-
     #check if length is already stored in tree object
-    $length = $self->get_cached_value('TOTAL_LENGTH');
+    my $length = $self->get_cached_value('TOTAL_LENGTH');
     return $length if defined $length;
 
-    foreach my $node_ref ( values %{ $self->get_node_hash } ) {
-        $node_length = $node_ref->get_length;
-        $length += $node_length;
+    foreach my $node_ref ( $self->get_node_refs ) {
+        $length += $node_ref->get_length;
     }
 
     #  cache the result

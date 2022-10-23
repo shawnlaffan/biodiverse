@@ -991,8 +991,7 @@ sub test_rescale_by_longest_path {
     my $target_node = $tree->get_node_ref (node => $target_name);
     $target_node->set_length (length => 100);
 
-    $tree->delete_cached_values;
-    $tree->delete_cached_values_below;
+    $tree->delete_all_cached_values;
 
     my $new_longest_path = $tree->get_longest_path_length_to_terminals;
 

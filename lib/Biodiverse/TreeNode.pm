@@ -1279,6 +1279,34 @@ sub get_path_length_array_to_root_node_aa {
     return wantarray ? @path_lengths : \@path_lengths;
 }
 
+#  just a wrapper
+sub get_path_name_array_to_root_node {
+    my ($self, %args) = @_;
+    $self->get_path_name_array_to_root_node_aa($args{no_cache});
+}
+
+sub get_path_name_array_to_root_node_aa {
+    my ($self, $no_cache) = @_;
+
+    if (!$no_cache) {
+        my $path = $self->get_cached_value('PATH_NAME_ARRAY_TO_ROOT_NODE');
+        return (wantarray ? @$path : $path) if $path;
+    }
+
+    my @path;
+    my $node = $self;
+    while ($node) {  #  undef when root node
+        push @path, $node->get_name;
+        $node = $node->get_parent;
+    }
+
+    if (!$no_cache) {
+        $self->set_cached_value (PATH_LENGTH_NAME_TO_ROOT_NODE => \@path);
+    }
+
+    return wantarray ? @path : \@path;
+}
+
 
 sub get_distance_to_root_node {
     my $self = shift;

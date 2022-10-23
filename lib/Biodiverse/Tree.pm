@@ -3602,7 +3602,7 @@ sub DESTROY {
 
     #  Get a ref to each node to linearise destruction below
     #  Seems to speed up destruction of large trees by avoiding recursion.
-    #  Avoid method calls just in case.  
+    #  Avoid method calls on $self just in case.  
     my %d;
     my @nodes_by_depth
       = sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}

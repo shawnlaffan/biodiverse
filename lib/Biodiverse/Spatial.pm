@@ -1106,7 +1106,8 @@ sub sp_calc {
     $progress->reset;
 
     #  run any global post_calcs
-    my %post_calc_globals = $indices_object->run_postcalc_globals (%args);
+    #my %post_calc_globals =
+    $indices_object->run_postcalc_globals (%args);
 
     $self->clear_spatial_condition_caches;
     $self->clear_spatial_index_csv_object;
@@ -1117,8 +1118,8 @@ sub sp_calc {
         $obj->delete_cached_values;
     }
 
-    #  this will cache as well
-    my $lists = $self->get_lists_across_elements();
+    #  this will trigger caching of the lists
+    $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
     printf "\n[SPATIAL] Analysis took %.3f seconds.\n", $time_taken;

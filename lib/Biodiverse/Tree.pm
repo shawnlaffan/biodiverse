@@ -3597,22 +3597,33 @@ sub _get_ln_fac_arr {
 sub DESTROY {
     my $self = shift;
 
-    $self->delete_cached_values;    #  clear the cache
-    if ( $self->{TREE_BY_NAME} ) {
-        foreach my $node ( $self->get_node_refs ) {
-            next if !defined $node;
-            $node->delete_cached_values;
-        }
-    }
+    #  let the system handle global destruction
+    return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
 
-    #my $name = $self->get_param ('NAME');
-    #print "DELETING $name\n";
-    $self->set_param( BASEDATA_REF => undef )
-      ;    #  clear the ref to the parent basedata object
+    #  Get a ref to each node to linearise destruction below
+    #  Seems to speed up destruction of large trees by avoiding recursion.
+    #  Avoid method calls just in case.  
+    my %d;
+    my @nodes_by_depth
+      = sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
+        values %{$self->{TREE_BY_NAME}};
+    undef %d;
+
+    #  clear the ref to the parent basedata object
+    $self->set_param( BASEDATA_REF => undef );
 
     $self->{TREE}         = undef;    # empty the ref to the tree
     $self->{TREE_BY_NAME} = undef;    #  empty the list of nodes
-                                      #print "DELETED $name\n";
+    $self->{_cache}       = undef;    #  and the cache
+
+    #  Now make the nodes go out of scope from the bottom up
+    #  so we avoid recursion in the cleanup.
+    #  Clean up the caches while at it
+    while (@nodes_by_depth) {
+        my $node = shift @nodes_by_depth // next;
+        $node->delete_cached_values;
+    }
+
     return;
 }
 

@@ -186,11 +186,12 @@ sub delete_node {
     #  Now we clear the caches from those deleted nodes and those remaining
     #  This circumvents circular refs from the caches.
     if ( !$args{no_delete_cache} ) {
+        #  deleted nodes
         foreach my $n_ref ( values %node_hash ) {
             $n_ref->delete_cached_values;
         }
-        $self->delete_cached_values_below;
-        $self->delete_cached_values;  #  our own cache
+        #  remaining nodes
+        $self->delete_all_cached_values;
     }
 
     #  return a list of the names of those deleted nodes
@@ -216,7 +217,7 @@ sub delete_from_node_hash {
         @list = @{$args{nodes}};
     }
     else {
-        @list = $args{nodes};
+        @list = ($args{nodes});
     }
     delete @{ $self->{TREE_BY_NAME} }{@list};
 
@@ -538,6 +539,26 @@ sub get_node_length_hash {
     return wantarray ? %len_hash : \%len_hash;
 }
 
+sub get_zero_node_length_hash {
+    my $self = shift;
+    my %args = ( cache => 1, @_ );
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value('ZERO_NODE_LENGTH_HASH');
+        return ( wantarray ? %$cached_hash : $cached_hash ) if $cached_hash;
+    }
+
+    my $node_hash = $self->get_node_length_hash;
+    my %zero_len_hash = %$node_hash{grep {!$node_hash->{$_}} keys %$node_hash};
+
+    if ($use_cache) {
+        $self->set_cached_value( ZERO_NODE_LENGTH_HASH => \%zero_len_hash );
+    }
+
+    return wantarray ? %zero_len_hash : \%zero_len_hash;
+}
+
 #  get a hash of node refs indexed by their total length
 sub get_node_hash_by_total_length {
     my $self = shift;
@@ -603,6 +624,29 @@ sub get_node_name_depth_hash {
     
     return wantarray ? %names_and_depths : \%names_and_depths;
 }
+
+#  get a hash of the nodes keyed by name where values are the parent names
+sub get_node_name_parent_hash {
+    my $self = shift;
+    
+    state $cache_name = 'NODE_NAME_PARENT_HASH';
+    if (my $cached = $self->get_cached_value ($cache_name)) {
+        return wantarray ? %$cached : $cached;
+    }
+    
+    my %parent_hash;
+    
+    foreach my $node_ref ($self->get_node_refs) {
+        my $parent = $node_ref->get_parent;
+        next if !defined $parent;
+        $parent_hash{$node_ref->get_name} = $parent->get_name;
+    }
+    
+    $self->set_cached_value ($cache_name => \%parent_hash);
+    
+    return wantarray ? %parent_hash : \%parent_hash;
+}
+
 
 #  get a set of stats for one of the hash lists in the tree.
 #  Should be called get_list_value_stats
@@ -1454,16 +1498,12 @@ sub get_max_total_length {
 sub get_total_tree_length { #  calculate the total length of the tree
     my $self = shift;
 
-    my $length;
-    my $node_length;
-
     #check if length is already stored in tree object
-    $length = $self->get_cached_value('TOTAL_LENGTH');
+    my $length = $self->get_cached_value('TOTAL_LENGTH');
     return $length if defined $length;
 
-    foreach my $node_ref ( values %{ $self->get_node_hash } ) {
-        $node_length = $node_ref->get_length;
-        $length += $node_length;
+    foreach my $node_ref ( $self->get_node_refs ) {
+        $length += $node_ref->get_length;
     }
 
     #  cache the result
@@ -2668,14 +2708,13 @@ sub trim {
     if ( $deleted_internal_count || $deleted_count ) {
         #  need to clear this up in old trees
         $self->delete_param('TOTAL_LENGTH');
-        $self->delete_cached_values;
 
         #  This avoids circular refs in the ones that were deleted
         foreach my $node ( values %tree_node_hash ) {
             $node->delete_cached_values;
         }
-        #  and clear the remaining node caches
-        $self->delete_cached_values_below;
+        #  and clear the remaining node caches and ourself
+        $self->delete_all_cached_values;
     }
     $keep = undef;    #  was leaking - not sure it matters, though
 
@@ -2706,7 +2745,7 @@ sub trim_to_last_common_ancestor {
     
     #  reset the tree node 
     $self->{TREE} = $root;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
     
     my $check = $self->get_root_node;
 
@@ -2757,7 +2796,7 @@ sub merge_knuckle_nodes {
         }
 
     }
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     return scalar keys %deleted;
 }
@@ -2921,8 +2960,7 @@ sub collapse_tree {
         }
     }
 
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     #  reset all the total length values
     $self->reset_total_length;
@@ -2939,8 +2977,7 @@ sub collapse_tree {
     $self->delete_from_node_hash( nodes => \@now_empty ) if scalar @now_empty;
 
     #  rerun the resets - prob overkill
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
     $self->reset_total_length;
     $self->get_total_tree_length;
 
@@ -3036,8 +3073,7 @@ sub shuffle_terminal_names {
     #  and now we override the old with the new
     @{$node_hash}{ keys %tmp } = values %tmp;
 
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    $self->delete_all_cached_values;
 
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
@@ -3057,27 +3093,46 @@ sub clone_tree_with_equalised_branch_lengths {
           $self->get_total_tree_length / ( $non_zero_node_count || 1 );
     }
 
-    my $new_tree = $self->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-
-    #$new_tree->reset_total_length_below;
+    my $new_tree = $self->clone_without_caches;
 
     foreach my $node ( $new_tree->get_node_refs ) {
-        my $len = $node->get_length ? $non_zero_len : 0;
-        $node->set_length( length => $len );
-        $node->delete_cached_values;
-        my $sub_list_ref = $node->get_list_ref( list => 'NODE_VALUES' );
-        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
-        delete $sub_list_ref->{total_length_gui};
-        my $null;
+        $node->set_length_aa ( $node->get_length ? $non_zero_len : 0 );
     }
     $new_tree->rename( new_name => $name );
 
     return $new_tree;
 }
+
+sub clone_without_caches {
+    my $self = shift;
+    
+    #  maybe should generate a new version but blessing and parenting might take longer
+    my %saved_node_caches;
+    my $new_tree = do {
+        #  we have to delete the new tree's caches so avoid cloning them in the first place
+        delete local $self->{_cache};
+        #  seem not to be able to use delete local on compound structure
+        #  or maybe it is the foreach loop even though postfix
+        $saved_node_caches{$_} = delete $self->{TREE_BY_NAME}{$_}{_cache}
+          foreach keys %{$self->{TREE_BY_NAME}};
+        $self->clone;
+    };
+    #  reinstate the caches
+    $self->{TREE_BY_NAME}{$_}{_cache} = $saved_node_caches{$_}
+      foreach keys %{$self->{TREE_BY_NAME}};
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+
+    foreach my $node ( $new_tree->get_node_refs ) {
+        my $sub_list_ref = $node->get_list_ref_aa ( 'NODE_VALUES' );
+        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+    }
+      
+    return $new_tree;
+}
+
 
 sub clone_tree_with_rescaled_branch_lengths {
     my $self = shift;
@@ -3087,26 +3142,14 @@ sub clone_tree_with_rescaled_branch_lengths {
 
     my $new_length = $args{new_length} || 1;
 
-    my $scale_factor = $args{scale_factor};
-    $scale_factor //=
-      $new_length / ( $self->get_longest_path_length_to_terminals || 1 );
+    my $scale_factor
+      = $args{scale_factor}
+      // $new_length / ( $self->get_longest_path_length_to_terminals || 1 );
 
-    my $new_tree = $self->clone;
-    $new_tree->delete_cached_values;
-
-    #  reset all the total length values
-    $new_tree->reset_total_length;
-    $new_tree->reset_total_length_below;
+    my $new_tree = $self->clone_without_caches;
 
     foreach my $node ( $new_tree->get_node_refs ) {
-        my $len = $node->get_length * $scale_factor;
-        $node->set_length( length => $len );
-        $node->delete_cached_values;
-        my $sub_list_ref = $node->get_list_ref( list => 'NODE_VALUES' );
-        delete $sub_list_ref->{_y};    #  the GUI adds these - should fix there
-        delete $sub_list_ref->{total_length_gui};
-
-        #my $null;
+        $node->set_length_aa ( $node->get_length * $scale_factor );
     }
     $new_tree->rename( new_name => $name );
 
@@ -3554,22 +3597,33 @@ sub _get_ln_fac_arr {
 sub DESTROY {
     my $self = shift;
 
-    $self->delete_cached_values;    #  clear the cache
-    if ( $self->{TREE_BY_NAME} ) {
-        foreach my $node ( $self->get_node_refs ) {
-            next if !defined $node;
-            $node->delete_cached_values;
-        }
-    }
+    #  let the system handle global destruction
+    return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
 
-    #my $name = $self->get_param ('NAME');
-    #print "DELETING $name\n";
-    $self->set_param( BASEDATA_REF => undef )
-      ;    #  clear the ref to the parent basedata object
+    #  Get a ref to each node to linearise destruction below
+    #  Seems to speed up destruction of large trees by avoiding recursion.
+    #  Avoid method calls on $self just in case.  
+    my %d;
+    my @nodes_by_depth
+      = sort {($d{$b} //= $b->get_depth) <=> ($d{$a} //= $a->get_depth)}
+        values %{$self->{TREE_BY_NAME}};
+    undef %d;
+
+    #  clear the ref to the parent basedata object
+    $self->set_param( BASEDATA_REF => undef );
 
     $self->{TREE}         = undef;    # empty the ref to the tree
     $self->{TREE_BY_NAME} = undef;    #  empty the list of nodes
-                                      #print "DELETED $name\n";
+    $self->{_cache}       = undef;    #  and the cache
+
+    #  Now make the nodes go out of scope from the bottom up
+    #  so we avoid recursion in the cleanup.
+    #  Clean up the caches while at it
+    while (@nodes_by_depth) {
+        my $node = shift @nodes_by_depth // next;
+        $node->delete_cached_values;
+    }
+
     return;
 }
 
@@ -3579,10 +3633,9 @@ sub remap_labels_from_hash {
     my $self       = shift;
     my %args       = @_;
     my $remap_hash = $args{remap};
-    no autovivification;
 
     foreach my $r ( keys %$remap_hash ) {
-        next if !$self->exists_node (name => $r);
+        next if !$self->exists_node_name_aa ($r);
 
         my $new_name = $remap_hash->{$r};
         next if !defined $new_name || $new_name eq $r;
@@ -3591,26 +3644,12 @@ sub remap_labels_from_hash {
             old_name => $r,
             new_name => $new_name,
         );
-
-        #my $this_node = $self->{TREE_BY_NAME}{$r};
-        ##  we might have already remapped it or it does not exist
-        ##  (can happen for multiple tree imports)
-        #next if !$this_node;
-        #
-        #$this_node->set_name( name => $new_name );
-        #
-        #if ( !$self->exists_node( name => $new_name ) ) {
-        #    $self->add_to_node_hash( node_ref => $this_node );
-        #}
     }
 
-    # clear all cached values
-    foreach my $node ( $self->get_node_refs ) {
-        $node->delete_cached_values;
-    }
-    $self->delete_cached_values;
-    $self->delete_cached_values_below;
+    # clear all cached values across self and nodes
+    $self->delete_all_cached_values;
 
+    return $self;
 }
 
 # wrapper around get_named_nodes for the purpose of polymorphism in

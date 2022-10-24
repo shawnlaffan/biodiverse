@@ -4,14 +4,10 @@ use warnings;
 
 our $VERSION = '3.99_004';
 
-use constant HAVE_PANDA_LIB
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
-use constant HAVE_DATA_RECURSIVE
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
-
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
+use List::Util qw /sum/;
 
 sub _calc_pe {
     my $self = shift;
@@ -20,7 +16,8 @@ sub _calc_pe {
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     my $element_list_all = $args{element_list_all};
-    \my %node_ranges = $args{node_range};
+    \my %node_ranges     = $args{node_range};
+    \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
@@ -57,37 +54,41 @@ sub _calc_pe {
         #  else build them and cache them
         else {
             my $labels = $bd->get_labels_in_group_as_hash_aa ($group);
+            
+            #  This is a slow point for many calcs but the innards are cached
+            #  and the cost is amortised when PD is also calculated
             my $nodes_in_path = $self->get_path_lengths_to_root_node (
                 @_,
                 labels  => $labels,
                 el_list => [$group],
             );
 
-            my ($gp_score, %gp_wts, %gp_ranges);
+            my %gp_wts    = %rw_node_lengths{keys %$nodes_in_path};
+            my $gp_score  = sum values %gp_wts;
 
-            #  slice assignment wasn't faster according to nytprof and benchmarking
-            #@gp_ranges{keys %$nodes_in_path} = @$node_ranges{keys %$nodes_in_path};
-
-            #  refaliasing avoids hash deref overheads below
-            \my %node_lengths = $nodes_in_path;
-
-            #  loop over the nodes and run the calcs
-          NODE:
-            foreach my $node_name (keys %node_lengths) {
-                # Not sure we even need to test for zero ranges.
-                # We should never suffer this given the pre_calcs.
-                my $range = $node_ranges{$node_name}
-                  || next NODE;
-                my $wt     = $node_lengths{$node_name} / $range;
-                $gp_score += $wt;
-                $gp_wts{$node_name}    = $wt;
-                $gp_ranges{$node_name} = $range;
-            }
+          #  old approach - left here as notes for the
+          #  non-equal area case in the future
+          #  #  loop over the nodes and run the calcs
+          #  refaliasing avoids hash deref overheads below in the loop
+          #  albeit the loop is not used any more...
+          #  \my %nodes = $nodes_in_path;
+          #NODE:
+          #  foreach my $node_name (keys %node_lengths) {
+          #      # Not sure we even need to test for zero ranges.
+          #      # We should never suffer this given the pre_calcs.
+          #      #my $range = $node_ranges{$node_name}
+          #      #  or next NODE;
+          #      #my $wt     = $node_lengths{$node_name} / $range;
+          #      my $wt = $rw_node_lengths{$node_name};
+          #      #say STDERR (sprintf ('%s %f %f', $node_name, $wt, $wt2));
+          #      $gp_score += $wt;
+          #      #$gp_wts{$node_name}    = $wt;
+          #      #$gp_ranges{$node_name} = $range;
+          #  }
 
             $results_this_gp = {
                 PE_WE           => $gp_score,
                 PE_WTLIST       => \%gp_wts,
-                PE_RANGELIST    => \%gp_ranges,
             };
 
             $results_cache->{$group} = $results_this_gp;
@@ -107,18 +108,6 @@ sub _calc_pe {
             @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
         }
         else {
-            # ranges are invariant, so can be crashed together
-            my $hash_ref = $results_this_gp->{PE_RANGELIST};
-            if (HAVE_DATA_RECURSIVE) {
-                Data::Recursive::hash_merge (\%ranges, $hash_ref, Data::Recursive::LAZY());
-            }
-            elsif (HAVE_PANDA_LIB) {
-                Panda::Lib::hash_merge (\%ranges, $hash_ref, Panda::Lib::MERGE_LAZY());
-            }
-            else {
-                @ranges{keys %$hash_ref} = values %$hash_ref;
-            }
-
             # refalias might be a nano-optimisation here...
             \my %wt_hash = $results_this_gp->{PE_WTLIST};
 
@@ -145,11 +134,16 @@ sub _calc_pe {
         $PE_WE_P = eval {$PE_WE / $total_tree_length};
     }
 
-    #  need the collated versions
+    #  need the collated versions for multiple elements
     if (scalar @$element_list_all > 1) {
         $results{PE_WE}     = $PE_WE;
         $results{PE_WTLIST} = \%wts;
-        $results{PE_RANGELIST} = \%ranges;
+        my %nranges = %node_ranges{keys %wts};
+        $results{PE_RANGELIST} = \%nranges;
+    }
+    else {
+        my %nranges = %node_ranges{keys %{$results{PE_WTLIST}}};
+        $results{PE_RANGELIST} = \%nranges;
     }
 
     #  need to set these

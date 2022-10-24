@@ -1106,7 +1106,8 @@ sub sp_calc {
     $progress->reset;
 
     #  run any global post_calcs
-    my %post_calc_globals = $indices_object->run_postcalc_globals (%args);
+    #my %post_calc_globals =
+    $indices_object->run_postcalc_globals (%args);
 
     $self->clear_spatial_condition_caches;
     $self->clear_spatial_index_csv_object;
@@ -1117,8 +1118,8 @@ sub sp_calc {
         $obj->delete_cached_values;
     }
 
-    #  this will cache as well
-    my $lists = $self->get_lists_across_elements();
+    #  this will trigger caching of the lists
+    $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
     printf "\n[SPATIAL] Analysis took %.3f seconds.\n", $time_taken;
@@ -1129,6 +1130,34 @@ sub sp_calc {
     $self->set_param (COMPLETED => 1);
     
     $self->set_last_update_time;
+    
+#    use PadWalker;
+#    use Data::Printer;
+#    use Devel::Refcount qw( refcount );
+#    $indices_object->set_param(BASEDATA_REF => undef);
+#    state $printed = 0;
+#	my $current = PadWalker::peek_my (0);
+#    $current = [sort keys %$current];  #  overwrite the padwalker result
+#    use Devel::Size qw(size total_size);
+#    if (!$printed) {
+#        #say STDERR join ' ', sort @$current;
+#        foreach my $key (@$current) {
+#            my $refcount = eval "refcount $key" // next;
+#            next if $refcount > 1;
+#            my $size = eval "total_size $key";
+#            say STDERR "$key, $refcount, $size";
+#        }
+#        #say STDERR '====';
+#        #$indices_object->dump_to_yaml (filename => 'memcheck.yaml', data => $indices_object);
+#        #$printed++;
+#    }
+
+#    #  this takes a long time when large trees
+#    #  are generated and stored on the object
+#    use Time::HiRes qw /time/;
+#    my $t = time();
+#    undef $indices_object;
+#	say STDERR sprintf "Time take for indices object destruction: %f", time() - $t;
 
     return 1;
 }

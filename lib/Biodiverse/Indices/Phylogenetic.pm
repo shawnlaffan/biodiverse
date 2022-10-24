@@ -19,6 +19,7 @@ use Scalar::Util qw /blessed/;
 our $VERSION = '3.99_004';
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
+use constant HAVE_BD_UTILS_108 => HAVE_BD_UTILS && eval '$Biodiverse::Utils::VERSION >= 1.08';
 
 use constant HAVE_PANDA_LIB
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Panda::Lib';
@@ -609,6 +610,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my $path_hash = {};
+    my @collected_paths;  #  used if we have B::Utils 1.07 or greater
     foreach my $label (grep exists $all_nodes->{$_}, keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets
@@ -616,9 +618,7 @@ sub get_path_lengths_to_root_node {
         my $sub_path = $cache && $path_cache->{$current_node};
 
         if (!$sub_path) {
-            $sub_path = $current_node->get_path_to_root_node (cache => $cache);
-            my @p = map (($_->get_name), @$sub_path);
-            $sub_path = \@p;
+            $sub_path = $current_node->get_path_name_array_to_root_node_aa (!$cache);
             if ($cache) {
                 $path_cache->{$current_node} = $sub_path;
             }
@@ -626,7 +626,11 @@ sub get_path_lengths_to_root_node {
 
         #  This is a bottleneck for large data sets,
         #  so use an XSUB if possible.
-        if (HAVE_BD_UTILS) {
+        if (HAVE_BD_UTILS_108) {
+            #  collect them all and process in an xsub
+            push @collected_paths, $sub_path;
+        }
+        elsif (HAVE_BD_UTILS) {
             Biodiverse::Utils::add_hash_keys_until_exists (
                 $path_hash,
                 $sub_path,
@@ -649,8 +653,15 @@ sub get_path_lengths_to_root_node {
 
     #  Assign the lengths once each.
     #  ~15% faster than repeatedly assigning in the slice above
+    #  but first option is faster still
     my $len_hash = $tree_ref->get_node_length_hash;
-    if (HAVE_BD_UTILS) {
+    if (HAVE_BD_UTILS_108) {
+        #  get keys and vals in one call
+        Biodiverse::Utils::XS::add_hash_keys_and_vals_until_exists_AoA (
+            $path_hash, \@collected_paths, $len_hash,
+        );
+    }
+    elsif (HAVE_BD_UTILS) {
         Biodiverse::Utils::copy_values_from ($path_hash, $len_hash);
     }
     else {
@@ -1476,6 +1487,7 @@ sub get_metadata__calc_pe {
             get_pe_element_cache
             get_path_length_cache
             set_path_length_cache_by_group_flag
+            get_inverse_range_weighted_path_lengths
         /],
         pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1664,6 +1676,44 @@ sub get_node_range_hash_as_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_get_inverse_range_weighted_path_lengths {
+    my %metadata = (
+        name  => 'get_metadata_get_node_range_hash',
+        description
+            => "Get a hash of the node lengths divided by their ranges\n"
+             . "Forms the basis of the PE calcs for equal area cells",
+        required_args => ['tree_ref'],
+        pre_calc_global => ['get_node_range_hash'],
+        indices => {
+            inverse_range_weighted_node_lengths => {
+                description => 'Hash of node lengths divided by their ranges',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
+}
+
+sub get_inverse_range_weighted_path_lengths {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{tree_ref};
+    my $node_ranges = $args{node_range};
+    
+    my %range_weighted;
+    
+    foreach my $node ($tree->get_node_refs) {
+        my $name = $node->get_name;
+        next if !$node_ranges->{$name};
+        $range_weighted{$name} = $node->get_length / $node_ranges->{$name};
+    }
+    
+    my %results = (inverse_range_weighted_node_lengths => \%range_weighted);
+    
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_get_node_range_hash {
     my %metadata = (
         name            => 'get_node_range_hash',
@@ -1734,12 +1784,15 @@ sub get_node_range_hash {
             }
         }
         $count ++;
-        $progress      = $count / $to_do;
-        $progress_text = int (100 * $progress);
-        $progress_bar->update(
-            "Calculating node ranges\n($progress_text)",
-            $progress,
-        );
+        #  fewer progress calls as we get heaps with large data sets
+        if (not $count % 20) {  
+            $progress      = $count / $to_do;
+            $progress_text = int (100 * $progress);
+            $progress_bar->update(
+                "Calculating node ranges\n($count of $to_do)",
+                $progress,
+            );
+        }
     }
 
     my %results = (node_range => \%node_range);

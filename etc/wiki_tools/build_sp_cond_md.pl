@@ -1,5 +1,8 @@
-
 use 5.016;
+use strict;
+use warnings;
+
+use rlib '../../lib';
 
 use Biodiverse::BaseData;
 use Biodiverse::SpatialConditions;

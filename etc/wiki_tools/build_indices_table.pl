@@ -4,6 +4,8 @@ use Carp;
 use 5.010;
 use Cwd;
 
+use rlib '../../lib';
+
 use English qw { -no_match_vars };
 
 BEGIN {

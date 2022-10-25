@@ -1000,42 +1000,45 @@ sub _calc_pd_pe_clade_contributions {
     my $res_pfx   = $args{res_pfx};
     my $sum_of_branches = $main_tree->get_total_tree_length;
 
-    my $contr   = {};
-    my $contr_p = {};
-    my $clade_score = {};
+    my %contr;
+    my %contr_p;
+    my %clade_score;
 
     #  depths are (should be) the same across main and sub trees
-    my $depth_hash = $main_tree->get_node_name_depth_hash;
+    \my %depth_hash = $main_tree->get_node_name_depth_hash;
     \my %node_hash  = $args{SUBTREE_AS_HASH};
 
+    #  Profiling is needed but it might be more efficient to
+    #  generate an array of arrays in one pass, indexed by depth,
+    #  and then iterate up the depths in the loop below. 
     my @names_by_depth
-      = sort {$depth_hash->{$b} <=> $depth_hash->{$a}}
+      = sort {$depth_hash{$b} <=> $depth_hash{$a}}
         keys %node_hash;
 
   NODE_REF:
     foreach my $node_name (@names_by_depth) {
 
         my $wt_sum = $wt_list->{$node_name};
-        foreach my $child_name (@{$node_hash{$node_name}}) {
-            $wt_sum += $clade_score->{$child_name};
-        }
+        #  postfix for speed
+        $wt_sum += $clade_score{$_}
+          for @{$node_hash{$node_name}};
 
         #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}
+        $contr{$node_name}
           = $p_score
           ? 0 + sprintf '%.11f', $wt_sum / $p_score
           : undef;
-        $contr_p->{$node_name}
+        $contr_p{$node_name}
           = $sum_of_branches
           ? 0 + sprintf '%.11f', $wt_sum / $sum_of_branches
           : undef;
-        $clade_score->{$node_name} = $wt_sum;
+        $clade_score{$node_name} = $wt_sum;
     }
 
     my %results = (
-        "${res_pfx}CLADE_SCORE"   => $clade_score,
-        "${res_pfx}CLADE_CONTR"   => $contr,
-        "${res_pfx}CLADE_CONTR_P" => $contr_p,
+        "${res_pfx}CLADE_SCORE"   => \%clade_score,
+        "${res_pfx}CLADE_CONTR"   => \%contr,
+        "${res_pfx}CLADE_CONTR_P" => \%contr_p,
     );
 
     return wantarray ? %results : \%results;

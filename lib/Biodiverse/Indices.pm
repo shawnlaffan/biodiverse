@@ -603,7 +603,7 @@ sub get_calculation_metadata_as_markdown {
 sub _format_equation_as_markdown {
     my ($self, $eqn) = @_;
     use URI::Escape qw /uri_escape/;
-    my $codecogs_url = 'http://latex.codecogs.com/png.latex?';
+    my $codecogs_url = 'http://latex.codecogs.com/png.latex?\inline&space;\bg{white}';
 
     my $alt_text = $eqn;
     #  need to escape the backslashes for github to work

@@ -6,6 +6,9 @@ use 5.022;
 use strict;
 use warnings;
 
+use feature 'refaliasing';
+no warnings 'experimental::refaliasing';
+
 use Carp;
 use English ( -no_match_vars );
 
@@ -2440,20 +2443,20 @@ sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
 
-    my $base_ref = $args{base_list_ref};
-    my $comp_ref = $args{comp_list_ref};
-    my $results  = $args{results_list_ref};
+    \my %base_ref = $args{base_list_ref};
+    \my %comp_ref = $args{comp_list_ref};
+    \my %results   = $args{results_list_ref};
 
   COMP_BY_ITEM:
-    foreach my $index (keys %$base_ref) {
+    foreach my $index (keys %base_ref) {
 
         next COMP_BY_ITEM
-          if !(defined $base_ref->{$index} && defined $comp_ref->{$index});
+          if !(defined $base_ref{$index} && defined $comp_ref{$index});
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
-        my $diff = $base_ref->{$index} - $comp_ref->{$index};
+        my $diff = $base_ref{$index} - $comp_ref{$index};
         my $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
 
         #  for debug, but leave just in case
@@ -2466,21 +2469,21 @@ sub compare_lists_by_item {
         #   SUMX  is the sum of compared values
         #   SUMXX is the sum of squared compared values
         #   The latter two are used in z-score calcs
-        $results->{"C_$index"} += $increment;
-        $results->{"Q_$index"} ++;
-        $results->{"P_$index"} =   $results->{"C_$index"}
-                                 / $results->{"Q_$index"};
+        $results{"C_$index"} += $increment;
+        $results{"Q_$index"} ++;
+        $results{"P_$index"} =   $results{"C_$index"}
+                               / $results{"Q_$index"};
         # use original vals for sums
-        $results->{"SUMX_$index"}  +=  $comp_ref->{$index};  
-        $results->{"SUMXX_$index"} += ($comp_ref->{$index}**2);  
+        $results{"SUMX_$index"}  +=  $comp_ref{$index};  
+        $results{"SUMXX_$index"} += ($comp_ref{$index}**2);  
 
         #  track the number of ties
         if (abs($diff) <= DEFAULT_PRECISION_SMALL) {
-            $results->{"T_$index"} ++;
+            $results{"T_$index"} ++;
         }
     }
     
-    return $results;
+    return;
 }
 
 sub check_canape_protocol_is_valid {

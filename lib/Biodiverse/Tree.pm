@@ -2425,16 +2425,15 @@ sub reintegrate_after_parallel_randomisations {
             }
         }
     }
-    foreach my $list_name (@randomisations_to_reintegrate) {
-        $self->convert_comparisons_to_significances (
-            result_list_name => $list_name,
-        );
-        $self->convert_comparisons_to_zscores (
-            result_list_name => $list_name,
-        );
-        $self->calculate_canape (
-            result_list_name => $list_name,
-        );
+    my @methods = qw /
+      convert_comparisons_to_significances
+      convert_comparisons_to_zscores
+      calculate_canape
+    /;
+    foreach my $rand_name (@randomisations_to_reintegrate) {
+        foreach my $method (@methods) {
+            $self->$method (result_list_name => $rand_name);
+        }
     }
 
     foreach my $to_node (@$node_list) {

@@ -3600,8 +3600,8 @@ sub DESTROY {
     #  let the system handle global destruction
     return if ${^GLOBAL_PHASE} eq 'DESTRUCT';
 
-    #  Get a ref to each node to linearise destruction below
-    #  Seems to speed up destruction of large trees by avoiding recursion.
+    #  Get a ref to each node to linearise destruction of each node at the end.
+    #  Speeds up destruction of large trees by avoiding recursion.
     #  Avoid method calls on $self just in case.  
     my %d;
     my @nodes_by_depth
@@ -3616,13 +3616,14 @@ sub DESTROY {
     $self->{TREE_BY_NAME} = undef;    #  empty the list of nodes
     $self->{_cache}       = undef;    #  and the cache
 
-    #  Now make the nodes go out of scope from the bottom up
-    #  so we avoid recursion in the cleanup.
-    #  Clean up the caches while at it
-    while (@nodes_by_depth) {
-        my $node = shift @nodes_by_depth // next;
+    #  Clean up the caches before final cleanup
+    foreach my $node (@nodes_by_depth) {
+        next if !$node;  #  just in case
         $node->delete_cached_values;
     }
+    #  Now make the nodes go out of scope from the bottom up
+    #  so we avoid recursion in the cleanup.
+    shift @nodes_by_depth while @nodes_by_depth;
 
     return;
 }

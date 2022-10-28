@@ -2230,38 +2230,33 @@ sub get_sub_tree_as_hash {
 
     my $tree       = $args{tree_ref};
     my $label_list = $args{labels} // $args{PHYLO_LABELS_ON_TREE};
+    
+    \my %parent_hash = $tree->get_node_name_parent_hash;
 
     my %subtree;
     my $root_name;
 
   LABEL:
-    foreach my $label (keys %$label_list) {
-        my $node_ref = eval {$tree->get_node_ref_aa ($label)};
-        next LABEL if !defined $node_ref;  # not a tree node name
+    foreach my $label (grep {exists $parent_hash{$_}} keys %$label_list) {
 
         $subtree{$label} = [];
-        my $node_name = $label;
+        my $node_name   = $label;
+        my $parent_name = $parent_hash{$label};
         my $last;
 
       NODE_IN_PATH:
-        while (my $parent = $node_ref->get_parent()) {
-
-            my $parent_name = $parent->get_name;
-            my $st_parent = $subtree{$parent_name};
+        while (defined $parent_name) {
 
             #  we have the rest of the path in this case
-            $last = defined $st_parent;
+            $last = defined $subtree{$parent_name};
 
-            #if (!$last) {
-            #    $subtree{$parent_name} = [];
-            #}
             my $child_array = $subtree{$parent_name} //= [];
             push @$child_array, $node_name;
 
             last NODE_IN_PATH if $last;
 
-            $node_ref  = $parent;
-            $node_name = $parent_name;
+            $node_name   = $parent_name;
+            $parent_name = $parent_hash{$node_name};
         }
     }
 

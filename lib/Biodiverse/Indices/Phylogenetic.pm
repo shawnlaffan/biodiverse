@@ -1025,14 +1025,15 @@ sub _calc_pd_pe_clade_contributions {
             $wt_sum += $clade_score{$_}
               for @{$node_hash{$node_name}};
     
-            #  round off to avoid spurious spatial variation.
+            #  Round off to avoid spurious spatial variation.
+            #  times-int-divide is faster than sprintf
             $contr{$node_name}
               = $p_score
-              ? 0 + sprintf '%.11f', $wt_sum / $p_score
+              ? int (1e11 * $wt_sum / $p_score) / 1e11
               : undef;
             $contr_p{$node_name}
               = $sum_of_branches
-              ? 0 + sprintf '%.11f', $wt_sum / $sum_of_branches
+              ? int (1e11 * $wt_sum / $sum_of_branches) / 1e11
               : undef;
             $clade_score{$node_name} = $wt_sum;
         }

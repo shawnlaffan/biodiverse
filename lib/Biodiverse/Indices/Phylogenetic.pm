@@ -3078,22 +3078,14 @@ sub calc_phylo_abundance {
     LABEL:
     foreach my $label (keys %$named_labels) {
 
-        #  check if node exists - should use a pre_calc
-        my $node_ref = eval {
-            $tree->get_node_ref (node => $label);
-        };
-        if (my $e = $EVAL_ERROR) {  #  still needed? 
-            next LABEL if Biodiverse::Tree::NotExistsNode->caught;
-            croak $e;
-        }
-
-        my $abundance    = $abundance_hash->{$label};
+        my $node_ref     = $tree->get_node_ref_aa ($label);
         my $path_lengths = $node_ref->get_path_lengths_to_root_node;
+        my $abundance    = $abundance_hash->{$label};
         
         foreach my $node_name (keys %$path_lengths) {
-            my $node_len   = $path_lengths->{$node_name};
-            $pd_abundance_hash{$node_name} += $node_len * $abundance;
-            $pd_abundance += $node_len * $abundance;
+            my $val = $abundance * $path_lengths->{$node_name};
+            $pd_abundance_hash{$node_name} += $val;
+            $pd_abundance += $val;
         }
     }    
 

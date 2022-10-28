@@ -1189,9 +1189,9 @@ sub _calc_pd_pe_clade_loss {
     my ($p_clade_score, $p_clade_contr, $p_clade_contr_p)
       = @args{@score_names};
 
-    my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
-    my $node_name;  #  reuse to avoid repeated SV destruction
-    my (%child_counts, %node_names);  #  avoid some method calls
+    my (%loss_contr, %loss_contr_p, %loss_score);
+    
+    \my %parent_hash = $tree_ref->get_node_name_parent_hash;
 
   NODE:
     foreach my $node_name (keys %sub_tree_hash) {
@@ -1203,16 +1203,14 @@ sub _calc_pd_pe_clade_loss {
 
         #  Find the ancestors with no children outside this clade
         #  We are using a subtree, so the node only needs one sibling
-        my $node_ref = $tree_ref->get_node_ref_aa($node_name);
+        my $parent_name = $parent_hash{$node_name};
       PARENT:
-        while (my $parent = $node_ref->get_parent) {
-            my $parent_name
-              = $node_names{$parent} //= $parent->get_name;
+        while (defined $parent_name) {
             last PARENT
               if @{$sub_tree_hash{$parent_name}} > 1;
 
             push @ancestors, $parent_name;
-            $node_ref = $parent;
+            $parent_name = $parent_hash{$parent_name};
         }
 
         my $last_ancestor = $ancestors[-1];

@@ -1945,9 +1945,9 @@ sub get_global_node_abundance_hash {
     my $to_do = scalar keys %$nodes;
     my $count = 0;
 
-    my $progress = int (100 * $count / $to_do);
+    my $progress = $count / $to_do;
     $progress_bar->update(
-        "Calculating node abundances\n($progress)",
+        "Calculating node abundances\n($count of $to_do)",
         $progress,
     );
 
@@ -1963,10 +1963,9 @@ sub get_global_node_abundance_hash {
         }
 
         $count ++;
-        my $progress = $count / $to_do;
         $progress_bar->update(
-            "Calculating node abundances\n($progress)",
-            $progress,
+            "Calculating node abundances\n($count of $to_do)",
+            $count / $to_do,
         );
     }
 

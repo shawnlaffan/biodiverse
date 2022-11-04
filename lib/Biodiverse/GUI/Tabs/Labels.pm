@@ -1052,7 +1052,7 @@ sub set_selected_list_cols {
         my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
 
         my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-        my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
+        #my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
         my $orig_value = $global_model->get($iter1, $change_col);
 
         my $value = $selection->iter_is_selected ($iter) || 0;

@@ -461,10 +461,7 @@ sub set_base_struct {
     croak "No groups to display - BaseData is empty\n"
       if $count == 0;
 
-    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
-
     say "[Grid] Grid loading $count elements (cells)";
-    $progress_bar->update ("Grid loading $count elements (cells)", 0);
 
 
     # Delete any old cells
@@ -505,15 +502,8 @@ sub set_base_struct {
     $self->{cells_group} = $cells_group;
     $cells_group->lower_to_bottom();
 
-    my $i = 0;
     foreach my $element (keys %$elts) {
         no warnings 'uninitialized';  #  suppress these warnings
-        
-        $progress_bar->update (
-            "Grid loading $i of $count elements (cells)",
-            $i / $count
-        );
-        $i++;
 
         #FIXME: ????:
         # NOTE: this will stuff things, since we store $element in INDEX_ELEMENT
@@ -569,8 +559,6 @@ sub set_base_struct {
 
 
     $self->store_cell_outline_colour (COLOUR_BLACK);
-
-    $progress_bar = undef;
 
     #  THIS SHOULD BE ABOVE THE init_grid CALL to display properly from first?
     # Flip the y-axis (default has origin top-left with y going down)

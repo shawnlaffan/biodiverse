@@ -526,10 +526,14 @@ sub make_labels_model {
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
-        foreach my $column (@column_order) {
+        foreach my $column (@column_order[0..($#column_order-2)]) {
             $model->set ($iter, $i, $stats{$column} // -99999);
             $i++;
         }
+        #  now the selection columns (last two)
+        $model->set ($iter, $i, $stats{$column_order[-2]} // 0);
+        $i++;
+        $model->set ($iter, $i, $stats{$column_order[-1]} // 0);
     }
 
     $labels_model_list1_sel_col = scalar @column_order - 1;

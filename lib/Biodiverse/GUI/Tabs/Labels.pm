@@ -527,7 +527,7 @@ sub make_labels_model {
 
         my $i = 1;
         foreach my $column (@column_order) {
-            $model->set ($iter, $i, defined $stats{$column} ? $stats{$column} : -99999);
+            $model->set ($iter, $i, $stats{$column} // -99999);
             $i++;
         }
     }

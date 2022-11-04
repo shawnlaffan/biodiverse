@@ -1698,14 +1698,13 @@ sub get_base_stats {  #  calculate basestats for a single element
     my $self = shift;
     my %args = @_;
 
-    defined $args{element} || croak "element not specified\n";
-
-    my $element = $args{element};
+    my $element = $args{element}
+      // croak "element not specified\n";
 
     my %stats = (
-        VARIETY    => $self->get_variety      (element => $element),
-        SAMPLES    => $self->get_sample_count (element => $element),
-        REDUNDANCY => $self->get_redundancy   (element => $element),
+        VARIETY    => $self->get_variety_aa      ($element),
+        SAMPLES    => $self->get_sample_count_aa ($element),
+        REDUNDANCY => $self->get_redundancy_aa   ($element),
     );
 
     #  get all the user defined properties

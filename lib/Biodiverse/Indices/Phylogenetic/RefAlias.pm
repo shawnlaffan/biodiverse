@@ -2,7 +2,7 @@ package Biodiverse::Indices::Phylogenetic::RefAlias;
 use strict;
 use warnings;
 
-our $VERSION = '3.99_005';
+our $VERSION = '4.0';
 
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';

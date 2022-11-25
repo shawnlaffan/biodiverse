@@ -13,7 +13,7 @@ BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }
 
-use App::PP::Autolink 2.04;
+use App::PP::Autolink 2.07;
 
 use Config;
 use File::Copy;
@@ -123,7 +123,8 @@ my @aliens = qw /
     Alien::spatialite Alien::freexl
     Alien::libtiff    Alien::curl
 /;
-push @rest_of_pp_args, map {; '-M' => $_} @aliens;
+#  pp_autolink 2.07 handles the aliens now
+#push @rest_of_pp_args, map {; '-M' => $_} @aliens;
 
 my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 

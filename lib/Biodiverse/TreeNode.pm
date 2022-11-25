@@ -457,6 +457,10 @@ sub set_depth {
     $self->{NODE_VALUES}{DEPTH} = $args{depth};
 }
 
+sub set_depth_aa {
+    $_[0]->{NODE_VALUES}{DEPTH} = $_[1];
+}
+
 sub get_depth {
     my $self = shift;
 

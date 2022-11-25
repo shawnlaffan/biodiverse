@@ -2796,7 +2796,15 @@ sub merge_knuckle_nodes {
         }
 
     }
-    $self->delete_all_cached_values;
+    
+    if (keys %deleted) {
+        $self->delete_all_cached_values;
+        
+        #  brute force
+        foreach my $node ($self->get_node_refs) {
+            $node->set_depth_aa (undef);
+        }
+    }
 
     return scalar keys %deleted;
 }

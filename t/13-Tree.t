@@ -1334,6 +1334,20 @@ sub test_knuckle_nodes {
     
     my $comp = $tree_with_knuckles->trees_are_same(comparison => $tree_no_knuckles);
     ok $comp, 'got expected tree topology after clearing knuckles';
+    
+    my $tree = get_tree_object_from_sample_data();
+    foreach my $name_num (qw /18 21 25/) {
+        $tree->delete_node(node => "Genus:sp$name_num");
+    }
+    foreach my $node ($tree->get_node_refs) {
+        $node->get_depth;  #  trigger depth storage
+    }
+    $tree->merge_knuckle_nodes;
+    foreach my $node ($tree->get_node_refs) {
+        next if $node->is_root_node;
+        my $parent = $node->get_parent;
+        is ($node->get_depth, $parent->get_depth + 1, "correct depth for " . $node->get_name);
+    }
 }
 
 

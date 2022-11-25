@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05c0f2e1-bb2f-4033-82e7-8d0bb4a5ff6c" name="Changes" comment="" />
+    <list default="true" id="05c0f2e1-bb2f-4033-82e7-8d0bb4a5ff6c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/etc/pp/build_autolink.pl" beforeDir="false" afterPath="$PROJECT_DIR$/etc/pp/build_autolink.pl" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,6 +29,7 @@
     "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/shawn/git/biodiverse/.project",
     "settings.editor.selected.configurable": "preferences.pluginManager"
   }
 }]]></component>

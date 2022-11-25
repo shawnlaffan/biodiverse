@@ -9,7 +9,7 @@ WriteMakefile(
     'VERSION_FROM' => 'lib/Task/Biodiverse/NoGUI.pm', # finds $VERSION
     ($] ge '5.005') ? (
         'AUTHOR' => 'Shawn Laffan (shawn.laffan@unsw.edu.au)',
-        'ABSTRACT' => 'Task for Biodiverse dependencies for non-GUI use',
+        'ABSTRACT' => 'Task for Biodiverse dependencies for non-GUI use [DEPRECATED]',
         )
     : (),
     META_MERGE => {

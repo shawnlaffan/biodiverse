@@ -3,7 +3,7 @@ package Task::Biodiverse;
 use strict;
 use warnings;
 
-our $VERSION = '4.0';
+our $VERSION = '3.2';
 
 
 1;
@@ -12,8 +12,9 @@ __END__
 
 =head1 NAME
 
-Task::Biodiverse - Task to install Biodiverse dependencies.
+Task::Biodiverse - Task to install Biodiverse dependencies.  [DEPRECATED]
 
+This has been replaced by a cpanfile approach.
 
 =head1 SYNOPSIS
 

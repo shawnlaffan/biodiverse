@@ -3,7 +3,7 @@ package Task::Biodiverse::NoGUI;
 use strict;
 use warnings;
 
-our $VERSION = '4.0';
+our $VERSION = '3.2';
 
 
 1;
@@ -12,7 +12,9 @@ __END__
 
 =head1 NAME
 
-Task::Biodiverse::NoGUI - Task to install Biodiverse dependencies for non-GUI use
+Task::Biodiverse::NoGUI - Task to install Biodiverse dependencies for non-GUI use [DEPRECATED]
+
+This has been replaced by a cpanfile approach.
 
 =head1 SYNOPSIS
 

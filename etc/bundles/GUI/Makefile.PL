@@ -7,7 +7,7 @@ WriteMakefile(
     'VERSION_FROM' => 'lib/Task/Biodiverse.pm', # finds $VERSION
     ($] ge '5.005') ? (
         'AUTHOR' => 'Shawn Laffan (shawn.laffan@unsw.edu.au)',
-        'ABSTRACT' => 'Task for Biodiverse dependencies',
+        'ABSTRACT' => 'Task for Biodiverse dependencies [DEPRECATED]',
         ) : (),
     META_MERGE => {
         'meta-spec' => { version => 2 },

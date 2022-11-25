@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+3.2 20221125
+    - Deprecate
+
 3.001 20190903
     - we need Geo::ShapeFile version 3.00
 

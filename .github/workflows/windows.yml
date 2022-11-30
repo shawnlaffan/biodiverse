@@ -21,7 +21,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Perl
         run: |
@@ -51,7 +51,7 @@ jobs:
           dir perlversion.txt
 
       - name: Cache CPAN modules
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: c:\cx
           key: ${{ runner.os }}-build-${{ hashFiles('perlversion.txt') }}
@@ -65,7 +65,7 @@ jobs:
           dir aliencache.txt
 
       - name: Cache Alien downloads
-        uses: actions/cache@v1
+        uses: actions/cache@v3
         with:
           path: $HOMEPATH\.alienbuild
           key: ${{ runner.os }}-build-${{ hashFiles('aliencache.txt') }}

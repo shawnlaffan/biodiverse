@@ -2548,14 +2548,12 @@ sub contains_tree {
 #  trim a tree to remove nodes from a set of names, or those not in a set of names
 sub trim {
     my $self = shift;
-    my %args = (
-        delete_internals => 1,    #  delete internals by default
-        @_,                       #  if they have no named children to keep
-    );
+    my %args = @_;
 
     say '[TREE] Trimming tree';
 
-    my $delete_internals = $args{delete_internals};
+    #  delete internals by default
+    my $delete_internals = $args{delete_internals} // 1;
     
     my $trim_to_lca = $args{trim_to_lca};
 
@@ -2563,7 +2561,7 @@ sub trim {
 
     #  Get keep and trim lists and convert to hashes as needs dictate
     #  those to keep
-    my $keep = $self->array_to_hash_keys( list => $args{keep} || {} );
+    my $keep = $args{keep} ? $self->array_to_hash_keys( list => $args{keep} ) : {};
     my $trim = $args{trim};    #  those to delete
 
  #  If the keep list is defined, and the trim list is not defined,
@@ -2622,8 +2620,8 @@ sub trim {
             }
         }
     }
-    $trim //= {};
-    my %trim_hash = $self->array_to_hash_keys( list => $trim );  #  makes a copy
+
+    my %trim_hash = $trim ? $self->array_to_hash_keys( list => $trim ) : ();  #  makes a copy
 
     #  we only want to consider those not being explicitly kept (included)
     my %candidate_node_hash = %tree_node_hash;

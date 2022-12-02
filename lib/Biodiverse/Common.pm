@@ -1200,27 +1200,24 @@ sub write_table_html {
 
 sub list2csv {  #  return a csv string from a list of values
     my $self = shift;
-    my %args = (
-        quote_char => q{'},
-        sep_char   => q{,},
-        @_,
-    );
+    my %args = @_;
 
     my $csv_line = $args{csv_object}
-      // $self->get_csv_object (@_);
+      // $self->get_csv_object (
+        quote_char => q{'},
+        sep_char   => q{,},
+        @_
+      );
 
-    if ($csv_line->combine(@{$args{list}})) {
-        return $csv_line->string;
-    }
-    else {
-        croak "list2csv CSV combine() failed for some reason: "
-              . ($csv_line->error_input // '')
-              . ", line "
-              . ($. // '')
-              . "\n";
-    }
+    return $csv_line->string
+      if $csv_line->combine(@{$args{list}});
 
-    return;
+    croak "list2csv CSV combine() failed for some reason: "
+          . ($csv_line->error_input // '')
+          . ", line "
+          . ($. // '')
+          . "\n";
+
 }
 
 #  return a list of values from a csv string
@@ -1236,8 +1233,8 @@ sub csv2list {
 
     if ($csv_obj->parse($string)) {
         #print "STRING IS: $string";
-        my @Fld = $csv_obj->fields;
-        return wantarray ? @Fld : \@Fld;
+        # my @Fld = $csv_obj->fields;
+        return wantarray ? ($csv_obj->fields) : [$csv_obj->fields];
     }
     else {
         $string //= '';

@@ -1328,56 +1328,6 @@ sub dequote_element {
     return $el;
 }
 
-
-#############################################################
-## 
-
-#  convert an array to a hash, where the array values are keys and all the values are the same
-#  empty arrays return an empty hash
-#  if passed a hash, then it sends it straight back
-#  croaks if passed a scalar
-sub array_to_hash_keys_old {  #  clunky...
-    my $self = shift;
-    my %args = @_;
-    exists $args{list} || croak "Argument 'list' not specified\n";
-    my $list_ref = $args{list};
-
-    if (! defined $list_ref) {
-        return wantarray ? () : {};  #  return empty if $list_ref not defined
-    }
-
-    #  complain if it is a scalar
-    croak "Argument 'list' is not an array ref - it is a scalar\n" if ! ref ($list_ref);
-
-    my $value = $args{value};
-
-    my %hash;
-    if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
-        #  make a copy of the list so we don't wreck any lists used outside the function
-        my @list = @{$list_ref};
-        my $rebalance;
-        if (scalar @list % 2) {  #  uneven non-zero count, better deal with it
-            push @list, $value;  #  add a dud value to the end
-            $rebalance = 1;
-        }
-        %hash = @list;
-        shift @list;  #  get rid of the first key
-        if ($rebalance) {  #  we don't want the dud value to appear as a key
-            pop @list;
-        }
-        else {
-            push @list, $value;  #  balance 
-        }
-        %hash = (%hash, @list);
-    }
-    elsif (is_hashref($list_ref)) {
-        %hash = %$list_ref;
-    }
-
-    return wantarray ? %hash : \%hash;
-}
-
-
 sub array_to_hash_keys {
     my $self = shift;
     my %args = @_;

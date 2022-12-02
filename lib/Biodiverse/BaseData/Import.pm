@@ -509,31 +509,17 @@ sub import_data {
                 }
 
                 if ( $cell_sizes[$i] > 0 ) {
-
-                    #  allow for different snap value - shift before aggregation
-                    my $tmp = $coord - $cell_origins[$i];
-
-                    #  how many cells away from the origin are we?
-                    #  snap to 10dp precision to avoid cellsize==0.1 issues
-                    my $tmp_prec =
-                      $self->round_to_precision_aa( $tmp / $cell_sizes[$i] );
-
-                    my $offset = floor($tmp_prec);
-
-                    #  which cell are we?
-                    my $gp_val = $offset * $cell_sizes[$i];
-
-                    #  now assign the centre of the cell we are in
-                    $gp_val += $half_cellsize[$i];
-
-                    #  now shift the aggregated cell back to where it should be
-                    $group[$i] = $gp_val + $cell_origins[$i];
+                    #  use Faster::Maths;  #  one day
+                    #  algorithm is to translate the coord to cell units, allowing for any origin value,
+                    # then translate back to basedata coordinates as the cell centroid.
+                    #  The rounding is to avoid floating point issues with cell sizes like 0.1
+                    $group[$i]
+                        = $cell_sizes[$i]
+                        * floor ($self->round_to_precision_aa( ($coord - $cell_origins[$i]) / $cell_sizes[$i] ))
+                        + $half_cellsize[$i]
+                        + $cell_origins[$i];
                 }
                 else {
-#  commented next check - don't trap undef text fields as they can be useful
-#croak "Null field value for text field, column $i, line $line_num of file $file\n$_"
-#        if ! defined $fields_ref->[$column];
-
                     #  negative cell sizes denote non-numeric groups,
                     #  zero means keep the original values
                     $group[$i] = $coord;

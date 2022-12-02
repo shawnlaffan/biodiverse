@@ -1377,20 +1377,6 @@ sub array_to_hash_keys_old {  #  clunky...
     return wantarray ? %hash : \%hash;
 }
 
-#  make all the hash keys lowercase
-sub lc_hash_keys {
-    my $self = shift;
-    my %args = @_;
-    my $hash = $args{hash} || return {};  #  silently return an empty hash if none specified
-
-    my $hash2 = {};  
-
-    foreach my $key (keys %$hash) {
-        $hash2->{lc($key)} = $hash->{$key};
-    }
-
-    return wantarray ? %$hash2 : $hash2;
-}
 
 sub array_to_hash_keys {
     my $self = shift;

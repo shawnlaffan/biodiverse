@@ -2442,10 +2442,11 @@ sub get_neighbours {
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,
     #  therefore making neighbourhood parameter definitions easier.
-    my %exclude_hash = $self->array_to_hash_keys(
-        list  => $args{exclude_list},
-        value => 1,
-    );
+    my %exclude_hash;
+    if ($args{exclude_list}) {
+        #  can we use undef as the val?
+        @exclude_hash{@{$args{exclude_list}}} = (1) x @{$args{exclude_list}};
+    }
 
     my $centre_coord_ref =
       $self->get_group_element_as_array( element => $element1 );

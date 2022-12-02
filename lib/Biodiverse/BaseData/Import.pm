@@ -31,7 +31,7 @@ use Geo::GDAL::FFI 0.07;
 
 #  how much input file to read in one go
 our $input_file_chunk_size   = 10000000;
-our $lines_to_read_per_chunk = 50000;
+our $lines_to_read_per_chunk = 100000;
 
 our $EMPTY_STRING = q{};
 our $bytes_per_MB = 1056784;

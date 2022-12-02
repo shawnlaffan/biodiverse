@@ -613,17 +613,16 @@ sub reintegrate_after_parallel_randomisations {
             }
         }
     }
-    #  could do directly, but convert_comparisons_to_significances handles recycling 
+    #  could do directly, but convert_comparisons_to_significances handles recycling
+    my @methods = qw /
+      convert_comparisons_to_significances
+      convert_comparisons_to_zscores
+      calculate_canape
+    /;
     foreach my $rand_name (@randomisations_to_reintegrate) {
-        $to->convert_comparisons_to_significances (
-            result_list_name => $rand_name,
-        );
-        $to->convert_comparisons_to_zscores (
-            result_list_name => $rand_name,
-        );
-        $to->calculate_canape (
-            result_list_name => $rand_name,
-        );
+        foreach my $method (@methods) {
+            $to->$method (result_list_name => $rand_name);
+        }
     }
     return;
 }

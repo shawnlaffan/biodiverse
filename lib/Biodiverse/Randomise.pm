@@ -695,21 +695,17 @@ sub run_randomisation {
     }
     
     #  now update the sig thresholds
+    my @methods = qw /
+      convert_comparisons_to_significances
+      convert_comparisons_to_zscores
+      calculate_canape
+    /;
+
     foreach my $target (@targets) {
-        if ($target->can('convert_comparisons_to_significances')) {
-            $target->convert_comparisons_to_significances (
-                result_list_name => $results_list_name,
-            );
-        }
-        if ($target->can('convert_comparisons_to_zscores')) {
-            $target->convert_comparisons_to_zscores (
-                result_list_name => $results_list_name,
-            );
-        }
-        if ($target->can('calculate_canape')) {
-            $target->calculate_canape (
-                result_list_name => $results_list_name,
-            );
+        foreach my $method (@methods) {
+            if ($target->can($method)) {
+                $target->$method (result_list_name => $results_list_name);
+            }
         }
     }
 

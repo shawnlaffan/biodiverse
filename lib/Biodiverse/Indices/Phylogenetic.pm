@@ -1008,31 +1008,35 @@ sub _calc_pd_pe_clade_contributions {
     \my %depth_hash = $main_tree->get_node_name_depth_hash;
     \my %node_hash  = $args{SUBTREE_AS_HASH};
 
-    #  Profiling is needed but it might be more efficient to
-    #  generate an array of arrays in one pass, indexed by depth,
-    #  and then iterate up the depths in the loop below. 
-    my @names_by_depth
-      = sort {$depth_hash{$b} <=> $depth_hash{$a}}
-        keys %node_hash;
+    my @names_by_depth;
+    foreach my $node_name (keys %node_hash) {
+        my $aref = $names_by_depth[$depth_hash{$node_name}] //= [];
+        push @$aref, $node_name;
+    }
 
-  NODE_REF:
-    foreach my $node_name (@names_by_depth) {
+  DEPTH:
+    foreach my $name_arr (reverse @names_by_depth) {
 
-        my $wt_sum = $wt_list->{$node_name};
-        #  postfix for speed
-        $wt_sum += $clade_score{$_}
-          for @{$node_hash{$node_name}};
+      NODE_NAME:
+        foreach my $node_name (@$name_arr) {
 
-        #  round off to avoid spurious spatial variation.
-        $contr{$node_name}
-          = $p_score
-          ? 0 + sprintf '%.11f', $wt_sum / $p_score
-          : undef;
-        $contr_p{$node_name}
-          = $sum_of_branches
-          ? 0 + sprintf '%.11f', $wt_sum / $sum_of_branches
-          : undef;
-        $clade_score{$node_name} = $wt_sum;
+            my $wt_sum = $wt_list->{$node_name};
+            #  postfix for speed
+            $wt_sum += $clade_score{$_}
+              for @{$node_hash{$node_name}};
+    
+            #  Round off to avoid spurious spatial variation.
+            #  times-int-divide is faster than sprintf
+            $contr{$node_name}
+              = $p_score
+              ? int (1e11 * $wt_sum / $p_score) / 1e11
+              : undef;
+            $contr_p{$node_name}
+              = $sum_of_branches
+              ? int (1e11 * $wt_sum / $sum_of_branches) / 1e11
+              : undef;
+            $clade_score{$node_name} = $wt_sum;
+        }
     }
 
     my %results = (
@@ -1185,9 +1189,9 @@ sub _calc_pd_pe_clade_loss {
     my ($p_clade_score, $p_clade_contr, $p_clade_contr_p)
       = @args{@score_names};
 
-    my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
-    my $node_name;  #  reuse to avoid repeated SV destruction
-    my (%child_counts, %node_names);  #  avoid some method calls
+    my (%loss_contr, %loss_contr_p, %loss_score);
+    
+    \my %parent_hash = $tree_ref->get_node_name_parent_hash;
 
   NODE:
     foreach my $node_name (keys %sub_tree_hash) {
@@ -1199,16 +1203,14 @@ sub _calc_pd_pe_clade_loss {
 
         #  Find the ancestors with no children outside this clade
         #  We are using a subtree, so the node only needs one sibling
-        my $node_ref = $tree_ref->get_node_ref_aa($node_name);
+        my $parent_name = $parent_hash{$node_name};
       PARENT:
-        while (my $parent = $node_ref->get_parent) {
-            my $parent_name
-              = $node_names{$parent} //= $parent->get_name;
+        while (defined $parent_name) {
             last PARENT
               if @{$sub_tree_hash{$parent_name}} > 1;
 
             push @ancestors, $parent_name;
-            $node_ref = $parent;
+            $parent_name = $parent_hash{$parent_name};
         }
 
         my $last_ancestor = $ancestors[-1];
@@ -1941,9 +1943,9 @@ sub get_global_node_abundance_hash {
     my $to_do = scalar keys %$nodes;
     my $count = 0;
 
-    my $progress = int (100 * $count / $to_do);
+    my $progress = $count / $to_do;
     $progress_bar->update(
-        "Calculating node abundances\n($progress)",
+        "Calculating node abundances\n($count of $to_do)",
         $progress,
     );
 
@@ -1959,10 +1961,9 @@ sub get_global_node_abundance_hash {
         }
 
         $count ++;
-        my $progress = $count / $to_do;
         $progress_bar->update(
-            "Calculating node abundances\n($progress)",
-            $progress,
+            "Calculating node abundances\n($count of $to_do)",
+            $count / $to_do,
         );
     }
 
@@ -2230,38 +2231,33 @@ sub get_sub_tree_as_hash {
 
     my $tree       = $args{tree_ref};
     my $label_list = $args{labels} // $args{PHYLO_LABELS_ON_TREE};
+    
+    \my %parent_hash = $tree->get_node_name_parent_hash;
 
     my %subtree;
     my $root_name;
 
   LABEL:
-    foreach my $label (keys %$label_list) {
-        my $node_ref = eval {$tree->get_node_ref_aa ($label)};
-        next LABEL if !defined $node_ref;  # not a tree node name
+    foreach my $label (grep {exists $parent_hash{$_}} keys %$label_list) {
 
         $subtree{$label} = [];
-        my $node_name = $label;
+        my $node_name   = $label;
+        my $parent_name = $parent_hash{$label};
         my $last;
 
       NODE_IN_PATH:
-        while (my $parent = $node_ref->get_parent()) {
-
-            my $parent_name = $parent->get_name;
-            my $st_parent = $subtree{$parent_name};
+        while (defined $parent_name) {
 
             #  we have the rest of the path in this case
-            $last = defined $st_parent;
+            $last = defined $subtree{$parent_name};
 
-            #if (!$last) {
-            #    $subtree{$parent_name} = [];
-            #}
             my $child_array = $subtree{$parent_name} //= [];
             push @$child_array, $node_name;
 
             last NODE_IN_PATH if $last;
 
-            $node_ref  = $parent;
-            $node_name = $parent_name;
+            $node_name   = $parent_name;
+            $parent_name = $parent_hash{$node_name};
         }
     }
 
@@ -3082,22 +3078,14 @@ sub calc_phylo_abundance {
     LABEL:
     foreach my $label (keys %$named_labels) {
 
-        #  check if node exists - should use a pre_calc
-        my $node_ref = eval {
-            $tree->get_node_ref (node => $label);
-        };
-        if (my $e = $EVAL_ERROR) {  #  still needed? 
-            next LABEL if Biodiverse::Tree::NotExistsNode->caught;
-            croak $e;
-        }
-
-        my $abundance    = $abundance_hash->{$label};
+        my $node_ref     = $tree->get_node_ref_aa ($label);
         my $path_lengths = $node_ref->get_path_lengths_to_root_node;
+        my $abundance    = $abundance_hash->{$label};
         
         foreach my $node_name (keys %$path_lengths) {
-            my $node_len   = $path_lengths->{$node_name};
-            $pd_abundance_hash{$node_name} += $node_len * $abundance;
-            $pd_abundance += $node_len * $abundance;
+            my $val = $abundance * $path_lengths->{$node_name};
+            $pd_abundance_hash{$node_name} += $val;
+            $pd_abundance += $val;
         }
     }    
 

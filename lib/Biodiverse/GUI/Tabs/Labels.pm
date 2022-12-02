@@ -526,10 +526,14 @@ sub make_labels_model {
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
-        foreach my $column (@column_order) {
-            $model->set ($iter, $i, defined $stats{$column} ? $stats{$column} : -99999);
+        foreach my $column (@column_order[0..($#column_order-2)]) {
+            $model->set ($iter, $i, $stats{$column} // -99999);
             $i++;
         }
+        #  now the selection columns (last two)
+        $model->set ($iter, $i, $stats{$column_order[-2]} // 0);
+        $i++;
+        $model->set ($iter, $i, $stats{$column_order[-1]} // 0);
     }
 
     $labels_model_list1_sel_col = scalar @column_order - 1;
@@ -1052,7 +1056,7 @@ sub set_selected_list_cols {
         my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
 
         my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
-        my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
+        #my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
         my $orig_value = $global_model->get($iter1, $change_col);
 
         my $value = $selection->iter_is_selected ($iter) || 0;

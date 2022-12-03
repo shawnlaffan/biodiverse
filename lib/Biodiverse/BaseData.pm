@@ -2443,8 +2443,6 @@ sub get_neighbours {
     my $centre_coord_ref =
       $self->get_group_element_as_array( element => $element1 );
 
-    my $groups_ref = $self->get_groups_ref;
-
 #  Get the list of possible neighbours - should allow this as an arg?
 #  Don't check the index unless it will result in fewer loop iterations overall.
 #  Assumes the neighbour comparison checks cost as much as the index offset checks.
@@ -2821,11 +2819,7 @@ sub reintegrate_after_parallel_randomisations {
         $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
     }
 
-    my $rand_list_re_text
-      = '^(?:'
-      . join ('|', uniq @randomisations_to_reintegrate)
-      . ')>>(?!\w+>>)';
-    my $re_rand_list_names = qr /$rand_list_re_text/;
+
 
     #  now we can finally get some work done
     #  working on spatial only for now
@@ -2856,7 +2850,6 @@ sub numerically {$a <=> $b};
 #  let the system handle it most of the time
 sub DESTROY {
     my $self = shift;
-    my $name = $self->get_param('NAME') || $EMPTY_STRING;
 
     #print "DESTROYING BASEDATA $name\n";
     #$self->delete_all_outputs;  #  delete children which refer to this object

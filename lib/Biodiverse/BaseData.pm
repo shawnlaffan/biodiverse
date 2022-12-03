@@ -2032,9 +2032,7 @@ sub get_range_intersection {
     my %args = @_;
 
     my $labels = $args{labels}
-      || croak
-      "[BaseData] get_range_intersection argument labels not specified\n";
-    my $t = ref $labels;
+      or croak "[BaseData] get_range_intersection argument labels not specified\n";
 
     croak "[BaseData] get_range_intersection argument labels not an array or hash ref\n" 
         if (!is_arrayref($labels) && !is_hashref($labels));
@@ -2044,9 +2042,10 @@ sub get_range_intersection {
     #  now loop through the labels and get the groups that contain all the species
     my $elements = {};
     foreach my $label (@$labels) {
+        #  skip if it does not exist
         next
-          if not $self->exists_label( label => $label )
-          ;    #  skip if it does not exist
+          if not $self->exists_label_aa( $label );
+
         my $res = $self->calc_abc(
             label_hash1 => $elements,
             label_hash2 =>
@@ -2054,10 +2053,8 @@ sub get_range_intersection {
         );
 
         #  delete those that are not shared (label_hash1 and label_hash2)
-        my @tmp =
-          delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash1} } };
-        @tmp =
-          delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash2} } };
+        delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash1} } };
+        delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash2} } };
         $elements = $res->{label_hash_all};
     }
 

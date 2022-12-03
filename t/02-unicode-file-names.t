@@ -62,7 +62,7 @@ sub test_import_unicode_name_bd {
     my $fname = 'años.txt';
     my $dir = "$FindBin::Bin/data";
     my $bd = Biodiverse::BaseData->new(
-        NAME => 'años.txt',
+        NAME => $fname,
         CELL_SIZES => [100000, 100000],
     );
     

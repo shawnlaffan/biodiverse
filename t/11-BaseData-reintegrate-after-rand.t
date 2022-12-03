@@ -127,8 +127,6 @@ sub test_reintegrate_after_separate_randomisations {
     my $bd5 = $bd1->clone;  #  used to check for different groups/labels
     
     $bd5->add_element (group => '0.5:0.5', label => 'blort');
-    
-    my $bd_base = $bd1->clone;
 
     my $prng_seed = 2345;
     my $i = 0;
@@ -723,7 +721,6 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 my $lr_integr = $to_node->get_list_ref (%l_args);
                 my $lr_from   = $from_node->get_list_ref (%l_args);
 
-                my $ok_count = 0;
                 my $fail_msg = '';
                 #  should refactor this - it duplicates the spatial variant
               BY_KEY:

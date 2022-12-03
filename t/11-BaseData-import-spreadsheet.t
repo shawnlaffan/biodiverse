@@ -204,8 +204,6 @@ sub _test_import_spreadsheet {
     note $e if $e;
     ok (!$e, "import spreadsheet with no exceptions raised, $feedback");
     
-    my $lb = $bd1->get_labels_ref;
-    my $gp = $bd1->get_groups_ref;
     
     my $bd2 = Biodiverse::BaseData->new (%bd_args);
     eval {
@@ -323,7 +321,7 @@ sub _test_import_spreadsheet {
 
     subtest 'imported transposed basedata correctly, col names' => sub {
         my $gp_ref_arg_order = $bd_arg_order->get_groups_ref;
-        my $gp_ref_bd1 = $bd1->get_groups_ref;
+        # my $gp_ref_bd1 = $bd1->get_groups_ref;
         my $join_char  = $bd1->get_param ('JOIN_CHAR');
 
         foreach my $gp_name ($bd_arg_order->get_groups) {

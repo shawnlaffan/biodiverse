@@ -162,6 +162,7 @@ sub calc_lbprop_lists {
 
     my %results;
 
+  LABEL:
     foreach my $label (keys %$label_hash) {
         my $properties = $lb->get_element_properties (element => $label);
 

@@ -58,12 +58,7 @@ use parent qw {
     Biodiverse::BaseData::Exclusions
 };
 
-#  how much input file to read in one go
-our $input_file_chunk_size   = 10000000;
-our $lines_to_read_per_chunk = 50000;
-
 our $EMPTY_STRING = q{};
-our $bytes_per_MB = 1056784;
 
 sub new {
     my $class = shift;
@@ -890,7 +885,7 @@ sub assign_element_properties {
 # to element property hashes for this basedata's groups. 'labels'
 # likewise.
 sub get_all_element_properties {
-    my ($self, %args) = shift;
+    my ($self) = shift;
     my %results_hash;
     
     my $gp = $self->get_groups_ref;

@@ -30,7 +30,6 @@ use Geo::GDAL::FFI 0.07;
 
 
 #  how much input file to read in one go
-our $input_file_chunk_size   = 10000000;
 our $lines_to_read_per_chunk = 100000;
 
 our $EMPTY_STRING = q{};
@@ -743,14 +742,14 @@ sub import_data_raster {
         $cellsize_n ||= abs $tf_5;
 
         # iterate over each band
-        foreach my $b ( 1 .. $band_count ) {
-            my $band = $data->GetBand($b);
+        foreach my $band_id ( 1 .. $band_count ) {
+            my $band = $data->GetBand($band_id);
             my ( $blockw, $blockh, $maxw, $maxh );
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
-            say "Band $b, type ", $band->GetDataType;
+            say "Band $band_id, type ", $band->GetDataType;
             if ( defined $given_label ) {
                 $this_label = $given_label;
             }
@@ -765,7 +764,7 @@ sub import_data_raster {
                     }
                 }
                 else {
-                    $this_label = "band$b";
+                    $this_label = "band$band_id";
                 }
             }
             if ( defined $this_label ) {

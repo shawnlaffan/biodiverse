@@ -301,7 +301,6 @@ sub get_element_list_sorted {
 # pass the def query.
 sub get_elements_that_pass_def_query {
     my ($self, %args) = @_;
-    my $def_query = $args{defq};    
     
     my $elements_that_pass_hash = 
         $self->get_element_hash_that_pass_def_query( defq => $args{defq} );
@@ -742,7 +741,7 @@ sub rename_subelement {
 }
 
 sub delete_all_elements {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     $self->{ELEMENTS} = ();
 }
 
@@ -1361,9 +1360,8 @@ sub get_hash_list_names_across_elements {
 #  see how we go with this approach (currently sans caching)
 sub get_list_names_across_elements {
     my $self = shift;
-    my %args = @_;
 
-    no autovivification;
+    # no autovivification;
 
     #  turn off caching for now - we need to update it when we analyse the data
     #my $cache_name   = 'LIST_NAMES_AND_TYPES_ACROSS_ELEMENTS';
@@ -1743,7 +1741,7 @@ sub get_element_property_keys {
 
 # returns a hash mapping from elements to element property hashes.
 sub get_all_element_properties {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     my %element_to_props_hash;
     
     foreach my $element ($self->get_element_list) {
@@ -1852,7 +1850,7 @@ sub DESTROY {
     #my $name = $self->get_param ('NAME');
     #print "DESTROYING BASESTRUCT $name\n";
     #undef $name;
-    my $success = $self->set_param (BASEDATA_REF => undef);
+    $self->set_param (BASEDATA_REF => undef);
 
     #$self->_delete_params_all;
 

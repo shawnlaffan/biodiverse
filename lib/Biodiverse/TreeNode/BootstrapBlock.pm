@@ -251,7 +251,7 @@ sub add_exclusion {
 
 
 sub clear_exclusions {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     $self->{exclusions} = undef;
 }
 

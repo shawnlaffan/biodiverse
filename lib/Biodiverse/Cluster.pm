@@ -867,7 +867,6 @@ sub build_matrices {
                 # which will count for randomisations
     $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
-    my %done;
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
@@ -964,7 +963,7 @@ sub build_matrices {
         $processed_elements{$element1}++;
     }
 
-    my $element_check = $self->get_param ('ELEMENT_CHECK');
+    # my $element_check = $self->get_param ('ELEMENT_CHECK');
 
     $progress_bar->update(
         "Building matrix\n$name\n(row $count / $to_do)",
@@ -1444,8 +1443,6 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $printed_progress = -1;
-
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
@@ -1496,7 +1493,6 @@ sub cluster_matrix_elements {
             #  use node refs for children that are nodes
             #  use original name if not a node
             #  - this is where the name for $el1 comes from (a historical leftover)
-            my $length_below = 0;
             my $node_names = $self->get_node_hash;
             my $el1 = $node_names->{$node1} // $node1;
             my $el2 = $node_names->{$node2} // $node2;
@@ -1630,10 +1626,8 @@ sub get_most_similar_pair {
     }
     
     if (!$tie_breaker)  {  #  the old way
-        my $count1  = scalar keys %$keys_ref;
         my $keys1   = $rand->shuffle ([sort keys %{$keys_ref}]);
         $node1      = $keys1->[0];  # grab the first shuffled key
-        my $count2  = scalar keys %{$keys_ref};
         my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
         $node2      = $keys2->[0];  #  grab the first shuffled sub key
 
@@ -1924,19 +1918,14 @@ sub setup_linkage_function {
 
 sub get_outputs_with_same_index_and_spatial_conditions {
     my $self = shift;
-    my %args = @_;
 
     my $bd  = $self->get_basedata_ref;
     my @comparable = $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
 
     return if !scalar @comparable;
-    
-    no autovivification;
 
     my $cluster_index = $self->get_param ('CLUSTER_INDEX');
     my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
-    my $tree_ref      = $analysis_args->{tree_ref} // '';
-    my $matrix_ref    = $analysis_args->{matrix_ref} // '';
 
     #  Incomplete - need to get dependencies as well in case they are not declared,
     #  but for now it will work as we won't get this far if they are not specified
@@ -2232,7 +2221,6 @@ sub cluster {
     my $root_node_name = [keys %root_nodes]->[0];
     my $root_node = $self->get_node_ref (node => $root_node_name);
 
-    my $tot_length = $self->get_param('MIN_VALUE');   #  GET THE FIRST CHILD AND THE LENGTH FROM IT?
     $root_node->set_length(length => 0);
     $root_node->set_value (
         TOTAL_LENGTH => $self->get_param('MIN_VALUE'),
@@ -2430,7 +2418,7 @@ sub link_maximum {
 }
 
 sub _link_centroid {
-    my $self = shift;
+    # my $self = shift;
     #  calculate the centroid of the similarities below this
     #  requires that we traverse the tree - or at least cache the values
     return;
@@ -2802,7 +2790,7 @@ sub sp_calc {
 
     local $| = 1;  #  write to screen as we go
     my $to_do = $self->get_node_count;
-    my ($count, $printed_progress) = (0, -1);
+    my $count = 0;
     my $tree_name = $self->get_param ('NAME');
 
     print "[CLUSTER] Progress (% of $to_do nodes):     ";

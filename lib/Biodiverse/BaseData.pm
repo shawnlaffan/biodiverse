@@ -1488,13 +1488,13 @@ sub new_with_reordered_element_axes {
     my @cell_sizes   = $self->get_cell_sizes;
     my @cell_origins = $self->get_cell_origins;
     $new_bd->set_param (CELL_SIZES   => [@cell_sizes[@$group_cols]]);
-    $new_bd->set_param (CELL_ORIGINS => [@cell_sizes[@$group_cols]]);
+    $new_bd->set_param (CELL_ORIGINS => [@cell_origins[@$group_cols]]);
     $gp->set_param (CELL_SIZES   => [@cell_sizes[@$group_cols]]);
-    $gp->set_param (CELL_ORIGINS => [@cell_sizes[@$group_cols]]);
+    $gp->set_param (CELL_ORIGINS => [@cell_origins[@$group_cols]]);
     my @lb_cell_sizes   = $lb->get_cell_sizes;
     my @lb_cell_origins = $lb->get_cell_origins;
-    $lb->set_param (CELL_SIZES   => [@cell_sizes[@$label_cols]]);
-    $lb->set_param (CELL_ORIGINS => [@cell_sizes[@$label_cols]]);
+    $lb->set_param (CELL_SIZES   => [@lb_cell_sizes[@$label_cols]]);
+    $lb->set_param (CELL_ORIGINS => [@lb_cell_origins[@$label_cols]]);
 
     foreach my $group ( $gp->get_element_list ) {
         my $new_group = $gp_remapped->{$group};

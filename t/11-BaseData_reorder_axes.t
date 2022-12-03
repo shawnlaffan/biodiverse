@@ -157,7 +157,8 @@ sub test_reorder_axes {
         get_basedata_object (
             x_spacing  => 1,
             y_spacing  => 1,
-            CELL_SIZES => [1, 1],
+            CELL_SIZES => [1, 2],
+            CELL_ORIGINS => [2, 1],
             x_max      => 10,
             y_max      => 10,
             x_min      => 0,
@@ -174,8 +175,8 @@ sub test_reorder_axes {
         element    => $test_label,
         PROPERTIES => $lb_props,
     );
-    my $test_group_orig = '0.5:1.5';
-    my $test_group_new  = '1.5:0.5';
+    my $test_group_orig = '0.5:2';
+    my $test_group_new  = '2:0.5';
     my $gp_props = {blah => 25, blahblah => 10};
     my $gp = $bd->get_groups_ref;
     $gp->add_to_lists (
@@ -193,7 +194,10 @@ sub test_reorder_axes {
     warn $error if $error;
 
     ok (defined $new_bd, 'Reordered axes');
-    
+
+    is (scalar $new_bd->get_cell_sizes,   [2,1], 'Cell sizes reversed');
+    is (scalar $new_bd->get_cell_origins, [1,2], 'Cell origins reversed');
+
     my (@got_groups, @orig_groups, @got_labels, @orig_labels);
     eval {
         @got_groups  = $new_bd->get_groups;

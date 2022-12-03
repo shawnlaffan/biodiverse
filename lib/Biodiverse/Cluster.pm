@@ -1949,7 +1949,7 @@ sub get_outputs_with_same_index_and_spatial_conditions {
         no_regexp => 1,
     );
     my %required;
-    foreach my $calc (%required_args) {
+    foreach my $calc (keys %required_args) {
         my $r = $required_args{$calc};
         @required{keys %$r} = values %$r;
     }

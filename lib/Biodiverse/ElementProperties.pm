@@ -261,7 +261,7 @@ sub import_data {
             }
         }
 
-        foreach my $prop_name (%prop_cols) {
+        foreach my $prop_name (keys %prop_cols) {
             my $col = $prop_cols{$prop_name};
             if (defined $col) {
                 my $prop = $FldsRef->[$col] ;

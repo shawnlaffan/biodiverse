@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use Test::CheckManifest;
 use Test::More;
 

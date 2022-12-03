@@ -293,9 +293,9 @@ sub calc_kulczynski2 {
 
     my $value;
     if ($args{DISSIMILARITY_IS_VALID}) {
-        my ($a, $b, $c) = @args{'A', 'B', 'C'};
+        my ($aa, $bb, $cc) = @args{'A', 'B', 'C'};
         $value = eval {
-            1 - 0.5 * ($a / ($a + $b) + $a / ($a + $c));
+            1 - 0.5 * ($aa / ($aa + $bb) + $aa / ($aa + $cc));
         };
     }
 
@@ -1677,7 +1677,6 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     my $count_labels  = $args{count_labels};
     my $count_samples = $args{count_samples};
 
-    my ($a, $b, $c, $abc);
     my %label_list = (1 => {}, 2 => {});
     my %label_list_master;
 
@@ -1685,7 +1684,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     my %element_check_master;
 
     #  loop iter variables
-    my ($listname, $iter, $label, $value);
+    my ($listname, $iter, $value);
 
     my %hash = (element_list1 => 1, element_list2 => 2);
     
@@ -1776,6 +1775,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
           if !is_hashref($label_hashref);
 
         if ($count_labels || $count_samples) {
+            my $label;  #  clunk
             while (($label, $value) = each %$label_hashref) {
                 $label_list_master{$label} += $value;
                 $label_list{$iter}{$label} += $value;
@@ -1794,26 +1794,27 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};
     }
 
-    $abc = scalar keys %label_list_master;
+    my $abc = scalar keys %label_list_master;
 
     #  a, b and c are simply differences of the lists
-    $a = scalar (keys %{$label_list{1}})
-       + scalar (keys %{$label_list{2}})
-       - scalar (keys %label_list_master);
-    $b = scalar (keys %label_list_master)    #  all keys not in label_list2
-       - scalar (keys %{$label_list{2}});
-    $c = scalar (keys %label_list_master)    #  all keys not in label_list1
-       - scalar (keys %{$label_list{1}});
+    #  doubled letters are to avoid clashes with globals $a and $b
+    my $aa = scalar (keys %{$label_list{1}})
+           + scalar (keys %{$label_list{2}})
+           - $abc;
+    #  all keys not in label_list2
+    my $bb = $abc - scalar (keys %{$label_list{2}});
+    #  all keys not in label_list1
+    my $cc = $abc - scalar (keys %{$label_list{1}});
 
     my %results = (
-        A   => $a,
-        B   => $b,
-        C   => $c,
+        A   => $aa,
+        B   => $bb,
+        C   => $cc,
         ABC => $abc,
 
         label_hash_all    => \%label_list_master,
-        label_hash1       => \%{$label_list{1}},
-        label_hash2       => \%{$label_list{2}},
+        label_hash1       => $label_list{1},
+        label_hash2       => $label_list{2},
         element_list1     => $element_check{1},
         element_list2     => $element_check{2},
         element_list_all  => [keys %element_check_master],

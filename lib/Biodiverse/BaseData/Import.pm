@@ -30,8 +30,7 @@ use Geo::GDAL::FFI 0.07;
 
 
 #  how much input file to read in one go
-our $input_file_chunk_size   = 10000000;
-our $lines_to_read_per_chunk = 50000;
+our $lines_to_read_per_chunk = 100000;
 
 our $EMPTY_STRING = q{};
 our $bytes_per_MB = 1056784;
@@ -743,14 +742,14 @@ sub import_data_raster {
         $cellsize_n ||= abs $tf_5;
 
         # iterate over each band
-        foreach my $b ( 1 .. $band_count ) {
-            my $band = $data->GetBand($b);
+        foreach my $band_id ( 1 .. $band_count ) {
+            my $band = $data->GetBand($band_id);
             my ( $blockw, $blockh, $maxw, $maxh );
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
-            say "Band $b, type ", $band->GetDataType;
+            say "Band $band_id, type ", $band->GetDataType;
             if ( defined $given_label ) {
                 $this_label = $given_label;
             }
@@ -765,7 +764,7 @@ sub import_data_raster {
                     }
                 }
                 else {
-                    $this_label = "band$b";
+                    $this_label = "band$band_id";
                 }
             }
             if ( defined $this_label ) {
@@ -1282,21 +1281,21 @@ sub import_data_shapefile {
                     csv_object => $out_csv,
                 );
 
-                foreach my $this_label (@these_labels) {
+                foreach my $this_lb (@these_labels) {
                     if ( scalar @label_field_names <= 1 ) {
-                        $this_label = $self->dequote_element(
-                            element    => $this_label,
+                        $this_lb = $self->dequote_element(
+                            element    => $this_lb,
                             quote_char => $quotes,
                         );
                     }
 
                     #  collate the groups and labels so we can add them in a batch later
                     if ( looks_like_number $this_count) {
-                        $gp_lb_hash{$grpstring}{$this_label} += $this_count;
+                        $gp_lb_hash{$grpstring}{$this_lb} += $this_count;
                     }
                     else {
                         #  don't override existing counts with undef
-                        $gp_lb_hash{$grpstring}{$this_label} //= $this_count;
+                        $gp_lb_hash{$grpstring}{$this_lb} //= $this_count;
                     }
                 }
             }    # each point
@@ -1805,13 +1804,13 @@ sub import_data_spreadsheet {
 
         my %gp_lb_hash;
 
-        my $count     = 0;
-        my $row_count = scalar @rows;
+        my $row_counter     = 0;
+        my $nrows = scalar @rows;
 
         # iterate over rows
       ROW:
         foreach my $row (@rows) {
-            $count++;
+            $row_counter++;
 
             #  inefficient - we should get the row numbers and slice on them
             my %db_rec;
@@ -1823,26 +1822,26 @@ sub import_data_spreadsheet {
             # as for text imports - refactoring is in order.
             my @group_field_vals = @db_rec{@group_field_names};
             my @gp_fields;
-            my $i = -1;
+            my $ii = -1;
             foreach my $val (@group_field_vals) {
-                $i++;
+                $ii++;
                 if ( !defined $val) {
                     next ROW if $skip_lines_with_undef_groups;
-                    croak "record $count has an undefined coordinate\n";
+                    croak "record $row_counter has an undefined coordinate\n";
                 }
 
-                my $origin = $group_origins[$i];
-                my $g_size = $group_sizes[$i];
+                my $origin = $group_origins[$ii];
+                my $g_size = $group_sizes[$ii];
 
                 if ( $g_size >= 0 ) {
                     next ROW if (!(length $val) || $val eq 'NA') && $skip_lines_with_undef_groups;
                     if (   $is_lat_field
-                        && $is_lat_field->{ $group_field_names[$i] } )
+                        && $is_lat_field->{ $group_field_names[$ii] } )
                     {
                         $val = dms2dd( { value => $val, is_lat => 1 } );
                     }
                     elsif ($is_lon_field
-                        && $is_lon_field->{ $group_field_names[$i] } )
+                        && $is_lon_field->{ $group_field_names[$ii] } )
                     {
                         $val = dms2dd( { value => $val, is_lon => 1 } );
                     }
@@ -1907,16 +1906,16 @@ sub import_data_spreadsheet {
             }
 
           ADD_ELEMENTS:
-            while ( my ( $el, $count ) = each %elements ) {
-                if ( defined $count ) {
-                    next ADD_ELEMENTS if $count eq 'NA';
+            while ( my ( $el, $el_count ) = each %elements ) {
+                if ( defined $el_count ) {
+                    next ADD_ELEMENTS if $el_count eq 'NA';
 
                     next ADD_ELEMENTS
                       if $data_in_matrix_form
-                      && $count eq $EMPTY_STRING;
+                      && $el_count eq $EMPTY_STRING;
 
                     next ADD_ELEMENTS
-                      if !$count and !$allow_empty_groups;
+                      if !$el_count and !$allow_empty_groups;
                 }
                 else {    #  don't allow undef counts in matrices
                     next ADD_ELEMENTS
@@ -1934,19 +1933,20 @@ sub import_data_spreadsheet {
                 }
 
                 #  collate them so we can add them in a batch later
-                if ( looks_like_number $count) {
-                    $gp_lb_hash{$grpstring}{$el} += $count;
+                if ( looks_like_number $el_count) {
+                    $gp_lb_hash{$grpstring}{$el} += $el_count;
                 }
                 else {
                     #  don't override existing counts with undef
-                    $gp_lb_hash{$grpstring}{$el} //= $count;
+                    $gp_lb_hash{$grpstring}{$el} //= $el_count;
                 }
             }
 
             # progress bar stuff
-            my $frac = $count / $row_count;
             $progress_bar->update(
-                "Loading spreadsheet\n" . "Row $count of $row_count\n", $frac );
+                "Loading spreadsheet\n" . "Row $row_counter of $nrows\n",
+                $row_counter / $nrows
+            );
 
         }    # each row
 

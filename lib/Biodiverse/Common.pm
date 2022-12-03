@@ -203,11 +203,11 @@ sub load_sereal_file {
     #  now get the whole file
     {
         local $/ = undef;
-        my $fh = $self->get_file_handle (
+        my $fh1 = $self->get_file_handle (
             file_name => $file,
         );
-        binmode $fh;
-        $string = <$fh>;
+        binmode $fh1;
+        $string = <$fh1>;
     }
 
     #my $structure;
@@ -607,8 +607,7 @@ sub delete_spatial_index {
 #  Text::CSV_XS seems to have cache problems that borks Clone::clone and YAML::Syck::to_yaml
 sub clear_spatial_index_csv_object {
     my $self = shift;
-    
-    my $name = $self->get_param ('NAME');
+
     my $cleared;
 
     if (my $sp_index = $self->get_param ('SPATIAL_INDEX')) {
@@ -758,7 +757,7 @@ sub save_to {
 
     my @suffixes = ($storable_suffix, $yaml_suffix);
 
-    my ($null1, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
+    my (undef, undef, $suffix) = fileparse ( $file_name, @suffixes );
     if ($suffix eq $EMPTY_STRING
         || ! defined $suffix
         || none  {$suffix eq $_} @suffixes
@@ -1030,7 +1029,7 @@ sub write_table {
     $args{file} = Path::Class::file($args{file})->absolute;
 
     #  now do stuff depending on what format was chosen, based on the suffix
-    my ($prefix, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
+    my (undef, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
     if (! defined $suffix) {
         $suffix = 'csv';  #  does not affect the actual file name, as it is not passed onwards
     }
@@ -1328,70 +1327,6 @@ sub dequote_element {
     return $el;
 }
 
-
-#############################################################
-## 
-
-#  convert an array to a hash, where the array values are keys and all the values are the same
-#  empty arrays return an empty hash
-#  if passed a hash, then it sends it straight back
-#  croaks if passed a scalar
-sub array_to_hash_keys_old {  #  clunky...
-    my $self = shift;
-    my %args = @_;
-    exists $args{list} || croak "Argument 'list' not specified\n";
-    my $list_ref = $args{list};
-
-    if (! defined $list_ref) {
-        return wantarray ? () : {};  #  return empty if $list_ref not defined
-    }
-
-    #  complain if it is a scalar
-    croak "Argument 'list' is not an array ref - it is a scalar\n" if ! ref ($list_ref);
-
-    my $value = $args{value};
-
-    my %hash;
-    if (is_arrayref($list_ref) && scalar @$list_ref) {  #  ref to array of non-zero length
-        #  make a copy of the list so we don't wreck any lists used outside the function
-        my @list = @{$list_ref};
-        my $rebalance;
-        if (scalar @list % 2) {  #  uneven non-zero count, better deal with it
-            push @list, $value;  #  add a dud value to the end
-            $rebalance = 1;
-        }
-        %hash = @list;
-        shift @list;  #  get rid of the first key
-        if ($rebalance) {  #  we don't want the dud value to appear as a key
-            pop @list;
-        }
-        else {
-            push @list, $value;  #  balance 
-        }
-        %hash = (%hash, @list);
-    }
-    elsif (is_hashref($list_ref)) {
-        %hash = %$list_ref;
-    }
-
-    return wantarray ? %hash : \%hash;
-}
-
-#  make all the hash keys lowercase
-sub lc_hash_keys {
-    my $self = shift;
-    my %args = @_;
-    my $hash = $args{hash} || return {};  #  silently return an empty hash if none specified
-
-    my $hash2 = {};  
-
-    foreach my $key (keys %$hash) {
-        $hash2->{lc($key)} = $hash->{$key};
-    }
-
-    return wantarray ? %$hash2 : $hash2;
-}
-
 sub array_to_hash_keys {
     my $self = shift;
     my %args = @_;
@@ -1540,7 +1475,7 @@ sub guess_field_separator {
     }
 
     my @str_arr = split $eol, $string;
-    my $sep;
+    my $separator;
 
     if ($lines_to_use > 1 && @str_arr > 1) {  #  check the sep char works using subsequent lines
         %sep_count = reverse %sep_count;  #  should do it properly above
@@ -1571,13 +1506,13 @@ sub guess_field_separator {
         }
         my @poss_chars = reverse sort {$checked{$a} <=> $checked{$b}} keys %checked;
         if (scalar @poss_chars == 1) {  #  only one option
-            $sep = $poss_chars[0];
+            $separator = $poss_chars[0];
         }
         else {  #  get the one that matches
           CHAR:
             foreach my $char (@poss_chars) {
                 if ($checked{$char} == $sep_count{$char}) {
-                    $sep = $char;
+                    $separator = $char;
                     last CHAR;
                 }
             }
@@ -1588,18 +1523,18 @@ sub guess_field_separator {
         #  index to use from sep_count, thus giving us the most common
         #  sep_char
         my @sorted = reverse sort numerically keys %sep_count;
-        $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
+        $separator = (scalar @sorted && defined $sep_count{$sorted[0]})
             ? $sep_count{$sorted[0]}
             : $separators[0];  # default to first checked
     }
 
-    $sep //= ',';
+    $separator //= ',';
 
     #  need a better way of handling special chars - ord & chr?
-    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  
+    my $septext = ($separator =~ /\t/) ? '\t' : $separator;
     say "[COMMON] Guessed field separator as '$septext'";
 
-    return $sep;
+    return $separator;
 }
 
 sub guess_escape_char {

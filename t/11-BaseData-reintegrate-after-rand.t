@@ -127,8 +127,6 @@ sub test_reintegrate_after_separate_randomisations {
     my $bd5 = $bd1->clone;  #  used to check for different groups/labels
     
     $bd5->add_element (group => '0.5:0.5', label => 'blort');
-    
-    my $bd_base = $bd1->clone;
 
     my $prng_seed = 2345;
     my $i = 0;
@@ -644,56 +642,58 @@ sub check_randomisation_lists_incremented_correctly_spatial {
 
     my $object_name = $sp_integr->get_name;
 
-    subtest "randomisation spatial lists incremented correctly, $object_name" => sub {
-        my $gp_list = $sp_integr->get_element_list;
-        my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
-        my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
-        my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
-        #  we will check the z lists elsewhere
-        #my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
+    my (%collated_got, %collated_exp);
+    my (%collated_sig_list_got);
 
-        foreach my $group (sort @$gp_list) {
-            foreach my $list_name (sort @rand_lists) {
-                my %l_args = (element => $group, list => $list_name);
-                my $lr_orig   = $sp_orig->get_list_ref (%l_args);
-                my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                my $lr_from   = $sp_from->get_list_ref (%l_args);
+    my $gp_list = $sp_integr->get_element_list;
+    my $list_names = $sp_integr->get_lists (element => $gp_list->[0]);
+    my @rand_lists = grep {$_ =~ />>/ and $_ !~ />>\w+>>/} @$list_names;
+    my @sig_lists  = grep {$_ =~ />>p_rank>>/}  @$list_names;
+    #  we will check the z lists elsewhere
+    #my @z_lists    = grep {$_ =~ />>z_scores>>/} @$list_names;
 
-                foreach my $key (sort keys %$lr_integr) {
-                    #diag $key if $key =~ /SUMX/;
-                    #no autovivification;
-                    if ($key =~ /^P_/) {
-                        my $index = substr $key, 1;
-                        is ($lr_integr->{$key},
-                            $lr_integr->{"C$index"} / $lr_integr->{"Q$index"},
-                            "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
-                        );
-                    }
-                    else {
-                        is ($lr_integr->{$key},
-                            ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0),
-                            "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key",
-                        );
-                    }
+    foreach my $group (sort @$gp_list) {
+        foreach my $list_name (sort @rand_lists) {
+            my %l_args = (element => $group, list => $list_name);
+            my $lr_orig   = $sp_orig->get_list_ref (%l_args);
+            my $lr_integr = $sp_integr->get_list_ref (%l_args);
+            my $lr_from   = $sp_from->get_list_ref (%l_args);
+
+            foreach my $key (keys %$lr_integr) {
+                #diag $key if $key =~ /SUMX/;
+                #no autovivification;
+                if ($key =~ /^P_/) {
+                    my $index = substr $key, 1;
+                    my $msg = "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key";
+                    $collated_exp{$msg} = $lr_integr->{$key};
+                    $collated_got{$msg} = $lr_integr->{"C$index"} / $lr_integr->{"Q$index"};
+                }
+                else {
+                    my $msg = "Integrated = orig+from, $lr_integr->{$key}, $group, $list_name, $key";
+                    $collated_exp{$msg} = $lr_integr->{$key};
+                    $collated_got{$msg} = ($lr_orig->{$key} // 0) + ($lr_from->{$key} // 0);
                 }
             }
-
-            foreach my $sig_list_name (sort @sig_lists) {
-                #  we only care if they are in the valid set
-                my %l_args = (element => $group, list => $sig_list_name);
-                my $lr_integr = $sp_integr->get_list_ref (%l_args);
-                foreach my $key (sort keys %$lr_integr) {
-                    my $value = $lr_integr->{$key};
-                    if (defined $value) {
-                        ok ($value < 0.05 || $value > 0.95,
-                            "p-rank $value in valid interval ($key), $group",
-                        );
-                    }
-                }
-            }
-
         }
-    };
+
+        foreach my $sig_list_name (sort @sig_lists) {
+            #  we only care if they are in the valid set
+            my %l_args = (element => $group, list => $sig_list_name);
+            my $lr_integr = $sp_integr->get_list_ref (%l_args);
+            foreach my $key (keys %$lr_integr) {
+                my $value = $lr_integr->{$key};
+                if (defined $value) {
+                    my $msg ="p-rank $value in valid interval ($key), $group, $sig_list_name";
+                    $collated_sig_list_got{$msg} = ($value < 0.05 || $value > 0.95);
+                }
+            }
+        }
+    }
+
+    is \%collated_got, \%collated_exp, "randomisation spatial lists incremented correctly, $object_name";
+    my %collated_sig_list_exp;
+    @collated_sig_list_exp{keys %collated_sig_list_got} = (1) x keys %collated_sig_list_got;
+    is \%collated_sig_list_got, \%collated_sig_list_exp, 'Collated significance lists in correct range';
 }
 
 
@@ -721,7 +721,6 @@ sub check_randomisation_lists_incremented_correctly_cluster {
                 my $lr_integr = $to_node->get_list_ref (%l_args);
                 my $lr_from   = $from_node->get_list_ref (%l_args);
 
-                my $ok_count = 0;
                 my $fail_msg = '';
                 #  should refactor this - it duplicates the spatial variant
               BY_KEY:

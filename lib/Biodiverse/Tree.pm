@@ -2097,11 +2097,11 @@ sub compare {
                   $compare_nodes{$compare_node_name}->get_terminal_elements;
                 my %union_elements = ( %comp_elements, %base_elements );
                 my $abc = scalar keys %union_elements;
-                my $a =
+                my $aa =
                   ( scalar keys %base_elements ) +
                   ( scalar keys %comp_elements ) -
                   $abc;
-                $sorenson = 1 - ( ( 2 * $a ) / ( $a + $abc ) );
+                $sorenson = 1 - ( ( 2 * $aa ) / ( $aa + $abc ) );
                 $done{$compare_node_name}{$base_node_name} = $sorenson;
             }
 
@@ -2548,14 +2548,12 @@ sub contains_tree {
 #  trim a tree to remove nodes from a set of names, or those not in a set of names
 sub trim {
     my $self = shift;
-    my %args = (
-        delete_internals => 1,    #  delete internals by default
-        @_,                       #  if they have no named children to keep
-    );
+    my %args = @_;
 
     say '[TREE] Trimming tree';
 
-    my $delete_internals = $args{delete_internals};
+    #  delete internals by default
+    my $delete_internals = $args{delete_internals} // 1;
     
     my $trim_to_lca = $args{trim_to_lca};
 
@@ -2563,7 +2561,7 @@ sub trim {
 
     #  Get keep and trim lists and convert to hashes as needs dictate
     #  those to keep
-    my $keep = $self->array_to_hash_keys( list => $args{keep} || {} );
+    my $keep = $args{keep} ? $self->array_to_hash_keys( list => $args{keep} ) : {};
     my $trim = $args{trim};    #  those to delete
 
  #  If the keep list is defined, and the trim list is not defined,
@@ -2622,27 +2620,27 @@ sub trim {
             }
         }
     }
-    $trim //= {};
-    my %trim_hash = $self->array_to_hash_keys( list => $trim );  #  makes a copy
+
+    my %trim_hash = $trim ? $self->array_to_hash_keys( list => $trim ) : ();  #  makes a copy
 
     #  we only want to consider those not being explicitly kept (included)
     my %candidate_node_hash = %tree_node_hash;
     delete @candidate_node_hash{ keys %$keep };
 
     my %deleted_h;
-    my $i        = 0;
+    my $ii        = 0;
     my $to_do    = scalar keys %candidate_node_hash;
     my $progress = Biodiverse::Progress->new( text => 'Deletions' );
 
   DELETION:
     foreach my $name ( keys %candidate_node_hash ) {
-        $i++;
+        $ii++;
 
         #  we might have deleted a named parent,
         #  so this node no longer exists in the tree
         next DELETION if $deleted_h{$name} || !exists $trim_hash{$name};
 
-        $progress->update( "Checking nodes ($i / $to_do)", $i / $to_do, );
+        $progress->update( "Checking nodes ($ii / $to_do)", $ii / $to_do, );
 
         #  delete if it is in the list to exclude
         my @deleted_nodes =
@@ -2662,11 +2660,11 @@ sub trim {
         my %node_hash = $self->get_node_hash;
         $to_do = scalar keys %node_hash;
         my %deleted_hash;
-        my $i;
+        my $j;
 
       NODE:
         foreach my $name ( keys %node_hash ) {
-            $i++;
+            $j++;
 
             my $node = $node_hash{$name};
             next NODE if $deleted_hash{$node};       #  already deleted
@@ -2675,8 +2673,8 @@ sub trim {
 
             $progress->update(
                   "Cleaning dangling internal nodes\n"
-                . "($i / $to_do)",
-                $i / $to_do,
+                . "($j / $to_do)",
+                $j / $to_do,
             );
 
             #  need to ignore any cached descendants

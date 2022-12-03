@@ -532,10 +532,10 @@ sub get_calculation_metadata_as_markdown {
                 push @line, $count;
                 push @line, $index;
 
-                my $description = $ref->get_index_description($index) || $SPACE;
+                my $descr = $ref->get_index_description($index) || $SPACE;
                 $description =~ s{\n}{ }gmo;    # purge any newlines
                     #$description =~ s/\*/`\*`/;  #  avoid needless bolding
-                push @line, $description;
+                push @line, $descr;
 
                 my $clus_text =
                     $ref->get_index_is_cluster_metric($index) ? "cluster metric"
@@ -769,8 +769,8 @@ sub parse_dependencies_for_calc {
             if ( my $pre_cond = $metadata->get_pre_conditions ) {
                 my $pre_cond_a = $self->_convert_to_array( input => $pre_cond );
 
-                foreach my $pre_cond ( sort @$pre_cond_a ) {
-                    my $check = $self->$pre_cond(%$calc_args);
+                foreach my $pre_cond_iter ( sort @$pre_cond_a ) {
+                    my $check = $self->$pre_cond_iter(%$calc_args);
                     if ( !$check ) {
                         Biodiverse::Indices::FailedPreCondition->throw(
                             error =>

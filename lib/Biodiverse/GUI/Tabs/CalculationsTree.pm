@@ -34,7 +34,6 @@ use constant MODEL_SHOW_CHECKBOX   => ++$i;
 #print MODEL_NAME_COL, MODEL_DESCRIPTION_COL, MODEL_FUNCTION_COL;
 
 my $EMPTY_STRING = q{};
-my $SPACE        = q{ };
 
 my $NAME_COLUMN_WIDTH = 26;
 my $DESC_COLUMN_WIDTH = 90;
@@ -136,7 +135,7 @@ sub make_calculations_model {
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $base_ref);
     my %calculations = $indices->get_calculations;
 
-    my $name_wrapper = Text::Wrapper->new(columns => $NAME_COLUMN_WIDTH);
+    # my $name_wrapper = Text::Wrapper->new(columns => $NAME_COLUMN_WIDTH);
     my $desc_wrapper = Text::Wrapper->new(columns => $DESC_COLUMN_WIDTH);
 
     # Add the type row (eg: taxonomic, matrix) 

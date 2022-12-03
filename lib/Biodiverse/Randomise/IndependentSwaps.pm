@@ -294,10 +294,10 @@ END_PROGRESS_TEXT
         #  track before moving
         if ($stop_on_all_swapped) {
             foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($lb, $gp) = @$pair;
-                if ($gp_hash{$lb}{$gp} && !$lb_gp_moved{$lb}{$gp}) {
+                my ($this_lb, $this_gp) = @$pair;
+                if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
-                    $lb_gp_moved{$lb}{$gp} = 1;
+                    $lb_gp_moved{$this_lb}{$this_gp} = 1;
                 }
             }
         }
@@ -515,10 +515,10 @@ END_PROGRESS_TEXT
         #  track before moving
         if ($stop_on_all_swapped) {
             foreach my $pair ([$label1, $group1], [$label2, $group2]) {
-                my ($lb, $gp) = @$pair;
-                if ($gp_hash{$lb}{$gp} && !$lb_gp_moved{$lb}{$gp}) {
+                my ($this_lb, $this_gp) = @$pair;
+                if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
                     $moved_pairs++;
-                    $lb_gp_moved{$lb}{$gp} = 1;
+                    $lb_gp_moved{$this_lb}{$this_gp} = 1;
                 }
             }
         }

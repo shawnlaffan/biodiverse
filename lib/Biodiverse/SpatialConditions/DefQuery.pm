@@ -11,8 +11,6 @@ use parent qw /Biodiverse::SpatialParams Biodiverse::Common/;
 
 our $VERSION = '4.0';
 
-our $NULL_STRING = q{};
-
 sub get_type {return 'definition query'};
 
 sub is_def_query {return 1};

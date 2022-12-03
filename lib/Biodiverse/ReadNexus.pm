@@ -635,9 +635,9 @@ sub import_R_phylo_json {
     }
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
-    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
+    # my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char, sep_char => ':');
 
-    my $node_count = $struct->{Nnode};
+    # my $node_count = $struct->{Nnode};
     my $root_len   = $struct->{"root.edge"} // 0;
     my $edge_mx    = $struct->{edge};  #  should be two columns but rjson flattens it
     my @parent_arr = @{$struct->{edge}}[0..($#$edge_mx/2)];
@@ -727,7 +727,7 @@ sub process_zero_length_trees {
   BY_LOADED_TREE:
     foreach my $tree (@trees) {
         my $nodes = $tree->get_node_hash;
-        my $len_sum = 0;
+        # my $len_sum = 0;
 
       LEN_SUM:
         foreach my $node (values %$nodes) {
@@ -780,7 +780,6 @@ sub parse_newick {
     no warnings 'recursion';
     
     my $string    = $args{string};
-    my $str_len   = length ($string);
     my $tree      = $args{tree};
     my $tree_name = $tree->get_param ('NAME');
 

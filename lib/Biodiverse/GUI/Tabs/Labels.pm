@@ -343,7 +343,7 @@ sub add_column {
 #  Need to find out how to disable that hint setting.
     $title =~ s/_/__/g;
     $col->set_title($title);
-    my $a = $col->get_title;
+    # my $a = $col->get_title;
 #$col->set_sizing('fixed');
     $col->pack_start($renderer, 0);
     $col->add_attribute($renderer,  text => $model_id);

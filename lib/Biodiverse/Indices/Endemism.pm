@@ -749,7 +749,6 @@ sub get_metadata_get_basedata_labels_as_tree {
 #  get a hierarchical tree of the current basedata
 sub get_basedata_labels_as_tree {
     my $self = shift;
-    my %args = @_;
 
     my $bd   = $self->get_basedata_ref;
     my $tree = $bd->to_tree;

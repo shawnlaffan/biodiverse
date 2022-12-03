@@ -485,9 +485,6 @@ sub run_randomisation {
                 : $EMPTY_STRING)
             );
 
-    #  need to stop these being overridden by later calls
-    my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
-    my $randomise_trees_by       = $args{randomise_trees_by} // 'no_change';
 
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
@@ -564,9 +561,6 @@ sub run_randomisation {
             my $completed = $target->get_param ('COMPLETED') // 1;
 
             next TARGET if not $completed;  # skip this one, no analyses that worked
-
-            my $rand_count
-                = $i + ($target->get_param($rand_iter_param_name) || 0);
 
             my $name
                 = $target->get_param ('NAME') . " Randomise $$total_iterations";

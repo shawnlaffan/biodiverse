@@ -449,8 +449,8 @@ sub export_shapefile {
     my $branches = $self->get_node_hash;
     
   NODE:
-    foreach my $branch_name (sort_list_with_tree_names_aa ([keys %$branches])) {
-        my $branch = $branches->{$branch_name};
+    foreach my $branch_key (sort_list_with_tree_names_aa ([keys %$branches])) {
+        my $branch = $branches->{$branch_key};
         my $terminals  = $branch->get_terminal_elements;
         
         my $wkt;
@@ -867,7 +867,6 @@ sub build_matrices {
                 # which will count for randomisations
     $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
-    my %done;
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
@@ -904,8 +903,8 @@ sub build_matrices {
         );
 
         my @neighbours;  #  store the neighbours of this element
-        foreach my $i (0 .. $#matrices) {
-            my $nbr_list_name = '_NBR_SET' . ($i+1);
+        foreach my $m (0 .. $#matrices) {
+            my $nbr_list_name = '_NBR_SET' . ($m+1);
             my $neighours = $sp->get_list_values (
                 element => $element1,
                 list    => $nbr_list_name,
@@ -913,15 +912,15 @@ sub build_matrices {
             my %neighbour_hash;
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
-            $neighbours[$i] = \%neighbour_hash;
+            $neighbours[$m] = \%neighbour_hash;
         }
         my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
 
         #  loop over the neighbours and add them to the appropriate matrix
-        foreach my $i (0 .. $#matrices) {
-            my $matrix = $matrices[$i];
+        foreach my $m (0 .. $#matrices) {
+            my $matrix = $matrices[$m];
 
-            my $nbr_hash = $neighbours[$i];  #  save a few calcs
+            my $nbr_hash = $neighbours[$m];  #  save a few calcs
             if (scalar @$file_handles) {
                 @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
             }
@@ -940,7 +939,7 @@ sub build_matrices {
                 index_function     => $index_function,
                 index              => $index,
                 cache_abc          => $cache_abc,
-                file_handle        => $file_handles->[$i],
+                file_handle        => $file_handles->[$m],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
                 processed_elements => \%processed_elements,
@@ -964,7 +963,7 @@ sub build_matrices {
         $processed_elements{$element1}++;
     }
 
-    my $element_check = $self->get_param ('ELEMENT_CHECK');
+    # my $element_check = $self->get_param ('ELEMENT_CHECK');
 
     $progress_bar->update(
         "Building matrix\n$name\n(row $count / $to_do)",
@@ -1107,8 +1106,8 @@ sub build_matrix_elements {
             next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
 
             if ($exists) {  #  if it is in one then we use it
-                foreach my $iter (keys %not_exists_iter) {
-                    $matrices->[$iter]->add_element (
+                foreach my $ne_iter (keys %not_exists_iter) {
+                    $matrices->[$ne_iter]->add_element (
                         element1 => $element1,
                         element2 => $element2,
                         value    => $value,
@@ -1444,8 +1443,6 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $printed_progress = -1;
-
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
@@ -1496,7 +1493,6 @@ sub cluster_matrix_elements {
             #  use node refs for children that are nodes
             #  use original name if not a node
             #  - this is where the name for $el1 comes from (a historical leftover)
-            my $length_below = 0;
             my $node_names = $self->get_node_hash;
             my $el1 = $node_names->{$node1} // $node1;
             my $el2 = $node_names->{$node2} // $node2;
@@ -1630,10 +1626,8 @@ sub get_most_similar_pair {
     }
     
     if (!$tie_breaker)  {  #  the old way
-        my $count1  = scalar keys %$keys_ref;
         my $keys1   = $rand->shuffle ([sort keys %{$keys_ref}]);
         $node1      = $keys1->[0];  # grab the first shuffled key
-        my $count2  = scalar keys %{$keys_ref};
         my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
         $node2      = $keys2->[0];  #  grab the first shuffled sub key
 
@@ -1924,19 +1918,14 @@ sub setup_linkage_function {
 
 sub get_outputs_with_same_index_and_spatial_conditions {
     my $self = shift;
-    my %args = @_;
 
     my $bd  = $self->get_basedata_ref;
     my @comparable = $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
 
     return if !scalar @comparable;
-    
-    no autovivification;
 
     my $cluster_index = $self->get_param ('CLUSTER_INDEX');
     my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
-    my $tree_ref      = $analysis_args->{tree_ref} // '';
-    my $matrix_ref    = $analysis_args->{matrix_ref} // '';
 
     #  Incomplete - need to get dependencies as well in case they are not declared,
     #  but for now it will work as we won't get this far if they are not specified
@@ -1949,7 +1938,7 @@ sub get_outputs_with_same_index_and_spatial_conditions {
         no_regexp => 1,
     );
     my %required;
-    foreach my $calc (%required_args) {
+    foreach my $calc (keys %required_args) {
         my $r = $required_args{$calc};
         @required{keys %$r} = values %$r;
     }
@@ -2232,7 +2221,6 @@ sub cluster {
     my $root_node_name = [keys %root_nodes]->[0];
     my $root_node = $self->get_node_ref (node => $root_node_name);
 
-    my $tot_length = $self->get_param('MIN_VALUE');   #  GET THE FIRST CHILD AND THE LENGTH FROM IT?
     $root_node->set_length(length => 0);
     $root_node->set_value (
         TOTAL_LENGTH => $self->get_param('MIN_VALUE'),
@@ -2430,7 +2418,7 @@ sub link_maximum {
 }
 
 sub _link_centroid {
-    my $self = shift;
+    # my $self = shift;
     #  calculate the centroid of the similarities below this
     #  requires that we traverse the tree - or at least cache the values
     return;
@@ -2802,14 +2790,14 @@ sub sp_calc {
 
     local $| = 1;  #  write to screen as we go
     my $to_do = $self->get_node_count;
-    my ($count, $printed_progress) = (0, -1);
+    my $count = 0;
     my $tree_name = $self->get_param ('NAME');
 
     print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
 
     #  loop though the nodes and calculate the outputs
-    while ((my $name, my $node) = each %{$self->get_node_hash}) {
+    foreach my $node ($self->get_node_refs) {
         $count ++;
 
         $progress_bar->update (
@@ -2818,9 +2806,10 @@ sub sp_calc {
             $count / $to_do,
         );
 
-        my %elements = (element_list1 => [keys %{$node->get_terminal_elements}]);
-
-        my %sp_calc_values = $indices_object->run_calculations(%args, %elements);
+        my %sp_calc_values = $indices_object->run_calculations(
+            %args,
+            element_list1 => [keys %{$node->get_terminal_elements}]
+        );
 
         foreach my $key (keys %sp_calc_values) {
             if (is_arrayref($sp_calc_values{$key}) 

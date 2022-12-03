@@ -146,7 +146,6 @@ sub delete_all_pairs_with_element {
 
     my $element = $args{element};
 
-    my @deleted;    
     my @elements = $self->get_elements_as_array;
     my $delete_count = 0;
     foreach my $pair_el (@elements) {
@@ -384,10 +383,6 @@ sub import_data_sparse {
     );
 
     #  now we build the matrix, skipping values that are already in the matrix
-    my $text_allowed   = $self->get_param ('ALLOW_TEXT');
-    my $undef_allowed  = $self->get_param ('ALLOW_UNDEF');
-    my $blank_as_undef = $self->get_param ('BLANK_AS_UNDEF');
-    my $label_count    = 0;
 
     shift @$lines;  #  first one is the header, which we don't need here
 
@@ -804,8 +799,6 @@ sub get_metadata_export {
 
         $params_per_sub{$format} = $sub_args{parameters};
 
-        my $params_array = $sub_args{parameters};
-
         push @formats, $format;
     }
     
@@ -893,7 +886,7 @@ sub export_delimited_text {
 sub get_metadata_export_delimited_text {
     my $self = shift;
     
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+    my @sep_chars = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
                     ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
                     : (',', 'tab', ';', 'space', ":");
     my @quote_chars = qw /" ' + $/;
@@ -964,8 +957,7 @@ sub get_metadata_export_delimited_text {
 }
 
 sub get_tooltip_sparse_normal {
-    my $self = shift;
-    
+
     my $tool_tip =<<"END_MX_TOOLTIP"
 Normal format is a normal rectangular row by column matrix like:
 \t,col1,col2

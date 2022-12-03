@@ -58,12 +58,7 @@ use parent qw {
     Biodiverse::BaseData::Exclusions
 };
 
-#  how much input file to read in one go
-our $input_file_chunk_size   = 10000000;
-our $lines_to_read_per_chunk = 50000;
-
 our $EMPTY_STRING = q{};
-our $bytes_per_MB = 1056784;
 
 sub new {
     my $class = shift;
@@ -890,7 +885,7 @@ sub assign_element_properties {
 # to element property hashes for this basedata's groups. 'labels'
 # likewise.
 sub get_all_element_properties {
-    my ($self, %args) = shift;
+    my ($self) = shift;
     my %results_hash;
     
     my $gp = $self->get_groups_ref;
@@ -1493,13 +1488,13 @@ sub new_with_reordered_element_axes {
     my @cell_sizes   = $self->get_cell_sizes;
     my @cell_origins = $self->get_cell_origins;
     $new_bd->set_param (CELL_SIZES   => [@cell_sizes[@$group_cols]]);
-    $new_bd->set_param (CELL_ORIGINS => [@cell_sizes[@$group_cols]]);
+    $new_bd->set_param (CELL_ORIGINS => [@cell_origins[@$group_cols]]);
     $gp->set_param (CELL_SIZES   => [@cell_sizes[@$group_cols]]);
-    $gp->set_param (CELL_ORIGINS => [@cell_sizes[@$group_cols]]);
+    $gp->set_param (CELL_ORIGINS => [@cell_origins[@$group_cols]]);
     my @lb_cell_sizes   = $lb->get_cell_sizes;
     my @lb_cell_origins = $lb->get_cell_origins;
-    $lb->set_param (CELL_SIZES   => [@cell_sizes[@$label_cols]]);
-    $lb->set_param (CELL_ORIGINS => [@cell_sizes[@$label_cols]]);
+    $lb->set_param (CELL_SIZES   => [@lb_cell_sizes[@$label_cols]]);
+    $lb->set_param (CELL_ORIGINS => [@lb_cell_origins[@$label_cols]]);
 
     foreach my $group ( $gp->get_element_list ) {
         my $new_group = $gp_remapped->{$group};
@@ -1935,7 +1930,7 @@ sub delete_sub_elements_collated_by_group {
         }
     }
     if ($delete_empty_lbs) {
-        foreach my $label (%labels_processed) {
+        foreach my $label (keys %labels_processed) {
             next if $labels_ref->get_variety_aa($label);
             $self->delete_element(
                 type    => 'LABELS',
@@ -2037,9 +2032,7 @@ sub get_range_intersection {
     my %args = @_;
 
     my $labels = $args{labels}
-      || croak
-      "[BaseData] get_range_intersection argument labels not specified\n";
-    my $t = ref $labels;
+      or croak "[BaseData] get_range_intersection argument labels not specified\n";
 
     croak "[BaseData] get_range_intersection argument labels not an array or hash ref\n" 
         if (!is_arrayref($labels) && !is_hashref($labels));
@@ -2049,9 +2042,10 @@ sub get_range_intersection {
     #  now loop through the labels and get the groups that contain all the species
     my $elements = {};
     foreach my $label (@$labels) {
+        #  skip if it does not exist
         next
-          if not $self->exists_label( label => $label )
-          ;    #  skip if it does not exist
+          if not $self->exists_label_aa( $label );
+
         my $res = $self->calc_abc(
             label_hash1 => $elements,
             label_hash2 =>
@@ -2059,10 +2053,8 @@ sub get_range_intersection {
         );
 
         #  delete those that are not shared (label_hash1 and label_hash2)
-        my @tmp =
-          delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash1} } };
-        @tmp =
-          delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash2} } };
+        delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash1} } };
+        delete @{ $res->{label_hash_all} }{ keys %{ $res->{label_hash2} } };
         $elements = $res->{label_hash_all};
     }
 
@@ -2442,15 +2434,14 @@ sub get_neighbours {
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,
     #  therefore making neighbourhood parameter definitions easier.
-    my %exclude_hash = $self->array_to_hash_keys(
-        list  => $args{exclude_list},
-        value => 1,
-    );
+    my %exclude_hash;
+    if ($args{exclude_list}) {
+        #  can we use undef as the val?
+        @exclude_hash{@{$args{exclude_list}}} = (1) x @{$args{exclude_list}};
+    }
 
     my $centre_coord_ref =
       $self->get_group_element_as_array( element => $element1 );
-
-    my $groups_ref = $self->get_groups_ref;
 
 #  Get the list of possible neighbours - should allow this as an arg?
 #  Don't check the index unless it will result in fewer loop iterations overall.
@@ -2828,11 +2819,7 @@ sub reintegrate_after_parallel_randomisations {
         $rand_to->set_param (TOTAL_ITERATIONS => $total_iters);
     }
 
-    my $rand_list_re_text
-      = '^(?:'
-      . join ('|', uniq @randomisations_to_reintegrate)
-      . ')>>(?!\w+>>)';
-    my $re_rand_list_names = qr /$rand_list_re_text/;
+
 
     #  now we can finally get some work done
     #  working on spatial only for now
@@ -2863,7 +2850,6 @@ sub numerically {$a <=> $b};
 #  let the system handle it most of the time
 sub DESTROY {
     my $self = shift;
-    my $name = $self->get_param('NAME') || $EMPTY_STRING;
 
     #print "DESTROYING BASEDATA $name\n";
     #$self->delete_all_outputs;  #  delete children which refer to this object

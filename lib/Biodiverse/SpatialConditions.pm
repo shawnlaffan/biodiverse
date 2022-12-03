@@ -342,10 +342,10 @@ sub parse_distances {
             }
             foreach my $key ( @dist_list_flags ) {
                 my $method = "get_$key";
-                my $a = $metadata->$method;
+                my $aa = $metadata->$method;
                 croak "Incorrect metadata for sub $sub.  $key should be an array.\n"
-                  if !is_arrayref($a);
-                foreach my $dist (@$a) {
+                  if !is_arrayref($aa);
+                foreach my $dist (@$aa) {
                     $uses_distances{$key}{$dist}++;
                 }
             }

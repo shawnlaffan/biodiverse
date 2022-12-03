@@ -151,7 +151,7 @@ sub compare {
                     list    => 'RESULTS_SAME_AS',
                 );
 
-                my $results_ref = $self->get_list_ref (
+                my $recyc_results_ref = $self->get_list_ref (
                     element => $element,
                     list    => $result_list_name,
                 );
@@ -160,7 +160,7 @@ sub compare {
                 foreach my $nbr (keys %$nbrs) {
                     $self->add_to_lists (
                         element           => $nbr,
-                        $result_list_name => $results_ref,
+                        $result_list_name => $recyc_results_ref,
                         use_ref           => 1,
                     );
                 }
@@ -978,7 +978,7 @@ sub sp_calc {
         $count ++;
         
         my $progress_so_far = $count / $to_do;
-        my $progress_text =
+        $progress_text =
               "Spatial analysis\n$progress_text_base\n"
             . "($count / $to_do)"
             . $using_index_text;

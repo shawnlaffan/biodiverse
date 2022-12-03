@@ -1994,11 +1994,11 @@ sub sp_get_spatial_output_list_value {
         #  probably a typo.
         my $found_index;
         foreach my $el ($sp->get_element_list) {
-            my $list = $sp->get_list_ref (
+            my $el_list = $sp->get_list_ref (
                 list    => $list_name,
                 element => $el,
             );
-            $found_index ||= exists $list->{$index};
+            $found_index ||= exists $el_list->{$index};
             last if $found_index;
         }
         

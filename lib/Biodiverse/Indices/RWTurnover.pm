@@ -54,33 +54,33 @@ sub calc_rw_turnover {
     my $label_hash2    = $args{label_hash2};
 
     my $weights     = $args{ENDW_WTLIST};
-    my ($a, $b, $c) = (0, 0, 0);
+    my ($aa, $bb, $cc) = (0, 0, 0);
 
     foreach my $label (keys %$weights) {
         my $wt = $weights->{$label};
         if (exists $label_hash1->{$label}) {
             if (exists $label_hash2->{$label}) {
-                $a += $wt;
+                $aa += $wt;
             }
             else {
-                $b += $wt;
+                $bb += $wt;
             }
         }
         elsif (exists $label_hash2->{$label}) {
-            $c += $wt;
+            $cc += $wt;
         }
     }
 
-    my $dissim_is_valid = ($a || $b) && ($a || $c);
-    my $rw_turnover = eval {$dissim_is_valid ? 1 - ($a / ($a + $b + $c)) : undef};
+    my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
+    my $rw_turnover = eval {$dissim_is_valid ? 1 - ($aa / ($aa + $bb + $cc)) : undef};
 
     #my $bd = $self->get_basedata_ref;
     #my $gamma_diversity = $bd->get_label_count;
 
     my %results = (
-        RW_TURNOVER_A => $a,
-        RW_TURNOVER_B => $b,
-        RW_TURNOVER_C => $c,
+        RW_TURNOVER_A => $aa,
+        RW_TURNOVER_B => $bb,
+        RW_TURNOVER_C => $cc,
         RW_TURNOVER   => $rw_turnover,
         #RW_TURNOVER_P => $rw_turnover / $gamma_diversity,
     );

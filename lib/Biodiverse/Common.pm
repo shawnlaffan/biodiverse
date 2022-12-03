@@ -203,11 +203,11 @@ sub load_sereal_file {
     #  now get the whole file
     {
         local $/ = undef;
-        my $fh = $self->get_file_handle (
+        my $fh1 = $self->get_file_handle (
             file_name => $file,
         );
-        binmode $fh;
-        $string = <$fh>;
+        binmode $fh1;
+        $string = <$fh1>;
     }
 
     #my $structure;
@@ -1475,7 +1475,7 @@ sub guess_field_separator {
     }
 
     my @str_arr = split $eol, $string;
-    my $sep;
+    my $separator;
 
     if ($lines_to_use > 1 && @str_arr > 1) {  #  check the sep char works using subsequent lines
         %sep_count = reverse %sep_count;  #  should do it properly above
@@ -1506,13 +1506,13 @@ sub guess_field_separator {
         }
         my @poss_chars = reverse sort {$checked{$a} <=> $checked{$b}} keys %checked;
         if (scalar @poss_chars == 1) {  #  only one option
-            $sep = $poss_chars[0];
+            $separator = $poss_chars[0];
         }
         else {  #  get the one that matches
           CHAR:
             foreach my $char (@poss_chars) {
                 if ($checked{$char} == $sep_count{$char}) {
-                    $sep = $char;
+                    $separator = $char;
                     last CHAR;
                 }
             }
@@ -1523,18 +1523,18 @@ sub guess_field_separator {
         #  index to use from sep_count, thus giving us the most common
         #  sep_char
         my @sorted = reverse sort numerically keys %sep_count;
-        $sep = (scalar @sorted && defined $sep_count{$sorted[0]})
+        $separator = (scalar @sorted && defined $sep_count{$sorted[0]})
             ? $sep_count{$sorted[0]}
             : $separators[0];  # default to first checked
     }
 
-    $sep //= ',';
+    $separator //= ',';
 
     #  need a better way of handling special chars - ord & chr?
-    my $septext = ($sep =~ /\t/) ? '\t' : $sep;  
+    my $septext = ($separator =~ /\t/) ? '\t' : $separator;
     say "[COMMON] Guessed field separator as '$septext'";
 
-    return $sep;
+    return $separator;
 }
 
 sub guess_escape_char {

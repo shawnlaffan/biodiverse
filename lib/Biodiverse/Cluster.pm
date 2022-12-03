@@ -2797,7 +2797,7 @@ sub sp_calc {
     my $progress_bar = Biodiverse::Progress->new();
 
     #  loop though the nodes and calculate the outputs
-    while ((my $name, my $node) = each %{$self->get_node_hash}) {
+    foreach my $node ($self->get_node_refs) {
         $count ++;
 
         $progress_bar->update (
@@ -2806,9 +2806,10 @@ sub sp_calc {
             $count / $to_do,
         );
 
-        my %elements = (element_list1 => [keys %{$node->get_terminal_elements}]);
-
-        my %sp_calc_values = $indices_object->run_calculations(%args, %elements);
+        my %sp_calc_values = $indices_object->run_calculations(
+            %args,
+            element_list1 => [keys %{$node->get_terminal_elements}]
+        );
 
         foreach my $key (keys %sp_calc_values) {
             if (is_arrayref($sp_calc_values{$key}) 

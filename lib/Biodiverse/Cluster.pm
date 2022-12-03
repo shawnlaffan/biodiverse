@@ -449,8 +449,8 @@ sub export_shapefile {
     my $branches = $self->get_node_hash;
     
   NODE:
-    foreach my $branch_name (sort_list_with_tree_names_aa ([keys %$branches])) {
-        my $branch = $branches->{$branch_name};
+    foreach my $branch_key (sort_list_with_tree_names_aa ([keys %$branches])) {
+        my $branch = $branches->{$branch_key};
         my $terminals  = $branch->get_terminal_elements;
         
         my $wkt;
@@ -903,8 +903,8 @@ sub build_matrices {
         );
 
         my @neighbours;  #  store the neighbours of this element
-        foreach my $i (0 .. $#matrices) {
-            my $nbr_list_name = '_NBR_SET' . ($i+1);
+        foreach my $m (0 .. $#matrices) {
+            my $nbr_list_name = '_NBR_SET' . ($m+1);
             my $neighours = $sp->get_list_values (
                 element => $element1,
                 list    => $nbr_list_name,
@@ -912,15 +912,15 @@ sub build_matrices {
             my %neighbour_hash;
             @neighbour_hash{@$neighours} = (1) x scalar @$neighours;
             delete $neighbour_hash{$element1};  #  exclude ourselves
-            $neighbours[$i] = \%neighbour_hash;
+            $neighbours[$m] = \%neighbour_hash;
         }
         my %nbrs_so_far_this_element;  #  track which nbrs have been done - needed when writing direct to file
 
         #  loop over the neighbours and add them to the appropriate matrix
-        foreach my $i (0 .. $#matrices) {
-            my $matrix = $matrices[$i];
+        foreach my $m (0 .. $#matrices) {
+            my $matrix = $matrices[$m];
 
-            my $nbr_hash = $neighbours[$i];  #  save a few calcs
+            my $nbr_hash = $neighbours[$m];  #  save a few calcs
             if (scalar @$file_handles) {
                 @nbrs_so_far_this_element{keys %$nbr_hash} = undef;
             }
@@ -939,7 +939,7 @@ sub build_matrices {
                 index_function     => $index_function,
                 index              => $index,
                 cache_abc          => $cache_abc,
-                file_handle        => $file_handles->[$i],
+                file_handle        => $file_handles->[$m],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
                 processed_elements => \%processed_elements,
@@ -1106,8 +1106,8 @@ sub build_matrix_elements {
             next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
 
             if ($exists) {  #  if it is in one then we use it
-                foreach my $iter (keys %not_exists_iter) {
-                    $matrices->[$iter]->add_element (
+                foreach my $ne_iter (keys %not_exists_iter) {
+                    $matrices->[$ne_iter]->add_element (
                         element1 => $element1,
                         element2 => $element2,
                         value    => $value,

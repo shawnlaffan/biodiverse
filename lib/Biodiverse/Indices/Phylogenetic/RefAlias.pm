@@ -21,15 +21,10 @@ sub _calc_pe {
 
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
-    #create a hash of terminal nodes for the taxa present
-    my $all_nodes = $tree_ref->get_node_hash;
-
-    my $root_node = $tree_ref->get_tree_ref;
-
     #  default these to undef - more meaningful than zero
     my ($PE_WE, $PE_WE_P);
 
-    my (%ranges, %wts, %local_ranges, %results);
+    my (%wts, %local_ranges, %results);
 
     #  prob a micro-optimisation, but might avoid
     #  some looping below when collating weights

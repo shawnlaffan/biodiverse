@@ -607,8 +607,7 @@ sub delete_spatial_index {
 #  Text::CSV_XS seems to have cache problems that borks Clone::clone and YAML::Syck::to_yaml
 sub clear_spatial_index_csv_object {
     my $self = shift;
-    
-    my $name = $self->get_param ('NAME');
+
     my $cleared;
 
     if (my $sp_index = $self->get_param ('SPATIAL_INDEX')) {
@@ -758,7 +757,7 @@ sub save_to {
 
     my @suffixes = ($storable_suffix, $yaml_suffix);
 
-    my ($null1, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
+    my (undef, undef, $suffix) = fileparse ( $file_name, @suffixes );
     if ($suffix eq $EMPTY_STRING
         || ! defined $suffix
         || none  {$suffix eq $_} @suffixes
@@ -1030,7 +1029,7 @@ sub write_table {
     $args{file} = Path::Class::file($args{file})->absolute;
 
     #  now do stuff depending on what format was chosen, based on the suffix
-    my ($prefix, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
+    my (undef, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
     if (! defined $suffix) {
         $suffix = 'csv';  #  does not affect the actual file name, as it is not passed onwards
     }

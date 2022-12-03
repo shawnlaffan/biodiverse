@@ -1054,8 +1054,6 @@ sub to_table_sym {
         map {$quote_el_names ? "$quote_char$_$quote_char" : $_}
         @print_order;
 
-    my $max_element_array_len;  #  used in some sections, set below if needed
-
     #  need the number of element components for the header
     my @header = ('ELEMENT');
     my @element_axes;

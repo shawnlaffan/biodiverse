@@ -62,7 +62,7 @@ sub import_from_hash {
 
 # returns a hash of the remap this object represents.
 sub to_hash {
-    my ($self, %args) = @_;
+    my ($self) = @_;
 
     my %remap_hash = ();
     
@@ -126,7 +126,7 @@ sub populate_with_guessed_remap {
 
 # have we generated an auto remap in this Remap object?
 sub has_auto_remap {
-    my ($self, %args) = @_;
+    my ($self) = @_;
     return $self->{ has_auto_remap };
 }
 
@@ -141,8 +141,7 @@ sub get_match_category {
 
 #  now works directly on the REMAP hash entries for each element
 sub dequote_all_elements {
-    my ($self, %args) = @_;
-    my $old_hash = $self->to_hash();
+    my ($self) = @_;
     my $elements = $self->get_element_list;
     
     foreach my $element (@$elements) {

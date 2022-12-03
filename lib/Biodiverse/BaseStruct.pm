@@ -347,10 +347,10 @@ sub get_element_hash_that_pass_def_query {
     my %formatted_element_hash = $self->get_element_hash;
 
     my %formatted_elements_that_pass;
-    foreach my $element (keys %formatted_element_hash) {
-        if ($elements_that_pass_hash->{$element}) {
-            $formatted_elements_that_pass{$element} 
-                  = $formatted_element_hash{$element};
+    foreach my $elt (keys %formatted_element_hash) {
+        if ($elements_that_pass_hash->{$elt}) {
+            $formatted_elements_that_pass{$elt}
+                  = $formatted_element_hash{$elt};
         }
     }
     

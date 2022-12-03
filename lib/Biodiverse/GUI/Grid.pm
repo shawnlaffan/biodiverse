@@ -628,6 +628,20 @@ sub set_overlay {
     return;
 }
 
+sub _error_msg_no_shapes_in_plot_area {
+    my $txt = <<'EOL'
+No shapes overlap the plot area.
+
+A common cause is that the shapefile coordinate system does
+not match that of the BaseData, for example your BaseData
+is in a UTM coordinate system but the shapefile is in
+decimal degrees.  If this is the case then your shapefile
+can be reprojected to match your spatial data using GIS software.
+EOL
+  ;
+    return $txt;
+}
+
 sub load_shapefile {
     my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
 
@@ -651,8 +665,8 @@ sub load_shapefile {
     my $gui = Biodiverse::GUI::GUIManager->instance;
     if (!$shapes_in_plot_area) {
         $gui->report_error (
+            $self->_error_msg_no_shapes_in_plot_area,
             'No shapes overlap the plot area',
-            'No shapes to plot',
         );
         return;
     }

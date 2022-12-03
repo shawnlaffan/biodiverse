@@ -144,24 +144,6 @@ local $| = 1;
     );
 }
 
-SKIP: {
-    skip 'Biodiverse uses a different percentile algorithm', 2;
-    # test #10 and #11
-    # Test the percentile function and caching
-    my $stat = $stats_class->new();
-    $stat->add_data(-5,-2,4,7,7,18);
-    ##Check algorithm
-    # TEST
-    is ($stat->percentile(50),
-        4,
-        "percentile function and caching - 1",
-    );
-    # TEST
-    is ($stat->percentile(25),
-        -2,
-        "percentile function and caching - 2",
-    );
-}
 
 {
     # tests #12 and #13

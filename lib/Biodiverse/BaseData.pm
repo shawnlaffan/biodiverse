@@ -1935,7 +1935,7 @@ sub delete_sub_elements_collated_by_group {
         }
     }
     if ($delete_empty_lbs) {
-        foreach my $label (%labels_processed) {
+        foreach my $label (keys %labels_processed) {
             next if $labels_ref->get_variety_aa($label);
             $self->delete_element(
                 type    => 'LABELS',

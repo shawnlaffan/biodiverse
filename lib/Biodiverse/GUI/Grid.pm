@@ -1159,6 +1159,32 @@ sub get_colour_canape {
     return $canape_colour_hash{$_[1]};
 }
 
+#  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
+#  refactor as method when we use a perl version that
+#  supports state on lists
+my @zscore_colours
+    = map {Gtk2::Gdk::Color->parse($_)}
+      ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
+
+sub get_colour_zscore {
+    my ($self, $val, $min, $max) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    return $default_colour
+      if not (defined $val and defined $max and defined $min);
+
+    #  scale to classes
+    my $absval = abs ($val);
+    my $idx
+        = $absval <= 1.65 ? 0
+        : $absval <= 1.96 ? 1
+        : $absval <= 2.58 ? 2
+                          : 3;
+    $idx = $idx * ($val <=> 0) + 3;
+
+    return $zscore_colours[$idx];
+}
+
 sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:

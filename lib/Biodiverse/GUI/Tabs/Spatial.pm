@@ -1963,6 +1963,8 @@ sub recolour {
     my $ccache = $colour_cache->{$list}{$index} //= {};
     
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
+    #  need metadata for indices
+    my $is_zscore = $list =~ />>z_scores>>/ || $index =~ /_N[RT]I[123]$/;
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -1976,8 +1978,11 @@ sub recolour {
             #  should use a method here
             my $val = $elements_hash->{$elt}{$list}{$index};
             $colour
-              = defined $val ?
-              ($is_canape ? $grid->get_colour_canape($val) : $grid->get_colour($val, $min, $max))
+              = defined $val ? (
+                  $is_canape ? $grid->get_colour_canape ($val) :
+                  $is_zscore ? $grid->get_colour_zscore ($val, $min, $max) :
+                  $grid->get_colour($val, $min, $max)
+              )
               : $colour_none;
         }
         

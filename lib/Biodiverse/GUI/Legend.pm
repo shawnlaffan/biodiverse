@@ -94,10 +94,10 @@ sub new {
     # Create the legend rectangle.
     $self->{legend} = $self->make_rect();
 
-    $self->{marks}[0] = $self->make_mark( $self->{legend_marks}[0] );
-    $self->{marks}[1] = $self->make_mark( $self->{legend_marks}[1] );
-    $self->{marks}[2] = $self->make_mark( $self->{legend_marks}[2] );
-    $self->{marks}[3] = $self->make_mark( $self->{legend_marks}[3] );
+    #  reverse might not be needed but ensures the array is the correct size frm the start
+    foreach my $i (reverse 0..3) {
+        $self->{marks}[$i] = $self->make_mark($self->{legend_marks}[$i]);
+    }
 
     #  debug stuff
     #my $sub = sub {
@@ -329,8 +329,9 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    foreach my $i (0..3) {
-        my $mark = $self->{marks}[3 - $i];
+    my @mark_arr = @{$self->{marks}};
+    foreach my $i (0..$#mark_arr) {
+        my $mark = $self->{marks}[$#mark_arr - $i];
         #  move the mark to right align with the legend
         my @bounds  = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
@@ -344,11 +345,11 @@ sub reposition {
         if ($i == 0) {
             $y_offset =  MARK_Y_LEGEND_OFFSET;
         }
-        elsif ($i == 3) {
+        elsif ($i == $#mark_arr) {
             $y_offset = -MARK_Y_LEGEND_OFFSET;
         }
         $self->{marks}[$i]->set(
-            y => $i * $height / 3 + $y_offset / $ppu,
+            y => $i * $height / $#mark_arr + $y_offset / $ppu,
         );
 
         $mark->raise_to_top;
@@ -660,11 +661,12 @@ sub set_min_max {
                 );
 
     # Set legend textbox markers
-    my $marker_step = ($max - $min) / 3;
+    my @mark_arr = @{$self->{marks}};
+    my $marker_step = ($max - $min) / $#mark_arr;
     foreach my $i (0..3) {
         my $val = $min + $i * $marker_step;
         if ($self->get_log_mode) {
-            my $log_step = log (101) * $i / 3;
+            my $log_step = log (101) * $i / $#mark_arr;
             #  should use a method for each transform
             #  (log and antilog)
             #  orig:
@@ -676,14 +678,14 @@ sub set_min_max {
         if ($i == 0 and $self->{legend_lt_flag}) {
             $text = '<=' . $text;
         }
-        elsif ($i == 3 and $self->{legend_gt_flag}) {
+        elsif ($i == $#mark_arr and $self->{legend_gt_flag}) {
             $text = '>=' . $text;
         }
         elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
             $text = '  ' . $text;
         }
 
-        my $mark = $self->{marks}[3 - $i];
+        my $mark = $self->{marks}[$#mark_arr - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
         my @bounds = $mark->get_bounds;
@@ -709,8 +711,9 @@ sub set_text_marks_canape {
     my @strings = qw /mixed palaeo neo non-sig/;
 
     # Set legend textbox markers
-    foreach my $i (0..3) {
-        my $mark = $self->{marks}[3 - $i];
+    my @mark_arr = @{$self->{marks}};
+    foreach my $i (0..$#mark_arr) {
+        my $mark = $mark_arr[$#mark_arr - $i];
         $mark->set( text => $strings[$i] );
         $mark->raise_to_top;
     }

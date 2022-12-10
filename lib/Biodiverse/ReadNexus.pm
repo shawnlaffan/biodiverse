@@ -10,7 +10,7 @@ use Carp;
 use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
-use List::Util qw /max/;
+use List::Util qw /max uniq/;
 use Ref::Util qw /is_ref is_arrayref/;
 use Time::HiRes qw /time/;
 
@@ -100,14 +100,25 @@ sub import_data {
                                     : defined $element_properties;
     $self->set_param (ELEMENT_PROPERTIES => $element_properties);
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
-    
-    my @import_methods = qw /import_nexus import_phylip import_R_phylo_json import_tabular_tree/;
+
+    #  no import_newick here as import_phylip handles such files
+    my @import_methods = qw/import_nexus import_phylip import_R_phylo_json import_tabular_tree/;
+    # promote most likely method to front of the list
     if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
-        @import_methods = ('import_tabular_tree');
+        unshift @import_methods, 'import_tabular_tree';
     }
-    if (is_ref ($args{data})) {  #  also a dirty hack
-        @import_methods = ('import_R_phylo_json');
+    elsif (is_ref ($args{data})) {  #  also a dirty hack
+        unshift @import_methods, 'import_R_phylo_json';
     }
+    else {
+        my $method = $self->probe_file_type (%args);
+        unshift @import_methods, $method
+          if $method;
+    }
+
+    #  no point trying a method more than once
+    @import_methods = uniq @import_methods;
+
     my $success;
     
   IMPORT_METHOD:
@@ -141,6 +152,40 @@ sub import_data {
     $self->process_unrooted_trees;
 
     return 1;
+}
+
+
+sub probe_file_type {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data};
+
+    if (!$data) {
+        croak "neither file nor data args passed"
+          if !$args{file};
+        my $fh = $self->get_file_handle (file_name => $args{file});
+        my $line_count = 0;
+        while (!$fh->eof && $line_count < 10) {
+            my $line = <$fh>;
+            next if $line =~ /^\s*$/;  # skip whitespace only
+            $data .= $line;
+            $line_count++;
+        }
+        $fh->close;
+    }
+
+    return 'import_nexus'
+      if $data =~ /\A#NEXUS/;
+
+    #  import_phylip handles newick also since it is a collection of newicks
+    return 'import_phylip'
+      if $data =~ /\A\(/ and $data =~ /;$/;
+
+    #  need json and tabular
+
+    # type not detected
+    return;
 }
 
 #  import the tree from a newick file

@@ -1568,6 +1568,11 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
+    my $is_zscore = $list_name =~ />>z_scores>>/;
+        # || ($list_name eq 'SPATIAL_RESULTS' && $list_index =~ /^PHYLO_N[RT]I[123]$/);
+
+    $legend->set_zscore_mode ($is_zscore);
+
     my %done;
 
   LABEL:
@@ -1595,8 +1600,9 @@ sub colour_branches_on_dendrogram {
             }
             else {
                 my $val = $listref->{$node_name};
-                $colour_ref
-                  = $legend->get_colour ($val, $min, $max);
+                $colour_ref = $is_zscore
+                    ? $legend->get_colour_zscore ($val)
+                    : $legend->get_colour ($val, $min, $max);
             }
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
@@ -1964,7 +1970,8 @@ sub recolour {
     
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
     #  need metadata for indices
-    my $is_zscore = $list =~ />>z_scores>>/ || $index =~ /_N[RT]I[123]$/;
+    my $is_zscore = $list =~ />>z_scores>>/
+        || ($list eq 'SPATIAL_RESULTS' && $index =~ /^PHYLO_N[RT]I[123]$/);
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -1980,7 +1987,7 @@ sub recolour {
             $colour
               = defined $val ? (
                   $is_canape ? $grid->get_colour_canape ($val) :
-                  $is_zscore ? $grid->get_colour_zscore ($val, $min, $max) :
+                  $is_zscore ? $grid->get_colour_zscore ($val) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -1997,6 +2004,7 @@ sub recolour {
     #};
 
     $self->{grid}->get_legend->set_canape_mode($is_canape);
+    $self->{grid}->get_legend->set_zscore_mode($is_zscore);
     $self->show_legend;
 
     $grid->colour($colour_func);

@@ -873,6 +873,8 @@ sub recolour_cluster_elements {
     my $colour_callback;
     
     my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
+    my $is_zscore = $list_name =~ />>z_scores>>/
+        || ($list_name eq 'SPATIAL_RESULTS' && $list_index =~ /^PHYLO_N[RT]I[123]$/);
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -929,7 +931,9 @@ sub recolour_cluster_elements {
                 my $val = $list_ref->{$list_index}
                   // return $colour_for_undef;
                 
-                return ($is_canape ? $map->get_colour_canape($val) : $map->get_colour($val, $analysis_min, $analysis_max))
+                return $is_canape ? $map->get_colour_canape ($val)
+                     : $is_zscore ? $map->get_colour_zscore ($val)
+                     : $map->get_colour($val, $analysis_min, $analysis_max);
             }
             else {
                 return exists $terminal_elements->{$elt}
@@ -947,6 +951,7 @@ sub recolour_cluster_elements {
     $map->colour ($colour_callback);
 
     $map->get_legend->set_canape_mode($is_canape);
+    $map->get_legend->set_zscore_mode($is_zscore);
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
@@ -1227,7 +1232,9 @@ sub recolour_cluster_lines {
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
     
-    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/; 
+    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/;
+    my $is_zscore = $list_name =~ />>z_scores>>/
+        || ($list_name eq 'SPATIAL_RESULTS' && $list_index =~ /^PHYLO_N[RT]I[123]$/);
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1251,7 +1258,10 @@ sub recolour_cluster_lines {
               : undef;  #  allows for missing lists
 
             $colour_ref = defined $val
-              ? ($is_canape ? $map->get_colour_canape($val) : $map->get_colour ($val, $analysis_min, $analysis_max))
+              ? (  $is_canape ? $map->get_colour_canape($val)
+                 : $is_zscore ? $map->get_colour_zscore($val)
+                 : $map->get_colour ($val, $analysis_min, $analysis_max)
+                )
               : undef;
         }
         else {

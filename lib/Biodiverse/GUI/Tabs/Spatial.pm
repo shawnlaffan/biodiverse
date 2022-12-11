@@ -1572,6 +1572,8 @@ sub colour_branches_on_dendrogram {
         # || ($list_name eq 'SPATIAL_RESULTS' && $list_index =~ /^PHYLO_N[RT]I[123]$/);
 
     $legend->set_zscore_mode ($is_zscore);
+    my @minmax_args = $is_zscore ? () : ($min, $max);
+    my $colour_method = $is_zscore ? 'get_colour_zscore' : 'get_colour';
 
     my %done;
 
@@ -1582,7 +1584,7 @@ sub colour_branches_on_dendrogram {
         # Might not match some or all nodes
         next LABEL if !$tree->exists_node(name => $label);
 
-        my $node_ref = $tree->get_node_ref (node => $label);
+        my $node_ref = $tree->get_node_ref_aa ($label);
         my $colour_ref;
 
         #  Colour ourselves, and also work our way up the tree
@@ -1594,16 +1596,11 @@ sub colour_branches_on_dendrogram {
             my $node_name = $node_ref->get_name;
             last NODE if $done{$node_name};
 
-            no autovivification;
-            if (!defined $listref->{$node_name}) {
-                $colour_ref = COLOUR_BLACK;
-            }
-            else {
-                my $val = $listref->{$node_name};
-                $colour_ref = $is_zscore
-                    ? $legend->get_colour_zscore ($val)
-                    : $legend->get_colour ($val, $min, $max);
-            }
+            my $val = $listref->{$node_name};
+            $colour_ref
+                = defined $val
+                ? $legend->$colour_method ($val, @minmax_args)
+                : COLOUR_BLACK;
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
 

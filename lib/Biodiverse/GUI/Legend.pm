@@ -94,9 +94,14 @@ sub new {
     # Create the legend rectangle.
     $self->{legend} = $self->make_rect();
 
-    #  reverse might not be needed but ensures the array is the correct size frm the start
+    #  reverse might not be needed but ensures the array is the correct size from the start
     foreach my $i (reverse 0..3) {
         $self->{marks}[$i] = $self->make_mark($self->{legend_marks}[$i]);
+    }
+    #  clunky that we need to do it here
+    my @anchors = ('nw', ('w') x 5, 'sw');
+    foreach my $i (reverse 0..6) {
+        $self->{zscore_marks}[$i] = $self->make_mark($anchors[$i]);
     }
 
     #  debug stuff
@@ -177,6 +182,27 @@ sub make_rect {
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
+    elsif ($self->get_zscore_mode) {
+
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+        my @dummy_zvals = (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
+
+        foreach my $row (0..($height - 1)) {
+            #  a clunky means of aligning the colours with the labels
+            my $scaled =  $row / $height;
+            if ($scaled > 0.5) {
+                $scaled -= 0.05
+            }
+            elsif ($scaled < 0.5) {
+                $scaled += 0.05
+            }
+            $scaled = min ($#dummy_zvals, max (0, $scaled));
+            my $class = int (@dummy_zvals * $scaled);
+            my $colour = $self->get_colour_zscore ($dummy_zvals[$class]);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
     elsif ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = ($self->get_width, 180);
@@ -251,7 +277,7 @@ sub add_row {
 
 sub make_mark {
     my $self   = shift;
-    my $anchor = shift;
+    my $anchor = shift // 'w';
     my $mark = Gnome2::Canvas::Item->new (
         $self->{legend_group}, 
         'Gnome2::Canvas::Text',
@@ -329,9 +355,9 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr = @{$self->{marks}};
+    my @mark_arr = $self->get_zscore_mode ? @{$self->{zscore_marks}} : @{$self->{marks}};
     foreach my $i (0..$#mark_arr) {
-        my $mark = $self->{marks}[$#mark_arr - $i];
+        my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
         my @bounds  = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
@@ -348,11 +374,12 @@ sub reposition {
         elsif ($i == $#mark_arr) {
             $y_offset = -MARK_Y_LEGEND_OFFSET;
         }
-        $self->{marks}[$i]->set(
+        $mark_arr[$i]->set(
             y => $i * $height / $#mark_arr + $y_offset / $ppu,
         );
 
         $mark->raise_to_top;
+        $mark->show;
     }
 
     # Reposition value box
@@ -512,6 +539,33 @@ sub get_colour_canape {
     return $canape_colour_hash{$val} || COLOUR_WHITE;
 }
 
+#  REFACTOR - duplicated in Grid.pm
+#  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
+#  refactor as method when we use a perl version that
+#  supports state on lists
+my @zscore_colours
+    = map {Gtk2::Gdk::Color->parse($_)}
+    ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
+
+sub get_colour_zscore {
+    my ($self, $val) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+    return $default_colour
+        if not defined $val;
+
+    #  scale to classes
+    my $absval = abs ($val);
+    my $idx
+        = $absval <= 1.65 ? 0
+        : $absval <= 1.96 ? 1
+        : $absval <= 2.58 ? 2
+        : 3;
+    $idx = $idx * ($val <=> 0) + 3;
+
+    return $zscore_colours[$idx];
+}
+
 sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:
@@ -645,9 +699,17 @@ sub rgb_to_hsv {
 # Sets the values of the textboxes next to the legend */
 sub set_min_max {
     my ($self, $min, $max) = @_;
-    
+
+    return $self->set_text_marks_zscore
+        if $self->get_zscore_mode;
+
+    # foreach my $mark (@{$self->{marks}}) {
+    #     $mark->show;
+    # }
+
     return $self->set_text_marks_canape
-      if $self->get_canape_mode;
+        if $self->get_canape_mode;
+
 
     $min //= $self->{last_min};
     $max //= $self->{last_max};
@@ -663,7 +725,7 @@ sub set_min_max {
     # Set legend textbox markers
     my @mark_arr = @{$self->{marks}};
     my $marker_step = ($max - $min) / $#mark_arr;
-    foreach my $i (0..3) {
+    foreach my $i (0..$#mark_arr) {
         my $val = $min + $i * $marker_step;
         if ($self->get_log_mode) {
             my $log_step = log (101) * $i / $#mark_arr;
@@ -721,6 +783,37 @@ sub set_text_marks_canape {
     return;
 }
 
+sub set_text_marks_zscore {
+    my $self = shift;
+
+    #  needed?  seem to remember it avoids triggering marks if grid is not set up
+    return if !$self->{marks};
+
+    foreach my $mark (@{$self->{marks}}) {
+        $mark->hide;
+    }
+
+    my @strings = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
+
+    my $mark_arr = $self->{zscore_marks} //= [];
+    if (!@$mark_arr) {
+        foreach my $i (0 .. $#strings) {
+            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
+            $mark_arr->[$i] = $self->make_mark($anchor_loc);
+        }
+    }
+
+    # Set legend textbox markers
+    foreach my $i (0 .. $#strings) {
+        my $mark = $mark_arr->[$#strings - $i];
+        $mark->set( text => $strings[$i] );
+        $mark->show;
+        $mark->raise_to_top;
+    }
+
+    return;
+}
+
 
 sub set_log_mode_on {
     my ($self) = @_;
@@ -771,6 +864,46 @@ sub set_canape_mode {
         $self->set_canape_mode_off;
     }
     return $self->{canape_mode};
+}
+
+sub set_zscore_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{zscore_mode};
+    $self->{zscore_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_zscore_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{zscore_mode};
+    $self->{zscore_mode} = 0;
+    foreach my $mark (@{$self->{zscore_marks}}) {
+        $mark->hide;
+    }
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_zscore_mode {
+    $_[0]->{zscore_mode};
+}
+
+sub set_zscore_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_zscore_mode_on;
+    }
+    else {
+        $self->set_zscore_mode_off;
+    }
+    return $self->{zscore_mode};
 }
 
 

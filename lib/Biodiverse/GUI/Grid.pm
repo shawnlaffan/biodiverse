@@ -1167,11 +1167,11 @@ my @zscore_colours
       ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
 
 sub get_colour_zscore {
-    my ($self, $val, $min, $max) = @_;
+    my ($self, $val) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
     return $default_colour
-      if not (defined $val and defined $max and defined $min);
+      if not defined $val;
 
     #  scale to classes
     my $absval = abs ($val);

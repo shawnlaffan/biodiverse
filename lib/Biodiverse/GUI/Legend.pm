@@ -526,6 +526,8 @@ sub get_colour {
 }
 
 
+#  refactor as state var inside sub when we require a perl version that
+#  supports state on lists (5.28)
 my %canape_colour_hash = (
     0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
     1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
@@ -540,8 +542,8 @@ sub get_colour_canape {
 }
 
 #  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
-#  refactor as method when we use a perl version that
-#  supports state on lists
+#  refactor as state var inside sub when we require a perl version that
+#  supports state on lists (5.28)
 my @zscore_colours
     = map {Gtk2::Gdk::Color->parse($_)}
     ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');

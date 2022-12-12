@@ -480,7 +480,7 @@ sub index_is_zscore {
     my %args = @_;
 
     return $args{list} =~ />>z_scores>>/
-        || ($args{list} eq 'SPATIAL_RESULTS' && $args{index} =~ /^PHYLO_N[RT]I[123]$/);
+        || ($args{list} eq 'SPATIAL_RESULTS' && $args{index} =~ /^(PHYLO_N[RT]I[123]|PHYLO_NET_VPD)$/);
 }
 
 sub on_colour_mode_changed {

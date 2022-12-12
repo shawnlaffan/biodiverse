@@ -529,6 +529,7 @@ sub get_metadata_calc_num_labels_gistar {
             NUM_GISTAR => {
                 description => 'List of Gi* scores',
                 lumper      => 1,
+                is_zscore   => 1,
             },
         },
     );

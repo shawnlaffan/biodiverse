@@ -394,6 +394,7 @@ sub get_metadata_calc_lbprop_gistar {
             LBPROP_GISTAR_LIST => {
                 description => 'List of Gi* scores',
                 type        => 'list',
+                is_zscore   => 1,
             },
         },
     );

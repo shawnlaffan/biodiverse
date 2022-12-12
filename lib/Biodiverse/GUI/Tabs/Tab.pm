@@ -479,6 +479,9 @@ sub index_is_zscore {
     my $self = shift;
     my %args = @_;
 
+    $args{list}  //= '';
+    $args{index} //= '';
+
     return $args{list} =~ />>z_scores>>/
         || ($args{list} eq 'SPATIAL_RESULTS' && $args{index} =~ /^(PHYLO_N[RT]I[123]|PHYLO_NET_VPD)$/);
 }

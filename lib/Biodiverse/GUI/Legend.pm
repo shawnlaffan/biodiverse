@@ -539,7 +539,6 @@ sub get_colour_canape {
     return $canape_colour_hash{$val} || COLOUR_WHITE;
 }
 
-#  REFACTOR - duplicated in Grid.pm
 #  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
 #  refactor as method when we use a perl version that
 #  supports state on lists

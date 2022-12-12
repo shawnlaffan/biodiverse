@@ -13,7 +13,7 @@ use warnings;
 use Carp;
 use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
-use List::MoreUtils qw /minmax/;
+use List::MoreUtils qw /minmax firstidx/;
 
 use Gtk2;
 use Gnome2::Canvas;
@@ -551,17 +551,12 @@ sub get_colour_zscore {
     my ($self, $val) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+
     return $default_colour
         if not defined $val;
 
-    #  scale to classes
-    my $absval = abs ($val);
-    my $idx
-        = $absval <= 1.65 ? 0
-        : $absval <= 1.96 ? 1
-        : $absval <= 2.58 ? 2
-        : 3;
-    $idx = $idx * ($val <=> 0) + 3;
+    #  returns -1 if not found, which will give us last item in @zscore_colours
+    my $idx = firstidx {$val <= $_} (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
 
     return $zscore_colours[$idx];
 }

@@ -1568,8 +1568,7 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
-    my $is_zscore = $list_name =~ />>z_scores>>/;
-        # || ($list_name eq 'SPATIAL_RESULTS' && $list_index =~ /^PHYLO_N[RT]I[123]$/);
+    my $is_zscore = $self->index_is_zscore (list => $list_name);
 
     $legend->set_zscore_mode ($is_zscore);
     my @minmax_args = $is_zscore ? () : ($min, $max);
@@ -1966,9 +1965,7 @@ sub recolour {
     my $ccache = $colour_cache->{$list}{$index} //= {};
     
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
-    #  need metadata for indices
-    my $is_zscore = $list =~ />>z_scores>>/
-        || ($list eq 'SPATIAL_RESULTS' && $index =~ /^PHYLO_N[RT]I[123]$/);
+    my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
 
     my $colour_func = sub {
         my $elt = shift // return;

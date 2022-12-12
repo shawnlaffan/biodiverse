@@ -568,13 +568,15 @@ sub get_colour_hue {
     #   HUE goes from 180 to 0 as val goes from min to max
     #   Saturation, Brightness are 1
     #
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
     my $hue;
-    if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return COLOUR_BLACK;
-    }
-    elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+
+    return $default_colour
+      if ! defined $max || ! defined $min;
+
+    if ($max != $min) {
+        return $default_colour
+          if ! defined $val;
         $hue = ($val - $min) / ($max - $min) * 180;
     }
     else {
@@ -593,13 +595,15 @@ sub get_colour_saturation {
     #   Linear interpolation between min...max
     #   SATURATION goes from 0 to 1 as val goes from min to max
     #   Hue is variable, Brightness 1
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
     my $sat;
-    if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return COLOUR_BLACK;
-    }
-    elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0) if ! defined $val;
+
+    return $default_colour
+      if ! defined $max || ! defined $min;
+
+    if ($max != $min) {
+        return $default_colour
+          if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
@@ -614,13 +618,14 @@ sub get_colour_saturation {
 sub get_colour_grey {
     my ($self, $val, $min, $max) = @_;
 
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
     my $sat;
-    if (! defined $max || ! defined $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0);
-        #return COLOUR_BLACK;
-    }
-    elsif ($max != $min) {
-        return Gtk2::Gdk::Color->new(0, 0, 0)
+
+    return $default_colour
+      if ! defined $max || ! defined $min;
+
+    if ($max != $min) {
+        return $default_colour
           if ! defined $val;
 
         $sat = ($val - $min) / ($max - $min);

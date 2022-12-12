@@ -58,6 +58,18 @@ sub main {
     return 0;
 }
 
+sub test_index_is_zscore {
+    #  use state vars instead of lexicals given likely usage
+    state $bd_obj = Biodiverse::BaseData->new (NAME => 'zscorage', CELL_SIZES => [1]);
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+    ok ($indices_object->index_is_zscore (index => 'PHYLO_NRI1'), 'PHYLO_NRI1 is a zscore');
+    ok ($indices_object->index_is_zscore (index => 'PHYLO_NET_VPD'), 'PHYLO_NRI1 is a zscore');
+    ok (!$indices_object->index_is_zscore (index => 'ENDC_CWE'), 'ENDC_CWE is not a zscore');
+    ok (!$indices_object->index_is_zscore (index => 'PE_CLADE_CONTR'), 'PE_CLADE_CONTR is not a zscore');
+    ok (!$indices_object->index_is_zscore (index => 'ZORGNOBGLURGLE'), 'ZORGNOBGLURGLE is not a zscore');
+}
 
 sub test_general {
     #  some helper vars

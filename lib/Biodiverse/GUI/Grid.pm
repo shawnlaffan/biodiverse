@@ -1134,50 +1134,19 @@ sub set_colour_for_undef {
     $self->{colour_none} = $colour;
 }
 
-my %colour_methods = (
-    Hue  => 'get_colour_hue',
-    Sat  => 'get_colour_saturation',
-    Grey => 'get_colour_grey',
-);
-
 sub get_colour {
-    #my ($self, $val, $min, $max) = @_;
     my $self = shift;
-
     return $self->get_legend->get_colour (@_);
 }
 
-my %canape_colour_hash = (
-    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
-    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
-    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
-);
-
 sub get_colour_canape {
-    return if !defined $_[1];
-    return $canape_colour_hash{$_[1]};
+    my $self = shift;
+    return $self->get_legend->get_colour_canape (@_);
 }
 
-#  colours from https://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=7
-#  refactor into method when we use a perl version that
-#  supports state on lists
-my @zscore_colours
-    = map {Gtk2::Gdk::Color->parse($_)}
-      ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
-
 sub get_colour_zscore {
-    my ($self, $val) = @_;
-
-    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
-
-    return $default_colour
-        if not defined $val;
-
-    #  returns -1 if not found, which will give us last item in @zscore_colours
-    my $idx = firstidx {$val <= $_} (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
-
-    return $zscore_colours[$idx];
+    my $self = shift;
+    return $self->get_legend->get_colour_zscore (@_);
 }
 
 

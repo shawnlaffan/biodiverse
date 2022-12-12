@@ -475,6 +475,13 @@ sub get_legend_log_mode {
     $self->{legend_log_mode} //= 'off';
 }
 
+sub index_is_zscore {
+    my $self = shift;
+    my %args = @_;
+
+    return $args{list} =~ />>z_scores>>/
+        || ($args{list} eq 'SPATIAL_RESULTS' && $args{index} =~ /^PHYLO_N[RT]I[123]$/);
+}
 
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;

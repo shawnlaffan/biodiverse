@@ -1223,6 +1223,50 @@ sub get_list_indices {
     return wantarray ? %indices : \%indices;
 }
 
+sub index_is_list {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'argument index not defined'
+      if !defined $args{index};
+
+    my $hash = $self->get_list_indices;
+
+    return $hash->{$args{index} // ''};
+}
+
+#  almost identical to get_list_indices except the "next INDEX" condition
+sub get_scalar_indices {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
+
+    my %indices;
+    foreach my $calculations ( keys %$list ) {
+        my $meta = $self->get_metadata( sub => $calculations );
+        INDEX:
+        foreach my $index ( keys %{ $meta->get_indices } ) {
+            next INDEX if $meta->get_index_is_list($index);
+            $indices{$index} = $meta->get_index_description($index);
+        }
+    }
+
+    return wantarray ? %indices : \%indices;
+}
+
+sub index_is_scalar {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'argument index not defined'
+      if !defined $args{index};
+
+    my $hash = $self->get_scalar_indices;
+
+    return $hash->{$args{index} // ''};
+}
+
+#  should cache?
 sub get_zscore_indices {
     my $self = shift;
     my %args = @_;
@@ -1239,7 +1283,6 @@ sub get_zscore_indices {
     }
 
     return wantarray ? %indices : \%indices;
-
 }
 
 sub index_is_zscore {

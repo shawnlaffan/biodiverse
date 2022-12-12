@@ -66,6 +66,8 @@ sub test_index_is_zscore {
     );
     ok ($indices_object->index_is_zscore (index => 'PHYLO_NRI1'), 'PHYLO_NRI1 is a zscore');
     ok ($indices_object->index_is_zscore (index => 'PHYLO_NET_VPD'), 'PHYLO_NRI1 is a zscore');
+    ok ($indices_object->index_is_zscore (index => 'NUM_GISTAR'), 'NUM_GISTAR is a zscore');
+    ok ($indices_object->index_is_zscore (index => 'LBPROP_GISTAR_LIST'), 'LBPROP_GISTAR_LIST is a zscore list');
     ok (!$indices_object->index_is_zscore (index => 'ENDC_CWE'), 'ENDC_CWE is not a zscore');
     ok (!$indices_object->index_is_zscore (index => 'PE_CLADE_CONTR'), 'PE_CLADE_CONTR is not a zscore');
     ok (!$indices_object->index_is_zscore (index => 'ZORGNOBGLURGLE'), 'ZORGNOBGLURGLE is not a zscore');

@@ -822,10 +822,12 @@ sub get_metadata_calc_nri_nti1 {
             PHYLO_NRI1 => {
                 description    => 'Net Relatedness Index, unweighted',
                 formula        => $nri_formula,
+                is_zscore      => 1,
             },
             PHYLO_NTI1 => {
                 description    => 'Nearest Taxon Index, unweighted',
                 formula        => $nti_formula,
+                is_zscore      => 1,
             },
         },
         uses_nbr_lists => 1,
@@ -867,12 +869,14 @@ sub get_metadata_calc_nri_nti2 {
         pre_calc    => [qw /calc_nri_nti_expected_values calc_phylo_mpd_mntd2/],
         indices     => {
             PHYLO_NRI2 => {
-                description    => 'Net Relatedness Index, local range weighted',
-                formula        => [],
+                description => 'Net Relatedness Index, local range weighted',
+                formula     => [],
+                is_zscore   => 1,
             },
             PHYLO_NTI2 => {
-                description    => 'Nearest Taxon Index, local range weighted',
-                formula        => [],
+                description => 'Nearest Taxon Index, local range weighted',
+                formula     => [],
+                is_zscore   => 1,
             },
         },
         uses_nbr_lists => 1,
@@ -914,12 +918,14 @@ sub get_metadata_calc_nri_nti3 {
         pre_calc    => [qw /calc_nri_nti_expected_values calc_phylo_mpd_mntd3/],
         indices     => {
             PHYLO_NRI3 => {
-                description    => 'Net Relatedness Index, abundance weighted',
-                formula        => [],
+                description => 'Net Relatedness Index, abundance weighted',
+                formula     => [],
+                is_zscore   => 1,
             },
             PHYLO_NTI3 => {
-                description    => 'Nearest Taxon Index, abundance weighted',
-                formula        => [],
+                description => 'Nearest Taxon Index, abundance weighted',
+                formula     => [],
+                is_zscore   => 1,
             },
         },
         uses_nbr_lists => 1,
@@ -1377,8 +1383,9 @@ sub get_metadata_calc_net_vpd {
         pre_calc_global => ['set_mpd_mntd_sample_variance_flag'],
         indices     => {
             PHYLO_NET_VPD => {
-                description    => 'Net variance of pair-wise phylogenetic distances, unweighted',
+                description => 'Net variance of pair-wise phylogenetic distances, unweighted',
                 #formula        => $nri_formula,
+                is_zscore   => 1,
             },
         },
         uses_nbr_lists => 1,

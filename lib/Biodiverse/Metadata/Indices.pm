@@ -165,5 +165,13 @@ sub get_index_is_list {
     return ($indices->{$index}{type} // '') eq 'list';
 }
 
+sub get_index_is_zscore {
+    my ($self, $index) = @_;
+
+    no autovivification;
+
+    my $indices = $self->get_indices;
+    return $indices->{$index}{is_zscore};
+}
 
 1;

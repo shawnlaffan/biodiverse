@@ -481,14 +481,26 @@ sub index_is_zscore {
 
     #  check list and then check index
 
-    return 1 if ($args{list} // '') =~ />>z_scores>>/;
+    my $list = $args{list} // '';
 
-    state $bd_obj = Biodiverse::BaseData->new (NAME => 'zscorage', CELL_SIZES => [1], CELL_ORIGINS => [0]);
+    return 1
+      if $list =~ />>z_scores>>/;
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'zscorage',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
     state $indices_object = Biodiverse::Indices->new (
         BASEDATA_REF => $bd_obj,
     );
 
     my $index = $args{index} // '';
+
+    return 1
+      if $indices_object->index_is_list (index => $list)
+      && $indices_object->index_is_zscore (index => $list);
+
     return $indices_object->index_is_scalar (index => $index)
         && $indices_object->index_is_zscore (index => $index);
 }

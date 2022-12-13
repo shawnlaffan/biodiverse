@@ -564,7 +564,18 @@ sub init_branch_colouring_combo {
         $separator->show;
         $label->show;
         $self->{branch_colouring_extra_widgets}
-          = [$separator, $label];  
+          = [$separator, $label];
+
+        #  add callback
+        $combo->signal_connect_swapped(
+            changed => sub {
+                my $self = shift;
+                my $key = $self->{branch_colouring_combobox}->get_active_text;
+                $self->{dendrogram}->get_legend->hide
+                  if $self->{no_dendro_legend_for}{$key};
+            },
+            $self,
+        );
     }
 
     $combo->show;

@@ -155,27 +155,28 @@ do {
 
     # faster running on single group
     my $tgt_gp = '3300000:900000';  #  arbitrary group in nbr set
-    my %sp_cond = (
-        spatial_conditions => ["sp_select_element (element => '$tgt_gp')"]
+    my %common_args = (
+        spatial_conditions => [ "sp_select_element (element => '$tgt_gp')" ],
+        prng_seed          => 87654,
     );
 
     $spx1->run_analysis(
-        %sp_cond,
+        %common_args,
         calculations       => [ 'calc_nri_nti1' ],
         tree_ref           => $treex,
     );
     $spx2->run_analysis(
-        %sp_cond,
+        %common_args,
         calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values' ],
         tree_ref           => $treex,
     );
     $spy->run_analysis(
-        %sp_cond,
+        %common_args,
         calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values' ],
         tree_ref           => $treey,
     );
     $spz->run_analysis(
-        %sp_cond,
+        %common_args,
         calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values', 'calc_nri_nti1' ],
         tree_ref           => $treez,
     );
@@ -192,12 +193,8 @@ do {
     );
     ok $results_y->{PHYLO_NET_VPD}, 'Net VPD is not false when tree not used for NRI/NTI beforehand'
       or diag join ' ', map {"$_ => " . ($results_y->{$_} // 'undef')} sort keys %$results_y;
-# $bd->save (filename => 'bb.bds');
 
     is $results_x2, $results_y, 'results with previous NRI/NTI same as clean tree';
-    # $treex->dump_to_yaml (data => $treex, filename => 'treex.yml');
-    # $treey->dump_to_yaml (data => $treey, filename => 'treey.yml');
-    # $treez->dump_to_yaml (data => $treez, filename => 'treez.yml');
 };
 
 

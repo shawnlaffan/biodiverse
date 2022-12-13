@@ -1559,6 +1559,9 @@ sub colour_branches_on_dendrogram {
     my %args = @_;
     
     my $tree       = $self->get_current_tree;
+
+    return if !$tree;
+
     my $list_name  = $args{list_name};
     my $dendrogram = $self->{dendrogram};
     my $output_ref = $self->{output_ref};

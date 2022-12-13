@@ -489,6 +489,11 @@ sub init_dendrogram {
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
 
+    $self->{no_dendro_legend_for} = {
+        '<i>Turnover</i>'        => 1,
+        '<i>Branches in nbr set 1</i>' => 1,
+    };
+
     $self->init_branch_colouring_combo;
     $self->init_dendrogram_legend;
     
@@ -533,8 +538,13 @@ sub init_branch_colouring_combo {
         $combo->pack_start($renderer, 1);
         $combo->add_attribute($renderer, markup => 0);
 
+        #  need to keep in synch with $self->{no_dendro_legend_for}
+        my $combo_text
+          = $self->{output_ref}->get_spatial_conditions_count > 1
+          ? '<i>Turnover</i>'
+          : '<i>Branches in nbr set 1</i>';
         my $iter = $model->append();
-        $model->set ( $iter, 0, '<i>Turnover</i>' );
+        $model->set ( $iter, 0, $combo_text );
         $combo->set_active(0);
 
         my $list_names
@@ -572,7 +582,7 @@ sub init_dendrogram_legend {
     return if !$combo;
     
     my $selected_text = $combo->get_active_text;
-    if ($selected_text ne '<i>Turnover</i>') {
+    if (!$self->{no_dendro_legend_for}{$selected_text}) {
         $legend->show;
     }
     else {
@@ -1480,7 +1490,7 @@ sub highlight_paths_on_dendrogram {
 
     if (my $combo = $self->{branch_colouring_combobox}) {
         my $selected_text = $combo->get_active_text;
-        if ($selected_text ne '<i>Turnover</i>') {
+        if (!$self->{no_dendro_legend_for}{$selected_text}) {
             $self->colour_branches_on_dendrogram (
                 list_name => $selected_text,
                 group     => $group,
@@ -2295,7 +2305,7 @@ sub on_show_tree_legend_changed {
 
     #  no legend for turnover    
     my $selected_text = $combo->get_active_text;
-    $check &&= $selected_text ne '<i>Turnover</i>';
+    $check &&= !$self->{no_dendro_legend_for}{$selected_text};
 
     if ($check) {
         $legend->show;

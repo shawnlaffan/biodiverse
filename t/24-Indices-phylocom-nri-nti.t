@@ -181,16 +181,54 @@ do {
         list    => 'SPATIAL_RESULTS',
     );
     ok $results_x2->{PHYLO_NET_VPD}, 'Net VPD is not false when tree used for NRI/NTI beforehand'
-      or diag join ' ', map {"$_ => " . ($results_x2->{$_} // 'undef')} sort keys %$results_x2;
+        or diag join ' ', map {"$_ => " . ($results_x2->{$_} // 'undef')} sort keys %$results_x2;
 
     my $results_y = $spy->get_list_ref(
         element => $tgt_gp,
         list    => 'SPATIAL_RESULTS',
     );
     ok $results_y->{PHYLO_NET_VPD}, 'Net VPD is not false when tree not used for NRI/NTI beforehand'
-      or diag join ' ', map {"$_ => " . ($results_y->{$_} // 'undef')} sort keys %$results_y;
+        or diag join ' ', map {"$_ => " . ($results_y->{$_} // 'undef')} sort keys %$results_y;
 
     is $results_x2, $results_y, 'results with previous NRI/NTI same as clean tree';
+};
+
+do {
+    $bd->delete_all_outputs;
+    my $spx1 = $bd->add_spatial_output (name => 'Just a VPD run');
+    my $spx2 = $bd->add_spatial_output (name => 'NRI/NTI after VPD');
+
+    my $treex = $tree_ref_ultrametric1->clone;
+    $treex->delete_all_cached_values;
+
+    # faster running on single group
+    my $tgt_gp = '3300000:900000';  #  arbitrary group in nbr set
+    my %common_args = (
+        spatial_conditions => [ "sp_select_element (element => '$tgt_gp')" ],
+        prng_seed          => 87654,
+        tree_ref           => $treex,
+    );
+
+    $spx1->run_analysis(
+        %common_args,
+        calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values' ],
+    );
+    $spx2->run_analysis(
+        %common_args,
+        calculations       => [ 'calc_nri_nti1' ],
+    );
+    my $results_x1 = $spx1->get_list_ref(
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+    my $results_x2 = $spx2->get_list_ref(
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+
+    ok $results_x2->{PHYLO_NRI1}, 'NRI results with previous VPD cache';
+    ok $results_x2->{PHYLO_NTI1}, 'NTI results with previous VPD cache';
+    ok !exists $results_x2->{PHYLO_NET_VPD}, 'No VPD in NRI/NTI results with previous VPD cache';
 };
 
 

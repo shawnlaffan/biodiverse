@@ -92,8 +92,8 @@ run_indices_test1 (
 
 
 do {
-    my $sp1 = $bd->add_spatial_output (name => 'NTI_max_N1');
-    my $sp2 = $bd->add_spatial_output (name => 'NTI_max_N2');
+    my $sp1 = $bd->add_spatial_output(name => 'NTI_max_N1');
+    my $sp2 = $bd->add_spatial_output(name => 'NTI_max_N2');
     my $tree2 = $tree_ref_ultrametric1->clone;
     $tree2->delete_cached_values;
     $tree2->delete_cached_values_below;
@@ -102,41 +102,102 @@ do {
     foreach my $node (sort {$a->get_name cmp $b->get_name} $tree2->get_node_refs) {
         my $len = $node->get_length;
         #$node->set_length_aa (rand() * 10);
-        $node->set_length_aa (1);
-        
+        $node->set_length_aa(1);
+
         #diag $node->get_name . " $len " . $node->get_length;
     }
     #  add some single child parents to the root so we test such danglers
     my $root1 = $tree2->get_root_node;
-    my $dangler1 = $tree2->add_node (name => 'dangletop1', length => 1);
-    my $dangler2 = $tree2->add_node (name => 'dangletop2', length => 1);
-    $dangler2->add_children(children => [$dangler1]);
-    $dangler1->add_children(children => [$root1]);
+    my $dangler1 = $tree2->add_node(name => 'dangletop1', length => 1);
+    my $dangler2 = $tree2->add_node(name => 'dangletop2', length => 1);
+    $dangler2->add_children(children => [ $dangler1 ]);
+    $dangler1->add_children(children => [ $root1 ]);
 
     my $rooter = $tree2->get_root_node->get_name;
 
-    $sp1->run_analysis (
-        spatial_conditions => ['sp_select_all()'],
-        calculations       => ['calc_nri_nti1'],
+    $sp1->run_analysis(
+        spatial_conditions => [ 'sp_select_all()' ],
+        calculations       => [ 'calc_nri_nti1' ],
         tree_ref           => $tree2,
     );
     local $ENV{BD_NO_NTI_MAX_N_SHORTCUT} = 1;
-    $sp2->run_analysis (
-        spatial_conditions => ['sp_select_all()'],
-        calculations       => ['calc_nri_nti1'],
+    $sp2->run_analysis(
+        spatial_conditions => [ 'sp_select_all()' ],
+        calculations       => [ 'calc_nri_nti1' ],
         tree_ref           => $tree2,
     );
     my @groups = sort $bd->get_groups;
     my $tgt_gp = $groups[0];
-    my $set1 = $sp1->get_list_ref (
+    my $set1 = $sp1->get_list_ref(
         element => $tgt_gp,
         list    => 'SPATIAL_RESULTS',
     );
-    my $set2 = $sp2->get_list_ref (
+    my $set2 = $sp2->get_list_ref(
         element => $tgt_gp,
         list    => 'SPATIAL_RESULTS',
     );
     is $set1, $set2, 'get same NTI expectation with and without shortcut';
+};
+
+do {
+    $bd->delete_all_outputs;
+    my $spx1 = $bd->add_spatial_output (name => 'Just an NRI/NTI run');
+    my $spx2 = $bd->add_spatial_output (name => 'VPD after NRI/NTI');
+    my $spy = $bd->add_spatial_output (name => 'VPD clean tree');
+    my $spz = $bd->add_spatial_output (name => 'NRI, NTI and VPD clean tree');
+
+    my $treex = $tree_ref_ultrametric1->clone;
+    $treex->delete_all_cached_values;
+    my $treey = $tree_ref_ultrametric1->clone;
+    $treey->delete_all_cached_values;
+    my $treez = $tree_ref_ultrametric1->clone;
+    $treez->delete_cached_values;
+
+    # faster running on single group
+    my $tgt_gp = '3300000:900000';  #  arbitrary group in nbr set
+    my %sp_cond = (
+        spatial_conditions => ["sp_select_element (element => '$tgt_gp')"]
+    );
+
+    $spx1->run_analysis(
+        %sp_cond,
+        calculations       => [ 'calc_nri_nti1' ],
+        tree_ref           => $treex,
+    );
+    $spx2->run_analysis(
+        %sp_cond,
+        calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values' ],
+        tree_ref           => $treex,
+    );
+    $spy->run_analysis(
+        %sp_cond,
+        calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values' ],
+        tree_ref           => $treey,
+    );
+    $spz->run_analysis(
+        %sp_cond,
+        calculations       => [ 'calc_net_vpd', 'calc_vpd_expected_values', 'calc_nri_nti1' ],
+        tree_ref           => $treez,
+    );
+    my $results_x2 = $spx2->get_list_ref(
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+    ok $results_x2->{PHYLO_NET_VPD}, 'Net VPD is not false when tree used for NRI/NTI beforehand'
+      or diag join ' ', map {"$_ => " . ($results_x2->{$_} // 'undef')} sort keys %$results_x2;
+
+    my $results_y = $spy->get_list_ref(
+        element => $tgt_gp,
+        list    => 'SPATIAL_RESULTS',
+    );
+    ok $results_y->{PHYLO_NET_VPD}, 'Net VPD is not false when tree not used for NRI/NTI beforehand'
+      or diag join ' ', map {"$_ => " . ($results_y->{$_} // 'undef')} sort keys %$results_y;
+# $bd->save (filename => 'bb.bds');
+
+    is $results_x2, $results_y, 'results with previous NRI/NTI same as clean tree';
+    # $treex->dump_to_yaml (data => $treex, filename => 'treex.yml');
+    # $treey->dump_to_yaml (data => $treey, filename => 'treey.yml');
+    # $treez->dump_to_yaml (data => $treez, filename => 'treez.yml');
 };
 
 

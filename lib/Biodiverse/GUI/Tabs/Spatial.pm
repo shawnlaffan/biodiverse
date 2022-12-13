@@ -1543,7 +1543,10 @@ sub colour_branches_on_dendrogram {
     my $output_ref = $self->{output_ref};
 
     my $legend = $dendrogram->get_legend;
-    
+
+    my $is_zscore = $self->index_is_zscore (list => $list_name);
+    $legend->set_zscore_mode ($is_zscore);
+
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
     if ($log_check_box->get_active) {
         $legend->set_log_mode_on;
@@ -1554,6 +1557,7 @@ sub colour_branches_on_dendrogram {
     
     my $checkbox = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
     if ($checkbox->get_active) {
+        $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;
     }
 
@@ -1568,9 +1572,6 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
-    my $is_zscore = $self->index_is_zscore (list => $list_name);
-
-    $legend->set_zscore_mode ($is_zscore);
     my @minmax_args = $is_zscore ? () : ($min, $max);
     my $colour_method = $is_zscore ? 'get_colour_zscore' : 'get_colour';
 

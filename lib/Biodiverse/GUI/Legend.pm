@@ -315,6 +315,11 @@ sub get_width {
     return $self->{back_rect_width} // LEGEND_WIDTH;
 }
 
+sub get_height {
+    my $self = shift;
+    return $self->{back_rect_height} // LEGEND_HEIGHT;
+}
+
 # Updates position of legend and value box
 # when canvas is resized or scrolled
 sub reposition {
@@ -808,7 +813,7 @@ sub set_text_marks_zscore {
     foreach my $i (0 .. $#strings) {
         my $mark = $mark_arr->[$#strings - $i];
         $mark->set( text => $strings[$i] );
-        $mark->show;
+        # $mark->show;
         $mark->raise_to_top;
     }
 
@@ -873,7 +878,7 @@ sub set_zscore_mode_on {
     $self->{zscore_mode} = 1;
     if (!$prev_val) {  #  update legend colours
         $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
     }
     return 1;
 }

@@ -100,11 +100,7 @@ do {
     #srand 1234;
     #  modify the tree
     foreach my $node (sort {$a->get_name cmp $b->get_name} $tree2->get_node_refs) {
-        my $len = $node->get_length;
-        #$node->set_length_aa (rand() * 10);
         $node->set_length_aa(1);
-
-        #diag $node->get_name . " $len " . $node->get_length;
     }
     #  add some single child parents to the root so we test such danglers
     my $root1 = $tree2->get_root_node;

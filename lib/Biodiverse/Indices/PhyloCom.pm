@@ -1080,6 +1080,12 @@ sub _calc_nri_nti_expected_values {
         my $cache      = $args{$cache_name};
         my $cached_scores = $cache->{$label_count};
 
+        #  we need to recalculate if VPD is needed and only NRI/NTI have been done so far
+        if (   $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE')
+            && !defined $cached_scores->{PHYLO_NET_VPD_SAMPLE_N}) {
+                $cached_scores = undef;
+        }
+
         if ($ENV{BD_IGNORE_NTI_CACHE} || !$cached_scores) {  #  need to calculate the scores
             $cached_scores = $self->get_nri_nti_expected_values (
                 %args,

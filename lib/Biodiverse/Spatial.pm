@@ -1161,6 +1161,12 @@ sub sp_calc {
     return 1;
 }
 
+sub get_spatial_conditions_count {
+    my $self = shift;
+    my $arr  = $self->get_spatial_conditions // [];
+    return scalar @$arr;
+}
+
 #  assumes they have already been calculated
 sub get_calculated_nbr_lists_for_element {
     my $self = shift;

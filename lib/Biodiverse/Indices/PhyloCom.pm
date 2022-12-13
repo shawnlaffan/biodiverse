@@ -1079,21 +1079,29 @@ sub _calc_nri_nti_expected_values {
         my $cache_name = 'PHYLO_NRI_NTI_SAMPLE_CACHE';
         my $cache      = $args{$cache_name};
         my $cached_scores = $cache->{$label_count};
+        my $working_cache = $cached_scores;
 
         #  we need to recalculate if VPD is needed and only NRI/NTI have been done so far
-        if (   $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE')
-            && !defined $cached_scores->{PHYLO_NET_VPD_SAMPLE_N}) {
-                $cached_scores = undef;
-        }
+        #  or vice versa
+        my $need_variance = $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
+        my $recalc
+            =  ($need_variance  && !defined $cached_scores->{PHYLO_NET_VPD_SAMPLE_N})
+            || (!$need_variance && !defined $cached_scores->{PHYLO_NRI_SAMPLE_MEAN});
 
-        if ($ENV{BD_IGNORE_NTI_CACHE} || !$cached_scores) {  #  need to calculate the scores
-            $cached_scores = $self->get_nri_nti_expected_values (
+        #  need to calculate the scores
+        if ($ENV{BD_IGNORE_NTI_CACHE} || $recalc || !$working_cache) {
+            $working_cache = $self->get_nri_nti_expected_values (
                 %args,
                 label_count => $label_count,
             );
+            #  merge the caches if needed, but keep existing values
+            $cached_scores //= $working_cache;
+            foreach my $key (keys %$working_cache) {
+                $cached_scores->{$key} //= $working_cache->{$key};
+            }
             $cache->{$label_count} = $cached_scores;
         }
-        
+
         @results{keys %$cached_scores} = values %$cached_scores;
     }
     
@@ -1153,7 +1161,11 @@ sub get_nri_nti_expected_values {
 
         $do_sample_mntd = 0;
     }
-    if ($do_sample_mntd && $label_count == $tree->get_terminal_element_count && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}) {
+    if ($do_sample_mntd
+        && $label_count == $tree->get_terminal_element_count
+        && !$ENV{BD_NO_NTI_MAX_N_SHORTCUT}
+        ) {
+
         $mntd_mean = $tree->get_mean_nearest_neighbour_distance;
         $mntd_sd   = 0;
 

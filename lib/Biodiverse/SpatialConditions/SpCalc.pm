@@ -1982,7 +1982,7 @@ sub sp_get_spatial_output_list_value {
         element => $element,
     );
     
-    my $idx_ex_cache_name
+    state $idx_ex_cache_name
       = 'sp_get_spatial_output_list_value_list_exists';
 
     if (   !exists $list->{$index}
@@ -2364,7 +2364,7 @@ sub sp_points_in_same_cluster {
                 . $bd->get_name
                 . "\n";
 
-    my $cache_name = 'sp_points_in_same_cluster_output_group ';
+    state $cache_name = 'sp_points_in_same_cluster_output_group';
     $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
     my $by_element = $self->get_cached_value ($cache_name);
     if (!$by_element) {
@@ -2456,7 +2456,7 @@ sub sp_point_in_cluster {
                 . $bd->get_name
                 . "\n";
 
-    my $cache_name = 'sp_points_in_cluster_output_group ';
+    state $cache_name = 'sp_points_in_cluster_output_group';
     $cache_name   .= join $SUBSEP, %args{sort keys %args}; # $SUBSEP is \034 by default
     my $terminal_elements = $self->get_cached_value ($cache_name);
     if (!$terminal_elements) {

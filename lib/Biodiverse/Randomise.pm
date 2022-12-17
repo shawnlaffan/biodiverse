@@ -402,6 +402,8 @@ sub run_randomisation {
     my $self = shift;
     my %args = @_;
 
+    my $start_time = time();
+
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
     my $function = $self->get_param ('FUNCTION')
@@ -707,6 +709,10 @@ sub run_randomisation {
     #  even though we are storing the object
     #  this is just in case YAML will not work with MT::Auto
     $self->store_rand_state (rand_object => $rand_object);
+
+    say sprintf
+        "[RANDOMISATION] Time taken for %i iterations: %f seconds",
+        $iterations, time - $start_time;
 
     #  return the rand_bd's if told to
     return (wantarray ? @rand_bd_array : \@rand_bd_array)

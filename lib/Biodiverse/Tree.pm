@@ -3166,7 +3166,7 @@ sub clone_tree_with_rescaled_branch_lengths {
 sub get_nri_expected_mean {
     my ($self, %args) = @_;
 
-    my $cache_key = 'EXACT_MPD_EXACT_EXPECTED_MEAN';
+    state $cache_key = 'EXACT_MPD_EXACT_EXPECTED_MEAN';
 
     my $expected = $self->get_cached_value ($cache_key);
     
@@ -3195,7 +3195,7 @@ sub get_nri_expected_sd {
     my %args = @_;
     my $sample_count = $args{sample_count};
 
-    my $cache_name = 'NRI_EXPECTED_SD_HASH';
+    state $cache_name = 'NRI_EXPECTED_SD_HASH';
 
     my $cached_data = $self->get_cached_value ($cache_name);
     

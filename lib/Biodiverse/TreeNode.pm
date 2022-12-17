@@ -1315,7 +1315,7 @@ sub get_path_name_array_to_root_node_aa {
 sub get_distance_to_root_node {
     my $self = shift;
     my %args = (cache => 1, @_);
-    my $cache_key = 'PATH_DISTANCE_TO_ROOT_NODE';
+    state $cache_key = 'PATH_DISTANCE_TO_ROOT_NODE';
     
     if ($args{cache}) {
         my $dist = $self->get_cached_value ($cache_key);
@@ -2555,7 +2555,7 @@ sub shuffle_terminal_names {
 
 sub get_nri_tce_score {
     my ($self, %args) = @_;
-    my $cache_name = 'NRI_TCE_SCORE';
+    state $cache_name = 'NRI_TCE_SCORE';
     my $value = $self->get_cached_value ($cache_name);
     if (!defined $value) {
         #  we need to do the whole tree
@@ -2607,7 +2607,7 @@ sub _calc_nri_tce_score {
     my $value = $SO + $SA + $SI;
     
     
-    my $cache_name = 'NRI_TCE_SCORE';
+    state $cache_name = 'NRI_TCE_SCORE';
     $self->set_cached_value ($cache_name => $value);
     
     return $sum_off + $length * $se;
@@ -2617,7 +2617,7 @@ sub _calc_nri_tce_score {
 sub get_nri_all_weights {
     my ($self, %args) = @_;
 
-    my $cache_name = 'NRI_ALL_WEIGHTS';
+    state $cache_name = 'NRI_ALL_WEIGHTS';
 
     my $root = $self->get_root_node;
     my $value = $root->get_cached_value ($cache_name);
@@ -2646,7 +2646,7 @@ sub get_nri_all_weights {
 sub _get_len_sum_by_tip_count_hash {
     my $self = shift;
 
-    my $cache_key = 'LEN_SUM_BY_TIP_COUNT_HASH';
+    state $cache_key = 'LEN_SUM_BY_TIP_COUNT_HASH';
     my $hash = $self->get_cached_value ($cache_key);
     if ($hash) {
         return wantarray ? %$hash : $hash; 

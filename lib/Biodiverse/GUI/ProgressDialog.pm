@@ -109,6 +109,9 @@ sub destroy_callback {
     return $self->destroy;
 }
 
+
+my $LAST_UPDATE_TIME = time;
+
 sub update {
     my ($self, $text, $progress) = @_;
 
@@ -144,9 +147,17 @@ sub update {
 
     $bar->set_fraction($progress);
 
-    Gtk2->main_iteration while Gtk2->events_pending;
-
     Biodiverse::GUI::GUIManager->instance->show_progress;
+
+    #  Only refresh the display every so often, otherwise many progress dialogues
+    #  trigger many display updates.
+    #  This might need to be an instance var if we go parallel.
+    if ((time - $LAST_UPDATE_TIME) > $self->{progress_update_interval}) {
+
+        Gtk2->main_iteration while Gtk2->events_pending;
+
+        $LAST_UPDATE_TIME = time;
+    }
 
     return;
 }

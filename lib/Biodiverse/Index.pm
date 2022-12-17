@@ -140,7 +140,7 @@ sub get_element_count {
 sub get_item_density_across_all_poss_index_elements {
     my $self = shift;
 
-    my $cache_key = 'ITEM_DENSITY_ACROSS_ALL_POSS_INDEX_ELEMENTS';
+    state $cache_key = 'ITEM_DENSITY_ACROSS_ALL_POSS_INDEX_ELEMENTS';
 
     my $val = $self->get_cached_value ($cache_key);
     return $val if defined $val;

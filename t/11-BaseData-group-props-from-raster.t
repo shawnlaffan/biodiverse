@@ -39,7 +39,6 @@ sub main {
     return 0;
 }
 
-
 sub test_group_props_from_rasters {
     #  too much hard coding going on here
     
@@ -50,7 +49,7 @@ sub test_group_props_from_rasters {
     
     my $bd = Biodiverse::BaseData->new (
         NAME => 'blognorg',
-        CELL_SIZES => [10,10],
+        CELL_SIZES => [$cellx, $celly],
         CELL_ORIGINS => [0,0],
     );
     foreach my $x (0 .. 5) {
@@ -90,8 +89,8 @@ sub test_group_props_from_rasters {
         my $local_params = $raster_params[$n];
         my $tiff = get_raster(
             name    => "$dir/$tiff_name",
-            xorigin => 0,
-            yorigin => 0,
+            xorigin => 1,  #  slightly offset from main basedata
+            yorigin => 1,
             xres    => 1,
             yres    => 1,
             %$local_params,
@@ -273,17 +272,15 @@ sub get_raster {
     my $nrows = $args{nrows} // 5;
     my $xres  = $args{xres}  // 1;
     my $yres  = $args{yres}  // 1;
+    my $xorigin = $args{xorigin} // 0;
+    my $yorigin = $args{yorigin} // 0;
 
     my $tiff = GetDriver('GTiff')->Create($tiff_name, $ncols, $nrows);
-    my $transform = [1,1,0,1,0,1];
+    my $transform = [$xorigin,$xres,0,$yorigin,0,$yres];
     $tiff->SetGeoTransform($transform);
     my @data;
     foreach my $col (0..$ncols-1) {
-        my @vals;
-        foreach my $row (0 ..$nrows-1) {
-            push @vals, $row;
-        }
-        push @data, \@vals;
+        push @data, [0 .. $nrows-1];
     }
     $tiff->GetBand->Write(\@data);
     return $tiff_name;

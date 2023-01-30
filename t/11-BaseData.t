@@ -2016,6 +2016,59 @@ sub test_merge {
 }
 
 
+sub test_extent_from_raster {
+    # my $dir = tempdir('gp_extent_raster');
+
+    use Geo::GDAL::FFI qw/Open GetDriver/;
+    use JSON::MaybeXS;
+
+    my $tiff_name = "extent_test.tif";
+    my ($ncols, $nrows) = (5, 5);
+    my $tiff = GetDriver('GTiff')->Create($tiff_name, $ncols, $nrows);
+    my $transform = [1,1,0,1,0,1];
+    $tiff->SetGeoTransform($transform);
+    my @data;
+    foreach my $col (1..$ncols) {
+        push @data, [1 .. $nrows];
+    }
+    $tiff->GetBand->Write(\@data);
+
+    # my $info = decode_json (Open($tiff)->Info(['-json']));
+    my $info = decode_json ($tiff->Info(['-json']));
+    use DDP;
+    # p $info;
+    # my $origin = $info->{cornerCoordinates}{upperLeft};  #  why upper left?  GDAL issue?
+    is $info->{cornerCoordinates}{upperLeft},  [1,1], 'plain tiff info UL';
+    is $info->{cornerCoordinates}{lowerRight}, [6,6], 'plain tiff info LL';
+
+    undef $tiff;  #  close it off
+
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'blognorg',
+        CELL_SIZES => [1, 1],
+        CELL_ORIGINS => [0,0],
+    );
+    $bd->import_data_raster (
+        input_files => [$tiff_name],
+        labels_as_bands   => 1,
+        raster_origin_e   => 0,
+        raster_origin_n   => 0,
+        raster_cellsize_e => 1,
+        raster_cellsize_n => 1,
+        labels_as_bands => 1,
+    );
+    my $bounds  = $bd->get_coord_bounds;
+    my $bnd_max = $bounds->{MAX};
+    my $bnd_min = $bounds->{MIN};
+
+    #  these are in by half the cell size
+    is $bnd_min, [1.5, 1.5],
+        'min bounds for basedata matches raster when importing at same resolution';
+    is $bnd_max, [5.5, 5.5],
+        'max bounds for basedata matches raster when importing at same resolution';
+}
+
+
 
 sub get_label_remap_data {
     return get_data_section('LABEL_REMAP');

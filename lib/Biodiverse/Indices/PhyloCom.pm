@@ -1071,39 +1071,39 @@ sub _calc_nri_nti_expected_values {
 
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $label_count    = scalar keys %$labels_on_tree;
+    
+    #  skip if < 2 labels on tree
+    return wantarray ? () : {}
+      if $label_count < 2;
 
-    #my ($mean, $sd, $n, $score);
-    my %results;
+    my $cache_name = 'PHYLO_NRI_NTI_SAMPLE_CACHE';
+    my $cache      = $args{$cache_name};
+    my $cached_scores = $cache->{$label_count};
+    my $working_cache = $cached_scores;
 
-    if ($label_count > 1) {  #  skip if < 2 labels on tree
-        my $cache_name = 'PHYLO_NRI_NTI_SAMPLE_CACHE';
-        my $cache      = $args{$cache_name};
-        my $cached_scores = $cache->{$label_count};
-        my $working_cache = $cached_scores;
+    #  we need to recalculate if VPD is needed and only NRI/NTI have been done so far
+    #  or vice versa
+    my $need_variance = $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
+    my $recalc
+        =  ($need_variance  && !defined $cached_scores->{PHYLO_NET_VPD_SAMPLE_N})
+        || (!$need_variance && !defined $cached_scores->{PHYLO_NRI_SAMPLE_MEAN});
 
-        #  we need to recalculate if VPD is needed and only NRI/NTI have been done so far
-        #  or vice versa
-        my $need_variance = $self->get_param('CALCULATE_NRI_VARIANCE_SAMPLE');
-        my $recalc
-            =  ($need_variance  && !defined $cached_scores->{PHYLO_NET_VPD_SAMPLE_N})
-            || (!$need_variance && !defined $cached_scores->{PHYLO_NRI_SAMPLE_MEAN});
-
-        #  need to calculate the scores
-        if ($ENV{BD_IGNORE_NTI_CACHE} || $recalc || !$working_cache) {
-            $working_cache = $self->get_nri_nti_expected_values (
-                %args,
-                label_count => $label_count,
-            );
-            #  merge the caches if needed, but keep existing values
-            $cached_scores //= $working_cache;
-            foreach my $key (keys %$working_cache) {
-                $cached_scores->{$key} //= $working_cache->{$key};
-            }
-            $cache->{$label_count} = $cached_scores;
+    #  need to calculate the scores
+    if ($ENV{BD_IGNORE_NTI_CACHE} || $recalc || !$working_cache) {
+        $working_cache = $self->get_nri_nti_expected_values (
+            %args,
+            label_count => $label_count,
+        );
+        #  merge the caches if needed, but keep existing values
+        $cached_scores //= $working_cache;
+        foreach my $key (keys %$working_cache) {
+            $cached_scores->{$key} //= $working_cache->{$key};
         }
-
-        @results{keys %$cached_scores} = values %$cached_scores;
+        $cache->{$label_count} = $cached_scores;
     }
+
+    #  shallow copy so as not to mess with the cache
+    my %results = %$cached_scores;  
     
     return wantarray ? %results : \%results;
 }

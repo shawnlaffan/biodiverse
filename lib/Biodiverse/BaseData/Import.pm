@@ -1763,6 +1763,7 @@ sub import_data_spreadsheet {
 
         my @rows   = Spreadsheet::Read::rows( $book->[$sheet_id] );
         my $header = shift @rows;
+        $header = [map {$_ // ''} @$header];
 
         #  some validation (and get the col numbers)
         my $i = -1;

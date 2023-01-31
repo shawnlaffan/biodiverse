@@ -28,6 +28,8 @@ use Spreadsheet::Read 0.82;
 
 use Geo::GDAL::FFI 0.07;
 
+use experimental 'declared_refs';
+
 
 #  how much input file to read in one go
 our $lines_to_read_per_chunk = 100000;
@@ -817,12 +819,12 @@ sub import_data_raster {
                     $maxh = min( $ysize, $hpos + $blockh );
 
             #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";
-                    my $lr = $band->Read(
+                    \my @tile = $band->Read(
                         $wpos, $hpos,
                         $maxw - $wpos,
                         $maxh - $hpos
                     );
-                    my @tile  = @$lr;
+                    # my @tile  = @$lr;
                     my $gridy = $hpos + 0.5;  #  cell centre, need to do x also
 
                   ROW:
@@ -839,7 +841,9 @@ sub import_data_raster {
                               $halfcellsize_n;
                         }
 
-                        my $gridx = $wpos - 0.5;  #  cell centre
+                        #  $gridx is the cell centre, gets incremented by 1 at
+                        #  start of loop so processing starts at 0.5
+                        my $gridx = $wpos - 0.5;
                         my $prev_x =
                           $tf_0 - 100; #  just need something west of the origin
 
@@ -858,7 +862,6 @@ sub import_data_raster {
                             # transformation start at bottom-left
                             # corner (transform handled by following
                             # affine transformation, with y-pixel size = -1).
-                            #  ...except when they are north-oriented - see issue #845
 
                             # find transformed position (see GDAL specs)
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)

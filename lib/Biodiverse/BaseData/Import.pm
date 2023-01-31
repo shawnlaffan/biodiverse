@@ -861,6 +861,7 @@ sub import_data_raster {
                             # transformation start at bottom-left
                             # corner (transform handled by following
                             # affine transformation, with y-pixel size = -1).
+                            #  ...except when they are north-oriented - see issue #845
 
                             # find transformed position (see GDAL specs)
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)

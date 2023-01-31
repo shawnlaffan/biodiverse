@@ -740,9 +740,6 @@ sub import_data_raster {
         #  that it should since Biodiverse doesn't either.
         $cellsize_e ||= abs $tf_1;
         $cellsize_n ||= abs $tf_5;
-        if ($tf_5 < 0) {  #  shift down south-oriented files
-            $halfcellsize_n = -(abs $halfcellsize_n);
-        }
 
         # iterate over each band
         foreach my $band_id ( 1 .. $band_count ) {
@@ -826,7 +823,7 @@ sub import_data_raster {
                         $maxh - $hpos
                     );
                     my @tile  = @$lr;
-                    my $gridy = $hpos;
+                    my $gridy = $hpos + 0.5;  #  cell centre, need to do x also
 
                   ROW:
                     foreach my $lineref (@tile) {
@@ -842,7 +839,7 @@ sub import_data_raster {
                               $halfcellsize_n;
                         }
 
-                        my $gridx = $wpos - 1;
+                        my $gridx = $wpos - 0.5;  #  cell centre
                         my $prev_x =
                           $tf_0 - 100; #  just need something west of the origin
 

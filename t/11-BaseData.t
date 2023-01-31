@@ -1206,7 +1206,7 @@ sub test_roundtrip_raster {
         foreach my $this_file (@exported_files) {
             #  must have a file extension - er-mapper files do not by default
             next if $this_file !~ /\.\w\w\w\w?$/;
-            
+
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
@@ -1270,7 +1270,7 @@ sub test_roundtrip_raster {
                 );
             }
         };
-        
+
         is (
           scalar $bd->get_coord_bounds,
           scalar $new_bd->get_coord_bounds,
@@ -2033,11 +2033,8 @@ sub test_extent_from_raster {
     }
     $tiff->GetBand->Write(\@data);
 
-    # my $info = decode_json (Open($tiff)->Info(['-json']));
     my $info = decode_json ($tiff->Info(['-json']));
-    use DDP;
-    # p $info;
-    # my $origin = $info->{cornerCoordinates}{upperLeft};  #  why upper left?  GDAL issue?
+    #  north-oriented data in raster so upper is really lower
     is $info->{cornerCoordinates}{upperLeft},  [1,1], 'plain tiff info UL';
     is $info->{cornerCoordinates}{lowerRight}, [6,6], 'plain tiff info LL';
 

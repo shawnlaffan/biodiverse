@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 use Statistics::Descriptive::PDL::SampleWeighted '0.11';
 my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';

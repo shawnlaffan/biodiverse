@@ -3,7 +3,7 @@ package Biodiverse::Cluster;
 
 use 5.010;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 use Carp;
 use strict;

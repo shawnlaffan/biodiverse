@@ -13,7 +13,7 @@ use Biodiverse::GUI::BasedataImport;
 use Biodiverse::GUI::YesNoCancel;
 
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 use Biodiverse::GUI::Project;
 

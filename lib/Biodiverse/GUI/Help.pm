@@ -17,7 +17,7 @@ require IO::Socket::SSL;
     
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 ##############################################
 #  Web links.  

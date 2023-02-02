@@ -27,7 +27,7 @@ use parent qw /
     Biodiverse::SpatialConditions::SpCalc
 /;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 my $metadata_class = 'Biodiverse::Metadata::SpatialConditions';
 use Biodiverse::Metadata::SpatialConditions;

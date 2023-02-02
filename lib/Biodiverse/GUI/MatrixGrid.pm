@@ -16,7 +16,7 @@ use POSIX qw /floor/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax/;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 use Gtk2;
 use Gnome2::Canvas;

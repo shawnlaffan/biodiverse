@@ -6,7 +6,7 @@ use Carp;
 use Readonly;
 use Clone qw /clone/;
 
-our $VERSION = '4.0';
+our $VERSION = '4.1';
 
 use parent qw /Biodiverse::Metadata/;
 

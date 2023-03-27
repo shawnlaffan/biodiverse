@@ -749,6 +749,7 @@ sub import_data_raster {
             my ( $blockw, $blockh, $maxw, $maxh );
             my ( $wpos, $hpos ) = ( 0, 0 );
             my $nodata_value = $band->GetNoDataValue;
+            my $nodata_is_numeric = (looks_like_number ($nodata_value) && $nodata_value !~ /nan/i);
             my $this_label;
 
             say "Band $band_id, type ", $band->GetDataType;
@@ -855,7 +856,9 @@ sub import_data_raster {
                             # when it is added as an argument
                             next COLUMN
                               if defined $nodata_value
-                              && $entry == $nodata_value;
+                              and $nodata_is_numeric
+                                ? $entry == $nodata_value
+                                : $entry eq $nodata_value;  #  NaN comes through as text
 
                             # data points are 0,0 at top-left of data,
                             # however grid coordinates used for

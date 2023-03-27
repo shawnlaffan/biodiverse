@@ -1400,6 +1400,36 @@ sub test_raster_zero_cellsize {
     
 }
 
+sub test_raster_nodata_is_nan {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data//rast_nodata_is_nan.tif';
+    #note("testing filename $fname");
+
+    my %bd_args = (
+        NAME => 'test nodata is nan',
+        CELL_SIZES => [0.1,0.1],
+    );
+
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data_raster (
+            input_files       => [$fname],
+            labels_as_bands   => 1,
+            raster_origin_e   => 0,
+            raster_origin_n   => 1,
+            raster_cellsize_e => 0.1,
+            raster_cellsize_n => 0.1,
+        );
+    };
+    is ($@, '', 'import vanilla with no exceptions raised');
+
+    my @labels = $bd->get_labels;
+    my $sample_count = $bd->get_label_sample_count (label => $labels[0]);
+
+    ok $sample_count !~ /nan/i, "Sample count is not a NaN";
+
+}
+
 sub test_import_shapefile_dms_coords {
     my %bd_args = (
         NAME => 'test import shapefile DMS',

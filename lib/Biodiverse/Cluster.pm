@@ -8,7 +8,7 @@ our $VERSION = '4.1';
 use Carp;
 use strict;
 use warnings;
-use English ( -no_match_vars );
+use English qw ( -no_match_vars );
 
 #use Data::Dumper;
 use Scalar::Util qw/blessed/;
@@ -17,7 +17,11 @@ use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /time/;
+use Sort::Key qw /rnkeysort/;
 use Sort::Key::Natural qw /natsort/;
+
+
+use experimental qw /declared_refs/;
 
 use Geo::GDAL::FFI;
 #  silence some used-once warnings - very clunky
@@ -2795,9 +2799,10 @@ sub sp_calc {
 
     print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
+    \my @node_refs = $self->get_node_refs;
 
     #  loop though the nodes and calculate the outputs
-    foreach my $node ($self->get_node_refs) {
+    foreach my $node (rnkeysort {$_->get_depth} @node_refs) {
         $count ++;
 
         $progress_bar->update (

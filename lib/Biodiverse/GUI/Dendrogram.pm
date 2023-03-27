@@ -873,7 +873,9 @@ sub recolour_cluster_elements {
     my $colour_callback;
     
     my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
-    my $is_zscore = $parent_tab->index_is_zscore (list => $list_name, index => $list_index);
+    my $is_zscore = eval {
+        $parent_tab->index_is_zscore(list => $list_name, index => $list_index);
+    };
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -1232,7 +1234,9 @@ sub recolour_cluster_lines {
     my $colour_mode  = $self->get_cluster_colour_mode();
     
     my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/;
-    my $is_zscore = $self->{parent_tab}->index_is_zscore (list => $list_name, index => $list_index);
+    my $is_zscore = eval {
+        $self->{parent_tab}->index_is_zscore (list => $list_name, index => $list_index);
+    };
 
     foreach my $node_ref (@$cluster_nodes) {
 

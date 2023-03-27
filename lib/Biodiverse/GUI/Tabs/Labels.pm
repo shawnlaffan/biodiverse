@@ -312,7 +312,7 @@ sub init_dendrogram {
         ctrl_click_func => $ctrl_click_closure,
         click_func      => $click_closure,
         select_func     => $select_closure,
-        parent_tab      => undef,
+        parent_tab      => $self,
         basedata_ref    => $self->{base_ref},
     );
     $self->{dendrogram}{page} = $self;
@@ -2410,6 +2410,8 @@ sub do_set_selection_mode {
 
 sub numerically {$a <=> $b};
 
+#  dummy sub
+sub index_is_zscore {}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

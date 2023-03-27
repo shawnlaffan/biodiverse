@@ -1235,21 +1235,17 @@ sub test_roundtrip_raster {
                 ) or diag "Raster roundtripper: Could not rename label $this_label to $new_name";
             }
             else {
-                #  Workaround until we handle band names
-                #  in multiband rasters.
-                #  It means we don't properly test imports,
-                #  but it's a problem left for V3 when we
-                #  shift to Geo::GDAL::FFI
-                my $bi = 0;
-                foreach my $label (sort $bd->get_labels) {
-                    $bi++;
+                #  need to handle names in multiband rasters
+                #  Should probably do the uri_unescape in the import
+                foreach my $label (sort $new_bd->get_labels) {
+                    my $new_label = uri_unescape($label);
                     my $renamed = $new_bd->rename_label (
-                        label    => 'band' . $bi,
-                        new_name => $label,
+                        label    => $label,
+                        new_name => $new_label,
                     );
                     #  canary test that will start failing when/if
-                    #  we process band names properly
-                    ok $renamed, "Renamed ers band band$bi to $label";
+                    #  we process band names properly (or change it)
+                    ok $renamed, "Renamed ers band $label to $new_label";
                 }
             }
         }

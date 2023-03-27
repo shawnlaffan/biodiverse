@@ -757,17 +757,18 @@ sub import_data_raster {
                 $this_label = $given_label;
             }
             elsif ($labels_as_bands) {
-
-                # if single band, set label as filename
-                if ( $band_count == 1 ) {
-                    $this_label =
-                      Path::Class::File->new( $file->stringify )->basename();
-                    if ($strip_file_extensions_from_names) {
-                        $this_label =~ s/\.\w+$//;    #  should use fileparse?
+                $this_label = eval {$band->Geo::GDAL::FFI::Object::GetDescription};
+                if (!length ($this_label) || $this_label =~ /^\s*$/) {
+                    # if single band, set label as filename
+                    if ( $band_count == 1 ) {
+                        $this_label = $file->basename();
+                        if ($strip_file_extensions_from_names) {
+                            $this_label =~ s/\.\w+$//;    #  should use fileparse?
+                        }
                     }
-                }
-                else {
-                    $this_label = "band$band_id";
+                    else {
+                        $this_label = "band$band_id";
+                    }
                 }
             }
             if ( defined $this_label ) {

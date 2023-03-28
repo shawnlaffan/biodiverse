@@ -8,7 +8,7 @@ use Carp;
 
 use List::Util qw /max min sum/;
 
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

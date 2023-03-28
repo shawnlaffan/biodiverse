@@ -49,7 +49,7 @@ use Biodiverse::Indices;
 use Biodiverse::Metadata::Parameter;
 my $parameter_metadata_class = 'Biodiverse::Metadata::Parameter';
 
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 use parent qw {
     Biodiverse::Common

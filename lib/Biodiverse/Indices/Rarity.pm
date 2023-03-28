@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.020;
 
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 #  we need access to one sub from Endemism.pm
 use parent qw /Biodiverse::Indices::Endemism/;

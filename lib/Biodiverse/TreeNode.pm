@@ -23,7 +23,7 @@ use Biodiverse::TreeNode::BootstrapBlock;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '4.1';
+our $VERSION = '4.2';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };

@@ -2628,10 +2628,10 @@ sub get_sig_rank_from_comp_results {
     my %args = @_;
     
     #  could alias this
-    my $comp_list_ref = $args{comp_list_ref}
+    \my %comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
 
-    my $results_list_ref = $args{results_list_ref} // {};
+    \my %results_list_ref = $args{results_list_ref} // {};
 
     my ($sig_thresh_lo, $sig_thresh_hi);
     #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
@@ -2644,21 +2644,21 @@ sub get_sig_rank_from_comp_results {
         $sig_thresh_hi = 0.95;
     }
 
-    foreach my $c_key (grep {$_ =~ /^C_/} keys %$comp_list_ref) {
+    foreach my $c_key (grep {$_ =~ /^C_/} keys %comp_list_ref) {
         
         my $index_name = substr $c_key, 2;
 
-        if (!defined $comp_list_ref->{$c_key}) {
-            $results_list_ref->{$index_name} = undef;
+        if (!defined $comp_list_ref{$c_key}) {
+            $results_list_ref{$index_name} = undef;
             next;
         }
 
         #  proportion observed higher than random
         my $p_key  = 'P_' . $index_name;
-        my $p_high = $comp_list_ref->{$p_key};
+        my $p_high = $comp_list_ref{$p_key};
 
         if (   $p_high > $sig_thresh_hi) {
-            $results_list_ref->{$index_name} = $p_high;
+            $results_list_ref{$index_name} = $p_high;
         }
         else {
             my $t_key = 'T_' . $index_name;
@@ -2666,15 +2666,15 @@ sub get_sig_rank_from_comp_results {
 
             #  proportion observed lower than random 
             my $p_low
-              =   ($comp_list_ref->{$c_key} + ($comp_list_ref->{$t_key} // 0))
-                /  $comp_list_ref->{$q_key};
+              =   ($comp_list_ref{$c_key} + ($comp_list_ref{$t_key} // 0))
+                /  $comp_list_ref{$q_key};
 
-            $results_list_ref->{$index_name}
+            $results_list_ref{$index_name}
               = ($p_low < $sig_thresh_lo) ? $p_low : undef;
         }
     }
 
-    return wantarray ? %$results_list_ref : $results_list_ref;
+    return wantarray ? %results_list_ref : \%results_list_ref;
 }
 
 

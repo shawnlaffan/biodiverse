@@ -21,7 +21,7 @@ local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
+use Biodiverse::TestHelpers qw /:cluster :element_properties :tree :utils/;
 use Biodiverse::Cluster;
 
 use Biodiverse::Randomise;
@@ -1768,11 +1768,8 @@ sub test_p_ranks  {
             );
             #  values are undef for non-sig, or the sig thresh passed (low is negated) 
             foreach my $key (sort keys %$sig_listref) {
-                my $value = $sig_listref->{$key};
-                if (defined $value) {
-                    $defined_count++;
-                    ok ($value < $bounds[0] || $value > $bounds[1], "$value in valid interval ($key), $gp");
-                }
+                $defined_count
+                    = rand_p_rank_is_valid ($sig_listref, $rand_listref, $key, $gp);
             }
         }
         ok ($defined_count, "At least some spatial sig values were defined (got $defined_count)");
@@ -1801,14 +1798,9 @@ sub test_p_ranks  {
                 [sort keys %expected_keys],
                 "got expected keys for $node_name",
             );
-            #  values are undef for non-sig, or the sig thresh passed (low is negated) 
             foreach my $key (sort keys %$sig_listref) {
-                my $value = $sig_listref->{$key};
-                if (defined $value) {
-                    $defined_count++;
-                    #  use eq, not ==, due to floating point issues with 0.1
-                    ok ($value < $bounds[0] || $value > $bounds[1], "$value in valid interval ($key), $node_name");
-                }
+                $defined_count
+                    = rand_p_rank_is_valid ($sig_listref, $rand_listref, $key, $node_name);
             }
         }
         ok ($defined_count, "At least some cluster node sig values were defined (got $defined_count)");
@@ -1880,7 +1872,8 @@ sub test_p_rank_thresh_calcs {
     #say Dumper $p_rank;
 }
 
-sub test_p_rank_calcs {
+#  not needed now
+sub _xx_test_p_rank_calcs {
     my $bd = Biodiverse::BaseData->new(NAME => 'test_p_ranks', CELL_SIZES => [1,1]);
     
     #  set things up in one go for clarity, then subdivide

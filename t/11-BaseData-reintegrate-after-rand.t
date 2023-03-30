@@ -678,14 +678,11 @@ sub check_randomisation_lists_incremented_correctly_spatial {
 
         foreach my $sig_list_name (sort @sig_lists) {
             #  we only care if they are in the valid set
-            my %l_args = (element => $group, list => $sig_list_name);
-            my $lr_integr = $sp_integr->get_list_ref (%l_args);
-            foreach my $key (keys %$lr_integr) {
-                my $value = $lr_integr->{$key};
-                if (defined $value) {
-                    my $msg ="p-rank $value in valid interval ($key), $group, $sig_list_name";
-                    $collated_sig_list_got{$msg} = ($value < 0.05 || $value > 0.95);
-                }
+            my $orig_list_name = $sig_list_name =~ s/>>p_rank//r;
+            my $lr_integr = $sp_integr->get_list_ref (element => $group, list => $sig_list_name);
+            my $rand_list = $sp_integr->get_list_ref (element => $group, list => $orig_list_name);
+            foreach my $key (sort keys %$lr_integr) {
+                rand_p_rank_is_valid ($lr_integr, $rand_list, $key, $group);
             }
         }
     }
@@ -746,15 +743,12 @@ sub check_randomisation_lists_incremented_correctly_cluster {
             foreach my $sig_list_name (sort @sig_lists) {
                 #  We only care if they are in the valid set.
                 #  Replication is handled under test_reintegrate.
-                my %l_args = (list => $sig_list_name);
-                my $lr_integr = $to_node->get_list_ref (%l_args);
+                my $orig_list_name = $sig_list_name =~ s/>>p_rank//r;
+                my $lr_integr = $to_node->get_list_ref (list => $sig_list_name);
+                my $rand_list = $to_node->get_list_ref (list => $orig_list_name);
+                # diag $orig_list_name;
                 foreach my $key (sort keys %$lr_integr) {
-                    my $value = $lr_integr->{$key};
-                    if (defined $value) {
-                        ok ($value < 0.05 || $value > 0.95,
-                            "p-rank $value in valid interval ($key), $node_name",
-                        );
-                    }
+                    rand_p_rank_is_valid ($lr_integr, $rand_list, $key, $node_name);
                 }
             }
 

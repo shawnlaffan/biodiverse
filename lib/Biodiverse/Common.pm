@@ -2633,17 +2633,6 @@ sub get_sig_rank_from_comp_results {
 
     \my %results_list_ref = $args{results_list_ref} // {};
 
-    my ($sig_thresh_lo, $sig_thresh_hi);
-    #  this is recalculated every call - cheap, but perhaps should be optimised or cached?
-    if ($args{threshold}) {
-        $sig_thresh_lo = $args{threshold};
-        $sig_thresh_hi = 1 - $$sig_thresh_lo;
-    }
-    else {
-        $sig_thresh_lo = 0.05;
-        $sig_thresh_hi = 0.95;
-    }
-
     foreach my $c_key (grep {$_ =~ /^C_/} keys %comp_list_ref) {
         
         my $index_name = substr $c_key, 2;
@@ -2654,23 +2643,17 @@ sub get_sig_rank_from_comp_results {
         }
 
         #  proportion observed higher than random
-        my $p_key  = 'P_' . $index_name;
-        my $p_high = $comp_list_ref{$p_key};
-
-        if (   $p_high > $sig_thresh_hi) {
-            $results_list_ref{$index_name} = $p_high;
+        if ($comp_list_ref{"P_${index_name}"} > 0.5) {
+            $results_list_ref{$index_name} = $comp_list_ref{"P_${index_name}"};
         }
         else {
             my $t_key = 'T_' . $index_name;
             my $q_key = 'Q_' . $index_name;
 
             #  proportion observed lower than random 
-            my $p_low
+            $results_list_ref{$index_name}
               =   ($comp_list_ref{$c_key} + ($comp_list_ref{$t_key} // 0))
                 /  $comp_list_ref{$q_key};
-
-            $results_list_ref{$index_name}
-              = ($p_low < $sig_thresh_lo) ? $p_low : undef;
         }
     }
 

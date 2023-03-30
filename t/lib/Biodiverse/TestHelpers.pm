@@ -52,6 +52,7 @@ use Exporter::Easy (
                 verify_set_contents
                 write_data_to_temp_file
                 is_numeric_within_tolerance_or_exact_text
+                rand_p_rank_is_valid
             ),
         ],
         basedata => [
@@ -130,6 +131,37 @@ use Exporter::Easy (
         ],
     ],
 );
+
+
+sub rand_p_rank_is_valid {
+    my ($sig_listref, $rand_listref, $key, $gp) = @_;
+    my $rand_value = $sig_listref->{$key};
+    my $orig_value = $rand_listref->{"P_${key}"};
+
+    ok exists $rand_listref->{"P_${key}"}, "rand list contains key P_${key}"
+      or return;
+
+    my $defined_count;
+    $gp //= '';
+
+    if (defined $orig_value) {
+        $defined_count++;
+        if ($orig_value > 0.5) {
+            is $rand_value, $orig_value, "expected p-rank, value > 0.5 ($key, $gp)";
+        }
+        else {
+            is $rand_value,
+                ($rand_listref->{"C_${key}"} + ($rand_listref->{"T_${key}"} // 0))
+                    / $rand_listref->{"Q_${key}"},
+                "expected p-rank, value <= 0.5 ($key, $gp, $orig_value)";
+        }
+    }
+    else {
+        is $rand_value, $orig_value, "undef p-rank for undef input ($key, $gp)";
+    }
+
+    return $defined_count;
+}
 
 #=item isnt_deeply
 #

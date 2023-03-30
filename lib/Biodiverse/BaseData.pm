@@ -1287,42 +1287,29 @@ sub add_element {    #  run some calls to the sub hashes
 sub add_element_simple_aa {
     my ( $self, $label, $group, $count, $csv_object ) = @_;
 
-    $count //= 1;
-
     #  one of these next conditions will break
     #  if neither label nor group is defined
 
-    my $gp_ref = $self->get_groups_ref;
-    if ( not defined $label ) {
-        $gp_ref->add_element(
-            element    => $group,
-            csv_object => $csv_object,
-        );
-        return;
-    }
+    #  obscure code but micro-optimised as it is a hot path
+    #  so we avoid scopes
+    return $self->get_groups_ref->add_element(
+        element    => $group,
+        csv_object => $csv_object,
+    ) if !defined $label;
 
-    my $lb_ref = $self->get_labels_ref;
-    if ( not defined $group ) {
-        $lb_ref->add_element(
-            element    => $label,
-            csv_object => $csv_object,
-        );
-        return;
-    }
+    return $self->get_labels_ref->add_element(
+        element    => $label,
+        csv_object => $csv_object,
+    ) if !defined $group;
 
-    if ($count) {
+    $count //= 1;
 
-        #  add the labels and groups as element and subelement
-        #  labels is the transpose of groups
-        $gp_ref->add_sub_element_aa( $group, $label, $count, $csv_object );
-        $lb_ref->add_sub_element_aa( $label, $group, $count, $csv_object );
+    return if !$count;
 
-        #  potential slowdown - this sub is a hot path under the randomisations...        
-        ##  we could use the labels_are_numeric method, but don't want to trigger the search in an early import
-        #if (!looks_like_number $label && $self->get_param ('NUMERIC_LABELS')) {
-        #    $self->set_param (NUMERIC_LABELS => 0);
-        #}
-    }
+    #  add the labels and groups as element and subelement
+    #  labels is the transpose of groups
+    $self->get_groups_ref->add_sub_element_aa( $group, $label, $count, $csv_object );
+    $self->get_labels_ref->add_sub_element_aa( $label, $group, $count, $csv_object );
 
     1;
 }

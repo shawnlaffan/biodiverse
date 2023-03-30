@@ -15,6 +15,8 @@ use Scalar::Util qw /blessed/;
 use List::Util qw /min max/;
 use List::MoreUtils qw /minmax firstidx/;
 
+use experimental qw /refaliasing declared_refs/;
+
 use Gtk2;
 use Gnome2::Canvas;
 use Tree::R;
@@ -102,6 +104,7 @@ sub new {
     my @anchors = ('nw', ('w') x 5, 'sw');
     foreach my $i (reverse 0..6) {
         $self->{zscore_marks}[$i] = $self->make_mark($anchors[$i]);
+        $self->{prank_marks}[$i]  = $self->make_mark($anchors[$i]);
     }
 
     #  debug stuff
@@ -186,7 +189,7 @@ sub make_rect {
 
         ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
-        my @dummy_zvals = (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
+        my @dummy_zvals = reverse (-2.6, -2, -1.7, 0, 1.7, 2, 2.6);
 
         foreach my $row (0..($height - 1)) {
             #  a clunky means of aligning the colours with the labels
@@ -200,6 +203,27 @@ sub make_rect {
             $scaled = min ($#dummy_zvals, max (0, $scaled));
             my $class = int (@dummy_zvals * $scaled);
             my $colour = $self->get_colour_zscore ($dummy_zvals[$class]);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
+    elsif ($self->get_prank_mode) {
+        #  cargo culted from above - need to refactor
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+        my @dummy_vals = reverse (0.01, 0.03, 0.09, 0.5, 0.91, 0.951, 0.978);
+
+        foreach my $row (0..($height - 1)) {
+            #  a clunky means of aligning the colours with the labels
+            my $scaled =  $row / $height;
+            if ($scaled > 0.5) {
+                $scaled -= 0.05
+            }
+            elsif ($scaled < 0.5) {
+                $scaled += 0.05
+            }
+            $scaled = min ($#dummy_vals, max (0, $scaled));
+            my $class = int (@dummy_vals * $scaled);
+            my $colour = $self->get_colour_prank ($dummy_vals[$class]);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -360,7 +384,10 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr = $self->get_zscore_mode ? @{$self->{zscore_marks}} : @{$self->{marks}};
+    my @mark_arr
+        = $self->get_zscore_mode ? @{$self->{zscore_marks}}
+        : $self->get_prank_mode  ? @{$self->{prank_marks}}
+        : @{$self->{marks}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -551,7 +578,7 @@ sub get_colour_canape {
 #  supports state on lists (5.28)
 my @zscore_colours
     = map {Gtk2::Gdk::Color->parse($_)}
-    ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
+    reverse ('#d73027', '#fc8d59', '#fee090', '#ffffbf', '#e0f3f8', '#91bfdb', '#4575b4');
 
 sub get_colour_zscore {
     my ($self, $val) = @_;
@@ -562,7 +589,26 @@ sub get_colour_zscore {
         if not defined $val;
 
     #  returns -1 if not found, which will give us last item in @zscore_colours
-    my $idx = firstidx {$val <= $_} (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
+    my $idx
+        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+          (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
+
+    return $zscore_colours[$idx];
+}
+
+#  same colours as the z-scores
+sub get_colour_prank {
+    my ($self, $val) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+
+    return $default_colour
+        if not defined $val;
+
+    #  returns -1 if not found, which will give us last item in @zscore_colours
+    my $idx
+        = firstidx {$val < 0 ? $val < $_ : $val <= $_}
+          (0.025, 0.05, 0.1, 0.9, 0.95, 0.975);
 
     return $zscore_colours[$idx];
 }
@@ -709,6 +755,9 @@ sub set_min_max {
     return $self->set_text_marks_zscore
         if $self->get_zscore_mode;
 
+    return $self->set_text_marks_prank
+        if $self->get_prank_mode;
+
     # foreach my $mark (@{$self->{marks}}) {
     #     $mark->show;
     # }
@@ -820,6 +869,46 @@ sub set_text_marks_zscore {
     return;
 }
 
+sub set_text_marks_prank {
+    my $self = shift;
+    my @strings = ('<0.025', '<0.05', '<0.1', '[0.1,0.9]', '>0.9', '>0.95', '>0.975');
+    $self->set_text_marks_for_labels (\@strings, $self->{prank_marks});
+}
+
+#  generalises z-score version - need to simplify it
+sub set_text_marks_for_labels {
+    my ($self, \@strings, $mark_arr) = @_;
+
+    #  needed?  seem to remember it avoids triggering marks if grid is not set up
+    return if !$self->{marks};
+
+    $mark_arr //= [];
+
+    carp "Mark count does not match label count"
+        if scalar(@strings) != scalar @$mark_arr;
+
+    foreach my $mark (@{$self->{marks}}) {
+        $mark->hide;
+    }
+
+    if (!@$mark_arr) {
+        foreach my $i (0 .. $#strings) {
+            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
+            $mark_arr->[$i] = $self->make_mark($anchor_loc);
+        }
+    }
+
+    # Set legend textbox markers
+    foreach my $i (0 .. $#strings) {
+        my $mark = $mark_arr->[$#strings - $i];
+        $mark->set( text => $strings[$i] );
+        # $mark->show;
+        $mark->raise_to_top;
+    }
+
+    return;
+}
+
 
 sub set_log_mode_on {
     my ($self) = @_;
@@ -910,6 +999,46 @@ sub set_zscore_mode {
         $self->set_zscore_mode_off;
     }
     return $self->{zscore_mode};
+}
+
+sub set_prank_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{prank_mode};
+    $self->{prank_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_prank_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{prank_mode};
+    $self->{prank_mode} = 0;
+    foreach my $mark (@{$self->{prank_marks}}) {
+        $mark->hide;
+    }
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_prank_mode {
+    $_[0]->{prank_mode};
+}
+
+sub set_prank_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_prank_mode_on;
+    }
+    else {
+        $self->set_prank_mode_off;
+    }
+    return $self->{prank_mode};
 }
 
 

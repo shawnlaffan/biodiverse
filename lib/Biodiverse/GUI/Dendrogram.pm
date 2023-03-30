@@ -876,6 +876,7 @@ sub recolour_cluster_elements {
     my $is_zscore = eval {
         $parent_tab->index_is_zscore(list => $list_name, index => $list_index);
     };
+    my $is_prank = $list_name =~ />>p_rank>>/;
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -934,6 +935,7 @@ sub recolour_cluster_elements {
                 
                 return $is_canape ? $map->get_colour_canape ($val)
                      : $is_zscore ? $map->get_colour_zscore ($val)
+                     : $is_prank  ? $map->get_colour_prank ($val)
                      : $map->get_colour($val, $analysis_min, $analysis_max);
             }
             else {
@@ -953,6 +955,7 @@ sub recolour_cluster_elements {
 
     $map->get_legend->set_canape_mode($is_canape);
     $map->get_legend->set_zscore_mode($is_zscore);
+    $map->get_legend->set_prank_mode($is_prank);
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
@@ -1237,6 +1240,7 @@ sub recolour_cluster_lines {
     my $is_zscore = eval {
         $self->{parent_tab}->index_is_zscore (list => $list_name, index => $list_index);
     };
+    my $is_prank = $list_name =~ />>p_rank>>/;
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1262,6 +1266,7 @@ sub recolour_cluster_lines {
             $colour_ref = defined $val
               ? (  $is_canape ? $map->get_colour_canape($val)
                  : $is_zscore ? $map->get_colour_zscore($val)
+                 : $is_prank  ? $map->get_colour_prank($val)
                  : $map->get_colour ($val, $analysis_min, $analysis_max)
                 )
               : undef;

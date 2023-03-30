@@ -1570,6 +1570,8 @@ sub colour_branches_on_dendrogram {
 
     my $is_zscore = $self->index_is_zscore (list => $list_name);
     $legend->set_zscore_mode ($is_zscore);
+    my $is_prank = $list_name =~ />>p_rank>>/;
+    $legend->set_prank_mode ($is_prank);
 
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
     if ($log_check_box->get_active) {
@@ -1596,8 +1598,11 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
-    my @minmax_args = $is_zscore ? () : ($min, $max);
-    my $colour_method = $is_zscore ? 'get_colour_zscore' : 'get_colour';
+    my @minmax_args = ($is_zscore || $is_prank) ? () : ($min, $max);
+    my $colour_method
+        = $is_zscore ? 'get_colour_zscore'
+        : $is_prank  ? 'get_colour_prank'
+        : 'get_colour';
 
     my %done;
 
@@ -1991,6 +1996,7 @@ sub recolour {
     
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
     my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
+    my $is_prank  = $list =~ />>p_rank>>/;
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -2007,6 +2013,7 @@ sub recolour {
               = defined $val ? (
                   $is_canape ? $grid->get_colour_canape ($val) :
                   $is_zscore ? $grid->get_colour_zscore ($val) :
+                  $is_prank  ? $grid->get_colour_prank ($val) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -2024,6 +2031,7 @@ sub recolour {
 
     $self->{grid}->get_legend->set_canape_mode($is_canape);
     $self->{grid}->get_legend->set_zscore_mode($is_zscore);
+    $self->{grid}->get_legend->set_prank_mode($is_prank);
     $self->show_legend;
 
     $grid->colour($colour_func);

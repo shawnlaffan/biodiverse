@@ -1149,6 +1149,12 @@ sub get_colour_zscore {
     return $self->get_legend->get_colour_zscore (@_);
 }
 
+sub get_colour_prank {
+    my $self = shift;
+    return $self->get_legend->get_colour_prank (@_);
+}
+
+
 
 ##########################################################
 # Data extraction utilities

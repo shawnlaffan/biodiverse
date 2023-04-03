@@ -1792,13 +1792,13 @@ sub delete_element {
     my $subelement_cut_count = 0;
 
 #  call the Biodiverse::BaseStruct::delete_element sub to clean the $type element
-    my @deleted_subelements = $type_ref->delete_element( element => $element );
+    my $deleted_subelements = $type_ref->delete_element( element => $element );
 
     #  could use it directly in the next loop, but this is more readable
 
 #  now we adjust those $other_type elements that have been affected (eg correct Label ranges etc).
 #  use the set of groups containing deleted labels that need correcting (or vice versa)
-    foreach my $subelement (@deleted_subelements) {
+    foreach my $subelement (@$deleted_subelements) {
 
 #print "ELEMENT $element, SUBELEMENT $subelement\n";
 #  switch the element/subelement values as they are reverse indexed in $other_type
@@ -1808,7 +1808,7 @@ sub delete_element {
             subelement => $element,
         );
         if (   $remove_other_empties
-            && $other_type_ref->get_variety( element => $subelement ) == 0 )
+            && $other_type_ref->get_variety_aa( $subelement ) == 0 )
         {
             # we have wiped out all groups with this label
             # so we need to remove it from the data set

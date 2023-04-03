@@ -750,18 +750,15 @@ sub delete_element {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n" if ! defined $args{element};
+    my $element = $args{element}
+      // croak "element not specified\n";
 
-    my $element = $args{element};
-
-    my @deleted_sub_elements =
+    my $deleted_sub_elements =
         $self->get_sub_element_list(element => $element);
 
-    %{$self->{ELEMENTS}{$element}{SUBELEMENTS}} = ();
-    %{$self->{ELEMENTS}{$element}} = ();
     delete $self->{ELEMENTS}{$element};
 
-    return wantarray ? @deleted_sub_elements : \@deleted_sub_elements;
+    return wantarray ? @$deleted_sub_elements : $deleted_sub_elements;
 }
 
 #  remove a sub element label or group from within

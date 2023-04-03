@@ -2653,11 +2653,9 @@ sub swap_to_reach_richness_targets {
                         last BY_GP;
                     }
                 }
-                $cloned_bd->add_element   (
-                    label => $remove_label,
-                    group => $old_gp,
-                    count => $removed_count,
-                    csv_object => $csv_object,
+                $cloned_bd->add_element_simple_aa (
+                    $remove_label,  $old_gp,
+                    $removed_count, $csv_object,
                 );
                 binsert {$_ cmp $old_gp} $old_gp,
                   @{$cloned_bd_groups_with_label_a{$remove_label}};

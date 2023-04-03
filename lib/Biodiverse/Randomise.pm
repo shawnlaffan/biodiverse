@@ -8,6 +8,8 @@ use 5.022;
 
 use English qw / -no_match_vars /;
 
+use experimental qw /refaliasing/;
+
 use Sort::Key::Natural qw /natkeysort/;
 use List::Unique::DeterministicOrder;
 
@@ -2638,7 +2640,7 @@ sub swap_to_reach_richness_targets {
                     $orig_bd_groups_with_label_a{$remove_label} = $old_gps_with_remove_label;
                 }
 
-                my $cloned_self_gps_with_label
+                \my %cloned_self_gps_with_label
                     = $cloned_bd->get_groups_with_label_as_hash_aa ($remove_label);
 
                 #  make sure it does not add to an existing case
@@ -2648,7 +2650,7 @@ sub swap_to_reach_richness_targets {
                 my $old_gp;
               BY_GP:
                 for my $gp (@$old_gps_with_remove_label) {
-                    if (!exists $cloned_self_gps_with_label->{$gp}) {
+                    if (!exists $cloned_self_gps_with_label{$gp}) {
                         $old_gp = $gp;
                         last BY_GP;
                     }

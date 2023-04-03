@@ -2537,13 +2537,9 @@ sub swap_to_reach_richness_targets {
             my $target_groups_tmp
               = $new_bd->get_groups_without_label_as_hash (label => $add_label);
             #  only use non-empty groups ($filled_groups{$_} != 0)
-            my $tmp;
-            if ($target_has_empty_gps) {
-                $tmp = [sort grep $filled_groups{$_}, keys %$target_groups_tmp];
-            }
-            else {
-                $tmp = [sort keys %$target_groups_tmp];
-            }
+            my $tmp = $target_has_empty_gps
+                ? [sort grep $filled_groups{$_}, keys %$target_groups_tmp]
+                : [sort keys %$target_groups_tmp];
             $target_groups_tmp_a
               = $groups_without_labels_a{$add_label}
               = $tmp;
@@ -2695,11 +2691,10 @@ sub swap_to_reach_richness_targets {
                     $removed_count, $csv_object,
                 );
                 $swap_insert_count++;
-                if (exists $new_bd_labels_in_gps_as_array{$return_gp}) {
-                    #  don't create the list here
-                    binsert {$_ cmp $remove_label} $remove_label,
-                      @{$new_bd_labels_in_gps_as_array{$return_gp}};
-                }
+                #  don't create the list here, and use postfix if to avoid scope creation
+                binsert {$_ cmp $remove_label} $remove_label,
+                  @{$new_bd_labels_in_gps_as_array{$return_gp}}
+                    if exists $new_bd_labels_in_gps_as_array{$return_gp};
 
                 my $new_richness = $new_bd->get_richness_aa ($return_gp);
 
@@ -2709,14 +2704,13 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$remove_label}++;
 
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
-                if (!$unfilled_list) {
-                    delete $unfilled_gps_without_label_lu{$remove_label};
-                }
+                delete $unfilled_gps_without_label_lu{$remove_label}
+                  if !$unfilled_list;
+
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     bremove {$_ cmp $return_gp} @$aref;
-                    if (!scalar @$aref) {
-                        delete $groups_without_labels_a{$remove_label};
-                    }
+                    delete $groups_without_labels_a{$remove_label}
+                      if !scalar @$aref;
                 }
 
                 #  if we are now filled then update the tracking hashes
@@ -2732,20 +2726,16 @@ sub swap_to_reach_richness_targets {
                     foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
                         my $list_lu = $unfilled_gps_without_label_lu{$label};
                         $list_lu->delete ($last_filled);
-                        if (!$list_lu) {
-                            delete $unfilled_gps_without_label_lu{$label};
-                        }
+                        delete $unfilled_gps_without_label_lu{$label}
+                          if !$list_lu;  #  postfix to avoid scope creation
                     }
                     delete $unfilled_gps_without_label_by_gp{$last_filled};
                   LB:
                     foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
                         #  don't decrement empties or about-to-be-empties
-                        if ($labels_in_unfilled_gps{$label} <= 1) {
-                            delete $labels_in_unfilled_gps{$label};
-                        }
-                        else {
-                            $labels_in_unfilled_gps{$label}--;
-                        }
+                        $labels_in_unfilled_gps{$label} <= 1
+                            ? delete $labels_in_unfilled_gps{$label}
+                            : $labels_in_unfilled_gps{$label}--;
                     }
                 }
             }
@@ -2778,17 +2768,15 @@ sub swap_to_reach_richness_targets {
         }
         if (my $aref = $groups_without_labels_a{$add_label}) {
             bremove {$_ cmp $target_group} @$aref;
-            if (!scalar @$aref) {
-                delete $groups_without_labels_a{$add_label};
-            }
+            delete $groups_without_labels_a{$add_label}
+              if !scalar @$aref;  #  postfix to avoid scope creation
         }
         if (exists $unfilled_groups{$target_group}) {
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
             my $list_lu = $unfilled_gps_without_label_lu{$add_label};
             $list_lu->delete ($target_group);
-            if (!$list_lu) {
-                delete $unfilled_gps_without_label_lu{$add_label};
-            }
+            delete $unfilled_gps_without_label_lu{$add_label}
+              if !$list_lu;  #  postfix to avoid scope creation
         }
 
         #  check if we've filled this group, if nothing was swapped out
@@ -2806,9 +2794,8 @@ sub swap_to_reach_richness_targets {
             foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
                 my $list_lu = $unfilled_gps_without_label_lu{$label};
                 $list_lu->delete ($target_group);
-                if (!$list_lu) {
-                    delete $unfilled_gps_without_label_lu{$label};
-                }
+                delete $unfilled_gps_without_label_lu{$label}
+                  if !$list_lu;
             }
             delete $unfilled_gps_without_label_by_gp{$target_group};
             $last_filled = $target_group;

@@ -713,7 +713,14 @@ sub sp_calc {
     my $start_time = time;
 
     my $bd = $self->get_param ('BASEDATA_REF');
-    my $gps_ref = $bd->get_groups_ref;
+
+    #  a little caching speeds up the element array creation
+    #  ideally would not need to set it here but older data did not have it set
+    state $element_array_ref_cache_name = '_ELEMENT_ARRAY_REF_CACHE';
+    $self->set_cached_value(
+        $element_array_ref_cache_name
+            => $bd->get_groups_ref->get_cached_value_dor_set_default_href ($element_array_ref_cache_name)
+    );
 
     my $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF => $bd,

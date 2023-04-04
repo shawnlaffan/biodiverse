@@ -594,6 +594,16 @@ sub add_element {
     #  don't re-create the element array
     return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
 
+    #  caching saves a little time for large data sets
+    #  but needs to be shared with a "parent" object to make a difference
+    #  e.g. a spatial object copies from a groups object
+    state $el_list_ref_cache_name = '_ELEMENT_ARRAY_REF_CACHE';
+    my $element_list_ref_cache = $self->get_cached_value_dor_set_default_href ($el_list_ref_cache_name);
+
+    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref_cache->{$element};
+
+    return if $element_list_ref_cache->{$element};
+
     my $quote_char = $self->get_param('QUOTES');
     my $element_list_ref = $self->csv2list(
         string     => $element,
@@ -611,7 +621,9 @@ sub add_element {
         }
     }
 
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref;
+    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
+        = $element_list_ref_cache->{$element}
+        = $element_list_ref;
 
     return;
 }

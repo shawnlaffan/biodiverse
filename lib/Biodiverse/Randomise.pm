@@ -2535,7 +2535,7 @@ sub swap_to_reach_richness_targets {
         #  shuffling lists many times.
 
         my $target_groups_tmp_a = $groups_without_labels_a{$add_label};
-        if (!$target_groups_tmp_a || !scalar @$target_groups_tmp_a) {
+        if (!$target_groups_tmp_a) {
             my $target_groups_tmp
               = $new_bd->get_groups_without_label_as_hash (label => $add_label);
             #  only use non-empty groups ($filled_groups{$_} != 0)
@@ -2544,11 +2544,11 @@ sub swap_to_reach_richness_targets {
                 : [sort keys %$target_groups_tmp];
             $target_groups_tmp_a
               = $groups_without_labels_a{$add_label}
-              = $tmp;
+              = List::Unique::DeterministicOrder->new(data => $tmp);
         };
         #  cache maintains a sorted list, so no need to re-sort.  
-        $i = int $rand->rand(scalar @$target_groups_tmp_a);
-        my $target_group = $target_groups_tmp_a->[$i];
+        $i = int $rand->rand(scalar $target_groups_tmp_a->keys);
+        my $target_group = $target_groups_tmp_a->get_key_at_pos ($i);
 
         my $target_gp_richness
           = $new_bd->get_richness_aa ($target_group) // 0;
@@ -2618,8 +2618,9 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                binsert {$_ cmp $target_group} $target_group,
-                  @{$groups_without_labels_a{$remove_label}};
+                # binsert {$_ cmp $target_group} $target_group,
+                #   @{$groups_without_labels_a{$remove_label}};
+                $groups_without_labels_a{$remove_label}->push ($target_group);
             }
             #   unfilled_groups condition will never trigger in this if-branch
             #if (exists $unfilled_groups{$target_group}) {  
@@ -2708,7 +2709,8 @@ sub swap_to_reach_richness_targets {
                   if !$unfilled_list;
 
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
-                    bremove {$_ cmp $return_gp} @$aref;
+                    # bremove {$_ cmp $return_gp} @$aref;
+                    $aref->delete($remove_label);
                     delete $groups_without_labels_a{$remove_label}
                       if !scalar @$aref;
                 }
@@ -2767,7 +2769,8 @@ sub swap_to_reach_richness_targets {
               @{$new_bd_labels_in_gps_as_array{$target_group}};
         }
         if (my $aref = $groups_without_labels_a{$add_label}) {
-            bremove {$_ cmp $target_group} @$aref;
+            # bremove {$_ cmp $target_group} @$aref;
+            $aref->delete ($target_group);
             delete $groups_without_labels_a{$add_label}
               if !scalar @$aref;  #  postfix to avoid scope creation
         }

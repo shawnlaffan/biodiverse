@@ -2260,9 +2260,7 @@ sub get_label_column_count {
 }
 
 sub get_group_count {
-    my $self = shift;
-
-    return $self->get_groups_ref->get_element_count;
+    $_[0]->get_groups_ref->get_element_count;
 }
 
 sub exists_group {

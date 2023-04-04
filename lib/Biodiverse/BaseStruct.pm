@@ -255,9 +255,7 @@ sub to_tree {
 }
 
 sub get_element_count {
-    my $self = shift;
-    my $el_hash = $self->{ELEMENTS};
-    return scalar keys %$el_hash;
+    scalar keys %{$_[0]->{ELEMENTS}};
 }
 
 sub get_element_list {

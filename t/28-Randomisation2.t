@@ -68,7 +68,7 @@ sub test_same_results_given_same_prng_seed_subcheck {
     $bd->build_spatial_index (resolutions => [$c, $c]);
     my $sp //= $bd->add_spatial_output (name => 'sp');
     
-    my $r_spatially_structured_cond = "sp_circle (radius => $c)";
+    # my $r_spatially_structured_cond = "sp_circle (radius => $c)";
     
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
@@ -209,7 +209,7 @@ sub check_same_results_given_same_prng_seed {
     );
 
     my $rand_1x1 = $bd->add_randomisation_output (name => $rand_name_1x1);
-    for my $i (0..2) {
+    for (0..2) {
         $rand_1x1->run_analysis (
             %args,
             iterations => 1,

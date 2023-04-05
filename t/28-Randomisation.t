@@ -379,9 +379,9 @@ EOSC
 
 sub test_random_propagation {
     my $c  = 1;
-    my $c3 = $c * 1;
-    my $c6 = $c * 2;
-    my $c9 = $c * 3;
+    # my $c3 = $c * 1;
+    # my $c6 = $c * 2;
+    # my $c9 = $c * 3;
     my $bd_size = 21;
 
     my $prng_seed = 2345;
@@ -951,18 +951,6 @@ sub check_randomisation_results_differ {
 }
 
 
-#  obsolete now?
-#  need to implement this for randomisations
-sub check_order_is_same_given_same_prng {
-    my %args = @_;
-    my $bd = $args{basedata_ref};
-    
-    my $prng_seed = $args{prng_seed} || $default_prng_seed;
-    
-}
-
-
-
 #  check that default args are assigned using the function metadata
 sub test_default_args_assigned {
     my $bd = Biodiverse::BaseData->new(CELL_SIZES => [1,1], NAME => 'test_default_args_assigned');
@@ -1074,8 +1062,8 @@ sub test_group_properties_reassigned {
         );
     
         my $rand_bd = $rand_bd_array->[0];
-        my @refs = $rand_bd->get_spatial_output_refs;
-        my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
+        # my @refs = $rand_bd->get_spatial_output_refs;
+        # my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
     
         my $sub_same = sub {
             basedata_group_props_are_same (
@@ -1157,8 +1145,8 @@ sub test_label_properties_reassigned {
         my $prop_keys_rand = $rand_bd->get_labels_ref->get_element_property_keys;
         is ($prop_keys_rand, $prop_keys, "Property keys match");
         
-        my @refs = $rand_bd->get_spatial_output_refs;
-        my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
+        # my @refs = $rand_bd->get_spatial_output_refs;
+        # my $rand_sp = first {$_->get_param ('NAME') =~ m/^$object_name/} @refs;
     
         my $sub_same = sub {
             basedata_label_props_are_same (
@@ -1175,8 +1163,8 @@ sub test_label_properties_reassigned {
 }
 
 sub test_randomise_tree_ref_args {
-    my $rand_func   = 'rand_csr_by_group';
-    my $object_name = 't_r_t_r_f';
+    # my $rand_func   = 'rand_csr_by_group';
+    # my $object_name = 't_r_t_r_f';
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     my $tree  = get_tree_object_from_sample_data();
@@ -1284,7 +1272,7 @@ sub test_randomise_tree_ref_args {
 
                 my $rand_tree_ref = $analysis_args->{tree_ref};
                 my $tree_ref_to_compare = $sp_pfx eq 'tree2' ? $tree2 : $tree;
-                my $orig_tree_name = $tree_ref_to_compare->get_param ('NAME');
+                # my $orig_tree_name = $tree_ref_to_compare->get_param ('NAME');
 
                 if (($use_is_or_isnt // 'is') eq 'is') {
                     ref_is (
@@ -1663,7 +1651,7 @@ sub test_spatial_allocation_order_fails {
     my $has_label_alloc_sp = grep {$_ eq 'sp_to_track_allocations'} @$spatial_outputs;
 
     {
-        my $todo = todo 'Issue #588';
+        local $todo = todo 'Issue #588';
         ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation involves mergers');
     }
     
@@ -1740,8 +1728,6 @@ sub test_p_ranks  {
     my @lists_across_elements = $sp->get_lists_across_elements;
     my $count = grep {$_ =~ /p_rank>>p_rank>>/} @lists_across_elements;
     is ($count, 0, 'no doubled p_rank lists');
-    
-    my @bounds = (0.05, 0.95);
 
     subtest 'sig_thresh results valid for spatial object' => sub {
         my $defined_count = 0;

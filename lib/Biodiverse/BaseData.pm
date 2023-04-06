@@ -292,10 +292,11 @@ sub clone_with_reduced_resolution {
         croak "new axis size is less than current"
           if $current > $new;
         #  could lead to precision issues later
+        #  ...and it did so we now have the nasty sprintf code
         my $fmod = ($current and $new and $current ne $new)
-          ? fmod ($new / $current, 1)
+          ? fmod (sprintf("%.14f",$new) / sprintf("%.14f",$current), 1)
           : 0;
-        croak "new size for axis $i of $new is not a multiple of current ($current)"
+        croak "new size for axis $i of $new is not a multiple of current ($current), off by $fmod"
           if ($current and $new) and $fmod;
         if ($current == $new) {
             $same_count++;
@@ -304,7 +305,10 @@ sub clone_with_reduced_resolution {
         my $current_o = $current_cell_origins->[$i];
         my $new_o     = $new_cell_origins->[$i];
         $fmod = ($current and $current_o ne $new_o)
-          ? fmod (abs ($new_o - $current_o) / $current, 1)
+          ? fmod (
+                sprintf ("%.14f", abs ($new_o - $current_o)) /
+                sprintf ("%.14f", $current),
+            1)
           : 0;
         croak "new origin for axis $i of $new_o does not conform "
             . "with current ($current_o) and axis size ($current)"

@@ -1,5 +1,5 @@
 freebsd_instance:
-  image_family: freebsd-13-0
+  image_family: freebsd-13-1
 
 task:
   env:
@@ -11,10 +11,10 @@ task:
     folder: /perl5
     reupload_on_changes: false # set to false if there is a fingerprint script
     fingerprint_script:
-      - echo $CIRRUS_OS 20220423
+      - echo $CIRRUS_OS 20230406b
 
   install_script:
-    - sudo pkg install -y autoconf automake libtool pkgconf sqlite3 gmake cmake git
+    - sudo pkg install -y libffi autoconf automake libtool pkgconf sqlite3 gmake cmake git
     - sudo pkg install -y p5-App-cpanminus
     - sudo pkg install -y gdal
     - sudo cpanm local::lib
@@ -23,12 +23,14 @@ task:
     - perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib
     - echo Run it anyway...
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)
-    
-    - cpanm --notest --installdeps --no-man-pages PDL
-    - cpanm --notest --no-man-pages PDL
-    - cpanm Statistics::Descriptive::PDL@0.13
-    - cpanm --installdeps --notest -v Alien::proj
+
+    - cpanm --installdeps FFI::Platypus
+    - cpanm --verbose FFI::Platypus
+
     - cpanm --installdeps --notest Alien::libtiff
+    - cpanm --installdeps --notest Alien::sqlite
+    - cpanm --notest Alien::sqlite
+    - cpanm --installdeps --notest -v Alien::proj
     - MAKEFLAGS=-j4 cpanm -v Alien::libtiff
     - MAKEFLAGS=-j4 cpanm -v Alien::geos::af
     - MAKEFLAGS=-j4 cpanm -v Alien::proj
@@ -36,6 +38,13 @@ task:
     #  speed up compilation by skipping curl based drivers
     - export ALIEN_GDAL_CONFIG_ARGS=--with-curl=no
     - MAKEFLAGS=-j4 cpanm -v Alien::gdal
+    #  some debug
+#    - ldd /usr/local/lib/libgdal.so.32.3.6.2
+    - perl -MAlien::gdal -E'say q{----}; say q{AL } . Alien::gdal->version; say join (q{AL }, Alien::gdal->dynamic_libs); say "----"'
+    - ldd `perl -MAlien::gdal -e'print Alien::gdal->dynamic_libs'`
+    - cpanm --notest --installdeps --no-man-pages PDL
+    - cpanm --notest --no-man-pages PDL
+    - cpanm Statistics::Descriptive::PDL
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm FFI::Platypus::Declare
     - cpanm -v Geo::GDAL::FFI
@@ -43,7 +52,7 @@ task:
     #- cpanm --notest Task::Biodiverse::NoGUI
     - cpanm --notest --installdeps .
     - cpanm --installdeps .
-    - prove -l t/00-load.t  # probe
+#    - prove -l t/00-load.t  # probe
 
   script:
     - eval $(perl -I ${PERL_MOD_DIR}/lib/perl5/ -Mlocal::lib)

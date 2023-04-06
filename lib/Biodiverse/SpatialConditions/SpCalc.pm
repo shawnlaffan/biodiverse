@@ -1570,7 +1570,6 @@ sub sp_points_in_same_poly_shape {
     my $y_coord2 = $point2->[$axes->[1]];
 
     my $cached_results     = $self->get_cache_sp_points_in_same_poly_shape(%args);
-    my $cached_pts_in_poly = $self->get_cache_points_in_shapepoly(%args);
 
     my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
     my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);    
@@ -1608,7 +1607,15 @@ sub sp_points_in_same_poly_shape {
     );
     my $rtree_polys2 = [];
     $rtree->query_partly_within_rect(@rect2, $rtree_polys2);
-    
+
+    #  neither is in a polygon
+    if (!@$rtree_polys1 && !@$rtree_polys2) {
+        if (!$no_cache) {
+            $cached_results->{$point_string1} = 1;
+        }
+        return 1;
+    }
+
     #  get the list of common polys
     my @rtree_polys_common = grep {
         my $check = $_;
@@ -1618,7 +1625,8 @@ sub sp_points_in_same_poly_shape {
     my ($i, $target) = (1, scalar @$rtree_polys1);
     my $point1_str = join ':', $x_coord1, $y_coord1;
     my $point2_str = join ':', $x_coord2, $y_coord2;
-    
+
+    my $cached_pts_in_poly = $self->get_cache_points_in_shapepoly(%args);
 
     foreach my $poly (@rtree_polys_common) {
         my $poly_id     = $poly->shape_id();

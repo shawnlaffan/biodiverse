@@ -1657,7 +1657,6 @@ END_PROGRESS_TEXT
     \my %cloned_bd_as_lb_hash = $bd->get_labels_object_as_hash;
     my %cloned_bd_gps_remaining;
 
-use Data::Compare;
     $progress_bar->reset;
 
     #  make sure we randomly select from the same set of groups each time
@@ -1686,9 +1685,7 @@ use Data::Compare;
         my $progress = $i / $total_to_do;
 
         my $gp_richness = $bd->get_richness_aa ($group) // 0;
-        if ($gp_richness) {
-            $cloned_bd_gps_remaining{$group} = $gp_richness;
-        }
+        $cloned_bd_gps_remaining{$group} = $gp_richness;
 
         $progress_bar->update (
             "$progress_text\n"
@@ -1711,17 +1708,12 @@ use Data::Compare;
         else {  #  handle empty groups without extra tracking hashes
             $filled_groups{$group} = 0;
             $cloned_bd->delete_group(group => $group);
-            # say STDERR "Deleting group $group, $gp_richness";
+            delete $cloned_bd_gps_remaining{$group};
         }
-# say STDERR "HHHH, $group, $target_val"
-#   if $cloned_bd->exists_group_aa($group) && !$cloned_bd->get_richness_aa ($group);
         $i++;
     }
 
     $progress_bar->reset;
-    # warn "___";
-# my @empties = grep {!$cloned_bd->get_richness_aa ($_)} $cloned_bd->get_groups;
-#     die "NONONONON" if @empties;
     #  algorithm:
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
@@ -1765,7 +1757,6 @@ use Data::Compare;
         my %tmp_gp_hash
             = $cloned_bd->get_groups_with_label_as_hash_aa ($label);
         my $tmp_gp_hashx = $cloned_bd_as_lb_hash{$label};
-        Compare (\%tmp_gp_hash, $tmp_gp_hashx) or warn "NOT IDENTICAL 1";
         my $tmp_rand_order = $rand->shuffle ([sort keys %tmp_gp_hash]);
 
         my (
@@ -1892,9 +1883,12 @@ use Data::Compare;
                 #  now delete it from the list of candidates
                 $cloned_bd->delete_sub_element_aa ($label, $from_group);
                 delete $cloned_bd_as_lb_hash{$label}{$from_group};
-                delete $cloned_bd_as_lb_hash{$label} if !keys %{$cloned_bd_as_lb_hash{$label}};
+                delete $cloned_bd_as_lb_hash{$label}
+                  if !keys %{$cloned_bd_as_lb_hash{$label}};
                 #  decrement tracker and delete if now empty
-                $cloned_bd_gps_remaining{$from_group}-- or delete $cloned_bd_gps_remaining{$from_group};
+                $cloned_bd_gps_remaining{$from_group}--;
+                delete $cloned_bd_gps_remaining{$from_group}
+                  if !$cloned_bd_gps_remaining{$from_group};
                 delete $tmp_gp_hash{$from_group};
 
                 #  increment richness and then check if we've filled this group.
@@ -1993,8 +1987,8 @@ use Data::Compare;
 
     my $target_label_count = $cloned_bd->get_label_count;
     my $target_label_countx = keys %cloned_bd_as_lb_hash;
-    warn "NOT SAME" if $target_label_countx != $target_label_countx;
     my $target_group_count = $cloned_bd->get_group_count;
+    my $target_group_countx = keys %cloned_bd_gps_remaining;
 
     my $format
         = "[RANDOMISE] \n"
@@ -2022,26 +2016,12 @@ use Data::Compare;
         }
     }
 
-    my %xx;
-    foreach my $lb (keys %cloned_bd_as_lb_hash) {
-        my $href = $cloned_bd_as_lb_hash{$lb};
-        @xx{keys %$href} = (1) x keys %$href;
-    }
-    my $_cbd = [sort grep {$cloned_bd->get_richness_aa($_)} $cloned_bd->get_groups];
-    my $_xxx = [sort keys %xx];
-    if (!Compare $_cbd, $_xxx) {
-        use Data::Printer;
-        p $_cbd;
-        p $_xxx;
-        p $cloned_bd->{GROUPS}{ELEMENTS};
-        p $cloned_bd->{LABELS}{ELEMENTS};
-        die "WE GOT DIFFERENT DATA X1";
-    }
 
     $self->swap_to_reach_richness_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
         cloned_bd_as_lb_hash => \%cloned_bd_as_lb_hash,
+        cloned_bd_gps_remaining => \%cloned_bd_gps_remaining,
         new_bd          => $new_bd,
         filled_groups   => \%filled_groups,
         unfilled_groups => \%unfilled_groups,
@@ -2398,22 +2378,7 @@ sub swap_to_reach_richness_targets {
 
     my $cloned_bd       = $args{cloned_bd};
     \my %cloned_bd_as_label_hash = $args{cloned_bd_as_lb_hash};
-
-    my %xx;
-    foreach my $lb (keys %cloned_bd_as_label_hash) {
-        my $href = $cloned_bd_as_label_hash{$lb};
-        @xx{keys %$href} = (1) x keys %$href;
-    }
-    my $_cbd = [sort grep {$cloned_bd->get_richness_aa($_)} $cloned_bd->get_groups];
-    my $_xxx = [sort keys %xx];
-    if (!Compare $_cbd, $_xxx) {
-        my $_cbd = [sort $cloned_bd->get_groups];
-        my $_xxx = [sort keys %xx];
-        use Data::Printer;
-        p $_cbd;
-        p $_xxx;
-        confess "WE GOT DIFFERENT DATA";
-    }
+    \my %cloned_bd_gps_remaining = $args{cloned_bd_gps_remaining};
 
     #  avoid needless looping below.
     if (!$cloned_bd->get_label_count) {
@@ -2498,10 +2463,8 @@ sub swap_to_reach_richness_targets {
     my %new_bd_labels_in_gps_as_hash;
     my %new_bd_labels_in_gps_as_array;
     my $cloned_bd_lb_arr = $cloned_bd->get_labels;
-use Data::Compare;
     my $cloned_bd_label_arr = [sort @$cloned_bd_lb_arr];
     my $cloned_bd_label_arrx = [sort keys %cloned_bd_as_label_hash];
-Compare $cloned_bd_label_arr, $cloned_bd_label_arrx or die "NOT SAME SWAP 1";
     my %cloned_bd_label_hash;
     @cloned_bd_label_hash{@$cloned_bd_label_arr} = undef;
     $cloned_bd_lb_arr = undef;  #  clean up
@@ -2525,9 +2488,7 @@ Compare $cloned_bd_label_arr, $cloned_bd_label_arrx or die "NOT SAME SWAP 1";
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count;  #  need to work on this
         my $target_label_countx = keys %cloned_bd_as_label_hash;
-        if ($target_label_count != $target_label_countx) {
-            die "NOT SAME SWAP 2, $target_label_count != $target_label_countx";
-        }
+        my $target_group_countx = keys %cloned_bd_gps_remaining;
 
         my $p = '%8d';
         my $fmt = "Total gps:\t\t\t$p\n"
@@ -2569,12 +2530,11 @@ Compare $cloned_bd_label_arr, $cloned_bd_label_arrx or die "NOT SAME SWAP 1";
             = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
         my $from_groups_hashx
             = $cloned_bd_as_label_hash{$add_label};
-Compare $from_groups_hash, $from_groups_hashx or warn "SWAP NOT SAME 3";
         my $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label};
         if (!$from_cloned_groups_tmp_a  || !scalar @$from_cloned_groups_tmp_a) {
             my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
             my $gps_tmpx = $cloned_bd_as_label_hash{$add_label};
-            Compare $gps_tmp, $gps_tmpx or warn "SWAP 7";
+            # Compare $gps_tmp, $gps_tmpx or warn "SWAP 7";
             $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label} = [sort keys %$gps_tmp];
         };
 
@@ -2587,8 +2547,9 @@ Compare $from_groups_hash, $from_groups_hashx or warn "SWAP NOT SAME 3";
         delete $cloned_bd_as_label_hash{$add_label}{$from_group};
         delete $cloned_bd_as_label_hash{$add_label}
           if !keys %{$cloned_bd_as_label_hash{$add_label}};
-Compare [sort $cloned_bd->get_labels], [sort keys %cloned_bd_as_label_hash]
-  or die "NOT SAME AFTER DELETION";
+        $cloned_bd_gps_remaining{$from_group}--;
+        delete $cloned_bd_gps_remaining{$from_group}
+          if !$cloned_bd_gps_remaining{$from_group};
         bremove {$_ cmp $from_group} @$from_cloned_groups_tmp_a;
         if (!scalar @$from_cloned_groups_tmp_a) {
             delete $cloned_bd_groups_with_label_a{$add_label};
@@ -2716,8 +2677,8 @@ Compare [sort $cloned_bd->get_labels], [sort keys %cloned_bd_as_label_hash]
                 \my %cloned_self_gps_with_label
                     = $cloned_bd->get_groups_with_label_as_hash_aa ($remove_label);
                 \my %cloned_self_gps_with_labelx = $cloned_bd_as_label_hash{$remove_label} // {};
-                Compare \%cloned_self_gps_with_label, \%cloned_self_gps_with_labelx
-                    or warn "SWAP 6";
+                # Compare \%cloned_self_gps_with_label, \%cloned_self_gps_with_labelx
+                #     or warn "SWAP 6";
 
                 #  make sure it does not add to an existing case
                 #delete @old_groups{keys %$cloned_self_gps_with_label};
@@ -2736,7 +2697,7 @@ Compare [sort $cloned_bd->get_labels], [sort keys %cloned_bd_as_label_hash]
                     $removed_count, $csv_object,
                 );
                 $cloned_bd_as_label_hash{$remove_label}{$old_gp} = $removed_count;
-                # XXX increment group tracker
+                $cloned_bd_gps_remaining{$old_gp}++;
                 binsert {$_ cmp $old_gp} $old_gp,
                   @{$cloned_bd_groups_with_label_a{$remove_label}};
                 

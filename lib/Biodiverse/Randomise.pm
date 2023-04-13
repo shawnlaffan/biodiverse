@@ -1637,6 +1637,9 @@ END_PROGRESS_TEXT
     $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
     $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
+    #  populate a hash so we can use add_elements_collated
+    my %new_bd_gp_lb_hash;
+
     #  for debug - create using $bd but we override later and set it to $new_bd
     my $sp_to_track_label_allocation_order
         = $track_label_allocation_order

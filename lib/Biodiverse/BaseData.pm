@@ -1364,18 +1364,65 @@ sub add_elements_collated_simple_aa {
     croak "csv_object arg not passed\n"
       if !$csv_object;
 
+    #  blank slate so set directly
+    return $self->_set_elements_collated_simple_aa($gp_lb_hash, $csv_object, $allow_empty_groups)
+      if (!$self->get_group_count && !$self->get_label_count);
+
     #  now add the collated data
     foreach my $gp_lb_pair ( pairs %$gp_lb_hash ) {
         my ( $gp, $lb_hash ) = @$gp_lb_pair;
 
         if ( $allow_empty_groups && !scalar %$lb_hash ) {
-            $self->add_element( undef, $gp, 0, $csv_object );
+            $self->add_element_simple_aa ( undef, $gp, 0, $csv_object );
         }
         else {
             foreach my $lb_count_pair ( pairs %$lb_hash ) {
                 my ( $lb, $count ) = @$lb_count_pair;
                 $self->add_element_simple_aa( $lb, $gp, $count, $csv_object );
             }
+        }
+    }
+
+    return;
+}
+
+#  currently an internal sub as we might later take ownership of the input data
+#  could also use refaliasing for more speed if needed
+sub _set_elements_collated_simple_aa {
+    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
+
+    croak "csv_object arg not passed\n"
+        if !$csv_object;
+
+    my %lb_gp_hash; # transposed version
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    #  now add the collated data to the groups object
+    foreach my $gp_lb_pair ( pairs %$gp_lb_hash ) {
+        my ( $gp, $lb_hash ) = @$gp_lb_pair;
+
+        if ( $allow_empty_groups && !scalar %$lb_hash ) {
+            $self->add_element_simple_aa ( undef, $gp, 0, $csv_object );
+        }
+        else {
+            delete local @$lb_hash{grep !$lb_hash->{$_}, keys %$lb_hash}; # filter zeroes
+            my $href = $groups_ref->get_sub_element_href_autoviv_aa($gp);
+            %$href = %$lb_hash;
+            $lb_gp_hash{$_}{$gp} = $href->{$_} for keys %$href;  #  postfix for speed
+        }
+    }
+    #  and add the transposed data to the labels object
+    foreach my $lb_gp_pair ( pairs %lb_gp_hash ) {
+        my ( $lb, $gp_hash ) = @$lb_gp_pair;
+
+        if ( $allow_empty_groups && !scalar %$gp_hash ) {
+            $self->add_element_simple_aa ( $lb, undef, 0, $csv_object );
+        }
+        else {
+            my $href = $labels_ref->get_sub_element_href_autoviv_aa($lb);
+            %$href = %$gp_hash;
         }
     }
 
@@ -2654,6 +2701,7 @@ sub get_outputs_with_same_spatial_conditions {
     return wantarray ? @comparable_outputs : \@comparable_outputs;
 }
 
+#  not sure this does what is meant by the name
 sub has_empty_groups {
     my $self = shift;
 

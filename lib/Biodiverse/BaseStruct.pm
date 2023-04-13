@@ -545,6 +545,17 @@ sub get_sub_element_hash_aa {
     wantarray ? %$hash : $hash;
 }
 
+#  nasty but the other get subs have not assigned
+#  a href when the element does not exist
+sub get_sub_element_href_autoviv_aa {
+    my ($self, $element) = @_;
+
+    croak "argument 'element' not specified\n"
+        if !defined $element;
+
+    return $self->{ELEMENTS}{$element}{SUBELEMENTS} //= {};
+}
+
 sub get_subelement_count {
     my $self = shift;
 

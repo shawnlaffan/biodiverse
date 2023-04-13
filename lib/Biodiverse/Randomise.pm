@@ -2376,12 +2376,12 @@ sub swap_to_reach_richness_targets {
     my $self = shift;
     my %args = @_;
 
-    my $cloned_bd       = $args{cloned_bd};
+    # my $cloned_bd       = $args{cloned_bd};
     \my %cloned_bd_as_label_hash = $args{cloned_bd_as_lb_hash};
     \my %cloned_bd_gps_remaining = $args{cloned_bd_gps_remaining};
 
     #  avoid needless looping below.
-    if (!$cloned_bd->get_label_count) {
+    if (!keys %cloned_bd_as_label_hash) {
         $self->increment_param (SWAP_OUT_COUNT    => 0);
         $self->increment_param (SWAP_INSERT_COUNT => 0);
         return;
@@ -2462,12 +2462,12 @@ sub swap_to_reach_richness_targets {
     my %orig_bd_groups_with_label_a;
     my %new_bd_labels_in_gps_as_hash;
     my %new_bd_labels_in_gps_as_array;
-    my $cloned_bd_lb_arr = $cloned_bd->get_labels;
-    my $cloned_bd_label_arr = [sort @$cloned_bd_lb_arr];
-    my $cloned_bd_label_arrx = [sort keys %cloned_bd_as_label_hash];
+    # my $cloned_bd_lb_arr = $cloned_bd->get_labels;
+    # my $cloned_bd_label_arr = [sort @$cloned_bd_lb_arr];
+    my $cloned_bd_label_arr = [sort keys %cloned_bd_as_label_hash];
     my %cloned_bd_label_hash;
     @cloned_bd_label_hash{@$cloned_bd_label_arr} = undef;
-    $cloned_bd_lb_arr = undef;  #  clean up
+    # $cloned_bd_lb_arr = undef;  #  clean up
     #  keep refs of tracker hashes for debug purposes
     my %tracker_hashes = (
         labels_in_unfilled_gps           => \%labels_in_unfilled_gps,
@@ -2485,10 +2485,10 @@ sub swap_to_reach_richness_targets {
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
 
-        my $target_label_count = $cloned_bd->get_label_count;
-        my $target_group_count = $cloned_bd->get_group_count;  #  need to work on this
-        my $target_label_countx = keys %cloned_bd_as_label_hash;
-        my $target_group_countx = keys %cloned_bd_gps_remaining;
+        # my $target_label_count = $cloned_bd->get_label_count;
+        # my $target_group_count = $cloned_bd->get_group_count;  #  need to work on this
+        my $target_label_count = keys %cloned_bd_as_label_hash;
+        my $target_group_count = keys %cloned_bd_gps_remaining;
 
         my $p = '%8d';
         my $fmt = "Total gps:\t\t\t$p\n"
@@ -2526,14 +2526,14 @@ sub swap_to_reach_richness_targets {
         my $i = int $rand->rand (scalar @$cloned_bd_label_arr);
         my $add_label = $cloned_bd_label_arr->[$i];
 
+        # my $from_groups_hash
+        #     = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
         my $from_groups_hash
-            = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
-        my $from_groups_hashx
             = $cloned_bd_as_label_hash{$add_label};
         my $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label};
         if (!$from_cloned_groups_tmp_a  || !scalar @$from_cloned_groups_tmp_a) {
-            my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
-            my $gps_tmpx = $cloned_bd_as_label_hash{$add_label};
+            # my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash_aa ($add_label);
+            my $gps_tmp = $cloned_bd_as_label_hash{$add_label};
             # Compare $gps_tmp, $gps_tmpx or warn "SWAP 7";
             $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label} = [sort keys %$gps_tmp];
         };
@@ -2543,7 +2543,7 @@ sub swap_to_reach_richness_targets {
         my $add_count  = $from_groups_hash->{$from_group};
 
         #  clear the pair out of cloned_self
-        $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
+        # $cloned_bd->delete_sub_element_aa ($add_label, $from_group);
         delete $cloned_bd_as_label_hash{$add_label}{$from_group};
         delete $cloned_bd_as_label_hash{$add_label}
           if !keys %{$cloned_bd_as_label_hash{$add_label}};
@@ -2554,8 +2554,9 @@ sub swap_to_reach_richness_targets {
         if (!scalar @$from_cloned_groups_tmp_a) {
             delete $cloned_bd_groups_with_label_a{$add_label};
         }
-        if (!$cloned_bd->exists_label_aa ($add_label)) {
-            die "SWAP 4" if $cloned_bd_as_label_hash{$add_label};
+        # if (!$cloned_bd->exists_label_aa ($add_label)) {
+        if (!exists $cloned_bd_as_label_hash{$add_label}) {
+            # die "SWAP 4" if $cloned_bd_as_label_hash{$add_label};
             bremove {$_ cmp $add_label} @$cloned_bd_label_arr;
             delete $cloned_bd_label_hash{$add_label};
         }
@@ -2674,9 +2675,10 @@ sub swap_to_reach_richness_targets {
                     $orig_bd_groups_with_label_a{$remove_label} = $old_gps_with_remove_label;
                 }
 
+                # \my %cloned_self_gps_with_label
+                #     = $cloned_bd->get_groups_with_label_as_hash_aa ($remove_label);
                 \my %cloned_self_gps_with_label
-                    = $cloned_bd->get_groups_with_label_as_hash_aa ($remove_label);
-                \my %cloned_self_gps_with_labelx = $cloned_bd_as_label_hash{$remove_label} // {};
+                  = $cloned_bd_as_label_hash{$remove_label} // {};
                 # Compare \%cloned_self_gps_with_label, \%cloned_self_gps_with_labelx
                 #     or warn "SWAP 6";
 
@@ -2692,10 +2694,10 @@ sub swap_to_reach_richness_targets {
                         last BY_GP;
                     }
                 }
-                $cloned_bd->add_element_simple_aa (
-                    $remove_label,  $old_gp,
-                    $removed_count, $csv_object,
-                );
+                # $cloned_bd->add_element_simple_aa (
+                #     $remove_label,  $old_gp,
+                #     $removed_count, $csv_object,
+                # );
                 $cloned_bd_as_label_hash{$remove_label}{$old_gp} = $removed_count;
                 $cloned_bd_gps_remaining{$old_gp}++;
                 binsert {$_ cmp $old_gp} $old_gp,

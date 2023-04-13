@@ -1651,7 +1651,7 @@ sub test_spatial_allocation_order_fails {
     my $has_label_alloc_sp = grep {$_ eq 'sp_to_track_allocations'} @$spatial_outputs;
 
     {
-        local $todo = todo 'Issue #588';
+        my $todo = todo 'Issue #588';
         ok ($has_label_alloc_sp, 'We have a label allocation output when the randomisation involves mergers');
     }
     

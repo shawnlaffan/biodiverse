@@ -622,7 +622,21 @@ sub test_remap_mismatched_labels {
 
 
 
+sub test_get_labels_object_as_hash {
+    my %data = (
+        a => {x => 1, y => 2, z => 3},
+        b => {t => 1, u => 2, v => 3},
+    );
+    my $bd = Biodiverse::BaseData->new (CELL_SIZES => [-1]);
+    my $csv = Biodiverse::BaseData->get_csv_object;
+    $bd->add_elements_collated_by_label(
+        data       => \%data,
+        csv_object => $csv
+    );
+    my $hash = $bd->get_labels_object_as_hash;
 
+    is ($hash, \%data, "got expected labels_object_as_hash hash")
+}
 
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);

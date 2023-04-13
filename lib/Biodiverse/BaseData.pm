@@ -2088,6 +2088,19 @@ sub get_range_union {
       : [ keys %shared_elements ];
 }
 
+#  get the labels object as a hash
+sub get_labels_object_as_hash {
+    my $self = shift;
+    # my $lb = $self->get_labels_ref;
+    my %h;
+    foreach my $label ($self->get_labels) {
+        #  we need a copy
+        my $subhash = $self->get_groups_with_label_as_hash_aa($label);
+        $h{$label} = {%$subhash};
+    }
+    return wantarray ? %h : \%h;
+}
+
 sub get_groups {    #  get a list of the groups in the data set
     my $self = shift;
 

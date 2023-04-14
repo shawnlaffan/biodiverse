@@ -2691,7 +2691,6 @@ sub swap_to_reach_richness_targets {
                 }
             }
             else {
-                no autovivification;
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups

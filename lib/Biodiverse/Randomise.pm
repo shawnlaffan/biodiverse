@@ -2726,8 +2726,6 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$remove_label}++;
 
                 delete $unfilled_gps_without_label_by_gp{$return_gp}{$remove_label};
-                delete $unfilled_gps_without_label_lu{$remove_label}
-                  if !$unfilled_list;
 
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     # bremove {$_ cmp $return_gp} @$aref;
@@ -2746,12 +2744,8 @@ sub swap_to_reach_richness_targets {
                     #  when working with large data sets
                     #  List::Unique::DeterministicOrder is fastest so far,
                     #  but could we avoid indexing in the first place?
-                    foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$last_filled}}) {
-                        my $list_lu = $unfilled_gps_without_label_lu{$label};
-                        $list_lu->delete ($last_filled);
-                        delete $unfilled_gps_without_label_lu{$label}
-                          if !$list_lu;  #  postfix to avoid scope creation
-                    }
+                    $unfilled_gps_without_label_lu{$_}->delete ($last_filled)
+                      foreach keys %{$unfilled_gps_without_label_by_gp{$last_filled}};
                     delete $unfilled_gps_without_label_by_gp{$last_filled};
                   LB:
                     foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
@@ -2797,10 +2791,7 @@ sub swap_to_reach_richness_targets {
         }
         if (exists $unfilled_groups{$target_group}) {
             delete $unfilled_gps_without_label_by_gp{$target_group}{$add_label};
-            my $list_lu = $unfilled_gps_without_label_lu{$add_label};
-            $list_lu->delete ($target_group);
-            delete $unfilled_gps_without_label_lu{$add_label}
-              if !$list_lu;  #  postfix to avoid scope creation
+            $unfilled_gps_without_label_lu{$add_label}->delete ($target_group);
         }
 
         #  check if we've filled this group, if nothing was swapped out
@@ -2814,13 +2805,8 @@ sub swap_to_reach_richness_targets {
 
             $filled_groups{$target_group} = $new_richness;
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
-            LB:
-            foreach my $label (keys %{$unfilled_gps_without_label_by_gp{$target_group}}) {
-                my $list_lu = $unfilled_gps_without_label_lu{$label};
-                $list_lu->delete ($target_group);
-                delete $unfilled_gps_without_label_lu{$label}
-                  if !$list_lu;
-            }
+            $unfilled_gps_without_label_lu{$_}->delete ($target_group)
+              foreach keys %{$unfilled_gps_without_label_by_gp{$target_group}};
             delete $unfilled_gps_without_label_by_gp{$target_group};
             $last_filled = $target_group;
         }

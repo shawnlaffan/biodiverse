@@ -26,6 +26,9 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
 use Spreadsheet::Read 0.60;
 
+
+use experimental qw /refaliasing declared_refs/;
+
 use Geo::GDAL::FFI 0.07;
 #  silence a used-once warning - clunky
 {
@@ -1387,7 +1390,7 @@ sub add_elements_collated_simple_aa {
 }
 
 #  currently an internal sub as we might later take ownership of the input data
-#  could also use refaliasing for more speed if needed
+#  using refaliasing to squeeze a bit more speed
 sub _set_elements_collated_simple_aa {
     my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
 
@@ -1400,29 +1403,30 @@ sub _set_elements_collated_simple_aa {
     my $labels_ref = $self->get_labels_ref;
 
     #  now add the collated data to the groups object
-    foreach my $gp_lb_pair ( pairs %$gp_lb_hash ) {
-        my ( $gp, $lb_hash ) = @$gp_lb_pair;
+    foreach \my @gp_lb_pair ( pairs %$gp_lb_hash ) {
+        my ( $gp, \%lb_hash ) = @gp_lb_pair;
 
-        if ( $allow_empty_groups && !scalar %$lb_hash ) {
+        if ( $allow_empty_groups && !scalar %lb_hash ) {
             $self->add_element_simple_aa ( undef, $gp, 0, $csv_object );
         }
         else {
-            delete local @$lb_hash{grep !$lb_hash->{$_}, keys %$lb_hash}; # filter zeroes
-            my $href = $groups_ref->get_sub_element_href_autoviv_aa($gp);
-            %$href = %$lb_hash;
-            $lb_gp_hash{$_}{$gp} = $href->{$_} for keys %$href;  #  postfix for speed
+            delete local @lb_hash{grep !$lb_hash{$_}, keys %lb_hash}; # filter zeroes
+            \my %subelement_hash = $groups_ref->get_sub_element_href_autoviv_aa($gp);
+            %subelement_hash = %lb_hash;
+            #  postfix for speed
+            $lb_gp_hash{$_}{$gp} = $subelement_hash{$_} for keys %subelement_hash;
         }
     }
     #  and add the transposed data to the labels object
-    foreach my $lb_gp_pair ( pairs %lb_gp_hash ) {
-        my ( $lb, $gp_hash ) = @$lb_gp_pair;
+    foreach \my @lb_gp_pair ( pairs %lb_gp_hash ) {
+        my ( $lb, \%gp_hash ) = @lb_gp_pair;
 
-        if ( $allow_empty_groups && !scalar %$gp_hash ) {
+        if ( $allow_empty_groups && !scalar %gp_hash ) {
             $self->add_element_simple_aa ( $lb, undef, 0, $csv_object );
         }
         else {
-            my $href = $labels_ref->get_sub_element_href_autoviv_aa($lb);
-            %$href = %$gp_hash;
+            #  avoid a temp variable to be ever so slightly faster
+            %{$labels_ref->get_sub_element_href_autoviv_aa($lb)} = %gp_hash;
         }
     }
 

@@ -1680,6 +1680,7 @@ END_PROGRESS_TEXT
     #  %filled_groups is used to track richness targets
     #  Any zero richness targets can be treated as filled immediately
     my (%filled_groups, %unfilled_groups);
+    my $bd_has_empty_groups;
 
     foreach my $group (@sorted_groups) {
 
@@ -1687,6 +1688,7 @@ END_PROGRESS_TEXT
 
         my $gp_richness = $bd->get_richness_aa ($group) // 0;
         $cloned_bd_gps_remaining{$group} = $gp_richness;
+        $bd_has_empty_groups ||= !$gp_richness;
 
         $progress_bar->update (
             "$progress_text\n"
@@ -1863,9 +1865,8 @@ END_PROGRESS_TEXT
                      . "$i\n"
                         if defined $to_group and exists $filled_groups{$to_group};
                 
-                # Assign this label to its new group.
-                # Use array args version for speed.
-                $new_bd->add_element_simple_aa ($label, $to_group, $count, $csv_object);
+                # Store the group/label count
+                $new_bd_gp_lb_hash{$to_group}{$label} = $count;
 
                 # book-keeping for debug, also an optional output
                 if ($track_label_allocation_order) {
@@ -1981,6 +1982,13 @@ END_PROGRESS_TEXT
             }
         }
     }
+
+    #  now add the data to the basedata object
+    $new_bd->add_elements_collated_simple_aa (
+        \%new_bd_gp_lb_hash,
+        $csv_object,
+        $bd_has_empty_groups,  #  not sure there should be any at this point?
+    );
 
     my $target_label_count = keys %cloned_bd_as_lb_hash;
     my $target_group_count = keys %cloned_bd_gps_remaining;

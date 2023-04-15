@@ -697,6 +697,9 @@ sub import_data_raster {
     my $input_file_arr = $args{input_files};
     my $file_count     = scalar @$input_file_arr;
 
+    #  This allows us to reduce the calls to add_element
+    my %gp_lb_hash;
+
     foreach my $file (@$input_file_arr) {
         $file_iter++;
         if ( scalar @$input_file_arr > 1 ) {
@@ -811,9 +814,6 @@ sub import_data_raster {
                       $frac;
                 }
 
-                #  temporary store for groups and labels so
-                #  we can reduce the calls to add_element
-                my %gp_lb_hash;
 
                 $wpos = 0;
                 while ( $wpos < $xsize ) {
@@ -938,16 +938,16 @@ sub import_data_raster {
 
                 $hpos += $blockh;
 
-                $self->add_elements_collated(
-                    %args_for_add_elements_collated,
-                    data => \%gp_lb_hash,
-                );
-
             }    # each block in height
         }    # each raster band
 
         $progress_bar->update( 'Done', 1 );
     }    # each file
+
+    $self->add_elements_collated(
+        %args_for_add_elements_collated,
+        data => \%gp_lb_hash,
+    );
 
     $self->run_import_post_processes(
         %args,

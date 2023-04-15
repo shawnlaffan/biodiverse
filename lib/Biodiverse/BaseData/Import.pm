@@ -1742,6 +1742,9 @@ sub import_data_spreadsheet {
     #  could use a hash, but this allows open books to be passed
     my @sheet_array = @{ $args{sheet_ids} // [] };
 
+    #  collate the groups and labels before adding to the basedata
+    my %gp_lb_hash;
+
     # load each file, using same arguments/parameters
     my $file_i = -1;
     foreach my $book ( @{ $args{input_files} } ) {
@@ -1810,7 +1813,6 @@ sub import_data_spreadsheet {
             );
         }
 
-        my %gp_lb_hash;
 
         my $row_counter     = 0;
         my $nrows = scalar @rows;
@@ -1958,15 +1960,16 @@ sub import_data_spreadsheet {
 
         }    # each row
 
-        #  add the collated data
-        $self->add_elements_collated(
-            data => \%gp_lb_hash,
-            %args_for_add_elements_collated,
-        );
-        %gp_lb_hash = ();    #  clear the collated list
 
         $progress_bar->update( 'Done', 1 );
     }    # each file
+
+    #  add the collated data
+    $self->add_elements_collated(
+        data => \%gp_lb_hash,
+        %args_for_add_elements_collated,
+    );
+    %gp_lb_hash = ();    #  clear the collated list
 
     $self->run_import_post_processes(
         %args,

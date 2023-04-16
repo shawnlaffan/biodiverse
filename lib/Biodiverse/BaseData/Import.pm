@@ -300,7 +300,20 @@ sub import_data {
         sep_char   => $el_sep,
         quote_char => $quotes,
     );
-    
+
+    #  a boolean flag for Text::CSV_XS
+    my $input_binary     = $args{binary} // 1;
+    my $input_quote_char = $args{input_quote_char};
+    my $sep              = $args{input_sep_char};
+
+    my %gp_lb_hash;
+    my %args_for_add_elements_collated = (
+        csv_object         => $out_csv,
+        binarise_counts    => $binarise_counts,
+        allow_empty_groups => $allow_empty_groups,
+        allow_empty_labels => $allow_empty_labels,
+    );
+
 #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file ( @{ $args{input_files} } ) {
         $file = Path::Class::file($file)->absolute;
@@ -326,10 +339,6 @@ sub import_data {
           . "(it is still working if the progress bar is not moving)"
           : $EMPTY_STRING;
 
-        my $input_binary = $args{binary}
-          // 1;    #  a boolean flag for Text::CSV_XS
-        my $input_quote_char = $args{input_quote_char};
-        my $sep              = $args{input_sep_char};
 
         my $in_csv = $self->get_csv_object_using_guesswork(
             fname      => $file,
@@ -388,13 +397,6 @@ sub import_data {
 
     #my $total_chunk_text = $self->get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
         my $total_chunk_text = '>0';
-        my %gp_lb_hash;
-        my %args_for_add_elements_collated = (
-            csv_object         => $out_csv,
-            binarise_counts    => $binarise_counts,
-            allow_empty_groups => $allow_empty_groups,
-            allow_empty_labels => $allow_empty_labels,
-        );
 
         say '[BASEDATA] Line number: 1';
         say "[BASEDATA]  Chunk size $line_count lines";
@@ -424,12 +426,6 @@ sub import_data {
                 $total_chunk_text =
                   $file_handle->eof ? $chunk_count : ">$chunk_count";
 
-                #  add the collated data
-                $self->add_elements_collated(
-                    data => \%gp_lb_hash,
-                    %args_for_add_elements_collated,
-                );
-                %gp_lb_hash = ();    #  clear the collated list
             }
 
             if ( $line_num % 1000 == 0 ) {    # progress information
@@ -602,7 +598,7 @@ sub import_data {
             $line_count_all_input_files++;
         }
 
-        #  add the last set
+        #  add the collated data
         $self->add_elements_collated(
             data => \%gp_lb_hash,
             %args_for_add_elements_collated,

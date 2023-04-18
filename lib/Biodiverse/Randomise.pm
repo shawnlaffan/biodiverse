@@ -1846,7 +1846,8 @@ END_PROGRESS_TEXT
                 next BY_GROUP if $using_random_propagation && exists $assigned{$to_group};
 
                 my $from_group = shift @$tmp_rand_order;
-                my $count = $tmp_gp_hash{$from_group};
+                # my $count = $tmp_gp_hash{$from_group};
+                my $count = delete $tmp_gp_hash{$from_group};
 
 #say "Grabbing $label from $from_group with count $count";
 
@@ -1887,7 +1888,6 @@ END_PROGRESS_TEXT
                 $cloned_bd_gps_remaining{$from_group}--;
                 delete $cloned_bd_gps_remaining{$from_group}
                   if !$cloned_bd_gps_remaining{$from_group};
-                delete $tmp_gp_hash{$from_group};
 
                 #  increment richness and then check if we've filled this group.
                 my $richness = ++$new_bd_richness{$to_group};
@@ -2430,14 +2430,14 @@ sub swap_to_reach_richness_targets {
 
     my @sorted_bd_labels = sort $bd->get_labels; 
     foreach my $gp (sort keys %unfilled_groups) {
-        my $list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
+        \my %list = $new_bd->get_labels_in_group_as_hash_aa ($gp);
         foreach my $label (@sorted_bd_labels) {
-            if (exists $list->{$label}) {
+            if (exists $list{$label}) {
                 $labels_in_unfilled_gps{$label}++;
             }
             else {
-                my $sublist = $unfilled_gps_without_label_lu{$label} //= [];
-                push @$sublist, $gp;
+                #  autovivs the arrays
+                push @{$unfilled_gps_without_label_lu{$label}}, $gp;
                 $unfilled_gps_without_label_by_gp{$gp}{$label}++;
             }
         }

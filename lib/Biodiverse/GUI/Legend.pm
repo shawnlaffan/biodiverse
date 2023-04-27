@@ -210,7 +210,7 @@ sub make_rect {
         #  cargo culted from above - need to refactor
         ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
-        my @dummy_vals = reverse (0.01, 0.03, 0.09, 0.5, 0.91, 0.951, 0.978);
+        my @dummy_vals = reverse (0.001, 0.02, 0.04, 0.5, 0.951, 0.978, 0.991);
 
         foreach my $row (0..($height - 1)) {
             #  a clunky means of aligning the colours with the labels
@@ -608,7 +608,7 @@ sub get_colour_prank {
     #  returns -1 if not found, which will give us last item in @zscore_colours
     my $idx
         = firstidx {$val < 0 ? $val < $_ : $val <= $_}
-          (0.025, 0.05, 0.1, 0.9, 0.95, 0.975);
+          (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
 
     return $zscore_colours[$idx];
 }
@@ -871,7 +871,7 @@ sub set_text_marks_zscore {
 
 sub set_text_marks_prank {
     my $self = shift;
-    my @strings = ('<0.025', '<0.05', '<0.1', '[0.1,0.9]', '>0.9', '>0.95', '>0.975');
+    my @strings = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
     $self->set_text_marks_for_labels (\@strings, $self->{prank_marks});
 }
 

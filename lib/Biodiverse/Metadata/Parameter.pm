@@ -11,7 +11,7 @@ use Readonly;
 
 use parent qw /Biodiverse::Metadata/;
 
-our $VERSION = '4.2';
+our $VERSION = '4.3';
 
 
 #  Poss too many, but we are a catch-all class.

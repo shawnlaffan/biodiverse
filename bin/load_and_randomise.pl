@@ -14,7 +14,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '4.2';
+our $VERSION = '4.3';
 
 use Biodiverse::Config;
 

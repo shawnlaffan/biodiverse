@@ -6,7 +6,7 @@ use Gtk2;
 #use Data::Dumper;
 use Geo::ShapeFile;
 
-our $VERSION = '4.2';
+our $VERSION = '4.3';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

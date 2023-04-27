@@ -22,7 +22,7 @@ no warnings 'experimental::refaliasing';
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '4.2';
+our $VERSION = '4.3';
 
 our $AUTOLOAD;
 

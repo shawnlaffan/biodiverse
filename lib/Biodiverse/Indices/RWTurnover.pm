@@ -144,14 +144,12 @@ sub calc_phylo_rw_turnover {
     my $done_marker = \1;  #  squeeze more speed by not creating new SVs
     #  micro-optimisation to not recreate these each iter
     #  Care needs to be taken if assignment code below is modified
-    my ($in_set1, $in_set2);
+    my ($in_set1, $in_set2, $pnode);
 
     NODE:
     foreach my $node (keys %weights) {
 
         next NODE if $done{$node};
-
-        my $wt = $weights{$node};
 
         \my %range_hash = $node_ranges{$node};
 
@@ -173,11 +171,11 @@ sub calc_phylo_rw_turnover {
             }
         }
 
+        $done{$node} = $done_marker;  # set it once here instead of in each condition
         if ($in_set1) {
             if ($in_set2) {  #  we are in both nbr sets, therefore so are our ancestors
-                $aa += $wt;
-                $done{$node} = $done_marker;
-                my $pnode = $node;  #  initial parent node key
+                $aa += $weights{$node};
+                $pnode = $node;  #  initial parent node key
                 while ($pnode = $parent_name_hash{$pnode}) {
                     last if $done{$pnode};
                     $aa += $weights{$pnode};  #  should perhaps add "// last" to allow for subsets which don't go all the way?
@@ -185,23 +183,25 @@ sub calc_phylo_rw_turnover {
                 }
             }
             else {
-                $bb += $wt;
-                $done{$node} = $done_marker;
+                $bb += $weights{$node};
             }
         }
         elsif ($in_set2) {
-            $cc += $wt;
-            $done{$node} = $done_marker;
+            $cc += $weights{$node};
         }
     }
 
-    my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
+    # my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
 
     my %results = (
         PHYLO_RW_TURNOVER_A => $aa,
         PHYLO_RW_TURNOVER_B => $bb,
         PHYLO_RW_TURNOVER_C => $cc,
-        PHYLO_RW_TURNOVER   => eval {$dissim_is_valid ? 1 - ($aa / ($aa + $bb + $cc)) : undef},
+        PHYLO_RW_TURNOVER   => eval {
+            ($aa || $bb) && ($aa || $cc)  #  avoid divide by zero
+            ? 1 - ($aa / ($aa + $bb + $cc))
+            : undef
+        },
     );
 
     return wantarray ? %results : \%results;

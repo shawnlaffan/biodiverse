@@ -27,7 +27,7 @@ use Sort::Key::Natural qw /natsort rnatsort/;
 use constant HAVE_DATA_RECURSIVE
   => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
 
-our $VERSION = '4.3';
+our $VERSION = '4.99_001';
 
 my $EMPTY_STRING = q{};
 

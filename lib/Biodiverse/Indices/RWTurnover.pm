@@ -199,9 +199,9 @@ sub calc_phylo_rw_turnover {
             ? ($aa += ($list1{$key} + $list2{$key}))
             : ($bb += $list1{$key});
     }
-    foreach my $key (grep {!exists $list1{$_}} keys %list2) {
-        $cc += $list2{$key};
-    }
+    #  postfix for speed
+    $cc += $list2{$_}
+      foreach grep {!exists $list1{$_}} keys %list2;
 
     # my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
 

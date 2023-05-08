@@ -263,20 +263,38 @@ sub get_metadata__calc_pe_lists_per_element_set {
 sub _calc_pe_lists_per_element_set {
     my ($self, %args) = @_;
 
-    my $results1
-        = $args{element_list1}
-        ? $self->_calc_pe(%args, element_list_all => [keys %{$args{element_list1}}])
-        : {};
-    my $results2
-        = $args{element_list2}
-        ? $self->_calc_pe(%args, element_list_all => [keys %{$args{element_list2}}])
-        : {};
+    #  We use caching to avoid redundant calcs when in pairwise mode.
+    #  We check for single element lists to trigger
+    #  but maybe we want to only check for pairwise as it is
+    #  otherwise wasteful?
+    state $cache_name = '_calc_pe_lists_per_element_set';
+    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+
+    my @results;
+
+    my $i = 0;
+  BY_LIST:
+    foreach my $list_name (qw /element_list1 element_list2/) {
+        $i++;  #  start at 1 so we match the numbered names
+        my $el_list = $args{$list_name} // next BY_LIST;
+        my @elements = keys %$el_list;
+        my $have_cache = (@elements == 1 && $cache->{$elements[0]});
+        $results[$i]
+            = $have_cache
+            ? $cache->{$elements[0]}
+            : $self->_calc_pe(
+                %args,
+                element_list_all => \@elements,
+              );
+          $cache->{$elements[0]} = $results[$i]
+            if @elements == 1;
+    }
 
     my %results;
-    foreach my $key (keys %$results1) {
-        $results{"${key}_PER_ELEMENT_SET1"} = $results1->{$key};
+    foreach my $key (keys %{$results[1]}) {
+        $results{"${key}_PER_ELEMENT_SET1"} = $results[1]->{$key} //= {};
         next if !$args{element_list2};
-        $results{"${key}_PER_ELEMENT_SET2"} = $results2->{$key};
+        $results{"${key}_PER_ELEMENT_SET2"} = $results[2]->{$key} //= {};
     };
     return wantarray ? %results : \%results;
 }

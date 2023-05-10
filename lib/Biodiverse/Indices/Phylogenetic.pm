@@ -2498,35 +2498,24 @@ sub get_metadata_calc_phylo_abc {
     return $metadata_class->new(\%metadata);
 }
 
-my $_calc_phylo_abc_precision = 10 ** 10;
-
 sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    my $A = $args{PHYLO_A_LIST};
-    my $B = $args{PHYLO_B_LIST};
-    my $C = $args{PHYLO_C_LIST};
-
-    my $phylo_A = sum (0, values %$A);
-    my $phylo_B = sum (0, values %$B);
-    my $phylo_C = sum (0, values %$C);
+    my $phylo_A = sum (0, values %{$args{PHYLO_A_LIST}});
+    my $phylo_B = sum (0, values %{$args{PHYLO_B_LIST}});
+    my $phylo_C = sum (0, values %{$args{PHYLO_C_LIST}});
 
     my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
     
     #  return the values but reduce the precision to avoid
     #  floating point problems later on
-
-    $phylo_A   = $self->round_to_precision_aa ($phylo_A,   $_calc_phylo_abc_precision);
-    $phylo_B   = $self->round_to_precision_aa ($phylo_B,   $_calc_phylo_abc_precision);
-    $phylo_C   = $self->round_to_precision_aa ($phylo_C,   $_calc_phylo_abc_precision);
-    $phylo_ABC = $self->round_to_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
-
+    use constant PRECISION => 10**10;
     my %results = (
-        PHYLO_A   => $phylo_A,
-        PHYLO_B   => $phylo_B,
-        PHYLO_C   => $phylo_C,
-        PHYLO_ABC => $phylo_ABC,
+        PHYLO_A   => $self->round_to_precision_aa ($phylo_A,   PRECISION),
+        PHYLO_B   => $self->round_to_precision_aa ($phylo_B,   PRECISION),
+        PHYLO_C   => $self->round_to_precision_aa ($phylo_C,   PRECISION),
+        PHYLO_ABC => $self->round_to_precision_aa ($phylo_ABC, PRECISION),
     );
 
     return wantarray ? %results : \%results;
@@ -2581,11 +2570,8 @@ sub _calc_phylo_abc_lists {
             $nodes_in_path1,
             $nodes_in_path2,
         );
-        %results = (
-            PHYLO_A_LIST => $res->{a},
-            PHYLO_B_LIST => $res->{b},
-            PHYLO_C_LIST => $res->{c},
-        );
+        @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
+          = @$res{qw /a b c/};
     }
     else {
         my %A;
@@ -2614,11 +2600,8 @@ sub _calc_phylo_abc_lists {
         # get length of %A = branches not in %B or %C
         delete @A{keys %B, keys %C};
     
-         %results = (
-            PHYLO_A_LIST => \%A,
-            PHYLO_B_LIST => \%B,
-            PHYLO_C_LIST => \%C,
-        );
+         @results{qw /PHYLO_A_LIST PHYLO_B_LIST PHYLO_C_LIST/}
+           = (\%A, \%B, \%C);
     }
 
     return wantarray ? %results : \%results;

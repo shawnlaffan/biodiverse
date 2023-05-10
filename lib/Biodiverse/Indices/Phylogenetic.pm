@@ -2472,8 +2472,9 @@ sub get_metadata_calc_phylo_abc {
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Turnover',
-        pre_calc        =>  '_calc_phylo_abc_lists',
-        #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        # pre_calc        =>  [qw /_calc_phylo_abc_lists calc_abc/],
+        pre_calc        =>  [qw /calc_abc/],
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
         indices         => {
             PHYLO_A => {
@@ -2502,20 +2503,59 @@ sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    my $phylo_A = sum (0, values %{$args{PHYLO_A_LIST}});
-    my $phylo_B = sum (0, values %{$args{PHYLO_B_LIST}});
-    my $phylo_C = sum (0, values %{$args{PHYLO_C_LIST}});
+    my $tree = $args{trimmed_tree};
 
-    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
-    
+    # get_path_lengths_to_root_node also caches but this way we
+    # avoid sub overheads when building a large matrix
+    state $cache_name = '_calc_pd_abc_path_lengths';
+    my $cache = $self->get_cached_value_dor_set_default_href($cache_name);
+
+    my @nodes_in_path;
+
+    my $i = 0;
+    my @label_hash_names = qw /label_hash1 label_hash2/;
+    unshift @label_hash_names, '';  # keep in synch
+  BY_LIST:
+    foreach my $list_name (qw /element_list1 element_list2/) {
+        $i++;  #  start at 1 so we match the numbered names
+        my $el_list = $args{$list_name} // next BY_LIST;
+        my @elements = keys %$el_list;
+        my $have_cache = (@elements == 1 && $cache->{$elements[0]});
+        $nodes_in_path[$i]
+            = (@elements == 0)
+            ? {}
+            : $have_cache
+              ? $cache->{$elements[0]}
+              : $self->get_path_lengths_to_root_node (
+                  %args,
+                  labels   => $args{$label_hash_names[$i]},
+                  tree_ref => $tree,
+                  el_list  => \@elements,
+                );
+        $cache->{$elements[0]} = $nodes_in_path[$i]
+            if @elements == 1;
+    }
+
+    \my %list1 = $nodes_in_path[1];
+    \my %list2 = $nodes_in_path[2];
+    my ($aa, $bb, $cc) = (0, 0, 0);
+    foreach my $key (keys %list1) {
+        exists $list2{$key}
+            ? ($aa += $list1{$key})
+            : ($bb += $list1{$key});
+    }
+    #  postfix for speed
+    $cc += $list2{$_}
+        foreach grep {!exists $list1{$_}} keys %list2;
+
     #  return the values but reduce the precision to avoid
     #  floating point problems later on
     use constant PRECISION => 10**10;
     my %results = (
-        PHYLO_A   => $self->round_to_precision_aa ($phylo_A,   PRECISION),
-        PHYLO_B   => $self->round_to_precision_aa ($phylo_B,   PRECISION),
-        PHYLO_C   => $self->round_to_precision_aa ($phylo_C,   PRECISION),
-        PHYLO_ABC => $self->round_to_precision_aa ($phylo_ABC, PRECISION),
+        PHYLO_A   => $self->round_to_precision_aa ($aa,   PRECISION),
+        PHYLO_B   => $self->round_to_precision_aa ($bb,   PRECISION),
+        PHYLO_C   => $self->round_to_precision_aa ($cc,   PRECISION),
+        PHYLO_ABC => $self->round_to_precision_aa ($aa + $bb + $cc, PRECISION),
     );
 
     return wantarray ? %results : \%results;

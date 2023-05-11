@@ -50,26 +50,20 @@ sub calc_rw_turnover {
     my $self = shift;
     my %args = @_;
 
-    my $label_hash1    = $args{label_hash1};
-    my $label_hash2    = $args{label_hash2};
+    \my %list1    = $args{label_hash1};
+    \my %list2    = $args{label_hash2};
 
-    my $weights     = $args{ENDW_WTLIST};
+    \my %weights     = $args{ENDW_WTLIST};
     my ($aa, $bb, $cc) = (0, 0, 0);
 
-    foreach my $label (keys %$weights) {
-        my $wt = $weights->{$label};
-        if (exists $label_hash1->{$label}) {
-            if (exists $label_hash2->{$label}) {
-                $aa += $wt;
-            }
-            else {
-                $bb += $wt;
-            }
-        }
-        elsif (exists $label_hash2->{$label}) {
-            $cc += $wt;
-        }
+    foreach my $key (keys %list1) {
+        exists $list2{$key}
+            ? ($aa += $weights{$key})
+            : ($bb += $weights{$key});
     }
+    #  postfix for speed
+    $cc += $weights{$_}
+        foreach grep {!exists $list1{$_}} keys %list2;
 
     my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
     my $rw_turnover = eval {$dissim_is_valid ? 1 - ($aa / ($aa + $bb + $cc)) : undef};

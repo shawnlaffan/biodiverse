@@ -2513,11 +2513,11 @@ sub calc_phylo_abc {
     my @nodes_in_path;
 
     my $i = 0;
-    my @label_hash_names = qw /label_hash1 label_hash2/;
-    unshift @label_hash_names, '';  # keep in synch
-  BY_LIST:
-    foreach my $list_name (qw /element_list1 element_list2/) {
-        $i++;  #  start at 1 so we match the numbered names
+    my @label_hash_names = qw/label_hash1 label_hash2/;
+    unshift @label_hash_names, ''; # keep in synch
+    BY_LIST:
+    foreach my $list_name (qw/element_list1 element_list2/) {
+        $i++; #  start at 1 so we match the numbered names
         my $el_list = $args{$list_name} // next BY_LIST;
         my @elements = keys %$el_list;
         my $have_cache = (@elements == 1 && $cache->{$elements[0]});
@@ -2525,13 +2525,13 @@ sub calc_phylo_abc {
             = (@elements == 0)
             ? {}
             : $have_cache
-              ? $cache->{$elements[0]}
-              : $self->get_path_lengths_to_root_node (
-                  %args,
-                  labels   => $args{$label_hash_names[$i]},
-                  tree_ref => $tree,
-                  el_list  => \@elements,
-                );
+            ? $cache->{$elements[0]}
+            : $self->get_path_lengths_to_root_node(
+                %args,
+                labels   => $args{$label_hash_names[$i]},
+                tree_ref => $tree,
+                el_list  => \@elements,
+            );
         $cache->{$elements[0]} = $nodes_in_path[$i]
             if @elements == 1;
     }
@@ -2539,14 +2539,37 @@ sub calc_phylo_abc {
     \my %list1 = $nodes_in_path[1];
     \my %list2 = $nodes_in_path[2];
     my ($aa, $bb, $cc) = (0, 0, 0);
-    foreach my $key (keys %list1) {
-        exists $list2{$key}
-            ? ($aa += $list1{$key})
-            : ($bb += $list1{$key});
+
+    if ($self->get_pairwise_mode) {
+        #  we can cache the sums of branch lengths and thus
+        #  simplify the calcs as we only need to find $aa
+        my $cache
+          = $self->get_cached_value_dor_set_default_href ('_calc_phylo_abc_pairwise_branch_sum_cache');
+        my $sum_i = $cache->{(keys %{$args{element_list1}})[0]}  # use postfix deref?
+            //= (sum values %list1) // 0;
+        my $sum_j = $cache->{(keys %{$args{element_list2}})[0]}
+            //= (sum values %list2) // 0;
+        #  save some looping, mainly when there are large differences in key counts
+        if (keys %list1 <= keys %list2) {
+            $aa += $list1{$_} foreach grep {exists $list2{$_}} keys %list1;
+        }
+        else {
+            $aa += $list2{$_} foreach grep {exists $list1{$_}} keys %list2;
+        }
+        $bb = $sum_i - $aa;
+        $cc = $sum_j - $aa;
     }
-    #  postfix for speed
-    $cc += $list2{$_}
-        foreach grep {!exists $list1{$_}} keys %list2;
+    else {
+        #  non-pairwise mode so we cannot usefully cache the sums
+        foreach my $key (keys %list1) {
+            exists $list2{$key}
+                ? ($aa += $list1{$key})
+                : ($bb += $list1{$key});
+        }
+        #  postfix for speed
+        $cc += $list2{$_}
+            foreach grep {!exists $list1{$_}} keys %list2;
+    }
 
     #  return the values but reduce the precision to avoid
     #  floating point problems later on

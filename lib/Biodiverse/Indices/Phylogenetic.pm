@@ -2556,6 +2556,9 @@ sub calc_phylo_abc {
         else {
             $aa += $list2{$_} foreach grep {exists $list1{$_}} keys %list2;
         }
+        #  Avoid precision issues later when $aa is
+        #  essentially zero given numeric precision
+        $aa ||= 0;
         $bb = $sum_i - $aa;
         $cc = $sum_j - $aa;
     }
@@ -2571,14 +2574,11 @@ sub calc_phylo_abc {
             foreach grep {!exists $list1{$_}} keys %list2;
     }
 
-    #  return the values but reduce the precision to avoid
-    #  floating point problems later on
-    use constant PRECISION => 10**10;
     my %results = (
-        PHYLO_A   => $self->round_to_precision_aa ($aa,   PRECISION),
-        PHYLO_B   => $self->round_to_precision_aa ($bb,   PRECISION),
-        PHYLO_C   => $self->round_to_precision_aa ($cc,   PRECISION),
-        PHYLO_ABC => $self->round_to_precision_aa ($aa + $bb + $cc, PRECISION),
+        PHYLO_A   => $aa,
+        PHYLO_B   => $bb,
+        PHYLO_C   => $cc,
+        PHYLO_ABC => $aa + $bb + $cc,
     );
 
     return wantarray ? %results : \%results;

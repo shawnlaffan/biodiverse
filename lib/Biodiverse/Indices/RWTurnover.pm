@@ -8,6 +8,7 @@ use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
 use Carp;
+use List::Util qw /sum/;
 
 our $VERSION = '4.99_001';
 
@@ -56,14 +57,37 @@ sub calc_rw_turnover {
     \my %weights     = $args{ENDW_WTLIST};
     my ($aa, $bb, $cc) = (0, 0, 0);
 
-    foreach my $key (keys %list1) {
-        exists $list2{$key}
-            ? ($aa += $weights{$key})
-            : ($bb += $weights{$key});
+    if ($self->get_pairwise_mode) {
+        \my %ranges = $args{ENDW_RANGELIST};
+        #  very similar to the phyloRW case but we need the values from %weights
+        #  or inverse of ranges
+        my $cache
+            = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
+        my $sum_i = $cache->{(keys %{$args{element_list1}})[0]}  # use postfix deref?
+            //= (sum map {1 / $_} @ranges{keys %list1}) // 0;
+        my $sum_j = $cache->{(keys %{$args{element_list2}})[0]}
+            //= (sum map {1 / $_} @ranges{keys %list2}) // 0;
+        #  save some looping, mainly when there are large differences in key counts
+        if (keys %list1 <= keys %list2) {
+            $aa += $weights{$_} foreach grep {exists $list2{$_}} keys %list1;
+        }
+        else {
+            $aa += $weights{$_} foreach grep {exists $list1{$_}} keys %list2;
+        }
+        $aa ||= 0;  #  avoids precision issues later when $aa is essentially zero
+        $bb = $sum_i - $aa / 2;  #  $aa is across both groups so needs to be corrected
+        $cc = $sum_j - $aa / 2;
     }
-    #  postfix for speed
-    $cc += $weights{$_}
-        foreach grep {!exists $list1{$_}} keys %list2;
+    else {
+        foreach my $key (keys %list1) {
+            exists $list2{$key}
+                ? ($aa += $weights{$key})
+                : ($bb += $weights{$key});
+        }
+        #  postfix for speed
+        $cc += $weights{$_}
+            foreach grep {!exists $list1{$_}} keys %list2;
+    }
 
     my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
     my $rw_turnover = eval {$dissim_is_valid ? 1 - ($aa / ($aa + $bb + $cc)) : undef};
@@ -72,9 +96,9 @@ sub calc_rw_turnover {
     #my $gamma_diversity = $bd->get_label_count;
 
     my %results = (
-        RW_TURNOVER_A => $aa,
-        RW_TURNOVER_B => $bb,
-        RW_TURNOVER_C => $cc,
+        RW_TURNOVER_A => $aa || 0,
+        RW_TURNOVER_B => $bb || 0,
+        RW_TURNOVER_C => $cc || 0,
         RW_TURNOVER   => $rw_turnover,
         #RW_TURNOVER_P => $rw_turnover / $gamma_diversity,
     );
@@ -90,7 +114,7 @@ sub get_metadata_calc_phylo_rw_turnover {
         name            => 'Phylo Range weighted Turnover',
         reference       => 'Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513',
         type            => 'Phylogenetic Turnover',
-        pre_calc        => [qw /_calc_pe_lists_per_element_set/],
+        pre_calc        => [qw /calc_abc _calc_pe_lists_per_element_set/],
         # pre_calc_global => [qw /
         #     get_node_range_hash_as_lists
         #     get_trimmed_tree_parent_name_hash
@@ -125,17 +149,45 @@ sub calc_phylo_rw_turnover {
     \my %list1 = $args{PE_WTLIST_PER_ELEMENT_SET1};
     \my %list2 = $args{PE_WTLIST_PER_ELEMENT_SET2};
     my ($aa, $bb, $cc) = (0, 0, 0);
-    foreach my $key (keys %list1) {
-        exists $list2{$key}
-            ? ($aa += ($list1{$key} + $list2{$key}))
-            : ($bb += $list1{$key});
+
+    if ($self->get_pairwise_mode) {
+        #  we can cache the sums of branch lengths and thus
+        #  simplify the calcs as we only need to find $aa
+        my $cache
+            = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
+        my $sum_i = $cache->{(keys %{$args{element_list1}})[0]}  # use postfix deref?
+            //= (sum values %list1) // 0;
+        my $sum_j = $cache->{(keys %{$args{element_list2}})[0]}
+            //= (sum values %list2) // 0;
+        #  save some looping, mainly when there are large differences in key counts
+        if (keys %list1 <= keys %list2) {
+            $aa += $list1{$_} foreach grep {exists $list2{$_}} keys %list1;
+        }
+        else {
+            $aa += $list2{$_} foreach grep {exists $list1{$_}} keys %list2;
+        }
+        #  Avoid precision issues later when $aa is
+        #  essentially zero given numeric precision
+        $aa ||= 0;
+        $bb = $sum_i - $aa;
+        $cc = $sum_j - $aa;
+        $aa *= 2;  #  needs to be double counted now
     }
-    #  postfix for speed
-    $cc += $list2{$_}
-      foreach grep {!exists $list1{$_}} keys %list2;
+    else {
+        foreach my $key (keys %list1) {
+            exists $list2{$key}
+                ? ($aa += ($list1{$key} + $list2{$key}))
+                : ($bb += $list1{$key});
+        }
+        #  postfix for speed
+        $cc += $list2{$_}
+            foreach grep {!exists $list1{$_}} keys %list2;
+        #  Avoid precision issues later when $aa is
+        #  essentially zero given numeric precision
+        $aa ||= 0;
+    }
 
     # my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
-
     my %results = (
         PHYLO_RW_TURNOVER_A => $aa,
         PHYLO_RW_TURNOVER_B => $bb,

@@ -147,16 +147,21 @@ sub test_phylo_rw_turnover_mx {
     my $mx = $mx_arr->[0];
 
     my %expected = (
-        PCT975 => 0.805970149253731,
-        PCT95  => 0.805970149253731,
+        PCT975 => 0.8059701493,
+        PCT95  => 0.8059701493,
         MIN    => 0,
         PCT025 => 0,
-        PCT05  => 0.32,
-        MAX    => 0.805970149253731,
-        MEAN   => 0.162,
+        PCT05  => 0,
+        MAX    => 0.8059701493,
+        MEAN   => 0.3751810522,
+        SD     => 0.3047706206,
     );
 
     my $stats = $mx->get_summary_stats;
+    #  avoid fp precision issues in the comparison
+    foreach my $k (keys %$stats) {
+        $stats->{$k} = $mx->round_to_precision_aa ($stats->{$k}, 10**10);
+    }
     is ($stats, \%expected, 'got expected stats for phylo_rw_turnover mx');
 }
 
@@ -192,17 +197,22 @@ sub test_rw_turnover_mx {
     my $mx = $mx_arr->[0];
 
     my %expected = (
-        PCT975 => 0.833333333333333,
-        PCT95  => 0.833333333333333,
+        PCT975 => 0.8333333333,
+        PCT95  => 0.8333333333,
         MIN    => 0,
         PCT025 => 0,
-        PCT05  => 0.33,
-        MAX    => 0.833333333333333,
-        MEAN   => 0.167333333333333,
+        PCT05  => 0,
+        MAX    => 0.8333333333,
+        MEAN   => 0.3923076923,
+        SD     => 0.316227766,
     );
 
     my $stats = $mx->get_summary_stats;
-    is ($stats, \%expected, 'got expected stats for phylo_rw_turnover mx');
+    #  avoid fp precision issues in the comparison
+    foreach my $k (keys %$stats) {
+        $stats->{$k} = $mx->round_to_precision_aa ($stats->{$k}, 10**10);
+    }
+    is ($stats, \%expected, 'got expected stats for rw_turnover mx');
 }
 
 1;

@@ -11,6 +11,7 @@ use 5.010;
 our $VERSION = '4.99_001';
 
 use English ( -no_match_vars );
+use experimental qw /refaliasing/;
 
 use Carp;
 
@@ -390,51 +391,29 @@ sub get_max_value {
 sub get_summary_stats {
     my $self = shift;
 
-    my $n = $self->get_element_pair_count;
-    my ( $sumx, $sumx_sqr );
-    my @percentile_targets = qw /2.5 5 95 97.5/;
-    my @percentile_target_counts;
-    foreach my $pct (@percentile_targets) {
-        push @percentile_target_counts, $n * $pct / 100;    #  should floor it?
+    my %data;
+    \my %top_level = $self->{BYELEMENT};
+    foreach my $href (values %top_level) {
+        $data{$_}++ for values %$href;
     }
-    my %percentile_hash;
-
-    my $count;
-
-    my $values_hash = $self->{BYVALUE};
-  BY_VALUE:
-    foreach my $value ( sort { $a <=> $b } keys %$values_hash ) {
-        my $hash      = $values_hash->{$value};
-        my $sub_count = scalar keys %$hash;
-        $sumx     += $value * $sub_count;
-        $sumx_sqr += ( $value**2 ) * $sub_count;
-        $count    += $sub_count;
-
-      FIND_PCTL:
-        foreach my $target (@percentile_target_counts) {
-            last FIND_PCTL if $count < $target;
-            my $percentile = shift @percentile_targets;
-            $percentile_hash{$percentile} = $value;
-            shift @percentile_target_counts;
-        }
-    }
-
-    my $max = $self->get_max_value;
-    my $min = $self->get_min_value;
-
-    my %stats = (
-        MAX  => $max,
-        MIN  => $min,
-        MEAN => $sumx / $n,
-
-        #SD     => undef,
-        PCT025 => ( $percentile_hash{'2.5'}  // $min ),
-        PCT975 => ( $percentile_hash{'97.5'} // $max ),
-        PCT05  => ( $percentile_hash{'5'}    // $min ),
-        PCT95  => ( $percentile_hash{'95'}   // $max ),
+    my %r;
+    my $stats
+      = Statistics::Descriptive::PDL::SampleWeighted->new;
+    $stats->add_data (\%data);
+    %r = (
+        MAX  => $stats->max,
+        MIN  => $stats->min,
+        MEAN => $stats->mean,
+        SD   => $stats->standard_deviation,
     );
+    @r{qw /PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
 
-    return wantarray ? %stats : \%stats;
+    use constant PRECISION => 10**13;
+    foreach my $key (keys %r) {
+        $r{$key} = $self->round_to_precision_aa($r{$key}, PRECISION) + 0;
+    }
+
+    return wantarray ? %r : \%r;
 }
 
 #  add an element pair to the object

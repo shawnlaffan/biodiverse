@@ -408,6 +408,10 @@ sub get_summary_stats {
     );
     @r{qw /PCT025 PCT05 PCT95 PCT975/} = $stats->percentiles(2.5, 5, 95, 97.5);
 
+    use constant PRECISION => 10**13;
+    $self->round_to_precision_aa($_, PRECISION) 
+      for values %r;
+
     return wantarray ? %r : \%r;
 }
 

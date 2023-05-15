@@ -187,6 +187,10 @@ sub calc_phylo_rw_turnover {
         $aa ||= 0;
     }
 
+    #  precision as per $aa above
+    $bb ||= 0;
+    $cc ||= 0;
+
     # my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);
     my %results = (
         PHYLO_RW_TURNOVER_A => $aa,

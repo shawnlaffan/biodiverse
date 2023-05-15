@@ -11,8 +11,8 @@ use strict;
 use warnings;
 
 use Text::Fuzzy;
-
-use List::Util qw /min/;
+use experimental qw /refaliasing/;
+use List::Util qw /min max/;
 
 use Biodiverse::Progress;
 
@@ -203,6 +203,26 @@ sub guess_remap {
     if ($max_distance) {
         @from_labels = @unprocessed_from_labels;
         @unprocessed_from_labels = ();
+
+        my $longest_from_label  = max (map {length($_)} @from_labels);
+        my $shortest_from_label = min (map {length($_)} @from_labels);
+
+        #  build an index so we can skip impossible matches
+        #  each string is listed under each possible distance index based on its length
+        my @by_length;
+        foreach my $string (keys %target_labels_hash) {
+            my $len = length $string;
+            next if $len < $shortest_from_label - $max_distance;
+            next if $len > $longest_from_label  + $max_distance;
+            my @idxen = (
+                max ($shortest_from_label, $len - $max_distance)
+                ..
+                min ($longest_from_label,  $len + $max_distance)
+            );
+            foreach my $idx (@idxen) {
+                push @{$by_length[$idx]}, $string;
+            }
+        }
         
         $progress_i = 0;
         $n = scalar @from_labels;
@@ -214,13 +234,14 @@ sub guess_remap {
     
             my $min_distance = $max_distance;
             my @poss_matches;
-    
+
             my $distance_finder = Text::Fuzzy->new( $from_label, trans => 1);
             $distance_finder->set_max_distance ($max_distance);
             #  call nearest on key array?
             #  if so then specify no_exact
-            
-            foreach my $target_label (keys %target_labels_hash) {
+
+            \my @target_keys = $by_length[length $from_label] // [];
+            foreach my $target_label (@target_keys) {
                 my $distance = $distance_finder->distance( $target_label );
                 next if !defined $distance || $distance > $min_distance;
                 my $subset = $poss_matches[$distance] //= [];

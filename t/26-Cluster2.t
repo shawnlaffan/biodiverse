@@ -151,9 +151,10 @@ sub test_phylo_rw_turnover_mx {
         PCT95  => 0.805970149253731,
         MIN    => 0,
         PCT025 => 0,
-        PCT05  => 0.32,
+        PCT05  => 0,
         MAX    => 0.805970149253731,
-        MEAN   => 0.162,
+        MEAN   => 0.375181052201143,
+        SD     => 0.304770620593845,
     );
 
     my $stats = $mx->get_summary_stats;
@@ -196,9 +197,10 @@ sub test_rw_turnover_mx {
         PCT95  => 0.833333333333333,
         MIN    => 0,
         PCT025 => 0,
-        PCT05  => 0.33,
+        PCT05  => 0,
         MAX    => 0.833333333333333,
-        MEAN   => 0.167333333333333,
+        MEAN   => 0.392307692307692,
+        SD     => 0.316227766016838,
     );
 
     my $stats = $mx->get_summary_stats;

@@ -598,15 +598,15 @@ sub import_data {
             $line_count_all_input_files++;
         }
 
-        #  add the collated data
-        $self->add_elements_collated(
-            data => \%gp_lb_hash,
-            %args_for_add_elements_collated,
-        );
-
         $file_handle->close;
         say "\tDONE (used $line_count_used_this_file of $line_count lines)";
     }
+
+    #  add the collated data
+    $self->add_elements_collated(
+        data => \%gp_lb_hash,
+        %args_for_add_elements_collated,
+    );
 
     $self->run_import_post_processes(
         %line_parse_args,

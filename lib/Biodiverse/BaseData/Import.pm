@@ -1017,6 +1017,7 @@ sub import_data_shapefile {
         allow_empty_groups => $args{allow_empty_groups},
         allow_empty_labels => $args{allow_empty_labels},
     );
+    my %gp_lb_hash;
     
     my @input_files = @{ $args{input_files} };
     my $num_files = @input_files;
@@ -1146,7 +1147,6 @@ sub import_data_shapefile {
         %fld_names = %fld_names{@field_names_used_lc};
 
         # iterate over shapes
-        my %gp_lb_hash;
         my $count = 0;
       SHAPE:
         while (my $shape = $layer->GetNextFeature) {
@@ -1316,14 +1316,14 @@ sub import_data_shapefile {
         $layer_dataset = undef;
         $progress_bar->update( 'Done', 1 );
 
-        #  add the collated data
-        $self->add_elements_collated(
-            data => \%gp_lb_hash,
-            %args_for_add_elements_collated,
-        );
-        %gp_lb_hash = ();    #  clear the collated list
 
     }    # each file
+
+    #  add the collated data
+    $self->add_elements_collated(
+        data => \%gp_lb_hash,
+        %args_for_add_elements_collated,
+    );
 
     $progress_bar = undef;  #  some cleanup, prob not needed
 

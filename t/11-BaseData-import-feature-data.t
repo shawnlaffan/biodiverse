@@ -512,6 +512,76 @@ sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');
 }
 
+sub test_import_shapefile_polygon_many_files {
+    use FindBin qw /$Bin/;
+    my $fname = $Bin . '/data/polygon data.shp';
+    my $cell_sizes = [100000,100000];
+    die if !-e $fname;
+    my $in_options_hash = {
+        group_field_names => [':shape_x', ':shape_y'],
+        label_field_names => ['BINOMIAL'],
+        binarise_counts   => 0,
+        # sample_count_col_names => ['VALUE'],
+    };
+
+    my $bd1 = Biodiverse::BaseData->new (
+        NAME => 'two sequential imports',
+        CELL_SIZES => $cell_sizes,
+    );
+    # import as shapefile
+    my $success = eval {
+        $bd1->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+        $bd1->import_data_shapefile (
+            input_files => [$fname],
+            %$in_options_hash,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok (!$e, "no exceptions importing $fname");
+    diag $e if $e;
+    if ($e) {
+        diag "$fname:";
+        #foreach my $ext (qw /shp dbf shx/) {
+        #    diag 'size: ' . -s ($fname . $ext);
+        #}
+    }
+
+
+    my $bd2 = Biodiverse::BaseData->new (
+        NAME => 'two at a time imports',
+        CELL_SIZES => $cell_sizes,
+    );
+    # import as shapefile
+    $success = eval {
+        $bd2->import_data_shapefile (
+            input_files => [$fname, $fname],
+            %$in_options_hash,
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, "no exceptions importing $fname");
+    diag $e if $e;
+    if ($e) {
+        diag "$fname:";
+        #foreach my $ext (qw /shp dbf shx/) {
+        #    diag 'size: ' . -s ($fname . $ext);
+        #}
+    }
+
+    use List::Util;
+    my @labels = List::Util::uniq ($bd1->get_labels, $bd2->get_labels);
+    diag join ' ', @labels;
+    my (%lb_counts1, %lb_counts2);
+    foreach my $lb (@labels) {
+        $lb_counts1{$lb} = $bd1->get_label_sample_count (label => $lb);
+        $lb_counts2{$lb} = $bd2->get_label_sample_count (label => $lb);
+    }
+    is \%lb_counts1, \%lb_counts2, 'got matching label counts';
+}
+
 
 __DATA__
 

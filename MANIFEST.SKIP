@@ -30,3 +30,8 @@ lib/.perltidyrc
 .+\.komodoproject
 
 ^gmean.pl$
+
+^tmp/
+
+\.idea
+\.inline

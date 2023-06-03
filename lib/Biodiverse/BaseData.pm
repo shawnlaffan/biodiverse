@@ -483,7 +483,7 @@ sub get_coord_bounds {
   GROUP:
     foreach my $gp_name ( keys %$group_hash ) {
         $i++;
-        my $coord = $gp->get_element_name_as_array( element => $gp_name );
+        my $coord = $gp->get_element_name_as_array_aa ( $gp_name );
 
         if ( !$i ) {    #  first one
             my $j = 0;
@@ -2513,7 +2513,7 @@ sub get_neighbours {
     { #  We have a spatial index defined and a favourable ratio of offsets to groups
             #  so we get the possible list of neighbours from the index.
         my $element_array =
-          $self->get_group_element_as_array( element => $element1 );
+          $self->get_group_element_as_array_aa ( $element1 );
 
         my $index_csv_obj = $index->get_cached_value('CSV_OBJECT');
 

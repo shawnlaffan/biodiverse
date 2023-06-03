@@ -946,7 +946,7 @@ sub test_roundtrip_names_with_quotes_in_newick {
     $bd->add_element (group => '1:1', label => q{a:b});
 
     my $tree1 = $bd->to_tree;
-    
+
     foreach my $label ($bd->get_labels) {
         ok ($tree1->exists_node(name => $label), qq{terminal /$label/ is in tree});
     }

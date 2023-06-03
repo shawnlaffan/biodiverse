@@ -1319,6 +1319,23 @@ sub get_csv_object {
     return $csv;
 }
 
+sub get_element_name_csv_object {
+    my ($self) = @_;
+
+    state $cache_name = '_ELEMENT_NAME_CSV_OBJECT';
+    my $csv = $self->get_cached_value ($cache_name);
+    if (!$csv) {
+        $csv = $self->get_csv_object (
+            sep_char   => ($self->get_param('JOIN_CHAR') // ':'),
+            quote_char => ($self->get_param('QUOTES') // q{'}),
+        );
+        $self->set_cached_value ($cache_name => $csv);
+    }
+
+    return $csv;
+}
+
+
 sub dequote_element {
     my $self = shift;
     my %args = @_;
@@ -1333,7 +1350,7 @@ sub dequote_element {
 
     if ($el =~ /^$quotes[^$quotes\s]+$quotes$/) {
         $el = substr ($el, 1);
-        chop $el
+        chop $el;
     }
 
     return $el;

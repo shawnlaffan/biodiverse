@@ -161,10 +161,12 @@ sub calc_phylo_rw_turnover {
             //= (sum values %list2) // 0;
         #  save some looping, mainly when there are large differences in key counts
         if (keys %list1 <= keys %list2) {
-            $aa += $list1{$_} foreach grep {exists $list2{$_}} keys %list1;
+            (exists $list2{$_} and $aa += $list1{$_}) 
+              foreach keys %list1;
         }
         else {
-            $aa += $list2{$_} foreach grep {exists $list1{$_}} keys %list2;
+            (exists $list1{$_} and $aa += $list2{$_}) 
+              foreach keys %list2;
         }
         #  Avoid precision issues later when $aa is
         #  essentially zero given numeric precision
@@ -180,8 +182,8 @@ sub calc_phylo_rw_turnover {
                 : ($bb += $list1{$key});
         }
         #  postfix for speed
-        $cc += $list2{$_}
-            foreach grep {!exists $list1{$_}} keys %list2;
+        (!exists $list1{$_} and $cc += $list2{$_})
+          foreach keys %list2;
         #  Avoid precision issues later when $aa is
         #  essentially zero given numeric precision
         $aa ||= 0;
@@ -198,7 +200,7 @@ sub calc_phylo_rw_turnover {
         PHYLO_RW_TURNOVER_C => $cc,
         PHYLO_RW_TURNOVER   => eval {
             ($aa || $bb) && ($aa || $cc)  #  avoid divide by zero
-            ? 1 - ($aa / ($aa + $bb + $cc))
+            ? 1 - (($aa / ($aa + $bb + $cc)) || 0)  #  more precision...
             : undef
         },
     );

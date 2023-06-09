@@ -69,10 +69,12 @@ sub calc_rw_turnover {
             //= (sum map {1 / $_} @ranges{keys %list2}) // 0;
         #  save some looping, mainly when there are large differences in key counts
         if (keys %list1 <= keys %list2) {
-            $aa += $weights{$_} foreach grep {exists $list2{$_}} keys %list1;
+            (exists $list2{$_} and $aa += $weights{$_}) 
+              foreach keys %list1;
         }
         else {
-            $aa += $weights{$_} foreach grep {exists $list1{$_}} keys %list2;
+            (exists $list1{$_} and $aa += $weights{$_})
+              foreach keys %list2;
         }
         $aa ||= 0;  #  avoids precision issues later when $aa is essentially zero
         $bb = $sum_i - $aa / 2;  #  $aa is across both groups so needs to be corrected
@@ -85,8 +87,8 @@ sub calc_rw_turnover {
                 : ($bb += $weights{$key});
         }
         #  postfix for speed
-        $cc += $weights{$_}
-            foreach grep {!exists $list1{$_}} keys %list2;
+        (!exists $list1{$_} and $cc += $weights{$_})
+          foreach keys %list2;
     }
 
     my $dissim_is_valid = ($aa || $bb) && ($aa || $cc);

@@ -573,7 +573,7 @@ sub test_import_shapefile_polygon_many_files {
 
     use List::Util;
     my @labels = List::Util::uniq ($bd1->get_labels, $bd2->get_labels);
-    diag join ' ', @labels;
+    # diag join ' ', @labels;
     my (%lb_counts1, %lb_counts2);
     foreach my $lb (@labels) {
         $lb_counts1{$lb} = $bd1->get_label_sample_count (label => $lb);

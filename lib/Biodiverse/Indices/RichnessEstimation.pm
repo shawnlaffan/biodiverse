@@ -976,6 +976,70 @@ sub _calc_ace_confidence_intervals {
 
     return wantarray ? %results : \%results;
 }
+
+
+sub get_metadata_calc_hurlbert_es {
+    my $self = shift;
+
+    my %metadata = (
+        name           => 'Hurlbert richness estimation',
+        description    => "Hurlbert estimated species richness scores for given number of samples.\n",
+        indices        => {
+            HURLBERT_ES => {
+                description => 'List of Hurlbert estimated species richness scores for given number of samples',
+                type        => 'list',
+            },
+        },
+        type           => 'Richness estimators',
+        pre_calc       => qw/calc_abc3/,
+        uses_nbr_lists => 1, #  how many sets of lists it must have
+        reference      => 'Hurlbert, S.H. (1971) https://doi.org/10.2307/1934145',
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_hurlbert_es {
+    my ($self, %args) = @_;
+
+    my $label_hash = $args{label_hash_all};
+
+    my $N;
+    $N += $_ for values %$label_hash;
+
+    my $ln_fac_arr = $self->_get_ln_fac_arr (max_n => $N);
+
+    #  need a better way to generate n sample targets
+    my @target_n_vals = (5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000);
+
+    my %es_scores;
+    foreach my $target_n (@target_n_vals) {
+        last if $N < $target_n;
+        my $score;
+        foreach my $ni (values %$label_hash) {
+            if ($N - $ni >= $target_n) {
+                $score += 1 - exp (
+                      $ln_fac_arr->[$N - $ni]
+                    + $ln_fac_arr->[$N - $target_n]
+                    - $ln_fac_arr->[$N - $ni - $target_n]
+                    - $ln_fac_arr->[$N]
+                );
+            }
+            elsif ($N > $target_n) {
+                $score += 1;
+            }
+        }
+        $es_scores{$target_n} = $score;
+    }
+
+    my %results = (HURLBERT_ES => \%es_scores);
+
+    return wantarray ? %results : \%results;
+}
+
+
+
+
 1;
 
 __END__

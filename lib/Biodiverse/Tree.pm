@@ -3580,21 +3580,22 @@ sub get_bnok_ratio_callback_two_val {
     return $sub;
 }
 
-#  make this a state var internal to the sub
-#  when perl 5.28 is our min version
-my @ln_fac_arr = (0,0);
-sub _get_ln_fac_arr {
-    my ($self, %args) = @_;
-    my $n = $args{max_n};
-
-    if (@ln_fac_arr < $n) {
-        foreach my $i (@ln_fac_arr .. $n) {
-            $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;
-        }
-    }
-
-    return wantarray ? @ln_fac_arr : \@ln_fac_arr;
-}
+#  moved to Common.pm
+# #  make this a state var internal to the sub
+# #  when perl 5.28 is our min version
+# my @ln_fac_arr = (0,0);
+# sub _get_ln_fac_arr {
+#     my ($self, %args) = @_;
+#     my $n = $args{max_n};
+#
+#     if (@ln_fac_arr < $n) {
+#         foreach my $i (@ln_fac_arr .. $n) {
+#             $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;
+#         }
+#     }
+#
+#     return wantarray ? @ln_fac_arr : \@ln_fac_arr;
+# }
 
 
 

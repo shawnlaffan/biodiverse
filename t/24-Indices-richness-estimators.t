@@ -62,6 +62,7 @@ sub test_indices {
             calc_chao2
             calc_ace
             calc_ice
+            calc_hurlbert_es
         /],
         calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
@@ -69,7 +70,7 @@ sub test_indices {
         element_list1      => [$focal_gp],
         element_list2      => \@nbr_set2,
         descr_suffix       => 'main tests',
-        #generate_result_sets => 1,
+        # generate_result_sets => 1,
     );
 
     return;
@@ -877,6 +878,41 @@ sub get_basedata {
 }
 
 
+#  check we match the results of the R entropart library
+sub test_hurlbert_matches_entropart {
+    my $indices = Biodiverse::Indices->new;
+    my @vals = qw/38 68 90 59 27 74 30 55 55 49 57 63 35 12 22 43 73 91 87  9 72  8 62 18 80 23/;
+    my %data;
+    @data{'a'..'z'} = @vals;
+
+    my $results = $indices->calc_hurlbert_es(
+        label_hash_all => \%data,
+    );
+    my $got = $results->{HURLBERT_ES};
+
+    my %exp = (
+            5    => 4.54802350159,
+            10   => 8.12951896478,
+            20   => 13.2371759674,
+            50   => 20.2756085056,
+            100  => 23.6287536932,
+            200  => 25.267765305,
+            500  => 25.9642304379,
+            1000 => 25.9999908099,
+    );
+
+    #  a little precision adjustment since tests are exact
+    foreach my $val (values %{$got}) {
+        $val = sprintf "%.10f", $val;
+    }
+    foreach my $val (values %exp) {
+        $val = sprintf "%.10f", $val;
+    }
+
+    is $got, \%exp, "Hurlbert matches entropart";
+}
+
+
 1;
 
 __DATA__
@@ -930,20 +966,20 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   ACE_CI_LOWER         => '26.4817368225888',
-    ACE_CI_UPPER         => '38.5616065911166',
-    ACE_ESTIMATE         => '28.4599570008062',
-    ACE_INFREQUENT_COUNT => 19,
-    ACE_SE               => '2.4572916222336',
-    ACE_UNDETECTED       => '2.45995700080623',
-    ACE_VARIANCE         => '6.03828211669945',
+{   ACE_CI_LOWER           => '26.4817368225888',
+    ACE_CI_UPPER           => '38.5616065911166',
+    ACE_ESTIMATE           => '28.4599570008062',
     ACE_ESTIMATE_USED_CHAO => 0,
-    CHAO1_CI_LOWER       => '26.2163119159043',
-    CHAO1_CI_UPPER       => '37.7629272999573',
-    CHAO1_ESTIMATE       => '27.5951367781155',
-    CHAO1_F1_COUNT       => 4,
-    CHAO1_F2_COUNT       => 5,
-    CHAO1_META           => {
+    ACE_INFREQUENT_COUNT   => 19,
+    ACE_SE                 => '2.4572916222336',
+    ACE_UNDETECTED         => '2.45995700080623',
+    ACE_VARIANCE           => '6.03828211669945',
+    CHAO1_CI_LOWER         => '26.2163119159043',
+    CHAO1_CI_UPPER         => '37.7629272999573',
+    CHAO1_ESTIMATE         => '27.5951367781155',
+    CHAO1_F1_COUNT         => 4,
+    CHAO1_F2_COUNT         => 5,
+    CHAO1_META             => {
         CHAO_FORMULA     => 2,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 6
@@ -959,37 +995,45 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 10
     },
-    CHAO2_Q1_COUNT       => 6,
-    CHAO2_Q2_COUNT       => 8,
-    CHAO2_SE             => '2.31466979955927',
-    CHAO2_UNDETECTED     => '2.04545454545455',
-    CHAO2_VARIANCE       => '5.35769628099174',
-    ICE_CI_LOWER         => '26.8302316060467',
-    ICE_CI_UPPER         => '41.6681855466098',
-    ICE_ESTIMATE         => '29.6066913993576',
-    ICE_INFREQUENT_COUNT => 24,
-    ICE_SE               => '3.13084077363682',
-    ICE_UNDETECTED       => '3.60669139935755',
-    ICE_VARIANCE         => '9.80216394986679',
+    CHAO2_Q1_COUNT   => 6,
+    CHAO2_Q2_COUNT   => 8,
+    CHAO2_SE         => '2.31466979955927',
+    CHAO2_UNDETECTED => '2.04545454545455',
+    CHAO2_VARIANCE   => '5.35769628099174',
+    HURLBERT_ES      => {
+        10  => '6.08673309367266',
+        100 => '18.8200796757971',
+        20  => '9.06575680090329',
+        200 => '23.4253639706145',
+        5   => '3.82996487293125',
+        50  => '14.2043237650115'
+    },
+    ICE_CI_LOWER           => '26.8302316060467',
+    ICE_CI_UPPER           => '41.6681855466098',
+    ICE_ESTIMATE           => '29.6066913993576',
     ICE_ESTIMATE_USED_CHAO => 0,
+    ICE_INFREQUENT_COUNT   => 24,
+    ICE_SE                 => '3.13084077363682',
+    ICE_UNDETECTED         => '3.60669139935755',
+    ICE_VARIANCE           => '9.80216394986679'
 }
 
 
 @@ RESULTS_1_NBR_LISTS
-{   ACE_CI_LOWER         => '8.5996888836216',
-    ACE_CI_UPPER         => '30.9753940794084',
-    ACE_ESTIMATE         => '11.7118847539016',
-    ACE_INFREQUENT_COUNT => 8,
-    ACE_SE               => '4.35262370708667',
-    ACE_UNDETECTED       => '3.71188475390156',
-    ACE_VARIANCE         => '18.9453331354929',
+{   ACE_CI_LOWER           => '8.5996888836216',
+    ACE_CI_UPPER           => '30.9753940794084',
+    ACE_ESTIMATE           => '11.7118847539016',
     ACE_ESTIMATE_USED_CHAO => 0,
-    CHAO1_CI_LOWER       => '8.93050951620995',
-    CHAO1_CI_UPPER       => '69.3496356121155',
-    CHAO1_ESTIMATE       => '15.5555555555556',
-    CHAO1_F1_COUNT       => 4,
-    CHAO1_F2_COUNT       => 1,
-    CHAO1_META           => {
+    ACE_INFREQUENT_COUNT   => 8,
+    ACE_SE                 => '4.35262370708667',
+    ACE_UNDETECTED         => '3.71188475390156',
+    ACE_VARIANCE           => '18.9453331354929',
+    CHAO1_CI_LOWER         => '8.93050951620995',
+    CHAO1_CI_UPPER         => '69.3496356121155',
+    CHAO1_ESTIMATE         => '15.5555555555556',
+    CHAO1_F1_COUNT         => 4,
+    CHAO1_F2_COUNT         => 1,
+    CHAO1_META             => {
         CHAO_FORMULA     => 2,
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 6
@@ -1005,19 +1049,23 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
         CI_FORMULA       => 13,
         VARIANCE_FORMULA => 11
     },
-    CHAO2_Q1_COUNT       => 8,
-    CHAO2_Q2_COUNT       => 0,
-    CHAO2_SE             => '0',
-    CHAO2_UNDETECTED     => 0,
-    CHAO2_VARIANCE       => 0,
-    ICE_CI_LOWER         => undef,
-    ICE_CI_UPPER         => undef,
-    ICE_ESTIMATE         => 8,
-    ICE_INFREQUENT_COUNT => 8,
-    ICE_SE               => undef,
-    ICE_UNDETECTED       => undef,
-    ICE_VARIANCE         => undef,
+    CHAO2_Q1_COUNT   => 8,
+    CHAO2_Q2_COUNT   => 0,
+    CHAO2_SE         => '0',
+    CHAO2_UNDETECTED => 0,
+    CHAO2_VARIANCE   => 0,
+    HURLBERT_ES      => {
+        10 => '5.97058823529411',
+        5  => '3.90032679738561'
+    },
+    ICE_CI_LOWER           => undef,
+    ICE_CI_UPPER           => undef,
+    ICE_ESTIMATE           => 8,
     ICE_ESTIMATE_USED_CHAO => 0,
+    ICE_INFREQUENT_COUNT   => 8,
+    ICE_SE                 => undef,
+    ICE_UNDETECTED         => undef,
+    ICE_VARIANCE           => undef
 }
 
 

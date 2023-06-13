@@ -14,6 +14,7 @@ task:
       - echo $CIRRUS_OS 20230406b
 
   install_script:
+    - sudo pkg upgrade
     - sudo pkg install -y libffi autoconf automake libtool pkgconf sqlite3 gmake cmake git
     - sudo pkg install -y p5-App-cpanminus
     - sudo pkg install -y gdal

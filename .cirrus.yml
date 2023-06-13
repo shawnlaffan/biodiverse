@@ -47,7 +47,8 @@ task:
     - cpanm Statistics::Descriptive::PDL
     - cpanm --installdeps --notest Geo::GDAL::FFI
     - cpanm FFI::Platypus::Declare
-    - cpanm -v Geo::GDAL::FFI
+#    - cpanm -v Geo::GDAL::FFI
+    - cpanm -v https://github.com/ajolma/Geo-GDAL-FFI.git
     #- cpanm Test2::Harness
     #- cpanm --notest Task::Biodiverse::NoGUI
     - cpanm --notest --installdeps .

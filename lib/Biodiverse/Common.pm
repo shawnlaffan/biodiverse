@@ -2789,18 +2789,18 @@ sub rgb_12bit_to_8bit  {
 
 #  make this a state var internal to the sub
 #  when perl 5.28 is our min version
-my @ln_fac_arr = (0,0);
-sub _get_ln_fac_arr {
+my @lgamma_arr = (0,0);
+sub _get_lgamma_arr {
     my ($self, %args) = @_;
     my $n = $args{max_n};
 
-    if (@ln_fac_arr <= $n) {
-        foreach my $i (@ln_fac_arr .. $n) {
-            $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;
+    if (@lgamma_arr <= $n) {
+        foreach my $i (@lgamma_arr .. $n) {
+            $lgamma_arr[$i] = $lgamma_arr[$i-1] + log $i;
         }
     }
 
-    return wantarray ? @ln_fac_arr : \@ln_fac_arr;
+    return wantarray ? @lgamma_arr : \@lgamma_arr;
 }
 
 

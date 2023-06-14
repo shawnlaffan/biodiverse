@@ -3498,14 +3498,14 @@ sub get_bnok_ratio_callback_one_val {
 
     my $s = $args{s} // $self->get_terminal_element_count;
     my $r = $args{r} // $args{sample_count};
-    \my @ln_fac_arr = $self->_get_ln_fac_arr(max_n => $s);
+    \my @lgamma_arr = $self->_get_lgamma_arr(max_n => $s);
 
     #  use logs to avoid expensive binomial ratio calcs
     #  results are the same to about 7dp.
     my $bnok_sr
-      =      $ln_fac_arr[$s]
-        - (  $ln_fac_arr[$r]
-           + $ln_fac_arr[$s - $r]
+      =      $lgamma_arr[$s]
+        - (  $lgamma_arr[$r]
+           + $lgamma_arr[$s - $r]
         );
     #  some precalcs
     my $exp_bnok_sr = exp -$bnok_sr;
@@ -3518,9 +3518,9 @@ sub get_bnok_ratio_callback_one_val {
         if ($se < $sr1) {
             return
               exp (
-                     $ln_fac_arr[$s-$se]
-                - (  $ln_fac_arr[$r-1]
-                   + $ln_fac_arr[$sr1 - $se]
+                     $lgamma_arr[$s-$se]
+                - (  $lgamma_arr[$r-1]
+                   + $lgamma_arr[$sr1 - $se]
                   )
                 - $bnok_sr
               );            
@@ -3540,14 +3540,14 @@ sub get_bnok_ratio_callback_two_val {
 
     my $s = $args{s} // $self->get_terminal_element_count;
     my $r = $args{r} // $args{sample_count};
-    \my @ln_fac_arr = $self->_get_ln_fac_arr(max_n => $s);
+    \my @lgamma_arr = $self->_get_lgamma_arr(max_n => $s);
 
     #  use logs to avoid expensive binomial ratio calcs
     #  results are the same to about 7dp.
     my $bnok_sr
-      =      $ln_fac_arr[$s]
-        - (  $ln_fac_arr[$r]
-           + $ln_fac_arr[$s - $r]
+      =      $lgamma_arr[$s]
+        - (  $lgamma_arr[$r]
+           + $lgamma_arr[$s - $r]
         );
     #  some precalcs
     my $exp_bnok_sr = exp -$bnok_sr;
@@ -3569,9 +3569,9 @@ sub get_bnok_ratio_callback_two_val {
         #  if $s - $se - $sl == $r-1;
         return
           $cache{$sesl} =
-            exp (  $ln_fac_arr[$s   - $sesl]
-              - (  $ln_fac_arr[$rminus2]
-                 + $ln_fac_arr[$sr2 - $sesl]
+            exp (  $lgamma_arr[$s   - $sesl]
+              - (  $lgamma_arr[$rminus2]
+                 + $lgamma_arr[$sr2 - $sesl]
                 )
               - $bnok_sr
             );
@@ -3579,24 +3579,6 @@ sub get_bnok_ratio_callback_two_val {
 
     return $sub;
 }
-
-#  moved to Common.pm
-# #  make this a state var internal to the sub
-# #  when perl 5.28 is our min version
-# my @ln_fac_arr = (0,0);
-# sub _get_ln_fac_arr {
-#     my ($self, %args) = @_;
-#     my $n = $args{max_n};
-#
-#     if (@ln_fac_arr < $n) {
-#         foreach my $i (@ln_fac_arr .. $n) {
-#             $ln_fac_arr[$i] = $ln_fac_arr[$i-1] + log $i;
-#         }
-#     }
-#
-#     return wantarray ? @ln_fac_arr : \@ln_fac_arr;
-# }
-
 
 
 #  Let the system take care of most of the memory stuff.

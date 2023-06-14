@@ -1007,7 +1007,7 @@ sub calc_hurlbert_es {
     my $N;
     $N += $_ for values %$label_hash;
 
-    my $ln_fac_arr = $self->_get_ln_fac_arr (max_n => $N);
+    my $lgamma_arr = $self->_get_lgamma_arr (max_n => $N);
 
     #  need a better way to generate n sample targets
     my @target_n_vals = (5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000);
@@ -1019,10 +1019,10 @@ sub calc_hurlbert_es {
         foreach my $ni (values %$label_hash) {
             if ($N - $ni >= $target_n) {
                 $score += 1 - exp (
-                      $ln_fac_arr->[$N - $ni]
-                    + $ln_fac_arr->[$N - $target_n]
-                    - $ln_fac_arr->[$N - $ni - $target_n]
-                    - $ln_fac_arr->[$N]
+                      $lgamma_arr->[$N - $ni]
+                    + $lgamma_arr->[$N - $target_n]
+                    - $lgamma_arr->[$N - $ni - $target_n]
+                    - $lgamma_arr->[$N]
                 );
             }
             elsif ($N > $target_n) {

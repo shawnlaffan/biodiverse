@@ -7,6 +7,7 @@ use warnings;
 use Carp;
 
 use List::Util qw /max min sum/;
+use experimental qw /refaliasing/;
 
 our $VERSION = '4.99_001';
 
@@ -1007,7 +1008,7 @@ sub calc_hurlbert_es {
     my $N;
     $N += $_ for values %$label_hash;
 
-    my $lgamma_arr = $self->_get_lgamma_arr (max_n => $N);
+    \my @lgamma_arr = $self->_get_lgamma_arr (max_n => $N);
 
     #  need a better way to generate n sample targets
     my @target_n_vals = (5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000);
@@ -1016,16 +1017,16 @@ sub calc_hurlbert_es {
     foreach my $target_n (@target_n_vals) {
         last if $N < $target_n;
         my $score;
+        my $lgamma_tn_N = $lgamma_arr[$N - $target_n] - $lgamma_arr[$N];
         foreach my $ni (values %$label_hash) {
             if ($N - $ni >= $target_n) {
                 $score += 1 - exp (
-                      $lgamma_arr->[$N - $ni]
-                    + $lgamma_arr->[$N - $target_n]
-                    - $lgamma_arr->[$N - $ni - $target_n]
-                    - $lgamma_arr->[$N]
+                      $lgamma_arr[$N - $ni]
+                    + $lgamma_tn_N
+                    - $lgamma_arr[$N - $ni - $target_n]
                 );
             }
-            elsif ($N > $target_n) {
+            elsif ($N >= $target_n) {
                 $score += 1;
             }
         }

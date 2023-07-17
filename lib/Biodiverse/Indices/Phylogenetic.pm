@@ -2107,10 +2107,12 @@ sub get_last_shared_ancestor_from_subtree {
       = $tree_ref->get_root_node(tree_has_one_root_node => 1)
                  ->get_name;
 
-    #  the subtree has only labels from the current set,
-    #  so we only need to find the last branch with one child 
-    while (@{$sub_tree{$current}} == 1) {
-        $current = @{$sub_tree{$current}}[0];
+    if (keys %sub_tree) {
+        #  the subtree has only labels from the current set,
+        #  so we only need to find the last branch with one child
+        while (@{$sub_tree{$current}} == 1) {
+            $current = @{$sub_tree{$current}}[0];
+        }
     }
 
     my $results = {LAST_SHARED_ANCESTOR_SUBTREE => $current};

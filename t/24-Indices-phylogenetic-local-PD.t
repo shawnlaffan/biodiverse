@@ -61,7 +61,11 @@ sub test_pd_local {
     my $cell_sizes = [200000, 200000];
     my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     $bd->binarise_sample_counts;
-    
+    my $nomatch_gp = '0:0';
+    $bd->add_element (group => $nomatch_gp, label => 'notontree1');
+    $bd->add_element (group => $nomatch_gp, label => 'notontree2');
+    $bd->add_element (group => $nomatch_gp, label => 'notontree3');
+
     my $tree = get_tree_object_from_sample_data();
     #  set lengths to 1 to simplify tests
     $tree->delete_cached_values;
@@ -82,7 +86,7 @@ sub test_pd_local {
 
     my $elts = $sp->get_element_list;
     subtest 'local PD wrt PD' => sub {
-        foreach my $elt (@$elts) {
+        foreach my $elt (grep {$_ ne $nomatch_gp} @$elts) {
             my $results_list = $sp->get_list_ref (
                 list    => 'SPATIAL_RESULTS',
                 element => $elt,
@@ -125,6 +129,14 @@ sub test_pd_local {
         element => $target_elt,
     );
     is ($results_list, \%expected, "Got expected results for $target_elt");
+
+    my %expected_nomatch = ();
+    @expected_nomatch{qw /PD PD_P PD_LOCAL PD_LOCAL_P PD_P_per_taxon PD_per_taxon/} = ();
+    my $results_list_nomatch = $sp->get_list_ref (
+        list    => 'SPATIAL_RESULTS',
+        element => $nomatch_gp,
+    );
+    is ($results_list_nomatch, \%expected_nomatch, "Got expected results when no labels are on the tree");
 }
 
 sub test_calc_last_shared_ancestor_props {

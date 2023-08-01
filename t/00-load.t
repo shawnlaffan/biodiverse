@@ -9,7 +9,7 @@ use Test2::V0;
 
 #my @files;
 use FindBin qw { $Bin };
-use File::Spec;
+use Path::Tiny qw /path/;
 use File::Find;
 use List::Util qw /max/;
 
@@ -27,11 +27,14 @@ BEGIN {
 #  list of files
 our @files;
 
+my $cwd = Path::Tiny->cwd;
+
 sub Wanted {
     # only operate on Perl modules
     return if $_ !~ m/\.pm$/;
-    my $filename = $File::Find::name;
-    
+
+    my $filename = path($File::Find::name)->relative($cwd);
+
     return if $filename !~ m/Biodiverse/;
     return if $filename =~ m/Task/;    #  ignore Task files
     return if $filename =~ m/Bundle/;  #  ignore Bundle files
@@ -40,16 +43,17 @@ sub Wanted {
     #  ignore GUI files
     return if !$ENV{BD_TEST_GUI} && $filename =~ m/GUI/;
 
-    $filename =~ s/\.pm$//;
-    if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {
+    if ($filename =~ m|((?:App/)?Biodiverse(?:X?).*)$|) {
         $filename = $1;
     }
+    $filename =~ s/\.pm$//;
     $filename =~ s{/}{::}g;
+
     push @files, $filename;
 };
 
 
-my $lib_dir = File::Spec->catfile( $Bin, '..', 'lib' );
+my $lib_dir = path ( $Bin, '..', 'lib' );
 find ( \&Wanted,  $lib_dir );
 
 
@@ -65,22 +69,22 @@ diag '';
 diag 'Aliens:';
 my %alien_versions;
 my @aliens = qw /
-      Alien::gdal   Alien::geos::af  Alien::sqlite
-      Alien::proj   Alien::libtiff   Alien::spatialite
-      Alien::freexl
+    Alien::gdal   Alien::geos::af  Alien::sqlite
+    Alien::proj   Alien::libtiff   Alien::spatialite
+    Alien::freexl
 /;
 my $longest_name = max map {length} @aliens;
 foreach my $alien (@aliens) {
     eval "require $alien; 1";
     if ($@) {
-         #diag "$alien not installed";
-         diag sprintf "%-${longest_name}s: not installed", $alien;
-         next;
+        #diag "$alien not installed";
+        diag sprintf "%-${longest_name}s: not installed", $alien;
+        next;
     }
     diag sprintf "%-${longest_name}s: version:%7s, install type: %s",
-         $alien,
-         $alien->version // 'unknown',
-         $alien->install_type;
+        $alien,
+        $alien->version // 'unknown',
+        $alien->install_type;
     $alien_versions{$alien} = $alien->version;
 }
 
@@ -99,11 +103,11 @@ my $locale_is_comma;
 BEGIN {
     use POSIX qw /locale_h/;
     my $locale_values = localeconv();
-    $locale_is_comma = $locale_values->{decimal_point} eq ','; 
+    $locale_is_comma = $locale_values->{decimal_point} eq ',';
 }
 use constant LOCALE_USES_COMMA_RADIX => $locale_is_comma;
 diag "Radix char is "
-   . (LOCALE_USES_COMMA_RADIX ? '' : 'not ')
-   . 'a comma.';
+    . (LOCALE_USES_COMMA_RADIX ? '' : 'not ')
+    . 'a comma.';
 
 done_testing();

@@ -9,7 +9,6 @@ my %common_reqs = (
     "Class::Inspector" => 0,
     "Clone" => "0.35",
     "Cpanel::JSON::XS" => "3",
-    "DBD::XBase" => 0,
     "Data::Structure::Util" => 0,
     "Data::Compare" => 0,
     "Exception::Class" => 0,

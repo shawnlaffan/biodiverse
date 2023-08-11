@@ -13,7 +13,6 @@ use English ( -no_match_vars );
 use Readonly;
 
 use FindBin qw ( $Bin );
-use Path::Class ();
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
 use POSIX qw/fmod ceil/;

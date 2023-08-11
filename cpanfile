@@ -22,7 +22,6 @@ requires "List::Unique::DeterministicOrder", "0.003";
 requires "List::Util", "1.54";
 requires "Math::Polygon";
 requires "Math::Random::MT::Auto", "6.21";
-requires "Path::Class";
 requires "Readonly";
 requires "Ref::Util";
 requires "Ref::Util::XS";

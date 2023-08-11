@@ -15,8 +15,7 @@ use POSIX qw {fmod floor ceil log2};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use List::Util 1.45 qw /max min sum any all none notall pairs uniq/;
 use List::MoreUtils qw /first_index/;
-use Path::Class;
-#use Path::Tiny qw /path/;
+use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;
 use Data::Compare ();
@@ -316,7 +315,7 @@ sub import_data {
 
 #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file ( @{ $args{input_files} } ) {
-        $file = Path::Class::file($file)->absolute;
+        $file = path($file)->absolute;
         say "[BASEDATA] INPUT FILE: $file";
         my $file_base = $file->basename;
 
@@ -705,8 +704,8 @@ sub import_data_raster {
             );
         }
 
-        $file = Path::Class::file($file)->absolute;
-        my $file_base = Path::Class::File->new($file)->basename();
+        $file = path($file)->absolute;
+        my $file_base = $file->basename;
         say "[BASEDATA] INPUT FILE: $file";
 
         croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ "
@@ -1048,7 +1047,7 @@ sub import_data_shapefile {
     my $file_num = 0;
     foreach my $file ( @input_files ) {
         $file_num++;
-        $file = Path::Class::file($file)->absolute->stringify;
+        $file = path($file)->absolute->stringify;
         say "[BASEDATA] INPUT FILE: $file";
         
         if ($file_progress) {
@@ -1092,7 +1091,7 @@ sub import_data_shapefile {
             my $shape_x_index = first_index {$_ eq ':shape_x'} @group_field_names;
             my $shape_y_index = first_index {$_ eq ':shape_y'} @group_field_names;
             
-            if (-w Path::Class::file($fnamebase)->dir->stringify
+            if (-w path($fnamebase)->parent->stringify
                 && -w $fnamebase) {
                 #  only works for shapefiles
                 eval {
@@ -1751,7 +1750,7 @@ sub import_data_spreadsheet {
           if !defined $book;    # assuming undef on fail
 
         if ( blessed $book || !ref $book ) {    #  we have a file name
-            my $file = Path::Class::file($book)->absolute;
+            my $file = path($book)->absolute;
             say "[BASEDATA] INPUT FILE: $file";
             
             $book = $self->get_book_struct_from_spreadsheet_file (

@@ -16,7 +16,6 @@ use POSIX qw {fmod floor};
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util 1.45 qw /max min sum pairs uniq/;
 use List::MoreUtils qw /first_index/;
-use Path::Class;
 use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Regexp::Common qw /number/;

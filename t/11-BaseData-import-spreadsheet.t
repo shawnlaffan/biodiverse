@@ -7,7 +7,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Data::Dumper;
-use Path::Class;
+use Path::Tiny qw /path/;
 
 use Test2::V0;
 
@@ -104,8 +104,8 @@ sub test_import_spreadsheet_dms_coords {
     my $bd1 = Biodiverse::BaseData->new (%bd_args);
     my $e;
 
-    my $fname = Path::Class::File->new (
-        Path::Class::File->new($0)->dir,
+    my $fname = path (
+        path($0)->parent,
         "test_spreadsheet_import_dms_coords.xlsx",
     );
     $fname = $fname->stringify;
@@ -166,8 +166,8 @@ sub test_import_spreadsheet {
     ok ($e, 'import spreadsheet failed when no or undef file passed');
     
     foreach my $extension (qw /xlsx ods xls/) {
-        my $tmp_file = Path::Class::File->new (
-            Path::Class::File->new($0)->dir,
+        my $tmp_file = path (
+            path($0)->parent,
             "test_spreadsheet_import.$extension",
         );
         my $fname = $tmp_file->stringify;
@@ -365,12 +365,12 @@ sub _test_import_spreadsheet_matrix_form {
     my $fname_mx   = 'test_spreadsheet_import_matrix_form.xlsx';
     my $fname_norm = 'test_spreadsheet_import.xlsx';
 
-    $fname_mx = Path::Class::File->new (
-        Path::Class::File->new($0)->dir,
+    $fname_mx = path (
+        path($0)->parent,
         $fname_mx,
     );
-    $fname_norm = Path::Class::File->new (
-        Path::Class::File->new($0)->dir,
+    $fname_norm = path (
+        path ($0)->parent,
         $fname_norm,
     );
     

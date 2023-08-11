@@ -33,7 +33,7 @@ use Biodiverse::ElementProperties;
 
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::TempDir::Tiny;
-use File::Spec::Functions 'catfile';
+use Path::Tiny qw /path/;
 
 my $default_prng_seed = 2345;
 
@@ -770,7 +770,8 @@ sub get_temp_dir {
 sub get_temp_file_path {
     my $fname = shift;
     my $dir = tempdir();
-    return catfile($dir, $fname);
+    return $dir if !length $fname;
+    return path($dir, $fname)->stringify;
 }
 
 sub write_data_to_file {

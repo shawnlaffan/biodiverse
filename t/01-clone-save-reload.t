@@ -21,7 +21,7 @@ use Test2::V0;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
 use Biodiverse::TestHelpers qw /:basedata :matrix :tree :utils/;
-use File::Spec::Functions 'catfile';
+use Path::Tiny qw/path/;
 
 exit main( @ARGV );
 
@@ -207,7 +207,7 @@ sub test_save_and_reload_non_existent_folder {
     my $class = blessed $object;
 
     my $fname = get_temp_file_path("biodiverse.$suffix");
-    $fname = catfile($fname, 'fnargle' . (int rand() * 1000));
+    $fname = path($fname, 'fnargle' . (int rand() * 1000));
 
     my $suffix_feedback = $suffix || 'a null string';
 

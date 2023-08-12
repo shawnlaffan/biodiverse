@@ -7,7 +7,6 @@ use warnings;
 
 use English qw { -no_match_vars };
 use Data::Dumper;
-use Path::Class;
 use Path::Tiny qw /path/;
 
 use rlib;

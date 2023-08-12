@@ -8,11 +8,8 @@ use warnings;
 use FindBin qw { $Bin };
 use English qw { -no_match_vars };
 use Carp;
-use File::Spec;
+Path::Tiny qw /path/;
 
-use Path::Class;
-
-#use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 use rlib;
 
 our $VERSION = '4.99_001';
@@ -54,7 +51,7 @@ $in_file = File::Spec->rel2abs($in_file);
 
 
 my $script_name = 'load_and_randomise.pl';
-my $script = File::Spec -> catfile ($FindBin::Bin, $script_name);
+my $script = path($FindBin::Bin, $script_name)->stringify;
 
 #  need to get it from the perlapp bindings?
 if ($perl_app_tool eq 'PerlApp') {

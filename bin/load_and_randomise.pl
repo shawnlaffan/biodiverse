@@ -6,10 +6,8 @@ use File::Spec;
 use FindBin qw { $Bin };
 use Carp;
 use English qw { -no_match_vars };
-use Path::Class;
 use Scalar::Util qw /blessed/;
 
-#use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 use rlib;
 
 local $| = 1;

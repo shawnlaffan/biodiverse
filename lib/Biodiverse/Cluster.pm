@@ -19,6 +19,7 @@ use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /time/;
 use Sort::Key qw /rnkeysort/;
 use Sort::Key::Natural qw /natsort/;
+use Path::Tiny qw /path/;
 
 
 use experimental qw /declared_refs/;
@@ -294,7 +295,7 @@ sub export_matrices {
         $suffix = ".$suffix";
     }
 
-    $file = Path::Class::file($path, $name)->absolute;
+    $file = path($path, $name)->absolute;
 
     foreach my $matrix (@$matrices) {
         next if ! defined $matrix;  #  allow for absent shadow matrix

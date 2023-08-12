@@ -14,6 +14,7 @@ use Gtk2;
 use Cwd;
 
 use List::MoreUtils qw /any none/;
+use Path::Tiny qw /path/;
 
 our $VERSION = '4.99_001';
 
@@ -108,7 +109,7 @@ sub Run {
     my $extracted_params = $parameters_table->extract($extractors);
     my $filename = $chooser->get_filename;
     #  normalise the file name
-    $filename = Path::Class::File->new($filename)->stringify;
+    $filename = path($filename)->stringify;
 
     my $writefile = 'yes';
     while (-e $filename) {
@@ -119,7 +120,7 @@ sub Run {
         #  get a new file name
         $dlg->run;
         $filename  = $chooser->get_filename;
-        $filename  = Path::Class::File->new($filename)->stringify;
+        $filename  = path ($filename)->stringify;
         $writefile = 'yes';
     }
 

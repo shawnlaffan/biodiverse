@@ -16,7 +16,7 @@ use English ( -no_match_vars );
 use Readonly;
 
 use FindBin qw ( $Bin );
-use Path::Class ();
+use Path::Tiny qw /path/;
 use Text::Wrapper;
 use List::MoreUtils qw /first_index/;
 use POSIX qw/fmod/;
@@ -115,7 +115,7 @@ sub get_gtk_ui_path {
 
 sub get_gtk_ui_file {
     my ( $self, $file ) = @_;
-    return Path::Class::file( $self->get_gtk_ui_path, $file )->stringify();
+    return path( $self->get_gtk_ui_path, $file )->stringify();
 }
 
 # TODO: Temporary for conversion

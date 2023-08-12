@@ -12,7 +12,7 @@ use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum any/;
 use List::MoreUtils qw /first_index/;
 use File::Basename;
-use Path::Class;
+use Path::Tiny qw /path/;
 use POSIX qw /fmod floor/;
 use Time::localtime;
 use Ref::Util qw { :all };
@@ -876,7 +876,7 @@ sub write_table {
     my $data = $args{data} || croak "data argument not specified\n";
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
-    $args{file} = Path::Class::file($args{file})->absolute;
+    $args{file} = path($args{file})->absolute;
 
     return;
 }
@@ -1436,7 +1436,7 @@ sub write_table_asciigrid {
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
+    my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.asc/, qr/\.txt/);
     my $file_list_ref = $args{filelist} || [];
     
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
@@ -1468,7 +1468,7 @@ sub write_table_asciigrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename    = Path::Class::file($path, $this_file)->stringify;
+        my $filename    = path($path, $this_file)->stringify;
         $filename      .= $suffix;
         $file_names[$i] = $filename;
         push @$file_list_ref, $filename; # record file in list
@@ -1535,7 +1535,7 @@ sub write_table_floatgrid {
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.flt/);
+    my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.flt/);
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .flt and store it
         $suffix = '.flt';
     }
@@ -1568,7 +1568,7 @@ sub write_table_floatgrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = Path::Class::file($path, $this_file)->stringify;
+        my $filename = path($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
@@ -1638,7 +1638,7 @@ sub write_table_divagis {
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, qr'\.gri');
+    my ($name, $path, $suffix) = fileparse (path($file)->stringify, qr'\.gri');
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .gri and store it
         $suffix = '.gri';
     }
@@ -1667,7 +1667,7 @@ sub write_table_divagis {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = Path::Class::file($path, $this_file)->stringify;
+        my $filename = path($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
@@ -1773,7 +1773,7 @@ sub write_table_geotiff {
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
+    my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.tif{1,2}/);
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
         $suffix = '.tif';
     }
@@ -1819,7 +1819,7 @@ sub write_table_geotiff {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = Path::Class::file($path, $this_file)->stringify;
+        my $filename = path($path, $this_file)->stringify;
         $filename   .= $suffix;
         $file_names[$i] = $filename;
         $index_fname_hash{$header->[$i]} = $filename;
@@ -1881,7 +1881,7 @@ sub write_rgb_geotiff {
     my %args = @_;
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
+    my ($name, $path, $suffix) = fileparse (path($file)->absolute, qr/\.tif{1,2}/);
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
         $suffix = '.tif';
     }
@@ -1903,7 +1903,7 @@ sub write_rgb_geotiff {
         my $this_file = "${name}_${index}_rgb";
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $f_name = Path::Class::file($path, $this_file)->stringify;
+        my $f_name = path($path, $this_file)->stringify;
         $f_name   .= $suffix;
 
         #  we really should cache using a basestruct        
@@ -2004,7 +2004,7 @@ sub write_table_ers {
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
-        = fileparse (Path::Class::file($file)->absolute, qr/\.ers/);
+        = fileparse (path($file)->absolute, qr/\.ers/);
 
     #  add suffix if not specified
     if (!defined $suffix || $suffix eq q{}) {
@@ -2030,7 +2030,7 @@ sub write_table_ers {
 
     #my %stats;
 
-    my $data_file = Path::Class::file($path, $name)->stringify;
+    my $data_file = path($path, $name)->stringify;
     my $ofh = $self->get_file_handle (
         file_name => $data_file,
         mode      => '>',
@@ -2134,7 +2134,7 @@ END_OF_ERS_HEADER_START
         "DatasetHeader End"
     );
 
-    my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
+    my $header_file = path($path, $name)->stringify . $suffix;
     my $header_fh = $self->get_file_handle (
         file_name => $header_file,
         mode      => '>:utf8',

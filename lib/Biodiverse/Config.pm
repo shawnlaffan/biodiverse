@@ -28,7 +28,7 @@ our @EXPORT = qw /use_base add_lib_paths/;
 use Carp;
 #use Data::Dumper qw /Dumper/;
 use FindBin qw ( $Bin );
-use Path::Class;
+use Path::Tiny qw /path/;
 
 #  These global vars need to be converted to subroutines.
 #  update interval for progress bars  - need to check for tainting
@@ -66,13 +66,13 @@ BEGIN {
     use Config;
     if (($Config{myuname} // '') =~ /strawberry/i) {
         #use Env qw /@PATH/;
-        my $sbase = Path::Class::file($^X)->parent->parent->parent;
+        my $sbase = path($^X)->parent->parent->parent;
         my @non_null_paths = grep {defined} @PATH;  #  avoid undef path entries
         my %pexists;
         @pexists{@non_null_paths} = @non_null_paths;
         my @paths =
             grep {-e $_ && !exists $pexists{$_}}
-                map {Path::Class::dir($sbase, $_)}
+                map {path($sbase, $_)}
                     ("/c/bin", "/perl/bin", "/perl/site/bin", "/perl/vendor/bin");
         if (@paths) {
             say "Strawberry perl detected, prepending its bin dirs to path";

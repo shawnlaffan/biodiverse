@@ -10,7 +10,6 @@ use warnings;
 
 use English qw { -no_match_vars };
 use Data::Dumper;
-use Path::Class;
 use List::Util 1.45 qw /uniq/;
 use rlib;
 

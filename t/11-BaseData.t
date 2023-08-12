@@ -12,7 +12,7 @@ use if ON_WINDOWS, 'Win32';
 
 use English qw { -no_match_vars };
 use Data::Dumper;
-use Path::Class;
+use Path::Tiny qw /path/;
 use List::Util 1.45 qw /uniq/;
 use POSIX qw /floor/;
 use rlib;
@@ -1222,7 +1222,7 @@ sub test_roundtrip_raster {
             next if $this_file !~ /\.\w\w\w\w?$/;
 
             # find label name from file name
-            my $this_label = Path::Class::File->new($this_file)->basename();
+            my $this_label = path($this_file)->basename();
             $this_label  =~ s/\.\w+$//;  #  hackish way of clearing suffix
             my $target_name = $this_label;
             $target_name =~ s/.*${fname_base}_//;
@@ -1379,7 +1379,7 @@ sub test_raster_zero_cellsize {
         foreach my $this_file (@exported_files) {
             # find label name from file name
 
-            my $this_label = Path::Class::File->new($this_file)->basename();
+            my $this_label = path ($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; 
             $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
@@ -1449,8 +1449,8 @@ sub test_import_shapefile_dms_coords {
     my $bd1 = Biodiverse::BaseData->new (%bd_args);
     my $e;
 
-    my $fname = Path::Class::File->new (
-        Path::Class::File->new($0)->dir,
+    my $fname = path  (
+        path ($0)->parent,
         "dms_latlon.shp",
     );
     $fname = $fname->stringify;

@@ -24,7 +24,7 @@ use List::MoreUtils qw /none/;
 use List::Util qw /first/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
-use Path::Class;
+use Path::Tiny qw /path/;
 use POSIX ();
 use HTML::QuickTable;
 #use XBase;
@@ -166,7 +166,7 @@ sub load_sereal_file {
         // eval {$self->get_file_suffix}
         // $EMPTY_STRING;
 
-    my $file = Path::Class::file($args{file})->absolute;
+    my $file = path($args{file})->absolute;
     croak "[BASEDATA] File $file does not exist\n"
       if !$self->file_exists_aa ($file);
 
@@ -231,7 +231,7 @@ sub load_storable_file {
 
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
 
-    my $file = Path::Class::file($args{file})->absolute;
+    my $file = path($args{file})->absolute;
 
     croak "Unicode file names not supported for Storable format,"
         . "please rename $file and try again\n"
@@ -813,9 +813,9 @@ sub save_to_sereal {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = Path::Class::file($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
+        $file = path($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
     }
-    $file = Path::Class::file($file)->absolute;
+    $file = path($file)->absolute;
 
     say "[COMMON] WRITING TO SEREAL FORMAT FILE $file";
 
@@ -851,9 +851,9 @@ sub save_to_storable {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = Path::Class::file($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
+        $file = path($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
     }
-    $file = Path::Class::file($file)->absolute;
+    $file = path($file)->absolute;
 
     print "[COMMON] WRITING TO STORABLE FORMAT FILE $file\n";
 
@@ -876,9 +876,9 @@ sub save_to_yaml {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = Path::Class::file($file || ($prefix . "." . $self->get_param('OUTSUFFIX_YAML')));
+        $file = path($file || ($prefix . "." . $self->get_param('OUTSUFFIX_YAML')));
     }
-    $file = Path::Class::file($file)->absolute;
+    $file = path($file)->absolute;
 
     print "[COMMON] WRITING TO YAML FORMAT FILE $file\n";
 
@@ -896,9 +896,9 @@ sub save_to_data_dumper {
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
         my $suffix = $self->get_param('OUTSUFFIX') || 'data_dumper';
-        $file = Path::Class::file($file || ($prefix . '.' . $suffix));
+        $file = path($file || ($prefix . '.' . $suffix));
     }
-    $file = Path::Class::file($file)->absolute;
+    $file = path($file)->absolute;
 
     print "[COMMON] WRITING TO DATA DUMPER FORMAT FILE $file\n";
 
@@ -919,7 +919,7 @@ sub dump_to_yaml {
     my $data = $args{data};
 
     if (defined $args{filename}) {
-        my $file = Path::Class::file($args{filename})->absolute;
+        my $file = path($args{filename})->absolute;
         say "WRITING TO YAML FORMAT FILE $file";
         YAML::Syck::DumpFile ($file, $data);
     }
@@ -942,7 +942,7 @@ sub dump_to_json {
     my $data = $args{data};
 
     if (defined $args{filename}) {
-        my $file = Path::Class::file($args{filename})->absolute;
+        my $file = path($args{filename})->absolute;
         say "WRITING TO JSON FILE $file";
         open (my $fh, '>', $file)
           or croak "Cannot open $file to write to, $!\n";
@@ -1038,7 +1038,7 @@ sub write_table {
     my $data = $args{data} || croak "data argument not specified\n";
     is_arrayref($data) || croak "data arg must be an array ref\n";
 
-    $args{file} = Path::Class::file($args{file})->absolute;
+    $args{file} = path($args{file})->absolute;
 
     #  now do stuff depending on what format was chosen, based on the suffix
     my (undef, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;

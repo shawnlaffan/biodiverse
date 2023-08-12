@@ -17,8 +17,6 @@ use English ( -no_match_vars );
 use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max sum any/;
 use List::MoreUtils qw /first_index/;
-use File::Basename;
-use Path::Class;
 use POSIX qw /fmod floor/;
 use Time::localtime;
 use Ref::Util qw { :all };

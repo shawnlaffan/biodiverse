@@ -102,13 +102,13 @@ sub import_data {
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
 
     #  no import_newick here as import_phylip handles such files
-    my @import_methods = qw/import_nexus import_phylip import_R_phylo_json import_tabular_tree/;
+    my @import_methods = qw/import_nexus import_phylip import_R_phylo import_tabular_tree/;
     # promote most likely method to front of the list
     if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
         unshift @import_methods, 'import_tabular_tree';
     }
     elsif (is_ref ($args{data})) {  #  also a dirty hack
-        unshift @import_methods, 'import_R_phylo_json';
+        unshift @import_methods, 'import_R_phylo';
     }
     else {
         my $method = $self->probe_file_type (%args);
@@ -631,7 +631,7 @@ sub get_csv_object_for_tabular_tree_import {
 }
 
 
-sub import_R_phylo_json {
+sub import_R_phylo {
     my $self = shift;
     my %args = @_;
 

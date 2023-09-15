@@ -950,10 +950,10 @@ sub test_export_Rphylo {
     my $i;
     foreach my $tree ($tree1, $tree2) {
         $i++;
-        my $result = $tree->to_Rphylo;
+        my $result = $tree->to_R_phylo;
         #  round trip it
         $rn = Biodiverse::ReadNexus->new;
-        $rn->import_R_phylo_json(data => $result);
+        $rn->import_R_phylo(data => $result);
         @trees = $rn->get_tree_array;
         my $roundtripper = shift @trees;
         ok($tree->trees_are_same(comparison => $roundtripper),

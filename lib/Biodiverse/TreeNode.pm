@@ -2311,7 +2311,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
 
 #  convert the tree to the same structure as used by the R phylo system
 #  this cannot be a recursive function
-sub to_Rphylo {
+sub to_R_phylo {
     my $self = shift;
     my %args = (use_internal_names => 1, @_);
     my $remap = $args{remap} || {};

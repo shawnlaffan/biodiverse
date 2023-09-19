@@ -947,8 +947,15 @@ sub test_export_Rphylo {
     my @trees = $rn->get_tree_array;
     my $tree1 = shift @trees;
 
+    #  another one
+    $nwk = '(A:1, B:1):5.8';
+    $rn  = Biodiverse::ReadNexus->new;
+    $success = $rn->import_newick (data => $nwk);
+    @trees = $rn->get_tree_array;
+    my $tree3 = shift @trees;
+
     my $i;
-    foreach my $tree ($tree1, $tree2) {
+    foreach my $tree ($tree1, $tree2, $tree3) {
         $i++;
         my $result = $tree->to_R_phylo;
         #  round trip it

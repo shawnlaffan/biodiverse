@@ -76,6 +76,10 @@ sub new {
     if ( defined $args{file} ) {
         my $file_loaded;
         $file_loaded = $self->load_file(@_);
+        #  hack to avoid seg faults with csv objects
+        $file_loaded->get_groups_ref->delete_element_name_csv_object;
+        $file_loaded->get_labels_ref->delete_element_name_csv_object;
+
         return $file_loaded;
     }
 

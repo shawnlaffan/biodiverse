@@ -429,7 +429,7 @@ sub test_read_R_phylo_json_data {
         my $readnex = Biodiverse::ReadNexus->new;
         #diag $baddata;
         $result = eval {
-            $readnex->import_R_phylo_json (data => $baddata);
+            $readnex->import_R_phylo (data => $baddata);
         };
         is $@,
           'JSON data is not an R phylo structure',

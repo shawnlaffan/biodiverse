@@ -2309,6 +2309,91 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     return $string;
 }
 
+#  convert the tree to the same structure as used by the R phylo system
+#  this cannot be a recursive function
+sub to_R_phylo {
+    my $self = shift;
+    my %args = (use_internal_names => 1, @_);
+    my $remap = $args{remap} || {};
+    my $use_int_names = $args{use_internal_names};
+
+    use Sort::Key::Multi qw/iskeysort/;
+    my $terminals = $self->get_terminal_node_refs;
+
+    my @nodes = iskeysort {($_->get_depth, $_->get_name)} values %$terminals;
+
+    # push @nodes, $self;  # no self in node array
+    my (@length_arr, @parent_id_arr, @tip_labels, @internal_labels);
+    my @node_id_arr = (1..@nodes);
+    my %name_id_hash;
+    @name_id_hash{map {$_->get_name} @nodes} = @node_id_arr;
+    my $max_node_id = 1 + @node_id_arr;
+    my $root_id     = $max_node_id;
+    $name_id_hash{$self->get_name} =  $root_id;
+
+    my $quote_char = q{'};
+    my $csv_obj = $args{csv_object} ||
+        $self->get_csv_object(
+            quote_char   => $quote_char,
+            escape_char  => $quote_char,
+            always_quote => 1,
+        );
+
+  NODE:
+    while (my $node = shift @nodes) {
+
+        my $orig_name = $node->get_name;
+        if (!$name_id_hash{$orig_name}) {
+            $max_node_id++;
+            $name_id_hash{$orig_name} =  $max_node_id;
+        }
+
+        my $name = defined $remap->{$orig_name}
+            ? $remap->{$orig_name}
+            : $orig_name;
+                # : $self->list2csv(csv_object => $csv_obj, list => [ $orig_name ]);
+
+        my $length = $node->get_length;
+        $length =~ s/,/./; #  hack for issue #775 (another comma radix char)
+        push @length_arr, $length;
+
+        if ($node->is_terminal_node) {
+            push @tip_labels, $name;
+        }
+        else {
+            push @internal_labels, $name;
+            push @node_id_arr,  $name_id_hash{$orig_name};
+        }
+
+        next NODE if $node->is_root_node;
+
+        my $parent_id;
+        my $parent = $node->get_parent;
+
+        my $parent_name = $parent->get_name;
+        $parent_id =$name_id_hash{$parent_name};
+        if (!$parent_id) {
+            $max_node_id++;
+            $name_id_hash{$parent_name}
+                = $parent_id
+                =  $max_node_id;
+            push @nodes, $parent;
+        }
+
+        push @parent_id_arr, $parent_id;
+    }
+
+    my %str = (
+        'edge'        => [@parent_id_arr, @node_id_arr],
+        'edge.length' => \@length_arr,
+        'Nnode'       => (scalar @internal_labels + 1),
+        'node.label'  => \@internal_labels,
+        'tip.label'   => \@tip_labels,
+        'root.edge'   => 0,
+    );
+
+    return wantarray ? %str :   \%str;
+}
 
 
 sub print { # prints out the tree (for debugging)

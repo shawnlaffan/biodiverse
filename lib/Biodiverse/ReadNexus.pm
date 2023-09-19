@@ -102,13 +102,13 @@ sub import_data {
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
 
     #  no import_newick here as import_phylip handles such files
-    my @import_methods = qw/import_nexus import_phylip import_R_phylo_json import_tabular_tree/;
+    my @import_methods = qw/import_nexus import_phylip import_R_phylo import_tabular_tree/;
     # promote most likely method to front of the list
     if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
         unshift @import_methods, 'import_tabular_tree';
     }
     elsif (is_ref ($args{data})) {  #  also a dirty hack
-        unshift @import_methods, 'import_R_phylo_json';
+        unshift @import_methods, 'import_R_phylo';
     }
     else {
         my $method = $self->probe_file_type (%args);
@@ -631,7 +631,7 @@ sub get_csv_object_for_tabular_tree_import {
 }
 
 
-sub import_R_phylo_json {
+sub import_R_phylo {
     my $self = shift;
     my %args = @_;
 
@@ -713,19 +713,14 @@ sub import_R_phylo_json {
     @length_hash{@node_arr} = @lengths;
     $length_hash{$root_idx} = $root_len;
 
+    #  add the root node after the others so we avoid name clashes
     my %node_refs;
-    #  add the root node
-    $node_refs{$root_idx} = $tree->add_node (
-        name   => $tip_labels[$root_idx] // $tree->get_free_internal_name,
-        length => $length_hash{$root_idx},
-    );
-    foreach my $idx (@node_arr) {
+    foreach my $idx (@node_arr, $root_idx) {
         my $name = $tip_labels[$idx] // $tree->get_free_internal_name;
         $node_refs{$idx} = $tree->add_node (
             name   => $name,
             length => $length_hash{$idx} // 1,
         );
-        #say "Created node ", $idx, " ", $node_refs{$idx}->get_name, " length is ", $length_hash{$idx} // "UNDEFINED";
     }
 
     #  set the parents - can this be done better?

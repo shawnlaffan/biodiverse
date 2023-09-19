@@ -578,6 +578,10 @@ sub add_base_data {
         $self->select_base_data($basedata_ref);
     }
 
+    #  hack to avoid seg faults with csv objects
+    $basedata_ref->get_groups_ref->delete_element_name_csv_object;
+    $basedata_ref->get_labels_ref->delete_element_name_csv_object;
+
     $self->set_dirty();
     return $basedata_ref;
 }

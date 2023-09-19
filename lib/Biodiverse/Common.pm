@@ -1319,6 +1319,17 @@ sub get_csv_object {
     return $csv;
 }
 
+#  csv can cause seg faults when reloaded
+#  have not yet sorted out why
+sub delete_element_name_csv_object {
+    my ($self) = @_;
+
+    state $cache_name = '_ELEMENT_NAME_CSV_OBJECT';
+    $self->delete_cached_value ($cache_name);
+
+    return;
+}
+
 sub get_element_name_csv_object {
     my ($self) = @_;
 

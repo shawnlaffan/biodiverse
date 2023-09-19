@@ -938,6 +938,32 @@ sub _test_export_nexus {
 }
 
 
+sub test_export_Rphylo {
+    my $tree2 = shift // get_site_data_as_tree();
+
+    my $nwk = '(((t1:0.1838405095,t3:0.7839861871):0.7242035018,t7:0.8255161436):0.9768610101,((t6:0.2164495632,t8:0.8440289358):0.7437079474,(t4:0.4462201281,(t5:0.1244694644,t2:0.3507230047):0.7634477804):0.06578667508):0.5001766474)';
+    my $rn  = Biodiverse::ReadNexus->new;
+    my $success = $rn->import_newick (data => $nwk);
+    my @trees = $rn->get_tree_array;
+    my $tree1 = shift @trees;
+
+    my $i;
+    foreach my $tree ($tree1, $tree2) {
+        $i++;
+        my $result = $tree->to_R_phylo;
+        #  round trip it
+        $rn = Biodiverse::ReadNexus->new;
+        $rn->import_R_phylo(data => $result);
+        @trees = $rn->get_tree_array;
+        my $roundtripper = shift @trees;
+        ok($tree->trees_are_same(comparison => $roundtripper),
+            "roundtripped via Rphylo, tree $i"
+        );
+    }
+
+
+}
+
 sub test_roundtrip_names_with_quotes_in_newick {
     # need a basedata to get the quoting we need to test
     my $bd = Biodiverse::BaseData->new(name => 'blonk', CELL_SIZES => [1,1]);

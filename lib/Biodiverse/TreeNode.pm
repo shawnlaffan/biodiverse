@@ -2323,10 +2323,10 @@ sub to_R_phylo {
     my @nodes = iskeysort {($_->get_depth, $_->get_name)} values %$terminals;
 
     # push @nodes, $self;  # no self in node array
-my (@length_arr, @parent_id_arr, @tip_labels, @internal_labels);
+    my (@length_arr, @parent_id_arr, @tip_labels, @internal_labels);
     my @node_id_arr = (1..@nodes);
     my %name_id_hash;
-@name_id_hash{map {$_->get_name} @nodes} = @node_id_arr;
+    @name_id_hash{map {$_->get_name} @nodes} = @node_id_arr;
     my $max_node_id = 1 + @node_id_arr;
     my $root_id     = $max_node_id;
     $name_id_hash{$self->get_name} =  $root_id;
@@ -2392,7 +2392,7 @@ my (@length_arr, @parent_id_arr, @tip_labels, @internal_labels);
         'root.edge'   => 0,
     );
 
-    return wantarray ? %str : \%str;
+    return wantarray ? %str :   \%str;
 }
 
 

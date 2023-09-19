@@ -1910,7 +1910,7 @@ sub setup_linkage_function {
 
     my @linkage_functions = $self->get_linkage_functions;
     my $valid = grep {$linkage_function eq $_} @linkage_functions;
-    
+
     my $class = blessed $self;
     croak "Linkage function $linkage_function is not valid for an object of type $class\n"
       if !$valid;

@@ -2355,7 +2355,6 @@ sub to_R_phylo {
 
         my $length = $node->get_length;
         $length =~ s/,/./; #  hack for issue #775 (another comma radix char)
-        push @length_arr, $length;
 
         if ($node->is_terminal_node) {
             push @tip_labels, $name;
@@ -2366,6 +2365,8 @@ sub to_R_phylo {
         }
 
         next NODE if $node->is_root_node;
+
+        push @length_arr, $length;
 
         my $parent_id;
         my $parent = $node->get_parent;
@@ -2389,7 +2390,7 @@ sub to_R_phylo {
         'Nnode'       => (scalar @internal_labels + 1),
         'node.label'  => \@internal_labels,
         'tip.label'   => \@tip_labels,
-        'root.edge'   => 0,
+        'root.edge'   => $self->get_length,
     );
 
     return wantarray ? %str :   \%str;

@@ -398,8 +398,10 @@ sub get_summary_stats {
     }
     my %r;
     my $stats
-      = Statistics::Descriptive::PDL::SampleWeighted->new;
-    $stats->add_data (\%data);
+      = Statistics::Descriptive::PDL::SampleWeighted->new ;
+    #  avoid the stats object checking all values for type
+    #  will be fixed in later versions of the stats package
+    $stats->add_data ([keys %data], [values %data]);
     %r = (
         MAX  => $stats->max,
         MIN  => $stats->min,

@@ -391,6 +391,12 @@ sub get_max_value {
 sub get_summary_stats {
     my $self = shift;
 
+    state $cachename = 'SUMMARY_STATS';
+    my $cached = $self->get_cached_value ($cachename);
+
+    return wantarray ? %$cached : $cached
+      if $cached;
+
     my %data;
     \my %top_level = $self->{BYELEMENT};
     foreach my $href (values %top_level) {
@@ -414,6 +420,8 @@ sub get_summary_stats {
     foreach my $key (keys %r) {
         $r{$key} = $self->round_to_precision_aa($r{$key}, PRECISION) + 0;
     }
+
+    $self->set_cached_value($cachename => \%r);
 
     return wantarray ? %r : \%r;
 }

@@ -93,6 +93,7 @@ sub new {
     $completed //= 1;  #  backwards compatibility - old versions did not have this flag
 
     my $elements = $groups_ref->get_element_list_sorted;
+    $self->set_cached_value (ELEMENT_LIST_SORTED => $elements);
     $self->{selected_element} = $elements->[0];
 
     say "[SpatialMatrix tab] Existing matrix output - "
@@ -326,7 +327,15 @@ sub make_output_indices_model {
 
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');
-    foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
+
+    #  get the list
+    my $list = $self->get_cached_value ('ELEMENT_LIST_SORTED');
+    if (!$list) {
+        $list = $groups_ref->get_element_list_sorted(list => $element_array);
+        $self->set_cached_value (ELEMENT_LIST_SORTED => $list);
+    }
+
+    foreach my $x (reverse @$list) {
         my $iter = $model->append;
         #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
         $model->set($iter, 0, $x);

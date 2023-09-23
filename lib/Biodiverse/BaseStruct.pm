@@ -263,14 +263,12 @@ sub get_element_list {
 }
 
 sub sort_by_axes {
-    my $self = shift;
-    my $item_a = shift;
-    my $item_b = shift;
+    my ($self, $item_a, $item_b) = @_;
 
     my $axes = $self->get_cell_sizes;
     my $res = 0;
-    my $a_array = $self->get_element_name_as_array (element => $item_a);
-    my $b_array = $self->get_element_name_as_array (element => $item_b);
+    my $a_array = $self->get_element_name_as_array_aa($item_a);
+    my $b_array = $self->get_element_name_as_array_aa( $item_b);
     foreach my $i (0 .. $#$axes) {
         $res = $axes->[$i] < 0
             ? $a_array->[$i] cmp $b_array->[$i]

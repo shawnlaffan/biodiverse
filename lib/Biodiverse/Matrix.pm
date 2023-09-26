@@ -400,7 +400,8 @@ sub get_summary_stats {
     my %data;
     \my %top_level = $self->{BYELEMENT};
     foreach my $href (values %top_level) {
-        $data{$_}++ for values %$href;
+        #  round to save time and space - approximate vals should be OK for this
+        $data{0 + sprintf "%-6g", $_}++ for values %$href;
     }
     my %r;
     my $stats

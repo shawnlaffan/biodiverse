@@ -147,14 +147,14 @@ sub test_phylo_rw_turnover_mx {
     my $mx = $mx_arr->[0];
 
     my %expected = (
-        PCT975 => 0.8059701493,
-        PCT95  => 0.8059701493,
+        PCT975 => 0.80597,
+        PCT95  => 0.80597,
         MIN    => 0,
         PCT025 => 0,
         PCT05  => 0,
-        MAX    => 0.8059701493,
-        MEAN   => 0.3751810522,
-        SD     => 0.3047706206,
+        MAX    => 0.80597,
+        MEAN   => 0.3751808,
+        SD     => 0.3047705823,
     );
 
     my $stats = $mx->get_summary_stats;
@@ -197,14 +197,14 @@ sub test_rw_turnover_mx {
     my $mx = $mx_arr->[0];
 
     my %expected = (
-        PCT975 => 0.8333333333,
-        PCT95  => 0.8333333333,
+        PCT975 => 0.833333,
+        PCT95  => 0.833333,
         MIN    => 0,
         PCT025 => 0,
         PCT05  => 0,
-        MAX    => 0.8333333333,
-        MEAN   => 0.3923076923,
-        SD     => 0.316227766,
+        MAX    => 0.833333,
+        MEAN   => 0.3923075333,
+        SD     => 0.3162277347,
     );
 
     my $stats = $mx->get_summary_stats;

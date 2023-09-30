@@ -79,6 +79,10 @@ BEGIN {
             unshift @PATH, @paths;
         }
     }
+    eval 'use Alien::GtkStack::Windows';
+    if (!$EVAL_ERROR) {
+        say "Added Alien::GtkStack bin dir to path";
+    }
 }
 
 #  Ensure the bin dirs for the aliens are at the front

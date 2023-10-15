@@ -8,7 +8,7 @@ use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
 use Carp;
-use List::Util qw /sum/;
+use List::Util qw /sum reduce/;
 
 our $VERSION = '4.99_001';
 
@@ -63,6 +63,9 @@ sub calc_rw_turnover {
         #  or inverse of ranges
         my $cache
             = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
+        #  Could use a reduce call to collapse the "sum map {} @list" idiom,
+        #  thus avoiding a list generation.  These are only run once per group,
+        #  though, so it might not matter.
         my $sum_i = $cache->{(keys %{$args{element_list1}})[0]}  # use postfix deref?
             //= (sum map {1 / $_} @ranges{keys %list1}) // 0;
         my $sum_j = $cache->{(keys %{$args{element_list2}})[0]}

@@ -4,6 +4,7 @@ requires "Cpanel::JSON::XS", "3";
 requires "Data::Structure::Util";
 requires "Data::Compare";
 #requires "Data::DumpXML";
+requires "Excel::ValueReader::XLSX";
 requires "Exception::Class";
 requires "Exporter::Easy";
 #requires "FFI::Platypus::Declare";

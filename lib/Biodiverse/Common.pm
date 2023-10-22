@@ -1804,7 +1804,14 @@ sub get_book_struct_from_spreadsheet_file {
     #  stringify any Path::Class etc objects
     $file = "$file";
 
-    if ($file =~ /\.(xlsx?|ods)$/) {
+    #  First block is a faster read method but the Unicode bug means
+    #  it does not "see" unicode file names on Windows.
+    #  If the file does not exist then we fall back to the
+    #  Spreadsheet::Read method to try generating a file handle.
+    if (1 and $file =~ /\.xlsx$/ and -e $file) {
+        $book = $self->get_book_struct_from_xlsx_file (filename => $file);
+    }
+    elsif ($file =~ /\.(xlsx?|ods)$/) {
         #  we can use file handles for excel and ods
         my $extension = $1;
         my $fh = $self->get_file_handle (
@@ -1829,6 +1836,54 @@ sub get_book_struct_from_spreadsheet_file {
       if !defined $book;
 
     return $book;
+}
+
+sub get_book_struct_from_xlsx_file {
+    my ($self, %args) = @_;
+    my $file = $args{filename} // croak "filename arg not passed";
+
+    use Excel::ValueReader::XLSX;
+    use List::Util qw/reduce/;
+    my $reader = Excel::ValueReader::XLSX->new($file);
+    my @sheet_names = $reader->sheet_names;
+    my %sheet_ids;
+    @sheet_ids{@sheet_names} = (1 .. @sheet_names);
+    my $workbook = [
+        {
+            error  => undef,
+            parser => "Excel::ValueReader::XLSX",
+            sheet  => \%sheet_ids,
+            sheets => scalar @sheet_names,
+            type   => 'xlsx',
+        },
+    ];
+    my $i;
+    foreach my $sheet_name ($reader->sheet_names) {
+        $i++;
+        my $grid = $reader->values($sheet_name);
+        my @t = ([]); #  first entry is empty
+        foreach my $r (0 .. $#$grid) {
+            my $row = $grid->[$r];
+            foreach my $c (0 .. $#$row) {
+                #  add 1 for array base 1
+                $t[$c + 1][$r + 1] = $grid->[$r][$c];
+            }
+        }
+        my $maxrow = @$grid;
+
+        my $sheet = {
+            label  => $sheet_name,
+            cell   => \@t,
+            maxrow => $maxrow,
+            maxcol => $#t,
+            minrow => 1,
+            mincol => 1,
+            indx   => 1,
+            merged => [],
+        };
+        push @$workbook, $sheet;
+    }
+    return $workbook;
 }
 
 sub get_csv_object_using_guesswork {

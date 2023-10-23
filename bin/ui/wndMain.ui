@@ -313,8 +313,8 @@ Skips any matrices already in the project.</property>
         <child>
           <object class="GtkAction" id="menu_trim_basedata_to_match_basedata">
             <property name="name">menu_trim_basedata_to_match_basedata</property>
-            <property name="tooltip" translatable="yes">Remove BaseData labels not in a selected basedata</property>
-            <property name="label" translatable="yes">Trim to match basedata</property>
+            <property name="tooltip" translatable="yes">Remove labels from the selected basedata using a second basedata</property>
+            <property name="label" translatable="yes">Trim using other basedata</property>
             <signal handler="on_basedata_trim_to_match_basedata" name="activate"/>
           </object>
         </child>

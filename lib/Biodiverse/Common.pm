@@ -1683,6 +1683,22 @@ sub guess_eol {
     return $eol // "\n";
 }
 
+sub get_shortpath_filename {
+        my ($self, %args) = @_;
+
+    my $file_name = $args{file_name}
+        // croak 'file_name not specified';
+
+    return $file_name if not ON_WINDOWS;
+
+    my $short_path = $self->file_exists_aa($file_name) ? shortpathL ($file_name) : '';
+
+    # die "unable to get short name for $file_name ($^E)"
+    #   if $short_path eq '';
+
+    return $short_path;
+}
+
 sub get_file_handle {
     my ($self, %args) = @_;
     
@@ -1804,12 +1820,12 @@ sub get_book_struct_from_spreadsheet_file {
     #  stringify any Path::Class etc objects
     $file = "$file";
 
-    #  First block is a faster read method but the Unicode bug means
-    #  it does not "see" unicode file names on Windows.
-    #  If the file does not exist then we fall back to the
-    #  Spreadsheet::Read method to try generating a file handle.
-    if (1 and $file =~ /\.xlsx$/ and -e $file) {
-        $book = $self->get_book_struct_from_xlsx_file (filename => $file);
+    #  Could set second condition as a fallback if first parse fails
+    #  but it seems to work pretty well in practice.
+    if ($file =~ /\.xlsx$/ and $self->file_exists_aa($file)) {
+                #  handle unicode on windows
+        my $f = $self->get_shortpath_filename (file_name => $file);
+        $book = $self->get_book_struct_from_xlsx_file (filename => $f);
     }
     elsif ($file =~ /\.(xlsx?|ods)$/) {
         #  we can use file handles for excel and ods

@@ -311,6 +311,14 @@ Skips any matrices already in the project.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_trim_basedata_to_match_basedata">
+            <property name="name">menu_trim_basedata_to_match_basedata</property>
+            <property name="tooltip" translatable="yes">Remove BaseData labels not in a selected basedata</property>
+            <property name="label" translatable="yes">Trim to match basedata</property>
+            <signal handler="on_basedata_trim_to_match_basedata" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_trim_basedata_to_match_tree">
             <property name="name">menu_trim_basedata_to_match_tree</property>
             <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected tree</property>
@@ -783,6 +791,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_trim_basedata_to_match_matrix"/>
           <menuitem action="menu_trim_basedata_using_tree"/>
           <menuitem action="menu_trim_basedata_using_matrix"/>
+          <menuitem action="menu_trim_basedata_to_match_basedata"/>
           <separator/>
           <menuitem action="menu_basedata_export_groups"/>
           <menuitem action="menu_basedata_export_labels"/>

@@ -1740,6 +1740,91 @@ sub do_range_weight_tree {
     );
 }
 
+sub do_basedata_trim_to_basedata {
+    my $self = shift;
+    my %args = @_;
+
+    my $project = $self->get_project;
+
+    my $bd = $project->get_selected_base_data || return 0;
+
+    my @trim_sources
+      = grep {$_ != $bd} (@{ $project->get_base_data_list });
+
+    my $trim_combo = Gtk2::ComboBox->new_text;
+    my $controller_combo = Gtk2::ComboBox->new_text;
+
+    my $source_tooltip = 'Choose a data source to trim from';
+    foreach my $object (@trim_sources) {
+        $trim_combo->append_text($object->get_name);
+    }
+    $trim_combo->set_active(0);
+    $trim_combo->show_all;
+    $trim_combo->set_tooltip_text ($source_tooltip);
+
+    my $label = Gtk2::Label->new('Source basedata: ');
+    $label->set_tooltip_text ($source_tooltip);
+    my $select_hbox = Gtk2::HBox->new;
+    $select_hbox->pack_start($label, 0, 0, 0);
+    $select_hbox->pack_start($trim_combo, 0, 0, 0);
+    $select_hbox->show_all;
+
+    my $chk_tooltip = 'Delete any matching labels (inverts the default)';
+    my $chk_label = Gtk2::Label->new('Delete matching?');
+    my $chk    = Gtk2::CheckButton->new;
+    my $chk_hbox = Gtk2::HBox->new;
+    $chk_hbox->pack_start($chk_label, 0, 0, 0);
+    $chk_hbox->pack_start($chk, 0, 0, 0);
+    $chk->set_tooltip_text($chk_tooltip);
+    $chk_label->set_tooltip_text($chk_tooltip);
+    $chk_hbox->show_all;
+
+    # Show the Get Name dialog
+    my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
+    $dlg->set_transient_for( $self->get_object('wndMain') );
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start( $select_hbox,  0, 0, 0 );
+    $vbox->pack_start( $chk_hbox,  0, 0, 0 );
+
+    my $suffix = $args{suffix} || 'TRIMMED';
+
+    my $txt_name = $dlgxml->get_object('txtName');
+    my $name = $bd->get_name;
+    # If ends with _TRIMMED followed by a number then increment it
+    if ( $name =~ /(.*_$suffix)([0-9]+)$/ ) {
+        $name = $1 . ( $2 + 1 );
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response          = $dlg->run();
+    my $chosen_name              = $txt_name->get_text;
+    my $other_bd_iter = $trim_combo->get_active;
+    my $delete_matching = $chk->get_active;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';    #  they chickened out
+
+    my $other_bd =$trim_sources[$other_bd_iter];
+
+    my $new_bd = $bd->clone (no_outputs => 1);
+    my $arg_key = $delete_matching ? 'trim' : 'keep';
+    say STDERR "arg_key is $arg_key";
+    $new_bd->trim ($arg_key => $other_bd);
+
+    $new_bd->delete_cached_values;
+
+    $new_bd->set_param( NAME => $chosen_name );
+
+    $project->add_base_data( $new_bd, 0 );
+
+    return;
+}
+
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.
 sub do_trim_tree_to_basedata {

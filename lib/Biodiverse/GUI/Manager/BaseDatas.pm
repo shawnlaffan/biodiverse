@@ -1168,19 +1168,19 @@ sub do_basedata_trim_to_tree {
     return;
 }
 
-sub do_basedata_trim_to_matrix {
-    my $self = shift;
-    my %args = @_;      #  keep or trim flag
-
-    my $bd = $self->{project}->get_selected_base_data;
-    my $mx = $self->{project}->get_selected_matrix;
-
-    return if !defined $bd || !defined $mx;
-
-    $self->do_trim_basedata( $bd, $mx, %args );
-
-    return;
-}
+# sub do_basedata_trim_to_matrix {
+#     my $self = shift;
+#     my %args = @_;      #  keep or trim flag
+#
+#     my $bd = $self->{project}->get_selected_base_data;
+#     my $mx = $self->{project}->get_selected_matrix;
+#
+#     return if !defined $bd || !defined $mx;
+#
+#     $self->do_trim_basedata( $bd, $mx, %args );
+#
+#     return;
+# }
 
 sub do_basedata_trim_using_object {
     my $self = shift;

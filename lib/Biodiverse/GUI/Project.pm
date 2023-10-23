@@ -1293,6 +1293,7 @@ sub manage_empty_basedatas {
           menu_delete_index
           menu_extract_embedded_trees
           menu_extract_embedded_matrices
+          menu_trim_basedata_using_tree
           menu_trim_basedata_using_object
           menu_rename_basedata_labels
           menu_rename_basedata_groups

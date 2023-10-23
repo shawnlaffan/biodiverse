@@ -1908,6 +1908,36 @@ sub _test_rename_labels_or_groups {
     
 }
 
+sub test_trim_with_basedata {
+    my $bd = Biodiverse::BaseData->new (
+        NAME => 'trim_base', CELL_SIZES => [2, 2],
+    );
+    my $bd2 = Biodiverse::BaseData->new (
+        NAME => 'trim2', CELL_SIZES => [2, 2],
+    );
+
+    foreach my $label ('a' .. 'z') {
+        $bd->add_element (label => $label, group => '1:1');
+    }
+    foreach my $label ('a' .. 'k') {
+        $bd2->add_element (label => $label, group => '1:1');
+    }
+
+    {
+        my $bd_trim1 = $bd->clone;
+        $bd_trim1->trim(trim => $bd2);
+        my @expected = ('l' .. 'z');
+        my @labels = sort $bd_trim1->get_labels;
+        is \@labels, \@expected, 'Expected labels after trimming with trim option';
+    }
+    {
+        my $bd_trim2 = $bd->clone;
+        $bd_trim2->trim(keep => $bd2);
+        my @expected = ('a' .. 'k');
+        my @labels = sort $bd_trim2->get_labels;
+        is \@labels, \@expected, 'Expected labels after trimming with keep option';
+    }
+}
 
 #  reordering of axes
 sub test_reorder_axes {

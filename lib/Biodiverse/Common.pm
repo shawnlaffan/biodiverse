@@ -1683,6 +1683,22 @@ sub guess_eol {
     return $eol // "\n";
 }
 
+sub get_shortpath_filename {
+        my ($self, %args) = @_;
+
+    my $file_name = $args{file_name}
+        // croak 'file_name not specified';
+
+    return $file_name if not ON_WINDOWS;
+
+    my $short_path = $self->file_exists_aa($file_name) ? shortpathL ($file_name) : '';
+
+    # die "unable to get short name for $file_name ($^E)"
+    #   if $short_path eq '';
+
+    return $short_path;
+}
+
 sub get_file_handle {
     my ($self, %args) = @_;
     
@@ -1804,7 +1820,14 @@ sub get_book_struct_from_spreadsheet_file {
     #  stringify any Path::Class etc objects
     $file = "$file";
 
-    if ($file =~ /\.(xlsx?|ods)$/) {
+    #  Could set second condition as a fallback if first parse fails
+    #  but it seems to work pretty well in practice.
+    if ($file =~ /\.xlsx$/ and $self->file_exists_aa($file)) {
+                #  handle unicode on windows
+        my $f = $self->get_shortpath_filename (file_name => $file);
+        $book = $self->get_book_struct_from_xlsx_file (filename => $f);
+    }
+    elsif ($file =~ /\.(xlsx?|ods)$/) {
         #  we can use file handles for excel and ods
         my $extension = $1;
         my $fh = $self->get_file_handle (
@@ -1813,11 +1836,9 @@ sub get_book_struct_from_spreadsheet_file {
         $book = ReadData($fh, parser => $extension);
     }
     else {
-        #  ods reader does not support file handles before v0.25
-        #  so we might hit the unicode bug
-        #  (could potentially read the whole file and pass it on?)
+        #  sxc files and similar
         $book = ReadData($file);
-        if (!$book && $self->exists_file (file_name => $file)) {
+        if (!$book && $self->file_exists_aa($file)) {
             croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
                 . "If the file name contains non-ascii characters "
                 . "then try renaming it using ascii only.\n";
@@ -1825,10 +1846,58 @@ sub get_book_struct_from_spreadsheet_file {
     }
 
     # assuming undef on fail
-    croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
+    croak "[BASEDATA] Failed to read $file as a SpreadSheet\n"
       if !defined $book;
 
     return $book;
+}
+
+sub get_book_struct_from_xlsx_file {
+    my ($self, %args) = @_;
+    my $file = $args{filename} // croak "filename arg not passed";
+
+    use Excel::ValueReader::XLSX;
+    use List::Util qw/reduce/;
+    my $reader = Excel::ValueReader::XLSX->new($file);
+    my @sheet_names = $reader->sheet_names;
+    my %sheet_ids;
+    @sheet_ids{@sheet_names} = (1 .. @sheet_names);
+    my $workbook = [
+        {
+            error  => undef,
+            parser => "Excel::ValueReader::XLSX",
+            sheet  => \%sheet_ids,
+            sheets => scalar @sheet_names,
+            type   => 'xlsx',
+        },
+    ];
+    my $i;
+    foreach my $sheet_name ($reader->sheet_names) {
+        $i++;
+        my $grid = $reader->values($sheet_name);
+        my @t = ([]); #  first entry is empty
+        foreach my $r (0 .. $#$grid) {
+            my $row = $grid->[$r];
+            foreach my $c (0 .. $#$row) {
+                #  add 1 for array base 1
+                $t[$c + 1][$r + 1] = $grid->[$r][$c];
+            }
+        }
+        my $maxrow = @$grid;
+
+        my $sheet = {
+            label  => $sheet_name,
+            cell   => \@t,
+            maxrow => $maxrow,
+            maxcol => $#t,
+            minrow => 1,
+            mincol => 1,
+            indx   => 1,
+            merged => [],
+        };
+        push @$workbook, $sheet;
+    }
+    return $workbook;
 }
 
 sub get_csv_object_using_guesswork {

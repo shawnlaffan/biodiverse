@@ -1812,9 +1812,8 @@ sub do_basedata_trim_to_basedata {
     my $other_bd =$trim_sources[$other_bd_iter];
 
     my $new_bd = $bd->clone (no_outputs => 1);
-    my $arg_key = $delete_matching ? 'trim' : 'keep';
-    say STDERR "arg_key is $arg_key";
-    $new_bd->trim ($arg_key => $other_bd);
+    my $option = $delete_matching ? 'trim' : 'keep';
+    $self->do_trim_basedata ($new_bd, $other_bd, option => $option);
 
     $new_bd->delete_cached_values;
 

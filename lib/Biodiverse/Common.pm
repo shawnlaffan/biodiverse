@@ -1836,11 +1836,9 @@ sub get_book_struct_from_spreadsheet_file {
         $book = ReadData($fh, parser => $extension);
     }
     else {
-        #  ods reader does not support file handles before v0.25
-        #  so we might hit the unicode bug
-        #  (could potentially read the whole file and pass it on?)
+        #  sxc files and similar
         $book = ReadData($file);
-        if (!$book && $self->exists_file (file_name => $file)) {
+        if (!$book && $self->file_exists_aa($file)) {
             croak "[BASEDATA] Failed to read $file with SpreadSheet.\n"
                 . "If the file name contains non-ascii characters "
                 . "then try renaming it using ascii only.\n";
@@ -1848,7 +1846,7 @@ sub get_book_struct_from_spreadsheet_file {
     }
 
     # assuming undef on fail
-    croak "[BASEDATA] Failed to read $file with SpreadSheet\n"
+    croak "[BASEDATA] Failed to read $file as a SpreadSheet\n"
       if !defined $book;
 
     return $book;

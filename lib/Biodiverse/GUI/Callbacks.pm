@@ -267,8 +267,8 @@ my %data_funcs = (
     on_basedata_extract_embedded_matrices => {
         METHOD => 'do_basedata_extract_embedded_matrices',
     },
-    on_basedata_trim_to_match_basedata => {
-        METHOD => 'do_basedata_trim_to_basedata',
+    on_basedata_trim_using_object => {
+        METHOD => 'do_basedata_trim_using_object',
         ARGS   => { option => 'keep' },
     },
     on_basedata_trim_to_match_tree => {

@@ -271,22 +271,22 @@ my %data_funcs = (
         METHOD => 'do_basedata_trim_using_object',
         ARGS   => { option => 'keep' },
     },
-    on_basedata_trim_to_match_tree => {
-        METHOD => 'do_basedata_trim_to_tree',
-        ARGS   => { option => 'keep' },
-    },
-    on_basedata_trim_to_match_matrix => {
-        METHOD => 'do_basedata_trim_to_matrix',
-        ARGS   => { option => 'keep' },
-    },
-    on_basedata_trim_using_tree => {
-        METHOD => 'do_basedata_trim_to_tree',
-        ARGS   => { option => 'trim' },
-    },
-    on_basedata_trim_using_matrix => {
-        METHOD => 'do_basedata_trim_to_matrix',
-        ARGS   => { option => 'trim' },
-    },
+    # on_basedata_trim_to_match_tree => {
+    #     METHOD => 'do_basedata_trim_to_tree',
+    #     ARGS   => { option => 'keep' },
+    # },
+    # on_basedata_trim_to_match_matrix => {
+    #     METHOD => 'do_basedata_trim_to_matrix',
+    #     ARGS   => { option => 'keep' },
+    # },
+    # on_basedata_trim_using_tree => {
+    #     METHOD => 'do_basedata_trim_to_tree',
+    #     ARGS   => { option => 'trim' },
+    # },
+    # on_basedata_trim_using_matrix => {
+    #     METHOD => 'do_basedata_trim_to_matrix',
+    #     ARGS   => { option => 'trim' },
+    # },
     on_basedata_attach_properties => {
         METHOD => 'do_basedata_attach_properties',
     },

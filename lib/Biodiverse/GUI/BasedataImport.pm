@@ -324,6 +324,9 @@ sub run {
     my $col_options = undef;
     my $use_matrix;
 
+    #  need to find which one they want
+    my $spreadsheet_sheet_id = 1;
+
     # (no pre-processing needed for raster)
 
     if ( $read_format eq 'raster' ) {
@@ -442,8 +445,6 @@ sub run {
             my @sheet_names =
               sort { $sheets->{$a} <=> $sheets->{$b} } keys %$sheets;
 
-            #  need to find which one they want
-            my $sheet_id = 1;
 
             my $param = bless {
                 type    => 'choice',
@@ -472,9 +473,9 @@ sub run {
 
             my $chosen_params = $parameters_table->extract($extractors);
             my %chosen_params = @$chosen_params;
-            $sheet_id = $sheets->{ $chosen_params{'sheet_id'} };
+            $spreadsheet_sheet_id = $sheets->{ $chosen_params{'sheet_id'} };
 
-            my @rows = Spreadsheet::Read::rows( $book->[$sheet_id] );
+            my @rows = Spreadsheet::Read::rows( $book->[$spreadsheet_sheet_id] );
 
             @header     = @{ $rows[0] };
             @line2_cols = @{ $rows[1] };
@@ -758,6 +759,12 @@ sub run {
                     }
                 }
             }
+        }
+        elsif ($read_format eq 'spreadsheet') {
+            #  repetition is perhaps overkill but 
+            #  sometimes but any extras are ignored
+            $rest_of_options{sheet_ids} 
+              = [($spreadsheet_sheet_id) x @filenames];
         }
 
         my $import_method = "import_data_$read_format";

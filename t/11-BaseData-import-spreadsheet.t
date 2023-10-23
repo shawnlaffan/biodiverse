@@ -106,6 +106,7 @@ sub test_import_spreadsheet_dms_coords {
 
     my $fname = path (
         path($0)->parent,
+        "data",
         "test_spreadsheet_import_dms_coords.xlsx",
     );
     $fname = $fname->stringify;
@@ -168,6 +169,7 @@ sub test_import_spreadsheet {
     foreach my $extension (qw /xlsx ods xls/) {
         my $tmp_file = path (
             path($0)->parent,
+            "data",
             "test_spreadsheet_import.$extension",
         );
         my $fname = $tmp_file->stringify;
@@ -367,10 +369,12 @@ sub _test_import_spreadsheet_matrix_form {
 
     $fname_mx = path (
         path($0)->parent,
+        "data",
         $fname_mx,
     );
     $fname_norm = path (
         path ($0)->parent,
+        "data",
         $fname_norm,
     );
     

@@ -51,6 +51,7 @@ my %common_reqs = (
     "parent" => 0,
     "rlib" => 0,
     "Statistics::Descriptive::PDL" => "0.15",
+    "Excel::ValueReader::XLSX" => 0,
     ($^O eq 'MSWin32' ? ("Win32::LongPath" => 0) : ()),
 );
 

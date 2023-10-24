@@ -311,35 +311,19 @@ Skips any matrices already in the project.</property>
           </object>
         </child>
         <child>
+          <object class="GtkAction" id="menu_trim_basedata_using_object">
+            <property name="name">menu_trim_basedata_using_object</property>
+            <property name="tooltip" translatable="yes">Remove labels from the selected basedata using a second basedata, tree or matrix</property>
+            <property name="label" translatable="yes">Trim using other basedata, matrix or tree</property>
+            <signal handler="on_basedata_trim_using_object" name="activate"/>
+          </object>
+        </child>
+        <child>
           <object class="GtkAction" id="menu_trim_basedata_to_match_tree">
             <property name="name">menu_trim_basedata_to_match_tree</property>
             <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected tree</property>
             <property name="label" translatable="yes">Trim to match tree nodes</property>
             <signal handler="on_basedata_trim_to_match_tree" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menu_trim_basedata_to_match_matrix">
-            <property name="name">menu_trim_basedata_to_match_matrix</property>
-            <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected matrix</property>
-            <property name="label" translatable="yes">Trim to match matrix elements</property>
-            <signal handler="on_basedata_trim_to_match_matrix" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menu_trim_basedata_using_tree">
-            <property name="name">menu_trim_basedata_using_tree</property>
-            <property name="tooltip" translatable="yes">Trim BaseData labels that occur as nodes in the tree</property>
-            <property name="label" translatable="yes">Trim using tree nodes</property>
-            <signal handler="on_basedata_trim_using_tree" name="activate"/>
-          </object>
-        </child>
-        <child>
-          <object class="GtkAction" id="menu_trim_basedata_using_matrix">
-            <property name="name">menu_trim_basedata_using_matrix</property>
-            <property name="tooltip" translatable="yes">Trim BaseData labels that occur as elements in the matrix</property>
-            <property name="label" translatable="yes">Trim using matrix elements</property>
-            <signal handler="on_basedata_trim_using_matrix" name="activate"/>
           </object>
         </child>
         <child>
@@ -780,9 +764,7 @@ This cannot be undone.  </property>
           <menuitem action="menu_extract_embedded_matrices"/>
           <separator/>
           <menuitem action="menu_trim_basedata_to_match_tree"/>
-          <menuitem action="menu_trim_basedata_to_match_matrix"/>
-          <menuitem action="menu_trim_basedata_using_tree"/>
-          <menuitem action="menu_trim_basedata_using_matrix"/>
+          <menuitem action="menu_trim_basedata_using_object"/>
           <separator/>
           <menuitem action="menu_basedata_export_groups"/>
           <menuitem action="menu_basedata_export_labels"/>

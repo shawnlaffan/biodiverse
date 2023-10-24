@@ -1740,6 +1740,7 @@ sub do_range_weight_tree {
     );
 }
 
+
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.
 sub do_trim_tree_to_basedata {

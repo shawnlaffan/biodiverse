@@ -1294,9 +1294,7 @@ sub manage_empty_basedatas {
           menu_extract_embedded_trees
           menu_extract_embedded_matrices
           menu_trim_basedata_to_match_tree
-          menu_trim_basedata_to_match_matrix
-          menu_trim_basedata_using_tree
-          menu_trim_basedata_using_matrix
+          menu_trim_basedata_using_object
           menu_rename_basedata_labels
           menu_rename_basedata_groups
           menu_attach_basedata_properties

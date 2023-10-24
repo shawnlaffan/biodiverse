@@ -1168,16 +1168,125 @@ sub do_basedata_trim_to_tree {
     return;
 }
 
-sub do_basedata_trim_to_matrix {
+# sub do_basedata_trim_to_matrix {
+#     my $self = shift;
+#     my %args = @_;      #  keep or trim flag
+#
+#     my $bd = $self->{project}->get_selected_base_data;
+#     my $mx = $self->{project}->get_selected_matrix;
+#
+#     return if !defined $bd || !defined $mx;
+#
+#     $self->do_trim_basedata( $bd, $mx, %args );
+#
+#     return;
+# }
+
+sub do_basedata_trim_using_object {
     my $self = shift;
-    my %args = @_;      #  keep or trim flag
+    my %args = @_;
 
-    my $bd = $self->{project}->get_selected_base_data;
-    my $mx = $self->{project}->get_selected_matrix;
+    my $project = $self->get_project;
 
-    return if !defined $bd || !defined $mx;
+    my $bd = $project->get_selected_base_data || return 0;
 
-    $self->do_trim_basedata( $bd, $mx, %args );
+    my @bd_sources
+        = grep {$_ != $bd} (@{ $project->get_base_data_list });
+    my @matrix_sources = @{ $project->get_matrix_list };
+    my @tree_sources = @{ $project->get_phylogeny_list };
+    my @trim_sources = (@bd_sources, @matrix_sources, @tree_sources);
+
+    my $trim_combo = Gtk2::ComboBox->new_text;
+    my $controller_combo = Gtk2::ComboBox->new_text;
+
+    my $source_tooltip = 'Choose a data source to trim with';
+    foreach my $object (@bd_sources) {
+        $trim_combo->append_text("Basedata: " . $object->get_name);
+    }
+    foreach my $object (@matrix_sources) {
+        $trim_combo->append_text("Matrix: " . $object->get_name);
+    }
+    foreach my $object (@tree_sources) {
+        $trim_combo->append_text("Tree: " . $object->get_name);
+    }
+    $trim_combo->set_active(0);
+    $trim_combo->show_all;
+    $trim_combo->set_tooltip_text ($source_tooltip);
+
+    my $label = Gtk2::Label->new('Label source: ');
+    $label->set_tooltip_text ($source_tooltip);
+    my $select_hbox = Gtk2::HBox->new;
+    $select_hbox->pack_start($label, 0, 0, 0);
+    $select_hbox->pack_start($trim_combo, 0, 0, 0);
+    $select_hbox->show_all;
+
+    my $chk_tooltip = 'Delete any matching labels (inverts the default)';
+    my $chk_label = Gtk2::Label->new('Delete matching?');
+    my $chk    = Gtk2::CheckButton->new;
+    my $chk_hbox = Gtk2::HBox->new;
+    $chk_hbox->pack_start($chk_label, 0, 0, 0);
+    $chk_hbox->pack_start($chk, 0, 0, 0);
+    $chk->set_tooltip_text($chk_tooltip);
+    $chk_label->set_tooltip_text($chk_tooltip);
+    $chk_hbox->show_all;
+
+    my $tooltip_clone
+        = "Clone basedata first (required if basedata contains outputs).\n"
+    . 'New name is ignored if this is off.';
+    my $label_clone = Gtk2::Label->new('Trim a clone');
+    my $chk_clone = Gtk2::CheckButton->new;
+    $chk_clone->set_active(1);
+    my $hbox_clone = Gtk2::HBox->new;
+    $hbox_clone->pack_start($label_clone, 0, 0, 0);
+    $hbox_clone->pack_start($chk_clone, 0, 0, 0);
+    $chk_clone->set_tooltip_text($tooltip_clone);
+    $label_clone->set_tooltip_text($tooltip_clone);
+    $hbox_clone->show_all;
+
+    # Show the Get Name dialog
+    my ( $dlgxml, $dlg ) = $self->get_dlg_duplicate();
+    $dlg->set_transient_for( $self->get_object('wndMain') );
+
+    my $vbox = $dlg->get_content_area;
+    $vbox->pack_start( $hbox_clone,  0, 0, 0 );
+    $vbox->pack_start( $select_hbox,  0, 0, 0 );
+    $vbox->pack_start( $chk_hbox,  0, 0, 0 );
+
+    my $suffix = $args{suffix} || 'TRIMMED';
+
+    my $txt_name = $dlgxml->get_object('txtName');
+    my $name = $bd->get_name;
+    # If ends with _TRIMMED followed by a number then increment it
+    if ( $name =~ /(.*_$suffix)([0-9]+)$/ ) {
+        $name = $1 . ( $2 + 1 );
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response          = $dlg->run();
+    my $chosen_name              = $txt_name->get_text;
+    my $other_bd_iter = $trim_combo->get_active;
+    my $delete_matching = $chk->get_active;
+    my $clone_first = $chk_clone->get_active;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';    #  they chickened out
+
+    my $other_bd =$trim_sources[$other_bd_iter];
+
+    my $new_bd = $clone_first ? $bd->clone (no_outputs => 1) : $bd;
+    my $option = $delete_matching ? 'trim' : 'keep';
+    $self->do_trim_basedata ($new_bd, $other_bd, option => $option);
+
+    $new_bd->delete_cached_values;
+
+    if ($clone_first) {
+        $new_bd->set_param(NAME => $chosen_name);
+        $project->add_base_data( $new_bd, 0 );
+    }
 
     return;
 }

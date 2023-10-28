@@ -81,7 +81,7 @@ BEGIN {
     }
     eval 'use Alien::GtkStack::Windows';
     if (!$EVAL_ERROR) {
-        say "Added Alien::GtkStack bin dir to path";
+        say "Added Alien::GtkStack::Windows bin dir to path";
     }
 }
 
@@ -288,6 +288,11 @@ if ($ENV{BDV_PP_BUILDING}) {
     use Spreadsheet::ParseExcel;
     use Spreadsheet::ParseXLSX;
     use PerlIO::gzip;  #  used by ParseODS
+    # Excel::ValueReader::XLSX
+    use Excel::ValueReader::XLSX;
+    use Excel::ValueReader::XLSX::Backend;
+    use Excel::ValueReader::XLSX::Backend::Regex;
+    use Archive::Zip
 
     #  GUI needs this for help,
     #  so don't trigger for engine-only

@@ -50,7 +50,7 @@ local $OUTPUT_AUTOFLUSH = 1;
 
 
 #  add the lib folder if needed
-use rlib;
+use if !$ENV{PAR_0} => 'rlib';
 
 say '@INC: ', join q{ }, @INC;
 

@@ -105,11 +105,27 @@ if ($OSNAME eq 'MSWin32') {
 #  clunky - should hunt for Gtk2 use in script?  
 my @ui_arg = ();
 my @gtk_path_arg = ();
+my @linkers;
 if ($script =~ 'BiodiverseGUI.pl') {
     my $ui_dir = Path::Class::dir ($bin_folder, 'ui')->absolute;
     @ui_arg = ('-a', "$ui_dir;ui");
-    
-    push @gtk_path_arg, get_sis_theme_stuff();
+
+    if ($^V lt 'v5.32') {
+        push @gtk_path_arg, get_sis_theme_stuff();
+    }
+    # elsif ($^O eq 'MSWin32' && $^V gt 'v5.32') {
+        # my $path = path ($^X)->parent->parent;
+        # push @linkers,
+        #     map {;"--link" => "$path/site/lib/auto/$_/$_.xs.dll"}
+        #     (qw /Pango Cairo Glib Gtk2/);
+        # push @linkers, ('--link' => "$path/site/lib/auto/Gnome2/Canvas/Canvas.xs.dll");
+        # eval 'use Alien::GtkStack::Windows';
+        # my $dir = path ('Alien::GtkStack::Windows'->bin_dir);
+        # my @files = $dir->children (qr /.dll$/);
+        # push @linkers,
+        #     map {;"--link" => $_}
+        #     @files;
+    # }
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
@@ -130,13 +146,15 @@ my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->ab
 
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+$ENV{BD_NO_GUI_DEV_WARN}           = 1;
 
 my @cmd = (
     #$^X,
     #"$Bin/pp_autolink.pl",
     'pp_autolink',
+    @linkers,
     ($verbose ? '-v' : ()),
-    '-u',
+    ($^V lt 'v5.32' ? '-u' : ()),
     '-B',
     '-z',
     9,

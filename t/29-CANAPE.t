@@ -100,27 +100,46 @@ sub test_rand_structured_richness_same {
     my @canape_list_names = grep {/>>CANAPE>>/} keys %$lists_has_canape;
     is (scalar @canape_list_names, 1, 'has CANAPE list');
     
-    my @index_keys = qw /CANAPE_CODE NEO PALAEO MIXED/;
+    my @index_keys = qw /CANAPE_CODE NEO PALAEO MIXED SUPER/;
     foreach my $element ($sp_has_canape->get_element_list_sorted) {
-        my $listref = $sp_has_canape->get_list_ref (element => $element, list => $canape_list_names[0], autovivify => 0);
+        my $listref = $sp_has_canape->get_list_ref (
+            element => $element,
+            list    => $canape_list_names[0],
+            autovivify => 0,
+        );
 
         if (!defined $listref->{CANAPE_CODE}) {
-            is [@$listref{@index_keys}], [undef, undef, undef, undef], "expected values undef, $element";
+            is [@$listref{@index_keys}],
+                [undef, undef, undef, undef, undef],
+                "expected values undef, $element";
         }
         elsif ($listref->{CANAPE_CODE} == 0) {
-            is [@$listref{@index_keys}], [0, 0, 0, 0], "expected values non-sig, $element";
+            is [@$listref{@index_keys}],
+                [0, 0, 0, 0, 0],
+                "expected values non-sig, $element";
         }
         elsif ($listref->{CANAPE_CODE} == 1) {
-            is [@$listref{@index_keys}], [1, 1, 0, 0], "expected values neo, $element";
+            is [@$listref{@index_keys}],
+                [1, 1, 0, 0, 0],
+                "expected values neo, $element";
         }
         elsif ($listref->{CANAPE_CODE} == 2) {
-            is [@$listref{@index_keys}], [2, 0, 1, 0], "expected values palaeo, $element";
+            is [@$listref{@index_keys}],
+                [2, 0, 1, 0, 0],
+                "expected values palaeo, $element";
         }
         elsif ($listref->{CANAPE_CODE} == 3) {
-            is [@$listref{@index_keys}], [3, 0, 0, 1], "expected values mixed, $element";
+            is [@$listref{@index_keys}],
+                [3, 0, 0, 1, 0],
+                "expected values mixed, $element";
+        }
+        elsif ($listref->{CANAPE_CODE} == 4) {
+            is [@$listref{@index_keys}],
+                [4, 0, 0, 0, 1],
+                "expected values super, $element";
         }
     }
-   
+
     return;
 }
 
@@ -130,29 +149,58 @@ sub test_canape_classification_method {
         invalid => {
             p_rank_list_ref => {PHYLO_RPE2 => 0.01, PE_WE => undef, PHYLO_RPE_NULL2 => 0.94},
             base_list_ref   => {PE_WE => undef},
-            expected => {CANAPE_CODE => undef, NEO => undef, PALAEO => undef, MIXED => undef},
+            expected => {
+                CANAPE_CODE => undef, NEO => undef,
+                PALAEO      => undef, MIXED => undef,
+                SUPER       => undef,
+            },
         },
         non_sig => {
             p_rank_list_ref => {PHYLO_RPE2 => 0.01, PE_WE => undef, PHYLO_RPE_NULL2 => 0.94},
             base_list_ref   => {PE_WE => 10},
-            expected => {CANAPE_CODE => 0, NEO => 0, PALAEO => 0, MIXED => 0},
+            expected => {
+                CANAPE_CODE => 0, NEO   => 0,
+                PALAEO      => 0, MIXED => 0,
+                SUPER       => 0,
+            },
         },
         neo => {
             p_rank_list_ref => {PHYLO_RPE2 => 0.01, PE_WE => 0.976, PHYLO_RPE_NULL2 => 0.98},
             base_list_ref   => {PE_WE => 10},
-            expected => {CANAPE_CODE => 1, NEO => 1, PALAEO => 0, MIXED => 0},
+            expected => {
+                CANAPE_CODE => 1, NEO => 1,
+                PALAEO      => 0, MIXED => 0,
+                SUPER       => 0,
+            },
         },
         palaeo => {
             p_rank_list_ref => {PHYLO_RPE2 => 0.978, PE_WE => 0.976, PHYLO_RPE_NULL2 => 0.94},
             base_list_ref   => {PE_WE => 10},
-            expected => {CANAPE_CODE => 2, NEO => 0, PALAEO => 1, MIXED => 0},
+            expected => {
+                CANAPE_CODE => 2, NEO => 0,
+                PALAEO      => 1, MIXED => 0,
+                SUPER       => 0,
+            },
         },
         mixed => {
             p_rank_list_ref => {PHYLO_RPE2 => undef, PE_WE => 0.98, PHYLO_RPE_NULL2 => 0.984},
             base_list_ref   => {PE_WE => 10},
-            expected => {CANAPE_CODE => 3, NEO => 0, PALAEO => 0, MIXED => 1},
+            expected => {
+                CANAPE_CODE => 3, NEO => 0,
+                PALAEO      => 0, MIXED => 1,
+                SUPER       => 0,
+            },
         },
-    ); 
+        super => {
+            p_rank_list_ref => {PHYLO_RPE2 => undef, PE_WE => 0.991, PHYLO_RPE_NULL2 => 0.991},
+            base_list_ref   => {PE_WE => 10},
+            expected => {
+                CANAPE_CODE => 4, NEO => 0,
+                PALAEO      => 0, MIXED => 0,
+                SUPER       => 1,
+            },
+        },
+    );
     
     
     my $sp = Biodiverse::Spatial->new (name => 'gorb');

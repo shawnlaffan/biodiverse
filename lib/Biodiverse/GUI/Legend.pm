@@ -48,6 +48,17 @@ use constant COLOUR_WHITE        => Gtk2::Gdk::Color->new(255*257, 255*257, 255*
 use constant DARKEST_GREY_FRAC   => 0.2;
 use constant LIGHTEST_GREY_FRAC  => 0.8;
 
+
+#  refactor as state var inside sub when we require a perl version that
+#  supports state on lists (5.28)
+my %canape_colour_hash = (
+    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
+    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
+    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
+    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
+    4 => Gtk2::Gdk::Color->parse('darkorchid'),            #  deep purple, super ('#6A3d9A' is too dark)
+);
+
 ##########################################################
 # Construction
 ##########################################################
@@ -101,7 +112,11 @@ sub new {
         $self->{marks}[$i] = $self->make_mark($self->{legend_marks}[$i]);
     }
     #  clunky that we need to do it here
-    my @anchors = ('nw', ('w') x 5, 'sw');
+    my @anchors = ('nw', ('w') x 3, 'sw');
+    foreach my $i (reverse 0..4) {
+        $self->{canape_marks}[$i] = $self->make_mark($anchors[$i]);
+    }
+    @anchors = ('nw', ('w') x 5, 'sw');
     foreach my $i (reverse 0..6) {
         $self->{zscore_marks}[$i] = $self->make_mark($anchors[$i]);
         $self->{prank_marks}[$i]  = $self->make_mark($anchors[$i]);
@@ -179,8 +194,9 @@ sub make_rect {
         ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
 
+        my $n = (scalar keys %canape_colour_hash) - 1;
         foreach my $row (0..($height - 1)) {
-            my $class = int (0.5 + 3 * $row / ($height - 1));
+            my $class = int (0.5 + $n * $row / ($height - 1));
             my $colour = $self->get_colour_canape ($class);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
@@ -387,6 +403,7 @@ sub reposition {
     my @mark_arr
         = $self->get_zscore_mode ? @{$self->{zscore_marks}}
         : $self->get_prank_mode  ? @{$self->{prank_marks}}
+        : $self->get_canape_mode ? @{$self->{canape_marks}}
         : @{$self->{marks}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
@@ -557,15 +574,6 @@ sub get_colour {
     return $self->$method(@args);
 }
 
-
-#  refactor as state var inside sub when we require a perl version that
-#  supports state on lists (5.28)
-my %canape_colour_hash = (
-    0 => Gtk2::Gdk::Color->parse('lightgoldenrodyellow'),  #  non-sig, lightgoldenrodyellow
-    1 => Gtk2::Gdk::Color->parse('red'),                   #  red, neo
-    2 => Gtk2::Gdk::Color->parse('royalblue1'),            #  blue, palaeo
-    3 => Gtk2::Gdk::Color->parse('#CB7FFF'),               #  purple, mixed
-);
 
 sub get_colour_canape {
     my ($self, $val) = @_;
@@ -825,12 +833,23 @@ sub set_text_marks_canape {
 
     return if !$self->{marks};
 
-    my @strings = qw /mixed palaeo neo non-sig/;
+    foreach my $mark (@{$self->{marks}}) {
+        $mark->hide;
+    }
+
+    my @strings = qw /super mixed palaeo neo non-sig/;
+
+    my $mark_arr = $self->{canape_marks} //= [];
+    if (!@$mark_arr) {
+        foreach my $i (0 .. $#strings) {
+            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
+            $mark_arr->[$i] = $self->make_mark($anchor_loc);
+        }
+    }
 
     # Set legend textbox markers
-    my @mark_arr = @{$self->{marks}};
-    foreach my $i (0..$#mark_arr) {
-        my $mark = $mark_arr[$#mark_arr - $i];
+    foreach my $i (0..$#strings) {
+        my $mark = $mark_arr->[$#$mark_arr - $i];
         $mark->set( text => $strings[$i] );
         $mark->raise_to_top;
     }

@@ -2562,6 +2562,7 @@ sub assign_canape_codes_from_p_rank_results {
             = $PE_sig_obs <= 0.95 && $PE_sig_alt <= 0.95 ? 0  #  non-sig
             : $RPE_sig < 0.025 ? 1                            #  neo
             : $RPE_sig > 0.975 ? 2                            #  palaeo
+            : $PE_sig_obs > 0.99  && $PE_sig_alt > 0.99  ? 4  #  super
             : 3;                                              #  mixed
         #say '';
     }
@@ -2570,9 +2571,10 @@ sub assign_canape_codes_from_p_rank_results {
         $results_list_ref->{NEO}    = 0 + ($canape_code == 1);
         $results_list_ref->{PALAEO} = 0 + ($canape_code == 2);
         $results_list_ref->{MIXED}  = 0 + ($canape_code == 3);
+        $results_list_ref->{SUPER}  = 0 + ($canape_code == 4);
     }
     else {  #  clear any pre-existing values
-        @$results_list_ref{qw /NEO PALAEO MIXED/} = (undef) x 3;
+        @$results_list_ref{qw /NEO PALAEO MIXED SUPER/} = (undef) x 4;
     }
 
     return wantarray ? %$results_list_ref : $results_list_ref;

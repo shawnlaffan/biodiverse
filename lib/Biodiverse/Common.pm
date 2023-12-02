@@ -18,7 +18,7 @@ use if ON_WINDOWS, 'Win32::LongPath';
 #use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 #use YAML::XS;
-use Text::CSV_XS;
+use Text::CSV_XS '1.52';
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
 use List::Util qw /first/;

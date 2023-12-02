@@ -35,7 +35,7 @@ requires "Spreadsheet::Read", "0.82";
 requires "Spreadsheet::ReadSXC", "0.28";
 requires "Statistics::Descriptive", "3.0608";
 requires "Statistics::Sampler::Multinomial", '1.02';
-requires "Text::CSV_XS", "1.04";
+requires "Text::CSV_XS", "1.52";
 requires "Text::Fuzzy";
 requires "Text::Wrapper";
 requires "Tree::R";

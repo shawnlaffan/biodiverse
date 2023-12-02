@@ -174,4 +174,13 @@ sub get_index_is_zscore {
     return $indices->{$index}{is_zscore};
 }
 
+sub get_index_is_ratio {
+    my ($self, $index) = @_;
+
+    no autovivification;
+
+    my $indices = $self->get_indices;
+    return $indices->{$index}{is_ratio};
+}
+
 1;

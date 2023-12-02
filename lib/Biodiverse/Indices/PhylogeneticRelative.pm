@@ -34,6 +34,7 @@ sub get_metadata_calc_phylo_rpd1 {
         indices         => {
             PHYLO_RPD1      => {
                 description => 'RPD1',
+                is_ratio    => 1,
             },
             PHYLO_RPD_NULL1 => {
                 description => 'Null model score used as the denominator in the RPD1 calculations',
@@ -99,6 +100,7 @@ sub get_metadata_calc_phylo_rpe1 {
         indices         => {
             PHYLO_RPE1           => {
                 description => 'Relative Phylogenetic Endemism score',
+                is_ratio    => 1,
             },
             PHYLO_RPE_NULL1        => {
                 description => 'Null score used as the denominator in the RPE calculations',
@@ -166,6 +168,7 @@ sub get_metadata_calc_phylo_rpd2 {
         indices         => {
             PHYLO_RPD2      => {
                 description => 'RPD2',
+                is_ratio    => 1,
             },
             PHYLO_RPD_NULL2 => {
                 description => 'Null model score used as the denominator in the RPD2 calculations',
@@ -241,6 +244,7 @@ sub get_metadata_calc_phylo_rpe_central {
         indices         => {
             PHYLO_RPEC       => {
                 description => 'Relative Phylogenetic Endemism score, central',
+                is_ratio    => 1,
             },
             PHYLO_RPE_NULLC  => {
                 description => 'Null score used as the denominator in the PHYLO_RPEC calculations',
@@ -299,6 +303,7 @@ sub get_metadata_calc_phylo_rpe2 {
         indices         => {
             PHYLO_RPE2       => {
                 description => 'Relative Phylogenetic Endemism score, type 2',
+                is_ratio    => 1,
             },
             PHYLO_RPE_NULL2  => {
                 description => 'Null score used as the denominator in the RPE2 calculations',

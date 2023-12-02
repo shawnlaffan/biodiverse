@@ -621,6 +621,40 @@ sub get_colour_prank {
     return $zscore_colours[$idx];
 }
 
+sub get_colour_divergent {
+    my ($self, $val, $centre, $extreme) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+
+    return $default_colour
+        if ! defined $centre || ! defined $extreme;
+
+    state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
+    return $centre_colour
+        if $val == $centre || $centre == $extreme;
+
+    my $colour;
+    my @arr_cen = (0xff, 0xff, 0xbf);
+    my @arr_lo  = (0x45, 0x75, 0xb4); # blue
+    my @arr_hi  = (0xd7, 0x30, 0x27); # red
+    my $pct = abs (($val - $centre) / abs ($extreme - $centre));
+
+    if ($self->get_log_mode) {
+        $pct = log (1 + 100 * $pct) / log (101);
+    }
+
+    # interpolate between centre and extreme for each of R, G and B
+    my @rgb
+        = map {
+          ($arr_cen[$_]
+              + $pct
+              * (($val < $centre ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
+          ) * 256} (0..2);
+
+    $colour = Gtk2::Gdk::Color->new(@rgb);
+    return $colour;
+}
+
 sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:

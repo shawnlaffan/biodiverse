@@ -1154,6 +1154,10 @@ sub get_colour_prank {
     return $self->get_legend->get_colour_prank (@_);
 }
 
+sub get_colour_ratio {
+    my $self = shift;
+    return $self->get_legend->get_colour_divergent (@_);
+}
 
 
 ##########################################################

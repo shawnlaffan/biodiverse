@@ -2410,8 +2410,9 @@ sub do_set_selection_mode {
 
 sub numerically {$a <=> $b};
 
-#  dummy sub
+#  dummy subs
 sub index_is_zscore {}
+sub index_is_ratio {}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

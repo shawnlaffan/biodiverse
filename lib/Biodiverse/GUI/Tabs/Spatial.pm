@@ -10,6 +10,7 @@ our $VERSION = '4.99_001';
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
+use List::Util qw /max/;
 use Time::HiRes;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_hashref is_arrayref/;
@@ -1997,6 +1998,12 @@ sub recolour {
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
     my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
     my $is_prank  = $list =~ />>p_rank>>/;
+    my $is_ratio  = $self->index_is_ratio (list => $list, index => $index);
+
+    my $abs_extreme
+        = $is_ratio
+        ? exp (max (abs log $min, log $max))
+        : max(abs $min, abs $max);
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -2013,7 +2020,8 @@ sub recolour {
               = defined $val ? (
                   $is_canape ? $grid->get_colour_canape ($val) :
                   $is_zscore ? $grid->get_colour_zscore ($val) :
-                  $is_prank  ? $grid->get_colour_prank ($val) :
+                  $is_prank  ? $grid->get_colour_prank ($val)  :
+                  $is_ratio  ? $grid->get_colour_ratio ($val, 1, $abs_extreme) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -2029,9 +2037,11 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
-    $self->{grid}->get_legend->set_canape_mode($is_canape);
-    $self->{grid}->get_legend->set_zscore_mode($is_zscore);
-    $self->{grid}->get_legend->set_prank_mode($is_prank);
+    my $legend = $self->{grid}->get_legend;
+    $legend->set_canape_mode($is_canape);
+    $legend->set_zscore_mode($is_zscore);
+    $legend->set_prank_mode($is_prank);
+    # $legend->set_divergent_mode($is_ratio);
     $self->show_legend;
 
     $grid->colour($colour_func);

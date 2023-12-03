@@ -1129,6 +1129,9 @@ sub set_canape_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 0;
+    foreach my $mark (@{$self->{canape_marks}}) {
+        $mark->hide;
+    }
     if ($prev_val) {  #  give back our colours
         $self->make_rect;
         $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend

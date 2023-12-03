@@ -266,9 +266,10 @@ sub make_rect {
         local $self->{log_mode} = 0; # hacky override
 
         my $centre = ($height - 1) / 2;
+        my $extreme = $height - $centre;
         foreach my $row (0..($height - 1)) {
             #  ensure colours match plot since 0 is the top
-            my $colour = $self->get_colour_divergent ($height - $row, $centre, $height);
+            my $colour = $self->get_colour_divergent ($height - $row, $centre, $extreme);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -653,29 +654,34 @@ sub get_colour_prank {
 }
 
 sub get_colour_divergent {
-    my ($self, $val, $centre, $extreme) = @_;
+    my ($self, $val, $centre, $max_dist) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
 
     return $default_colour
-        if ! defined $centre || ! defined $extreme;
+        if ! defined $max_dist;
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
-    $self->{last_centre} = $centre;
+    $centre //= 0;
 
     return $centre_colour
-        if $val == $centre || $centre == $extreme;
+        if $val == $centre || $max_dist == 0;
 
     my $colour;
     my @arr_cen = (0xff, 0xff, 0xbf);
     my @arr_lo  = (0x45, 0x75, 0xb4); # blue
     my @arr_hi  = (0xd7, 0x30, 0x27); # red
-    my $pct = abs (($val - $centre) / abs ($extreme - $centre));
+
+    $max_dist = abs $max_dist;
+    my $pct = abs (($val - $centre) / $max_dist);
 
     if ($self->get_log_mode) {
         $pct = log (1 + 100 * $pct) / log (101);
     }
+
+    #  handle out of range vals
+    $pct = min (1, $pct);
 
     # interpolate between centre and extreme for each of R, G and B
     my @rgb
@@ -1010,13 +1016,7 @@ sub set_text_marks_zscore {
 sub set_text_marks_divergent {
     my ($self, $mid, $extent) = @_;
 
-    # $mid //= $self->{last_divergent_mid};
-    # $extent //= $self->{last_divergent_extent};
-    #
-    # $self->{last_divergent_mid}    = $mid;
-    # $self->{last_divergent_extent} = $extent;
-
-    # say "DIV: $mid, $extent";
+    my $mid2 = ($mid + $extent) / 2;
     my @strings = (
         $mid - $extent,
         $mid - $extent / 2,
@@ -1024,14 +1024,34 @@ sub set_text_marks_divergent {
         $mid + $extent / 2,
         $mid + $extent
     );
+
+    if ($self->get_log_mode) {
+        my $pct = abs (($strings[-2] - $mid) / abs ($extent));
+        $pct = log (1 + 100 * $pct) / log (101);
+        # say "P2: $pct";
+        $strings[-2] *= $pct;
+        $pct = abs (($strings[1] - $mid) / abs ($extent));
+        $pct = log (1 + 100 * $pct) / log (101);
+        # say "P1: $pct";
+        $strings[1] *= $pct;
+    }
+
     @strings = map {0 + sprintf "%.4g", $_} @strings;
+
+    if ($self->{legend_lt_flag}) {
+        $strings[0] = "<=$strings[0]";
+    }
+    if ($self->{legend_gt_flag}) {
+        $strings[-1] = ">=$strings[-1]";
+    }
+    # say join ' ', @strings;
+
     $self->set_text_marks_for_labels (\@strings, $self->{divergent_marks});
 }
 
 sub set_text_marks_ratio {
     my ($self, $max) = @_;
 
-    # say "RATIO: $max";
     my $mid = 1 + ($max - 1) / 2;
     my @strings = (
         1 / $max,
@@ -1056,6 +1076,7 @@ sub set_text_marks_ratio {
     if ($self->{legend_gt_flag}) {
         $strings[-1] = ">=$strings[-1]";
     }
+
     $self->set_text_marks_for_labels (\@strings, $self->{ratio_marks});
 }
 

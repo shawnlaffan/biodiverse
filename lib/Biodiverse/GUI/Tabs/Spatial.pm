@@ -1994,18 +1994,27 @@ sub recolour {
     #say 'WARNING - CLEARING CACHE FOR DEBUG';
     #delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
-    
-    my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
-    my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
-    my $is_prank  = $list =~ />>p_rank>>/;
-    my $is_ratio  = !$is_prank && !$is_zscore && $self->index_is_ratio (list => $list, index => $index);
 
-    my $abs_extreme
-        = $is_ratio
-        ? exp (max (abs log $min, log $max))
-        : max(abs $min, abs $max);
+    my %list_and_index = (list => $list, index => $index);
+    my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
+    my $is_zscore = $self->index_is_zscore (%list_and_index);
+    my $is_prank  = $list =~ />>p_rank>>/;
+    my $is_ratio
+        = !$is_prank && !$is_zscore
+          && $self->index_is_ratio (%list_and_index);
+    my $is_divergent
+        = !$is_prank && !$is_zscore && !$is_ratio
+          && $self->index_is_divergent (%list_and_index);
+
+    my $abs_extreme;
     if ($is_ratio) {
+        $abs_extreme = exp (max (abs log $min, log $max));
         $min = 1 / $abs_extreme;
+        $max = $abs_extreme;
+    }
+    elsif ($is_divergent) {  #  assumes zero - needs work
+        $abs_extreme = max(abs $min, abs $max);
+        $min = 0;
         $max = $abs_extreme;
     }
 
@@ -2026,6 +2035,7 @@ sub recolour {
                   $is_zscore ? $grid->get_colour_zscore ($val) :
                   $is_prank  ? $grid->get_colour_prank ($val)  :
                   $is_ratio  ? $grid->get_colour_ratio ($val, $abs_extreme) :
+                  $is_divergent ? $grid->get_colour_divergent ($val, 0, $abs_extreme) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -2042,15 +2052,17 @@ sub recolour {
     #};
 
     my $legend = $self->{grid}->get_legend;
+    #  This is getting messy but ensures cleanup of old labels.
+    #  Should register active labels.
     $legend->set_canape_mode($is_canape);
     $legend->set_zscore_mode($is_zscore);
     $legend->set_prank_mode($is_prank);
     $legend->set_ratio_mode($is_ratio);
+    $legend->set_divergent_mode($is_divergent);
     $self->show_legend;
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);
-    # say "MM: $min, $max";
     $grid->set_legend_min_max($min, $max);
 
     $self->{grid}->update_legend;

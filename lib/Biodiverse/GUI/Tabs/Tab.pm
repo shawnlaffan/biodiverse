@@ -528,6 +528,29 @@ sub index_is_ratio {
     return $indices_object->index_is_ratio (index => $index);
 }
 
+sub index_is_divergent {
+    my $self = shift;
+    my %args = @_;
+
+    #  check list and then check index
+    my $list = $args{list} // '';
+
+    return if $args{list} ne 'SPATIAL_RESULTS';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'divergency',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $index = $args{index} // '';
+
+    return $indices_object->index_is_divergent (index => $index);
+}
+
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 

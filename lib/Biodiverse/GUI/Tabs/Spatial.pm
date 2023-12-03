@@ -2004,6 +2004,10 @@ sub recolour {
         = $is_ratio
         ? exp (max (abs log $min, log $max))
         : max(abs $min, abs $max);
+    if ($is_ratio) {
+        $min = 1 / $abs_extreme;
+        $max = $abs_extreme;
+    }
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -2021,7 +2025,7 @@ sub recolour {
                   $is_canape ? $grid->get_colour_canape ($val) :
                   $is_zscore ? $grid->get_colour_zscore ($val) :
                   $is_prank  ? $grid->get_colour_prank ($val)  :
-                  $is_ratio  ? $grid->get_colour_ratio ($val, 1, $abs_extreme) :
+                  $is_ratio  ? $grid->get_colour_ratio ($val, $abs_extreme) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -2041,11 +2045,12 @@ sub recolour {
     $legend->set_canape_mode($is_canape);
     $legend->set_zscore_mode($is_zscore);
     $legend->set_prank_mode($is_prank);
-    # $legend->set_divergent_mode($is_ratio);
+    $legend->set_ratio_mode($is_ratio);
     $self->show_legend;
 
     $grid->colour($colour_func);
     #$grid->hide_some_cells($defq_callback);
+    # say "MM: $min, $max";
     $grid->set_legend_min_max($min, $max);
 
     $self->{grid}->update_legend;

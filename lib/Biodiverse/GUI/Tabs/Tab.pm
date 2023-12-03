@@ -510,8 +510,9 @@ sub index_is_ratio {
     my %args = @_;
 
     #  check list and then check index
-
     my $list = $args{list} // '';
+
+    return if $args{list} ne 'SPATIAL_RESULTS';
 
     state $bd_obj = Biodiverse::BaseData->new (
         NAME         => 'rationing',

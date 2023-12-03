@@ -1998,7 +1998,7 @@ sub recolour {
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
     my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
     my $is_prank  = $list =~ />>p_rank>>/;
-    my $is_ratio  = $self->index_is_ratio (list => $list, index => $index);
+    my $is_ratio  = !$is_prank && !$is_zscore && $self->index_is_ratio (list => $list, index => $index);
 
     my $abs_extreme
         = $is_ratio

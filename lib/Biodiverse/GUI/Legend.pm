@@ -1040,6 +1040,12 @@ sub set_text_marks_ratio {
         $max
     );
     @strings = map {0 + sprintf "%.4g", $_} @strings;
+    if ($self->{legend_lt_flag}) {
+        $strings[0] = "<=$strings[0]";
+    }
+    if ($self->{legend_gt_flag}) {
+        $strings[-1] = ">=$strings[-1]";
+    }
     $self->set_text_marks_for_labels (\@strings, $self->{ratio_marks});
 }
 

@@ -1321,6 +1321,33 @@ sub index_is_ratio {
     return !!$hash->{$args{index} // ''};
 }
 
+sub get_divergent_indices {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
+
+    my %indices;
+    foreach my $calculations ( keys %$list ) {
+        my $meta = $self->get_metadata( sub => $calculations );
+        INDEX:
+        foreach my $index ( keys %{ $meta->get_indices } ) {
+            next INDEX if !$meta->get_index_is_divergent($index);
+            $indices{$index} = $meta->get_index_description($index);
+        }
+    }
+
+    return wantarray ? %indices : \%indices;
+}
+
+sub index_is_divergent {
+    my $self = shift;
+    my %args = @_;
+
+    my $hash = $self->get_divergent_indices;
+
+    return !!$hash->{$args{index} // ''};
+}
+
 sub get_valid_calculations_to_run {
     my $self = shift;
 

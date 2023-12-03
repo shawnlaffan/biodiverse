@@ -183,4 +183,13 @@ sub get_index_is_ratio {
     return $indices->{$index}{is_ratio};
 }
 
+sub get_index_is_divergent {
+    my ($self, $index) = @_;
+
+    no autovivification;
+
+    my $indices = $self->get_indices;
+    return $indices->{$index}{is_divergent};
+}
+
 1;

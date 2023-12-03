@@ -1032,14 +1032,24 @@ sub set_text_marks_ratio {
     my ($self, $max) = @_;
 
     # say "RATIO: $max";
+    my $mid = 1 + ($max - 1) / 2;
     my @strings = (
         1 / $max,
-        1 / ($max / 2),
+        1 / $mid,
         1,
-        $max / 2,
+        $mid,
         $max
     );
+
+    if ($self->get_log_mode) {
+        my $pct = abs (($mid - 1) / abs ($max - 1));
+        $pct = log (1 + 100 * $pct) / log (101);
+        $strings[1]  = 1 / ($mid * $pct);
+        $strings[-2] = $mid * $pct;
+    }
+
     @strings = map {0 + sprintf "%.4g", $_} @strings;
+
     if ($self->{legend_lt_flag}) {
         $strings[0] = "<=$strings[0]";
     }

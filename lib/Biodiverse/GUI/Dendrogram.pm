@@ -871,12 +871,19 @@ sub recolour_cluster_elements {
 
     my $cluster_colour_mode = $self->get_cluster_colour_mode();
     my $colour_callback;
-    
+
+    my %list_and_index = (list => $list_name, index => $list_index);
     my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
     my $is_zscore = eval {
-        $parent_tab->index_is_zscore(list => $list_name, index => $list_index);
+        $parent_tab->index_is_zscore(%list_and_index);
     };
     my $is_prank = $list_name =~ />>p_rank>>/;
+    my $is_ratio
+        = !$is_prank && !$is_zscore
+        && eval {$parent_tab->index_is_ratio(%list_and_index)};
+    my $is_divergent
+        = !$is_prank && !$is_zscore && !$is_ratio
+        && eval {$parent_tab->index_is_divergent(%list_and_index)};
 
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
@@ -917,6 +924,18 @@ sub recolour_cluster_elements {
         };
     }
     elsif ($cluster_colour_mode eq 'list-values') {
+        my $abs_extreme;
+        if ($is_ratio) {
+            $abs_extreme = exp (max (abs log $analysis_min, log $analysis_max));
+            $analysis_min = 1 / $abs_extreme;
+            $analysis_max = $abs_extreme;
+        }
+        elsif ($is_divergent) {  #  assumes zero - needs work
+            $abs_extreme = max(abs $analysis_min, abs $analysis_max);
+            $analysis_min = 0;
+            $analysis_max = $abs_extreme;
+        }
+
         # sets colours according to (usually spatial)
         # list value for the element's cluster
         $colour_callback = sub {
@@ -936,6 +955,8 @@ sub recolour_cluster_elements {
                 return $is_canape ? $map->get_colour_canape ($val)
                      : $is_zscore ? $map->get_colour_zscore ($val)
                      : $is_prank  ? $map->get_colour_prank ($val)
+                     : $is_ratio  ? $map->get_colour_ratio ($val, $abs_extreme)
+                     : $is_divergent  ? $map->get_colour_divergent ($val, 0, $abs_extreme)
                      : $map->get_colour($val, $analysis_min, $analysis_max);
             }
             else {
@@ -956,6 +977,8 @@ sub recolour_cluster_elements {
     $map->get_legend->set_canape_mode($is_canape);
     $map->get_legend->set_zscore_mode($is_zscore);
     $map->get_legend->set_prank_mode($is_prank);
+    $map->get_legend->set_ratio_mode($is_ratio);
+    $map->get_legend->set_divergent_mode($is_divergent);
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
@@ -1235,12 +1258,32 @@ sub recolour_cluster_lines {
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
-    
+
+    my %list_and_index = (list => $list_name, index => $list_index);
     my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/;
     my $is_zscore = eval {
-        $self->{parent_tab}->index_is_zscore (list => $list_name, index => $list_index);
+        $self->{parent_tab}->index_is_zscore (%list_and_index);
     };
     my $is_prank = $list_name =~ />>p_rank>>/;
+    my $is_ratio
+        = !$is_prank && !$is_zscore
+        && eval {$self->{parent_tab}->index_is_ratio(%list_and_index)};
+    my $is_divergent
+        = !$is_prank && !$is_zscore && !$is_ratio
+        && eval {$self->{parent_tab}->index_is_divergent(%list_and_index)};
+
+    my $abs_extreme;
+    if ($is_ratio) {
+        $abs_extreme = exp (max (abs log $analysis_min, log $analysis_max));
+        $analysis_min = 1 / $abs_extreme;
+        $analysis_max = $abs_extreme;
+    }
+    elsif ($is_divergent) {  #  assumes zero - needs work
+        $abs_extreme = max(abs $analysis_min, abs $analysis_max);
+        $analysis_min = 0;
+        $analysis_max = $abs_extreme;
+    }
+
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1264,10 +1307,12 @@ sub recolour_cluster_lines {
               : undef;  #  allows for missing lists
 
             $colour_ref = defined $val
-              ? (  $is_canape ? $map->get_colour_canape($val)
-                 : $is_zscore ? $map->get_colour_zscore($val)
-                 : $is_prank  ? $map->get_colour_prank($val)
-                 : $map->get_colour ($val, $analysis_min, $analysis_max)
+              ? (  $is_canape ? $map->get_colour_canape($val) :
+                   $is_zscore ? $map->get_colour_zscore($val) :
+                   $is_prank  ? $map->get_colour_prank($val) :
+                   $is_ratio  ? $map->get_colour_ratio ($val, $abs_extreme) :
+                   $is_divergent ? $map->get_colour_divergent ($val, 0, $abs_extreme) :
+                   $map->get_colour ($val, $analysis_min, $analysis_max)
                 )
               : undef;
         }

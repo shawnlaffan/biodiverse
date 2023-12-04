@@ -3156,6 +3156,7 @@ sub update_legend {
     return if !$legend;
     
     if ($self->{width_px} && $self->{height_px}) {
+        $legend->make_rect;
         $legend->reposition($self->{width_px}, $self->{height_px});
     }
     

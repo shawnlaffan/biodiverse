@@ -1586,12 +1586,9 @@ sub colour_branches_on_dendrogram {
     else {
         $legend->set_log_mode_off;
     }
-    
-    my $checkbox = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
-    if ($checkbox->get_active) {
-        $dendrogram->update_legend;  #  need dendrogram to pass on coords
-        $legend->show;
-    }
+
+    my $flip_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_colour_stretch_flip_mode');
+    $legend->set_invert_colours ($flip_check_box->get_active);
 
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
@@ -1604,11 +1601,18 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
+    #  currently does not handle divergent, ratio or CANAPE - these do not yet apply for tree branches
     my @minmax_args = ($is_zscore || $is_prank) ? () : ($min, $max);
     my $colour_method
         = $is_zscore ? 'get_colour_zscore'
         : $is_prank  ? 'get_colour_prank'
         : 'get_colour';
+
+    my $checkbox_show_legend = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    if ($checkbox_show_legend->get_active) {
+        $dendrogram->update_legend;  #  need dendrogram to pass on coords
+        $legend->show;
+    }
 
     my %done;
 

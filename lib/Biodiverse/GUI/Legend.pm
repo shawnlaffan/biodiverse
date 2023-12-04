@@ -674,12 +674,12 @@ sub get_colour_divergent {
 
     my $colour;
     my @arr_cen = (0xff, 0xff, 0xbf);
-    my @arr_lo  = (0x45, 0x75, 0xb4); # blue
-    my @arr_hi  = (0xd7, 0x30, 0x27); # red
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
 
     if ($self->get_invert_colours) {
-        @arr_hi  = (0x45, 0x75, 0xb4); # blue
-        @arr_lo  = (0xd7, 0x30, 0x27); # red
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
     }
 
     $max_dist = abs $max_dist;
@@ -723,12 +723,12 @@ sub get_colour_ratio {
     }
 
     my @arr_cen = (0xff, 0xff, 0xbf);
-    my @arr_lo  = (0x45, 0x75, 0xb4); # blue
-    my @arr_hi  = (0xd7, 0x30, 0x27); # red
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
 
     if ($self->get_invert_colours) {
-        @arr_hi  = (0x45, 0x75, 0xb4); # blue
-        @arr_lo  = (0xd7, 0x30, 0x27); # red
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
     }
 
     #  ensure fractions get correct scaling

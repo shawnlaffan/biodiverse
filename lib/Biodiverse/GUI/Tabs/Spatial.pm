@@ -552,6 +552,7 @@ sub init_branch_colouring_combo {
           = $self->{output_ref}->get_hash_lists_across_elements;
         foreach my $list_name (natsort @$list_names) {
             next if $list_name =~ /SPATIAL_RESULTS$/;
+            next if $list_name =~ /CANAPE>>$/;
             next if $list_name eq 'RECYCLED_SET';
             
             my $iter = $model->append();

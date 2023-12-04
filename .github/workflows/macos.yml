@@ -35,7 +35,7 @@ jobs:
           which cpanm
 
       - name: Install GDAL and its deps
-        run: brew install gdal
+        run: brew install --force --overwrite gdal
         
       - name: perl -V
         run: perl -V

@@ -279,6 +279,11 @@ sub init_grid {
         toggled => \&on_grid_colour_scaling_changed,
         $self,
     );
+    my $menu_flip_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_flip_mode');
+    $menu_flip_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_flip_changed,
+        $self,
+    );
 
     $self->warn_if_basedata_has_gt2_axes;
 

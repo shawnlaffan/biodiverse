@@ -223,6 +223,15 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkCheckMenuItem" id="menu_colour_stretch_flip_mode">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
+                            <property name="label" translatable="yes">Invert colour stretch</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkMenuItem" id="menu_item_colour_stretch">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -490,8 +499,20 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Log scale</property>
+                            <property name="tooltip_text" translatable="yes">Log scale the colours.
+Uses the min and max determined by the Colour stretch choice.</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_colour_stretch_flip_mode">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Invert colour stretch</property>
+                            <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">False</property>
                           </object>
                         </child>
                         <child>

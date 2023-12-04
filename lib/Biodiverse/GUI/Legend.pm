@@ -114,7 +114,9 @@ sub new {
     #  clunky that we need to do it here
     my @anchors = ('nw', ('w') x 3, 'sw');
     foreach my $i (reverse 0..4) {
-        $self->{canape_marks}[$i] = $self->make_mark($anchors[$i]);
+        $self->{canape_marks}[$i]    = $self->make_mark($anchors[$i]);
+        $self->{divergent_marks}[$i] = $self->make_mark($anchors[$i]);
+        $self->{ratio_marks}[$i]     = $self->make_mark($anchors[$i]);
     }
     @anchors = ('nw', ('w') x 5, 'sw');
     foreach my $i (reverse 0..6) {
@@ -243,15 +245,44 @@ sub make_rect {
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
+    elsif ($self->get_ratio_mode) {
+        ($width, $height) = ($self->get_width, 180);
+        $self->{legend_height} = $height;
+
+        local $self->{log_mode} = 0; # hacky override
+
+        my $mid = ($height - 1) / 2;
+        foreach my $row (0..($height - 1)) {
+            my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
+            #  invert again so colours match legend text
+            my $colour = $self->get_colour_ratio (1 / $val, $mid);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
+    elsif ($self->get_divergent_mode) {
+        ($width, $height) = ($self->get_width, 180);
+        $self->{legend_height} = $height;
+
+        local $self->{log_mode} = 0; # hacky override
+
+        my $centre = ($height - 1) / 2;
+        my $extreme = $height - $centre;
+        foreach my $row (0..($height - 1)) {
+            #  ensure colours match plot since 0 is the top
+            my $colour = $self->get_colour_divergent ($height - $row, $centre, $extreme);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
     elsif ($self->{legend_mode} eq 'Hue') {
 
         ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
 
+        local $self->{log_mode} = 0; # hacky override
+
         foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb($row, 1, 1);
-            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
 
     }
@@ -260,27 +291,23 @@ sub make_rect {
         ($width, $height) = ($self->get_width, 100);
         $self->{legend_height} = $height;
 
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb(
-                $self->{hue},
-                1 - $row / $height,
-                1,
-            );
-            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
-        }
+        local $self->{log_mode} = 0; # hacky override
 
+        foreach my $row (0..($height - 1)) {
+            my $colour = $self->get_colour_saturation ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
     }
     elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
 
+        local $self->{log_mode} = 0; # hacky override
+
         foreach my $row (0..($height - 1)) {
-            my $intensity = $self->rescale_grey(255 - $row);
-            my @rgb = ($intensity * 257 ) x 3;
-            my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            my $colour = $self->get_colour_grey ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
     else {
@@ -404,6 +431,8 @@ sub reposition {
         = $self->get_zscore_mode ? @{$self->{zscore_marks}}
         : $self->get_prank_mode  ? @{$self->{prank_marks}}
         : $self->get_canape_mode ? @{$self->{canape_marks}}
+        : $self->get_divergent_mode ? @{$self->{divergent_marks}}
+        : $self->get_ratio_mode  ? @{$self->{ratio_marks}}
         : @{$self->{marks}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
@@ -548,6 +577,11 @@ sub get_colour {
     return $self->get_colour_canape ($val)
       if $self->get_canape_mode;
 
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+        if !$method;
+
     if (defined $min and $val < $min) {
         $val = $min;
     }
@@ -564,14 +598,8 @@ sub get_colour {
         $min = 0;
         $max = 1;
     }
-    my @args = ($val, $min, $max);
 
-    my $method = $colour_methods{$self->{legend_mode}};
-
-    croak "Unknown colour system: $self->{legend_mode}\n"
-      if !$method;
-
-    return $self->$method(@args);
+    return $self->$method($val, $min, $max);
 }
 
 
@@ -601,6 +629,10 @@ sub get_colour_zscore {
         = firstidx {$val < 0 ? $val < $_ : $val <= $_}
           (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
 
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
+
     return $zscore_colours[$idx];
 }
 
@@ -618,7 +650,106 @@ sub get_colour_prank {
         = firstidx {$val < 0 ? $val < $_ : $val <= $_}
           (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
 
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
+
     return $zscore_colours[$idx];
+}
+
+sub get_colour_divergent {
+    my ($self, $val, $centre, $max_dist) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+
+    return $default_colour
+        if ! defined $max_dist;
+
+    state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
+
+    $centre //= 0;
+
+    return $centre_colour
+        if $val == $centre || $max_dist == 0;
+
+    my $colour;
+    my @arr_cen = (0xff, 0xff, 0xbf);
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
+
+    if ($self->get_invert_colours) {
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
+    }
+
+    $max_dist = abs $max_dist;
+    my $pct = abs (($val - $centre) / $max_dist);
+
+    if ($self->get_log_mode) {
+        $pct = log (1 + 100 * $pct) / log (101);
+    }
+
+    #  handle out of range vals
+    $pct = min (1, $pct);
+
+    # interpolate between centre and extreme for each of R, G and B
+    my @rgb
+        = map {
+        ($arr_cen[$_]
+            + $pct
+            * (($val < $centre ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
+        ) * 256} (0..2);
+
+    $colour = Gtk2::Gdk::Color->new(@rgb);
+    return $colour;
+}
+
+sub get_colour_ratio {
+    my ($self, $val, $extreme) = @_;
+
+    state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
+
+    return $default_colour
+        if ! defined $extreme;
+
+    state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
+
+    return $centre_colour
+        if $val == 1 || $extreme == 1;
+
+    #  simplify logic below
+    if ($extreme < 1) {
+        $extreme = 1 / $extreme;
+    }
+
+    my @arr_cen = (0xff, 0xff, 0xbf);
+    my @arr_hi  = (0x45, 0x75, 0xb4); # blue
+    my @arr_lo  = (0xd7, 0x30, 0x27); # red
+
+    if ($self->get_invert_colours) {
+        @arr_lo  = (0x45, 0x75, 0xb4); # blue
+        @arr_hi  = (0xd7, 0x30, 0x27); # red
+    }
+
+    #  ensure fractions get correct scaling
+    my $scaled = $val < 1 ? 1 / $val : $val;
+
+    my $pct = abs (($scaled - 1) / abs ($extreme - 1));
+    $pct = min ($pct, 1);  #  account for bounded ranges
+
+    if ($self->get_log_mode) {
+        $pct = log (1 + 100 * $pct) / log (101);
+    }
+
+    # interpolate between centre and extreme for each of R, G and B
+    my @rgb
+        = map {
+        ($arr_cen[$_]
+            + $pct
+            * (($val < 1 ? $arr_hi[$_] : $arr_lo[$_]) - $arr_cen[$_])
+        ) * 256} (0..2);
+# say "$val, $extreme, $scaled";
+    return Gtk2::Gdk::Color->new(@rgb);
 }
 
 sub get_colour_hue {
@@ -637,11 +768,17 @@ sub get_colour_hue {
     if ($max != $min) {
         return $default_colour
           if ! defined $val;
-        $hue = ($val - $min) / ($max - $min) * 180;
+        $hue = ($val - $min) / ($max - $min);
     }
     else {
         $hue = 0;
     }
+
+    if ($self->get_invert_colours) {
+        $hue = 1 - $hue;
+    }
+
+    $hue = 180 * min (1, max ($hue, 0));
 
     $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
 
@@ -656,18 +793,21 @@ sub get_colour_saturation {
     #   SATURATION goes from 0 to 1 as val goes from min to max
     #   Hue is variable, Brightness 1
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
-    my $sat;
 
     return $default_colour
-      if ! defined $max || ! defined $min;
+      if ! defined $val || ! defined $max || ! defined $min;
 
+    my $sat;
     if ($max != $min) {
-        return $default_colour
-          if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
         $sat = 1;
+    }
+    $sat = min (1, max ($sat, 0));
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
     }
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
@@ -679,20 +819,22 @@ sub get_colour_grey {
     my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
-    my $sat;
 
     return $default_colour
-      if ! defined $max || ! defined $min;
+      if ! defined $val || ! defined $max || ! defined $min;
 
+    my $sat;
     if ($max != $min) {
-        return $default_colour
-          if ! defined $val;
-
         $sat = ($val - $min) / ($max - $min);
     }
     else {
         $sat = 1;
     }
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
+    }
+
     $sat *= 255;
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
     $sat *= 257;
@@ -758,7 +900,8 @@ sub rgb_to_hsv {
 
 # Sets the values of the textboxes next to the legend */
 sub set_min_max {
-    my ($self, $min, $max) = @_;
+    #  val1 and val2 could be min/max or mid/extent
+    my ($self, $val1, $val2) = @_;
 
     return $self->set_text_marks_zscore
         if $self->get_zscore_mode;
@@ -773,12 +916,18 @@ sub set_min_max {
     return $self->set_text_marks_canape
         if $self->get_canape_mode;
 
+    return $self->set_text_marks_divergent ($val1, $val2)
+        if $self->get_divergent_mode;
 
-    $min //= $self->{last_min};
-    $max //= $self->{last_max};
+    return $self->set_text_marks_ratio ($val2)
+        if $self->get_ratio_mode;
+
+    my $min = $val1 //= $self->{last_min};
+    my $max = $val2 //= $self->{last_max};
 
     $self->{last_min} = $min;
     $self->{last_max} = $max;
+
 
     return if ! ($self->{marks}
                  && defined $min
@@ -888,6 +1037,75 @@ sub set_text_marks_zscore {
     return;
 }
 
+#  refactor needed
+sub set_text_marks_divergent {
+    my ($self, $mid, $extent) = @_;
+
+    my $mid2 = ($mid + $extent) / 2;
+    my @strings = (
+        $mid - $extent,
+        $mid - $extent / 2,
+        $mid,
+        $mid + $extent / 2,
+        $mid + $extent
+    );
+
+    if ($self->get_log_mode) {
+        my $pct = abs (($strings[-2] - $mid) / abs ($extent));
+        $pct = log (1 + 100 * $pct) / log (101);
+        # say "P2: $pct";
+        $strings[-2] *= $pct;
+        $pct = abs (($strings[1] - $mid) / abs ($extent));
+        $pct = log (1 + 100 * $pct) / log (101);
+        # say "P1: $pct";
+        $strings[1] *= $pct;
+    }
+
+    @strings = map {0 + sprintf "%.4g", $_} @strings;
+
+    if ($self->{legend_lt_flag}) {
+        $strings[0] = "<=$strings[0]";
+    }
+    if ($self->{legend_gt_flag}) {
+        $strings[-1] = ">=$strings[-1]";
+    }
+    # say join ' ', @strings;
+
+    $self->set_text_marks_for_labels (\@strings, $self->{divergent_marks});
+}
+
+sub set_text_marks_ratio {
+    my ($self, $max) = @_;
+
+    $max //= 1;
+    my $mid = 1 + ($max - 1) / 2;
+    my @strings = (
+        1 / $max,
+        1 / $mid,
+        1,
+        $mid,
+        $max
+    );
+
+    if ($self->get_log_mode) {
+        my $pct = abs (($mid - 1) / abs ($max - 1));
+        $pct = log (1 + 100 * $pct) / log (101);
+        $strings[1]  = 1 / ($mid * $pct);
+        $strings[-2] = $mid * $pct;
+    }
+
+    @strings = map {0 + sprintf "%.4g", $_} @strings;
+
+    if ($self->{legend_lt_flag}) {
+        $strings[0] = "<=$strings[0]";
+    }
+    if ($self->{legend_gt_flag}) {
+        $strings[-1] = ">=$strings[-1]";
+    }
+
+    $self->set_text_marks_for_labels (\@strings, $self->{ratio_marks});
+}
+
 sub set_text_marks_prank {
     my $self = shift;
     my @strings = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
@@ -958,6 +1176,9 @@ sub set_canape_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 0;
+    foreach my $mark (@{$self->{canape_marks}}) {
+        $mark->hide;
+    }
     if ($prev_val) {  #  give back our colours
         $self->make_rect;
         $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
@@ -1018,6 +1239,86 @@ sub set_zscore_mode {
         $self->set_zscore_mode_off;
     }
     return $self->{zscore_mode};
+}
+
+sub set_divergent_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{divergent_mode};
+    $self->{divergent_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_divergent_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{divergent_mode};
+    $self->{divergent_mode} = 0;
+    foreach my $mark (@{$self->{divergent_marks}}) {
+        $mark->hide;
+    }
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_divergent_mode {
+    $_[0]->{divergent_mode};
+}
+
+sub set_divergent_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_divergent_mode_on;
+    }
+    else {
+        $self->set_divergent_mode_off;
+    }
+    return $self->{divergent_mode};
+}
+
+sub set_ratio_mode_on {
+    my ($self) = @_;
+    my $prev_val = $self->{ratio_mode};
+    $self->{ratio_mode} = 1;
+    if (!$prev_val) {  #  update legend colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+    }
+    return 1;
+}
+
+sub set_ratio_mode_off {
+    my ($self) = @_;
+    my $prev_val = $self->{ratio_mode};
+    $self->{ratio_mode} = 0;
+    foreach my $mark (@{$self->{ratio_marks}}) {
+        $mark->hide;
+    }
+    if ($prev_val) {  #  give back our colours
+        $self->make_rect;
+        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+    }
+    return 0;
+}
+
+sub get_ratio_mode {
+    $_[0]->{ratio_mode};
+}
+
+sub set_ratio_mode {
+    my ($self, $bool) = @_;
+    if ($bool) {
+        $self->set_ratio_mode_on;
+    }
+    else {
+        $self->set_ratio_mode_off;
+    }
+    return $self->{ratio_mode};
 }
 
 sub set_prank_mode_on {
@@ -1082,8 +1383,7 @@ sub format_number_for_display {
 sub rescale_grey {
     my $self  = shift;
     my $value = shift;
-    my $max   = shift;
-    defined $max or $max = 255;
+    my $max   = shift // 255;
 
     $value /= $max;
     $value *= (LIGHTEST_GREY_FRAC - DARKEST_GREY_FRAC);
@@ -1093,5 +1393,14 @@ sub rescale_grey {
     return $value;
 }
 
+#  flip the colour ranges if true
+sub get_invert_colours {
+    $_[0]->{invert_colours};
+};
+
+sub set_invert_colours {
+    my ($self, $bool) = @_;
+    $self->{invert_colours} = !!$bool;
+}
 
 1;

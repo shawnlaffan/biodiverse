@@ -10,6 +10,7 @@ our $VERSION = '4.99_001';
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
+use List::Util qw /max/;
 use Time::HiRes;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /is_ref is_hashref is_arrayref/;
@@ -551,6 +552,7 @@ sub init_branch_colouring_combo {
           = $self->{output_ref}->get_hash_lists_across_elements;
         foreach my $list_name (natsort @$list_names) {
             next if $list_name =~ /SPATIAL_RESULTS$/;
+            next if $list_name =~ /CANAPE>>$/;
             next if $list_name eq 'RECYCLED_SET';
             
             my $iter = $model->append();
@@ -652,10 +654,15 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
- 
+
     my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
+    my $menu_flip_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_flip_mode');
+    $menu_flip_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_flip_changed,
         $self,
     );
 
@@ -1580,12 +1587,9 @@ sub colour_branches_on_dendrogram {
     else {
         $legend->set_log_mode_off;
     }
-    
-    my $checkbox = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
-    if ($checkbox->get_active) {
-        $dendrogram->update_legend;  #  need dendrogram to pass on coords
-        $legend->show;
-    }
+
+    my $flip_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_colour_stretch_flip_mode');
+    $legend->set_invert_colours ($flip_check_box->get_active);
 
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
@@ -1598,11 +1602,18 @@ sub colour_branches_on_dendrogram {
     $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
 
+    #  currently does not handle divergent, ratio or CANAPE - these do not yet apply for tree branches
     my @minmax_args = ($is_zscore || $is_prank) ? () : ($min, $max);
     my $colour_method
         = $is_zscore ? 'get_colour_zscore'
         : $is_prank  ? 'get_colour_prank'
         : 'get_colour';
+
+    my $checkbox_show_legend = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    if ($checkbox_show_legend->get_active) {
+        $dendrogram->update_legend;  #  need dendrogram to pass on coords
+        $legend->show;
+    }
 
     my %done;
 
@@ -1993,10 +2004,29 @@ sub recolour {
     #say 'WARNING - CLEARING CACHE FOR DEBUG';
     #delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
-    
+
+    my %list_and_index = (list => $list, index => $index);
     my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
-    my $is_zscore = $self->index_is_zscore (list => $list, index => $index);
+    my $is_zscore = $self->index_is_zscore (%list_and_index);
     my $is_prank  = $list =~ />>p_rank>>/;
+    my $is_ratio
+        = !$is_prank && !$is_zscore
+          && $self->index_is_ratio (%list_and_index);
+    my $is_divergent
+        = !$is_prank && !$is_zscore && !$is_ratio
+          && $self->index_is_divergent (%list_and_index);
+
+    my $abs_extreme;
+    if ($is_ratio) {
+        $abs_extreme = exp (max (abs log $min, log $max));
+        $min = 1 / $abs_extreme;
+        $max = $abs_extreme;
+    }
+    elsif ($is_divergent) {  #  assumes zero - needs work
+        $abs_extreme = max(abs $min, abs $max);
+        $min = 0;
+        $max = $abs_extreme;
+    }
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -2013,7 +2043,9 @@ sub recolour {
               = defined $val ? (
                   $is_canape ? $grid->get_colour_canape ($val) :
                   $is_zscore ? $grid->get_colour_zscore ($val) :
-                  $is_prank  ? $grid->get_colour_prank ($val) :
+                  $is_prank  ? $grid->get_colour_prank ($val)  :
+                  $is_ratio  ? $grid->get_colour_ratio ($val, $abs_extreme) :
+                  $is_divergent ? $grid->get_colour_divergent ($val, 0, $abs_extreme) :
                   $grid->get_colour($val, $min, $max)
               )
               : $colour_none;
@@ -2029,9 +2061,14 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
-    $self->{grid}->get_legend->set_canape_mode($is_canape);
-    $self->{grid}->get_legend->set_zscore_mode($is_zscore);
-    $self->{grid}->get_legend->set_prank_mode($is_prank);
+    my $legend = $self->{grid}->get_legend;
+    #  This is getting messy but ensures cleanup of old labels.
+    #  Should register active labels.
+    $legend->set_canape_mode($is_canape);
+    $legend->set_zscore_mode($is_zscore);
+    $legend->set_prank_mode($is_prank);
+    $legend->set_ratio_mode($is_ratio);
+    $legend->set_divergent_mode($is_divergent);
     $self->show_legend;
 
     $grid->colour($colour_func);

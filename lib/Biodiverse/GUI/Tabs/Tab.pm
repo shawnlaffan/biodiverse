@@ -433,6 +433,30 @@ sub on_show_hide_legend {
 
 }
 
+sub on_grid_colour_flip_changed {
+    my ($self, $checkbox) = @_;
+
+    my $grid = $self->{grid};
+
+    return if !$grid;
+
+    my $xml_page = $self->{xmlPage};
+
+    my $active    = !!$checkbox->get_active;
+    my $prev_mode = !!$grid->get_legend->get_invert_colours;
+
+    $grid->get_legend->set_invert_colours ($active);
+
+    #  trigger a redisplay if needed
+    if ($prev_mode != $active) {
+        $self->recolour;
+        $grid->update_legend;
+    }
+
+    return;
+}
+
+
 sub on_grid_colour_scaling_changed {
     my ($self, $checkbox) = @_;
     
@@ -484,7 +508,7 @@ sub index_is_zscore {
     my $list = $args{list} // '';
 
     return 1
-      if $list =~ />>z_scores>>/;
+        if $list =~ />>z_scores>>/;
 
     state $bd_obj = Biodiverse::BaseData->new (
         NAME         => 'zscorage',
@@ -498,11 +522,57 @@ sub index_is_zscore {
     my $index = $args{index} // '';
 
     return 1
-      if $indices_object->index_is_list (index => $list)
-      && $indices_object->index_is_zscore (index => $list);
+        if $indices_object->index_is_list (index => $list)
+            && $indices_object->index_is_zscore (index => $list);
 
     return $indices_object->index_is_scalar (index => $index)
         && $indices_object->index_is_zscore (index => $index);
+}
+
+sub index_is_ratio {
+    my $self = shift;
+    my %args = @_;
+
+    #  check list and then check index
+    my $list = $args{list} // '';
+
+    return if $args{list} ne 'SPATIAL_RESULTS';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'rationing',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $index = $args{index} // '';
+
+    return $indices_object->index_is_ratio (index => $index);
+}
+
+sub index_is_divergent {
+    my $self = shift;
+    my %args = @_;
+
+    #  check list and then check index
+    my $list = $args{list} // '';
+
+    return if $args{list} ne 'SPATIAL_RESULTS';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'divergency',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $index = $args{index} // '';
+
+    return $indices_object->index_is_divergent (index => $index);
 }
 
 sub on_colour_mode_changed {
@@ -1079,8 +1149,5 @@ sub update_display_list_combos {
     
     return;
 }
-
-
-
 
 1;

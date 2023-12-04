@@ -221,6 +221,7 @@ sub update_legend {
 
     return if !($self->{width_px} && $self->{height_px});
 
+    $self->get_legend->make_rect;
     $self->get_legend->reposition($self->{width_px}, $self->{height_px});
 
     return;
@@ -1134,6 +1135,7 @@ sub set_colour_for_undef {
     $self->{colour_none} = $colour;
 }
 
+#  need factory generation for the next few
 sub get_colour {
     my $self = shift;
     return $self->get_legend->get_colour (@_);
@@ -1154,6 +1156,15 @@ sub get_colour_prank {
     return $self->get_legend->get_colour_prank (@_);
 }
 
+sub get_colour_ratio {
+    my $self = shift;
+    return $self->get_legend->get_colour_ratio (@_);
+}
+
+sub get_colour_divergent {
+    my $self = shift;
+    return $self->get_legend->get_colour_divergent (@_);
+}
 
 
 ##########################################################

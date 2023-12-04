@@ -1357,10 +1357,7 @@ sub get_index_bounds {
     my $index_source = $self->get_index_source(index => $index);
     my $meta = $self->get_metadata( sub => $index_source );
 
-    # my $bounds = $meta->get_calculation_bounds;
-    # return $bounds if $bounds;
-
-    my $bounds = $meta->get_index_bounds (index => $index);
+    my $bounds = $meta->get_index_bounds ($index);
 
     return $bounds;
 }

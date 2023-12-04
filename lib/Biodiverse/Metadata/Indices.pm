@@ -131,8 +131,6 @@ sub get_index_bounds {
     my $indices = $self->get_indices;
     $bounds = $indices->{$index}{bounds};
 
-    # croak "Index $index has no description" if !$descr;
-
     return $bounds;
 }
 

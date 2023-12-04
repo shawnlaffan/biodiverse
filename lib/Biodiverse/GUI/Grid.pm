@@ -221,6 +221,7 @@ sub update_legend {
 
     return if !($self->{width_px} && $self->{height_px});
 
+    $self->get_legend->make_rect;
     $self->get_legend->reposition($self->{width_px}, $self->{height_px});
 
     return;

@@ -433,6 +433,30 @@ sub on_show_hide_legend {
 
 }
 
+sub on_grid_colour_flip_changed {
+    my ($self, $checkbox) = @_;
+
+    my $grid = $self->{grid};
+
+    return if !$grid;
+
+    my $xml_page = $self->{xmlPage};
+
+    my $active    = !!$checkbox->get_active;
+    my $prev_mode = !!$grid->get_legend->get_invert_colours;
+
+    $grid->get_legend->set_invert_colours ($active);
+
+    #  trigger a redisplay if needed
+    if ($prev_mode != $active) {
+        $self->recolour;
+        $grid->update_legend;
+    }
+
+    return;
+}
+
+
 sub on_grid_colour_scaling_changed {
     my ($self, $checkbox) = @_;
     

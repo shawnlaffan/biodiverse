@@ -653,10 +653,15 @@ sub init_grid {
     }
 
     $self->{initialising_grid} = 0;
- 
+
     my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_scaling_changed,
+        $self,
+    );
+    my $menu_flip_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_flip_mode');
+    $menu_flip_checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_flip_changed,
         $self,
     );
 

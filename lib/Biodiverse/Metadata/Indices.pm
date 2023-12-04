@@ -118,6 +118,24 @@ sub get_index_formula {
     return $formula;
 }
 
+sub get_index_bounds {
+    my ($self, $index) = @_;
+
+    no autovivification;
+
+    my $bounds = $self->{bounds};
+    return $bounds if $bounds;
+
+    return undef if $self->get_index_is_list($index);
+
+    my $indices = $self->get_indices;
+    $bounds = $indices->{$index}{bounds};
+
+    # croak "Index $index has no description" if !$descr;
+
+    return $bounds;
+}
+
 sub get_index_reference {
     my ($self, $index) = @_;
 
@@ -162,6 +180,7 @@ sub get_index_is_list {
     no autovivification;
     
     my $indices = $self->get_indices;
+
     return ($indices->{$index}{type} // '') eq 'list';
 }
 

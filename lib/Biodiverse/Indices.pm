@@ -1348,6 +1348,23 @@ sub index_is_divergent {
     return !!$hash->{$args{index} // ''};
 }
 
+sub get_index_bounds {
+    my ($self, %args) = @_;
+    my $index = $args{index};
+
+    return undef if !$self->index_is_scalar(index => $index);
+
+    my $index_source = $self->get_index_source(index => $index);
+    my $meta = $self->get_metadata( sub => $index_source );
+
+    # my $bounds = $meta->get_calculation_bounds;
+    # return $bounds if $bounds;
+
+    my $bounds = $meta->get_index_bounds (index => $index);
+
+    return $bounds;
+}
+
 sub get_valid_calculations_to_run {
     my $self = shift;
 

@@ -221,6 +221,28 @@ sub test_general {
     
 }
 
+sub test_index_bounds {
+    my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
+    my $indices = $indices_object->get_indices;
+    my $list_indices   = $indices_object->get_list_indices;
+    # my $scalar_indices = $indices_object->get_scalar_indices;
+    use Regexp::Common;
+    my $RE_bound = qr/^(?:$RE{num}{real}|Inf)$/;
+
+  INDEX:
+    foreach my $index (sort keys %$indices) {
+        my $bounds = $indices_object->get_index_bounds (index => $index);
+        if ($list_indices->{$index}) {
+            is $bounds, undef, "Bounds for list index $index are undef";
+            next INDEX;
+        }
+        next if !defined $bounds;
+        like $bounds,
+            [$RE_bound, $RE_bound],
+            "Bounds for scalar index $index match expected pattern";
+    }
+}
+
 sub test_metadata {
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     #my %calculations = eval {$indices->get_calculations_as_flat_hash};

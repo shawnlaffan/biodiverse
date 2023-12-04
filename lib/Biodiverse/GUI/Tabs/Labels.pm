@@ -2413,6 +2413,7 @@ sub numerically {$a <=> $b};
 #  dummy subs
 sub index_is_zscore {}
 sub index_is_ratio {}
+sub set_invert_colours {}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

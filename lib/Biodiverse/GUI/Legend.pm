@@ -629,6 +629,10 @@ sub get_colour_zscore {
         = firstidx {$val < 0 ? $val < $_ : $val <= $_}
           (-2.58, -1.96, -1.65, 1.65, 1.96, 2.58);
 
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
+
     return $zscore_colours[$idx];
 }
 
@@ -645,6 +649,10 @@ sub get_colour_prank {
     my $idx
         = firstidx {$val < 0 ? $val < $_ : $val <= $_}
           (0.01, 0.025, 0.05, 0.95, 0.975, 0.99);
+
+    if ($self->get_invert_colours) {
+        $idx = $idx < 0 ? 0 : ($#zscore_colours - $idx);
+    }
 
     return $zscore_colours[$idx];
 }
@@ -668,6 +676,11 @@ sub get_colour_divergent {
     my @arr_cen = (0xff, 0xff, 0xbf);
     my @arr_lo  = (0x45, 0x75, 0xb4); # blue
     my @arr_hi  = (0xd7, 0x30, 0x27); # red
+
+    if ($self->get_invert_colours) {
+        @arr_hi  = (0x45, 0x75, 0xb4); # blue
+        @arr_lo  = (0xd7, 0x30, 0x27); # red
+    }
 
     $max_dist = abs $max_dist;
     my $pct = abs (($val - $centre) / $max_dist);
@@ -713,6 +726,11 @@ sub get_colour_ratio {
     my @arr_lo  = (0x45, 0x75, 0xb4); # blue
     my @arr_hi  = (0xd7, 0x30, 0x27); # red
 
+    if ($self->get_invert_colours) {
+        @arr_hi  = (0x45, 0x75, 0xb4); # blue
+        @arr_lo  = (0xd7, 0x30, 0x27); # red
+    }
+
     #  ensure fractions get correct scaling
     my $scaled = $val < 1 ? 1 / $val : $val;
 
@@ -750,11 +768,17 @@ sub get_colour_hue {
     if ($max != $min) {
         return $default_colour
           if ! defined $val;
-        $hue = ($val - $min) / ($max - $min) * 180;
+        $hue = ($val - $min) / ($max - $min);
     }
     else {
         $hue = 0;
     }
+
+    if ($self->get_invert_colours) {
+        $hue = 1 - $hue;
+    }
+
+    $hue = 180 * min (1, max ($hue, 0));
 
     $hue = int(180 - $hue); # reverse 0..180 to 180..0 (this makes high values red)
 
@@ -769,18 +793,21 @@ sub get_colour_saturation {
     #   SATURATION goes from 0 to 1 as val goes from min to max
     #   Hue is variable, Brightness 1
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
-    my $sat;
 
     return $default_colour
-      if ! defined $max || ! defined $min;
+      if ! defined $val || ! defined $max || ! defined $min;
 
+    my $sat;
     if ($max != $min) {
-        return $default_colour
-          if ! defined $val;
         $sat = ($val - $min) / ($max - $min);
     }
     else {
         $sat = 1;
+    }
+    $sat = min (1, max ($sat, 0));
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
     }
 
     my ($r, $g, $b) = hsv_to_rgb($self->{hue}, $sat, 1);
@@ -792,20 +819,22 @@ sub get_colour_grey {
     my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
-    my $sat;
 
     return $default_colour
-      if ! defined $max || ! defined $min;
+      if ! defined $val || ! defined $max || ! defined $min;
 
+    my $sat;
     if ($max != $min) {
-        return $default_colour
-          if ! defined $val;
-
         $sat = ($val - $min) / ($max - $min);
     }
     else {
         $sat = 1;
     }
+
+    if ($self->get_invert_colours) {
+        $sat = 1 - $sat;
+    }
+
     $sat *= 255;
     $sat = $self->rescale_grey($sat);  #  don't use all the shades
     $sat *= 257;
@@ -1048,6 +1077,7 @@ sub set_text_marks_divergent {
 sub set_text_marks_ratio {
     my ($self, $max) = @_;
 
+    $max //= 1;
     my $mid = 1 + ($max - 1) / 2;
     my @strings = (
         1 / $max,
@@ -1363,5 +1393,14 @@ sub rescale_grey {
     return $value;
 }
 
+#  flip the colour ranges if true
+sub get_invert_colours {
+    $_[0]->{invert_colours};
+};
+
+sub set_invert_colours {
+    my ($self, $bool) = @_;
+    $self->{invert_colours} = !!$bool;
+}
 
 1;

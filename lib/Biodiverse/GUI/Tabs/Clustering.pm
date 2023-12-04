@@ -569,7 +569,12 @@ sub init_map {
         toggled => \&on_grid_colour_scaling_changed,
         $self,
     );
-    
+    my $checkbox = $xml_page->get_object('menu_dendro_colour_stretch_flip_mode');
+    $checkbox->signal_connect_swapped(
+        toggled => \&on_grid_colour_flip_changed,
+        $self,
+    );
+
     $self->warn_if_basedata_has_gt2_axes;
 
     return;

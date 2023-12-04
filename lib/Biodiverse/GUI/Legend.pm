@@ -278,10 +278,11 @@ sub make_rect {
         ($width, $height) = ($self->get_width, 180);
         $self->{legend_height} = $height;
 
+        local $self->{log_mode} = 0; # hacky override
+
         foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb($row, 1, 1);
-            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            my $colour = $self->get_colour_hue ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
 
     }
@@ -290,27 +291,23 @@ sub make_rect {
         ($width, $height) = ($self->get_width, 100);
         $self->{legend_height} = $height;
 
-        foreach my $row (0..($height - 1)) {
-            my @rgb = hsv_to_rgb(
-                $self->{hue},
-                1 - $row / $height,
-                1,
-            );
-            my ($r,$g,$b) = ($rgb[0]*257, $rgb[1]*257, $rgb[2]*257);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
-        }
+        local $self->{log_mode} = 0; # hacky override
 
+        foreach my $row (0..($height - 1)) {
+            my $colour = $self->get_colour_saturation ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
     }
     elsif ($self->{legend_mode} eq 'Grey') {
 
         ($width, $height) = ($self->get_width, 255);
         $self->{legend_height} = $height;
 
+        local $self->{log_mode} = 0; # hacky override
+
         foreach my $row (0..($height - 1)) {
-            my $intensity = $self->rescale_grey(255 - $row);
-            my @rgb = ($intensity * 257 ) x 3;
-            my ($r,$g,$b) = ($rgb[0], $rgb[1], $rgb[2]);
-            $self->add_row($self->{legend_colours_group},$row,$r,$g,$b);
+            my $colour = $self->get_colour_grey ($height - $row, 0, $height-1);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
     else {
@@ -580,6 +577,11 @@ sub get_colour {
     return $self->get_colour_canape ($val)
       if $self->get_canape_mode;
 
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+        if !$method;
+
     if (defined $min and $val < $min) {
         $val = $min;
     }
@@ -596,14 +598,8 @@ sub get_colour {
         $min = 0;
         $max = 1;
     }
-    my @args = ($val, $min, $max);
 
-    my $method = $colour_methods{$self->{legend_mode}};
-
-    croak "Unknown colour system: $self->{legend_mode}\n"
-      if !$method;
-
-    return $self->$method(@args);
+    return $self->$method($val, $min, $max);
 }
 
 
@@ -1357,8 +1353,7 @@ sub format_number_for_display {
 sub rescale_grey {
     my $self  = shift;
     my $value = shift;
-    my $max   = shift;
-    defined $max or $max = 255;
+    my $max   = shift // 255;
 
     $value /= $max;
     $value *= (LIGHTEST_GREY_FRAC - DARKEST_GREY_FRAC);

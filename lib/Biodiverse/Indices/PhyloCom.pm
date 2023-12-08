@@ -78,6 +78,7 @@ sub get_mpd_mntd_metadata {
         },
         PNTD_VARIANCE => {
             description    => 'Variance of nearest taxon distances',
+            distribution => 'nonnegative',
         },
         PNTD_MAX => {
             description    => 'Maximum of nearest taxon distances',
@@ -87,9 +88,11 @@ sub get_mpd_mntd_metadata {
         },
         PNTD_RMSD => {
             description    => 'Root mean squared nearest taxon distances',
+            distribution => 'nonnegative',
         },
         PNTD_N => {
             description    => 'Count of nearest taxon distances',
+            distribution => 'nonnegative',
         },
         PMPD_MEAN => {
             description    => 'Mean of pairwise phylogenetic distances',
@@ -100,18 +103,22 @@ sub get_mpd_mntd_metadata {
                 . "similar to Clarke and Warwick (2001; http://dx.doi.org/10.3354/meps216265)"
                 . " but uses tip-to-tip distances instead of tip to most recent common ancestor.",
             #formula        => $mpd_variance_formula,
+            distribution => 'nonnegative',
         },
         PMPD_MAX => {
             description    => 'Maximum of pairwise phylogenetic distances',
+            distribution => 'nonnegative',
         },
         PMPD_MIN => {
             description    => 'Minimum of pairwise phylogenetic distances',
         },
         PMPD_RMSD => {
             description    => 'Root mean squared pairwise phylogenetic distances',
+            distribution => 'nonnegative',
         },
         PMPD_N => {
             description    => 'Count of pairwise phylogenetic distances',
+            distribution => 'nonnegative',
         },
     };
 
@@ -822,12 +829,12 @@ sub get_metadata_calc_nri_nti1 {
             PHYLO_NRI1 => {
                 description    => 'Net Relatedness Index, unweighted',
                 formula        => $nri_formula,
-                is_zscore      => 1,
+                distribution => 'zscore',
             },
             PHYLO_NTI1 => {
                 description    => 'Nearest Taxon Index, unweighted',
                 formula        => $nti_formula,
-                is_zscore      => 1,
+                distribution => 'zscore',
             },
         },
         uses_nbr_lists => 1,
@@ -871,12 +878,12 @@ sub get_metadata_calc_nri_nti2 {
             PHYLO_NRI2 => {
                 description => 'Net Relatedness Index, local range weighted',
                 formula     => [],
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
             PHYLO_NTI2 => {
                 description => 'Nearest Taxon Index, local range weighted',
                 formula     => [],
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
         uses_nbr_lists => 1,
@@ -920,12 +927,12 @@ sub get_metadata_calc_nri_nti3 {
             PHYLO_NRI3 => {
                 description => 'Net Relatedness Index, abundance weighted',
                 formula     => [],
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
             PHYLO_NTI3 => {
                 description => 'Nearest Taxon Index, abundance weighted',
                 formula     => [],
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
         uses_nbr_lists => 1,
@@ -984,6 +991,7 @@ sub get_metadata_calc_nri_nti_expected_values {
         PHYLO_NRI_SAMPLE_SD => {
             description    => 'Expected standard deviation of pair-wise distances',
             formula        => [],
+            distribution => 'nonnegative',
         },
         PHYLO_NTI_SAMPLE_MEAN => {
             description    => 'Expected mean of nearest taxon distances',
@@ -992,10 +1000,12 @@ sub get_metadata_calc_nri_nti_expected_values {
         PHYLO_NTI_SAMPLE_SD => {
             description    => 'Expected standard deviation of nearest taxon distances',
             formula        => [],
+            distribution => 'nonnegative',
         },
         PHYLO_NRI_NTI_SAMPLE_N => {
             description    => 'Number of random resamples used',
             formula        => [],
+            distribution => 'nonnegative',
         },
     };
 
@@ -1403,7 +1413,7 @@ sub get_metadata_calc_net_vpd {
             PHYLO_NET_VPD => {
                 description => 'Net variance of pair-wise phylogenetic distances, unweighted',
                 #formula        => $nri_formula,
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
         uses_nbr_lists => 1,

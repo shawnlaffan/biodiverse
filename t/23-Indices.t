@@ -221,22 +221,31 @@ sub test_general {
     
 }
 
-sub test_index_bounds {
+sub test_index_distribution {
     my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     my $indices = $indices_object->get_indices;
-    my $list_indices   = $indices_object->get_list_indices;
+    # my $list_indices   = $indices_object->get_list_indices;
     # my $scalar_indices = $indices_object->get_scalar_indices;
     use Regexp::Common;
-    my $RE_bound = qr/^(?:$RE{num}{real}|Inf)$/;
+    my $RE_bound = qr/^(?:$RE{num}{real}|[+-]?Inf)$/;
 
-  INDEX:
+    INDEX:
+    foreach my $index (sort keys %$indices) {
+        ok $indices_object->index_distribution_is_valid (index => $index),
+            "Valid distribution keyword for $index";
+    }
+}
+
+sub test_index_bounds {
+    my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
+
+    use Regexp::Common;
+    my $RE_bound = qr/^(?:$RE{num}{real}|[+-]?Inf)$/;
+
+    my $indices = $indices_object->get_indices;
+
     foreach my $index (sort keys %$indices) {
         my $bounds = $indices_object->get_index_bounds (index => $index);
-        if ($list_indices->{$index}) {
-            is $bounds, undef, "Bounds for list index $index are undef";
-            next INDEX;
-        }
-        next if !defined $bounds;
         like $bounds,
             [$RE_bound, $RE_bound],
             "Bounds for scalar index $index match expected pattern";

@@ -70,9 +70,9 @@ sub get_metadata_calc_pd {
                 ],
             },
             PD_P            => {
-                cluster       => undef,
-                description   => 'Phylogenetic diversity as a proportion of total tree length',
-                formula       => [
+                cluster     => undef,
+                description => 'Phylogenetic diversity as a proportion of total tree length',
+                formula     => [
                     '= \frac { PD }{ \sum_{c \in C} L_c }',
                     ' where terms are the same as for PD, but ',
                     'c',
@@ -82,6 +82,7 @@ sub get_metadata_calc_pd {
                     'L_c',
                     ' are calculated for all nodes in the tree.',
                 ],
+                distribution => 'unit_interval',
             },
             PD_per_taxon    => {
                 cluster       => undef,
@@ -145,8 +146,8 @@ sub get_metadata_calc_pd_local {
                 ],
             },
             PD_LOCAL_P => {
-                description   => 'Phylogenetic diversity as a proportion of total tree length',
-                formula       => [
+                description => 'Phylogenetic diversity as a proportion of total tree length',
+                formula     => [
                     '= \frac { PD }{ \sum_{c \in C} L_c }',
                     ' where terms are the same as for PD, but ',
                     'c',
@@ -156,6 +157,7 @@ sub get_metadata_calc_pd_local {
                     'L_c',
                     ' are calculated for all nodes in the tree.',
                 ],
+                distribution => 'unit_interval',
             },
         },
     );
@@ -397,7 +399,8 @@ sub get_metadata_calc_pd_terminal_node_count {
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PD_INCLUDED_TERMINAL_NODE_COUNT => {
-                description   => 'Count of tree terminal nodes included in the PD calculations',
+                description    => 'Count of tree terminal nodes included in the PD calculations',
+                distribution => 'nonnegative',
             },
         },
     );
@@ -710,7 +713,8 @@ sub get_metadata_calc_pe {
             },
             PE_WE_P         => {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length',
-                formula     => ['PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree'],
+                formula     => [ 'PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree' ],
+                distribution => 'unit_interval',
             },
         },
     );
@@ -737,6 +741,7 @@ sub get_metadata_calc_pe_lists {
         type            => 'Phylogenetic Endemism Indices', 
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,
+        distribution => 'nonnegative',
         indices         => {
             PE_WTLIST       => {
                 description => 'Node weights used in PE calculations',
@@ -801,7 +806,8 @@ END_PEC_DESC
                 description => 'Phylogenetic endemism, central variant'
             },
             PEC_WE_P         => {
-                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
+                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -850,6 +856,7 @@ END_PEC_DESC
         type            => 'Phylogenetic Endemism Indices',
         pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
+        distribution => 'nonnegative',
         indices         => {
             PEC_WTLIST           => {
                 description => 'Phylogenetic endemism weights, central variant',
@@ -917,6 +924,7 @@ sub get_metadata_calc_pe_central_cwe {
         indices         => {
             PEC_CWE => {
                 description => 'Corrected weighted phylogenetic endemism, central variant',
+                distribution => 'unit_interval',
             },
             PEC_CWE_PD => {
                 description => 'PD used in the PEC_CWE index.',
@@ -1070,6 +1078,7 @@ sub get_metadata_calc_pe_clade_contributions {
             PE_CLADE_CONTR_P => {
                 description => 'List of node (clade) contributions to the PE calculation, proportional to the entire tree',
                 type        => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1158,6 +1167,7 @@ sub get_metadata_calc_pe_clade_loss {
             PE_CLADE_LOSS_CONTR_P => {
                 description => 'As per PE_CLADE_LOSS but proportional to the entire tree',
                 type        => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1251,8 +1261,9 @@ sub get_metadata_calc_pd_clade_loss_ancestral {
             },
             PD_CLADE_LOSS_ANC_P  => {
                 description => 'List of the proportion of the clade\'s PD loss '
-                             . 'that is due to the ancestral branches.',
+                    . 'that is due to the ancestral branches.',
                 type        => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1291,8 +1302,9 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
             },
             PE_CLADE_LOSS_ANC_P  => {
                 description => 'List of the proportion of the clade\'s PE loss '
-                             . 'that is due to the ancestral branches.',
+                    . 'that is due to the ancestral branches.',
                 type        => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1377,8 +1389,9 @@ EOD
             },
             PE_WE_SINGLE_P  => {
                 description => "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\n"
-                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
-                               . "Useful if your data have sampling biases."
+                    . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
+                    . "Useful if your data have sampling biases.",
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1436,6 +1449,7 @@ sub get_metadata_calc_pd_endemism {
             },
             PD_ENDEMISM_P => {
                 description => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
+                distribution => 'unit_interval',
             },
             #PD_ENDEMISM_R => {  #  should put in its own calc as it needs an extra dependency
             #    description => 'Phylogenetic Diversity Endemism, as a proportion of the local PD',
@@ -1512,6 +1526,7 @@ sub get_metadata_calc_count_labels_on_tree {
         indices         => {
             PHYLO_LABELS_ON_TREE_COUNT => {
                 description => 'The number of labels that are found on the tree, across both neighbour sets',
+                distribution => 'nonnegative',
             },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -1581,11 +1596,11 @@ sub get_metadata_calc_labels_not_on_tree {
             },  #  should poss also do nbr sets 1 and 2
             PHYLO_LABELS_NOT_ON_TREE_N => {
                 description => 'Number of labels not on the tree',
-                
+                distribution => 'nonnegative',
             },
             PHYLO_LABELS_NOT_ON_TREE_P => {
                 description => 'Proportion of labels not on the tree',
-                
+                distribution => 'unit_interval',
             },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -2341,7 +2356,7 @@ sub get_metadata_calc_phylo_sorenson {
         indices        => {
             PHYLO_SORENSON => {
                 cluster     =>  'NO_CACHE_ABC',
-                bounds      =>  [0, 1],
+                bounds      =>  [0,1],
                 formula     =>  [
                     '1 - (2A / (2A + B + C))',
                     ' where A is the length of shared branches, '
@@ -2387,7 +2402,7 @@ sub get_metadata_calc_phylo_jaccard {
         indices        => {
             PHYLO_JACCARD => {
                 cluster     =>  'NO_CACHE_ABC',
-                bounds      =>  [0, 1],
+                bounds      =>  [0,1],
                 formula     =>  [
                     '= 1 - (A / (A + B + C))',
                     ' where A is the length of shared branches, '
@@ -2438,7 +2453,7 @@ sub get_metadata_calc_phylo_s2 {
                     . 'only in neighbour sets 1 and 2',
                 ],
                 description => 'Phylo S2 score',
-                bounds      => [0, 1],
+                distribution => 'unit_interval',
                 #  min (B,C) in denominator means cluster order
                 #  influences tie breaker results as different
                 #  assemblages are merged
@@ -2480,19 +2495,19 @@ sub get_metadata_calc_phylo_abc {
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
         indices         => {
             PHYLO_A => {
-                description  =>  'Length of branches shared by labels in nbr sets 1 and 2',
+                description  =>  'Sum of branch lengths shared by labels in nbr sets 1 and 2',
                 lumper       => 1,
             },
             PHYLO_B => {
-                description  =>  'Length of branches unique to labels in nbr set 1',
+                description  =>  'Sum of branch lengths unique to labels in nbr set 1',
                 lumper       => 0,
             },
             PHYLO_C => {
-                description  =>  'Length of branches unique to labels in nbr set 2',
+                description  =>  'Sum of branch lengths unique to labels in nbr set 2',
                 lumper       => 0,
             },
             PHYLO_ABC => {
-                description  =>  'Length of all branches associated with labels in nbr sets 1 and 2',
+                description  =>  'Sum of branch lengths associated with labels in nbr sets 1 and 2',
                 lumper       => 1,
             },
         },
@@ -2687,9 +2702,10 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
         reference       => '',
         indices         => {
             PE_CWE => {
-                description  => $descr,
-                reference    => '',
-                formula      => ['PE\_WE / PD'],
+                description => $descr,
+                reference   => '',
+                formula     => [ 'PE\_WE / PD' ],
+                distribution => 'unit_interval',
             },
         },
     );
@@ -2727,9 +2743,10 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
         reference       => '',
         indices         => {
             PHYLO_RARITY_CWR => {
-                description  => $descr,
-                reference    => '',
-                formula      => ['AED_T / PD'],
+                description => $descr,
+                reference   => '',
+                formula     => [ 'AED_T / PD' ],
+                distribution => 'unit_interval',
             },
         },
     );
@@ -3076,6 +3093,7 @@ sub get_metadata_calc_phylo_abundance {
         pre_calc        => [qw /_calc_pd calc_abc3 calc_labels_on_tree/],
         pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
         uses_nbr_lists  => 1,  #  how many lists it must have
+        distribution => 'nonnegative',
         indices         => {
             PHYLO_ABUNDANCE   => {
                 cluster       => undef,

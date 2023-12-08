@@ -179,29 +179,26 @@ sub get_index_is_list {
     return ($indices->{$index}{type} // '') eq 'list';
 }
 
-sub get_index_is_zscore {
+
+my %valid_distributions = (
+    ''            => 1,
+    unit_interval => 1,
+    zscore        => 1,
+    divergent     => 1,
+    categorical   => 1,
+    nonnegative   => 1,
+    nonnegative_ratio => 1,
+);
+
+sub index_distribution_is_valid {
     my ($self, $index) = @_;
-
-    return $self->get_index_distribution($index) eq 'zscore';
+    my $distr = $self->get_index_distribution($index);
+    return $valid_distributions{$distr};
 }
-
 
 sub get_index_is_ratio {
     my ($self, $index) = @_;
-
     return return $self->get_index_distribution($index) =~ /ratio$/;
-}
-
-sub get_index_is_divergent {
-    my ($self, $index) = @_;
-
-    return $self->get_index_distribution($index) eq 'divergent';
-}
-
-sub get_index_is_unit_interval {
-    my ($self, $index) = @_;
-
-    return $self->get_index_distribution($index) eq 'unit_interval';
 }
 
 sub get_index_is_nonnegative {
@@ -221,20 +218,28 @@ sub get_index_distribution {
     return $indices->{$index}{distribution} // $self->{distribution} // '';
 }
 
-#  make this a state var when we use a perl version for which state vars can be lists
-my %valid_distributions = (
-    ''            => 1,
-    unit_interval => 1,
-    zscore        => 1,
-    divergent     => 1,
-    nonnegative   => 1,
-    nonnegative_ratio => 1,
-);
+__PACKAGE__->_make_distribution_methods (keys %valid_distributions);
 
-sub index_distribution_is_valid {
-    my ($self, $index) = @_;
-    my $distr = $self->get_index_distribution($index);
-    return $valid_distributions{$distr};
+sub _make_distribution_methods {
+    my ($pkg, @methods) = @_;
+    # print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    #  filter blanks
+    foreach my $key (grep {$_} @methods) {
+        my $method = "get_index_is_$key";
+        next if $pkg->can($method);  #  do not override
+        # say STDERR "Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self, $index) = @_;
+                    return $self->get_index_distribution($index) eq $key;
+                };
+            };
+    }
+
+    return;
 }
+
 
 1;

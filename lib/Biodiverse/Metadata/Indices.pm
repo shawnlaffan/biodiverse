@@ -126,12 +126,9 @@ sub get_index_bounds {
     my $bounds = $self->{bounds};
     return $bounds if $bounds;
 
-    return undef if $self->get_index_is_list($index);
-
-    my $indices = $self->get_indices;
-    $bounds = $indices->{$index}{bounds};
-
-    return $bounds;
+    return $self->get_index_is_nonnegative($index)  ? [0,'Inf']
+        : $self->get_index_is_unit_interval($index) ? [0,1]
+        : ['-Inf','Inf'];
 }
 
 sub get_index_reference {
@@ -176,7 +173,7 @@ sub get_index_is_list {
     my ($self, $index) = @_;
 
     no autovivification;
-    
+
     my $indices = $self->get_indices;
 
     return ($indices->{$index}{type} // '') eq 'list';
@@ -185,28 +182,59 @@ sub get_index_is_list {
 sub get_index_is_zscore {
     my ($self, $index) = @_;
 
-    no autovivification;
-
-    my $indices = $self->get_indices;
-    return $indices->{$index}{is_zscore};
+    return $self->get_index_distribution($index) eq 'zscore';
 }
+
 
 sub get_index_is_ratio {
     my ($self, $index) = @_;
 
-    no autovivification;
-
-    my $indices = $self->get_indices;
-    return $indices->{$index}{is_ratio};
+    return return $self->get_index_distribution($index) =~ /ratio$/;
 }
 
 sub get_index_is_divergent {
     my ($self, $index) = @_;
 
-    no autovivification;
+    return $self->get_index_distribution($index) eq 'divergent';
+}
 
+sub get_index_is_unit_interval {
+    my ($self, $index) = @_;
+
+    return $self->get_index_distribution($index) eq 'unit_interval';
+}
+
+sub get_index_is_nonnegative {
+    my ($self, $index) = @_;
+
+    return 0 if $self->get_index_is_zscore($index);
+    return 1 if $self->get_index_is_unit_interval ($index);
+
+    return $self->get_index_distribution($index) =~ '^nonnegative';
+}
+
+sub get_index_distribution {
+    my ($self, $index) = @_;
+
+    no autovivification;
     my $indices = $self->get_indices;
-    return $indices->{$index}{is_divergent};
+    return $indices->{$index}{distribution} // $self->{distribution} // '';
+}
+
+#  make this a state var when we use a perl version for which state vars can be lists
+my %valid_distributions = (
+    ''            => 1,
+    unit_interval => 1,
+    zscore        => 1,
+    divergent     => 1,
+    nonnegative   => 1,
+    nonnegative_ratio => 1,
+);
+
+sub index_distribution_is_valid {
+    my ($self, $index) = @_;
+    my $distr = $self->get_index_distribution($index);
+    return $valid_distributions{$distr};
 }
 
 1;

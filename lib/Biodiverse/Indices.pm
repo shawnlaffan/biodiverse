@@ -1303,8 +1303,7 @@ sub get_ratio_indices {
     foreach my $calculations ( keys %$list ) {
         my $meta = $self->get_metadata( sub => $calculations );
         INDEX:
-        foreach my $index ( keys %{ $meta->get_indices } ) {
-            next INDEX if !$meta->get_index_is_ratio($index);
+        foreach my $index ( grep {$meta->get_index_is_ratio($_)} keys %{ $meta->get_indices } ) {
             $indices{$index} = $meta->get_index_description($index);
         }
     }
@@ -1352,7 +1351,7 @@ sub get_index_bounds {
     my ($self, %args) = @_;
     my $index = $args{index};
 
-    return undef if !$self->index_is_scalar(index => $index);
+    # return undef if !$self->index_is_scalar(index => $index);
 
     my $index_source = $self->get_index_source(index => $index);
     my $meta = $self->get_metadata( sub => $index_source );
@@ -1361,6 +1360,18 @@ sub get_index_bounds {
 
     return $bounds;
 }
+
+sub index_distribution_is_valid {
+    my $self = shift;
+    my %args = @_;
+    my $index = $args{index};
+
+    my $index_source = $self->get_index_source(index => $index);
+    my $meta = $self->get_metadata( sub => $index_source );
+
+    return $meta->index_distribution_is_valid ($index);
+}
+
 
 sub get_valid_calculations_to_run {
     my $self = shift;

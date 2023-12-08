@@ -62,7 +62,7 @@ sub get_metadata_calc_richness {
         type            => 'Lists and Counts',
         pre_calc        => 'calc_abc',
         uses_nbr_lists  => 1,  #  how many sets of neighbour lists it must have
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             RICHNESS_ALL    => {
                 description => 'for both sets of neighbours',
@@ -109,7 +109,7 @@ sub get_metadata_calc_redundancy {
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         reference       => 'Garcillan et al. (2003) J Veget. Sci. '
                          . 'https://doi.org/10.1111/j.1654-1103.2003.tb02174.x',
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             REDUNDANCY_ALL  => {
                 description => 'for both neighbour sets',
@@ -279,7 +279,7 @@ sub get_metadata_calc_kulczynski2 {
             KULCZYNSKI2      => {
                 cluster     => 1,
                 description => 'Kulczynski 2 index',
-                bounds          => [0,1],
+                distribution => 'unit_interval',
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -468,7 +468,7 @@ sub get_metadata_calc_nestedness_resultant {
             NEST_RESULTANT  => {
                 cluster     => 1,
                 description => 'Nestedness-resultant index',
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             }
         },
     );
@@ -536,22 +536,22 @@ sub get_metadata_calc_bray_curtis {
                 cluster     => 1,
                 description => 'Bray Curtis dissimilarity',
                 lumper      => 0,
-                bounds          => [0,1],
+                distribution => 'unit_interval',
             },
             BC_A => {
                 description => 'The A factor used in calculations (see formula)',
                 lumper      => 0,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             BC_B => {
                 description => 'The B factor used in calculations (see formula)',
                 lumper      => 0,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             BC_W => {
                 description => 'The W factor used in calculations (see formula)',
                 lumper      => 1,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
         },
     );
@@ -629,22 +629,22 @@ END_BCN_DESCR
             BRAY_CURTIS_NORM  => {
                 cluster     => 1,
                 description => 'Bray Curtis dissimilarity normalised by groups',
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
             BCN_A => {
                 description => 'The A factor used in calculations (see formula)',
                 lumper      => 0,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             BCN_B => {
                 description => 'The B factor used in calculations (see formula)',
                 lumper      => 0,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             BCN_W => {
                 description => 'The W factor used in calculations (see formula)',
                 lumper      => 1,
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
         },
 
@@ -706,7 +706,7 @@ sub get_metadata_calc_beta_diversity {
                     '= \frac{A + B + C}{max((A+B), (A+C))} - 1',
                     $self->get_formula_explanation_ABC,
                 ],
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -809,22 +809,22 @@ sub get_metadata_calc_simpson_shannon {
             SIMPSON_D       => {
                 description => q{Simpson's D. A score of zero is more similar.},
                 formula     => ['D = 1 - \sum^n_{i=1} p_i^2'],
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
             SHANNON_H       => {
                 description => q{Shannon's H},
                 formula     => ['H = - \sum^n_{i=1} (p_i \cdot ln (p_i))'],
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             SHANNON_HMAX    => {
                 description => q{maximum possible value of Shannon's H},
                 formula     => ['HMAX = ln(richness)'],
-                bounds       => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             SHANNON_E       => {
                 description => q{Shannon's evenness (H / HMAX)},
                 formula     => ['Evenness = \frac{H}{HMAX}'],
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
         },    
     );
@@ -911,11 +911,11 @@ sub get_metadata_calc_tx_rao_qe {
         indices => {
             TX_RAO_QE       => {
                 description => 'Taxonomically weighted quadratic entropy',
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
             TX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate TX_RAO_QE',
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             TX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the TX_RAO_QE calculations',
@@ -964,11 +964,11 @@ sub get_metadata_calc_mx_rao_qe {
         indices         => {
             MX_RAO_QE       => {
                 description => 'Matrix weighted quadratic entropy',
-                bounds      => [0,1],
+                distribution => 'unit_interval',
             },
             MX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate MX_RAO_QE',
-                bounds      => [0,'Inf'],
+                distribution => 'nonnegative',
             },
             MX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the MX_RAO_QE calculations',
@@ -1093,7 +1093,7 @@ sub get_metadata_calc_local_range_stats {
         type            => 'Lists and Counts',
         pre_calc        => 'calc_abc2',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             ABC2_MEAN_ALL      => {
                 description     => 'Mean label range in both element sets',
@@ -1226,7 +1226,7 @@ sub get_metadata_calc_local_sample_count_stats {
     my %metadata = (
         name            => 'Sample count summary stats',
         description     => "Summary stats of the sample counts across the neighbour sets.\n",
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             ABC3_MEAN_ALL      => {
                 description     => 'Mean of label sample counts across both element sets.',
@@ -1377,7 +1377,7 @@ sub get_metadata_calc_abc_counts {
         description     => "Counts of labels in neighbour sets 1 and 2.\n"
                            . 'These form the basis for the Taxonomic Dissimilarity and Comparison indices.',
         type            => 'Lists and Counts',
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             ABC_A   => {
                 description => 'Count of labels common to both neighbour sets',
@@ -1471,7 +1471,7 @@ sub get_metadata_calc_elements_used {
         type            => 'Lists and Counts',
         pre_calc        => 'calc_abc',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        bounds          => [0,'Inf'],
+        distribution => 'nonnegative',
         indices         => {
             EL_COUNT_SET1 => {
                 description => 'Count of elements in neighbour set 1',

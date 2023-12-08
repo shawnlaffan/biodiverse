@@ -182,6 +182,7 @@ sub get_index_is_list {
 
 my %valid_distributions = (
     ''            => 1,
+    sequential    => 1,
     unit_interval => 1,
     zscore        => 1,
     divergent     => 1,
@@ -210,12 +211,18 @@ sub get_index_is_nonnegative {
     return $self->get_index_distribution($index) =~ '^nonnegative';
 }
 
+#  default is sequential
+sub get_index_is_sequential {
+    my ($self, $index) = @_;
+    return $self->get_index_distribution($index) eq 'sequential';
+}
+
 sub get_index_distribution {
     my ($self, $index) = @_;
 
     no autovivification;
     my $indices = $self->get_indices;
-    return $indices->{$index}{distribution} // $self->{distribution} // '';
+    return $indices->{$index}{distribution} // $self->{distribution} // 'sequential';
 }
 
 __PACKAGE__->_make_distribution_methods (keys %valid_distributions);

@@ -21,6 +21,21 @@ Readonly my %methods_and_defaults => (
     formula        => undef,
 );
 
+sub new {
+    my ($class, $data) = @_;
+    $data //= {};
+
+    my $self = __PACKAGE__->SUPER::new ($data);
+    bless $self, $class;
+
+    my $indices = $self->{indices} // {};
+    foreach my $index (keys %{$indices}) {
+        $indices->{$index}{bounds} //= $self->get_index_bounds (index => $index);
+    }
+
+    return $self;
+}
+
 
 sub _get_method_default_hash {
     return wantarray ? %methods_and_defaults : {%methods_and_defaults};
@@ -128,6 +143,7 @@ sub get_index_bounds {
 
     return $self->get_index_is_nonnegative($index)  ? [0,'Inf']
         : $self->get_index_is_unit_interval($index) ? [0,1]
+        : $self->get_index_is_categorical($index)   ? []
         : ['-Inf','Inf'];
 }
 

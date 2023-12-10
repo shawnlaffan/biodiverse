@@ -251,7 +251,7 @@ sub _make_distribution_methods {
 
 sub TO_JSON {
     my ($self) = @_;
-    say "Called TO_JSON";
+    # say "Called TO_JSON";
     use JSON::MaybeXS qw /encode_json/;
     my $ref = {%$self};  # a crude unbless
     encode_json $ref;

@@ -444,6 +444,3 @@ sub test_checkpoint_cwd_check {
         note "Current wd is now " . getcwd();
     }
 }
-
-
-1;

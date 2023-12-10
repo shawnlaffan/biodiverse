@@ -86,5 +86,3 @@ sub test_remapped_element_names {
         is ($remapped, $expected, $msg);
     }
 }
-
-done_testing();

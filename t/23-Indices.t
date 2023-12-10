@@ -224,10 +224,6 @@ sub test_general {
 sub test_index_distribution {
     my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     my $indices = $indices_object->get_indices;
-    # my $list_indices   = $indices_object->get_list_indices;
-    # my $scalar_indices = $indices_object->get_scalar_indices;
-    use Regexp::Common;
-    my $RE_bound = qr/^(?:$RE{num}{real}|[+-]?Inf)$/;
 
     INDEX:
     foreach my $index (sort keys %$indices) {

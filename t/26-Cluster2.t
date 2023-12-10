@@ -215,7 +215,6 @@ sub test_rw_turnover_mx {
     is ($stats, \%expected, 'got expected stats for rw_turnover mx');
 }
 
-1;
 
 __DATA__
 

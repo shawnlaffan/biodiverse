@@ -1982,7 +1982,6 @@ sub print_randomisation_result_set_to_fh {
 }
 
 
-1;
 
 __DATA__
 

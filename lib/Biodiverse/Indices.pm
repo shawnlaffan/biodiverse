@@ -15,6 +15,7 @@ use List::MoreUtils qw /uniq/;
 use List::Util qw /sum/;
 use English ( -no_match_vars );
 use Ref::Util qw { :all };
+use JSON::MaybeXS;
 
 #use MRO::Compat;
 use Class::Inspector;
@@ -96,7 +97,7 @@ sub get_calculations {
 
     my %calculations;
 
-    my $list = Class::Inspector->methods( blessed $self);
+    my $list = Class::Inspector->methods( blessed $self );
 
     foreach my $method ( grep { $_ =~ /^calc_/ } @$list ) {
         next if $method =~ /calc_abc\d?$/;    #  skip calc_abc1,2&3
@@ -353,6 +354,36 @@ sub get_calculation_metadata_as_wiki {
     }
 
     return $html;
+}
+
+sub get_calculation_metadata {
+    my $self = shift;
+
+    if (!blessed $self) {
+        state $default_bd = Biodiverse::BaseData->new (
+            NAME => 'for indices',
+            CELL_SIZES => [1,1],
+        );
+        $self = __PACKAGE__->new (BASEDATA_REF => $default_bd);
+    }
+
+    my %calculations = $self->get_calculations_as_flat_hash();
+
+    my %calculation_hash;
+    foreach my $calc_sub ( sort keys %calculations ) {
+        my $ref = $self->get_metadata( sub => $calc_sub );
+        $calculation_hash{$calc_sub} = $ref;
+    }
+
+    return wantarray ? %calculation_hash : \%calculation_hash;
+}
+
+sub get_calculation_metadata_as_json {
+    my $self = shift;
+    my $metadata = $self->get_calculation_metadata;
+    my $json_obj = JSON::MaybeXS::JSON()->new;
+    $json_obj->convert_blessed(1);
+    return $json_obj->encode($metadata);
 }
 
 #  now we have moved to github

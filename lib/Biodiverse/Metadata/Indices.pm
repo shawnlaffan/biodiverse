@@ -30,7 +30,8 @@ sub new {
 
     my $indices = $self->{indices} // {};
     foreach my $index (keys %{$indices}) {
-        $indices->{$index}{bounds} //= $self->get_index_bounds (index => $index);
+        #  triggers it being set
+        $self->get_index_bounds ($index);
     }
 
     return $self;
@@ -137,14 +138,17 @@ sub get_index_bounds {
     my ($self, $index) = @_;
 
     no autovivification;
+    my $idx_hash = $self->{indices}{$index};
+    croak "No index $index" if !$idx_hash;
 
-    my $bounds = $self->{bounds};
-    return $bounds if $bounds;
+    my $bounds
+          = $self->{indices}{$index}{bounds}
+        //= $self->get_index_is_nonnegative($index)   ? [0,'Inf']
+          : $self->get_index_is_unit_interval($index) ? [0,1]
+          : $self->get_index_is_categorical($index)   ? []
+          : ['-Inf','Inf'];
 
-    return $self->get_index_is_nonnegative($index)  ? [0,'Inf']
-        : $self->get_index_is_unit_interval($index) ? [0,1]
-        : $self->get_index_is_categorical($index)   ? []
-        : ['-Inf','Inf'];
+    return $bounds;
 }
 
 sub get_index_reference {

@@ -344,7 +344,7 @@ sub get_metadata_calc_gpprop_gistar {
             GPPROP_GISTAR_LIST => {
                 description => 'List of Gi* scores',
                 type        => 'list',
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
     );

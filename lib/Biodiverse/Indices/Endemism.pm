@@ -22,6 +22,7 @@ sub get_metadata_calc_endemism_central_normalised {
             calc_elements_used
         }],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',
         indices => {
             ENDC_CWE_NORM => {
                 description => 'Corrected weighted endemism normalised by groups',
@@ -72,16 +73,18 @@ sub get_metadata_calc_endemism_whole_normalised {
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             ENDW_CWE_NORM => {
-                description => 'Corrected weighted endemism normalised by groups',
-                formula     => [
+                description  => 'Corrected weighted endemism normalised by groups',
+                formula      => [
                     '= \frac{ENDW\_CWE}{EL\_COUNT\_ALL}',
                 ],
+                distribution => 'unit_interval',
             },
             ENDW_WE_NORM  => {
                 description => 'Weighted endemism normalised by groups',
                 formula     => [
                     '= \frac{ENDW\_WE}{EL\_COUNT\_ALL}',
                 ],
+                distribution => 'nonnegative',
             },
         },
     );  #  add to if needed
@@ -153,6 +156,7 @@ sub get_metadata_calc_endemism_central {
         pre_calc        => [qw /_calc_endemism_central/],
         reference       => $ref,
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',
         indices => {
             ENDC_CWE      => {
                 description => 'Corrected weighted endemism',
@@ -160,6 +164,7 @@ sub get_metadata_calc_endemism_central {
                 formula     => [
                     '= \frac{ENDC\_WE}{ENDC\_RICHNESS}',
                 ],
+                distribution => 'unit_interval',
             },
             ENDC_WE       => {
                 description => 'Weighted endemism',
@@ -547,12 +552,14 @@ sub get_metadata_calc_endemism_whole {
         type            => 'Endemism',
         pre_calc        => '_calc_endemism_whole',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',
         indices         => {
             ENDW_CWE        => {
                 description => 'Corrected weighted endemism',
                 formula     => [
                     '= \frac{ENDW\_WE}{ENDW\_RICHNESS}',
                 ],
+                distribution => 'unit_interval',
             },
             ENDW_WE         => {
                 description => 'Weighted endemism',
@@ -597,7 +604,7 @@ sub get_metadata_calc_endemism_whole {
                     't',
                     ' across the data set (the number of groups it is found in, '
                     . 'unless the range is specified at import).'
-                ]
+                ],
             },
         },
     );
@@ -771,12 +778,13 @@ sub get_metadata_calc_endemism_absolute_lists {
         type            => 'Endemism',
         pre_calc        => ['_calc_endemism_absolute'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',
         indices => {
-            END_ABS1_LIST => {
+            END_ABS1_LIST    => {
                 description => 'List of labels entirely endemic to neighbour set 1',
                 type        => 'list',
             },
-            END_ABS2_LIST => {
+            END_ABS2_LIST    => {
                 description => 'List of labels entirely endemic to neighbour set 1',
                 type        => 'list',
             },
@@ -811,6 +819,7 @@ sub get_metadata_calc_endemism_absolute {
         type            => 'Endemism',
         pre_calc        => ['_calc_endemism_absolute'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',
         indices => {
             END_ABS1 => {
                 description => 'Count of labels entirely endemic to neighbour set 1',
@@ -822,13 +831,16 @@ sub get_metadata_calc_endemism_absolute {
                 description => 'Count of labels entirely endemic to neighbour sets 1 and 2 combined',
             },
             END_ABS1_P => {
-                description => 'Proportion of labels entirely endemic to neighbour set 1',
+                description  => 'Proportion of labels entirely endemic to neighbour set 1',
+                distribution => 'unit_interval',
             },
             END_ABS2_P => {
-                description => 'Proportion of labels entirely endemic to neighbour set 2',
+                description  => 'Proportion of labels entirely endemic to neighbour set 2',
+                distribution => 'unit_interval',
             },
             END_ABS_ALL_P => {
-                description => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',
+                description  => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',\
+                distribution => 'unit_interval',
             },
         },
     );  #  add to if needed

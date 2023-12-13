@@ -80,8 +80,14 @@ sub get_metadata_calc_numeric_label_stats {
         indices => {
             NUM_SD      => {description => 'Standard deviation',},
             NUM_MEAN    => {description => 'Mean',},
-            NUM_N       => {description => 'Number of samples',},
-            NUM_RANGE   => {description => 'Range (max - min)',},
+            NUM_N       => {
+                description    => 'Number of samples',
+                distribution => 'nonnegative',
+            },
+            NUM_RANGE   => {
+                description    => 'Range (max - min)',
+                distribution => 'nonnegative',
+            },
             NUM_SKEW    => {description => 'Skewness',},
             NUM_KURT    => {description => 'Kurtosis',},
             NUM_CV      => {description => 'Coefficient of variation (NUM_SD / NUM_MEAN)',},
@@ -299,6 +305,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
         pre_calc       => 'calc_abc3',
         uses_nbr_lists => 2,  #  how many sets of lists it must have
         pre_conditions => ['labels_are_numeric'],
+        distribution => 'nonnegative',
         indices        => {
             NUMD_ABSMEAN       => {
                 description => 'Mean absolute dissimilarity of labels in set 1 to those in set 2.',
@@ -529,7 +536,7 @@ sub get_metadata_calc_num_labels_gistar {
             NUM_GISTAR => {
                 description => 'List of Gi* scores',
                 lumper      => 1,
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
     );

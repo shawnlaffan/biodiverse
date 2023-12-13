@@ -214,7 +214,7 @@ sub get_metadata_calc_lbprop_gistar_abc2 {
             LBPROP_GISTAR_LIST_ABC2 => {
                 description => 'List of Gi* scores',
                 type        => 'list',
-                is_zscore   => 1,
+                distribution => 'zscore',
             },
         },
     );

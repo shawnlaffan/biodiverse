@@ -59,11 +59,12 @@ sub get_metadata_calc_rarity_central {
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             RAREC_CWE      => {
-                description => 'Corrected weighted rarity',
-                lumper      => 0,
-                formula     => [
+                description  => 'Corrected weighted rarity',
+                lumper       => 0,
+                formula      => [
                     '= \frac{RAREC\_WE}{RAREC\_RICHNESS}',
                 ],
+                distribution => 'unit_interval',
             },
             RAREC_WE       => {
                 description => 'Weighted rarity',

@@ -221,6 +221,33 @@ sub test_general {
     
 }
 
+sub test_index_distribution {
+    my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
+    my $indices = $indices_object->get_indices;
+
+    INDEX:
+    foreach my $index (sort keys %$indices) {
+        ok $indices_object->index_distribution_is_valid (index => $index),
+            "Valid distribution keyword for $index";
+    }
+}
+
+sub test_index_bounds {
+    my $indices_object = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
+
+    use Regexp::Common;
+    my $RE_bound = qr/^(?:$RE{num}{real}|[+-]?Inf)$/;
+
+    my $indices = $indices_object->get_indices;
+
+    foreach my $index (sort keys %$indices) {
+        my $bounds = $indices_object->get_index_bounds (index => $index);
+        like $bounds,
+            [$RE_bound, $RE_bound],
+            "Bounds for scalar index $index match expected pattern";
+    }
+}
+
 sub test_metadata {
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     #my %calculations = eval {$indices->get_calculations_as_flat_hash};

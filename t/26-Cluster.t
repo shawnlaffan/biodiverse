@@ -575,7 +575,6 @@ sub check_matrices_differ {
 }
 
 
-1;
 
 __DATA__
 

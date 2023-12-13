@@ -466,5 +466,3 @@ sub test_max_distance_ambiguous {
         'got expected ambiguous matches for min distance 2'
     );
 }
-
-done_testing();

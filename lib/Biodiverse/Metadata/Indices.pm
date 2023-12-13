@@ -21,6 +21,22 @@ Readonly my %methods_and_defaults => (
     formula        => undef,
 );
 
+sub new {
+    my ($class, $data) = @_;
+    $data //= {};
+
+    my $self = __PACKAGE__->SUPER::new ($data);
+    bless $self, $class;
+
+    my $indices = $self->{indices} // {};
+    foreach my $index (keys %{$indices}) {
+        #  triggers it being set
+        $self->get_index_bounds ($index);
+    }
+
+    return $self;
+}
+
 
 sub _get_method_default_hash {
     return wantarray ? %methods_and_defaults : {%methods_and_defaults};
@@ -118,6 +134,23 @@ sub get_index_formula {
     return $formula;
 }
 
+sub get_index_bounds {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    my $idx_hash = $self->{indices}{$index};
+    croak "No index $index" if !$idx_hash;
+
+    my $bounds
+          = $self->{indices}{$index}{bounds}
+        //= $self->get_index_is_nonnegative($index)   ? [0,'Inf']
+          : $self->get_index_is_unit_interval($index) ? [0,1]
+          : $self->get_index_is_categorical($index)   ? []
+          : ['-Inf','Inf'];
+
+    return $bounds;
+}
+
 sub get_index_reference {
     my ($self, $index) = @_;
 
@@ -160,36 +193,86 @@ sub get_index_is_list {
     my ($self, $index) = @_;
 
     no autovivification;
-    
+
     my $indices = $self->get_indices;
+
     return ($indices->{$index}{type} // '') eq 'list';
 }
 
-sub get_index_is_zscore {
+
+my %valid_distributions = (
+    ''            => 1,
+    sequential    => 1,
+    unit_interval => 1,
+    zscore        => 1,
+    divergent     => 1,
+    categorical   => 1,
+    nonnegative   => 1,
+    nonnegative_ratio => 1,
+);
+
+sub index_distribution_is_valid {
     my ($self, $index) = @_;
-
-    no autovivification;
-
-    my $indices = $self->get_indices;
-    return $indices->{$index}{is_zscore};
+    my $distr = $self->get_index_distribution($index);
+    return $valid_distributions{$distr};
 }
 
 sub get_index_is_ratio {
     my ($self, $index) = @_;
-
-    no autovivification;
-
-    my $indices = $self->get_indices;
-    return $indices->{$index}{is_ratio};
+    return return $self->get_index_distribution($index) =~ /ratio$/;
 }
 
-sub get_index_is_divergent {
+sub get_index_is_nonnegative {
+    my ($self, $index) = @_;
+
+    return 0 if $self->get_index_is_zscore($index);
+    return 1 if $self->get_index_is_unit_interval ($index);
+
+    return $self->get_index_distribution($index) =~ '^nonnegative';
+}
+
+#  default is sequential
+sub get_index_is_sequential {
+    my ($self, $index) = @_;
+    return $self->get_index_distribution($index) eq 'sequential';
+}
+
+sub get_index_distribution {
     my ($self, $index) = @_;
 
     no autovivification;
-
     my $indices = $self->get_indices;
-    return $indices->{$index}{is_divergent};
+    return $indices->{$index}{distribution} // $self->{distribution} // 'sequential';
+}
+
+__PACKAGE__->_make_distribution_methods (keys %valid_distributions);
+
+sub _make_distribution_methods {
+    my ($pkg, @methods) = @_;
+    # print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    #  filter blanks
+    foreach my $key (grep {$_} @methods) {
+        my $method = "get_index_is_$key";
+        next if $pkg->can($method);  #  do not override
+        # say STDERR "Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self, $index) = @_;
+                    return $self->get_index_distribution($index) eq $key;
+                };
+            };
+    }
+
+    return;
+}
+
+
+sub TO_JSON {
+    my ($self) = @_;
+    my $ref = {%$self};  # a crude unbless
+    $ref;
 }
 
 1;

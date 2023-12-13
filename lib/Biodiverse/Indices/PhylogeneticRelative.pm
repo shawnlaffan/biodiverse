@@ -34,7 +34,7 @@ sub get_metadata_calc_phylo_rpd1 {
         indices         => {
             PHYLO_RPD1      => {
                 description => 'RPD1',
-                is_ratio    => 1,
+                distribution => 'nonnegative_ratio',
             },
             PHYLO_RPD_NULL1 => {
                 description => 'Null model score used as the denominator in the RPD1 calculations',
@@ -42,7 +42,7 @@ sub get_metadata_calc_phylo_rpd1 {
             PHYLO_RPD_DIFF1 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
                 formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)'],
-                is_divergent => 1,
+                distribution => 'divergent',
             }
         },
     );
@@ -101,7 +101,7 @@ sub get_metadata_calc_phylo_rpe1 {
         indices         => {
             PHYLO_RPE1           => {
                 description => 'Relative Phylogenetic Endemism score',
-                is_ratio    => 1,
+                distribution => 'nonnegative_ratio',
             },
             PHYLO_RPE_NULL1        => {
                 description => 'Null score used as the denominator in the RPE calculations',
@@ -109,7 +109,7 @@ sub get_metadata_calc_phylo_rpe1 {
             PHYLO_RPE_DIFF1 => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
                 formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
-                is_divergent => 1,
+                distribution => 'divergent',
             }
         },
     );
@@ -170,7 +170,7 @@ sub get_metadata_calc_phylo_rpd2 {
         indices         => {
             PHYLO_RPD2      => {
                 description => 'RPD2',
-                is_ratio    => 1,
+                distribution => 'nonnegative_ratio',
             },
             PHYLO_RPD_NULL2 => {
                 description => 'Null model score used as the denominator in the RPD2 calculations',
@@ -178,7 +178,7 @@ sub get_metadata_calc_phylo_rpd2 {
             PHYLO_RPD_DIFF2 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
                 formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)'],
-                is_divergent => 1,
+                distribution => 'divergent',
             }
         },
     );
@@ -247,7 +247,7 @@ sub get_metadata_calc_phylo_rpe_central {
         indices         => {
             PHYLO_RPEC       => {
                 description => 'Relative Phylogenetic Endemism score, central',
-                is_ratio    => 1,
+                distribution => 'nonnegative_ratio',
             },
             PHYLO_RPE_NULLC  => {
                 description => 'Null score used as the denominator in the PHYLO_RPEC calculations',
@@ -255,7 +255,7 @@ sub get_metadata_calc_phylo_rpe_central {
             PHYLO_RPE_DIFFC  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
                 formula     => ['= tree\_length \times (PE\_WEC\_P - PHYLO\_RPE\_NULLC)'],
-                is_divergent => 1,
+                distribution => 'divergent',
             }
         },
     );
@@ -307,7 +307,7 @@ sub get_metadata_calc_phylo_rpe2 {
         indices         => {
             PHYLO_RPE2       => {
                 description => 'Relative Phylogenetic Endemism score, type 2',
-                is_ratio    => 1,
+                distribution => 'nonnegative_ratio',
             },
             PHYLO_RPE_NULL2  => {
                 description => 'Null score used as the denominator in the RPE2 calculations',
@@ -315,7 +315,7 @@ sub get_metadata_calc_phylo_rpe2 {
             PHYLO_RPE_DIFF2  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
                 formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL2)'],
-                is_divergent => 1,
+                distribution => 'divergent',
             }
         },
     );

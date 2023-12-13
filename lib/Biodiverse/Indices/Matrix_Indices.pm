@@ -37,9 +37,15 @@ sub get_metadata_calc_matrix_stats {
         indices         => {
             MX_MEAN      => {description => 'Mean'},
             MX_SD        => {description => 'Standard deviation'},
-            MX_N         => {description => 'Number of samples (matrix elements, not labels)'},
+            MX_N         => {
+                description    => 'Number of samples (matrix elements, not labels)',
+                distribution => 'nonnegative',
+            },
             MX_MEDIAN    => {description => 'Median'},
-            MX_RANGE     => {description => 'Range (max-min)'},
+            MX_RANGE     => {
+                description    => 'Range (max-min)',
+                distribution => 'nonnegative',
+            },
             MX_MINVALUE  => {description => 'Minimum value'},
             MX_MAXVALUE  => {description => 'Maximum value'},
             MX_SKEW      => {description => 'Skewness'},

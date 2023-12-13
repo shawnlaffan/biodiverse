@@ -293,7 +293,6 @@ sub get_site_data_newick_tree {
 
 
 
-1;
 
 __DATA__
 

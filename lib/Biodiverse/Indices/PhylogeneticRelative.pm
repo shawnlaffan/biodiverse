@@ -442,14 +442,18 @@ sub get_metadata_calc_labels_not_on_trimmed_tree {
             PHYLO_LABELS_NOT_ON_TRIMMED_TREE => {
                 description => 'A hash of labels that are not found on the tree after it has been trimmed to the basedata, across both neighbour sets',
                 type        => 'list',
+                distribution => 'nonnegative',
+                bounds       => [0, 'Inf'],
             },  #  should poss also do nbr sets 1 and 2
             PHYLO_LABELS_NOT_ON_TRIMMED_TREE_N => {
                 description => 'Number of labels not on the trimmed tree',
-                
+                distribution => 'nonnegative',
+                bounds       => [0, 'Inf'],
             },
             PHYLO_LABELS_NOT_ON_TRIMMED_TREE_P => {
                 description => 'Proportion of labels not on the trimmed tree',
-                
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
         type            => 'Phylogenetic Indices (relative)',  #  keeps it clear of the other indices in the GUI

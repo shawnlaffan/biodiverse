@@ -78,6 +78,7 @@ sub get_metadata_calc_endemism_whole_normalised {
                     '= \frac{ENDW\_CWE}{EL\_COUNT\_ALL}',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             ENDW_WE_NORM  => {
                 description => 'Weighted endemism normalised by groups',
@@ -165,6 +166,7 @@ sub get_metadata_calc_endemism_central {
                     '= \frac{ENDC\_WE}{ENDC\_RICHNESS}',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             ENDC_WE       => {
                 description => 'Weighted endemism',
@@ -560,6 +562,7 @@ sub get_metadata_calc_endemism_whole {
                     '= \frac{ENDW\_WE}{ENDW\_RICHNESS}',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             ENDW_WE         => {
                 description => 'Weighted endemism',
@@ -833,14 +836,17 @@ sub get_metadata_calc_endemism_absolute {
             END_ABS1_P => {
                 description  => 'Proportion of labels entirely endemic to neighbour set 1',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             END_ABS2_P => {
                 description  => 'Proportion of labels entirely endemic to neighbour set 2',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             END_ABS_ALL_P => {
                 description  => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',\
                 distribution => 'unit_interval',
+                bounds       => [0, 1],                
             },
         },
     );  #  add to if needed

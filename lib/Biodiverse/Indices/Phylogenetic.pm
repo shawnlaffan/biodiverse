@@ -68,6 +68,7 @@ sub get_metadata_calc_pd {
                     'c',
                     '.',
                 ],
+                bounds      => [0, 'Inf'],
             },
             PD_P            => {
                 cluster     => undef,
@@ -83,6 +84,7 @@ sub get_metadata_calc_pd {
                     ' are calculated for all nodes in the tree.',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             PD_per_taxon    => {
                 cluster       => undef,
@@ -90,6 +92,7 @@ sub get_metadata_calc_pd {
                 formula       => [
                     '= \frac { PD }{ RICHNESS\_ALL }',
                 ],
+                bounds      => [0, 'Inf'],
             },
             PD_P_per_taxon  => {
                 cluster       => undef,
@@ -97,6 +100,8 @@ sub get_metadata_calc_pd {
                 formula       => [
                     '= \frac { PD\_P }{ RICHNESS\_ALL }',
                 ],
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -158,6 +163,7 @@ sub get_metadata_calc_pd_local {
                     ' are calculated for all nodes in the tree.',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -715,6 +721,7 @@ sub get_metadata_calc_pe {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length',
                 formula     => [ 'PE\_WE / L', ' where L is the sum of all branch lengths in the trimmed tree' ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -808,6 +815,7 @@ END_PEC_DESC
             PEC_WE_P         => {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -925,6 +933,7 @@ sub get_metadata_calc_pe_central_cwe {
             PEC_CWE => {
                 description => 'Corrected weighted phylogenetic endemism, central variant',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             PEC_CWE_PD => {
                 description => 'PD used in the PEC_CWE index.',
@@ -1079,6 +1088,7 @@ sub get_metadata_calc_pe_clade_contributions {
                 description => 'List of node (clade) contributions to the PE calculation, proportional to the entire tree',
                 type        => 'list',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -1168,6 +1178,7 @@ sub get_metadata_calc_pe_clade_loss {
                 description => 'As per PE_CLADE_LOSS but proportional to the entire tree',
                 type        => 'list',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -1264,6 +1275,7 @@ sub get_metadata_calc_pd_clade_loss_ancestral {
                     . 'that is due to the ancestral branches.',
                 type        => 'list',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -1305,6 +1317,7 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
                     . 'that is due to the ancestral branches.',
                 type        => 'list',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -1392,6 +1405,7 @@ EOD
                     . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
                     . "Useful if your data have sampling biases.",
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -1450,6 +1464,7 @@ sub get_metadata_calc_pd_endemism {
             PD_ENDEMISM_P => {
                 description => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             #PD_ENDEMISM_R => {  #  should put in its own calc as it needs an extra dependency
             #    description => 'Phylogenetic Diversity Endemism, as a proportion of the local PD',
@@ -1601,6 +1616,7 @@ sub get_metadata_calc_labels_not_on_tree {
             PHYLO_LABELS_NOT_ON_TREE_P => {
                 description => 'Proportion of labels not on the tree',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -2356,6 +2372,7 @@ sub get_metadata_calc_phylo_sorenson {
         indices        => {
             PHYLO_SORENSON => {
                 cluster     =>  'NO_CACHE_ABC',
+                distribution => 'unit_interval',
                 bounds      =>  [0,1],
                 formula     =>  [
                     '1 - (2A / (2A + B + C))',
@@ -2402,6 +2419,7 @@ sub get_metadata_calc_phylo_jaccard {
         indices        => {
             PHYLO_JACCARD => {
                 cluster     =>  'NO_CACHE_ABC',
+                distribution => 'unit_interval',
                 bounds      =>  [0,1],
                 formula     =>  [
                     '= 1 - (A / (A + B + C))',
@@ -2454,6 +2472,7 @@ sub get_metadata_calc_phylo_s2 {
                 ],
                 description => 'Phylo S2 score',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
                 #  min (B,C) in denominator means cluster order
                 #  influences tie breaker results as different
                 #  assemblages are merged
@@ -2706,6 +2725,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
                 reference   => '',
                 formula     => [ 'PE\_WE / PD' ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );
@@ -2747,6 +2767,7 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
                 reference   => '',
                 formula     => [ 'AED_T / PD' ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );

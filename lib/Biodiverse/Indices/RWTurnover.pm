@@ -27,15 +27,23 @@ sub get_metadata_calc_rw_turnover {
             RW_TURNOVER   => {
                 description => 'Range weighted turnover',
                 cluster     => 'NO_CACHE_ABC',
+                bounds      => [0, 1],
+                distribution => 'unit_interval',
             },
             RW_TURNOVER_A => {
                 description => 'Range weighted turnover, shared component',
+                bounds      => [0, 1],
+                distribution => 'unit_interval',
             },
             RW_TURNOVER_B => {
                 description => 'Range weighted turnover, component found only in nbr set 1',
+                bounds      => [0, 1],
+                distribution => 'unit_interval',
             },
             RW_TURNOVER_C => {
                 description => 'Range weighted turnover, component found only in nbr set 2',
+                bounds      => [0, 1],
+                distribution => 'unit_interval',
             },
             #RW_TURNOVER_P => {
             #    description => 'Range weighted turnover divided by the total number of species in the basedata',
@@ -131,15 +139,23 @@ sub get_metadata_calc_phylo_rw_turnover {
             PHYLO_RW_TURNOVER   => {
                 description => 'Range weighted turnover',
                 cluster     => 'NO_CACHE_ABC',
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             PHYLO_RW_TURNOVER_A => {
                 description => 'Range weighted turnover, shared component',
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             PHYLO_RW_TURNOVER_B => {
                 description => 'Range weighted turnover, component found only in nbr set 1',
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             PHYLO_RW_TURNOVER_C => {
                 description => 'Range weighted turnover, component found only in nbr set 2',
+                distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
     );

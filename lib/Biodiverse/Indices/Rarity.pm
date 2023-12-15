@@ -65,6 +65,7 @@ sub get_metadata_calc_rarity_central {
                     '= \frac{RAREC\_WE}{RAREC\_RICHNESS}',
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             RAREC_WE       => {
                 description => 'Weighted rarity',

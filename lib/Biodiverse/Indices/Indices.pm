@@ -280,6 +280,7 @@ sub get_metadata_calc_kulczynski2 {
                 cluster     => 1,
                 description => 'Kulczynski 2 index',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -324,6 +325,7 @@ sub get_metadata_calc_sorenson {
             SORENSON      => {
                 cluster     => 1,
                 description => 'Sorenson index',
+                distribution => 'unit_interval',
                 bounds      => [0, 1],
                 cluster_can_lump_zeroes => 1,
             }
@@ -369,6 +371,7 @@ sub get_metadata_calc_jaccard {
             JACCARD       => {
                 cluster     => 1,
                 description => 'Jaccard value, 0 is identical, 1 is completely dissimilar',
+                distribution => 'unit_interval',
                 bounds      => [0, 1],
                 cluster_can_lump_zeroes => 1,
             }
@@ -469,6 +472,7 @@ sub get_metadata_calc_nestedness_resultant {
                 cluster     => 1,
                 description => 'Nestedness-resultant index',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             }
         },
     );
@@ -537,6 +541,7 @@ sub get_metadata_calc_bray_curtis {
                 description => 'Bray Curtis dissimilarity',
                 lumper      => 0,
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             BC_A => {
                 description => 'The A factor used in calculations (see formula)',
@@ -630,6 +635,7 @@ END_BCN_DESCR
                 cluster     => 1,
                 description => 'Bray Curtis dissimilarity normalised by groups',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             BCN_A => {
                 description => 'The A factor used in calculations (see formula)',
@@ -707,6 +713,7 @@ sub get_metadata_calc_beta_diversity {
                     $self->get_formula_explanation_ABC,
                 ],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -810,6 +817,7 @@ sub get_metadata_calc_simpson_shannon {
                 description => q{Simpson's D. A score of zero is more similar.},
                 formula     => ['D = 1 - \sum^n_{i=1} p_i^2'],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             SHANNON_H       => {
                 description => q{Shannon's H},
@@ -825,6 +833,7 @@ sub get_metadata_calc_simpson_shannon {
                 description => q{Shannon's evenness (H / HMAX)},
                 formula     => ['Evenness = \frac{H}{HMAX}'],
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
         },    
     );
@@ -912,10 +921,12 @@ sub get_metadata_calc_tx_rao_qe {
             TX_RAO_QE       => {
                 description => 'Taxonomically weighted quadratic entropy',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             TX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate TX_RAO_QE',
                 distribution => 'nonnegative',
+                bounds       => [0, 'Inf'],
             },
             TX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the TX_RAO_QE calculations',
@@ -965,6 +976,7 @@ sub get_metadata_calc_mx_rao_qe {
             MX_RAO_QE       => {
                 description => 'Matrix weighted quadratic entropy',
                 distribution => 'unit_interval',
+                bounds       => [0, 1],
             },
             MX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate MX_RAO_QE',

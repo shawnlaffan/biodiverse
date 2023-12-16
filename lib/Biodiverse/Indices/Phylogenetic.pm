@@ -2359,13 +2359,13 @@ sub get_metadata_calc_phylo_sorenson {
         indices        => {
             PHYLO_SORENSON => {
                 cluster     =>  'NO_CACHE_ABC',
-                bounds      =>  [0,1],
                 formula     =>  [
                     '1 - (2A / (2A + B + C))',
                     ' where A is the length of shared branches, '
                     . 'and B and C are the length of branches found only in neighbour sets 1 and 2'
                 ],
-                description => 'Phylo Sorenson score',
+                description  => 'Phylo Sorenson score',
+                distribution => 'unit_interval',
                 cluster_can_lump_zeroes => 1,
             }
         },
@@ -2405,13 +2405,13 @@ sub get_metadata_calc_phylo_jaccard {
         indices        => {
             PHYLO_JACCARD => {
                 cluster     =>  'NO_CACHE_ABC',
-                bounds      =>  [0,1],
                 formula     =>  [
                     '= 1 - (A / (A + B + C))',
                     ' where A is the length of shared branches, '
                     . 'and B and C are the length of branches found only in neighbour sets 1 and 2',
                 ],
-                description => 'Phylo Jaccard score',
+                description  => 'Phylo Jaccard score',
+                distribution => 'unit_interval',
                 cluster_can_lump_zeroes => 1,
             }
         },

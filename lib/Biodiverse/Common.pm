@@ -1856,7 +1856,7 @@ sub get_book_struct_from_xlsx_file {
     my ($self, %args) = @_;
     my $file = $args{filename} // croak "filename arg not passed";
 
-    use Excel::ValueReader::XLSX;
+    require Excel::ValueReader::XLSX;
     use List::Util qw/reduce/;
     my $reader = Excel::ValueReader::XLSX->new($file);
     my @sheet_names = $reader->sheet_names;

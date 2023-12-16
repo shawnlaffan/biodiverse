@@ -112,12 +112,8 @@ BEGIN {
 #  Should loop this.
 BEGIN {
     #  more general solution for anything new
+    #  add modules as they are required
     my @reqd = qw /
-        Text::Fuzzy
-        Data::Compare
-        List::Unique::DeterministicOrder
-        Sort::Key::Natural
-        Statistics::Descriptive::PDL
     /;
     foreach my $module (@reqd) {
         if (not eval "require $module") {

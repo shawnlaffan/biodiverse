@@ -1072,6 +1072,21 @@ sub get_index_source_hash {
     my $using_nbr_list_count = $args{uses_nbr_lists}
       // 2;    #  need to use 2 for back compat
 
+    #  a little caching until we stop dealing with the nbr list counts
+    if ($using_nbr_list_count == 2 && !$args{calculations} && !$args{no_cache}) {
+        state $cachekey = 'GET_INDEX_SOURCE_HASH_NBR_COUNT_2';
+        my $cached = $self->get_cached_value($cachekey);
+        return wantarray ? %$cached : $cached
+          if $cached;
+        $cached = $self->get_index_source_hash (
+            calculations   => undef,
+            uses_nbr_lists => 2,
+            no_cache       => 1,
+        );
+        $self->set_cached_value ($cachekey => $cached);
+        return wantarray ? %$cached : $cached;
+    }
+
   CALC:
     foreach my $calculations ( keys %$list ) {
         my $meta = $self->get_metadata( sub => $calculations );

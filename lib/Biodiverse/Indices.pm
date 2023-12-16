@@ -368,7 +368,7 @@ sub get_calculation_metadata {
     my $self = shift;
 
     if (!blessed $self) {
-        use Biodiverse::BaseData;
+        require Biodiverse::BaseData;
         state $default_bd = Biodiverse::BaseData->new (
             NAME => 'for indices',
             CELL_SIZES => [1,1],

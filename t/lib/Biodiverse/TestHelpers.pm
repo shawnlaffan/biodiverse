@@ -1146,7 +1146,7 @@ sub print_indices_result_set_to_fh {
 
     return if !$fh;
 
-    use Perl::Tidy;
+    require Perl::Tidy;
     use Data::Dumper;
 
     local $Data::Dumper::Purity    = 1;

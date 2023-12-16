@@ -23,9 +23,12 @@ use Data::Compare ();
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
-use Spreadsheet::Read 0.82;
 
 use Geo::GDAL::FFI 0.07;
+{
+    my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
+    my $xx_frob_temp_zert = $FFI::Platypus::keep;
+}
 
 use experimental 'declared_refs';
 
@@ -1681,6 +1684,10 @@ sub _get_scratch_name {
 sub import_data_spreadsheet {
     my $self = shift;
     my %args = @_;
+
+    #  load at run time as it takes a while
+    require Spreadsheet::Read;
+    Spreadsheet::Read->VERSION('0.80');
 
     my $orig_group_count    = $self->get_group_count;
     my $orig_label_count    = $self->get_label_count;

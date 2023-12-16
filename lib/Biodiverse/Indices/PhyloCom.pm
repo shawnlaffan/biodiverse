@@ -10,7 +10,6 @@ use List::Util qw /sum min max/;
 use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Sort::Key qw /nkeysort/;
-use Math::BigInt ();
 
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
@@ -1125,7 +1124,9 @@ sub _calc_nri_nti_expected_values {
 sub get_nri_nti_expected_values {
     my $self = shift;
     my %args = @_;
-    
+
+    require Math::BigInt;
+
     my $tree = $args{tree_ref};
     my $label_count = $args{label_count};
     my $iterations = $args{nri_nti_iterations} ||  4999;

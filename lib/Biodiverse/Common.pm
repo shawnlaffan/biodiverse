@@ -32,7 +32,6 @@ use HTML::QuickTable;
 use Class::Inspector;
 use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
-use Spreadsheet::Read;
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -1812,7 +1811,9 @@ sub unlink_file {
 sub get_book_struct_from_spreadsheet_file {
     my ($self, %args) = @_;
 
-    #use SpreadSheet::Read;
+    require Spreadsheet::Read;
+    Spreadsheet::Read->import('ReadData');
+
     my $book;
     my $file = $args{file_name}
       // croak 'file_name argument not passed';

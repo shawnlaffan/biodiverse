@@ -2058,7 +2058,7 @@ sub get_cached_metadata {
     my $self = shift;
 
     my $cache
-      = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
+      = $self->get_cached_value_dor_set_default_href ('METADATA_CACHE');
     #  reset the cache if the versions differ (typically they would be older),
     #  this ensures new options are loaded
     $cache->{__VERSION} //= 0;

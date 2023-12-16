@@ -143,8 +143,8 @@ sub get_index_bounds {
 
     my $bounds
           = $self->{indices}{$index}{bounds}
-        //= $self->get_index_is_nonnegative($index)   ? [0,'Inf']
-          : $self->get_index_is_unit_interval($index) ? [0,1]
+        //= $self->get_index_is_unit_interval($index) ? [0,1]
+          : $self->get_index_is_nonnegative($index)   ? [0,'Inf']
           : $self->get_index_is_categorical($index)   ? []
           : ['-Inf','Inf'];
 

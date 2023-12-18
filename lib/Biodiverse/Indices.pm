@@ -389,12 +389,21 @@ sub get_calculation_metadata {
 
 sub get_calculation_metadata_as_json {
     my $self = shift;
-    my $metadata = $self->get_calculation_metadata;
     my $json_obj = JSON::MaybeXS::JSON()->new;
     $json_obj->convert_blessed(1);
     $json_obj->pretty(1);
     $json_obj->canonical(1);
-    return $json_obj->encode($metadata);
+
+    my $metadata = $self->get_calculation_metadata;
+    my $struct   = {
+        _meta => {
+            title   => 'Biodiverse calculations and indices',
+            version => $VERSION,
+        },
+        calculations => $metadata,
+    };
+
+    return $json_obj->encode($struct);
 }
 
 #  now we have moved to github

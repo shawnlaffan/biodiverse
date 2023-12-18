@@ -392,6 +392,8 @@ sub get_calculation_metadata_as_json {
     my $metadata = $self->get_calculation_metadata;
     my $json_obj = JSON::MaybeXS::JSON()->new;
     $json_obj->convert_blessed(1);
+    $json_obj->pretty(1);
+    $json_obj->canonical(1);
     return $json_obj->encode($metadata);
 }
 

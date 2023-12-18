@@ -432,6 +432,7 @@ sub get_metadata__calc_pd {
         pre_calc_global => [qw /get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
+        pre_conditions  => ['tree_branches_are_nonnegative'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -717,6 +718,7 @@ sub get_metadata_calc_pe {
                 distribution => 'unit_interval',
             },
         },
+        pre_conditions  => ['tree_branches_are_nonnegative'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -2041,14 +2043,15 @@ sub get_node_abundance_global {
 
 sub get_metadata_get_trimmed_tree {
     my %metadata = (
-        name            => 'get_trimmed_tree',
-        description     => 'Get a version of the tree trimmed to contain only labels in the basedata',
-        required_args   => 'tree_ref',
-        indices         => {
+        name           => 'get_trimmed_tree',
+        description    => 'Get a version of the tree trimmed to contain only labels in the basedata',
+        required_args  => 'tree_ref',
+        indices        => {
             trimmed_tree => {
                 description => 'Trimmed tree',
             },
         },
+        pre_conditions => ['tree_branches_are_nonnegative'],
     );
     return $metadata_class->new(\%metadata);
 }
@@ -2412,7 +2415,8 @@ sub get_metadata_calc_phylo_jaccard {
                 cluster_can_lump_zeroes => 1,
             }
         },
-        required_args => {'tree_ref' => 1}
+        required_args => {'tree_ref' => 1},
+        pre_conditions => ['tree_branches_are_nonnegative'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -2613,6 +2617,7 @@ sub get_metadata__calc_phylo_abc_lists {
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  1,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},
+        pre_conditions  => ['tree_branches_are_nonnegative'],
     );
 
     return $metadata_class->new(\%metadata);
@@ -3161,6 +3166,20 @@ sub calc_phylo_abundance {
     );
 
     return wantarray ? %results : \%results;
+}
+
+
+sub tree_branches_are_nonnegative {
+    my ($self, %args) = @_;
+
+    my $tree_ref = $args{tree_ref};
+
+    #  This is used as a precondition which does not
+    #  handle prereqs, so let other parts of the
+    #  system handle missing args
+    return 1 if !$tree_ref;
+
+    $tree_ref->branches_are_nonnegative;
 }
 
 1;

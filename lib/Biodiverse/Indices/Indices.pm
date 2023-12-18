@@ -322,10 +322,10 @@ sub get_metadata_calc_sorenson {
         ],
         indices         => {
             SORENSON      => {
-                cluster     => 1,
-                description => 'Sorenson index',
-                bounds      => [0, 1],
+                cluster                 => 1,
+                description             => 'Sorenson index',
                 cluster_can_lump_zeroes => 1,
+                distribution            => 'unit_interval',
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -369,7 +369,7 @@ sub get_metadata_calc_jaccard {
             JACCARD       => {
                 cluster     => 1,
                 description => 'Jaccard value, 0 is identical, 1 is completely dissimilar',
-                bounds      => [0, 1],
+                distribution => 'unit_interval',
                 cluster_can_lump_zeroes => 1,
             }
         },
@@ -752,9 +752,9 @@ sub get_metadata_calc_s2 {
         ],
         indices         => {
             S2 => {
-                cluster     => 1,
-                description => 'S2 dissimilarity index',
-                bounds      => [0, 1],
+                cluster      => 1,
+                description  => 'S2 dissimilarity index',
+                distribution => 'unit_interval',
                 #  min (B,C) in denominator means cluster order
                 #  influences tie breaker results as different
                 #  assemblages are merged
@@ -1452,8 +1452,8 @@ sub get_metadata_calc_d {
         pre_calc        => 'calc_abc',
         indices         => {
             ABC_D => {
-                description => 'Count of labels not in either neighbour set (D score)',
-                bounds      => [0, 'Inf'],
+                description  => 'Count of labels not in either neighbour set (D score)',
+                distribution => 'nonnegative',
             }
         },
     );

@@ -95,6 +95,12 @@ sub reset_results {
 sub get_calculations {
     my $self = shift;
 
+    state $cache_key = 'GET_CALCULATIONS';
+    my $cached = $self->get_cached_value($cache_key);
+
+    return wantarray ? %$cached : $cached
+        if $cached;
+
     my %calculations;
 
     my $list = Class::Inspector->methods( blessed $self );
@@ -104,6 +110,8 @@ sub get_calculations {
         my $metadata = $self->get_metadata( sub => $method );
         push @{ $calculations{ $metadata->get_type } }, $method;
     }
+
+    $self->set_cached_value($cache_key => \%calculations);
 
     return wantarray ? %calculations : \%calculations;
 }
@@ -360,6 +368,7 @@ sub get_calculation_metadata {
     my $self = shift;
 
     if (!blessed $self) {
+        require Biodiverse::BaseData;
         state $default_bd = Biodiverse::BaseData->new (
             NAME => 'for indices',
             CELL_SIZES => [1,1],
@@ -380,10 +389,21 @@ sub get_calculation_metadata {
 
 sub get_calculation_metadata_as_json {
     my $self = shift;
-    my $metadata = $self->get_calculation_metadata;
     my $json_obj = JSON::MaybeXS::JSON()->new;
     $json_obj->convert_blessed(1);
-    return $json_obj->encode($metadata);
+    $json_obj->pretty(1);
+    $json_obj->canonical(1);
+
+    my $metadata = $self->get_calculation_metadata;
+    my $struct   = {
+        _meta => {
+            title   => 'Biodiverse calculations and indices',
+            version => $VERSION,
+        },
+        calculations => $metadata,
+    };
+
+    return $json_obj->encode($struct);
 }
 
 #  now we have moved to github
@@ -1052,7 +1072,9 @@ sub get_index_source {    #  return the source sub for an index
 }
 
 #  get a hash of indices arising from these calculations (keys),
-#   with the analysis as the value
+#   with the analysis as the value.
+#  Not sure why we are filtering on the nbr list counts here,
+#  but changing it will need modifications to calls from Spatial.pm.
 sub get_index_source_hash {
     my $self = shift;
     my %args = @_;
@@ -1060,6 +1082,21 @@ sub get_index_source_hash {
     my %list2;
     my $using_nbr_list_count = $args{uses_nbr_lists}
       // 2;    #  need to use 2 for back compat
+
+    #  a little caching until we stop dealing with the nbr list counts
+    if ($using_nbr_list_count == 2 && !$args{calculations} && !$args{no_cache}) {
+        state $cachekey = 'GET_INDEX_SOURCE_HASH_NBR_COUNT_2';
+        my $cached = $self->get_cached_value($cachekey);
+        return wantarray ? %$cached : $cached
+          if $cached;
+        $cached = $self->get_index_source_hash (
+            calculations   => undef,
+            uses_nbr_lists => 2,
+            no_cache       => 1,
+        );
+        $self->set_cached_value ($cachekey => $cached);
+        return wantarray ? %$cached : $cached;
+    }
 
   CALC:
     foreach my $calculations ( keys %$list ) {
@@ -1069,10 +1106,12 @@ sub get_index_source_hash {
 
       INDEX:
         foreach my $index ( keys %{ $meta->get_indices } ) {
-            my $index_uses_nbr_lists = $meta->get_index_uses_nbr_lists($index)
-              // 1;
-            next INDEX if $using_nbr_list_count < $index_uses_nbr_lists;
-
+            #  revisit this if we ever support more than two nbr sets
+            if ($using_nbr_list_count < 2) {
+                my $index_uses_nbr_lists = $meta->get_index_uses_nbr_lists($index)
+                    // 1;
+                next INDEX if $using_nbr_list_count < $index_uses_nbr_lists;
+            }
             $list2{$index}{$calculations}++;
         }
     }

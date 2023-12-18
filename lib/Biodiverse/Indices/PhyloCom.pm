@@ -10,7 +10,6 @@ use List::Util qw /sum min max/;
 use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Sort::Key qw /nkeysort/;
-use Math::BigInt ();
 
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
@@ -167,6 +166,7 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
                          . 'all other labels across both neighbour sets. ',
         name            => 'Phylogenetic and Nearest taxon distances, unweighted',
         pre_conditions  => ['tree_branches_are_nonnegative'],
+        distribution    => 'nonnegative',
         %$submeta,
     );
 
@@ -202,6 +202,7 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
                          . 'Weighted by sample counts',
         name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
         pre_conditions  => ['tree_branches_are_nonnegative'],
+        distribution    => 'nonnegative',
         %$submeta,
     );
 
@@ -237,6 +238,7 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
                          . 'Weighted by sample counts (which currently must be integers)',
         name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
         pre_conditions  => ['tree_branches_are_nonnegative'],
+        distribution    => 'nonnegative',
         %$submeta,
     );
 
@@ -994,7 +996,6 @@ sub get_metadata_calc_nri_nti_expected_values {
         PHYLO_NRI_SAMPLE_SD => {
             description    => 'Expected standard deviation of pair-wise distances',
             formula        => [],
-            distribution => 'nonnegative',
         },
         PHYLO_NTI_SAMPLE_MEAN => {
             description    => 'Expected mean of nearest taxon distances',
@@ -1003,12 +1004,10 @@ sub get_metadata_calc_nri_nti_expected_values {
         PHYLO_NTI_SAMPLE_SD => {
             description    => 'Expected standard deviation of nearest taxon distances',
             formula        => [],
-            distribution => 'nonnegative',
         },
         PHYLO_NRI_NTI_SAMPLE_N => {
             description    => 'Number of random resamples used',
             formula        => [],
-            distribution => 'nonnegative',
         },
     };
 
@@ -1034,6 +1033,7 @@ sub get_metadata_calc_nri_nti_expected_values {
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
         indices         => $indices,
+        distribution    => 'nonnegative',
     );
     
     return $metadata_class->new(\%metadata);
@@ -1125,7 +1125,9 @@ sub _calc_nri_nti_expected_values {
 sub get_nri_nti_expected_values {
     my $self = shift;
     my %args = @_;
-    
+
+    require Math::BigInt;
+
     my $tree = $args{tree_ref};
     my $label_count = $args{label_count};
     my $iterations = $args{nri_nti_iterations} ||  4999;
@@ -1495,6 +1497,7 @@ sub get_metadata_calc_vpd_expected_values {
         pre_calc_global => [qw /set_mpd_mntd_sample_variance_flag/],  
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
+        distribution    => 'nonnegative',  # default
         indices         => $indices,
     );
     

@@ -32,7 +32,6 @@ use HTML::QuickTable;
 use Class::Inspector;
 use Ref::Util qw { :all };
 use File::BOM qw / :subs /;
-use Spreadsheet::Read;
 
 #  Need to avoid an OIO destroyed twice warning due
 #  to HTTP::Tiny, which is used in Biodiverse::GUI::Help
@@ -1812,7 +1811,9 @@ sub unlink_file {
 sub get_book_struct_from_spreadsheet_file {
     my ($self, %args) = @_;
 
-    #use SpreadSheet::Read;
+    require Spreadsheet::Read;
+    Spreadsheet::Read->import('ReadData');
+
     my $book;
     my $file = $args{file_name}
       // croak 'file_name argument not passed';
@@ -1856,7 +1857,7 @@ sub get_book_struct_from_xlsx_file {
     my ($self, %args) = @_;
     my $file = $args{filename} // croak "filename arg not passed";
 
-    use Excel::ValueReader::XLSX;
+    require Excel::ValueReader::XLSX;
     use List::Util qw/reduce/;
     my $reader = Excel::ValueReader::XLSX->new($file);
     my @sheet_names = $reader->sheet_names;
@@ -2058,7 +2059,7 @@ sub get_cached_metadata {
     my $self = shift;
 
     my $cache
-      = $self->get_cached_value_dor_set_default_aa ('METADATA_CACHE', {});
+      = $self->get_cached_value_dor_set_default_href ('METADATA_CACHE');
     #  reset the cache if the versions differ (typically they would be older),
     #  this ensures new options are loaded
     $cache->{__VERSION} //= 0;

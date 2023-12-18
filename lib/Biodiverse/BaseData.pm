@@ -23,18 +23,10 @@ use Data::Compare ();
 
 use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natkeysort/;
-use Spreadsheet::Read 0.60;
 
 
 use experimental qw /refaliasing declared_refs/;
 
-use Geo::GDAL::FFI 0.07;
-#  silence a used-once warning - clunky
-{
-    my $xx_frob_temp_zort = $FFI::Platypus::TypeParser::ffi_type;
-    my $xx_frob_temp_zert = $FFI::Platypus::keep;
-}
-#require Spreadsheet::XLSX;  latest version does not install
 
 use English qw { -no_match_vars };
 

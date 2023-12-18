@@ -23,10 +23,12 @@ sub get_metadata_calc_rw_turnover {
         type            => 'Taxonomic Dissimilarity and Comparison',
         pre_calc        => [qw /calc_endemism_whole_lists calc_abc/],
         uses_nbr_lists  => 2,  #  how many lists it must have
+        distribution    => 'nonnegative',  # for A, B and C
         indices         => {
             RW_TURNOVER   => {
-                description => 'Range weighted turnover',
-                cluster     => 'NO_CACHE_ABC',
+                description  => 'Range weighted turnover',
+                cluster      => 'NO_CACHE_ABC',
+                distribution => 'unit_interval',
             },
             RW_TURNOVER_A => {
                 description => 'Range weighted turnover, shared component',
@@ -127,10 +129,12 @@ sub get_metadata_calc_phylo_rw_turnover {
         #    get_trimmed_tree_child_name_hash
         #/],
         uses_nbr_lists  => 2,  #  how many lists it must have
+        distribution    => 'nonnegative',  # for A, B and C
         indices         => {
             PHYLO_RW_TURNOVER   => {
-                description => 'Range weighted turnover',
-                cluster     => 'NO_CACHE_ABC',
+                description  => 'Range weighted turnover',
+                cluster      => 'NO_CACHE_ABC',
+                distribution => 'unit_interval',
             },
             PHYLO_RW_TURNOVER_A => {
                 description => 'Range weighted turnover, shared component',

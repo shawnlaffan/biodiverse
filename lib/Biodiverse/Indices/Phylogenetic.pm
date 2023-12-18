@@ -47,6 +47,7 @@ sub get_metadata_calc_pd {
         type            => 'Phylogenetic Indices',
         pre_calc        => '_calc_pd',
         uses_nbr_lists  => 1,  #  how many lists it must have
+        distribution    => 'nonnegative',  # default
         indices         => {
             PD              => {
                 cluster       => undef,
@@ -743,7 +744,7 @@ sub get_metadata_calc_pe_lists {
         type            => 'Phylogenetic Endemism Indices', 
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,
-        distribution => 'nonnegative',
+        distribution    => 'nonnegative',
         indices         => {
             PE_WTLIST       => {
                 description => 'Node weights used in PE calculations',
@@ -805,10 +806,11 @@ END_PEC_DESC
         formula         => $formula,
         indices         => {
             PEC_WE           => {
-                description => 'Phylogenetic endemism, central variant'
+                description  => 'Phylogenetic endemism, central variant',
+                distribution => 'nonnegative',
             },
             PEC_WE_P         => {
-                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant',
+                description  => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant',
                 distribution => 'unit_interval',
             },
         },
@@ -929,7 +931,8 @@ sub get_metadata_calc_pe_central_cwe {
                 distribution => 'unit_interval',
             },
             PEC_CWE_PD => {
-                description => 'PD used in the PEC_CWE index.',
+                description  => 'PD used in the PEC_CWE index.',
+                distribution => 'nonnegative',
             },
         },
     );
@@ -968,6 +971,7 @@ sub get_metadata_calc_pd_clade_contributions {
         pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree_as_hash/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
+        distribution    => 'nonnegative',  # default
         indices         => {
             PD_CLADE_SCORE  => {
                 description => 'List of PD scores for each node (clade), being the sum of all descendent branch lengths',
@@ -978,8 +982,9 @@ sub get_metadata_calc_pd_clade_contributions {
                 type        => 'list',
             },
             PD_CLADE_CONTR_P => {
-                description => 'List of node (clade) contributions to the PD calculation, proportional to the entire tree',
-                type        => 'list',
+                description  => 'List of node (clade) contributions to the PD calculation, proportional to the entire tree',
+                type         => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -1068,6 +1073,7 @@ sub get_metadata_calc_pe_clade_contributions {
         pre_calc        => ['_calc_pe', 'get_sub_tree_as_hash'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
+        distribution    => 'nonnegative',  # default
         indices         => {
             PE_CLADE_SCORE  => {
                 description => 'List of PE scores for each node (clade), being the sum of all descendent PE weights',
@@ -1156,6 +1162,7 @@ sub get_metadata_calc_pe_clade_loss {
         pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree_as_hash/],
         #pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
+        distribution    => 'nonnegative',  # default
         indices         => {
             PE_CLADE_LOSS_SCORE  => {
                 description => 'List of how much PE would be lost if each clade were removed.',
@@ -1297,10 +1304,11 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
         uses_nbr_lists  => 1,
         indices         => {
             PE_CLADE_LOSS_ANC => {
-                description => 'List of how much ancestral PE would be lost '
-                             . 'if each clade were removed.  '
-                             . 'The value is 0 when no ancestral PE is lost.',
-                type        => 'list',
+                description  => 'List of how much ancestral PE would be lost '
+                              . 'if each clade were removed.  '
+                              . 'The value is 0 when no ancestral PE is lost.',
+                type         => 'list',
+                distribution => 'nonnegative',
             },
             PE_CLADE_LOSS_ANC_P  => {
                 description => 'List of the proportion of the clade\'s PE loss '
@@ -1384,10 +1392,11 @@ EOD
         uses_nbr_lists  => 1,
         indices         => {
             PE_WE_SINGLE    => {
-                description => "Phylogenetic endemism unweighted by the number of neighbours.\n"
+                description  => "Phylogenetic endemism unweighted by the number of neighbours.\n"
                                . "Counts each label only once, regardless of how many groups in the neighbourhood it is found in.\n"
                                . 'Useful if your data have sampling biases. '
-                               . 'Better with small sample windows.'
+                               . 'Better with small sample windows.',
+                distribution => 'nonnegative',
             },
             PE_WE_SINGLE_P  => {
                 description => "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\n"
@@ -2497,6 +2506,7 @@ sub get_metadata_calc_phylo_abc {
         pre_calc        =>  [qw /calc_abc/],
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
+        distribution    => 'nonnegative',  # default
         indices         => {
             PHYLO_A => {
                 description  =>  'Sum of branch lengths shared by labels in nbr sets 1 and 2',
@@ -2787,7 +2797,8 @@ sub get_metadata_calc_phylo_aed_t {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference       => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+        distribution    => 'nonnegative',  # default
         indices         => {
             PHYLO_AED_T => {
                 description  => $descr,
@@ -2815,7 +2826,7 @@ sub get_metadata_calc_phylo_aed_t_wtlists {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference       => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T_WTLIST => {
                 description  => 'Abundance weighted ED per terminal taxon '
@@ -2823,11 +2834,13 @@ sub get_metadata_calc_phylo_aed_t_wtlists {
                               . 'abundance in the sample)',
                 reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
                 type         => 'list',
+                distribution => 'nonnegative',  # default
             },
             PHYLO_AED_T_WTLIST_P => {
                 description  => 'Proportional contribution of each terminal taxon to the AED_T score',
                 reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
                 type         => 'list',
+                distribution => 'unit_interval',
             },
         },
     );
@@ -2909,7 +2922,8 @@ sub get_metadata_calc_phylo_aed {
         pre_calc        => [qw /calc_abc/],
         pre_calc_global => [qw /get_aed_scores/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference       => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',
+        distribution    => 'nonnegative',  # default
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
@@ -3098,7 +3112,7 @@ sub get_metadata_calc_phylo_abundance {
         pre_calc        => [qw /_calc_pd calc_abc3 calc_labels_on_tree/],
         pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
         uses_nbr_lists  => 1,  #  how many lists it must have
-        distribution => 'nonnegative',
+        distribution    => 'nonnegative',
         indices         => {
             PHYLO_ABUNDANCE   => {
                 cluster       => undef,

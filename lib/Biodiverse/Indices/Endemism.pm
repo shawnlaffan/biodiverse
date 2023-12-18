@@ -839,7 +839,7 @@ sub get_metadata_calc_endemism_absolute {
                 distribution => 'unit_interval',
             },
             END_ABS_ALL_P => {
-                description  => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',\
+                description  => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',
                 distribution => 'unit_interval',
             },
         },

@@ -166,6 +166,7 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. ',
         name            => 'Phylogenetic and Nearest taxon distances, unweighted',
+        pre_conditions  => ['tree_branches_are_nonnegative'],
         %$submeta,
     );
 
@@ -200,6 +201,7 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
         name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
+        pre_conditions  => ['tree_branches_are_nonnegative'],
         %$submeta,
     );
 
@@ -234,6 +236,7 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts (which currently must be integers)',
         name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
+        pre_conditions  => ['tree_branches_are_nonnegative'],
         %$submeta,
     );
 
@@ -1069,6 +1072,7 @@ sub get_metadata__calc_nri_nti_expected_values {
         pre_calc_global => $pre_calc_global,  
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
+        pre_conditions  => ['tree_branches_are_nonnegative'],
     );
     
     return $metadata_class->new(\%metadata);

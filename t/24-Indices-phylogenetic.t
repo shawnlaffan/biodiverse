@@ -508,6 +508,59 @@ sub test_pe_with_extra_nodes_in_tree {
     
 }
 
+# there should be no valid phylo calcs with neg branches
+sub test_neg_branch_lengths {
+    # use Data::Printer;
+
+    my $bd   = Biodiverse::BaseData->new(
+        CELL_SIZES => [ 2, 2 ],
+        NAME       => 'Neg branch length',
+    );
+    $bd->add_element (group => '1:1', label => 'a');
+
+    my $tree = get_tree_object();
+    my @nodes = $tree->get_node_refs;
+    foreach my $node (@nodes) {
+        $node->set_length_aa(1);
+    }
+    $nodes[0]->set_length_aa (-1);
+
+    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+
+    my $calcs = $indices->get_calculations;
+    my @phylo_calcs;
+    foreach my $type (sort grep {/^Phylo/} keys %$calcs) {
+        push @phylo_calcs, sort @{$calcs->{$type}};
+    }
+
+    #  It is clunky that we do this here
+    my $re1 = qr/calc(?:_count)?_labels(?:_not)?_on(?:_trimmed)?_tree/;
+    my $re2 = qr/calc_last_shared_ancestor_props/;
+    @phylo_calcs = grep {not $_ =~ /^($re1|$re2)$/} @phylo_calcs;
+
+    my $valid_calcs = eval {
+        $indices->get_valid_calculations(
+            calculations   => \@phylo_calcs,
+            nbr_list_count => 2,
+            element_list1  => [],  #  for validity checking only
+            element_list2  => [],
+            tree_ref => $tree,
+            processing_element => 'x',
+        );
+    };
+    my $e = $@;
+    note $e if $e;
+    ok (!$e, "Obtained valid calcs without eval error");
+    is $indices->get_valid_calculation_count, 0,
+        "no valid phylo calcs when there are negative branch lengths";
+
+    # my @keys = sort keys %{$valid_calcs->{calculations_to_run}};
+    # p @keys;
+    # my $to_clear = $indices->get_invalid_calculations;
+    # p $to_clear;
+}
+
+
 done_testing;
 
 1;

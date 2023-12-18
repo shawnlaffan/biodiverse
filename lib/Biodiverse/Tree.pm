@@ -3736,6 +3736,20 @@ sub get_mean_nearest_neighbour_distance {
     return $mean;
 }
 
+sub branches_are_nonnegative {
+    my $self = shift;
+
+    state $cache_key = 'BRANCHES_ARE_NONNEGATIVE';
+    my $non_neg = $self->get_cached_value ($cache_key);
+
+    return $non_neg if defined $non_neg;
+
+    $non_neg = List::Util::all {$_->get_length >= 0} $self->get_node_refs;
+    $non_neg //= 0;
+    $self->set_cached_value($cache_key => $non_neg);
+
+    return $non_neg;
+}
 
 1;
 

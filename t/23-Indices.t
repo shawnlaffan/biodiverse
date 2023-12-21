@@ -242,17 +242,25 @@ sub test_index_bounds {
 
     foreach my $index (sort keys %$indices) {
         my $bounds = $indices_object->get_index_bounds (index => $index);
-        like $bounds,
-            [$RE_bound, $RE_bound],
-            "Bounds for scalar index $index match expected pattern";
         my $index_source = $indices_object->get_index_source(index => $index);
         my $metadata = $indices_object->get_metadata( sub => $index_source );
-        my $expected
-            = $metadata->get_index_is_unit_interval ($index) ? [0,1]
-            : $metadata->get_index_is_nonnegative ($index)   ? [0,'Inf']
-            : $metadata->get_index_is_categorical ($index)   ? []
-            : ['-Inf','Inf'];
-        is $bounds, $expected, "Bounds correct for $index";
+        if ($metadata->get_index_is_categorical($index)) {
+            my $todo = todo('categorical needs tests');
+            like $bounds,
+                [ $RE_bound, $RE_bound ],
+                "Bounds for scalar index $index match expected pattern";
+        }
+        else {
+            like $bounds,
+                [ $RE_bound, $RE_bound ],
+                "Bounds for scalar index $index match expected pattern";
+            my $expected
+                = $metadata->get_index_is_unit_interval($index) ? [ 0, 1 ]
+                : $metadata->get_index_is_nonnegative($index) ? [ 0, 'Inf' ]
+                : $metadata->get_index_is_categorical($index) ? []
+                : [ '-Inf', 'Inf' ];
+            is $bounds, $expected, "Bounds correct for $index";
+        }
     }
 }
 

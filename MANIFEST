@@ -1,4 +1,4 @@
-ac.bds.bps
+.cirrus_disabled.yml
 bin/Biodiverse_icon.ico
 bin/BiodiverseGUI.pl
 bin/load_and_randomise.pl
@@ -37,6 +37,7 @@ biodiverse.iml
 Biodiverse_extensions.txt
 BiodiverseGUI.bat
 cpanfile
+csvcheck.pl
 data/coastline_lamberts.dbf
 data/coastline_lamberts.prj
 data/coastline_lamberts.sbn
@@ -83,6 +84,7 @@ example_scripts/run_many_clusters_and_export_to_nexus.pl
 example_scripts/run_num_labels.pl
 example_scripts/use_label_ranges_as_spatial_conditions.pl
 extent_test.tif
+goocanvas2_test.pl
 Installation.txt
 lib/App/Biodiverse.pm
 lib/Biodiverse/BaseData.pm
@@ -94,6 +96,7 @@ lib/Biodiverse/BaseStruct/Export.pm
 lib/Biodiverse/Cluster.pm
 lib/Biodiverse/Common.pm
 lib/Biodiverse/Config.pm
+lib/Biodiverse/Config/PARModules.pm
 lib/Biodiverse/ElementProperties.pm
 lib/Biodiverse/Exception.pm
 lib/Biodiverse/GUI/BasedataImport.pm
@@ -259,6 +262,9 @@ t/AED_data.xlsx
 t/data/aÃ±os.txt
 t/data/aÃ±os_mx.txt
 t/data/aÃ±os_mx_sparse.txt
+t/data/años.txt
+t/data/años_mx.txt
+t/data/años_mx_sparse.txt
 't/data/polygon data.CPG'
 't/data/polygon data.dbf'
 't/data/polygon data.prj'
@@ -291,6 +297,11 @@ t/data/polygon_data_single_partx.shx
 't/data/polyline data.shx'
 t/data/rast_nodata_is_nan.tfw
 t/data/rast_nodata_is_nan.tif
+t/data/test_spreadsheet_import.ods
+t/data/test_spreadsheet_import.xls
+t/data/test_spreadsheet_import.xlsx
+t/data/test_spreadsheet_import_dms_coords.xlsx
+t/data/test_spreadsheet_import_matrix_form.xlsx
 t/dms_latlon.dbf
 t/dms_latlon.shp
 t/dms_latlon.shx
@@ -314,11 +325,6 @@ t/ex_rasters/example_small.bds
 t/lib/Biodiverse/TestHelpers.pm
 t/lib/Utils.pm
 t/README.txt
-t/test_spreadsheet_import.ods
-t/test_spreadsheet_import.xls
-t/test_spreadsheet_import.xlsx
-t/test_spreadsheet_import_dms_coords.xlsx
-t/test_spreadsheet_import_matrix_form.xlsx
 xt/.perlcritic-history
 xt/00-roundtrip-self-referential-structure.t
 xt/01-has-versions.t

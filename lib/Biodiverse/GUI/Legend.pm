@@ -109,19 +109,19 @@ sub new {
 
     #  reverse might not be needed but ensures the array is the correct size from the start
     foreach my $i (reverse 0..3) {
-        $self->{marks}[$i] = $self->make_mark($self->{legend_marks}[$i]);
+        $self->{marks}{default}[$i] = $self->make_mark($self->{legend_marks}[$i]);
     }
     #  clunky that we need to do it here
     my @anchors = ('nw', ('w') x 3, 'sw');
     foreach my $i (reverse 0..4) {
-        $self->{canape_marks}[$i]    = $self->make_mark($anchors[$i]);
-        $self->{divergent_marks}[$i] = $self->make_mark($anchors[$i]);
-        $self->{ratio_marks}[$i]     = $self->make_mark($anchors[$i]);
+        $self->{marks}{canape}[$i]    = $self->make_mark($anchors[$i]);
+        $self->{marks}{divergent}[$i] = $self->make_mark($anchors[$i]);
+        $self->{marks}{ratio}[$i]     = $self->make_mark($anchors[$i]);
     }
     @anchors = ('nw', ('w') x 5, 'sw');
     foreach my $i (reverse 0..6) {
-        $self->{zscore_marks}[$i] = $self->make_mark($anchors[$i]);
-        $self->{prank_marks}[$i]  = $self->make_mark($anchors[$i]);
+        $self->{marks}{zscore}[$i] = $self->make_mark($anchors[$i]);
+        $self->{marks}{prank}[$i]  = $self->make_mark($anchors[$i]);
     }
 
     #  debug stuff
@@ -429,12 +429,12 @@ sub reposition {
 
     # Reposition the "mark" textboxes
     my @mark_arr
-        = $self->get_zscore_mode ? @{$self->{zscore_marks}}
-        : $self->get_prank_mode  ? @{$self->{prank_marks}}
-        : $self->get_canape_mode ? @{$self->{canape_marks}}
-        : $self->get_divergent_mode ? @{$self->{divergent_marks}}
-        : $self->get_ratio_mode  ? @{$self->{ratio_marks}}
-        : @{$self->{marks}};
+        = $self->get_zscore_mode ? @{$self->{marks}{zscore}}
+        : $self->get_prank_mode  ? @{$self->{marks}{prank}}
+        : $self->get_canape_mode ? @{$self->{marks}{canape}}
+        : $self->get_divergent_mode ? @{$self->{marks}{divergent}}
+        : $self->get_ratio_mode  ? @{$self->{marks}{ratio}}
+        : @{$self->{marks}{default}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -916,7 +916,7 @@ sub set_min_max {
     return $self->set_text_marks_prank
         if $self->get_prank_mode;
 
-    # foreach my $mark (@{$self->{marks}}) {
+    # foreach my $mark (@{$self->{marks}{default}}) {
     #     $mark->show;
     # }
 
@@ -943,13 +943,13 @@ sub set_min_max {
     $self->{last_max} = $max;
 
 
-    return if ! ($self->{marks}
+    return if ! ($self->{marks}{default}
                  && defined $min
                  && defined $max
                 );
 
     # Set legend textbox markers
-    my @mark_arr = @{$self->{marks}};
+    my @mark_arr = @{$self->{marks}{default}};
     my $marker_step = ($max - $min) / $#mark_arr;
     foreach my $i (0..$#mark_arr) {
         my $val = $min + $i * $marker_step;
@@ -973,7 +973,7 @@ sub set_min_max {
             $text = '  ' . $text;
         }
 
-        my $mark = $self->{marks}[$#mark_arr - $i];
+        my $mark = $self->{marks}{default}[$#mark_arr - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
         my @bounds = $mark->get_bounds;
@@ -994,15 +994,15 @@ sub set_min_max {
 sub set_text_marks_canape {
     my $self = shift;
 
-    return if !$self->{marks};
+    return if !$self->{marks}{default};
 
-    foreach my $mark (@{$self->{marks}}) {
+    foreach my $mark (@{$self->{marks}{default}}) {
         $mark->hide;
     }
 
     my @strings = qw /super mixed palaeo neo non-sig/;
 
-    my $mark_arr = $self->{canape_marks} //= [];
+    my $mark_arr = $self->{marks}{canape} //= [];
     if (!@$mark_arr) {
         foreach my $i (0 .. $#strings) {
             my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
@@ -1024,15 +1024,15 @@ sub set_text_marks_zscore {
     my $self = shift;
 
     #  needed?  seem to remember it avoids triggering marks if grid is not set up
-    return if !$self->{marks};
+    return if !$self->{marks}{default};
 
-    foreach my $mark (@{$self->{marks}}) {
+    foreach my $mark (@{$self->{marks}{default}}) {
         $mark->hide;
     }
 
     my @strings = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
 
-    my $mark_arr = $self->{zscore_marks} //= [];
+    my $mark_arr = $self->{marks}{zscore} //= [];
     if (!@$mark_arr) {
         foreach my $i (0 .. $#strings) {
             my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
@@ -1088,7 +1088,7 @@ sub set_text_marks_divergent {
     }
     # say join ' ', @strings;
 
-    $self->set_text_marks_for_labels (\@strings, $self->{divergent_marks});
+    $self->set_text_marks_for_labels (\@strings, $self->{marks}{divergent});
 }
 
 sub set_text_marks_ratio {
@@ -1120,13 +1120,13 @@ sub set_text_marks_ratio {
         $strings[-1] = ">=$strings[-1]";
     }
 
-    $self->set_text_marks_for_labels (\@strings, $self->{ratio_marks});
+    $self->set_text_marks_for_labels (\@strings, $self->{marks}{ratio});
 }
 
 sub set_text_marks_prank {
     my $self = shift;
     my @strings = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
-    $self->set_text_marks_for_labels (\@strings, $self->{prank_marks});
+    $self->set_text_marks_for_labels (\@strings, $self->{marks}{prank});
 }
 
 #  generalises z-score version - need to simplify it
@@ -1134,14 +1134,14 @@ sub set_text_marks_for_labels {
     my ($self, \@strings, $mark_arr) = @_;
 
     #  needed?  seem to remember it avoids triggering marks if grid is not set up
-    return if !$self->{marks};
+    return if !$self->{marks}{default};
 
     $mark_arr //= [];
 
     carp "Mark count does not match label count"
         if scalar(@strings) != scalar @$mark_arr;
 
-    foreach my $mark (@{$self->{marks}}) {
+    foreach my $mark (@{$self->{marks}{default}}) {
         $mark->hide;
     }
 
@@ -1254,7 +1254,7 @@ sub set_canape_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 0;
-    foreach my $mark (@{$self->{canape_marks}}) {
+    foreach my $mark (@{$self->{marks}{canape}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1294,7 +1294,7 @@ sub set_zscore_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{zscore_mode};
     $self->{zscore_mode} = 0;
-    foreach my $mark (@{$self->{zscore_marks}}) {
+    foreach my $mark (@{$self->{marks}{zscore}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1334,7 +1334,7 @@ sub set_divergent_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{divergent_mode};
     $self->{divergent_mode} = 0;
-    foreach my $mark (@{$self->{divergent_marks}}) {
+    foreach my $mark (@{$self->{marks}{divergent}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1374,7 +1374,7 @@ sub set_ratio_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{ratio_mode};
     $self->{ratio_mode} = 0;
-    foreach my $mark (@{$self->{ratio_marks}}) {
+    foreach my $mark (@{$self->{marks}{ratio}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1414,7 +1414,7 @@ sub set_prank_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{prank_mode};
     $self->{prank_mode} = 0;
-    foreach my $mark (@{$self->{prank_marks}}) {
+    foreach my $mark (@{$self->{marks}{prank}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours

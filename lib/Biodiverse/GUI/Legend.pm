@@ -123,6 +123,14 @@ sub new {
         $self->{marks}{zscore}[$i] = $self->make_mark($anchors[$i]);
         $self->{marks}{prank}[$i]  = $self->make_mark($anchors[$i]);
     }
+    $self->{marks}{current} = $self->{marks}{default};
+    #  generic
+    # foreach my $n (2..7) {
+    #     @anchors = ('nw', ('w') x $n-1, 'sw');
+    #     foreach my $i (reverse 0 .. $n) {
+    #         $self->{marks}{$n+1}[$i] = $self->make_mark($anchors[$i]);
+    #     }
+    # }
 
     #  debug stuff
     #my $sub = sub {
@@ -428,13 +436,7 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr
-        = $self->get_zscore_mode ? @{$self->{marks}{zscore}}
-        : $self->get_prank_mode  ? @{$self->{marks}{prank}}
-        : $self->get_canape_mode ? @{$self->{marks}{canape}}
-        : $self->get_divergent_mode ? @{$self->{marks}{divergent}}
-        : $self->get_ratio_mode  ? @{$self->{marks}{ratio}}
-        : @{$self->{marks}{default}};
+    my @mark_arr = @{$self->{marks}{current} // []};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -950,6 +952,7 @@ sub set_min_max {
 
     # Set legend textbox markers
     my @mark_arr = @{$self->{marks}{default}};
+    $self->{marks}{current} = \@mark_arr;
     my $marker_step = ($max - $min) / $#mark_arr;
     foreach my $i (0..$#mark_arr) {
         my $val = $min + $i * $marker_step;
@@ -994,61 +997,15 @@ sub set_min_max {
 sub set_text_marks_canape {
     my $self = shift;
 
-    return if !$self->{marks}{default};
-
-    foreach my $mark (@{$self->{marks}{default}}) {
-        $mark->hide;
-    }
-
     my @strings = qw /super mixed palaeo neo non-sig/;
-
-    my $mark_arr = $self->{marks}{canape} //= [];
-    if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
-        }
-    }
-
-    # Set legend textbox markers
-    foreach my $i (0..$#strings) {
-        my $mark = $mark_arr->[$#$mark_arr - $i];
-        $mark->set( text => $strings[$i] );
-        $mark->raise_to_top;
-    }
-
-    return;
+    return $self->set_text_marks_for_labels (\@strings, $self->{marks}{canape});
 }
 
 sub set_text_marks_zscore {
     my $self = shift;
 
-    #  needed?  seem to remember it avoids triggering marks if grid is not set up
-    return if !$self->{marks}{default};
-
-    foreach my $mark (@{$self->{marks}{default}}) {
-        $mark->hide;
-    }
-
     my @strings = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
-
-    my $mark_arr = $self->{marks}{zscore} //= [];
-    if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
-        }
-    }
-
-    # Set legend textbox markers
-    foreach my $i (0 .. $#strings) {
-        my $mark = $mark_arr->[$#strings - $i];
-        $mark->set( text => $strings[$i] );
-        # $mark->show;
-        $mark->raise_to_top;
-    }
-
-    return;
+    return $self->set_text_marks_for_labels (\@strings, $self->{marks}{zscore});
 }
 
 #  refactor needed
@@ -1141,7 +1098,9 @@ sub set_text_marks_for_labels {
     carp "Mark count does not match label count"
         if scalar(@strings) != scalar @$mark_arr;
 
-    foreach my $mark (@{$self->{marks}{default}}) {
+    $self->{marks}{current} //= $self->{marks}{default};
+
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
 
@@ -1159,6 +1118,8 @@ sub set_text_marks_for_labels {
         # $mark->show;
         $mark->raise_to_top;
     }
+
+    $self->{marks}{current} = $mark_arr;
 
     return;
 }

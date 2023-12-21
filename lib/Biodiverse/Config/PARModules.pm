@@ -2,6 +2,10 @@ package Biodiverse::Config::PARModules;
 use strict;
 use warnings;
 use 5.016;
+
+our $VERSION = '4.99_001';
+
+
 use Carp;
 
 use utf8;

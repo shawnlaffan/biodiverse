@@ -557,9 +557,8 @@ sub index_is_divergent {
     my %args = @_;
 
     #  check list and then check index
-    my $list = $args{list} // '';
-
-    return if $args{list} ne 'SPATIAL_RESULTS';
+    my $list  = $args{list} // '';
+    my $index = $args{index} // '';
 
     state $bd_obj = Biodiverse::BaseData->new (
         NAME         => 'divergency',
@@ -570,7 +569,9 @@ sub index_is_divergent {
         BASEDATA_REF => $bd_obj,
     );
 
-    my $index = $args{index} // '';
+    return 1
+        if $indices_object->index_is_list (index => $list)
+            && $indices_object->index_is_divergent (index => $list);
 
     return $indices_object->index_is_divergent (index => $index);
 }

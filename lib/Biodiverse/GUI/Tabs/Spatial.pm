@@ -1579,6 +1579,8 @@ sub colour_branches_on_dendrogram {
     $legend->set_zscore_mode ($is_zscore);
     my $is_prank = $list_name =~ />>p_rank>>/;
     $legend->set_prank_mode ($is_prank);
+    my $is_divergent = $self->index_is_divergent (list => $list_name);
+    $legend->set_divergent_mode ($is_divergent);
 
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
     if ($log_check_box->get_active) {
@@ -1598,15 +1600,24 @@ sub colour_branches_on_dendrogram {
     
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
-
-    $legend->set_min_max (@$minmax);
     my ($min, $max) = @$minmax;  #  should not need to pass this
+    if ($is_divergent) {  #  legend should really handle this
+        my $mx = max (abs($min), abs($max));
+        $min =  0;
+        $max =  $mx;
+        @$minmax = ($min, $mx);
+    }
+    $legend->set_min_max ($min, $max);
 
-    #  currently does not handle divergent, ratio or CANAPE - these do not yet apply for tree branches
-    my @minmax_args = ($is_zscore || $is_prank) ? () : ($min, $max);
+    #  currently does not handle ratio or CANAPE - these do not yet apply for tree branches
+    my @minmax_args
+        = ($is_zscore || $is_prank) ? ()
+        : $is_divergent ? (0, $max)
+        : ($min, $max);
     my $colour_method
-        = $is_zscore ? 'get_colour_zscore'
-        : $is_prank  ? 'get_colour_prank'
+        = $is_zscore    ? 'get_colour_zscore'
+        : $is_prank     ? 'get_colour_prank'
+        : $is_divergent ? 'get_colour_divergent'
         : 'get_colour';
 
     my $checkbox_show_legend = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');

@@ -252,10 +252,10 @@ sub make_rect {
         local $self->{log_mode} = 0; # hacky override
 
         my $mid = ($height - 1) / 2;
-        foreach my $row (0..($height - 1)) {
+        foreach my $row (reverse 0..($height - 1)) {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
             #  invert again so colours match legend text
-            my $colour = $self->get_colour_ratio (1 / $val, $mid);
+            my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -267,9 +267,10 @@ sub make_rect {
 
         my $centre = ($height - 1) / 2;
         my $extreme = $height - $centre;
-        foreach my $row (0..($height - 1)) {
-            #  ensure colours match plot since 0 is the top
-            my $colour = $self->get_colour_divergent ($height - $row, $centre, $extreme);
+
+        #  ensure colours match plot since 0 is the top
+        foreach my $row (reverse 0..($height - 1)) {
+            my $colour = $self->get_colour_divergent ($centre - $row, -$extreme, $extreme);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -658,16 +659,17 @@ sub get_colour_prank {
 }
 
 sub get_colour_divergent {
-    my ($self, $val, $centre, $max_dist) = @_;
+    my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
 
     return $default_colour
-        if ! defined $max_dist;
+        if ! (defined $max && defined $min);
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
-    $centre //= 0;
+    my $centre = 0;
+    my $max_dist = max (abs($min), abs($max));
 
     return $centre_colour
         if $val == $centre || $max_dist == 0;
@@ -705,17 +707,22 @@ sub get_colour_divergent {
 }
 
 sub get_colour_ratio {
-    my ($self, $val, $extreme) = @_;
+    my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
 
     return $default_colour
-        if ! defined $extreme;
+        if ! (defined $min && defined $max);
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
+    my $extreme = exp (max (abs log $min, log $max));
+
     return $centre_colour
         if $val == 1 || $extreme == 1;
+
+    # $min = 1 / $extreme;
+    # $max = $extreme;
 
     #  simplify logic below
     if ($extreme < 1) {
@@ -916,11 +923,18 @@ sub set_min_max {
     return $self->set_text_marks_canape
         if $self->get_canape_mode;
 
-    return $self->set_text_marks_divergent ($val1, $val2)
-        if $self->get_divergent_mode;
-
-    return $self->set_text_marks_ratio ($val2)
-        if $self->get_ratio_mode;
+    if ($self->get_divergent_mode) {
+        my $abs_extreme = max(abs $val1, abs $val2);
+        my $min = 0;
+        my $max = $abs_extreme;
+        return $self->set_text_marks_divergent($min, $max);
+    }
+    elsif ($self->get_ratio_mode) {
+        my $abs_extreme = exp (max (abs log $val1, log $val2));
+        my $min = 1 / $abs_extreme;
+        my $max = $abs_extreme;
+        return $self->set_text_marks_ratio($min, $max)
+    }
 
     my $min = $val1 //= $self->{last_min};
     my $max = $val2 //= $self->{last_max};
@@ -1039,7 +1053,10 @@ sub set_text_marks_zscore {
 
 #  refactor needed
 sub set_text_marks_divergent {
-    my ($self, $mid, $extent) = @_;
+    my ($self, $min, $max) = @_;
+
+    my $extent = max (abs($min), abs ($max));
+    my $mid = 0;
 
     my $mid2 = ($mid + $extent) / 2;
     my @strings = (
@@ -1075,7 +1092,7 @@ sub set_text_marks_divergent {
 }
 
 sub set_text_marks_ratio {
-    my ($self, $max) = @_;
+    my ($self, $min, $max) = @_;
 
     $max //= 1;
     my $mid = 1 + ($max - 1) / 2;
@@ -1159,6 +1176,67 @@ sub set_log_mode_off {
 
 sub get_log_mode {
     $_[0]->{log_mode};
+}
+
+#  need a better name
+sub _get_nonbasic_plot_modes {
+    my @modes = qw/canape zscore prank ratio divergent/;
+    return wantarray ? @modes : \@modes;
+}
+
+sub set_colour_mode_from_list_and_index {
+    my ($self, %args) = @_;
+    my $index = $args{index} // '';
+    my $list  = $args{list}  // '';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'colour-mode',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $is_list = $list && $list !~ />>/ && $indices_object->index_is_list (index => $list);
+    if ($is_list) {
+        $index = $list
+    }
+
+    #  check list name then index name
+    my $mode
+        = $list =~ />>z_scores>>/                               ? 'zscore'
+        : $list =~ />>p_rank>>/                                 ? 'prank'
+        : $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/          ? 'canape'
+        : $indices_object->index_is_zscore (index => $index)    ? 'zscore'
+        : $indices_object->index_is_ratio (index => $index)     ? 'ratio'
+        : $indices_object->index_is_divergent (index => $index) ? 'divergent'
+        : '';
+
+    #  clunky to have to iterate over these but they trigger things turning off
+    foreach my $possmode (_get_nonbasic_plot_modes()) {
+        my $method = "set_${possmode}_mode";
+        $self->$method ($mode eq $possmode);
+    }
+
+    return;
+}
+
+sub get_colour_method {
+    my $self = shift;
+
+    my $method = 'get_colour';
+
+    #  clunky to have to iterate over these,
+    #  even if we use a lookup table
+    foreach my $mode (_get_nonbasic_plot_modes()) {
+        my $check_method = "get_${mode}_mode";
+        if ($self->$check_method) {
+            $method = "get_colour_${mode}";
+        }
+    }
+
+    return $method;
 }
 
 sub set_canape_mode_on {

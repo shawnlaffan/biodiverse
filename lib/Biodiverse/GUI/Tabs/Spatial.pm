@@ -1574,13 +1574,10 @@ sub colour_branches_on_dendrogram {
     my $output_ref = $self->{output_ref};
 
     my $legend = $dendrogram->get_legend;
-
-    my $is_zscore = $self->index_is_zscore (list => $list_name);
-    $legend->set_zscore_mode ($is_zscore);
-    my $is_prank = $list_name =~ />>p_rank>>/;
-    $legend->set_prank_mode ($is_prank);
-    my $is_divergent = $self->index_is_divergent (list => $list_name);
-    $legend->set_divergent_mode ($is_divergent);
+    $legend->set_colour_mode_from_list_and_index (
+        list  => $list_name,
+        index => '',
+    );
 
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
     if ($log_check_box->get_active) {
@@ -1601,24 +1598,11 @@ sub colour_branches_on_dendrogram {
     my $minmax
       = $self->get_index_min_max_values_across_full_list ($list_name);
     my ($min, $max) = @$minmax;  #  should not need to pass this
-    if ($is_divergent) {  #  legend should really handle this
-        my $mx = max (abs($min), abs($max));
-        $min =  0;
-        $max =  $mx;
-        @$minmax = ($min, $mx);
-    }
     $legend->set_min_max ($min, $max);
 
     #  currently does not handle ratio or CANAPE - these do not yet apply for tree branches
-    my @minmax_args
-        = ($is_zscore || $is_prank) ? ()
-        : $is_divergent ? (0, $max)
-        : ($min, $max);
-    my $colour_method
-        = $is_zscore    ? 'get_colour_zscore'
-        : $is_prank     ? 'get_colour_prank'
-        : $is_divergent ? 'get_colour_divergent'
-        : 'get_colour';
+    my @minmax_args = ($min, $max);
+    my $colour_method = $legend->get_colour_method;
 
     my $checkbox_show_legend = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
     if ($checkbox_show_legend->get_active) {
@@ -2016,28 +2000,13 @@ sub recolour {
     #delete @{$colour_cache}{keys %$colour_cache};  #  temp for debug
     my $ccache = $colour_cache->{$list}{$index} //= {};
 
-    my %list_and_index = (list => $list, index => $index);
-    my $is_canape = $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/;
-    my $is_zscore = $self->index_is_zscore (%list_and_index);
-    my $is_prank  = $list =~ />>p_rank>>/;
-    my $is_ratio
-        = !$is_prank && !$is_zscore
-          && $self->index_is_ratio (%list_and_index);
-    my $is_divergent
-        = !$is_prank && !$is_zscore && !$is_ratio
-          && $self->index_is_divergent (%list_and_index);
+    my $legend = $grid->get_legend;
 
-    my $abs_extreme;
-    if ($is_ratio) {
-        $abs_extreme = exp (max (abs log $min, log $max));
-        $min = 1 / $abs_extreme;
-        $max = $abs_extreme;
-    }
-    elsif ($is_divergent) {  #  assumes zero - needs work
-        $abs_extreme = max(abs $min, abs $max);
-        $min = 0;
-        $max = $abs_extreme;
-    }
+    $legend->set_colour_mode_from_list_and_index (
+        list  => $list,
+        index => $index,
+    );
+    my $colour_method = $legend->get_colour_method;
 
     my $colour_func = sub {
         my $elt = shift // return;
@@ -2051,14 +2020,8 @@ sub recolour {
             #  should use a method here
             my $val = $elements_hash->{$elt}{$list}{$index};
             $colour
-              = defined $val ? (
-                  $is_canape ? $grid->get_colour_canape ($val) :
-                  $is_zscore ? $grid->get_colour_zscore ($val) :
-                  $is_prank  ? $grid->get_colour_prank ($val)  :
-                  $is_ratio  ? $grid->get_colour_ratio ($val, $abs_extreme) :
-                  $is_divergent ? $grid->get_colour_divergent ($val, 0, $abs_extreme) :
-                  $grid->get_colour($val, $min, $max)
-              )
+              = defined $val
+              ? $legend->$colour_method ($val, $min, $max)
               : $colour_none;
         }
         
@@ -2072,14 +2035,6 @@ sub recolour {
     #    !$output_ref->group_passed_def_query(group => $elt);
     #};
 
-    my $legend = $self->{grid}->get_legend;
-    #  This is getting messy but ensures cleanup of old labels.
-    #  Should register active labels.
-    $legend->set_canape_mode($is_canape);
-    $legend->set_zscore_mode($is_zscore);
-    $legend->set_prank_mode($is_prank);
-    $legend->set_ratio_mode($is_ratio);
-    $legend->set_divergent_mode($is_divergent);
     $self->show_legend;
 
     $grid->colour($colour_func);

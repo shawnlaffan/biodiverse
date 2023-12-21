@@ -872,19 +872,6 @@ sub recolour_cluster_elements {
     my $cluster_colour_mode = $self->get_cluster_colour_mode();
     my $colour_callback;
 
-    my %list_and_index = (list => $list_name, index => $list_index);
-    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /CANAPE/;
-    my $is_zscore = eval {
-        $parent_tab->index_is_zscore(%list_and_index);
-    };
-    my $is_prank = $list_name =~ />>p_rank>>/;
-    my $is_ratio
-        = !$is_prank && !$is_zscore
-        && eval {$parent_tab->index_is_ratio(%list_and_index)};
-    my $is_divergent
-        = !$is_prank && !$is_zscore && !$is_ratio
-        && eval {$parent_tab->index_is_divergent(%list_and_index)};
-
     if ($cluster_colour_mode eq 'palette') {
         # sets colours according to palette
         $colour_callback = sub {
@@ -924,17 +911,13 @@ sub recolour_cluster_elements {
         };
     }
     elsif ($cluster_colour_mode eq 'list-values') {
-        my $abs_extreme;
-        if ($is_ratio) {
-            $abs_extreme = exp (max (abs log $analysis_min, log $analysis_max));
-            $analysis_min = 1 / $abs_extreme;
-            $analysis_max = $abs_extreme;
-        }
-        elsif ($is_divergent) {  #  assumes zero - needs work
-            $abs_extreme = max(abs $analysis_min, abs $analysis_max);
-            $analysis_min = 0;
-            $analysis_max = $abs_extreme;
-        }
+        my $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index (
+            list  => $list_name,
+            index => $list_index,
+        );
+        my @minmax_args = ($analysis_min, $analysis_max);
+        my $colour_method = $legend->get_colour_method;
 
         # sets colours according to (usually spatial)
         # list value for the element's cluster
@@ -952,12 +935,7 @@ sub recolour_cluster_elements {
                 my $val = $list_ref->{$list_index}
                   // return $colour_for_undef;
                 
-                return $is_canape ? $map->get_colour_canape ($val)
-                     : $is_zscore ? $map->get_colour_zscore ($val)
-                     : $is_prank  ? $map->get_colour_prank ($val)
-                     : $is_ratio  ? $map->get_colour_ratio ($val, $abs_extreme)
-                     : $is_divergent  ? $map->get_colour_divergent ($val, 0, $abs_extreme)
-                     : $map->get_colour($val, $analysis_min, $analysis_max);
+                return $legend->$colour_method ($val, @minmax_args);
             }
             else {
                 return exists $terminal_elements->{$elt}
@@ -973,12 +951,6 @@ sub recolour_cluster_elements {
       if !defined $colour_callback;
 
     $map->colour ($colour_callback);
-
-    $map->get_legend->set_canape_mode($is_canape);
-    $map->get_legend->set_zscore_mode($is_zscore);
-    $map->get_legend->set_prank_mode($is_prank);
-    $map->get_legend->set_ratio_mode($is_ratio);
-    $map->get_legend->set_divergent_mode($is_divergent);
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
@@ -1259,31 +1231,13 @@ sub recolour_cluster_lines {
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
 
-    my %list_and_index = (list => $list_name, index => $list_index);
-    my $is_canape = $list_name =~ />>CANAPE>>/ && $list_index =~ /^CANAPE/;
-    my $is_zscore = eval {
-        $self->{parent_tab}->index_is_zscore (%list_and_index);
-    };
-    my $is_prank = $list_name =~ />>p_rank>>/;
-    my $is_ratio
-        = !$is_prank && !$is_zscore
-        && eval {$self->{parent_tab}->index_is_ratio(%list_and_index)};
-    my $is_divergent
-        = !$is_prank && !$is_zscore && !$is_ratio
-        && eval {$self->{parent_tab}->index_is_divergent(%list_and_index)};
-
-    my $abs_extreme;
-    if ($is_ratio) {
-        $abs_extreme = exp (max (abs log $analysis_min, log $analysis_max));
-        $analysis_min = 1 / $abs_extreme;
-        $analysis_max = $abs_extreme;
-    }
-    elsif ($is_divergent) {  #  assumes zero - needs work
-        $abs_extreme = max(abs $analysis_min, abs $analysis_max);
-        $analysis_min = 0;
-        $analysis_max = $abs_extreme;
-    }
-
+    my $legend = $map->get_legend;
+    $legend->set_colour_mode_from_list_and_index (
+        list  => $list_name,
+        index => $list_index,
+    );
+    my @minmax_args = ($analysis_min, $analysis_max);
+    my $colour_method = $legend->get_colour_method;
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1307,13 +1261,7 @@ sub recolour_cluster_lines {
               : undef;  #  allows for missing lists
 
             $colour_ref = defined $val
-              ? (  $is_canape ? $map->get_colour_canape($val) :
-                   $is_zscore ? $map->get_colour_zscore($val) :
-                   $is_prank  ? $map->get_colour_prank($val) :
-                   $is_ratio  ? $map->get_colour_ratio ($val, $abs_extreme) :
-                   $is_divergent ? $map->get_colour_divergent ($val, 0, $abs_extreme) :
-                   $map->get_colour ($val, $analysis_min, $analysis_max)
-                )
+              ? $legend->$colour_method ($val, @minmax_args)
               : undef;
         }
         else {

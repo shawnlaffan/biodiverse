@@ -499,6 +499,9 @@ sub set_mode {
     #$self->colour_cells();
 
     # Update legend
+    foreach my $mark (@{$self->{marks}{current}}) {
+        $mark->hide;
+    }
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
         $self->{legend} = $self->make_rect();
         $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
@@ -951,8 +954,11 @@ sub set_min_max {
                 );
 
     # Set legend textbox markers
+    foreach my $mark (@{$self->{marks}{current} // []}) {
+        $mark->hide;
+    }
     my @mark_arr = @{$self->{marks}{default}};
-    $self->{marks}{current} = \@mark_arr;
+    $self->{marks}{current} = $self->{marks}{default};
     my $marker_step = ($max - $min) / $#mark_arr;
     foreach my $i (0..$#mark_arr) {
         my $val = $min + $i * $marker_step;
@@ -1215,7 +1221,7 @@ sub set_canape_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 0;
-    foreach my $mark (@{$self->{marks}{canape}}) {
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1255,7 +1261,7 @@ sub set_zscore_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{zscore_mode};
     $self->{zscore_mode} = 0;
-    foreach my $mark (@{$self->{marks}{zscore}}) {
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1295,7 +1301,7 @@ sub set_divergent_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{divergent_mode};
     $self->{divergent_mode} = 0;
-    foreach my $mark (@{$self->{marks}{divergent}}) {
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1335,7 +1341,7 @@ sub set_ratio_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{ratio_mode};
     $self->{ratio_mode} = 0;
-    foreach my $mark (@{$self->{marks}{ratio}}) {
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours
@@ -1375,7 +1381,7 @@ sub set_prank_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{prank_mode};
     $self->{prank_mode} = 0;
-    foreach my $mark (@{$self->{marks}{prank}}) {
+    foreach my $mark (@{$self->{marks}{current}}) {
         $mark->hide;
     }
     if ($prev_val) {  #  give back our colours

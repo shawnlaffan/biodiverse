@@ -111,26 +111,7 @@ sub new {
     foreach my $i (reverse 0..3) {
         $self->{marks}{default}[$i] = $self->make_mark($self->{legend_marks}[$i]);
     }
-    #  clunky that we need to do it here
-    my @anchors = ('nw', ('w') x 3, 'sw');
-    foreach my $i (reverse 0..4) {
-        $self->{marks}{canape}[$i]    = $self->make_mark($anchors[$i]);
-        $self->{marks}{divergent}[$i] = $self->make_mark($anchors[$i]);
-        $self->{marks}{ratio}[$i]     = $self->make_mark($anchors[$i]);
-    }
-    @anchors = ('nw', ('w') x 5, 'sw');
-    foreach my $i (reverse 0..6) {
-        $self->{marks}{zscore}[$i] = $self->make_mark($anchors[$i]);
-        $self->{marks}{prank}[$i]  = $self->make_mark($anchors[$i]);
-    }
     $self->{marks}{current} = $self->{marks}{default};
-    #  generic
-    # foreach my $n (2..7) {
-    #     @anchors = ('nw', ('w') x $n-1, 'sw');
-    #     foreach my $i (reverse 0 .. $n) {
-    #         $self->{marks}{$n+1}[$i] = $self->make_mark($anchors[$i]);
-    #     }
-    # }
 
     #  debug stuff
     #my $sub = sub {
@@ -1018,14 +999,14 @@ sub set_text_marks_canape {
     my $self = shift;
 
     my @strings = qw /super mixed palaeo neo non-sig/;
-    return $self->set_text_marks_for_labels (\@strings, $self->{marks}{canape});
+    return $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_zscore {
     my $self = shift;
 
     my @strings = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
-    return $self->set_text_marks_for_labels (\@strings, $self->{marks}{zscore});
+    return $self->set_text_marks_for_labels (\@strings);
 }
 
 #  refactor needed
@@ -1065,7 +1046,7 @@ sub set_text_marks_divergent {
     }
     # say join ' ', @strings;
 
-    $self->set_text_marks_for_labels (\@strings, $self->{marks}{divergent});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_ratio {
@@ -1097,13 +1078,13 @@ sub set_text_marks_ratio {
         $strings[-1] = ">=$strings[-1]";
     }
 
-    $self->set_text_marks_for_labels (\@strings, $self->{marks}{ratio});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_prank {
     my $self = shift;
     my @strings = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
-    $self->set_text_marks_for_labels (\@strings, $self->{marks}{prank});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 #  generalises z-score version - need to simplify it
@@ -1115,17 +1096,18 @@ sub set_text_marks_for_labels {
 
     $mark_arr //= [];
 
-    carp "Mark count does not match label count"
-        if scalar(@strings) != scalar @$mark_arr;
-
     $self->{marks}{current} //= $self->{marks}{default};
 
     $self->hide_current_marks;
 
     if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
+        my $n = scalar @strings;
+        $mark_arr = $self->{marks}{$n} //= [];
+        if (!@$mark_arr) {  #  populate if needed
+            foreach my $i (0 .. $#strings) {
+                my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
+                $mark_arr->[$i] = $self->make_mark($anchor_loc);
+            }
         }
     }
 

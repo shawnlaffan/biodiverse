@@ -1207,31 +1207,36 @@ sub _make_nonbasic_methods {
     print "Calling _make_access_methods for $pkg";
     no strict 'refs';
     foreach my $key (@methods) {
-        my $method = "get_${key}_mode";
+        my $method   = "get_${key}_mode";
+        my $mode_key = "${key}_mode";
         # next if $pkg->can($method);  #  do not override
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->{$mode_key};
+                };
+            };
+        $method = "set_${key}_mode_on";
         say STDERR "==== Building $method in package $pkg";
         *{"${pkg}::${method}"} =
             do {
                 sub {
-                    $_[0]->{"${key}_mode"};
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 1;
+                    if (!$prev_val) {  #  update legend colours
+                        $self->refresh_legend;
+                    }
+                    return 1;
                 };
             };
+
     }
 
     return;
 }
 
 _make_nonbasic_methods();
-
-sub set_canape_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{canape_mode};
-    $self->{canape_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->refresh_legend;
-    }
-    return 1;
-}
 
 sub set_canape_mode_off {
     my ($self) = @_;
@@ -1253,16 +1258,6 @@ sub set_canape_mode {
         $self->set_canape_mode_off;
     }
     return $self->{canape_mode};
-}
-
-sub set_zscore_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{zscore_mode};
-    $self->{zscore_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->refresh_legend;
-    }
-    return 1;
 }
 
 sub set_zscore_mode_off {
@@ -1287,16 +1282,6 @@ sub set_zscore_mode {
     return $self->{zscore_mode};
 }
 
-sub set_divergent_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{divergent_mode};
-    $self->{divergent_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->refresh_legend;
-    }
-    return 1;
-}
-
 sub set_divergent_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{divergent_mode};
@@ -1319,16 +1304,6 @@ sub set_divergent_mode {
     return $self->{divergent_mode};
 }
 
-sub set_ratio_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{ratio_mode};
-    $self->{ratio_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->refresh_legend;
-    }
-    return 1;
-}
-
 sub set_ratio_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{ratio_mode};
@@ -1349,16 +1324,6 @@ sub set_ratio_mode {
         $self->set_ratio_mode_off;
     }
     return $self->{ratio_mode};
-}
-
-sub set_prank_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{prank_mode};
-    $self->{prank_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->refresh_legend;
-    }
-    return 1;
 }
 
 sub set_prank_mode_off {

@@ -1217,7 +1217,7 @@ sub _make_nonbasic_methods {
                 };
             };
         $method = "set_${key}_mode_on";
-        say STDERR "==== Building $method in package $pkg";
+        # say STDERR "==== Building $method in package $pkg";
         *{"${pkg}::${method}"} =
             do {
                 sub {
@@ -1230,6 +1230,21 @@ sub _make_nonbasic_methods {
                     return 1;
                 };
             };
+        $method = "set_${key}_mode_off";
+        say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 0;
+                    $self->hide_current_marks;
+                    if ($prev_val) {  #  give back our colours
+                        $self->refresh_legend;
+                    }
+                    return 0;
+                };
+            };
 
     }
 
@@ -1237,17 +1252,6 @@ sub _make_nonbasic_methods {
 }
 
 _make_nonbasic_methods();
-
-sub set_canape_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{canape_mode};
-    $self->{canape_mode} = 0;
-    $self->hide_current_marks;
-    if ($prev_val) {  #  give back our colours
-        $self->refresh_legend;
-    }
-    return 0;
-}
 
 sub set_canape_mode {
     my ($self, $bool) = @_;
@@ -1258,17 +1262,6 @@ sub set_canape_mode {
         $self->set_canape_mode_off;
     }
     return $self->{canape_mode};
-}
-
-sub set_zscore_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{zscore_mode};
-    $self->{zscore_mode} = 0;
-    $self->hide_current_marks;
-    if ($prev_val) {  #  give back our colours
-        $self->refresh_legend;
-    }
-    return 0;
 }
 
 sub set_zscore_mode {
@@ -1282,17 +1275,6 @@ sub set_zscore_mode {
     return $self->{zscore_mode};
 }
 
-sub set_divergent_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{divergent_mode};
-    $self->{divergent_mode} = 0;
-    $self->hide_current_marks;
-    if ($prev_val) {  #  give back our colours
-        $self->refresh_legend;
-    }
-    return 0;
-}
-
 sub set_divergent_mode {
     my ($self, $bool) = @_;
     if ($bool) {
@@ -1304,17 +1286,6 @@ sub set_divergent_mode {
     return $self->{divergent_mode};
 }
 
-sub set_ratio_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{ratio_mode};
-    $self->{ratio_mode} = 0;
-    $self->hide_current_marks;
-    if ($prev_val) {  #  give back our colours
-        $self->refresh_legend;
-    }
-    return 0;
-}
-
 sub set_ratio_mode {
     my ($self, $bool) = @_;
     if ($bool) {
@@ -1324,17 +1295,6 @@ sub set_ratio_mode {
         $self->set_ratio_mode_off;
     }
     return $self->{ratio_mode};
-}
-
-sub set_prank_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{prank_mode};
-    $self->{prank_mode} = 0;
-    $self->hide_current_marks;
-    if ($prev_val) {  #  give back our colours
-        $self->refresh_legend;
-    }
-    return 0;
 }
 
 sub set_prank_mode {

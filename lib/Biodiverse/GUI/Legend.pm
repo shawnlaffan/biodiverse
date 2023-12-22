@@ -367,6 +367,15 @@ sub make_mark {
     return $mark;
 }
 
+sub hide_current_marks {
+    my $self = shift;
+    my $marks = $self->{marks}{current} // [];
+    foreach my $mark (@$marks) {
+        $mark->hide;
+    }
+    return;
+}
+
 sub set_gt_flag {
     my $self = shift;
     my $flag = shift;
@@ -394,6 +403,14 @@ sub get_width {
 sub get_height {
     my $self = shift;
     return $self->{back_rect_height} // LEGEND_HEIGHT;
+}
+
+sub refresh_legend {
+    my $self = shift;
+    $self->make_rect;
+    #  trigger a redisplay of the legend
+    $self->reposition($self->{width_px}, $self->{height_px});
+    1;
 }
 
 # Updates position of legend and value box
@@ -499,9 +516,8 @@ sub set_mode {
     #$self->colour_cells();
 
     # Update legend
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
+    #  could use refresh_legend here?
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
         $self->{legend} = $self->make_rect();
         $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
@@ -954,9 +970,7 @@ sub set_min_max {
                 );
 
     # Set legend textbox markers
-    foreach my $mark (@{$self->{marks}{current} // []}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     my @mark_arr = @{$self->{marks}{default}};
     $self->{marks}{current} = $self->{marks}{default};
     my $marker_step = ($max - $min) / $#mark_arr;
@@ -1106,9 +1120,7 @@ sub set_text_marks_for_labels {
 
     $self->{marks}{current} //= $self->{marks}{default};
 
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
 
     if (!@$mark_arr) {
         foreach my $i (0 .. $#strings) {
@@ -1211,8 +1223,7 @@ sub set_canape_mode_on {
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 1;
     if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 1;
 }
@@ -1221,12 +1232,9 @@ sub set_canape_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
     $self->{canape_mode} = 0;
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 0;
 }
@@ -1251,8 +1259,7 @@ sub set_zscore_mode_on {
     my $prev_val = $self->{zscore_mode};
     $self->{zscore_mode} = 1;
     if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 1;
 }
@@ -1261,12 +1268,9 @@ sub set_zscore_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{zscore_mode};
     $self->{zscore_mode} = 0;
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 0;
 }
@@ -1291,8 +1295,7 @@ sub set_divergent_mode_on {
     my $prev_val = $self->{divergent_mode};
     $self->{divergent_mode} = 1;
     if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 1;
 }
@@ -1301,12 +1304,9 @@ sub set_divergent_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{divergent_mode};
     $self->{divergent_mode} = 0;
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 0;
 }
@@ -1331,8 +1331,7 @@ sub set_ratio_mode_on {
     my $prev_val = $self->{ratio_mode};
     $self->{ratio_mode} = 1;
     if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 1;
 }
@@ -1341,12 +1340,9 @@ sub set_ratio_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{ratio_mode};
     $self->{ratio_mode} = 0;
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 0;
 }
@@ -1371,8 +1367,7 @@ sub set_prank_mode_on {
     my $prev_val = $self->{prank_mode};
     $self->{prank_mode} = 1;
     if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 1;
 }
@@ -1381,12 +1376,9 @@ sub set_prank_mode_off {
     my ($self) = @_;
     my $prev_val = $self->{prank_mode};
     $self->{prank_mode} = 0;
-    foreach my $mark (@{$self->{marks}{current}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
     if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+        $self->refresh_legend;
     }
     return 0;
 }

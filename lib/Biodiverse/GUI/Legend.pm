@@ -192,6 +192,19 @@ sub make_rect {
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
+    elsif ($self->get_categorical_mode) {
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+        my $label_hash = $self->{categorical}{labels};
+
+        my $n = (scalar keys %$label_hash) - 1;
+        foreach my $row (0..($height - 1)) {
+            #  cat 0 at the top
+            my $class = $n - int (0.5 + $n * $row / ($height - 1));
+            my $colour = $self->get_colour_categorical ($class);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
     elsif ($self->get_zscore_mode) {
 
         ($width, $height) = ($self->get_width, 255);
@@ -605,6 +618,17 @@ sub get_colour {
     return $self->$method($val, $min, $max);
 }
 
+sub get_colour_categorical {
+    my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
+    my $colour_hash = $self->{categorical}{colours} //= {};
+    my $colour = $colour_hash->{$val} || COLOUR_WHITE;
+    #  should not need to do this
+    if (!blessed $colour) {
+        $colour = $colour_hash->{$val} = Gtk2::Gdk::Color->parse($colour);
+    }
+    return $colour;
+}
 
 sub get_colour_canape {
     my ($self, $val) = @_;
@@ -925,6 +949,9 @@ sub set_min_max {
     return $self->set_text_marks_canape
         if $self->get_canape_mode;
 
+    return $self->set_text_marks_categorical
+        if $self->get_categorical_mode;
+
     if ($self->get_divergent_mode) {
         my $abs_extreme = max(abs $val1, abs $val2);
         my $min = 0;
@@ -999,6 +1026,15 @@ sub set_text_marks_canape {
     my $self = shift;
 
     my @strings = qw /super mixed palaeo neo non-sig/;
+    return $self->set_text_marks_for_labels (\@strings);
+}
+
+sub set_text_marks_categorical {
+    my $self = shift;
+
+    my $label_hash = $self->{categorical}{labels} // {};
+    my @strings = @$label_hash{sort {$a <=> $b} keys %$label_hash};
+
     return $self->set_text_marks_for_labels (\@strings);
 }
 
@@ -1141,7 +1177,7 @@ sub get_log_mode {
 
 #  need a better name
 sub _get_nonbasic_plot_modes {
-    my @modes = qw/canape zscore prank ratio divergent/;
+    my @modes = qw/canape zscore prank ratio divergent categorical/;
     return wantarray ? @modes : \@modes;
 }
 
@@ -1165,19 +1201,33 @@ sub set_colour_mode_from_list_and_index {
     }
 
     #  check list name then index name
+    my %h = (index => $index);
     my $mode
-        = $list =~ />>z_scores>>/                               ? 'zscore'
-        : $list =~ />>p_rank>>/                                 ? 'prank'
-        : $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/          ? 'canape'
-        : $indices_object->index_is_zscore (index => $index)    ? 'zscore'
-        : $indices_object->index_is_ratio (index => $index)     ? 'ratio'
-        : $indices_object->index_is_divergent (index => $index) ? 'divergent'
+        = $list =~ />>z_scores>>/                      ? 'zscore'
+        : $list =~ />>p_rank>>/                        ? 'prank'
+        : $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/ ? 'canape'
+        : $indices_object->index_is_zscore (%h)        ? 'zscore'
+        : $indices_object->index_is_ratio (%h)         ? 'ratio'
+        : $indices_object->index_is_divergent (%h)     ? 'divergent'
+        : $indices_object->index_is_categorical (%h)   ? 'categorical'
         : '';
 
     #  clunky to have to iterate over these but they trigger things turning off
+    #  Update - might not be the case now but process does not take long
     foreach my $possmode (_get_nonbasic_plot_modes()) {
         my $method = "set_${possmode}_mode";
         $self->$method ($mode eq $possmode);
+    }
+
+    if ($mode eq 'categorical') {
+        my $labels  = $indices_object->get_index_category_labels (index => $index) // {};
+        my $colours = $indices_object->get_index_category_colours (index => $index) // {};
+        $self->{categorical}{labels}  = $labels;
+        foreach my $key (keys %$colours) {
+            my $colour = $colours->{$key};
+            $colours->{$key} => Gtk2::Gdk::Color->parse($colour);
+        }
+        $self->{categorical}{colours} = $colours;
     }
 
     return;

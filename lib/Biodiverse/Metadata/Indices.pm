@@ -219,7 +219,12 @@ sub index_distribution_is_valid {
 
 sub get_index_is_ratio {
     my ($self, $index) = @_;
-    return return $self->get_index_distribution($index) =~ /ratio$/;
+    return $self->get_index_distribution($index) =~ /ratio$/;
+}
+
+sub get_index_is_categorical {
+    my ($self, $index) = @_;
+    return $self->get_index_distribution($index) eq 'categorical';
 }
 
 sub get_index_is_nonnegative {
@@ -243,6 +248,30 @@ sub get_index_distribution {
     no autovivification;
     my $indices = $self->get_indices;
     return $indices->{$index}{distribution} // $self->{distribution} // 'sequential';
+}
+
+sub get_index_category_labels {
+    my ($self, $index) = @_;
+
+    return if !$self->get_index_is_categorical($index);
+
+    no autovivification;
+
+    my $indices = $self->get_indices;
+    my $hash = $indices->{$index}{labels};
+    return wantarray ? %$hash : $hash;
+}
+
+sub get_index_category_colours {
+    my ($self, $index) = @_;
+
+    return if !$self->get_index_is_categorical($index);
+
+    no autovivification;
+
+    my $indices = $self->get_indices;
+    my $hash = $indices->{$index}{colours};
+    return wantarray ? %$hash : $hash;
 }
 
 __PACKAGE__->_make_distribution_methods (keys %valid_distributions);

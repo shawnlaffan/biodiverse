@@ -1231,7 +1231,7 @@ sub _make_nonbasic_methods {
                 };
             };
         $method = "set_${key}_mode_off";
-        say STDERR "==== Building $method in package $pkg";
+        # say STDERR "==== Building $method in package $pkg";
         *{"${pkg}::${method}"} =
             do {
                 sub {
@@ -1245,69 +1245,25 @@ sub _make_nonbasic_methods {
                     return 0;
                 };
             };
-
+        $method = "set_${key}_mode";
+        my $mode_off_method = "set_${key}_mode_off";
+        my $mode_on_method  = "set_${key}_mode_on";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self, $bool) = @_;
+                    my $method_name = $bool ? $mode_on_method : $mode_off_method;
+                    $self->$method_name;
+                    return $self->{$mode_key};
+                };
+            };
     }
 
     return;
 }
 
 _make_nonbasic_methods();
-
-sub set_canape_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_canape_mode_on;
-    }
-    else {
-        $self->set_canape_mode_off;
-    }
-    return $self->{canape_mode};
-}
-
-sub set_zscore_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_zscore_mode_on;
-    }
-    else {
-        $self->set_zscore_mode_off;
-    }
-    return $self->{zscore_mode};
-}
-
-sub set_divergent_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_divergent_mode_on;
-    }
-    else {
-        $self->set_divergent_mode_off;
-    }
-    return $self->{divergent_mode};
-}
-
-sub set_ratio_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_ratio_mode_on;
-    }
-    else {
-        $self->set_ratio_mode_off;
-    }
-    return $self->{ratio_mode};
-}
-
-sub set_prank_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_prank_mode_on;
-    }
-    else {
-        $self->set_prank_mode_off;
-    }
-    return $self->{prank_mode};
-}
-
 
 
 #  dup from Tab.pm - need to inherit from single source

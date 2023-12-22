@@ -1200,6 +1200,29 @@ sub get_colour_method {
     return $method;
 }
 
+#  a few factory methods
+sub _make_nonbasic_methods {
+    my ($pkg) = shift || __PACKAGE__;
+    my @methods = _get_nonbasic_plot_modes();
+    print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    foreach my $key (@methods) {
+        my $method = "get_${key}_mode";
+        # next if $pkg->can($method);  #  do not override
+        say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->{"${key}_mode"};
+                };
+            };
+    }
+
+    return;
+}
+
+_make_nonbasic_methods();
+
 sub set_canape_mode_on {
     my ($self) = @_;
     my $prev_val = $self->{canape_mode};
@@ -1219,10 +1242,6 @@ sub set_canape_mode_off {
         $self->refresh_legend;
     }
     return 0;
-}
-
-sub get_canape_mode {
-    $_[0]->{canape_mode};
 }
 
 sub set_canape_mode {
@@ -1257,10 +1276,6 @@ sub set_zscore_mode_off {
     return 0;
 }
 
-sub get_zscore_mode {
-    $_[0]->{zscore_mode};
-}
-
 sub set_zscore_mode {
     my ($self, $bool) = @_;
     if ($bool) {
@@ -1291,10 +1306,6 @@ sub set_divergent_mode_off {
         $self->refresh_legend;
     }
     return 0;
-}
-
-sub get_divergent_mode {
-    $_[0]->{divergent_mode};
 }
 
 sub set_divergent_mode {
@@ -1329,10 +1340,6 @@ sub set_ratio_mode_off {
     return 0;
 }
 
-sub get_ratio_mode {
-    $_[0]->{ratio_mode};
-}
-
 sub set_ratio_mode {
     my ($self, $bool) = @_;
     if ($bool) {
@@ -1363,10 +1370,6 @@ sub set_prank_mode_off {
         $self->refresh_legend;
     }
     return 0;
-}
-
-sub get_prank_mode {
-    $_[0]->{prank_mode};
 }
 
 sub set_prank_mode {

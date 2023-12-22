@@ -1229,6 +1229,23 @@ sub set_colour_mode_from_list_and_index {
         }
         $self->{categorical}{colours} = $colours;
     }
+    elsif (!$mode && $list =~ />>CANAPE>>/) {
+        #  special handling for CANAPE indices
+        my %codes = (
+            NEO => 1, PALAEO => 2, MIXED => 3, SUPER => 4,
+        );
+        #  special handling
+        my $colour = $canape_colour_hash{$codes{$index} // 0};
+        $self->{categorical}{colours} = {
+            0 => $canape_colour_hash{0},
+            1 => $colour,
+        };
+        $self->{categorical}{labels} = {
+            0 => 'other',
+            1 => lc $index,
+        };
+        $self->set_categorical_mode(1);
+    }
 
     return;
 }

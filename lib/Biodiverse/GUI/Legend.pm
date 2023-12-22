@@ -187,7 +187,7 @@ sub make_rect {
 
         my $n = (scalar keys %canape_colour_hash) - 1;
         foreach my $row (0..($height - 1)) {
-            my $class = int (0.5 + $n * $row / ($height - 1));
+            my $class = $n - int (0.5 + $n * $row / ($height - 1));
             my $colour = $self->get_colour_canape ($class);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
@@ -1025,7 +1025,7 @@ sub set_min_max {
 sub set_text_marks_canape {
     my $self = shift;
 
-    my @strings = qw /super mixed palaeo neo non-sig/;
+    my @strings = reverse (qw /super mixed palaeo neo non-sig/);
     return $self->set_text_marks_for_labels (\@strings);
 }
 

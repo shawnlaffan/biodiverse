@@ -19,43 +19,45 @@ my $metadata_class = 'Biodiverse::Metadata::Indices';
 sub get_metadata_calc_hierarchical_label_ratios {
     my $self = shift;
     
-    my $bd = $self->get_basedata_ref;
+    # my $bd = $self->get_basedata_ref;
     
-    my $column_count = eval {$bd->get_label_column_count} || 0;
+    # my $column_count = eval {$bd->get_label_column_count} || 0;
     my %indices;
-    if ($column_count) {
-        for my $i (0 .. $column_count - 1) {  
-            
-            my $j = $i - 1;
-            $indices{"HIER_A$i"}    = {description => "A score for level $i",  lumper => 0,};
-            $indices{"HIER_B$i"}    = {description => "B score  for level $i", lumper => 0,};
-            $indices{"HIER_C$i"}    = {description => "C score for level $i",  lumper => 0,};
-            $indices{"HIER_ASUM$i"} = {description => "Sum of shared label sample counts, level $i", lumper => 0,};
-            
-            next if $i == 0;
-            
-            my $ij_text = "${i}_${j}";
-            $indices{"HIER_ARAT$ij_text"}     = {description => "Ratio of A scores, (HIER_A$i / HIER_A$j)", lumper => 0,};
-            $indices{"HIER_BRAT$ij_text"}     = {description => "Ratio of B scores, (HIER_B$i / HIER_B$j)", lumper => 0,};
-            $indices{"HIER_CRAT$ij_text"}     = {description => "Ratio of C scores, (HIER_C$i / HIER_C$j)", lumper => 0,};
-            $indices{"HIER_ASUMRAT$ij_text"}  = {
-                description => "1 - Ratio of shared label sample counts, (HIER_ASUM$i / HIER_ASUM$j)",
-                cluster     => 'NO_CACHE_ABC',  #  value is true, but allows a caveat
-            };
+
+    $indices{HIER_A}    = {description => "A score for each level"};
+    $indices{HIER_B}    = {description => "B score  for each level"};
+    $indices{HIER_C}    = {description => "C score for each level"};
+    $indices{HIER_ASUM} = {description => "Sum of shared label sample counts"};
+
+    $indices{"HIER_ARAT"}     = {description => "Ratio of A scores between adjacent levels"};
+    $indices{"HIER_BRAT"}     = {description => "Ratio of B scores between adjacent levels"};
+    $indices{"HIER_CRAT"}     = {description => "Ratio of C scores between adjacent levels"};
+    $indices{"HIER_ASUMRAT"}  = {
+        description => "1 - Ratio of shared label sample counts between adjacent levels",
+        # cluster     => 'NO_CACHE_ABC',  #  value is true, but allows a caveat
+    };
+
+    foreach my $index (keys %indices) {
+        my $meta = $indices{$index};
+        $meta->{type} = 'list';
+        if ($index =~ /RAT$/) {
+            $meta->{is_ratio} = 1;
         }
     }
 
-    #my $levels = ($column_count - 1);
     my $desc = <<"END_H_DESC"
 Analyse the diversity of labels using their hierarchical levels.
 The A, B and C scores are the same as in the Label Counts analysis (calc_label_counts)
 but calculated for each hierarchical level, e.g. for three axes one could have
 A0 as the Family level, A1 for the Family:Genus level,
 and A2 for the Family:Genus:Species level.
-The number of indices generated depends on how many axes are used in the labels.
-In this case there are $column_count.  Axes are numbered from zero
-as the highest level in the hierarchy, so level 0 is the top level
-of the hierarchy.
+The number of list elements generated depends on how many axes are used in the labels.
+Axes are order from zero as the highest level in the hierarchy,
+so index 0 is the top level of the hierarchy.
+
+Note that this calculation prodices lists since version 4.99_002
+so one can no longer use the SUMRAT indices for clustering.
+This can be re-enabled if there is a need.
 END_H_DESC
 ;
     
@@ -97,9 +99,9 @@ sub calc_hierarchical_label_ratios {
             element_list2 => $args{element_list2},
         );
         
-        $results{'HIER_A' . $i} = $$xx{A};
-        $results{'HIER_B' . $i} = $$xx{B};
-        $results{'HIER_C' . $i} = $$xx{C};
+        $results{HIER_A}{$i} = $$xx{A};
+        $results{HIER_B}{$i} = $$xx{B};
+        $results{HIER_C}{$i} = $$xx{C};
         
         my $xx_a_keys = $self->get_shared_hash_keys (
             lists => [
@@ -112,23 +114,22 @@ sub calc_hierarchical_label_ratios {
             $sum_a_keys[$i] += $xx->{label_hash_all}{$key};
         }
         
-        $results{'HIER_ASUM' . $i} = $sum_a_keys[$i];
+        $results{HIER_ASUM}{$i} = $sum_a_keys[$i];
         
         next if $i == 0;
         
         my $j = $i - 1;
         
-        $results{"HIER_ARAT$i\_$j"} = eval {$xx->{A} / $results{'HIER_A' . $j}};
-        $results{"HIER_BRAT$i\_$j"} = eval {$xx->{B} / $results{'HIER_B' . $j}};
-        $results{"HIER_CRAT$i\_$j"} = eval {$xx->{C} / $results{'HIER_C' . $j}};
+        $results{HIER_ARAT}{$i} = eval {$xx->{A} / $results{HIER_A}{$j}};
+        $results{HIER_BRAT}{$i} = eval {$xx->{B} / $results{HIER_B}{$j}};
+        $results{HIER_CRAT}{$i} = eval {$xx->{C} / $results{HIER_C}{$j}};
         #  if the denominator is zero then we have no overlap
         #  between label lists -- make it a result of 1
-        $results{"HIER_ASUMRAT$i\_$j"}
+        $results{HIER_ASUMRAT}{$i}
             = 1 - eval {$sum_a_keys[$i] / $sum_a_keys[$j]};
     }
     
     return wantarray ? %results : \%results;
-    
 }
 
 sub get_metadata_get_basedatas_by_label_hierarchy {

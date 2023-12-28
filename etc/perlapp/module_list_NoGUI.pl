@@ -14,7 +14,7 @@ use Biodiverse::Exception;
 use Biodiverse::Index;
 use Biodiverse::Indices::Endemism;
 use Biodiverse::Indices::GroupProperties;
-use Biodiverse::Indices::Hierarchical_Labels;
+use Biodiverse::Indices::HierarchicalLabels;
 use Biodiverse::Indices::IEI;
 use Biodiverse::Indices::Indices;
 use Biodiverse::Indices::LabelProperties;

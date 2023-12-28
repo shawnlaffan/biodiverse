@@ -29,18 +29,14 @@ __DATA__
 
 @@ RESULTS_2_NBR_LISTS
 {
-  'HIER_A0' => 2,
-  'HIER_A1' => 2,
-  'HIER_ARAT1_0' => '1',
-  'HIER_ASUM0' => 18,
-  'HIER_ASUM1' => 18,
-  'HIER_ASUMRAT1_0' => 0,
-  'HIER_B0' => 0,
-  'HIER_B1' => 0,
-  'HIER_BRAT1_0' => undef,
-  'HIER_C0' => 12,
-  'HIER_C1' => 12,
-  'HIER_CRAT1_0' => '1'
+  'HIER_A' => {'0' => 2, '1' => 2},
+  'HIER_ARAT' => {1 => '1'},
+  'HIER_ASUM' => {'0' => 18, '1' => 18},
+  'HIER_ASUMRAT' => {1 => 0},
+  'HIER_B' => {'0' => 0, '1' => 0},
+  'HIER_BRAT' => {1 => undef},
+  'HIER_C' => {'0' => 12, '1' => 12},
+  'HIER_CRAT' => {'1' => '1'}
 }
 
 @@ RESULTS_1_NBR_LISTS

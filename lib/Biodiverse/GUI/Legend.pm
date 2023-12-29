@@ -109,20 +109,9 @@ sub new {
 
     #  reverse might not be needed but ensures the array is the correct size from the start
     foreach my $i (reverse 0..3) {
-        $self->{marks}[$i] = $self->make_mark($self->{legend_marks}[$i]);
+        $self->{marks}{default}[$i] = $self->make_mark($self->{legend_marks}[$i]);
     }
-    #  clunky that we need to do it here
-    my @anchors = ('nw', ('w') x 3, 'sw');
-    foreach my $i (reverse 0..4) {
-        $self->{canape_marks}[$i]    = $self->make_mark($anchors[$i]);
-        $self->{divergent_marks}[$i] = $self->make_mark($anchors[$i]);
-        $self->{ratio_marks}[$i]     = $self->make_mark($anchors[$i]);
-    }
-    @anchors = ('nw', ('w') x 5, 'sw');
-    foreach my $i (reverse 0..6) {
-        $self->{zscore_marks}[$i] = $self->make_mark($anchors[$i]);
-        $self->{prank_marks}[$i]  = $self->make_mark($anchors[$i]);
-    }
+    $self->{marks}{current} = $self->{marks}{default};
 
     #  debug stuff
     #my $sub = sub {
@@ -198,8 +187,21 @@ sub make_rect {
 
         my $n = (scalar keys %canape_colour_hash) - 1;
         foreach my $row (0..($height - 1)) {
-            my $class = int (0.5 + $n * $row / ($height - 1));
+            my $class = $n - int (0.5 + $n * $row / ($height - 1));
             my $colour = $self->get_colour_canape ($class);
+            $self->add_row($self->{legend_colours_group}, $row, $colour);
+        }
+    }
+    elsif ($self->get_categorical_mode) {
+        ($width, $height) = ($self->get_width, 255);
+        $self->{legend_height} = $height;
+        my $label_hash = $self->{categorical}{labels};
+
+        my $n = (scalar keys %$label_hash) - 1;
+        foreach my $row (0..($height - 1)) {
+            #  cat 0 at the top
+            my $class = $n - int (0.5 + $n * $row / ($height - 1));
+            my $colour = $self->get_colour_categorical ($class);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -252,10 +254,10 @@ sub make_rect {
         local $self->{log_mode} = 0; # hacky override
 
         my $mid = ($height - 1) / 2;
-        foreach my $row (0..($height - 1)) {
+        foreach my $row (reverse 0..($height - 1)) {
             my $val = $row < $mid ? 1 / ($mid - $row) : $row - $mid;
             #  invert again so colours match legend text
-            my $colour = $self->get_colour_ratio (1 / $val, $mid);
+            my $colour = $self->get_colour_ratio (1/$val, 1/$mid, $mid);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -267,9 +269,10 @@ sub make_rect {
 
         my $centre = ($height - 1) / 2;
         my $extreme = $height - $centre;
-        foreach my $row (0..($height - 1)) {
-            #  ensure colours match plot since 0 is the top
-            my $colour = $self->get_colour_divergent ($height - $row, $centre, $extreme);
+
+        #  ensure colours match plot since 0 is the top
+        foreach my $row (reverse 0..($height - 1)) {
+            my $colour = $self->get_colour_divergent ($centre - $row, -$extreme, $extreme);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }
@@ -358,6 +361,15 @@ sub make_mark {
     return $mark;
 }
 
+sub hide_current_marks {
+    my $self = shift;
+    my $marks = $self->{marks}{current} // [];
+    foreach my $mark (@$marks) {
+        $mark->hide;
+    }
+    return;
+}
+
 sub set_gt_flag {
     my $self = shift;
     my $flag = shift;
@@ -385,6 +397,14 @@ sub get_width {
 sub get_height {
     my $self = shift;
     return $self->{back_rect_height} // LEGEND_HEIGHT;
+}
+
+sub refresh_legend {
+    my $self = shift;
+    $self->make_rect;
+    #  trigger a redisplay of the legend
+    $self->reposition($self->{width_px}, $self->{height_px});
+    1;
 }
 
 # Updates position of legend and value box
@@ -427,13 +447,7 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr
-        = $self->get_zscore_mode ? @{$self->{zscore_marks}}
-        : $self->get_prank_mode  ? @{$self->{prank_marks}}
-        : $self->get_canape_mode ? @{$self->{canape_marks}}
-        : $self->get_divergent_mode ? @{$self->{divergent_marks}}
-        : $self->get_ratio_mode  ? @{$self->{ratio_marks}}
-        : @{$self->{marks}};
+    my @mark_arr = @{$self->{marks}{current} // []};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -496,6 +510,8 @@ sub set_mode {
     #$self->colour_cells();
 
     # Update legend
+    $self->hide_current_marks;
+    #  could use refresh_legend here?
     if ($self->{legend}) { # && $self->{width_px} && $self->{height_px}) {
         $self->{legend} = $self->make_rect();
         $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
@@ -602,6 +618,17 @@ sub get_colour {
     return $self->$method($val, $min, $max);
 }
 
+sub get_colour_categorical {
+    my ($self, $val) = @_;
+    $val //= -1;  #  avoid undef key warnings
+    my $colour_hash = $self->{categorical}{colours} //= {};
+    my $colour = $colour_hash->{$val} || COLOUR_WHITE;
+    #  should not need to do this
+    if (!blessed $colour) {
+        $colour = $colour_hash->{$val} = Gtk2::Gdk::Color->parse($colour);
+    }
+    return $colour;
+}
 
 sub get_colour_canape {
     my ($self, $val) = @_;
@@ -658,16 +685,17 @@ sub get_colour_prank {
 }
 
 sub get_colour_divergent {
-    my ($self, $val, $centre, $max_dist) = @_;
+    my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
 
     return $default_colour
-        if ! defined $max_dist;
+        if ! (defined $max && defined $min);
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
-    $centre //= 0;
+    my $centre = 0;
+    my $max_dist = max (abs($min), abs($max));
 
     return $centre_colour
         if $val == $centre || $max_dist == 0;
@@ -705,17 +733,22 @@ sub get_colour_divergent {
 }
 
 sub get_colour_ratio {
-    my ($self, $val, $extreme) = @_;
+    my ($self, $val, $min, $max) = @_;
 
     state $default_colour = Gtk2::Gdk::Color->new(0, 0, 0);
 
     return $default_colour
-        if ! defined $extreme;
+        if ! (defined $min && defined $max);
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
+    my $extreme = exp (max (abs log $min, log $max));
+
     return $centre_colour
         if $val == 1 || $extreme == 1;
+
+    # $min = 1 / $extreme;
+    # $max = $extreme;
 
     #  simplify logic below
     if ($extreme < 1) {
@@ -909,18 +942,28 @@ sub set_min_max {
     return $self->set_text_marks_prank
         if $self->get_prank_mode;
 
-    # foreach my $mark (@{$self->{marks}}) {
+    # foreach my $mark (@{$self->{marks}{default}}) {
     #     $mark->show;
     # }
 
     return $self->set_text_marks_canape
         if $self->get_canape_mode;
 
-    return $self->set_text_marks_divergent ($val1, $val2)
-        if $self->get_divergent_mode;
+    return $self->set_text_marks_categorical
+        if $self->get_categorical_mode;
 
-    return $self->set_text_marks_ratio ($val2)
-        if $self->get_ratio_mode;
+    if ($self->get_divergent_mode) {
+        my $abs_extreme = max(abs $val1, abs $val2);
+        my $min = 0;
+        my $max = $abs_extreme;
+        return $self->set_text_marks_divergent($min, $max);
+    }
+    elsif ($self->get_ratio_mode) {
+        my $abs_extreme = exp (max (abs log $val1, log $val2));
+        my $min = 1 / $abs_extreme;
+        my $max = $abs_extreme;
+        return $self->set_text_marks_ratio($min, $max)
+    }
 
     my $min = $val1 //= $self->{last_min};
     my $max = $val2 //= $self->{last_max};
@@ -929,13 +972,15 @@ sub set_min_max {
     $self->{last_max} = $max;
 
 
-    return if ! ($self->{marks}
+    return if ! ($self->{marks}{default}
                  && defined $min
                  && defined $max
                 );
 
     # Set legend textbox markers
-    my @mark_arr = @{$self->{marks}};
+    $self->hide_current_marks;
+    my @mark_arr = @{$self->{marks}{default}};
+    $self->{marks}{current} = $self->{marks}{default};
     my $marker_step = ($max - $min) / $#mark_arr;
     foreach my $i (0..$#mark_arr) {
         my $val = $min + $i * $marker_step;
@@ -959,7 +1004,7 @@ sub set_min_max {
             $text = '  ' . $text;
         }
 
-        my $mark = $self->{marks}[$#mark_arr - $i];
+        my $mark = $self->{marks}{default}[$#mark_arr - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
         my @bounds = $mark->get_bounds;
@@ -980,66 +1025,32 @@ sub set_min_max {
 sub set_text_marks_canape {
     my $self = shift;
 
-    return if !$self->{marks};
+    my @strings = reverse (qw /super mixed palaeo neo non-sig/);
+    return $self->set_text_marks_for_labels (\@strings);
+}
 
-    foreach my $mark (@{$self->{marks}}) {
-        $mark->hide;
-    }
+sub set_text_marks_categorical {
+    my $self = shift;
 
-    my @strings = qw /super mixed palaeo neo non-sig/;
+    my $label_hash = $self->{categorical}{labels} // {};
+    my @strings = @$label_hash{sort {$a <=> $b} keys %$label_hash};
 
-    my $mark_arr = $self->{canape_marks} //= [];
-    if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
-        }
-    }
-
-    # Set legend textbox markers
-    foreach my $i (0..$#strings) {
-        my $mark = $mark_arr->[$#$mark_arr - $i];
-        $mark->set( text => $strings[$i] );
-        $mark->raise_to_top;
-    }
-
-    return;
+    return $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_zscore {
     my $self = shift;
 
-    #  needed?  seem to remember it avoids triggering marks if grid is not set up
-    return if !$self->{marks};
-
-    foreach my $mark (@{$self->{marks}}) {
-        $mark->hide;
-    }
-
     my @strings = ('<-2.58', '[-2.58,-1.96)', '[-1.96,-1.65)', '[-1.65,1.65]', '(1.65,1.96]', '(1.96,2.58]', '>2.58');
-
-    my $mark_arr = $self->{zscore_marks} //= [];
-    if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
-        }
-    }
-
-    # Set legend textbox markers
-    foreach my $i (0 .. $#strings) {
-        my $mark = $mark_arr->[$#strings - $i];
-        $mark->set( text => $strings[$i] );
-        # $mark->show;
-        $mark->raise_to_top;
-    }
-
-    return;
+    return $self->set_text_marks_for_labels (\@strings);
 }
 
 #  refactor needed
 sub set_text_marks_divergent {
-    my ($self, $mid, $extent) = @_;
+    my ($self, $min, $max) = @_;
+
+    my $extent = max (abs($min), abs ($max));
+    my $mid = 0;
 
     my $mid2 = ($mid + $extent) / 2;
     my @strings = (
@@ -1071,11 +1082,11 @@ sub set_text_marks_divergent {
     }
     # say join ' ', @strings;
 
-    $self->set_text_marks_for_labels (\@strings, $self->{divergent_marks});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_ratio {
-    my ($self, $max) = @_;
+    my ($self, $min, $max) = @_;
 
     $max //= 1;
     my $mid = 1 + ($max - 1) / 2;
@@ -1103,13 +1114,13 @@ sub set_text_marks_ratio {
         $strings[-1] = ">=$strings[-1]";
     }
 
-    $self->set_text_marks_for_labels (\@strings, $self->{ratio_marks});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 sub set_text_marks_prank {
     my $self = shift;
     my @strings = ('<0.01', '<0.025', '<0.05', '[0.05,0.95]', '>0.95', '>0.975', '>0.99');
-    $self->set_text_marks_for_labels (\@strings, $self->{prank_marks});
+    $self->set_text_marks_for_labels (\@strings);
 }
 
 #  generalises z-score version - need to simplify it
@@ -1117,21 +1128,22 @@ sub set_text_marks_for_labels {
     my ($self, \@strings, $mark_arr) = @_;
 
     #  needed?  seem to remember it avoids triggering marks if grid is not set up
-    return if !$self->{marks};
+    return if !$self->{marks}{default};
 
     $mark_arr //= [];
 
-    carp "Mark count does not match label count"
-        if scalar(@strings) != scalar @$mark_arr;
+    $self->{marks}{current} //= $self->{marks}{default};
 
-    foreach my $mark (@{$self->{marks}}) {
-        $mark->hide;
-    }
+    $self->hide_current_marks;
 
     if (!@$mark_arr) {
-        foreach my $i (0 .. $#strings) {
-            my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
-            $mark_arr->[$i] = $self->make_mark($anchor_loc);
+        my $n = scalar @strings;
+        $mark_arr = $self->{marks}{$n} //= [];
+        if (!@$mark_arr) {  #  populate if needed
+            foreach my $i (0 .. $#strings) {
+                my $anchor_loc = $i == 0 ? 'nw' : $i == $#strings ? 'sw' : 'w';
+                $mark_arr->[$i] = $self->make_mark($anchor_loc);
+            }
         }
     }
 
@@ -1142,6 +1154,8 @@ sub set_text_marks_for_labels {
         # $mark->show;
         $mark->raise_to_top;
     }
+
+    $self->{marks}{current} = $mark_arr;
 
     return;
 }
@@ -1161,206 +1175,162 @@ sub get_log_mode {
     $_[0]->{log_mode};
 }
 
-sub set_canape_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{canape_mode};
-    $self->{canape_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
-    }
-    return 1;
+#  need a better name
+sub _get_nonbasic_plot_modes {
+    my @modes = qw/canape zscore prank ratio divergent categorical/;
+    return wantarray ? @modes : \@modes;
 }
 
-sub set_canape_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{canape_mode};
-    $self->{canape_mode} = 0;
-    foreach my $mark (@{$self->{canape_marks}}) {
-        $mark->hide;
+sub set_colour_mode_from_list_and_index {
+    my ($self, %args) = @_;
+    my $index = $args{index} // '';
+    my $list  = $args{list}  // '';
+
+    state $bd_obj = Biodiverse::BaseData->new (
+        NAME         => 'colour-mode',
+        CELL_SIZES   => [1],
+        CELL_ORIGINS => [0]
+    );
+    state $indices_object = Biodiverse::Indices->new (
+        BASEDATA_REF => $bd_obj,
+    );
+
+    my $is_list = $list && $list !~ />>/ && $indices_object->index_is_list (index => $list);
+    if ($is_list) {
+        $index = $list
     }
-    if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
+
+    #  check list name then index name
+    my %h = (index => $index);
+    my $mode
+        = $list =~ />>z_scores>>/                      ? 'zscore'
+        : $list =~ />>p_rank>>/                        ? 'prank'
+        : $list =~ />>CANAPE>>/ && $index =~ /^CANAPE/ ? 'canape'
+        : $indices_object->index_is_zscore (%h)        ? 'zscore'
+        : $indices_object->index_is_ratio (%h)         ? 'ratio'
+        : $indices_object->index_is_divergent (%h)     ? 'divergent'
+        : $indices_object->index_is_categorical (%h)   ? 'categorical'
+        : '';
+
+    #  clunky to have to iterate over these but they trigger things turning off
+    #  Update - might not be the case now but process does not take long
+    foreach my $possmode (_get_nonbasic_plot_modes()) {
+        my $method = "set_${possmode}_mode";
+        $self->$method ($mode eq $possmode);
     }
-    return 0;
+
+    if ($mode eq 'categorical') {
+        my $labels  = $indices_object->get_index_category_labels (index => $index) // {};
+        my $colours = $indices_object->get_index_category_colours (index => $index) // {};
+        $self->{categorical}{labels}  = $labels;
+        foreach my $key (keys %$colours) {
+            my $colour = $colours->{$key};
+            $colours->{$key} => Gtk2::Gdk::Color->parse($colour);
+        }
+        $self->{categorical}{colours} = $colours;
+    }
+    elsif (!$mode && $list =~ />>CANAPE>>/) {
+        #  special handling for CANAPE indices
+        my %codes = (
+            NEO => 1, PALAEO => 2, MIXED => 3, SUPER => 4,
+        );
+        #  special handling
+        my $colour = $canape_colour_hash{$codes{$index} // 0};
+        $self->{categorical}{colours} = {
+            0 => $canape_colour_hash{0},
+            1 => $colour,
+        };
+        $self->{categorical}{labels} = {
+            0 => 'other',
+            1 => lc $index,
+        };
+        $self->set_categorical_mode(1);
+    }
+
+    return;
 }
 
-sub get_canape_mode {
-    $_[0]->{canape_mode};
+sub get_colour_method {
+    my $self = shift;
+
+    my $method = 'get_colour';
+
+    #  clunky to have to iterate over these,
+    #  even if we use a lookup table
+    foreach my $mode (_get_nonbasic_plot_modes()) {
+        my $check_method = "get_${mode}_mode";
+        if ($self->$check_method) {
+            $method = "get_colour_${mode}";
+        }
+    }
+
+    return $method;
 }
 
-sub set_canape_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_canape_mode_on;
+#  a few factory methods
+sub _make_nonbasic_methods {
+    my ($pkg) = shift || __PACKAGE__;
+    my @methods = _get_nonbasic_plot_modes();
+    print "Calling _make_access_methods for $pkg";
+    no strict 'refs';
+    foreach my $key (@methods) {
+        my $method   = "get_${key}_mode";
+        my $mode_key = "${key}_mode";
+        # next if $pkg->can($method);  #  do not override
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    $_[0]->{$mode_key};
+                };
+            };
+        $method = "set_${key}_mode_on";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 1;
+                    if (!$prev_val) {  #  update legend colours
+                        $self->refresh_legend;
+                    }
+                    return 1;
+                };
+            };
+        $method = "set_${key}_mode_off";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self) = @_;
+                    my $prev_val = $self->{$mode_key};
+                    $self->{$mode_key} = 0;
+                    $self->hide_current_marks;
+                    if ($prev_val) {  #  give back our colours
+                        $self->refresh_legend;
+                    }
+                    return 0;
+                };
+            };
+        $method = "set_${key}_mode";
+        my $mode_off_method = "set_${key}_mode_off";
+        my $mode_on_method  = "set_${key}_mode_on";
+        # say STDERR "==== Building $method in package $pkg";
+        *{"${pkg}::${method}"} =
+            do {
+                sub {
+                    my ($self, $bool) = @_;
+                    my $method_name = $bool ? $mode_on_method : $mode_off_method;
+                    $self->$method_name;
+                    return $self->{$mode_key};
+                };
+            };
     }
-    else {
-        $self->set_canape_mode_off;
-    }
-    return $self->{canape_mode};
+
+    return;
 }
 
-sub set_zscore_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{zscore_mode};
-    $self->{zscore_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
-    }
-    return 1;
-}
-
-sub set_zscore_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{zscore_mode};
-    $self->{zscore_mode} = 0;
-    foreach my $mark (@{$self->{zscore_marks}}) {
-        $mark->hide;
-    }
-    if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
-    }
-    return 0;
-}
-
-sub get_zscore_mode {
-    $_[0]->{zscore_mode};
-}
-
-sub set_zscore_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_zscore_mode_on;
-    }
-    else {
-        $self->set_zscore_mode_off;
-    }
-    return $self->{zscore_mode};
-}
-
-sub set_divergent_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{divergent_mode};
-    $self->{divergent_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
-    }
-    return 1;
-}
-
-sub set_divergent_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{divergent_mode};
-    $self->{divergent_mode} = 0;
-    foreach my $mark (@{$self->{divergent_marks}}) {
-        $mark->hide;
-    }
-    if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
-    }
-    return 0;
-}
-
-sub get_divergent_mode {
-    $_[0]->{divergent_mode};
-}
-
-sub set_divergent_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_divergent_mode_on;
-    }
-    else {
-        $self->set_divergent_mode_off;
-    }
-    return $self->{divergent_mode};
-}
-
-sub set_ratio_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{ratio_mode};
-    $self->{ratio_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
-    }
-    return 1;
-}
-
-sub set_ratio_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{ratio_mode};
-    $self->{ratio_mode} = 0;
-    foreach my $mark (@{$self->{ratio_marks}}) {
-        $mark->hide;
-    }
-    if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
-    }
-    return 0;
-}
-
-sub get_ratio_mode {
-    $_[0]->{ratio_mode};
-}
-
-sub set_ratio_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_ratio_mode_on;
-    }
-    else {
-        $self->set_ratio_mode_off;
-    }
-    return $self->{ratio_mode};
-}
-
-sub set_prank_mode_on {
-    my ($self) = @_;
-    my $prev_val = $self->{prank_mode};
-    $self->{prank_mode} = 1;
-    if (!$prev_val) {  #  update legend colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px});  #  trigger a redisplay of the legend
-    }
-    return 1;
-}
-
-sub set_prank_mode_off {
-    my ($self) = @_;
-    my $prev_val = $self->{prank_mode};
-    $self->{prank_mode} = 0;
-    foreach my $mark (@{$self->{prank_marks}}) {
-        $mark->hide;
-    }
-    if ($prev_val) {  #  give back our colours
-        $self->make_rect;
-        $self->reposition($self->{width_px}, $self->{height_px})  #  trigger a redisplay of the legend
-    }
-    return 0;
-}
-
-sub get_prank_mode {
-    $_[0]->{prank_mode};
-}
-
-sub set_prank_mode {
-    my ($self, $bool) = @_;
-    if ($bool) {
-        $self->set_prank_mode_on;
-    }
-    else {
-        $self->set_prank_mode_off;
-    }
-    return $self->{prank_mode};
-}
-
+_make_nonbasic_methods();
 
 
 #  dup from Tab.pm - need to inherit from single source

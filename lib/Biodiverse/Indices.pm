@@ -1275,6 +1275,24 @@ sub get_valid_region_grower_indices {
     return wantarray ? %indices : \%indices;
 }
 
+sub get_categorical_indices {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
+
+    my %indices;
+    foreach my $calculations ( keys %$list ) {
+        my $meta = $self->get_metadata( sub => $calculations );
+        INDEX:
+        foreach my $index ( keys %{ $meta->get_indices } ) {
+            next INDEX if !$meta->get_index_is_categorical($index);
+            $indices{$index} = $meta->get_index_description($index);
+        }
+    }
+
+    return wantarray ? %indices : \%indices;
+}
+
 sub get_list_indices {
     my $self = shift;
     my %args = @_;
@@ -1298,12 +1316,26 @@ sub index_is_list {
     my %args = @_;
 
     croak 'argument index not defined'
-      if !defined $args{index};
+        if !defined $args{index};
 
     my $hash = $self->get_list_indices;
 
     return $hash->{$args{index} // ''};
 }
+
+sub index_is_categorical {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'argument index not defined'
+        if !defined $args{index};
+
+    my $hash = $self->get_categorical_indices;
+
+    return $hash->{$args{index} // ''};
+}
+
+
 
 #  almost identical to get_list_indices except the "next INDEX" condition
 sub get_scalar_indices {
@@ -1429,6 +1461,30 @@ sub get_index_bounds {
     my $bounds = $meta->get_index_bounds ($index);
 
     return $bounds;
+}
+
+sub get_index_category_colours {
+    my ($self, %args) = @_;
+    my $index = $args{index};
+
+    my $index_source = $self->get_index_source(index => $index);
+    my $meta = $self->get_metadata( sub => $index_source );
+
+    my $result = $meta->get_index_category_colours ($index);
+
+    return $result;
+}
+
+sub get_index_category_labels {
+    my ($self, %args) = @_;
+    my $index = $args{index};
+
+    my $index_source = $self->get_index_source(index => $index);
+    my $meta = $self->get_metadata( sub => $index_source );
+
+    my $result = $meta->get_index_category_labels ($index);
+
+    return $result;
 }
 
 sub index_distribution_is_valid {

@@ -5,6 +5,7 @@ use English qw { -no_match_vars };
 use Carp;
 
 use Test2::V0;
+use Test2::Tools::Compare qw/hash/;
 use rlib;
 
 local $| = 1;
@@ -242,17 +243,37 @@ sub test_index_bounds {
 
     foreach my $index (sort keys %$indices) {
         my $bounds = $indices_object->get_index_bounds (index => $index);
-        like $bounds,
-            [$RE_bound, $RE_bound],
-            "Bounds for scalar index $index match expected pattern";
         my $index_source = $indices_object->get_index_source(index => $index);
         my $metadata = $indices_object->get_metadata( sub => $index_source );
-        my $expected
-            = $metadata->get_index_is_unit_interval ($index) ? [0,1]
-            : $metadata->get_index_is_nonnegative ($index)   ? [0,'Inf']
-            : $metadata->get_index_is_categorical ($index)   ? []
-            : ['-Inf','Inf'];
-        is $bounds, $expected, "Bounds correct for $index";
+        if ($metadata->get_index_is_categorical($index)) {
+            #  some of these structures still need to be finalised
+            is $bounds, undef,
+                "Bounds undefined for categorical index $index";
+            my $labels  = $indices_object->get_index_category_labels (index => $index);
+            is $labels, hash {
+                all_vals D();
+                etc()
+            }, "Categorical index $index: labels all defined";
+            my $colours = $indices_object->get_index_category_colours (index => $index) // {};
+            if (keys %$colours) {
+                is $colours, hash {
+                    all_vals D();
+                    etc()
+                }, "Categorical index $index: colours all defined";
+            }
+        }
+        else {
+            like $bounds,
+                [ $RE_bound, $RE_bound ],
+                "Bounds for scalar index $index match expected pattern";
+            my $expected
+                = $metadata->get_index_is_unit_interval($index) ? [ 0, 1 ]
+                : $metadata->get_index_is_nonnegative($index) ? [ 0, 'Inf' ]
+                : [ '-Inf', 'Inf' ];
+            is $bounds, $expected, "Bounds correct for $index";
+            my $labels  = $indices_object->get_index_category_labels (index => $index);
+            is $labels, undef, "No labels defined for continuous index $index";
+        }
     }
 }
 

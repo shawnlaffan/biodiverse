@@ -12,7 +12,7 @@ use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use List::Util qw /max/;
 use Time::HiRes;
-use Sort::Key::Natural qw /natsort/;
+use Sort::Key::Natural qw /natsort natkeysort/;
 use Ref::Util qw /is_ref is_hashref is_arrayref/;
 
 use Biodiverse::GUI::GUIManager;
@@ -548,17 +548,44 @@ sub init_branch_colouring_combo {
         $model->set ( $iter, 0, $combo_text );
         $combo->set_active(0);
 
+        state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
+        my %output_ref_hash;
+        $self->{dendrogram_output_ref_hash} = \%output_ref_hash;
+        my $output_ref = $self->{output_ref};
+
         my $list_names
-          = $self->{output_ref}->get_hash_lists_across_elements;
+          = $output_ref->get_hash_lists_across_elements;
         foreach my $list_name (natsort @$list_names) {
-            next if $list_name =~ /SPATIAL_RESULTS$/;
-            next if $list_name =~ /CANAPE>>$/;
-            next if $list_name eq 'RECYCLED_SET';
-            
+            next if $list_name =~ /$re_skip_list/;
             my $iter = $model->append();
             $model->set ( $iter, 0, $list_name );
+            $output_ref_hash{$list_name} = $output_ref;
         }
-        
+        #  now add the lists from other spatial outputs in the project
+        my $own_bd = $output_ref->get_basedata_ref;
+        my @project_basedatas
+            = grep {$_ ne $own_bd}
+              @{$self->{project}->get_base_data_list};
+        unshift @project_basedatas, $own_bd;
+        foreach my $bd (@project_basedatas) {
+            my $bd_name = $bd->get_name;
+            my @output_refs
+                = grep {$_ ne $output_ref}
+                  $bd->get_spatial_output_refs;
+            foreach my $ref (natkeysort {$_->get_name} @output_refs) {
+                my $list_names
+                    = $ref->get_hash_lists_across_elements;
+                my $output_name = $ref->get_name;
+                foreach my $list_name (natsort @$list_names) {
+                    next if $list_name =~ /$re_skip_list/;
+                    my $key  = "$list_name <i>($bd_name, $output_name)</i>";
+                    my $iter = $model->append();
+                    $model->set($iter, 0, $key);
+                    $output_ref_hash{$key} = $ref;
+                }
+            }
+        }
+
         my $separator = Gtk2::SeparatorToolItem->new;
         $bottom_hbox->pack_start ($separator, 0, 0, 0);
         $bottom_hbox->pack_start ($label, 0, 0, 0);
@@ -1565,13 +1592,16 @@ sub colour_branches_on_dendrogram {
     my $self = shift;
     my %args = @_;
     
-    my $tree       = $self->get_current_tree;
+    my $tree = $self->get_current_tree;
 
     return if !$tree;
 
     my $list_name  = $args{list_name};
     my $dendrogram = $self->{dendrogram};
-    my $output_ref = $self->{output_ref};
+
+    my $output_ref_hash = $self->{dendrogram_output_ref_hash};
+    my $output_ref = $output_ref_hash->{$list_name};
+    $list_name =~ s{\s+<i>.+$}{};
 
     my $legend = $dendrogram->get_legend;
     $legend->set_colour_mode_from_list_and_index (
@@ -1596,7 +1626,7 @@ sub colour_branches_on_dendrogram {
     );
     
     my $minmax
-      = $self->get_index_min_max_values_across_full_list ($list_name);
+      = $self->get_index_min_max_values_across_full_list ($list_name, $output_ref);
     my ($min, $max) = @$minmax;  #  should not need to pass this
     $legend->set_min_max ($min, $max);
 
@@ -1878,12 +1908,12 @@ sub on_active_index_changed {
 
 #  bad name - we want all values across all lists of name $listname across all elements
 sub get_index_min_max_values_across_full_list {
-    my ($self, $list_name) = @_;
+    my ($self, $list_name, $output_ref) = @_;
 
-    my $output_ref = $self->{output_ref};
+    $output_ref //= $self->{output_ref};
 
     use List::MoreUtils qw /minmax/;
-    my $stats = $self->{list_minmax_across_all_elements}{$list_name};
+    my $stats = $self->{list_minmax_across_all_elements}{"$output_ref: $list_name"};
     
     return $stats if $stats;
 

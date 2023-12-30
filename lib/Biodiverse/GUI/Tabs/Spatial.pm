@@ -491,8 +491,10 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->{no_dendro_legend_for} = {
-        '<i>Turnover</i>'        => 1,
+        '<i>Turnover</i>'              => 1,
         '<i>Branches in nbr set 1</i>' => 1,
+        'Turnover'                     => 1,
+        'Branches in nbr set 1'        => 1,
     };
 
     $self->init_branch_colouring_combo;
@@ -531,17 +533,31 @@ sub init_branch_colouring_combo {
             }
             $menubar->destroy if $menubar;
         }
+
+        my $label = Gtk2::Label->new('Branch colouring: ');
+
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
 
+        my $checkbox_show_legend
+            = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
         $menubar = Gtk2::MenuBar->new;
         my $menu = Gtk2::Menu->new;
-        my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring');
+        my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
         $menuitem->set_submenu ($menu);
         $menubar->append($menuitem);
-
-        my $label = Gtk2::Label->new('Branch colouring: ');
+        my $menu_action = sub {
+            my $args = shift;
+            my ($self, $listname, $output_ref) = @$args;
+            if ($checkbox_show_legend->get_active) {
+                $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
+                $self->{dendrogram}->get_legend->show;
+            }
+            $self->{current_branch_colouring_source} = [$output_ref, $listname];
+            my $output_name = $output_ref->get_name;
+            $label->set_markup ("$listname <i>($output_name)</i>");
+        };
 
         my $renderer = Gtk2::CellRendererText->new();
         $combo->pack_start($renderer, 1);
@@ -555,13 +571,23 @@ sub init_branch_colouring_combo {
         my $iter = $model->append();
         $model->set ( $iter, 0, $combo_text );
         $combo->set_active(0);
+        $label->set_markup ($combo_text);
+        my $sel_group = [];
 
         my $menu_item_label = Gtk2::Label->new($combo_text);
-        my $menu_item = Gtk2::MenuItem->new_with_label($combo_text);
-        # my $menu_item = Gtk2::MenuItem->new();
+        my $menu_item
+            = Gtk2::RadioMenuItem->new_with_label($sel_group, $combo_text);
+        push @$sel_group, $menu_item;
         $menu_item->set_use_underline(0);
         # $menu_item->set_label($menu_item_label);
         $menu->append($menu_item);
+        $menu_item->signal_connect_swapped(
+            activate => sub {
+                $self->{dendrogram}->get_legend->hide;
+                $self->{current_branch_colouring_source} = undef;
+                $label->set_markup ($combo_text);
+            },
+        );
 
         state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
         my %output_ref_hash;
@@ -576,12 +602,13 @@ sub init_branch_colouring_combo {
             $model->set ( $iter, 0, $list_name );
             $output_ref_hash{$list_name} = $output_ref;
 
-            my $menu_item = Gtk2::MenuItem->new($list_name);
+            my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+            push @$sel_group, $menu_item;  #  first one is default
             $menu_item->set_use_underline(0);
             $menu->append($menu_item);
-            # $menu_item->signal_connect_swapped(
-            #     activate => \&do_export, [$self, $label],
-            # );
+            $menu_item->signal_connect_swapped(
+                activate => $menu_action, [$self, $list_name, $output_ref],
+            );
         }
 
         #  now add the lists from other spatial outputs in the project,
@@ -621,13 +648,16 @@ sub init_branch_colouring_combo {
                     my $iter = $model->append();
                     $model->set($iter, 0, $key);
                     $output_ref_hash{$key} = $ref;
-                    my $menu_item = Gtk2::MenuItem->new($list_name);
+                    my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+                    push @$sel_group, $menu_item;
                     $menu_item->set_use_underline(0);
+                    $menu_item->signal_connect_swapped(
+                        activate => $menu_action, [$self, $list_name, $ref],
+                    );
                     $sp_submenu->append($menu_item);
                 }
 
                 $bd_submenu->append($sp_submenu_item);
-
             }
             if ($item_count) {
                 $bd_submenu_item->set_submenu($bd_submenu);
@@ -636,7 +666,7 @@ sub init_branch_colouring_combo {
         }
 
         my $separator = Gtk2::SeparatorToolItem->new;
-        foreach my $widget ($separator, $menubar, $label, $combo) {
+        foreach my $widget ($separator, $menubar, $label) {
             $bottom_hbox->pack_start ($widget, 0, 0, 0);
         }
         $bottom_hbox->show_all;
@@ -656,7 +686,7 @@ sub init_branch_colouring_combo {
         );
     }
 
-    $combo->show;
+    # $combo->show;
 
     return 1;
 }
@@ -1582,6 +1612,15 @@ my @dendro_highlight_branch_colours
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;
 
+    if (my $sources = $self->{current_branch_colouring_source}) {
+        my ($ref, $listname) = @$sources;
+        $self->colour_branches_on_dendrogram (
+            list_name  => $listname,
+            output_ref => $ref,
+            group      => $group,
+        );
+        return;
+    }
     if (my $combo = $self->{branch_colouring_combobox}) {
         my $selected_text = $combo->get_active_text;
         if (!$self->{no_dendro_legend_for}{$selected_text}) {
@@ -1649,7 +1688,7 @@ sub colour_branches_on_dendrogram {
     my $dendrogram = $self->{dendrogram};
 
     my $output_ref_hash = $self->{dendrogram_output_ref_hash};
-    my $output_ref = $output_ref_hash->{$list_name};
+    my $output_ref = $args{output_ref} // $output_ref_hash->{$list_name};
     $list_name =~ s{\s+<i>.+$}{};
 
     my $legend = $dendrogram->get_legend;

@@ -1160,6 +1160,13 @@ sub set_text_marks_for_labels {
     return;
 }
 
+sub set_log_mode {
+    croak "boolean arg not passed"
+      if @_ < 2;
+    my ($self, $bool) = @_;
+
+    return $self->{log_mode} = $bool ? 1 : 0;
+}
 
 sub set_log_mode_on {
     my ($self) = @_;

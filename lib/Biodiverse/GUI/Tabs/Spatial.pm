@@ -1690,12 +1690,7 @@ sub colour_branches_on_dendrogram {
     );
 
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
-    if ($log_check_box->get_active) {
-        $legend->set_log_mode_on;
-    }
-    else {
-        $legend->set_log_mode_off;
-    }
+    $legend->set_log_mode($log_check_box->get_active);
 
     my $flip_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_colour_stretch_flip_mode');
     $legend->set_invert_colours ($flip_check_box->get_active);

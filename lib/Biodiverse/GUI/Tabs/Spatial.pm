@@ -516,144 +516,144 @@ sub init_branch_colouring_menu {
     my $menubar   = $self->{branch_colouring_menu};
     my $have_menu = !!$menubar;
 
-    if ($args{refresh} || !$menubar) {
-        #  clean up pre-existing
-        if ($have_menu) {
-            $_->destroy
-                foreach @{$self->{branch_colouring_extra_widgets} // []};
-            $menubar->destroy if $menubar;
+    return 1 if !($args{refresh} || !$menubar);
+
+    #  clean up pre-existing
+    if ($have_menu) {
+        $_->destroy
+            foreach @{$self->{branch_colouring_extra_widgets} // []};
+        $menubar->destroy if $menubar;
+    }
+
+    my $label = Gtk2::Label->new('Branch colouring: ');
+
+    my $checkbox_show_legend
+        = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    $menubar = Gtk2::MenuBar->new;
+    my $menu = Gtk2::Menu->new;
+    my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
+    $menuitem->set_submenu ($menu);
+    $menubar->append($menuitem);
+    my $menu_action = sub {
+        my $args = shift;
+        my ($self, $listname, $output_ref) = @$args;
+        if ($checkbox_show_legend->get_active) {
+            $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
+            $self->{dendrogram}->get_legend->show;
         }
+        $self->{current_branch_colouring_source} = [$output_ref, $listname];
+        my $output_name = $output_ref->get_name;
+        $label->set_markup ("$listname <i>(source: $output_name)</i>");
+    };
 
-        my $label = Gtk2::Label->new('Branch colouring: ');
+    #  need to keep in synch with $self->{no_dendro_legend_for}
+    my $default_text
+      = $self->{output_ref}->get_spatial_conditions_count > 1
+      ? '<i>Turnover</i>'
+      : '<i>Branches in nbr set 1</i>';
+    $label->set_markup ($default_text);
+    my $default_text_sans_markup = $default_text =~ s/<.?i>//gr;
+    my $sel_group = [];
 
-        my $checkbox_show_legend
-            = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
-        $menubar = Gtk2::MenuBar->new;
-        my $menu = Gtk2::Menu->new;
-        my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
-        $menuitem->set_submenu ($menu);
-        $menubar->append($menuitem);
-        my $menu_action = sub {
-            my $args = shift;
-            my ($self, $listname, $output_ref) = @$args;
-            if ($checkbox_show_legend->get_active) {
-                $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
-                $self->{dendrogram}->get_legend->show;
-            }
-            $self->{current_branch_colouring_source} = [$output_ref, $listname];
-            my $output_name = $output_ref->get_name;
-            $label->set_markup ("$listname <i>(source: $output_name)</i>");
-        };
+    my $menu_item_label = Gtk2::Label->new($default_text);
+    my $menu_item
+        = Gtk2::RadioMenuItem->new_with_label($sel_group, $default_text_sans_markup);
+    push @$sel_group, $menu_item;
+    $menu_item->set_use_underline(0);
+    # $menu_item->set_label($menu_item_label);
+    $menu->append($menu_item);
+    $menu_item->signal_connect_swapped(
+        activate => sub {
+            $self->{dendrogram}->get_legend->hide;
+            $self->{current_branch_colouring_source} = undef;
+            $label->set_markup ($default_text);
+        },
+    );
 
-        #  need to keep in synch with $self->{no_dendro_legend_for}
-        my $default_text
-          = $self->{output_ref}->get_spatial_conditions_count > 1
-          ? '<i>Turnover</i>'
-          : '<i>Branches in nbr set 1</i>';
-        $label->set_markup ($default_text);
-        my $default_text_sans_markup = $default_text =~ s/<.?i>//gr;
-        my $sel_group = [];
+    state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
+    my %output_ref_hash;
+    $self->{dendrogram_output_ref_hash} = \%output_ref_hash;
+    my $output_ref = $self->{output_ref};
 
-        my $menu_item_label = Gtk2::Label->new($default_text);
-        my $menu_item
-            = Gtk2::RadioMenuItem->new_with_label($sel_group, $default_text_sans_markup);
-        push @$sel_group, $menu_item;
+    my $list_names
+      = $output_ref->get_hash_lists_across_elements;
+    foreach my $list_name (natsort @$list_names) {
+        next if $list_name =~ /$re_skip_list/;
+
+        my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+        push @$sel_group, $menu_item;  #  first one is default
         $menu_item->set_use_underline(0);
-        # $menu_item->set_label($menu_item_label);
         $menu->append($menu_item);
         $menu_item->signal_connect_swapped(
-            activate => sub {
-                $self->{dendrogram}->get_legend->hide;
-                $self->{current_branch_colouring_source} = undef;
-                $label->set_markup ($default_text);
-            },
+            activate => $menu_action, [$self, $list_name, $output_ref],
         );
-
-        state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
-        my %output_ref_hash;
-        $self->{dendrogram_output_ref_hash} = \%output_ref_hash;
-        my $output_ref = $self->{output_ref};
-
-        my $list_names
-          = $output_ref->get_hash_lists_across_elements;
-        foreach my $list_name (natsort @$list_names) {
-            next if $list_name =~ /$re_skip_list/;
-
-            my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
-            push @$sel_group, $menu_item;  #  first one is default
-            $menu_item->set_use_underline(0);
-            $menu->append($menu_item);
-            $menu_item->signal_connect_swapped(
-                activate => $menu_action, [$self, $list_name, $output_ref],
-            );
-        }
-
-        #  now add the lists from other spatial outputs in the project,
-        #  organised by their parent basedatas
-        my $own_bd = $output_ref->get_basedata_ref;
-        my @project_basedatas
-            = #grep {$_ ne $own_bd}
-              @{$self->{project}->get_base_data_list};
-        foreach my $bd (@project_basedatas) {
-            my @output_refs
-                = grep {$_ ne $output_ref}
-                  $bd->get_spatial_output_refs;
-            next if !@output_refs;
-
-            my $bd_name = $bd->get_name;
-            my $bd_submenu = Gtk2::Menu->new;
-            my $bd_submenu_item = Gtk2::MenuItem->new_with_label($bd_name);
-            $bd_submenu_item->set_use_underline(0);
-            my $item_count;
-
-            foreach my $ref (natkeysort {$_->get_name} @output_refs) {
-                my @list_names
-                    = natsort
-                      grep {$_ !~ /$re_skip_list/}
-                      $ref->get_hash_lists_across_elements;
-                next if !@list_names;
-
-                $item_count++;
-
-                my $output_name = $ref->get_name;
-                my $sp_submenu = Gtk2::Menu->new;
-                my $sp_submenu_item = Gtk2::MenuItem->new_with_label($output_name);
-                $sp_submenu_item->set_use_underline(0);
-                $sp_submenu_item->set_submenu($sp_submenu);
-                foreach my $list_name (@list_names) {
-                    my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
-                    push @$sel_group, $menu_item;
-                    $menu_item->set_use_underline(0);
-                    $menu_item->signal_connect_swapped(
-                        activate => $menu_action, [$self, $list_name, $ref],
-                    );
-                    $sp_submenu->append($menu_item);
-                }
-
-                $bd_submenu->append($sp_submenu_item);
-            }
-            if ($item_count) {
-                $bd_submenu_item->set_submenu($bd_submenu);
-                $menu->append($bd_submenu_item);
-            }
-        }
-
-        my $separator = Gtk2::SeparatorToolItem->new;
-        foreach my $widget ($separator, $menubar, $label) {
-            $bottom_hbox->pack_start ($widget, 0, 0, 0);
-        }
-        $bottom_hbox->show_all;
-        $menu->set_sensitive(1);
-
-        $menubar->set_has_tooltip(1);
-        $menubar->set_tooltip_text ($self->_get_branch_colouring_menu_tooltip);
-        $label->set_has_tooltip(1);
-        $label->set_tooltip_text ($self->_get_branch_colouring_label_tooltip);
-
-        $self->{branch_colouring_menu} = $menubar;
-        $self->{branch_colouring_extra_widgets}
-          = [$separator, $label];
     }
+
+    #  now add the lists from other spatial outputs in the project,
+    #  organised by their parent basedatas
+    my $own_bd = $output_ref->get_basedata_ref;
+    my @project_basedatas
+        = #grep {$_ ne $own_bd}
+          @{$self->{project}->get_base_data_list};
+    foreach my $bd (@project_basedatas) {
+        my @output_refs
+            = grep {$_ ne $output_ref}
+              $bd->get_spatial_output_refs;
+        next if !@output_refs;
+
+        my $bd_name = $bd->get_name;
+        my $bd_submenu = Gtk2::Menu->new;
+        my $bd_submenu_item = Gtk2::MenuItem->new_with_label($bd_name);
+        $bd_submenu_item->set_use_underline(0);
+        my $item_count;
+
+        foreach my $ref (natkeysort {$_->get_name} @output_refs) {
+            my @list_names
+                = natsort
+                  grep {$_ !~ /$re_skip_list/}
+                  $ref->get_hash_lists_across_elements;
+            next if !@list_names;
+
+            $item_count++;
+
+            my $output_name = $ref->get_name;
+            my $sp_submenu = Gtk2::Menu->new;
+            my $sp_submenu_item = Gtk2::MenuItem->new_with_label($output_name);
+            $sp_submenu_item->set_use_underline(0);
+            $sp_submenu_item->set_submenu($sp_submenu);
+            foreach my $list_name (@list_names) {
+                my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+                push @$sel_group, $menu_item;
+                $menu_item->set_use_underline(0);
+                $menu_item->signal_connect_swapped(
+                    activate => $menu_action, [$self, $list_name, $ref],
+                );
+                $sp_submenu->append($menu_item);
+            }
+
+            $bd_submenu->append($sp_submenu_item);
+        }
+        if ($item_count) {
+            $bd_submenu_item->set_submenu($bd_submenu);
+            $menu->append($bd_submenu_item);
+        }
+    }
+
+    my $separator = Gtk2::SeparatorToolItem->new;
+    foreach my $widget ($separator, $menubar, $label) {
+        $bottom_hbox->pack_start ($widget, 0, 0, 0);
+    }
+    $bottom_hbox->show_all;
+    $menu->set_sensitive(1);
+
+    $menubar->set_has_tooltip(1);
+    $menubar->set_tooltip_text ($self->_get_branch_colouring_menu_tooltip);
+    $label->set_has_tooltip(1);
+    $label->set_tooltip_text ($self->_get_branch_colouring_label_tooltip);
+
+    $self->{branch_colouring_menu} = $menubar;
+    $self->{branch_colouring_extra_widgets}
+      = [$separator, $label];
 
     return 1;
 }

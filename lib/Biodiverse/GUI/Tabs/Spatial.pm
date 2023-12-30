@@ -571,8 +571,7 @@ sub init_branch_colouring_menu {
     );
 
     state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
-    my %output_ref_hash;
-    $self->{dendrogram_output_ref_hash} = \%output_ref_hash;
+
     my $output_ref = $self->{output_ref};
 
     my $list_names
@@ -1681,8 +1680,7 @@ sub colour_branches_on_dendrogram {
     my $list_name  = $args{list_name};
     my $dendrogram = $self->{dendrogram};
 
-    my $output_ref_hash = $self->{dendrogram_output_ref_hash};
-    my $output_ref = $args{output_ref} // $output_ref_hash->{$list_name};
+    my $output_ref = $args{output_ref};
     $list_name =~ s{\s+<i>.+$}{};
 
     my $legend = $dendrogram->get_legend;

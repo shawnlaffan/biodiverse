@@ -515,7 +515,8 @@ sub init_branch_colouring_combo {
 
     my $xml_page = $self->{xmlPage};
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
-    
+
+    my $menubar = $self->{branch_colouring_menu};
     my $combo = $self->{branch_colouring_combobox};
     my $have_combo = !!$combo;
 
@@ -528,10 +529,17 @@ sub init_branch_colouring_combo {
                 ) {
                 $widget->destroy;
             }
+            $menubar->destroy if $menubar;
         }
         my $model = Gtk2::ListStore->new('Glib::String');
         $combo = Gtk2::ComboBox->new_with_model ($model);
         $self->{branch_colouring_combobox} = $combo;
+
+        $menubar = Gtk2::MenuBar->new;
+        my $menu = Gtk2::Menu->new;
+        my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring');
+        $menuitem->set_submenu ($menu);
+        $menubar->append($menuitem);
 
         my $label = Gtk2::Label->new('Branch colouring: ');
 
@@ -548,6 +556,13 @@ sub init_branch_colouring_combo {
         $model->set ( $iter, 0, $combo_text );
         $combo->set_active(0);
 
+        my $menu_item_label = Gtk2::Label->new($combo_text);
+        my $menu_item = Gtk2::MenuItem->new_with_label($combo_text);
+        # my $menu_item = Gtk2::MenuItem->new();
+        $menu_item->set_use_underline(0);
+        # $menu_item->set_label($menu_item_label);
+        $menu->append($menu_item);
+
         state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
         my %output_ref_hash;
         $self->{dendrogram_output_ref_hash} = \%output_ref_hash;
@@ -560,38 +575,72 @@ sub init_branch_colouring_combo {
             my $iter = $model->append();
             $model->set ( $iter, 0, $list_name );
             $output_ref_hash{$list_name} = $output_ref;
+
+            my $menu_item = Gtk2::MenuItem->new($list_name);
+            $menu_item->set_use_underline(0);
+            $menu->append($menu_item);
+            # $menu_item->signal_connect_swapped(
+            #     activate => \&do_export, [$self, $label],
+            # );
         }
-        #  now add the lists from other spatial outputs in the project
+
+        #  now add the lists from other spatial outputs in the project,
+        #  organised by their parent basedatas
         my $own_bd = $output_ref->get_basedata_ref;
         my @project_basedatas
-            = grep {$_ ne $own_bd}
+            = #grep {$_ ne $own_bd}
               @{$self->{project}->get_base_data_list};
-        unshift @project_basedatas, $own_bd;
         foreach my $bd (@project_basedatas) {
-            my $bd_name = $bd->get_name;
             my @output_refs
                 = grep {$_ ne $output_ref}
                   $bd->get_spatial_output_refs;
+            next if !@output_refs;
+
+            my $bd_name = $bd->get_name;
+            my $bd_submenu = Gtk2::Menu->new;
+            my $bd_submenu_item = Gtk2::MenuItem->new_with_label($bd_name);
+            $bd_submenu_item->set_use_underline(0);
+            my $item_count;
+
             foreach my $ref (natkeysort {$_->get_name} @output_refs) {
-                my $list_names
-                    = $ref->get_hash_lists_across_elements;
+                my @list_names
+                    = natsort
+                      grep {$_ !~ /$re_skip_list/}
+                      $ref->get_hash_lists_across_elements;
+                next if !@list_names;
+
+                $item_count++;
+
                 my $output_name = $ref->get_name;
-                foreach my $list_name (natsort @$list_names) {
-                    next if $list_name =~ /$re_skip_list/;
+                my $sp_submenu = Gtk2::Menu->new;
+                my $sp_submenu_item = Gtk2::MenuItem->new_with_label($output_name);
+                $sp_submenu_item->set_use_underline(0);
+                $sp_submenu_item->set_submenu($sp_submenu);
+                foreach my $list_name (@list_names) {
                     my $key  = "$list_name <i>($bd_name, $output_name)</i>";
                     my $iter = $model->append();
                     $model->set($iter, 0, $key);
                     $output_ref_hash{$key} = $ref;
+                    my $menu_item = Gtk2::MenuItem->new($list_name);
+                    $menu_item->set_use_underline(0);
+                    $sp_submenu->append($menu_item);
                 }
+
+                $bd_submenu->append($sp_submenu_item);
+
+            }
+            if ($item_count) {
+                $bd_submenu_item->set_submenu($bd_submenu);
+                $menu->append($bd_submenu_item);
             }
         }
 
         my $separator = Gtk2::SeparatorToolItem->new;
-        $bottom_hbox->pack_start ($separator, 0, 0, 0);
-        $bottom_hbox->pack_start ($label, 0, 0, 0);
-        $bottom_hbox->pack_start ($combo, 0, 0, 0);
-        $separator->show;
-        $label->show;
+        foreach my $widget ($separator, $menubar, $label, $combo) {
+            $bottom_hbox->pack_start ($widget, 0, 0, 0);
+        }
+        $bottom_hbox->show_all;
+        $menu->set_sensitive(1);
         $self->{branch_colouring_extra_widgets}
           = [$separator, $label];
 
@@ -1913,7 +1962,7 @@ sub get_index_min_max_values_across_full_list {
     $output_ref //= $self->{output_ref};
 
     use List::MoreUtils qw /minmax/;
-    my $stats = $self->{list_minmax_across_all_elements}{"$output_ref: $list_name"};
+    my $stats = $self->{list_minmax_across_all_elements}{$output_ref}{$list_name};
     
     return $stats if $stats;
 
@@ -1932,7 +1981,8 @@ sub get_index_min_max_values_across_full_list {
     
     $stats = \@minmax;
 
-    $self->{list_minmax_across_all_elements}{$list_name} = $stats;  #  store it
+    #  store it
+    $self->{list_minmax_across_all_elements}{$output_ref}{$list_name} = $stats;
 
     return $stats;
 }

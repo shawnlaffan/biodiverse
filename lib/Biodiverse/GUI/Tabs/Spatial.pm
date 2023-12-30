@@ -645,12 +645,63 @@ sub init_branch_colouring_menu {
         $bottom_hbox->show_all;
         $menu->set_sensitive(1);
 
+        $menubar->set_has_tooltip(1);
+        $menubar->set_tooltip_text ($self->_get_branch_colouring_menu_tooltip);
+        $label->set_has_tooltip(1);
+        $label->set_tooltip_text ($self->_get_branch_colouring_label_tooltip);
+
         $self->{branch_colouring_menu} = $menubar;
         $self->{branch_colouring_extra_widgets}
           = [$separator, $label];
     }
 
     return 1;
+}
+
+sub _get_branch_colouring_label_tooltip {
+    state $text = <<'EOT'
+The current list and source used to colour the tree branches.
+This can be changed using the 'Branch colouring' menu to the
+immediate left of this label.
+EOT
+    ;
+    return $text;
+}
+
+sub _get_branch_colouring_menu_tooltip {
+    state $text = <<'EOT'
+Select the list to visualise as colours on the tree
+when hovering over the grid.
+
+The first (default) option shows the paths connecting
+the labels in the neighbour sets used for the analysis.
+When there is one such set all branches are coloured blue.
+When there are two such sets blue denotes branches only
+in the first set, red denotes those only in the second set,
+and black denotes those in both. From these one can see
+the turnover of branches between the groups (cells) in
+each neighbour set.
+
+The next of menu options are list indices in the spatial output
+that belongs to this tab.  The remainder are lists across
+other spatial outputs in the project, organised by their
+basedata objects.  These are sorted in the same order as in
+the Outputs tab.  Outputs with no list indices are not shown.
+
+If a branch is not in the list then it is highlighted
+using a default colour (usually black).  If the selected
+output has no labels that are also on the tree then no
+highlighting is done.
+
+Right clicking on a group (cell) fixes the highlighting
+in place, stopping changes to the branch colouring as
+the mouse is hovered over other groups.  This allows
+the tree to be exported with the current colouring
+(if the tree being plotted is the Project level tree).
+
+EOT
+  ;
+    return $text;
 }
 
 sub init_dendrogram_legend {

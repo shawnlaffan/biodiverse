@@ -570,6 +570,9 @@ sub init_branch_colouring_menu {
         },
     );
 
+    $menu->append(Gtk2::SeparatorMenuItem->new);
+    $menu->append(Gtk2::MenuItem->new_with_label('Lists in this output:'));
+
     state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
 
     my $output_ref = $self->{output_ref};
@@ -588,12 +591,14 @@ sub init_branch_colouring_menu {
         );
     }
 
+    $menu->append(Gtk2::SeparatorMenuItem->new);
+    $menu->append(Gtk2::MenuItem->new_with_label('Lists across project basedatas:'));
+
     #  now add the lists from other spatial outputs in the project,
     #  organised by their parent basedatas
     my $own_bd = $output_ref->get_basedata_ref;
     my @project_basedatas
-        = #grep {$_ ne $own_bd}
-          @{$self->{project}->get_base_data_list};
+        = @{$self->{project}->get_base_data_list};
     foreach my $bd (@project_basedatas) {
         my @output_refs
             = grep {$_ ne $output_ref}
@@ -681,22 +686,22 @@ and black denotes those in both. From these one can see
 the turnover of branches between the groups (cells) in
 each neighbour set.
 
-The next of menu options are list indices in the spatial output
-that belongs to this tab.  The remainder are lists across
-other spatial outputs in the project, organised by their
-basedata objects.  These are sorted in the same order as in
-the Outputs tab.  Outputs with no list indices are not shown.
+The next set of menu options are list indices in the spatial
+output that belongs to this tab.  The remainder are lists
+across other spatial outputs in the project, organised by their
+basedata objects.  These are in the same order as in the
+Outputs tab.  Basedatas and outputs with no list indices are
+not shown.
 
 If a branch is not in the list then it is highlighted
 using a default colour (usually black).  If the selected
 output has no labels that are also on the tree then no
-highlighting is done.
+highlighting is done (all branches remain black).
 
 Right clicking on a group (cell) fixes the highlighting
 in place, stopping changes to the branch colouring as
 the mouse is hovered over other groups.  This allows
-the tree to be exported with the current colouring
-(if the tree being plotted is the Project level tree).
+the tree to be exported with the current colouring.
 
 EOT
   ;

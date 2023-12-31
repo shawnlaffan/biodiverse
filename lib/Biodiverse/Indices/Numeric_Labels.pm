@@ -13,7 +13,7 @@ use Carp;
 
 our $VERSION = '4.99_001';
 
-use Statistics::Descriptive::PDL::SampleWeighted '0.15';
+use Statistics::Descriptive::PDL::SampleWeighted 0.15;
 my $stats_class_weighted = 'Statistics::Descriptive::PDL::SampleWeighted';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';

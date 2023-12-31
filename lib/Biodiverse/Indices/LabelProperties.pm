@@ -8,7 +8,7 @@ our $VERSION = '4.99_001';
 
 use Ref::Util qw { :all };
 
-use Statistics::Descriptive::PDL '0.12';
+use Statistics::Descriptive::PDL 0.12;
 my $stats_class = 'Statistics::Descriptive::PDL';
 $stats_class = 'Statistics::Descriptive::PDL::SampleWeighted';
 #  could be a method from the stats class

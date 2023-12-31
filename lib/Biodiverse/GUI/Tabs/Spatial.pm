@@ -1,5 +1,5 @@
 package Biodiverse::GUI::Tabs::Spatial;
-use 5.010;
+use 5.014;
 use strict;
 use warnings;
 
@@ -12,7 +12,7 @@ use Carp;
 use Scalar::Util qw /blessed looks_like_number refaddr weaken/;
 use List::Util qw /max/;
 use Time::HiRes;
-use Sort::Key::Natural qw /natsort/;
+use Sort::Key::Natural qw /natsort natkeysort/;
 use Ref::Util qw /is_ref is_hashref is_arrayref/;
 
 use Biodiverse::GUI::GUIManager;
@@ -491,22 +491,19 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->{no_dendro_legend_for} = {
-        '<i>Turnover</i>'        => 1,
+        '<i>Turnover</i>'              => 1,
         '<i>Branches in nbr set 1</i>' => 1,
+        'Turnover'                     => 1,
+        'Branches in nbr set 1'        => 1,
     };
 
-    $self->init_branch_colouring_combo;
+    $self->init_branch_colouring_menu;
     $self->init_dendrogram_legend;
     
     return 1;
 }
 
-sub update_branch_colouring_combo {
-    my $self = shift;
-    $self->init_branch_colouring_combo (refresh => 1);
-}
-
-sub init_branch_colouring_combo {
+sub init_branch_colouring_menu {
     my $self = shift;
     my %args = @_;
 
@@ -515,74 +512,200 @@ sub init_branch_colouring_combo {
 
     my $xml_page = $self->{xmlPage};
     my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
-    
-    my $combo = $self->{branch_colouring_combobox};
-    my $have_combo = !!$combo;
 
-    if ($args{refresh} || !$combo) {
-        #  clean up pre-existing
-        if ($have_combo) {
-            foreach my $widget (
-                    $combo,
-                    @{$self->{branch_colouring_extra_widgets} // []}
-                ) {
-                $widget->destroy;
-            }
+    my $menubar   = $self->{branch_colouring_menu};
+    my $have_menu = !!$menubar;
+
+    return 1 if !($args{refresh} || !$menubar);
+
+    #  clean up pre-existing
+    if ($have_menu) {
+        $_->destroy
+            foreach @{$self->{branch_colouring_extra_widgets} // []};
+        $menubar->destroy if $menubar;
+    }
+
+    my $label = Gtk2::Label->new('Branch colouring: ');
+
+    my $checkbox_show_legend
+        = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    $menubar = Gtk2::MenuBar->new;
+    my $menu = Gtk2::Menu->new;
+    my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
+    $menuitem->set_submenu ($menu);
+    $menubar->append($menuitem);
+    my $menu_action = sub {
+        my $args = shift;
+        my ($self, $listname, $output_ref) = @$args;
+        if ($checkbox_show_legend->get_active) {
+            $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
+            $self->{dendrogram}->get_legend->show;
         }
-        my $model = Gtk2::ListStore->new('Glib::String');
-        $combo = Gtk2::ComboBox->new_with_model ($model);
-        $self->{branch_colouring_combobox} = $combo;
+        $self->{current_branch_colouring_source} = [$output_ref, $listname];
+        my $output_name = $output_ref->get_name;
+        $label->set_markup ("$listname <i>(source: $output_name)</i>");
+    };
 
-        my $label = Gtk2::Label->new('Branch colouring: ');
+    #  need to keep in synch with $self->{no_dendro_legend_for}
+    my $default_text
+      = $self->{output_ref}->get_spatial_conditions_count > 1
+      ? '<i>Turnover</i>'
+      : '<i>Branches in nbr set 1</i>';
+    $label->set_markup ($default_text);
+    my $default_text_sans_markup = $default_text =~ s/<.?i>//gr;
+    my $sel_group = [];
 
-        my $renderer = Gtk2::CellRendererText->new();
-        $combo->pack_start($renderer, 1);
-        $combo->add_attribute($renderer, markup => 0);
+    my $menu_item_label = Gtk2::Label->new($default_text);
+    my $menu_item
+        = Gtk2::RadioMenuItem->new_with_label($sel_group, $default_text_sans_markup);
+    push @$sel_group, $menu_item;
+    $menu_item->set_use_underline(0);
+    # $menu_item->set_label($menu_item_label);
+    $menu->append($menu_item);
+    $menu_item->signal_connect_swapped(
+        activate => sub {
+            $self->{dendrogram}->get_legend->hide;
+            $self->{current_branch_colouring_source} = undef;
+            $label->set_markup ($default_text);
+        },
+    );
 
-        #  need to keep in synch with $self->{no_dendro_legend_for}
-        my $combo_text
-          = $self->{output_ref}->get_spatial_conditions_count > 1
-          ? '<i>Turnover</i>'
-          : '<i>Branches in nbr set 1</i>';
-        my $iter = $model->append();
-        $model->set ( $iter, 0, $combo_text );
-        $combo->set_active(0);
+    $menu->append(Gtk2::SeparatorMenuItem->new);
+    $menu->append(Gtk2::MenuItem->new_with_label('Lists in this output:'));
 
-        my $list_names
-          = $self->{output_ref}->get_hash_lists_across_elements;
-        foreach my $list_name (natsort @$list_names) {
-            next if $list_name =~ /SPATIAL_RESULTS$/;
-            next if $list_name =~ /CANAPE>>$/;
-            next if $list_name eq 'RECYCLED_SET';
-            
-            my $iter = $model->append();
-            $model->set ( $iter, 0, $list_name );
-        }
-        
-        my $separator = Gtk2::SeparatorToolItem->new;
-        $bottom_hbox->pack_start ($separator, 0, 0, 0);
-        $bottom_hbox->pack_start ($label, 0, 0, 0);
-        $bottom_hbox->pack_start ($combo, 0, 0, 0);
-        $separator->show;
-        $label->show;
-        $self->{branch_colouring_extra_widgets}
-          = [$separator, $label];
+    state $re_skip_list = qr/(^RECYCLED_SET$)|(SPATIAL_RESULTS|CANAPE>>)$/;
 
-        #  add callback
-        $combo->signal_connect_swapped(
-            changed => sub {
-                my $self = shift;
-                my $key = $self->{branch_colouring_combobox}->get_active_text;
-                $self->{dendrogram}->get_legend->hide
-                  if $self->{no_dendro_legend_for}{$key};
-            },
-            $self,
+    my $output_ref = $self->{output_ref};
+
+    my $list_names
+      = $output_ref->get_hash_lists_across_elements;
+    foreach my $list_name (natsort @$list_names) {
+        next if $list_name =~ /$re_skip_list/;
+
+        my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+        push @$sel_group, $menu_item;  #  first one is default
+        $menu_item->set_use_underline(0);
+        $menu->append($menu_item);
+        $menu_item->signal_connect_swapped(
+            activate => $menu_action, [$self, $list_name, $output_ref],
         );
     }
 
-    $combo->show;
+    $menu->append(Gtk2::SeparatorMenuItem->new);
+    $menu->append(Gtk2::MenuItem->new_with_label('Lists across project basedatas:'));
+
+    #  now add the lists from other spatial outputs in the project,
+    #  organised by their parent basedatas
+    my $own_bd = $output_ref->get_basedata_ref;
+    my @project_basedatas
+        = @{$self->{project}->get_base_data_list};
+    foreach my $bd (@project_basedatas) {
+        my @output_refs
+            = grep {$_ ne $output_ref}
+              $bd->get_spatial_output_refs;
+        next if !@output_refs;
+
+        my $bd_name = $bd->get_name;
+        my $bd_submenu = Gtk2::Menu->new;
+        my $bd_submenu_item = Gtk2::MenuItem->new_with_label($bd_name);
+        $bd_submenu_item->set_use_underline(0);
+        my $item_count;
+
+        foreach my $ref (natkeysort {$_->get_name} @output_refs) {
+            my @list_names
+                = natsort
+                  grep {$_ !~ /$re_skip_list/}
+                  $ref->get_hash_lists_across_elements;
+            next if !@list_names;
+
+            $item_count++;
+
+            my $output_name = $ref->get_name;
+            my $sp_submenu = Gtk2::Menu->new;
+            my $sp_submenu_item = Gtk2::MenuItem->new_with_label($output_name);
+            $sp_submenu_item->set_use_underline(0);
+            $sp_submenu_item->set_submenu($sp_submenu);
+            foreach my $list_name (@list_names) {
+                my $menu_item = Gtk2::RadioMenuItem->new($sel_group, $list_name);
+                push @$sel_group, $menu_item;
+                $menu_item->set_use_underline(0);
+                $menu_item->signal_connect_swapped(
+                    activate => $menu_action, [$self, $list_name, $ref],
+                );
+                $sp_submenu->append($menu_item);
+            }
+
+            $bd_submenu->append($sp_submenu_item);
+        }
+        if ($item_count) {
+            $bd_submenu_item->set_submenu($bd_submenu);
+            $menu->append($bd_submenu_item);
+        }
+    }
+
+    my $separator = Gtk2::SeparatorToolItem->new;
+    foreach my $widget ($separator, $menubar, $label) {
+        $bottom_hbox->pack_start ($widget, 0, 0, 0);
+    }
+    $bottom_hbox->show_all;
+    $menu->set_sensitive(1);
+
+    $menubar->set_has_tooltip(1);
+    $menubar->set_tooltip_text ($self->_get_branch_colouring_menu_tooltip);
+    $label->set_has_tooltip(1);
+    $label->set_tooltip_text ($self->_get_branch_colouring_label_tooltip);
+
+    $self->{branch_colouring_menu} = $menubar;
+    $self->{branch_colouring_extra_widgets}
+      = [$separator, $label];
 
     return 1;
+}
+
+sub _get_branch_colouring_label_tooltip {
+    state $text = <<'EOT'
+The current list and source used to colour the tree branches.
+This can be changed using the 'Branch colouring' menu to the
+immediate left of this label.
+EOT
+    ;
+    return $text;
+}
+
+sub _get_branch_colouring_menu_tooltip {
+    state $text = <<'EOT'
+Select the list to visualise as colours on the tree
+when hovering over the grid.
+
+The first (default) option shows the paths connecting
+the labels in the neighbour sets used for the analysis.
+When there is one such set all branches are coloured blue.
+When there are two such sets blue denotes branches only
+in the first set, red denotes those only in the second set,
+and black denotes those in both. From these one can see
+the turnover of branches between the groups (cells) in
+each neighbour set.
+
+The next set of menu options are list indices in the spatial
+output that belongs to this tab.  The remainder are lists
+across other spatial outputs in the project, organised by their
+basedata objects.  These are in the same order as in the
+Outputs tab.  Basedatas and outputs with no list indices are
+not shown.
+
+If a branch is not in the list then it is highlighted
+using a default colour (usually black).  If the selected
+output has no labels that are also on the tree then no
+highlighting is done (all branches remain black).
+
+Right clicking on a group (cell) fixes the highlighting
+in place, stopping changes to the branch colouring as
+the mouse is hovered over other groups.  This allows
+the tree to be exported with the current colouring.
+
+EOT
+  ;
+    return $text;
 }
 
 sub init_dendrogram_legend {
@@ -591,17 +714,8 @@ sub init_dendrogram_legend {
     my $legend = $self->{dendrogram}->get_legend;
     return if !$legend;
 
-    my $combo = $self->{branch_colouring_combobox};
-    return if !$combo;
-    
-    my $selected_text = $combo->get_active_text;
-    if (!$self->{no_dendro_legend_for}{$selected_text}) {
-        $legend->show;
-    }
-    else {
-        $legend->hide;
-    }
-
+    #  we used to do more here
+    return;
 }
 
 sub init_grid {
@@ -682,7 +796,7 @@ sub update_display_list_combos {
     my @methods = qw /
         update_lists_combo
         update_output_indices_combo
-        update_branch_colouring_combo
+        init_branch_colouring_menu
     /;
 
     $self->SUPER::update_display_list_combos (
@@ -1381,7 +1495,7 @@ sub on_run {
         #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
         $self->on_selected_phylogeny_changed;  # update the tree plot
-        $self->update_branch_colouring_combo;
+        $self->init_branch_colouring_menu (refresh => 1);
     }
 
     #  make sure the grid is sensitive again
@@ -1506,15 +1620,14 @@ my @dendro_highlight_branch_colours
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;
 
-    if (my $combo = $self->{branch_colouring_combobox}) {
-        my $selected_text = $combo->get_active_text;
-        if (!$self->{no_dendro_legend_for}{$selected_text}) {
-            $self->colour_branches_on_dendrogram (
-                list_name => $selected_text,
-                group     => $group,
-            );
-            return;
-        }
+    if (my $sources = $self->{current_branch_colouring_source}) {
+        my ($ref, $listname) = @$sources;
+        $self->colour_branches_on_dendrogram (
+            list_name  => $listname,
+            output_ref => $ref,
+            group      => $group,
+        );
+        return;
     }
 
     $self->{dendrogram}->get_legend->hide;
@@ -1565,13 +1678,15 @@ sub colour_branches_on_dendrogram {
     my $self = shift;
     my %args = @_;
     
-    my $tree       = $self->get_current_tree;
+    my $tree = $self->get_current_tree;
 
     return if !$tree;
 
     my $list_name  = $args{list_name};
     my $dendrogram = $self->{dendrogram};
-    my $output_ref = $self->{output_ref};
+
+    my $output_ref = $args{output_ref};
+    $list_name =~ s{\s+<i>.+$}{};
 
     my $legend = $dendrogram->get_legend;
     $legend->set_colour_mode_from_list_and_index (
@@ -1580,12 +1695,7 @@ sub colour_branches_on_dendrogram {
     );
 
     my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
-    if ($log_check_box->get_active) {
-        $legend->set_log_mode_on;
-    }
-    else {
-        $legend->set_log_mode_off;
-    }
+    $legend->set_log_mode($log_check_box->get_active);
 
     my $flip_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_colour_stretch_flip_mode');
     $legend->set_invert_colours ($flip_check_box->get_active);
@@ -1596,7 +1706,7 @@ sub colour_branches_on_dendrogram {
     );
     
     my $minmax
-      = $self->get_index_min_max_values_across_full_list ($list_name);
+      = $self->get_index_min_max_values_across_full_list ($list_name, $output_ref);
     my ($min, $max) = @$minmax;  #  should not need to pass this
     $legend->set_min_max ($min, $max);
 
@@ -1878,12 +1988,12 @@ sub on_active_index_changed {
 
 #  bad name - we want all values across all lists of name $listname across all elements
 sub get_index_min_max_values_across_full_list {
-    my ($self, $list_name) = @_;
+    my ($self, $list_name, $output_ref) = @_;
 
-    my $output_ref = $self->{output_ref};
+    $output_ref //= $self->{output_ref};
 
     use List::MoreUtils qw /minmax/;
-    my $stats = $self->{list_minmax_across_all_elements}{$list_name};
+    my $stats = $self->{list_minmax_across_all_elements}{$output_ref}{$list_name};
     
     return $stats if $stats;
 
@@ -1902,7 +2012,8 @@ sub get_index_min_max_values_across_full_list {
     
     $stats = \@minmax;
 
-    $self->{list_minmax_across_all_elements}{$list_name} = $stats;  #  store it
+    #  store it
+    $self->{list_minmax_across_all_elements}{$output_ref}{$list_name} = $stats;
 
     return $stats;
 }
@@ -2325,12 +2436,15 @@ sub on_show_tree_legend_changed {
 
     my $check = $menu_item->get_active;
 
-    my $combo = $self->{branch_colouring_combobox};
-    return if !$combo;
+    my $menu = $self->{branch_colouring_menu};
+    return if !$menu;
 
-    #  no legend for turnover    
-    my $selected_text = $combo->get_active_text;
-    $check &&= !$self->{no_dendro_legend_for}{$selected_text};
+    #  no legend for turnover
+    my $aref = $self->{current_branch_colouring_source};
+    if (!defined $aref) {
+        $check = 0;
+    }
+    $check &&= !$self->{no_dendro_legend_for}{$aref->[0] // ''};
 
     if ($check) {
         $legend->show;

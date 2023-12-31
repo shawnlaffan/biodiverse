@@ -1160,6 +1160,13 @@ sub set_text_marks_for_labels {
     return;
 }
 
+sub set_log_mode {
+    croak "boolean arg not passed"
+      if @_ < 2;
+    my ($self, $bool) = @_;
+
+    return $self->{log_mode} = $bool ? 1 : 0;
+}
 
 sub set_log_mode_on {
     my ($self) = @_;
@@ -1225,7 +1232,7 @@ sub set_colour_mode_from_list_and_index {
         $self->{categorical}{labels}  = $labels;
         foreach my $key (keys %$colours) {
             my $colour = $colours->{$key};
-            $colours->{$key} => Gtk2::Gdk::Color->parse($colour);
+            $colours->{$key} = Gtk2::Gdk::Color->parse($colour);
         }
         $self->{categorical}{colours} = $colours;
     }

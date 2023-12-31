@@ -1139,6 +1139,7 @@ sub update_display_list_combos {
     my $methods     = $args{methods} // [];
 
     foreach my $method (@$methods) {
+        next if !$self->can($method);
         $self->$method;
     }
 

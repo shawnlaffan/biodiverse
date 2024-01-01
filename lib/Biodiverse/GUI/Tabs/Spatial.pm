@@ -381,13 +381,7 @@ sub on_show_hide_parameters {
     my $active = $widget->get_active;
 
     my $table = $self->{xmlPage}->get_object('tbl_spatial_parameters');
-
-    if ($active) {
-        $table->hide;
-    }
-    else {
-        $table->show;
-    }
+    $table->set_visible ($active);
 
     return;
 }
@@ -2446,12 +2440,7 @@ sub on_show_tree_legend_changed {
     }
     $check &&= !$self->{no_dendro_legend_for}{$aref->[0] // ''};
 
-    if ($check) {
-        $legend->show;
-    }
-    else {
-        $legend->hide;
-    }
+    $legend->set_visible($check);
 }
 
 

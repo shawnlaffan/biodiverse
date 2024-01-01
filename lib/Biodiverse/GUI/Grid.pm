@@ -813,12 +813,8 @@ sub hide_some_cells {
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
         #  sometimes we are called before all cells have contents
-        if ($callback->($cell->[INDEX_ELEMENT])) {
-            $cell->[INDEX_RECT]->hide;
-        }
-        else {
-            $cell->[INDEX_RECT]->show;
-        }
+        my $bool = !!$callback->($cell->[INDEX_ELEMENT]);
+        $cell->[INDEX_RECT]->set_visible($bool);
     }
 
     return;

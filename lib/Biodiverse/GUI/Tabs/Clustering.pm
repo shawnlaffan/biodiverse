@@ -760,12 +760,7 @@ sub on_combo_map_list_changed {
 
     #  don't show the indices options if there is no list
     my $combo_widget = $self->{xmlPage}->get_object('comboMapShow');
-    if ($sensitive) {
-        $combo_widget->show;
-    }
-    else {
-        $combo_widget->hide;
-    }
+    $combo_widget->set_visible($sensitive);
 
     return;
 }

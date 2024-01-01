@@ -606,6 +606,8 @@ sub recolour {
     my $matrix_ref  = $self->{output_ref};
     my $sel_element = $self->{selected_element};
 
+    my $legend = $grid->get_legend;
+
     my $colour_func = sub {
         my $elt = shift;
 
@@ -618,12 +620,13 @@ sub recolour {
         my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 
         return defined $val
-            ? $grid->get_colour($val, $min, $max)
+            ? $legend->get_colour($val, $min, $max)
             : undef;
     };
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max($min, $max);
+    $grid->update_legend;
 
     return;
 }

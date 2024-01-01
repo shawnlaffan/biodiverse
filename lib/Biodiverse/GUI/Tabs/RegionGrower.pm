@@ -33,7 +33,7 @@ sub new {
     $hbox->show_all;
 
     #  remove singletons by default 
-    my $singleton_widget = $self->{xmlPage}->get_object('chk_clear_singletons');
+    my $singleton_widget = $self->get_xmlpage_object('chk_clear_singletons');
     $singleton_widget->set_active(1);
 
     $self->{combo_minmax} = $combo_minmax;

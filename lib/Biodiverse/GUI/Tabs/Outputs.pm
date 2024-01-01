@@ -44,7 +44,7 @@ sub new {
     $self->set_tab_reorderable($page);
 
     # Initialise the tree
-    my $tree = $self->{xmlPage}->get_object('outputsTree');
+    my $tree = $self->get_xmlpage_object('outputsTree');
 
     #  what columns to add to the tree?
     my %columns_hash = (
@@ -109,7 +109,7 @@ sub get_removable { return 0; } # output tab cannot be closed
 sub get_selection {
     my $self = shift;
 
-    my $tree    = $self->{xmlPage}->get_object('outputsTree');
+    my $tree    = $self->get_xmlpage_object('outputsTree');
     my $project = $self->{gui}->get_project;
 
     return if not defined $project;
@@ -175,7 +175,7 @@ sub on_row_inserted {
     my $iter_parent = $model->iter_parent($iter);
 
     if ($iter_parent && ($model->get($iter_parent, MODEL_BASEDATA_ROW) == 1) ) {
-        my $tree = $self->{xmlPage}->get_object('outputsTree');
+        my $tree = $self->get_xmlpage_object('outputsTree');
         $tree->expand_row($model->get_path($iter_parent), 0);
     }
 
@@ -225,7 +225,7 @@ sub on_row_changed {
 #  resize the contents - this reclaims unused horizontal space
 sub on_row_collapsed {
     my $self = shift;
-    my $tree = $self->{xmlPage}->get_object('outputsTree');
+    my $tree = $self->get_xmlpage_object('outputsTree');
 
     $tree->columns_autosize();
 

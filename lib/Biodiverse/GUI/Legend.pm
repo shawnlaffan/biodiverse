@@ -370,6 +370,16 @@ sub hide_current_marks {
     return;
 }
 
+sub show_current_marks {
+    my $self = shift;
+    my $marks = $self->{marks}{current} // [];
+    foreach my $mark (@$marks) {
+        $mark->raise_to_top;
+        $mark->show;
+    }
+    return;
+}
+
 sub set_gt_flag {
     my $self = shift;
     my $flag = shift;

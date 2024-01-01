@@ -187,7 +187,7 @@ sub new {
     # Process changes for the map
     if ($map_index_combo) {
         $map_index_combo->signal_connect_swapped(
-            changed => \&on_combo_map_index_changed,
+            changed => \&on_map_index_combo_changed,
             $self,
         );
     }
@@ -958,10 +958,11 @@ sub recolour_cluster_elements {
 
     $map->colour ($colour_callback);
 
-    if ($cluster_colour_mode eq 'list-values') {
-        $map->set_legend_min_max($analysis_min, $analysis_max);
-        $map->update_legend;
-    }
+    #  now called elsewhere
+    # if ($cluster_colour_mode eq 'list-values') {
+    #     $map->set_legend_min_max($analysis_min, $analysis_max);
+    #     $map->update_legend;
+    # }
 
     return;
 }
@@ -1611,14 +1612,14 @@ sub on_map_list_combo_changed {
         $self->{analysis_list_name} = $list;
 
         $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
-        $self->on_combo_map_index_changed;
+        $self->on_map_index_combo_changed;
     }
 
     return;
 }
 
 #  this should be controlled by the parent tab, not the dendrogram
-sub on_combo_map_index_changed {
+sub on_map_index_combo_changed {
     my $self  = shift;
     my $combo = shift || $self->{map_index_combo};
 
@@ -1630,18 +1631,20 @@ sub on_combo_map_index_changed {
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        $self->get_parent_tab->on_colour_mode_changed;
-
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
         $self->{analysis_max} = $minmax[1];
 
-        #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
+        # say "[Dendrogram] Setting grid to use index $index";
+        $self->{map}->set_legend_min_max(@minmax);
+        $self->get_parent_tab->on_colour_mode_changed;
 
         $self->set_cluster_colour_mode(value => "list-values");
         $self->recolour_cluster_elements();
 
         $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        $self->{map}->update_legend;
     }
     else {
         $self->{analysis_list_index} = undef;

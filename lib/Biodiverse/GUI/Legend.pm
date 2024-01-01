@@ -472,8 +472,9 @@ sub reposition {
 
         $mark->raise_to_top;
         $mark->show;
+        # say STDERR "Mark $i is " . $mark->get( 'text' );
     }
-
+    
     # Reposition value box
     if ($self->{value_group}) {
         my ($value_x, $value_y) = $self->{value_group}->get('x', 'y');
@@ -498,7 +499,7 @@ sub reposition {
 # Set colouring mode - 'Hue' or 'Sat'
 sub set_mode {
     my $self = shift;
-    my $mode = shift;
+    my $mode = shift // $self->get_mode;
 
     $mode = ucfirst lc $mode;
 
@@ -1016,6 +1017,7 @@ sub set_min_max {
         else {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
+        # say STDERR "Mark text $i is $text";
         $mark->raise_to_top;
         $mark->show;
     }
@@ -1152,7 +1154,7 @@ sub set_text_marks_for_labels {
     foreach my $i (0 .. $#strings) {
         my $mark = $mark_arr->[$#strings - $i];
         $mark->set( text => $strings[$i] );
-        # $mark->show;
+        $mark->show;
         $mark->raise_to_top;
     }
 

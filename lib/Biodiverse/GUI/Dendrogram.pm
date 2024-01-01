@@ -662,6 +662,9 @@ sub do_slider_move {
     $self->recolour_cluster_elements();
     $self->recolour_cluster_lines(\@intersecting_nodes);
     $self->set_processed_nodes(\@intersecting_nodes);
+    if ($self->{map}) {
+        $self->{map}->update_legend;
+    }
 
     #$self->{last_slide_time} = time;
     return;
@@ -758,6 +761,9 @@ sub do_colour_nodes_below {
     $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->recolour_cluster_lines(\@colour_nodes);
     $self->set_processed_nodes(\@colour_nodes);
+    if ($self->{map}) {
+        $self->{map}->update_legend;
+    }
 
     return;
 }
@@ -954,8 +960,8 @@ sub recolour_cluster_elements {
 
     if ($cluster_colour_mode eq 'list-values') {
         $map->set_legend_min_max($analysis_min, $analysis_max);
+        $map->update_legend;
     }
-    $map->update_legend;
 
     return;
 }

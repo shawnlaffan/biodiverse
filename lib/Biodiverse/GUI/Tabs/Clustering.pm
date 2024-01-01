@@ -725,6 +725,7 @@ sub on_combo_map_list_changed {
     }
     else {
         $self->show_legend;
+        $self->on_colour_mode_changed;
         $self->{output_ref}->set_cached_value(LAST_SELECTED_LIST => $list);
     }
 

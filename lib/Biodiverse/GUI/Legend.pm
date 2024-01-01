@@ -447,7 +447,7 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr = @{$self->{marks}{current} // []};
+    my @mark_arr = @{$self->{marks}{current} //= $self->{marks}{default}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -1017,6 +1017,7 @@ sub set_min_max {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
         $mark->raise_to_top;
+        $mark->show;
     }
 
     return;

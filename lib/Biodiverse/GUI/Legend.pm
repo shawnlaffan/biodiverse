@@ -1294,7 +1294,7 @@ sub get_colour_method {
 sub _make_nonbasic_methods {
     my ($pkg) = shift || __PACKAGE__;
     my @methods = _get_nonbasic_plot_modes();
-    print "Calling _make_access_methods for $pkg";
+    # print "Calling _make_access_methods for $pkg";
     no strict 'refs';
     foreach my $key (@methods) {
         my $method   = "get_${key}_mode";

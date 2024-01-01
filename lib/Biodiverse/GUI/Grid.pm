@@ -227,6 +227,11 @@ sub update_legend {
     return;
 }
 
+sub set_legend_colour_mode_from_list_and_index {
+    my $self = shift;
+    return $self->get_legend->set_colour_mode_from_list_and_index(@_);
+}
+
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;

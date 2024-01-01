@@ -753,6 +753,9 @@ sub get_colour_ratio {
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
+    #  Perhaps should handle cases where min or max are zero,
+    #  but those should not be passed anyway so an error is
+    #  appropriate.
     my $extreme = exp (max (abs log $min, log $max));
 
     return $centre_colour

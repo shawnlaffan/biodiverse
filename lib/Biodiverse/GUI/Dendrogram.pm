@@ -1627,16 +1627,20 @@ sub on_map_index_combo_changed {
     my $iter  = $combo->get_active_iter;
 
     if ($iter) {
-
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        my @minmax = $self->get_plot_min_max_values;
-        $self->{analysis_min} = $minmax[0];
-        $self->{analysis_max} = $minmax[1];
+        my $map = $self->{map};
+
+        my @minmax = $self->get_parent_tab->set_plot_min_max_values;
 
         # say "[Dendrogram] Setting grid to use index $index";
-        $self->{map}->set_legend_min_max(@minmax);
+        #  must set this before legend min max
+        $map->set_legend_colour_mode_from_list_and_index (
+            list  => $self->{analysis_list_name},
+            index => $self->{analysis_list_index},
+        );
+        $map->set_legend_min_max(@minmax);
         $self->get_parent_tab->on_colour_mode_changed;
 
         $self->set_cluster_colour_mode(value => "list-values");
@@ -1644,7 +1648,7 @@ sub on_map_index_combo_changed {
 
         $self->recolour_cluster_lines($self->get_processed_nodes);
 
-        $self->{map}->update_legend;
+        $map->update_legend;
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1688,7 +1692,7 @@ sub set_plot_min_max_values {
     $self->{analysis_min} = $min;
     $self->{analysis_max} = $max;
 
-    return;
+    return wantarray ? ($min, $max) : [$min, $max];
 }
 
 sub get_plot_min_max_values {

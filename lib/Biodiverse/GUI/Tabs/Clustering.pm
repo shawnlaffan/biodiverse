@@ -1899,6 +1899,8 @@ sub recolour {
     #  need to update the grid before the tree else the grid is not changed properly
     $self->set_plot_min_max_values;
     $self->{grid}->set_legend_mode($self->{colour_mode});
+    # $self->{grid}->set_legend_min_max($self->get_plot_min_max_values);
+    # $self->{grid}->update_legend();
 
     $self->{dendrogram}->recolour();
     if ($args{all_elements}) {
@@ -1915,22 +1917,18 @@ sub set_plot_min_max_values {
 
     return if ! defined $list || ! defined $index;
 
-    my $stats = $self->{stats}{$list}{$index};
-    if (not $stats) {
-        $stats = $self->{output_ref}->get_list_stats (
+    my $stats = $self->{stats}{$list}{$index}
+        //=  $self->{output_ref}->get_list_stats (
             list  => $list,
             index => $index,
         );
-    }
 
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
 
     $self->set_legend_ltgt_flags ($stats);
 
-    $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
-
-    return;
+    return $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
 }
 
 #  Same as the version in Spatial.pm except it calls

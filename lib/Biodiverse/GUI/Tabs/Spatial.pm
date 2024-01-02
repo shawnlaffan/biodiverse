@@ -349,6 +349,7 @@ sub update_tree_menu {
 
     my $menubar = $self->{menubar};
     my $output_ref = $self->{output_ref};
+    return if !$output_ref;
 
     # Clear out old entries from menu so we can rebuild it.
     # This will be useful when we add checks for which export methods are valid.
@@ -360,7 +361,7 @@ sub update_tree_menu {
         $self->{tree_menu} = $tree_menu;
     }
 
-    if (!$output_ref || ($output_ref->get_param('COMPLETED') // 1) != 1) {
+    if (($output_ref->get_param('COMPLETED') // 1) != 1) {
         #  completed == 2 for clusters analyses with matrices only
         $tree_menu->set_sensitive(0);
     }
@@ -1539,6 +1540,7 @@ sub on_run {
     $self->{initialising_grid} = 0;
 
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     $self->{project}->set_dirty;
 
@@ -1700,6 +1702,10 @@ sub highlight_paths_on_dendrogram {
                   : $colour;
 
                 $dendrogram->highlight_node ($node_ref, $colour_ref);
+                $dendrogram->set_node_colour(
+                    colour_ref => $colour_ref,
+                    node_name  => $node_name,
+                );
 
                 $done{$node_name}[$idx]++;
 
@@ -1785,6 +1791,10 @@ sub colour_branches_on_dendrogram {
                 : COLOUR_BLACK;
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
+            $dendrogram->set_node_colour(
+                colour_ref => $colour_ref,
+                node_name  => $node_name,
+            );
 
             $done{$node_name}++;
 

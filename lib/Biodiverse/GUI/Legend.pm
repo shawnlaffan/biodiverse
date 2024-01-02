@@ -150,6 +150,21 @@ sub show {
     return;
 }
 
+sub set_visible {
+    my ($self, $check) = @_;
+
+    return if !$self->{legend_group};
+
+    if ($check) {
+        $self->{legend_group}->show;
+    }
+    else {
+        $self->{legend_group}->hide;
+    }
+
+    return;
+}
+
 # Makes a rectangle and fills it 
 # with colours for the chosen legend
 # mode.

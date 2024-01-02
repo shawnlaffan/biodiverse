@@ -187,7 +187,7 @@ sub new {
     # Process changes for the map
     if ($map_index_combo) {
         $map_index_combo->signal_connect_swapped(
-            changed => \&on_combo_map_index_changed,
+            changed => \&on_map_index_combo_changed,
             $self,
         );
     }
@@ -662,6 +662,9 @@ sub do_slider_move {
     $self->recolour_cluster_elements();
     $self->recolour_cluster_lines(\@intersecting_nodes);
     $self->set_processed_nodes(\@intersecting_nodes);
+    if ($self->{map}) {
+        $self->{map}->update_legend;
+    }
 
     #$self->{last_slide_time} = time;
     return;
@@ -758,6 +761,9 @@ sub do_colour_nodes_below {
     $self->recolour_cluster_elements($terminal_element_hash_ref);
     $self->recolour_cluster_lines(\@colour_nodes);
     $self->set_processed_nodes(\@colour_nodes);
+    if ($self->{map}) {
+        $self->{map}->update_legend;
+    }
 
     return;
 }
@@ -952,10 +958,11 @@ sub recolour_cluster_elements {
 
     $map->colour ($colour_callback);
 
-    if ($cluster_colour_mode eq 'list-values') {
-        $map->set_legend_min_max($analysis_min, $analysis_max);
-    }
-    $map->update_legend;
+    #  now called elsewhere
+    # if ($cluster_colour_mode eq 'list-values') {
+    #     $map->set_legend_min_max($analysis_min, $analysis_max);
+    #     $map->update_legend;
+    # }
 
     return;
 }
@@ -1605,14 +1612,14 @@ sub on_map_list_combo_changed {
         $self->{analysis_list_name} = $list;
 
         $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
-        $self->on_combo_map_index_changed;
+        $self->on_map_index_combo_changed;
     }
 
     return;
 }
 
 #  this should be controlled by the parent tab, not the dendrogram
-sub on_combo_map_index_changed {
+sub on_map_index_combo_changed {
     my $self  = shift;
     my $combo = shift || $self->{map_index_combo};
 
@@ -1620,22 +1627,28 @@ sub on_combo_map_index_changed {
     my $iter  = $combo->get_active_iter;
 
     if ($iter) {
-
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
+        my $map = $self->{map};
+
+        my @minmax = $self->get_parent_tab->set_plot_min_max_values;
+
+        # say "[Dendrogram] Setting grid to use index $index";
+        #  must set this before legend min max
+        $map->set_legend_colour_mode_from_list_and_index (
+            list  => $self->{analysis_list_name},
+            index => $self->{analysis_list_index},
+        );
+        $map->set_legend_min_max(@minmax);
         $self->get_parent_tab->on_colour_mode_changed;
-
-        my @minmax = $self->get_plot_min_max_values;
-        $self->{analysis_min} = $minmax[0];
-        $self->{analysis_max} = $minmax[1];
-
-        #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
 
         $self->set_cluster_colour_mode(value => "list-values");
         $self->recolour_cluster_elements();
 
         $self->recolour_cluster_lines($self->get_processed_nodes);
+
+        $map->update_legend;
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1679,7 +1692,7 @@ sub set_plot_min_max_values {
     $self->{analysis_min} = $min;
     $self->{analysis_max} = $max;
 
-    return;
+    return wantarray ? ($min, $max) : [$min, $max];
 }
 
 sub get_plot_min_max_values {

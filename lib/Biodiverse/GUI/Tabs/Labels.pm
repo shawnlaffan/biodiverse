@@ -90,7 +90,7 @@ sub new {
     $self->{xmlLabel} = Gtk2::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxLabelsLabel.ui'));
 
-    my $page  = $self->{xmlPage}->get_object('hboxLabelsPage');
+    my $page  = $self->get_xmlpage_object('hboxLabelsPage');
     my $label = $self->{xmlLabel}->get_object('hboxLabelsLabel');
     my $tab_menu_label = Gtk2::Label->new('Labels tab');
     $self->{tab_menu_label} = $tab_menu_label;
@@ -169,7 +169,7 @@ sub new {
     # Connect signals for new side tool chooser
     my $sig_clicked = sub {
         my ($widget_name, $f) = @_;
-        my $widget = $self->{xmlPage}->get_object($widget_name)
+        my $widget = $self->get_xmlpage_object($widget_name)
             // warn "Cannot find widget $widget_name";
         $widget->signal_connect_swapped(
             clicked => $f, $self
@@ -184,7 +184,7 @@ sub new {
 
     $xml->get_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
-    $self->{xmlPage}->get_object("btnSelectToolVL")->set_active(1);
+    $self->get_xmlpage_object("btnSelectToolVL")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     #  plot length triggers depth and vice versa
@@ -204,7 +204,7 @@ sub new {
 
     $self->{use_highlight_path} = 1;
 
-    $self->{menubar} = $self->{xmlPage}->get_object('menubarLabelsOptions');
+    $self->{menubar} = $self->get_xmlpage_object('menubarLabelsOptions');
     $self->update_selection_menu;
     $self->update_export_menu;
 
@@ -216,10 +216,10 @@ sub new {
 sub init_grid {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_object('gridFrameViewLabels');
-    my $lframe  = $self->{xmlPage}->get_object('gridFrameViewLabelsLegend');
-    my $hscroll = $self->{xmlPage}->get_object('gridHScrollViewLabels');
-    my $vscroll = $self->{xmlPage}->get_object('gridVScrollViewLabels');
+    my $frame   = $self->get_xmlpage_object('gridFrameViewLabels');
+    my $lframe  = $self->get_xmlpage_object('gridFrameViewLabelsLegend');
+    my $hscroll = $self->get_xmlpage_object('gridHScrollViewLabels');
+    my $vscroll = $self->get_xmlpage_object('gridVScrollViewLabels');
 
     my $hover_closure  = sub { $self->on_grid_hover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
@@ -258,9 +258,9 @@ sub init_grid {
 sub init_matrix_grid {
     my $self = shift;
 
-    my $frame   = $self->{xmlPage}->get_object('matrixFrame');
-    my $hscroll = $self->{xmlPage}->get_object('matrixHScroll');
-    my $vscroll = $self->{xmlPage}->get_object('matrixVScroll');
+    my $frame   = $self->get_xmlpage_object('matrixFrame');
+    my $hscroll = $self->get_xmlpage_object('matrixHScroll');
+    my $vscroll = $self->get_xmlpage_object('matrixVScroll');
 
     my $hover_closure  = sub { $self->on_matrix_hover(@_); };
     my $select_closure = sub { $self->on_matrix_clicked(@_); };
@@ -286,13 +286,13 @@ sub init_matrix_grid {
 sub init_dendrogram {
     my $self = shift;
 
-    my $frame      = $self->{xmlPage}->get_object('phylogenyFrame');
-    my $graph_frame = $self->{xmlPage}->get_object('phylogenyGraphFrame');
-    my $hscroll    = $self->{xmlPage}->get_object('phylogenyHScroll');
-    my $vscroll    = $self->{xmlPage}->get_object('phylogenyVScroll');
+    my $frame      = $self->get_xmlpage_object('phylogenyFrame');
+    my $graph_frame = $self->get_xmlpage_object('phylogenyGraphFrame');
+    my $hscroll    = $self->get_xmlpage_object('phylogenyHScroll');
+    my $vscroll    = $self->get_xmlpage_object('phylogenyVScroll');
 
-    my $list_combo  = $self->{xmlPage}->get_object('comboPhylogenyLists');
-    my $index_combo = $self->{xmlPage}->get_object('comboPhylogenyShow');
+    my $list_combo  = $self->get_xmlpage_object('comboPhylogenyLists');
+    my $index_combo = $self->get_xmlpage_object('comboPhylogenyShow');
 
     my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
@@ -360,7 +360,7 @@ sub add_column {
 sub init_list {
     my $self = shift;
     my $id   = shift;
-    my $tree = $self->{xmlPage}->get_object($id);
+    my $tree = $self->get_xmlpage_object($id);
 
 
     my @column_names;
@@ -547,8 +547,8 @@ sub make_labels_model {
 sub remove_selected_labels_from_list {
     my $self = shift;
 
-    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
-    my $treeview2 = $self->{xmlPage}->get_object('listLabels2');
+    my $treeview1 = $self->get_xmlpage_object('listLabels1');
+    my $treeview2 = $self->get_xmlpage_object('listLabels2');
 
     my $selection = $treeview1->get_selection;
     my @paths = $selection->get_selected_rows();
@@ -595,7 +595,7 @@ sub get_selected_labels {
     my $self = shift;
 
     # Get the current selection
-    my $selection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
+    my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
     my @paths = $selection->get_selected_rows();
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
@@ -617,7 +617,7 @@ sub get_selected_records {
     my $self = shift;
 
     # Get the current selection
-    my $selection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
+    my $selection = $self->get_xmlpage_object('listLabels1')->get_selection();
     my @paths = $selection->get_selected_rows();
     #my @selected = map { ($_->get_indices)[0] } @paths;
     my $sorted_model = $selection->get_tree_view()->get_model();
@@ -638,7 +638,7 @@ sub get_selected_records {
 sub switch_selection {
     my $self = shift;
 
-    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
+    my $treeview1 = $self->get_xmlpage_object('listLabels1');
 
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
@@ -689,7 +689,7 @@ sub select_using_regex {
         $regex = qr/\A$regex\z/;
     }
 
-    my $treeview1 = $self->{xmlPage}->get_object('listLabels1');
+    my $treeview1 = $self->get_xmlpage_object('listLabels1');
 
     my $selection = $treeview1->get_selection;
     my $model1    = $treeview1->get_model;
@@ -771,7 +771,7 @@ sub on_selected_phylogeny_changed {
         $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
-        $self->{xmlPage}->get_object('label_VL_tree')->set_markup($str);
+        $self->get_xmlpage_object('label_VL_tree')->set_markup($str);
     }
 
     return;
@@ -890,7 +890,7 @@ sub on_selected_labels_changed {
     #  convoluted, but allows caller subs to not know these details
     $id ||= 'listLabels1';
     if (!$selection) {
-        my $treeview1 = $self->{xmlPage}->get_object($id);
+        my $treeview1 = $self->get_xmlpage_object($id);
         $selection = $treeview1->get_selection;
     }
 
@@ -1037,7 +1037,7 @@ sub set_selected_list_cols {
 
 # Select all terminal labels
 #my $model      = $self->{labels_model};
-#my $widget     = $self->{xmlPage}->get_object($widget_name);
+#my $widget     = $self->get_xmlpage_object($widget_name);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -1123,7 +1123,7 @@ sub on_sorted {
         );
     };
 
-    my $label_widget = $self->{xmlPage}->get_object('lblMatrix');
+    my $label_widget = $self->get_xmlpage_object('lblMatrix');
     my $drawable = $self->{matrix_drawable};
     if ($matrix_ref) {
         if ($drawable) {
@@ -1204,7 +1204,7 @@ sub on_grid_hover {
     my $pfx = $self->get_grid_text_pfx;
 
     my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
-    $self->{xmlPage}->get_object('label_VL_grid')->set_markup($text);
+    $self->get_xmlpage_object('label_VL_grid')->set_markup($text);
 
     my $tree = $self->{project}->get_selected_phylogeny;
     return if ! defined $tree;
@@ -1356,7 +1356,7 @@ sub on_phylogeny_highlight {
 
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;
-        $self->{xmlPage}->get_object('label_VL_tree')->set_markup($text);
+        $self->get_xmlpage_object('label_VL_tree')->set_markup($text);
     }
 
     return;
@@ -1372,8 +1372,8 @@ sub on_phylogeny_click {
 
         # Select terminal labels as per the selection mode
         my $model      = $self->{labels_model};
-        my $hmodel     = $self->{xmlPage}->get_object('listLabels1')->get_model();
-        my $hselection = $self->{xmlPage}->get_object('listLabels1')->get_selection();
+        my $hmodel     = $self->get_xmlpage_object('listLabels1')->get_model();
+        my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 
@@ -1599,8 +1599,8 @@ sub on_matrix_hover {
     my $self = shift;
     my ($h, $v) = @_; # integer indices
 
-    my $hmodel = $self->{xmlPage}->get_object('listLabels1')->get_model();
-    my $vmodel = $self->{xmlPage}->get_object('listLabels2')->get_model();
+    my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
+    my $vmodel = $self->get_xmlpage_object('listLabels2')->get_model();
 
     my ($hiter, $viter) = ($hmodel->iter_nth_child(undef,$h), $vmodel->iter_nth_child(undef,$v));
 
@@ -1633,7 +1633,7 @@ sub on_matrix_hover {
         $str = "<b>Matrix</b>: not in matrix";
     }
 
-    $self->{xmlPage}->get_object('lblMatrix')->set_markup($str);
+    $self->get_xmlpage_object('lblMatrix')->set_markup($str);
 
     return;
 }
@@ -1653,8 +1653,8 @@ sub on_matrix_clicked {
         $v_start = Gtk2::TreePath->new_from_indices($v_start);
         $v_end   = Gtk2::TreePath->new_from_indices($v_end);
 
-        my $hlist = $self->{xmlPage}->get_object('listLabels1');
-        my $vlist = $self->{xmlPage}->get_object('listLabels2');
+        my $hlist = $self->get_xmlpage_object('listLabels1');
+        my $vlist = $self->get_xmlpage_object('listLabels2');
 
         my $hsel = $hlist->get_selection;
         my $vsel = $vlist->get_selection;
@@ -1736,9 +1736,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_object("btn${old_tool}ToolVL");
+        my $widget = $self->get_xmlpage_object("btn${old_tool}ToolVL");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_object("btn${tool}ToolVL");
+        my $new_widget = $self->get_xmlpage_object("btn${tool}ToolVL");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
@@ -1796,7 +1796,7 @@ sub set_pane {
     my $pos  = shift;
     my $id   = shift;
 
-    my $pane = $self->{xmlPage}->get_object($id);
+    my $pane = $self->get_xmlpage_object($id);
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Labels tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
@@ -1811,7 +1811,7 @@ sub queue_set_pane {
     my $pos  = shift;
     my $id   = shift;
 
-    my $pane = $self->{xmlPage}->get_object($id);
+    my $pane = $self->get_xmlpage_object($id);
 
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(

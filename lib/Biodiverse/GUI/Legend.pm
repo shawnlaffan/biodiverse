@@ -370,6 +370,16 @@ sub hide_current_marks {
     return;
 }
 
+sub show_current_marks {
+    my $self = shift;
+    my $marks = $self->{marks}{current} // [];
+    foreach my $mark (@$marks) {
+        $mark->raise_to_top;
+        $mark->show;
+    }
+    return;
+}
+
 sub set_gt_flag {
     my $self = shift;
     my $flag = shift;
@@ -447,7 +457,7 @@ sub reposition {
     $self->{legend_colours_group}->affine_absolute($matrix);
 
     # Reposition the "mark" textboxes
-    my @mark_arr = @{$self->{marks}{current} // []};
+    my @mark_arr = @{$self->{marks}{current} //= $self->{marks}{default}};
     foreach my $i (0..$#mark_arr) {
         my $mark = $mark_arr[$#mark_arr - $i];
         #  move the mark to right align with the legend
@@ -472,8 +482,9 @@ sub reposition {
 
         $mark->raise_to_top;
         $mark->show;
+        # say STDERR "Mark $i is " . $mark->get( 'text' );
     }
-
+    
     # Reposition value box
     if ($self->{value_group}) {
         my ($value_x, $value_y) = $self->{value_group}->get('x', 'y');
@@ -498,7 +509,7 @@ sub reposition {
 # Set colouring mode - 'Hue' or 'Sat'
 sub set_mode {
     my $self = shift;
-    my $mode = shift;
+    my $mode = shift // $self->get_mode;
 
     $mode = ucfirst lc $mode;
 
@@ -742,6 +753,9 @@ sub get_colour_ratio {
 
     state $centre_colour = Gtk2::Gdk::Color->parse('#ffffbf');
 
+    #  Perhaps should handle cases where min or max are zero,
+    #  but those should not be passed anyway so an error is
+    #  appropriate.
     my $extreme = exp (max (abs log $min, log $max));
 
     return $centre_colour
@@ -1016,7 +1030,9 @@ sub set_min_max {
         else {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
+        # say STDERR "Mark text $i is $text";
         $mark->raise_to_top;
+        $mark->show;
     }
 
     return;
@@ -1151,7 +1167,7 @@ sub set_text_marks_for_labels {
     foreach my $i (0 .. $#strings) {
         my $mark = $mark_arr->[$#strings - $i];
         $mark->set( text => $strings[$i] );
-        # $mark->show;
+        $mark->show;
         $mark->raise_to_top;
     }
 
@@ -1278,7 +1294,7 @@ sub get_colour_method {
 sub _make_nonbasic_methods {
     my ($pkg) = shift || __PACKAGE__;
     my @methods = _get_nonbasic_plot_modes();
-    print "Calling _make_access_methods for $pkg";
+    # print "Calling _make_access_methods for $pkg";
     no strict 'refs';
     foreach my $key (@methods) {
         my $method   = "get_${key}_mode";

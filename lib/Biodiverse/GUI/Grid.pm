@@ -227,6 +227,11 @@ sub update_legend {
     return;
 }
 
+sub set_legend_colour_mode_from_list_and_index {
+    my $self = shift;
+    return $self->get_legend->set_colour_mode_from_list_and_index(@_);
+}
+
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
@@ -813,12 +818,8 @@ sub hide_some_cells {
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
         #  sometimes we are called before all cells have contents
-        if ($callback->($cell->[INDEX_ELEMENT])) {
-            $cell->[INDEX_RECT]->hide;
-        }
-        else {
-            $cell->[INDEX_RECT]->show;
-        }
+        my $bool = !!$callback->($cell->[INDEX_ELEMENT]);
+        $cell->[INDEX_RECT]->set_visible($bool);
     }
 
     return;

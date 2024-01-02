@@ -62,14 +62,14 @@ sub new {
     $self->{xmlLabel} = Gtk2::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
-    my $page  = $self->{xmlPage}->get_object('hboxSpatialPage');
+    my $page  = $self->get_xmlpage_object('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
     my $label_text   = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
     # Set up options menu
-    $self->{toolbar_menu} = $self->{xmlPage}->get_object('menu_spatial_data');
+    $self->{toolbar_menu} = $self->get_xmlpage_object('menu_spatial_data');
 
     # Add to notebook
     $self->add_to_notebook (
@@ -164,7 +164,7 @@ sub new {
   WIDGET:
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
-        my $widget = $self->{xmlPage}->get_object($widget_name);
+        my $widget = $self->get_xmlpage_object($widget_name);
         if (!$widget) {
             warn "$widget_name cannot be found\n";
             next WIDGET;
@@ -191,13 +191,13 @@ sub new {
         menuitem_spatial_nbr_highlighting
     /;
     foreach my $w_name (@to_hide) {
-        my $w = $self->{xmlPage}->get_object($w_name);
+        my $w = $self->get_xmlpage_object($w_name);
         next if !defined $w;
         $w->hide;
     }
 
     #  override a label
-    my $combo_label_widget = $self->{xmlPage}->get_object('label_spatial_combos');
+    my $combo_label_widget = $self->get_xmlpage_object('label_spatial_combos');
     $combo_label_widget->set_text ('Index group:  ');
 
     $self->init_output_indices_combo();
@@ -216,7 +216,7 @@ sub new {
 
     say '[SpatialMatrix tab] - Loaded tab';
 
-    $self->{menubar} = $self->{xmlPage}->get_object('menubar_spatial');
+    $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
 
     #  debug stuff
@@ -234,9 +234,9 @@ sub on_show_hide_parameters {
 
 sub init_grid {
     my $self = shift;
-    my $frame   = $self->{xmlPage}->get_object('gridFrame');
-    my $hscroll = $self->{xmlPage}->get_object('gridHScroll');
-    my $vscroll = $self->{xmlPage}->get_object('gridVScroll');
+    my $frame   = $self->get_xmlpage_object('gridFrame');
+    my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
 #print "Initialising grid\n";
 
@@ -274,12 +274,12 @@ sub init_grid {
     $self->{grid}{page} = $self; # Hacky
     weaken $self->{grid}{page};
 
-    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_scaling_changed,
         $self,
     );
-    my $menu_flip_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_flip_mode');
+    my $menu_flip_checkbox = $self->get_xmlpage_object('menu_colour_stretch_flip_mode');
     $menu_flip_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_flip_changed,
         $self,
@@ -427,7 +427,7 @@ sub on_cell_selected {
 
     $self->{selected_element} = $element;
 
-    my $combo = $self->{xmlPage}->get_object('comboIndices');
+    my $combo = $self->get_xmlpage_object('comboIndices');
     $combo->set_model($self->{output_indices_model});  #  already have this?
 
     # Select the previous analysis (or the first one)
@@ -482,7 +482,7 @@ sub on_grid_hover {
                 $self->format_number_for_display (number => $val),
               ) # round to 4 d.p.
             : "<b>Selected element: $selected_el</b>";
-        $self->{xmlPage}->get_object('lblOutput')->set_markup($text);
+        $self->get_xmlpage_object('lblOutput')->set_markup($text);
 
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
@@ -533,7 +533,7 @@ sub show_analysis {
 sub on_active_index_changed {
     my $self  = shift;
     my $combo = shift
-              ||  $self->{xmlPage}->get_object('comboIndices');
+              ||  $self->get_xmlpage_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
     my $element = $self->{output_indices_model}->get($iter, 0);
@@ -606,6 +606,8 @@ sub recolour {
     my $matrix_ref  = $self->{output_ref};
     my $sel_element = $self->{selected_element};
 
+    my $legend = $grid->get_legend;
+
     my $colour_func = sub {
         my $elt = shift;
 
@@ -618,12 +620,13 @@ sub recolour {
         my $val = $matrix_ref->get_defined_value_aa ($elt, $sel_element);
 
         return defined $val
-            ? $grid->get_colour($val, $min, $max)
+            ? $legend->get_colour($val, $min, $max)
             : undef;
     };
 
     $grid->colour($colour_func);
     $grid->set_legend_min_max($min, $max);
+    $grid->update_legend;
 
     return;
 }

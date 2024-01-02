@@ -63,7 +63,7 @@ sub new {
     $self->{xmlLabel} = Gtk2::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxSpatialLabel.ui'));
 
-    my $page  = $self->{xmlPage}->get_object('hboxSpatialPage');
+    my $page  = $self->get_xmlpage_object('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_object('hboxSpatialLabel');
     my $label_text = $self->{xmlLabel}->get_object('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
@@ -109,8 +109,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
-        $self->{xmlPage}->get_object('hbox_spatial_tab_bottom')->hide;
-        $self->{xmlPage}->get_object('toolbarSpatial')->hide;
+        $self->get_xmlpage_object('hbox_spatial_tab_bottom')->hide;
+        $self->get_xmlpage_object('toolbarSpatial')->hide;
     }
     else {
         # We're being called to show an EXISTING output
@@ -199,10 +199,10 @@ sub new {
         condition_object => $spatial_conditions[1],
     );
 
-    $self->{xmlPage}->get_object('frameSpatialParams1')->add(
+    $self->get_xmlpage_object('frameSpatialParams1')->add(
         $self->{spatial1}->get_object
     );
-    $self->{xmlPage}->get_object('frameSpatialParams2')->add(
+    $self->get_xmlpage_object('frameSpatialParams2')->add(
         $self->{spatial2}->get_object
     );
 
@@ -214,7 +214,7 @@ sub new {
             is_def_query => 'is_def_query',
             condition_object => $defq_object,
         );
-    $self->{xmlPage}->get_object('frameDefinitionQuery1')->add(
+    $self->get_xmlpage_object('frameDefinitionQuery1')->add(
         $self->{definition_query1}->get_object
     );
 
@@ -233,7 +233,7 @@ sub new {
     );
 
     Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
-        $self->{xmlPage}->get_object('treeCalculations'),
+        $self->get_xmlpage_object('treeCalculations'),
         $self->{calculations_model},
     );
 
@@ -310,7 +310,7 @@ sub new {
     }
 
     while (my ($widget_name, $args) = each %widgets_and_signals) {
-        my $widget = $self->{xmlPage}->get_object($widget_name);
+        my $widget = $self->get_xmlpage_object($widget_name);
         warn "Cannot connect $widget_name\n" if !defined $widget;
         $widget->signal_connect_swapped(
             %$args,
@@ -335,7 +335,7 @@ sub new {
 
     $self->choose_tool('Select');
 
-    $self->{menubar} = $self->{xmlPage}->get_object('menubar_spatial');
+    $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
@@ -376,18 +376,12 @@ sub screenshot {
 sub on_show_hide_parameters {
     my $self = shift;
 
-    my $frame = $self->{xmlPage}->get_object('frame_spatial_parameters');
+    my $frame = $self->get_xmlpage_object('frame_spatial_parameters');
     my $widget = $frame->get_label_widget;
     my $active = $widget->get_active;
 
-    my $table = $self->{xmlPage}->get_object('tbl_spatial_parameters');
-
-    if ($active) {
-        $table->hide;
-    }
-    else {
-        $table->show;
-    }
+    my $table = $self->get_xmlpage_object('tbl_spatial_parameters');
+    $table->set_visible ($active);
 
     return;
 }
@@ -405,7 +399,7 @@ sub setup_dendrogram {
         'phylogeny',
         $self->{phylogeny_callback},
     );
-    $self->{xmlPage}->get_object('comboTreeSelect')->signal_connect_swapped(
+    $self->get_xmlpage_object('comboTreeSelect')->signal_connect_swapped(
         changed => \&on_selected_phylogeny_changed,
         $self,
     );
@@ -452,10 +446,10 @@ sub update_dendrogram_combo {
 sub init_dendrogram {
     my $self = shift;
 
-    my $frame       = $self->{xmlPage}->get_object('spatialPhylogenyFrame');
-    my $graph_frame = $self->{xmlPage}->get_object('spatialPhylogenyGraphFrame');
-    my $hscroll     = $self->{xmlPage}->get_object('spatialPhylogenyHScroll');
-    my $vscroll     = $self->{xmlPage}->get_object('spatialPhylogenyVScroll');
+    my $frame       = $self->get_xmlpage_object('spatialPhylogenyFrame');
+    my $graph_frame = $self->get_xmlpage_object('spatialPhylogenyGraphFrame');
+    my $hscroll     = $self->get_xmlpage_object('spatialPhylogenyHScroll');
+    my $vscroll     = $self->get_xmlpage_object('spatialPhylogenyVScroll');
 
     my $list_combo  = undef;  #  these are under the control of the spatial plot, not the dendrogram
     my $index_combo = undef;
@@ -528,7 +522,7 @@ sub init_branch_colouring_menu {
     my $label = Gtk2::Label->new('Branch colouring: ');
 
     my $checkbox_show_legend
-        = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+        = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
     $menubar = Gtk2::MenuBar->new;
     my $menu = Gtk2::Menu->new;
     my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
@@ -720,9 +714,9 @@ sub init_dendrogram_legend {
 
 sub init_grid {
     my $self = shift;
-    my $frame   = $self->{xmlPage}->get_object('gridFrame');
-    my $hscroll = $self->{xmlPage}->get_object('gridHScroll');
-    my $vscroll = $self->{xmlPage}->get_object('gridVScroll');
+    my $frame   = $self->get_xmlpage_object('gridFrame');
+    my $hscroll = $self->get_xmlpage_object('gridHScroll');
+    my $vscroll = $self->get_xmlpage_object('gridVScroll');
 
     $self->{initialising_grid} = 1;
 
@@ -769,12 +763,12 @@ sub init_grid {
 
     $self->{initialising_grid} = 0;
 
-    my $menu_log_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_log_mode');
+    my $menu_log_checkbox = $self->get_xmlpage_object('menu_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_scaling_changed,
         $self,
     );
-    my $menu_flip_checkbox = $self->{xmlPage}->get_object('menu_colour_stretch_flip_mode');
+    my $menu_flip_checkbox = $self->get_xmlpage_object('menu_colour_stretch_flip_mode');
     $menu_flip_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_flip_changed,
         $self,
@@ -787,7 +781,7 @@ sub init_grid {
 
 sub set_cell_outline_menuitem_active {
     my ($self, $active) = @_;
-    $self->{xmlPage}->get_object('menuitem_spatial_cell_show_outline')->set_active($active);
+    $self->get_xmlpage_object('menuitem_spatial_cell_show_outline')->set_active($active);
 }
 
 sub update_display_list_combos {
@@ -811,7 +805,7 @@ sub init_lists_combo {
     my $self = shift;
 
 
-    my $combo = $self->{xmlPage}->get_object('comboLists');
+    my $combo = $self->get_xmlpage_object('comboLists');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -829,7 +823,7 @@ sub update_lists_combo {
 
     # Make the model
     $self->{output_lists_model} = $self->make_lists_model();
-    my $combo = $self->{xmlPage}->get_object('comboLists');
+    my $combo = $self->get_xmlpage_object('comboLists');
     $combo->set_model($self->{output_lists_model});
 
     # Select the SPATIAL_RESULTS list (or the first one)
@@ -969,7 +963,7 @@ sub set_pane {
 
     return if !defined $id;
 
-    my $pane = $self->{xmlPage}->get_object($id);
+    my $pane = $self->get_xmlpage_object($id);
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Spatial tab] Updating pane: maxPos = $max_pos, pos = $pos\n";
@@ -984,7 +978,7 @@ sub queue_set_pane {
     my $pos = shift;
     my $id = shift;
 
-    my $pane = $self->{xmlPage}->get_object($id);
+    my $pane = $self->get_xmlpage_object($id);
 
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
@@ -1034,7 +1028,7 @@ sub on_selected_phylogeny_changed {
         $self->{dendrogram}->set_cluster(undef, 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
-        $self->{xmlPage}->get_object('spatial_label_VL_tree')->set_markup($str);
+        $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($str);
     }
 
     return;
@@ -1065,8 +1059,8 @@ sub on_phylogeny_hover {
          $node->get_value ('TERMINAL_NODE_LAST'),
     );
 
-    $self->{xmlPage}->get_object('lblOutput')->set_markup($map_text);
-    $self->{xmlPage}->get_object('spatial_label_VL_tree')->set_markup($dendro_text);
+    $self->get_xmlpage_object('lblOutput')->set_markup($map_text);
+    $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($dendro_text);
 
     return;
 }
@@ -1336,7 +1330,7 @@ sub on_run {
     my $self = shift;
 
     # Load settings...
-    my $output_name = $self->{xmlPage}->get_object('txtSpatialName')->get_text();
+    my $output_name = $self->get_xmlpage_object('txtSpatialName')->get_text();
     $self->{output_name} = $output_name;
 
     # Get calculations to run
@@ -1489,8 +1483,8 @@ sub on_run {
         elsif (defined $output_ref) {
             $self->{grid}->set_base_struct($output_ref);
         }
-        $self->{xmlPage}->get_object('hbox_spatial_tab_bottom')->show;
-        $self->{xmlPage}->get_object('toolbarSpatial')->show;
+        $self->get_xmlpage_object('hbox_spatial_tab_bottom')->show;
+        $self->get_xmlpage_object('toolbarSpatial')->show;
         $self->update_lists_combo; # will display first analysis as a side-effect...
         #$self->setup_dendrogram;   # completely refresh the dendrogram
         $self->update_dendrogram_combo;
@@ -1540,7 +1534,7 @@ sub on_grid_hover {
             ? $self->format_number_for_display (number => $val)
             : 'value is undefined';
 
-        $self->{xmlPage}->get_object('lblOutput')->set_markup($text);
+        $self->get_xmlpage_object('lblOutput')->set_markup($text);
 
         # Mark out neighbours
         my $neighbours = $self->{hover_neighbours};
@@ -1694,10 +1688,10 @@ sub colour_branches_on_dendrogram {
         index => '',
     );
 
-    my $log_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_log_scale');
+    my $log_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_log_scale');
     $legend->set_log_mode($log_check_box->get_active);
 
-    my $flip_check_box = $self->{xmlPage}->get_object('menuitem_spatial_tree_colour_stretch_flip_mode');
+    my $flip_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_colour_stretch_flip_mode');
     $legend->set_invert_colours ($flip_check_box->get_active);
 
     my $listref = $output_ref->get_list_ref (
@@ -1714,7 +1708,7 @@ sub colour_branches_on_dendrogram {
     my @minmax_args = ($min, $max);
     my $colour_method = $legend->get_colour_method;
 
-    my $checkbox_show_legend = $self->{xmlPage}->get_object('menuitem_spatial_tree_show_legend');
+    my $checkbox_show_legend = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
     if ($checkbox_show_legend->get_active) {
         $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;
@@ -1785,10 +1779,10 @@ sub get_current_tree {
     return if !$self->{output_ref};
 
     # check combo box to choose if project phylogeny or tree used in spatial analysis
-    my $tree_method = $self->{xmlPage}->get_object('comboTreeSelect')->get_active_text();
+    my $tree_method = $self->get_xmlpage_object('comboTreeSelect')->get_active_text();
     $tree_method //= 'none';
 
-    my $tree_frame = $self->{xmlPage}->get_object ('frame_spatial_tree_plot');
+    my $tree_frame = $self->get_xmlpage_object ('frame_spatial_tree_plot');
 
     if ($tree_method eq 'hide panel') {
         $tree_frame->hide;
@@ -1908,7 +1902,7 @@ sub update_output_indices_combo {
 
     # Make the model
     $self->{output_indices_model} = $self->make_output_indices_model();
-    my $combo = $self->{xmlPage}->get_object('comboIndices');
+    my $combo = $self->get_xmlpage_object('comboIndices');
     $combo->set_model($self->{output_indices_model});
 
     # Select the previous analysis (or the first one)
@@ -1956,7 +1950,7 @@ sub on_output_index_toggled {
 sub init_output_indices_combo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_object('comboIndices');
+    my $combo = $self->get_xmlpage_object('comboIndices');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -1973,7 +1967,7 @@ sub init_output_indices_combo {
 sub on_active_index_changed {
     my $self = shift;
     my $combo = shift
-        ||  $self->{xmlPage}->get_object('comboIndices');
+        ||  $self->get_xmlpage_object('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
     my ($index) = $self->{output_indices_model}->get($iter, 0);
@@ -2070,7 +2064,7 @@ sub on_stretch_changed {
     return;
 
     my $self = shift;
-    my $sel = $self->{xmlPage}->get_object('comboSpatialStretch')->get_active_text();
+    my $sel = $self->get_xmlpage_object('comboSpatialStretch')->get_active_text();
 
     my ($min, $max) = split (/-/, uc $sel);
 
@@ -2171,7 +2165,7 @@ sub on_colours_changed {
     return;
 
     my $self = shift;
-    my $colours = $self->{xmlPage}->get_object('comboColours')->get_active_text();
+    my $colours = $self->get_xmlpage_object('comboColours')->get_active_text();
     $self->{grid}->set_legend_mode($colours);
     $self->recolour();
 
@@ -2213,7 +2207,7 @@ sub on_menu_neighbours_changed {
 #  redundant now
 sub __on_neighbours_changed {
     my $self = shift;
-    my $sel = $self->{xmlPage}->get_object('comboNeighbours')->get_active_text();
+    my $sel = $self->get_xmlpage_object('comboNeighbours')->get_active_text();
     $self->{hover_neighbours} = $sel;
 
     # Turn off markings if deselected
@@ -2241,7 +2235,7 @@ sub on_colour_set {
 
     my $combo_colours_hue_choice = 1;
 
-    my $widget = $self->{xmlPage}->get_object('comboColours');
+    my $widget = $self->get_xmlpage_object('comboColours');
 
     #  a bodge to set the active colour mode to Hue
     my $active = $widget->get_active;
@@ -2266,7 +2260,7 @@ sub on_add_param {
     my $self = shift;
     my $button = shift; # the "add param" button
 
-    my $table = $self->{xmlPage}->get_object('tblParams');
+    my $table = $self->get_xmlpage_object('tblParams');
 
     # Add an extra row
     my ($rows) = $table->get('n-rows');
@@ -2321,9 +2315,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_object("btn${old_tool}ToolSP");
+        my $widget = $self->get_xmlpage_object("btn${old_tool}ToolSP");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_object("btn${tool}ToolSP");
+        my $new_widget = $self->get_xmlpage_object("btn${tool}ToolSP");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
@@ -2446,12 +2440,7 @@ sub on_show_tree_legend_changed {
     }
     $check &&= !$self->{no_dendro_legend_for}{$aref->[0] // ''};
 
-    if ($check) {
-        $legend->show;
-    }
-    else {
-        $legend->hide;
-    }
+    $legend->set_visible($check);
 }
 
 

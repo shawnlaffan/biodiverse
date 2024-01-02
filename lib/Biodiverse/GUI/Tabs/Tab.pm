@@ -51,6 +51,11 @@ sub set_page_index {
     return;
 }
 
+sub get_xmlpage_object {
+    my ($self, $id) = @_;
+    return $self->{xmlPage}->get_object($id);
+}
+
 sub get_base_ref {
     my $self = shift;
 

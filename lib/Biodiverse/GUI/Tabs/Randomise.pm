@@ -223,7 +223,7 @@ sub set_button_sensitivity {
         $xml_page->get_object($widget)->set_sensitive ($sens);
     }
 
-    my $table = $self->{xmlPage}->get_object('tableParams');
+    my $table = $self->get_xmlpage_object('tableParams');
 
     return;
 }
@@ -232,7 +232,7 @@ sub init_basedata_combo {
     my $self = shift;
     my %args = @_;
 
-    my $combo = $self->{xmlPage}->get_object('comboRandomiseBasedata');
+    my $combo = $self->get_xmlpage_object('comboRandomiseBasedata');
     my $renderer = Gtk2::CellRendererText->new();
 
     $combo->pack_start($renderer, 1);
@@ -306,7 +306,7 @@ sub init_function_combo {
     my $self = shift;
     my %args = @_;
 
-    my $combo = $self->{xmlPage}->get_object('comboFunction');
+    my $combo = $self->get_xmlpage_object('comboFunction');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -328,7 +328,7 @@ sub init_function_combo {
 sub get_selected_function {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_object('comboFunction');
+    my $combo = $self->get_xmlpage_object('comboFunction');
     my $iter = $combo->get_active_iter;
 
     return $self->{function_model}->get($iter, 0);
@@ -471,7 +471,7 @@ sub init_parameters_table {
     my $params_list = $self->{params_list};
 
     # Build widgets for parameters
-    my $table = $self->{xmlPage}->get_object('tableParams');
+    my $table = $self->get_xmlpage_object('tableParams');
     my $parameters_table = $self->get_parameters_table;
     my $new_extractors
         = $parameters_table->fill($params_list, $table);
@@ -498,7 +498,7 @@ sub init_parameters_table {
 ######################################################
 sub on_randomise_basedata_changed {
     my $self = shift;
-    my $combo = $self->{xmlPage}->get_object('comboRandomiseBasedata');
+    my $combo = $self->get_xmlpage_object('comboRandomiseBasedata');
     my $basedata_iter = $combo->get_active_iter();
 
     # Get basedata object
@@ -547,10 +547,10 @@ sub update_randomise_button {
     my $selected     = $outputs_list;
 
     if ($selected && @{$selected}) {
-        $self->{xmlPage}->get_object('btnRandomise')->set_sensitive(1);
+        $self->get_xmlpage_object('btnRandomise')->set_sensitive(1);
     }
     else {
-        $self->{xmlPage}->get_object('btnRandomise')->set_sensitive(0);
+        $self->get_xmlpage_object('btnRandomise')->set_sensitive(0);
     }
 
     return;
@@ -560,12 +560,12 @@ sub update_randomise_button {
 sub on_name_changed {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_object('randomise_results_list_name');
+    my $widget = $self->get_xmlpage_object('randomise_results_list_name');
     my $name = $widget->get_text();
 
     $self->{xmlLabel}->get_object('lblRandomiseName')->set_text($name);
 
-    my $label_widget = $self->{xmlPage}->get_object('label_rand_list_name');
+    my $label_widget = $self->get_xmlpage_object('label_rand_list_name');
     my $label = $label_widget->get_label;
 
     my $tab_menu_label = $self->{tab_menu_label};
@@ -617,7 +617,7 @@ sub on_run {
     my %args;
     $args{function} = $self->get_selected_function;
     $args{iterations}
-        = $self->{xmlPage}->get_object('spinIterations')->get_value_as_int;
+        = $self->get_xmlpage_object('spinIterations')->get_value_as_int;
 
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_object('randomise_results_list_name')->get_text;
@@ -776,7 +776,7 @@ sub AUTOLOAD {
 sub DESTROY {
     #my $self = shift;
     #eval {
-    #    $self->{xmlPage}->get_object('comboRandomiseBasedata')->destroy;
+    #    $self->get_xmlpage_object('comboRandomiseBasedata')->destroy;
     #}
 }  #  let the system handle destruction - need this for AUTOLOADER
 

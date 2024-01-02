@@ -350,8 +350,6 @@ sub update_tree_menu {
     my $output_ref = $self->{output_ref};
     return if !$output_ref;
 
-    # Clear out old entries from menu so we can rebuild it.
-    # This will be useful when we add checks for which export methods are valid.
     my $tree_menu = $self->{tree_menu};
 
     if (!$tree_menu) {
@@ -375,8 +373,21 @@ sub update_tree_menu {
                 event    => 'toggled',
                 callback => \&on_show_tree_legend_changed,
                 active   => 1,
-                self_key => 'checkbox_show_legend',
-            }
+                self_key => 'checkbox_show_tree_legend',
+            },
+            {
+                type     => 'Gtk2::CheckMenuItem',
+                label    => 'Log scale',
+                tooltip  => "Log scale the colours.\n"
+                          . "Uses the min and max determined by the Colour stretch choice.",
+                event    => 'toggled',
+                callback => sub {
+                    my ($self, $menuitem) = @_;
+                    $self->{use_tree_log_scale} = $menuitem->get_active;
+                },
+                active   => 1,
+                self_key => 'checkbox_log_tree_legend',
+            },
         );
 
         foreach my $item (@menu_items) {
@@ -393,9 +404,10 @@ sub update_tree_menu {
                 $menu_item->set_active($item->{active});
             }
             if (my $callback = $item->{callback}) {
+                my $args = $item->{callback_args};
                 $menu_item->signal_connect_swapped(
                     $item->{event} => $callback,
-                    $item->{callback_args} // $self
+                    $args // $self
                 );
             }
             $submenu->append($menu_item);
@@ -606,7 +618,7 @@ sub init_branch_colouring_menu {
     my $menu_action = sub {
         my $args = shift;
         my ($self, $listname, $output_ref) = @$args;
-        my $chk_show_legend = $self->{checkbox_show_legend};
+        my $chk_show_legend = $self->{checkbox_show_tree_legend};
         my $show_legend = $chk_show_legend ? $chk_show_legend->get_active : 1;
         if ($show_legend) {
             $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
@@ -1770,8 +1782,7 @@ sub colour_branches_on_dendrogram {
         index => '',
     );
 
-    my $log_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_log_scale');
-    $legend->set_log_mode($log_check_box->get_active);
+    $legend->set_log_mode($self->{use_tree_log_scale});
 
     my $flip_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_colour_stretch_flip_mode');
     $legend->set_invert_colours ($flip_check_box->get_active);
@@ -1790,8 +1801,8 @@ sub colour_branches_on_dendrogram {
     my @minmax_args = ($min, $max);
     my $colour_method = $legend->get_colour_method;
 
-    my $checkbox_show_legend = $self->{checkbox_show_legend};
-    if ($checkbox_show_legend->get_active) {
+    my $checkbox_show_tree_legend = $self->{checkbox_show_tree_legend};
+    if ($checkbox_show_tree_legend->get_active) {
         $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;
     }

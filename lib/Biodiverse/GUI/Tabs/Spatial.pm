@@ -290,7 +290,6 @@ sub new {
         menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
         menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
         
-        menuitem_spatial_tree_show_legend => {toggled => \&on_show_tree_legend_changed},
     );
 
     #  bodge - should set the radio group
@@ -367,6 +366,40 @@ sub update_tree_menu {
     }
     else {
         my $submenu = Gtk2::Menu->new;
+
+        my @menu_items = (
+            {
+                type     => 'Gtk2::CheckMenuItem',
+                label    => 'Show legend',
+                tooltip  => 'Show or hide the legend on the tree plot (if one is relevant)',
+                event    => 'toggled',
+                callback => \&on_show_tree_legend_changed,
+                active   => 1,
+                self_key => 'checkbox_show_legend',
+            }
+        );
+
+        foreach my $item (@menu_items) {
+            my $type = $item->{type} // 'Gtk2::MenuItem';
+            my $menu_item = $type->new($item->{label});
+            if (my $key = $item->{self_key}) {
+                $self->{$key} = $menu_item,
+            }
+            if (my $tooltip = $item->{tooltip}) {
+                $menu_item->set_has_tooltip(1);
+                $menu_item->set_tooltip_text($tooltip);
+            }
+            if (exists $item->{active}) {
+                $menu_item->set_active($item->{active});
+            }
+            if (my $callback = $item->{callback}) {
+                $menu_item->signal_connect_swapped(
+                    $item->{event} => $callback,
+                    $item->{callback_args} // $self
+                );
+            }
+            $submenu->append($menu_item);
+        }
 
         my $menu_item = Gtk2::MenuItem->new('Export');
         $menu_item->set_has_tooltip(1);
@@ -565,8 +598,6 @@ sub init_branch_colouring_menu {
 
     my $label = Gtk2::Label->new('Branch colouring: ');
 
-    my $checkbox_show_legend
-        = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
     $menubar = Gtk2::MenuBar->new;
     my $menu = Gtk2::Menu->new;
     my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
@@ -575,7 +606,9 @@ sub init_branch_colouring_menu {
     my $menu_action = sub {
         my $args = shift;
         my ($self, $listname, $output_ref) = @$args;
-        if ($checkbox_show_legend->get_active) {
+        my $chk_show_legend = $self->{checkbox_show_legend};
+        my $show_legend = $chk_show_legend ? $chk_show_legend->get_active : 1;
+        if ($show_legend) {
             $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
             $self->{dendrogram}->get_legend->show;
         }
@@ -1757,7 +1790,7 @@ sub colour_branches_on_dendrogram {
     my @minmax_args = ($min, $max);
     my $colour_method = $legend->get_colour_method;
 
-    my $checkbox_show_legend = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
+    my $checkbox_show_legend = $self->{checkbox_show_legend};
     if ($checkbox_show_legend->get_active) {
         $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;

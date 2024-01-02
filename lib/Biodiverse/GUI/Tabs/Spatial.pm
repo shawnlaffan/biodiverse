@@ -1834,7 +1834,7 @@ sub colour_branches_on_dendrogram {
             $node_ref = $node_ref->get_parent;
         }
     }
-    
+
 }
 
 sub on_end_grid_hover {
@@ -1842,7 +1842,7 @@ sub on_end_grid_hover {
     my $dendrogram = $self->{dendrogram}
       // return;
 
-    $dendrogram->clear_highlights;
+    $dendrogram->clear_highlights ($dendrogram->get_default_line_colour);
 }
 
 sub get_trees_are_available_to_plot {

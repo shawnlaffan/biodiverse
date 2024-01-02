@@ -263,6 +263,11 @@ sub destroy {
     return;
 }
 
+#  makes it available outside the class
+sub get_default_line_colour {
+    DEFAULT_LINE_COLOUR();
+}
+
 ##########################################################
 # The Slider
 ##########################################################
@@ -1852,7 +1857,7 @@ sub replay_multiselect_store {
 
 # Remove any existing highlights
 sub clear_highlights {
-    my $self = shift;
+    my ($self, $new_colour) = @_;
     
     # set all nodes to recorded/default colour
     return if !$self->{highlighted_lines};
@@ -1862,8 +1867,9 @@ sub clear_highlights {
         my $line = $self->{node_lines}{$node_name};
         next if !$line;
         my $colour_ref
-          =  $self->get_node_colour_aa ( $node_name )
-          || DEFAULT_LINE_COLOUR;
+          =  $new_colour
+            || $self->get_node_colour_aa ( $node_name )
+            || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;

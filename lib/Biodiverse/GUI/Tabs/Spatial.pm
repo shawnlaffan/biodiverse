@@ -409,6 +409,16 @@ sub update_tree_menu {
             {
                 type => 'Gtk2::SeparatorMenuItem'
             },
+            {
+                type     => 'Gtk2::MenuItem',
+                label    => 'Export',
+                tooltip  => 'Export the currently displayed tree',
+                event    => 'activate',
+                callback => sub {
+                    my $tree_ref = $self->get_current_tree;
+                    return Biodiverse::GUI::Export::Run($tree_ref);
+                },
+            },
         );
 
         foreach my $item (@menu_items) {
@@ -436,18 +446,7 @@ sub update_tree_menu {
                 );
             }
         }
-
-        my $menu_item = Gtk2::MenuItem->new('Export');
-        $menu_item->set_has_tooltip(1);
-        $menu_item->set_tooltip_text ('Export the currently displayed tree');
-        $submenu->append($menu_item);
-        $menu_item->signal_connect_swapped(
-            activate => sub {
-                my $tree_ref = $self->get_current_tree;
-                return Biodiverse::GUI::Export::Run($tree_ref);
-            },
-        );
-
+        
         $tree_menu->set_submenu($submenu);
         $tree_menu->set_sensitive(1);
     }

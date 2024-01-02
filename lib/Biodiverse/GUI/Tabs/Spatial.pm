@@ -337,11 +337,54 @@ sub new {
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
     return $self;
 }
+
+sub update_tree_menu {
+    my $self = shift;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{output_ref};
+
+    # Clear out old entries from menu so we can rebuild it.
+    # This will be useful when we add checks for which export methods are valid.
+    my $tree_menu = $self->{tree_menu};
+
+    if (!$tree_menu) {
+        $tree_menu  = Gtk2::MenuItem->new_with_label('Tree');
+        $menubar->append($tree_menu);
+        $self->{tree_menu} = $tree_menu;
+    }
+
+    if (!$output_ref || ($output_ref->get_param('COMPLETED') // 1) != 1) {
+        #  completed == 2 for clusters analyses with matrices only
+        $tree_menu->set_sensitive(0);
+    }
+    else {
+        my $submenu = Gtk2::Menu->new;
+
+        my $menu_item = Gtk2::MenuItem->new('Export');
+        $menu_item->set_has_tooltip(1);
+        $menu_item->set_tooltip_text ('Export the currently displayed tree');
+        $submenu->append($menu_item);
+        $menu_item->signal_connect_swapped(
+            activate => sub {
+                my $tree_ref = $self->get_current_tree;
+                return Biodiverse::GUI::Export::Run($tree_ref);
+            },
+        );
+
+        $tree_menu->set_submenu($submenu);
+        $tree_menu->set_sensitive(1);
+    }
+
+    $menubar->show_all();
+}
+
 
 
 #  doesn't work yet

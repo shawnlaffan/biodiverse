@@ -218,6 +218,7 @@ sub new {
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     #  debug stuff
     $self->{selected_list} = 'SUBELEMENTS';

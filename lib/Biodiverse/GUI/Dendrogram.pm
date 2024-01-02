@@ -1145,14 +1145,17 @@ sub clear_node_colours {
     $self->{node_colours_cache} = {};    
 
     my $tree = $self->get_tree_object();
-    if($tree) {
-        foreach my $node ($tree->get_node_refs()) {
-            $self->set_node_colour(
-                node_name  => $node->get_name(),
-                colour_ref => DEFAULT_LINE_COLOUR,
-            );
-        }
+
+    return if !$tree;
+
+    foreach my $node ($tree->get_node_refs()) {
+        $self->set_node_colour(
+            node_name  => $node->get_name(),
+            colour_ref => DEFAULT_LINE_COLOUR,
+        );
     }
+
+    return;
 }
 
 sub set_node_colour {

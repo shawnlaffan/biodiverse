@@ -406,11 +406,18 @@ sub update_tree_menu {
                 event    => 'activate',
                 callback => \&on_set_tree_line_widths,
             },
+            {
+                type => 'Gtk2::SeparatorMenuItem'
+            },
         );
 
         foreach my $item (@menu_items) {
             my $type = $item->{type} // 'Gtk2::MenuItem';
-            my $menu_item = $type->new($item->{label});
+            my $menu_item = $type->new($item->{label} // ());
+            $submenu->append($menu_item);
+
+            next if $type =~ /Separator/;
+
             if (my $key = $item->{self_key}) {
                 $self->{$key} = $menu_item,
             }
@@ -428,7 +435,6 @@ sub update_tree_menu {
                     $args // $self
                 );
             }
-            $submenu->append($menu_item);
         }
 
         my $menu_item = Gtk2::MenuItem->new('Export');

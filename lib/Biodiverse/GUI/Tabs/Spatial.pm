@@ -386,8 +386,31 @@ sub update_tree_menu {
                     $self->{use_tree_log_scale} = $menuitem->get_active;
                 },
                 active   => 1,
-                self_key => 'checkbox_log_tree_legend',
+                # self_key => 'checkbox_log_tree_legend',
             },
+            #                         <child>
+            #                           <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_colour_stretch_flip_mode">
+            #                             <property name="visible">True</property>
+            #                             <property name="can_focus">False</property>
+            #                             <property name="label" translatable="yes">Invert colour stretch</property>
+            #                             <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
+            #                             <property name="use_underline">True</property>
+            #                             <property name="active">False</property>
+            #                           </object>
+            #                         </child>
+            {
+                type     => 'Gtk2::CheckMenuItem',
+                label    => 'Invert colour stretch',
+                tooltip  => "Invert (flip) the colour range. Has no effect on categorical colouring.",
+                event    => 'toggled',
+                callback => sub {
+                    my ($self, $menuitem) = @_;
+                    $self->{tree_invert_colours} = $menuitem->get_active;
+                },
+                active   => 0,
+                # self_key => 'invert_tree_colours',
+            },
+
         );
 
         foreach my $item (@menu_items) {
@@ -1783,9 +1806,7 @@ sub colour_branches_on_dendrogram {
     );
 
     $legend->set_log_mode($self->{use_tree_log_scale});
-
-    my $flip_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_colour_stretch_flip_mode');
-    $legend->set_invert_colours ($flip_check_box->get_active);
+    $legend->set_invert_colours ($self->{tree_invert_colours});
 
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,

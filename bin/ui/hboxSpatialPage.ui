@@ -506,7 +506,7 @@ Uses the min and max determined by the Colour stretch choice.</property>
                             <property name="active">True</property>
                           </object>
                         </child>
--->
+
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_colour_stretch_flip_mode">
                             <property name="visible">True</property>
@@ -517,6 +517,7 @@ Uses the min and max determined by the Colour stretch choice.</property>
                             <property name="active">False</property>
                           </object>
                         </child>
+-->
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_tree_colour_mode">
                             <property name="visible">True</property>

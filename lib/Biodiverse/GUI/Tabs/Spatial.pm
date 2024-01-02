@@ -282,7 +282,7 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
-        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
+        # menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
         
@@ -386,18 +386,7 @@ sub update_tree_menu {
                     $self->{use_tree_log_scale} = $menuitem->get_active;
                 },
                 active   => 1,
-                # self_key => 'checkbox_log_tree_legend',
             },
-            #                         <child>
-            #                           <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_colour_stretch_flip_mode">
-            #                             <property name="visible">True</property>
-            #                             <property name="can_focus">False</property>
-            #                             <property name="label" translatable="yes">Invert colour stretch</property>
-            #                             <property name="tooltip_text" translatable="yes">Invert (flip) the colour range. Has no effect on categorical colouring.</property>
-            #                             <property name="use_underline">True</property>
-            #                             <property name="active">False</property>
-            #                           </object>
-            #                         </child>
             {
                 type     => 'Gtk2::CheckMenuItem',
                 label    => 'Invert colour stretch',
@@ -408,9 +397,15 @@ sub update_tree_menu {
                     $self->{tree_invert_colours} = $menuitem->get_active;
                 },
                 active   => 0,
-                # self_key => 'invert_tree_colours',
             },
-
+            {
+                type     => 'Gtk2::MenuItem',
+                label    => 'Set tree branch line widths',
+                tooltip  => "Set the width of the tree branches.\n"
+                          . "Does not affect the vertical connectors.",
+                event    => 'activate',
+                callback => \&on_set_tree_line_widths,
+            },
         );
 
         foreach my $item (@menu_items) {
@@ -423,7 +418,7 @@ sub update_tree_menu {
                 $menu_item->set_has_tooltip(1);
                 $menu_item->set_tooltip_text($tooltip);
             }
-            if (exists $item->{active}) {
+            if ($type =~ 'Check|Radio' && exists $item->{active}) {
                 $menu_item->set_active($item->{active});
             }
             if (my $callback = $item->{callback}) {

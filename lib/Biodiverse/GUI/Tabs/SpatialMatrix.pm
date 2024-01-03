@@ -153,7 +153,6 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
-        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
     for my $n (0..6) {
@@ -230,6 +229,14 @@ sub on_show_hide_parameters {
     my $self = shift;
     return;
 
+}
+
+sub get_tree_menu_items {
+    my $self = shift;
+    my @items = $self->SUPER::get_tree_menu_items;
+    my $re_wanted = qr/Set tree branch line widths|Export/;
+    @items = grep {$_->{type} =~ /Separator/ or $_->{label} =~ /$re_wanted/} @items;
+    return wantarray ? @items : \@items;
 }
 
 

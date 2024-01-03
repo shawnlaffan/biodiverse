@@ -338,11 +338,13 @@ sub new {
 }
 
 sub update_tree_menu {
-    my $self = shift;
+    my ($self, $menu_items) = @_;
 
     my $menubar = $self->{menubar};
     my $output_ref = $self->{output_ref};
     return if !$output_ref;
+
+    $menu_items ||= $self->get_tree_menu_items;
 
     my $tree_menu = $self->{tree_menu};
 
@@ -361,7 +363,7 @@ sub update_tree_menu {
 
         $self->_add_items_to_menu (
             menu  => $submenu,
-            items => scalar $self->get_tree_menu_items,
+            items => $menu_items,
         );
 
         $tree_menu->set_submenu($submenu);
@@ -440,7 +442,7 @@ sub get_tree_menu_items {
             callback => \&on_set_tree_line_widths,
         },
         {
-            type => 'Gtk2::SeparatorMenuItem'
+            type  => 'Gtk2::SeparatorMenuItem',
         },
         {
             type     => 'Gtk2::MenuItem',

@@ -378,6 +378,12 @@ sub get_tree_menu_items {
 
     my @menu_items = (
         {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Branch colouring',
+            tooltip  => "These options control the branch colouring (when relevant)\n"
+                . 'The menu to control what is displayed is below the tree.',
+        },
+        {
             type     => 'Gtk2::CheckMenuItem',
             label    => 'Show legend',
             tooltip  => 'Show or hide the legend on the tree plot (if one is relevant)',
@@ -432,6 +438,9 @@ sub get_tree_menu_items {
                     callback => \&on_tree_colour_mode_changed,
                 }
             ],
+        },
+        {
+            type  => 'Gtk2::SeparatorMenuItem',
         },
         {
             type     => 'Gtk2::MenuItem',

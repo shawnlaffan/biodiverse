@@ -855,6 +855,8 @@ sub set_branch_line_width {
     my ($self, $val) = @_;
     my $current = $self->get_branch_line_width;
 
+    $val ||= 0;
+
     $self->{branch_line_width} = $val;
 
     if ($current != $val && $self->{tree_node}) {

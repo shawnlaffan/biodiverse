@@ -421,32 +421,11 @@ sub update_tree_menu {
             },
         );
 
-        foreach my $item (@menu_items) {
-            my $type = $item->{type} // 'Gtk2::MenuItem';
-            my $menu_item = $type->new($item->{label} // ());
-            $submenu->append($menu_item);
+        $self->_add_items_to_menu (
+            menu  => $submenu,
+            items => \@menu_items,
+        );
 
-            next if $type =~ /Separator/;
-
-            if (my $key = $item->{self_key}) {
-                $self->{$key} = $menu_item,
-            }
-            if (my $tooltip = $item->{tooltip}) {
-                $menu_item->set_has_tooltip(1);
-                $menu_item->set_tooltip_text($tooltip);
-            }
-            if ($type =~ 'Check|Radio' && exists $item->{active}) {
-                $menu_item->set_active($item->{active});
-            }
-            if (my $callback = $item->{callback}) {
-                my $args = $item->{callback_args};
-                $menu_item->signal_connect_swapped(
-                    $item->{event} => $callback,
-                    $args // $self
-                );
-            }
-        }
-        
         $tree_menu->set_submenu($submenu);
         $tree_menu->set_sensitive(1);
     }
@@ -454,7 +433,38 @@ sub update_tree_menu {
     $menubar->show_all();
 }
 
+sub _add_items_to_menu {
+    my ($self, %args) = @_;
+    my @menu_items = @{$args{items}};
+    my $submenu = $args{menu};
 
+    foreach my $item (@menu_items) {
+        my $type = $item->{type} // 'Gtk2::MenuItem';
+        my $menu_item = $type->new($item->{label} // ());
+        $submenu->append($menu_item);
+
+        next if $type =~ /Separator/;
+
+        if (my $key = $item->{self_key}) {
+            $self->{$key} = $menu_item,
+        }
+        if (my $tooltip = $item->{tooltip}) {
+            $menu_item->set_has_tooltip(1);
+            $menu_item->set_tooltip_text($tooltip);
+        }
+        if ($type =~ 'Check|Radio' && exists $item->{active}) {
+            $menu_item->set_active($item->{active});
+        }
+        if (my $callback = $item->{callback}) {
+            my $args = $item->{callback_args};
+            $menu_item->signal_connect_swapped(
+                $item->{event} => $callback,
+                $args // $self
+            );
+        }
+    }
+
+}
 
 #  doesn't work yet
 sub screenshot {

@@ -359,89 +359,9 @@ sub update_tree_menu {
     else {
         my $submenu = Gtk2::Menu->new;
 
-        my @menu_items = (
-            {
-                type     => 'Gtk2::CheckMenuItem',
-                label    => 'Show legend',
-                tooltip  => 'Show or hide the legend on the tree plot (if one is relevant)',
-                event    => 'toggled',
-                callback => \&on_show_tree_legend_changed,
-                active   => 1,
-                self_key => 'checkbox_show_tree_legend',
-            },
-            {
-                type     => 'Gtk2::CheckMenuItem',
-                label    => 'Log scale',
-                tooltip  => "Log scale the colours.\n"
-                          . "Uses the min and max determined by the Colour stretch choice.",
-                event    => 'toggled',
-                callback => sub {
-                    my ($self, $menuitem) = @_;
-                    $self->{use_tree_log_scale} = $menuitem->get_active;
-                },
-                active   => 1,
-            },
-            {
-                type     => 'Gtk2::CheckMenuItem',
-                label    => 'Invert colour stretch',
-                tooltip  => "Invert (flip) the colour range. Has no effect on categorical colouring.",
-                event    => 'toggled',
-                callback => sub {
-                    my ($self, $menuitem) = @_;
-                    $self->{tree_invert_colours} = $menuitem->get_active;
-                },
-                active   => 0,
-            },
-            {
-                type  => 'submenu_radio_group',
-                label => 'Colour mode',
-                items => [  #  could be refactored
-                    {
-                        type     => 'Gtk2::RadioMenuItem',
-                        label    => 'Hue',
-                        event    => 'activate',
-                        callback => \&on_tree_colour_mode_changed,
-                    },
-                    {
-                        type     => 'Gtk2::RadioMenuItem',
-                        label    => 'Sat...',
-                        event    => 'activate',
-                        callback => \&on_tree_colour_mode_changed,
-                    },
-                    {
-                        type     => 'Gtk2::RadioMenuItem',
-                        label    => 'Grey',
-                        event    => 'activate',
-                        callback => \&on_tree_colour_mode_changed,
-                    }
-                ],
-            },
-            {
-                type     => 'Gtk2::MenuItem',
-                label    => 'Set tree branch line widths',
-                tooltip  => "Set the width of the tree branches.\n"
-                          . "Does not affect the vertical connectors.",
-                event    => 'activate',
-                callback => \&on_set_tree_line_widths,
-            },
-            {
-                type => 'Gtk2::SeparatorMenuItem'
-            },
-            {
-                type     => 'Gtk2::MenuItem',
-                label    => 'Export',
-                tooltip  => 'Export the currently displayed tree',
-                event    => 'activate',
-                callback => sub {
-                    my $tree_ref = $self->get_current_tree;
-                    return Biodiverse::GUI::Export::Run($tree_ref);
-                },
-            },
-        );
-
         $self->_add_items_to_menu (
             menu  => $submenu,
-            items => \@menu_items,
+            items => scalar $self->get_tree_menu_items,
         );
 
         $tree_menu->set_submenu($submenu);
@@ -449,6 +369,92 @@ sub update_tree_menu {
     }
 
     $menubar->show_all();
+}
+
+sub get_tree_menu_items {
+    my $self = shift;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Show legend',
+            tooltip  => 'Show or hide the legend on the tree plot (if one is relevant)',
+            event    => 'toggled',
+            callback => \&on_show_tree_legend_changed,
+            active   => 1,
+            self_key => 'checkbox_show_tree_legend',
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Log scale',
+            tooltip  => "Log scale the colours.\n"
+                . "Uses the min and max determined by the Colour stretch choice.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                $self->{use_tree_log_scale} = $menuitem->get_active;
+            },
+            active   => 1,
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Invert colour stretch',
+            tooltip  => "Invert (flip) the colour range. Has no effect on categorical colouring.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                $self->{tree_invert_colours} = $menuitem->get_active;
+            },
+            active   => 0,
+        },
+        {
+            type  => 'submenu_radio_group',
+            label => 'Colour mode',
+            items => [  #  could be refactored
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Hue',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Sat...',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Grey',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                }
+            ],
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Set tree branch line widths',
+            tooltip  => "Set the width of the tree branches.\n"
+                . "Does not affect the vertical connectors.",
+            event    => 'activate',
+            callback => \&on_set_tree_line_widths,
+        },
+        {
+            type => 'Gtk2::SeparatorMenuItem'
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Export',
+            tooltip  => 'Export the currently displayed tree',
+            event    => 'activate',
+            callback => sub {
+                my $tree_ref = $self->get_current_tree;
+                return Biodiverse::GUI::Export::Run($tree_ref);
+            },
+        },
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
 }
 
 sub _add_items_to_menu {

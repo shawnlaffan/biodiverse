@@ -282,14 +282,8 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
-        # menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
-        
-        menuitem_spatial_tree_colour_mode_hue  => {toggled  => \&on_tree_colour_mode_changed},
-        menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
-        menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
-        
     );
 
     #  bodge - should set the radio group
@@ -399,6 +393,30 @@ sub update_tree_menu {
                 active   => 0,
             },
             {
+                type  => 'submenu_radio_group',
+                label => 'Colour mode',
+                items => [  #  could be refactored
+                    {
+                        type     => 'Gtk2::RadioMenuItem',
+                        label    => 'Hue',
+                        event    => 'activate',
+                        callback => \&on_tree_colour_mode_changed,
+                    },
+                    {
+                        type     => 'Gtk2::RadioMenuItem',
+                        label    => 'Sat...',
+                        event    => 'activate',
+                        callback => \&on_tree_colour_mode_changed,
+                    },
+                    {
+                        type     => 'Gtk2::RadioMenuItem',
+                        label    => 'Grey',
+                        event    => 'activate',
+                        callback => \&on_tree_colour_mode_changed,
+                    }
+                ],
+            },
+            {
                 type     => 'Gtk2::MenuItem',
                 label    => 'Set tree branch line widths',
                 tooltip  => "Set the width of the tree branches.\n"
@@ -436,14 +454,38 @@ sub update_tree_menu {
 sub _add_items_to_menu {
     my ($self, %args) = @_;
     my @menu_items = @{$args{items}};
-    my $submenu = $args{menu};
+    my $menu = $args{menu};
+    my $radio_group = $args{radio_group};
 
+  ITEM:
     foreach my $item (@menu_items) {
         my $type = $item->{type} // 'Gtk2::MenuItem';
-        my $menu_item = $type->new($item->{label} // ());
-        $submenu->append($menu_item);
 
-        next if $type =~ /Separator/;
+        if ($type eq 'submenu_radio_group') {
+            #  a bit messy
+            my $menu_item = Gtk2::MenuItem->new($item->{label} // ());
+            $menu->append($menu_item);
+            my $radio_submenu = Gtk2::Menu->new;
+            $self->_add_items_to_menu(
+                items       => $item->{items},
+                menu        => $radio_submenu, #  temp
+                radio_group => [],
+            );
+            $menu_item->set_submenu($radio_submenu);
+            next ITEM;
+        }
+
+        my $menu_item;
+        if ($type =~ /Radio/) {
+            $menu_item = $type->new($radio_group, $item->{label} // ());
+            push @$radio_group, $menu_item;
+        }
+        else {
+            $menu_item = $type->new($item->{label} // ());
+        }
+        $menu->append($menu_item);
+
+        next ITEM if $type =~ /Separator/;
 
         if (my $key = $item->{self_key}) {
             $self->{$key} = $menu_item,
@@ -452,7 +494,7 @@ sub _add_items_to_menu {
             $menu_item->set_has_tooltip(1);
             $menu_item->set_tooltip_text($tooltip);
         }
-        if ($type =~ 'Check|Radio' && exists $item->{active}) {
+        if (($type =~ 'Check') && exists $item->{active}) {
             $menu_item->set_active($item->{active});
         }
         if (my $callback = $item->{callback}) {

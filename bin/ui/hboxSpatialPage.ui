@@ -469,6 +469,7 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                             <property name="active">True</property>
                           </object>
                         </child>
+<!--
                         <child>
                           <object class="GtkSeparatorMenuItem" id="separatormenuitem2">
                             <property name="visible">True</property>
@@ -483,7 +484,6 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                             <property name="use_underline">True</property>
                           </object>
                         </child>
-<!--
                         <child>
                           <object class="GtkCheckMenuItem" id="menuitem_spatial_tree_show_legend">
                             <property name="visible">True</property>
@@ -517,7 +517,6 @@ Uses the min and max determined by the Colour stretch choice.</property>
                             <property name="active">False</property>
                           </object>
                         </child>
--->
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_tree_colour_mode">
                             <property name="visible">True</property>
@@ -559,7 +558,6 @@ Uses the min and max determined by the Colour stretch choice.</property>
                             </child>
                           </object>
                         </child>
-<!--
                         <child>
                           <object class="GtkMenuItem" id="menuitem_spatial_set_tree_line_widths">
                             <property name="visible">True</property>

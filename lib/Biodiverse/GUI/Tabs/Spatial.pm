@@ -468,63 +468,6 @@ sub get_tree_menu_items {
     return wantarray ? @menu_items : \@menu_items;
 }
 
-sub _add_items_to_menu {
-    my ($self, %args) = @_;
-    my @menu_items = @{$args{items}};
-    my $menu = $args{menu};
-    my $radio_group = $args{radio_group};
-
-  ITEM:
-    foreach my $item (@menu_items) {
-        my $type = $item->{type} // 'Gtk2::MenuItem';
-
-        if ($type eq 'submenu_radio_group') {
-            #  a bit messy
-            my $menu_item = Gtk2::MenuItem->new($item->{label} // ());
-            $menu->append($menu_item);
-            my $radio_submenu = Gtk2::Menu->new;
-            $self->_add_items_to_menu(
-                items       => $item->{items},
-                menu        => $radio_submenu, #  temp
-                radio_group => [],
-            );
-            $menu_item->set_submenu($radio_submenu);
-            next ITEM;
-        }
-
-        my $menu_item;
-        if ($type =~ /Radio/) {
-            $menu_item = $type->new($radio_group, $item->{label} // ());
-            push @$radio_group, $menu_item;
-        }
-        else {
-            $menu_item = $type->new($item->{label} // ());
-        }
-        $menu->append($menu_item);
-
-        next ITEM if $type =~ /Separator/;
-
-        if (my $key = $item->{self_key}) {
-            $self->{$key} = $menu_item,
-        }
-        if (my $tooltip = $item->{tooltip}) {
-            $menu_item->set_has_tooltip(1);
-            $menu_item->set_tooltip_text($tooltip);
-        }
-        if (($type =~ 'Check') && exists $item->{active}) {
-            $menu_item->set_active($item->{active});
-        }
-        if (my $callback = $item->{callback}) {
-            my $args = $item->{callback_args};
-            $menu_item->signal_connect_swapped(
-                $item->{event} => $callback,
-                $args // $self
-            );
-        }
-    }
-
-}
-
 #  doesn't work yet
 sub screenshot {
     my $self = shift;

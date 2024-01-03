@@ -1248,13 +1248,16 @@ sub recolour_cluster_lines {
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
 
-    my $legend = $map->get_legend;
-    $legend->set_colour_mode_from_list_and_index (
-        list  => $list_name,
-        index => $list_index,
-    );
-    my @minmax_args = ($analysis_min, $analysis_max);
-    my $colour_method = $legend->get_colour_method;
+    my ($legend, @minmax_args, $colour_method);
+    if ($colour_mode ne 'palette' and not $self->in_multiselect_mode) {
+        $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index(
+            list  => $list_name,
+            index => $list_index,
+        );
+        @minmax_args = ($analysis_min, $analysis_max);
+        $colour_method = $legend->get_colour_method;
+    }
 
     foreach my $node_ref (@$cluster_nodes) {
 

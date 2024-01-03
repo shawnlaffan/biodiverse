@@ -994,6 +994,7 @@ sub on_selected_labels_changed {
     else {
         $grid->set_legend_log_mode_off;
     }
+    my $legend = $grid->get_legend;
 
     my $colour_func = sub {
         my $elt = shift;
@@ -1003,7 +1004,7 @@ sub on_selected_labels_changed {
         #if ($use_log) {
         #    $val = log ($val + 1);
         #}
-        return $grid->get_colour($val, 0, $display_max_value);
+        return $legend->get_colour($val, 0, $display_max_value);
     };
 
     $grid->colour($colour_func);

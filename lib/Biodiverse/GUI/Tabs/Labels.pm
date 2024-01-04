@@ -5,6 +5,8 @@ use warnings;
 
 use English ( -no_match_vars );
 
+use experimental qw(refaliasing);
+
 #use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
@@ -960,12 +962,12 @@ sub on_selected_labels_changed {
         #FIXME: This copies the hash (???recheck???) - not very fast...
         #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
         #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
-        my $hash = $bd->get_groups_with_label_as_hash (label => $label);
+        \my %hash = $bd->get_groups_with_label_as_hash_aa ($label);
 
         # groups contains count of how many different labels occur in it
-        foreach my $group (keys %$hash) {
-            $group_richness{$group}++;
-        }
+        #  postfix-if for speed
+        $group_richness{$_}++
+          foreach keys %hash;
     }
 
     my $grid = $self->{grid};

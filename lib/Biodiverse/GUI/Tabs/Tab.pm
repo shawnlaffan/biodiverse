@@ -1159,13 +1159,13 @@ sub update_display_list_combos {
 }
 
 sub update_tree_menu {
-    my ($self, $menu_items) = @_;
+    my ($self, %args) = @_;
 
     my $menubar = $self->{menubar};
-    my $output_ref = $self->{output_ref};
+    my $output_ref = $args{output_ref} || $self->{output_ref};
     return if !$output_ref;
 
-    $menu_items ||= $self->get_tree_menu_items;
+    my $menu_items = $args{menu_items} || $self->get_tree_menu_items;
 
     my $tree_menu = $self->{tree_menu};
 

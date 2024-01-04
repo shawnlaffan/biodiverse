@@ -209,6 +209,7 @@ sub new {
     $self->{menubar} = $self->get_xmlpage_object('menubarLabelsOptions');
     $self->update_selection_menu;
     $self->update_export_menu;
+    $self->update_tree_menu (output_ref => $self->get_base_ref->get_groups_ref);
 
     say "[GUI] - Loaded tab - Labels";
 
@@ -324,6 +325,76 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     return 1;
+}
+
+sub get_tree_menu_items {
+    my $self = shift;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Tree controls',
+            tooltip  => "Options to work with the displayed tree "
+                      . "(this is the same as the one selected at "
+                      . "the project level)",
+        },
+        {
+            type  => 'submenu_radio_group',
+            label => 'Plot branches by',
+            items => [
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Length',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        state $mode_string = 'length';
+                        say "[Labels tab] Changing mode to $mode_string";
+                        $self->{plot_mode} = $mode_string;
+                        $self->{dendrogram}->set_plot_mode($mode_string);
+                    },
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Depth',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        state $mode_string = 'depth';
+                        say "[Labels tab] Changing mode to $mode_string";
+                        $self->{plot_mode} = $mode_string;
+                        $self->{dendrogram}->set_plot_mode($mode_string);
+                    },
+                },
+            ],
+        },
+        {
+            type  => 'Gtk2::SeparatorMenuItem',
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Set tree branch line widths',
+            tooltip  => "Set the width of the tree branches.\n"
+                . "Does not affect the vertical connectors.",
+            event    => 'activate',
+            callback => \&on_set_tree_line_widths,
+        },
+        {
+            type  => 'Gtk2::SeparatorMenuItem',
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Export tree',
+            tooltip  => 'Export the currently displayed tree',
+            event    => 'activate',
+            callback => sub {
+                my $tree_ref = $self->{project}->get_selected_phylogeny;
+                return Biodiverse::GUI::Export::Run($tree_ref);
+            },
+        },
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
 }
 
 ##################################################

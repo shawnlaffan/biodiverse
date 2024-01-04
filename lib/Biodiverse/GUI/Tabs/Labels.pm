@@ -188,14 +188,11 @@ sub new {
 
     $self->get_xmlpage_object("btnSelectToolVL")->set_active(1);
 
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
-    #  plot length triggers depth and vice versa
-    $xml->get_object('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
-    $xml->get_object('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
-    $xml->get_object('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
-    $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
-    $xml->get_object('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
-    
+    $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(
+        toggled => \&on_show_hide_legend,
+        $self
+    );
+
     foreach my $type_option (qw /auto linear log/) {
         my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
         $xml->get_object($radio_item)->signal_connect_swapped(
@@ -330,10 +327,22 @@ sub init_dendrogram {
 sub get_tree_menu_items {
     my $self = shift;
 
+    my $dendro_plot_mode_callback = sub {
+        my ($self, $mode_string) = @_;
+        $mode_string ||= 'length';
+        say "[Labels tab] Changing mode to $mode_string";
+        $self->{plot_mode} = $mode_string;
+        return if !$self->{project}->get_selected_phylogeny;
+        my $dendrogram = $self->{dendrogram};
+        if ($dendrogram) {
+            $self->{dendrogram}->set_plot_mode($mode_string)
+        };
+    };
+
     my @menu_items = (
         {
             type     => 'Gtk2::MenuItem',
-            label    => 'Tree controls',
+            label    => 'Tree options:',
             tooltip  => "Options to work with the displayed tree "
                       . "(this is the same as the one selected at "
                       . "the project level)",
@@ -347,11 +356,7 @@ sub get_tree_menu_items {
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
-                        my $self = shift;
-                        state $mode_string = 'length';
-                        say "[Labels tab] Changing mode to $mode_string";
-                        $self->{plot_mode} = $mode_string;
-                        $self->{dendrogram}->set_plot_mode($mode_string);
+                        $dendro_plot_mode_callback->($self, 'length');
                     },
                 },
                 {
@@ -359,14 +364,30 @@ sub get_tree_menu_items {
                     label    => 'Depth',
                     event    => 'activate',
                     callback => sub {
-                        my $self = shift;
-                        state $mode_string = 'depth';
-                        say "[Labels tab] Changing mode to $mode_string";
-                        $self->{plot_mode} = $mode_string;
-                        $self->{dendrogram}->set_plot_mode($mode_string);
+                        $dendro_plot_mode_callback->($self, 'depth');
                     },
                 },
             ],
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight groups on map?',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'highlight the groups on the map in which it is found.',
+            event    => 'toggled',
+            callback => \&on_highlight_groups_on_map_changed,
+            active   => 1,
+            self_key => 'checkbox_show_tree_legend',
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight paths on tree?',
+            tooltip  => "When hovering over a group on the map, highlight the paths "
+                      . "connecting the tips of the tree (that match labels in the group) "
+                      . "to the root.",
+            event    => 'toggled',
+            callback => \&on_use_highlight_path_changed,
+            active   => 1,
         },
         {
             type  => 'Gtk2::SeparatorMenuItem',
@@ -389,6 +410,7 @@ sub get_tree_menu_items {
             event    => 'activate',
             callback => sub {
                 my $tree_ref = $self->{project}->get_selected_phylogeny;
+                return if !$tree_ref;
                 return Biodiverse::GUI::Export::Run($tree_ref);
             },
         },
@@ -816,6 +838,10 @@ sub set_phylogeny_options_sensitive {
     my $self = shift;
     my $enabled = shift;
 
+    #  These are handled differently now.
+    #  Leaving code as a reminder, but returning early.
+    return;
+
     my $page = $self->{xmlPage};
 
     for my $widget (
@@ -837,7 +863,8 @@ sub on_selected_phylogeny_changed {
 
     $self->{dendrogram}->clear;
     if ($phylogeny) {
-        $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
+        #  now storing tree objects directly
+        $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length');
         $self->set_phylogeny_options_sensitive(1);
     }
     else {

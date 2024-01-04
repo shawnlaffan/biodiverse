@@ -683,6 +683,14 @@ sub toggle_use_slider_to_select_nodes {
     return;
 }
 
+sub set_use_slider_to_select_nodes {
+    my ($self, $bool) = @_;
+
+    $self->{use_slider_to_select_nodes} = !!$bool;
+
+    return;
+}
+
 # Colours a certain number of nodes below
 sub do_colour_nodes_below {
     my $self = shift;

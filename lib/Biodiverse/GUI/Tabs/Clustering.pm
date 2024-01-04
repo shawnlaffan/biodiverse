@@ -217,8 +217,8 @@ sub new {
         $self->{definition_query1}->get_object
     );
 
-    $xml_page->get_object('plot_length') ->set_active(1);
-    $xml_page->get_object('group_length')->set_active(1);
+    # $xml_page->get_object('plot_length') ->set_active(1);
+    # $xml_page->get_object('group_length')->set_active(1);
     $self->{plot_mode}  = 'length';
     $self->{group_mode} = 'length';
 
@@ -278,16 +278,6 @@ sub new {
         btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
-        plot_length         => {toggled => \&on_plot_mode_changed},
-        group_length        => {toggled => \&on_group_mode_changed},
-
-        highlight_groups_on_map =>
-            {toggled => \&on_highlight_groups_on_map_changed},
-        use_highlight_path_changed =>
-            {toggled => \&on_use_highlight_path_changed},
-        menu_use_slider_to_select_nodes =>
-            {toggled => \&on_menu_use_slider_to_select_nodes},
-
         menuitem_cluster_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
@@ -303,7 +293,6 @@ sub new {
         menu_cluster_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
         menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
-        menuitem_cluster_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
         menuitem_cluster_excluded_cell_colour => {activate => \&on_set_excluded_cell_colour},
         menuitem_cluster_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
     );
@@ -440,7 +429,7 @@ EOT
         },
         {
             type     => 'Gtk2::CheckMenuItem',
-            label    => 'Highlight groups on map?',
+            label    => 'Highlight groups on map',
             tooltip  => 'When hovering the mouse over a tree branch, '
                 . 'highlight the groups on the map in which it is found.',
             event    => 'toggled',
@@ -450,12 +439,24 @@ EOT
         },
         {
             type     => 'Gtk2::CheckMenuItem',
-            label    => 'Highlight paths on tree?',
+            label    => 'Highlight paths on tree',
             tooltip  => "When hovering over a group on the map, highlight the paths "
                 . "connecting the tips of the tree (that match labels in the group) "
                 . "to the root.",
             event    => 'toggled',
             callback => \&on_use_highlight_path_changed,
+            active   => 1,
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Use the slider bar to select branches for colouring',
+            tooltip  => "When deselected, the slider bar will not change the display colours.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                my $bool = $menuitem->get_active;
+                $self->{dendrogram}->set_use_slider_to_select_nodes ($bool);
+            },
             active   => 1,
         },
         {

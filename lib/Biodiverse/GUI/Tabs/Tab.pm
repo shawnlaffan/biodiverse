@@ -1207,6 +1207,10 @@ sub _add_items_to_menu {
         if ($type eq 'submenu_radio_group') {
             #  a bit messy
             my $menu_item = Gtk2::MenuItem->new($item->{label} // ());
+            if (my $tooltip = $item->{tooltip}) {
+                $menu_item->set_has_tooltip(1);
+                $menu_item->set_tooltip_text($tooltip);
+            }
             $menu->append($menu_item);
             my $radio_submenu = Gtk2::Menu->new;
             $self->_add_items_to_menu(

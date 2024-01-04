@@ -332,11 +332,159 @@ sub new {
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_clustering');
     $self->update_export_menu;
+    $self->update_tree_menu;
     $self->init_colour_clusters;
 
     say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;
+}
+
+sub get_cluster_ref {
+    my $self = shift;
+    $self->{output_ref};
+}
+
+#  has a lot in common with Labels::get_tree_menu_items
+sub get_tree_menu_items {
+    my $self = shift;
+
+    my $dendro_plot_mode_callback = sub {
+        my ($self, $mode_string) = @_;
+        $mode_string ||= 'length';
+        say "[Clustering tab] Changing mode to $mode_string";
+        $self->{plot_mode} = $mode_string;
+        my $dendrogram = $self->{dendrogram};
+        if ($dendrogram) {
+            $self->{dendrogram}->set_plot_mode($mode_string)
+        };
+    };
+
+    my $dendro_select_mode_callback = sub {
+        my ($self, $mode_string) = @_;
+        $mode_string ||= 'length';
+        say "[Clustering tab] Changing selection mode to $mode_string";
+        $self->{group_mode} = $mode_string;
+        my $dendrogram = $self->{dendrogram};
+        if ($dendrogram) {
+            $self->{dendrogram}->set_group_mode($mode_string)
+        };
+    };
+
+    my $tooltip_select_by = <<EOT
+Should the grouping be done by length or depth?
+
+This allows decoupling of node selection from the tree
+display. For example, trees with many reversals are more
+easily visualised when plotted by depth, but selections
+should normally use the branch lengths.  The same
+applies to range weighted trees where many branch
+lengths are very short.
+
+This setting has no effect on the slider bar.
+It always groups using the current plot method,
+selecting whichever branches it crosses.
+EOT
+;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Tree options:',
+            tooltip  => "Options to work with the cluster tree",
+        },
+        {
+            type  => 'submenu_radio_group',
+            label => 'Plot branches by',
+            items => [
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Length',
+                    event    => 'activate',
+                    callback => sub {
+                        $dendro_plot_mode_callback->($self, 'length');
+                    },
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Depth',
+                    event    => 'activate',
+                    callback => sub {
+                        $dendro_plot_mode_callback->($self, 'depth');
+                    },
+                },
+            ],
+        },
+        {
+            type  => 'submenu_radio_group',
+            label => 'Select branches by',
+            tooltip => $tooltip_select_by,
+            items => [
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Length',
+                    event    => 'activate',
+                    callback => sub {
+                        $dendro_select_mode_callback->($self, 'length');
+                    },
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Depth',
+                    event    => 'activate',
+                    callback => sub {
+                        $dendro_select_mode_callback->($self, 'depth');
+                    },
+                },
+            ],
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight groups on map?',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'highlight the groups on the map in which it is found.',
+            event    => 'toggled',
+            callback => \&on_highlight_groups_on_map_changed,
+            active   => 1,
+            self_key => 'checkbox_show_tree_legend',
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight paths on tree?',
+            tooltip  => "When hovering over a group on the map, highlight the paths "
+                . "connecting the tips of the tree (that match labels in the group) "
+                . "to the root.",
+            event    => 'toggled',
+            callback => \&on_use_highlight_path_changed,
+            active   => 1,
+        },
+        {
+            type  => 'Gtk2::SeparatorMenuItem',
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Set tree branch line widths',
+            tooltip  => "Set the width of the tree branches.\n"
+                . "Does not affect the vertical connectors.",
+            event    => 'activate',
+            callback => \&on_set_tree_line_widths,
+        },
+        {
+            type  => 'Gtk2::SeparatorMenuItem',
+        },
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Export tree',
+            tooltip  => 'Export the currently displayed tree',
+            event    => 'activate',
+            callback => sub {
+                my $tree_ref = $self->get_cluster_ref;
+                return Biodiverse::GUI::Export::Run($tree_ref);
+            },
+        },
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
 }
 
 sub init_colour_clusters {

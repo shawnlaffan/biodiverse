@@ -1158,6 +1158,42 @@ sub update_display_list_combos {
     return;
 }
 
+sub update_tree_menu {
+    my ($self, $menu_items) = @_;
+
+    my $menubar = $self->{menubar};
+    my $output_ref = $self->{output_ref};
+    return if !$output_ref;
+
+    $menu_items ||= $self->get_tree_menu_items;
+
+    my $tree_menu = $self->{tree_menu};
+
+    if (!$tree_menu) {
+        $tree_menu  = Gtk2::MenuItem->new_with_label('Tree');
+        $menubar->append($tree_menu);
+        $self->{tree_menu} = $tree_menu;
+    }
+
+    if (($output_ref->get_param('COMPLETED') // 1) != 1) {
+        #  completed == 2 for clusters analyses with matrices only
+        $tree_menu->set_sensitive(0);
+    }
+    else {
+        my $submenu = Gtk2::Menu->new;
+
+        $self->_add_items_to_menu (
+            menu  => $submenu,
+            items => $menu_items,
+        );
+
+        $tree_menu->set_submenu($submenu);
+        $tree_menu->set_sensitive(1);
+    }
+
+    $menubar->show_all();
+}
+
 sub _add_items_to_menu {
     my ($self, %args) = @_;
     my @menu_items = @{$args{items}};

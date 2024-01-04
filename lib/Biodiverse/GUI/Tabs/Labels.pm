@@ -1224,9 +1224,9 @@ sub on_grid_hover {
     # highlight in the tree
     foreach my $label (keys %$labels) {
         # Might not match some or all nodes
-        next if !$tree->exists_node (name => $label);
+        next if !$tree->exists_node_name_aa ($label);
         eval {
-            my $node_ref = $tree->get_node_ref (node => $label);                
+            my $node_ref = $tree->get_node_ref_aa ($label);
             $self->{dendrogram}->highlight_path($node_ref);
         }
     }

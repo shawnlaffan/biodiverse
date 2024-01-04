@@ -234,7 +234,7 @@ sub on_show_hide_parameters {
 sub get_tree_menu_items {
     my $self = shift;
     my @items = $self->SUPER::get_tree_menu_items;
-    my $re_wanted = qr/Set tree branch line widths|Export/;
+    my $re_wanted = qr/Set tree branch line widths|Plot branches by|Export/;
     @items = grep {$_->{type} =~ /Separator/ or $_->{label} =~ /$re_wanted/} @items;
     return wantarray ? @items : \@items;
 }

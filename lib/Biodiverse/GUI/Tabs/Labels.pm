@@ -330,7 +330,7 @@ sub get_tree_menu_items {
     my $dendro_plot_mode_callback = sub {
         my ($self, $mode_string) = @_;
         $mode_string ||= 'length';
-        return if $self->{plot_mode} eq $mode_string;
+        return if ($self->{plot_mode} // '') eq $mode_string;
         say "[Labels tab] Changing mode to $mode_string";
         $self->{plot_mode} = $mode_string;
         return if !$self->{project}->get_selected_phylogeny;

@@ -341,6 +341,7 @@ sub get_tree_menu_items {
     my $dendro_plot_mode_callback = sub {
         my ($self, $mode_string) = @_;
         $mode_string ||= 'length';
+        return if $self->{plot_mode} eq $mode_string;
         say "[Clustering tab] Changing mode to $mode_string";
         $self->{plot_mode} = $mode_string;
         my $dendrogram = $self->{dendrogram};
@@ -352,6 +353,7 @@ sub get_tree_menu_items {
     my $dendro_select_mode_callback = sub {
         my ($self, $mode_string) = @_;
         $mode_string ||= 'length';
+        return if $self->{group_mode} eq $mode_string;
         say "[Clustering tab] Changing selection mode to $mode_string";
         $self->{group_mode} = $mode_string;
         my $dendrogram = $self->{dendrogram};

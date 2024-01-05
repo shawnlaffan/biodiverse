@@ -1303,7 +1303,7 @@ EOT
     ;
 
     state $items = {
-        plot_branches_by     => {
+        plot_branches_by            => {
             type  => 'submenu_radio_group',
             label => 'Plot branches by',
             items => [
@@ -1327,7 +1327,7 @@ EOT
                 },
             ],
         },
-        group_branches_by    => {
+        group_branches_by           => {
             type    => 'submenu_radio_group',
             label   => 'Select branches by',
             tooltip => $tooltip_select_by,
@@ -1359,6 +1359,9 @@ EOT
                 . "Does not affect the vertical connectors.",
             event    => 'activate',
             callback => \&on_set_tree_line_widths,
+        },
+        separator                   =>         {
+            type  => 'Gtk2::SeparatorMenuItem',
         },
     };
 

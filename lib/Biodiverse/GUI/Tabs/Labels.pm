@@ -365,9 +365,7 @@ sub get_tree_menu_items {
             type  => 'Gtk2::SeparatorMenuItem',
         },
         $self->get_tree_menu_item('set_tree_branch_line_widths'),
-        {
-            type  => 'Gtk2::SeparatorMenuItem',
-        },
+        $self->get_tree_menu_item('separator'),
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Export tree',

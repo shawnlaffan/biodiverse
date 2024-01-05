@@ -341,20 +341,11 @@ sub get_tree_menu_items {
                       . "the project level)",
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /plot_branches_by highlight_groups_on_map     highlight_paths_on_tree
-                   separator        set_tree_branch_line_widths separator/
+               qw /plot_branches_by
+                   highlight_groups_on_map highlight_paths_on_tree
+                   separator               set_tree_branch_line_widths
+                   separator               export_tree /
         ),
-        {
-            type     => 'Gtk2::MenuItem',
-            label    => 'Export tree',
-            tooltip  => 'Export the currently displayed tree',
-            event    => 'activate',
-            callback => sub {
-                my $tree_ref = $self->{project}->get_selected_phylogeny;
-                return if !$tree_ref;
-                return Biodiverse::GUI::Export::Run($tree_ref);
-            },
-        },
     );
 
     return wantarray ? @menu_items : \@menu_items;

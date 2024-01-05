@@ -1386,6 +1386,18 @@ EOT
             },
             active   => 1,
         },
+        export_tree => {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Export tree',
+            tooltip  => 'Export the currently displayed tree',
+            event    => 'activate',
+            callback => sub {
+                my $self = shift;
+                my $tree_ref = $self->get_current_tree;
+                return if !$tree_ref;
+                return Biodiverse::GUI::Export::Run($tree_ref);
+            },
+        },
         separator => {
             type  => 'Gtk2::SeparatorMenuItem',
         },

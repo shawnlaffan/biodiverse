@@ -404,18 +404,9 @@ sub get_tree_menu_items {
             ],
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw /separator plot_branches_by set_tree_branch_line_widths separator/
+               qw /separator plot_branches_by set_tree_branch_line_widths
+                   separator export_tree /
         ),
-        {
-            type     => 'Gtk2::MenuItem',
-            label    => 'Export',
-            tooltip  => 'Export the currently displayed tree',
-            event    => 'activate',
-            callback => sub {
-                my $tree_ref = $self->get_current_tree;
-                return Biodiverse::GUI::Export::Run($tree_ref);
-            },
-        },
     );
 
     return wantarray ? @menu_items : \@menu_items;

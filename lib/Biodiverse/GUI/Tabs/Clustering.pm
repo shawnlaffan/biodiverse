@@ -367,18 +367,9 @@ sub get_tree_menu_items {
             active   => 1,
         },
         (   map {$self->get_tree_menu_item($_)}
-               qw/separator set_tree_branch_line_widths separator/
+               qw/separator set_tree_branch_line_widths
+                  separator export_tree/
         ),
-        {
-            type     => 'Gtk2::MenuItem',
-            label    => 'Export tree',
-            tooltip  => 'Export the currently displayed tree',
-            event    => 'activate',
-            callback => sub {
-                my $tree_ref = $self->get_cluster_ref;
-                return Biodiverse::GUI::Export::Run($tree_ref);
-            },
-        },
     );
 
     return wantarray ? @menu_items : \@menu_items;

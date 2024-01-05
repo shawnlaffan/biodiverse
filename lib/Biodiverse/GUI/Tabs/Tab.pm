@@ -1283,4 +1283,83 @@ sub _add_items_to_menu {
 
 }
 
+sub get_tree_menu_item {
+    my ($self, $wanted) = @_;
+
+    state $tooltip_select_by = <<EOT
+Should the grouping be done by length or depth?
+
+This allows decoupling of node selection from the tree
+display. For example, trees with many reversals are more
+easily visualised when plotted by depth, but selections
+should normally use the branch lengths.  The same
+applies to range weighted trees where many branch
+lengths are very short.
+
+This setting has no effect on the slider bar.
+It always groups using the current plot method,
+selecting whichever branches it crosses.
+EOT
+    ;
+
+    state $items = {
+        plot_branches_by => {
+            type  => 'submenu_radio_group',
+            label => 'Plot branches by',
+            items => [
+                {
+                    type          => 'Gtk2::RadioMenuItem',
+                    label         => 'Length',
+                    event         => 'activate',
+                    callback      => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_plot_mode('length'),
+                    },
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Depth',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_plot_mode ('depth');
+                    },
+                },
+            ],
+        },
+        group_branches_by => {
+            type  => 'submenu_radio_group',
+            label => 'Select branches by',
+            tooltip => $tooltip_select_by,
+            items => [
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Length',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_group_by_mode ('length');
+                    },
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Depth',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_group_by_mode('depth');
+                    },
+                },
+            ],
+        },
+
+    };
+
+    my $item = $items->{$wanted};
+    croak "Cannot find tree menu item item $wanted"
+      if !$item;
+
+    return $item;
+}
+
 1;

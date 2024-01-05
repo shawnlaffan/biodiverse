@@ -340,24 +340,7 @@ sub get_tree_menu_items {
                       . "(this is the same as the one selected at "
                       . "the project level)",
         },
-        {
-            type  => 'submenu_radio_group',
-            label => 'Plot branches by',
-            items => [
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Length',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_plot_mode ('length')},
-                },
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Depth',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_plot_mode ('depth')},
-                },
-            ],
-        },
+        $self->get_tree_menu_item ('plot_branches_by'),
         {
             type     => 'Gtk2::CheckMenuItem',
             label    => 'Highlight groups on map?',

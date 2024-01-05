@@ -344,65 +344,14 @@ sub get_current_tree {
 sub get_tree_menu_items {
     my $self = shift;
 
-    my $tooltip_select_by = <<EOT
-Should the grouping be done by length or depth?
-
-This allows decoupling of node selection from the tree
-display. For example, trees with many reversals are more
-easily visualised when plotted by depth, but selections
-should normally use the branch lengths.  The same
-applies to range weighted trees where many branch
-lengths are very short.
-
-This setting has no effect on the slider bar.
-It always groups using the current plot method,
-selecting whichever branches it crosses.
-EOT
-;
-
     my @menu_items = (
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Tree options:',
             tooltip  => "Options to work with the cluster tree",
         },
-        {
-            type  => 'submenu_radio_group',
-            label => 'Plot branches by',
-            items => [
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Length',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_plot_mode ('length')},
-                },
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Depth',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_plot_mode ('depth')},
-                },
-            ],
-        },
-        {
-            type  => 'submenu_radio_group',
-            label => 'Select branches by',
-            tooltip => $tooltip_select_by,
-            items => [
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Length',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_group_by_mode ('length');},
-                },
-                {
-                    type     => 'Gtk2::RadioMenuItem',
-                    label    => 'Depth',
-                    event    => 'activate',
-                    callback => sub {$self->set_dendrogram_group_by_mode('depth');},
-                },
-            ],
-        },
+        $self->get_tree_menu_item ('plot_branches_by'),
+        $self->get_tree_menu_item ('group_branches_by'),
         {
             type     => 'Gtk2::CheckMenuItem',
             label    => 'Highlight groups on map',

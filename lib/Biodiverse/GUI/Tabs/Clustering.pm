@@ -63,7 +63,7 @@ sub new {
     $self->{xmlPage}  = $xml_page;
     $self->{xmlLabel} = $xml_label;
 
-    my $page  = $xml_page->get_object('hboxClusteringPage');
+    my $page  = $self->get_xmlpage_object('hboxClusteringPage');
     my $label = $xml_label->get_object('hboxClusteringLabel');
 
     my $label_text = $self->{xmlLabel}->get_object('lblClusteringName')->get_text;
@@ -127,8 +127,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneClustering');
         $self->{existing} = 0;
-        $xml_page->get_object('toolbarClustering')->hide;
-        $xml_page->get_object('toolbar_clustering_bottom')->hide;
+        $self->get_xmlpage_object('toolbarClustering')->hide;
+        $self->get_xmlpage_object('toolbar_clustering_bottom')->hide;
     }
     else {  # We're being called to show an EXISTING output
 
@@ -169,7 +169,7 @@ sub new {
             $defq_object     = $def_query_init1;
         }
         if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
-            my $spin_widget = $xml_page->get_object('spinbutton_cluster_prng_seed');
+            my $spin_widget = $self->get_xmlpage_object('spinbutton_cluster_prng_seed');
             $spin_widget->set_value ($prng_seed);
         }
     }
@@ -192,7 +192,7 @@ sub new {
         initial_text => $sp_initial1,
         condition_object => $spatial_conditions[0],
     );
-    $xml_page->get_object('frameClusterSpatialParams1')->add(
+    $self->get_xmlpage_object('frameClusterSpatialParams1')->add(
         $self->{spatialParams1}->get_object,
     );
 
@@ -202,7 +202,7 @@ sub new {
         start_hidden => $start_hidden,
         condition_object => $spatial_conditions[1],
     );
-    $xml_page->get_object('frameClusterSpatialParams2')->add(
+    $self->get_xmlpage_object('frameClusterSpatialParams2')->add(
         $self->{spatialParams2}->get_object
     );
 
@@ -213,12 +213,12 @@ sub new {
         is_def_query => 'is_def_query',
         condition_object => $defq_object,
     );
-    $xml_page->get_object('frameClusterDefinitionQuery1')->add(
+    $self->get_xmlpage_object('frameClusterDefinitionQuery1')->add(
         $self->{definition_query1}->get_object
     );
 
-    # $xml_page->get_object('plot_length') ->set_active(1);
-    # $xml_page->get_object('group_length')->set_active(1);
+    # $self->get_xmlpage_object('plot_length') ->set_active(1);
+    # $self->get_xmlpage_object('group_length')->set_active(1);
     $self->{plot_mode}  = 'length';
     $self->{group_mode} = 'length';
 
@@ -253,7 +253,7 @@ sub new {
         );
 
     Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
-        $xml_page->get_object('treeSpatialCalculations'),
+        $self->get_xmlpage_object('treeSpatialCalculations'),
         $self->{calculations_model}
     );
 
@@ -306,7 +306,7 @@ sub new {
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
         #say $widget_name;
-        my $widget = $xml_page->get_object($widget_name);
+        my $widget = $self->get_xmlpage_object($widget_name);
         if (!defined $widget) {
             warn "$widget_name not found";
             next;
@@ -407,9 +407,8 @@ sub setup_tie_breaker_widgets {
     my $self     = shift;
     my $existing = shift;
 
-    my $xml_page = $self->{xmlPage};
     my $hbox_name = 'hbox_cluster_tie_breakers';
-    my $breaker_hbox = $xml_page->get_object($hbox_name);
+    my $breaker_hbox = $self->get_xmlpage_object($hbox_name);
 
     my ($tie_breakers, $bd);
     if ($existing) {
@@ -486,13 +485,12 @@ sub setup_tie_breaker_widgets {
 #  thus avoiding the need to build the list.
 sub set_colour_stretch_widgets_and_signals {
     my $self = shift;
-    my $xml_page = $self->{xmlPage};
 
     #  lazy - should build from menu widget
     my $i = 0;
     foreach my $stretch (qw /min-max 5-95 2.5-97.5 min-95 min-97.5 5-max 2.5-max/) {
         my $widget_name = "radio_dendro_colour_stretch$i";
-        my $widget = $xml_page->get_object($widget_name);
+        my $widget = $self->get_xmlpage_object($widget_name);
 
         my $sub = sub {
             my $self = shift;
@@ -569,11 +567,9 @@ sub on_show_hide_parameters {
 sub init_map {
     my $self = shift;
 
-    my $xml_page = $self->{xmlPage};
-
-    my $frame   = $xml_page->get_object('mapFrame');
-    my $hscroll = $xml_page->get_object('mapHScroll');
-    my $vscroll = $xml_page->get_object('mapVScroll');
+    my $frame   = $self->get_xmlpage_object('mapFrame');
+    my $hscroll = $self->get_xmlpage_object('mapHScroll');
+    my $vscroll = $self->get_xmlpage_object('mapVScroll');
 
     my $click_closure      = sub { $self->on_grid_popup(@_); };
     my $hover_closure      = sub { $self->on_grid_hover(@_); };
@@ -600,12 +596,12 @@ sub init_map {
 
     $grid->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
-    my $menu_log_checkbox = $xml_page->get_object('menu_dendro_colour_stretch_log_mode');
+    my $menu_log_checkbox = $self->get_xmlpage_object('menu_dendro_colour_stretch_log_mode');
     $menu_log_checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_scaling_changed,
         $self,
     );
-    my $checkbox = $xml_page->get_object('menu_dendro_colour_stretch_flip_mode');
+    my $checkbox = $self->get_xmlpage_object('menu_dendro_colour_stretch_flip_mode');
     $checkbox->signal_connect_swapped(
         toggled => \&on_grid_colour_flip_changed,
         $self,
@@ -1757,8 +1753,7 @@ sub show_cluster_descendents {
 sub on_name_changed {
     my $self = shift;
 
-    my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_object('txtClusterName')->get_text();
+    my $name = $self->get_xmlpage_object('txtClusterName')->get_text();
 
     my $label_widget = $self->{xmlLabel}->get_object('lblClusteringName');
     $label_widget->set_text($name);
@@ -1768,7 +1763,7 @@ sub on_name_changed {
 
 
     my $param_widget
-            = $xml_page->get_object('lbl_parameter_clustering_name');
+      = $self->get_xmlpage_object('lbl_parameter_clustering_name');
     $param_widget->set_markup("<b>Name</b>");
 
     my $bd = $self->{basedata_ref};

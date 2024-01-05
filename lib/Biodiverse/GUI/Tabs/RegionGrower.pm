@@ -20,8 +20,7 @@ sub new {
     bless $self, $class;
     
     #  now add some additional stuff
-    my $xml_page = $self->{xmlPage};
-    my $hbox = $xml_page->get_object('hbox_cluster_metric');
+    my $hbox = $self->get_xmlpage_object('hbox_cluster_metric');
     
     my $label_widget = Gtk2::Label->new('Objective function: ');
     my $combo_minmax = Gtk2::ComboBox->new_text();

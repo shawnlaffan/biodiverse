@@ -30,7 +30,7 @@ sub new {
     $self->{xmlLabel} = Gtk2::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxOutputsLabel.ui'));
 
-    my $page  = $self->{xmlPage} ->get_object('hboxOutputsPage');
+    my $page  = $self->get_xmlpage_object('hboxOutputsPage');
     my $label = $self->{xmlLabel}->get_object('hboxOutputsLabel');
     my $menu_label = Gtk2::Label->new ('Outputs tab');
 
@@ -78,13 +78,11 @@ sub new {
     $model->signal_connect('row-inserted' => \&on_row_inserted, $self);
 
     # Connect signals
-    #$self->{xmlLabel}->get_object("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::on_close, $self);
-    my $xml_page = $self->{xmlPage};
-    $xml_page->get_object('btnOutputsShow'  )->signal_connect_swapped(clicked => \&on_show,   $self);
-    $xml_page->get_object('btnOutputsExport')->signal_connect_swapped(clicked => \&on_export, $self);
-    $xml_page->get_object('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
-    $xml_page->get_object('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
-    $xml_page->get_object('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
+    $self->get_xmlpage_object('btnOutputsShow'  )->signal_connect_swapped(clicked => \&on_show,   $self);
+    $self->get_xmlpage_object('btnOutputsExport')->signal_connect_swapped(clicked => \&on_export, $self);
+    $self->get_xmlpage_object('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
+    $self->get_xmlpage_object('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
+    $self->get_xmlpage_object('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
 
 
 
@@ -206,12 +204,11 @@ sub on_row_changed {
 
     my $sensitive = $type eq 'output' || $type eq 'basedata';
 
-    my $xml_page = $self->{xmlPage};
     my @widget_name_array
         = qw /btnOutputsExport btnOutputsDelete btnOutputsRename/;
 
     foreach my $widget_name (@widget_name_array) {
-        $xml_page->get_object($widget_name)->set_sensitive($sensitive);
+        $self->get_xmlpage_object($widget_name)->set_sensitive($sensitive);
     }
 
     # If clicked on basedata, select it

@@ -445,8 +445,6 @@ sub on_grid_colour_flip_changed {
 
     return if !$grid;
 
-    my $xml_page = $self->{xmlPage};
-
     my $active    = !!$checkbox->get_active;
     my $prev_mode = !!$grid->get_legend->get_invert_colours;
 
@@ -465,8 +463,6 @@ sub on_grid_colour_flip_changed {
 sub on_grid_colour_scaling_changed {
     my ($self, $checkbox) = @_;
     
-    my $xml_page = $self->{xmlPage};
-
     my $active = $checkbox->get_active;
 
     if ($active) {

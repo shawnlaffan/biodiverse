@@ -118,6 +118,7 @@ sub new {
     
     foreach my $widget_name (qw /selector_toggle selector_colorbutton autoincrement_toggle/) {
         eval {
+            #  use get_xmlpage_object from parent
             $self->{$widget_name}
               = $self->get_parent_tab->{xmlPage}->get_object($widget_name);
         };

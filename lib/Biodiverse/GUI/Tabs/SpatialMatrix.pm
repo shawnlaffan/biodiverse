@@ -106,7 +106,7 @@ sub new {
 
 
     # Initialise widgets
-    $self->{title_widget} = $self->{xmlPage} ->get_object('txtSpatialName');
+    $self->{title_widget} = $self->get_xmlpage_object('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_object('lblSpatialName');
 
     $self->{title_widget}->set_text($self->{output_name} );

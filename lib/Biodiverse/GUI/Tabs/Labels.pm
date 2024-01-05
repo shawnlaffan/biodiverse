@@ -164,7 +164,6 @@ sub new {
     $self->{active_pane} = '';
 
     # Connect signals
-    my $xml = $self->{xmlPage};
 
     $self->{xmlLabel}->get_object('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
 
@@ -184,18 +183,18 @@ sub new {
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
-    $xml->get_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
+    $self->get_xmlpage_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
     $self->get_xmlpage_object("btnSelectToolVL")->set_active(1);
 
-    $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(
+    $self->get_xmlpage_object('menuitem_labels_show_legend')->signal_connect_swapped(
         toggled => \&on_show_hide_legend,
         $self
     );
 
     foreach my $type_option (qw /auto linear log/) {
         my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
-        $xml->get_object($radio_item)->signal_connect_swapped(
+        $self->get_xmlpage_object($radio_item)->signal_connect_swapped(
             toggled => \&on_grid_colour_scaling_changed,
             $self,
         );
@@ -824,12 +823,10 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_ref} = $matrix_ref;
 
-    my $xml_page = $self->{xmlPage};
-
     #  hide the second list if no matrix selected
-    my $list_window = $xml_page->get_object('scrolledwindow_labels2');
+    my $list_window = $self->get_xmlpage_object('scrolledwindow_labels2');
 
-    my $list = $xml_page->get_object('listLabels1');
+    my $list = $self->get_xmlpage_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
     
     my $labels_are_in_mx = $self->some_labels_are_in_matrix;
@@ -860,8 +857,6 @@ sub on_grid_colour_scaling_changed {
 
     #  avoid triggering twice - we only care about which one is active
     return if !$radio_widget->get_active;
-    
-    my $xml_page = $self->{xmlPage};
 
     my %names_and_strings;
     foreach my $opt (qw /auto linear log/) {
@@ -871,7 +866,7 @@ sub on_grid_colour_scaling_changed {
     my $mode_string;
     foreach my $name (keys %names_and_strings) {
         my $string = $names_and_strings{$name};
-        my $widget = $xml_page->get_object($name);
+        my $widget = $self->get_xmlpage_object($name);
         if ($widget->get_active) {
             $mode_string = $string;
             last;
@@ -1125,9 +1120,8 @@ sub on_sorted {
 
     my $redraw = $args{redraw};
 
-    my $xml_page = $self->{xmlPage};
-    my $hmodel   = $xml_page->get_object('listLabels1')->get_model();
-    my $vmodel   = $xml_page->get_object('listLabels2')->get_model();
+    my $hmodel   = $self->get_xmlpage_object('listLabels1')->get_model();
+    my $vmodel   = $self->get_xmlpage_object('listLabels2')->get_model();
     my $model    = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
 
@@ -1287,10 +1281,9 @@ sub on_grid_select {
         }
 
         # Select all terminal labels
-        my $xml_page = $self->{xmlPage};
-        my $model = $self->{labels_model};
-        my $hmodel = $xml_page->get_object('listLabels1')->get_model();
-        my $hselection = $xml_page ->get_object('listLabels1')->get_selection();
+        my $model  = $self->{labels_model};
+        my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
+        my $hselection = $self->get_xml_page_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 
@@ -1334,8 +1327,6 @@ sub on_grid_select {
 sub on_phylogeny_plot_mode_changed {
     my ($self, $combo) = @_;
 
-    my $xml_page = $self->{xmlPage};
-
     my %names_and_strings = (
         phylogeny_plot_depth          => 'depth',
         phylogeny_plot_length         => 'length',
@@ -1344,7 +1335,7 @@ sub on_phylogeny_plot_mode_changed {
 
     my $mode_string;
     while (my ($name, $string) = each %names_and_strings) {
-        my $widget = $xml_page->get_object($name);
+        my $widget = $self->get_xmlpage_object($name);
         if ($widget->get_active) {
             $mode_string = $string;
             last;

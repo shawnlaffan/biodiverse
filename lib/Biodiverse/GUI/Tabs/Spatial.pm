@@ -141,7 +141,7 @@ sub new {
     $self->{output_ref} = $output_ref;
 
     # Initialise widgets
-    $self->{title_widget} = $self->{xmlPage} ->get_object('txtSpatialName');
+    $self->{title_widget} = $self->get_xmlpage_object('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_object('lblSpatialName');
 
     $self->{title_widget}->set_text($self->{output_name} );
@@ -477,8 +477,7 @@ sub setup_dendrogram {
 sub update_dendrogram_combo {
     my $self = shift;
 
-    my $xmlpage = $self->{xmlPage};
-    my $combobox = $xmlpage->get_object('comboTreeSelect');
+    my $combobox = $self->get_xmlpage_object('comboTreeSelect');
 
     #  Clear the curent entries.
     #  We need to load a new ListStore to avoid crashes due
@@ -572,8 +571,7 @@ sub init_branch_colouring_menu {
     return if !defined $self->{output_ref};
     return if blessed ($self) =~ /Matrix/;
 
-    my $xml_page = $self->{xmlPage};
-    my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
+    my $bottom_hbox = $self->get_xmlpage_object('hbox_spatial_tab_bottom');
 
     my $menubar   = $self->{branch_colouring_menu};
     my $have_menu = !!$menubar;
@@ -1884,8 +1882,7 @@ sub get_current_tree {
 sub on_name_changed {
     my $self = shift;
 
-    my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_object('txtSpatialName')->get_text();
+    my $name = $self->get_xmlpage_object('txtSpatialName')->get_text();
 
     my $label_widget = $self->{xmlLabel}->get_object('lblSpatialName');
     $label_widget->set_text($name);
@@ -1894,7 +1891,7 @@ sub on_name_changed {
     $tab_menu_label->set_text($name);
 
     my $param_widget
-        = $xml_page->get_object('lbl_parameter_spatial_name');
+        = $self->get_xmlpage_object('lbl_parameter_spatial_name');
     $param_widget->set_markup("<b>Name</b>");
 
     my $bd = $self->{basedata_ref};

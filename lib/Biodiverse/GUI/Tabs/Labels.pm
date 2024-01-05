@@ -340,12 +340,10 @@ sub get_tree_menu_items {
                       . "(this is the same as the one selected at "
                       . "the project level)",
         },
-        $self->get_tree_menu_item('plot_branches_by'),
-        $self->get_tree_menu_item('highlight_groups_on_map'),
-        $self->get_tree_menu_item('highlight_paths_on_tree'),
-        $self->get_tree_menu_item('separator'),
-        $self->get_tree_menu_item('set_tree_branch_line_widths'),
-        $self->get_tree_menu_item('separator'),
+        (   map {$self->get_tree_menu_item($_)}
+               qw /plot_branches_by highlight_groups_on_map     highlight_paths_on_tree
+                   separator        set_tree_branch_line_widths separator/
+        ),
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Export tree',

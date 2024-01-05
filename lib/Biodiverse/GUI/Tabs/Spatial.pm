@@ -403,10 +403,9 @@ sub get_tree_menu_items {
                 }
             ],
         },
-        $self->get_tree_menu_item('separator'),
-        $self->get_tree_menu_item('plot_branches_by'),
-        $self->get_tree_menu_item('set_tree_branch_line_widths'),
-        $self->get_tree_menu_item('separator'),
+        (   map {$self->get_tree_menu_item($_)}
+               qw /separator plot_branches_by set_tree_branch_line_widths separator/
+        ),
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Export',

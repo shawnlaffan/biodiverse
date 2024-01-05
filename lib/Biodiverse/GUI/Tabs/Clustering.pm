@@ -350,10 +350,10 @@ sub get_tree_menu_items {
             label    => 'Tree options:',
             tooltip  => "Options to work with the cluster tree",
         },
-        $self->get_tree_menu_item('plot_branches_by'),
-        $self->get_tree_menu_item('group_branches_by'),
-        $self->get_tree_menu_item('highlight_groups_on_map'),
-        $self->get_tree_menu_item('highlight_paths_on_tree'),
+        (   map {$self->get_tree_menu_item($_)}
+               qw /plot_branches_by        group_branches_by
+                   highlight_groups_on_map highlight_paths_on_tree/
+        ),
         {
             type     => 'Gtk2::CheckMenuItem',
             label    => 'Use the slider bar to select branches for colouring',
@@ -366,9 +366,9 @@ sub get_tree_menu_items {
             },
             active   => 1,
         },
-        $self->get_tree_menu_item('separator'),
-        $self->get_tree_menu_item('set_tree_branch_line_widths'),
-        $self->get_tree_menu_item('separator'),
+        (   map {$self->get_tree_menu_item($_)}
+               qw/separator set_tree_branch_line_widths separator/
+        ),
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Export tree',

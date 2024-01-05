@@ -980,6 +980,21 @@ sub get_colour_from_chooser {
     return $colour;
 }
 
+sub set_dendrogram_plot_mode {
+    my ($self, $mode_string) = @_;
+    $mode_string ||= 'length';
+    return if ($self->{plot_mode} // '') eq $mode_string;
+    my $tab_type = (blessed $self) =~ s/.+:://r;
+    say "[$tab_type tab] Changing tree plot mode to $mode_string";
+    $self->{plot_mode} = $mode_string;
+    return if !$self->get_current_tree;
+    my $dendrogram = $self->{dendrogram};
+    if ($dendrogram) {
+        $self->{dendrogram}->set_plot_mode($mode_string)
+    };
+};
+
+
 sub on_set_tree_line_widths {
     my $self = shift;
 

@@ -340,19 +340,6 @@ sub new {
 sub get_tree_menu_items {
     my $self = shift;
 
-    my $dendro_plot_mode_callback = sub {
-        my ($self, $mode_string) = @_;
-        $mode_string ||= 'length';
-        return if ($self->{plot_mode} // '') eq $mode_string;
-        say "[Spatial tab] Changing tree plot mode to $mode_string";
-        $self->{plot_mode} = $mode_string;
-        return if !$self->get_current_tree;
-        my $dendrogram = $self->{dendrogram};
-        if ($dendrogram) {
-            $self->{dendrogram}->set_plot_mode($mode_string)
-        };
-    };
-
     my @menu_items = (
         {
             type     => 'Gtk2::MenuItem',
@@ -427,17 +414,13 @@ sub get_tree_menu_items {
                     type     => 'Gtk2::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
-                    callback => sub {
-                        $dendro_plot_mode_callback->($self, 'length');
-                    },
+                    callback => sub {$self->set_dendrogram_plot_mode ('length')},
                 },
                 {
                     type     => 'Gtk2::RadioMenuItem',
                     label    => 'Depth',
                     event    => 'activate',
-                    callback => sub {
-                        $dendro_plot_mode_callback->($self, 'depth');
-                    },
+                    callback => sub {$self->set_dendrogram_plot_mode ('depth')},
                 },
             ],
         },

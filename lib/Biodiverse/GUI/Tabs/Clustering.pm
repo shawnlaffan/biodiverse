@@ -1371,6 +1371,7 @@ sub on_run_analysis {
         }
 
         $self->init_colour_clusters;
+        $self->update_tree_menu;
 
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {

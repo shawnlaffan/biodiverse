@@ -340,30 +340,10 @@ sub get_tree_menu_items {
                       . "(this is the same as the one selected at "
                       . "the project level)",
         },
-        $self->get_tree_menu_item ('plot_branches_by'),
-        {
-            type     => 'Gtk2::CheckMenuItem',
-            label    => 'Highlight groups on map?',
-            tooltip  => 'When hovering the mouse over a tree branch, '
-                . 'highlight the groups on the map in which it is found.',
-            event    => 'toggled',
-            callback => \&on_highlight_groups_on_map_changed,
-            active   => 1,
-            self_key => 'checkbox_show_tree_legend',
-        },
-        {
-            type     => 'Gtk2::CheckMenuItem',
-            label    => 'Highlight paths on tree?',
-            tooltip  => "When hovering over a group on the map, highlight the paths "
-                      . "connecting the tips of the tree (that match labels in the group) "
-                      . "to the root.",
-            event    => 'toggled',
-            callback => \&on_use_highlight_path_changed,
-            active   => 1,
-        },
-        {
-            type  => 'Gtk2::SeparatorMenuItem',
-        },
+        $self->get_tree_menu_item('plot_branches_by'),
+        $self->get_tree_menu_item('highlight_groups_on_map'),
+        $self->get_tree_menu_item('highlight_paths_on_tree'),
+        $self->get_tree_menu_item('separator'),
         $self->get_tree_menu_item('set_tree_branch_line_widths'),
         $self->get_tree_menu_item('separator'),
         {

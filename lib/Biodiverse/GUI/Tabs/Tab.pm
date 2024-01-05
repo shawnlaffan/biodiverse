@@ -1360,7 +1360,33 @@ EOT
             event    => 'activate',
             callback => \&on_set_tree_line_widths,
         },
-        separator                   =>         {
+        highlight_groups_on_map => {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight groups on map',
+            tooltip  => 'When hovering the mouse over a tree branch, '
+                . 'highlight the groups on the map in which it is found.',
+            event    => 'toggled',
+            callback => sub {
+                my $self = shift;
+                $self->on_highlight_groups_on_map_changed;
+            },
+            active   => 1,
+            self_key => 'checkbox_show_tree_legend',
+        },
+        highlight_paths_on_tree => {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Highlight paths on tree',
+            tooltip  => "When hovering over a group on the map, highlight the paths "
+                . "connecting the tips of the tree (that match labels in the group) "
+                . "to the root.",
+            event    => 'toggled',
+            callback => sub {
+                my $self = shift;
+                $self->on_use_highlight_path_changed;
+            },
+            active   => 1,
+        },
+        separator => {
             type  => 'Gtk2::SeparatorMenuItem',
         },
     };
@@ -1371,5 +1397,6 @@ EOT
 
     return $item;
 }
+
 
 1;

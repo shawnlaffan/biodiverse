@@ -1303,15 +1303,15 @@ EOT
     ;
 
     state $items = {
-        plot_branches_by => {
+        plot_branches_by     => {
             type  => 'submenu_radio_group',
             label => 'Plot branches by',
             items => [
                 {
-                    type          => 'Gtk2::RadioMenuItem',
-                    label         => 'Length',
-                    event         => 'activate',
-                    callback      => sub {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Length',
+                    event    => 'activate',
+                    callback => sub {
                         my $self = shift;
                         $self->set_dendrogram_plot_mode('length'),
                     },
@@ -1322,23 +1322,23 @@ EOT
                     event    => 'activate',
                     callback => sub {
                         my $self = shift;
-                        $self->set_dendrogram_plot_mode ('depth');
+                        $self->set_dendrogram_plot_mode('depth');
                     },
                 },
             ],
         },
-        group_branches_by => {
-            type  => 'submenu_radio_group',
-            label => 'Select branches by',
+        group_branches_by    => {
+            type    => 'submenu_radio_group',
+            label   => 'Select branches by',
             tooltip => $tooltip_select_by,
-            items => [
+            items   => [
                 {
                     type     => 'Gtk2::RadioMenuItem',
                     label    => 'Length',
                     event    => 'activate',
                     callback => sub {
                         my $self = shift;
-                        $self->set_dendrogram_group_by_mode ('length');
+                        $self->set_dendrogram_group_by_mode('length');
                     },
                 },
                 {
@@ -1352,7 +1352,14 @@ EOT
                 },
             ],
         },
-
+        set_tree_branch_line_widths => {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Set tree branch line widths',
+            tooltip  => "Set the width of the tree branches.\n"
+                . "Does not affect the vertical connectors.",
+            event    => 'activate',
+            callback => \&on_set_tree_line_widths,
+        },
     };
 
     my $item = $items->{$wanted};

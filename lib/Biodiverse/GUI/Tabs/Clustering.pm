@@ -387,14 +387,7 @@ sub get_tree_menu_items {
         {
             type  => 'Gtk2::SeparatorMenuItem',
         },
-        {
-            type     => 'Gtk2::MenuItem',
-            label    => 'Set tree branch line widths',
-            tooltip  => "Set the width of the tree branches.\n"
-                . "Does not affect the vertical connectors.",
-            event    => 'activate',
-            callback => \&on_set_tree_line_widths,
-        },
+        $self->get_tree_menu_item('set_tree_branch_line_widths'),
         {
             type  => 'Gtk2::SeparatorMenuItem',
         },

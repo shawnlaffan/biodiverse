@@ -1194,7 +1194,9 @@ sub update_tree_menu {
     my $tree_menu = $self->{tree_menu};
 
     if (!$tree_menu) {
-        $tree_menu  = Gtk2::MenuItem->new_with_label('Tree');
+        my $sep = Gtk2::SeparatorMenuItem->new;
+        $menubar->append($sep);
+        $tree_menu = Gtk2::MenuItem->new_with_label('Tree');
         $menubar->append($tree_menu);
         $self->{tree_menu} = $tree_menu;
     }

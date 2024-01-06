@@ -106,7 +106,7 @@ sub new {
 
 
     # Initialise widgets
-    $self->{title_widget} = $self->{xmlPage} ->get_object('txtSpatialName');
+    $self->{title_widget} = $self->get_xmlpage_object('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_object('lblSpatialName');
 
     $self->{title_widget}->set_text($self->{output_name} );
@@ -153,7 +153,6 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
-        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
     );
 
     for my $n (0..6) {
@@ -218,6 +217,7 @@ sub new {
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     #  debug stuff
     $self->{selected_list} = 'SUBELEMENTS';
@@ -229,6 +229,14 @@ sub on_show_hide_parameters {
     my $self = shift;
     return;
 
+}
+
+sub get_tree_menu_items {
+    my $self = shift;
+    my @items = $self->SUPER::get_tree_menu_items;
+    my $re_wanted = qr/Set tree branch line widths|Plot branches by|Export/;
+    @items = grep {$_->{type} =~ /Separator/ or $_->{label} =~ /$re_wanted/} @items;
+    return wantarray ? @items : \@items;
 }
 
 

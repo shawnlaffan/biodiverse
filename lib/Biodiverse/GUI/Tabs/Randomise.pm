@@ -55,10 +55,9 @@ sub new {
     $self->{xmlLabel} = Gtk2::Builder->new();
     $self->{xmlLabel}->add_from_file($self->{gui}->get_gtk_ui_file('hboxRandomiseLabel.ui'));
 
-    my $xml_page  = $self->{xmlPage};
     my $xml_label = $self->{xmlLabel};
 
-    my $page  = $xml_page ->get_object('vboxRandomisePage');
+    my $page  = $self->get_xmlpage_object('vboxRandomisePage');
     my $label = $xml_label->get_object('hboxRandomiseLabel');
     my $label_text = $xml_label->get_object('lblRandomiseName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
@@ -105,7 +104,7 @@ sub new {
     $self->add_iteration_count_to_table ($output_ref);
 
     my $name;
-    my $seed_widget = $xml_page->get_object('randomise_seed_value');
+    my $seed_widget = $self->get_xmlpage_object('randomise_seed_value');
     if ($output_ref) {
         #$self->{project}->register_in_outputs_model ($output_ref, $self);
         $self->register_in_outputs_model ($output_ref, $self);
@@ -119,7 +118,7 @@ sub new {
     }
 
     $xml_label->get_object('lblRandomiseName')->set_text($name);
-    $xml_page ->get_object('randomise_results_list_name')->set_text ($name);
+    $self->get_xmlpage_object('randomise_results_list_name')->set_text ($name);
     $self->{tab_menu_label}->set_text($name );
 
     # Connect signals
@@ -127,11 +126,11 @@ sub new {
         clicked => \&on_close,
         $self,
     );
-    $xml_page->get_object('btnRandomise')->signal_connect_swapped(
+    $self->get_xmlpage_object('btnRandomise')->signal_connect_swapped(
         clicked => \&on_run,
         $self,
     );
-    $xml_page->get_object('randomise_results_list_name')->signal_connect_swapped(
+    $self->get_xmlpage_object('randomise_results_list_name')->signal_connect_swapped(
         changed => \&on_name_changed,
         $self,
     );
@@ -145,9 +144,7 @@ sub new {
 sub get_table_widget {
     my $self = shift;
 
-    my $xml_page = $self->{xmlPage};
-
-    my $table = $xml_page->get_object('table_randomise_setup');
+    my $table = $self->get_xmlpage_object('table_randomise_setup');
 
     return $table;
 }
@@ -167,9 +164,7 @@ sub add_iteration_count_to_table {
     my $self = shift;
     my $output_ref = shift;
 
-    my $xml_page = $self->{xmlPage};
-
-    my $table = $xml_page->get_object('table_randomise_setup');
+    my $table = $self->get_xmlpage_object('table_randomise_setup');
 
     my $count = defined $output_ref
                 ? $output_ref->get_param ('TOTAL_ITERATIONS')
@@ -218,9 +213,8 @@ sub set_button_sensitivity {
         comboFunction
     /;
 
-    my $xml_page = $self->{xmlPage};
     foreach my $widget (@widgets) {
-        $xml_page->get_object($widget)->set_sensitive ($sens);
+        $self->get_xmlpage_object($widget)->set_sensitive ($sens);
     }
 
     my $table = $self->get_xmlpage_object('tableParams');
@@ -619,9 +613,8 @@ sub on_run {
     $args{iterations}
         = $self->get_xmlpage_object('spinIterations')->get_value_as_int;
 
-    my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_object('randomise_results_list_name')->get_text;
-    my $seed = $xml_page->get_object('randomise_seed_value')->get_text;
+    my $name = $self->get_xmlpage_object('randomise_results_list_name')->get_text;
+    my $seed = $self->get_xmlpage_object('randomise_seed_value')->get_text;
     $seed =~ s/\s//g;  #  strip any whitespace
     if (not defined $seed or length ($seed) == 0) {
         warn "[GUI Randomise] PRNG seed is not defined, using system default\n";

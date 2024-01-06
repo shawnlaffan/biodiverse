@@ -118,6 +118,7 @@ sub new {
     
     foreach my $widget_name (qw /selector_toggle selector_colorbutton autoincrement_toggle/) {
         eval {
+            #  use get_xmlpage_object from parent
             $self->{$widget_name}
               = $self->get_parent_tab->{xmlPage}->get_object($widget_name);
         };
@@ -261,6 +262,11 @@ sub destroy {
     delete @$self{keys %$self};
 
     return;
+}
+
+#  makes it available outside the class
+sub get_default_line_colour {
+    DEFAULT_LINE_COLOUR();
 }
 
 ##########################################################
@@ -678,6 +684,14 @@ sub toggle_use_slider_to_select_nodes {
     return;
 }
 
+sub set_use_slider_to_select_nodes {
+    my ($self, $bool) = @_;
+
+    $self->{use_slider_to_select_nodes} = !!$bool;
+
+    return;
+}
+
 # Colours a certain number of nodes below
 sub do_colour_nodes_below {
     my $self = shift;
@@ -849,6 +863,8 @@ sub get_branch_line_width {
 sub set_branch_line_width {
     my ($self, $val) = @_;
     my $current = $self->get_branch_line_width;
+
+    $val ||= 0;
 
     $self->{branch_line_width} = $val;
 
@@ -1145,14 +1161,17 @@ sub clear_node_colours {
     $self->{node_colours_cache} = {};    
 
     my $tree = $self->get_tree_object();
-    if($tree) {
-        foreach my $node ($tree->get_node_refs()) {
-            $self->set_node_colour(
-                node_name  => $node->get_name(),
-                colour_ref => DEFAULT_LINE_COLOUR,
-            );
-        }
+
+    return if !$tree;
+
+    foreach my $node ($tree->get_node_refs()) {
+        $self->set_node_colour(
+            node_name  => $node->get_name(),
+            colour_ref => DEFAULT_LINE_COLOUR,
+        );
     }
+
+    return;
 }
 
 sub set_node_colour {
@@ -1238,13 +1257,16 @@ sub recolour_cluster_lines {
     my $analysis_max = $self->{analysis_max};
     my $colour_mode  = $self->get_cluster_colour_mode();
 
-    my $legend = $map->get_legend;
-    $legend->set_colour_mode_from_list_and_index (
-        list  => $list_name,
-        index => $list_index,
-    );
-    my @minmax_args = ($analysis_min, $analysis_max);
-    my $colour_method = $legend->get_colour_method;
+    my ($legend, @minmax_args, $colour_method);
+    if ($colour_mode ne 'palette' and not $self->in_multiselect_mode) {
+        $legend = $map->get_legend;
+        $legend->set_colour_mode_from_list_and_index(
+            list  => $list_name,
+            index => $list_index,
+        );
+        @minmax_args = ($analysis_min, $analysis_max);
+        $colour_method = $legend->get_colour_method;
+    }
 
     foreach my $node_ref (@$cluster_nodes) {
 
@@ -1849,7 +1871,7 @@ sub replay_multiselect_store {
 
 # Remove any existing highlights
 sub clear_highlights {
-    my $self = shift;
+    my ($self, $new_colour) = @_;
     
     # set all nodes to recorded/default colour
     return if !$self->{highlighted_lines};
@@ -1859,8 +1881,9 @@ sub clear_highlights {
         my $line = $self->{node_lines}{$node_name};
         next if !$line;
         my $colour_ref
-          =  $self->get_node_colour_aa ( $node_name )
-          || DEFAULT_LINE_COLOUR;
+          =  $new_colour
+            || $self->get_node_colour_aa ( $node_name )
+            || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
     }
     $self->{highlighted_lines} = undef;

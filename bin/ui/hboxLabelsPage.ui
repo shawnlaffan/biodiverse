@@ -151,6 +151,15 @@
           </packing>
         </child>
         <child>
+          <object class="GtkSeparatorToolItem" id="toolitem_label_sep1x">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkToolItem" id="toolitemLabelsOptions">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
@@ -163,7 +172,7 @@
                   <object class="GtkMenuItem" id="menuitem9x">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Display</property>
+                    <property name="label" translatable="yes">Map</property>
                     <property name="use_underline">True</property>
                     <child type="submenu">
                       <object class="GtkMenu" id="menu1">
@@ -173,7 +182,7 @@
                           <object class="GtkMenuItem" id="menuitem_labels_grid">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Grid</property>
+                            <property name="label" translatable="yes">Display options:</property>
                             <property name="use_underline">True</property>
                           </object>
                         </child>
@@ -238,77 +247,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Overlays...</property>
-                            <property name="use_underline">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuItem" id="menuitem_labels_tree">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Tree</property>
-                            <property name="use_underline">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkRadioMenuItem" id="phylogeny_plot_length">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Plot branches using their lengths.	</property>
-                            <property name="label" translatable="yes">Length</property>
-                            <property name="use_underline">True</property>
-                            <property name="active">True</property>
-                            <property name="draw_as_radio">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkRadioMenuItem" id="phylogeny_plot_depth">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Plot branches as a function of depth from the root node.</property>
-                            <property name="label" translatable="yes">Depth</property>
-                            <property name="use_underline">True</property>
-                            <property name="draw_as_radio">True</property>
-                            <property name="group">phylogeny_plot_length</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">When hovering on a branch,
-highlight the groups on the grid 
-in which it is found.
-</property>
-                            <property name="label" translatable="yes">Highlight groups on map?</property>
-                            <property name="use_underline">True</property>
-                            <property name="active">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkCheckMenuItem" id="use_highlight_path_changed1">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">When hovering over a cell on the map,
-highlight the paths from the tip to the root of the tree
-for labels found in that group. </property>
-                            <property name="label" translatable="yes">Highlight node paths for groups?</property>
-                            <property name="use_underline">True</property>
-                            <property name="active">True</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuItem" id="menuitem_labels_set_tree_line_widths">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="tooltip_text" translatable="yes">Set the width of the tree branches.
-Does not affect the vertical connectors.</property>
-                            <property name="label" translatable="yes">Set tree branch line widths</property>
                             <property name="use_underline">True</property>
                           </object>
                         </child>

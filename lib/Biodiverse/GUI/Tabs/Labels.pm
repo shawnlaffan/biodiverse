@@ -5,6 +5,8 @@ use warnings;
 
 use English ( -no_match_vars );
 
+use experimental qw(refaliasing);
+
 #use Data::Dumper;
 use Sort::Key::Natural qw /natsort mkkey_natural/;
 
@@ -162,7 +164,6 @@ sub new {
     $self->{active_pane} = '';
 
     # Connect signals
-    my $xml = $self->{xmlPage};
 
     $self->{xmlLabel}->get_object('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
 
@@ -182,21 +183,18 @@ sub new {
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
-    $xml->get_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
+    $self->get_xmlpage_object('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
     $self->get_xmlpage_object("btnSelectToolVL")->set_active(1);
 
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
-    #  plot length triggers depth and vice versa
-    $xml->get_object('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
-    $xml->get_object('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
-    $xml->get_object('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
-    $xml->get_object('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
-    $xml->get_object('menuitem_labels_set_tree_line_widths')->signal_connect_swapped(activate => \&on_set_tree_line_widths, $self);
-    
+    $self->get_xmlpage_object('menuitem_labels_show_legend')->signal_connect_swapped(
+        toggled => \&on_show_hide_legend,
+        $self
+    );
+
     foreach my $type_option (qw /auto linear log/) {
         my $radio_item = 'radiomenuitem_grid_colouring_' . $type_option;
-        $xml->get_object($radio_item)->signal_connect_swapped(
+        $self->get_xmlpage_object($radio_item)->signal_connect_swapped(
             toggled => \&on_grid_colour_scaling_changed,
             $self,
         );
@@ -207,6 +205,7 @@ sub new {
     $self->{menubar} = $self->get_xmlpage_object('menubarLabelsOptions');
     $self->update_selection_menu;
     $self->update_export_menu;
+    $self->update_tree_menu (output_ref => $self->get_base_ref->get_groups_ref);
 
     say "[GUI] - Loaded tab - Labels";
 
@@ -322,6 +321,33 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     return 1;
+}
+
+sub get_current_tree {
+    my $self = shift;
+    return $self->{project}->get_selected_phylogeny;
+}
+
+sub get_tree_menu_items {
+    my $self = shift;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Tree options:',
+            tooltip  => "Options to work with the displayed tree "
+                      . "(this is the same as the one selected at "
+                      . "the project level)",
+        },
+        (   map {$self->get_tree_menu_item($_)}
+               qw /plot_branches_by
+                   highlight_groups_on_map highlight_paths_on_tree
+                   separator               set_tree_branch_line_widths
+                   separator               export_tree /
+        ),
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
 }
 
 ##################################################
@@ -743,6 +769,10 @@ sub set_phylogeny_options_sensitive {
     my $self = shift;
     my $enabled = shift;
 
+    #  These are handled differently now.
+    #  Leaving code as a reminder, but returning early.
+    return;
+
     my $page = $self->{xmlPage};
 
     for my $widget (
@@ -764,7 +794,8 @@ sub on_selected_phylogeny_changed {
 
     $self->{dendrogram}->clear;
     if ($phylogeny) {
-        $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
+        #  now storing tree objects directly
+        $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length');
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
@@ -792,12 +823,10 @@ sub on_selected_matrix_changed {
 
     $self->{matrix_ref} = $matrix_ref;
 
-    my $xml_page = $self->{xmlPage};
-
     #  hide the second list if no matrix selected
-    my $list_window = $xml_page->get_object('scrolledwindow_labels2');
+    my $list_window = $self->get_xmlpage_object('scrolledwindow_labels2');
 
-    my $list = $xml_page->get_object('listLabels1');
+    my $list = $self->get_xmlpage_object('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
     
     my $labels_are_in_mx = $self->some_labels_are_in_matrix;
@@ -828,8 +857,6 @@ sub on_grid_colour_scaling_changed {
 
     #  avoid triggering twice - we only care about which one is active
     return if !$radio_widget->get_active;
-    
-    my $xml_page = $self->{xmlPage};
 
     my %names_and_strings;
     foreach my $opt (qw /auto linear log/) {
@@ -839,7 +866,7 @@ sub on_grid_colour_scaling_changed {
     my $mode_string;
     foreach my $name (keys %names_and_strings) {
         my $string = $names_and_strings{$name};
-        my $widget = $xml_page->get_object($name);
+        my $widget = $self->get_xmlpage_object($name);
         if ($widget->get_active) {
             $mode_string = $string;
             last;
@@ -960,12 +987,12 @@ sub on_selected_labels_changed {
         #FIXME: This copies the hash (???recheck???) - not very fast...
         #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
         #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
-        my $hash = $bd->get_groups_with_label_as_hash (label => $label);
+        \my %hash = $bd->get_groups_with_label_as_hash_aa ($label);
 
         # groups contains count of how many different labels occur in it
-        foreach my $group (keys %$hash) {
-            $group_richness{$group}++;
-        }
+        #  postfix-if for speed
+        $group_richness{$_}++
+          foreach keys %hash;
     }
 
     my $grid = $self->{grid};
@@ -994,6 +1021,7 @@ sub on_selected_labels_changed {
     else {
         $grid->set_legend_log_mode_off;
     }
+    my $legend = $grid->get_legend;
 
     my $colour_func = sub {
         my $elt = shift;
@@ -1003,7 +1031,7 @@ sub on_selected_labels_changed {
         #if ($use_log) {
         #    $val = log ($val + 1);
         #}
-        return $grid->get_colour($val, 0, $display_max_value);
+        return $legend->get_colour($val, 0, $display_max_value);
     };
 
     $grid->colour($colour_func);
@@ -1092,9 +1120,8 @@ sub on_sorted {
 
     my $redraw = $args{redraw};
 
-    my $xml_page = $self->{xmlPage};
-    my $hmodel   = $xml_page->get_object('listLabels1')->get_model();
-    my $vmodel   = $xml_page->get_object('listLabels2')->get_model();
+    my $hmodel   = $self->get_xmlpage_object('listLabels1')->get_model();
+    my $vmodel   = $self->get_xmlpage_object('listLabels2')->get_model();
     my $model    = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
 
@@ -1223,9 +1250,9 @@ sub on_grid_hover {
     # highlight in the tree
     foreach my $label (keys %$labels) {
         # Might not match some or all nodes
-        next if !$tree->exists_node (name => $label);
+        next if !$tree->exists_node_name_aa ($label);
         eval {
-            my $node_ref = $tree->get_node_ref (node => $label);                
+            my $node_ref = $tree->get_node_ref_aa ($label);
             $self->{dendrogram}->highlight_path($node_ref);
         }
     }
@@ -1254,10 +1281,9 @@ sub on_grid_select {
         }
 
         # Select all terminal labels
-        my $xml_page = $self->{xmlPage};
-        my $model = $self->{labels_model};
-        my $hmodel = $xml_page->get_object('listLabels1')->get_model();
-        my $hselection = $xml_page ->get_object('listLabels1')->get_selection();
+        my $model  = $self->{labels_model};
+        my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
+        my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 
@@ -1301,8 +1327,6 @@ sub on_grid_select {
 sub on_phylogeny_plot_mode_changed {
     my ($self, $combo) = @_;
 
-    my $xml_page = $self->{xmlPage};
-
     my %names_and_strings = (
         phylogeny_plot_depth          => 'depth',
         phylogeny_plot_length         => 'length',
@@ -1311,7 +1335,7 @@ sub on_phylogeny_plot_mode_changed {
 
     my $mode_string;
     while (my ($name, $string) = each %names_and_strings) {
-        my $widget = $xml_page->get_object($name);
+        my $widget = $self->get_xmlpage_object($name);
         if ($widget->get_active) {
             $mode_string = $string;
             last;

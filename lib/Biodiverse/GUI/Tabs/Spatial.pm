@@ -141,7 +141,7 @@ sub new {
     $self->{output_ref} = $output_ref;
 
     # Initialise widgets
-    $self->{title_widget} = $self->{xmlPage} ->get_object('txtSpatialName');
+    $self->{title_widget} = $self->get_xmlpage_object('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_object('lblSpatialName');
 
     $self->{title_widget}->set_text($self->{output_name} );
@@ -282,15 +282,8 @@ sub new {
         menuitem_spatial_undef_cell_colour    => {activate => \&on_set_undef_cell_colour},
         menuitem_spatial_cell_show_outline    => {toggled  => \&on_set_cell_show_outline},
         menuitem_spatial_show_legend          => {toggled  => \&on_show_hide_legend},
-        menuitem_spatial_set_tree_line_widths => {activate => \&on_set_tree_line_widths},
 
         button_spatial_options => {clicked => \&run_options_dialogue},
-        
-        menuitem_spatial_tree_colour_mode_hue  => {toggled  => \&on_tree_colour_mode_changed},
-        menuitem_spatial_tree_colour_mode_sat  => {toggled  => \&on_tree_colour_mode_changed},
-        menuitem_spatial_tree_colour_mode_grey => {toggled  => \&on_tree_colour_mode_changed},
-        
-        menuitem_spatial_tree_show_legend => {toggled => \&on_show_tree_legend_changed},
     );
 
     #  bodge - should set the radio group
@@ -337,12 +330,87 @@ sub new {
 
     $self->{menubar} = $self->get_xmlpage_object('menubar_spatial');
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     say "[Spatial tab] - Loaded tab - Spatial Analysis";
 
     return $self;
 }
 
+sub get_tree_menu_items {
+    my $self = shift;
+
+    my @menu_items = (
+        {
+            type     => 'Gtk2::MenuItem',
+            label    => 'Branch colouring',
+            tooltip  => "These options control the branch colouring (when relevant)\n"
+                . 'The menu to control what is displayed is below the tree.',
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Show legend',
+            tooltip  => 'Show or hide the legend on the tree plot (if one is relevant)',
+            event    => 'toggled',
+            callback => \&on_show_tree_legend_changed,
+            active   => 1,
+            self_key => 'checkbox_show_tree_legend',
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Log scale',
+            tooltip  => "Log scale the colours.\n"
+                . "Uses the min and max determined by the Colour stretch choice.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                $self->{use_tree_log_scale} = $menuitem->get_active;
+            },
+            active   => 1,
+        },
+        {
+            type     => 'Gtk2::CheckMenuItem',
+            label    => 'Invert colour stretch',
+            tooltip  => "Invert (flip) the colour range. Has no effect on categorical colouring.",
+            event    => 'toggled',
+            callback => sub {
+                my ($self, $menuitem) = @_;
+                $self->{tree_invert_colours} = $menuitem->get_active;
+            },
+            active   => 0,
+        },
+        {
+            type  => 'submenu_radio_group',
+            label => 'Colour mode',
+            items => [  #  could be refactored
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Hue',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Sat...',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Grey',
+                    event    => 'activate',
+                    callback => \&on_tree_colour_mode_changed,
+                }
+            ],
+        },
+        (   map {$self->get_tree_menu_item($_)}
+               qw /separator plot_branches_by set_tree_branch_line_widths
+                   separator export_tree /
+        ),
+    );
+
+    return wantarray ? @menu_items : \@menu_items;
+}
 
 #  doesn't work yet
 sub screenshot {
@@ -409,8 +477,7 @@ sub setup_dendrogram {
 sub update_dendrogram_combo {
     my $self = shift;
 
-    my $xmlpage = $self->{xmlPage};
-    my $combobox = $xmlpage->get_object('comboTreeSelect');
+    my $combobox = $self->get_xmlpage_object('comboTreeSelect');
 
     #  Clear the curent entries.
     #  We need to load a new ListStore to avoid crashes due
@@ -504,8 +571,7 @@ sub init_branch_colouring_menu {
     return if !defined $self->{output_ref};
     return if blessed ($self) =~ /Matrix/;
 
-    my $xml_page = $self->{xmlPage};
-    my $bottom_hbox = $xml_page->get_object('hbox_spatial_tab_bottom');
+    my $bottom_hbox = $self->get_xmlpage_object('hbox_spatial_tab_bottom');
 
     my $menubar   = $self->{branch_colouring_menu};
     my $have_menu = !!$menubar;
@@ -521,8 +587,6 @@ sub init_branch_colouring_menu {
 
     my $label = Gtk2::Label->new('Branch colouring: ');
 
-    my $checkbox_show_legend
-        = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
     $menubar = Gtk2::MenuBar->new;
     my $menu = Gtk2::Menu->new;
     my $menuitem = Gtk2::MenuItem->new_with_label('Branch colouring: ');
@@ -531,7 +595,9 @@ sub init_branch_colouring_menu {
     my $menu_action = sub {
         my $args = shift;
         my ($self, $listname, $output_ref) = @$args;
-        if ($checkbox_show_legend->get_active) {
+        my $chk_show_legend = $self->{checkbox_show_tree_legend};
+        my $show_legend = $chk_show_legend ? $chk_show_legend->get_active : 1;
+        if ($show_legend) {
             $self->{dendrogram}->update_legend;  #  need dendrogram to pass on coords
             $self->{dendrogram}->get_legend->show;
         }
@@ -1496,6 +1562,7 @@ sub on_run {
     $self->{initialising_grid} = 0;
 
     $self->update_export_menu;
+    $self->update_tree_menu;
 
     $self->{project}->set_dirty;
 
@@ -1657,6 +1724,10 @@ sub highlight_paths_on_dendrogram {
                   : $colour;
 
                 $dendrogram->highlight_node ($node_ref, $colour_ref);
+                $dendrogram->set_node_colour(
+                    colour_ref => $colour_ref,
+                    node_name  => $node_name,
+                );
 
                 $done{$node_name}[$idx]++;
 
@@ -1688,11 +1759,8 @@ sub colour_branches_on_dendrogram {
         index => '',
     );
 
-    my $log_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_log_scale');
-    $legend->set_log_mode($log_check_box->get_active);
-
-    my $flip_check_box = $self->get_xmlpage_object('menuitem_spatial_tree_colour_stretch_flip_mode');
-    $legend->set_invert_colours ($flip_check_box->get_active);
+    $legend->set_log_mode($self->{use_tree_log_scale});
+    $legend->set_invert_colours ($self->{tree_invert_colours});
 
     my $listref = $output_ref->get_list_ref (
         list    => $list_name,
@@ -1708,8 +1776,8 @@ sub colour_branches_on_dendrogram {
     my @minmax_args = ($min, $max);
     my $colour_method = $legend->get_colour_method;
 
-    my $checkbox_show_legend = $self->get_xmlpage_object('menuitem_spatial_tree_show_legend');
-    if ($checkbox_show_legend->get_active) {
+    my $checkbox_show_tree_legend = $self->{checkbox_show_tree_legend};
+    if ($checkbox_show_tree_legend->get_active) {
         $dendrogram->update_legend;  #  need dendrogram to pass on coords
         $legend->show;
     }
@@ -1742,13 +1810,17 @@ sub colour_branches_on_dendrogram {
                 : COLOUR_BLACK;
 
             $dendrogram->highlight_node ($node_ref, $colour_ref);
+            $dendrogram->set_node_colour(
+                colour_ref => $colour_ref,
+                node_name  => $node_name,
+            );
 
             $done{$node_name}++;
 
             $node_ref = $node_ref->get_parent;
         }
     }
-    
+
 }
 
 sub on_end_grid_hover {
@@ -1756,7 +1828,7 @@ sub on_end_grid_hover {
     my $dendrogram = $self->{dendrogram}
       // return;
 
-    $dendrogram->clear_highlights;
+    $dendrogram->clear_highlights ($dendrogram->get_default_line_colour);
 }
 
 sub get_trees_are_available_to_plot {
@@ -1810,8 +1882,7 @@ sub get_current_tree {
 sub on_name_changed {
     my $self = shift;
 
-    my $xml_page = $self->{xmlPage};
-    my $name = $xml_page->get_object('txtSpatialName')->get_text();
+    my $name = $self->get_xmlpage_object('txtSpatialName')->get_text();
 
     my $label_widget = $self->{xmlLabel}->get_object('lblSpatialName');
     $label_widget->set_text($name);
@@ -1820,7 +1891,7 @@ sub on_name_changed {
     $tab_menu_label->set_text($name);
 
     my $param_widget
-        = $xml_page->get_object('lbl_parameter_spatial_name');
+        = $self->get_xmlpage_object('lbl_parameter_spatial_name');
     $param_widget->set_markup("<b>Name</b>");
 
     my $bd = $self->{basedata_ref};

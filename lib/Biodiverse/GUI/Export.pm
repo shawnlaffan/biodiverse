@@ -36,6 +36,7 @@ sub Run {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     #  stop keyboard events being applied to any open tabs
+    my $snooper_status = $gui->keyboard_snooper_active;
     $gui->activate_keyboard_snooper (0);
 
     # Get the Parameters metadata
@@ -77,6 +78,7 @@ sub Run {
 
         if ($format_response ne 'ok') {
             $format_dlg->destroy;
+            $gui->activate_keyboard_snooper ($snooper_status);
             return;
         }
 
@@ -98,7 +100,10 @@ sub Run {
         selected_format => $selected_format,
     );
 
-    return if !$results->{success};
+    if (!$results->{success}) {
+        $gui->activate_keyboard_snooper($snooper_status);
+        return;
+    }
 
     my $chooser = $results->{chooser};
     my $parameters_table = $results->{param_table};
@@ -139,7 +144,7 @@ sub Run {
     }
 
     $dlg->destroy;
-    $gui->activate_keyboard_snooper (1);
+    $gui->activate_keyboard_snooper ($snooper_status);
 
     return;
 }

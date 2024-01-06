@@ -1283,7 +1283,7 @@ sub on_grid_select {
         # Select all terminal labels
         my $model  = $self->{labels_model};
         my $hmodel = $self->get_xmlpage_object('listLabels1')->get_model();
-        my $hselection = $self->get_xml_page_object('listLabels1')->get_selection();
+        my $hselection = $self->get_xmlpage_object('listLabels1')->get_selection();
 
         my $sel_mode = $self->get_selection_mode;
 

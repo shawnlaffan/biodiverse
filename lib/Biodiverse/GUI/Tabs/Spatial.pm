@@ -479,34 +479,52 @@ sub update_dendrogram_combo {
 
     my $combobox = $self->get_xmlpage_object('comboTreeSelect');
 
-    #  Clear the curent entries.
+    #  Clear the current entries.
     #  We need to load a new ListStore to avoid crashes due
     #  to them being destroyed somewhere in the refresh process
-    my $model = Gtk2::ListStore->new('Glib::String');
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Scalar');
     $combobox->set_model ($model);
 
-    my $combo_items = 0;
-    foreach my $option ('project', 'none', 'hide panel') {
-        $combobox->append_text($option);
-        $combo_items ++;
-    }
+    #  Need to work out how to italicise some of the entries.
+    #  This code currently duplicates the text.
+    # my $renderer = Gtk2::CellRendererText->new();
+    # $combobox->pack_start($renderer, 0);
+    # $combobox->add_attribute($renderer, markup => 0);
 
-    no autovivification;
+    my @combo_items;
 
     my $output_ref = $self->{output_ref};
     if ($output_ref && $output_ref->can('get_embedded_tree') && $output_ref->get_embedded_tree) {
-        $combobox->prepend_text('analysis');
-        $combo_items++;
+        my $iter = $model->append();
+        $model->set( $iter, 0, 'analysis', 1, 'analysis' );
+        push @combo_items, 'analysis';
+    }
+
+    foreach my $option ('project', 'none', 'hide panel') {
+        my $iter = $model->append();
+        $model->set( $iter, 0, $option, 1, $option );
+        push @combo_items, $option;
+    }
+
+    my $list = $self->{gui}->get_project->get_phylogeny_list;
+    foreach my $tree (@$list) {
+        my $name = $tree->get_name;
+        my $iter = $model->append();
+        $model->set( $iter, 0, $name, 1, $tree );
     }
 
     if ($self->get_trees_are_available_to_plot) {
         $combobox->set_active(0);
     }
     else {
-        #  Last one is 'hide panel'
-        #  It would be nice to extract from the model itself, if someone could work that out...
-        $combobox->set_active ($combo_items-1);
+        #  It would be nice to extract from the model itself,
+        #  if someone could work that out...
+        $combobox->set_active (
+            List::MoreUtils::firstidx {$_ eq 'hide panel'} @combo_items
+        );
     }
+
+    return;
 }
 
 # For the phylogeny tree:
@@ -1850,31 +1868,41 @@ sub get_current_tree {
 
     return if !$self->{output_ref};
 
+    my $combo = $self->get_xmlpage_object('comboTreeSelect');
+    my $model = $combo->get_model;
+    my $iter  = $combo->get_active_iter;
+
     # check combo box to choose if project phylogeny or tree used in spatial analysis
-    my $tree_method = $self->get_xmlpage_object('comboTreeSelect')->get_active_text();
-    $tree_method //= 'none';
+    my $choice = $model->get($iter, 1);
+    $choice //= 'none';
 
     my $tree_frame = $self->get_xmlpage_object ('frame_spatial_tree_plot');
 
-    if ($tree_method eq 'hide panel') {
+    if ($choice eq 'hide panel') {
         $tree_frame->hide;
         return;
     }
-    else {
-        $tree_frame->show;
-    }
 
-    return if $tree_method eq 'none';
+    $tree_frame->show;
+
+    return if $choice eq 'none';
 
     # phylogenies
-    if ($tree_method eq 'analysis') {
+    my $tree;
+    if ($choice eq 'analysis') {
         # get tree from spatial analysis, if possible
         return if !$self->{output_ref}->can('get_embedded_tree');
-        return $self->{output_ref}->get_embedded_tree;
+        $tree = $self->{output_ref}->get_embedded_tree;
+    }
+    elsif ($choice eq 'project') {
+        # get tree from project
+        $tree = $self->{project}->get_selected_phylogeny;
+    }
+    else {
+        $tree = $choice;
     }
 
-    # get tree from project
-    return $self->{project}->get_selected_phylogeny;
+    return $tree;
 }
 
 # Keep name in sync with the tab label

@@ -1322,6 +1322,8 @@ EOT
                         my $self = shift;
                         $self->set_dendrogram_plot_mode('depth');
                     },
+                    tooltip  => 'All branches are plotted with a length of 1. '
+                              . 'This includes those with zero length.'
                 },
                 {
                     type     => 'Gtk2::RadioMenuItem',
@@ -1332,8 +1334,23 @@ EOT
                         $self->set_dendrogram_plot_mode('equal_lengths');
                     },
                     tooltip  => 'All non-zero length branches are assigned '
-                              . 'the average branch length.  This is the '
-                              . 'same as the alternate tree in CANAPE.'
+                        . 'the average branch length.  This is the '
+                        . 'same as the alternate tree in CANAPE.'
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Range weighted branch lengths',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_plot_mode('range_weighted');
+                    },
+                    tooltip  => 'All branches are down-weighted proportional '
+                        . 'to their range in the current basedata. '
+                        . "This is the same as the range weighted tree in CANAPE.\n"
+                        . "Note that all branches are retained here whereas "
+                        . "the tree is trimmed to matching branches in the PE "
+                        . "calculations"
                 },
             ],
         },

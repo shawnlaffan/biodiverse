@@ -22,6 +22,7 @@ our $VERSION = '4.99_001';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
+use Sort::Key qw/rnkeysort/;
 
 ##########################################################
 # Rendering constants
@@ -2123,6 +2124,28 @@ sub set_plot_mode {
         $self->{neg_length_func}   = sub { return 0; };
         $self->{dist_to_root_func} = sub {
             $eq_tree->get_node_ref_aa($_[0]->get_name)->get_distance_to_root_node;
+        };
+    }
+    elsif ($plot_mode eq 'range_weighted') {
+        #  create a clone and wrap the methods
+        my $tree = $self->get_parent_tab->get_current_tree;
+        my $bd = $self->get_parent_tab->get_base_ref;
+        my $rw_tree = $tree->clone_without_caches;
+      NODE:
+        foreach my $node ( rnkeysort {$_->get_depth} $rw_tree->get_node_refs ) {
+            my $range = $node->get_node_range( basedata_ref => $bd );
+            $node->set_length_aa( $range ? $node->get_length / $range : 0 );
+        }
+
+        $self->{length_func}       = sub {
+            $rw_tree->get_node_ref_aa($_[0]->get_name)->get_length;
+        };
+        $self->{max_length_func}   = sub {
+            $rw_tree->get_node_ref_aa($_[0]->get_name)->get_max_total_length (cache => 1);
+        };
+        $self->{neg_length_func}   = sub { return 0; };
+        $self->{dist_to_root_func} = sub {
+            $rw_tree->get_node_ref_aa($_[0]->get_name)->get_distance_to_root_node;
         };
     }
     else {

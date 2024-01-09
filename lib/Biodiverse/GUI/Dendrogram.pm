@@ -24,6 +24,8 @@ use Biodiverse::TreeNode;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
 use Sort::Key qw/rnkeysort/;
 
+use parent qw/Biodiverse::Common::Caching/;
+
 ##########################################################
 # Rendering constants
 ##########################################################
@@ -2112,20 +2114,31 @@ sub set_plot_mode {
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
     elsif ($plot_mode =~ 'equal_length|range_weighted') {
-        #  create a clone and wrap the methods
+        #  Create an alternate tree with the chosen properties.
+        #  Use a cache for speed.
+        #  Basedata will not change for lifetime of object
+        #  as GUI does not support in-place deletions.
         my $tree = $self->get_parent_tab->get_current_tree;
-        my $alt_tree = $tree;  #  can be proecssed in both if conditions below
-        if ($plot_mode =~ 'equal_length') {
-            $alt_tree = $alt_tree->clone_tree_with_equalised_branch_lengths;
-        }
-        if ($plot_mode =~ 'range_weighted') {
-            my $bd = $self->get_parent_tab->get_base_ref;
-            $alt_tree = $alt_tree->clone_without_caches;
-            NODE:
-            foreach my $node ( rnkeysort {$_->get_depth} $alt_tree->get_node_refs ) {
-                my $range = $node->get_node_range( basedata_ref => $bd );
-                $node->set_length_aa( $range ? $node->get_length / $range : 0 );
+        my $cache_key = "tree_for_plot_mode_${plot_mode}_from_${tree}";
+        my $alt_tree = $self->get_cached_value ($cache_key);
+
+        # say STDERR $cache_key . ($alt_tree ? ' found cache' : ' no cache');
+        if (!defined $alt_tree) {
+            #  alt_tree can be processed in both if-conditions below
+            $alt_tree = $tree;
+            if ($plot_mode =~ 'equal_length') {
+                $alt_tree = $alt_tree->clone_tree_with_equalised_branch_lengths;
             }
+            if ($plot_mode =~ 'range_weighted') {
+                my $bd = $self->get_parent_tab->get_base_ref;
+                $alt_tree = $alt_tree->clone_without_caches;
+                NODE:
+                foreach my $node (rnkeysort {$_->get_depth} $alt_tree->get_node_refs) {
+                    my $range = $node->get_node_range(basedata_ref => $bd);
+                    $node->set_length_aa($range ? $node->get_length / $range : 0);
+                }
+            }
+            $self->set_cached_value ($cache_key => $alt_tree);
         }
         #  We are passed nodes from the original tree, so use their names to
         #  look up the ref in the alt tree.

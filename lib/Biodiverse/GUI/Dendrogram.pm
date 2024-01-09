@@ -2191,6 +2191,12 @@ sub set_plot_mode {
     return;
 }
 
+#  should really be get_tree
+sub get_cluster {
+    my $self = shift;
+    return $self->{cluster};
+}
+
 # Sets a new tree to draw (TreeNode)
 #   Performs once-off init such as getting number of leaves and
 #   setting up the Y coords

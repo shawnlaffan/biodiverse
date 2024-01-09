@@ -1121,16 +1121,20 @@ sub on_selected_phylogeny_changed {
 
     # phylogenies
     my $phylogeny = $self->get_current_tree;
+    my $dendro_tree = $self->{dendrogram}->get_cluster;
+
+    #  don't trigger needless redraws
+    return if refaddr ($phylogeny) == refaddr ($dendro_tree);
 
     if ($self->{dendrogram}) {
         $self->{dendrogram}->clear;
     }
     if ($phylogeny) {
-        $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
+        $self->{dendrogram}->set_cluster($phylogeny, $self->{plot_mode} //= 'length'); #  now storing tree objects directly
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        $self->{dendrogram}->set_cluster(undef, 'length');
+        $self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->get_xmlpage_object('spatial_label_VL_tree')->set_markup($str);

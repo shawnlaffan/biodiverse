@@ -22,6 +22,9 @@ our $VERSION = '4.99_001';
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::TreeNode;
 use Biodiverse::Utilities qw/sort_list_with_tree_names_aa/;
+use Sort::Key qw/rnkeysort/;
+
+use parent qw/Biodiverse::Common::Caching/;
 
 ##########################################################
 # Rendering constants
@@ -899,18 +902,16 @@ sub recolour_cluster_elements {
         $colour_callback = sub {
             my $elt = shift;
             my $cluster_node = $self->{element_to_cluster}{$elt};
-    
-            if ($cluster_node) {
-                my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-                return $colour_ref || COLOUR_PALETTE_OVERFLOW;
-            }
-            else {
-                return exists $terminal_elements->{$elt}
-                    ? COLOUR_OUTSIDE_SELECTION
-                    : $self->get_colour_not_in_tree;
-            }
-    
-            die "how did I get here?\n";
+
+            my $colour_ref
+                = $cluster_node ? (
+                    $self->{node_palette_colours}{$cluster_node->get_name}
+                        || COLOUR_PALETTE_OVERFLOW
+                  )
+                : exists $terminal_elements->{$elt} ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
+
+            return $colour_ref;
         };
     }
     elsif ($self->in_multiselect_mode) {
@@ -949,7 +950,6 @@ sub recolour_cluster_elements {
             my $cluster_node = $self->{element_to_cluster}{$elt};
 
             if ($cluster_node) {
-                no autovivification;
 
                 my $list_ref = $cluster_node->get_list_ref (list => $list_name)
                   // return $colour_for_undef;
@@ -959,13 +959,11 @@ sub recolour_cluster_elements {
                 
                 return $legend->$colour_method ($val, @minmax_args);
             }
-            else {
-                return exists $terminal_elements->{$elt}
-                  ? COLOUR_OUTSIDE_SELECTION
-                  : $self->get_colour_not_in_tree;
-            }
 
-            die "how did I get here?\n";
+            return exists $terminal_elements->{$elt}
+              ? COLOUR_OUTSIDE_SELECTION
+              : $self->get_colour_not_in_tree;
+
         };
     }
 
@@ -2110,6 +2108,46 @@ sub set_plot_mode {
         $self->{neg_length_func}   = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
+    elsif ($plot_mode =~ 'equal_length|range_weighted') {
+        #  Create an alternate tree with the chosen properties.
+        #  Use a cache for speed.
+        #  Basedata will not change for lifetime of object
+        #  as GUI does not support in-place deletions.
+        my $tree = $self->get_parent_tab->get_current_tree;
+        my $cache_key = "tree_for_plot_mode_${plot_mode}_from_${tree}";
+        my $alt_tree = $self->get_cached_value ($cache_key);
+
+        # say STDERR $cache_key . ($alt_tree ? ' found cache' : ' no cache');
+        if (!defined $alt_tree) {
+            #  alt_tree can be processed in both if-conditions below
+            $alt_tree = $tree;
+            if ($plot_mode =~ 'equal_length') {
+                $alt_tree = $alt_tree->clone_tree_with_equalised_branch_lengths;
+            }
+            if ($plot_mode =~ 'range_weighted') {
+                my $bd = $self->get_parent_tab->get_base_ref;
+                $alt_tree = $alt_tree->clone_without_caches;
+                NODE:
+                foreach my $node (rnkeysort {$_->get_depth} $alt_tree->get_node_refs) {
+                    my $range = $node->get_node_range(basedata_ref => $bd);
+                    $node->set_length_aa($range ? $node->get_length / $range : 0);
+                }
+            }
+            $self->set_cached_value ($cache_key => $alt_tree);
+        }
+        #  We are passed nodes from the original tree, so use their names to
+        #  look up the ref in the alt tree.
+        $self->{length_func}       = sub {
+            $alt_tree->get_node_ref_aa($_[0]->get_name)->get_length;
+        };
+        $self->{max_length_func}   = sub {
+            $alt_tree->get_node_ref_aa($_[0]->get_name)->get_max_total_length (cache => 1);
+        };
+        $self->{neg_length_func}   = sub { return 0; };
+        $self->{dist_to_root_func} = sub {
+            $alt_tree->get_node_ref_aa($_[0]->get_name)->get_distance_to_root_node;
+        };
+    }
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
     }
@@ -2148,6 +2186,12 @@ sub set_plot_mode {
     return;
 }
 
+#  should really be get_tree
+sub get_cluster {
+    my $self = shift;
+    return $self->{cluster};
+}
+
 # Sets a new tree to draw (TreeNode)
 #   Performs once-off init such as getting number of leaves and
 #   setting up the Y coords
@@ -2162,11 +2206,10 @@ sub set_cluster {
 
     # Clear any palette colours
     delete $self->{node_colours_cache};
-    $self->{node_palette_colours} = {};
-    foreach my $node_ref (values %{$cluster->get_node_hash}) {
-        #$node_ref->set_cached_value(__gui_palette_colour => undef);
-        $self->{node_palette_colours}{$node_ref->get_name} = undef;
-    }
+    my $node_hash = $cluster->get_node_hash;
+    my %node_colour_hash;
+    @node_colour_hash{keys %$node_hash} = ();
+    $self->{node_palette_colours} = \%node_colour_hash;
 
     #  skip incomplete clusterings (where the tree was not built)
     my $completed = $cluster->get_param('COMPLETED') // 1;

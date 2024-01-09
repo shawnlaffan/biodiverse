@@ -344,15 +344,26 @@ sub get_current_tree {
 sub get_tree_menu_items {
     my $self = shift;
 
+    #  Filter the plot by list here since Clusters cannot do all types.
+    #  We could alternatively use an additive approach in Labels.pm.
+    #  Need to filter a clone or we mess the main one up.
+    use Clone qw/clone/;
+    my $plot_by = clone ($self->get_tree_menu_item('plot_branches_by'));
+    $plot_by->{items}
+        = [grep {$_->{label} =~ /^Length|Depth$/} @{$plot_by->{items}}];
+
     my @menu_items = (
         {
             type     => 'Gtk2::MenuItem',
             label    => 'Tree options:',
             tooltip  => "Options to work with the cluster tree",
         },
+        $plot_by,
         (   map {$self->get_tree_menu_item($_)}
-               qw /plot_branches_by        group_branches_by
-                   highlight_groups_on_map highlight_paths_on_tree/
+               qw /group_branches_by
+                   highlight_groups_on_map
+                   highlight_paths_on_tree
+               /
         ),
         {
             type     => 'Gtk2::CheckMenuItem',

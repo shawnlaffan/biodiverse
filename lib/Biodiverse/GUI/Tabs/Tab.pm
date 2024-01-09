@@ -1323,6 +1323,18 @@ EOT
                         $self->set_dendrogram_plot_mode('depth');
                     },
                 },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Equal branch lengths',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_plot_mode('equal_lengths');
+                    },
+                    tooltip  => 'All non-zero length branches are assigned '
+                              . 'the average branch length.  This is the '
+                              . 'same as the alternate tree in CANAPE.'
+                },
             ],
         },
         group_branches_by           => {

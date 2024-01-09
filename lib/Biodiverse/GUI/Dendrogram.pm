@@ -2110,6 +2110,21 @@ sub set_plot_mode {
         $self->{neg_length_func}   = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
+    elsif ($plot_mode eq 'equal_lengths') {
+        #  create a clone and wrap the methods
+        my $tree = $self->get_parent_tab->get_current_tree;
+        my $eq_tree = $tree->clone_tree_with_equalised_branch_lengths;
+        $self->{length_func}       = sub {
+            $eq_tree->get_node_ref_aa($_[0]->get_name)->get_length;
+        };
+        $self->{max_length_func}   = sub {
+            $eq_tree->get_node_ref_aa($_[0]->get_name)->get_max_total_length (cache => 1);
+        };
+        $self->{neg_length_func}   = sub { return 0; };
+        $self->{dist_to_root_func} = sub {
+            $eq_tree->get_node_ref_aa($_[0]->get_name)->get_distance_to_root_node;
+        };
+    }
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
     }

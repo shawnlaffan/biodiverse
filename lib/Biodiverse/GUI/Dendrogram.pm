@@ -2111,14 +2111,14 @@ sub set_plot_mode {
         $self->{neg_length_func}   = sub { return 0; };
         $self->{dist_to_root_func} = sub {$_[0]->get_depth + 1};
     }
-    elsif ($plot_mode eq 'equal_lengths' || $plot_mode eq 'range_weighted') {
+    elsif ($plot_mode =~ 'equal_length|range_weighted') {
         #  create a clone and wrap the methods
         my $tree = $self->get_parent_tab->get_current_tree;
-        my $alt_tree = $tree;
-        if ($plot_mode eq 'equal_lengths') {
+        my $alt_tree = $tree;  #  can be proecssed in both if conditions below
+        if ($plot_mode =~ 'equal_length') {
             $alt_tree = $alt_tree->clone_tree_with_equalised_branch_lengths;
         }
-        if ($plot_mode eq 'range_weighted') {
+        if ($plot_mode =~ 'range_weighted') {
             my $bd = $self->get_parent_tab->get_base_ref;
             $alt_tree = $alt_tree->clone_without_caches;
             NODE:
@@ -2127,6 +2127,8 @@ sub set_plot_mode {
                 $node->set_length_aa( $range ? $node->get_length / $range : 0 );
             }
         }
+        #  We are passed nodes from the original tree, so use their names to
+        #  look up the ref in the alt tree.
         $self->{length_func}       = sub {
             $alt_tree->get_node_ref_aa($_[0]->get_name)->get_length;
         };

@@ -1,5 +1,5 @@
 package Biodiverse::GUI::Tabs::Spatial;
-use 5.014;
+use 5.026;
 use strict;
 use warnings;
 
@@ -524,6 +524,26 @@ sub update_dendrogram_combo {
             List::MoreUtils::firstidx {$_ eq 'hide panel'} @combo_items
         );
     }
+
+    state $tooltip = <<~'EOT';
+        Choose the tree to plot in the right hand pane.
+
+        "analysis", if visible, is the tree used in the calculations.
+
+        "project" is the currently selected tree at the project level.
+
+        "none" displays no tree but leaves the tree panel visible.
+
+        "hide panel" stops displaying the tree panel.
+
+        The remainder of the options are the trees available at
+        the project level.  Note that this set is not updated as
+        trees are added to and removed from the project.
+        Changes can be triggered by closing and reopening the tab.
+        EOT
+  ;
+
+    $combobox->set_tooltip_text ($tooltip);
 
     return;
 }

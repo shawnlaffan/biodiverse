@@ -1331,11 +1331,14 @@ EOT
                     event    => 'activate',
                     callback => sub {
                         my $self = shift;
-                        $self->set_dendrogram_plot_mode('equal_lengths');
+                        $self->set_dendrogram_plot_mode('equal_length');
                     },
                     tooltip  => 'All non-zero length branches are assigned '
-                        . 'the average branch length.  This is the '
-                        . 'same as the alternate tree in CANAPE.'
+                        . "the average branch length.  \n"
+                        . 'This is the same as the alternate tree in CANAPE '
+                        . 'except that all branches are retained here whereas '
+                        . 'the tree is trimmed to matching branches in the PE '
+                        . 'calculations.'
                 },
                 {
                     type     => 'Gtk2::RadioMenuItem',
@@ -1346,11 +1349,27 @@ EOT
                         $self->set_dendrogram_plot_mode('range_weighted');
                     },
                     tooltip  => 'All branches are down-weighted proportional '
-                        . 'to their range in the current basedata. '
-                        . "This is the same as the range weighted tree in CANAPE.\n"
-                        . "Note that all branches are retained here whereas "
+                        . "to their range in the current basedata. \n"
+                        . "This is the same as the range weighted tree in CANAPE "
+                        . "except that all branches are retained here whereas "
                         . "the tree is trimmed to matching branches in the PE "
-                        . "calculations"
+                        . "calculations."
+                },
+                {
+                    type     => 'Gtk2::RadioMenuItem',
+                    label    => 'Range weighted equal branch lengths',
+                    event    => 'activate',
+                    callback => sub {
+                        my $self = shift;
+                        $self->set_dendrogram_plot_mode('equal_length_range_weighted');
+                    },
+                    tooltip  => 'All non-zero length branches are set to the same '
+                        . 'length and then down-weighted proportional '
+                        . "to their range in the current basedata.\n "
+                        . "This is the same as the range weighted alternate tree in CANAPE"
+                        . "except that all branches are retained here whereas "
+                        . "the tree is trimmed to matching branches in the PE "
+                        . "calculations."
                 },
             ],
         },

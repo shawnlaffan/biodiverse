@@ -2211,11 +2211,10 @@ sub set_cluster {
 
     # Clear any palette colours
     delete $self->{node_colours_cache};
-    $self->{node_palette_colours} = {};
-    foreach my $node_ref (values %{$cluster->get_node_hash}) {
-        #$node_ref->set_cached_value(__gui_palette_colour => undef);
-        $self->{node_palette_colours}{$node_ref->get_name} = undef;
-    }
+    my $node_hash = $cluster->get_node_hash;
+    my %node_colour_hash;
+    @node_colour_hash{keys %$node_hash} = ();
+    $self->{node_palette_colours} = \%node_colour_hash;
 
     #  skip incomplete clusterings (where the tree was not built)
     my $completed = $cluster->get_param('COMPLETED') // 1;

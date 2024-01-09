@@ -490,19 +490,20 @@ sub update_dendrogram_combo {
     # my $renderer = Gtk2::CellRendererText->new();
     # $combobox->pack_start($renderer, 0);
     # $combobox->add_attribute($renderer, markup => 0);
+    # $renderer->set_visible(0);
 
     my @combo_items;
 
     my $output_ref = $self->{output_ref};
     if ($output_ref && $output_ref->can('get_embedded_tree') && $output_ref->get_embedded_tree) {
         my $iter = $model->append();
-        $model->set( $iter, 0, 'analysis', 1, 'analysis' );
+        $model->set( $iter, 0 => 'analysis', 1 => 'analysis' );
         push @combo_items, 'analysis';
     }
 
     foreach my $option ('project', 'none', 'hide panel') {
         my $iter = $model->append();
-        $model->set( $iter, 0, $option, 1, $option );
+        $model->set( $iter, 0 => $option, 1 => $option );
         push @combo_items, $option;
     }
 
@@ -510,7 +511,7 @@ sub update_dendrogram_combo {
     foreach my $tree (@$list) {
         my $name = $tree->get_name;
         my $iter = $model->append();
-        $model->set( $iter, 0, $name, 1, $tree );
+        $model->set( $iter, 0 => $name, 1 => $tree );
     }
 
     if ($self->get_trees_are_available_to_plot) {

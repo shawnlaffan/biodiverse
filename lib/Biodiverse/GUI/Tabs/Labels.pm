@@ -799,7 +799,7 @@ sub on_selected_phylogeny_changed {
         $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        $self->{dendrogram}->set_cluster(undef, 'length');
+        $self->{dendrogram}->set_cluster(undef, $self->{plot_mode} //= 'length');
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->get_xmlpage_object('label_VL_tree')->set_markup($str);

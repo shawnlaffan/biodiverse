@@ -24,17 +24,14 @@ sub get_cached_value {
 
 #  dor means defined-or - too obscure?
 sub get_cached_value_dor_set_default_aa {
-    no autovivification;
     $_[0]->{_cache}{$_[1]} //= $_[2];
 }
 
 sub get_cached_value_dor_set_default_href {
-    no autovivification;
     $_[0]->{_cache}{$_[1]} //= {};
 }
 
 sub get_cached_value_dor_set_default_aref {
-    no autovivification;
     $_[0]->{_cache}{$_[1]} //= [];
 }
 

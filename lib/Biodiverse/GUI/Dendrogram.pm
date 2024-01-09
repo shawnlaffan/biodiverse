@@ -902,18 +902,16 @@ sub recolour_cluster_elements {
         $colour_callback = sub {
             my $elt = shift;
             my $cluster_node = $self->{element_to_cluster}{$elt};
-    
-            if ($cluster_node) {
-                my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-                return $colour_ref || COLOUR_PALETTE_OVERFLOW;
-            }
-            else {
-                return exists $terminal_elements->{$elt}
-                    ? COLOUR_OUTSIDE_SELECTION
-                    : $self->get_colour_not_in_tree;
-            }
-    
-            die "how did I get here?\n";
+
+            my $colour_ref
+                = $cluster_node ? (
+                    $self->{node_palette_colours}{$cluster_node->get_name}
+                        || COLOUR_PALETTE_OVERFLOW
+                  )
+                : exists $terminal_elements->{$elt} ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
+
+            return $colour_ref;
         };
     }
     elsif ($self->in_multiselect_mode) {
@@ -952,7 +950,6 @@ sub recolour_cluster_elements {
             my $cluster_node = $self->{element_to_cluster}{$elt};
 
             if ($cluster_node) {
-                no autovivification;
 
                 my $list_ref = $cluster_node->get_list_ref (list => $list_name)
                   // return $colour_for_undef;
@@ -962,13 +959,11 @@ sub recolour_cluster_elements {
                 
                 return $legend->$colour_method ($val, @minmax_args);
             }
-            else {
-                return exists $terminal_elements->{$elt}
-                  ? COLOUR_OUTSIDE_SELECTION
-                  : $self->get_colour_not_in_tree;
-            }
 
-            die "how did I get here?\n";
+            return exists $terminal_elements->{$elt}
+              ? COLOUR_OUTSIDE_SELECTION
+              : $self->get_colour_not_in_tree;
+
         };
     }
 

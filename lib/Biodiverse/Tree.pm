@@ -3093,7 +3093,9 @@ sub clone_tree_with_equalised_branch_lengths {
     my $non_zero_len = $args{node_length};
 
     if ( !defined $non_zero_len ) {
-        my $non_zero_node_count = grep { $_->get_length } $self->get_node_refs;
+        # my $non_zero_node_count = grep { $_->get_length } $self->get_node_refs;
+        #  this caches
+        my $non_zero_node_count = $self->get_nonzero_length_count;
         $non_zero_len =
           $self->get_total_tree_length / ( $non_zero_node_count || 1 );
     }
@@ -3749,6 +3751,16 @@ sub branches_are_nonnegative {
     $self->set_cached_value($cache_key => $non_neg);
 
     return $non_neg;
+}
+
+sub get_nonzero_length_count {
+    my $self = shift;
+    state $cachename = 'NONZERO_BRANCH_LENGTH_COUNT';
+    my $count = $self->get_cached_value ($cachename);
+    return $count if defined $count;
+    $count = grep { $_->get_length } $self->get_node_refs;
+    $self->set_cached_value ($cachename => $count);
+    return $count;
 }
 
 1;

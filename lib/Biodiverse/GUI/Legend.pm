@@ -1261,11 +1261,12 @@ sub set_colour_mode_from_list_and_index {
         my $labels  = $indices_object->get_index_category_labels (index => $index) // {};
         my $colours = $indices_object->get_index_category_colours (index => $index) // {};
         $self->{categorical}{labels}  = $labels;
+        #  don't mess with the cached object
         foreach my $key (keys %$colours) {
             my $colour = $colours->{$key};
-            $colours->{$key} = Gtk2::Gdk::Color->parse($colour);
+            next if blessed $colour;  #  sometimes they are already colour objects
+            $self->{categorical}{colours}{$key} = Gtk2::Gdk::Color->parse($colour);
         }
-        $self->{categorical}{colours} = $colours;
     }
     elsif (!$mode && $list =~ />>CANAPE>>/) {
         #  special handling for CANAPE indices

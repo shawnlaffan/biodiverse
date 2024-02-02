@@ -83,6 +83,18 @@ BEGIN {
     if (!$EVAL_ERROR) {
         say "Added Alien::GtkStack::Windows bin dir to path";
     }
+    if ($ENV{PAR_0}) {
+        use Path::Tiny qw /path/;
+        my $base = path ($ENV{PAR_TEMP}, "inc/lib/auto");
+        #say "Looking for Gtk2 stuff under $base";
+        my @path_args;
+        foreach my $name (qw /Glib Pango Cairo Gtk2/) {
+            my $dir = $base->child($name);
+            next if !$dir->exists;
+            say "Adding $dir to path";
+            push @PATH, $dir;
+        }
+    }
 }
 
 #  Ensure the bin dirs for the aliens are at the front

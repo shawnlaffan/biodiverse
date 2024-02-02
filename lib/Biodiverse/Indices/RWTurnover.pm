@@ -10,7 +10,7 @@ no warnings 'experimental::refaliasing';
 use Carp;
 use List::Util qw /sum reduce/;
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 

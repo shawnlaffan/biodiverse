@@ -16,7 +16,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 use constant HAVE_BD_UTILS => eval 'require Biodiverse::Utils';
 use constant HAVE_BD_UTILS_108 => HAVE_BD_UTILS && eval '$Biodiverse::Utils::VERSION >= 1.08';

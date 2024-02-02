@@ -7,7 +7,7 @@ use Carp;
 use Sort::Key::Natural qw /natsort/;
 use Ref::Util qw /:all/;
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 our @ISA = qw (Exporter);
 our @EXPORT = ();

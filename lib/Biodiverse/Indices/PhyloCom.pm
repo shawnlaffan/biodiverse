@@ -14,7 +14,7 @@ use Sort::Key qw /nkeysort/;
 use feature 'refaliasing';
 no warnings 'experimental::refaliasing';
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';

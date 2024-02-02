@@ -14,7 +14,7 @@ use Carp;
 use Ref::Util qw { :all };
 
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 use parent qw /Biodiverse::ElementProperties/;
 

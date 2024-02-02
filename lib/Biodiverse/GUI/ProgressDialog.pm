@@ -17,7 +17,7 @@ use Time::HiRes qw/time/;
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 my $TRUE  = 'TRUE';
 my $FALSE = 'FALSE';

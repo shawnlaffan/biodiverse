@@ -12,7 +12,7 @@ Path::Tiny qw /path/;
 
 use rlib;
 
-our $VERSION = '4.99_001';
+our $VERSION = '4.99_002';
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;

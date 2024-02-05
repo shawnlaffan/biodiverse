@@ -1143,7 +1143,7 @@ sub on_selected_phylogeny_changed {
     my $dendro_tree = $self->{dendrogram}->get_cluster;
 
     #  don't trigger needless redraws
-    return if refaddr ($phylogeny) == refaddr ($dendro_tree);
+    return if ($dendro_tree && $phylogeny) && refaddr ($phylogeny) == refaddr ($dendro_tree);
 
     if ($self->{dendrogram}) {
         $self->{dendrogram}->clear;

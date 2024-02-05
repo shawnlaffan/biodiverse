@@ -117,6 +117,17 @@ sub test_rand_independent_swaps {
     );
 }
 
+sub test_rand_independent_swaps_modified {
+    test_rand_structured_richness_same (
+        'rand_independent_swaps_modified', swap_count => 1000,
+    );
+}
+
+sub test_rand_curveball {
+    test_rand_structured_richness_same (
+        'rand_curveball', swap_count => 1000,
+    );
+}
 
 sub test_rand_structured_richness_same {
     my ($rand_function, %args) = @_;
@@ -131,6 +142,15 @@ sub test_rand_structured_richness_same {
         my $y = -$c / 2;
         my $gp = "$x:$y";
         $bd->add_element (group => $gp, allow_empty_groups => 1);
+    }
+    #  add a cell with all possible labels
+    {
+        my $x = -100 * $c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        foreach my $label ($bd->get_labels) {
+            $bd->add_element(group => $gp, label => $label);
+        }
     }
 
     #  name is short for test_rand_calc_per_node_uses_orig_bd
@@ -157,35 +177,31 @@ sub test_rand_structured_richness_same {
     foreach my $rand_bd (@$rand_bd_array) {
         is ([sort $rand_bd->get_labels],
             [sort $bd->get_labels],
-            'randomised basedata all the labels',
+            "randomised basedata all the labels, $rand_function",
         );
         is ([sort $rand_bd->get_groups],
             [sort $bd->get_groups],
-            'randomised basedata all the groups',
+            "randomised basedata all the groups, $rand_function",
         );
     }
 
-    subtest 'richness scores match' => sub {
-        foreach my $rand_bd (@$rand_bd_array) {
-            foreach my $group (sort $rand_bd->get_groups) {
-                my $bd_richness = $bd->get_richness_aa ($group) // 0;
-                is ($rand_bd->get_richness_aa ($group) // 0,
-                    $bd_richness,
-                    "richness for $group matches ($bd_richness)",
-                );
-            }
+    foreach my $rand_bd (@$rand_bd_array) {
+        my (%obs_richness, %rand_richness);
+        foreach my $group (sort $rand_bd->get_groups) {
+            $obs_richness{$group} //= $bd->get_richness_aa ($group) // 0;
+            $rand_richness{$group}  = $rand_bd->get_richness_aa ($group) // 0;
         }
-    };
-    subtest 'range scores match' => sub {
-        foreach my $rand_bd (@$rand_bd_array) {
-            foreach my $label ($rand_bd->get_labels) {
-                is ($rand_bd->get_range (element => $label),
-                    $bd->get_range (element => $label),
-                    "range for $label matches",
-                );
-            }
+        is \%rand_richness, \%obs_richness, "Richness scores match, $rand_function";
+    }
+
+    foreach my $rand_bd (@$rand_bd_array) {
+        my (%obs_range, %rand_range);
+        foreach my $label ($rand_bd->get_labels) {
+            $obs_range{$label} //= $bd->get_range (element => $label);
+            $rand_range{$label}  = $rand_bd->get_range (element => $label);
         }
-    };
+        is \%obs_range, \%rand_range, "Ranges match, $rand_function";
+    }
 
     return;
 }
@@ -1581,7 +1597,7 @@ sub test_function_stability {
         }
         else {
             my $data_section_name = "RAND_RESULTS_$function";
-            my $exp_data = get_data_section ($data_section_name);
+            my $exp_data = get_data_section ($data_section_name) // 'NO DATA SECTION';
             $expected = eval $exp_data;
         }
 
@@ -1957,12 +1973,12 @@ sub print_randomisation_result_set_to_fh {
     my $source_string = Dumper($results_hash);
     my $dest_string;
     my $stderr_string;
-    my $errorfile_string;
+    my $errorfile_string = '';
     my $argv = "-npro";   # Ignore any .perltidyrc at this site
     $argv .= " -pbp";     # Format according to perl best practices
     $argv .= " -nst";     # Must turn off -st in case -pbp is specified
     $argv .= " -se";      # -se appends the errorfile to stderr
-    $argv .= " -no-log";  # Don't write the log file
+    $argv .= " -nologfile";  # Don't write the log file
 
     my $error = Perl::Tidy::perltidy(
         argv        => $argv,
@@ -1973,8 +1989,11 @@ sub print_randomisation_result_set_to_fh {
         ##phasers   => 'stun',                # uncomment to trigger an error
     );
 
+    say STDERR $errorfile_string if $error;
+    say STDERR $stderr_string    if $error;
+
     say   {$fh} "@@ RAND_RESULTS_${function}";
-    say   {$fh} $dest_string;
+    say   {$fh} $dest_string // 'EMPTY DEST STRING';
     print {$fh} "\n";
     #say '#' x 20;
 
@@ -2817,6 +2836,78 @@ __DATA__
 }
 
 @@ RAND_RESULTS_rand_independent_swaps_modified
+{   '1.5:0.5' => {},
+    '1.5:1.5' => {
+        a => 1,
+        b => 1,
+        c => 1,
+        d => 1
+    },
+    '1.5:2.5' => {
+        a => 2,
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '1.5:3.5' => {
+        a => 3,
+        b => 3,
+        c => 3,
+        d => 3
+    },
+    '1.5:4.5' => {
+        a => 4,
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:0.5' => {},
+    '2.5:1.5' => {
+        b => 2,
+        c => 2,
+        d => 2
+    },
+    '2.5:2.5' => {
+        b => 4,
+        c => 4,
+        d => 4
+    },
+    '2.5:3.5' => {
+        b => 6,
+        c => 6,
+        d => 6
+    },
+    '2.5:4.5' => {
+        b => 8,
+        c => 8,
+        d => 8
+    },
+    '3.5:0.5' => {},
+    '3.5:1.5' => {
+        c => 3,
+        d => 3
+    },
+    '3.5:2.5' => {
+        c => 6,
+        d => 6
+    },
+    '3.5:3.5' => {
+        c => 9,
+        d => 9
+    },
+    '3.5:4.5' => {
+        c => 12,
+        d => 12
+    },
+    '4.5:0.5' => {},
+    '4.5:1.5' => { d => 4 },
+    '4.5:2.5' => { d => 8 },
+    '4.5:3.5' => { d => 12 },
+    '4.5:4.5' => { d => 16 }
+}
+
+
+@@ RAND_RESULTS_rand_curveball
 {   '1.5:0.5' => {},
     '1.5:1.5' => {
         a => 1,

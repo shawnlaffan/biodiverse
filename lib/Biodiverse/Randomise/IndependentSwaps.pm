@@ -552,7 +552,7 @@ END_PROGRESS_TEXT
     say "[RANDOMISE] rand_independent_swaps: ran $swap_count swaps across "
       . "$attempts attempts for basedata $name with $n_labels labels and "
       . "$n_groups groups.\n"
-      . "[RANDOMISE]  Swapped $moved_pairs the $non_zero_mx_cells group/label "
+      . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
       . "elements at least once.\n";
     
     #  now we populate a new basedata
@@ -595,10 +595,10 @@ sub get_new_bd_from_gp_lb_hash {
     );
 
     foreach my $label (keys %gp_hash) {
-        my $this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %$this_g_hash) {
+        \my %this_g_hash = $gp_hash{$label};
+        foreach my $group (keys %this_g_hash) {
             $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash->{$group}, $csv,
+                $label, $group, $this_g_hash{$group}, $csv,
             );
         }
     }

@@ -591,10 +591,8 @@ sub init_dendrogram {
     $self->{dendrogram}->set_num_clusters (1);
 
     $self->{no_dendro_legend_for} = {
-        '<i>Turnover</i>'              => 1,
-        '<i>Branches in nbr set 1</i>' => 1,
-        'Turnover'                     => 1,
-        'Branches in nbr set 1'        => 1,
+        map {$_ => 1, "<i>$_</i>" => 1}
+            ('Turnover', 'Branches in nbr set 1', 'Branches in hovered cell only')
     };
 
     $self->init_branch_colouring_menu;
@@ -651,23 +649,25 @@ sub init_branch_colouring_menu {
       ? '<i>Turnover</i>'
       : '<i>Branches in nbr set 1</i>';
     $label->set_markup ($default_text);
-    my $default_text_sans_markup = $default_text =~ s/<.?i>//gr;
     my $sel_group = [];
 
-    my $menu_item_label = Gtk2::Label->new($default_text);
-    my $menu_item
-        = Gtk2::RadioMenuItem->new_with_label($sel_group, $default_text_sans_markup);
-    push @$sel_group, $menu_item;
-    $menu_item->set_use_underline(0);
-    # $menu_item->set_label($menu_item_label);
-    $menu->append($menu_item);
-    $menu_item->signal_connect_swapped(
-        activate => sub {
-            $self->{dendrogram}->get_legend->hide;
-            $self->{current_branch_colouring_source} = undef;
-            $label->set_markup ($default_text);
-        },
-    );
+    foreach my $text ($default_text, '<i>Branches in hovered cell only</i>') {
+        my $text_sans_markup = $text =~ s/<.?i>//gr;
+        my $menu_item_label = Gtk2::Label->new($text);
+        my $menu_item
+            = Gtk2::RadioMenuItem->new_with_label($sel_group, $text_sans_markup);
+        push @$sel_group, $menu_item;
+        $menu_item->set_use_underline(0);
+        # $menu_item->set_label($menu_item_label);
+        $menu->append($menu_item);
+        $menu_item->signal_connect_swapped(
+            activate => sub {
+                $self->{dendrogram}->get_legend->hide;
+                $self->{current_branch_colouring_source} = $text_sans_markup;
+                $label->set_markup($text);
+            },
+        );
+    }
 
     $menu->append(Gtk2::SeparatorMenuItem->new);
     $menu->append(Gtk2::MenuItem->new_with_label('Lists in this output:'));
@@ -784,6 +784,10 @@ in the first set, red denotes those only in the second set,
 and black denotes those in both. From these one can see
 the turnover of branches between the groups (cells) in
 each neighbour set.
+
+The 'Branches in hovered cell only' option will only
+highlight paths found in the group (cell) being hovered over,
+regardless of how many groups are in the neighbour sets.
 
 The next set of menu options are list indices in the spatial
 output that belongs to this tab.  The remainder are lists
@@ -1124,7 +1128,7 @@ sub on_selected_phylogeny_changed {
     my $dendro_tree = $self->{dendrogram}->get_cluster;
 
     #  don't trigger needless redraws
-    return if refaddr ($phylogeny) == refaddr ($dendro_tree);
+    return if ($dendro_tree && $phylogeny) && refaddr ($phylogeny) == refaddr ($dendro_tree);
 
     if ($self->{dendrogram}) {
         $self->{dendrogram}->clear;
@@ -1724,7 +1728,8 @@ my @dendro_highlight_branch_colours
 sub highlight_paths_on_dendrogram {
     my ($self, $hashrefs, $group) = @_;
 
-    if (my $sources = $self->{current_branch_colouring_source}) {
+    my $sources = $self->{current_branch_colouring_source};
+    if (is_ref $sources) {
         my ($ref, $listname) = @$sources;
         $self->colour_branches_on_dendrogram (
             list_name  => $listname,
@@ -1743,6 +1748,15 @@ sub highlight_paths_on_dendrogram {
     #my (%coloured_branch, %done);
     my %done;
     my $dendrogram = $self->{dendrogram};
+
+    #  user only wants the hovered cell contents
+    if (($sources // '') eq 'Branches in hovered cell only') {
+        my $bd = $self->{output_ref}->get_basedata_ref;
+        $hashrefs = [
+            scalar $bd->get_labels_in_group_as_hash_aa($group),
+            {},
+        ];
+    }
 
     foreach my $idx (0, 1) {
         my $alt_idx = $idx ? 0 : 1;

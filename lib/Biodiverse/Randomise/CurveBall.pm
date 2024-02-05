@@ -120,6 +120,12 @@ END_PROGRESS_TEXT
     printf "[RANDOMISE] Randomise using curveball algorithm for %s labels from %s groups\n",
         scalar @sorted_labels, scalar @sorted_groups;
 
+    #  No need to consider groups that cannot be swapped out.
+    #  Could use a binary search but this is only done once per iteration.
+    if (keys %has_max_richness) {
+        @sorted_groups = grep {!exists $has_max_richness{$_}} @sorted_groups;
+    }
+
     $progress_bar->reset;
 
     #  Basic algorithm:

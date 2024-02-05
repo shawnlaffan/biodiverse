@@ -143,6 +143,15 @@ sub test_rand_structured_richness_same {
         my $gp = "$x:$y";
         $bd->add_element (group => $gp, allow_empty_groups => 1);
     }
+    #  add a cell with all possible labels
+    {
+        my $x = -100 * $c + $c / 2;
+        my $y = -$c / 2;
+        my $gp = "$x:$y";
+        foreach my $label ($bd->get_labels) {
+            $bd->add_element(group => $gp, label => $label);
+        }
+    }
 
     #  name is short for test_rand_calc_per_node_uses_orig_bd
     my $sp = $bd->add_spatial_output (name => 'sp');

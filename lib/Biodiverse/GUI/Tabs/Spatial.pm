@@ -651,21 +651,6 @@ sub init_branch_colouring_menu {
     $label->set_markup ($default_text);
     my $sel_group = [];
 
-    # my $menu_item_label = Gtk2::Label->new($default_text);
-    # my $menu_item
-    #     = Gtk2::RadioMenuItem->new_with_label($sel_group, $default_text_sans_markup);
-    # push @$sel_group, $menu_item;
-    # $menu_item->set_use_underline(0);
-    # # $menu_item->set_label($menu_item_label);
-    # $menu->append($menu_item);
-    # $menu_item->signal_connect_swapped(
-    #     activate => sub {
-    #         $self->{dendrogram}->get_legend->hide;
-    #         $self->{current_branch_colouring_source} = undef;
-    #         $label->set_markup ($default_text);
-    #     },
-    # );
-
     foreach my $text ($default_text, '<i>Branches in hovered cell only</i>') {
         my $text_sans_markup = $text =~ s/<.?i>//gr;
         my $menu_item_label = Gtk2::Label->new($text);

@@ -105,15 +105,6 @@ END_PROGRESS_TEXT
     my $n_groups = scalar @sorted_groups;
     my $n_labels = scalar @sorted_labels;
 
-    my $lb = $bd->get_labels_ref;
-    my @sorted_label_ranges
-        = map {$lb->get_variety_aa($_)}
-        @sorted_labels;
-
-    my %richness_hash
-        = map {$_ => $bd->get_richness_aa ($_)}
-        @sorted_groups;
-
     my (%lb_hash, %has_max_richness, %lb_gp_moved);
     my $non_zero_mx_cells = 0;  #  sum of richness and range scores
     foreach my $group (@sorted_groups) {

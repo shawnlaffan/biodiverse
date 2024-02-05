@@ -595,10 +595,10 @@ sub get_new_bd_from_gp_lb_hash {
     );
 
     foreach my $label (keys %gp_hash) {
-        my $this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %$this_g_hash) {
+        \my %this_g_hash = $gp_hash{$label};
+        foreach my $group (keys %this_g_hash) {
             $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash->{$group}, $csv,
+                $label, $group, $this_g_hash{$group}, $csv,
             );
         }
     }

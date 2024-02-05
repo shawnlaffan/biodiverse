@@ -23,7 +23,7 @@ use Ref::Util qw { :all };
 use Sort::Key::Natural qw /natsort rnatsort/;
 
 use constant HAVE_DATA_RECURSIVE
-  => !$ENV{BD_NO_USE_PANDA} && eval 'require Data::Recursive';
+  => !$ENV{BD_NO_USE_DATA_RECURSIVE} && eval 'require Data::Recursive';
 
 our $VERSION = '4.99_002';
 

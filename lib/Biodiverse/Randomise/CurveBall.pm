@@ -193,16 +193,21 @@ END_PROGRESS_TEXT
             @swappable_from2 = @swappable_from2[0..$n_labels_to_swap-1];
         }
 
-        #  track before moving - needs thought
-        # if (0 && $stop_on_all_swapped) {
-        #     $this_gp = $group1;
-        #     foreach my $this_lb (@swappable1) {
-        #         if ($gp_hash{$this_lb}{$this_gp} && !$lb_gp_moved{$this_lb}{$this_gp}) {
-        #             $moved_pairs++;
-        #             $lb_gp_moved{$this_lb}{$this_gp} = 1;
-        #         }
-        #     }
-        # }
+        #  track before moving
+        if ($stop_on_all_swapped) {
+            foreach my $i (0..$#swappable_from1) {
+                my $lb1 = $swappable_from1[$i];
+                if ($lb_hash{$group1}{$lb1} && !$lb_gp_moved{$lb1}{$group1}) {
+                    $moved_pairs++;
+                    $lb_gp_moved{$lb1}{$group1} = 1;
+                }
+                my $lb2 = $swappable_from2[$i];
+                if ($lb_hash{$group2}{$lb2} && !$lb_gp_moved{$lb2}{$group2}) {
+                    $moved_pairs++;
+                    $lb_gp_moved{$lb2}{$group2} = 1;
+                }
+            }
+        }
 
         @labels2{@swappable_from1} = delete @labels1{@swappable_from1};
         @labels1{@swappable_from2} = delete @labels2{@swappable_from2};
@@ -231,16 +236,15 @@ END_PROGRESS_TEXT
     say "[RANDOMISE] rand_curveball: ran $swap_count swaps across "
         . "$attempts attempts for basedata $name with $n_labels labels and "
         . "$n_groups groups.\n"
-        . "[RANDOMISE]  Swapped $moved_pairs the $non_zero_mx_cells group/label "
+        . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
         . "elements at least once.\n";
 
     #  transpose
-    say "Transposing...";
     my %gp_hash;
     foreach my $gp (keys %lb_hash) {
         foreach my $lb (keys %{$lb_hash{$gp}}) {
+            #  should not need this check, but just in case
             next if !$lb_hash{$gp}{$lb};
-            # say "TP: $gp, $lb, $lb_hash{$gp}{$lb}";
             $gp_hash{$lb}{$gp} = $lb_hash{$gp}{$lb};
         }
     }
@@ -254,62 +258,10 @@ END_PROGRESS_TEXT
         empty_group_hash => \%empty_groups,
     );
 
-    say 'Done';
+    # say 'Done';
     return $new_bd;
 }
 
-
-sub get_new_bd_from_gp_lb_hash {
-    my ($self, %args) = @_;
-
-    my $bd   = $args{source_basedata};
-    my $name = $args{name};
-    \my %gp_hash = $args{gp_hash};
-    \my %empty_groups = $args{empty_group_hash};
-    \my %empty_labels = $args{empty_label_hash};
-
-    #  now we populate a new basedata
-    my $new_bd = blessed($bd)->new ($bd->get_params_hash);
-    $new_bd->get_groups_ref->set_params ($bd->get_groups_ref->get_params_hash);
-    $new_bd->get_labels_ref->set_params ($bd->get_labels_ref->get_params_hash);
-    my $new_bd_name = $new_bd->get_param ('NAME');
-    $new_bd->rename (name => $new_bd_name . "_" . $name);
-
-    #  pre-assign the hash buckets to avoid rehashing larger structures
-    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
-    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
-
-    #  re-use a csv object
-    my $csv = $bd->get_csv_object(
-        sep_char   => $bd->get_param('JOIN_CHAR'),
-        quote_char => $bd->get_param('QUOTES'),
-    );
-
-    foreach my $label (keys %gp_hash) {
-        my $this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %$this_g_hash) {
-            $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash->{$group}, $csv,
-            );
-        }
-    }
-    foreach my $label (keys %empty_labels) {
-        $new_bd->add_element (
-            label => $label,
-            allow_empty_labels => 1,
-            csv_object   => $csv,
-        );
-    }
-    foreach my $group (keys %empty_groups) {
-        $new_bd->add_element (
-            group => $group,
-            allow_empty_groups => 1,
-            csv_object   => $csv,
-        );
-    }
-
-    return $new_bd;
-}
 
 1;
 

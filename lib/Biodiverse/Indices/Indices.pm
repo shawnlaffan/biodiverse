@@ -1714,8 +1714,6 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     #  loop iter variables
     my ($listname, $value);
 
-    # my %hash = (element_list1 => 1, element_list2 => 2);
-
     my $iter = 0;
     LISTNAME:
     foreach my $listname (qw /element_list1 element_list2/) {
@@ -1800,25 +1798,30 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         }
     }
 
-    %hash = (label_hash1 => 1, label_hash2 => 2);
-    while (($listname, $iter) = each %hash) {
-        next if ! defined $args{$listname};
+    $iter = 0;
+    foreach my $listname (qw /label_hash1 label_hash2/) {
+        $iter++;
 
-        my $label_hashref = $args{$listname};
-
-        croak "[INDICES] $label_hashref is not a hash ref\n"
-          if !is_hashref($label_hashref);
+        #  throws an exception if args is not a hashref
+        \my %label_hashref = $args{$listname}
+            // next;
 
         if ($count_labels || $count_samples) {
-            my $label;  #  clunk
-            while (($label, $value) = each %$label_hashref) {
-                $label_list_master{$label} += $value;
-                $label_list{$iter}{$label} += $value;
+            if ($iter == 1) {
+                %label_list_master    = %label_hashref;
+                %{$label_list{$iter}} = %label_hashref;
+            }
+            else {
+                pairmap {
+                        $label_list_master{$a} += $b;
+                        $label_list{$iter}{$a} += $b
+                    }
+                    %label_hashref;
             }
         }
         else {  #  don't care about counts yet - assign using a slice
-            @label_list_master{keys %$label_hashref}    = (1) x scalar keys %$label_hashref;
-            @{$label_list{$iter}}{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
+            @label_list_master{keys %label_hashref}    = (1) x scalar keys %label_hashref;
+            @{$label_list{$iter}}{keys %label_hashref} = (1) x scalar keys %label_hashref;
         }
     }
 

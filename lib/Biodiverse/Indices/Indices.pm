@@ -1712,13 +1712,16 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     my %element_check_master;
 
     #  loop iter variables
-    my ($listname, $iter, $value);
+    my ($listname, $value);
 
-    my %hash = (element_list1 => 1, element_list2 => 2);
-    
+    # my %hash = (element_list1 => 1, element_list2 => 2);
+
+    my $iter = 0;
     LISTNAME:
-    while (($listname, $iter) = each (%hash)) {
+    foreach my $listname (qw /element_list1 element_list2/) {
         #print "$listname, $iter\n";
+        $iter++;
+
         my $el_listref = $args{$listname}
           // next LISTNAME;
 
@@ -1752,7 +1755,10 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             }
         }
 
-        if ($count_labels || $count_samples) {
+        if ($iter == 1) {
+            %label_list_master = %label_hash_this_iter;
+        }
+        elsif ($count_labels || $count_samples) {
             #  switch to for-list when min perl version is 5.36
             pairmap {$label_list_master{$a} += $b} %label_hash_this_iter;
         }
@@ -1773,7 +1779,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
           . "$element_count1 + $element_count2 > $element_count_master\n"
       if $element_count1 + $element_count2 > $element_count_master;
 
-    %hash = (label_list1 => 1, label_list2 => 2);
+    my %hash = (label_list1 => 1, label_list2 => 2);
     while (($listname, $iter) = each %hash) {
         next if !defined $args{$listname};
 

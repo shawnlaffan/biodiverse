@@ -6,10 +6,11 @@ use 5.010;
 use Carp;
 
 use Scalar::Util qw /blessed weaken/;
-use List::Util 1.39 qw /min max pairs pairkeys sum/;
+use List::Util 1.39 qw /min max pairs pairkeys pairmap sum/;
 use Ref::Util qw { :all };
 use English ( -no_match_vars );
 use Readonly;
+use experimental qw /refaliasing/;
 
 our $VERSION = '4.99_002';
 
@@ -1728,38 +1729,39 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             $el_listref = [keys %$el_listref];
         }
 
-        my (@checked_elements, @label_list);
+        \my %label_hash_this_iter = $label_list{$iter};
 
         ELEMENT:
         foreach my $element (@$el_listref) {
             my $sublist = $bd->get_labels_in_group_as_hash_aa ($element);
-            push @label_list, %$sublist;
-            push @checked_elements, $element;
+
+            if ($count_labels) {
+                #  track the number of times each label occurs
+                #  use postfix loop for speed
+                $label_hash_this_iter{$_}++
+                    foreach keys %$sublist;
+            }
+            elsif ($count_samples) {
+                #  track the number of samples for each label
+                #  switch to for-list when min perl version is 5.36
+                pairmap {$label_hash_this_iter{$a} += $b} %$sublist;
+            }
+            else {
+                #  track presence only
+                @label_hash_this_iter{keys %$sublist} = (1) x keys %$sublist;
+            }
         }
 
-        if ($count_labels) {
-            #  track the number of times each label occurs
-            foreach my $label (pairkeys @label_list) {
-                $label_list{$iter}{$label}++;
-                $label_list_master{$label}++;
-            }
-        }
-        elsif ($count_samples) {
-            #  track the number of samples for each label
-            foreach my $pair (pairs @label_list) {
-                my ($label, $value) = @$pair;
-                $label_list{$iter}{$label} += $value;
-                $label_list_master{$label} += $value;
-            }
+        if ($count_labels || $count_samples) {
+            #  switch to for-list when min perl version is 5.36
+            pairmap {$label_list_master{$a} += $b} %label_hash_this_iter;
         }
         else {
-            %{$label_list{$iter}} = @label_list;
-            @label_list_master{keys %{$label_list{$iter}}}
-              = (1) x scalar keys %{$label_list{$iter}};
+            @label_list_master{keys %label_hash_this_iter} = values %label_hash_this_iter;
         }
-        #  hash slice is faster than looping
-        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
-        @element_check_master{@checked_elements}    = (1) x scalar @checked_elements;
+
+        @{$element_check{$iter}}{@$el_listref} = (1) x scalar @$el_listref;
+        @element_check_master{@$el_listref}    = (1) x scalar @$el_listref;
     }
 
     #  run some checks on the elements
@@ -1815,7 +1817,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (!($count_labels || $count_samples)) {
+    if (0 || !($count_labels || $count_samples)) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
         @{$label_list{1}}{keys %{$label_list{1}}}   = (1) x scalar keys %{$label_list{1}};
         @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};

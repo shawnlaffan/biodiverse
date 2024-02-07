@@ -1777,24 +1777,24 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
           . "$element_count1 + $element_count2 > $element_count_master\n"
       if $element_count1 + $element_count2 > $element_count_master;
 
-    my %hash = (label_list1 => 1, label_list2 => 2);
-    while (($listname, $iter) = each %hash) {
-        next if !defined $args{$listname};
+    $iter = 0;
+    foreach my $listname (qw /label_list1 label_list2/) {
+        $iter++;
 
-        my $label_listref = $args{$listname};
-        croak "[INDICES] $label_listref is not an array ref\n"
-          if !is_arrayref($label_listref);
-        
+        \my @label_arr = $args{$listname}
+          // next;
+
+        \my %label_list_this_iter = $label_list{$iter};
 
         if ($count_labels || $count_samples) {
-            foreach my $lbl (@$label_listref) {
+            foreach my $lbl (@label_arr) {
                 $label_list_master{$lbl}++;
-                $label_list{$iter}{$lbl}++;
+                $label_list_this_iter{$lbl}++;
             }
         }
         else {
-            @label_list_master{@$label_listref}    = (1) x scalar @$label_listref;
-            @{$label_list{$iter}}{@$label_listref} = (1) x scalar @$label_listref;
+            @label_list_master{@label_arr}    = (1) x scalar @label_arr;
+            @label_list_this_iter{@label_arr} = (1) x scalar @label_arr;
         }
     }
 
@@ -1807,7 +1807,8 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             // next;
 
         if ($count_labels || $count_samples) {
-            if ($iter == 1) {
+            #  can do direct assignment in some cases
+            if ($iter == 1 && !keys %label_list_master) {
                 %label_list_master    = %label_hashref;
                 %{$label_list{$iter}} = %label_hashref;
             }

@@ -1711,9 +1711,6 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     my %element_check = (1 => {}, 2 => {});
     my %element_check_master;
 
-    #  loop iter variables
-    my ($listname, $value);
-
     my $iter = 0;
     LISTNAME:
     foreach my $listname (qw /element_list1 element_list2/) {
@@ -1736,16 +1733,23 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         foreach my $element (@$el_listref) {
             my $sublist = $bd->get_labels_in_group_as_hash_aa ($element);
 
-            if ($count_labels) {
-                #  track the number of times each label occurs
-                #  use postfix loop for speed
+            if ($count_labels && scalar keys %label_hash_this_iter) {
+                #  Track the number of times each label occurs.
+                #  Use postfix loop for speed, although first assignment
+                #  to empty hash can be direct via slice assign below.
                 $label_hash_this_iter{$_}++
                     foreach keys %$sublist;
             }
             elsif ($count_samples) {
                 #  track the number of samples for each label
-                #  switch to for-list when min perl version is 5.36
-                pairmap {$label_hash_this_iter{$a} += $b} %$sublist;
+                if (scalar keys %label_hash_this_iter) {
+                    #  switch to for-list when min perl version is 5.36
+                    pairmap {$label_hash_this_iter{$a} += $b} %$sublist;
+                }
+                else {
+                    #  direct assign first one
+                    %label_hash_this_iter = %$sublist;
+                }
             }
             else {
                 #  track presence only
@@ -1753,7 +1757,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             }
         }
 
-        if ($iter == 1) {
+        if ($iter == 1 || !scalar keys %label_list_master) {
             %label_list_master = %label_hash_this_iter;
         }
         elsif ($count_labels || $count_samples) {

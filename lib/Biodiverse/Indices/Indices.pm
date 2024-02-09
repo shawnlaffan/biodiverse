@@ -1632,14 +1632,22 @@ sub get_metadata_calc_abc {
 }
 
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
-    my $self = shift;
-    #my %args = @_;
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc (
-        @_,
-        count_labels  => 0,
-        count_samples => 0,
-    );
+    delete @args{qw/count_samples count_labels}/};
+
+    return $self->_calc_abc(%args)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1}} > 1
+            || defined(
+            $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args);
 }
 
 sub get_metadata_calc_abc2 {
@@ -1656,11 +1664,22 @@ sub get_metadata_calc_abc2 {
     return $metadata_class->new(\%metadata);
 }
 
-sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across groups
-    my $self = shift;
-    #my %args = @_;
+sub calc_abc2 {
+    #  run calc_abc, but keep a track of the label counts across groups
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc(@_, count_labels => 1);
+    return $self->_calc_abc(%args, count_labels => 1)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1}} > 1
+            || defined(
+            $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args, count_labels => 1);
 }
 
 sub get_metadata_calc_abc3 {
@@ -1678,18 +1697,67 @@ sub get_metadata_calc_abc3 {
     return $metadata_class->new(\%metadata);
 }
 
-sub calc_abc3 {  #  run calc_abc, but keep a track of the label counts and samples across groups
-    my $self = shift;
-    #my %args = @_;
+#  run calc_abc, but keep a track of the label counts and samples across groups
+sub calc_abc3 {
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc(@_, count_samples => 1);
+    return $self->_calc_abc(%args, count_samples => 1)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1}} > 1
+            || defined(
+                   $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args, count_samples => 1);
+}
+
+#  A simplified version of _calc_abc for a single element.
+#  This allows us to avoid a lot of looping and checking
+#  which pays off under randomisations.
+sub _calc_abc_one_element {
+    my ($self, %args) = @_;
+
+    #  only one element passed so do it all here
+    my $element = $args{element_list1}[0];
+    \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa ($element);
+    my %label_list_master;
+    if ($args{count_samples} && !$args{count_labels}) {
+        %label_list_master = %labels;
+    }
+    else {
+        @label_list_master{keys %labels} = (1) x keys %labels;
+    }
+    #  make a copy
+    my %label_hash1 = %label_list_master;
+    my $bb = keys %label_hash1;
+
+    my %results = (
+        A   => 0,
+        B   => $bb,
+        C   => 0,
+        ABC => $bb,
+
+        label_hash_all    => \%label_list_master,
+        label_hash1       => \%label_hash1,
+        label_hash2       => {},
+        element_list1     => {$element => 1},
+        element_list2     => {},
+        element_list_all  => [$element],
+        element_count1    => 1,
+        element_count2    => 0,
+        element_count_all => 1,
+    );
+
+    return wantarray ? %results : \%results;
 }
 
 sub _calc_abc {  #  required by all the other indices, as it gets the labels in the elements
     my $self = shift;
     my %args = @_;
-
-    my $bd = $self->get_basedata_ref;
 
     croak "At least one of element_list1, element_list2, label_list1, "
           . "label_list2, label_hash1, label_hash2 must be specified\n"
@@ -1702,8 +1770,11 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
              // $args{label_list2}
         );
 
+    my $bd = $self->get_basedata_ref;
+
+    #  mutually exclusive options
     my $count_labels  = $args{count_labels};
-    my $count_samples = $args{count_samples};
+    my $count_samples = $args{count_samples} && !$count_labels;
 
     my %label_list = (1 => {}, 2 => {});
     my %label_list_master;
@@ -1723,6 +1794,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         croak "_calc_abc argument $listname is not a list ref\n"
           if !is_ref($el_listref);
 
+        #  hopefully no longer needed
         if (is_hashref($el_listref)) {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }

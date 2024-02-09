@@ -108,7 +108,7 @@ sub compare {
     }    
 
     COMP_BY_ELEMENT:
-    foreach my $element ($self->get_element_list) {
+    foreach my $element (@$e_list) {
         $i++;
 
         $progress->update (
@@ -126,20 +126,20 @@ sub compare {
                    && $done_base{$list_name}{$element}
                    && $done_comp{$list_name}{$element};
 
-            my $base_ref = $self->get_list_ref (
-                element     => $element,
-                list        => $list_name,
-                autovivify  => 0,
-            );
             my $comp_ref = $comparison->get_list_ref (
                 element     => $element,
                 list        => $list_name,
                 autovivify  => 0,
             );
+            next BY_LIST if !$comp_ref; #  nothing to compare with...
 
-            next BY_LIST if ! $base_ref || ! $comp_ref; #  nothing to compare with...
-
-            next BY_LIST if (is_arrayref($base_ref));
+            my $base_ref = $self->get_list_ref (
+                element     => $element,
+                list        => $list_name,
+                autovivify  => 0,
+            );
+            next BY_LIST if !$base_ref;
+            next BY_LIST if is_arrayref($base_ref);
 
             my $results_ref = $self->get_list_ref (
                 element => $element,

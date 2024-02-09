@@ -2052,9 +2052,9 @@ sub get_range {
 
     my $variety = $labels_ref->get_variety(@_);
 
-    my $range = max( ( $props->{RANGE} // -1 ), $variety );
-
-    return $range;
+    return defined $props
+        ? max( ( $props->{RANGE} // -1 ), $variety )
+        : $variety;
 }
 
 #  for backwards compatibility

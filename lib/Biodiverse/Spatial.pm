@@ -13,6 +13,7 @@ use List::MoreUtils qw /firstidx lastidx/;
 use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
+use experimental qw /refaliasing/;
 
 our $VERSION = '4.99_002';
 
@@ -68,16 +69,23 @@ sub compare {
     return 1 if not scalar @$e_list;
 
 
-    my %base_list_indices = $self->find_list_indices_across_elements;
-    $base_list_indices{SPATIAL_RESULTS} = 'SPATIAL_RESULTS';
-
-    #  now we need to calculate the appropriate result list name
-    # for example RAND25>>SPATIAL_RESULTS
-    foreach my $list_name (keys %base_list_indices) {
+    #  Generate the set of result list names with this prefix,
+    #  for example RAND25>>SPATIAL_RESULTS.
+    #  We cannot fiddle with the cache directly as the prefix can change.
+    #  (We could cache by prefix but it's not a huge time saving).
+    state $list_cache_name = 'CACHE_LIST_INDICES_ACROSS_ELEMENTS';
+    my $lists_across_elements = $self->get_cached_value ($list_cache_name);
+    if (!$lists_across_elements) {
+        $lists_across_elements = $self->find_list_indices_across_elements;
+        $self->set_cached_value ($list_cache_name => $lists_across_elements);
+    }
+    my %base_list_indices = (
+        SPATIAL_RESULTS => $result_list_pfx . '>>SPATIAL_RESULTS',
+    );
+    foreach my $list_name (keys %$lists_across_elements) {
         $base_list_indices{$list_name} = $result_list_pfx . '>>' . $list_name;
     }
 
-    
     my $to_do = $self->get_element_count;
     my $i = 0;
 
@@ -110,7 +118,8 @@ sub compare {
 
         #  now loop over the list indices
         BY_LIST:
-        while (my ($list_name, $result_list_name) = each %base_list_indices) {
+        foreach my $list_name (keys %base_list_indices) {
+            my $result_list_name = $base_list_indices{$list_name};
 
             next BY_LIST
                 if    $recycled_results

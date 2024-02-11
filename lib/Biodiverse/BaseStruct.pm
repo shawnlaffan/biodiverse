@@ -387,7 +387,6 @@ sub get_element_name_as_array_aa {
         $element_list_ref->[0] //= ($quote_char . $quote_char)
     }
     else {
-        my $quotes = $quote_char;
         for my $el (@$element_list_ref) {
             $el //= $EMPTY_STRING;
         }
@@ -1561,6 +1560,20 @@ sub get_list_ref {
     }
     return $el->{$list};
 }
+
+sub get_list_ref_aa {
+    my ($self, $element, $list) = @_;
+    no autovivification;
+    defined $list ? $self->{ELEMENTS}{$element}{$list} : undef;
+}
+
+sub get_list_ref_autoviv_aa {
+    my ($self, $element, $list) = @_;
+    no autovivification;
+    return if !exists $self->{ELEMENTS}{$element};
+    $self->{ELEMENTS}{$element}{$list} //= {};
+}
+
 
 sub rename_list {
     my $self = shift;

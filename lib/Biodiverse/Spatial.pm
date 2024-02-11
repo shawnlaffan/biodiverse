@@ -55,19 +55,16 @@ sub compare {
     croak qq{Argument 'result_list_pfx' not specified\n}
         if ! defined $result_list_pfx;
 
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
     my $progress = Biodiverse::Progress->new();
     my $progress_text
       = sprintf "Comparing %s with %s\n",
         $self->get_param ('NAME'),
         $comparison->get_param ('NAME');
     $progress->update ($progress_text, 0);
-
-    my $bd = $self->get_param ('BASEDATA_REF');
-
-    #  drop out if no elements to compare with
-    my $e_list = $self->get_element_list;
-    return 1 if not scalar @$e_list;
-
 
     #  Generate the set of result list names with this prefix,
     #  for example RAND25>>SPATIAL_RESULTS.
@@ -126,25 +123,16 @@ sub compare {
                    && $done_base{$list_name}{$element}
                    && $done_comp{$list_name}{$element};
 
-            my $comp_ref = $comparison->get_list_ref (
-                element     => $element,
-                list        => $list_name,
-                autovivify  => 0,
-            );
+            my $comp_ref
+              = $comparison->get_list_ref_aa ($element, $list_name);
             next BY_LIST if !$comp_ref; #  nothing to compare with...
 
-            my $base_ref = $self->get_list_ref (
-                element     => $element,
-                list        => $list_name,
-                autovivify  => 0,
-            );
-            next BY_LIST if !$base_ref;
-            next BY_LIST if is_arrayref($base_ref);
+            my $base_ref
+              = $self->get_list_ref_aa ($element, $list_name);
+            next BY_LIST if !$base_ref || is_arrayref($base_ref);
 
-            my $results_ref = $self->get_list_ref (
-                element => $element,
-                list    => $result_list_name,
-            );
+            my $results_ref
+              = $self->get_list_ref_autoviv_aa ($element, $result_list_name);
     
             $self->compare_lists_by_item (
                 base_list_ref     => $base_ref,

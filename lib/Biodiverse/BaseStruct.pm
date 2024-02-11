@@ -1073,6 +1073,17 @@ sub exists_list {
     return;
 }
 
+sub exists_list_aa {
+    my ($self, $element, $list) = @_;
+
+    croak "element not specified\n" if not defined $element;
+    croak "list not specified\n" if not defined $list;
+
+    no autovivification;
+
+    return exists $self->{ELEMENTS}{$element}{$list};
+}
+
 sub add_lists {
     my $self = shift;
     my %args = @_;

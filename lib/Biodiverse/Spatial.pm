@@ -1219,18 +1219,13 @@ sub get_nbrs_for_element {
         #  where we set all the results in one go.
         #  Should only be triggered when results recycling is off but we still recycle nbrs,
         #  as we don't double handle when recycling results
-        if ($self->exists_list (
-                element => $element,
-                list    => $nbr_list_name
-            )) {
-
+        if ($self->exists_list_aa ($element, $nbr_list_name)) {
             my $nbrs
               = $self->get_list_values (
                   element => $element,
                   list    => $nbr_list_name,
-              )
-              || [];
-            $nbr_list[$i] = $nbrs;
+              );
+            $nbr_list[$i] = $nbrs || [];
             push @exclude, @$nbrs;
         }
         else {

@@ -1591,21 +1591,23 @@ sub transfer_element_properties {
     my $to_bd = $args{receiver} || croak "Missing receiver argument\n";
     my $remap = $args{remap} || {};    #  remap hash
 
-    my $progress_bar = Biodiverse::Progress->new();
-
     my $type = $args{type};
     croak "argument 'type => $type' is not valid (must be groups or labels)\n"
       if not( $type eq 'groups' or $type eq 'labels' );
     my $get_ref_sub = $type eq 'groups' ? 'get_groups_ref' : 'get_labels_ref';
 
     my $elements_ref    = $self->$get_ref_sub;
+
+    return if !$elements_ref->has_element_properties;
+
     my $to_elements_ref = $to_bd->$get_ref_sub;
 
     my $name    = $self->get_param('NAME');
     my $to_name = $to_bd->get_param('NAME');
     my $text    = "Transferring $type properties from $name to $to_name";
 
-    my $total_to_do = $elements_ref->get_element_count;
+    my $progress_bar = Biodiverse::Progress->new();
+    my $total_to_do  = $elements_ref->get_element_count;
     print "[BASEDATA] Transferring properties for $total_to_do $type\n";
 
     my $count = 0;

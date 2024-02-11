@@ -1781,13 +1781,14 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
-    my $keys = $self->get_cached_value ('ELEMENT_PROPERTY_KEYS');
+    state $cache_name = 'ELEMENT_PROPERTY_KEYS';
+    my $keys = $self->get_cached_value ($cache_name);
 
     return wantarray ? @$keys : $keys if $keys;
 
     my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
 
-    $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
+    $self->set_cached_value ($cache_name => \@keys);
 
     return wantarray ? @keys : \@keys;
 }
@@ -1870,9 +1871,9 @@ sub get_element_properties_summary_stats {
 sub has_element_properties {
     my $self = shift;
     
-    my @keys = $self->get_element_property_keys;
+    my $keys = $self->get_element_property_keys // [];
     
-    return scalar @keys;
+    return scalar @$keys;
 }
 
 #  return true if the labels are all numeric

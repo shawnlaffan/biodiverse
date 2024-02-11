@@ -529,7 +529,7 @@ sub get_sub_element_list {
 
     no autovivification;
 
-    my $element = $args{element} // croak "argument 'element' not specified\n";
+    my $element = $args{element} // croak "argument 'element' not specified in get_sub_element_list\n";
 
     my $el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
       // return;
@@ -544,7 +544,7 @@ sub get_sub_element_hash {
     no autovivification;
     
     my $element = $args{element}
-      // croak "argument 'element' not specified\n";
+      // croak "argument 'element' not specified in get_sub_element_hash\n";
 
     #  Ideally we should throw an exception, but at the moment too many other
     #  things need a result and we aren't testing for them.
@@ -567,7 +567,7 @@ sub get_sub_element_hash_aa {
 
     no autovivification;
 
-    croak "argument 'element' not specified\n"
+    croak "argument 'element' not specified in get_sub_element_hash_aa\n"
       if !defined $element;
 
     #  Ideally we should throw an exception, but at the moment too many other
@@ -582,7 +582,7 @@ sub get_sub_element_hash_aa {
 sub get_sub_element_href_autoviv_aa {
     my ($self, $element) = @_;
 
-    croak "argument 'element' not specified\n"
+    croak "argument 'element' not specified in get_sub_element_href_autoviv_aa\n"
         if !defined $element;
 
     return $self->{ELEMENTS}{$element}{SUBELEMENTS} //= {};
@@ -907,9 +907,9 @@ sub exists_sub_element {
     #defined $args{element} || croak "Argument 'element' not specified\n";
     #defined $args{subelement} || croak "Argument 'subelement' not specified\n";
     my $element = $args{element}
-      // croak "Argument 'element' not specified\n";
+      // croak "Argument 'element' not specified in exists_sub_element\n";
     my $subelement = $args{subelement}
-      // croak "Argument 'subelement' not specified\n";
+      // croak "Argument 'subelement' not specified in exists_sub_element\n";
 
     no autovivification;
     exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};

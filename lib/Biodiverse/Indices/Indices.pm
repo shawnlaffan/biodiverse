@@ -1638,9 +1638,9 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
 
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
-            || @{$args{element_list1}} != 1
+            || @{$args{element_list1} // []} != 1
             || defined(
-            $args{element_list2}
+                   $args{element_list2}
                 // $args{label_hash1}
                 // $args{label_hash2}
                 // $args{label_list1}
@@ -1670,9 +1670,9 @@ sub calc_abc2 {
 
     return $self->_calc_abc(%args, count_labels => 1)
         if is_hashref($args{element_list1})
-            || @{$args{element_list1}} != 1
+            || @{$args{element_list1} // []} != 1
             || defined(
-            $args{element_list2}
+                   $args{element_list2}
                 // $args{label_hash1}
                 // $args{label_hash2}
                 // $args{label_list1}
@@ -1703,7 +1703,7 @@ sub calc_abc3 {
 
     return $self->_calc_abc(%args, count_samples => 1)
         if is_hashref($args{element_list1})
-            || @{$args{element_list1}} != 1
+            || @{$args{element_list1} // []} != 1
             || defined(
                    $args{element_list2}
                 // $args{label_hash1}

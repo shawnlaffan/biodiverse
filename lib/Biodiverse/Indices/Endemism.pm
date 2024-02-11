@@ -127,11 +127,20 @@ sub get_label_range_hash {
     my $self = shift;
 
     my $bd = $self->get_basedata_ref;
+    my $lb = $bd->get_labels_ref;
+    my $has_range_property = $lb->has_element_range_property;
 
     my %range_hash;
-
-    foreach my $label ($bd->get_labels) {
-        $range_hash{$label} = $bd->get_range (element => $label);
+    if ($has_range_property) {
+        foreach my $label ($bd->get_labels) {
+            $range_hash{$label} = $bd->get_range(element => $label);
+        }
+    }
+    else {
+        #  use more direct calculation if no label property for range
+        foreach my $label ($bd->get_labels) {
+            $range_hash{$label} = $lb->get_variety_aa($label);
+        }
     }
 
     my %results = (label_range_hash => \%range_hash);

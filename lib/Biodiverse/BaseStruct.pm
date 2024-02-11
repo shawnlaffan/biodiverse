@@ -1870,10 +1870,20 @@ sub get_element_properties_summary_stats {
 
 sub has_element_properties {
     my $self = shift;
-    
+
     my $keys = $self->get_element_property_keys // [];
-    
+
     return scalar @$keys;
+}
+
+#  maybe should cache
+sub has_element_range_property {
+    my $self = shift;
+
+    my $prop_keys = $self->get_element_property_keys // [];
+    my $has_range_property = grep {$_ eq 'RANGE'} @$prop_keys;
+
+    return scalar $has_range_property;
 }
 
 #  return true if the labels are all numeric

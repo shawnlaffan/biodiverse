@@ -604,7 +604,7 @@ sub get_path_lengths_to_root_node {
     #  We could use a global precalc, but that won't scale well with
     #  massive trees where we only need a subset.
     my $path_cache_master
-      = $self->get_cached_value_dor_set_default_aa (PATH_LENGTH_CACHE_PER_TERMINAL => {});
+      = $self->get_cached_value_dor_set_default_href ('PATH_LENGTH_CACHE_PER_TERMINAL');
     my $path_cache = $path_cache_master->{$tree_ref} //= {};
 
     # get a hash of node refs
@@ -612,7 +612,7 @@ sub get_path_lengths_to_root_node {
 
     #  now loop through the labels and get the path to the root node
     my $path_hash = {};
-    my @collected_paths;  #  used if we have B::Utils 1.07 or greater
+    my @collected_paths;  #  used if we have Bd::Utils 1.07 or greater
     foreach my $label (grep exists $all_nodes->{$_}, keys %$label_list) {
         #  Could assign to $current_node here, but profiling indicates it
         #  takes meaningful chunks of time for large data sets

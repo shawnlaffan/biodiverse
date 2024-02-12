@@ -13,6 +13,7 @@ use List::MoreUtils qw /firstidx lastidx/;
 use List::Util 1.45 qw /first uniq/;
 use Time::HiRes qw /time/;
 use Ref::Util qw { :all };
+use experimental qw /refaliasing/;
 
 our $VERSION = '4.99_002';
 
@@ -54,6 +55,10 @@ sub compare {
     croak qq{Argument 'result_list_pfx' not specified\n}
         if ! defined $result_list_pfx;
 
+    #  drop out if no elements to compare with
+    my $e_list = $self->get_element_list;
+    return 1 if not scalar @$e_list;
+
     my $progress = Biodiverse::Progress->new();
     my $progress_text
       = sprintf "Comparing %s with %s\n",
@@ -61,23 +66,23 @@ sub compare {
         $comparison->get_param ('NAME');
     $progress->update ($progress_text, 0);
 
-    my $bd = $self->get_param ('BASEDATA_REF');
-
-    #  drop out if no elements to compare with
-    my $e_list = $self->get_element_list;
-    return 1 if not scalar @$e_list;
-
-
-    my %base_list_indices = $self->find_list_indices_across_elements;
-    $base_list_indices{SPATIAL_RESULTS} = 'SPATIAL_RESULTS';
-
-    #  now we need to calculate the appropriate result list name
-    # for example RAND25>>SPATIAL_RESULTS
-    foreach my $list_name (keys %base_list_indices) {
+    #  Generate the set of result list names with this prefix,
+    #  for example RAND25>>SPATIAL_RESULTS.
+    #  We cannot fiddle with the cache directly as the prefix can change.
+    #  (We could cache by prefix but it's not a huge time saving).
+    state $list_cache_name = 'CACHE_LIST_INDICES_ACROSS_ELEMENTS';
+    my $lists_across_elements = $self->get_cached_value ($list_cache_name);
+    if (!$lists_across_elements) {
+        $lists_across_elements = $self->find_list_indices_across_elements;
+        $self->set_cached_value ($list_cache_name => $lists_across_elements);
+    }
+    my %base_list_indices = (
+        SPATIAL_RESULTS => $result_list_pfx . '>>SPATIAL_RESULTS',
+    );
+    foreach my $list_name (keys %$lists_across_elements) {
         $base_list_indices{$list_name} = $result_list_pfx . '>>' . $list_name;
     }
 
-    
     my $to_do = $self->get_element_count;
     my $i = 0;
 
@@ -100,7 +105,7 @@ sub compare {
     }    
 
     COMP_BY_ELEMENT:
-    foreach my $element ($self->get_element_list) {
+    foreach my $element (@$e_list) {
         $i++;
 
         $progress->update (
@@ -110,32 +115,24 @@ sub compare {
 
         #  now loop over the list indices
         BY_LIST:
-        while (my ($list_name, $result_list_name) = each %base_list_indices) {
+        foreach my $list_name (keys %base_list_indices) {
+            my $result_list_name = $base_list_indices{$list_name};
 
             next BY_LIST
                 if    $recycled_results
                    && $done_base{$list_name}{$element}
                    && $done_comp{$list_name}{$element};
 
-            my $base_ref = $self->get_list_ref (
-                element     => $element,
-                list        => $list_name,
-                autovivify  => 0,
-            );
-            my $comp_ref = $comparison->get_list_ref (
-                element     => $element,
-                list        => $list_name,
-                autovivify  => 0,
-            );
+            my $comp_ref
+              = $comparison->get_list_ref_aa ($element, $list_name);
+            next BY_LIST if !$comp_ref; #  nothing to compare with...
 
-            next BY_LIST if ! $base_ref || ! $comp_ref; #  nothing to compare with...
+            my $base_ref
+              = $self->get_list_ref_aa ($element, $list_name);
+            next BY_LIST if !$base_ref || is_arrayref($base_ref);
 
-            next BY_LIST if (is_arrayref($base_ref));
-
-            my $results_ref = $self->get_list_ref (
-                element => $element,
-                list    => $result_list_name,
-            );
+            my $results_ref
+              = $self->get_list_ref_autoviv_aa ($element, $result_list_name);
     
             $self->compare_lists_by_item (
                 base_list_ref     => $base_ref,
@@ -1222,18 +1219,13 @@ sub get_nbrs_for_element {
         #  where we set all the results in one go.
         #  Should only be triggered when results recycling is off but we still recycle nbrs,
         #  as we don't double handle when recycling results
-        if ($self->exists_list (
-                element => $element,
-                list    => $nbr_list_name
-            )) {
-
+        if ($self->exists_list_aa ($element, $nbr_list_name)) {
             my $nbrs
               = $self->get_list_values (
                   element => $element,
                   list    => $nbr_list_name,
-              )
-              || [];
-            $nbr_list[$i] = $nbrs;
+              );
+            $nbr_list[$i] = $nbrs || [];
             push @exclude, @$nbrs;
         }
         else {

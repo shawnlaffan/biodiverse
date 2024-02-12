@@ -387,7 +387,6 @@ sub get_element_name_as_array_aa {
         $element_list_ref->[0] //= ($quote_char . $quote_char)
     }
     else {
-        my $quotes = $quote_char;
         for my $el (@$element_list_ref) {
             $el //= $EMPTY_STRING;
         }
@@ -529,7 +528,7 @@ sub get_sub_element_list {
 
     no autovivification;
 
-    my $element = $args{element} // croak "argument 'element' not specified\n";
+    my $element = $args{element} // croak "argument 'element' not specified in get_sub_element_list\n";
 
     my $el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
       // return;
@@ -544,7 +543,7 @@ sub get_sub_element_hash {
     no autovivification;
     
     my $element = $args{element}
-      // croak "argument 'element' not specified\n";
+      // croak "argument 'element' not specified in get_sub_element_hash\n";
 
     #  Ideally we should throw an exception, but at the moment too many other
     #  things need a result and we aren't testing for them.
@@ -567,7 +566,7 @@ sub get_sub_element_hash_aa {
 
     no autovivification;
 
-    croak "argument 'element' not specified\n"
+    croak "argument 'element' not specified in get_sub_element_hash_aa\n"
       if !defined $element;
 
     #  Ideally we should throw an exception, but at the moment too many other
@@ -582,7 +581,7 @@ sub get_sub_element_hash_aa {
 sub get_sub_element_href_autoviv_aa {
     my ($self, $element) = @_;
 
-    croak "argument 'element' not specified\n"
+    croak "argument 'element' not specified in get_sub_element_href_autoviv_aa\n"
         if !defined $element;
 
     return $self->{ELEMENTS}{$element}{SUBELEMENTS} //= {};
@@ -907,9 +906,9 @@ sub exists_sub_element {
     #defined $args{element} || croak "Argument 'element' not specified\n";
     #defined $args{subelement} || croak "Argument 'subelement' not specified\n";
     my $element = $args{element}
-      // croak "Argument 'element' not specified\n";
+      // croak "Argument 'element' not specified in exists_sub_element\n";
     my $subelement = $args{subelement}
-      // croak "Argument 'subelement' not specified\n";
+      // croak "Argument 'subelement' not specified in exists_sub_element\n";
 
     no autovivification;
     exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
@@ -1072,6 +1071,17 @@ sub exists_list {
     }
 
     return;
+}
+
+sub exists_list_aa {
+    my ($self, $element, $list) = @_;
+
+    croak "element not specified\n" if not defined $element;
+    croak "list not specified\n" if not defined $list;
+
+    no autovivification;
+
+    return exists $self->{ELEMENTS}{$element}{$list};
 }
 
 sub add_lists {
@@ -1562,6 +1572,20 @@ sub get_list_ref {
     return $el->{$list};
 }
 
+sub get_list_ref_aa {
+    my ($self, $element, $list) = @_;
+    no autovivification;
+    defined $list ? $self->{ELEMENTS}{$element}{$list} : undef;
+}
+
+sub get_list_ref_autoviv_aa {
+    my ($self, $element, $list) = @_;
+    no autovivification;
+    return if !exists $self->{ELEMENTS}{$element};
+    $self->{ELEMENTS}{$element}{$list} //= {};
+}
+
+
 sub rename_list {
     my $self = shift;
     my %args = @_;
@@ -1781,13 +1805,14 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
-    my $keys = $self->get_cached_value ('ELEMENT_PROPERTY_KEYS');
+    state $cache_name = 'ELEMENT_PROPERTY_KEYS';
+    my $keys = $self->get_cached_value ($cache_name);
 
     return wantarray ? @$keys : $keys if $keys;
 
     my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
 
-    $self->set_cached_value ('ELEMENT_PROPERTY_KEYS' => \@keys);
+    $self->set_cached_value ($cache_name => \@keys);
 
     return wantarray ? @keys : \@keys;
 }
@@ -1869,10 +1894,20 @@ sub get_element_properties_summary_stats {
 
 sub has_element_properties {
     my $self = shift;
-    
-    my @keys = $self->get_element_property_keys;
-    
-    return scalar @keys;
+
+    my $keys = $self->get_element_property_keys // [];
+
+    return scalar @$keys;
+}
+
+#  maybe should cache
+sub has_element_range_property {
+    my $self = shift;
+
+    my $prop_keys = $self->get_element_property_keys // [];
+    my $has_range_property = grep {$_ eq 'RANGE'} @$prop_keys;
+
+    return scalar $has_range_property;
 }
 
 #  return true if the labels are all numeric

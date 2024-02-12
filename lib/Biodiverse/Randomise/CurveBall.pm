@@ -174,19 +174,19 @@ END_PROGRESS_TEXT
         #  skip if nothing can be swapped
         next MAIN_ITER if !$n_labels_to_swap;
 
-        #  is sort in-place optimised?
-        @swappable_from1 = sort @swappable_from1;
-        @swappable_from2 = sort @swappable_from2;
 
-        #  in-place shuffle is apparently fastest (MRMA docs)
-        $rand->shuffle (\@swappable_from1);
-        $rand->shuffle (\@swappable_from2);
 
-        #  curtail longer array
+        #  Get a random subset of the longer array.
+        #  Sort is needed to guarantee repeatability, and in-place sort is optimised by Perl.
+        #  In-place shuffle is apparently fastest (MRMA docs)
         if (@swappable_from1 > $n_labels_to_swap) {
+            @swappable_from1 = sort @swappable_from1;
+            $rand->shuffle (\@swappable_from1);
             @swappable_from1 = @swappable_from1[0..$n_labels_to_swap-1];
         }
         elsif (@swappable_from2 > $n_labels_to_swap) {
+            @swappable_from2 = sort @swappable_from2;
+            $rand->shuffle (\@swappable_from2);
             @swappable_from2 = @swappable_from2[0..$n_labels_to_swap-1];
         }
 

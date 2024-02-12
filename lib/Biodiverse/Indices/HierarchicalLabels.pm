@@ -55,7 +55,7 @@ The number of list elements generated depends on how many axes are used in the l
 Axes are order from zero as the highest level in the hierarchy,
 so index 0 is the top level of the hierarchy.
 
-Note that this calculation prodices lists since version 4.99_002
+Note that this calculation produces lists since version 4.99_002
 so one can no longer use the SUMRAT indices for clustering.
 This can be re-enabled if there is a need.
 END_H_DESC
@@ -70,8 +70,8 @@ END_H_DESC
         type            => 'Hierarchical Labels',
         reference       => $ref,
         indices         => \%indices,
+        #  these are not used any more - should get the number of label axes directly
         pre_calc_global => 'get_basedatas_by_label_hierarchy',
-        pre_calc        => 'calc_abc',  #  we need the element lists
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );
     

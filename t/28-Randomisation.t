@@ -1031,7 +1031,8 @@ sub test_group_properties_reassigned_subset_rand {
 sub test_group_properties_reassigned {
     my %args = @_;
 
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $c = 100000;
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$c, $c]);
 
     my $rand_func   = 'rand_csr_by_group';
     my $object_name = 't_g_p_r';
@@ -1045,6 +1046,8 @@ sub test_group_properties_reassigned {
     my $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, 'Group properties assigned without eval error');
+
+    $bd->build_spatial_index(resolutions => [$c, $c]);
 
     #  name is short for sub name
     my $sp = $bd->add_spatial_output (name => 't_g_p_r');

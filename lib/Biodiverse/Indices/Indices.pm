@@ -6,10 +6,11 @@ use 5.010;
 use Carp;
 
 use Scalar::Util qw /blessed weaken/;
-use List::Util 1.39 qw /min max pairs pairkeys sum/;
+use List::Util 1.39 qw /min max pairs pairkeys pairmap sum/;
 use Ref::Util qw { :all };
 use English ( -no_match_vars );
 use Readonly;
+use experimental qw /refaliasing/;
 
 our $VERSION = '4.99_002';
 
@@ -1631,14 +1632,22 @@ sub get_metadata_calc_abc {
 }
 
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
-    my $self = shift;
-    #my %args = @_;
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc (
-        @_,
-        count_labels  => 0,
-        count_samples => 0,
-    );
+    delete @args{qw/count_samples count_labels}/};
+
+    return $self->_calc_abc(%args)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1} // []} != 1
+            || defined(
+                   $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args);
 }
 
 sub get_metadata_calc_abc2 {
@@ -1655,11 +1664,22 @@ sub get_metadata_calc_abc2 {
     return $metadata_class->new(\%metadata);
 }
 
-sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across groups
-    my $self = shift;
-    #my %args = @_;
+sub calc_abc2 {
+    #  run calc_abc, but keep a track of the label counts across groups
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc(@_, count_labels => 1);
+    return $self->_calc_abc(%args, count_labels => 1)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1} // []} != 1
+            || defined(
+                   $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args, count_labels => 1);
 }
 
 sub get_metadata_calc_abc3 {
@@ -1677,18 +1697,67 @@ sub get_metadata_calc_abc3 {
     return $metadata_class->new(\%metadata);
 }
 
-sub calc_abc3 {  #  run calc_abc, but keep a track of the label counts and samples across groups
-    my $self = shift;
-    #my %args = @_;
+#  run calc_abc, but keep a track of the label counts and samples across groups
+sub calc_abc3 {
+    my ($self, %args) = @_;
 
-    return $self->_calc_abc(@_, count_samples => 1);
+    return $self->_calc_abc(%args, count_samples => 1)
+        if is_hashref($args{element_list1})
+            || @{$args{element_list1} // []} != 1
+            || defined(
+                   $args{element_list2}
+                // $args{label_hash1}
+                // $args{label_hash2}
+                // $args{label_list1}
+                // $args{label_list2}
+        );
+
+    return $self->_calc_abc_one_element(%args, count_samples => 1);
+}
+
+#  A simplified version of _calc_abc for a single element.
+#  This allows us to avoid a lot of looping and checking
+#  which pays off under randomisations.
+sub _calc_abc_one_element {
+    my ($self, %args) = @_;
+
+    #  only one element passed so do it all here
+    my $element = $args{element_list1}[0];
+    \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa ($element);
+    my %label_list_master;
+    if ($args{count_samples} && !$args{count_labels}) {
+        %label_list_master = %labels;
+    }
+    else {
+        @label_list_master{keys %labels} = (1) x keys %labels;
+    }
+    #  make a copy
+    my %label_hash1 = %label_list_master;
+    my $bb = keys %label_hash1;
+
+    my %results = (
+        A   => 0,
+        B   => $bb,
+        C   => 0,
+        ABC => $bb,
+
+        label_hash_all    => \%label_list_master,
+        label_hash1       => \%label_hash1,
+        label_hash2       => {},
+        element_list1     => {$element => 1},
+        element_list2     => {},
+        element_list_all  => [$element],
+        element_count1    => 1,
+        element_count2    => 0,
+        element_count_all => 1,
+    );
+
+    return wantarray ? %results : \%results;
 }
 
 sub _calc_abc {  #  required by all the other indices, as it gets the labels in the elements
     my $self = shift;
     my %args = @_;
-
-    my $bd = $self->get_basedata_ref;
 
     croak "At least one of element_list1, element_list2, label_list1, "
           . "label_list2, label_hash1, label_hash2 must be specified\n"
@@ -1701,8 +1770,11 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
              // $args{label_list2}
         );
 
+    my $bd = $self->get_basedata_ref;
+
+    #  mutually exclusive options
     my $count_labels  = $args{count_labels};
-    my $count_samples = $args{count_samples};
+    my $count_samples = $args{count_samples} && !$count_labels;
 
     my %label_list = (1 => {}, 2 => {});
     my %label_list_master;
@@ -1710,56 +1782,66 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     my %element_check = (1 => {}, 2 => {});
     my %element_check_master;
 
-    #  loop iter variables
-    my ($listname, $iter, $value);
-
-    my %hash = (element_list1 => 1, element_list2 => 2);
-    
+    my $iter = 0;
     LISTNAME:
-    while (($listname, $iter) = each (%hash)) {
+    foreach my $listname (qw /element_list1 element_list2/) {
         #print "$listname, $iter\n";
+        $iter++;
+
         my $el_listref = $args{$listname}
           // next LISTNAME;
 
         croak "_calc_abc argument $listname is not a list ref\n"
           if !is_ref($el_listref);
 
+        #  hopefully no longer needed
         if (is_hashref($el_listref)) {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
 
-        my (@checked_elements, @label_list);
+        \my %label_hash_this_iter = $label_list{$iter};
 
         ELEMENT:
         foreach my $element (@$el_listref) {
             my $sublist = $bd->get_labels_in_group_as_hash_aa ($element);
-            push @label_list, %$sublist;
-            push @checked_elements, $element;
+
+            if ($count_labels && scalar keys %label_hash_this_iter) {
+                #  Track the number of times each label occurs.
+                #  Use postfix loop for speed, although first assignment
+                #  to empty hash can be direct via slice assign below.
+                $label_hash_this_iter{$_}++
+                    foreach keys %$sublist;
+            }
+            elsif ($count_samples) {
+                #  track the number of samples for each label
+                if (scalar keys %label_hash_this_iter) {
+                    #  switch to for-list when min perl version is 5.36
+                    pairmap {$label_hash_this_iter{$a} += $b} %$sublist;
+                }
+                else {
+                    #  direct assign first one
+                    %label_hash_this_iter = %$sublist;
+                }
+            }
+            else {
+                #  track presence only
+                @label_hash_this_iter{keys %$sublist} = (1) x keys %$sublist;
+            }
         }
 
-        if ($count_labels) {
-            #  track the number of times each label occurs
-            foreach my $label (pairkeys @label_list) {
-                $label_list{$iter}{$label}++;
-                $label_list_master{$label}++;
-            }
+        if ($iter == 1 || !scalar keys %label_list_master) {
+            %label_list_master = %label_hash_this_iter;
         }
-        elsif ($count_samples) {
-            #  track the number of samples for each label
-            foreach my $pair (pairs @label_list) {
-                my ($label, $value) = @$pair;
-                $label_list{$iter}{$label} += $value;
-                $label_list_master{$label} += $value;
-            }
+        elsif ($count_labels || $count_samples) {
+            #  switch to for-list when min perl version is 5.36
+            pairmap {$label_list_master{$a} += $b} %label_hash_this_iter;
         }
         else {
-            %{$label_list{$iter}} = @label_list;
-            @label_list_master{keys %{$label_list{$iter}}}
-              = (1) x scalar keys %{$label_list{$iter}};
+            @label_list_master{keys %label_hash_this_iter} = values %label_hash_this_iter;
         }
-        #  hash slice is faster than looping
-        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
-        @element_check_master{@checked_elements}    = (1) x scalar @checked_elements;
+
+        @{$element_check{$iter}}{@$el_listref} = (1) x scalar @$el_listref;
+        @element_check_master{@$el_listref}    = (1) x scalar @$el_listref;
     }
 
     #  run some checks on the elements
@@ -1771,51 +1853,57 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
           . "$element_count1 + $element_count2 > $element_count_master\n"
       if $element_count1 + $element_count2 > $element_count_master;
 
-    %hash = (label_list1 => 1, label_list2 => 2);
-    while (($listname, $iter) = each %hash) {
-        next if !defined $args{$listname};
+    $iter = 0;
+    foreach my $listname (qw /label_list1 label_list2/) {
+        $iter++;
 
-        my $label_listref = $args{$listname};
-        croak "[INDICES] $label_listref is not an array ref\n"
-          if !is_arrayref($label_listref);
-        
+        \my @label_arr = $args{$listname}
+          // next;
+
+        \my %label_list_this_iter = $label_list{$iter};
 
         if ($count_labels || $count_samples) {
-            foreach my $lbl (@$label_listref) {
+            foreach my $lbl (@label_arr) {
                 $label_list_master{$lbl}++;
-                $label_list{$iter}{$lbl}++;
+                $label_list_this_iter{$lbl}++;
             }
         }
         else {
-            @label_list_master{@$label_listref}    = (1) x scalar @$label_listref;
-            @{$label_list{$iter}}{@$label_listref} = (1) x scalar @$label_listref;
+            @label_list_master{@label_arr}    = (1) x scalar @label_arr;
+            @label_list_this_iter{@label_arr} = (1) x scalar @label_arr;
         }
     }
 
-    %hash = (label_hash1 => 1, label_hash2 => 2);
-    while (($listname, $iter) = each %hash) {
-        next if ! defined $args{$listname};
+    $iter = 0;
+    foreach my $listname (qw /label_hash1 label_hash2/) {
+        $iter++;
 
-        my $label_hashref = $args{$listname};
-
-        croak "[INDICES] $label_hashref is not a hash ref\n"
-          if !is_hashref($label_hashref);
+        #  throws an exception if args is not a hashref
+        \my %label_hashref = $args{$listname}
+            // next;
 
         if ($count_labels || $count_samples) {
-            my $label;  #  clunk
-            while (($label, $value) = each %$label_hashref) {
-                $label_list_master{$label} += $value;
-                $label_list{$iter}{$label} += $value;
+            #  can do direct assignment in some cases
+            if ($iter == 1 && !keys %label_list_master) {
+                %label_list_master    = %label_hashref;
+                %{$label_list{$iter}} = %label_hashref;
+            }
+            else {
+                pairmap {
+                        $label_list_master{$a} += $b;
+                        $label_list{$iter}{$a} += $b
+                    }
+                    %label_hashref;
             }
         }
         else {  #  don't care about counts yet - assign using a slice
-            @label_list_master{keys %$label_hashref}    = (1) x scalar keys %$label_hashref;
-            @{$label_list{$iter}}{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
+            @label_list_master{keys %label_hashref}    = (1) x scalar keys %label_hashref;
+            @{$label_list{$iter}}{keys %label_hashref} = (1) x scalar keys %label_hashref;
         }
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (!($count_labels || $count_samples)) {
+    if (0 || !($count_labels || $count_samples)) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
         @{$label_list{1}}{keys %{$label_list{1}}}   = (1) x scalar keys %{$label_list{1}};
         @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};

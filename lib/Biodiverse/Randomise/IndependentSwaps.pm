@@ -577,6 +577,7 @@ sub get_new_bd_from_gp_lb_hash {
     \my %gp_hash = $args{gp_hash};
     \my %empty_groups = $args{empty_group_hash};
     \my %empty_labels = $args{empty_label_hash};
+    my $transpose     = $args{transpose};
 
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
@@ -595,14 +596,11 @@ sub get_new_bd_from_gp_lb_hash {
         quote_char => $bd->get_param('QUOTES'),
     );
 
-    foreach my $label (keys %gp_hash) {
-        \my %this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %this_g_hash) {
-            $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash{$group}, $csv,
-            );
-        }
-    }
+    #  negate the transpose arg as add_elements_collated_simple_aa
+    #  expects a different order
+    $new_bd->add_elements_collated_simple_aa (
+        \%gp_hash, $csv, 1, !$transpose
+    );
     foreach my $label (keys %empty_labels) {
         $new_bd->add_element (
             label => $label,

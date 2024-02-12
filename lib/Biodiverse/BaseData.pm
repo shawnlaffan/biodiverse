@@ -1361,26 +1361,44 @@ sub add_elements_collated {
 
 #  simplified array args version for speed
 sub add_elements_collated_simple_aa {
-    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
+    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups, $transpose ) = @_;
 
     croak "csv_object arg not passed\n"
       if !$csv_object;
 
     #  blank slate so set directly
-    return $self->_set_elements_collated_simple_aa($gp_lb_hash, $csv_object, $allow_empty_groups)
-      if (!$self->get_group_count && !$self->get_label_count);
+    return $self->_set_elements_collated_simple_aa($gp_lb_hash, $csv_object, $allow_empty_groups, $transpose)
+      if !$self->get_group_count && !$self->get_label_count;
 
     #  now add the collated data
-    foreach my $gp_lb_pair ( pairs %$gp_lb_hash ) {
-        my ( $gp, $lb_hash ) = @$gp_lb_pair;
+    #  duplicated loops to avoid conditions inside them
+    if (!$transpose) {
+        foreach my $gp_lb_pair (pairs % $gp_lb_hash) {
+            my ($gp, $lb_hash) = @$gp_lb_pair;
 
-        if ( $allow_empty_groups && !scalar %$lb_hash ) {
-            $self->add_element_simple_aa ( undef, $gp, 0, $csv_object );
+            if ($allow_empty_groups && !scalar %$lb_hash) {
+                $self->add_element_simple_aa(undef, $gp, 0, $csv_object);
+            }
+            else {
+                foreach my $lb_count_pair (pairs %$lb_hash) {
+                    my ($lb, $count) = @$lb_count_pair;
+                    $self->add_element_simple_aa($lb, $gp, $count, $csv_object);
+                }
+            }
         }
-        else {
-            foreach my $lb_count_pair ( pairs %$lb_hash ) {
-                my ( $lb, $count ) = @$lb_count_pair;
-                $self->add_element_simple_aa( $lb, $gp, $count, $csv_object );
+    }
+    else {
+        foreach my $pair (pairs % $gp_lb_hash) {
+            my ($lb, $gp_hash) = @$pair;
+
+            if ($allow_empty_groups && !scalar %$gp_hash) {
+                $self->add_element_simple_aa($lb, undef, 0, $csv_object);
+            }
+            else {
+                foreach my $gp_count_pair (pairs %$gp_hash) {
+                    my ($gp, $count) = @$gp_count_pair;
+                    $self->add_element_simple_aa($lb, $gp, $count, $csv_object);
+                }
             }
         }
     }
@@ -1391,7 +1409,7 @@ sub add_elements_collated_simple_aa {
 #  currently an internal sub as we might later take ownership of the input data
 #  using refaliasing to squeeze a bit more speed
 sub _set_elements_collated_simple_aa {
-    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
+    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups, $transpose ) = @_;
 
     croak "csv_object arg not passed\n"
         if !$csv_object;
@@ -1400,6 +1418,9 @@ sub _set_elements_collated_simple_aa {
 
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
+    if ($transpose) {
+        ($groups_ref, $labels_ref) = ($labels_ref, $groups_ref);
+    }
 
     #  now add the collated data to the groups object
     foreach \my @gp_lb_pair ( pairs %$gp_lb_hash ) {

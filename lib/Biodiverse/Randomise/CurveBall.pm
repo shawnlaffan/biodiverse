@@ -237,23 +237,14 @@ END_PROGRESS_TEXT
         . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
         . "elements at least once.\n";
 
-    #  transpose
-    my %gp_hash;
-    foreach my $gp (keys %lb_hash) {
-        foreach my $lb (keys %{$lb_hash{$gp}}) {
-            #  should not need this check, but just in case
-            next if !$lb_hash{$gp}{$lb};
-            $gp_hash{$lb}{$gp} = $lb_hash{$gp}{$lb};
-        }
-    }
-
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (
-        name => $name,
+        name             => $name,
         source_basedata  => $bd,
-        gp_hash          => \%gp_hash,
+        gp_hash          => \%lb_hash,
         empty_label_hash => \%empty_labels,
         empty_group_hash => \%empty_groups,
+        transpose        => 1,
     );
 
     # say 'Done';

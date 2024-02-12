@@ -157,8 +157,9 @@ END_PROGRESS_TEXT
         my $group1 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
         my $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
         while ($group1 eq $group2) {
+            #  handle pathological case of only one group
+            last MAIN_ITER if scalar @sorted_groups == 1;
             $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
-            #  need an escape here, or revert to brute force search
         }
 
         my \%labels1 = $lb_hash{$group1};

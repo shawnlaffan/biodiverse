@@ -486,8 +486,9 @@ END_PROGRESS_TEXT
 
         my $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
         while ($label1 eq $label2) {
+            #  handle pathological case of only one group
+            last MAIN_ITER if scalar @sorted_groups == 1;
             $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
-            #  need an escape here, or revert to brute force search
         }
         next MAIN_ITER if $has_max_range{$label2};
 

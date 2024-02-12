@@ -2570,7 +2570,7 @@ sub trim {
 
         my $k          = 0;
         my $k_to_do    = scalar keys %tree_node_hash;
-        my $k_progress = Biodiverse::Progress->new( text => 'Keepers' );
+        my $k_progress = Biodiverse::Progress->new( text => 'Tree trimming keepers' );
 
       NAME:
         foreach my $name ( keys %tree_node_hash ) {

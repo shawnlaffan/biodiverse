@@ -31,7 +31,8 @@ sub new {
 
     return $self
       if    $Biodiverse::Config::progress_no_use_gui
-        || !$Biodiverse::Config::running_under_gui;
+        || !$Biodiverse::Config::running_under_gui
+        || $args{no_gui_progress};
 
     #  if we are to use the GUI
     #print "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui\n";

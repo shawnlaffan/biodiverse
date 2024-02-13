@@ -405,7 +405,6 @@ sub get_element_name_as_array {
     my $element = $args{element} //
       croak "element not specified\n";
     return $self->get_element_name_as_array_aa ($element, $args{csv_object});
-    # return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
 }
 
 #  get a list of the unique values for one axis
@@ -631,43 +630,12 @@ sub add_element {
     my $element = $args{element} //
       croak "element not specified\n";
 
+    $self->{ELEMENTS}{$element} //= {};
+
     #  don't re-create the element array
     return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
 
     $self->get_element_name_as_array_aa ($element, $args{csv_object});
-    return;
-
-    #  caching saves a little time for large data sets
-    #  but needs to be shared with a "parent" object to make a difference
-    #  e.g. a spatial object copies from a groups object
-    state $el_list_ref_cache_name = '_ELEMENT_ARRAY_REF_CACHE';
-    my $element_list_ref_cache = $self->get_cached_value_dor_set_default_href ($el_list_ref_cache_name);
-
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref_cache->{$element};
-
-    return if $element_list_ref_cache->{$element};
-
-    my $quote_char = $self->get_param('QUOTES');
-    my $element_list_ref = $self->csv2list(
-        string     => $element,
-        sep_char   => $self->get_param('JOIN_CHAR'),
-        quote_char => $quote_char,
-        csv_object => $args{csv_object},
-    );
-
-    if (scalar @$element_list_ref == 1) {
-        $element_list_ref->[0] //= ($quote_char . $quote_char)
-    }
-    else {
-        for my $el (@$element_list_ref) {
-            $el //= $EMPTY_STRING;
-        }
-    }
-
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
-        = $element_list_ref_cache->{$element}
-        = $element_list_ref;
-
     return;
 }
 

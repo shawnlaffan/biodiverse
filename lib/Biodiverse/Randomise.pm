@@ -511,6 +511,10 @@ sub run_randomisation {
 
     my $progress_bar = Biodiverse::Progress->new(text => 'Randomisation');
 
+    my %progress_timers;
+    #  arbitrary threshold but should be OK
+    my $no_gui_progress_thresh = 1;
+
     #  do stuff here
     ITERATION:
     foreach my $i (1 .. $iterations) {
@@ -530,21 +534,25 @@ sub run_randomisation {
             "Randomisation iteration $i of $iterations this run",
             ($i / $iterations),
         );
-        
+
         my $start_time_get_rand_bd = [gettimeofday];
 
         my $rand_bd = eval {
             $self->get_randomised_basedata (
                 %args,
-                rand_object   => $rand_object,
-                rand_iter     => $$total_iterations,
-                rand_function => $function,
+                rand_object     => $rand_object,
+                rand_iter       => $$total_iterations,
+                rand_function   => $function,
+                no_gui_progress => (($progress_timers{gen_bd} // 1000) / $i < $no_gui_progress_thresh),
             );
         };
         croak $EVAL_ERROR if $EVAL_ERROR || ! defined $rand_bd;
-        
-        my $time_taken = sprintf "%.3f", tv_interval ($start_time_get_rand_bd);
+
+        my $t_diff = tv_interval ($start_time_get_rand_bd);
+        my $time_taken = sprintf "%.3f", $t_diff;
         say "[RANDOMISE] Time taken to randomise basedata: $time_taken seconds";
+
+        $progress_timers{gen_bd} += $t_diff;
 
         $rand_bd->rename (
             name => join ('_', $bd->get_param ('NAME'), $function, $$total_iterations),
@@ -603,6 +611,11 @@ sub run_randomisation {
             }
 
             if ($generate_rand_analysis) {
+                my $start_time_analysis = [gettimeofday()];
+                my %prog_args = (
+                    no_gui_progress => (($progress_timers{$target} // 1000) / $i < $no_gui_progress_thresh)
+                );
+
                 eval {
                     $self->override_object_analysis_args (
                         %args,
@@ -610,6 +623,7 @@ sub run_randomisation {
                         object      => $rand_analysis,
                         rand_object => $rand_object,
                         iteration   => $$total_iterations,
+                        %prog_args,
                     );
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
@@ -618,6 +632,7 @@ sub run_randomisation {
                     $rand_analysis->run_analysis (
                         progress_text   => $progress_text,
                         use_nbrs_from   => $target,
+                        %prog_args,
                     );
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
@@ -626,9 +641,12 @@ sub run_randomisation {
                     $target->compare (
                         comparison       => $rand_analysis,
                         result_list_name => $results_list_name,
+                        %prog_args,
                     )
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
+
+                $progress_timers{$target} += tv_interval ($start_time_analysis);
             }
 
             #  Does nothing if not a cluster type analysis
@@ -1249,7 +1267,9 @@ sub rand_csr_by_group {
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(
+        no_gui_progress => $args{no_gui_progress},
+    );
 
     #  can't store MRMA objects to all output formats and then recreate
     my $rand = delete $args{rand_object};
@@ -1614,7 +1634,7 @@ sub rand_structured {
     );
     
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     #  need to get these from the ARGS param if available
     #  - should also croak if negative

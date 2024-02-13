@@ -120,7 +120,7 @@ sub rand_independent_swaps_modified {
     #  calculated, and their ratio can be used as estimation for
     #  the proportion of the successful trials."
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name
@@ -411,7 +411,7 @@ sub rand_independent_swaps {
     #  calculated, and their ratio can be used as estimation for
     #  the proportion of the successful trials."
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name

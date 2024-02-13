@@ -1627,7 +1627,9 @@ sub transfer_element_properties {
     my $to_name = $to_bd->get_param('NAME');
     my $text    = "Transferring $type properties from $name to $to_name";
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(
+        no_gui_progress => $args{no_gui_progress},
+    );
     my $total_to_do  = $elements_ref->get_element_count;
     print "[BASEDATA] Transferring properties for $total_to_do $type\n";
 

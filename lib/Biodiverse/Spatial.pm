@@ -59,7 +59,7 @@ sub compare {
     my $e_list = $self->get_element_list;
     return 1 if not scalar @$e_list;
 
-    my $progress = Biodiverse::Progress->new();
+    my $progress = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
     my $progress_text
       = sprintf "Comparing %s with %s\n",
         $self->get_param ('NAME'),
@@ -680,7 +680,9 @@ sub sp_calc {
 
     #  don't store this arg if specified
     my $use_nbrs_from = $args{use_nbrs_from};
-    delete $args{use_nbrs_from};  
+    delete $args{use_nbrs_from};
+
+    my $no_gui_progress = delete $args{no_gui_progress};
 
     #  flag for use if we drop out.  Set to 1 on completion.
     $self->set_param (COMPLETED => 0);
@@ -912,7 +914,10 @@ sub sp_calc {
     
     my $progress_text_create
         = $progress_text_base . "\nCreating target groups";
-    my $progress = Biodiverse::Progress->new(text => $progress_text_create);
+    my $progress = Biodiverse::Progress->new(
+        text            => $progress_text_create,
+        no_gui_progress => $no_gui_progress,
+    );
 
     my $failed_def_query_sp_res_hash = {};
     my $elt_count = -1;
@@ -964,9 +969,10 @@ sub sp_calc {
               "Spatial analysis\n$progress_text_base\n"
             . "(0 / $to_do)"
             . $using_index_text;
-    $progress = Biodiverse::Progress->new(text => $progress_text);
-    
-    #$progress->update ($progress_text, 0);
+    $progress = Biodiverse::Progress->new(
+        text            => $progress_text,
+        no_gui_progress => $no_gui_progress,
+    );
 
     my ($count, $printed_progress) = (0, -1);
     print "[SPATIAL] Progress (% of $to_do elements):     ";

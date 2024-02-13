@@ -375,8 +375,21 @@ sub get_element_name_as_array_aa {
         : $element_list_ref_cache->{$element}
         if $element_list_ref_cache->{$element};
 
+    #  package level cache
+    state $_el_array_cache = {};
+    my $element_list_ref = $_el_array_cache->{$element};
+
+    if ($element_list_ref) {
+        #  work with a copy of the package array but cache the copy on $self
+        my $copy = [ @$element_list_ref ];
+        $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
+            = $element_list_ref_cache->{$element}
+            = $copy;
+        return wantarray ? @$copy : $copy;
+    }
+
     my $quote_char = $self->get_param('QUOTES');
-    my $element_list_ref = $self->csv2list(
+    $element_list_ref = $self->csv2list(
         string     => $element,
         sep_char   => $self->get_param('JOIN_CHAR'),
         quote_char => $quote_char,
@@ -392,10 +405,13 @@ sub get_element_name_as_array_aa {
         }
     }
 
+    $_el_array_cache->{$element} = $element_list_ref;
+    my $copy = [@$element_list_ref];
+
     $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
         = $element_list_ref_cache->{$element}
-        = $element_list_ref;
-    return wantarray ? @$element_list_ref : $element_list_ref;
+        = $copy;  #  work with a copy
+    return wantarray ? @$copy : $copy;
 }
 
 sub get_element_name_as_array {

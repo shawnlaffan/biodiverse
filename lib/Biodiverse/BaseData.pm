@@ -14,7 +14,7 @@ use Carp;
 #use Data::Dumper;
 use POSIX qw {fmod floor};
 use Scalar::Util qw /looks_like_number blessed/;
-use List::Util 1.45 qw /max min sum pairs uniq/;
+use List::Util 1.45 qw /max min sum pairs uniq pairmap/;
 use List::MoreUtils qw /first_index/;
 use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
@@ -1380,10 +1380,7 @@ sub add_elements_collated_simple_aa {
                 $self->add_element_simple_aa(undef, $gp, 0, $csv_object);
             }
             else {
-                foreach my $lb_count_pair (pairs %$lb_hash) {
-                    my ($lb, $count) = @$lb_count_pair;
-                    $self->add_element_simple_aa($lb, $gp, $count, $csv_object);
-                }
+                pairmap {$self->add_element_simple_aa($a, $gp, $b, $csv_object)} %$lb_hash;
             }
         }
     }
@@ -1395,10 +1392,7 @@ sub add_elements_collated_simple_aa {
                 $self->add_element_simple_aa($lb, undef, 0, $csv_object);
             }
             else {
-                foreach my $gp_count_pair (pairs %$gp_hash) {
-                    my ($gp, $count) = @$gp_count_pair;
-                    $self->add_element_simple_aa($lb, $gp, $count, $csv_object);
-                }
+                pairmap {$self->add_element_simple_aa($lb, $a, $b, $csv_object)} %$gp_hash;
             }
         }
     }

@@ -20,7 +20,7 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { time gettimeofday tv_interval };
 use Scalar::Util qw { blessed looks_like_number };
-use List::Util qw /any all none minstr max/;
+use List::Util qw /any all none minstr max pairmap/;
 use List::MoreUtils::XS;  #  paranoia to ensure we have this loaded
 use List::MoreUtils 0.425 qw /first_index uniq binsert bremove/;
 use Ref::Util qw /is_ref is_arrayref is_hashref/;
@@ -1323,16 +1323,8 @@ sub rand_csr_by_group {
         );
 
         #  get the labels from the original group and assign them to the random group
-        my %tmp = $bd->get_labels_in_group_as_hash_aa ($orig_groups[$i]);
-
-        while (my ($label, $counts) = each %tmp) {
-            $new_bd->add_element(
-                label => $label,
-                group => $rand_order->[$i],
-                count => $counts,
-                csv_object => $csv_object,
-            );
-        }
+        my $labels = $bd->get_labels_in_group_as_hash_aa ($orig_groups[$i]);
+        pairmap {$new_bd->add_element_simple_aa ($a, $rand_order->[$i], $b, $csv_object)} %$labels;
     }
 
     $bd->transfer_label_properties (

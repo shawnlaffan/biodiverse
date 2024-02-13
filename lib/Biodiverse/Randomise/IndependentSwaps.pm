@@ -120,7 +120,7 @@ sub rand_independent_swaps_modified {
     #  calculated, and their ratio can be used as estimation for
     #  the proportion of the successful trials."
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name
@@ -411,7 +411,7 @@ sub rand_independent_swaps {
     #  calculated, and their ratio can be used as estimation for
     #  the proportion of the successful trials."
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name
@@ -486,8 +486,9 @@ END_PROGRESS_TEXT
 
         my $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
         while ($label1 eq $label2) {
+            #  handle pathological case of only one group
+            last MAIN_ITER if scalar @sorted_groups == 1;
             $label2 = $sorted_labels[int $rand->rand (scalar @sorted_labels)];
-            #  need an escape here, or revert to brute force search
         }
         next MAIN_ITER if $has_max_range{$label2};
 
@@ -576,6 +577,7 @@ sub get_new_bd_from_gp_lb_hash {
     \my %gp_hash = $args{gp_hash};
     \my %empty_groups = $args{empty_group_hash};
     \my %empty_labels = $args{empty_label_hash};
+    my $transpose     = $args{transpose};
 
     #  now we populate a new basedata
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
@@ -594,14 +596,11 @@ sub get_new_bd_from_gp_lb_hash {
         quote_char => $bd->get_param('QUOTES'),
     );
 
-    foreach my $label (keys %gp_hash) {
-        \my %this_g_hash = $gp_hash{$label};
-        foreach my $group (keys %this_g_hash) {
-            $new_bd->add_element_simple_aa (
-                $label, $group, $this_g_hash{$group}, $csv,
-            );
-        }
-    }
+    #  negate the transpose arg as add_elements_collated_simple_aa
+    #  expects a different order
+    $new_bd->add_elements_collated_simple_aa (
+        \%gp_hash, $csv, 1, !$transpose
+    );
     foreach my $label (keys %empty_labels) {
         $new_bd->add_element (
             label => $label,

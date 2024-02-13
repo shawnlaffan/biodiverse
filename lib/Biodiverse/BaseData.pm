@@ -14,7 +14,7 @@ use Carp;
 #use Data::Dumper;
 use POSIX qw {fmod floor};
 use Scalar::Util qw /looks_like_number blessed/;
-use List::Util 1.45 qw /max min sum pairs uniq/;
+use List::Util 1.45 qw /max min sum pairs uniq pairmap/;
 use List::MoreUtils qw /first_index/;
 use Path::Tiny qw /path/;
 use Geo::Converter::dms2dd qw {dms2dd};
@@ -1361,26 +1361,38 @@ sub add_elements_collated {
 
 #  simplified array args version for speed
 sub add_elements_collated_simple_aa {
-    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
+    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups, $transpose ) = @_;
 
     croak "csv_object arg not passed\n"
       if !$csv_object;
 
     #  blank slate so set directly
-    return $self->_set_elements_collated_simple_aa($gp_lb_hash, $csv_object, $allow_empty_groups)
-      if (!$self->get_group_count && !$self->get_label_count);
+    return $self->_set_elements_collated_simple_aa($gp_lb_hash, $csv_object, $allow_empty_groups, $transpose)
+      if !$self->get_group_count && !$self->get_label_count;
 
     #  now add the collated data
-    foreach my $gp_lb_pair ( pairs %$gp_lb_hash ) {
-        my ( $gp, $lb_hash ) = @$gp_lb_pair;
+    #  duplicated loops to avoid conditions inside them
+    if (!$transpose) {
+        foreach my $gp_lb_pair (pairs % $gp_lb_hash) {
+            my ($gp, $lb_hash) = @$gp_lb_pair;
 
-        if ( $allow_empty_groups && !scalar %$lb_hash ) {
-            $self->add_element_simple_aa ( undef, $gp, 0, $csv_object );
+            if ($allow_empty_groups && !scalar %$lb_hash) {
+                $self->add_element_simple_aa(undef, $gp, 0, $csv_object);
+            }
+            else {
+                pairmap {$self->add_element_simple_aa($a, $gp, $b, $csv_object)} %$lb_hash;
+            }
         }
-        else {
-            foreach my $lb_count_pair ( pairs %$lb_hash ) {
-                my ( $lb, $count ) = @$lb_count_pair;
-                $self->add_element_simple_aa( $lb, $gp, $count, $csv_object );
+    }
+    else {
+        foreach my $pair (pairs % $gp_lb_hash) {
+            my ($lb, $gp_hash) = @$pair;
+
+            if ($allow_empty_groups && !scalar %$gp_hash) {
+                $self->add_element_simple_aa($lb, undef, 0, $csv_object);
+            }
+            else {
+                pairmap {$self->add_element_simple_aa($lb, $a, $b, $csv_object)} %$gp_hash;
             }
         }
     }
@@ -1391,7 +1403,7 @@ sub add_elements_collated_simple_aa {
 #  currently an internal sub as we might later take ownership of the input data
 #  using refaliasing to squeeze a bit more speed
 sub _set_elements_collated_simple_aa {
-    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups ) = @_;
+    my ( $self, $gp_lb_hash, $csv_object, $allow_empty_groups, $transpose ) = @_;
 
     croak "csv_object arg not passed\n"
         if !$csv_object;
@@ -1400,6 +1412,9 @@ sub _set_elements_collated_simple_aa {
 
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
+    if ($transpose) {
+        ($groups_ref, $labels_ref) = ($labels_ref, $groups_ref);
+    }
 
     #  now add the collated data to the groups object
     foreach \my @gp_lb_pair ( pairs %$gp_lb_hash ) {
@@ -1606,7 +1621,9 @@ sub transfer_element_properties {
     my $to_name = $to_bd->get_param('NAME');
     my $text    = "Transferring $type properties from $name to $to_name";
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(
+        no_gui_progress => $args{no_gui_progress},
+    );
     my $total_to_do  = $elements_ref->get_element_count;
     print "[BASEDATA] Transferring properties for $total_to_do $type\n";
 

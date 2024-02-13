@@ -362,21 +362,33 @@ sub get_element_hash {
 sub get_element_name_as_array_aa {
     my ($self, $element, $csv_object) = @_;
 
-    #  caching saves a little time for large data sets
-    #  but needs to be shared with a "parent" object to make a difference
-    #  e.g. a spatial object copies from a groups object
+    my $arr = $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
+    return wantarray ? @$arr : $arr
+      if $arr;
+
     state $el_list_ref_cache_name = '_ELEMENT_ARRAY_REF_CACHE';
     my $element_list_ref_cache = $self->get_cached_value_dor_set_default_href ($el_list_ref_cache_name);
 
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref_cache->{$element};
+    $arr = $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref_cache->{$element};
 
-    return wantarray
-        ? @{$element_list_ref_cache->{$element}}
-        : $element_list_ref_cache->{$element}
-        if $element_list_ref_cache->{$element};
+    return wantarray ? @$arr : $arr
+      if $arr;
+
+    #  package level cache
+    state $_el_array_cache = {};
+    my $element_list_ref = $_el_array_cache->{$element};
+
+    if ($element_list_ref) {
+        #  work with a copy of the package array but cache the copy on $self
+        my $copy = [ @$element_list_ref ];
+        $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
+            = $element_list_ref_cache->{$element}
+            = $copy;
+        return wantarray ? @$copy : $copy;
+    }
 
     my $quote_char = $self->get_param('QUOTES');
-    my $element_list_ref = $self->csv2list(
+    $element_list_ref = $self->csv2list(
         string     => $element,
         sep_char   => $self->get_param('JOIN_CHAR'),
         quote_char => $quote_char,
@@ -392,10 +404,13 @@ sub get_element_name_as_array_aa {
         }
     }
 
+    $_el_array_cache->{$element} = $element_list_ref;
+    my $copy = [@$element_list_ref];
+
     $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
         = $element_list_ref_cache->{$element}
-        = $element_list_ref;
-    return wantarray ? @$element_list_ref : $element_list_ref;
+        = $copy;  #  work with a copy
+    return wantarray ? @$copy : $copy;
 }
 
 sub get_element_name_as_array {
@@ -405,7 +420,6 @@ sub get_element_name_as_array {
     my $element = $args{element} //
       croak "element not specified\n";
     return $self->get_element_name_as_array_aa ($element, $args{csv_object});
-    # return $self->get_array_list_values_aa ($element, '_ELEMENT_ARRAY');
 }
 
 #  get a list of the unique values for one axis
@@ -631,43 +645,12 @@ sub add_element {
     my $element = $args{element} //
       croak "element not specified\n";
 
+    $self->{ELEMENTS}{$element} //= {};
+
     #  don't re-create the element array
     return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
 
     $self->get_element_name_as_array_aa ($element, $args{csv_object});
-    return;
-
-    #  caching saves a little time for large data sets
-    #  but needs to be shared with a "parent" object to make a difference
-    #  e.g. a spatial object copies from a groups object
-    state $el_list_ref_cache_name = '_ELEMENT_ARRAY_REF_CACHE';
-    my $element_list_ref_cache = $self->get_cached_value_dor_set_default_href ($el_list_ref_cache_name);
-
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref_cache->{$element};
-
-    return if $element_list_ref_cache->{$element};
-
-    my $quote_char = $self->get_param('QUOTES');
-    my $element_list_ref = $self->csv2list(
-        string     => $element,
-        sep_char   => $self->get_param('JOIN_CHAR'),
-        quote_char => $quote_char,
-        csv_object => $args{csv_object},
-    );
-
-    if (scalar @$element_list_ref == 1) {
-        $element_list_ref->[0] //= ($quote_char . $quote_char)
-    }
-    else {
-        for my $el (@$element_list_ref) {
-            $el //= $EMPTY_STRING;
-        }
-    }
-
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY}
-        = $element_list_ref_cache->{$element}
-        = $element_list_ref;
-
     return;
 }
 

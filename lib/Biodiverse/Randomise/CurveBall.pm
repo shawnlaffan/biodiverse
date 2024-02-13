@@ -87,7 +87,7 @@ sub rand_curveball {
     #  calculated, and their ratio can be used as estimation for
     #  the proportion of the successful trials."
 
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(no_gui_progress => $args{no_gui_progress});
 
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name
@@ -157,8 +157,9 @@ END_PROGRESS_TEXT
         my $group1 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
         my $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
         while ($group1 eq $group2) {
+            #  handle pathological case of only one group
+            last MAIN_ITER if scalar @sorted_groups == 1;
             $group2 = $sorted_groups[int $rand->rand (scalar @sorted_groups)];
-            #  need an escape here, or revert to brute force search
         }
 
         my \%labels1 = $lb_hash{$group1};
@@ -236,23 +237,14 @@ END_PROGRESS_TEXT
         . "[RANDOMISE]  Swapped $moved_pairs of the $non_zero_mx_cells group/label "
         . "elements at least once.\n";
 
-    #  transpose
-    my %gp_hash;
-    foreach my $gp (keys %lb_hash) {
-        foreach my $lb (keys %{$lb_hash{$gp}}) {
-            #  should not need this check, but just in case
-            next if !$lb_hash{$gp}{$lb};
-            $gp_hash{$lb}{$gp} = $lb_hash{$gp}{$lb};
-        }
-    }
-
     #  now we populate a new basedata
     my $new_bd = $self->get_new_bd_from_gp_lb_hash (
-        name => $name,
+        name             => $name,
         source_basedata  => $bd,
-        gp_hash          => \%gp_hash,
+        gp_hash          => \%lb_hash,
         empty_label_hash => \%empty_labels,
         empty_group_hash => \%empty_groups,
+        transpose        => 1,
     );
 
     # say 'Done';

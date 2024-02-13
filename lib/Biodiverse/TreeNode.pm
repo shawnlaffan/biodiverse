@@ -316,8 +316,9 @@ sub get_total_length {
 sub get_sum_of_branch_lengths_below {
     my $self = shift;
     my %args = (cache => 1, @_);
-    
-    my $sum = $self->get_cached_value ('SUM_OF_BRANCH_LENGTHS_BELOW');
+
+    state $cache_key = 'SUM_OF_BRANCH_LENGTHS_BELOW';
+    my $sum = $self->get_cached_value ($cache_key);
     
     return $sum if defined $sum;
     
@@ -326,7 +327,7 @@ sub get_sum_of_branch_lengths_below {
         $sum += $node->get_length;
     }
 
-    $self->set_cached_value (SUM_OF_BRANCH_LENGTHS_BELOW => $sum);
+    $self->set_cached_value ($cache_key => $sum);
 
     return $sum;
 }
@@ -335,8 +336,9 @@ sub get_longest_path_length_to_terminals {
     my $self = shift;
     my %args = (cache => 1, @_);
 
+    state $cache_key = 'LONGEST_PATH_LENGTH_TO_TERMINALS';
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
-        my $cached_length = $self->get_cached_value ('LONGEST_PATH_LENGTH_TO_TERMINALS');
+        my $cached_length = $self->get_cached_value ($cache_key);
         return $cached_length if defined $cached_length;
     }
 
@@ -356,7 +358,7 @@ sub get_longest_path_length_to_terminals {
     }
 
     if ($args{cache}) {
-        $self->set_cached_value (LONGEST_PATH_LENGTH_TO_TERMINALS => $max_length);
+        $self->set_cached_value ($cache_key => $max_length);
     }
 
     return $max_length;    
@@ -372,8 +374,9 @@ sub get_shortest_path_length_to_terminals {
 sub get_shortest_path_length_to_terminals_aa {
     my ($self, $no_cache) = @_;
 
+    state $cache_key = 'SHORTEST_PATH_LENGTH_TO_TERMINALS';
     if (!$no_cache) {
-        my $cached_length = $self->get_cached_value ('SHORTEST_PATH_LENGTH_TO_TERMINALS');
+        my $cached_length = $self->get_cached_value ($cache_key);
         return $cached_length if defined $cached_length;
     }
 
@@ -385,7 +388,7 @@ sub get_shortest_path_length_to_terminals_aa {
     }
 
     if (!$no_cache) {
-        $self->set_cached_value (SHORTEST_PATH_LENGTH_TO_TERMINALS => $min_length);
+        $self->set_cached_value ($cache_key => $min_length);
     }
 
     return $min_length;    
@@ -399,8 +402,9 @@ sub get_max_total_length {
     #  comment next line as we might as well cache the total length on terminals as well
     #return $self->get_total_length if $self->is_terminal_node;  # no children
 
+    state $cache_key = 'MAX_TOTAL_LENGTH';
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
-        my $cached_length = $self->get_cached_value ('MAX_TOTAL_LENGTH');
+        my $cached_length = $self->get_cached_value ($cache_key);
         return $cached_length if defined $cached_length;
     }
 
@@ -412,7 +416,7 @@ sub get_max_total_length {
     }
 
     if ($args{cache}) {
-        $self->set_cached_value (MAX_TOTAL_LENGTH => $max_length);
+        $self->set_cached_value ($cache_key => $max_length);
     }
 
     return $max_length;
@@ -426,8 +430,9 @@ sub get_length_below {
 
     #return $self->get_length if $self->is_terminal_node;  # no children
 
+    state $cache_key = 'LENGTH_BELOW';
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
-        my $cached_length = $self->get_cached_value ('LENGTH_BELOW');
+        my $cached_length = $self->get_cached_value ($cache_key);
         return $cached_length if defined $cached_length;
     }
 
@@ -443,7 +448,7 @@ sub get_length_below {
     my $length = $self->get_length + $max_length_below;
 
     if ($args{cache}) {
-        $self->set_cached_value (LENGTH_BELOW => $length);
+        $self->set_cached_value ($cache_key => $length);
     }
 
     return $length;
@@ -506,9 +511,10 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
     my $self = shift;
     my %args = (cache => 1, @_);
     return $self->get_depth if $self->is_terminal_node;  # no elements, return its depth
-    
+
+    state $cache_key = 'DEPTH_BELOW';
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
-        my $cached_value = $self->get_cached_value ('DEPTH_BELOW');
+        my $cached_value = $self->get_cached_value ($cache_key);
         return $cached_value if defined $cached_value;
     }
 
@@ -518,7 +524,7 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
         $max_depth_below = $depth_below_child if $depth_below_child > $max_depth_below;
     }
     
-    $self->set_cached_value (DEPTH_BELOW => $max_depth_below) if $args{cache};
+    $self->set_cached_value ($cache_key => $max_depth_below) if $args{cache};
     
     return $max_depth_below;
 }
@@ -761,6 +767,9 @@ sub group_nodes_below {
 
     $search_hash{$lower_value}{$upper_value}{$self->get_name} = $self;
 
+    state $cache_key_ub = 'UPPER_BOUND_LENGTH';
+    state $cache_key_lb = 'LOWER_BOUND_LENGTH';
+
   NODE_SEARCH:
     while (scalar keys %final_hash < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
@@ -778,9 +787,9 @@ sub group_nodes_below {
                         $lower_bound = $upper_bound + 1;
                     }
                     else {
-                        $upper_bound = $child->get_cached_value ('UPPER_BOUND_LENGTH');
+                        $upper_bound = $child->get_cached_value ($cache_key_ub);
                         if (defined $upper_bound) {
-                            $lower_bound = 0 + $child->get_cached_value ('LOWER_BOUND_LENGTH');
+                            $lower_bound = 0 + $child->get_cached_value ($cache_key_lb);
                         }
                         else {
                             my $length       = $child->get_length;
@@ -796,8 +805,8 @@ sub group_nodes_below {
                                 $upper_bound = $length_below;
                                 $lower_bound = $length_below - $length;
                             }
-                            $child->set_cached_value (UPPER_BOUND_LENGTH => $upper_bound);
-                            $child->set_cached_value (LOWER_BOUND_LENGTH => $lower_bound);
+                            $child->set_cached_value ($cache_key_ub => $upper_bound);
+                            $child->set_cached_value ($cache_key_lb => $lower_bound);
 
                             #  swap them if they are inverted (eg for depth)
                             if ($upper_bound < $lower_bound) {
@@ -971,9 +980,10 @@ sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
 
+    state $cache_key = 'TERMINAL_ELEMENTS';
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $cache_ref = $self->get_cached_value ('TERMINAL_ELEMENTS');
+        my $cache_ref = $self->get_cached_value ($cache_key);
 
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
@@ -994,7 +1004,7 @@ sub get_terminal_elements {
 
     #  the values are really a hash, and need to be coerced into one when used
     if ($args{cache}) {
-        $self->set_cached_value (TERMINAL_ELEMENTS => \%list);
+        $self->set_cached_value ($cache_key => \%list);
     }
 
     return wantarray ? %list : \%list;
@@ -1012,9 +1022,10 @@ sub get_all_named_descendants {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
 
+    state $cache_key = 'NAMED_DESCENDANTS';
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $cache_ref = $self->get_cached_value ('NAMED_DESCENDANTS');
+        my $cache_ref = $self->get_cached_value ($cache_key);
 
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
@@ -1043,7 +1054,7 @@ sub get_all_named_descendants {
         foreach my $node_ref (grep {!isweak ($_)} values %list) {
             weaken $node_ref;
         }
-        $self->set_cached_value (NAMED_DESCENDANTS => \%list);
+        $self->set_cached_value ($cache_key => \%list);
     }
 
     return wantarray ? %list : \%list;
@@ -1099,9 +1110,11 @@ sub get_all_descendants {
         return wantarray ? () : {};  #  empty hash by default
     }
 
+    state $cache_key = 'DESCENDENTS';
+
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $cached_hash = $self->get_cached_value('DESCENDENTS');
+        my $cached_hash = $self->get_cached_value($cache_key);
         if ($cached_hash) {  # return copies to avoid later pollution
             return wantarray ? %$cached_hash : {%$cached_hash};
         }
@@ -1117,7 +1130,7 @@ sub get_all_descendants {
     }
 
     if ($args{cache}) {
-        $self->set_cached_value(DESCENDENTS => \%list);
+        $self->set_cached_value($cache_key => \%list);
     }
 
     #  make sure we return copies to avoid pollution by other subs
@@ -1136,12 +1149,13 @@ sub get_names_of_all_descendants {
     #  empty hash by default
     return wantarray ? () : {} if ($self->is_terminal_node);
 
+    state $cache_key = 'DESCENDANT_NAMES';
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $cached_hash = $self->get_cached_value('DESCENDANT_NAMES');
-        if ($cached_hash) {  # return copies to avoid any later pollution
-            return wantarray ? %$cached_hash : {%$cached_hash};
-        }
+        my $cached_hash = $self->get_cached_value($cache_key);
+        # return copies to avoid any later pollution
+        return wantarray ? %$cached_hash : {%$cached_hash}
+          if $cached_hash;
     }
 
     my @a_list;
@@ -1157,7 +1171,7 @@ sub get_names_of_all_descendants {
     }
 
     if ($args{cache}) {
-        $self->set_cached_value(DESCENDANT_NAMES => \%list);
+        $self->set_cached_value($cache_key => \%list);
     }
 
     #  make sure we return copies to avoid pollution by other subs
@@ -1176,10 +1190,12 @@ sub get_path_to_root_node {
     #my $use_cache = 1; # - override
     my $use_cache = $args{cache};
 
+    state $cache_key = 'PATH_TO_ROOT_NODE';
+
     my $path;
 
     if ($use_cache) {
-        $path = $self->get_cached_value('PATH_TO_ROOT_NODE');
+        $path = $self->get_cached_value($cache_key);
         #print ("using cache for " . $self->get_name . "\n") if $path;
         return wantarray ? @$path : $path
           if $path;
@@ -1195,7 +1211,7 @@ sub get_path_to_root_node {
     }
 
     if ($use_cache) {
-        $self->set_cached_value (PATH_TO_ROOT_NODE => $path);
+        $self->set_cached_value ($cache_key => $path);
     }
 
     return wantarray ? @$path : $path;
@@ -1207,8 +1223,10 @@ sub get_path_lengths_to_root_node {
 
     my $use_cache = $args{cache};  #  cache internals
 
+    state $cache_key = 'PATH_LENGTHS_TO_ROOT_NODE';
+
     if ($use_cache) {
-        my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
+        my $path = $self->get_cached_value($cache_key);
         return (wantarray ? %$path : $path) if $path;
     }
 
@@ -1222,7 +1240,7 @@ sub get_path_lengths_to_root_node {
     }
 
     if ($use_cache) {
-        $self->set_cached_value (PATH_LENGTHS_TO_ROOT_NODE => \%path_lengths);
+        $self->set_cached_value ($cache_key => \%path_lengths);
     }
 
     return wantarray ? %path_lengths : \%path_lengths;
@@ -1233,8 +1251,9 @@ sub get_path_lengths_to_root_node {
 sub get_path_lengths_to_root_node_aa {
     my ($self, $no_cache) = @_;
 
+    state $cache_key = 'PATH_LENGTHS_TO_ROOT_NODE';
     if (!$no_cache) {
-        my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
+        my $path = $self->get_cached_value($cache_key);
         return (wantarray ? %$path : $path) if $path;
     }
 
@@ -1248,7 +1267,7 @@ sub get_path_lengths_to_root_node_aa {
     }
 
     if (!$no_cache) {
-        $self->set_cached_value (PATH_LENGTHS_TO_ROOT_NODE => \%path_lengths);
+        $self->set_cached_value ($cache_key => \%path_lengths);
     }
 
     return wantarray ? %path_lengths : \%path_lengths;
@@ -1264,8 +1283,9 @@ sub get_path_length_array_to_root_node {
 sub get_path_length_array_to_root_node_aa {
     my ($self, $no_cache) = @_;
 
+    state $cache_key = 'PATH_LENGTH_ARRAY_TO_ROOT_NODE';
     if (!$no_cache) {
-        my $path = $self->get_cached_value('PATH_LENGTH_ARRAY_TO_ROOT_NODE');
+        my $path = $self->get_cached_value($cache_key);
         return (wantarray ? @$path : $path) if $path;
     }
 
@@ -1277,7 +1297,7 @@ sub get_path_length_array_to_root_node_aa {
     }
 
     if (!$no_cache) {
-        $self->set_cached_value (PATH_LENGTH_ARRAY_TO_ROOT_NODE => \@path_lengths);
+        $self->set_cached_value ($cache_key => \@path_lengths);
     }
 
     return wantarray ? @path_lengths : \@path_lengths;
@@ -1292,8 +1312,9 @@ sub get_path_name_array_to_root_node {
 sub get_path_name_array_to_root_node_aa {
     my ($self, $no_cache) = @_;
 
+    state $cache_name = 'PATH_NAME_ARRAY_TO_ROOT_NODE';
     if (!$no_cache) {
-        my $path = $self->get_cached_value('PATH_NAME_ARRAY_TO_ROOT_NODE');
+        my $path = $self->get_cached_value($cache_name);
         return (wantarray ? @$path : $path) if $path;
     }
 
@@ -1305,7 +1326,7 @@ sub get_path_name_array_to_root_node_aa {
     }
 
     if (!$no_cache) {
-        $self->set_cached_value (PATH_LENGTH_NAME_TO_ROOT_NODE => \@path);
+        $self->set_cached_value ($cache_name => \@path);
     }
 
     return wantarray ? @path : \@path;

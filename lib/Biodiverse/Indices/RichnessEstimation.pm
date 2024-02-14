@@ -682,19 +682,23 @@ sub _get_ice_variance {
         : '_get_ice_differential';
 
     #  work through the differentials and covariances
-    my %diff;
+    my @diff;
     my $var = 0;
 
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
-    foreach my $i (@sorted) {
-        $diff{$i} = $self->$diff_method (%args, f => $i);
+    #  could use builtin::indexed here
+    foreach my $i (0..$#sorted) {
+        my $v1 = $sorted[$i];
+        $diff[$i] = $self->$diff_method (%args, f => $v1);
         my $cov;
-        foreach my $j (@sorted) {
-            $cov = $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-            last if $i == $j;
-            $var += 2 * $diff{$i} * $diff{$j} * $cov;
+        foreach my $j (0..$i-1) {
+            my $v2 = $sorted[$j];
+            $cov = $self->_get_ace_ice_cov (%args, i => $v1, j => $v2);
+            $var += 2 * $diff[$i] * $diff[$j] * $cov;
         }
-        $var += ($diff{$i} ** 2) * $cov;
+        #  now the $i with $i case
+        $cov = $self->_get_ace_ice_cov (%args, i => $v1, j => $v1);
+        $var += ($diff[$i] ** 2) * $cov;
     }
 
     $var ||= undef;

@@ -6,13 +6,14 @@ use ExtUtils::MakeMaker;
 #  these are from the cpanfile
 #  need to look at https://metacpan.org/pod/ExtUtils::MakeMaker::CPANfile
 my %common_reqs = (
-    "Class::Inspector" => 0,
-    "Clone" => "0.35",
-    "Cpanel::JSON::XS" => "3",
+    "Class::Inspector"      => 0,
+    "Clone"                 => "0.35",
+    "Cpanel::JSON::XS"      => "3",
     "Data::Structure::Util" => 0,
-    "Data::Compare" => 0,
-    "Exception::Class" => 0,
-    "Exporter::Easy" => 0,
+    "Data::Compare"         => 0,
+    "Exception::Class"      => 0,
+    "Exporter::Easy"        => 0,
+    "Faster::Maths"         => 0,
     "File::BOM" => 0,
     "File::Find::Rule" => 0,
     "Geo::Converter::dms2dd" => "0.05",

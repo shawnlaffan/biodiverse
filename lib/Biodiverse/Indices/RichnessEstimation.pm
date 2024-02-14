@@ -662,38 +662,13 @@ sub calc_ice {
     return wantarray ? %results : \%results;
 }
 
-#  almost identical to _get_ice_variance but integrating the two 
-#  would prob result in more complex code
+#  almost identical to _get_ice_variance so we are just a wrapper
+#  that calls a different internal method
 sub _get_ace_variance {
     my $self = shift;
     my %args = @_;
 
-    my $freq_counts = $args{freq_counts};
-
-    #  precalculate the differentials and covariances
-    my (%diff, %cov);
-    my @sorted = sort {$a <=> $b} keys %$freq_counts;
-    foreach my $i (@sorted) {
-        $diff{$i} = $self->_get_ace_differential (%args, f => $i);
-        foreach my $j (@sorted) {
-            $cov{$i}{$j}
-              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-            last if $i == $j;
-        }
-    }
-
-    my $var_ace = 0;
-    foreach my $i (@sorted) {
-        foreach my $j (@sorted) {
-            last if $i == $j;
-            $var_ace += 2 * $diff{$i} * $diff{$j} * $cov{$i}{$j};
-        }
-        $var_ace += ($diff{$i} ** 2) * $cov{$i}{$i};
-    }
-
-    $var_ace ||= undef;
-
-    return $var_ace;
+    return $self->_get_ice_variance(%args, for_ace => 1);
 }
 
 sub _get_ice_variance {
@@ -702,13 +677,17 @@ sub _get_ice_variance {
 
     my $freq_counts = $args{freq_counts};
 
-    #  precalculate the differentials and covariances
-    my (%diff, %cov);
+    my $diff_method = $args{for_ace}
+        ? '_get_ace_differential'
+        : '_get_ice_differential';
+
+    #  work through the differentials and covariances
+    my %diff;
     my $var = 0;
 
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
     foreach my $i (@sorted) {
-        $diff{$i} = $self->_get_ice_differential (%args, f => $i);
+        $diff{$i} = $self->$diff_method (%args, f => $i);
         my $cov;
         foreach my $j (@sorted) {
             $cov = $self->_get_ace_ice_cov (%args, i => $i, j => $j);

@@ -686,6 +686,7 @@ sub _get_ice_variance {
     my $var = 0;
 
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
+    my %cov_args = %args{qw/freq_counts s_estimate/};
     #  could use builtin::indexed here
     foreach my $i (0..$#sorted) {
         my $v1 = $sorted[$i];
@@ -693,11 +694,11 @@ sub _get_ice_variance {
         my $cov;
         foreach my $j (0..$i-1) {
             my $v2 = $sorted[$j];
-            $cov = $self->_get_ace_ice_cov (%args, i => $v1, j => $v2);
+            $cov = $self->_get_ace_ice_cov (%cov_args, i => $v1, j => $v2);
             $var += 2 * $diff[$i] * $diff[$j] * $cov;
         }
         #  now the $i with $i case
-        $cov = $self->_get_ace_ice_cov (%args, i => $v1, j => $v1);
+        $cov = $self->_get_ace_ice_cov (%cov_args, i => $v1, j => $v1);
         $var += ($diff[$i] ** 2) * $cov;
     }
 
@@ -708,9 +709,8 @@ sub _get_ice_variance {
 
 #  common to ACE and ICE
 sub _get_ace_ice_cov {
-    my ($self, %args) = @_;
-    my ($i, $j, $s_ice) = @args{qw/i j s_estimate/};
-    my $Q = $args{freq_counts};
+    my (undef, %args) = @_;
+    my ($i, $j, $s_ice, $Q) = @args{qw/i j s_estimate freq_counts/};
 
     return $i == $j
       ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
@@ -855,31 +855,30 @@ sub _get_ace_differential {
 
     my $cv_rare_h   = $args{cv};
     my $n_rare      = $args{n_rare};
-    my $c_rare      = $args{C_rare};  #  get from gamma calcs
+    # my $c_rare      = $args{C_rare};  #  get from gamma calcs
     my $D_rare      = $args{S_rare};  #  richness of labels with sample counts < $k
-    my $F           = $args{freq_counts};
-    my $t           = $args{t};
-
-    my @u = (1..$k);
+    \my %F          = $args{freq_counts};
+    # my $t           = $args{t};
 
     my $si;
     {
         no Faster::Maths;
         $n_rare //=
             sum
-            map $_ * $F->{$_},
+            map  $_ * $F{$_},
             grep $_ <= $k,
-            keys %$F;
+            keys %F;
 
-        $si = sum map(($_ * ($_ - 1) * ($F->{$_} // 0)), @u);
+        # my @u = (1..$k);  #  no need to iterate over 1
+        $si = sum map(($_ * ($_ - 1) * ($F{$_} // 0)), 2..$k);
     }
-    my $f1 = $F->{1};
+    my $f1 = $F{1};
     my $d;
 
     if ($cv_rare_h != 0) {
         if ($f == 1) {
             $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-                 / (1 - $f1/$n_rare)**2
+                 / (1 - $f1 / $n_rare)**2
                 +
                 (
                  (1 - $f1/$n_rare)**2 * $n_rare * ($n_rare - 1)
@@ -909,7 +908,7 @@ sub _get_ace_differential {
                          + (1 - $f1 / $n_rare)**2 * $n_rare * $f
                         )
                     )
-                  / (1 - $f1/$n_rare)**4 / ($n_rare)**2 / ($n_rare - 1)**2
+                  / (1 - $f1/ $n_rare)**4 / ($n_rare)**2 / ($n_rare - 1)**2
                   + ($f * $f1**2 / $n_rare**2)
                   / (1 - $f1 / $n_rare)**2;
         }

@@ -745,10 +745,8 @@ sub _get_ice_differential {
     my $n_infreq    = $args{n_rare};
     my $C_infreq    = $args{C_rare};  #  get from gamma calcs
     my $D_infreq    = $args{S_rare};  #  richness of labels with sample counts < $k
-    my $Q           = $args{f_rare};
+    \my %Q          = $args{f_rare};
     my $t           = $args{t};
-
-    my @u = (1..$k);
 
     my $si;
 
@@ -760,9 +758,13 @@ sub _get_ice_differential {
             grep $_ < $k,
             keys %$freq_counts;
 
-        $si = sum map(($_ * ($_ - 1) * ($Q->{$_} // 0)), @u);
+        $si =
+            sum
+            map { $_ * ($_ - 1) * $Q{$_} }
+            grep {$Q{$_}}
+            2..$k;
     }
-    my ($Q1, $Q2) = @$Q{1,2};
+    my ($Q1, $Q2) = @Q{1,2};
     $Q1 //= 0;
     $Q2 //= 0;
 
@@ -877,12 +879,16 @@ sub _get_ace_differential {
         no Faster::Maths;
         $n_rare //=
             sum
-            map  $_ * $F{$_},
-            grep $_ <= $k,
+            map {$_ * $F{$_}}
+            grep {$_ <= $k}
             keys %F;
 
-        # my @u = (1..$k);  #  no need to iterate over 1
-        $si = sum map(($_ * ($_ - 1) * ($F{$_} // 0)), 2..$k);
+        #  no need to iterate over 1
+        $si =
+            sum
+            map {$_ * ($_ - 1) * $F{$_}}
+            grep {$F{$_}}
+            2..$k;
     }
     my $f1 = $F{1};
     my $d;

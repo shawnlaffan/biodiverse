@@ -686,7 +686,6 @@ sub _get_ice_variance {
     my $var = 0;
 
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
-    my %cov_args = %args{qw/freq_counts s_estimate/};
     #  could use builtin::indexed here
     foreach my $i (0..$#sorted) {
         my $v1 = $sorted[$i];
@@ -694,11 +693,16 @@ sub _get_ice_variance {
         my $cov;
         foreach my $j (0..$i-1) {
             my $v2 = $sorted[$j];
-            $cov = $self->_get_ace_ice_cov (%cov_args, i => $v1, j => $v2);
+            $cov = $self->_get_ace_ice_cov_aa (
+                $v1, $v2, $args{s_estimate}, $freq_counts
+            );
             $var += 2 * $diff[$i] * $diff[$j] * $cov;
         }
         #  now the $i with $i case
-        $cov = $self->_get_ace_ice_cov (%cov_args, i => $v1, j => $v1);
+        $cov = $self->_get_ace_ice_cov_aa (
+            $v1, $v1, $args{s_estimate}, $freq_counts
+        );
+
         $var += ($diff[$i] ** 2) * $cov;
     }
 
@@ -713,8 +717,16 @@ sub _get_ace_ice_cov {
     my ($i, $j, $s_ice, $Q) = @args{qw/i j s_estimate freq_counts/};
 
     return $i == $j
-      ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
-      : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
+        ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
+        : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
+}
+
+sub _get_ace_ice_cov_aa {
+    my (undef, $i, $j, $s_ice, $Q) = @_;
+
+    return $i == $j
+        ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
+        : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
 }
 
 

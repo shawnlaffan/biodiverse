@@ -1518,7 +1518,6 @@ sub get_metadata_calc_nonempty_elements_used {
         name            => 'Non-empty element counts',
         description     => "Counts of non-empty elements in neighbour sets 1 and 2.\n",
         type            => 'Lists and Counts',
-        pre_calc        => 'calc_abc',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices         => {
             EL_COUNT_NONEMPTY_SET1 => {
@@ -1548,24 +1547,17 @@ sub calc_nonempty_elements_used {
     #  should run a precalc_gobal to check if the
     #  basedata has empty groups as then we can shortcut
     my $bd   = $self->get_basedata_ref;
-    my $list = $args{element_list_all};
 
-    my %nonempty;
-    foreach my $gp (@$list) {
-        my $ref = $bd->get_labels_in_group_as_hash (group => $gp);
-        next if !scalar keys %$ref;
-        $nonempty{$gp}++;
-    }
-    my $non_empty_all  = scalar keys %nonempty;
-    my $non_empty_set1 = grep {exists $nonempty{$_}} keys %{$args{element_list1} // {}};
-    my $non_empty_set2 = $args{element_list2}
-        ? grep {exists $nonempty{$_}} keys %{$args{element_list2}}
+    my $non_empty_set1 = grep {$bd->get_richness_aa($_)} @{$args{element_list1} // []};
+    my $non_empty_set2
+        = $args{element_list2}
+        ? grep {$bd->get_richness_aa($_)} @{$args{element_list2}}
         : undef;
 
     my %results = (
         EL_COUNT_NONEMPTY_SET1 => $non_empty_set1,
         EL_COUNT_NONEMPTY_SET2 => $non_empty_set2,
-        EL_COUNT_NONEMPTY_ALL  => $non_empty_all,
+        EL_COUNT_NONEMPTY_ALL  => $non_empty_set1 + ($non_empty_set2 // 0),
     );
 
     return wantarray ? %results : \%results;

@@ -704,29 +704,23 @@ sub _get_ice_variance {
 
     #  precalculate the differentials and covariances
     my (%diff, %cov);
+    my $var = 0;
+
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
     foreach my $i (@sorted) {
         $diff{$i} = $self->_get_ice_differential (%args, f => $i);
+        my $cov;
         foreach my $j (@sorted) {
-            $cov{$i}{$j}
-              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
+            $cov = $self->_get_ace_ice_cov (%args, i => $i, j => $j);
             last if $i == $j;
+            $var += 2 * $diff{$i} * $diff{$j} * $cov;
         }
+        $var += ($diff{$i} ** 2) * $cov;
     }
 
-    #  should fold this into the loop above
-    my $var_ice = 0;
-    foreach my $i (@sorted) {
-        foreach my $j (@sorted) {
-            last if $i == $j;
-            $var_ice += 2 * $diff{$i} * $diff{$j} * $cov{$i}{$j};
-        }
-        $var_ice += ($diff{$i} ** 2) * $cov{$i}{$i};
-    }
+    $var ||= undef;
 
-    $var_ice ||= undef;
-
-    return $var_ice;
+    return $var;
 }
 
 #  common to ACE and ICE

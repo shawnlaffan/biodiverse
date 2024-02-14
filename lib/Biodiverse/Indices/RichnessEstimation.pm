@@ -9,6 +9,12 @@ use Carp;
 use List::Util qw /max min sum/;
 use experimental qw /refaliasing/;
 
+#  segfaults wherever there is a while-each, map or postfix values loop,
+#  and possibly other conditions.  These are all localised inside blocks
+#  where it is lexically disabled.
+#  see https://rt.cpan.org/Public/Dist/Display.html?Name=Faster-Maths
+use Faster::Maths;
+
 our $VERSION = '4.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
@@ -116,7 +122,7 @@ sub calc_chao1 {
     $chao_partial *= $cn1;
 
     my $chao = $richness + $chao_partial;
-    
+
     if ($variance_uses_eq7) {
         $variance = $cn1 * ($f1 * ($f1 - 1)) / 2
                   + $cn2 *  $f1 * (2 * $f1 - 1)**2 / 4
@@ -125,15 +131,17 @@ sub calc_chao1 {
     }
     elsif ($variance_uses_eq8) {
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ for values %$label_hash;
         }
+
         my ($part1, $part2);
         foreach my $i (keys %sums) {
             my $f = $sums{$i};
             #say "$i $f";
             $part1 += $f * (exp (-$i) - exp (-2 * $i));
-            $part2 += $i * exp (-$i) * $f;
+            $part2 += $i *  exp (-$i) * $f;
         }
         $variance = $n ? $part1 - $part2 ** 2 / $n : 0;
         $chao_formula = 0;
@@ -283,11 +291,13 @@ sub calc_chao2 {
     }
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ for values %$label_hash;
         }
         my ($part1, $part2);
-        while (my ($i, $Q) = each %sums) {
+        foreach my $i (keys %sums) {
+            my $Q = $sums{$i};
             $part1 += $Q * (exp (-$i) - exp (-2 * $i));
             $part2 += $i *  exp (-$i) * $Q;
         }
@@ -336,7 +346,7 @@ sub calc_chao2 {
 sub _calc_chao_confidence_intervals {
     my $self = shift;
     my %args = @_;
-    
+
     my $f1 = $args{F1};
     my $f2 = $args{F2};
     my $chao     = $args{chao_score};
@@ -359,13 +369,14 @@ sub _calc_chao_confidence_intervals {
     else {
         my $P = 0;
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ foreach values %$label_hash;
         }
         #  set CIs to undefined if we only have singletons/uniques
         if ($richness && ! (scalar keys %sums == 1 && exists $sums{1})) {
-            while (my ($f, $count) = each %sums) {
-                $P += $count * exp (-$f);
+            foreach my $f (keys %sums) {
+                $P += $sums{$f} * exp (-$f);
             }
             $P /= $richness;
             my $part1 = $richness / (1 - $P);
@@ -666,19 +677,18 @@ sub _get_ace_variance {
         $diff{$i} = $self->_get_ace_differential (%args, f => $i);
         foreach my $j (@sorted) {
             $cov{$i}{$j}
-              //= $cov{$j}{$i}
               //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
             last if $i == $j;
         }
     }
 
     my $var_ace = 0;
-    foreach my $i (keys %$freq_counts) {
-        foreach my $j (keys %$freq_counts) {
-            my $partial
-                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
-            $var_ace += $partial;
+    foreach my $i (@sorted) {
+        foreach my $j (@sorted) {
+            last if $i == $j;
+            $var_ace += 2 * $diff{$i} * $diff{$j} * $cov{$i}{$j};
         }
+        $var_ace += ($diff{$i} ** 2) * $cov{$i}{$i};
     }
 
     $var_ace ||= undef;
@@ -699,19 +709,19 @@ sub _get_ice_variance {
         $diff{$i} = $self->_get_ice_differential (%args, f => $i);
         foreach my $j (@sorted) {
             $cov{$i}{$j}
-              //= $cov{$j}{$i}
               //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
             last if $i == $j;
         }
     }
 
+    #  should fold this into the loop above
     my $var_ice = 0;
-    foreach my $i (keys %$freq_counts) {
-        foreach my $j (keys %$freq_counts) {
-            my $partial
-                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
-            $var_ice += $partial;
+    foreach my $i (@sorted) {
+        foreach my $j (@sorted) {
+            last if $i == $j;
+            $var_ice += 2 * $diff{$i} * $diff{$j} * $cov{$i}{$j};
         }
+        $var_ice += ($diff{$i} ** 2) * $cov{$i}{$i};
     }
 
     $var_ice ||= undef;
@@ -751,14 +761,18 @@ sub _get_ice_differential {
 
     my @u = (1..$k);
 
-    $n_infreq //=
-        sum
-        map  $_ * $freq_counts->{$_},
-        grep $_ < $k,
-        keys %$freq_counts;
+    my $si;
 
-    my $si = sum map (($_ * ($_-1) * ($Q->{$_} // 0)), @u);
+    {
+        no Faster::Maths;
+        $n_infreq //=
+            sum
+            map $_ * $freq_counts->{$_},
+            grep $_ < $k,
+            keys %$freq_counts;
 
+        $si = sum map(($_ * ($_ - 1) * ($Q->{$_} // 0)), @u);
+    }
     my ($Q1, $Q2) = @$Q{1,2};
     $Q1 //= 0;
     $Q2 //= 0;
@@ -871,14 +885,17 @@ sub _get_ace_differential {
 
     my @u = (1..$k);
 
-    $n_rare //=
-        sum
-        map  $_ * $F->{$_},
-        grep $_ <= $k,
-        keys %$F;
+    my $si;
+    {
+        no Faster::Maths;
+        $n_rare //=
+            sum
+            map $_ * $F->{$_},
+            grep $_ <= $k,
+            keys %$F;
 
-    my $si = sum map (($_ * ($_-1) * ($F->{$_} // 0)), @u);
-
+        $si = sum map(($_ * ($_ - 1) * ($F->{$_} // 0)), @u);
+    }
     my $f1 = $F->{1};
     my $d;
 
@@ -1006,7 +1023,10 @@ sub calc_hurlbert_es {
     my $label_hash = $args{label_hash_all};
 
     my $N;
-    $N += $_ for values %$label_hash;
+    {
+        no Faster::Maths;
+        $N += $_ for values %$label_hash;
+    }
 
     \my @lgamma_arr = $self->_get_lgamma_arr (max_n => $N);
 

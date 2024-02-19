@@ -895,20 +895,21 @@ sub _get_ace_differential {
 
     my $cov_est = 1 - $f1 / $n_rare;  #  coverage estimate
     if ($cv_rare_h != 0) {
+        my $n_rare_1 = $n_rare - 1;
         if ($f == 1) {
             $d = ($cov_est + $D_rare * ($n_rare - $f1) / $n_rare**2)
                  / $cov_est**2
                 +
                 (
-                 $cov_est**2 * $n_rare * ($n_rare - 1)
+                 $cov_est**2 * $n_rare * $n_rare_1
                    * ($D_rare * $si + $f1 * $si)
                    - $f1 * $D_rare * $si
                    * (-2 * $cov_est * ($n_rare - $f1) / $n_rare**2
-                      * $n_rare * ($n_rare - 1)
+                      * $n_rare * $n_rare_1
                       + $cov_est**2 * (2*$n_rare - 1)
                      )
                 )
-                / $cov_est**4 / $n_rare**2 / ($n_rare - 1)**2
+                / $cov_est**4 / $n_rare**2 / $n_rare_1**2
                   - ($cov_est + $f1 * ($n_rare - $f1)
                      / $n_rare**2)
                   / $cov_est**2;
@@ -918,16 +919,16 @@ sub _get_ace_differential {
                      / $cov_est**2
                   + (
                      $cov_est**2
-                      * $n_rare * ($n_rare - 1) * $f1 *
+                      * $n_rare * $n_rare_1 * $f1 *
                       ($si + $D_rare * $f * ($f - 1))
                       - $f1 * $D_rare * $si *
                         (2 * $cov_est * $f1 * $f / $n_rare**2
-                         * $n_rare * ($n_rare - 1)
-                         + $cov_est**2 * $f * ($n_rare - 1)
+                         * $n_rare * $n_rare_1
+                         + $cov_est**2 * $f * $n_rare_1
                          + $cov_est**2 * $n_rare * $f
                         )
                     )
-                  / $cov_est**4 / $n_rare**2 / ($n_rare - 1)**2
+                  / $cov_est**4 / $n_rare**2 / $n_rare_1**2
                   + ($f * $f1**2 / $n_rare**2)
                   / $cov_est**2;
         }

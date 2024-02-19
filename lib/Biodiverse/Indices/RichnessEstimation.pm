@@ -770,17 +770,19 @@ sub _get_ice_differential {
 
     my ($d, $dc_infreq);
 
+    my $t_1 = $t - 1;  #  used many times below
+
     if ($CV_infreq_h != 0) {
         if ($q == 1) {
             $dc_infreq =
               -1 * (
-                    $n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
-                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                    $n_infreq * ($t_1 * $Q1 + 2 * $Q2) * 2 * $Q1 * $t_1
+                 - $t_1 * $Q1**2 * ($t_1 * ($Q1 + $n_infreq) + 2 * $Q2)
                  )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2)) ** 2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2)) ** 2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq ** 2
-                + $t / ($t - 1)
+                + $t / $t_1
                   * ($C_infreq**2*$n_infreq*($n_infreq - 1)
                         * ($D_infreq * $si + $Q1 * $si)
                         - $Q1 * $D_infreq * $si *
@@ -796,15 +798,15 @@ sub _get_ice_differential {
         }
         elsif ($q == 2){
             $dc_infreq
-              = -( -($t - 1) * $Q1**2 *
-                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+              = -( -$t_1 * $Q1**2 *
+                  (2 * $t_1 * $Q1 + 2 * ($n_infreq + 2 * $Q2))
                 )
                 /
-                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+                ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq)
                 / $C_infreq**2
-              + $t / ($t - 1)
+              + $t / $t_1
               * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + 2 * $D_infreq) - $Q1 * $D_infreq * $si *
                              (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1) + $C_infreq**2 * 2 * ($n_infreq - 1) + $C_infreq**2 * $n_infreq * 2)
                 )
@@ -813,11 +815,11 @@ sub _get_ice_differential {
         }
         else {
             $dc_infreq =
-              - ( - ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              - ( - $t_1 * $Q1**2 * ($t_1 * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2
-              + $t/($t - 1)
+              + $t/$t_1
               * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + $q * ($q - 1) * $D_infreq) - $Q1 * $D_infreq * $si
                 * (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1)
                    + $C_infreq**2 * $q * ($n_infreq - 1)
@@ -832,24 +834,24 @@ sub _get_ice_differential {
         if ($q == 1) {
             $dc_infreq
               = -1 *
-                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
-                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                ($n_infreq * ($t_1 * $Q1 + 2 * $Q2) * 2 * $Q1 * $t_1
+                 - $t_1 * $Q1**2 * ($t_1 * ($Q1 + $n_infreq) + 2 * $Q2)
                 )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         elsif ($q == 2) {
             $dc_infreq
               = -1 *
-                ( -1 * ($t - 1) * $Q1**2 *
-                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+                ( -1 * $t_1 * $Q1**2 *
+                  (2 * $t_1 * $Q1 + 2 * ($n_infreq + 2 * $Q2))
                 )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         else {
             $dc_infreq
              =  -1 *
-                ( -1 * ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+                ( -1 * $t_1 * $Q1**2 * ($t_1 * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2;
     }

@@ -893,52 +893,53 @@ sub _get_ace_differential {
     my $f1 = $F{1};
     my $d;
 
+    my $cov_est = 1 - $f1 / $n_rare;  #  coverage estimate
     if ($cv_rare_h != 0) {
         if ($f == 1) {
-            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-                 / (1 - $f1 / $n_rare)**2
+            $d = ($cov_est + $D_rare * ($n_rare - $f1) / $n_rare**2)
+                 / $cov_est**2
                 +
                 (
-                 (1 - $f1/$n_rare)**2 * $n_rare * ($n_rare - 1)
+                 $cov_est**2 * $n_rare * ($n_rare - 1)
                    * ($D_rare * $si + $f1 * $si)
                    - $f1 * $D_rare * $si
-                   * (-2 * (1 - $f1 / $n_rare) * ($n_rare - $f1) / $n_rare**2
+                   * (-2 * $cov_est * ($n_rare - $f1) / $n_rare**2
                       * $n_rare * ($n_rare - 1)
-                      + (1 - $f1/$n_rare)**2*(2*$n_rare - 1)
+                      + $cov_est**2 * (2*$n_rare - 1)
                      )
                 )
-                / (1 - $f1/$n_rare)**4 / $n_rare**2 / ($n_rare - 1)**2
-                  - (1 - $f1 / $n_rare + $f1 * ($n_rare - $f1)
+                / $cov_est**4 / $n_rare**2 / ($n_rare - 1)**2
+                  - ($cov_est + $f1 * ($n_rare - $f1)
                      / $n_rare**2)
-                  / (1 - $f1 / $n_rare)**2;
+                  / $cov_est**2;
         }
         else {
-            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
-                     / (1 - $f1 / $n_rare)**2
+            $d = ($cov_est - $D_rare * $f * $f1 / $n_rare**2)
+                     / $cov_est**2
                   + (
-                     (1 - $f1 / $n_rare)**2
+                     $cov_est**2
                       * $n_rare * ($n_rare - 1) * $f1 *
                       ($si + $D_rare * $f * ($f - 1))
                       - $f1 * $D_rare * $si *
-                        (2 * (1 - $f1 / $n_rare) * $f1 * $f / $n_rare**2
+                        (2 * $cov_est * $f1 * $f / $n_rare**2
                          * $n_rare * ($n_rare - 1)
-                         + (1 - $f1 / $n_rare)**2 * $f * ($n_rare - 1)
-                         + (1 - $f1 / $n_rare)**2 * $n_rare * $f
+                         + $cov_est**2 * $f * ($n_rare - 1)
+                         + $cov_est**2 * $n_rare * $f
                         )
                     )
-                  / (1 - $f1/ $n_rare)**4 / ($n_rare)**2 / ($n_rare - 1)**2
+                  / $cov_est**4 / $n_rare**2 / ($n_rare - 1)**2
                   + ($f * $f1**2 / $n_rare**2)
-                  / (1 - $f1 / $n_rare)**2;
+                  / $cov_est**2;
         }
     }
     else {
         if ($f == 1) {
-            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2;
+            $d = ($cov_est + $D_rare * ($n_rare - $f1) / $n_rare**2)
+               / $cov_est**2;
         }
         else {
-            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2;
+            $d = ($cov_est - $D_rare * $f * $f1 / $n_rare**2)
+               / $cov_est**2;
         }
     }
 

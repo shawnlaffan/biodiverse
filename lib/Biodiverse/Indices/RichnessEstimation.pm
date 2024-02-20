@@ -22,9 +22,7 @@ our $VERSION = '4.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
-use Readonly;
-
-Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
+my $z_for_ci = 1.959964;  #  currently hard coded for 0.95
 
 
 

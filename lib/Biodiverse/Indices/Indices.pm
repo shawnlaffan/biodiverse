@@ -87,14 +87,13 @@ sub calc_richness {  #  calculate the aggregate richness for a set of elements
     my $self = shift;
     my %args = @_;  #  rest of args into a hash
 
-    my %results = (RICHNESS_ALL => $args{ABC},
-                   RICHNESS_SET1 => $args{A} + $args{B},
-                   RICHNESS_SET2 => $args{A} + $args{C},
-                  );
+    my %results = (
+        RICHNESS_ALL  => $args{ABC},
+        RICHNESS_SET1 => $args{A} + $args{B},
+        RICHNESS_SET2 => $args{A} + $args{C},
+    );
 
-    return wantarray
-        ? (%results)
-        : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_redundancy {

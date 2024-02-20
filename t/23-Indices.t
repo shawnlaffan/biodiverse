@@ -247,8 +247,8 @@ sub test_index_bounds {
         my $metadata = $indices_object->get_metadata( sub => $index_source );
         if ($metadata->get_index_is_categorical($index)) {
             #  some of these structures still need to be finalised
-            is $bounds, undef,
-                "Bounds undefined for categorical index $index";
+            is $bounds, [],
+                "No bounds for categorical index $index";
             my $labels  = $indices_object->get_index_category_labels (index => $index);
             is $labels, hash {
                 all_vals D();

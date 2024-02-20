@@ -10,7 +10,6 @@ use Carp;
 use Scalar::Util qw /blessed/;
 
 use English ( -no_match_vars );
-use Readonly;
 
 use FindBin qw ( $Bin );
 use Text::Wrapper;

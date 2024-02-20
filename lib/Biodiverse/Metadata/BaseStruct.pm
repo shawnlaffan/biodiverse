@@ -2,8 +2,6 @@ package Biodiverse::Metadata::BaseStruct;
 use strict;
 use warnings;
 use 5.016;
-use Carp;
-use Readonly;
 
 our $VERSION = '4.99_002';
 

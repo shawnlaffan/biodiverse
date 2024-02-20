@@ -6,8 +6,6 @@ use warnings;
 #  with params and specified extensively in import and export metadata
 
 use 5.016;
-use Carp;
-use Readonly;
 
 use parent qw /Biodiverse::Metadata/;
 

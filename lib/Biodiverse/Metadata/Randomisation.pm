@@ -2,8 +2,6 @@ package Biodiverse::Metadata::Randomisation;
 use strict;
 use warnings;
 use 5.016;
-use Carp;
-use Readonly;
 
 use parent qw /Biodiverse::Metadata/;
 

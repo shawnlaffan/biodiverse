@@ -9,15 +9,35 @@ use Carp;
 use List::Util qw /max min sum/;
 use experimental qw /refaliasing/;
 
+use parent 'Biodiverse::Common::ColourPalettes';
+
+#  segfaults wherever there is a while-each, map or postfix values loop,
+#  and possibly other conditions.  These are all localised inside blocks
+#  where it is lexically disabled.
+#  see https://rt.cpan.org/Public/Dist/Display.html?Name=Faster-Maths
+use Faster::Maths;
+#no if ($Faster::Maths::VERSION le '0.02') => 'Faster::Maths';
+
 our $VERSION = '4.99_002';
 
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
-use Readonly;
+my $z_for_ci = 1.959964;  #  currently hard coded for 0.95
 
-Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
+
 
 sub get_metadata_calc_chao1 {
+    my $self = shift;
+
+    my @cb_palette = $self->get_palette_colorbrewer_paired;
+    my (%colours, %labels);
+    my @codes = (0, 2, 6, 7, 8, 13, 14);
+    foreach my $i (0..$#codes) {
+        my $code = $codes[$i];
+        $colours{$code} = $cb_palette[$i];
+        $labels{$code} = "eqn $code";
+    }
+
     my %metadata = (
         description     => 'Chao1 species richness estimator (abundance based)',
         name            => 'Chao1',
@@ -52,10 +72,13 @@ sub get_metadata_calc_chao1 {
                 description => 'Upper confidence interval for the Chao1 estimate',
             },
             CHAO1_META        => {
-                description => 'Metadata indicating which formulae were used in the '
-                            . 'calculations. Numbers refer to EstimateS equations at '
-                            . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
-                type        => 'list',
+                description  => 'Metadata indicating which formulae were used in the '
+                    . 'calculations. Numbers refer to EstimateS equations at '
+                    . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                type         => 'list',
+                distribution => 'categorical',
+                colours      => \%colours,
+                labels       => \%labels,
             },
         },
     );
@@ -116,7 +139,7 @@ sub calc_chao1 {
     $chao_partial *= $cn1;
 
     my $chao = $richness + $chao_partial;
-    
+
     if ($variance_uses_eq7) {
         $variance = $cn1 * ($f1 * ($f1 - 1)) / 2
                   + $cn2 *  $f1 * (2 * $f1 - 1)**2 / 4
@@ -125,15 +148,17 @@ sub calc_chao1 {
     }
     elsif ($variance_uses_eq8) {
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ for values %$label_hash;
         }
+
         my ($part1, $part2);
         foreach my $i (keys %sums) {
             my $f = $sums{$i};
             #say "$i $f";
             $part1 += $f * (exp (-$i) - exp (-2 * $i));
-            $part2 += $i * exp (-$i) * $f;
+            $part2 += $i *  exp (-$i) * $f;
         }
         $variance = $n ? $part1 - $part2 ** 2 / $n : 0;
         $chao_formula = 0;
@@ -175,6 +200,17 @@ sub calc_chao1 {
 
 
 sub get_metadata_calc_chao2 {
+    my $self = shift;
+
+    my @cb_palette = $self->get_palette_colorbrewer_paired;
+    my (%colours, %labels);
+    my @codes = (0, 4, 10, 11, 12, 13, 14);
+    foreach my $i (0..$#codes) {
+        my $code = $codes[$i];
+        $colours{$code} = $cb_palette[$i];
+        $labels{$code} = "eqn $code";
+    }
+
     my %metadata = (
         description     => 'Chao2 species richness estimator (incidence based)',
         name            => 'Chao2',
@@ -213,6 +249,9 @@ sub get_metadata_calc_chao2 {
                             . 'calculations. Numbers refer to EstimateS equations at '
                             . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
                 type        => 'list',
+                distribution => 'categorical',
+                colours      => \%colours,
+                labels       => \%labels,
             },
         },
     );
@@ -283,11 +322,13 @@ sub calc_chao2 {
     }
     elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ for values %$label_hash;
         }
         my ($part1, $part2);
-        while (my ($i, $Q) = each %sums) {
+        foreach my $i (keys %sums) {
+            my $Q = $sums{$i};
             $part1 += $Q * (exp (-$i) - exp (-2 * $i));
             $part2 += $i *  exp (-$i) * $Q;
         }
@@ -336,7 +377,7 @@ sub calc_chao2 {
 sub _calc_chao_confidence_intervals {
     my $self = shift;
     my %args = @_;
-    
+
     my $f1 = $args{F1};
     my $f2 = $args{F2};
     my $chao     = $args{chao_score};
@@ -359,13 +400,14 @@ sub _calc_chao_confidence_intervals {
     else {
         my $P = 0;
         my %sums;
-        foreach my $freq (values %$label_hash) {
-            $sums{$freq} ++;
+        {
+            no Faster::Maths;
+            $sums{$_}++ foreach values %$label_hash;
         }
         #  set CIs to undefined if we only have singletons/uniques
         if ($richness && ! (scalar keys %sums == 1 && exists $sums{1})) {
-            while (my ($f, $count) = each %sums) {
-                $P += $count * exp (-$f);
+            foreach my $f (keys %sums) {
+                $P += $sums{$f} * exp (-$f);
             }
             $P /= $richness;
             my $part1 = $richness / (1 - $P);
@@ -651,39 +693,13 @@ sub calc_ice {
     return wantarray ? %results : \%results;
 }
 
-#  almost identical to _get_ice_variance but integrating the two 
-#  would prob result in more complex code
+#  almost identical to _get_ice_variance so we are just a wrapper
+#  that calls a different internal method
 sub _get_ace_variance {
     my $self = shift;
     my %args = @_;
 
-    my $freq_counts = $args{freq_counts};
-
-    #  precalculate the differentials and covariances
-    my (%diff, %cov);
-    my @sorted = sort {$a <=> $b} keys %$freq_counts;
-    foreach my $i (@sorted) {
-        $diff{$i} = $self->_get_ace_differential (%args, f => $i);
-        foreach my $j (@sorted) {
-            $cov{$i}{$j}
-              //= $cov{$j}{$i}
-              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-            last if $i == $j;
-        }
-    }
-
-    my $var_ace = 0;
-    foreach my $i (keys %$freq_counts) {
-        foreach my $j (keys %$freq_counts) {
-            my $partial
-                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
-            $var_ace += $partial;
-        }
-    }
-
-    $var_ace ||= undef;
-
-    return $var_ace;
+    return $self->_get_ice_variance(%args, for_ace => 1);
 }
 
 sub _get_ice_variance {
@@ -692,42 +708,56 @@ sub _get_ice_variance {
 
     my $freq_counts = $args{freq_counts};
 
-    #  precalculate the differentials and covariances
-    my (%diff, %cov);
+    my $diff_method = $args{for_ace}
+        ? '_get_ace_differential'
+        : '_get_ice_differential';
+
+    #  work through the differentials and covariances
+    my @diff;
+    my $var = 0;
+
     my @sorted = sort {$a <=> $b} keys %$freq_counts;
-    foreach my $i (@sorted) {
-        $diff{$i} = $self->_get_ice_differential (%args, f => $i);
-        foreach my $j (@sorted) {
-            $cov{$i}{$j}
-              //= $cov{$j}{$i}
-              //= $self->_get_ace_ice_cov (%args, i => $i, j => $j);
-            last if $i == $j;
+    #  could use builtin::indexed here
+    foreach my $i (0..$#sorted) {
+        my $v1 = $sorted[$i];
+        $diff[$i] = $self->$diff_method (%args, f => $v1);
+        my $cov;
+        foreach my $j (0..$i-1) {
+            my $v2 = $sorted[$j];
+            $cov = $self->_get_ace_ice_cov_aa (
+                $v1, $v2, $args{s_estimate}, $freq_counts
+            );
+            $var += 2 * $diff[$i] * $diff[$j] * $cov;
         }
+        #  now the $i with $i case
+        $cov = $self->_get_ace_ice_cov_aa (
+            $v1, $v1, $args{s_estimate}, $freq_counts
+        );
+
+        $var += ($diff[$i] ** 2) * $cov;
     }
 
-    my $var_ice = 0;
-    foreach my $i (keys %$freq_counts) {
-        foreach my $j (keys %$freq_counts) {
-            my $partial
-                = $diff{$i} * $diff{$j} * $cov{$i}{$j};
-            $var_ice += $partial;
-        }
-    }
+    $var ||= undef;
 
-    $var_ice ||= undef;
-
-    return $var_ice;
+    return $var;
 }
 
 #  common to ACE and ICE
 sub _get_ace_ice_cov {
-    my ($self, %args) = @_;
-    my ($i, $j, $s_ice) = @args{qw/i j s_estimate/};
-    my $Q = $args{freq_counts};
+    my (undef, %args) = @_;
+    my ($i, $j, $s_ice, $Q) = @args{qw/i j s_estimate freq_counts/};
 
     return $i == $j
-      ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
-      : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
+        ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
+        : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
+}
+
+sub _get_ace_ice_cov_aa {
+    my (undef, $i, $j, $s_ice, $Q) = @_;
+
+    return $i == $j
+        ? $Q->{$i} * (1 - $Q->{$i} / $s_ice)
+        : -1 * $Q->{$i} * $Q->{$j} / $s_ice;
 }
 
 
@@ -746,80 +776,89 @@ sub _get_ice_differential {
     my $n_infreq    = $args{n_rare};
     my $C_infreq    = $args{C_rare};  #  get from gamma calcs
     my $D_infreq    = $args{S_rare};  #  richness of labels with sample counts < $k
-    my $Q           = $args{f_rare};
+    \my %Q          = $args{f_rare};
     my $t           = $args{t};
 
-    my @u = (1..$k);
+    my $si;
 
-    $n_infreq //=
-        sum
-        map  $_ * $freq_counts->{$_},
-        grep $_ < $k,
-        keys %$freq_counts;
+    {
+        no Faster::Maths;
+        $n_infreq //=
+            sum
+            map $_ * $freq_counts->{$_},
+            grep $_ < $k,
+            keys %$freq_counts;
 
-    my $si = sum map (($_ * ($_-1) * ($Q->{$_} // 0)), @u);
-
-    my ($Q1, $Q2) = @$Q{1,2};
+        $si =
+            sum
+            map { $_ * ($_ - 1) * $Q{$_} }
+            grep {$Q{$_}}
+            2..$k;
+    }
+    my ($Q1, $Q2) = @Q{1,2};
     $Q1 //= 0;
     $Q2 //= 0;
 
     my ($d, $dc_infreq);
 
+    my $t_1 = $t - 1;  #  used many times below
+
     if ($CV_infreq_h != 0) {
+        my $n_infreq_1 = $n_infreq - 1;
         if ($q == 1) {
             $dc_infreq =
               -1 * (
-                    $n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
-                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                    $n_infreq * ($t_1 * $Q1 + 2 * $Q2) * 2 * $Q1 * $t_1
+                 - $t_1 * $Q1**2 * ($t_1 * ($Q1 + $n_infreq) + 2 * $Q2)
                  )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2)) ** 2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2)) ** 2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq ** 2
-                + $t / ($t - 1)
-                  * ($C_infreq**2*$n_infreq*($n_infreq - 1)
+                + $t / $t_1
+                  * ($C_infreq**2*$n_infreq*$n_infreq_1
                         * ($D_infreq * $si + $Q1 * $si)
                         - $Q1 * $D_infreq * $si *
                         (2 * $C_infreq * $dc_infreq
-                         * $n_infreq * ($n_infreq - 1)
+                         * $n_infreq * $n_infreq_1
                          + $C_infreq ** 2
-                         * ($n_infreq - 1)
+                         * $n_infreq_1
                          + $C_infreq ** 2
                          * $n_infreq
                          )
-                    ) / $C_infreq ** 4 / $n_infreq ** 2 / ($n_infreq - 1) ** 2
+                    ) / $C_infreq ** 4 / $n_infreq ** 2 / $n_infreq_1 ** 2
                 - ($C_infreq - $Q1 * $dc_infreq) / $C_infreq**2;
         }
         elsif ($q == 2){
             $dc_infreq
-              = -( -($t - 1) * $Q1**2 *
-                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+              = -( -$t_1 * $Q1**2 *
+                  (2 * $t_1 * $Q1 + 2 * ($n_infreq + 2 * $Q2))
                 )
                 /
-                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+                ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq)
                 / $C_infreq**2
-              + $t / ($t - 1)
-              * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + 2 * $D_infreq) - $Q1 * $D_infreq * $si *
-                             (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1) + $C_infreq**2 * 2 * ($n_infreq - 1) + $C_infreq**2 * $n_infreq * 2)
+              + $t / $t_1
+              * ($C_infreq**2 * $n_infreq * $n_infreq_1 * $Q1 * ($si + 2 * $D_infreq) - $Q1 * $D_infreq * $si *
+                             (2 * $C_infreq * $dc_infreq * $n_infreq * $n_infreq_1 + $C_infreq**2 * 2 * $n_infreq_1 + $C_infreq**2 * $n_infreq * 2)
                 )
-              / $C_infreq**4 / $n_infreq**2 / ($n_infreq - 1)**2
+              / $C_infreq**4 / $n_infreq**2 / $n_infreq_1**2
               - ( -$Q1 * $dc_infreq) / $C_infreq**2;
         }
         else {
             $dc_infreq =
-              - ( - ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              - ( - $t_1 * $Q1**2 * ($t_1 * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
 
             $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2
-              + $t/($t - 1)
-              * ($C_infreq**2 * $n_infreq * ($n_infreq - 1) * $Q1 * ($si + $q * ($q - 1) * $D_infreq) - $Q1 * $D_infreq * $si
-                * (2 * $C_infreq * $dc_infreq * $n_infreq * ($n_infreq - 1)
-                   + $C_infreq**2 * $q * ($n_infreq - 1)
+              + $t/$t_1
+              * ($C_infreq**2 * $n_infreq * $n_infreq_1 * $Q1 * ($si + $q * ($q - 1) * $D_infreq) - $Q1 * $D_infreq * $si
+                * (2 * $C_infreq * $dc_infreq * $n_infreq * $n_infreq_1
+                   + $C_infreq**2 * $q * $n_infreq_1
                    + $C_infreq**2 * $n_infreq * $q
                   )
               )
-              / $C_infreq**4 / $n_infreq**2 / ($n_infreq - 1)**2
+              / $C_infreq**4 / $n_infreq**2 / $n_infreq_1**2
               - ( - $Q1 * $dc_infreq) / $C_infreq**2;
         }
     }
@@ -827,24 +866,24 @@ sub _get_ice_differential {
         if ($q == 1) {
             $dc_infreq
               = -1 *
-                ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2) * 2 * $Q1 * ($t - 1)
-                 - ($t - 1) * $Q1**2 * (($t - 1) * ($Q1 + $n_infreq) + 2 * $Q2)
+                ($n_infreq * ($t_1 * $Q1 + 2 * $Q2) * 2 * $Q1 * $t_1
+                 - $t_1 * $Q1**2 * ($t_1 * ($Q1 + $n_infreq) + 2 * $Q2)
                 )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         elsif ($q == 2) {
             $dc_infreq
               = -1 *
-                ( -1 * ($t - 1) * $Q1**2 *
-                  (2 * ($t - 1) * $Q1 + 2 * ($n_infreq + 2 * $Q2))
+                ( -1 * $t_1 * $Q1**2 *
+                  (2 * $t_1 * $Q1 + 2 * ($n_infreq + 2 * $Q2))
                 )
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         else {
             $dc_infreq
              =  -1 *
-                ( -1 * ($t - 1) * $Q1**2 * (($t - 1) * $Q1 * $q + 2 * $Q2 * $q))
-              / ($n_infreq * (($t - 1) * $Q1 + 2 * $Q2))**2;
+                ( -1 * $t_1 * $Q1**2 * ($t_1 * $Q1 * $q + 2 * $Q2 * $q))
+              / ($n_infreq * ($t_1 * $Q1 + 2 * $Q2))**2;
         }
         $d = ($C_infreq - $D_infreq * $dc_infreq) / $C_infreq**2;
     }
@@ -864,70 +903,78 @@ sub _get_ace_differential {
 
     my $cv_rare_h   = $args{cv};
     my $n_rare      = $args{n_rare};
-    my $c_rare      = $args{C_rare};  #  get from gamma calcs
+    # my $c_rare      = $args{C_rare};  #  get from gamma calcs
     my $D_rare      = $args{S_rare};  #  richness of labels with sample counts < $k
-    my $F           = $args{freq_counts};
-    my $t           = $args{t};
+    \my %F          = $args{freq_counts};
+    # my $t           = $args{t};
 
-    my @u = (1..$k);
+    my $si;
+    {
+        no Faster::Maths;
+        $n_rare //=
+            sum
+            map {$_ * $F{$_}}
+            grep {$_ <= $k}
+            keys %F;
 
-    $n_rare //=
-        sum
-        map  $_ * $F->{$_},
-        grep $_ <= $k,
-        keys %$F;
-
-    my $si = sum map (($_ * ($_-1) * ($F->{$_} // 0)), @u);
-
-    my $f1 = $F->{1};
+        #  no need to iterate over 1
+        $si =
+            sum
+            map {$_ * ($_ - 1) * $F{$_}}
+            grep {$F{$_}}
+            2..$k;
+    }
+    my $f1 = $F{1};
     my $d;
 
+    my $cov_est = 1 - $f1 / $n_rare;  #  coverage estimate
     if ($cv_rare_h != 0) {
+        my $n_rare_1 = $n_rare - 1;
         if ($f == 1) {
-            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-                 / (1 - $f1/$n_rare)**2
+            $d = ($cov_est + $D_rare * ($n_rare - $f1) / $n_rare**2)
+                 / $cov_est**2
                 +
                 (
-                 (1 - $f1/$n_rare)**2 * $n_rare * ($n_rare - 1)
+                 $cov_est**2 * $n_rare * $n_rare_1
                    * ($D_rare * $si + $f1 * $si)
                    - $f1 * $D_rare * $si
-                   * (-2 * (1 - $f1 / $n_rare) * ($n_rare - $f1) / $n_rare**2
-                      * $n_rare * ($n_rare - 1)
-                      + (1 - $f1/$n_rare)**2*(2*$n_rare - 1)
+                   * (-2 * $cov_est * ($n_rare - $f1) / $n_rare**2
+                      * $n_rare * $n_rare_1
+                      + $cov_est**2 * (2*$n_rare - 1)
                      )
                 )
-                / (1 - $f1/$n_rare)**4 / $n_rare**2 / ($n_rare - 1)**2
-                  - (1 - $f1 / $n_rare + $f1 * ($n_rare - $f1)
+                / $cov_est**4 / $n_rare**2 / $n_rare_1**2
+                  - ($cov_est + $f1 * ($n_rare - $f1)
                      / $n_rare**2)
-                  / (1 - $f1 / $n_rare)**2;
+                  / $cov_est**2;
         }
         else {
-            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
-                     / (1 - $f1 / $n_rare)**2
+            $d = ($cov_est - $D_rare * $f * $f1 / $n_rare**2)
+                     / $cov_est**2
                   + (
-                     (1 - $f1 / $n_rare)**2
-                      * $n_rare * ($n_rare - 1) * $f1 *
+                     $cov_est**2
+                      * $n_rare * $n_rare_1 * $f1 *
                       ($si + $D_rare * $f * ($f - 1))
                       - $f1 * $D_rare * $si *
-                        (2 * (1 - $f1 / $n_rare) * $f1 * $f / $n_rare**2
-                         * $n_rare * ($n_rare - 1)
-                         + (1 - $f1 / $n_rare)**2 * $f * ($n_rare - 1)
-                         + (1 - $f1 / $n_rare)**2 * $n_rare * $f
+                        (2 * $cov_est * $f1 * $f / $n_rare**2
+                         * $n_rare * $n_rare_1
+                         + $cov_est**2 * $f * $n_rare_1
+                         + $cov_est**2 * $n_rare * $f
                         )
                     )
-                  / (1 - $f1/$n_rare)**4 / ($n_rare)**2 / ($n_rare - 1)**2
+                  / $cov_est**4 / $n_rare**2 / $n_rare_1**2
                   + ($f * $f1**2 / $n_rare**2)
-                  / (1 - $f1 / $n_rare)**2;
+                  / $cov_est**2;
         }
     }
     else {
         if ($f == 1) {
-            $d = (1 - $f1 / $n_rare + $D_rare * ($n_rare - $f1) / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2;
+            $d = ($cov_est + $D_rare * ($n_rare - $f1) / $n_rare**2)
+               / $cov_est**2;
         }
         else {
-            $d = (1 - $f1 / $n_rare - $D_rare * $f * $f1 / $n_rare**2)
-               / (1 - $f1 / $n_rare)**2;
+            $d = ($cov_est - $D_rare * $f * $f1 / $n_rare**2)
+               / $cov_est**2;
         }
     }
 
@@ -1006,7 +1053,10 @@ sub calc_hurlbert_es {
     my $label_hash = $args{label_hash_all};
 
     my $N;
-    $N += $_ for values %$label_hash;
+    {
+        no Faster::Maths;
+        $N += $_ for values %$label_hash;
+    }
 
     \my @lgamma_arr = $self->_get_lgamma_arr (max_n => $N);
 

@@ -2,9 +2,6 @@ package Biodiverse::Metadata::SpatialConditions;
 use strict;
 use warnings;
 use 5.016;
-use Carp;
-use Readonly;
-use Clone qw /clone/;
 
 our $VERSION = '4.99_002';
 

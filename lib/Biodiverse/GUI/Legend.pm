@@ -213,10 +213,12 @@ sub make_rect {
         my $label_hash = $self->{categorical}{labels};
 
         my $n = (scalar keys %$label_hash) - 1;
+        my @classes = sort {$a <=> $b} keys %$label_hash;
+        $n = $#classes;
         foreach my $row (0..($height - 1)) {
             #  cat 0 at the top
-            my $class = $n - int (0.5 + $n * $row / ($height - 1));
-            my $colour = $self->get_colour_categorical ($class);
+            my $class_iter = $n - int (0.5 + $n * $row / ($height - 1));
+            my $colour = $self->get_colour_categorical ($classes[$class_iter]);
             $self->add_row($self->{legend_colours_group}, $row, $colour);
         }
     }

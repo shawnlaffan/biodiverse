@@ -21,7 +21,6 @@ use Text::Wrapper;
 
 our $VERSION = '4.99_002';
 
-#use Readonly;
 my $i;
 use constant MODEL_NAME_COL        =>   $i || 0;
 use constant MODEL_INDEX_COL       => ++$i;

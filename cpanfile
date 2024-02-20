@@ -8,6 +8,7 @@ requires "Excel::ValueReader::XLSX";
 requires "Exception::Class";
 requires "Exporter::Easy";
 #requires "FFI::Platypus::Declare";
+requires "Faster::Maths";
 requires "File::BOM";
 requires "File::Find::Rule";
 requires "Geo::Converter::dms2dd", "0.05";
@@ -49,7 +50,7 @@ requires "rlib";
 #requires "Math::AnyNum";  #  until we don't
 requires "Statistics::Descriptive::PDL", "0.15";
 
-suggests "Panda::Lib";
+# suggests "Panda::Lib";
 suggests "Data::Recursive";
 
 #test_requires => sub {

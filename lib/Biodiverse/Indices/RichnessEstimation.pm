@@ -14,6 +14,7 @@ use experimental qw /refaliasing/;
 #  where it is lexically disabled.
 #  see https://rt.cpan.org/Public/Dist/Display.html?Name=Faster-Maths
 use Faster::Maths;
+#no if ($Faster::Maths::VERSION le '0.02') => 'Faster::Maths';
 
 our $VERSION = '4.99_002';
 
@@ -23,7 +24,49 @@ use Readonly;
 
 Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
 
+#  should be in a Common.pm subclass
+sub get_palette_colorbrewer13 {
+    # Paired colour scheme from colorbrewer, plus a dark grey
+    #  note - this works poorly when 9 or fewer groups are selected
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#A6CEE3 #1F78B4 #B2DF8A #33A02C
+        #FB9A99 #E31A1C #FDBF6F #FF7F00
+        #CAB2D6 #6A3D9A #FFFF99 #B15928
+        #4B4B4B';
+}
+
+sub get_palette_colorbrewer9_set1 {
+    # Set1 colour scheme from www.colorbrewer2.org
+    no warnings 'qw';  #  we know the hashes are not comments
+    return qw  '#E41A1C #377EB8 #4DAF4A #984EA3
+        #FF7F00 #FFFF33 #A65628 #F781BF
+        #999999';
+}
+
+sub get_palette_colorbrewer9_paired {
+    # 9 class paired colour scheme from www.colorbrewer2.org
+    return ('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6');
+}
+
+sub get_palette_colorbrewer9_set3 {
+    # 9 class paired colour scheme from www.colorbrewer2.org
+    return ('#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9');
+}
+
 sub get_metadata_calc_chao1 {
+    my $self = shift;
+
+    my @cb_palette = $self->get_palette_colorbrewer9_paired;
+    my (%colours, %labels);
+    my @codes = (0, 2, 6, 7, 8, 13, 14);
+    foreach my $i (0..$#codes) {
+        my $code = $codes[$i];
+        $colours{$code} = $cb_palette[$i];
+        $labels{$code} = "eqn $code";
+        say "colours $code $colours{$code}";
+        say "label $code $labels{$code}";
+    }
+
     my %metadata = (
         description     => 'Chao1 species richness estimator (abundance based)',
         name            => 'Chao1',
@@ -58,10 +101,13 @@ sub get_metadata_calc_chao1 {
                 description => 'Upper confidence interval for the Chao1 estimate',
             },
             CHAO1_META        => {
-                description => 'Metadata indicating which formulae were used in the '
-                            . 'calculations. Numbers refer to EstimateS equations at '
-                            . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
-                type        => 'list',
+                description  => 'Metadata indicating which formulae were used in the '
+                    . 'calculations. Numbers refer to EstimateS equations at '
+                    . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                type         => 'list',
+                distribution => 'categorical',
+                colours      => \%colours,
+                labels       => \%labels,
             },
         },
     );
@@ -183,6 +229,19 @@ sub calc_chao1 {
 
 
 sub get_metadata_calc_chao2 {
+    my $self = shift;
+
+    my @cb_palette = $self->get_palette_colorbrewer9_paired;
+    my (%colours, %labels);
+    my @codes = (0, 4, 10, 11, 12, 13, 14);
+    foreach my $i (0..$#codes) {
+        my $code = $codes[$i];
+        $colours{$code} = $cb_palette[$i];
+        $labels{$code} = "eqn $code";
+        say "colours $code $colours{$code}";
+        say "label $code $labels{$code}";
+    }
+
     my %metadata = (
         description     => 'Chao2 species richness estimator (incidence based)',
         name            => 'Chao2',
@@ -221,6 +280,9 @@ sub get_metadata_calc_chao2 {
                             . 'calculations. Numbers refer to EstimateS equations at '
                             . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
                 type        => 'list',
+                distribution => 'categorical',
+                colours      => \%colours,
+                labels       => \%labels,
             },
         },
     );

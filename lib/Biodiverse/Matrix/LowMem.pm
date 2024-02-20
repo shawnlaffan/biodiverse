@@ -51,16 +51,32 @@ sub new {
     return $self;
 }
 
-sub element_is_in_matrix { 
+sub element_is_in_matrix {
     my $self = shift;
     my %args = @_;
-    
+
     croak "element not defined\n" if ! defined $args{element};
 
     my $element = $args{element};
 
     return 1 if exists $self->{BYELEMENT}{$element};
-    
+
+    my $el_hash = $self->{BYELEMENT};
+    foreach my $hashref (values %$el_hash) {
+        return 1 if exists $hashref->{$element};
+    }
+
+    return;
+}
+
+#  no real speedup with array args but we need symmetry with Base.pm
+sub element_is_in_matrix_aa {
+    my ($self, $element) = @_;
+
+    croak "element not defined\n" if ! defined $element;
+
+    return 1 if exists $self->{BYELEMENT}{$element};
+
     my $el_hash = $self->{BYELEMENT};
     foreach my $hashref (values %$el_hash) {
         return 1 if exists $hashref->{$element};
@@ -113,34 +129,31 @@ sub add_element_aa {  #  add an element pair to the object
 sub delete_element {  #  should be called delete_element_pair, but need to find where it's used first
     my $self = shift;
     my %args = @_;
-    croak "element1 or element2 not defined\n"
-        if     ! defined $args{element1}
-            || ! defined $args{element2};
+
+    #  taken care of in the exists sub
+    # croak "element1 or element2 not defined\n"
+    #     if     ! defined $args{element1}
+    #         || ! defined $args{element2};
 
     my $element1 = $args{element1};
     my $element2 = $args{element2};
-    my $exists = $self->element_pair_exists (@_);
+    my $exists = $self->element_pair_exists_aa ($element1, $element2)
+      || return 0;
 
-    if (! $exists) {
-        #print "WARNING: element combination does not exist\n";
-        return 0; #  combination does not exist - cannot delete it
-    }
-    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
-        #print "DELETE ELEMENTS SWITCHING $element1 $element2\n";
-        $element1 = $args{element2};
-        $element2 = $args{element1};
-    }
+    #  elements exist but in different order - switch them
+    ($element1, $element2) = ($element2, $element1)
+      if $exists == 2;
     
     #  now we get to the cleanup, including the containing hashes if they are now empty
     #  all the undef - delete pairs are to ensure they get deleted properly
     #  the hash ref must be empty (undef) or it won't be deleted
     #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-    delete $self->{BYELEMENT}{$element1}{$element2}; # if exists $self->{BYELEMENT}{$element1}{$element2};
-    if (scalar keys %{$self->{BYELEMENT}{$element1}} == 0) {
+    my $href = $self->{BYELEMENT};
+    delete $href->{$element1}{$element2}; # if exists $self->{BYELEMENT}{$element1}{$element2};
+    if (!keys %{$href->{$element1}}) {
         #print "Deleting BYELEMENT{$element1}\n";
         #undef $self->{BYELEMENT}{$element1};
-        defined (delete $self->{BYELEMENT}{$element1})
-            || warn "ISSUES BYELEMENT $element1 $element2\n";
+        delete $href->{$element1} // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
     return 1;  # return success if we get this far
@@ -189,8 +202,8 @@ sub get_element_pairs_with_value {
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             my $value = $self->get_value (element1 => $el1, element2 => $el2);
-            next if $val ne $value;
-            $results{$el1}{$el2} ++;
+            $results{$el1}{$el2} ++
+              if $val eq $value;
         }
     }
 

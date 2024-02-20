@@ -467,8 +467,9 @@ sub delete_element {
     my $exists = $self->element_pair_exists(@_)
       || return 0;
 
-    croak "element1 and/or element2 not defined\n"
-      if !( defined $args{element1} && defined $args{element2} );
+    #  handled in the exists check
+    # croak "element1 and/or element2 not defined\n"
+    #   if !( defined $args{element1} && defined $args{element2} );
 
     my ( $element1, $element2 ) =
         $exists == 1

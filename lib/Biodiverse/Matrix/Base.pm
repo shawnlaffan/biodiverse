@@ -36,6 +36,10 @@ sub element_is_in_matrix {
     return exists $self->{ELEMENTS}{$element};
 }
 
+sub element_is_in_matrix_aa {
+    exists $_[0]->{ELEMENTS}{$_[1]};
+}
+
 #  syntactic sugar
 sub set_value {
     my $self = shift;
@@ -45,32 +49,24 @@ sub set_value {
 sub get_value {  #  return the value of a pair of elements. argument checking is done by element_pair_exists.
     my $self = shift;
     my %args = @_;
-    
-    my ($element1, $element2);
-    my $exists = $args{pair_exists} || $self->element_pair_exists (@_);
 
-    if ($exists == 1) {
-        $element1 = $args{element1};
-        $element2 = $args{element2};
-        return $self->{BYELEMENT}{$element1}{$element2};
-    }
-    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
-        $element1 = $args{element2};
-        $element2 = $args{element1};
-        return $self->{BYELEMENT}{$element1}{$element2};
-    }
-    elsif (! $exists) {
-        if ($args{element1} eq $args{element2}
-            and $self->element_is_in_matrix (element => $args{element1})
-            ) {
-            return $self->get_param ('SELF_SIMILARITY');  #  defaults to undef
-        }
+    my $exists = $args{pair_exists} // $self->element_pair_exists (@_);
 
-        return; #  if we get this far then the combination does not exist - cannot get the value
-    }
+    return $self->{BYELEMENT}{$args{element1}}{$args{element2}}
+        if $exists == 1;
+    #  elements exist, but in different order - switch them
+    return $self->{BYELEMENT}{$args{element2}}{$args{element1}}
+        if $exists == 2;
 
-    croak "[MATRICES] You seem to have added an extra result (value $exists) to" .
-          " sub element_pair_exists.  What were you thinking?\n";
+    #  defaults to undef
+    return $self->get_param ('SELF_SIMILARITY')
+      if !$exists
+          and $args{element1} eq $args{element2}
+          and $self->element_is_in_matrix_aa ($args{element1});
+
+    #  if we get this far then the combination does not exist
+    #  and we cannot get the value
+    return;
 }
 
 #  Same as get_value except it does not check for existence or self-similarity
@@ -120,6 +116,23 @@ sub element_pair_exists {
          : 0;
 }
 
+sub element_pair_exists_aa {
+    my ($self, $element1, $element2) = @_;
+
+    Biodiverse::MissingArgument->throw ('element1 and/or element2 not defined')
+        if ! (defined $element1 && defined $element2);
+
+    #  avoid some excess hash lookups
+    my $hash_ref = $self->{BYELEMENT};
+
+    #  need to stop autovivification of element1 or 2
+    no autovivification;
+    return exists $hash_ref->{$element1}{$element2} ? 1
+        : exists $hash_ref->{$element2}{$element1} ? 2
+        : 0;
+}
+
+
 sub get_element_pair_count {
     my $self = shift;
 
@@ -128,9 +141,9 @@ sub get_element_pair_count {
     my $elements = $self->{BYELEMENT};
 
     my $count = 0;
-    foreach my $subhash (values %$elements) {
-        $count += scalar keys %$subhash;
-    }
+    #  postfix for speed
+    $count += scalar keys %$_
+        foreach values %$elements;
 
     return $count;
 }
@@ -141,8 +154,10 @@ sub delete_all_pairs_with_element {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n" if ! defined $args{element};
-    croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
+    croak "element not specified\n"
+        if ! defined $args{element};
+    croak "element does not exist\n"
+        if ! $self->element_is_in_matrix_aa ($args{element});
 
     my $element = $args{element};
 

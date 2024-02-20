@@ -31,7 +31,7 @@ Readonly my $z_for_ci => 1.959964;  #  currently hard coded for 0.95
 sub get_metadata_calc_chao1 {
     my $self = shift;
 
-    my @cb_palette = $self->get_palette_colorbrewer9_paired;
+    my @cb_palette = $self->get_palette_colorbrewer_paired;
     my (%colours, %labels);
     my @codes = (0, 2, 6, 7, 8, 13, 14);
     foreach my $i (0..$#codes) {
@@ -204,7 +204,7 @@ sub calc_chao1 {
 sub get_metadata_calc_chao2 {
     my $self = shift;
 
-    my @cb_palette = $self->get_palette_colorbrewer9_paired;
+    my @cb_palette = $self->get_palette_colorbrewer_paired;
     my (%colours, %labels);
     my @codes = (0, 4, 10, 11, 12, 13, 14);
     foreach my $i (0..$#codes) {

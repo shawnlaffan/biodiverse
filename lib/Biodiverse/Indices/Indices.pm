@@ -1894,7 +1894,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (0 || !($count_labels || $count_samples)) {
+    if (0 && !($count_labels || $count_samples)) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
         @{$label_list{1}}{keys %{$label_list{1}}}   = (1) x scalar keys %{$label_list{1}};
         @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};

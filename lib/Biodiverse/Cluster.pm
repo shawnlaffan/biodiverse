@@ -1098,13 +1098,11 @@ sub build_matrix_elements {
             foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
                 #last MX if $ofh;
 
-                $value = $mx->get_defined_value_aa ($element1, $element2);
-                if (defined $value) {  #  don't redo them...
-                    $exists ++;
-                }
-                else {
-                    $not_exists_iter{$iter} = 1;
-                }
+                # $value = $mx->get_defined_value_aa ($element1, $element2);
+                #  don't redo them...
+                defined $mx->get_defined_value_aa ($element1, $element2)
+                    ? ($exists++)
+                    : ($not_exists_iter{$iter} = 1);
                 $iter ++;
             }
 

@@ -251,11 +251,11 @@ sub get_value_index_key_aa {
 
     $val // return 'undef';
 
-    if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
-        $val = sprintf $prec, $val;
-    }
+    my $prec = $self->get_param('VAL_INDEX_PRECISION');
 
-    return $val;
+    return $prec
+        ? sprintf $prec, $val
+        : $val;
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc

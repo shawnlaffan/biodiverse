@@ -1631,32 +1631,28 @@ sub get_results_from_pre_calc_global {
 
 sub run_precalc_globals {
     my $self = shift;
-    my %args = @_;
 
-    my $results = $self->run_dependencies( %args, type => 'pre_calc_global', );
+    my $results = $self->run_dependencies( @_, type => 'pre_calc_global', );
 
     return wantarray ? %$results : $results;
 }
 
 sub run_precalc_locals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'pre_calc', );
+    return $self->run_dependencies( @_, type => 'pre_calc', );
 }
 
 sub run_postcalc_locals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'post_calc', );
+    return $self->run_dependencies( @_, type => 'post_calc' );
 }
 
 sub run_postcalc_globals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'post_calc_global', );
+    return $self->run_dependencies( @_, type => 'post_calc_global' );
 }
 
 sub set_pairwise_mode {

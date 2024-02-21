@@ -1547,23 +1547,19 @@ sub run_dependencies {
         }
         else {
             my %dep_results;
-            if ( exists $dep_list->{$calc} ) {
-                my $deps = $dep_list->{$calc} || [];
+            if (my $deps = $dep_list->{$calc} ) {
+              LOCAL_DEP:
                 foreach my $dep (@$deps) {
-                    my $dep_res =
-                      exists $as_results_from{$dep}
-                      ? $as_results_from{$dep}
-                      : {};
+                    my $dep_res = $as_results_from{$dep}
+                        || next LOCAL_DEP;
                     @dep_results{ keys %$dep_res } = values %$dep_res;
                 }
             }
-            if ( exists $dep_list_global->{$calc} ) {
-                my $deps = $dep_list_global->{$calc} || [];
+            if (my $deps = $dep_list_global->{$calc}) {
+              GLOBAL_DEP:
                 foreach my $dep (@$deps) {
-                    my $dep_res =
-                      exists $as_results_from_global{$dep}
-                      ? $as_results_from_global{$dep}
-                      : {};
+                    my $dep_res = $as_results_from_global{$dep}
+                        || next GLOBAL_DEP;
                     @dep_results{ keys %$dep_res } = values %$dep_res;
                 }
             }

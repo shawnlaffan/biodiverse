@@ -1626,6 +1626,57 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my ($self, %args) = @_;
 
     delete @args{qw/count_samples count_labels}/};
+
+    return $self->_calc_abc_dispatcher(%args);
+}
+
+sub get_metadata_calc_abc2 {
+    my %metadata = (
+        name            => 'calc_abc2',
+        description     => 'Calculate the label lists in the element sets, '
+                           . 'recording the count of groups per label.',
+        type            => 'not_for_gui',  #  why not???
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+#  run calc_abc, but keep a track of the label counts across groups
+sub calc_abc2 {
+    my $self = shift;
+
+    return $self->_calc_abc_dispatcher(@_, count_labels => 1);
+}
+
+sub get_metadata_calc_abc3 {
+
+    my %metadata = (
+        name            => 'calc_abc3',
+        description     => 'Calculate the label lists in the element sets, '
+                           . 'recording the count of samples per label.',
+        type            => 'not_for_gui',  #  why not?
+        indices         => {},
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+#  run calc_abc, but keep a track of the label counts and samples across groups
+sub calc_abc3 {
+    my $self = shift;
+
+    return $self->_calc_abc_dispatcher(@_, count_samples => 1);
+}
+
+#  keep a lot of logic in one place
+sub _calc_abc_dispatcher {
+    my ($self, %args) = @_;
+
     my $have_lb_lists = defined (
            $args{label_hash1}
         // $args{label_hash2}
@@ -1646,71 +1697,6 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
             || $have_lb_lists;
 
     return $self->_calc_abc_one_element(%args);
-}
-
-sub get_metadata_calc_abc2 {
-    my %metadata = (
-        name            => 'calc_abc2',
-        description     => 'Calculate the label lists in the element sets, '
-                           . 'recording the count of groups per label.',
-        type            => 'not_for_gui',  #  why not???
-        indices         => {},
-        uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
-    );
-
-    return $metadata_class->new(\%metadata);
-}
-
-sub calc_abc2 {
-    #  run calc_abc, but keep a track of the label counts across groups
-    my ($self, %args) = @_;
-
-    return $self->_calc_abc(%args, count_labels => 1)
-        if is_hashref($args{element_list1})
-            || @{$args{element_list1} // []} != 1
-            || defined(
-                   $args{element_list2}
-                // $args{label_hash1}
-                // $args{label_hash2}
-                // $args{label_list1}
-                // $args{label_list2}
-        );
-
-    return $self->_calc_abc_one_element(%args, count_labels => 1);
-}
-
-sub get_metadata_calc_abc3 {
-
-    my %metadata = (
-        name            => 'calc_abc3',
-        description     => 'Calculate the label lists in the element sets, '
-                           . 'recording the count of samples per label.',
-        type            => 'not_for_gui',  #  why not?
-        indices         => {},
-        uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue https://github.com/shawnlaffan/biodiverse/issues/336
-    );
-
-    return $metadata_class->new(\%metadata);
-}
-
-#  run calc_abc, but keep a track of the label counts and samples across groups
-sub calc_abc3 {
-    my ($self, %args) = @_;
-
-    return $self->_calc_abc(%args, count_samples => 1)
-        if is_hashref($args{element_list1})
-            || @{$args{element_list1} // []} != 1
-            || defined(
-                   $args{element_list2}
-                // $args{label_hash1}
-                // $args{label_hash2}
-                // $args{label_list1}
-                // $args{label_list2}
-        );
-
-    return $self->_calc_abc_one_element(%args, count_samples => 1);
 }
 
 #  A simplified version of _calc_abc for a single element.
@@ -1766,14 +1752,13 @@ sub _calc_abc_pairwise_mode {
     my $count_labels  = !$count_samples && $args{count_labels};
 
     my (%label_hash1, %label_hash2);
-
     my $cache = $self->get_cached_value_dor_set_default_href (
-        '_calc_abc_pairwise_mode_' . ($count_labels || '_') . ($count_samples || '_')
+        '_calc_abc_pairwise_mode_' . ($count_labels ? 2 : $count_samples ? 3 : 1)
     );
 
     if (!$cache->{$element1}) {
         \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa($element1);
-        if ($count_labels) {
+        if ($count_samples) {
             %label_hash1 = %labels;
         }
         else {
@@ -1787,7 +1772,7 @@ sub _calc_abc_pairwise_mode {
 
     if (!$cache->{$element2}) {
         \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa($element2);
-        if ($count_labels) {
+        if ($count_samples) {
             %label_hash2 = %labels;
         }
         else {

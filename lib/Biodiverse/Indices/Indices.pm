@@ -1626,17 +1626,24 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my ($self, %args) = @_;
 
     delete @args{qw/count_samples count_labels}/};
+    my $have_lb_lists = defined (
+           $args{label_hash1}
+        // $args{label_hash2}
+        // $args{label_list1}
+        // $args{label_list2}
+    );
+
+    return $self->_calc_abc_pairwise_mode(%args)
+        if $self->get_pairwise_mode
+            && @{$args{element_list1} // []} == 1
+            && @{$args{element_list2} // []} == 1
+            && !$have_lb_lists;
 
     return $self->_calc_abc(%args)
         if is_hashref($args{element_list1})
             || @{$args{element_list1} // []} != 1
-            || defined(
-                   $args{element_list2}
-                // $args{label_hash1}
-                // $args{label_hash2}
-                // $args{label_list1}
-                // $args{label_list2}
-        );
+            || defined $args{element_list2}
+            || $have_lb_lists;
 
     return $self->_calc_abc_one_element(%args);
 }
@@ -1741,6 +1748,93 @@ sub _calc_abc_one_element {
         element_count1    => 1,
         element_count2    => 0,
         element_count_all => 1,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+#  If we are in pairwise mode and only processing two elements
+#  then we can cache some of the results.
+#  Assumes only one of each of element1 and element2 passed.
+sub _calc_abc_pairwise_mode {
+    my ($self, %args) = @_;
+
+    my $element1 = $args{element_list1}[0];
+    my $element2 = $args{element_list2}[0];
+
+    my $count_samples = $args{count_samples};
+    my $count_labels  = !$count_samples && $args{count_labels};
+
+    my (%label_hash1, %label_hash2);
+
+    my $cache = $self->get_cached_value_dor_set_default_href (
+        '_calc_abc_pairwise_mode_' . ($count_labels || '_') . ($count_samples || '_')
+    );
+
+    if (!$cache->{$element1}) {
+        \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa($element1);
+        if ($count_labels) {
+            %label_hash1 = %labels;
+        }
+        else {
+            @label_hash1{keys %labels} = (1) x keys %labels;
+        }
+        $cache->{$element1} = \%label_hash1;
+    }
+    else {
+        \%label_hash1 = $cache->{$element1};
+    }
+
+    if (!$cache->{$element2}) {
+        \my %labels = $self->get_basedata_ref->get_labels_in_group_as_hash_aa($element2);
+        if ($count_labels) {
+            %label_hash2 = %labels;
+        }
+        else {
+            @label_hash2{keys %labels} = (1) x keys %labels;
+        }
+        $cache->{$element2} = \%label_hash2;
+    }
+    else {
+        \%label_hash2 = $cache->{$element2};
+    }
+
+    #  now merge
+    my %label_list_master;
+    if ($count_samples || $count_labels) {
+        %label_list_master = %label_hash1;
+        pairmap {$label_list_master{$a} += $b} %label_hash2;
+    }
+    else {
+        %label_list_master = (%label_hash1, %label_hash2);
+    }
+
+    my $abc = scalar keys %label_list_master;
+
+    #  a, b and c are simply differences of the lists
+    #  doubled letters are to avoid clashes with globals $a and $b
+    my $aa
+        = (scalar keys %label_hash1)
+        + (scalar keys %label_hash2)
+        - $abc;
+    my $bb = $abc - (scalar keys %label_hash2);
+    my $cc = $abc - (scalar keys %label_hash1);
+
+    my %results = (
+        A   => $aa,
+        B   => $bb,
+        C   => $cc,
+        ABC => $abc,
+
+        label_hash_all    => \%label_list_master,
+        label_hash1       => \%label_hash1,
+        label_hash2       => \%label_hash2,
+        element_list1     => {$element1 => 1},
+        element_list2     => {$element2 => 1},
+        element_list_all  => [$element1, $element2],
+        element_count1    => 1,
+        element_count2    => 1,
+        element_count_all => 2,
     );
 
     return wantarray ? %results : \%results;

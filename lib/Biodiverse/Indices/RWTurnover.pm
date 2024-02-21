@@ -21,7 +21,7 @@ sub get_metadata_calc_rw_turnover {
         name            => 'Range weighted Sorenson',
         reference       => 'Laffan et al. (2016) https://doi.org/10.1111/2041-210X.12513',
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_endemism_whole_lists calc_abc/],
+        pre_calc        => [qw /calc_endemism_whole_lists calc_abc2/],
         uses_nbr_lists  => 2,  #  how many lists it must have
         distribution    => 'nonnegative',  # for A, B and C
         indices         => {

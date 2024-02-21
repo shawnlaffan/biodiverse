@@ -1070,7 +1070,6 @@ sub build_matrix_elements {
         $n++;
 
         {
-            no autovivification;  #  save a bit of memory
             next ELEMENT2 if $already_calculated{$element2};
             next ELEMENT2 if $element1 eq $element2;
 
@@ -1087,20 +1086,20 @@ sub build_matrix_elements {
         #  If we already have this value then get it and assign it.
         #  Some of these contortions appear to be due to an old approach
         #  where all matrices were built in one loop.
-        #  Could probably drop out sooner now. 
-        my $exists = 0;
-        my $iter   = 0;
-        my %not_exists_iter;
-        my $value;
-
+        #  Could probably drop out sooner now.
         if (!$ofh) {
+            my $iter   = 0;
+            my $exists = 0;
+            my %not_exists_iter;
+            my $value;
+
           MX:
             foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
                 #last MX if $ofh;
 
-                # $value = $mx->get_defined_value_aa ($element1, $element2);
+                $value = $mx->get_defined_value_aa ($element1, $element2);
                 #  don't redo them...
-                defined $mx->get_defined_value_aa ($element1, $element2)
+                defined $value
                     ? ($exists++)
                     : ($not_exists_iter{$iter} = 1);
                 $iter ++;

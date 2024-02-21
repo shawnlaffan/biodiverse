@@ -220,7 +220,7 @@ sub rebuild_value_index {
 
             my $val = $self->get_value( element1 => $el1, element2 => $el2 );
 
-            my $index_val = $self->get_value_index_key( value => $val );
+            my $index_val = $self->get_value_index_key_aa( $val );
 
             $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
         }
@@ -241,6 +241,18 @@ sub get_value_index_key {
     if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
         $val = sprintf $prec, $val;
         #$val =~ s{,}{.};  #  replace any comma with a dot due to locale woes - #GH774
+    }
+
+    return $val;
+}
+
+sub get_value_index_key_aa {
+    my ($self, $val) = @_;
+
+    $val // return 'undef';
+
+    if ( my $prec = $self->get_param('VAL_INDEX_PRECISION') ) {
+        $val = sprintf $prec, $val;
     }
 
     return $val;
@@ -447,7 +459,7 @@ sub add_element {
         return;
     }
 
-    my $index_val = $self->get_value_index_key( value => $val );
+    my $index_val = $self->get_value_index_key_aa( $val );
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
@@ -496,7 +508,7 @@ sub delete_element {
           // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
-    my $index_val = $self->get_value_index_key( value => $value );
+    my $index_val = $self->get_value_index_key_aa( $value );
     if ( !$val_index->{$index_val} ) {
         #  a bit underhanded, but this ensures we upgrade old matrices
         $self->rebuild_value_index;
@@ -574,7 +586,7 @@ sub get_element_pairs_with_value {
 
     my $val = $args{value};
 
-    my $val_key = $self->get_value_index_key (value => $val);
+    my $val_key = $self->get_value_index_key_aa ($val);
 
     my %results;
 

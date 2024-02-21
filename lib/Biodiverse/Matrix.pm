@@ -584,8 +584,8 @@ sub get_element_pairs_with_value {
     #  could special case $val_key == 0 when index precision is %.2g
     #  and we know we only have defined values
 
-    while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
-        foreach my $el2 ( keys %$hash_ref ) {
+    foreach my $el1 (keys %$element_hash) {
+        foreach my $el2 ( keys %{$element_hash->{$el1}} ) {
             #  Deliberately micro-optimised code
             #  to reduce book-keeping overheads.
             #  Note that stringification implicitly uses %.15f precision

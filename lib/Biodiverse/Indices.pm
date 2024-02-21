@@ -1589,12 +1589,13 @@ sub run_calculations {
     my $self = shift;
     my %args = @_;
 
-    $self
-      ->reset_results;  #  clear any previous local results - poss redundant now
+    #  clear any previous local results - poss redundant now
+    $self->reset_results;
 
     my $pre_calc_local_results = $self->run_precalc_locals(%args);
 
-    my %calcs_to_run = $self->get_valid_calculations_to_run;
+    use experimental qw/refaliasing/;
+    \my %calcs_to_run = $self->get_valid_calculations_to_run;
 
     my %results;        #  stores the results
     foreach my $calc ( keys %calcs_to_run ) {
@@ -1645,6 +1646,12 @@ sub run_precalc_locals {
 
 sub run_postcalc_locals {
     my $self = shift;
+
+    #  Most cases do not have local post calcs so we can save some time,
+    #  especially when building pairwise matrices.
+    #  Should perhaps be a method with caching - has_post_calc_locals
+    my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
+    return if !$validated_calcs->{calc_lists_by_type}{post_calc_local};
 
     return $self->run_dependencies( @_, type => 'post_calc' );
 }

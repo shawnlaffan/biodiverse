@@ -92,7 +92,25 @@ sub get_defined_value_aa {
     $el_ref->{$_[1]}{$_[2]} // $el_ref->{$_[2]}{$_[1]};
 }
 
+sub get_element_values {    #  get all values associated with one element
+    my $self = shift;
+    my %args = @_;
 
+    croak "element not specified (matrix)\n" if !defined $args{element};
+    croak "matrix element does not exist\n"
+        if !$self->element_is_in_matrix_aa( $args{element} );
+
+    my $elements = $self->get_elements_as_array;
+
+    my %values;
+    foreach my $el (@$elements) {
+        my $v = $self->get_defined_value_aa($el, $args{element})
+            // next;
+        $values{$el} = $v;
+    }
+
+    return wantarray ? %values : \%values;
+}
 
 #  check an element pair exists, returning:
 #  1 if yes,

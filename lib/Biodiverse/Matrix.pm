@@ -216,8 +216,7 @@ sub rebuild_value_index {
 
             #  we want pairs in their stored order
             next EL2
-              if 1 !=
-              $self->element_pair_exists( element1 => $el1, element2 => $el2 );
+              if 1 != $self->element_pair_exists_aa( $el1, $el2 );
 
             my $val = $self->get_value( element1 => $el1, element2 => $el2 );
 
@@ -553,7 +552,7 @@ sub get_elements {
 sub get_elements_ref {
     my $self = shift;
 
-    return $self->{ELEMENTS} // do { $self->{ELEMENTS} = {} };
+    return $self->{ELEMENTS} //= {};
 }
 
 sub get_elements_as_array {
@@ -598,39 +597,8 @@ sub get_element_pairs_with_value {
     return wantarray ? %results : \%results;
 }
 
-sub get_element_values {    #  get all values associated with one element
-    my $self = shift;
-    my %args = @_;
-
-    croak "element not specified (matrix)\n" if !defined $args{element};
-    croak "matrix element does not exist\n"
-      if !$self->element_is_in_matrix( element => $args{element} );
-
-    my @elements = $self->get_elements_as_array;
-
-    my %values;
-    foreach my $el (@elements) {
-        if (
-            $self->element_pair_exists(
-                element1 => $el,
-                element2 => $args{element}
-            )
-          )
-        {
-            $values{$el} = $self->get_value(
-                element1 => $el,
-                element2 => $args{element}
-            );
-        }
-    }
-
-    return wantarray ? %values : \%values;
-}
-
 sub delete_all_elements {
     my $self = shift;
-
-    no autovivification;
 
     $self->{BYVALUE}   = undef;
     $self->{BYELEMENT} = undef;

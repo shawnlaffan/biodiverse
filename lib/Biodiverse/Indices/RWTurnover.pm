@@ -317,7 +317,7 @@ sub get_metadata__calc_pe_lists_per_element_set {
             set_path_length_cache_by_group_flag
             get_inverse_range_weighted_path_lengths
         /],
-        pre_calc        => ['calc_abc'],  #  don't need calc_abc2 as we don't use its counts
+        pre_calc        => [],  #  don't need calc_abc2 as we don't use its counts
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
     );

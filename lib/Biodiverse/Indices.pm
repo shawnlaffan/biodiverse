@@ -1547,23 +1547,19 @@ sub run_dependencies {
         }
         else {
             my %dep_results;
-            if ( exists $dep_list->{$calc} ) {
-                my $deps = $dep_list->{$calc} || [];
+            if (my $deps = $dep_list->{$calc} ) {
+              LOCAL_DEP:
                 foreach my $dep (@$deps) {
-                    my $dep_res =
-                      exists $as_results_from{$dep}
-                      ? $as_results_from{$dep}
-                      : {};
+                    my $dep_res = $as_results_from{$dep}
+                        || next LOCAL_DEP;
                     @dep_results{ keys %$dep_res } = values %$dep_res;
                 }
             }
-            if ( exists $dep_list_global->{$calc} ) {
-                my $deps = $dep_list_global->{$calc} || [];
+            if (my $deps = $dep_list_global->{$calc}) {
+              GLOBAL_DEP:
                 foreach my $dep (@$deps) {
-                    my $dep_res =
-                      exists $as_results_from_global{$dep}
-                      ? $as_results_from_global{$dep}
-                      : {};
+                    my $dep_res = $as_results_from_global{$dep}
+                        || next GLOBAL_DEP;
                     @dep_results{ keys %$dep_res } = values %$dep_res;
                 }
             }
@@ -1589,12 +1585,13 @@ sub run_calculations {
     my $self = shift;
     my %args = @_;
 
-    $self
-      ->reset_results;  #  clear any previous local results - poss redundant now
+    #  clear any previous local results - poss redundant now
+    $self->reset_results;
 
     my $pre_calc_local_results = $self->run_precalc_locals(%args);
 
-    my %calcs_to_run = $self->get_valid_calculations_to_run;
+    use experimental qw/refaliasing/;
+    \my %calcs_to_run = $self->get_valid_calculations_to_run;
 
     my %results;        #  stores the results
     foreach my $calc ( keys %calcs_to_run ) {
@@ -1631,32 +1628,34 @@ sub get_results_from_pre_calc_global {
 
 sub run_precalc_globals {
     my $self = shift;
-    my %args = @_;
 
-    my $results = $self->run_dependencies( %args, type => 'pre_calc_global', );
+    my $results = $self->run_dependencies( @_, type => 'pre_calc_global', );
 
     return wantarray ? %$results : $results;
 }
 
 sub run_precalc_locals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'pre_calc', );
+    return $self->run_dependencies( @_, type => 'pre_calc', );
 }
 
 sub run_postcalc_locals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'post_calc', );
+    #  Most cases do not have local post calcs so we can save some time,
+    #  especially when building pairwise matrices.
+    #  Should perhaps be a method with caching - has_post_calc_locals
+    my $validated_calcs = $self->get_param('VALID_CALCULATIONS');
+    return if !$validated_calcs->{calc_lists_by_type}{post_calc_local};
+
+    return $self->run_dependencies( @_, type => 'post_calc' );
 }
 
 sub run_postcalc_globals {
     my $self = shift;
-    my %args = @_;
 
-    return $self->run_dependencies( %args, type => 'post_calc_global', );
+    return $self->run_dependencies( @_, type => 'post_calc_global' );
 }
 
 sub set_pairwise_mode {

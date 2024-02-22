@@ -484,6 +484,10 @@ sub run_main_tests {
         }
     };
 
+    my $vals = $mx->get_element_values (element => 'a');
+    my $exp_vals = {b => 101, d => 104, f => 101};
+    is $vals, $exp_vals, 'get_element_values';
+
 }
 
 

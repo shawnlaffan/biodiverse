@@ -216,12 +216,11 @@ sub rebuild_value_index {
 
             #  we want pairs in their stored order
             next EL2
-              if 1 !=
-              $self->element_pair_exists( element1 => $el1, element2 => $el2 );
+              if 1 != $self->element_pair_exists_aa( $el1, $el2 );
 
             my $val = $self->get_value( element1 => $el1, element2 => $el2 );
 
-            my $index_val = $self->get_value_index_key( value => $val );
+            my $index_val = $self->get_value_index_key_aa( $val );
 
             $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
         }
@@ -245,6 +244,18 @@ sub get_value_index_key {
     }
 
     return $val;
+}
+
+sub get_value_index_key_aa {
+    my ($self, $val) = @_;
+
+    $val // return 'undef';
+
+    my $prec = $self->get_param('VAL_INDEX_PRECISION');
+
+    return $prec
+        ? sprintf $prec, $val
+        : $val;
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
@@ -448,7 +459,7 @@ sub add_element {
         return;
     }
 
-    my $index_val = $self->get_value_index_key( value => $val );
+    my $index_val = $self->get_value_index_key_aa( $val );
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
@@ -467,8 +478,9 @@ sub delete_element {
     my $exists = $self->element_pair_exists(@_)
       || return 0;
 
-    croak "element1 and/or element2 not defined\n"
-      if !( defined $args{element1} && defined $args{element2} );
+    #  handled in the exists check
+    # croak "element1 and/or element2 not defined\n"
+    #   if !( defined $args{element1} && defined $args{element2} );
 
     my ( $element1, $element2 ) =
         $exists == 1
@@ -496,7 +508,7 @@ sub delete_element {
           // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
-    my $index_val = $self->get_value_index_key( value => $value );
+    my $index_val = $self->get_value_index_key_aa( $value );
     if ( !$val_index->{$index_val} ) {
         #  a bit underhanded, but this ensures we upgrade old matrices
         $self->rebuild_value_index;
@@ -552,7 +564,7 @@ sub get_elements {
 sub get_elements_ref {
     my $self = shift;
 
-    return $self->{ELEMENTS} // do { $self->{ELEMENTS} = {} };
+    return $self->{ELEMENTS} //= {};
 }
 
 sub get_elements_as_array {
@@ -574,7 +586,7 @@ sub get_element_pairs_with_value {
 
     my $val = $args{value};
 
-    my $val_key = $self->get_value_index_key (value => $val);
+    my $val_key = $self->get_value_index_key_aa ($val);
 
     my %results;
 
@@ -584,8 +596,8 @@ sub get_element_pairs_with_value {
     #  could special case $val_key == 0 when index precision is %.2g
     #  and we know we only have defined values
 
-    while ( my ( $el1, $hash_ref ) = each %$element_hash ) {
-        foreach my $el2 ( keys %$hash_ref ) {
+    foreach my $el1 (keys %$element_hash) {
+        foreach my $el2 ( keys %{$element_hash->{$el1}} ) {
             #  Deliberately micro-optimised code
             #  to reduce book-keeping overheads.
             #  Note that stringification implicitly uses %.15f precision
@@ -597,39 +609,8 @@ sub get_element_pairs_with_value {
     return wantarray ? %results : \%results;
 }
 
-sub get_element_values {    #  get all values associated with one element
-    my $self = shift;
-    my %args = @_;
-
-    croak "element not specified (matrix)\n" if !defined $args{element};
-    croak "matrix element does not exist\n"
-      if !$self->element_is_in_matrix( element => $args{element} );
-
-    my @elements = $self->get_elements_as_array;
-
-    my %values;
-    foreach my $el (@elements) {
-        if (
-            $self->element_pair_exists(
-                element1 => $el,
-                element2 => $args{element}
-            )
-          )
-        {
-            $values{$el} = $self->get_value(
-                element1 => $el,
-                element2 => $args{element}
-            );
-        }
-    }
-
-    return wantarray ? %values : \%values;
-}
-
 sub delete_all_elements {
     my $self = shift;
-
-    no autovivification;
 
     $self->{BYVALUE}   = undef;
     $self->{BYELEMENT} = undef;

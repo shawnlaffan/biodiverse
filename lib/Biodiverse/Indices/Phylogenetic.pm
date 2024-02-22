@@ -2538,7 +2538,7 @@ sub calc_phylo_abc {
     foreach my $list_name (qw/element_list1 element_list2/) {
         $i++; #  start at 1 so we match the numbered names
         my $el_list = $args{$list_name} // next BY_LIST;
-        my @elements = keys %$el_list;
+        \my @elements = $el_list;  #  FIXME FIXME - use directly
         my $have_cache = (@elements == 1 && $cache->{$elements[0]});
         $nodes_in_path[$i]
             = (@elements == 0)
@@ -2564,9 +2564,9 @@ sub calc_phylo_abc {
         #  simplify the calcs as we only need to find $aa
         my $cache
           = $self->get_cached_value_dor_set_default_href ('_calc_phylo_abc_pairwise_branch_sum_cache');
-        my $sum_i = $cache->{(keys %{$args{element_list1}})[0]}  # use postfix deref?
+        my $sum_i = $cache->{$args{element_list1}[0]}  # use postfix deref?
             //= (sum values %list1) // 0;
-        my $sum_j = $cache->{(keys %{$args{element_list2}})[0]}
+        my $sum_j = $cache->{$args{element_list2}[0]}
             //= (sum values %list2) // 0;
         #  save some looping, mainly when there are large differences in key counts
         if (keys %list1 <= keys %list2) {
@@ -2634,15 +2634,15 @@ sub _calc_phylo_abc_lists {
         %args,
         labels   => $label_hash1,
         tree_ref => $tree,
-        el_list  => [keys %{$args{element_list1}}],
+        el_list  => $args{element_list1},
     );
 
-    my $nodes_in_path2 = scalar %{$args{element_list2}}
+    my $nodes_in_path2 = @{$args{element_list2}}
         ? $self->get_path_lengths_to_root_node (
             %args,
             labels   => $label_hash2,
             tree_ref => $tree,
-            el_list  => [keys %{$args{element_list2}}],
+            el_list  => $args{element_list2},
         )
         : {};
 

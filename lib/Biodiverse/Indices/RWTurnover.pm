@@ -358,7 +358,7 @@ sub _calc_pe_lists_per_element_set {
     foreach my $list_name (qw /element_list1 element_list2/) {
         $i++;  #  start at 1 so we match the numbered names
         my $el_list = $args{$list_name} // next BY_LIST;
-        my @elements = keys %$el_list;
+        \my @elements = $el_list;  #  FIXME
         my $have_cache = (@elements == 1 && $cache->{$elements[0]});
         $results[$i]
             = $have_cache

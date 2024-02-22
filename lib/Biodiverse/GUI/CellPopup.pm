@@ -378,7 +378,7 @@ sub show_output_list {
             $model->set($iter,    0, $key ,  1, $val);
         }
     }
-    elsif (is_listref($list_ref)) {
+    elsif (is_arrayref($list_ref)) {
         my $numeric = 1;
         foreach my $key (@$list_ref) {
             if (! looks_like_number ($key)) {
@@ -394,7 +394,7 @@ sub show_output_list {
         
         my @keys = $numeric
             ? sort {$a <=> $b} @$list_ref
-            : natsort keys @$list_ref;
+            : natsort @$list_ref;
 
         foreach my $elt (@keys) {
             #print "[Cell popup] Adding output array entry $elt\n";

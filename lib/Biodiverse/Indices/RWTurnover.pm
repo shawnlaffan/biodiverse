@@ -66,20 +66,12 @@ sub calc_rw_turnover {
         #  or inverse of ranges
         my $cache
             = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
-        #  use postfix idiom?
-        #  ideally we would only be passed arrays, but see issue #919
-        my $key1 = is_hashref ($args{element_list1})
-            ? ((keys %{$args{element_list1}})[0])
-            : (${$args{element_list1}}[0]);
-        my $key2 = is_hashref ($args{element_list2})
-            ? ((keys %{$args{element_list2}})[0])
-            : (${$args{element_list2} //[]}[0]);
         #  Could use a reduce call to collapse the "sum map {} @list" idiom,
         #  thus avoiding a list generation.  These are only run once per group,
         #  though, so it might not matter.
-        my $sum_i = $cache->{$key1}
+        my $sum_i = $cache->{$args{element_list1}[0]}
             //= (sum map {1 / $_} @ranges{keys %list1}) // 0;
-        my $sum_j = $cache->{$key2}
+        my $sum_j = $cache->{$args{element_list2}[0]}
             //= (sum map {1 / $_} @ranges{keys %list2}) // 0;
         #  save some looping, mainly when there are large differences in key counts
         if (keys %list1 <= keys %list2) {
@@ -173,20 +165,12 @@ sub calc_phylo_rw_turnover {
         #  simplify the calcs as we only need to find $aa
         my $cache
             = $self->get_cached_value_dor_set_default_href ('_calc_phylo_rwt_pairwise_branch_sum_cache');
-        #  use postfix idiom?
-        #  ideally we would only be passed arrays, but see issue #919
-        my $key1 = is_hashref ($args{element_list1})
-            ? ((keys %{$args{element_list1}})[0])
-            : (${$args{element_list1}}[0]);
-        my $key2 = is_hashref ($args{element_list2})
-            ? ((keys %{$args{element_list2}})[0])
-            : (${$args{element_list2} //[]}[0]);
         #  Could use a reduce call to collapse the "sum map {} @list" idiom,
         #  thus avoiding a list generation.  These are only run once per group,
         #  though, so it might not matter.
-        my $sum_i = $cache->{$key1}
+        my $sum_i = $cache->{$args{element_list1}[0]}
             //= (sum values %list1) // 0;
-        my $sum_j = $cache->{$key2}
+        my $sum_j = $cache->{$args{element_list2}[0]}
             //= (sum values %list2) // 0;
         #  save some looping, mainly when there are large differences in key counts
         if (keys %list1 <= keys %list2) {

@@ -1621,9 +1621,9 @@ sub calc_element_lists_used {
     }
 
     my %results = (
-        EL_LIST_SET1 => $args{element_list1},
-        EL_LIST_SET2 => $args{element_list2},
-        EL_LIST_ALL  => $args{element_list_all},
+        EL_LIST_SET1 => $set1,
+        EL_LIST_SET2 => $set2,
+        EL_LIST_ALL  => $set3,
     );
 
     return wantarray ? %results : \%results;
@@ -1808,8 +1808,8 @@ sub _calc_abc_one_element {
         label_hash_all    => \%label_list_master,
         label_hash1       => \%label_hash1,
         label_hash2       => {},
-        element_list1     => {$element => 1},
-        element_list2     => {},
+        element_list1     => [$element],
+        element_list2     => [],
         element_list_all  => [$element],
         element_count1    => 1,
         element_count2    => 0,
@@ -1894,8 +1894,8 @@ sub _calc_abc_pairwise_mode {
         label_hash_all    => \%label_list_master,
         label_hash1       => \%label_hash1,
         label_hash2       => \%label_hash2,
-        element_list1     => {$element1 => 1},
-        element_list2     => {$element2 => 1},
+        element_list1     => [$element1],
+        element_list2     => [$element2],
         element_list_all  => [$element1, $element2],
         element_count1    => 1,
         element_count2    => 1,
@@ -2080,8 +2080,8 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         label_hash_all    => \%label_list_master,
         label_hash1       => $label_list{1},
         label_hash2       => $label_list{2},
-        element_list1     => $element_check{1},
-        element_list2     => $element_check{2},
+        element_list1     => [keys %{$element_check{1}}],
+        element_list2     => [keys %{$element_check{2}}],
         element_list_all  => [keys %element_check_master],
         element_count1    => $element_count1,
         element_count2    => $element_count2,

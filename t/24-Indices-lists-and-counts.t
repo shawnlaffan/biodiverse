@@ -46,6 +46,7 @@ sub test_main {
             calc_nonempty_elements_used
             calc_elements_used
             calc_element_lists_used
+            calc_element_lists_used_as_arrays
             calc_abc_counts
             calc_d
             calc_local_range_lists
@@ -59,7 +60,7 @@ sub test_main {
         /],
         calc_topic_to_test => 'Lists and Counts',
         sort_array_lists   => 1,
-        #generate_result_sets => 1,
+        # generate_result_sets => 1,
     );
 }
 
@@ -116,7 +117,8 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{   ABC2_LABELS_ALL => {
+{
+    ABC2_LABELS_ALL => {
         'Genus:sp1'  => 2,
         'Genus:sp10' => 1,
         'Genus:sp11' => 2,
@@ -277,19 +279,29 @@ __DATA__
     ABC_B         => 0,
     ABC_C         => 12,
     ABC_D         => 17,
-    EL_COUNT_ALL  => 5,
-    EL_COUNT_SET1 => 1,
-    EL_COUNT_SET2 => 4,
+    EL_ARRAY_ALL  => [
+        '3350000:750000', '3250000:850000',
+        '3350000:950000', '3450000:850000',
+        '3350000:850000'
+    ],
+    EL_ARRAY_SET1 => ['3350000:850000'],
+    EL_ARRAY_SET2 => [
+        '3350000:950000', '3350000:750000',
+        '3450000:850000', '3250000:850000'
+    ],
+    EL_COUNT_ALL           => 5,
     EL_COUNT_NONEMPTY_ALL  => 5,
     EL_COUNT_NONEMPTY_SET1 => 1,
     EL_COUNT_NONEMPTY_SET2 => 4,
-    EL_LIST_ALL   => [
-        '3250000:850000', '3350000:850000',
-        '3350000:750000', '3350000:950000',
-        '3450000:850000'
+    EL_COUNT_SET1          => 1,
+    EL_COUNT_SET2          => 4,
+    EL_LIST_ALL            => [
+        '3350000:750000', '3250000:850000',
+        '3350000:950000', '3450000:850000',
+        '3350000:850000'
     ],
-    EL_LIST_SET1 => { '3350000:850000' => 1 },
-    EL_LIST_SET2 => {
+    EL_LIST_SET1           => { '3350000:850000' => 1 },
+    EL_LIST_SET2           => {
         '3250000:850000' => 1,
         '3350000:750000' => 1,
         '3350000:950000' => 1,
@@ -317,7 +329,7 @@ __DATA__
     RICHNESS_ALL    => 14,
     RICHNESS_SET1   => 2,
     RICHNESS_SET2   => 14
-}
+};
 
 
 @@ RESULTS_1_NBR_LISTS
@@ -356,15 +368,16 @@ __DATA__
         Q095 => 4,
         Q100 => 4
     },
-    ABC3_SD_SET1         => '1.4142135623731',
-    ABC3_SUM_SET1        => 6,
-    ABC_D                => 29,
-    EL_COUNT_SET1        => 1,
-    EL_COUNT_ALL         => 1,
+    ABC3_SD_SET1           => '1.4142135623731',
+    ABC3_SUM_SET1          => 6,
+    ABC_D                  => 29,
+    EL_ARRAY_SET1          => ['3350000:850000'],
+    EL_COUNT_ALL           => 1,
     EL_COUNT_NONEMPTY_ALL  => 1,
     EL_COUNT_NONEMPTY_SET1 => 1,
-    EL_LIST_SET1         => { '3350000:850000' => 1 },
-    LABEL_COUNT_RANK_PCT => {
+    EL_COUNT_SET1          => 1,
+    EL_LIST_SET1           => { '3350000:850000' => 1 },
+    LABEL_COUNT_RANK_PCT   => {
         'Genus:sp20' => undef,
         'Genus:sp26' => undef
     },

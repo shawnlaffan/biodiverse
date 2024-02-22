@@ -1567,8 +1567,11 @@ sub get_metadata_calc_element_lists_used {
 
     my %metadata = (
         name            => "Element lists",
-        description     => "Lists of elements used in neighbour sets 1 and 2.\n"
-                           . 'These form the basis for all the spatial calculations.',
+        description     =>
+            "[DEPRECATED] Lists of elements used in neighbour sets 1 and 2.\n"
+            . 'These form the basis for all the spatial calculations. '
+            . 'The return types are inconsistent. New code should use '
+            . 'calc_element_lists_used_as_arrays',
         type            => 'Lists and Counts',
         pre_calc        => 'calc_abc',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -1595,13 +1598,90 @@ sub get_metadata_calc_element_lists_used {
 
 sub calc_element_lists_used {
     my $self = shift;
-
     my %args = @_;  #  rest of args into a hash
+
+    my $set1 = $args{element_list1};
+    my $set2 = $args{element_list2};
+    my $set3 = $args{element_list_all};
+
+    #  these two are hashes
+    if ($set1 && !is_hashref $set1) {
+        my $href = {};
+        @$href{@$set1} = (1) x @$set1;
+        $set1 = $href;
+    }
+    if ($set2 && !is_hashref $set2) {
+        my $href = {};
+        @$href{@$set2} = (1) x @$set2;
+        $set2 = $href;
+    }
+    #  this is an array
+    if ($set3 && is_hashref $set3) {
+        $set2 = [keys %$set3];
+    }
 
     my %results = (
         EL_LIST_SET1 => $args{element_list1},
         EL_LIST_SET2 => $args{element_list2},
         EL_LIST_ALL  => $args{element_list_all},
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_element_lists_used_as_arrays {
+    my $self = shift;
+
+    my %metadata = (
+        name            => "Element arrays",
+        description     => "Arrays of elements used in neighbour sets 1 and 2.\n"
+            . 'These form the basis for all the spatial calculations.',
+        type            => 'Lists and Counts',
+        pre_calc        => 'calc_abc',
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices         => {
+            EL_ARRAY_SET1  => {
+                description    => 'Array of elements in neighbour set 1',
+                type           => 'list',
+            },
+            EL_ARRAY_SET2  => {
+                description    => 'Array of elements in neighbour set 2',
+                uses_nbr_lists => 2,
+                type           => 'list',
+            },
+            EL_ARRAY_ALL   => {
+                description    => 'Array of elements in both neighbour sets',
+                uses_nbr_lists => 2,
+                type           => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_element_lists_used_as_arrays {
+    my $self = shift;
+    my %args = @_;  #  rest of args into a hash
+
+    my $set1 = $args{element_list1};
+    my $set2 = $args{element_list2};
+    my $set3 = $args{element_list_all};
+
+    if ($set1 && is_hashref $set1) {
+        $set1 = [keys %$set1];
+    }
+    if ($set2 && is_hashref $set2) {
+        $set2 = [keys %$set2];
+    }
+    if ($set3 && is_hashref $set3) {
+        $set3 = [keys %$set3];
+    }
+
+    my %results = (
+        EL_ARRAY_SET1 => $set1,
+        EL_ARRAY_SET2 => $set2,
+        EL_ARRAY_ALL  => $set3,
     );
 
     return wantarray ? %results : \%results;

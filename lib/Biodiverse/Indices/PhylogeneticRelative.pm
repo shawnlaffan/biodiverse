@@ -58,7 +58,6 @@ sub calc_phylo_rpd1 {
     my $total_tree_length = $tree->get_total_tree_length;
 
     my $pd_p_score = $args{PD_P};
-    my $pd_score   = $args{PD_P};
     my $label_hash = $args{PHYLO_LABELS_ON_TREE};
     my $richness   = scalar keys %$label_hash;
 

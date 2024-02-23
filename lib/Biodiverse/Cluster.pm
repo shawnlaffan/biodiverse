@@ -2777,7 +2777,9 @@ sub sp_calc {
     );
 
     #  drop out if we have none to do
-    return if $indices_object->get_valid_calculation_count == 0;  
+    return if $indices_object->get_valid_calculation_count == 0;
+
+    $indices_object->set_hierarchical_mode(1);
 
     delete $args{calculations};  #  saves passing it onwards when we call the calculations
     delete $args{analyses};      #  for backwards compat
@@ -2829,6 +2831,8 @@ sub sp_calc {
     $indices_object->run_postcalc_globals (%args);
     
     $self->delete_cached_metadata;
+
+    $indices_object->set_hierarchical_mode(0);
 
     return 1;
 }

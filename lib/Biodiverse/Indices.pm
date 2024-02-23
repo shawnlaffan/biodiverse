@@ -1663,6 +1663,9 @@ sub set_pairwise_mode {
 
     $self->{pairwise_mode} = $mode;
 
+    croak "Cannot have both pairwise and hierarchical modes on at the same time"
+        if $mode && $self->get_hierarchical_mode;
+
     return $mode;
 }
 
@@ -1670,6 +1673,24 @@ sub set_pairwise_mode {
 sub get_pairwise_mode {
     $_[0]->{pairwise_mode};
 }
+
+sub set_hierarchical_mode {
+    my ( $self, $mode ) = @_;
+
+    $self->{hierarchical_mode} = $mode;
+
+    croak "Cannot have both pairwise and hierarchical modes on at the same time"
+        if $mode && $self->get_pairwise_mode;
+
+    return $mode;
+}
+
+#  potential hot path so optimise to avoid arg handling
+sub get_hierarchical_mode {
+    $_[0]->{hierarchical_mode};
+}
+
+
 
 1;
 

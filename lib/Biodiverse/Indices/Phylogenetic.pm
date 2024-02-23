@@ -1627,6 +1627,15 @@ sub calc_labels_not_on_tree {
 
     my $not_on_tree = $args{labels_not_on_tree};
 
+    if (!keys %$not_on_tree) {
+        my $res = {
+            PHYLO_LABELS_NOT_ON_TREE   => {},
+            PHYLO_LABELS_NOT_ON_TREE_N => 0,
+            PHYLO_LABELS_NOT_ON_TREE_P => 0,
+        };
+        return wantarray ? %$res : $res;
+    }
+
     my %labels1 = %{$args{label_hash_all}};
     my $richness = scalar keys %labels1;
     delete @labels1{keys %$not_on_tree};

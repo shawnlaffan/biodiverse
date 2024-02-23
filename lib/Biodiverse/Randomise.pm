@@ -973,12 +973,15 @@ sub compare_cluster_calcs_per_node {
     #  Cloning via newick format clears all the params,
     #  so avoids lingering basedata refs and the like
     require Biodiverse::ReadNexus;
-    
+
     my $read_nexus = Biodiverse::ReadNexus->new;
     $read_nexus->import_newick (data => $orig_analysis->to_newick);
     my @tree_array = $read_nexus->get_tree_array;
     my $clone = $tree_array[0];
     bless $clone, blessed ($orig_analysis);
+    #  This is more direct but actually takes longer under profiling.
+    #  Also does not clean out the previous lists.
+    # my $clone = $orig_analysis->clone_without_caches;
 
     $clone->rename (new_name => $orig_analysis->get_param ('NAME') . ' rand sp_calc' . $args{rand_iter});
     my %clone_analysis_args = %$analysis_args;

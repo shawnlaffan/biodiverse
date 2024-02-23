@@ -511,7 +511,16 @@ sub convert_comparisons_to_significances {
                 list    => $result_list_name,
             );
 
+            #  this will result in fewer greps inside the sig rank sub
+            my $base_ref_name = $list_name =~ s/.+>>//r;
+            my $base_list_ref = $self->get_list_ref(
+                element    => $element,
+                list       => $base_ref_name,
+                autovivify => 0,
+            );
+
             $self->get_sig_rank_from_comp_results (
+                base_list_ref    => $base_list_ref,
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,  #  do it in-place
             );

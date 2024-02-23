@@ -266,12 +266,18 @@ sub load_yaml_file {
     croak 'Loading from a YAML file is no longer supported';
 }
 
+#  Orig should never have used a hash.  Oh well.
+sub set_basedata_ref_aa {
+    my ($self, $ref) = @_;
+    $self->set_basedata_ref(BASEDATA_REF => $ref);
+}
+
 sub set_basedata_ref {
     my $self = shift;
     my %args = @_;
 
     $self->set_param (BASEDATA_REF => $args{BASEDATA_REF});
-    $self->weaken_basedata_ref;
+    $self->weaken_basedata_ref if defined $args{BASEDATA_REF};
 
     return;
 }
@@ -279,10 +285,7 @@ sub set_basedata_ref {
 sub get_basedata_ref {
     my $self = shift;
 
-    my $bd = $self->get_param ('BASEDATA_REF')
-           || Biodiverse::MissingBasedataRef->throw (
-              message => 'Parameter BASEDATA_REF not set'
-            );
+    my $bd = $self->get_param ('BASEDATA_REF');
     
     return $bd;
 }

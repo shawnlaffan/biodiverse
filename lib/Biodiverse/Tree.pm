@@ -2,7 +2,7 @@ package Biodiverse::Tree;
 
 #  Package to build and store trees.
 #  includes clustering methods
-use 5.010;
+use 5.020;
 
 use Carp;
 use strict;
@@ -2251,7 +2251,12 @@ sub convert_comparisons_to_significances {
                 );
             }
 
+            #  this will result in fewer greps inside the sig rank sub
+            my $base_ref_name = $list_name =~ s/.+>>//r;
+            my $base_list_ref = $base_node->get_list_ref_aa( $base_ref_name );
+
             $self->get_sig_rank_from_comp_results(
+                base_list_ref    => $base_list_ref,
                 comp_list_ref    => $comp_ref,
                 results_list_ref => $result_list_ref,    #  do it in-place
             );
@@ -2268,7 +2273,7 @@ sub convert_comparisons_to_zscores {
       if !defined $result_list_pfx;
 
     my $progress      = Biodiverse::Progress->new();
-    my $progress_text = "Calculating significances";
+    my $progress_text = "Calculating z-scores";
     $progress->update( $progress_text, 0 );
 
     # find all the relevant lists for this target name

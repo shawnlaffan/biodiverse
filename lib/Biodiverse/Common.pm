@@ -2667,15 +2667,19 @@ sub get_sig_rank_from_comp_results {
     my $self = shift;
     my %args = @_;
     
-    #  could alias this
     \my %comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
 
     \my %results_list_ref = $args{results_list_ref} // {};
 
-    foreach my $c_key (grep {$_ =~ /^C_/} keys %comp_list_ref) {
-        
-        my $index_name = substr $c_key, 2;
+    #  base_list_ref will usually be shorter so fewer comparisons will be needed
+    my @keys = $args{base_list_ref}
+        ? grep {exists $comp_list_ref{'C_' . $_}} keys %{$args{base_list_ref}}
+        : map {substr $_, 2} grep {$_ =~ /^C_/} keys %comp_list_ref;
+
+    foreach my $index_name (@keys) {
+
+        my $c_key = 'C_' . $index_name;
 
         if (!defined $comp_list_ref{$c_key}) {
             $results_list_ref{$index_name} = undef;

@@ -6,6 +6,9 @@ use 5.020;
 
 our $VERSION = '4.99_002';
 
+use experimental 'refaliasing';
+
+
 my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_endemism_central_normalised {
@@ -874,8 +877,9 @@ sub get_metadata__calc_endemism_absolute {
     my %metadata = (
         description     => $desc,
         name            => 'Absolute endemism, internals',
-        uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        pre_calc        => ['calc_abc2'],
+        uses_nbr_lists  => 1, #  how many sets of lists it must have
+        pre_calc        => [ 'calc_abc2' ],
+        pre_calc_global => ['get_label_range_hash']
     );  #  add to if needed
 
     return $metadata_class->new(\%metadata);
@@ -889,9 +893,11 @@ sub _calc_endemism_absolute {
 
     my $bd = $self->get_basedata_ref;
 
-    my $local_ranges = $args{label_hash_all};
-    my $l_hash1 = $args{label_hash1};
-    my $l_hash2 = $args{label_hash2};
+    \my %local_ranges = $args{label_hash_all};
+    \my %l_hash1 = $args{label_hash1};
+    \my %l_hash2 = $args{label_hash2};
+
+    \my %ranges = $args{label_range_hash};
     
     #  allows us to use this for any other basedata get_* function
     my $function = 'get_range';
@@ -899,27 +905,28 @@ sub _calc_endemism_absolute {
     my ($end1, $end2, $end_all) = (0, 0, 0);
     my (%eh1, %eh2, %eh_all);
 
-    while (my ($sub_label, $local_range) = each %{$local_ranges}) {
-        my $range = $bd->$function (element => $sub_label);
+    foreach my $sub_label (keys %local_ranges) {
+        my $local_range = $local_ranges{$sub_label};
+        my $range       = $ranges{$sub_label};
 
         next if $range > $local_range;  #  cannot be absolutely endemic
 
         $end_all++;
         $eh_all{$sub_label} = $local_range;
 
-        if (exists $l_hash1->{$sub_label} and $range <= $l_hash1->{$sub_label}) {
+        if ($l_hash1{$sub_label} and $range <= $l_hash1{$sub_label}) {
             $end1++;
             $eh1{$sub_label} = $local_range;
         }
-        if (exists $l_hash2->{$sub_label} and $range <= $l_hash2->{$sub_label})  {
+        if ($l_hash2{$sub_label} and $range <= $l_hash2{$sub_label})  {
             $end2++;
             $eh2{$sub_label} = $local_range;
         }
     }
 
-    my $end1_p = eval {$end1 / scalar keys %$l_hash1};
-    my $end2_p = eval {$end2 / scalar keys %$l_hash2};
-    my $end_all_p = eval {$end_all / scalar keys %$local_ranges};
+    my $end1_p    = eval {$end1 / scalar keys %l_hash1};
+    my $end2_p    = eval {$end2 / scalar keys %l_hash2};
+    my $end_all_p = eval {$end_all / scalar keys %local_ranges};
 
     my %results = (
         END_ABS1         => $end1,

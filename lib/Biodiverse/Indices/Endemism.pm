@@ -432,12 +432,11 @@ sub _calc_endemism_hier_part {
 
     my @hash_ref_array = ();
     my @count_array    = ();
-    my $total_count    = 0;
+    my $total_count    = keys %$wt_list;
 
     foreach my $label (keys %$wt_list) {
-        my $wt = $wt_list->{$label};
-        my $contribution = $wt / $we;
-        $total_count ++;
+        my $contribution = $wt_list->{$label} / $we;
+
         my $node_ref = $tree->get_node_ref_aa ($label);
 
         #  Climb the tree and add the contributions.

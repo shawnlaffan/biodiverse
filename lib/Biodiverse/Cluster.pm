@@ -2779,7 +2779,7 @@ sub sp_calc {
     #  drop out if we have none to do
     return if $indices_object->get_valid_calculation_count == 0;
 
-    $indices_object->set_hierarchical_mode(1);
+    $indices_object->set_hierarchical_mode(!$args{no_hierarchical_mode});
 
     delete $args{calculations};  #  saves passing it onwards when we call the calculations
     delete $args{analyses};      #  for backwards compat
@@ -2811,9 +2811,13 @@ sub sp_calc {
             $count / $to_do,
         );
 
+        my @child_names = map {$_->get_name} $node->get_children;
+
         my %sp_calc_values = $indices_object->run_calculations(
             %args,
-            element_list1 => [keys %{$node->get_terminal_elements}]
+            element_list1            => [ keys %{$node->get_terminal_elements} ],
+            current_node_name        => $node->get_name,
+            current_node_child_names => \@child_names,
         );
 
         foreach my $key (keys %sp_calc_values) {

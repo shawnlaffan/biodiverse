@@ -1,6 +1,9 @@
 package Biodiverse::Indices::Phylogenetic::RefAlias;
 use strict;
 use warnings;
+use 5.022;
+
+use Carp qw/croak/;
 
 our $VERSION = '4.99_002';
 
@@ -11,11 +14,17 @@ use List::Util qw /sum/;
 
 sub _calc_pe {
     my $self = shift;
-    my %args = @_;    
+    my %args = @_;
+
+    my $element_list_all = $args{element_list_all};
+
+    return $self->_calc_pe_hierarchical(%args)
+      if defined $args{current_node_name}
+          && $self->get_hierarchical_mode
+          && @$element_list_all > 1;
 
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
-    my $element_list_all = $args{element_list_all};
     \my %node_ranges     = $args{node_range};
     \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
 
@@ -148,6 +157,101 @@ sub _calc_pe {
     return wantarray ? %results : \%results;
 }
 
+#  _calc_pe but taking advantage of hierarchical structures
+#  requires it be called bottom up
+sub _calc_pe_hierarchical {
+    my ($self, %args) = @_;
 
+    my $element_list_all = $args{element_list_all};
+
+    my $current_node_name = $args{current_node_name}
+        // croak 'Must pass the current node name when in hierarchical mode';
+    my $child_names = $args{current_node_child_names};
+
+    my $tree_ref         = $args{trimmed_tree};
+    my $results_cache    = $args{PE_RESULTS_CACHE};
+    \my %node_ranges     = $args{node_range};
+    # \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
+
+    # my $bd = $args{basedata_ref} || $self->get_basedata_ref;
+
+    #  default these to undef - more meaningful than zero
+    my ($PE_WE, $PE_WE_P);
+
+    my (%wts, %local_ranges, %results);
+
+    foreach my $group (@$child_names) {
+        my $results_this_gp;
+        #  use the cached results for a group if present
+        if (exists $results_cache->{$group}) {
+            $results_this_gp = $results_cache->{$group};
+        }
+        else {
+            #  do it the hard way
+            delete local $args{current_node_name};
+            $results_cache->{$group} = $self->_calc_pe (%args);
+        }
+
+        if (defined $results_this_gp->{PE_WE}) {
+            $PE_WE += $results_this_gp->{PE_WE};
+        }
+
+        #  Avoid some redundant slicing and dicing when we have only one group
+        #  Pays off when processing large data sets
+        if (scalar @$element_list_all == 1) {
+            #  no need to collate anything so make a shallow copy
+            @results{keys %$results_this_gp} = values %$results_this_gp;
+            #  but we do need to add to the local range hash
+            my $hashref = $results_this_gp->{PE_WTLIST};
+            @local_ranges{keys %$hashref} = (1) x scalar keys %$hashref;
+        }
+        else {
+            # refalias might be a nano-optimisation here...
+            \my %wt_hash = $results_this_gp->{PE_WTLIST};
+
+            # weights need to be summed,
+            # unless we are starting from a blank slate
+            if (keys %wts) {
+                foreach my $node (keys %wt_hash) {
+                    $wts{$node} += $wt_hash{$node};
+                    $local_ranges{$node}++;
+                }
+            }
+            else {
+                %wts = %wt_hash;
+                @local_ranges{keys %wt_hash} = (1) x scalar keys %wt_hash;
+            }
+        }
+    }
+
+    {
+        no warnings 'uninitialized';
+        my $total_tree_length = $tree_ref->get_total_tree_length;
+
+        #Phylogenetic endemism = sum for all nodes of:
+        # (branch length/total tree length) / node range
+        $PE_WE_P = eval {$PE_WE / $total_tree_length};
+    }
+
+    #  need the collated versions for multiple elements
+    if (scalar @$element_list_all > 1) {
+        $results{PE_WE}     = $PE_WE;
+        $results{PE_WTLIST} = \%wts;
+        my %nranges = %node_ranges{keys %wts};
+        $results{PE_RANGELIST} = \%nranges;
+    }
+    else {
+        my %nranges = %node_ranges{keys %{$results{PE_WTLIST}}};
+        $results{PE_RANGELIST} = \%nranges;
+    }
+
+    #  need to set these
+    $results{PE_WE_P} = $PE_WE_P;
+    $results{PE_LOCAL_RANGELIST} = \%local_ranges;
+
+    $results_cache->{$current_node_name} = {%results{qw/PE_WE PE_WTLIST/}};
+
+    return wantarray ? %results : \%results;
+}
 
 1;

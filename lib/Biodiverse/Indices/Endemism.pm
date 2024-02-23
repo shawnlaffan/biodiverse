@@ -439,17 +439,18 @@ sub _calc_endemism_hier_part {
         my $contribution = $wt / $we;
         $total_count ++;
         my $node_ref = $tree->get_node_ref_aa ($label);
-        my $node_name = $label;
 
         #  Climb the tree and add the contributions.
         #  Depth is off by one so the root is $i==-1.
         my $i = $depth;
-        while ($i >= 0) {
+        #  this call caches
+        my $path = $node_ref->get_path_name_array_to_root_node_aa;
+
+        foreach my $node_name (@$path) {
             $hash_ref_array[$i]{$node_name} += $contribution;
             $count_array[$i]{$node_name} ++;
             $i--;
-            $node_ref  = $node_ref->get_parent;
-            $node_name = $node_ref->get_name;
+            last if $i < 0;
         }
     }
 

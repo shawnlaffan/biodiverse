@@ -2516,35 +2516,33 @@ sub get_zscore_from_comp_results {
     my %args = @_;
 
     #  could alias this
-    my $comp_list_ref = $args{comp_list_ref}
+    \my %comp_list_ref = $args{comp_list_ref}
       // croak "comp_list_ref argument not specified\n";
     #  need the observed values
-    my $base_list_ref = $args{base_list_ref}
+    \my %base_list_ref = $args{base_list_ref}
       // croak "base_list_ref argument not specified\n";
 
     my $results_list_ref = $args{results_list_ref} // {};
 
   KEY:
-    foreach my $q_key (grep {$_ =~ /^Q_/} keys %$comp_list_ref) {
-        my $index_name = substr $q_key, 2;
+    foreach my $index_name (keys %base_list_ref) {
 
-        my $n = $comp_list_ref->{$q_key};
+        my $n = $comp_list_ref{'Q_' . $index_name};
         next KEY if !$n;
 
         my $x_key  = 'SUMX_'  . $index_name;
         my $xx_key = 'SUMXX_' . $index_name;
 
         #  sum of x vals and x vals squared 
-        my $sumx  = $comp_list_ref->{$x_key};
-        my $sumxx = $comp_list_ref->{$xx_key};
+        my $sumx  = $comp_list_ref{$x_key};
+        my $sumxx = $comp_list_ref{$xx_key};
 
-        my $z_key = $index_name;
         #  n better be large, as we do not use n-1
-        my $variance = max (0, ($sumxx - ($sumx**2) / $n) / $n);
-        my $obs = $base_list_ref->{$index_name};
-        $results_list_ref->{$z_key}
-          = $variance
-          ? ($obs - ($sumx / $n)) / sqrt ($variance)
+        my $variance = ($sumxx - ($sumx**2) / $n) / $n;
+
+        $results_list_ref->{$index_name}
+          = $variance > 0
+          ? ($base_list_ref{$index_name} - ($sumx / $n)) / sqrt ($variance)
           : 0;
     }
 

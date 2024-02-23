@@ -224,13 +224,15 @@ sub test_cluster_node_calcs {
     my $prng_seed = $args{prng_seed} || $default_prng_seed;
     my $tree_ref  = $args{tree_ref} || get_tree_object_from_sample_data();
 
+    my $calcs = [qw/calc_pe calc_pd/];
+
     my $cl1 = $bd->add_cluster_output (name => 'cl1');
     $cl1->run_analysis (
         prng_seed => $prng_seed,
     );
     $cl1->run_spatial_calculations (
         tree_ref             => $tree_ref,
-        spatial_calculations => [ qw/calc_pe/ ],
+        spatial_calculations => $calcs,
         no_hierarchical_mode => 1,
     );
     my $cl2 = $bd->add_cluster_output (name => 'cl2');
@@ -239,7 +241,7 @@ sub test_cluster_node_calcs {
     );
     $cl2->run_spatial_calculations (
         tree_ref             => $tree_ref,
-        spatial_calculations => [ qw/calc_pe/ ],
+        spatial_calculations => $calcs,
         no_hierarchical_mode => 0,
     );
 

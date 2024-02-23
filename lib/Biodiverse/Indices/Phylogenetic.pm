@@ -576,14 +576,24 @@ sub get_path_lengths_to_root_node {
     my $cache = !$args{no_cache};
     #$cache = 0;  #  turn it off for debug
     my $el_list = $args{el_list} // [];
-    
+
+    # if ($self->get_hierarchical_mode && $args{current_node_name}) {
+    #     say STDERR 'KOO ' . ($args{current_node_name} // 'undef') . ' '
+    #     . scalar @{$args{element_list1} //[]};
+    # }
+    return $self->_get_path_lengths_to_root_node_hierarchical(%args)
+        if defined $args{current_node_name}
+            && $self->get_hierarchical_mode
+            && scalar @{$args{element_list1} //[]} > 1;
+
     #  have we cached it?
-    #my $use_path_cache = $cache && $self->get_pairwise_mode();
+    #  caching makes sense only if we have
+    #  only one element (group) containing labels
+    #  or we are in hierarchical mode, but that is handled separately
     my $use_path_cache
         =  $cache
         && $self->get_param('USE_PATH_LENGTH_CACHE_BY_GROUP')
-        && scalar @$el_list == 1;  #  caching makes sense only if we have
-                                   #  only one element (group) containing labels
+        && scalar @$el_list == 1;
 
     if ($use_path_cache) {
         my $cache_h   = $args{path_length_cache};
@@ -677,6 +687,30 @@ sub get_path_lengths_to_root_node {
     }
 
     return wantarray ? %$path_hash : $path_hash;
+}
+
+sub _get_path_lengths_to_root_node_hierarchical {
+    my ($self, %args) = @_;
+
+    my $current_node_name = $args{current_node_name}
+        // croak 'Must pass the current node name when in hierarchical mode';
+    my $child_names = $args{current_node_child_names};
+    my $cache_h     = $args{path_length_cache};
+
+    my %path_combined;
+
+    foreach my $child (@$child_names) {
+        my $path = $cache_h->{$child};
+        if (!$path) {
+            #  need to calculate it
+            delete local $args{$current_node_name};
+            $path = $self->get_path_lengths_to_root_node(%args);
+        }
+        @path_combined{keys %$path} = values %$path;
+    }
+    $cache_h->{$current_node_name} = \%path_combined;
+
+    return wantarray ? %path_combined : \%path_combined;
 }
 
 

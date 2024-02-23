@@ -433,15 +433,18 @@ sub _calc_endemism_hier_part {
     my @hash_ref_array = ();
     my @count_array    = ();
     my $total_count    = 0;
-    while (my ($label, $wt) = each %$wt_list) {
+
+    foreach my $label (keys %$wt_list) {
+        my $wt = $wt_list->{$label};
         my $contribution = $wt / $we;
         $total_count ++;
-        my $node_ref = $tree->get_node_ref (node => $label);
+        my $node_ref = $tree->get_node_ref_aa ($label);
         my $node_name = $label;
 
-        #  climb the tree and add the contributions
+        #  Climb the tree and add the contributions.
+        #  Depth is off by one so the root is $i==-1.
         my $i = $depth;
-        while (! $node_ref->is_root_node) {
+        while ($i >= 0) {
             $hash_ref_array[$i]{$node_name} += $contribution;
             $count_array[$i]{$node_name} ++;
             $i--;

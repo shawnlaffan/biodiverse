@@ -577,10 +577,6 @@ sub get_path_lengths_to_root_node {
     #$cache = 0;  #  turn it off for debug
     my $el_list = $args{el_list} // [];
 
-    # if ($self->get_hierarchical_mode && $args{current_node_name}) {
-    #     say STDERR 'KOO ' . ($args{current_node_name} // 'undef') . ' '
-    #     . scalar @{$args{element_list1} //[]};
-    # }
     return $self->_get_path_lengths_to_root_node_hierarchical(%args)
         if defined $args{current_node_name}
             && $self->get_hierarchical_mode

@@ -2418,6 +2418,7 @@ sub compare_lists_by_item {
     \my %base_ref = $args{base_list_ref};
     \my %comp_ref = $args{comp_list_ref};
     \my %results   = $args{results_list_ref};
+    my ($diff, $increment);
 
   COMP_BY_ITEM:
     foreach my $index (keys %base_ref) {
@@ -2428,8 +2429,8 @@ sub compare_lists_by_item {
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
-        my $diff = $base_ref{$index} - $comp_ref{$index};
-        my $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
+        $diff = $base_ref{$index} - $comp_ref{$index};
+        $increment = $diff > DEFAULT_PRECISION_SMALL ? 1 : 0;
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  

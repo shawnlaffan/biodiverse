@@ -204,7 +204,7 @@ sub get_metadata_calc_last_shared_ancestor_props {
         type            => 'Phylogenetic Indices',
         required_args   => ['tree_ref'],
         pre_calc        => [
-            'calc_abc', 'get_sub_tree_as_hash',
+            '_calc_abc_any', 'get_sub_tree_as_hash',
             'get_last_shared_ancestor_from_subtree',
         ],
         uses_nbr_lists  => 1,  #  how many lists it must have
@@ -1603,7 +1603,7 @@ sub get_metadata_calc_labels_on_tree {
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => ['tree_ref'],
     );
@@ -1646,7 +1646,7 @@ sub get_metadata_calc_labels_not_on_tree {
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
-        pre_calc        => ['calc_abc'],
+        pre_calc        => ['_calc_abc_any'],
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => ['tree_ref'],
     );
@@ -2533,7 +2533,7 @@ sub get_metadata_calc_phylo_abc {
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Turnover',
         # pre_calc        =>  [qw /_calc_phylo_abc_lists calc_abc/],
-        pre_calc        =>  [qw /calc_abc/],
+        pre_calc        =>  ['_calc_abc_any'],
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache set_path_length_cache_by_group_flag/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
         distribution    => 'nonnegative',  # default
@@ -2945,7 +2945,7 @@ sub get_metadata_calc_phylo_aed {
         name            =>  'Evolutionary distinctiveness',
         description     =>  $descr,
         type            =>  'Phylogenetic Indices',
-        pre_calc        => [qw /calc_abc/],
+        pre_calc        => ['_calc_abc_any'],
         pre_calc_global => [qw /get_aed_scores/],
         uses_nbr_lists  =>  1,
         reference       => 'Cadotte & Davies (2010) https://doi.org/10.1111/j.1472-4642.2010.00650.x',

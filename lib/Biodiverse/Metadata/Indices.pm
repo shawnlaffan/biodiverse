@@ -4,6 +4,7 @@ use warnings;
 use 5.016;
 use Carp;
 use Readonly;
+use Ref::Util qw /is_hashref/;
 
 use parent qw /Biodiverse::Metadata/;
 
@@ -29,6 +30,9 @@ sub new {
     bless $self, $class;
 
     my $indices = $self->{indices} // {};
+    croak "Indices not a hash ref for $self->{name}"
+     if !is_hashref $indices;
+
     foreach my $index (keys %{$indices}) {
         #  triggers it being set
         $self->get_index_bounds ($index);

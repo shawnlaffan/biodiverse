@@ -2423,7 +2423,7 @@ sub compare_lists_by_item {
     foreach my $index (keys %base_ref) {
 
         next COMP_BY_ITEM
-          if !(defined $base_ref{$index} && defined $comp_ref{$index});
+          if !(defined $comp_ref{$index} && defined $base_ref{$index});
 
         #  compare at 10 decimal place precision
         #  this also allows for serialisation which
@@ -2441,18 +2441,18 @@ sub compare_lists_by_item {
         #   SUMX  is the sum of compared values
         #   SUMXX is the sum of squared compared values
         #   The latter two are used in z-score calcs
-        $results{"C_$index"} += $increment;
-        $results{"Q_$index"} ++;
-        $results{"P_$index"} =   $results{"C_$index"}
-                               / $results{"Q_$index"};
+        #  obfuscated to squeeze as much speed as we can
+        # $results{"C_$index"} += $increment;
+        # $results{"Q_$index"} ++;
+        $results{"P_$index"} =   ($results{"C_$index"} += $increment)
+                               / (++$results{"Q_$index"});
         # use original vals for sums
-        $results{"SUMX_$index"}  +=  $comp_ref{$index};  
-        $results{"SUMXX_$index"} += ($comp_ref{$index}**2);  
+        $results{"SUMX_$index"}  +=  $comp_ref{$index};
+        $results{"SUMXX_$index"} += ($comp_ref{$index}**2);
 
         #  track the number of ties
-        if (abs($diff) <= DEFAULT_PRECISION_SMALL) {
-            $results{"T_$index"} ++;
-        }
+        $results{"T_$index"} ++
+          if (abs($diff) <= DEFAULT_PRECISION_SMALL);
     }
     
     return;

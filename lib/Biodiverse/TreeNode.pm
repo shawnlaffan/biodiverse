@@ -2445,14 +2445,22 @@ sub add_to_lists {
             $self->{$list} = $values;
         }
         elsif (is_hashref($values)) {
-            $self->{$list} = {} if ! exists $self->{$list};
-            next if ! scalar keys %$values;
-            @{$self->{$list}}{keys %$values} = values %$values;  #  add using a slice
-        }
+            if (!$self->{$list}) {
+                $self->{$list} = {%$values};
+            }
+            else {
+                next if !scalar keys %$values;
+                @{$self->{$list}}{keys %$values} = values %$values;
+            }
+       }
         elsif (is_arrayref($values)) {
-            $self->{$list} = [] if ! exists $self->{$list};
-            next if ! scalar @$values;
-            push @{$self->{$list}}, @$values;
+            if (!$self->{$list}) {
+                $self->{$list} = [@$values];
+            }
+            else {
+                next if !scalar @$values;
+                push @{$self->{$list}}, @$values;
+            }
         }
         else {
             croak "add_to_lists warning, no valid list ref passed\n";

@@ -578,7 +578,7 @@ sub get_path_lengths_to_root_node {
     my $el_list = $args{el_list} // [];
 
     return $self->_get_path_lengths_to_root_node_hierarchical(%args)
-        if defined $args{current_node_name}
+        if defined $args{current_node_details}
             && $self->get_hierarchical_mode
             && scalar @{$args{element_list1} //[]} > 1;
 
@@ -688,10 +688,13 @@ sub get_path_lengths_to_root_node {
 sub _get_path_lengths_to_root_node_hierarchical {
     my ($self, %args) = @_;
 
-    my $current_node_name = $args{current_node_name}
-        // croak 'Must pass the current node name when in hierarchical mode';
-    my $child_names = $args{current_node_child_names};
-    my $cache_h     = $args{path_length_cache};
+    my $node_data = $args{current_node_details}
+        // croak 'Must pass the current node details when in hierarchical mode';
+    my $node_name = $node_data->{name}
+        // croak 'Missing current node name in hierarchical mode';
+    my $child_names = $node_data->{child_names};
+
+    my $cache_h = $args{path_length_cache};
 
     my %path_combined;
 
@@ -699,12 +702,12 @@ sub _get_path_lengths_to_root_node_hierarchical {
         my $path = $cache_h->{$child};
         if (!$path) {
             #  need to calculate it
-            delete local $args{$current_node_name};
+            delete local $args{current_node_details};
             $path = $self->get_path_lengths_to_root_node(%args);
         }
         @path_combined{keys %$path} = values %$path;
     }
-    $cache_h->{$current_node_name} = \%path_combined;
+    $cache_h->{$node_name} = \%path_combined;
 
     return wantarray ? %path_combined : \%path_combined;
 }

@@ -2811,13 +2811,16 @@ sub sp_calc {
             $count / $to_do,
         );
 
-        my @child_names = map {$_->get_name} $node->get_children;
+        #  needs a better name
+        my $current_node_details = {
+            name        => $node->get_name,
+            child_names => [map {$_->get_name} $node->get_children],
+        };
 
         my %sp_calc_values = $indices_object->run_calculations(
             %args,
-            element_list1            => [ keys %{$node->get_terminal_elements} ],
-            current_node_name        => $node->get_name,
-            current_node_child_names => \@child_names,
+            element_list1        => [ keys %{$node->get_terminal_elements} ],
+            current_node_details => $current_node_details,
         );
 
         foreach my $key (keys %sp_calc_values) {

@@ -19,7 +19,7 @@ sub _calc_pe {
     my $element_list_all = $args{element_list_all};
 
     return $self->_calc_pe_hierarchical(%args)
-      if defined $args{current_node_name}
+      if defined $args{current_node_details}
           && $self->get_hierarchical_mode
           && @$element_list_all > 1;
 
@@ -164,16 +164,15 @@ sub _calc_pe_hierarchical {
 
     my $element_list_all = $args{element_list_all};
 
-    my $current_node_name = $args{current_node_name}
-        // croak 'Must pass the current node name when in hierarchical mode';
-    my $child_names = $args{current_node_child_names};
+    my $node_data = $args{current_node_details}
+        // croak 'Must pass the current node details when in hierarchical mode';
+    my $node_name = $node_data->{name}
+        // croak 'Missing current node name in hierarchical mode';
+    my $child_names = $node_data->{child_names};
 
     my $tree_ref         = $args{trimmed_tree};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     \my %node_ranges     = $args{node_range};
-    # \my %rw_node_lengths = $args{inverse_range_weighted_node_lengths};
-
-    # my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     #  default these to undef - more meaningful than zero
     my ($PE_WE, $PE_WE_P);
@@ -188,8 +187,10 @@ sub _calc_pe_hierarchical {
         }
         else {
             #  do it the hard way
-            delete local $args{current_node_name};
-            $results_cache->{$group} = $self->_calc_pe (%args);
+            delete local $args{current_node_details};
+            $results_this_gp
+                = $results_cache->{$group}
+                = $self->_calc_pe (%args);
         }
 
         if (defined $results_this_gp->{PE_WE}) {
@@ -249,7 +250,7 @@ sub _calc_pe_hierarchical {
     $results{PE_WE_P} = $PE_WE_P;
     $results{PE_LOCAL_RANGELIST} = \%local_ranges;
 
-    $results_cache->{$current_node_name} = {%results{qw/PE_WE PE_WTLIST/}};
+    $results_cache->{$node_name} = {%results{qw/PE_WE PE_WTLIST/}};
 
     return wantarray ? %results : \%results;
 }

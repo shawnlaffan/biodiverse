@@ -794,13 +794,11 @@ sub parse_dependencies_for_calc {
                   $self->_convert_to_array( input => $required_args );
 
                 foreach my $required_arg ( sort @$reqd_args_a ) {
-                    my $re = qr /^($required_arg)$/
-                      ; #  match is used in the grep?  Was used in now-removed code.
+                    my $re = qr /^($required_arg)$/;
                     my $is_defined;
                   CALC_ARG:
                     foreach
-                      my $calc_arg ( sort grep { $_ =~ $re } keys %$calc_args )
-                    {
+                      my $calc_arg ( sort grep { $_ =~ $re } keys %$calc_args ) {
                         if ( defined $calc_args->{$calc_arg} ) {
                             $is_defined++;
                             last CALC_ARG;

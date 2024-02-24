@@ -2827,7 +2827,10 @@ sub sp_calc {
             if (is_arrayref($sp_calc_values{$key}) 
                 || is_hashref($sp_calc_values{$key})) {
                 
-                $node->add_to_lists ($key => $sp_calc_values{$key});
+                $node->add_to_lists (
+                    $key    => $sp_calc_values{$key},
+                    use_ref => 1,
+                );
                 delete $sp_calc_values{$key};
             }
         }
